@@ -1,0 +1,7 @@
+{
+  "name": "music-mind-academy",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "postinstall": "cd backend && npm install"
+  }
+}
