@@ -1,0 +1,210 @@
+// src/components/dashboard/teacherdashboard/EditAssignmentPage.jsx
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../../../context/AuthContext';
+import Sidebar from '../../layout/Sidebar';
+import Topbar from '../../layout/Topbar';
+import ToastNotification from '../../layout/ToastNotification';
+import { ArrowLeft, Edit, Save, XCircle } from 'lucide-react';
+
+const API_BASE_URL = 'http://localhost:5000/api';
+
+const EditAssignmentPage = ({ showToast }) => {
+    const { assignmentId } = useParams();
+    const navigate = useNavigate();
+    const { user, token, isAuthenticated, isLoading: authLoading } = useAuth();
+
+    const [isLoading, setIsLoading] = useState(true);
+    const [assignment, setAssignment] = useState(null);
+    const [students, setStudents] = useState([]);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedTitle, setEditedTitle] = useState('');
+    const [editedDescription, setEditedDescription] = useState('');
+    const [editedDueDate, setEditedDueDate] = useState('');
+
+    const showToastLocal = showToast || useCallback((message, type = 'info') => {
+        // This is a placeholder as the real toast is handled by the parent component
+        console.log(`Toast: ${message} (${type})`);
+    }, []);
+
+    useEffect(() => {
+        if (!authLoading && !isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+
+        const fetchAssignmentDetails = async () => {
+            try {
+                const res = await axios.get(`${API_BASE_URL}/teachers/assignments/edit/${assignmentId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const { assignmentDetails, assignedStudents } = res.data;
+                
+                setAssignment(assignmentDetails);
+                setStudents(assignedStudents);
+                setEditedTitle(assignmentDetails.title);
+                setEditedDescription(assignmentDetails.description);
+                setEditedDueDate(assignmentDetails.dueDate ? new Date(assignmentDetails.dueDate).toISOString().split('T')[0] : '');
+            } catch (error) {
+                console.error('Error fetching assignment details:', error);
+                showToastLocal('Failed to load assignment details.', 'error');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        if (isAuthenticated && !authLoading && assignmentId) {
+            fetchAssignmentDetails();
+        }
+    }, [isAuthenticated, authLoading, assignmentId, token, navigate, showToastLocal]);
+
+    const handleUpdateAssignment = async () => {
+        try {
+            const updatedData = {
+                title: editedTitle,
+                description: editedDescription,
+                dueDate: editedDueDate,
+            };
+
+            await axios.put(`${API_BASE_URL}/teachers/assignments/${assignmentId}`, updatedData, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            showToastLocal('Assignment updated successfully!', 'success');
+            setIsEditing(false);
+            // Re-fetch data to show updated values
+            window.location.reload(); 
+        } catch (error) {
+            console.error('Error updating assignment:', error);
+            showToastLocal('Failed to update assignment.', 'error');
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
+
+    if (!assignment) {
+        return <div>Assignment not found.</div>;
+    }
+
+    return (
+        <div className="min-h-screen bg-blue-50 flex">
+            {/* Sidebar and Topbar would be here */}
+            <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+                <div className="flex-1 overflow-auto p-6">
+                    <button
+                        onClick={() => navigate('/teacher')}
+                        className="flex items-center text-gray-600 hover:text-gray-800 transition-colors mb-4 p-2 rounded-lg hover:bg-gray-100"
+                    >
+                        <ArrowLeft size={20} className="mr-2" />
+                        Back to Dashboard
+                    </button>
+
+                    <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h1 className="text-3xl font-bold text-gray-800">
+                                {isEditing ? (
+                                    <input
+                                        type="text"
+                                        value={editedTitle}
+                                        onChange={(e) => setEditedTitle(e.target.value)}
+                                        className="text-3xl font-bold w-full rounded-md border-gray-300 shadow-sm"
+                                    />
+                                ) : (
+                                    assignment.title
+                                )}
+                            </h1>
+                            {!isEditing ? (
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="flex items-center px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors"
+                                >
+                                    <Edit size={20} className="mr-2" />
+                                    Edit
+                                </button>
+                            ) : (
+                                <div className="flex space-x-2">
+                                    <button
+                                        onClick={handleUpdateAssignment}
+                                        className="flex items-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                                    >
+                                        <Save size={20} className="mr-2" />
+                                        Save
+                                    </button>
+                                    <button
+                                        onClick={() => setIsEditing(false)}
+                                        className="flex items-center px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500 transition-colors"
+                                    >
+                                        <XCircle size={20} className="mr-2" />
+                                        Cancel
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-4">
+                            <h2 className="text-xl font-semibold text-gray-700">Details</h2>
+                            <p className="text-gray-600 mt-2">
+                                <span className="font-medium">Description:</span>
+                                {isEditing ? (
+                                    <textarea
+                                        value={editedDescription}
+                                        onChange={(e) => setEditedDescription(e.target.value)}
+                                        rows="2"
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                                    ></textarea>
+                                ) : (
+                                    ` ${assignment.description}`
+                                )}
+                            </p>
+                            <p className="text-gray-600 mt-2">
+                                <span className="font-medium">Due Date:</span>
+                                {isEditing ? (
+                                    <input
+                                        type="date"
+                                        value={editedDueDate}
+                                        onChange={(e) => setEditedDueDate(e.target.value)}
+                                        className="mt-1 block rounded-md border-gray-300 shadow-sm"
+                                    />
+                                ) : (
+                                    ` ${assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'Not set'}`
+                                )}
+                            </p>
+                            <p className="text-gray-600 mt-2">
+                                <span className="font-medium">Class:</span> {assignment.class?.className || 'N/A'}
+                            </p>
+                            <p className="text-gray-600 mt-2">
+                                <span className="font-medium">Project:</span> {assignment.project}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <h2 className="text-xl font-bold text-gray-800 mb-4">Assigned Students</h2>
+                        {students.length === 0 ? (
+                            <p className="text-gray-500">No students found for this assignment.</p>
+                        ) : (
+                            <ul className="space-y-2">
+                                {students.map(student => (
+                                    <li key={student._id} className="p-3 border-b last:border-b-0">
+                                        <p className="font-medium text-gray-700">{student.student.name}</p>
+                                        <p className="text-sm text-gray-500">Status: {student.status}</p>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default EditAssignmentPage;

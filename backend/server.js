@@ -1,0 +1,178 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+require('dotenv').config();
+
+// Import Models
+const User = require('./models/User');
+const School = require('./models/School');
+const Class = require('./models/Class');
+
+// Import Routes
+const authRoutes = require('./routes/authRoutes');
+const teacherRoutes = require('./routes/teacherRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const studentRoutes = require('./routes/studentRoutes');
+const submissionRoutes = require('./routes/submissions');
+const assignmentRoutes = require('./routes/assignmentRoutes');
+const loopsRoutes = require('./routes/loopsRoutes'); // Add this line
+
+// Create the Express application
+const app = express();
+
+// Middleware to parse JSON bodies and enable CORS
+app.use(express.json());
+app.use(cors());
+
+// Add request logging middleware to debug connectivity
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+  if (req.headers.authorization) {
+    console.log('Auth header present');
+  }
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log('Request body:', req.body);
+  }
+  next();
+});
+
+// Define the MongoDB connection URL
+const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017/teacher_app';
+
+// Connect to MongoDB
+mongoose.connect(dbUrl)
+    .then(() => console.log('✅ MongoDB connected successfully'))
+    .catch(err => console.error('❌ MongoDB connection error:', err));
+
+// Use the imported routes
+app.use('/api/auth', authRoutes);
+app.use('/api/teachers', teacherRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/submissions', submissionRoutes);
+app.use('/api/assignments', assignmentRoutes);
+app.use('/api/loops', loopsRoutes); // Add this line
+
+// A simple test route to check if the server is working
+app.get('/', (req, res) => {
+    res.json({
+        message: 'Music Education Platform API is running!',
+        version: '1.0.0',
+        endpoints: {
+            auth: '/api/auth/login',
+            admin: {
+                stats: '/api/admin/stats',
+                teachers: '/api/admin/teachers',
+                students: '/api/admin/students',
+                schools: '/api/admin/schools'
+            },
+            loops: '/api/loops' // Add this line
+        }
+    });
+});
+
+// Initialize default admin user
+const initializeAdmin = async () => {
+  try {
+    const adminExists = await User.findOne({ role: 'admin' });
+    if (!adminExists) {
+      const bcrypt = require('bcryptjs');
+      const hashedPassword = await bcrypt.hash('AdminPassword123!', 12);
+      const admin = new User({
+        name: 'System Administrator',
+        email: 'admin@musiceducation.com',
+        password: hashedPassword,
+        role: 'admin',
+        status: 'active'
+      });
+      await admin.save();
+      console.log('✅ Default admin user created successfully');
+    } else {
+      console.log('✅ Admin user already exists');
+    }
+  } catch (error) {
+    console.error('❌ Error creating admin user:', error);
+  }
+};
+
+// Added a check for an existing class to prevent re-initialization on every server restart
+const initializeSampleData = async () => {
+  try {
+    const classCount = await Class.countDocuments();
+    if (classCount > 0) {
+        console.log('✅ Classes already exist, skipping sample data initialization.');
+        return;
+    }
+
+    const schoolCount = await School.countDocuments();
+    if (schoolCount === 0) {
+      const sampleSchools = [
+        { name: 'Lincoln Elementary School', address: '123 Main Street, Springfield, IL 62701', phone: '(555) 100-2000', email: 'admin@lincoln.edu', principal: 'Dr. Jane Anderson', type: 'Elementary' },
+        { name: 'Roosevelt High School', address: '456 Oak Avenue, Springfield, IL 62702', phone: '(555) 200-3000', email: 'office@roosevelt.edu', principal: 'Mr. Robert Wilson', type: 'High School' }
+      ];
+      await School.insertMany(sampleSchools);
+      console.log('✅ Sample schools created');
+    }
+    const bcrypt = require('bcryptjs');
+    const { v4: uuidv4 } = require('uuid');
+    const generateClassCode = () => uuidv4();
+    const hashedPassword = await bcrypt.hash('teacher123', 12);
+    const teacher1 = await User.create({ name: 'Sarah Johnson', email: 'sarah.johnson@school.edu', password: hashedPassword, phone: '(555) 123-4567', school: 'Lincoln Elementary School', subjects: ['Music Theory', 'Vocal Training'], role: 'teacher', studentsCount: 0 });
+    const teacher2 = await User.create({ name: 'Michael Chen', email: 'michael.chen@school.edu', password: hashedPassword, phone: '(555) 234-5678', school: 'Roosevelt High School', subjects: ['Piano', 'Composition'], role: 'teacher', studentsCount: 0 });
+    const studentHashedPassword = await bcrypt.hash('student123', 12);
+    const student1 = await User.create({ name: 'Alice Johnson', email: 'alice.johnson@email.com', password: studentHashedPassword, phone: '(555) 111-2222', school: 'Lincoln Elementary School', teacher: teacher1._id, role: 'student', grade: 'A-', progress: 85 });
+    const student2 = await User.create({ name: 'Bob Smith', email: 'bob.smith@email.com', password: studentHashedPassword, phone: '(555) 222-3333', school: 'Roosevelt High School', teacher: teacher2._id, role: 'student', grade: 'B+', progress: 72 });
+    const class1 = await Class.create({ className: 'Music Theory 101', teacher: teacher1._id, teacherName: teacher1.name, students: [student1._id], classCode: generateClassCode() });
+    student1.class = class1._id;
+    await student1.save();
+    const class2 = await Class.create({ className: 'Piano Fundamentals', teacher: teacher2._id, teacherName: teacher2.name, students: [student2._id], classCode: generateClassCode() });
+    student2.class = class2._id;
+    await student2.save();
+    await User.findByIdAndUpdate(teacher1._id, { $inc: { studentsCount: 1 } });
+    await User.findByIdAndUpdate(teacher2._id, { $inc: { studentsCount: 1 } });
+    await School.findOneAndUpdate({ name: 'Lincoln Elementary School' }, { $inc: { teacherCount: 1, studentCount: 1 } });
+    await School.findOneAndUpdate({ name: 'Roosevelt High School' }, { $inc: { teacherCount: 1, studentCount: 1 } });
+    console.log('✅ Sample data initialization complete');
+  } catch (error) {
+    console.error('❌ Error creating sample data:', error);
+  }
+};
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Global error handler:', err);
+  res.status(500).json({ error: 'Internal server error', message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong' });
+});
+
+// 404 handler
+app.use((req, res) => {
+  console.log(`404 - Route not found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ error: 'Route not found', path: req.originalUrl, method: req.method });
+});
+
+// Start the server
+const PORT = process.env.PORT || 5000;
+mongoose.connection.once('open', async () => {
+  console.log('🚀 MongoDB connected successfully');
+  await initializeAdmin();
+  await initializeSampleData();
+  app.listen(PORT, () => {
+    console.log('=================================');
+    console.log(`🌟 Server running on port ${PORT}`);
+    console.log('=================================');
+    console.log('🔐 Default Credentials:');
+    console.log('   Admin Email: admin@musiceducation.com');
+    console.log('   Admin Password: AdminPassword123!');
+    console.log('   ');
+    console.log('   Teacher Email: sarah.johnson@school.edu');
+    console.log('   Teacher Password: teacher123');
+    console.log('   ');
+    console.log('   Student Email: alice.johnson@email.com');
+    console.log('   Student Password: student123');
+    console.log('=================================');
+  });
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('❌ MongoDB connection error:', err);
+});

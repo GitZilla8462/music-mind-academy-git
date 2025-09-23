@@ -1,0 +1,63 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
+
+const API_BASE_URL = 'http://localhost:5000/api';
+
+const ClassSelect = ({ onSelectClass }) => {
+    const [classes, setClasses] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const { token } = useAuth();
+
+    useEffect(() => {
+        const fetchClasses = async () => {
+            try {
+                const response = await axios.get(`${API_BASE_URL}/teachers/classes`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setClasses(response.data);
+            } catch (err) {
+                console.error('Failed to fetch classes:', err);
+                setError('Failed to load your classes.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        if (token) {
+            fetchClasses();
+        }
+    }, [token]);
+
+    if (isLoading) {
+        return <div className="text-gray-500">Loading classes...</div>;
+    }
+
+    if (error) {
+        return <div className="text-red-500">{error}</div>;
+    }
+
+    if (classes.length === 0) {
+        return <div className="text-gray-500">No classes found. Please create a class first.</div>;
+    }
+
+    return (
+        <div>
+            <label htmlFor="classId" className="block text-sm font-medium text-gray-700">Select Class</label>
+            <select
+                id="classId"
+                name="classId"
+                onChange={(e) => onSelectClass(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            >
+                <option value="">-- Select a Class --</option>
+                {classes.map(cls => (
+                    <option key={cls._id} value={cls._id}>{cls.className}</option>
+                ))}
+            </select>
+        </div>
+    );
+};
+
+export default ClassSelect;

@@ -1,0 +1,626 @@
+/* src/styles/index.css - Tailwind-friendly version */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base font settings */
+@layer base {
+  html {
+    /* Prevent zoom on form inputs on iOS */
+    font-size: 16px;
+  }
+  
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
+      "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Improve touch interaction on mobile */
+  button, input, select, textarea {
+    /* Prevent iOS zoom on form elements */
+    font-size: 16px;
+  }
+}
+
+/* Custom utilities layer */
+@layer utilities {
+  /* Touch-friendly interactive elements */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+
+  /* Mobile exercise specific styles */
+  .mobile-exercise {
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile browsers */
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .desktop-exercise {
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* Haptic feedback simulation */
+  .haptic-feedback {
+    transition: transform 0.1s ease;
+  }
+
+  .haptic-feedback:active {
+    transform: scale(0.95);
+  }
+
+  /* iOS specific fixes */
+  .ios-fix {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Music staff mobile enhancements */
+  .music-staff-mobile {
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: pan-x pan-y;
+  }
+
+  /* Responsive text utilities */
+  .text-responsive {
+    font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+    line-height: 1.4;
+  }
+
+  .text-responsive-large {
+    font-size: clamp(1.125rem, 4vw, 1.5rem);
+    line-height: 1.3;
+  }
+}
+
+/* Component layer for reusable patterns */
+@layer components {
+  /* Mobile-optimized toast notifications */
+  .toast-enter {
+    animation: slideIn 0.3s ease-out forwards;
+  }
+
+  /* Loading spinner */
+  .loading-spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  /* Mobile button improvements */
+  .mobile-button {
+    min-height: 48px;
+    min-width: 48px;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-button:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+}
+
+/* Animations */
+@keyframes slideIn {
+  from { 
+    transform: translateY(-20px); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateY(0); 
+    opacity: 1; 
+  }
+}
+
+@keyframes slideInMobile {
+  from { 
+    transform: translateY(-10px); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateY(0); 
+    opacity: 1; 
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobile-specific responsive styles */
+@media (max-width: 768px) {
+  .toast-enter {
+    animation: slideInMobile 0.3s ease-out forwards;
+  }
+  
+  .loading-spinner {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+/* Enhanced focus for touch devices */
+@media (hover: none) and (pointer: coarse) {
+  :focus {
+    outline: 3px solid #3b82f6;
+    outline-offset: 2px;
+  }
+}
+
+/* Landscape phone optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+  .landscape-optimize {
+    padding: 0.5rem;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .toast-enter,
+  .mobile-button:active,
+  .haptic-feedback:active {
+    transition: none;
+    animation: none;
+    transform: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .high-contrast-button {
+    border: 2px solid;
+    background-color: transparent;
+    color: inherit;
+  }
+}
+
+/* Custom scrollbar for a more polished look */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* App container responsive utilities */
+@layer utilities {
+  .app-container {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .mobile-layout {
+    /* Optimize for mobile browsers */
+    touch-action: manipulation;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .desktop-layout {
+    /* Standard desktop optimizations */
+    overflow-x: auto;
+  }
+
+  /* Music staff responsive utilities */
+  .music-staff-container {
+    /* Ensure music staff scales properly */
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Button grid responsive utilities */
+  .solfege-button-grid {
+    display: grid;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Canvas and SVG responsive scaling */
+  .music-canvas {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+  }
+
+  /* Safe area handling for devices with notches */
+  .safe-area-padding {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  /* iOS full height fix */
+  .ios-full-height {
+    height: -webkit-fill-available;
+  }
+
+  /* Android optimization */
+  .android-optimization {
+    /* Better scrolling performance */
+    transform: translateZ(0);
+    will-change: transform;
+  }
+}
+
+/* Additional component patterns */
+@layer components {
+  /* Exercise header responsive utilities */
+  .exercise-header {
+    width: 100%;
+  }
+
+  /* Feedback message responsive utilities */
+  .feedback-message {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Results card responsive utilities */
+  .results-card {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Exercise header specific mobile styles */
+  .exercise-header-mobile {
+    padding: 0.75rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .exercise-header-mobile h1 {
+    font-size: 1.125rem;
+    line-height: 1.4;
+    margin-bottom: 0.25rem;
+  }
+
+  .exercise-header-mobile p {
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: #6b7280;
+  }
+
+  /* Tablet-specific optimizations */
+  .tablet-optimization {
+    /* Optimize spacing for tablet */
+    padding: 1rem 1.5rem;
+  }
+
+  .tablet-button {
+    min-height: 44px;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+  }
+
+  /* Results card mobile styling */
+  .results-card-mobile {
+    margin: 0.5rem;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .results-card-mobile h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .results-card-mobile p {
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+
+  /* High contrast button */
+  .high-contrast-button {
+    border: 2px solid;
+    background-color: transparent;
+    color: inherit;
+  }
+
+  /* Container queries support (future-proofing) */
+  .container-mobile {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Mobile-specific responsive styles */
+@media (max-width: 768px) {
+  .toast-enter {
+    animation: slideInMobile 0.3s ease-out forwards;
+  }
+  
+  .loading-spinner {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  /* Improve tap targets on mobile */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent horizontal scroll on mobile */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Better spacing for mobile */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Music staff container mobile */
+  .music-staff-container {
+    /* Mobile: tighter spacing */
+    padding: 0.75rem;
+  }
+  
+  /* Smaller text on mobile for better fit */
+  .music-notation {
+    font-size: 0.875rem;
+  }
+
+  /* Mobile: 2 columns for better touch targets */
+  .solfege-button-grid {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 20rem;
+    margin: 0 auto;
+  }
+
+  /* Exercise header mobile */
+  .exercise-header {
+    /* Mobile: stack elements vertically */
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  
+  .exercise-title {
+    font-size: 1.25rem;
+    line-height: 1.5;
+  }
+  
+  .exercise-subtitle {
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+
+  /* Feedback message mobile */
+  .feedback-message {
+    font-size: 0.875rem;
+    padding: 0.5rem;
+  }
+
+  /* Results card mobile */
+  .results-card {
+    /* Mobile: full width, compact padding */
+    margin: 0.5rem;
+    padding: 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .results-card h3 {
+    font-size: 1.25rem;
+  }
+
+  /* Canvas mobile */
+  .music-canvas {
+    /* Mobile: ensure canvas doesn't overflow */
+    max-width: calc(100vw - 2rem);
+  }
+
+  /* Music staff mobile styling */
+  .music-staff-mobile {
+    /* Mobile-specific music staff styling */
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Adjust note spacing for mobile */
+  .music-notation-mobile {
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+  }
+}
+
+/* Tablet-specific adjustments */
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* Optimize for tablet portrait/landscape */
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .music-staff-container {
+    /* Tablet: moderate spacing */
+    padding: 1.5rem;
+  }
+  
+  .music-notation {
+    font-size: 1rem;
+  }
+
+  /* Tablet: flexible columns */
+  .solfege-button-grid {
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    max-width: 32rem;
+    margin: 0 auto;
+  }
+
+  /* Tablet and desktop: horizontal layout */
+  .exercise-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .exercise-title {
+    font-size: 1.5rem;
+  }
+  
+  .exercise-subtitle {
+    font-size: 1rem;
+  }
+
+  /* Feedback message tablet */
+  .feedback-message {
+    font-size: 1rem;
+    padding: 1rem;
+  }
+
+  /* Results card tablet */
+  .results-card {
+    /* Tablet and desktop: centered with margins */
+    margin: 1rem auto;
+    padding: 1.5rem;
+    max-width: 32rem;
+  }
+  
+  .results-card h3 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Desktop optimizations */
+@media (min-width: 1024px) {
+  .music-staff-container {
+    /* Desktop: full spacing */
+    padding: 2rem;
+  }
+  
+  .music-notation {
+    font-size: 1.125rem;
+  }
+
+  /* Desktop: horizontal flex layout */
+  .solfege-button-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+}
+
+/* Landscape phone optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+  .exercise-container {
+    /* Landscape mobile: optimize for horizontal space */
+    padding: 0.5rem;
+  }
+  
+  .music-staff-container {
+    padding: 0.5rem;
+    min-height: 250px;
+  }
+  
+  .solfege-button-grid {
+    /* Landscape: more horizontal buttons */
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.25rem;
+  }
+  
+  .solfege-button-grid button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* High DPI display optimization */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .music-notation,
+  .music-canvas {
+    /* Ensure crisp rendering on retina displays */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+  /* Add dark mode styles if needed */
+  .music-staff-container {
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+}
+
+/* Container queries support (future-proofing) */
+@container (max-width: 400px) {
+  .container-mobile {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari specific styles */
+  .ios-fix {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Android specific optimizations */
+@media screen and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: .001dpcm) {
+  /* Android Chrome specific styles */
+  .android-optimization {
+    /* Better scrolling performance */
+    transform: translateZ(0);
+    will-change: transform;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print,
+  .solfege-button-grid,
+  .feedback-message {
+    display: none;
+  }
+  
+  .music-staff-container {
+    background: white;
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+}
+
+/* Optional utility classes specific to your app */
+.vocal-grid-logo {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}

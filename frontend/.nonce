@@ -1,0 +1,4 @@
+<?php
+  $nonce = base64_encode(random_bytes(16));
+  header("Content-Security-Policy: script-src 'self' 'strict-dynamic' 'nonce-$nonce' https://cdnjs.cloudflare.com https://vocalgrid.com; object-src 'none'; base-uri 'none';");
+?>
