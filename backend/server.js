@@ -150,13 +150,15 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found', path: req.originalUrl, method: req.method });
 });
 
-// Start the server
+// Start the server - FIXED FOR RAILWAY DEPLOYMENT
 const PORT = process.env.PORT || 5000;
 mongoose.connection.once('open', async () => {
   console.log('🚀 MongoDB connected successfully');
   await initializeAdmin();
   await initializeSampleData();
-  app.listen(PORT, () => {
+  
+  // CRITICAL: Bind to 0.0.0.0 for Railway deployment accessibility
+  app.listen(PORT, '0.0.0.0', () => {
     console.log('=================================');
     console.log(`🌟 Server running on port ${PORT}`);
     console.log('=================================');
