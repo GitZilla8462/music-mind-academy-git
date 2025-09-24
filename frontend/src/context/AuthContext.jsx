@@ -1,8 +1,10 @@
 // AuthContext.jsx
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+
+// Import your API utility instead of using axios directly
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AuthContext = createContext(null);
 
@@ -12,14 +14,6 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-
-    const setAuthHeader = (token) => {
-        if (token) {
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        } else {
-            delete axios.defaults.headers.common['Authorization'];
-        }
-    };
 
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
@@ -31,33 +25,56 @@ export const AuthProvider = ({ children }) => {
                 setToken(storedToken);
                 setUser(userData);
                 setIsAuthenticated(true);
-                setAuthHeader(storedToken);
             } catch (error) {
                 console.error('Error parsing stored user data:', error);
                 localStorage.removeItem('token');
                 localStorage.removeItem('user_data');
                 localStorage.removeItem('user_role');
-                setAuthHeader(null);
             }
         }
         setLoading(false);
     }, []);
 
-    // ✅ FIXED: Updated login function to accept usernameOrEmail
+    // Helper function to make API requests
+    const apiRequest = async (endpoint, options = {}) => {
+        const url = `${API_BASE_URL}${endpoint}`;
+        console.log('🌐 Making API request to:', url); // Debug log
+        
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+            },
+            ...options
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.msg || errorData.message || 'API request failed');
+        }
+        
+        return response.json();
+    };
+
     const login = async (usernameOrEmail, password) => {
         setLoading(true);
         try {
             console.log('🚀 Attempting login for:', usernameOrEmail);
+            console.log('🔍 Using API base URL:', API_BASE_URL);
             
-            // ✅ Check if the input is an email address
+            // Check if the input is an email address
             const payload = usernameOrEmail.includes('@')
                 ? { email: usernameOrEmail, password }
                 : { name: usernameOrEmail, password };
 
-            const res = await axios.post('http://localhost:5000/api/auth/login', payload);
-            console.log('✅ Login response received:', res.data);
+            const data = await apiRequest('/api/auth/login', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
             
-            const { token: newToken, user: userData } = res.data;
+            console.log('✅ Login response received:', data);
+            
+            const { token: newToken, user: userData } = data;
             
             if (!newToken || !userData) {
                 setLoading(false);
@@ -67,8 +84,6 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('token', newToken);
             localStorage.setItem('user_role', userData.role);
             localStorage.setItem('user_data', JSON.stringify(userData));
-            
-            setAuthHeader(newToken);
             
             setToken(newToken);
             setUser(userData);
@@ -87,21 +102,23 @@ export const AuthProvider = ({ children }) => {
             setLoading(false);
             return { success: true };
         } catch (error) {
+            console.error('Login error:', error);
             setLoading(false);
             return { 
                 success: false, 
-                error: error.response?.data?.msg || 'Login failed. Please try again.' 
+                error: error.message || 'Login failed. Please try again.' 
             };
         }
     };
 
-    // ... (rest of AuthContext.jsx remains unchanged)
     const register = async (name, email, password, role = 'student') => {
         setLoading(true);
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/register', { 
-                name, email, password, role 
+            const data = await apiRequest('/api/auth/register', {
+                method: 'POST',
+                body: JSON.stringify({ name, email, password, role })
             });
+            
             setLoading(false);
             return { success: true, message: 'Registration successful! Please log in.' };
         } catch (error) {
@@ -109,7 +126,7 @@ export const AuthProvider = ({ children }) => {
             setLoading(false);
             return { 
                 success: false, 
-                error: error.response?.data?.msg || 'Registration failed' 
+                error: error.message || 'Registration failed' 
             };
         }
     };
@@ -118,7 +135,6 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('token');
         localStorage.removeItem('user_role');
         localStorage.removeItem('user_data');
-        setAuthHeader(null);
         setToken(null);
         setIsAuthenticated(false);
         setUser(null);
@@ -147,4 +163,3 @@ export const useAuth = () => {
     }
     return context;
 };
-
