@@ -3,8 +3,13 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Import your API utility instead of using axios directly
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Temporary fix: hardcode production URL since REACT_APP_API_URL isn't being loaded by Vercel
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://music-mind-academy-git-production.up.railway.app'
+  : 'http://localhost:5000';
+
+console.log('🔍 NODE_ENV:', process.env.NODE_ENV);
+console.log('🔍 Using API base URL:', API_BASE_URL);
 
 const AuthContext = createContext(null);
 
