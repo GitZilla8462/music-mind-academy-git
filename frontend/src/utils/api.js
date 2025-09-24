@@ -3,8 +3,13 @@
  * API utility for making authenticated requests
  */
 
-// Base API URL - replace with your actual API URL
-const API_URL = '/api';
+// Base API URL - automatically adapts to environment
+const API_URL = process.env.REACT_APP_API_URL || '/api';
+
+// Debug logging - TEMPORARY
+console.log('🔍 API_URL being used:', API_URL);
+console.log('🔍 Environment variable:', process.env.REACT_APP_API_URL);
+console.log('🔍 All REACT_APP_ env vars:', Object.keys(process.env).filter(key => key.startsWith('REACT_APP_')));
 
 /**
  * Makes an authenticated API request
@@ -19,7 +24,13 @@ export const apiRequest = async (endpoint, options = {}) => {
     throw new Error('No authentication token found');
   }
   
-  const url = `${API_URL}${endpoint}`;
+  // Handle both absolute URLs (Railway) and relative URLs (local)
+  const url = API_URL.startsWith('http') 
+    ? `${API_URL}${endpoint}` 
+    : `${API_URL}${endpoint}`;
+  
+  // Debug the actual URL being called
+  console.log('🌐 Making API request to:', url);
   
   const headers = {
     'Content-Type': 'application/json',
