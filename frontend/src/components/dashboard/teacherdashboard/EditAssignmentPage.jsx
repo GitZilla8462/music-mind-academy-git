@@ -9,7 +9,9 @@ import Topbar from '../../layout/Topbar';
 import ToastNotification from '../../layout/ToastNotification';
 import { ArrowLeft, Edit, Save, XCircle } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+    ? 'https://music-mind-academy-git-production.up.railway.app/api' 
+    : 'http://localhost:5000/api';
 
 const EditAssignmentPage = ({ showToast }) => {
     const { assignmentId } = useParams();
