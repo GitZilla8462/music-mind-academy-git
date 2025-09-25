@@ -6,6 +6,10 @@ import AssignmentsSubTab from './AssignmentsSubTab';
 import axios from 'axios';
 import { useAuth } from '../../../context/AuthContext';
 
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+    ? 'https://music-mind-academy-git-production.up.railway.app/api' 
+    : 'http://localhost:5000/api';
+
 // A simple component to show the classes list
 const ClassesSubTab = ({ classes, onManageClass }) => (
     <div className="space-y-4">
@@ -44,7 +48,7 @@ const ClassesAndAssignmentsTab = ({
     const handleDeleteAllAssignments = async () => {
         if (window.confirm('Are you sure you want to delete ALL assignments? This cannot be undone.')) {
             try {
-                const response = await axios.delete('http://localhost:5000/api/teachers/assignments/all', {
+                const response = await axios.delete(`${API_BASE_URL}/teachers/assignments/all`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 showToast(response.data.message, 'success');
