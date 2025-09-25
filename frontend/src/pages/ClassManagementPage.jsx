@@ -6,8 +6,10 @@ import axios from 'axios';
 import { PlusCircle, Trash2, Edit2, ChevronLeft, Users, Copy } from 'lucide-react';
 import { useAuth } from '../context/AuthContext'; // Import useAuth to get the token
 
-const API_BASE_URL = 'http://localhost:5000';
-
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+    ? 'https://music-mind-academy-git-production.up.railway.app' 
+    : 'http://localhost:5000';
+    
 const ClassManagementPage = ({ showToast }) => {
   const { classId } = useParams();
   const navigate = useNavigate();
