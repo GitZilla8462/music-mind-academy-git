@@ -7,7 +7,10 @@ import { format } from 'date-fns';
 import Sidebar from '../components/layout/Sidebar';
 import CreateClassTab from '../components/dashboard/teacherdashboard/CreateClassTab';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+// Fixed: Environment-aware API URL
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://music-mind-academy-git-production.up.railway.app/api' 
+  : 'http://localhost:5000/api';
 
 const TeacherDashboard = ({ showToast }) => {
     const navigate = useNavigate();
