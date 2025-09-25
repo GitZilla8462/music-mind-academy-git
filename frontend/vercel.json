@@ -1,9 +1,8 @@
-
 {
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://music-mind-academy-backend-production.railway.app/api/$1"
+      "destination": "https://music-mind-academy-git-production.up.railway.app/api/$1"
     },
     {
       "source": "/(.*)",
