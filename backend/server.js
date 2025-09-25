@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path'); // ADD THIS LINE
 require('dotenv').config();
 
 // Import Models
@@ -44,14 +45,14 @@ mongoose.connect(dbUrl)
     .then(() => console.log('✅ MongoDB connected successfully'))
     .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// Use the imported routes
+// Use the imported routes - API ROUTES FIRST
 app.use('/api/auth', authRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/assignments', assignmentRoutes);
-app.use('/api/loops', loopsRoutes); // Add this line
+app.use('/api/loops', loopsRoutes);
 
 // A simple test route to check if the server is working
 app.get('/', (req, res) => {
@@ -66,10 +67,33 @@ app.get('/', (req, res) => {
                 students: '/api/admin/students',
                 schools: '/api/admin/schools'
             },
-            loops: '/api/loops' // Add this line
+            loops: '/api/loops'
         }
     });
 });
+
+// ================================
+// ADD THESE LINES FOR REACT SPA ROUTING
+// ================================
+
+// Serve static files from React build folder
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+// Handle React routing - catch all non-API requests and serve React app
+app.get('*', (req, res, next) => {
+  // Don't interfere with API routes
+  if (req.path.startsWith('/api/')) {
+    return next(); // Let the 404 handler below handle API routes
+  }
+  
+  // For all other routes, serve the React app
+  console.log(`Serving React app for route: ${req.path}`);
+  res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
+});
+
+// ================================
+// END OF REACT SPA ROUTING ADDITIONS
+// ================================
 
 // Initialize default admin user
 const initializeAdmin = async () => {
@@ -144,7 +168,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error', message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong' });
 });
 
-// 404 handler
+// 404 handler - now only for API routes
 app.use((req, res) => {
   console.log(`404 - Route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({ error: 'Route not found', path: req.originalUrl, method: req.method });
