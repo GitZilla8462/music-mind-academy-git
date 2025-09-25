@@ -5,7 +5,9 @@ import axios from 'axios';
 import { Plus, Search, Edit3, Trash2, Mail, Phone, MapPin } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext'; 
 
-const API_BASE_URL = 'http://localhost:5000/api/admin';
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+    ? 'https://music-mind-academy-git-production.up.railway.app/api/admin' 
+    : 'http://localhost:5000/api/admin';
 
 const TeachersTab = ({ showToast }) => {
   const { user, token } = useAuth(); // This will now work correctly
