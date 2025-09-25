@@ -6,7 +6,9 @@ import ClassSelect from '../components/ClassSelect';
 import ProjectSelectionCard from '../components/ProjectSelectionCard';
 import { PlusCircle, ArrowLeft } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+    ? 'https://music-mind-academy-git-production.up.railway.app/api' 
+    : 'http://localhost:5000/api';
 
 const availableActivities = [
   {
