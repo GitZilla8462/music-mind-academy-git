@@ -5,7 +5,9 @@ import { PlusCircle, Users, Book, Edit2, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const API_CLASSES_URL = 'http://localhost:5000/api/teacher/classes';
+const API_CLASSES_URL = process.env.NODE_ENV === 'production' 
+    ? 'https://music-mind-academy-git-production.up.railway.app/api/teacher/classes' 
+    : 'http://localhost:5000/api/teacher/classes';
 
 const ClassesTab = ({ showToast, setActiveTab }) => {
   const [classes, setClasses] = useState([]);
