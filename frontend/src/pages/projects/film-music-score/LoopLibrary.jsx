@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Pause, Volume2, Search, Filter, Plus, RefreshCw } from 'lucide-react';
 
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://music-mind-academy-git-production.up.railway.app' 
+  : 'http://localhost:5000';
+
 const LoopLibrary = ({ 
   selectedCategory, 
   onCategoryChange, 
@@ -26,8 +30,8 @@ const LoopLibrary = ({
         console.log('Fetching loops from API...');
         
         // Fetch from your backend API
-        const response = await fetch('http://localhost:5000/api/loops');
-        
+        const response = await fetch(`${API_BASE_URL}/api/loops`);
+                
         if (!response.ok) {
           throw new Error(`Failed to fetch loops: ${response.status} ${response.statusText}`);
         }
@@ -181,7 +185,7 @@ const LoopLibrary = ({
       setLoading(true);
       console.log('Force rescanning loops directory...');
       
-      const response = await fetch('http://localhost:5000/api/loops/rescan', {
+      const response = await fetch(`${API_BASE_URL}/api/loops/rescan`, {
         method: 'POST'
       });
       
@@ -396,7 +400,7 @@ const LoopLibrary = ({
               </button>
             </div>
             <p className="text-xs mt-3 text-gray-500">
-              Make sure your backend server is running on localhost:5000
+              Make sure your backend server is running
             </p>
           </div>
         </div>
