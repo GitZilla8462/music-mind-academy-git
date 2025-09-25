@@ -5,7 +5,9 @@ import { useAuth } from '../../../context/AuthContext';
 import { format } from 'date-fns';
 import { ArrowLeft, Save, Eye, CheckCircle, AlertCircle, Clock, XCircle } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+    ? 'https://music-mind-academy-git-production.up.railway.app/api' 
+    : 'http://localhost:5000/api';
 
 const AssignmentSubmissionsPage = ({ showToast }) => {
     const { assignmentId } = useParams();
