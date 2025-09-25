@@ -15,7 +15,9 @@ import ListenSolfegeIDTemplate from '../components/exercises/2.listening_skills/
 
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+    ? 'https://music-mind-academy-git-production.up.railway.app/api' 
+    : 'http://localhost:5000/api';
 
 const StudentDashboard = ({ showToast }) => {
   const location = useLocation();
