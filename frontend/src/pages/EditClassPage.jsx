@@ -4,7 +4,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ArrowLeft, Trash2, X, AlertTriangle } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+    ? 'https://music-mind-academy-git-production.up.railway.app' 
+    : 'http://localhost:5000';
 
 const EditClassPage = ({ showToast }) => {
   const { classId } = useParams();
