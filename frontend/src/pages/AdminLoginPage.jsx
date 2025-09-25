@@ -3,7 +3,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Eye, EyeOff } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:5000/api/auth/login';
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+? 'https://music-mind-academy-git-production.up.railway.app' 
+: 'http://localhost:5000';
 
 const AdminLoginPage = () => {
   const navigate = useNavigate();
@@ -22,7 +24,7 @@ const AdminLoginPage = () => {
 
     try {
       // Step 1: Make a real API call to the backend login endpoint
-      const response = await fetch(API_BASE_URL, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
