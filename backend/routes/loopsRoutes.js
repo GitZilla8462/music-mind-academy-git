@@ -1,94 +1,116 @@
 const express = require('express');
-const fs = require('fs').promises;
-const path = require('path');
 const router = express.Router();
 
-// GET /api/loops - Get all loops from the filesystem
+// Maintain your current loops - update this array when you add new loops
+let CURRENT_LOOPS = [
+  'AnxiousPiano.mp3',
+  'CalmGuitar1 .mp3',
+  'CalmGuitar1.Drums .mp3', 
+  'CalmPiano1.mp3',
+  'CalmPiano2 .mp3',
+  'CalmPiano2Soft .mp3',
+  'UpbeatGuitar.Drums.mp3'
+];
+
+// Function to convert filename to loop object
+function createLoopObject(filename) {
+  const nameWithoutExt = filename.replace(/\.mp3$/, '').trim();
+  return {
+    id: nameWithoutExt.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-'),
+    name: nameWithoutExt,
+    file: `/projects/film-music-score/loops/${filename}`,
+    extension: 'mp3',
+    filename: filename
+  };
+}
+
+// GET /api/loops - Get all available loops
 router.get('/', async (req, res) => {
   try {
-    // Path to your loops folder - adjust this path based on your actual structure
-    const loopsDir = path.join(__dirname, '../../vite-project/public/projects/film-music-score/loops');
+    const loops = CURRENT_LOOPS.map(createLoopObject);
+    console.log(`Returning ${loops.length} loops`);
     
-    console.log('Scanning loops directory:', loopsDir);
-    
-    const files = await fs.readdir(loopsDir);
-    const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.flac'];
-    
-    const loops = [];
-    
-    for (const file of files) {
-      const ext = path.extname(file).toLowerCase();
-      if (audioExtensions.includes(ext)) {
-        const filePath = path.join(loopsDir, file);
-        const stats = await fs.stat(filePath);
-        
-        loops.push({
-          id: path.parse(file).name.toLowerCase().replace(/\s+/g, '-'),
-          name: path.parse(file).name,
-          file: `/projects/film-music-score/loops/${file}`,
-          extension: ext.substring(1),
-          size: stats.size,
-          created: stats.birthtime,
-          modified: stats.mtime
-        });
-      }
-    }
-    
-    // Sort by name
-    loops.sort((a, b) => a.name.localeCompare(b.name));
-    
-    console.log(`Found ${loops.length} audio loops`);
-    res.json(loops);
+    res.json({
+      loops: loops,
+      count: loops.length,
+      timestamp: new Date().toISOString()
+    });
   } catch (error) {
-    console.error('Error reading loops directory:', error);
+    console.error('Error returning loops:', error);
     res.status(500).json({ 
-      error: 'Failed to read loops directory', 
+      error: 'Failed to get loops', 
       details: error.message 
     });
   }
 });
 
-// POST /api/loops/rescan - Force rescan of loops directory
+// POST /api/loops/rescan - Return current loops
 router.post('/rescan', async (req, res) => {
   try {
-    // This endpoint can be called to force a rescan
-    // For now, it just returns the same as GET /
-    const loopsDir = path.join(__dirname, '../../vite-project/public/projects/film-music-score/loops');
+    console.log('Rescan requested');
+    const loops = CURRENT_LOOPS.map(createLoopObject);
     
-    const files = await fs.readdir(loopsDir);
-    const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.flac'];
-    
-    const loops = [];
-    
-    for (const file of files) {
-      const ext = path.extname(file).toLowerCase();
-      if (audioExtensions.includes(ext)) {
-        const filePath = path.join(loopsDir, file);
-        const stats = await fs.stat(filePath);
-        
-        loops.push({
-          id: path.parse(file).name.toLowerCase().replace(/\s+/g, '-'),
-          name: path.parse(file).name,
-          file: `/projects/film-music-score/loops/${file}`,
-          extension: ext.substring(1),
-          size: stats.size,
-          created: stats.birthtime,
-          modified: stats.mtime
-        });
-      }
-    }
-    
-    loops.sort((a, b) => a.name.localeCompare(b.name));
-    
-    res.json({ 
-      message: 'Rescan completed', 
+    res.json({
+      message: 'Loop list returned', 
       count: loops.length, 
-      loops 
+      loops: loops
     });
   } catch (error) {
-    console.error('Error rescanning loops directory:', error);
+    console.error('Error in rescan:', error);
     res.status(500).json({ 
-      error: 'Failed to rescan loops directory', 
+      error: 'Failed to rescan loops', 
+      details: error.message 
+    });
+  }
+});
+
+// POST /api/loops/update - Update the loops list (for when you add new files)
+router.post('/update', async (req, res) => {
+  try {
+    const { loops } = req.body;
+    
+    if (!Array.isArray(loops)) {
+      return res.status(400).json({ error: 'loops must be an array of filenames' });
+    }
+    
+    CURRENT_LOOPS = loops.filter(filename => filename.endsWith('.mp3'));
+    
+    console.log(`Updated loops list with ${CURRENT_LOOPS.length} files`);
+    
+    const loopObjects = CURRENT_LOOPS.map(createLoopObject);
+    
+    res.json({
+      message: 'Loops list updated successfully',
+      count: CURRENT_LOOPS.length,
+      loops: loopObjects
+    });
+  } catch (error) {
+    console.error('Error updating loops:', error);
+    res.status(500).json({ 
+      error: 'Failed to update loops', 
+      details: error.message 
+    });
+  }
+});
+
+// GET /api/loops/:id - Get specific loop by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const loops = CURRENT_LOOPS.map(createLoopObject);
+    const loop = loops.find(l => l.id === req.params.id);
+    
+    if (!loop) {
+      return res.status(404).json({ 
+        error: 'Loop not found',
+        available: loops.map(l => l.id)
+      });
+    }
+    
+    res.json(loop);
+  } catch (error) {
+    console.error('Error getting loop:', error);
+    res.status(500).json({ 
+      error: 'Failed to get loop', 
       details: error.message 
     });
   }
