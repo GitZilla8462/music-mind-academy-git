@@ -24,17 +24,14 @@ function createLoopObject(filename) {
   };
 }
 
-// GET /api/loops - Get all available loops
+// GET /api/loops - Get all available loops (returns array directly)
 router.get('/', async (req, res) => {
   try {
     const loops = CURRENT_LOOPS.map(createLoopObject);
     console.log(`Returning ${loops.length} loops`);
     
-    res.json({
-      loops: loops,
-      count: loops.length,
-      timestamp: new Date().toISOString()
-    });
+    // Return array directly for frontend compatibility
+    res.json(loops);
   } catch (error) {
     console.error('Error returning loops:', error);
     res.status(500).json({ 
@@ -44,17 +41,14 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/loops/rescan - Return current loops
+// POST /api/loops/rescan - Return current loops (returns array directly)
 router.post('/rescan', async (req, res) => {
   try {
     console.log('Rescan requested');
     const loops = CURRENT_LOOPS.map(createLoopObject);
     
-    res.json({
-      message: 'Loop list returned', 
-      count: loops.length, 
-      loops: loops
-    });
+    // Return array directly for frontend compatibility
+    res.json(loops);
   } catch (error) {
     console.error('Error in rescan:', error);
     res.status(500).json({ 
