@@ -7,7 +7,7 @@ import { PlusCircle, Trash2, Edit2, ChevronLeft, Users, Copy } from 'lucide-reac
 import { useAuth } from '../context/AuthContext'; // Import useAuth to get the token
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-    ? 'https://music-mind-academy-git-production.up.railway.app' 
+    ? '' 
     : 'http://localhost:5000';
     
 const ClassManagementPage = ({ showToast }) => {

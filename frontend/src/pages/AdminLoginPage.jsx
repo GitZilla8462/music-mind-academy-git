@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Shield, Eye, EyeOff } from 'lucide-react';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-? 'https://music-mind-academy-git-production.up.railway.app' 
+? '' 
 : 'http://localhost:5000';
 
 const AdminLoginPage = () => {

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Temporary fix: hardcode production URL since REACT_APP_API_URL isn't being loaded by Vercel
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://music-mind-academy-git-production.up.railway.app'
+  ? ''
   : 'http://localhost:5000';
 
 console.log('🔍 NODE_ENV:', process.env.NODE_ENV);
