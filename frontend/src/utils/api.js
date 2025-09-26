@@ -4,7 +4,7 @@
  */
 
 // Base API URL - automatically adapts to environment
-const API_URL = process.env.REACT_APP_API_URL || '/api';
+const API_URL = '/api';
 
 // Debug logging - TEMPORARY
 console.log('🔍 API_URL being used:', API_URL);
