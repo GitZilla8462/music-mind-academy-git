@@ -9,6 +9,9 @@ import AdminDashboard from './pages/AdminDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 
+// Import classroom component
+import MusicClassroomResources from './pages/MusicClassroomResources';
+
 // Import all necessary pages and components
 import CreateAssignmentPage from './pages/CreateAssignmentPage';
 import ClassManagementPage from './pages/ClassManagementPage';
@@ -17,7 +20,7 @@ import StudentProfilePage from './pages/StudentProfilePage';
 import AssignmentGradingPage from './components/dashboard/teacherdashboard/AssignmentGradingPage';
 import StudentSubmissionView from './components/dashboard/teacherdashboard/StudentSubmissionView';
 import VideoSelection from './pages/projects/film-music-score/shared/VideoSelection.jsx';
-import MusicComposer from './pages/projects/film-music-score/composer/MusicComposer'; // ✅ UPDATED
+import MusicComposer from './pages/projects/film-music-score/composer/MusicComposer';
 import FilmMusicScoreMain from './pages/projects/film-music-score/FilmMusicScoreMain.jsx';
 import EditAssignmentPage from './components/dashboard/teacherdashboard/EditAssignmentPage';
 import TeacherSubmissionViewer from './components/dashboard/teacherdashboard/TeacherSubmissionViewer.jsx';
@@ -57,6 +60,9 @@ const AppContent = () => {
   const [toast, setToast] = useState(null);
   const navigate = useNavigate();
 
+  // Check if we're in classroom mode
+  const isClassroomMode = import.meta.env.VITE_SITE_MODE === 'edu';
+
   const showToast = useCallback((message, type = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 5000);
@@ -66,12 +72,34 @@ const AppContent = () => {
     setToast(null);
   }, []);
 
-  // Define the onAssignmentCreated handler here
   const handleAssignmentCreated = () => {
     showToast('Assignment created successfully!', 'success');
     navigate('/teacher'); 
   };
 
+  // IF CLASSROOM MODE, SHOW ONLY CLASSROOM ROUTES
+  if (isClassroomMode) {
+    return (
+      <Routes>
+        <Route path="/" element={<MusicClassroomResources />} />
+        
+        {/* Allow access to lessons without authentication in classroom mode */}
+        <Route path="/lessons/film-music-project/lesson1" element={<Lesson1 />} />
+        <Route path="/lessons/film-music-1" element={<Lesson1 />} />
+        <Route path="/lessons/:lessonId" element={<SimpleLessonPlaceholder />} />
+        
+        {/* Allow access to projects without authentication in classroom mode */}
+        <Route path="/projects/film-music-score" element={<VideoSelection showToast={showToast} isDemo={true} />} />
+        <Route path="/projects/video-selection" element={<VideoSelection showToast={showToast} />} />
+        <Route path="/projects/music-composer/:videoId" element={<MusicComposer showToast={showToast} />} />
+        <Route path="/projects/:projectId" element={<FilmMusicScoreMain showToast={showToast} />} />
+        
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
+  }
+
+  // OTHERWISE, SHOW COMMERCIAL SITE (all your existing routes)
   return (
     <ClassProvider>
       {toast && (
@@ -111,21 +139,18 @@ const AppContent = () => {
         } />
 
         {/* LESSON ROUTES - Available to all authenticated users */}
-        {/* SPECIFIC route for lesson1 - must come BEFORE the dynamic route */}
         <Route path="/lessons/film-music-project/lesson1" element={
           <ProtectedRoute>
             <Lesson1 />
           </ProtectedRoute>
         } />
         
-        {/* Alternative shorter route for lesson1 */}
         <Route path="/lessons/film-music-1" element={
           <ProtectedRoute>
             <Lesson1 />
           </ProtectedRoute>
         } />
         
-        {/* Keep the dynamic route for other lessons - MUST BE LAST */}
         <Route path="/lessons/:lessonId" element={
           <ProtectedRoute>
             <SimpleLessonPlaceholder />
@@ -185,7 +210,6 @@ const AppContent = () => {
             <VideoSelection showToast={showToast} isDemo={true} />
           </ProtectedRoute>
         } />
-        {/* NEW: Teacher demo route for the actual composer */}
         <Route path="/teacher/projects/film-music-score-demo/:videoId" element={
           <ProtectedRoute requiredRole="teacher">
             <MusicComposer showToast={showToast} isDemo={true} />
@@ -226,7 +250,7 @@ const AppContent = () => {
           </ProtectedRoute>
         } />
 
-        {/* STUDENT ASSIGNMENT ROUTES - These were missing! */}
+        {/* STUDENT ASSIGNMENT ROUTES */}
         <Route path="/student/assignment/:assignmentId/video-selection" element={
           <ProtectedRoute requiredRole="student">
             <VideoSelection showToast={showToast} />
@@ -243,7 +267,7 @@ const AppContent = () => {
           </ProtectedRoute>
         } />
 
-        {/* General Project Routes (keeping for backward compatibility) */}
+        {/* General Project Routes */}
         <Route path="/projects/film-music-score-main" element={
           <ProtectedRoute>
             <FilmMusicScoreMain showToast={showToast} />

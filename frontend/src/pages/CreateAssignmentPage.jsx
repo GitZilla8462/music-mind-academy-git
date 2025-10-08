@@ -10,6 +10,24 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
     ? '/api' 
     : 'http://localhost:5000/api';
 
+// Static projects - MOVED OUTSIDE the component
+export const staticProjects = [
+    {
+        projectId: 'film-music-unit-lesson-1',
+        projectTitle: 'Intro to the DAW',
+        projectType: 'lesson',
+        description: 'Students will be introduced to their film music project and learn about tempo, dynamics, harmony and instrumentation in relation to their project.',
+        demoUrl: '/lessons/film-music-1',
+    },
+    {
+        projectId: 'film-music-score',
+        projectTitle: 'Film Trailer Loops - Sandbox Mode',
+        projectType: 'project',
+        description: 'Students compose music for a short film clip using a loop library and a video player.',
+        demoUrl: '/teacher/projects/film-music-score-demo',
+    },
+];
+
 const CreateAssignmentPage = ({ onAssignmentCreated, showToast }) => {
     const navigate = useNavigate();
     const { token } = useAuth();
@@ -42,31 +60,6 @@ const CreateAssignmentPage = ({ onAssignmentCreated, showToast }) => {
 
         fetchLessons();
     }, [showToast]);
-
-    // Static projects (your existing ones)
-    const staticProjects = [
-        {
-            projectId: 'film-music-unit-lesson-1',
-            projectTitle: 'Intro to the DAW',
-            projectType: 'lesson',
-            description: 'Students will be introduced to their film music project and learn about tempo, dynamics, harmony and instrumentation in relation to their project.',
-            demoUrl: '/lessons/film-music-1',
-        },
-        {
-            projectId: 'film-music-score',
-            projectTitle: 'Film Trailer Loops - Sandbox Mode',
-            projectType: 'project',
-            description: 'Students compose music for a short film clip using a loop library and a video player.',
-            demoUrl: '/teacher/projects/film-music-score-demo',
-        },
-        {
-            projectId: 'solfege-id',
-            projectTitle: 'Solfege Identification',
-            projectType: 'exercise',
-            description: 'Students practice identifying solfege pitches by listening to and naming musical intervals.',
-            demoUrl: '/exercises/solfege-id-demo',
-        },
-    ];
 
     // Convert lessons to project format
     const lessonProjects = availableLessons.map(lesson => ({
