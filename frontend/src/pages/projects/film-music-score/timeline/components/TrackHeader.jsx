@@ -8,18 +8,36 @@ const TrackHeader = ({
   trackStates, 
   updateTrackState, 
   placedLoops, 
-  hoveredTrack 
+  hoveredTrack,
+  onTrackHeaderClick, // NEW: Callback for track header clicks
+  tutorialMode = false
 }) => {
   const trackId = `track-${trackIndex}`;
   const trackState = trackStates[trackId] || {};
   const hasLoops = placedLoops.some(loop => loop.trackIndex === trackIndex);
 
+  // Handle track header click
+  const handleHeaderClick = (e) => {
+    // Only trigger if clicking the main header area, not buttons
+    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+      return;
+    }
+    
+    if (onTrackHeaderClick) {
+      console.log('🎯 Track header clicked in TrackHeader component:', trackIndex);
+      onTrackHeaderClick(trackIndex);
+    }
+  };
+
   return (
     <div 
-      className={`w-48 bg-gray-800 border-r border-gray-600 border-b border-gray-700 ${
+      className={`track-header w-48 bg-gray-800 border-r border-gray-600 border-b border-gray-700 ${
         hoveredTrack === trackIndex ? 'bg-gray-700' : ''
-      } ${hasLoops ? 'ring-1 ring-blue-500/30' : ''}`}
+      } ${hasLoops ? 'ring-1 ring-blue-500/30' : ''} ${
+        tutorialMode ? 'cursor-pointer' : ''
+      }`}
       style={{ height: TIMELINE_CONSTANTS.TRACK_HEIGHT }}
+      onClick={handleHeaderClick}
     >
       <div className="p-2">
         <div className="flex items-center justify-between mb-1">
@@ -30,7 +48,8 @@ const TrackHeader = ({
             
             <div className="flex items-center space-x-1">
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   const newVolume = Math.max(0, (trackState.volume || 0.7) - 0.05);
                   updateTrackState(trackId, { volume: newVolume });
                 }}
@@ -45,7 +64,8 @@ const TrackHeader = ({
               </span>
               
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   const newVolume = Math.min(1, (trackState.volume || 0.7) + 0.05);
                   updateTrackState(trackId, { volume: newVolume });
                 }}
@@ -58,7 +78,10 @@ const TrackHeader = ({
           </div>
 
           <button
-            onClick={() => updateTrackState(trackId, { visible: !trackState.visible })}
+            onClick={(e) => {
+              e.stopPropagation();
+              updateTrackState(trackId, { visible: !trackState.visible });
+            }}
             className={`p-0.5 rounded transition-colors ${
               trackState.visible ? 'text-gray-400 hover:text-white' : 'text-red-400'
             }`}
@@ -70,7 +93,10 @@ const TrackHeader = ({
 
         <div className="flex items-center space-x-1">
           <button
-            onClick={() => updateTrackState(trackId, { muted: !trackState.muted })}
+            onClick={(e) => {
+              e.stopPropagation();
+              updateTrackState(trackId, { muted: !trackState.muted });
+            }}
             className={`px-1.5 py-0.5 text-xs rounded transition-colors ${
               trackState.muted 
                 ? 'bg-red-500 text-white' 
@@ -82,7 +108,10 @@ const TrackHeader = ({
           </button>
 
           <button
-            onClick={() => updateTrackState(trackId, { solo: !trackState.solo })}
+            onClick={(e) => {
+              e.stopPropagation();
+              updateTrackState(trackId, { solo: !trackState.solo });
+            }}
             className={`px-1.5 py-0.5 text-xs rounded transition-colors ${
               trackState.solo 
                 ? 'bg-yellow-500 text-black' 

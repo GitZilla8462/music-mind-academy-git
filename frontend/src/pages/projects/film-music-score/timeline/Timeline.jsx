@@ -1,5 +1,5 @@
-// Updated Timeline.jsx - Main Component with Fixed Props
-import React, { useRef } from 'react';
+// Updated Timeline.jsx - Pass trackStates to parent, handle track header clicks, AND pass onLoopResizeCallback
+import React, { useRef, useEffect } from 'react';
 import TimelineHeader from './TimelineHeader';
 import TimelineContent from './TimelineContent';
 import TimelineScrollbar from './TimelineScrollbar';
@@ -16,8 +16,16 @@ const Timeline = ({
   onLoopDelete,
   onLoopSelect,
   onLoopUpdate,
+  onLoopResizeCallback,  // ADDED: Callback for loop resize
   onSeek,
-  selectedLoop
+  selectedLoop,
+  isPlaying,
+  onTrackStateChange,
+  onTrackHeaderClick,
+  onZoomChange,
+  tutorialMode = false,
+  lockFeatures = {},
+  highlightSelector
 }) => {
   // Refs for timeline elements
   const timelineRef = useRef(null);
@@ -42,6 +50,13 @@ const Timeline = ({
     handleZoomChange
   } = useTimelineState(duration);
 
+  // Notify parent whenever track states change
+  useEffect(() => {
+    if (onTrackStateChange) {
+      onTrackStateChange(trackStates);
+    }
+  }, [trackStates, onTrackStateChange]);
+
   // Custom hooks for scroll synchronization
   const {
     handleTimelineScroll,
@@ -56,6 +71,15 @@ const Timeline = ({
     handleTimelineClick
   } = usePlayheadDrag(timelineRef, pixelToTime, duration, onSeek);
 
+  // Wrap zoom change to notify parent
+  const handleZoomChangeWithCallback = (newZoom) => {
+    const oldZoom = localZoom;
+    handleZoomChange(newZoom);
+    if (onZoomChange) {
+      onZoomChange(newZoom, oldZoom);
+    }
+  };
+
   return (
     <>
       {/* Timeline Container */}
@@ -64,11 +88,11 @@ const Timeline = ({
         <TimelineHeader 
           placedLoops={placedLoops}
           localZoom={localZoom}
-          onZoomChange={handleZoomChange}
+          onZoomChange={handleZoomChangeWithCallback}
           duration={duration}
         />
         
-        {/* Timeline Content - FIXED: Added localZoom prop */}
+        {/* Timeline Content */}
         <TimelineContent
           ref={{
             timelineRef,
@@ -94,6 +118,7 @@ const Timeline = ({
           onLoopDelete={onLoopDelete}
           onLoopSelect={onLoopSelect}
           onLoopUpdate={onLoopUpdate}
+          onLoopResizeCallback={onLoopResizeCallback}
           onSeek={onSeek}
           onPlayheadMouseDown={handlePlayheadMouseDown}
           onTimelineScroll={handleTimelineScroll}
@@ -101,7 +126,12 @@ const Timeline = ({
           onTimeHeaderScroll={handleTimeHeaderScroll}
           updateTrackState={updateTrackState}
           selectedLoop={selectedLoop}
-          localZoom={localZoom} // ADDED: Pass zoom to TimelineContent
+          localZoom={localZoom}
+          isPlaying={isPlaying}
+          onTrackHeaderClick={onTrackHeaderClick}
+          tutorialMode={tutorialMode}
+          lockFeatures={lockFeatures}
+          highlightSelector={highlightSelector}
         />
       </div>
 

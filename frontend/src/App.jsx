@@ -16,11 +16,15 @@ import EditClassPage from './pages/EditClassPage';
 import StudentProfilePage from './pages/StudentProfilePage';
 import AssignmentGradingPage from './components/dashboard/teacherdashboard/AssignmentGradingPage';
 import StudentSubmissionView from './components/dashboard/teacherdashboard/StudentSubmissionView';
-import VideoSelection from './pages/projects/film-music-score/VideoSelection.jsx';
-import MusicComposer from './pages/projects/film-music-score/MusicComposer';
+import VideoSelection from './pages/projects/film-music-score/shared/VideoSelection.jsx';
+import MusicComposer from './pages/projects/film-music-score/composer/MusicComposer'; // ✅ UPDATED
 import FilmMusicScoreMain from './pages/projects/film-music-score/FilmMusicScoreMain.jsx';
 import EditAssignmentPage from './components/dashboard/teacherdashboard/EditAssignmentPage';
 import TeacherSubmissionViewer from './components/dashboard/teacherdashboard/TeacherSubmissionViewer.jsx';
+
+// Import lesson components
+import SimpleLessonPlaceholder from './lessons/components/LessonPlayer';
+import Lesson1 from './lessons/film-music-project/lesson1/Lesson1';
 
 // Protected Route Component with better error handling
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -106,6 +110,28 @@ const AppContent = () => {
           )
         } />
 
+        {/* LESSON ROUTES - Available to all authenticated users */}
+        {/* SPECIFIC route for lesson1 - must come BEFORE the dynamic route */}
+        <Route path="/lessons/film-music-project/lesson1" element={
+          <ProtectedRoute>
+            <Lesson1 />
+          </ProtectedRoute>
+        } />
+        
+        {/* Alternative shorter route for lesson1 */}
+        <Route path="/lessons/film-music-1" element={
+          <ProtectedRoute>
+            <Lesson1 />
+          </ProtectedRoute>
+        } />
+        
+        {/* Keep the dynamic route for other lessons - MUST BE LAST */}
+        <Route path="/lessons/:lessonId" element={
+          <ProtectedRoute>
+            <SimpleLessonPlaceholder />
+          </ProtectedRoute>
+        } />
+
         {/* PROTECTED ROUTES */}
 
         {/* Admin Routes */}
@@ -156,7 +182,13 @@ const AppContent = () => {
         } />
         <Route path="/teacher/projects/film-music-score-demo" element={
           <ProtectedRoute requiredRole="teacher">
-            <VideoSelection showToast={showToast} />
+            <VideoSelection showToast={showToast} isDemo={true} />
+          </ProtectedRoute>
+        } />
+        {/* NEW: Teacher demo route for the actual composer */}
+        <Route path="/teacher/projects/film-music-score-demo/:videoId" element={
+          <ProtectedRoute requiredRole="teacher">
+            <MusicComposer showToast={showToast} isDemo={true} />
           </ProtectedRoute>
         } />
         <Route path="/teacher/assignments/edit/:assignmentId" element={

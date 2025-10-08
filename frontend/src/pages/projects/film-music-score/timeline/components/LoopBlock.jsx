@@ -3,8 +3,8 @@ import { Trash2 } from 'lucide-react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
 
 // Drag detection constants
-const DRAG_THRESHOLD = 5; // pixels - must move this much to start drag
-const CLICK_MAX_DURATION = 200; // milliseconds - max time for a click
+const DRAG_THRESHOLD = 5;
+const CLICK_MAX_DURATION = 200;
 
 const LoopBlock = React.memo(({ 
   loop, 
@@ -14,21 +14,24 @@ const LoopBlock = React.memo(({
   draggedLoop,
   onLoopMouseDown,
   onLoopSelect, 
-  onLoopUpdate, 
+  onLoopUpdate,
+  onLoopResize,
   onLoopDelete
 }) => {
   const [waveformData, setWaveformData] = useState(null);
   const [isGeneratingWaveform, setIsGeneratingWaveform] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [originalDuration, setOriginalDuration] = useState(loop.duration);
+  const [resizeDirection, setResizeDirection] = useState(null);
   const [waveformGenerated, setWaveformGenerated] = useState(false);
   
-  // FIXED: Ensure originalDuration is properly set and maintained
+  const originalDurationRef = useRef(null);
+  
   useEffect(() => {
-    if (!originalDuration || originalDuration !== loop.duration) {
-      setOriginalDuration(loop.duration);
+    if (originalDurationRef.current === null && loop.duration > 0) {
+      originalDurationRef.current = loop.duration;
+      console.log(`Stored original duration for ${loop.name}: ${loop.duration}s`);
     }
-  }, [loop.duration, originalDuration]);
+  }, [loop.duration, loop.name]);
   
   const canvasRef = useRef(null);
   const waveformCacheRef = useRef(new Map());
@@ -37,19 +40,33 @@ const LoopBlock = React.memo(({
   const isDragged = draggedLoop?.id === loop.id;
   const trackState = trackStates[`track-${loop.trackIndex}`];
   
-  // OPTIMIZED: Memoize expensive calculations
   const { leftPosition, width, topPosition } = useMemo(() => ({
     leftPosition: timeToPixel(loop.startTime),
     width: timeToPixel(loop.endTime) - timeToPixel(loop.startTime),
     topPosition: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT)
   }), [timeToPixel, loop.startTime, loop.endTime, loop.trackIndex]);
 
-  // Get category colors
-  const categoryColor = TIMELINE_CONSTANTS.CATEGORY_COLORS[loop.category] || TIMELINE_CONSTANTS.CATEGORY_COLORS.Default;
+  const loopColor = loop.color || TIMELINE_CONSTANTS.CATEGORY_COLORS[loop.category]?.accent || '#3b82f6';
+  
+  const categoryColor = useMemo(() => {
+    if (loop.color) {
+      return {
+        bg: loop.color + '33',
+        accent: loop.color,
+        text: '#ffffff'
+      };
+    }
+    return TIMELINE_CONSTANTS.CATEGORY_COLORS[loop.category] || TIMELINE_CONSTANTS.CATEGORY_COLORS.Default;
+  }, [loop.color, loop.category]);
 
-  // FIXED: Generate waveform only once and cache it
+  const numRepeats = useMemo(() => {
+    const originalDuration = originalDurationRef.current || loop.duration;
+    const currentDuration = loop.endTime - loop.startTime;
+    const repeats = Math.ceil(currentDuration / originalDuration);
+    return Math.max(1, repeats);
+  }, [loop.endTime, loop.startTime, loop.duration]);
+
   const generateWaveform = useCallback(async () => {
-    // Check cache first
     const cacheKey = loop.file;
     if (waveformCacheRef.current.has(cacheKey)) {
       const cachedWaveform = waveformCacheRef.current.get(cacheKey);
@@ -62,20 +79,16 @@ const LoopBlock = React.memo(({
     
     setIsGeneratingWaveform(true);
     try {
-      console.log(`Generating waveform for: ${loop.name}`);
-      
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const response = await fetch(loop.file);
       const arrayBuffer = await response.arrayBuffer();
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       
-      // Get the first channel (mono or left channel)
       const channelData = audioBuffer.getChannelData(0);
-      const samples = 200; // Number of waveform points
+      const samples = 200;
       const blockSize = Math.floor(channelData.length / samples);
       const waveform = [];
       
-      // Calculate RMS (Root Mean Square) for each block to get average amplitude
       for (let i = 0; i < samples; i++) {
         const start = i * blockSize;
         const end = Math.min(start + blockSize, channelData.length);
@@ -89,26 +102,19 @@ const LoopBlock = React.memo(({
         waveform.push(rms);
       }
       
-      // Normalize waveform data
       const maxRms = Math.max(...waveform);
       const normalizedWaveform = waveform.map(value => value / maxRms);
       
-      // Cache the waveform
       waveformCacheRef.current.set(cacheKey, normalizedWaveform);
-      
       setWaveformData(normalizedWaveform);
       setWaveformGenerated(true);
       audioContext.close();
-      
-      console.log(`Waveform generated and cached for: ${loop.name}`);
     } catch (error) {
       console.error('Failed to generate waveform:', error);
-      // Create a simple pattern as fallback
       const fallbackWaveform = Array.from({ length: 200 }, (_, i) => 
         Math.abs(Math.sin(i * 0.1)) * 0.5 + Math.random() * 0.3
       );
       
-      // Cache the fallback too
       waveformCacheRef.current.set(loop.file, fallbackWaveform);
       setWaveformData(fallbackWaveform);
       setWaveformGenerated(true);
@@ -117,69 +123,105 @@ const LoopBlock = React.memo(({
     }
   }, [loop.file, loop.name, waveformGenerated, isGeneratingWaveform]);
 
-  // FIXED: Stable drawing function that doesn't depend on changing props
   const drawWaveform = useCallback(() => {
     if (!waveformData || !canvasRef.current || width <= 0) return;
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     
-    // Ensure canvas has valid dimensions
     if (canvas.width <= 0 || canvas.height <= 0) return;
     
     const { width: canvasWidth, height: canvasHeight } = canvas;
     
-    // Clear canvas completely
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    
-    // Save canvas state
     ctx.save();
     
     try {
-      // Calculate how much of the waveform to show based on trimmed duration
+      const originalDuration = originalDurationRef.current || loop.duration;
       const currentDuration = loop.endTime - loop.startTime;
-      const visibleRatio = currentDuration / originalDuration;
-      const visibleSamples = Math.floor(waveformData.length * visibleRatio);
+      const repeats = Math.max(1, Math.ceil(currentDuration / originalDuration));
       
-      if (visibleSamples <= 0) return;
+      const baseOpacity = '60';
+      const strokeOpacity = 'AA';
+      const notchRadius = 6;
       
-      // Draw waveform with higher opacity and better contrast
-      const baseOpacity = '80';
-      const strokeOpacity = 'CC';
-      
-      ctx.fillStyle = categoryColor.accent + baseOpacity;
-      ctx.strokeStyle = categoryColor.accent + strokeOpacity;
+      ctx.fillStyle = loopColor + baseOpacity;
+      ctx.strokeStyle = loopColor + strokeOpacity;
       ctx.lineWidth = 0.5;
       
-      const barWidth = Math.max(0.5, canvasWidth / visibleSamples);
+      ctx.beginPath();
+      ctx.rect(0, 0, canvasWidth, canvasHeight);
       
-      // Draw background bars
-      for (let i = 0; i < visibleSamples; i++) {
-        const amplitude = waveformData[i];
-        const enhancedAmplitude = Math.pow(amplitude, 0.6);
-        const barHeight = Math.max(1, enhancedAmplitude * (canvasHeight - 6));
-        const x = i * barWidth;
-        const y = Math.max(0, (canvasHeight - barHeight) / 2);
-        
-        ctx.fillRect(x, y, Math.max(1, barWidth - 0.5), barHeight);
-        
-        if (barHeight > 2) {
-          ctx.strokeRect(x, y, Math.max(1, barWidth - 0.5), barHeight);
+      if (repeats > 1) {
+        for (let i = 1; i < repeats; i++) {
+          const sectionWidth = canvasWidth / repeats;
+          const x = sectionWidth * i;
+          
+          ctx.moveTo(x + notchRadius, 0);
+          ctx.arc(x, 0, notchRadius, 0, Math.PI, true);
+          
+          ctx.moveTo(x + notchRadius, canvasHeight);
+          ctx.arc(x, canvasHeight, notchRadius, 0, Math.PI, false);
         }
       }
       
-      // Add peak highlights
-      ctx.fillStyle = categoryColor.accent + 'FF';
-      for (let i = 0; i < visibleSamples; i++) {
-        const amplitude = waveformData[i];
-        if (amplitude > 0.7) {
+      ctx.clip();
+      
+      for (let repeat = 0; repeat < repeats; repeat++) {
+        const offsetX = (canvasWidth / repeats) * repeat;
+        const repeatWidth = canvasWidth / repeats;
+        const barWidth = Math.max(0.5, repeatWidth / waveformData.length);
+        
+        for (let i = 0; i < waveformData.length; i++) {
+          const amplitude = waveformData[i];
           const enhancedAmplitude = Math.pow(amplitude, 0.6);
           const barHeight = Math.max(1, enhancedAmplitude * (canvasHeight - 6));
-          const x = i * barWidth;
+          const x = offsetX + (i * barWidth);
           const y = Math.max(0, (canvasHeight - barHeight) / 2);
-          const peakHeight = Math.max(2, barHeight * 0.3);
           
-          ctx.fillRect(x, y, Math.max(1, barWidth - 0.5), peakHeight);
+          if (x >= canvasWidth) break;
+          
+          ctx.fillRect(x, y, Math.max(1, barWidth - 0.5), barHeight);
+          
+          if (barHeight > 2) {
+            ctx.strokeRect(x, y, Math.max(1, barWidth - 0.5), barHeight);
+          }
+        }
+        
+        if (repeat > 0 && repeats > 1) {
+          ctx.strokeStyle = loopColor + 'DD';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          const sectionWidth = canvasWidth / repeats;
+          const x = sectionWidth * repeat;
+          ctx.moveTo(x, notchRadius + 2);
+          ctx.lineTo(x, canvasHeight - notchRadius - 2);
+          ctx.stroke();
+          
+          ctx.strokeStyle = loopColor + strokeOpacity;
+          ctx.lineWidth = 0.5;
+        }
+      }
+      
+      ctx.fillStyle = loopColor + 'FF';
+      for (let repeat = 0; repeat < repeats; repeat++) {
+        const offsetX = (canvasWidth / repeats) * repeat;
+        const repeatWidth = canvasWidth / repeats;
+        const barWidth = Math.max(0.5, repeatWidth / waveformData.length);
+        
+        for (let i = 0; i < waveformData.length; i++) {
+          const amplitude = waveformData[i];
+          if (amplitude > 0.7) {
+            const enhancedAmplitude = Math.pow(amplitude, 0.6);
+            const barHeight = Math.max(1, enhancedAmplitude * (canvasHeight - 6));
+            const x = offsetX + (i * barWidth);
+            const y = Math.max(0, (canvasHeight - barHeight) / 2);
+            const peakHeight = Math.max(2, barHeight * 0.3);
+            
+            if (x >= canvasWidth) break;
+            
+            ctx.fillRect(x, y, Math.max(1, barWidth - 0.5), peakHeight);
+          }
         }
       }
     } catch (error) {
@@ -187,86 +229,96 @@ const LoopBlock = React.memo(({
     } finally {
       ctx.restore();
     }
-  }, [waveformData, width, loop.endTime, loop.startTime, originalDuration, categoryColor]);
+  }, [waveformData, width, loop.endTime, loop.startTime, loop.duration, loop.name, loopColor]);
 
-  // Generate waveform when loop loads (only once)
   useEffect(() => {
     if (!waveformGenerated && !isGeneratingWaveform) {
       generateWaveform();
     }
   }, [generateWaveform, waveformGenerated, isGeneratingWaveform]);
 
-  // FIXED: Don't redraw waveform or trigger audio updates while actively resizing
   useEffect(() => {
     if (waveformData && width > 0 && !isDragged && !isResizing) {
-      // Only redraw when not actively manipulating the loop
       const timer = setTimeout(() => {
         drawWaveform();
-      }, 100); // Longer delay to prevent spam during updates
+      }, 100);
       
       return () => clearTimeout(timer);
     }
   }, [waveformData, width, drawWaveform, isDragged, isResizing]);
 
-  // Handle resize start
-  const handleResizeStart = useCallback((e) => {
+  const handleResizeStart = useCallback((e, direction) => {
     e.stopPropagation();
     e.preventDefault();
-    
-    console.log(`Starting resize for loop: ${loop.name}`);
-    console.log(`Initial: startTime=${loop.startTime}, endTime=${loop.endTime}, duration=${loop.endTime - loop.startTime}`);
-    
     setIsResizing(true);
-    
-    // Store original duration if not set
-    if (!originalDuration || originalDuration === loop.duration) {
-      setOriginalDuration(loop.duration);
-      console.log(`Set original duration: ${loop.duration}`);
-    }
-  }, [loop.duration, loop.startTime, loop.endTime, loop.name, originalDuration]);
+    setResizeDirection(direction);
+    console.log(`Starting ${direction} resize for ${loop.name}`);
+  }, [loop.name]);
 
-  // FIXED: Simplified resize logic that follows cursor directly
   useEffect(() => {
     if (!isResizing) return;
 
     const handleMouseMove = (e) => {
-      // Get the loop block element to calculate relative mouse position
       const loopElement = document.querySelector(`[data-loop-id="${loop.id}"]`);
-      
-      if (!loopElement) {
-        console.warn('Could not find loop element for resize');
-        return;
-      }
+      if (!loopElement) return;
       
       const loopRect = loopElement.getBoundingClientRect();
       const mouseX = e.clientX;
+      const pixelsPerSecond = timeToPixel(1) - timeToPixel(0);
+      const originalDuration = originalDurationRef.current || loop.duration;
       
-      // Calculate new width based on mouse position relative to loop start
-      const newWidth = mouseX - loopRect.left;
-      const minWidth = 20; // Minimum 20px width
-      const maxWidth = timeToPixel(loop.startTime + originalDuration) - timeToPixel(loop.startTime);
-      
-      const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
-      
-      // Convert width back to time duration
-      const pixelsPerSecond = timeToPixel(1) - timeToPixel(0); // Get scale
-      const newDuration = constrainedWidth / pixelsPerSecond;
-      const newEndTime = loop.startTime + newDuration;
-      
-      // Only update if there's a meaningful change
-      if (Math.abs(newEndTime - loop.endTime) > 0.05) {
-        console.log(`Resizing: newWidth=${constrainedWidth}px, newDuration=${newDuration.toFixed(2)}s`);
+      if (resizeDirection === 'right') {
+        // FIXED: Allow both extending AND shrinking from the right edge
+        const newWidth = mouseX - loopRect.left;
+        const minWidth = pixelsPerSecond * originalDuration; // Minimum one loop duration
+        const constrainedWidth = Math.max(minWidth, newWidth);
+        const newDuration = constrainedWidth / pixelsPerSecond;
         
-        onLoopUpdate(loop.id, {
-          endTime: newEndTime,
-          duration: newDuration
-        });
+        // Snap to nearest multiple of original duration
+        const numRepeats = Math.max(1, Math.round(newDuration / originalDuration));
+        const snappedDuration = numRepeats * originalDuration;
+        const newEndTime = loop.startTime + snappedDuration;
+        
+        // FIXED: Update on any change, allowing both shrinking and extending
+        if (Math.abs(newEndTime - loop.endTime) > 0.01) {
+          onLoopUpdate(loop.id, {
+            endTime: newEndTime
+          });
+          
+          if (onLoopResize) {
+            onLoopResize(loop.id, snappedDuration);
+          }
+        }
+      } else if (resizeDirection === 'left') {
+        // Shrinking from the left edge
+        const currentWidth = loopRect.right - mouseX;
+        const minWidth = pixelsPerSecond * originalDuration;
+        const constrainedWidth = Math.max(minWidth, currentWidth);
+        const newDuration = constrainedWidth / pixelsPerSecond;
+        
+        // Snap to nearest multiple of original duration
+        const numRepeats = Math.max(1, Math.round(newDuration / originalDuration));
+        const snappedDuration = numRepeats * originalDuration;
+        
+        // Calculate new start time
+        const newStartTime = loop.endTime - snappedDuration;
+        
+        if (Math.abs(newStartTime - loop.startTime) > 0.01 && newStartTime >= 0) {
+          onLoopUpdate(loop.id, {
+            startTime: newStartTime
+          });
+          
+          if (onLoopResize) {
+            onLoopResize(loop.id, snappedDuration);
+          }
+        }
       }
     };
 
     const handleMouseUp = () => {
+      console.log(`Finished ${resizeDirection} resize`);
       setIsResizing(false);
-      console.log(`Finished resizing loop: ${loop.name}, final duration: ${(loop.endTime - loop.startTime).toFixed(2)}s`);
+      setResizeDirection(null);
     };
 
     document.addEventListener('mousemove', handleMouseMove, { passive: false });
@@ -280,35 +332,15 @@ const LoopBlock = React.memo(({
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
-  }, [isResizing, loop, originalDuration, onLoopUpdate, timeToPixel]);
+  }, [isResizing, resizeDirection, loop, onLoopUpdate, onLoopResize, timeToPixel]);
 
-  // Handle delete
   const handleDelete = useCallback((e) => {
     e.stopPropagation();
     e.preventDefault();
     e.nativeEvent.stopImmediatePropagation();
-    
-    console.log(`Deleting loop: ${loop.name} (ID: ${loop.id})`);
     onLoopDelete(loop.id);
-  }, [loop.id, loop.name, onLoopDelete]);
+  }, [loop.id, onLoopDelete]);
 
-  // FIXED: Improved loop click handling - more reliable selection
-  const handleLoopClick = useCallback((e) => {
-    if (isResizing) return;
-    if (e.target.closest('button') || e.target.closest('.resize-handle')) return;
-    
-    // Additional check: don't process click if a drag just ended
-    if (Date.now() - (window.lastDragEndTime || 0) < 150) {
-      console.log(`Ignoring click on ${loop.name} - recent drag detected`);
-      return;
-    }
-    
-    e.stopPropagation();
-    console.log(`Processing click selection for ${loop.name}`);
-    onLoopSelect(loop.id);
-  }, [loop.id, loop.name, onLoopSelect, isResizing]);
-
-  // FIXED: Improved mouse down handling with better click/drag separation
   const handleMouseDown = useCallback((e) => {
     if (e.target.closest('button') || e.target.closest('.resize-handle')) {
       e.stopPropagation();
@@ -317,82 +349,48 @@ const LoopBlock = React.memo(({
     
     if (isResizing) return;
 
-    // Store initial mouse position and time
+    if (!isSelected) {
+      onLoopSelect(loop.id);
+    }
+
     const startX = e.clientX;
     const startY = e.clientY;
-    const startTime = Date.now();
     let hasMoved = false;
     let dragStarted = false;
     let interactionCompleted = false;
 
     const handleMouseMove = (moveEvent) => {
-      if (interactionCompleted) return; // Don't process if interaction is done
+      if (interactionCompleted) return;
       
       const deltaX = Math.abs(moveEvent.clientX - startX);
       const deltaY = Math.abs(moveEvent.clientY - startY);
       const totalMovement = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-      // FIXED: Increase drag threshold to prevent accidental drags after clicks
       if (totalMovement >= (DRAG_THRESHOLD * 2) && !dragStarted) {
         hasMoved = true;
         dragStarted = true;
         interactionCompleted = true;
-        console.log(`Starting drag for ${loop.name} - movement: ${totalMovement.toFixed(1)}px`);
         
-        // Clean up listeners before starting drag
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
         
-        // Now start the actual drag
         onLoopMouseDown(e, loop);
       }
     };
 
-    const handleMouseUp = (upEvent) => {
-      if (interactionCompleted) return; // Don't process if already handled
-      
-      const clickDuration = Date.now() - startTime;
+    const handleMouseUp = () => {
+      if (interactionCompleted) return;
       interactionCompleted = true;
-      
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
-
-      // FIXED: Only treat as click if no significant movement occurred
-      if (!hasMoved && clickDuration < CLICK_MAX_DURATION) {
-        console.log(`Click detected on ${loop.name} (${clickDuration}ms, minimal movement)`);
-        onLoopSelect(loop.id);
-        
-        // Set a brief flag to prevent immediate subsequent drags
-        window.lastClickTime = Date.now();
-        
-      } else if (!hasMoved && clickDuration >= CLICK_MAX_DURATION) {
-        console.log(`Long press on ${loop.name} (${clickDuration}ms) - treating as click`);
-        onLoopSelect(loop.id);
-        window.lastClickTime = Date.now();
-        
-      } else if (hasMoved) {
-        console.log(`Movement detected but not enough for drag: ${loop.name}`);
-        // Still select the loop for small movements
-        onLoopSelect(loop.id);
-        window.lastClickTime = Date.now();
-      }
     };
 
-    // Check if this is too soon after a recent click (prevent double-processing)
-    if (Date.now() - (window.lastClickTime || 0) < 200) {
-      console.log(`Ignoring mousedown - too soon after recent click`);
-      return;
-    }
-
-    // Add temporary listeners to detect movement
     document.addEventListener('mousemove', handleMouseMove, { passive: true });
     document.addEventListener('mouseup', handleMouseUp);
     
-    // Prevent default to avoid text selection
     e.preventDefault();
-  }, [onLoopMouseDown, loop, isResizing, onLoopSelect]);
+  }, [onLoopMouseDown, loop, isResizing, onLoopSelect, isSelected]);
 
-  // Show drag state without scaling - just opacity and shadow
   const dragStyle = isDragged ? {
     opacity: 0.7,
     zIndex: 1000,
@@ -402,9 +400,9 @@ const LoopBlock = React.memo(({
 
   return (
     <div
-      className={`absolute rounded cursor-move transition-all duration-150 ${
-        isSelected ? 'ring-2 ring-blue-400 ring-opacity-75' : ''
-      } ${trackState?.muted ? 'opacity-50' : ''} ${
+      className={`absolute cursor-move transition-all duration-150 ${
+        trackState?.muted ? 'opacity-50' : ''
+      } ${
         isDragged ? 'cursor-grabbing' : ''
       }`}
       style={{
@@ -412,18 +410,111 @@ const LoopBlock = React.memo(({
         top: topPosition + 8,
         width: width,
         height: TIMELINE_CONSTANTS.TRACK_HEIGHT - 16,
-        backgroundColor: categoryColor.bg,
-        borderColor: isSelected ? '#60a5fa' : categoryColor.accent,
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        ...dragStyle // Apply drag styling
+        ...dragStyle
       }}
       onMouseDown={handleMouseDown}
-      onClick={handleLoopClick}
       data-loop-block="true"
       data-loop-id={loop.id}
     >
-      {/* FIXED: Canvas with stable props to prevent unnecessary re-creation */}
+      <svg
+        width={width}
+        height={TIMELINE_CONSTANTS.TRACK_HEIGHT - 16}
+        className="absolute inset-0"
+        style={{ overflow: 'visible' }}
+      >
+        <defs>
+          <mask id={`notch-mask-${loop.id}`}>
+            <rect width={width} height={TIMELINE_CONSTANTS.TRACK_HEIGHT - 16} fill="white" />
+            {numRepeats > 1 && Array.from({ length: numRepeats - 1 }).map((_, index) => {
+              const sectionWidth = width / numRepeats;
+              const x = sectionWidth * (index + 1);
+              const notchRadius = 6;
+              
+              return (
+                <g key={index}>
+                  <circle cx={x} cy={0} r={notchRadius} fill="black" />
+                  <circle cx={x} cy={TIMELINE_CONSTANTS.TRACK_HEIGHT - 16} r={notchRadius} fill="black" />
+                </g>
+              );
+            })}
+          </mask>
+        </defs>
+        
+        <rect
+          width={width}
+          height={TIMELINE_CONSTANTS.TRACK_HEIGHT - 16}
+          fill={categoryColor.bg}
+          mask={`url(#notch-mask-${loop.id})`}
+          rx="4"
+        />
+        
+        <path
+          d={(() => {
+            const h = TIMELINE_CONSTANTS.TRACK_HEIGHT - 16;
+            const r = 4;
+            const notchRadius = 6;
+            const sectionWidth = width / numRepeats;
+            
+            let path = `M ${r} 0`;
+            
+            for (let i = 1; i < numRepeats; i++) {
+              const x = sectionWidth * i;
+              path += ` L ${x - notchRadius} 0`;
+              path += ` A ${notchRadius} ${notchRadius} 0 0 1 ${x + notchRadius} 0`;
+            }
+            
+            path += ` L ${width - r} 0 Q ${width} 0 ${width} ${r}`;
+            path += ` L ${width} ${h - r}`;
+            path += ` Q ${width} ${h} ${width - r} ${h}`;
+            
+            for (let i = numRepeats - 1; i > 0; i--) {
+              const x = sectionWidth * i;
+              path += ` L ${x + notchRadius} ${h}`;
+              path += ` A ${notchRadius} ${notchRadius} 0 0 1 ${x - notchRadius} ${h}`;
+            }
+            
+            path += ` L ${r} ${h} Q 0 ${h} 0 ${h - r}`;
+            path += ` L 0 ${r}`;
+            path += ` Q 0 0 ${r} 0`;
+            path += ' Z';
+            
+            return path;
+          })()}
+          fill="none"
+          stroke={isSelected ? '#60a5fa' : categoryColor.accent}
+          strokeWidth="2"
+        />
+        
+        {numRepeats > 1 && Array.from({ length: numRepeats - 1 }).map((_, index) => {
+          const sectionWidth = width / numRepeats;
+          const x = sectionWidth * (index + 1);
+          const notchRadius = 6;
+          
+          return (
+            <line
+              key={index}
+              x1={x}
+              y1={notchRadius + 2}
+              x2={x}
+              y2={(TIMELINE_CONSTANTS.TRACK_HEIGHT - 16) - notchRadius - 2}
+              stroke={categoryColor.accent}
+              strokeWidth="2"
+              opacity="0.5"
+            />
+          );
+        })}
+      </svg>
+
+      {isSelected && (
+        <div 
+          className="absolute inset-0 pointer-events-none rounded"
+          style={{
+            border: '2px solid #60a5fa',
+            boxShadow: '0 0 0 1px rgba(96, 165, 250, 0.3)'
+          }}
+        />
+      )}
+
       <canvas
         ref={canvasRef}
         width={Math.max(1, width)} 
@@ -436,7 +527,6 @@ const LoopBlock = React.memo(({
         }}
       />
 
-      {/* Loop Info Overlay */}
       <div className="absolute inset-0 p-2 flex items-center justify-between pointer-events-none">
         <div className="flex flex-col min-w-0">
           <span 
@@ -453,7 +543,6 @@ const LoopBlock = React.memo(({
           </span>
         </div>
 
-        {/* Action buttons */}
         {isSelected && (
           <div className="flex items-center space-x-1 pointer-events-auto z-50">
             <button
@@ -472,55 +561,63 @@ const LoopBlock = React.memo(({
         )}
       </div>
 
-      {/* FIXED: Improved resize handle - smaller, precise, goes to edge */}
+      {/* LEFT RESIZE HANDLE */}
       <div
-        className={`resize-handle absolute top-0 bottom-0 cursor-col-resize transition-all ${
-          isResizing 
-            ? 'bg-red-500 w-2 opacity-100 right-0' 
-            : 'bg-yellow-400 hover:bg-yellow-300 w-1 opacity-60 right-0'
+        className={`resize-handle absolute top-0 bottom-0 left-0 cursor-col-resize transition-all ${
+          isResizing && resizeDirection === 'left'
+            ? 'bg-blue-500 w-2 opacity-100' 
+            : 'bg-blue-400 hover:bg-blue-300 w-1 opacity-60'
         }`}
-        onMouseDown={handleResizeStart}
-        title="Drag to trim loop duration"
-        data-resize-handle="right"
+        onMouseDown={(e) => handleResizeStart(e, 'left')}
+        title="Drag left to shrink loop"
+        data-resize-handle="left"
         style={{
-          // Ensure it goes all the way to the right edge
-          right: '0px',
-          width: isResizing ? '8px' : '4px',
+          width: isResizing && resizeDirection === 'left' ? '8px' : '4px',
           zIndex: 1000
         }}
       >
-        {/* Small visual indicator */}
-        <div className={`absolute right-0 top-1/2 transform -translate-y-1/2 w-0.5 h-6 rounded-l transition-colors ${
-          isResizing ? 'bg-white' : 'bg-gray-800'
+        <div className={`absolute left-0 top-1/2 transform -translate-y-1/2 w-0.5 h-6 rounded-r transition-colors ${
+          isResizing && resizeDirection === 'left' ? 'bg-white' : 'bg-gray-800'
         }`}></div>
         
-        {/* Debug info when resizing - positioned better */}
-        {isResizing && (
-          <div className="absolute -top-10 right-0 bg-black bg-opacity-90 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 pointer-events-none">
-            {Math.round((loop.endTime - loop.startTime) * 10) / 10}s
+        {isResizing && resizeDirection === 'left' && (
+          <div className="absolute -top-10 left-0 bg-black bg-opacity-90 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 pointer-events-none">
+            {Math.round((loop.endTime - loop.startTime) * 10) / 10}s ({numRepeats}x)
           </div>
         )}
       </div>
 
-      {/* Loading indicator */}
+      {/* RIGHT RESIZE HANDLE */}
+      <div
+        className={`resize-handle absolute top-0 bottom-0 right-0 cursor-col-resize transition-all ${
+          isResizing && resizeDirection === 'right'
+            ? 'bg-blue-500 w-2 opacity-100' 
+            : 'bg-blue-400 hover:bg-blue-300 w-1 opacity-60'
+        }`}
+        onMouseDown={(e) => handleResizeStart(e, 'right')}
+        title="Drag to resize loop (snaps to repeats)"
+        data-resize-handle="right"
+        style={{
+          width: isResizing && resizeDirection === 'right' ? '8px' : '4px',
+          zIndex: 1000
+        }}
+      >
+        <div className={`absolute right-0 top-1/2 transform -translate-y-1/2 w-0.5 h-6 rounded-l transition-colors ${
+          isResizing && resizeDirection === 'right' ? 'bg-white' : 'bg-gray-800'
+        }`}></div>
+        
+        {isResizing && resizeDirection === 'right' && (
+          <div className="absolute -top-10 right-0 bg-black bg-opacity-90 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 pointer-events-none">
+            {Math.round((loop.endTime - loop.startTime) * 10) / 10}s ({numRepeats}x)
+          </div>
+        )}
+      </div>
+
       {isGeneratingWaveform && (
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
           <div className="text-xs" style={{ color: categoryColor.text }}>
             Generating waveform...
           </div>
-        </div>
-      )}
-
-      {/* Trimmed indicator - FIXED: Only show if actually trimmed with tolerance */}
-      {(loop.endTime - loop.startTime) < (originalDuration - 0.1) && (
-        <div 
-          className="absolute top-0 right-6 text-xs px-1 rounded-b"
-          style={{ 
-            backgroundColor: categoryColor.accent, 
-            color: categoryColor.text 
-          }}
-        >
-          Trimmed
         </div>
       )}
     </div>

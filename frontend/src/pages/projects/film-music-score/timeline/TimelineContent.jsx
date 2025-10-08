@@ -1,4 +1,4 @@
-// /timeline/TimelineContent.jsx - UPDATED with Timeline Grid
+// /timeline/TimelineContent.jsx - FIXED: Pass placedLoops to enable snap guides AND onLoopResizeCallback
 import React, { forwardRef, useCallback } from 'react';
 import TimeMarkers from './components/TimeMarkers';
 import VideoTrackHeader from './components/VideoTrackHeader';
@@ -28,6 +28,7 @@ const TimelineContent = forwardRef(({
   onLoopDelete,
   onLoopSelect,
   onLoopUpdate,
+  onLoopResizeCallback,  // ADDED: Callback for loop resize
   onSeek,
   onPlayheadMouseDown,
   onTimelineScroll,
@@ -35,7 +36,12 @@ const TimelineContent = forwardRef(({
   onTimeHeaderScroll,
   updateTrackState,
   selectedLoop,
-  localZoom
+  localZoom,
+  isPlaying,
+  onTrackHeaderClick,
+  tutorialMode = false,
+  lockFeatures = {},
+  highlightSelector
 }, {
   timelineRef,
   timelineScrollRef,
@@ -43,7 +49,7 @@ const TimelineContent = forwardRef(({
   timeHeaderRef
 }) => {
 
-  // Use loop drag hook with all required parameters
+  // FIXED: Pass placedLoops to enable snap guide functionality
   const { handleLoopMouseDown } = useLoopDrag(
     timelineRef,
     timelineScrollRef,
@@ -56,7 +62,8 @@ const TimelineContent = forwardRef(({
     duration,
     localZoom,
     onLoopUpdate,
-    onLoopSelect
+    onLoopSelect,
+    placedLoops // ADDED: This was missing!
   );
 
   // Drag and drop handling
@@ -94,12 +101,15 @@ const TimelineContent = forwardRef(({
     setHoveredTrack(null);
   }, [pixelToTime, onLoopDrop, setHoveredTrack]);
 
-  // Timeline click for seeking - FIXED: Prevent seek during/after drag
+  // Timeline click for seeking - ignore clicks during playback
   const handleTimelineClick = (e) => {
-    // Don't seek if we're dragging, if playhead is being dragged, or if we just finished dragging
+    if (isPlaying) {
+      console.log('Timeline click ignored - playback is active');
+      return;
+    }
+    
     if (draggedLoop || isDraggingPlayhead) return;
     
-    // Additional check: don't seek if a drag just finished (prevents playhead jumping)
     if (Date.now() - (window.lastDragEndTime || 0) < 150) {
       return;
     }
@@ -128,7 +138,6 @@ const TimelineContent = forwardRef(({
           >
             <TimeMarkers duration={duration} timeToPixel={timeToPixel} />
             
-            {/* Playhead in time header */}
             <Playhead
               currentTime={currentTime}
               timeToPixel={timeToPixel}
@@ -161,6 +170,8 @@ const TimelineContent = forwardRef(({
               updateTrackState={updateTrackState}
               placedLoops={placedLoops}
               hoveredTrack={hoveredTrack}
+              onTrackHeaderClick={onTrackHeaderClick}
+              tutorialMode={tutorialMode}
             />
           ))}
         </div>
@@ -192,7 +203,7 @@ const TimelineContent = forwardRef(({
             onDrop={handleDrop}
             onClick={handleTimelineClick}
           >
-            {/* Timeline Grid Lines - Added for precise timing */}
+            {/* Timeline Grid Lines */}
             <TimelineGrid 
               duration={duration} 
               timeToPixel={timeToPixel} 
@@ -206,7 +217,6 @@ const TimelineContent = forwardRef(({
                 height: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT
               }}
             >
-              {/* Video bar showing actual duration */}
               <div
                 className="absolute top-3 left-5 bg-blue-600 rounded opacity-80 flex items-center justify-center"
                 style={{
@@ -255,7 +265,7 @@ const TimelineContent = forwardRef(({
               isInHeader={false}
             />
 
-            {/* Loops */}
+            {/* Loops - FIXED: Added onLoopResize prop */}
             {placedLoops
               .filter(loop => trackStates[`track-${loop.trackIndex}`]?.visible !== false)
               .map((loop) => (
@@ -269,6 +279,7 @@ const TimelineContent = forwardRef(({
                   onLoopMouseDown={handleLoopMouseDown}
                   onLoopSelect={onLoopSelect}
                   onLoopUpdate={onLoopUpdate}
+                  onLoopResize={onLoopResizeCallback}
                   onLoopDelete={onLoopDelete}
                 />
               ))}
