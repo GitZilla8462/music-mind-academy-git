@@ -1,13 +1,14 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path'); // ADD THIS LINE
+const path = require('path');
 require('dotenv').config();
 
 // Import Models
 const User = require('./models/User');
 const School = require('./models/School');
 const Class = require('./models/Class');
+const Lesson = require('./models/Lesson');
 
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
@@ -16,7 +17,9 @@ const adminRoutes = require('./routes/adminRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const submissionRoutes = require('./routes/submissions');
 const assignmentRoutes = require('./routes/assignmentRoutes');
-const loopsRoutes = require('./routes/loopsRoutes'); // Add this line
+const loopsRoutes = require('./routes/loopsRoutes');
+const lessonRoutes = require('./routes/lessonRoutes');
+const musicresourcesRoutes = require('./routes/musicresourcesRoutes'); // 🆕 NEW IMPORT
 
 // Create the Express application
 const app = express();
@@ -53,6 +56,8 @@ app.use('/api/students', studentRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/loops', loopsRoutes);
+app.use('/api/lessons', lessonRoutes);
+app.use('/api/musicresources', musicresourcesRoutes); // 🆕 NEW ROUTE
 
 // A simple test route to check if the server is working
 app.get('/', (req, res) => {
@@ -67,7 +72,9 @@ app.get('/', (req, res) => {
                 students: '/api/admin/students',
                 schools: '/api/admin/schools'
             },
-            loops: '/api/loops'
+            loops: '/api/loops',
+            lessons: '/api/lessons',
+            musicresources: '/api/musicresources/assignments' // 🆕 NEW ENDPOINT
         }
     });
 });
@@ -162,6 +169,24 @@ const initializeSampleData = async () => {
   }
 };
 
+// Initialize sample lessons
+const initializeLessons = async () => {
+  try {
+    const lessonCount = await Lesson.countDocuments();
+    if (lessonCount > 0) {
+      console.log('✅ Lessons already exist, skipping lesson initialization.');
+      return;
+    }
+
+    // Import and run the lesson seeder
+    const { seedLessons } = require('./data/seedLessons');
+    await seedLessons();
+    console.log('✅ Sample lessons initialized');
+  } catch (error) {
+    console.error('❌ Error initializing lessons:', error);
+  }
+};
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Global error handler:', err);
@@ -180,6 +205,7 @@ mongoose.connection.once('open', async () => {
   console.log('🚀 MongoDB connected successfully');
   await initializeAdmin();
   await initializeSampleData();
+  await initializeLessons();
   
   // CRITICAL: Bind to 0.0.0.0 for Railway deployment accessibility
   app.listen(PORT, '0.0.0.0', () => {
@@ -195,6 +221,11 @@ mongoose.connection.once('open', async () => {
     console.log('   ');
     console.log('   Student Email: alice.johnson@email.com');
     console.log('   Student Password: student123');
+    console.log('=================================');
+    console.log('📚 API Endpoints:');
+    console.log('   Lessons: http://localhost:' + PORT + '/api/lessons');
+    console.log('   Film Music: http://localhost:' + PORT + '/api/lessons/category/film-music');
+    console.log('   Music Resources: http://localhost:' + PORT + '/api/musicresources/assignments');
     console.log('=================================');
   });
 });
