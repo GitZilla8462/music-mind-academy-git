@@ -20,8 +20,11 @@ function MusicClassroomResources() {
     setPassword('');
   };
 
-  // Pull projects from CreateAssignmentPage and map to classroom format
-  const classroomResources = staticProjects.map(project => ({
+// Pull projects from CreateAssignmentPage and map to classroom format
+// Filter to only show the DAW lesson
+const classroomResources = staticProjects
+  .filter(project => project.projectId === 'film-music-unit-lesson-1')
+  .map(project => ({
     id: project.projectId,
     title: project.projectTitle,
     projectType: project.projectType,
