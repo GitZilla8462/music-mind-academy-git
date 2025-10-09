@@ -85,6 +85,28 @@ const DAWTutorialActivity = ({ onComplete }) => {
     }
   }, [feedback, currentChallenge]);
 
+  // Navigate to next challenge - MUST BE DEFINED BEFORE handleMultipleChoiceAnswer
+  const nextChallenge = useCallback(() => {
+    setCurrentChallengeIndex(prev => {
+      const newIndex = prev + 1;
+      
+      setTimeout(() => {
+        if (newIndex < DAW_CHALLENGES.length) {
+          const newChallenge = DAW_CHALLENGES[newIndex];
+          speakText(newChallenge.question, voiceEnabled);
+        }
+      }, 500);
+      
+      return newIndex;
+    });
+    setUserAnswer(null);
+    setFeedback(null);
+    setShowHint(false);
+    setShowExplanation(false);
+    setIdleTime(0);
+    setDawContext(prev => ({ ...prev, action: null }));
+  }, [voiceEnabled]);
+
   // Success handler with rapid-fire protection
   const handleCorrectAction = useCallback(() => {
     if (isProcessingSuccess) {
@@ -110,7 +132,7 @@ const DAWTutorialActivity = ({ onComplete }) => {
         }
       }
     }, 1500);
-  }, [isProcessingSuccess, currentChallenge, currentChallengeIndex, onComplete]);
+  }, [isProcessingSuccess, currentChallenge, currentChallengeIndex, nextChallenge, onComplete]);
 
   // Use challenge handlers hook
   const handlers = useChallengeHandlers(
@@ -122,8 +144,13 @@ const DAWTutorialActivity = ({ onComplete }) => {
     setIsProcessingClick
   );
 
-  // Multiple choice answer handler
+  // Multiple choice answer handler - NOW DEFINED AFTER nextChallenge
   const handleMultipleChoiceAnswer = useCallback((choiceIndex) => {
+    // Prevent clicking the same wrong answer repeatedly
+    if (userAnswer === choiceIndex && feedback?.type === 'error') {
+      return;
+    }
+    
     setUserAnswer(choiceIndex);
     
     const isCorrect = choiceIndex === currentChallenge.correctIndex;
@@ -140,30 +167,14 @@ const DAWTutorialActivity = ({ onComplete }) => {
       }, 2000);
     } else {
       setFeedback({ type: 'error', message: 'Not quite. Try again!' });
-    }
-  }, [currentChallenge]);
-
-  // Navigate to next challenge
-  const nextChallenge = useCallback(() => {
-    setCurrentChallengeIndex(prev => {
-      const newIndex = prev + 1;
       
+      // Clear the feedback after 1.5 seconds to allow re-attempt
       setTimeout(() => {
-        if (newIndex < DAW_CHALLENGES.length) {
-          const newChallenge = DAW_CHALLENGES[newIndex];
-          speakText(newChallenge.question, voiceEnabled);
-        }
-      }, 500);
-      
-      return newIndex;
-    });
-    setUserAnswer(null);
-    setFeedback(null);
-    setShowHint(false);
-    setShowExplanation(false);
-    setIdleTime(0);
-    setDawContext(prev => ({ ...prev, action: null }));
-  }, [voiceEnabled]);
+        setFeedback(null);
+        setUserAnswer(null); // Reset user answer to allow clicking again
+      }, 1500);
+    }
+  }, [currentChallenge, userAnswer, feedback, nextChallenge]);
 
   // Skip challenge
   const skipChallenge = useCallback(() => {
@@ -243,71 +254,73 @@ const DAWTutorialActivity = ({ onComplete }) => {
         </div>
       )}
 
-      {/* DEV TOOLS - Top Right Corner */}
-      <div className="fixed top-4 right-4 z-50">
-        <button
-          onClick={() => setShowDevTools(!showDevTools)}
-          className="bg-purple-600 text-white px-3 py-1 rounded text-xs font-mono hover:bg-purple-700 transition-colors shadow-lg"
-        >
-          {showDevTools ? 'Hide' : 'Show'} Dev Tools
-        </button>
-        
-        {showDevTools && (
-          <div className="mt-2 bg-gray-800 border-2 border-purple-500 rounded-lg p-3 shadow-xl max-w-xs">
-            <div className="text-purple-400 text-xs font-mono mb-2 font-bold">DEV TOOLS</div>
-            
-            {/* Challenge Navigator */}
-            <div className="mb-3">
-              <div className="text-gray-300 text-xs mb-1 font-semibold">Jump to Challenge:</div>
-              <div className="grid grid-cols-5 gap-1">
-                {DAW_CHALLENGES.map((challenge, index) => (
-                  <button
-                    key={index}
-                    onClick={() => devSkipToChallenge(index)}
-                    className={`text-xs px-2 py-1 rounded font-mono transition-colors ${
-                      currentChallengeIndex === index
-                        ? 'bg-purple-600 text-white font-bold'
-                        : completedChallenges.has(challenge.id)
-                        ? 'bg-green-700 text-white'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                    title={challenge.question}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
+      {/* DEV TOOLS - Top Right Corner - ONLY IN DEVELOPMENT */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed top-4 right-4 z-50">
+          <button
+            onClick={() => setShowDevTools(!showDevTools)}
+            className="bg-purple-600 text-white px-3 py-1 rounded text-xs font-mono hover:bg-purple-700 transition-colors shadow-lg"
+          >
+            {showDevTools ? 'Hide' : 'Show'} Dev Tools
+          </button>
+          
+          {showDevTools && (
+            <div className="mt-2 bg-gray-800 border-2 border-purple-500 rounded-lg p-3 shadow-xl max-w-xs">
+              <div className="text-purple-400 text-xs font-mono mb-2 font-bold">DEV TOOLS</div>
+              
+              {/* Challenge Navigator */}
+              <div className="mb-3">
+                <div className="text-gray-300 text-xs mb-1 font-semibold">Jump to Challenge:</div>
+                <div className="grid grid-cols-5 gap-1">
+                  {DAW_CHALLENGES.map((challenge, index) => (
+                    <button
+                      key={index}
+                      onClick={() => devSkipToChallenge(index)}
+                      className={`text-xs px-2 py-1 rounded font-mono transition-colors ${
+                        currentChallengeIndex === index
+                          ? 'bg-purple-600 text-white font-bold'
+                          : completedChallenges.has(challenge.id)
+                          ? 'bg-green-700 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                      title={challenge.question}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Quick Actions */}
+              <div className="space-y-1">
+                <button
+                  onClick={() => devSkipToChallenge(currentChallengeIndex + 1)}
+                  disabled={currentChallengeIndex >= DAW_CHALLENGES.length - 1}
+                  className="w-full bg-blue-600 text-white text-xs px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
+                >
+                  Skip Next
+                </button>
+                <button
+                  onClick={devCompleteAll}
+                  className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold"
+                >
+                  Complete All
+                </button>
+              </div>
+              
+              {/* Current Status */}
+              <div className="mt-3 pt-2 border-t border-gray-700 text-xs text-gray-400 font-mono">
+                <div>Challenge: {currentChallengeIndex + 1}/{DAW_CHALLENGES.length}</div>
+                <div>Completed: {completedChallenges.size}</div>
+                <div>DAW Ready: {isDAWReady ? 'Yes' : 'No'}</div>
+                <div className="text-purple-400 mt-1 truncate" title={currentChallenge.question}>
+                  {currentChallenge.question.slice(0, 30)}...
+                </div>
               </div>
             </div>
-            
-            {/* Quick Actions */}
-            <div className="space-y-1">
-              <button
-                onClick={() => devSkipToChallenge(currentChallengeIndex + 1)}
-                disabled={currentChallengeIndex >= DAW_CHALLENGES.length - 1}
-                className="w-full bg-blue-600 text-white text-xs px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
-              >
-                Skip Next
-              </button>
-              <button
-                onClick={devCompleteAll}
-                className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold"
-              >
-                Complete All
-              </button>
-            </div>
-            
-            {/* Current Status */}
-            <div className="mt-3 pt-2 border-t border-gray-700 text-xs text-gray-400 font-mono">
-              <div>Challenge: {currentChallengeIndex + 1}/{DAW_CHALLENGES.length}</div>
-              <div>Completed: {completedChallenges.size}</div>
-              <div>DAW Ready: {isDAWReady ? 'Yes' : 'No'}</div>
-              <div className="text-purple-400 mt-1 truncate" title={currentChallenge.question}>
-                {currentChallenge.question.slice(0, 30)}...
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Idle Reminder */}
       {idleTime > 30 && !feedback && isDAWReady && (

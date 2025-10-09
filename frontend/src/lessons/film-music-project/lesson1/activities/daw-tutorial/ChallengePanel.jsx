@@ -1,7 +1,7 @@
 // File: /src/lessons/film-music-project/lesson1/activities/daw-tutorial/ChallengePanel.jsx
 
 import React from 'react';
-import { Volume2, HelpCircle, ChevronDown, ChevronUp, SkipForward } from 'lucide-react';
+import { Volume2, VolumeX, HelpCircle, ChevronDown, ChevronUp, SkipForward, CheckCircle, XCircle } from 'lucide-react';
 
 const ChallengePanel = ({
   currentChallenge,
@@ -36,18 +36,47 @@ const ChallengePanel = ({
 
       {/* Header */}
       <div className="px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           <h2 className="text-lg font-bold text-gray-800">
             Challenge {currentChallengeIndex + 1} of {totalChallenges}
           </h2>
+          
+          {/* Repeat Question Button */}
           <button
             onClick={onRepeatQuestion}
-            className="text-blue-600 hover:text-blue-700 text-sm underline"
+            className="text-blue-600 hover:text-blue-700 text-xs underline"
           >
             Repeat Question
           </button>
+
+          {/* Divider */}
+          <div className="h-4 w-px bg-gray-300"></div>
+
+          {/* Volume Toggle - Small */}
+          <button
+            onClick={() => setVoiceEnabled(!voiceEnabled)}
+            className={`p-1.5 rounded transition-colors ${
+              voiceEnabled ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
+            }`}
+            title={voiceEnabled ? 'Voice enabled' : 'Voice disabled'}
+          >
+            {voiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          </button>
+
+          {/* Hint Button - Small */}
+          {currentChallenge.hint && !showHint && (
+            <button
+              onClick={() => setShowHint(true)}
+              className="flex items-center space-x-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
+              title="Show hint"
+            >
+              <HelpCircle size={14} />
+              <span className="text-xs font-medium">Hint</span>
+            </button>
+          )}
         </div>
         
+        {/* Collapse Toggle */}
         <button
           onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -56,100 +85,84 @@ const ChallengePanel = ({
         </button>
       </div>
 
-      {/* Main Content */}
+      {/* Main Content - Compact with Fixed Height */}
       {!isPanelCollapsed && (
-        <div className="px-6 pb-6 space-y-4">
-          {/* Question */}
-          <div>
-            <p className="text-xl font-semibold text-gray-900 mb-2">
-              {currentChallenge.question}
-            </p>
-            <p className="text-sm text-gray-600">
-              {currentChallenge.instruction}
-            </p>
+        <div className="px-6 pb-4">
+          {/* Question and Feedback Row */}
+          <div className="flex items-start gap-4 mb-3">
+            {/* Question - Left Side */}
+            <div className="flex-1">
+              <p className="text-lg font-semibold text-gray-900 mb-1">
+                {currentChallenge.question}
+              </p>
+              <p className="text-sm text-gray-600">
+                {currentChallenge.instruction}
+              </p>
+            </div>
+
+            {/* Feedback Badge - Right Side (Fixed Position) */}
+            {feedback && (
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 whitespace-nowrap ${
+                feedback.type === 'success' 
+                  ? 'bg-green-50 border-green-500 text-green-800' 
+                  : 'bg-red-50 border-red-500 text-red-800'
+              }`}>
+                {feedback.type === 'success' ? (
+                  <CheckCircle size={20} className="flex-shrink-0" />
+                ) : (
+                  <XCircle size={20} className="flex-shrink-0" />
+                )}
+                <span className="font-semibold text-sm">{feedback.message}</span>
+              </div>
+            )}
           </div>
 
-          {/* Answer choices - UPDATED: max-w-2xl for left alignment */}
+          {/* Answer choices - HORIZONTAL LAYOUT */}
           {currentChallenge.type === 'multiple-choice' && (
-            <div className="space-y-3 max-w-2xl">
+            <div className="flex gap-3 mb-3">
               {currentChallenge.choices.map((choice, index) => (
                 <button
                   key={index}
                   onClick={() => onMultipleChoiceAnswer(index)}
-                  disabled={feedback !== null}
-                  className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                  disabled={feedback !== null && userAnswer === index}
+                  className={`flex-1 text-center px-4 py-2 rounded-lg border-2 transition-all text-sm font-medium ${
                     userAnswer === index
                       ? feedback?.type === 'success'
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-red-500 bg-red-50'
-                      : 'border-gray-300 hover:border-blue-400 bg-white hover:bg-blue-50'
-                  } ${feedback !== null ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                        ? 'border-green-500 bg-green-50 text-green-900'
+                        : 'border-red-500 bg-red-50 text-red-900'
+                      : 'border-gray-300 hover:border-blue-400 bg-white hover:bg-blue-50 text-gray-800'
+                  } ${feedback !== null && userAnswer === index ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 >
-                  <span className="font-medium text-gray-800">{choice}</span>
+                  {choice}
                 </button>
               ))}
             </div>
           )}
 
-          {/* Feedback - UPDATED: max-w-2xl for left alignment */}
-          {feedback && (
-            <div className={`p-4 rounded-lg max-w-2xl ${
-              feedback.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-            }`}>
-              <p className={`font-medium ${
-                feedback.type === 'success' ? 'text-green-800' : 'text-red-800'
-              }`}>
-                {feedback.message}
-              </p>
-            </div>
-          )}
-
-          {/* Explanation - UPDATED: max-w-2xl for left alignment */}
+          {/* Explanation - Only shows when needed */}
           {showExplanation && currentChallenge.explanation && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg max-w-2xl">
-              <p className="text-blue-900">{currentChallenge.explanation}</p>
+            <div className="p-2 bg-blue-50 border border-blue-200 rounded-lg mb-3">
+              <p className="text-blue-900 text-sm">{currentChallenge.explanation}</p>
             </div>
           )}
 
-          {/* Hint - UPDATED: max-w-2xl for left alignment */}
+          {/* Hint Content - Only shows when requested */}
           {showHint && currentChallenge.hint && (
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg max-w-2xl">
-              <p className="text-yellow-900"><strong>Hint:</strong> {currentChallenge.hint}</p>
+            <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-lg mb-3">
+              <p className="text-yellow-900 text-sm"><strong>Hint:</strong> {currentChallenge.hint}</p>
             </div>
           )}
 
-          {/* Icons row - UPDATED: max-w-2xl for left alignment */}
-          <div className="flex items-center space-x-3 max-w-2xl">
-            {/* Volume button */}
-            <button
-              onClick={() => setVoiceEnabled(!voiceEnabled)}
-              className={`p-2 rounded-lg transition-colors ${
-                voiceEnabled ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
-              }`}
-              title={voiceEnabled ? 'Voice enabled' : 'Voice disabled'}
-            >
-              <Volume2 size={20} />
-            </button>
-
-            {/* Hint button */}
-            {currentChallenge.hint && !showHint && (
-              <button
-                onClick={() => setShowHint(true)}
-                className="flex items-center space-x-2 px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
-              >
-                <HelpCircle size={18} />
-                <span className="text-sm font-medium">Show Hint</span>
-              </button>
-            )}
-
-            {/* Skip button */}
+          {/* Action Buttons Row - Only Skip and Next */}
+          <div className="flex items-center space-x-3">
+            {/* Skip button - NOW BLUE */}
             {currentChallenge.allowSkip && (
               <button
                 onClick={onSkipChallenge}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                className="flex items-center space-x-1 px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors shadow-sm"
               >
-                <SkipForward size={18} />
-                <span className="text-sm font-medium">Skip</span>
+                <SkipForward size={16} />
+                <span className="text-xs font-medium">Skip</span>
               </button>
             )}
 
@@ -159,7 +172,7 @@ const ChallengePanel = ({
              !currentChallenge.autoAdvanceOnCorrect && (
               <button
                 onClick={onNextChallenge}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
               >
                 Next Challenge
               </button>
