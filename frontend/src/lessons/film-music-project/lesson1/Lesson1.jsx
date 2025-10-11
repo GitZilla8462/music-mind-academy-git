@@ -111,44 +111,58 @@ const Lesson1 = () => {
 
   const currentActivityData = lesson1Config.activities[currentActivity];
   const isLessonComplete = currentActivity >= lesson1Config.activities.length;
+  const progressPercent = ((currentActivity + 1) / lesson1Config.activities.length) * 100;
 
   return (
     <div className="min-h-screen bg-gray-900 relative overflow-hidden">
-      {/* Floating Navigation Header */}
+      {/* Compact Single-Line Navigation Header */}
       <div 
         className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
           showNavigation ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <div className="bg-black/80 backdrop-blur-sm border-b border-gray-700 px-6 py-3">
-          <div className="flex items-center justify-between max-w-6xl mx-auto">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={handleBackNavigation}
-                className="flex items-center text-white hover:text-gray-300 transition-colors group"
-              >
-                <ArrowLeft size={20} className="mr-2 group-hover:transform group-hover:-translate-x-1 transition-transform" />
-                <span className="font-medium">Back</span>
-              </button>
-              <div className="h-6 w-px bg-gray-600"></div>
-              <button
-                onClick={handleDashboardNavigation}
-                className="flex items-center text-gray-300 hover:text-white transition-colors group"
-              >
-                <Home size={18} className="mr-2 group-hover:scale-110 transition-transform" />
-                <span className="text-sm">Dashboard</span>
-              </button>
-            </div>
-            
-            <div className="text-sm text-gray-400">
-              Film Music Project - Lesson 1
+        <div className="bg-black/80 backdrop-blur-sm border-b border-gray-700 px-4 py-2">
+          <div className="flex items-center justify-between gap-4 max-w-full">
+            {/* Left Section: Back Button */}
+            <button
+              onClick={handleBackNavigation}
+              className="flex items-center text-white hover:text-gray-300 transition-colors group flex-shrink-0"
+            >
+              <ArrowLeft size={18} className="mr-1.5 group-hover:transform group-hover:-translate-x-1 transition-transform" />
+              <span className="text-sm font-medium">Back</span>
+            </button>
+
+            {/* Lesson Context */}
+            <div className="text-xs text-gray-400 flex-shrink-0">
+              Intro to the DAW
             </div>
 
+            {/* Lesson Title */}
+            <div className="text-sm text-white font-medium flex-shrink-0">
+              {lesson1Config.title}
+            </div>
+
+            {/* Progress Bar - Grows to fill available space */}
+            <div className="flex-1 min-w-[200px] max-w-md">
+              <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-blue-500 transition-all duration-500"
+                  style={{ width: `${progressPercent}%` }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Activity Counter */}
+            <div className="text-sm text-gray-300 flex-shrink-0">
+              Activity {currentActivity + 1} of {lesson1Config.activities.length}
+            </div>
+
+            {/* Close Button */}
             <button
               onClick={toggleNavigation}
-              className="text-gray-300 hover:text-white transition-colors"
+              className="text-gray-300 hover:text-white transition-colors flex-shrink-0"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           </div>
         </div>
@@ -165,7 +179,7 @@ const Lesson1 = () => {
       )}
 
       {/* Main Content */}
-      <div className={`h-screen flex flex-col ${showNavigation ? 'pt-16' : 'pt-0'} transition-all duration-300`}>
+      <div className={`h-screen flex flex-col ${showNavigation ? 'pt-10' : 'pt-0'} transition-all duration-300`}>
         {!lessonStarted ? (
           // Lesson Start Screen
           <div className="flex-1 flex items-center justify-center p-6">
@@ -219,24 +233,6 @@ const Lesson1 = () => {
         ) : (
           // Active Lesson
           <div className="flex-1 flex flex-col">
-            {/* Progress Header */}
-            <div className="bg-gray-800 text-white px-6 py-4 flex-shrink-0">
-              <div className="flex justify-between items-center mb-3">
-                <h1 className="text-xl font-bold">{lesson1Config.title}</h1>
-                <div className="text-sm text-gray-300">
-                  Activity {currentActivity + 1} of {lesson1Config.activities.length}
-                </div>
-              </div>
-              
-              {/* Progress Bar */}
-              <div className="w-full bg-gray-700 rounded-full h-2">
-                <div 
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${((currentActivity + 1) / lesson1Config.activities.length) * 100}%` }}
-                ></div>
-              </div>
-            </div>
-
             {/* Current Activity */}
             <div className="flex-1 overflow-hidden">
               {!isLessonComplete && currentActivityData && (

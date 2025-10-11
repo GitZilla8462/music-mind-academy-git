@@ -1,3 +1,5 @@
+// File: /src/lessons/components/activities/video/VideoPlayer.jsx
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
 
@@ -259,7 +261,7 @@ const VideoPlayer = ({
   return (
     <div 
       ref={containerRef}
-      className={`h-full bg-black relative ${isFullscreen ? 'w-screen h-screen' : ''}`}
+      className={`h-full bg-black relative flex flex-col ${isFullscreen ? 'w-screen h-screen' : ''}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => allowSeeking && setShowControls(false)}
     >
@@ -353,7 +355,10 @@ const VideoPlayer = ({
         }
       `}</style>
 
-      <div className={`w-full h-full relative flex items-center justify-center ${isFullscreen ? 'bg-black' : ''}`}>
+      {/* Video Container with controlled height */}
+      <div className={`flex-1 relative flex items-center justify-center overflow-hidden ${
+        isFullscreen ? 'pb-32' : 'pb-0'
+      }`}>
         <video
           ref={videoRef}
           className="object-contain"
@@ -364,8 +369,8 @@ const VideoPlayer = ({
           style={{
             pointerEvents: 'auto',
             outline: 'none',
-            maxWidth: isFullscreen ? '85vw' : '100%',
-            maxHeight: isFullscreen ? '65vh' : '100%',
+            maxWidth: isFullscreen ? '90vw' : '100%',
+            maxHeight: isFullscreen ? '55vh' : '100%',
             width: 'auto',
             height: isFullscreen ? 'auto' : '100%'
           }}
@@ -378,11 +383,14 @@ const VideoPlayer = ({
         {!allowSeeking && (
           <div
             ref={overlayRef}
-            className="absolute top-0 left-0 right-0 pointer-events-auto"
+            className="absolute pointer-events-auto"
             style={{
               backgroundColor: 'transparent',
               zIndex: 10,
-              bottom: isFullscreen ? '180px' : '150px'
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: isFullscreen ? '200px' : '150px'
             }}
             onClick={handleVideoClick}
             onMouseDown={handleOverlayInteraction}
@@ -393,123 +401,6 @@ const VideoPlayer = ({
           />
         )}
 
-        {/* Controls - Always visible and functional */}
-        {isLoaded && (
-          <div 
-            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/90 to-transparent px-6 py-4"
-            style={{ 
-              zIndex: 50,
-              paddingBottom: isFullscreen ? '1rem' : '1rem'
-            }}
-          >
-            {/* Progress Bar */}
-            <div className="mb-4">
-              <div 
-                className={`h-1 bg-gray-600 rounded-full overflow-hidden ${
-                  allowSeeking ? 'cursor-pointer' : 'cursor-default'
-                }`}
-                onClick={allowSeeking ? handleProgressClick : undefined}
-              >
-                <div 
-                  className="h-full bg-blue-500 transition-all duration-200"
-                  style={{ 
-                    width: `${(watchedTime / duration) * 100}%`
-                  }}
-                />
-              </div>
-              <div className="flex justify-between text-xs text-gray-300 mt-1">
-                <span>{formatTime(currentTime)}</span>
-                <span>{formatTime(duration)}</span>
-              </div>
-            </div>
-
-            {/* Control Buttons */}
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center space-x-4 flex-wrap">
-                {/* Play/Pause Button */}
-                <button
-                  onClick={togglePlay}
-                  className="text-white hover:text-blue-400 transition-colors p-2 bg-black/50 rounded"
-                >
-                  {isPlaying ? <Pause size={24} /> : <Play size={24} />}
-                </button>
-
-                {/* Volume Controls */}
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={toggleMute}
-                    className="text-white hover:text-blue-400 transition-colors bg-black/50 rounded p-1"
-                  >
-                    {isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
-                  </button>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={isMuted ? 0 : volume}
-                    onChange={handleVolumeChange}
-                    className="volume-slider w-20"
-                    style={{ 
-                      background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(isMuted ? 0 : volume) * 100}%, #4b5563 ${(isMuted ? 0 : volume) * 100}%, #4b5563 100%)`
-                    }}
-                  />
-                </div>
-
-                {/* Time Display */}
-                <span className="text-white text-sm bg-black/50 px-2 py-1 rounded whitespace-nowrap">
-                  {formatTime(currentTime)} / {formatTime(duration)}
-                </span>
-              </div>
-
-              <div className="flex items-center space-x-4 flex-wrap">
-                {/* Dev Skip Button */}
-                {process.env.NODE_ENV === 'development' && (
-                  <button
-                    onClick={() => {
-                      if (onComplete) onComplete();
-                    }}
-                    className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors whitespace-nowrap"
-                    title="Development only - skip to next activity"
-                  >
-                    Dev Skip
-                  </button>
-                )}
-
-                {/* Progress Percentage */}
-                <div className="text-white text-sm bg-black/50 px-2 py-1 rounded whitespace-nowrap">
-                  Progress: {Math.round((watchedTime / duration) * 100)}%
-                </div>
-
-                {/* Fullscreen Button */}
-                {allowFullscreen && (
-                  <button
-                    onClick={toggleFullscreen}
-                    className="text-white hover:text-blue-400 transition-colors p-2 bg-black/50 rounded"
-                  >
-                    <Maximize size={20} />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* No Skip Notice */}
-        {showNotice && !allowSeeking && isLoaded && (
-          <div 
-            className="absolute left-4 bg-black/90 text-white px-4 py-2 rounded-lg text-sm backdrop-blur-sm z-40"
-            style={{
-              bottom: isFullscreen ? '140px' : '8.5rem'
-            }}
-          >
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <span>Cannot skip ahead - Watch completely to continue</span>
-            </div>
-          </div>
-        )}
-        
         {/* Title */}
         {title && (
           <div className="absolute top-4 left-4 bg-black/90 text-white px-4 py-2 rounded-lg text-sm backdrop-blur-sm z-40">
@@ -527,6 +418,125 @@ const VideoPlayer = ({
           </div>
         )}
       </div>
+
+      {/* Controls - Fixed at bottom with better visibility */}
+      {isLoaded && (
+        <div 
+          className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/95 to-transparent z-50"
+          style={{ 
+            paddingTop: '2rem',
+            paddingBottom: isFullscreen ? '2rem' : '1rem',
+            paddingLeft: '1.5rem',
+            paddingRight: '1.5rem'
+          }}
+        >
+          {/* Progress Bar */}
+          <div className="mb-4">
+            <div 
+              className={`h-1 bg-gray-600 rounded-full overflow-hidden ${
+                allowSeeking ? 'cursor-pointer' : 'cursor-default'
+              }`}
+              onClick={allowSeeking ? handleProgressClick : undefined}
+            >
+              <div 
+                className="h-full bg-blue-500 transition-all duration-200"
+                style={{ 
+                  width: `${(watchedTime / duration) * 100}%`
+                }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-gray-300 mt-1">
+              <span>{formatTime(currentTime)}</span>
+              <span>{formatTime(duration)}</span>
+            </div>
+          </div>
+
+          {/* Control Buttons */}
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center space-x-4 flex-wrap">
+              {/* Play/Pause Button */}
+              <button
+                onClick={togglePlay}
+                className="text-white hover:text-blue-400 transition-colors p-2 bg-black/50 rounded"
+              >
+                {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+              </button>
+
+              {/* Volume Controls */}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={toggleMute}
+                  className="text-white hover:text-blue-400 transition-colors bg-black/50 rounded p-1"
+                >
+                  {isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                </button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={isMuted ? 0 : volume}
+                  onChange={handleVolumeChange}
+                  className="volume-slider w-20"
+                  style={{ 
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(isMuted ? 0 : volume) * 100}%, #4b5563 ${(isMuted ? 0 : volume) * 100}%, #4b5563 100%)`
+                  }}
+                />
+              </div>
+
+              {/* Time Display */}
+              <span className="text-white text-sm bg-black/50 px-2 py-1 rounded whitespace-nowrap">
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-4 flex-wrap">
+              {/* Dev Skip Button */}
+              {process.env.NODE_ENV === 'development' && (
+                <button
+                  onClick={() => {
+                    if (onComplete) onComplete();
+                  }}
+                  className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors whitespace-nowrap"
+                  title="Development only - skip to next activity"
+                >
+                  Dev Skip
+                </button>
+              )}
+
+              {/* Progress Percentage */}
+              <div className="text-white text-sm bg-black/50 px-2 py-1 rounded whitespace-nowrap">
+                Progress: {Math.round((watchedTime / duration) * 100)}%
+              </div>
+
+              {/* Fullscreen Button */}
+              {allowFullscreen && (
+                <button
+                  onClick={toggleFullscreen}
+                  className="text-white hover:text-blue-400 transition-colors p-2 bg-black/50 rounded"
+                >
+                  <Maximize size={20} />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* No Skip Notice - Positioned higher */}
+      {showNotice && !allowSeeking && isLoaded && (
+        <div 
+          className="absolute left-4 bg-black/90 text-white px-4 py-2 rounded-lg text-sm backdrop-blur-sm z-40"
+          style={{
+            bottom: isFullscreen ? '160px' : '8.5rem'
+          }}
+        >
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            <span>Cannot skip ahead - Watch completely to continue</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
