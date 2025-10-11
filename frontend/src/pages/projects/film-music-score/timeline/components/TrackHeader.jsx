@@ -1,6 +1,6 @@
-// /timeline/components/TrackHeader.jsx
+// File: /src/pages/projects/film-music-score/timeline/components/TrackHeader.jsx
+
 import React from 'react';
-import { Eye, EyeOff } from 'lucide-react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
 
 const TrackHeader = ({ 
@@ -9,7 +9,7 @@ const TrackHeader = ({
   updateTrackState, 
   placedLoops, 
   hoveredTrack,
-  onTrackHeaderClick, // NEW: Callback for track header clicks
+  onTrackHeaderClick,
   tutorialMode = false
 }) => {
   const trackId = `track-${trackIndex}`;
@@ -31,7 +31,7 @@ const TrackHeader = ({
 
   return (
     <div 
-      className={`track-header w-48 bg-gray-800 border-r border-gray-600 border-b border-gray-700 ${
+      className={`track-header w-40 bg-gray-800 border-r border-gray-600 border-b border-gray-700 ${
         hoveredTrack === trackIndex ? 'bg-gray-700' : ''
       } ${hasLoops ? 'ring-1 ring-blue-500/30' : ''} ${
         tutorialMode ? 'cursor-pointer' : ''
@@ -40,55 +40,40 @@ const TrackHeader = ({
       onClick={handleHeaderClick}
     >
       <div className="p-2">
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center space-x-2 flex-1">
-            <span className="text-white text-xs font-medium w-12">
-              {trackState.name || `Track ${trackIndex + 1}`}
+        <div className="flex items-center space-x-2 mb-1">
+          <span className="text-white text-xs font-medium w-12">
+            {trackState.name || `Track ${trackIndex + 1}`}
+          </span>
+          
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const newVolume = Math.max(0, (trackState.volume || 0.7) - 0.05);
+                updateTrackState(trackId, { volume: newVolume });
+              }}
+              className="w-4 h-4 bg-gray-600 hover:bg-gray-500 rounded text-xs text-white flex items-center justify-center transition-colors"
+              title="Decrease volume"
+            >
+              ‹
+            </button>
+            
+            <span className="text-xs text-gray-400 w-8 text-center">
+              {Math.round((trackState.volume || 0.7) * 100)}%
             </span>
             
-            <div className="flex items-center space-x-1">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const newVolume = Math.max(0, (trackState.volume || 0.7) - 0.05);
-                  updateTrackState(trackId, { volume: newVolume });
-                }}
-                className="w-4 h-4 bg-gray-600 hover:bg-gray-500 rounded text-xs text-white flex items-center justify-center transition-colors"
-                title="Decrease volume"
-              >
-                ‹
-              </button>
-              
-              <span className="text-xs text-gray-400 w-8 text-center">
-                {Math.round((trackState.volume || 0.7) * 100)}%
-              </span>
-              
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const newVolume = Math.min(1, (trackState.volume || 0.7) + 0.05);
-                  updateTrackState(trackId, { volume: newVolume });
-                }}
-                className="w-4 h-4 bg-gray-600 hover:bg-gray-500 rounded text-xs text-white flex items-center justify-center transition-colors"
-                title="Increase volume"
-              >
-                ›
-              </button>
-            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const newVolume = Math.min(1, (trackState.volume || 0.7) + 0.05);
+                updateTrackState(trackId, { volume: newVolume });
+              }}
+              className="w-4 h-4 bg-gray-600 hover:bg-gray-500 rounded text-xs text-white flex items-center justify-center transition-colors"
+              title="Increase volume"
+            >
+              ›
+            </button>
           </div>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              updateTrackState(trackId, { visible: !trackState.visible });
-            }}
-            className={`p-0.5 rounded transition-colors ${
-              trackState.visible ? 'text-gray-400 hover:text-white' : 'text-red-400'
-            }`}
-            title={trackState.visible ? 'Hide' : 'Show'}
-          >
-            {trackState.visible ? <Eye size={10} /> : <EyeOff size={10} />}
-          </button>
         </div>
 
         <div className="flex items-center space-x-1">

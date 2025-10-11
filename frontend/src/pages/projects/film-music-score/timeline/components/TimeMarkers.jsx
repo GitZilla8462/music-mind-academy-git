@@ -1,4 +1,5 @@
-// /timeline/components/TimeMarkers.jsx - Enhanced with second-level grid
+// File: /src/pages/projects/film-music-score/timeline/components/TimeMarkers.jsx
+
 import React from 'react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
 
@@ -18,7 +19,7 @@ const TimeMarkers = ({ duration, timeToPixel }) => {
         style={{ left: timeToPixel(i) - 13 }}
       >
         <div className="w-px h-3 bg-white opacity-80" />
-        <span className="text-xs font-mono mt-1 leading-none">
+        <span className="text-xs font-mono leading-none">
           {minutes}:{seconds.toString().padStart(2, '0')}
         </span>
       </div>

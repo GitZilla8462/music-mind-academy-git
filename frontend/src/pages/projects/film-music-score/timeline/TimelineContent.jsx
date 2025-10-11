@@ -1,4 +1,6 @@
-// /timeline/TimelineContent.jsx - FIXED: Pass placedLoops to enable snap guides AND onLoopResizeCallback
+// File: /src/pages/projects/film-music-score/timeline/TimelineContent.jsx
+// FIXED: Pass placedLoops to enable snap guides AND onLoopResizeCallback
+
 import React, { forwardRef, useCallback } from 'react';
 import TimeMarkers from './components/TimeMarkers';
 import VideoTrackHeader from './components/VideoTrackHeader';
@@ -28,7 +30,7 @@ const TimelineContent = forwardRef(({
   onLoopDelete,
   onLoopSelect,
   onLoopUpdate,
-  onLoopResizeCallback,  // ADDED: Callback for loop resize
+  onLoopResizeCallback,
   onSeek,
   onPlayheadMouseDown,
   onTimelineScroll,
@@ -63,7 +65,7 @@ const TimelineContent = forwardRef(({
     localZoom,
     onLoopUpdate,
     onLoopSelect,
-    placedLoops // ADDED: This was missing!
+    placedLoops
   );
 
   // Drag and drop handling
@@ -209,7 +211,7 @@ const TimelineContent = forwardRef(({
               timeToPixel={timeToPixel} 
             />
 
-            {/* Video track */}
+            {/* Video track - FIXED BLUE BAR POSITIONING */}
             <div
               className="absolute left-0 right-0 border-b border-gray-700 bg-gray-700"
               style={{
@@ -218,10 +220,11 @@ const TimelineContent = forwardRef(({
               }}
             >
               <div
-                className="absolute top-3 left-5 bg-blue-600 rounded opacity-80 flex items-center justify-center"
+                className="absolute left-5 bg-blue-600 rounded opacity-80 flex items-center justify-center"
                 style={{
+                  top: '2px',
                   width: timeToPixel(duration) - 10,
-                  height: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT - 24
+                  height: `${TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT - 4}px`
                 }}
               >
                 <span className="text-white text-xs font-medium">
@@ -229,7 +232,7 @@ const TimelineContent = forwardRef(({
                 </span>
               </div>
               
-              <div className="absolute left-2 top-1 text-xs text-gray-300 font-medium">
+              <div className="absolute left-2 text-xs text-gray-300 font-medium" style={{ top: '2px' }}>
                 V
               </div>
             </div>

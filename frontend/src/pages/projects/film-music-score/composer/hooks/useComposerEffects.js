@@ -1,4 +1,6 @@
-// composer/hooks/useComposerEffects.js - All useEffect logic with FIXED duration detection
+// File: /src/pages/projects/film-music-score/composer/hooks/useComposerEffects.js
+// All useEffect logic with FIXED duration detection and FIXED panel resizing
+
 import { useEffect } from 'react';
 import { getVideoById } from '../../shared/loopData';
 
@@ -210,15 +212,16 @@ export const useComposerEffects = ({
     }
   }, [audioReady, initializeAudio, setAudioReady]);
 
-  // Handle panel resizing
+  // FIXED: Handle panel resizing with smooth gradual movement
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (isResizingLeft && containerRef.current) {
         const containerRect = containerRef.current.getBoundingClientRect();
         const newWidth = e.clientX - containerRect.left;
-        const minWidth = 250;
+        const minWidth = 120; // FIXED: Reduced from 250 to 120 (allows narrower than 160px default)
         const maxWidth = containerRect.width * 0.5;
-        setLeftPanelWidth(Math.max(minWidth, Math.min(maxWidth, newWidth)));
+        const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+        setLeftPanelWidth(constrainedWidth);
       }
 
       if (isResizingTop && containerRef.current) {

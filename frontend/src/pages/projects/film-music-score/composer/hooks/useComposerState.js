@@ -1,4 +1,6 @@
-// composer/hooks/useComposerState.js - Central state management
+// File: /src/pages/projects/film-music-score/composer/hooks/useComposerState.js
+// Central state management
+
 import { useState, useRef } from 'react';
 
 export const useComposerState = (preselectedVideo) => {
@@ -21,7 +23,7 @@ export const useComposerState = (preselectedVideo) => {
   const [trackStates, setTrackStates] = useState({});
   
   // Panel sizing state
-  const [leftPanelWidth, setLeftPanelWidth] = useState(320);
+  const [leftPanelWidth, setLeftPanelWidth] = useState(160); // CHANGED from 320 to 160 (50% width)
   const [topPanelHeight, setTopPanelHeight] = useState(400);
   const [isResizingLeft, setIsResizingLeft] = useState(false);
   const [isResizingTop, setIsResizingTop] = useState(false);

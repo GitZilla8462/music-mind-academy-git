@@ -1,5 +1,7 @@
-// LoopLibrary.jsx - Dynamic loop library with backend API integration
+// File: /src/pages/projects/film-music-score/shared/LoopLibrary.jsx
+// Dynamic loop library with backend API integration
 // FIXED: Loop preview plays once and stops automatically
+
 import React, { useState, useEffect } from 'react';
 import { Play, Pause, Volume2, Search, Filter } from 'lucide-react';
 
@@ -396,86 +398,78 @@ const LoopLibrary = ({
 
   return (
     <div className="h-full flex flex-col bg-gray-800">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-700">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-white">Loop Library</h2>
-          <span className="text-xs text-gray-400">{loops.length} loops</span>
+      {/* Header - COMPACT VERSION */}
+      <div className="p-2 border-b border-gray-700">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-semibold text-white">Loops</h2>
+          <span className="text-xs text-gray-400">{loops.length}</span>
         </div>
 
         {/* Search */}
-        <div className="relative mb-3">
-          <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
+        <div className="relative mb-2">
+          <Search size={14} className="absolute left-2 top-2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search loops..."
+            placeholder="Search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-gray-700 text-white text-sm rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+            className="w-full pl-7 pr-2 py-1.5 bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
           />
         </div>
 
-        {/* Dual Filters - MOOD FIRST */}
-        <div className="space-y-2">
+        {/* Filters - Compact Version */}
+        <div className="space-y-1.5">
           {/* MOOD FILTER */}
-          <div className="flex items-center space-x-2">
-            <Filter size={14} className="text-gray-400 flex-shrink-0" />
-            <span className="text-xs text-gray-400 w-20">Mood:</span>
-            <select
-              value={moodFilter}
-              onChange={(e) => setMoodFilter(e.target.value)}
-              className="flex-1 bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-blue-500 focus:outline-none px-2 py-1"
-            >
-              {moods.map(mood => (
-                <option key={mood} value={mood}>{mood}</option>
-              ))}
-            </select>
-          </div>
+          <select
+            value={moodFilter}
+            onChange={(e) => setMoodFilter(e.target.value)}
+            className="w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-blue-500 focus:outline-none px-2 py-1.5"
+          >
+            <option value="All">All Moods</option>
+            {moods.filter(m => m !== 'All').map(mood => (
+              <option key={mood} value={mood}>{mood}</option>
+            ))}
+          </select>
 
           {/* INSTRUMENT FILTER */}
-          <div className="flex items-center space-x-2">
-            <Filter size={14} className="text-gray-400 flex-shrink-0" />
-            <span className="text-xs text-gray-400 w-20">Instrument:</span>
-            <select
-              value={instrumentFilter}
-              onChange={(e) => setInstrumentFilter(e.target.value)}
-              className="flex-1 bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-blue-500 focus:outline-none px-2 py-1"
-            >
-              {instruments.map(inst => (
-                <option key={inst} value={inst}>{inst}</option>
-              ))}
-            </select>
-          </div>
+          <select
+            value={instrumentFilter}
+            onChange={(e) => setInstrumentFilter(e.target.value)}
+            className="w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-blue-500 focus:outline-none px-2 py-1.5"
+          >
+            <option value="All">All Instruments</option>
+            {instruments.filter(i => i !== 'All').map(inst => (
+              <option key={inst} value={inst}>{inst}</option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {/* Loop List */}
-      <div className="flex-1 overflow-y-auto p-2">
+      {/* Loop List - UPDATED: Smaller, more compact fonts for 160px width */}
+      <div className="flex-1 overflow-y-auto p-1.5">
         <div className="space-y-1">
           {filteredLoops.map((loop) => (
             <div
               key={loop.id}
-              className="group relative bg-gray-700 hover:bg-gray-600 rounded-lg p-3 cursor-move transition-colors border border-gray-600 hover:border-gray-500"
+              className="group relative bg-gray-700 hover:bg-gray-600 rounded p-1.5 cursor-move transition-colors border border-gray-600 hover:border-gray-500"
               draggable={lockFeatures.allowLoopDrag !== false}
               onDragStart={(e) => handleDragStart(e, loop)}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-1.5">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-white text-sm font-medium truncate">
+                  <h3 className="text-white text-xs font-medium truncate leading-tight">
                     {loop.name}
                   </h3>
-                  <div className="flex items-center space-x-2 mt-1 text-xs">
+                  <div className="flex items-center gap-1 mt-0.5">
                     <span 
-                      className="px-2 py-0.5 rounded text-white font-medium"
-                      style={{ backgroundColor: loop.color }}
+                      className="px-1 py-0.5 rounded text-white font-semibold text-xs leading-none"
+                      style={{ backgroundColor: loop.color, fontSize: '10px' }}
                     >
                       {loop.instrument}
                     </span>
-                    <span className="text-gray-400">{loop.mood}</span>
-                    {loop.subType && (
-                      <span className="text-gray-500">{loop.subType}</span>
-                    )}
-                    <span className="text-gray-500">{Math.round(loop.duration)}s</span>
+                    <span className="text-gray-400 text-xs" style={{ fontSize: '10px' }}>
+                      {Math.round(loop.duration)}s
+                    </span>
                   </div>
                 </div>
 
@@ -486,22 +480,22 @@ const LoopLibrary = ({
                     handlePlayLoop(loop);
                   }}
                   disabled={!loop.loaded || !loop.accessible || lockFeatures.allowLoopPreview === false || isPlayingAudio}
-                  className={`ml-2 p-2 rounded-full transition-colors ${
+                  className={`flex-shrink-0 p-1 rounded-full transition-colors ${
                     currentlyPlaying === loop.id
                       ? 'bg-green-600 hover:bg-green-700 text-white'
                       : loop.loaded && loop.accessible && lockFeatures.allowLoopPreview !== false && !isPlayingAudio
                       ? 'bg-gray-600 hover:bg-gray-500 text-gray-300'
                       : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                   }`}
-                  title={isPlayingAudio ? "Processing..." : (currentlyPlaying === loop.id ? "Playing (will stop automatically)" : "Play once")}
+                  title={isPlayingAudio ? "Processing..." : (currentlyPlaying === loop.id ? "Playing" : "Play")}
                 >
-                  {currentlyPlaying === loop.id ? <Pause size={16} /> : <Play size={16} />}
+                  {currentlyPlaying === loop.id ? <Pause size={12} /> : <Play size={12} />}
                 </button>
               </div>
 
               {lockFeatures.allowLoopDrag !== false && (
-                <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="text-gray-400 text-xs">Drag to timeline</div>
+                <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="text-gray-400 text-xs" style={{ fontSize: '9px' }}>Drag</div>
                 </div>
               )}
             </div>
@@ -509,19 +503,19 @@ const LoopLibrary = ({
         </div>
 
         {filteredLoops.length === 0 && (
-          <div className="text-center text-gray-400 mt-8">
-            <Volume2 size={48} className="mx-auto mb-4 opacity-50" />
-            <p>No loops found</p>
-            <p className="text-sm mt-1">Try different filters or search terms</p>
+          <div className="text-center text-gray-400 mt-6">
+            <Volume2 size={32} className="mx-auto mb-2 opacity-50" />
+            <p className="text-xs">No loops found</p>
+            <p className="text-xs mt-1" style={{ fontSize: '10px' }}>Try different filters</p>
           </div>
         )}
       </div>
 
       {/* Footer */}
-      <div className="p-3 border-t border-gray-700 bg-gray-800">
+      <div className="p-2 border-t border-gray-700 bg-gray-800">
         <div className="flex items-center justify-between text-xs text-gray-400">
-          <span>{filteredLoops.length} of {loops.length} loops</span>
-          <span>
+          <span>{filteredLoops.length}/{loops.length}</span>
+          <span className="truncate ml-1">
             {moodFilter !== 'All' && `${moodFilter}`}
             {moodFilter !== 'All' && instrumentFilter !== 'All' && ' • '}
             {instrumentFilter !== 'All' && `${instrumentFilter}`}

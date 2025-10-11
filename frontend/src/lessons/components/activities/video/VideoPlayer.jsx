@@ -1,3 +1,6 @@
+// File: /src/lessons/components/activities/video/VideoPlayer.jsx
+// Fully Responsive Video Player for All Devices
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
 
@@ -22,6 +25,19 @@ const VideoPlayer = ({
   const [error, setError] = useState(null);
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile/touch devices
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -237,16 +253,16 @@ const VideoPlayer = ({
 
   if (error) {
     return (
-      <div className="h-full bg-black flex items-center justify-center">
-        <div className="text-center text-white p-8">
-          <Play size={64} className="mx-auto mb-4 opacity-50" />
-          <h3 className="text-2xl font-semibold mb-4">Video Not Available</h3>
-          <p className="text-gray-300 mb-6">{error}</p>
-          <p className="text-gray-400 mb-6 text-sm">Path: {src}</p>
+      <div className="h-full bg-black flex items-center justify-center p-4">
+        <div className="text-center text-white max-w-md">
+          <Play size={48} className="mx-auto mb-4 opacity-50 sm:w-16 sm:h-16" />
+          <h3 className="text-xl sm:text-2xl font-semibold mb-4">Video Not Available</h3>
+          <p className="text-gray-300 mb-4 text-sm sm:text-base">{error}</p>
+          <p className="text-gray-400 mb-6 text-xs sm:text-sm break-all">Path: {src}</p>
           {onComplete && (
             <button
               onClick={onComplete}
-              className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors"
+              className="bg-blue-600 text-white px-6 py-3 sm:px-8 sm:py-4 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
             >
               Continue to Next Activity
             </button>
@@ -270,42 +286,22 @@ const VideoPlayer = ({
       }}
     >
       <style>{`
-        video::-webkit-media-controls {
-          display: none !important;
-        }
-        video::-webkit-media-controls-start-playback-button {
-          display: none !important;
-        }
-        video::-webkit-media-controls-timeline {
-          display: none !important;
-        }
-        video::-webkit-media-controls-current-time-display {
-          display: none !important;
-        }
-        video::-webkit-media-controls-time-remaining-display {
-          display: none !important;
-        }
-        video::-webkit-media-controls-seek-back-button {
-          display: none !important;
-        }
-        video::-webkit-media-controls-seek-forward-button {
-          display: none !important;
-        }
-        video::-webkit-media-controls-rewind-button {
-          display: none !important;
-        }
-        video::-webkit-media-controls-return-to-realtime-button {
-          display: none !important;
-        }
-        video::-webkit-media-controls-toggle-closed-captions-button {
-          display: none !important;
-        }
-        video::-moz-media-controls {
-          display: none !important;
-        }
+        /* Hide native video controls */
+        video::-webkit-media-controls,
+        video::-webkit-media-controls-start-playback-button,
+        video::-webkit-media-controls-timeline,
+        video::-webkit-media-controls-current-time-display,
+        video::-webkit-media-controls-time-remaining-display,
+        video::-webkit-media-controls-seek-back-button,
+        video::-webkit-media-controls-seek-forward-button,
+        video::-webkit-media-controls-rewind-button,
+        video::-webkit-media-controls-return-to-realtime-button,
+        video::-webkit-media-controls-toggle-closed-captions-button,
+        video::-moz-media-controls,
         video::-ms-media-controls {
           display: none !important;
         }
+        
         video {
           -webkit-user-select: none;
           -moz-user-select: none;
@@ -315,12 +311,13 @@ const VideoPlayer = ({
           -webkit-tap-highlight-color: transparent;
         }
         
-        /* Volume slider styling */
+        /* Volume slider styling - responsive */
         input[type="range"].volume-slider {
           -webkit-appearance: none;
           appearance: none;
           background: transparent;
           cursor: pointer;
+          height: 20px;
         }
         
         input[type="range"].volume-slider::-webkit-slider-track {
@@ -337,17 +334,25 @@ const VideoPlayer = ({
         input[type="range"].volume-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
-          width: 14px;
-          height: 14px;
+          width: 16px;
+          height: 16px;
           border-radius: 50%;
           background: white;
           cursor: pointer;
-          margin-top: -5px;
+          margin-top: -6px;
+        }
+        
+        @media (max-width: 640px) {
+          input[type="range"].volume-slider::-webkit-slider-thumb {
+            width: 20px;
+            height: 20px;
+            margin-top: -8px;
+          }
         }
         
         input[type="range"].volume-slider::-moz-range-thumb {
-          width: 14px;
-          height: 14px;
+          width: 16px;
+          height: 16px;
           border-radius: 50%;
           background: white;
           cursor: pointer;
@@ -358,50 +363,51 @@ const VideoPlayer = ({
           outline: none;
         }
 
-        /* Responsive video container */
-        .video-responsive-container {
-          position: relative;
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: black;
+        /* Responsive control heights */
+        @media (max-width: 640px) {
+          .video-controls-container {
+            min-height: 140px !important;
+          }
         }
-
-        /* Controls always at bottom */
-        .video-controls-fixed {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          z-index: 100;
+        
+        @media (min-width: 641px) and (max-width: 1024px) {
+          .video-controls-container {
+            min-height: 160px !important;
+          }
+        }
+        
+        @media (min-width: 1025px) {
+          .video-controls-container {
+            min-height: 180px !important;
+          }
         }
       `}</style>
 
-      {/* Video Container - Calculated height to leave room for controls */}
+      {/* Video Container - Responsive height calculation */}
       <div 
-        className="video-responsive-container"
+        className="relative flex items-center justify-center bg-black overflow-hidden"
         style={{
           flex: '1 1 auto',
           minHeight: 0,
-          height: 'calc(100% - 180px)', // Reserve 180px for controls
-          maxHeight: 'calc(100vh - 180px)'
+          // Responsive heights for different screens
+          height: isMobile 
+            ? 'calc(100% - 140px)' // Mobile: 140px for controls
+            : window.innerWidth < 1024
+            ? 'calc(100% - 160px)' // Tablet: 160px for controls
+            : 'calc(100% - 180px)', // Desktop: 180px for controls
+          maxHeight: '100%'
         }}
       >
         <video
           ref={videoRef}
-          className="object-contain"
+          className="object-contain w-full h-full"
           disablePictureInPicture
           playsInline
           preload="metadata"
           onClick={handleVideoClick}
           style={{
             pointerEvents: 'auto',
-            outline: 'none',
-            width: '100%',
-            height: '100%',
-            maxWidth: '100%',
-            maxHeight: '100%'
+            outline: 'none'
           }}
         >
           <source src={src} type="video/mp4" />
@@ -426,9 +432,9 @@ const VideoPlayer = ({
           />
         )}
 
-        {/* Title */}
+        {/* Title - Responsive sizing */}
         {title && (
-          <div className="absolute top-4 left-4 bg-black/90 text-white px-3 py-1.5 rounded-lg text-xs backdrop-blur-sm z-40">
+          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-black/90 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm backdrop-blur-sm z-40">
             {title}
           </div>
         )}
@@ -436,43 +442,46 @@ const VideoPlayer = ({
         {/* Loading State */}
         {!isLoaded && !error && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-40">
-            <div className="text-white text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-              <p>Loading video...</p>
+            <div className="text-white text-center p-4">
+              <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-white mx-auto mb-4"></div>
+              <p className="text-sm sm:text-base">Loading video...</p>
             </div>
           </div>
         )}
 
-        {/* No Skip Notice */}
+        {/* No Skip Notice - Responsive positioning */}
         {showNotice && !allowSeeking && isLoaded && (
-          <div className="absolute bottom-4 left-4 bg-black/90 text-white px-3 py-1.5 rounded-lg text-xs backdrop-blur-sm z-40">
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <span>Cannot skip ahead</span>
+          <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 bg-black/90 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm backdrop-blur-sm z-40">
+            <div className="flex items-center space-x-1.5 sm:space-x-2">
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <span className="whitespace-nowrap">Cannot skip ahead</span>
             </div>
           </div>
         )}
       </div>
 
-      {/* Controls - Fixed at bottom with guaranteed visibility */}
+      {/* Controls - Fully Responsive */}
       {isLoaded && (
         <div 
-          className="video-controls-fixed bg-black border-t border-gray-800"
+          className="video-controls-container fixed bottom-0 left-0 right-0 bg-black border-t border-gray-800 z-50"
           style={{
-            minHeight: '180px',
-            paddingTop: '1.5rem',
-            paddingBottom: '1.5rem',
-            paddingLeft: '1rem',
-            paddingRight: '1rem'
+            paddingTop: isMobile ? '0.75rem' : '1rem',
+            paddingBottom: isMobile ? '0.75rem' : '1.5rem',
+            paddingLeft: isMobile ? '0.5rem' : '1rem',
+            paddingRight: isMobile ? '0.5rem' : '1rem'
           }}
         >
           <div className="max-w-7xl mx-auto">
-            {/* Progress Bar */}
-            <div className="mb-4">
+            {/* Progress Bar - Touch-friendly on mobile */}
+            <div className="mb-2 sm:mb-3 md:mb-4">
               <div 
-                className={`h-1 bg-gray-700 rounded-full overflow-hidden ${
+                className={`rounded-full overflow-hidden ${
                   allowSeeking ? 'cursor-pointer' : 'cursor-default'
                 }`}
+                style={{
+                  height: isMobile ? '6px' : '4px',
+                  backgroundColor: '#374151'
+                }}
                 onClick={allowSeeking ? handleProgressClick : undefined}
               >
                 <div 
@@ -482,33 +491,48 @@ const VideoPlayer = ({
                   }}
                 />
               </div>
-              <div className="flex justify-between text-xs text-gray-400 mt-1.5">
+              {/* Time display - Hide on very small screens */}
+              <div className="hidden xs:flex justify-between text-xs text-gray-400 mt-1">
                 <span>{formatTime(currentTime)}</span>
                 <span>{formatTime(duration)}</span>
               </div>
             </div>
 
-            {/* Control Buttons - Two Rows on Small Screens */}
-            <div className="space-y-3">
+            {/* Control Buttons - Responsive Layout */}
+            <div className="space-y-2 sm:space-y-3">
               {/* Row 1: Main Controls */}
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-3 flex-wrap">
-                  {/* Play/Pause Button */}
+              <div className="flex items-center justify-between gap-2 sm:gap-3 flex-wrap">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                  {/* Play/Pause Button - Larger on mobile */}
                   <button
                     onClick={togglePlay}
-                    className="text-white hover:text-blue-400 transition-colors p-2.5 bg-gray-800 rounded-lg hover:bg-gray-700"
+                    className="text-white hover:text-blue-400 transition-colors bg-gray-800 rounded-lg hover:bg-gray-700 active:bg-gray-600"
+                    style={{
+                      padding: isMobile ? '0.75rem' : '0.625rem'
+                    }}
                   >
-                    {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+                    {isPlaying ? (
+                      <Pause size={isMobile ? 28 : 24} />
+                    ) : (
+                      <Play size={isMobile ? 28 : 24} />
+                    )}
                   </button>
 
-                  {/* Volume Controls */}
-                  <div className="flex items-center gap-2 bg-gray-800 rounded-lg px-3 py-2">
+                  {/* Volume Controls - Simplified on mobile */}
+                  <div className={`flex items-center bg-gray-800 rounded-lg ${
+                    isMobile ? 'gap-1.5 px-2 py-2' : 'gap-2 px-3 py-2'
+                  }`}>
                     <button
                       onClick={toggleMute}
                       className="text-white hover:text-blue-400 transition-colors"
                     >
-                      {isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                      {isMuted || volume === 0 ? (
+                        <VolumeX size={isMobile ? 22 : 20} />
+                      ) : (
+                        <Volume2 size={isMobile ? 22 : 20} />
+                      )}
                     </button>
+                    {/* Hide volume slider on very small screens */}
                     <input
                       type="range"
                       min="0"
@@ -516,38 +540,54 @@ const VideoPlayer = ({
                       step="0.01"
                       value={isMuted ? 0 : volume}
                       onChange={handleVolumeChange}
-                      className="volume-slider w-20"
+                      className={`volume-slider ${isMobile ? 'w-16 sm:w-20' : 'w-20'}`}
                       style={{ 
                         background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(isMuted ? 0 : volume) * 100}%, #4b5563 ${(isMuted ? 0 : volume) * 100}%, #4b5563 100%)`
                       }}
                     />
                   </div>
 
-                  {/* Time Display */}
-                  <span className="text-white text-sm bg-gray-800 px-3 py-2 rounded-lg whitespace-nowrap">
+                  {/* Time Display - Responsive text */}
+                  <span className={`text-white bg-gray-800 rounded-lg whitespace-nowrap ${
+                    isMobile 
+                      ? 'text-xs px-2 py-1.5 hidden xs:block' 
+                      : 'text-sm px-3 py-2'
+                  }`}>
                     {formatTime(currentTime)} / {formatTime(duration)}
                   </span>
                 </div>
 
-                {/* Fullscreen Button */}
-                {allowFullscreen && (
-                  <button
-                    onClick={toggleFullscreen}
-                    className="text-white hover:text-blue-400 transition-colors p-2.5 bg-gray-800 rounded-lg hover:bg-gray-700"
-                  >
-                    <Maximize size={20} />
-                  </button>
-                )}
+                {/* Right side controls */}
+                <div className="flex items-center gap-2 sm:gap-3">
+                  {/* Progress Percentage - Responsive */}
+                  <div className={`text-white bg-gray-800 rounded-lg ${
+                    isMobile 
+                      ? 'text-xs px-2 py-1.5' 
+                      : 'text-sm px-3 py-2'
+                  }`}>
+                    <span className={isMobile ? 'hidden xs:inline' : ''}>Progress: </span>
+                    <span className="font-semibold text-blue-400">
+                      {Math.round((watchedTime / duration) * 100)}%
+                    </span>
+                  </div>
+
+                  {/* Fullscreen Button */}
+                  {allowFullscreen && (
+                    <button
+                      onClick={toggleFullscreen}
+                      className={`text-white hover:text-blue-400 transition-colors bg-gray-800 rounded-lg hover:bg-gray-700 ${
+                        isMobile ? 'p-2.5' : 'p-2.5'
+                      }`}
+                    >
+                      <Maximize size={isMobile ? 22 : 20} />
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* Row 2: Progress & Dev Tools */}
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div className="text-white text-sm bg-gray-800 px-3 py-1.5 rounded-lg">
-                  Progress: <span className="font-semibold text-blue-400">{Math.round((watchedTime / duration) * 100)}%</span>
-                </div>
-
-                {/* Dev Skip Button */}
-                {process.env.NODE_ENV === 'development' && (
+              {/* Row 2: Dev Tools - Only show on desktop in development */}
+              {process.env.NODE_ENV === 'development' && !isMobile && (
+                <div className="flex justify-end">
                   <button
                     onClick={() => {
                       if (onComplete) onComplete();
@@ -557,8 +597,8 @@ const VideoPlayer = ({
                   >
                     Dev Skip
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

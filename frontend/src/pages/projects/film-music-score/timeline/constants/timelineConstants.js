@@ -1,8 +1,9 @@
-// /timeline/constants/timelineConstants.js
+// File: /src/pages/projects/film-music-score/timeline/constants/timelineConstants.js
+
 export const TIMELINE_CONSTANTS = {
-  TRACK_HEIGHT: 96,
-  VIDEO_TRACK_HEIGHT: 36,
-  HEADER_HEIGHT: 48,
+  TRACK_HEIGHT: 48, // REDUCED from 96 to 48 (50% reduction)
+  VIDEO_TRACK_HEIGHT: 18,
+  HEADER_HEIGHT: 32,
   NUM_TRACKS: 12,
   MARGIN_WIDTH: 200,
   MARKER_INTERVAL: 10,
@@ -20,7 +21,7 @@ export const TIMELINE_CONSTANTS = {
   },
 
   ZOOM_PRESETS: [
-    { label: 'Fit', value: 0.2 }, // Will be calculated dynamically
+    { label: 'Fit', value: 0.2 },
     { label: '25%', value: 0.25 },
     { label: '50%', value: 0.5 },
     { label: '100%', value: 1 },
