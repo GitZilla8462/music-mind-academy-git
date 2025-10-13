@@ -7,7 +7,6 @@ import { DAW_CHALLENGES } from './challengeDefinitions';
 import { useChallengeHandlers } from './challengeHandlers';
 import { speakText } from '../../../../components/shared/textToSpeech';
 import ChallengePanel from './ChallengePanel';
-import CompletionScreen from './CompletionScreen';
 
 const DAWTutorialActivity = ({ onComplete }) => {
   const hasInitialized = useRef(false);
@@ -124,8 +123,10 @@ const DAWTutorialActivity = ({ onComplete }) => {
         nextChallenge();
         setTimeout(() => setIsProcessingSuccess(false), 100);
       } else {
+        // Tutorial complete - call onComplete to advance to next activity
         if (!completionCalledRef.current) {
           completionCalledRef.current = true;
+          console.log('DAW Tutorial completed - calling onComplete()');
           setTimeout(() => {
             onComplete();
           }, 1500);
@@ -209,6 +210,7 @@ const DAWTutorialActivity = ({ onComplete }) => {
   const devCompleteAll = useCallback(() => {
     if (!completionCalledRef.current) {
       completionCalledRef.current = true;
+      console.log('DEV: Force completing tutorial');
       onComplete();
     }
   }, [onComplete]);
@@ -225,11 +227,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
     }
     return true;
   }, [currentChallenge, dawContext.placedLoops.length]);
-
-  // Completion screen
-  if (currentChallengeIndex >= DAW_CHALLENGES.length) {
-    return <CompletionScreen />;
-  }
 
   // Loading state
   if (!currentChallenge) {
