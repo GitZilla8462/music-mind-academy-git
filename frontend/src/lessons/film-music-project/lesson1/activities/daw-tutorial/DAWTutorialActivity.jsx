@@ -210,7 +210,7 @@ const DAWTutorialActivity = ({ onComplete }) => {
   const devCompleteAll = useCallback(() => {
     if (!completionCalledRef.current) {
       completionCalledRef.current = true;
-      console.log('DEV: Force completing tutorial');
+      console.log('DEV: Force completing tutorial - calling onComplete()');
       onComplete();
     }
   }, [onComplete]);
@@ -251,19 +251,21 @@ const DAWTutorialActivity = ({ onComplete }) => {
         </div>
       )}
 
-      {/* DEV TOOLS - Top Right Corner - ONLY IN DEVELOPMENT */}
-      {process.env.NODE_ENV === 'development' && (
+      {/* ⚠️ TEMPORARY DEV TOOLS - REMOVE AFTER TESTING ⚠️ */}
+      {/* TODO: Change back to: {process.env.NODE_ENV === 'development' && ( */}
+      {true && (
         <div className="fixed top-4 right-4 z-50">
           <button
             onClick={() => setShowDevTools(!showDevTools)}
-            className="bg-purple-600 text-white px-3 py-1 rounded text-xs font-mono hover:bg-purple-700 transition-colors shadow-lg"
+            className="bg-red-600 text-white px-3 py-1 rounded text-xs font-mono hover:bg-red-700 transition-colors shadow-lg border-2 border-yellow-400 animate-pulse"
           >
-            {showDevTools ? 'Hide' : 'Show'} Dev Tools
+            {showDevTools ? 'Hide' : 'Show'} Dev Tools [TEMPORARY]
           </button>
           
           {showDevTools && (
-            <div className="mt-2 bg-gray-800 border-2 border-purple-500 rounded-lg p-3 shadow-xl max-w-xs">
-              <div className="text-purple-400 text-xs font-mono mb-2 font-bold">DEV TOOLS</div>
+            <div className="mt-2 bg-gray-800 border-2 border-red-500 rounded-lg p-3 shadow-xl max-w-xs">
+              <div className="text-red-400 text-xs font-mono mb-2 font-bold">⚠️ TEMPORARY DEV TOOLS ⚠️</div>
+              <div className="text-yellow-300 text-xs mb-2 font-semibold">REMOVE AFTER TESTING!</div>
               
               {/* Challenge Navigator */}
               <div className="mb-3">
@@ -299,9 +301,9 @@ const DAWTutorialActivity = ({ onComplete }) => {
                 </button>
                 <button
                   onClick={devCompleteAll}
-                  className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold"
+                  className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold border-2 border-yellow-400"
                 >
-                  Complete All
+                  🚀 COMPLETE ALL → SchoolBeneathActivity
                 </button>
               </div>
               
