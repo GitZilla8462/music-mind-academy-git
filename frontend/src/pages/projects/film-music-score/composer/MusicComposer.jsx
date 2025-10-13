@@ -1,5 +1,5 @@
 // composer/MusicComposer.jsx - Main orchestrator (refactored)
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 // Hooks
@@ -43,6 +43,8 @@ const MusicComposer = ({
 }) => {
   const { videoId, assignmentId } = useParams();
   const navigate = useNavigate();
+  const playersCreatedRef = useRef(false);
+  const savedLoopsRef = useRef(null);
 
   // Audio engine hook
   const {
@@ -98,13 +100,54 @@ const MusicComposer = ({
     containerRef
   } = useComposerState(preselectedVideo);
 
-  // Initialize loops from saved composition
+  // STEP 1: Store initial loops and load into state immediately
   useEffect(() => {
     if (initialPlacedLoops && initialPlacedLoops.length > 0) {
       console.log('🎵 Initializing with saved loops:', initialPlacedLoops);
+      savedLoopsRef.current = initialPlacedLoops;
       setPlacedLoops(initialPlacedLoops);
     }
   }, [initialPlacedLoops, setPlacedLoops]);
+
+  // STEP 2: Create audio players when audio becomes ready
+  useEffect(() => {
+    console.log('🔍 Player creation check:', {
+      audioReady,
+      hasSavedLoops: savedLoopsRef.current !== null,
+      playersCreated: playersCreatedRef.current,
+      placedLoopsCount: placedLoops.length
+    });
+
+    if (audioReady && savedLoopsRef.current && !playersCreatedRef.current) {
+      console.log('🎵 Audio ready! Creating players for', savedLoopsRef.current.length, 'saved loops...');
+      
+      savedLoopsRef.current.forEach(loop => {
+        // CRITICAL FIX: Use the PLACED loop ID (unique ID) as the key
+        // The loopData.id should match what we'll look up later (loop.id)
+        const loopData = {
+          id: loop.id,  // Use placed loop ID, not originalId!
+          originalId: loop.originalId || loop.id.split('-')[0] + '-' + loop.id.split('-')[1],
+          name: loop.name,
+          file: loop.file,
+          duration: loop.duration,
+          category: loop.category
+        };
+        
+        console.log('  → Creating player for:', loopData.name, 'with ID:', loop.id);
+        
+        try {
+          // Pass loopData where id = placed loop ID
+          createLoopPlayer(loopData, loop.id);
+          console.log('  ✅ Player stored with key:', loop.id);
+        } catch (error) {
+          console.error('  ❌ Failed to create player for:', loopData.name, error);
+        }
+      });
+      
+      playersCreatedRef.current = true;
+      console.log('✅ All audio players created for saved loops');
+    }
+  }, [audioReady, createLoopPlayer, placedLoops.length]);
 
   // Volume control hook
   useVolumeControl({
