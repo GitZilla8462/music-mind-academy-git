@@ -3,11 +3,13 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Home, Play, CheckCircle, X, Menu } from 'lucide-react';
+import { ArrowLeft, Home, Play, CheckCircle, X, Menu, SkipForward, RotateCcw } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import VideoPlayer from '../../components/activities/video/VideoPlayer';
 import DAWTutorialActivity from './activities/daw-tutorial/DAWTutorialActivity';
 import SchoolBeneathActivity from './activities/SchoolBeneathActivity';
+
+const LESSON_PROGRESS_KEY = 'lesson1-progress';
 
 const Lesson1 = () => {
   const navigate = useNavigate();
@@ -17,20 +19,14 @@ const Lesson1 = () => {
   const [lessonStarted, setLessonStarted] = useState(false);
   const [activityCompleted, setActivityCompleted] = useState({});
   const [showNavigation, setShowNavigation] = useState(true);
+  const [showSkipTools, setShowSkipTools] = useState(false);
+  const [savedProgress, setSavedProgress] = useState(null);
 
   // Check if viewing saved work
   const searchParams = new URLSearchParams(location.search);
   const viewSavedMode = searchParams.get('view') === 'saved';
 
-  // If viewing saved work, skip to the SchoolBeneathActivity and start lesson
-  useEffect(() => {
-    if (viewSavedMode) {
-      setCurrentActivity(3); // Index of school-beneath-activity
-      setLessonStarted(true);
-    }
-  }, [viewSavedMode]);
-
-  // COMPLETE LESSON CONFIGURATION - moved before callbacks
+  // COMPLETE LESSON CONFIGURATION
   const lesson1Config = {
     title: "Introduction to Film Music",
     description: "Learn the basics of film music composition and create your first mysterious score.",
@@ -73,6 +69,49 @@ const Lesson1 = () => {
     ]
   };
 
+  // Load saved progress on mount
+  useEffect(() => {
+    if (viewSavedMode) {
+      setCurrentActivity(3); // Index of school-beneath-activity
+      setLessonStarted(true);
+      return;
+    }
+
+    const saved = localStorage.getItem(LESSON_PROGRESS_KEY);
+    if (saved) {
+      try {
+        const progress = JSON.parse(saved);
+        console.log('Found saved lesson progress:', progress);
+        setSavedProgress(progress);
+      } catch (error) {
+        console.error('Error loading saved progress:', error);
+        localStorage.removeItem(LESSON_PROGRESS_KEY);
+      }
+    }
+  }, [viewSavedMode]);
+
+  // Save progress to localStorage
+  const saveProgress = useCallback(() => {
+    if (viewSavedMode) return; // Don't save progress in view mode
+
+    const progress = {
+      currentActivity,
+      activityCompleted,
+      timestamp: new Date().toISOString(),
+      lessonStarted
+    };
+    
+    localStorage.setItem(LESSON_PROGRESS_KEY, JSON.stringify(progress));
+    console.log('Lesson progress saved:', progress);
+  }, [currentActivity, activityCompleted, lessonStarted, viewSavedMode]);
+
+  // Save progress whenever it changes
+  useEffect(() => {
+    if (lessonStarted && !viewSavedMode) {
+      saveProgress();
+    }
+  }, [currentActivity, activityCompleted, lessonStarted, saveProgress, viewSavedMode]);
+
   const handleBackNavigation = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -111,16 +150,57 @@ const Lesson1 = () => {
 
     if (currentActivity < lesson1Config.activities.length - 1) {
       setCurrentActivity(prev => prev + 1);
+    } else {
+      // Lesson complete - clear progress
+      localStorage.removeItem(LESSON_PROGRESS_KEY);
+      console.log('Lesson completed - progress cleared');
     }
   }, [currentActivity, lesson1Config.activities.length]);
 
   const startLesson = useCallback(() => {
     setLessonStarted(true);
+    setSavedProgress(null);
+  }, []);
+
+  const resumeLesson = useCallback(() => {
+    if (savedProgress) {
+      setCurrentActivity(savedProgress.currentActivity);
+      setActivityCompleted(savedProgress.activityCompleted);
+      setLessonStarted(true);
+      setSavedProgress(null);
+      console.log('Resuming lesson from activity:', savedProgress.currentActivity + 1);
+    }
+  }, [savedProgress]);
+
+  const startOver = useCallback(() => {
+    localStorage.removeItem(LESSON_PROGRESS_KEY);
+    setCurrentActivity(0);
+    setActivityCompleted({});
+    setLessonStarted(true);
+    setSavedProgress(null);
+    console.log('Starting lesson over from beginning');
   }, []);
 
   const toggleNavigation = useCallback(() => {
     setShowNavigation(prev => !prev);
   }, []);
+
+  // DEV: Skip to specific activity
+  const skipToActivity = useCallback((index) => {
+    if (index < 0 || index >= lesson1Config.activities.length) return;
+    console.log('Skipping to activity:', index);
+    setCurrentActivity(index);
+    if (!lessonStarted) {
+      setLessonStarted(true);
+    }
+  }, [lessonStarted, lesson1Config.activities.length]);
+
+  // DEV: Skip to next activity
+  const skipNext = useCallback(() => {
+    if (currentActivity < lesson1Config.activities.length - 1) {
+      skipToActivity(currentActivity + 1);
+    }
+  }, [currentActivity, skipToActivity, lesson1Config.activities.length]);
 
   const currentActivityData = lesson1Config.activities[currentActivity];
   const isLessonComplete = currentActivity >= lesson1Config.activities.length;
@@ -128,6 +208,76 @@ const Lesson1 = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 relative overflow-hidden">
+      {/* ⚠️ TEMPORARY SKIP TOOLS - REMOVE AFTER TESTING ⚠️ */}
+      {true && lessonStarted && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <button
+            onClick={() => setShowSkipTools(!showSkipTools)}
+            className="bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-mono hover:bg-red-700 transition-colors shadow-lg border-2 border-yellow-400 animate-pulse mb-2"
+          >
+            {showSkipTools ? 'Hide' : 'Show'} Skip Tools [TEMP]
+          </button>
+          
+          {showSkipTools && (
+            <div className="bg-gray-800 border-2 border-red-500 rounded-lg p-3 shadow-xl max-w-xs">
+              <div className="text-red-400 text-xs font-mono mb-2 font-bold">⚠️ TEMPORARY SKIP TOOLS ⚠️</div>
+              <div className="text-yellow-300 text-xs mb-3 font-semibold">REMOVE AFTER TESTING!</div>
+              
+              {/* Activity Navigator */}
+              <div className="mb-3">
+                <div className="text-gray-300 text-xs mb-2 font-semibold">Jump to Activity:</div>
+                <div className="space-y-1">
+                  {lesson1Config.activities.map((activity, index) => (
+                    <button
+                      key={index}
+                      onClick={() => skipToActivity(index)}
+                      className={`w-full text-left text-xs px-3 py-2 rounded transition-colors ${
+                        currentActivity === index
+                          ? 'bg-purple-600 text-white font-bold'
+                          : activityCompleted[index]
+                          ? 'bg-green-700 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      <div className="font-semibold">{index + 1}. {activity.title}</div>
+                      <div className="text-xs opacity-75">{activity.type}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Quick Actions */}
+              <div className="space-y-1">
+                <button
+                  onClick={skipNext}
+                  disabled={currentActivity >= lesson1Config.activities.length - 1}
+                  className="w-full bg-blue-600 text-white text-xs px-3 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold flex items-center justify-center gap-2"
+                >
+                  <SkipForward size={14} />
+                  Skip to Next Activity
+                </button>
+                <button
+                  onClick={() => skipToActivity(3)}
+                  className="w-full bg-green-600 text-white text-xs px-3 py-2 rounded hover:bg-green-700 transition-colors font-semibold border-2 border-yellow-400"
+                >
+                  🎵 Jump to SchoolBeneathActivity
+                </button>
+              </div>
+              
+              {/* Current Status */}
+              <div className="mt-3 pt-2 border-t border-gray-700 text-xs text-gray-400 font-mono">
+                <div>Activity: {currentActivity + 1}/{lesson1Config.activities.length}</div>
+                <div>Type: {currentActivityData?.type}</div>
+                <div>Completed: {Object.keys(activityCompleted).length}</div>
+                <div className="text-purple-400 mt-1 truncate" title={currentActivityData?.title}>
+                  {currentActivityData?.title}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Compact Single-Line Navigation Header */}
       <div 
         className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
@@ -198,13 +348,31 @@ const Lesson1 = () => {
       {/* Main Content */}
       <div className={`h-screen flex flex-col ${showNavigation ? 'pt-10' : 'pt-0'} transition-all duration-300`}>
         {!lessonStarted ? (
-          // Lesson Start Screen
+          // Lesson Start/Resume Screen
           <div className="flex-1 flex items-center justify-center p-6">
             <div className="bg-white rounded-lg shadow-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="mb-6">
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">{lesson1Config.title}</h1>
                 <p className="text-gray-600">{lesson1Config.description}</p>
               </div>
+
+              {/* Resume Lesson Notice */}
+              {savedProgress && (
+                <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <RotateCcw className="h-5 w-5 text-blue-500" />
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-blue-800">Resume Your Progress</h3>
+                      <div className="mt-1 text-sm text-blue-700">
+                        <p>You were on Activity {savedProgress.currentActivity + 1}: <strong>{lesson1Config.activities[savedProgress.currentActivity]?.title}</strong></p>
+                        <p className="text-xs mt-1 text-blue-600">Last saved: {new Date(savedProgress.timestamp).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Learning Objectives */}
               <div className="mb-8">
@@ -235,15 +403,34 @@ const Lesson1 = () => {
                 </div>
               </div>
 
-              {/* Start Button */}
-              <div className="text-center">
-                <button 
-                  onClick={startLesson}
-                  className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold inline-flex items-center space-x-2 transform hover:scale-105"
-                >
-                  <Play size={24} />
-                  <span>Start Lesson</span>
-                </button>
+              {/* Start/Resume Buttons */}
+              <div className="text-center space-y-3">
+                {savedProgress ? (
+                  <>
+                    <button 
+                      onClick={resumeLesson}
+                      className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold inline-flex items-center space-x-2 transform hover:scale-105 w-full justify-center"
+                    >
+                      <RotateCcw size={24} />
+                      <span>Resume Lesson</span>
+                    </button>
+                    <button 
+                      onClick={startOver}
+                      className="bg-gray-500 text-white px-8 py-3 rounded-lg hover:bg-gray-600 transition-colors text-base font-medium inline-flex items-center space-x-2 w-full justify-center"
+                    >
+                      <Play size={20} />
+                      <span>Start Over</span>
+                    </button>
+                  </>
+                ) : (
+                  <button 
+                    onClick={startLesson}
+                    className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold inline-flex items-center space-x-2 transform hover:scale-105"
+                  >
+                    <Play size={24} />
+                    <span>Start Lesson</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>

@@ -15,6 +15,7 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
   const [placedLoops, setPlacedLoops] = useState([]);
   const [videoDuration, setVideoDuration] = useState(null);
   const [isLoadingVideo, setIsLoadingVideo] = useState(true);
+  const [saveMessage, setSaveMessage] = useState('');
 
   // Load saved composition if in view mode
   useEffect(() => {
@@ -167,6 +168,26 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
     });
   };
 
+  // Save progress (without completing)
+  const handleSaveProgress = () => {
+    const compositionData = {
+      title: 'The School Beneath',
+      placedLoops: placedLoops,
+      savedAt: new Date().toISOString(),
+      loopCount: placedLoops.length,
+      requirements: requirements,
+      videoDuration: videoDuration
+    };
+    
+    localStorage.setItem('school-beneath-composition', JSON.stringify(compositionData));
+    console.log('Progress saved to localStorage:', compositionData);
+    
+    // Show save message
+    setSaveMessage('Progress saved! ✓');
+    setTimeout(() => setSaveMessage(''), 3000);
+  };
+
+  // Submit and complete activity
   const handleSubmitActivity = () => {
     console.log('Submitting activity - saving composition and calling onComplete');
     
@@ -260,12 +281,29 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
               </div>
             </div>
 
-            {/* Right Side: Status + Submit/Back Button */}
+            {/* Right Side: Status + Save + Submit/Back Buttons */}
             <div className="flex items-center gap-2 flex-shrink-0">
               {/* Status */}
               <div className="text-xs text-gray-400">
                 {placedLoops.length} loops
               </div>
+
+              {/* Save Message */}
+              {saveMessage && (
+                <div className="text-xs text-green-400 font-semibold animate-pulse">
+                  {saveMessage}
+                </div>
+              )}
+
+              {/* Save Progress Button (always visible, not in viewMode) */}
+              {!viewMode && (
+                <button
+                  onClick={handleSaveProgress}
+                  className="px-4 py-1.5 text-sm rounded font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Save Progress
+                </button>
+              )}
 
               {/* Submit or Back Button */}
               {viewMode ? (
