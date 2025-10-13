@@ -3,7 +3,7 @@
 
 import React from 'react';
 import LoopLibrary from '../../shared/LoopLibrary';
-import VideoPlayer from '../../shared/VideoPlayer';
+import VideoPlayer from '../../shared/VideoPlayer';  // CORRECT IMPORT
 import Timeline from '../../timeline/Timeline';
 import TransportControls from '../../shared/TransportControls';
 import NotesPanel from './NotesPanel';
@@ -115,13 +115,9 @@ const ComposerLayout = ({
                     selectedVideo={selectedVideo}
                     isPlaying={isPlaying}
                     currentTime={currentTime}
-                    volume={volume}
-                    isMuted={isMuted}
                     onSeek={handleSeek}
-                    onVolumeChange={setMasterVolume}
-                    onToggleMute={toggleMute}
-                    maxHeight={268}
-                    tutorialMode={tutorialMode}
+                    onPlay={handlePlay}
+                    onPause={pause}
                   />
                 </div>
               </div>
@@ -131,7 +127,7 @@ const ComposerLayout = ({
             <div className="flex-1 min-h-0">
               <Timeline
                 placedLoops={placedLoops}
-                duration={selectedVideo.duration}
+                duration={selectedVideo?.duration || 60}
                 currentTime={currentTime}
                 onLoopDrop={handleLoopDrop}
                 onLoopDelete={handleLoopDelete}
@@ -171,13 +167,9 @@ const ComposerLayout = ({
                     selectedVideo={selectedVideo}
                     isPlaying={isPlaying}
                     currentTime={currentTime}
-                    volume={volume}
-                    isMuted={isMuted}
                     onSeek={handleSeek}
-                    onVolumeChange={setMasterVolume}
-                    onToggleMute={toggleMute}
-                    maxHeight={168}
-                    tutorialMode={false}
+                    onPlay={handlePlay}
+                    onPause={pause}
                   />
                 </div>
               </div>
@@ -187,7 +179,7 @@ const ComposerLayout = ({
               <div className="h-full">
                 <Timeline
                   placedLoops={placedLoops}
-                  duration={selectedVideo.duration}
+                  duration={selectedVideo?.duration || 60}
                   currentTime={currentTime}
                   onLoopDrop={handleLoopDrop}
                   onLoopDelete={handleLoopDelete}
@@ -224,7 +216,7 @@ const ComposerLayout = ({
         <TransportControls
           isPlaying={isPlaying}
           currentTime={currentTime}
-          duration={selectedVideo.duration}
+          duration={selectedVideo?.duration || 60}
           volume={volume}
           isMuted={isMuted}
           onPlay={handlePlay}

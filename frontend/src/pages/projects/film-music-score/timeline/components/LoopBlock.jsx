@@ -59,12 +59,31 @@ const LoopBlock = React.memo(({
     return TIMELINE_CONSTANTS.CATEGORY_COLORS[loop.category] || TIMELINE_CONSTANTS.CATEGORY_COLORS.Default;
   }, [loop.color, loop.category]);
 
-  const numRepeats = useMemo(() => {
+  const { numRepeats, actualRepeats, fullLoops } = useMemo(() => {
     const originalDuration = originalDurationRef.current || loop.duration;
     const currentDuration = loop.endTime - loop.startTime;
-    const repeats = Math.ceil(currentDuration / originalDuration);
-    return Math.max(1, repeats);
-  }, [loop.endTime, loop.startTime, loop.duration]);
+    const actualRepeats = currentDuration / originalDuration; // Can be fractional like 1.7
+    const repeats = Math.ceil(actualRepeats); // Round up for notch display
+    
+    // Only count as a full loop if it's actually >= 1.0 (with small tolerance for floating point)
+    const fullLoopsCount = actualRepeats >= 0.9999 ? Math.floor(actualRepeats) : 0;
+    
+    // Debug log to see what's happening
+    console.log(`📊 ${loop.name} repeats calc:`, {
+      originalDuration: originalDuration.toFixed(2),
+      currentDuration: currentDuration.toFixed(2),
+      actualRepeats: actualRepeats.toFixed(4),
+      fullLoops: fullLoopsCount,
+      numRepeats: repeats,
+      shouldShowNotch: fullLoopsCount > 1
+    });
+    
+    return { 
+      numRepeats: Math.max(1, repeats),
+      actualRepeats: Math.max(1, actualRepeats),
+      fullLoops: fullLoopsCount
+    };
+  }, [loop.endTime, loop.startTime, loop.duration, loop.name]);
 
   const generateWaveform = useCallback(async () => {
     const cacheKey = loop.file;
@@ -139,7 +158,6 @@ const LoopBlock = React.memo(({
     try {
       const originalDuration = originalDurationRef.current || loop.duration;
       const currentDuration = loop.endTime - loop.startTime;
-      const repeats = Math.max(1, Math.ceil(currentDuration / originalDuration));
       
       const baseOpacity = '60';
       const strokeOpacity = 'AA';
@@ -152,10 +170,13 @@ const LoopBlock = React.memo(({
       ctx.beginPath();
       ctx.rect(0, 0, canvasWidth, canvasHeight);
       
-      if (repeats > 1) {
-        for (let i = 1; i < repeats; i++) {
-          const sectionWidth = canvasWidth / repeats;
-          const x = sectionWidth * i;
+      // Draw notches at each FULL loop boundary (but not at the very end)
+      // Only draw if we have more than 1 full loop completed
+      if (fullLoops > 1) {
+        for (let i = 1; i < fullLoops; i++) {
+          // Position notch at the exact pixel where each full loop ends
+          const loopTime = i * originalDuration;
+          const x = (loopTime / currentDuration) * canvasWidth;
           
           ctx.moveTo(x + notchRadius, 0);
           ctx.arc(x, 0, notchRadius, 0, Math.PI, true);
@@ -167,9 +188,16 @@ const LoopBlock = React.memo(({
       
       ctx.clip();
       
-      for (let repeat = 0; repeat < repeats; repeat++) {
-        const offsetX = (canvasWidth / repeats) * repeat;
-        const repeatWidth = canvasWidth / repeats;
+      // Draw waveform - repeat pattern for visual continuity
+      const partialLoop = currentDuration % originalDuration;
+      const totalSections = fullLoops + (partialLoop > 0.01 ? 1 : 0); // Small tolerance
+      
+      for (let repeat = 0; repeat < totalSections; repeat++) {
+        const isPartialRepeat = (repeat === fullLoops && partialLoop > 0.01);
+        const repeatDuration = isPartialRepeat ? partialLoop : originalDuration;
+        const repeatWidth = (repeatDuration / currentDuration) * canvasWidth;
+        const offsetX = (repeat * originalDuration / currentDuration) * canvasWidth;
+        
         const barWidth = Math.max(0.5, repeatWidth / waveformData.length);
         
         for (let i = 0; i < waveformData.length; i++) {
@@ -188,12 +216,12 @@ const LoopBlock = React.memo(({
           }
         }
         
-        if (repeat > 0 && repeats > 1) {
+        // Draw vertical line at full loop boundaries (but not at the very end)
+        if (repeat > 0 && repeat < fullLoops) {
           ctx.strokeStyle = loopColor + 'DD';
           ctx.lineWidth = 2;
           ctx.beginPath();
-          const sectionWidth = canvasWidth / repeats;
-          const x = sectionWidth * repeat;
+          const x = (repeat * originalDuration / currentDuration) * canvasWidth;
           ctx.moveTo(x, notchRadius + 2);
           ctx.lineTo(x, canvasHeight - notchRadius - 2);
           ctx.stroke();
@@ -204,9 +232,12 @@ const LoopBlock = React.memo(({
       }
       
       ctx.fillStyle = loopColor + 'FF';
-      for (let repeat = 0; repeat < repeats; repeat++) {
-        const offsetX = (canvasWidth / repeats) * repeat;
-        const repeatWidth = canvasWidth / repeats;
+      for (let repeat = 0; repeat < totalSections; repeat++) {
+        const isPartialRepeat = (repeat === fullLoops && partialLoop > 0.01);
+        const repeatDuration = isPartialRepeat ? partialLoop : originalDuration;
+        const repeatWidth = (repeatDuration / currentDuration) * canvasWidth;
+        const offsetX = (repeat * originalDuration / currentDuration) * canvasWidth;
+        
         const barWidth = Math.max(0.5, repeatWidth / waveformData.length);
         
         for (let i = 0; i < waveformData.length; i++) {
@@ -259,49 +290,84 @@ const LoopBlock = React.memo(({
     if (!isResizing) return;
 
     const handleMouseMove = (e) => {
-      const loopElement = document.querySelector(`[data-loop-id="${loop.id}"]`);
-      if (!loopElement) return;
-      
-      const loopRect = loopElement.getBoundingClientRect();
-      const mouseX = e.clientX;
       const pixelsPerSecond = timeToPixel(1) - timeToPixel(0);
       const originalDuration = originalDurationRef.current || loop.duration;
       
+      // Find the scrollable timeline container
+      const loopElement = document.querySelector(`[data-loop-id="${loop.id}"]`);
+      if (!loopElement) return;
+      
+      // Get the timeline scroll container (look for overflow-auto parent)
+      let scrollContainer = loopElement.parentElement;
+      while (scrollContainer && !scrollContainer.classList.contains('overflow-auto')) {
+        scrollContainer = scrollContainer.parentElement;
+        if (scrollContainer === document.body) {
+          scrollContainer = null;
+          break;
+        }
+      }
+      
+      const scrollLeft = scrollContainer?.scrollLeft || 0;
+      
+      // Get the timeline content area that contains the loops
+      const timelineContent = loopElement.parentElement;
+      if (!timelineContent) return;
+      
+      const contentRect = timelineContent.getBoundingClientRect();
+      
+      // Calculate mouse position relative to timeline content + scroll
+      const mouseXRelativeToContent = e.clientX - contentRect.left + scrollLeft;
+      
+      // Convert pixel position to time
+      const mouseTime = mouseXRelativeToContent / pixelsPerSecond;
+      
+      // DEBUG: Log the values
+      console.log(`🔧 RESIZE DEBUG:`, {
+        direction: resizeDirection,
+        mouseClientX: e.clientX,
+        contentLeft: contentRect.left,
+        scrollLeft,
+        mouseXRelativeToContent,
+        pixelsPerSecond,
+        mouseTime: mouseTime.toFixed(2),
+        loopStartTime: loop.startTime.toFixed(2),
+        loopEndTime: loop.endTime.toFixed(2)
+      });
+      
       if (resizeDirection === 'right') {
-        // FIXED: Allow both extending AND shrinking from the right edge
-        const newWidth = mouseX - loopRect.left;
-        const minWidth = pixelsPerSecond * originalDuration; // Minimum one loop duration
-        const constrainedWidth = Math.max(minWidth, newWidth);
-        const newDuration = constrainedWidth / pixelsPerSecond;
+        // Calculate new duration from loop start to mouse position
+        const newDuration = mouseTime - loop.startTime;
         
-        // Snap to nearest multiple of original duration
-        const numRepeats = Math.max(1, Math.round(newDuration / originalDuration));
-        const snappedDuration = numRepeats * originalDuration;
-        const newEndTime = loop.startTime + snappedDuration;
+        // Minimum one loop duration
+        const minDuration = originalDuration;
+        const constrainedDuration = Math.max(minDuration, newDuration);
         
-        // FIXED: Update on any change, allowing both shrinking and extending
+        const newEndTime = loop.startTime + constrainedDuration;
+        
+        console.log(`  → New end time: ${newEndTime.toFixed(2)}s (duration: ${constrainedDuration.toFixed(2)}s)`);
+        
+        // Update on any change - allows fractional durations
         if (Math.abs(newEndTime - loop.endTime) > 0.01) {
           onLoopUpdate(loop.id, {
             endTime: newEndTime
           });
           
           if (onLoopResize) {
-            onLoopResize(loop.id, snappedDuration);
+            onLoopResize(loop.id, constrainedDuration);
           }
         }
       } else if (resizeDirection === 'left') {
-        // Shrinking from the left edge
-        const currentWidth = loopRect.right - mouseX;
-        const minWidth = pixelsPerSecond * originalDuration;
-        const constrainedWidth = Math.max(minWidth, currentWidth);
-        const newDuration = constrainedWidth / pixelsPerSecond;
+        // Calculate new duration from mouse position to loop end
+        const newDuration = loop.endTime - mouseTime;
         
-        // Snap to nearest multiple of original duration
-        const numRepeats = Math.max(1, Math.round(newDuration / originalDuration));
-        const snappedDuration = numRepeats * originalDuration;
+        // Minimum one loop duration
+        const minDuration = originalDuration;
+        const constrainedDuration = Math.max(minDuration, newDuration);
         
         // Calculate new start time
-        const newStartTime = loop.endTime - snappedDuration;
+        const newStartTime = loop.endTime - constrainedDuration;
+        
+        console.log(`  → New start time: ${newStartTime.toFixed(2)}s (duration: ${constrainedDuration.toFixed(2)}s)`);
         
         if (Math.abs(newStartTime - loop.startTime) > 0.01 && newStartTime >= 0) {
           onLoopUpdate(loop.id, {
@@ -309,7 +375,7 @@ const LoopBlock = React.memo(({
           });
           
           if (onLoopResize) {
-            onLoopResize(loop.id, snappedDuration);
+            onLoopResize(loop.id, constrainedDuration);
           }
         }
       }
@@ -425,9 +491,14 @@ const LoopBlock = React.memo(({
         <defs>
           <mask id={`notch-mask-${loop.id}`}>
             <rect width={width} height={TIMELINE_CONSTANTS.TRACK_HEIGHT - 16} fill="white" />
-            {numRepeats > 1 && Array.from({ length: numRepeats - 1 }).map((_, index) => {
-              const sectionWidth = width / numRepeats;
-              const x = sectionWidth * (index + 1);
+            {fullLoops > 1 && Array.from({ length: fullLoops - 1 }).map((_, index) => {
+              const originalDuration = originalDurationRef.current || loop.duration;
+              const currentDuration = loop.endTime - loop.startTime;
+              const loopNumber = index + 1;
+              
+              // Position notch at exact full loop boundary (but not at the very end)
+              const loopTime = loopNumber * originalDuration;
+              const x = (loopTime / currentDuration) * width;
               const notchRadius = 6;
               
               return (
@@ -453,24 +524,35 @@ const LoopBlock = React.memo(({
             const h = TIMELINE_CONSTANTS.TRACK_HEIGHT - 16;
             const r = 4;
             const notchRadius = 6;
-            const sectionWidth = width / numRepeats;
+            const originalDuration = originalDurationRef.current || loop.duration;
+            const currentDuration = loop.endTime - loop.startTime;
             
             let path = `M ${r} 0`;
             
-            for (let i = 1; i < numRepeats; i++) {
-              const x = sectionWidth * i;
-              path += ` L ${x - notchRadius} 0`;
-              path += ` A ${notchRadius} ${notchRadius} 0 0 1 ${x + notchRadius} 0`;
+            // Add notches at full loop boundaries (only if fullLoops > 1)
+            if (fullLoops > 1) {
+              for (let i = 1; i < fullLoops; i++) {
+                const loopTime = i * originalDuration;
+                const x = (loopTime / currentDuration) * width;
+                
+                path += ` L ${x - notchRadius} 0`;
+                path += ` A ${notchRadius} ${notchRadius} 0 0 1 ${x + notchRadius} 0`;
+              }
             }
             
             path += ` L ${width - r} 0 Q ${width} 0 ${width} ${r}`;
             path += ` L ${width} ${h - r}`;
             path += ` Q ${width} ${h} ${width - r} ${h}`;
             
-            for (let i = numRepeats - 1; i > 0; i--) {
-              const x = sectionWidth * i;
-              path += ` L ${x + notchRadius} ${h}`;
-              path += ` A ${notchRadius} ${notchRadius} 0 0 1 ${x - notchRadius} ${h}`;
+            // Add notches at bottom (only if fullLoops > 1)
+            if (fullLoops > 1) {
+              for (let i = fullLoops - 1; i > 0; i--) {
+                const loopTime = i * originalDuration;
+                const x = (loopTime / currentDuration) * width;
+                
+                path += ` L ${x + notchRadius} ${h}`;
+                path += ` A ${notchRadius} ${notchRadius} 0 0 1 ${x - notchRadius} ${h}`;
+              }
             }
             
             path += ` L ${r} ${h} Q 0 ${h} 0 ${h - r}`;
@@ -485,9 +567,14 @@ const LoopBlock = React.memo(({
           strokeWidth="2"
         />
         
-        {numRepeats > 1 && Array.from({ length: numRepeats - 1 }).map((_, index) => {
-          const sectionWidth = width / numRepeats;
-          const x = sectionWidth * (index + 1);
+        {fullLoops > 1 && Array.from({ length: fullLoops - 1 }).map((_, index) => {
+          const originalDuration = originalDurationRef.current || loop.duration;
+          const currentDuration = loop.endTime - loop.startTime;
+          const loopNumber = index + 1;
+          
+          // Position line at exact full loop boundary (but not at the very end)
+          const loopTime = loopNumber * originalDuration;
+          const x = (loopTime / currentDuration) * width;
           const notchRadius = 6;
           
           return (
@@ -595,7 +682,7 @@ const LoopBlock = React.memo(({
             : 'bg-blue-400 hover:bg-blue-300 w-1 opacity-60'
         }`}
         onMouseDown={(e) => handleResizeStart(e, 'right')}
-        title="Drag to resize loop (snaps to repeats)"
+        title="Drag to resize loop (allows partial durations)"
         data-resize-handle="right"
         style={{
           width: isResizing && resizeDirection === 'right' ? '8px' : '4px',

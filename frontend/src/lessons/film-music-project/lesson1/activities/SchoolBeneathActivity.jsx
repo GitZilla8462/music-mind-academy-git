@@ -5,9 +5,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
 
-const SchoolBeneathActivity = ({ onComplete }) => {
+const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
   const navigate = useNavigate();
-  const [compositionSaved, setCompositionSaved] = useState(false);
   const [requirements, setRequirements] = useState({
     instrumentation: false,  // 5+ Mysterious loops
     layering: false,         // Different start times
@@ -17,8 +16,32 @@ const SchoolBeneathActivity = ({ onComplete }) => {
   const [videoDuration, setVideoDuration] = useState(null);
   const [isLoadingVideo, setIsLoadingVideo] = useState(true);
 
-  // Detect video duration on mount
+  // Load saved composition if in view mode
   useEffect(() => {
+    if (viewMode) {
+      const saved = localStorage.getItem('school-beneath-composition');
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          setPlacedLoops(data.placedLoops || []);
+          setRequirements(data.requirements || requirements);
+          setVideoDuration(data.videoDuration || 60);
+          setIsLoadingVideo(false);
+          console.log('Loaded saved composition:', data);
+        } catch (error) {
+          console.error('Error loading saved composition:', error);
+        }
+      }
+    }
+  }, [viewMode]);
+
+  // Detect video duration on mount (skip if in viewMode)
+  useEffect(() => {
+    if (viewMode) {
+      // Skip video detection in view mode, will be loaded from saved data
+      return;
+    }
+
     const videoPath = '/lessons/videos/film-music-loop-project/SchoolMystery.mp4';
     const videoElement = document.createElement('video');
     videoElement.src = videoPath;
@@ -61,14 +84,14 @@ const SchoolBeneathActivity = ({ onComplete }) => {
       videoElement.removeEventListener('error', handleError);
       videoElement.src = '';
     };
-  }, []);
+  }, [viewMode]);
 
-  // Check requirements as loops are placed
+  // Check requirements as loops are placed (skip in viewMode)
   useEffect(() => {
-    if (placedLoops.length === 0) return;
+    if (viewMode || placedLoops.length === 0) return;
     
     checkRequirements();
-  }, [placedLoops]);
+  }, [placedLoops, viewMode]);
 
   const checkRequirements = () => {
     console.log('Checking requirements with loops:', placedLoops);
@@ -144,19 +167,27 @@ const SchoolBeneathActivity = ({ onComplete }) => {
     });
   };
 
-  const handleSaveComposition = () => {
-    // In real implementation, this would save to backend
-    console.log('Saving composition with loops:', placedLoops);
-    console.log('All requirements met:', allRequirementsMet);
-    console.log('Requirements status:', requirements);
-    setCompositionSaved(true);
-  };
-
   const handleSubmitActivity = () => {
-    console.log('Submitting activity - calling onComplete');
-    if (onComplete) {
-      onComplete();
-    }
+    console.log('Submitting activity - saving composition and calling onComplete');
+    
+    // Save composition to localStorage
+    const compositionData = {
+      title: 'The School Beneath',
+      placedLoops: placedLoops,
+      completedAt: new Date().toISOString(),
+      loopCount: placedLoops.length,
+      requirements: requirements,
+      videoDuration: videoDuration
+    };
+    
+    localStorage.setItem('school-beneath-composition', JSON.stringify(compositionData));
+    console.log('Composition saved to localStorage:', compositionData);
+    
+    // Show success message
+    alert('Composition submitted and saved successfully!');
+    
+    // Navigate to home page - DON'T call onComplete (causes conflict)
+    window.location.href = '/';
   };
 
   const allRequirementsMet = Object.values(requirements).every(met => met);
@@ -176,99 +207,87 @@ const SchoolBeneathActivity = ({ onComplete }) => {
 
   return (
     <div className="h-screen w-full flex flex-col bg-gray-900">
-      {/* Requirements Panel - Top Bar */}
+      {/* SINGLE LINE HEADER WITH ALL DETAILS */}
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl font-bold">The School Beneath - Composition Assignment</h2>
-            <div className="flex items-center space-x-3">
-              {compositionSaved && (
-                <span className="text-green-400 text-sm font-medium">
-                  ✓ Composition Saved
-                </span>
+        <div className="px-4 py-2">
+          <div className="flex items-center justify-between gap-3">
+            {/* Left Side: Title + Requirements in one line */}
+            <div className="flex items-center gap-3 flex-1 min-w-0 overflow-x-auto">
+              <h2 className="text-sm font-bold whitespace-nowrap flex-shrink-0">
+                {viewMode ? 'Viewing Saved Work: ' : ''}The School Beneath - Composition Assignment
+              </h2>
+              
+              {/* Requirements - Ultra Compact Inline */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Instrumentation */}
+                <div className={`flex items-center gap-1 px-2 py-1 rounded border text-xs ${
+                  requirements.instrumentation 
+                    ? 'bg-green-900/30 border-green-500' 
+                    : 'bg-gray-700 border-gray-600'
+                }`}>
+                  <span className={requirements.instrumentation ? 'text-green-400' : 'text-gray-500'}>
+                    {requirements.instrumentation ? '✓' : '○'}
+                  </span>
+                  <span className="font-semibold">Instrumentation:</span>
+                  <span className="text-gray-300">5+ Mysterious loops</span>
+                </div>
+
+                {/* Layering */}
+                <div className={`flex items-center gap-1 px-2 py-1 rounded border text-xs ${
+                  requirements.layering 
+                    ? 'bg-green-900/30 border-green-500' 
+                    : 'bg-gray-700 border-gray-600'
+                }`}>
+                  <span className={requirements.layering ? 'text-green-400' : 'text-gray-500'}>
+                    {requirements.layering ? '✓' : '○'}
+                  </span>
+                  <span className="font-semibold">Layering:</span>
+                  <span className="text-gray-300">3+ different times</span>
+                </div>
+
+                {/* Structure */}
+                <div className={`flex items-center gap-1 px-2 py-1 rounded border text-xs ${
+                  requirements.structure 
+                    ? 'bg-green-900/30 border-green-500' 
+                    : 'bg-gray-700 border-gray-600'
+                }`}>
+                  <span className={requirements.structure ? 'text-green-400' : 'text-gray-500'}>
+                    {requirements.structure ? '✓' : '○'}
+                  </span>
+                  <span className="font-semibold">Structure:</span>
+                  <span className="text-gray-300">5+ loops total</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Side: Status + Submit/Back Button */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Status */}
+              <div className="text-xs text-gray-400">
+                {placedLoops.length} loops
+              </div>
+
+              {/* Submit or Back Button */}
+              {viewMode ? (
+                <button
+                  onClick={() => navigate('/')}
+                  className="px-4 py-1.5 text-sm rounded font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Back to Resources
+                </button>
+              ) : (
+                <button
+                  onClick={handleSubmitActivity}
+                  disabled={!allRequirementsMet}
+                  className={`px-4 py-1.5 text-sm rounded font-medium transition-colors ${
+                    allRequirementsMet
+                      ? 'bg-green-600 hover:bg-green-700 text-white'
+                      : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  Submit
+                </button>
               )}
-              <button
-                onClick={handleSaveComposition}
-                disabled={!allRequirementsMet}
-                className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                  allRequirementsMet
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                Save Composition
-              </button>
-              <button
-                onClick={handleSubmitActivity}
-                disabled={!allRequirementsMet || !compositionSaved}
-                className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                  allRequirementsMet && compositionSaved
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                Complete Activity
-              </button>
-            </div>
-          </div>
-
-          {/* Requirements Checklist */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {/* Instrumentation */}
-            <div className={`p-3 rounded-lg border-2 transition-all ${
-              requirements.instrumentation 
-                ? 'bg-green-900/30 border-green-500' 
-                : 'bg-gray-700 border-gray-600'
-            }`}>
-              <div className="flex items-start mb-2">
-                <span className={`text-lg mr-2 ${requirements.instrumentation ? 'text-green-400' : 'text-gray-500'}`}>
-                  {requirements.instrumentation ? '✓' : '○'}
-                </span>
-                <div className="flex-1">
-                  <h3 className="font-bold text-sm mb-1">Instrumentation</h3>
-                  <p className="text-xs text-gray-300">
-                    Use at least 5 different Mysterious loops
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Layering */}
-            <div className={`p-3 rounded-lg border-2 transition-all ${
-              requirements.layering 
-                ? 'bg-green-900/30 border-green-500' 
-                : 'bg-gray-700 border-gray-600'
-            }`}>
-              <div className="flex items-start mb-2">
-                <span className={`text-lg mr-2 ${requirements.layering ? 'text-green-400' : 'text-gray-500'}`}>
-                  {requirements.layering ? '✓' : '○'}
-                </span>
-                <div className="flex-1">
-                  <h3 className="font-bold text-sm mb-1">Layering</h3>
-                  <p className="text-xs text-gray-300">
-                    Introduce loops at 3+ different times
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Structure */}
-            <div className={`p-3 rounded-lg border-2 transition-all ${
-              requirements.structure 
-                ? 'bg-green-900/30 border-green-500' 
-                : 'bg-gray-700 border-gray-600'
-            }`}>
-              <div className="flex items-start mb-2">
-                <span className={`text-lg mr-2 ${requirements.structure ? 'text-green-400' : 'text-gray-500'}`}>
-                  {requirements.structure ? '✓' : '○'}
-                </span>
-                <div className="flex-1">
-                  <h3 className="font-bold text-sm mb-1">Structure</h3>
-                  <p className="text-xs text-gray-300">
-                    Place at least 5 loops total
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -292,6 +311,8 @@ const SchoolBeneathActivity = ({ onComplete }) => {
           hideSubmitButton={true}
           isLessonMode={true}
           showToast={(msg, type) => console.log(msg, type)}
+          initialPlacedLoops={viewMode ? placedLoops : undefined}
+          readOnly={viewMode}
         />
       </div>
     </div>

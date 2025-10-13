@@ -1,5 +1,5 @@
 // File: /src/lessons/components/activities/video/VideoPlayer.jsx
-// Fully Responsive Video Player for All Devices
+// Fully Responsive Video Player - FIXED Controls Always Visible
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
@@ -14,7 +14,6 @@ const VideoPlayer = ({
 }) => {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
-  const overlayRef = useRef(null);
   const [watchedTime, setWatchedTime] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -25,18 +24,23 @@ const VideoPlayer = ({
   const [error, setError] = useState(null);
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [screenSize, setScreenSize] = useState('desktop');
 
-  // Detect mobile/touch devices
+  // Detect screen size
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+    const updateScreenSize = () => {
+      const width = window.innerWidth;
+      if (width < 640) setScreenSize('mobile');
+      else if (width < 1024) setScreenSize('tablet');
+      else if (width < 1440) setScreenSize('small-desktop');
+      else if (width < 1920) setScreenSize('medium-desktop');
+      else setScreenSize('large-desktop');
     };
     
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
+    updateScreenSize();
+    window.addEventListener('resize', updateScreenSize);
     
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', updateScreenSize);
   }, []);
 
   useEffect(() => {
@@ -47,12 +51,13 @@ const VideoPlayer = ({
     let controlsTimeout;
 
     const handleLoadedMetadata = () => {
+      console.log('✅ Video loaded, duration:', video.duration);
       setIsLoaded(true);
       setDuration(video.duration);
     };
 
     const handleError = (e) => {
-      console.error('Video error:', e);
+      console.error('❌ Video error:', e);
       setError('Video failed to load');
     };
 
@@ -69,14 +74,12 @@ const VideoPlayer = ({
       }
       
       if (!allowSeeking && hasStartedPlaying && current > watchedTime + 1) {
-        console.log('Skip ahead detected - resetting to watched time');
         video.currentTime = watchedTime;
       }
     };
 
     const handleSeeking = () => {
       if (!allowSeeking && hasStartedPlaying && video.currentTime > watchedTime + 1) {
-        console.log('Seeking prevented');
         video.currentTime = watchedTime;
       }
     };
@@ -109,12 +112,10 @@ const VideoPlayer = ({
     };
 
     const handleKeyDown = (e) => {
-      if (e.target === video || video.contains(e.target)) {
-        if (!allowSeeking && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.code)) {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }
+      if (!allowSeeking && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.code)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
       }
     };
 
@@ -216,20 +217,8 @@ const VideoPlayer = ({
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const handleVideoClick = (e) => {
-    if (!allowSeeking) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+  const handleVideoClick = () => {
     togglePlay();
-  };
-
-  const handleOverlayInteraction = (e) => {
-    if (!allowSeeking) {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
   };
 
   const handleMouseMove = () => {
@@ -238,8 +227,6 @@ const VideoPlayer = ({
 
   const handleProgressClick = (e) => {
     if (!allowSeeking) {
-      e.preventDefault();
-      e.stopPropagation();
       return;
     }
     
@@ -251,11 +238,69 @@ const VideoPlayer = ({
     video.currentTime = pos * duration;
   };
 
+  // Get responsive sizing
+  const getSizing = () => {
+    switch (screenSize) {
+      case 'mobile':
+        return {
+          controlsHeight: '130px',
+          padding: { top: '0.75rem', bottom: '0.75rem', side: '0.5rem' },
+          progressHeight: '6px',
+          iconSize: 24,
+          buttonPadding: '0.625rem',
+          textSize: 'text-xs',
+          volumeWidth: 'w-16'
+        };
+      case 'tablet':
+        return {
+          controlsHeight: '140px',
+          padding: { top: '0.75rem', bottom: '1rem', side: '1rem' },
+          progressHeight: '5px',
+          iconSize: 22,
+          buttonPadding: '0.5rem',
+          textSize: 'text-sm',
+          volumeWidth: 'w-20'
+        };
+      case 'small-desktop':
+        return {
+          controlsHeight: '85px',
+          padding: { top: '0.375rem', bottom: '0.375rem', side: '0.75rem' },
+          progressHeight: '3px',
+          iconSize: 18,
+          buttonPadding: '0.375rem',
+          textSize: 'text-xs',
+          volumeWidth: 'w-16'
+        };
+      case 'medium-desktop':
+        return {
+          controlsHeight: '90px',
+          padding: { top: '0.375rem', bottom: '0.375rem', side: '0.75rem' },
+          progressHeight: '3px',
+          iconSize: 18,
+          buttonPadding: '0.375rem',
+          textSize: 'text-xs',
+          volumeWidth: 'w-20'
+        };
+      default: // large-desktop
+        return {
+          controlsHeight: '160px',
+          padding: { top: '1rem', bottom: '1.5rem', side: '1rem' },
+          progressHeight: '4px',
+          iconSize: 22,
+          buttonPadding: '0.625rem',
+          textSize: 'text-sm',
+          volumeWidth: 'w-24'
+        };
+    }
+  };
+
+  const sizing = getSizing();
+
   if (error) {
     return (
       <div className="h-full bg-black flex items-center justify-center p-4">
         <div className="text-center text-white max-w-md">
-          <Play size={48} className="mx-auto mb-4 opacity-50 sm:w-16 sm:h-16" />
+          <Play size={48} className="mx-auto mb-4 opacity-50" />
           <h3 className="text-xl sm:text-2xl font-semibold mb-4">Video Not Available</h3>
           <p className="text-gray-300 mb-4 text-sm sm:text-base">{error}</p>
           <p className="text-gray-400 mb-6 text-xs sm:text-sm break-all">Path: {src}</p>
@@ -275,18 +320,11 @@ const VideoPlayer = ({
   return (
     <div 
       ref={containerRef}
-      className="h-full bg-black relative"
+      className="h-full w-full bg-black relative flex flex-col overflow-hidden"
       onMouseMove={handleMouseMove}
       onMouseLeave={() => allowSeeking && setShowControls(false)}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100%',
-        height: '100%'
-      }}
     >
       <style>{`
-        /* Hide native video controls */
         video::-webkit-media-controls,
         video::-webkit-media-controls-start-playback-button,
         video::-webkit-media-controls-timeline,
@@ -311,7 +349,6 @@ const VideoPlayer = ({
           -webkit-tap-highlight-color: transparent;
         }
         
-        /* Volume slider styling - responsive */
         input[type="range"].volume-slider {
           -webkit-appearance: none;
           appearance: none;
@@ -342,14 +379,6 @@ const VideoPlayer = ({
           margin-top: -6px;
         }
         
-        @media (max-width: 640px) {
-          input[type="range"].volume-slider::-webkit-slider-thumb {
-            width: 20px;
-            height: 20px;
-            margin-top: -8px;
-          }
-        }
-        
         input[type="range"].volume-slider::-moz-range-thumb {
           width: 16px;
           height: 16px;
@@ -362,39 +391,14 @@ const VideoPlayer = ({
         input[type="range"].volume-slider:focus {
           outline: none;
         }
-
-        /* Responsive control heights */
-        @media (max-width: 640px) {
-          .video-controls-container {
-            min-height: 140px !important;
-          }
-        }
-        
-        @media (min-width: 641px) and (max-width: 1024px) {
-          .video-controls-container {
-            min-height: 160px !important;
-          }
-        }
-        
-        @media (min-width: 1025px) {
-          .video-controls-container {
-            min-height: 180px !important;
-          }
-        }
       `}</style>
 
-      {/* Video Container - Responsive height calculation */}
+      {/* Video Container - Flexbox fills remaining space */}
       <div 
         className="relative flex items-center justify-center bg-black overflow-hidden"
-        style={{
-          flex: '1 1 auto',
+        style={{ 
           minHeight: 0,
-          // Responsive heights for different screens
-          height: isMobile 
-            ? 'calc(100% - 140px)' // Mobile: 140px for controls
-            : window.innerWidth < 1024
-            ? 'calc(100% - 160px)' // Tablet: 160px for controls
-            : 'calc(100% - 180px)', // Desktop: 180px for controls
+          flex: '1 1 0',
           maxHeight: '100%'
         }}
       >
@@ -405,43 +409,27 @@ const VideoPlayer = ({
           playsInline
           preload="metadata"
           onClick={handleVideoClick}
+          onTouchEnd={handleVideoClick}
           style={{
-            pointerEvents: 'auto',
-            outline: 'none'
+            outline: 'none',
+            maxHeight: '100%',
+            maxWidth: '100%'
           }}
         >
           <source src={src} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
 
-        {/* Overlay to prevent seeking */}
-        {!allowSeeking && (
-          <div
-            ref={overlayRef}
-            className="absolute inset-0 pointer-events-auto"
-            style={{
-              backgroundColor: 'transparent',
-              zIndex: 10
-            }}
-            onClick={handleVideoClick}
-            onMouseDown={handleOverlayInteraction}
-            onMouseUp={handleOverlayInteraction}
-            onTouchStart={handleOverlayInteraction}
-            onTouchEnd={handleOverlayInteraction}
-            onDragStart={handleOverlayInteraction}
-          />
-        )}
-
-        {/* Title - Responsive sizing */}
+        {/* Title */}
         {title && (
-          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-black/90 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm backdrop-blur-sm z-40">
+          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-black/90 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm backdrop-blur-sm z-30">
             {title}
           </div>
         )}
 
         {/* Loading State */}
         {!isLoaded && !error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-40">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-30">
             <div className="text-white text-center p-4">
               <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-white mx-auto mb-4"></div>
               <p className="text-sm sm:text-base">Loading video...</p>
@@ -449,9 +437,9 @@ const VideoPlayer = ({
           </div>
         )}
 
-        {/* No Skip Notice - Responsive positioning */}
+        {/* No Skip Notice */}
         {showNotice && !allowSeeking && isLoaded && (
-          <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 bg-black/90 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm backdrop-blur-sm z-40">
+          <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 bg-black/90 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm backdrop-blur-sm z-30">
             <div className="flex items-center space-x-1.5 sm:space-x-2">
               <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-500 rounded-full animate-pulse"></div>
               <span className="whitespace-nowrap">Cannot skip ahead</span>
@@ -460,26 +448,29 @@ const VideoPlayer = ({
         )}
       </div>
 
-      {/* Controls - Fully Responsive */}
+      {/* Controls - Relative positioning, flex-shrink-0 to stay at bottom */}
       {isLoaded && (
         <div 
-          className="video-controls-container fixed bottom-0 left-0 right-0 bg-black border-t border-gray-800 z-50"
+          className="flex-shrink-0 bg-black border-t border-gray-800"
           style={{
-            paddingTop: isMobile ? '0.75rem' : '1rem',
-            paddingBottom: isMobile ? '0.75rem' : '1.5rem',
-            paddingLeft: isMobile ? '0.5rem' : '1rem',
-            paddingRight: isMobile ? '0.5rem' : '1rem'
+            paddingTop: sizing.padding.top,
+            paddingBottom: sizing.padding.bottom,
+            paddingLeft: sizing.padding.side,
+            paddingRight: sizing.padding.side,
+            height: sizing.controlsHeight,
+            maxHeight: sizing.controlsHeight,
+            overflow: 'visible'
           }}
         >
           <div className="max-w-7xl mx-auto">
-            {/* Progress Bar - Touch-friendly on mobile */}
-            <div className="mb-2 sm:mb-3 md:mb-4">
+            {/* Progress Bar */}
+            <div className="mb-1">
               <div 
                 className={`rounded-full overflow-hidden ${
                   allowSeeking ? 'cursor-pointer' : 'cursor-default'
                 }`}
                 style={{
-                  height: isMobile ? '6px' : '4px',
+                  height: sizing.progressHeight,
                   backgroundColor: '#374151'
                 }}
                 onClick={allowSeeking ? handleProgressClick : undefined}
@@ -491,114 +482,97 @@ const VideoPlayer = ({
                   }}
                 />
               </div>
-              {/* Time display - Hide on very small screens */}
-              <div className="hidden xs:flex justify-between text-xs text-gray-400 mt-1">
+              <div className="hidden lg:flex justify-between text-xs text-gray-400 mt-0.5">
                 <span>{formatTime(currentTime)}</span>
                 <span>{formatTime(duration)}</span>
               </div>
             </div>
 
-            {/* Control Buttons - Responsive Layout */}
-            <div className="space-y-2 sm:space-y-3">
-              {/* Row 1: Main Controls */}
-              <div className="flex items-center justify-between gap-2 sm:gap-3 flex-wrap">
-                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                  {/* Play/Pause Button - Larger on mobile */}
+            {/* Control Buttons */}
+            <div className="flex items-center justify-between gap-1 flex-wrap">
+              <div className="flex items-center gap-1 flex-wrap">
+                {/* Play/Pause */}
+                <button
+                  onClick={togglePlay}
+                  className="text-white hover:text-blue-400 transition-colors bg-gray-800 rounded-lg hover:bg-gray-700 active:bg-gray-600"
+                  style={{ padding: sizing.buttonPadding }}
+                  aria-label={isPlaying ? 'Pause' : 'Play'}
+                >
+                  {isPlaying ? (
+                    <Pause size={sizing.iconSize} />
+                  ) : (
+                    <Play size={sizing.iconSize} />
+                  )}
+                </button>
+
+                {/* Volume Controls */}
+                <div className="flex items-center bg-gray-800 rounded-lg gap-1 px-1.5 py-1">
                   <button
-                    onClick={togglePlay}
-                    className="text-white hover:text-blue-400 transition-colors bg-gray-800 rounded-lg hover:bg-gray-700 active:bg-gray-600"
-                    style={{
-                      padding: isMobile ? '0.75rem' : '0.625rem'
-                    }}
+                    onClick={toggleMute}
+                    className="text-white hover:text-blue-400 transition-colors"
+                    aria-label={isMuted ? 'Unmute' : 'Mute'}
                   >
-                    {isPlaying ? (
-                      <Pause size={isMobile ? 28 : 24} />
+                    {isMuted || volume === 0 ? (
+                      <VolumeX size={sizing.iconSize - 2} />
                     ) : (
-                      <Play size={isMobile ? 28 : 24} />
+                      <Volume2 size={sizing.iconSize - 2} />
                     )}
                   </button>
-
-                  {/* Volume Controls - Simplified on mobile */}
-                  <div className={`flex items-center bg-gray-800 rounded-lg ${
-                    isMobile ? 'gap-1.5 px-2 py-2' : 'gap-2 px-3 py-2'
-                  }`}>
-                    <button
-                      onClick={toggleMute}
-                      className="text-white hover:text-blue-400 transition-colors"
-                    >
-                      {isMuted || volume === 0 ? (
-                        <VolumeX size={isMobile ? 22 : 20} />
-                      ) : (
-                        <Volume2 size={isMobile ? 22 : 20} />
-                      )}
-                    </button>
-                    {/* Hide volume slider on very small screens */}
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      value={isMuted ? 0 : volume}
-                      onChange={handleVolumeChange}
-                      className={`volume-slider ${isMobile ? 'w-16 sm:w-20' : 'w-20'}`}
-                      style={{ 
-                        background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(isMuted ? 0 : volume) * 100}%, #4b5563 ${(isMuted ? 0 : volume) * 100}%, #4b5563 100%)`
-                      }}
-                    />
-                  </div>
-
-                  {/* Time Display - Responsive text */}
-                  <span className={`text-white bg-gray-800 rounded-lg whitespace-nowrap ${
-                    isMobile 
-                      ? 'text-xs px-2 py-1.5 hidden xs:block' 
-                      : 'text-sm px-3 py-2'
-                  }`}>
-                    {formatTime(currentTime)} / {formatTime(duration)}
-                  </span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={isMuted ? 0 : volume}
+                    onChange={handleVolumeChange}
+                    className={`volume-slider ${sizing.volumeWidth}`}
+                    style={{ 
+                      background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(isMuted ? 0 : volume) * 100}%, #4b5563 ${(isMuted ? 0 : volume) * 100}%, #4b5563 100%)`
+                    }}
+                    aria-label="Volume"
+                  />
                 </div>
 
-                {/* Right side controls */}
-                <div className="flex items-center gap-2 sm:gap-3">
-                  {/* Progress Percentage - Responsive */}
-                  <div className={`text-white bg-gray-800 rounded-lg ${
-                    isMobile 
-                      ? 'text-xs px-2 py-1.5' 
-                      : 'text-sm px-3 py-2'
-                  }`}>
-                    <span className={isMobile ? 'hidden xs:inline' : ''}>Progress: </span>
-                    <span className="font-semibold text-blue-400">
-                      {Math.round((watchedTime / duration) * 100)}%
-                    </span>
-                  </div>
-
-                  {/* Fullscreen Button */}
-                  {allowFullscreen && (
-                    <button
-                      onClick={toggleFullscreen}
-                      className={`text-white hover:text-blue-400 transition-colors bg-gray-800 rounded-lg hover:bg-gray-700 ${
-                        isMobile ? 'p-2.5' : 'p-2.5'
-                      }`}
-                    >
-                      <Maximize size={isMobile ? 22 : 20} />
-                    </button>
-                  )}
-                </div>
+                {/* Time Display */}
+                <span className={`text-white bg-gray-800 rounded-lg whitespace-nowrap px-1.5 py-1 ${sizing.textSize} hidden lg:block`}>
+                  {formatTime(currentTime)} / {formatTime(duration)}
+                </span>
               </div>
 
-              {/* Row 2: Dev Tools - Only show on desktop in development */}
-              {process.env.NODE_ENV === 'development' && !isMobile && (
-                <div className="flex justify-end">
+              {/* Right side controls */}
+              <div className="flex items-center gap-1">
+                {/* Dev Skip Button - Left of Progress */}
+                {process.env.NODE_ENV === 'development' && screenSize !== 'mobile' && (
                   <button
                     onClick={() => {
                       if (onComplete) onComplete();
                     }}
-                    className="bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-red-700 transition-colors font-medium"
+                    className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 transition-colors font-medium"
                     title="Development only - skip to next activity"
                   >
-                    Dev Skip
+                    Skip
                   </button>
+                )}
+
+                {/* Progress Percentage */}
+                <div className={`text-white bg-gray-800 rounded-lg px-1.5 py-1 ${sizing.textSize}`}>
+                  <span className="hidden sm:inline">Progress: </span>
+                  <span className="font-semibold text-blue-400">
+                    {Math.round((watchedTime / duration) * 100)}%
+                  </span>
                 </div>
-              )}
+
+                {/* Fullscreen Button */}
+                {allowFullscreen && (
+                  <button
+                    onClick={toggleFullscreen}
+                    className="text-white hover:text-blue-400 transition-colors bg-gray-800 rounded-lg hover:bg-gray-700 p-1.5"
+                    aria-label="Fullscreen"
+                  >
+                    <Maximize size={sizing.iconSize - 2} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

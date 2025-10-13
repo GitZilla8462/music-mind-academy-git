@@ -2,7 +2,7 @@
 // Complete lesson with all activities including SchoolBeneathActivity
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Home, Play, CheckCircle, X, Menu } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import VideoPlayer from '../../components/activities/video/VideoPlayer';
@@ -11,11 +11,24 @@ import SchoolBeneathActivity from './activities/SchoolBeneathActivity';
 
 const Lesson1 = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [currentActivity, setCurrentActivity] = useState(0);
   const [lessonStarted, setLessonStarted] = useState(false);
   const [activityCompleted, setActivityCompleted] = useState({});
   const [showNavigation, setShowNavigation] = useState(true);
+
+  // Check if viewing saved work
+  const searchParams = new URLSearchParams(location.search);
+  const viewSavedMode = searchParams.get('view') === 'saved';
+
+  // If viewing saved work, skip to the SchoolBeneathActivity and start lesson
+  useEffect(() => {
+    if (viewSavedMode) {
+      setCurrentActivity(3); // Index of school-beneath-activity
+      setLessonStarted(true);
+    }
+  }, [viewSavedMode]);
 
   // COMPLETE LESSON CONFIGURATION - moved before callbacks
   const lesson1Config = {
@@ -134,7 +147,7 @@ const Lesson1 = () => {
 
             {/* Lesson Context */}
             <div className="text-xs text-gray-400 flex-shrink-0">
-              Intro to the DAW
+              {viewSavedMode ? 'Viewing Saved Work' : 'Intro to the DAW'}
             </div>
 
             {/* Lesson Title */}
@@ -143,19 +156,23 @@ const Lesson1 = () => {
             </div>
 
             {/* Progress Bar - Grows to fill available space */}
-            <div className="flex-1 min-w-[200px] max-w-md">
-              <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-blue-500 transition-all duration-500"
-                  style={{ width: `${progressPercent}%` }}
-                ></div>
+            {!viewSavedMode && (
+              <div className="flex-1 min-w-[200px] max-w-md">
+                <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-blue-500 transition-all duration-500"
+                    style={{ width: `${progressPercent}%` }}
+                  ></div>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Activity Counter */}
-            <div className="text-sm text-gray-300 flex-shrink-0">
-              Activity {currentActivity + 1} of {lesson1Config.activities.length}
-            </div>
+            {!viewSavedMode && (
+              <div className="text-sm text-gray-300 flex-shrink-0">
+                Activity {currentActivity + 1} of {lesson1Config.activities.length}
+              </div>
+            )}
 
             {/* Close Button */}
             <button
@@ -263,6 +280,7 @@ const Lesson1 = () => {
                     <SchoolBeneathActivity 
                       key={`school-beneath-${currentActivity}`}
                       onComplete={handleActivityComplete}
+                      viewMode={viewSavedMode}
                     />
                   )}
                 </div>

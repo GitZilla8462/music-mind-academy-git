@@ -1,5 +1,5 @@
 // composer/MusicComposer.jsx - Main orchestrator (refactored)
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 // Hooks
@@ -37,7 +37,9 @@ const MusicComposer = ({
   highlightSelector,
   hideHeader = false,
   hideSubmitButton = false,
-  preselectedVideo = null
+  preselectedVideo = null,
+  initialPlacedLoops = undefined,
+  readOnly = false
 }) => {
   const { videoId, assignmentId } = useParams();
   const navigate = useNavigate();
@@ -95,6 +97,14 @@ const MusicComposer = ({
     setIsResizingTop,
     containerRef
   } = useComposerState(preselectedVideo);
+
+  // Initialize loops from saved composition
+  useEffect(() => {
+    if (initialPlacedLoops && initialPlacedLoops.length > 0) {
+      console.log('🎵 Initializing with saved loops:', initialPlacedLoops);
+      setPlacedLoops(initialPlacedLoops);
+    }
+  }, [initialPlacedLoops, setPlacedLoops]);
 
   // Volume control hook
   useVolumeControl({

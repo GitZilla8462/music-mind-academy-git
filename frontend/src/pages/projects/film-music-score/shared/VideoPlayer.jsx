@@ -1,10 +1,11 @@
-// File: /src/pages/projects/film-music-score/composer/VideoPlayback.jsx
+// File: /src/pages/projects/film-music-score/shared/VideoPlayer.jsx
 
 import React, { useRef, useEffect, useState } from 'react';
 import { Play, Pause } from 'lucide-react';
 
-const VideoPlayback = ({
-  videoUrl,
+const VideoPlayer = ({
+  videoUrl,           // For backward compatibility
+  selectedVideo,      // Accept the full video object
   currentTime,
   isPlaying,
   onTimeUpdate,
@@ -17,11 +18,35 @@ const VideoPlayback = ({
   const videoRef = useRef(null);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
+  // Extract video URL from either prop format - check multiple possible property names
+  const actualVideoUrl = videoUrl || 
+                        selectedVideo?.src || 
+                        selectedVideo?.videoPath ||  // ← THIS IS THE ONE!
+                        selectedVideo?.url || 
+                        selectedVideo?.path || 
+                        selectedVideo?.videoUrl || 
+                        selectedVideo?.file;
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🎬 VideoPlayer Debug:', {
+      hasVideoUrl: !!videoUrl,
+      hasSelectedVideo: !!selectedVideo,
+      selectedVideoObject: selectedVideo,  // Log the entire object
+      selectedVideoSrc: selectedVideo?.src,
+      selectedVideoPath: selectedVideo?.videoPath,  // ← Check this one!
+      selectedVideoUrl: selectedVideo?.url,
+      actualVideoUrl,
+      isVideoLoaded
+    });
+  }, [videoUrl, selectedVideo, actualVideoUrl, isVideoLoaded]);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     const handleLoadedMetadata = () => {
+      console.log('✅ Video metadata loaded, duration:', video.duration);
       setIsVideoLoaded(true);
       if (onVideoReady) {
         onVideoReady(video.duration);
@@ -65,13 +90,14 @@ const VideoPlayback = ({
 
   const handleVideoClick = () => {
     if (isPlaying) {
-      onPause();
+      onPause?.();
     } else {
-      onPlay();
+      onPlay?.();
     }
   };
 
-  if (!videoUrl) {
+  // Check if we have a valid video URL
+  if (!actualVideoUrl) {
     return (
       <div className="h-full w-full bg-black flex items-center justify-center relative">
         {/* Video Playback Area Label - Top Left */}
@@ -93,11 +119,14 @@ const VideoPlayback = ({
       {/* Video Playback Area Label - Top Left */}
       <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded text-sm font-medium z-10">
         Video Playback Area
+        {selectedVideo?.title && (
+          <span className="ml-2 text-gray-300">- {selectedVideo.title}</span>
+        )}
       </div>
 
       <video
         ref={videoRef}
-        src={videoUrl}
+        src={actualVideoUrl}
         className="max-h-full max-w-full object-contain cursor-pointer"
         onClick={handleVideoClick}
         style={{ width: 'auto', height: 'auto' }}
@@ -118,4 +147,4 @@ const VideoPlayback = ({
   );
 };
 
-export default VideoPlayback;
+export default VideoPlayer;
