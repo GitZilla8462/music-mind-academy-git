@@ -1,5 +1,5 @@
 // File: /src/lessons/film-music-project/lesson1/activities/daw-tutorial/DAWTutorialActivity.jsx
-// Main orchestration component for the DAW tutorial
+// Main orchestration component for the DAW tutorial - FIXED with proper cleanup
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import MusicComposer from "../../../../../pages/projects/film-music-score/composer/MusicComposer";
@@ -9,9 +9,14 @@ import { speakText } from '../../../../components/shared/textToSpeech';
 import ChallengePanel from './ChallengePanel';
 
 const DAWTutorialActivity = ({ onComplete }) => {
+  // Refs for lifecycle management - CRITICAL for preventing crashes
   const hasInitialized = useRef(false);
   const completionCalledRef = useRef(false);
+  const isMountedRef = useRef(true);
+  const cleanupCalledRef = useRef(false);
+  const timeoutsRef = useRef([]);
   
+  // State
   const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0);
   const [completedChallenges, setCompletedChallenges] = useState(new Set());
   const [showHint, setShowHint] = useState(false);
@@ -25,6 +30,7 @@ const DAWTutorialActivity = ({ onComplete }) => {
   const [isProcessingSuccess, setIsProcessingSuccess] = useState(false);
   const [showDevTools, setShowDevTools] = useState(false);
   const [isDAWReady, setIsDAWReady] = useState(false);
+  const [hasError, setHasError] = useState(false);
   
   const [dawContext, setDawContext] = useState({
     placedLoops: [],
@@ -37,6 +43,55 @@ const DAWTutorialActivity = ({ onComplete }) => {
   const currentChallenge = DAW_CHALLENGES[currentChallengeIndex];
   const progressPercent = (completedChallenges.size / DAW_CHALLENGES.length) * 100;
 
+  // CRITICAL: Safe timeout helper
+  const setSafeTimeout = useCallback((callback, delay) => {
+    const timeoutId = setTimeout(() => {
+      if (isMountedRef.current && !cleanupCalledRef.current) {
+        callback();
+      }
+    }, delay);
+    timeoutsRef.current.push(timeoutId);
+    return timeoutId;
+  }, []);
+
+  // CRITICAL: Cleanup on unmount - prevents crashes during activity transitions
+  useEffect(() => {
+    isMountedRef.current = true;
+    cleanupCalledRef.current = false;
+    
+    return () => {
+      console.log('🧹 DAWTutorialActivity unmounting - cleaning up...');
+      isMountedRef.current = false;
+      cleanupCalledRef.current = true;
+      
+      // Clear all timeouts
+      timeoutsRef.current.forEach(clearTimeout);
+      timeoutsRef.current = [];
+      
+      // Stop all speech synthesis
+      if ('speechSynthesis' in window) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch (error) {
+          console.error('Error canceling speech:', error);
+        }
+      }
+      
+      // CRITICAL: Stop Tone.js transport to prevent seek errors
+      try {
+        if (window.Tone && window.Tone.Transport) {
+          window.Tone.Transport.stop();
+          window.Tone.Transport.cancel();
+          console.log('✅ Tone.js Transport stopped');
+        }
+      } catch (error) {
+        console.error('Error stopping Tone.js:', error);
+      }
+      
+      console.log('✅ DAWTutorialActivity cleanup complete');
+    };
+  }, []);
+
   // Initialize only once
   useEffect(() => {
     if (!hasInitialized.current) {
@@ -45,14 +100,16 @@ const DAWTutorialActivity = ({ onComplete }) => {
     }
   }, []);
 
-  // Auto-ready after short delay (simulates DAW initialization)
+  // Auto-ready after short delay
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsDAWReady(true);
-    }, 2000); // 2 second delay to allow DAW to initialize
+    const timer = setSafeTimeout(() => {
+      if (isMountedRef.current) {
+        setIsDAWReady(true);
+      }
+    }, 2000);
     
     return () => clearTimeout(timer);
-  }, []);
+  }, [setSafeTimeout]);
 
   // Load voices on mount
   useEffect(() => {
@@ -63,19 +120,23 @@ const DAWTutorialActivity = ({ onComplete }) => {
 
   // Speak first challenge question after DAW is ready
   useEffect(() => {
-    if (isDAWReady && currentChallenge && currentChallengeIndex === 0 && voiceEnabled) {
-      const timer = setTimeout(() => {
-        speakText(currentChallenge.question, voiceEnabled);
+    if (isDAWReady && currentChallenge && currentChallengeIndex === 0 && voiceEnabled && isMountedRef.current) {
+      const timer = setSafeTimeout(() => {
+        if (isMountedRef.current) {
+          speakText(currentChallenge.question, voiceEnabled);
+        }
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [isDAWReady, currentChallenge, currentChallengeIndex, voiceEnabled]);
+  }, [isDAWReady, currentChallenge, currentChallengeIndex, voiceEnabled, setSafeTimeout]);
 
   // Idle timer
   useEffect(() => {
-    if (!feedback && currentChallenge && currentChallenge.type !== 'multiple-choice') {
+    if (!feedback && currentChallenge && currentChallenge.type !== 'multiple-choice' && isMountedRef.current) {
       const timer = setInterval(() => {
-        setIdleTime(prev => prev + 1);
+        if (isMountedRef.current) {
+          setIdleTime(prev => prev + 1);
+        }
       }, 1000);
       
       return () => clearInterval(timer);
@@ -86,11 +147,16 @@ const DAWTutorialActivity = ({ onComplete }) => {
 
   // Navigate to next challenge - MUST BE DEFINED BEFORE handleMultipleChoiceAnswer
   const nextChallenge = useCallback(() => {
+    if (!isMountedRef.current || cleanupCalledRef.current) {
+      console.log('Component unmounted, skipping nextChallenge');
+      return;
+    }
+    
     setCurrentChallengeIndex(prev => {
       const newIndex = prev + 1;
       
-      setTimeout(() => {
-        if (newIndex < DAW_CHALLENGES.length) {
+      setSafeTimeout(() => {
+        if (newIndex < DAW_CHALLENGES.length && isMountedRef.current) {
           const newChallenge = DAW_CHALLENGES[newIndex];
           speakText(newChallenge.question, voiceEnabled);
         }
@@ -104,10 +170,15 @@ const DAWTutorialActivity = ({ onComplete }) => {
     setShowExplanation(false);
     setIdleTime(0);
     setDawContext(prev => ({ ...prev, action: null }));
-  }, [voiceEnabled]);
+  }, [voiceEnabled, setSafeTimeout]);
 
-  // Success handler with rapid-fire protection
+  // Success handler with rapid-fire protection and safe cleanup
   const handleCorrectAction = useCallback(() => {
+    if (!isMountedRef.current || cleanupCalledRef.current) {
+      console.log('Component unmounted, skipping handleCorrectAction');
+      return;
+    }
+    
     if (isProcessingSuccess) {
       console.log('Already processing success, ignoring duplicate call');
       return;
@@ -118,22 +189,56 @@ const DAWTutorialActivity = ({ onComplete }) => {
     setCompletedChallenges(prev => new Set([...prev, currentChallenge.id]));
     setIdleTime(0);
     
-    setTimeout(() => {
+    setSafeTimeout(() => {
+      if (!isMountedRef.current || cleanupCalledRef.current) {
+        console.log('Component unmounted during success timeout, aborting');
+        return;
+      }
+      
       if (currentChallengeIndex < DAW_CHALLENGES.length - 1) {
         nextChallenge();
-        setTimeout(() => setIsProcessingSuccess(false), 100);
+        setSafeTimeout(() => {
+          if (isMountedRef.current) {
+            setIsProcessingSuccess(false);
+          }
+        }, 100);
       } else {
-        // Tutorial complete - call onComplete to advance to next activity
-        if (!completionCalledRef.current) {
+        // Tutorial complete - CRITICAL: Clean up BEFORE calling onComplete
+        if (!completionCalledRef.current && isMountedRef.current) {
           completionCalledRef.current = true;
-          console.log('DAW Tutorial completed - calling onComplete()');
-          setTimeout(() => {
-            onComplete();
-          }, 1500);
+          console.log('✅ DAW Tutorial completed - preparing for transition...');
+          
+          // Stop all audio and speech FIRST
+          if ('speechSynthesis' in window) {
+            try {
+              window.speechSynthesis.cancel();
+            } catch (error) {
+              console.error('Error canceling speech:', error);
+            }
+          }
+          
+          // Stop Tone.js transport BEFORE transitioning
+          try {
+            if (window.Tone && window.Tone.Transport) {
+              window.Tone.Transport.stop();
+              window.Tone.Transport.cancel();
+              console.log('✅ Tone.js stopped before transition');
+            }
+          } catch (error) {
+            console.error('Error stopping Tone.js:', error);
+          }
+          
+          // Small delay to ensure cleanup completes, then transition
+          setSafeTimeout(() => {
+            if (isMountedRef.current) {
+              console.log('📤 Calling onComplete() to transition to next activity');
+              onComplete();
+            }
+          }, 200);
         }
       }
     }, 1500);
-  }, [isProcessingSuccess, currentChallenge, currentChallengeIndex, nextChallenge, onComplete]);
+  }, [isProcessingSuccess, currentChallenge, currentChallengeIndex, nextChallenge, onComplete, setSafeTimeout]);
 
   // Use challenge handlers hook
   const handlers = useChallengeHandlers(
@@ -145,8 +250,13 @@ const DAWTutorialActivity = ({ onComplete }) => {
     setIsProcessingClick
   );
 
-  // Multiple choice answer handler - NOW DEFINED AFTER nextChallenge
+  // Multiple choice answer handler
   const handleMultipleChoiceAnswer = useCallback((choiceIndex) => {
+    if (!isMountedRef.current || cleanupCalledRef.current) {
+      console.log('Component unmounted, skipping answer handler');
+      return;
+    }
+    
     // Prevent clicking the same wrong answer repeatedly
     if (userAnswer === choiceIndex && feedback?.type === 'error') {
       return;
@@ -161,8 +271,8 @@ const DAWTutorialActivity = ({ onComplete }) => {
       setCompletedChallenges(prev => new Set([...prev, currentChallenge.id]));
       setShowExplanation(true);
       
-      setTimeout(() => {
-        if (currentChallenge.autoAdvanceOnCorrect) {
+      setSafeTimeout(() => {
+        if (currentChallenge.autoAdvanceOnCorrect && isMountedRef.current) {
           nextChallenge();
         }
       }, 2000);
@@ -170,23 +280,25 @@ const DAWTutorialActivity = ({ onComplete }) => {
       setFeedback({ type: 'error', message: 'Not quite. Try again!' });
       
       // Clear the feedback after 1.5 seconds to allow re-attempt
-      setTimeout(() => {
-        setFeedback(null);
-        setUserAnswer(null); // Reset user answer to allow clicking again
+      setSafeTimeout(() => {
+        if (isMountedRef.current) {
+          setFeedback(null);
+          setUserAnswer(null);
+        }
       }, 1500);
     }
-  }, [currentChallenge, userAnswer, feedback, nextChallenge]);
+  }, [currentChallenge, userAnswer, feedback, nextChallenge, setSafeTimeout]);
 
   // Skip challenge
   const skipChallenge = useCallback(() => {
-    if (currentChallenge.allowSkip) {
+    if (currentChallenge.allowSkip && isMountedRef.current) {
       nextChallenge();
     }
   }, [currentChallenge, nextChallenge]);
 
   // DEV: Skip to any challenge
   const devSkipToChallenge = useCallback((index) => {
-    if (index < 0 || index >= DAW_CHALLENGES.length) return;
+    if (index < 0 || index >= DAW_CHALLENGES.length || !isMountedRef.current) return;
     
     setCurrentChallengeIndex(index);
     setUserAnswer(null);
@@ -198,26 +310,49 @@ const DAWTutorialActivity = ({ onComplete }) => {
     setIsProcessingClick(false);
     setDawContext(prev => ({ ...prev, action: null }));
     
-    setTimeout(() => {
-      const newChallenge = DAW_CHALLENGES[index];
-      if (newChallenge) {
-        speakText(newChallenge.question, voiceEnabled);
+    setSafeTimeout(() => {
+      if (isMountedRef.current) {
+        const newChallenge = DAW_CHALLENGES[index];
+        if (newChallenge) {
+          speakText(newChallenge.question, voiceEnabled);
+        }
       }
     }, 500);
-  }, [voiceEnabled]);
+  }, [voiceEnabled, setSafeTimeout]);
 
   // DEV: Complete tutorial immediately
   const devCompleteAll = useCallback(() => {
-    if (!completionCalledRef.current) {
+    if (!completionCalledRef.current && isMountedRef.current) {
       completionCalledRef.current = true;
       console.log('DEV: Force completing tutorial - calling onComplete()');
-      onComplete();
+      
+      // Clean up before completing
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      
+      try {
+        if (window.Tone && window.Tone.Transport) {
+          window.Tone.Transport.stop();
+          window.Tone.Transport.cancel();
+        }
+      } catch (error) {
+        console.error('Error stopping Tone.js:', error);
+      }
+      
+      setSafeTimeout(() => {
+        if (isMountedRef.current) {
+          onComplete();
+        }
+      }, 100);
     }
-  }, [onComplete]);
+  }, [onComplete, setSafeTimeout]);
 
   // Repeat question
   const repeatQuestion = useCallback(() => {
-    speakText(currentChallenge.question, true);
+    if (isMountedRef.current && currentChallenge) {
+      speakText(currentChallenge.question, true);
+    }
   }, [currentChallenge]);
 
   // Check if challenge can be attempted
@@ -228,11 +363,52 @@ const DAWTutorialActivity = ({ onComplete }) => {
     return true;
   }, [currentChallenge, dawContext.placedLoops.length]);
 
-  // Loading state
-  if (!currentChallenge) {
+  // Error boundary fallback
+  if (hasError) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-gray-900">
-        <div className="text-white text-lg">Loading challenge...</div>
+        <div className="text-center text-white max-w-md">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold mb-4">Something went wrong</h2>
+          <p className="mb-4">The tutorial encountered an error. Please refresh the page to try again.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state with safety check
+  if (!currentChallenge && !hasError) {
+    console.error('❌ No current challenge found at index:', currentChallengeIndex);
+    console.log('Total challenges:', DAW_CHALLENGES.length);
+    
+    // If we're past the last challenge, complete immediately
+    if (currentChallengeIndex >= DAW_CHALLENGES.length && !completionCalledRef.current && isMountedRef.current) {
+      completionCalledRef.current = true;
+      console.log('Past last challenge, completing tutorial');
+      setSafeTimeout(() => {
+        if (isMountedRef.current) {
+          onComplete();
+        }
+      }, 100);
+    }
+    
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-gray-900">
+        <div className="text-center text-white">
+          <div className="text-lg mb-4">Loading challenge...</div>
+          <div className="text-sm text-gray-400">
+            Challenge {currentChallengeIndex + 1} of {DAW_CHALLENGES.length}
+          </div>
+          <div className="text-xs text-gray-500 mt-2">
+            If this persists, please refresh the page
+          </div>
+        </div>
       </div>
     );
   }
@@ -311,6 +487,7 @@ const DAWTutorialActivity = ({ onComplete }) => {
                 <div>Challenge: {currentChallengeIndex + 1}/{DAW_CHALLENGES.length}</div>
                 <div>Completed: {completedChallenges.size}</div>
                 <div>DAW Ready: {isDAWReady ? 'Yes' : 'No'}</div>
+                <div>Mounted: {isMountedRef.current ? 'Yes' : 'No'}</div>
                 <div className="text-purple-400 mt-1 truncate" title={currentChallenge.question}>
                   {currentChallenge.question.slice(0, 30)}...
                 </div>
@@ -329,15 +506,21 @@ const DAWTutorialActivity = ({ onComplete }) => {
             <div className="flex space-x-3">
               <button
                 onClick={() => {
-                  setShowHint(true);
-                  setIdleTime(0);
+                  if (isMountedRef.current) {
+                    setShowHint(true);
+                    setIdleTime(0);
+                  }
                 }}
                 className="flex-1 bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition-colors"
               >
                 Show Hint
               </button>
               <button
-                onClick={() => setIdleTime(0)}
+                onClick={() => {
+                  if (isMountedRef.current) {
+                    setIdleTime(0);
+                  }
+                }}
                 className="flex-1 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
               >
                 I've Got This
