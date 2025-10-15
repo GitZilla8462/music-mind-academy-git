@@ -1,5 +1,5 @@
 // File: /src/lessons/film-music-project/lesson1/Lesson1.jsx
-// Complete lesson with all activities including SchoolBeneathActivity
+// Complete lesson with COMPACT introduction screen
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -348,86 +348,107 @@ const Lesson1 = () => {
       {/* Main Content */}
       <div className={`h-screen flex flex-col ${showNavigation ? 'pt-10' : 'pt-0'} transition-all duration-300`}>
         {!lessonStarted ? (
-          // Lesson Start/Resume Screen
-          <div className="flex-1 flex items-center justify-center p-6">
-            <div className="bg-white rounded-lg shadow-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">{lesson1Config.title}</h1>
-                <p className="text-gray-600">{lesson1Config.description}</p>
+          // COMPACT Lesson Start/Resume Screen
+          <div className="flex-1 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-2xl p-6 max-w-3xl w-full max-h-[85vh] overflow-y-auto">
+              {/* Header - COMPACT */}
+              <div className="mb-4">
+                <h1 className="text-2xl font-bold text-gray-800 mb-1">{lesson1Config.title}</h1>
+                <p className="text-sm text-gray-600">{lesson1Config.description}</p>
               </div>
 
-              {/* Resume Lesson Notice */}
+              {/* Resume Notice - COMPACT */}
               {savedProgress && (
-                <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
                   <div className="flex items-start">
                     <div className="flex-shrink-0">
-                      <RotateCcw className="h-5 w-5 text-blue-500" />
+                      <RotateCcw className="h-4 w-4 text-blue-500" />
                     </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-blue-800">Resume Your Progress</h3>
-                      <div className="mt-1 text-sm text-blue-700">
+                    <div className="ml-2">
+                      <h3 className="text-xs font-medium text-blue-800">Resume Your Progress</h3>
+                      <div className="mt-1 text-xs text-blue-700">
                         <p>You were on Activity {savedProgress.currentActivity + 1}: <strong>{lesson1Config.activities[savedProgress.currentActivity]?.title}</strong></p>
-                        <p className="text-xs mt-1 text-blue-600">Last saved: {new Date(savedProgress.timestamp).toLocaleString()}</p>
+                        <p className="text-xs mt-0.5 text-blue-600">Last saved: {new Date(savedProgress.timestamp).toLocaleString()}</p>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Learning Objectives */}
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold mb-4">What You'll Learn</h2>
-                <ul className="space-y-2">
-                  {lesson1Config.learningObjectives.map((objective, index) => (
-                    <li key={index} className="flex items-start space-x-2">
-                      <CheckCircle className="text-green-500 mt-1 flex-shrink-0" size={16} />
-                      <span className="text-gray-700">{objective}</span>
-                    </li>
-                  ))}
-                </ul>
+              {/* Two Column Layout for Learning Objectives and Info */}
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                {/* Learning Objectives - COMPACT */}
+                <div>
+                  <h2 className="text-base font-semibold mb-2">What You'll Learn</h2>
+                  <ul className="space-y-1">
+                    {lesson1Config.learningObjectives.map((objective, index) => (
+                      <li key={index} className="flex items-start space-x-1.5 text-sm">
+                        <CheckCircle className="text-green-500 mt-0.5 flex-shrink-0" size={14} />
+                        <span className="text-gray-700">{objective}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Lesson Info - COMPACT */}
+                <div className="space-y-2">
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-center flex-1">
+                        <div className="text-xl font-bold text-blue-600">{lesson1Config.estimatedTime}</div>
+                        <div className="text-xs text-gray-500">Minutes</div>
+                      </div>
+                      <div className="text-center flex-1 border-l border-r border-gray-300">
+                        <div className="text-xl font-bold text-green-600 capitalize">{lesson1Config.difficulty}</div>
+                        <div className="text-xs text-gray-500">Difficulty</div>
+                      </div>
+                      <div className="text-center flex-1">
+                        <div className="text-xl font-bold text-purple-600">{lesson1Config.activities.length}</div>
+                        <div className="text-xs text-gray-500">Activities</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Activity List Preview */}
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <h3 className="text-xs font-semibold text-gray-700 mb-2">Activities:</h3>
+                    <ol className="space-y-1">
+                      {lesson1Config.activities.map((activity, index) => (
+                        <li key={index} className="text-xs text-gray-600 flex items-start">
+                          <span className="font-semibold mr-1.5">{index + 1}.</span>
+                          <span className="flex-1">{activity.title}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                </div>
               </div>
 
-              {/* Lesson Info */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg mb-8">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{lesson1Config.estimatedTime}</div>
-                  <div className="text-sm text-gray-500">Minutes</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600 capitalize">{lesson1Config.difficulty}</div>
-                  <div className="text-sm text-gray-500">Difficulty</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">{lesson1Config.activities.length}</div>
-                  <div className="text-sm text-gray-500">Activities</div>
-                </div>
-              </div>
-
-              {/* Start/Resume Buttons */}
-              <div className="text-center space-y-3">
+              {/* Start/Resume Buttons - COMPACT */}
+              <div className="space-y-2">
                 {savedProgress ? (
                   <>
                     <button 
                       onClick={resumeLesson}
-                      className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold inline-flex items-center space-x-2 transform hover:scale-105 w-full justify-center"
+                      className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-base font-semibold inline-flex items-center justify-center space-x-2 transform hover:scale-105 w-full"
                     >
-                      <RotateCcw size={24} />
+                      <RotateCcw size={18} />
                       <span>Resume Lesson</span>
                     </button>
                     <button 
                       onClick={startOver}
-                      className="bg-gray-500 text-white px-8 py-3 rounded-lg hover:bg-gray-600 transition-colors text-base font-medium inline-flex items-center space-x-2 w-full justify-center"
+                      className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium inline-flex items-center justify-center space-x-2 w-full"
                     >
-                      <Play size={20} />
+                      <Play size={16} />
                       <span>Start Over</span>
                     </button>
                   </>
                 ) : (
                   <button 
                     onClick={startLesson}
-                    className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold inline-flex items-center space-x-2 transform hover:scale-105"
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-base font-semibold inline-flex items-center justify-center space-x-2 transform hover:scale-105 w-full"
                   >
-                    <Play size={24} />
+                    <Play size={18} />
                     <span>Start Lesson</span>
                   </button>
                 )}
