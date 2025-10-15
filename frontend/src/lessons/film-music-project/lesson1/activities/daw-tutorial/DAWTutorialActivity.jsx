@@ -252,8 +252,7 @@ const DAWTutorialActivity = ({ onComplete }) => {
       )}
 
       {/* ⚠️ TEMPORARY DEV TOOLS - REMOVE AFTER TESTING ⚠️ */}
-      {/* TODO: Change back to: {process.env.NODE_ENV === 'development' && ( */}
-      {true && (
+      {process.env.NODE_ENV === 'development' && (
         <div className="fixed top-4 right-4 z-50">
           <button
             onClick={() => setShowDevTools(!showDevTools)}

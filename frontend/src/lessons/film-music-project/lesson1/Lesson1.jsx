@@ -209,7 +209,7 @@ const Lesson1 = () => {
   return (
     <div className="min-h-screen bg-gray-900 relative overflow-hidden">
       {/* ⚠️ TEMPORARY SKIP TOOLS - REMOVE AFTER TESTING ⚠️ */}
-      {true && lessonStarted && (
+      {process.env.NODE_ENV === 'development' && lessonStarted && (
         <div className="fixed bottom-4 right-4 z-50">
           <button
             onClick={() => setShowSkipTools(!showSkipTools)}
