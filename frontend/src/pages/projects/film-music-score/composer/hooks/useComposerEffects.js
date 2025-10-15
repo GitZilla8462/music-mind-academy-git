@@ -1,7 +1,8 @@
-// File: /src/pages/projects/film-music-score/composer/hooks/useComposerEffects.js
-// All useEffect logic with FIXED duration detection and FIXED panel resizing
+// ============================================================================
+// FILE 3: useComposerEffects.js - FIXED with debounced keyboard shortcuts
+// ============================================================================
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { getVideoById } from '../../shared/loopData';
 
 export const useComposerEffects = ({
@@ -81,18 +82,14 @@ export const useComposerEffects = ({
           setVideoLoading(false);
         }
       } else if (preselectedVideo) {
-        // FIXED: Handle preselected videos properly
         console.log('📹 Preselected video detected:', preselectedVideo);
         
-        // If duration is already provided and valid, use it immediately
         if (preselectedVideo.duration && preselectedVideo.duration > 0) {
           console.log('✅ Preselected video has duration:', preselectedVideo.duration, 'seconds');
           setSelectedVideo(preselectedVideo);
-          // Don't need to set loading state since we're not loading
           return;
         }
         
-        // Duration not provided or null - detect it from the actual video file
         setVideoLoading(true);
         console.log('🔍 Detecting duration for preselected video:', preselectedVideo.videoPath);
         
@@ -103,7 +100,7 @@ export const useComposerEffects = ({
         const loadPromise = new Promise((resolve, reject) => {
           const timeout = setTimeout(() => {
             reject(new Error('Video metadata load timeout'));
-          }, 10000); // 10 second timeout
+          }, 10000);
           
           videoElement.addEventListener('loadedmetadata', () => {
             clearTimeout(timeout);
@@ -121,7 +118,6 @@ export const useComposerEffects = ({
         try {
           const detectedDuration = await loadPromise;
           
-          // Update the video object with detected duration
           const videoWithDuration = {
             ...preselectedVideo,
             duration: detectedDuration
@@ -133,14 +129,12 @@ export const useComposerEffects = ({
           console.error('❌ Error detecting video duration:', error);
           showToast?.('Failed to load video duration. Using default 60s.', 'warning');
           
-          // Fallback to 60 seconds if detection fails
           const videoWithFallback = {
             ...preselectedVideo,
             duration: 60
           };
           setSelectedVideo(videoWithFallback);
         } finally {
-          // Clean up
           videoElement.src = '';
           videoElement.load();
           setVideoLoading(false);
@@ -149,7 +143,7 @@ export const useComposerEffects = ({
     };
 
     loadVideo();
-  }, [videoId, preselectedVideo, selectedVideo]); // Keep selectedVideo in deps to check if already loaded
+  }, [videoId, preselectedVideo, selectedVideo]);
 
   // Auto-save functionality (disabled for demo and practice modes)
   useEffect(() => {
@@ -201,24 +195,21 @@ export const useComposerEffects = ({
           console.log('✅ Audio auto-initialized');
         } catch (error) {
           console.error('❌ Failed to auto-initialize audio:', error);
-          // If auto-init fails, user will need to click something to enable audio
-          // This is a browser requirement for audio playback
         }
       };
       
-      // Small delay to ensure component is mounted
       const timer = setTimeout(autoInit, 100);
       return () => clearTimeout(timer);
     }
   }, [audioReady, initializeAudio, setAudioReady]);
 
-  // FIXED: Handle panel resizing with smooth gradual movement
+  // Handle panel resizing with smooth gradual movement
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (isResizingLeft && containerRef.current) {
         const containerRect = containerRef.current.getBoundingClientRect();
         const newWidth = e.clientX - containerRect.left;
-        const minWidth = 120; // FIXED: Reduced from 250 to 120 (allows narrower than 160px default)
+        const minWidth = 120;
         const maxWidth = containerRect.width * 0.5;
         const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
         setLeftPanelWidth(constrainedWidth);
@@ -256,8 +247,12 @@ export const useComposerEffects = ({
     };
   }, [isResizingLeft, isResizingTop, containerRef, setLeftPanelWidth, setTopPanelHeight, setIsResizingLeft, setIsResizingTop]);
 
-  // Keyboard shortcuts
+  // FIXED: Keyboard shortcuts with debouncing
   useEffect(() => {
+    // Debounce refs for keyboard shortcuts
+    const lastArrowPressRef = { current: 0 };
+    const ARROW_DEBOUNCE_MS = 200;
+    
     const handleKeyPress = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || !audioReady) {
         return;
@@ -272,14 +267,25 @@ export const useComposerEffects = ({
           e.preventDefault();
           isPlaying ? pause() : handlePlay();
           break;
+          
         case 'ArrowLeft':
-          e.preventDefault();
-          seek(Math.max(0, currentTime - 5));
-          break;
         case 'ArrowRight':
+          // FIXED: Debounce arrow key seeks to prevent spam
+          const now = Date.now();
+          if (now - lastArrowPressRef.current < ARROW_DEBOUNCE_MS) {
+            e.preventDefault();
+            return;
+          }
+          lastArrowPressRef.current = now;
+          
           e.preventDefault();
-          seek(Math.min(selectedVideo?.duration || 60, currentTime + 5));
+          const delta = e.code === 'ArrowLeft' ? -5 : 5;
+          const newTime = e.code === 'ArrowLeft' 
+            ? Math.max(0, currentTime + delta)
+            : Math.min(selectedVideo?.duration || 60, currentTime + delta);
+          seek(newTime);
           break;
+          
         case 'KeyR':
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
