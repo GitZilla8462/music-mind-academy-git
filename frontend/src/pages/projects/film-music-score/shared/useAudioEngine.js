@@ -1,5 +1,5 @@
 // ============================================================================
-// FILE 1: useAudioEngine.js - FIXED with debouncing and sync
+// FILE: useAudioEngine.js - OPTIMIZED FOR CHROMEBOOK PERFORMANCE
 // ============================================================================
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -48,11 +48,20 @@ export const useAudioEngine = () => {
   const seekTimeoutRef = useRef(null);
   const lastSeekTimeRef = useRef(0);
   const pendingSeekRef = useRef(null);
-  const SEEK_DEBOUNCE_MS = 150; // Wait 150ms before executing seek
+  const SEEK_DEBOUNCE_MS = 400; // INCREASED from 150ms to 400ms for Chromebooks
+
+  // CHROMEBOOK DETECTION
+  const isChromebook = /CrOS/.test(navigator.userAgent);
 
   const initializeAudio = useCallback(async () => {
     if (!audioInitialized.current) {
       try {
+        // CRITICAL OPTIMIZATION: Set context for playback mode with increased lookahead
+        Tone.setContext(new Tone.Context({ 
+          latencyHint: "playback",  // Prioritizes smooth playback over low latency
+          lookAhead: 0.3,           // INCREASED from 0.1 to 0.3 for stability
+        }));
+        
         if (Tone.context.state === 'suspended') {
           await Tone.context.resume();
         }
@@ -61,6 +70,9 @@ export const useAudioEngine = () => {
         audioInitialized.current = true;
         
         window.Tone = Tone;
+        
+        // Set Transport lookahead for scheduling
+        Tone.Transport.lookAhead = 0.3; // INCREASED for Chromebook stability
         
         Tone.Transport.on('start', () => {
           setIsPlaying(true);
@@ -71,10 +83,8 @@ export const useAudioEngine = () => {
           setIsPlaying(false);
         });
         
-        // FIXED: Remove redundant seek on stop
         Tone.Transport.on('stop', () => {
           setIsPlaying(false);
-          // Don't set currentTime or Transport.seconds here - let seek handle it
           stopAllCurrentLoops();
         });
         
@@ -202,6 +212,17 @@ export const useAudioEngine = () => {
       return playersRef.current[playerKey];
     }
     
+    // CHROMEBOOK OPTIMIZATION: Prefer native audio for better performance
+    if (isChromebook) {
+      console.log(`🖥️ Chromebook detected: Using native audio for ${loop.name}`);
+      const nativePlayer = createNativePlayer(loop);
+      playersRef.current[playerKey] = nativePlayer;
+      nativePlayersRef.current[playerKey] = nativePlayer;
+      return new Promise((resolve) => {
+        setTimeout(() => resolve(nativePlayer), 500);
+      });
+    }
+    
     try {
       const player = new Tone.Player({
         url: loop.file,
@@ -236,7 +257,7 @@ export const useAudioEngine = () => {
         throw nativeError;
       }
     }
-  }, [createNativePlayer]);
+  }, [createNativePlayer, isChromebook]);
 
   const getActiveLoopsAtTime = useCallback((placedLoops, currentTime) => {
     return placedLoops.filter(loop => 
@@ -316,7 +337,7 @@ export const useAudioEngine = () => {
     }
   }, [volume]);
 
-  // FIXED: Batch schedule loops starting at same time for perfect sync
+  // OPTIMIZED: Batch schedule loops for better sync
   const scheduleLoops = useCallback((placedLoops, duration, trackStates = {}) => {
     if (!audioInitialized.current || !Array.isArray(placedLoops)) {
       return;
@@ -345,95 +366,90 @@ export const useAudioEngine = () => {
     placedLoops.forEach((loop) => {
       const player = playersRef.current[loop.id];
       const trackState = trackStates[`track-${loop.trackIndex}`] || {};
-      const shouldPlayBasedOnSolo = !hasSoloedTracks || trackState.solo;
       
-      if (!player || loop.muted || trackState.muted || !shouldPlayBasedOnSolo) {
+      if (loop.muted || !player || (!player.loaded && !player.isNative)) {
+        return;
+      }
+      
+      if (trackState.muted) {
+        return;
+      }
+      
+      if (hasSoloedTracks && !trackState.solo) {
         return;
       }
 
-      // Group by start time for batch scheduling
-      const startTime = loop.startTime;
-      if (!loopsByStartTime.has(startTime)) {
-        loopsByStartTime.set(startTime, []);
-      }
-      loopsByStartTime.get(startTime).push(loop);
+      const repeats = calculateLoopRepeats(loop, currentTransportTime);
+      
+      repeats.forEach((repeat) => {
+        if (!loopsByStartTime.has(repeat.startTime)) {
+          loopsByStartTime.set(repeat.startTime, []);
+        }
+        loopsByStartTime.get(repeat.startTime).push({
+          loop,
+          player,
+          trackState,
+          repeat
+        });
+      });
     });
 
     let scheduledCount = 0;
 
-    // Schedule each group together for perfect sync
+    // OPTIMIZED: Schedule in batches by start time
     loopsByStartTime.forEach((loops, startTime) => {
-      const trackVolume = 0.7;
-      const loopVolume = 0.8;
+      const trackVolume = loops[0].trackState.volume !== undefined ? loops[0].trackState.volume : 0.7;
+      const loopVolume = loops[0].loop.volume !== undefined ? loops[0].loop.volume : 0.8;
       const finalVolume = loopVolume * trackVolume * volume;
-
-      // Check if we're in the middle of these loops
-      if (currentTransportTime >= startTime && loops.some(l => currentTransportTime < l.endTime)) {
-        // Schedule all loops in this group together in ONE callback
-        const scheduleId = Tone.Transport.schedule((time) => {
-          loops.forEach(loop => {
-            const player = playersRef.current[loop.id];
-            if (!player) return;
-
-            const actualTransportTime = Tone.Transport.seconds;
-            const offsetIntoLoop = actualTransportTime - loop.startTime;
-            const offsetIntoAudioFile = offsetIntoLoop % loop.duration;
-            const actualRemainingTime = loop.endTime - actualTransportTime;
-
-            if (actualRemainingTime < 0.05) return;
-
+      
+      if (startTime <= currentTransportTime && isTransportPlaying) {
+        // Start immediately with offset
+        loops.forEach(({ loop, player, repeat }) => {
+          const offsetIntoAudioFile = currentTransportTime - startTime;
+          const actualRemainingTime = repeat.endTime - currentTransportTime;
+          
+          if (actualRemainingTime > 0.05) {
             try {
               if (player.isNative) {
+                player.audio.currentTime = offsetIntoAudioFile;
                 player.audio.volume = Math.max(0, Math.min(1, finalVolume));
                 player.audio.loop = true;
                 
-                const playAfterSeek = () => {
-                  player.audio.removeEventListener('seeked', playAfterSeek);
-                  
-                  const promise = player.audio.play();
-                  if (promise) {
-                    promise.then(() => {
-                      currentlyPlayingLoops.current.add(loop.id);
-                      
-                      loopTimeoutsRef.current[loop.id] = setTimeout(() => {
-                        if (!player.audio.paused && currentlyPlayingLoops.current.has(loop.id)) {
-                          player.audio.pause();
-                          player.audio.currentTime = 0;
-                          player.audio.loop = false;
-                          currentlyPlayingLoops.current.delete(loop.id);
-                          delete loopTimeoutsRef.current[loop.id];
-                        }
-                      }, actualRemainingTime * 1000);
-                    }).catch(e => {
-                      console.error(`ERROR playing ${loop.name}:`, e);
-                    });
-                  }
-                };
-                
-                player.audio.addEventListener('seeked', playAfterSeek);
-                player.audio.currentTime = offsetIntoAudioFile;
+                const promise = player.audio.play();
+                if (promise) {
+                  promise.then(() => {
+                    currentlyPlayingLoops.current.add(loop.id);
+                    
+                    loopTimeoutsRef.current[loop.id] = setTimeout(() => {
+                      if (!player.audio.paused && currentlyPlayingLoops.current.has(loop.id)) {
+                        player.audio.pause();
+                        player.audio.currentTime = 0;
+                        player.audio.loop = false;
+                        currentlyPlayingLoops.current.delete(loop.id);
+                        delete loopTimeoutsRef.current[loop.id];
+                      }
+                    }, actualRemainingTime * 1000);
+                  }).catch(e => {
+                    console.error(`ERROR playing ${loop.name}:`, e);
+                  });
+                }
               } else {
                 const dbValue = finalVolume === 0 ? -Infinity : Tone.gainToDb(finalVolume);
                 player.volume.value = dbValue;
-                player.start(time, offsetIntoAudioFile, actualRemainingTime);
+                player.start(Tone.now(), offsetIntoAudioFile, actualRemainingTime);
                 currentlyPlayingLoops.current.add(loop.id);
               }
             } catch (error) {
               console.error(`ERROR starting ${loop.name}:`, error);
             }
-          });
-        }, "+0");
-
-        scheduledLoopsRef.current[`group-${startTime}`] = scheduleId;
+          }
+        });
         scheduledCount += loops.length;
       } else if (startTime > currentTransportTime) {
-        // Future playback - batch schedule
+        // OPTIMIZED: Batch schedule all loops at same time
         const scheduleId = Tone.Transport.schedule((time) => {
-          loops.forEach(loop => {
-            const player = playersRef.current[loop.id];
-            if (!player) return;
-
-            const totalDuration = loop.endTime - loop.startTime;
+          loops.forEach(({ loop, player, repeat }) => {
+            const totalDuration = repeat.duration;
 
             try {
               if (player.isNative) {
@@ -483,7 +499,8 @@ export const useAudioEngine = () => {
   const play = useCallback(async () => {
     try {
       await initializeAudio();
-      Tone.Transport.start();
+      // CHROMEBOOK OPTIMIZATION: Start with lookahead buffer
+      Tone.Transport.start("+0.2");
     } catch (error) {
       console.error('Error starting playback:', error);
       throw error;
@@ -497,27 +514,22 @@ export const useAudioEngine = () => {
 
   const stop = useCallback(() => {
     Tone.Transport.stop();
-    // FIXED: Don't set time here - let seek handle it
     stopAllCurrentLoops();
   }, [stopAllCurrentLoops]);
 
-  // FIXED: Debounced seek to prevent spam
   const seek = useCallback((time) => {
     const clampedTime = Math.max(0, time);
     
-    // Store the intended seek time
     pendingSeekRef.current = clampedTime;
     
-    // Clear any existing timeout
     if (seekTimeoutRef.current) {
       clearTimeout(seekTimeoutRef.current);
     }
     
-    // Debounce: wait before executing
+    // CHROMEBOOK OPTIMIZATION: Increased debounce time
     seekTimeoutRef.current = setTimeout(() => {
       const targetTime = pendingSeekRef.current;
       
-      // Prevent duplicate seeks to same time
       if (Math.abs(targetTime - lastSeekTimeRef.current) < 0.01) {
         console.log(`Skipping duplicate seek to ${targetTime.toFixed(2)}s`);
         return;
@@ -534,7 +546,6 @@ export const useAudioEngine = () => {
       pendingSeekRef.current = null;
     }, SEEK_DEBOUNCE_MS);
     
-    // Update UI immediately for responsiveness
     setCurrentTime(clampedTime);
   }, [stopAllCurrentLoops, SEEK_DEBOUNCE_MS]);
 
@@ -639,7 +650,6 @@ export const useAudioEngine = () => {
 
   useEffect(() => {
     return () => {
-      // Clear debounce timeout
       if (seekTimeoutRef.current) {
         clearTimeout(seekTimeoutRef.current);
       }

@@ -1,11 +1,12 @@
 // File: /src/pages/projects/film-music-score/shared/VideoPlayer.jsx
+// OPTIMIZED FOR CHROMEBOOK PERFORMANCE - COMPLETE FILE
 
 import React, { useRef, useEffect, useState } from 'react';
-import { Play, Pause } from 'lucide-react';
+import { Play } from 'lucide-react';
 
 const VideoPlayer = ({
-  videoUrl,           // For backward compatibility
-  selectedVideo,      // Accept the full video object
+  videoUrl,           
+  selectedVideo,      
   currentTime,
   isPlaying,
   onTimeUpdate,
@@ -17,11 +18,12 @@ const VideoPlayer = ({
 }) => {
   const videoRef = useRef(null);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const syncIntervalRef = useRef(null);
 
-  // Extract video URL from either prop format - check multiple possible property names
+  // Extract video URL from either prop format
   const actualVideoUrl = videoUrl || 
                         selectedVideo?.src || 
-                        selectedVideo?.videoPath ||  // ← THIS IS THE ONE!
+                        selectedVideo?.videoPath ||
                         selectedVideo?.url || 
                         selectedVideo?.path || 
                         selectedVideo?.videoUrl || 
@@ -32,15 +34,13 @@ const VideoPlayer = ({
     console.log('🎬 VideoPlayer Debug:', {
       hasVideoUrl: !!videoUrl,
       hasSelectedVideo: !!selectedVideo,
-      selectedVideoObject: selectedVideo,  // Log the entire object
-      selectedVideoSrc: selectedVideo?.src,
-      selectedVideoPath: selectedVideo?.videoPath,  // ← Check this one!
-      selectedVideoUrl: selectedVideo?.url,
+      selectedVideoObject: selectedVideo,
       actualVideoUrl,
       isVideoLoaded
     });
   }, [videoUrl, selectedVideo, actualVideoUrl, isVideoLoaded]);
 
+  // Load video metadata
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -68,6 +68,7 @@ const VideoPlayer = ({
     };
   }, [onTimeUpdate, onVideoReady]);
 
+  // Control playback
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -79,6 +80,41 @@ const VideoPlayer = ({
     }
   }, [isPlaying]);
 
+  // CHROMEBOOK OPTIMIZATION: Sync video to audio clock
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !isPlaying) {
+      if (syncIntervalRef.current) {
+        clearInterval(syncIntervalRef.current);
+        syncIntervalRef.current = null;
+      }
+      return;
+    }
+    
+    // Sync video to external audio clock every 200ms
+    syncIntervalRef.current = setInterval(() => {
+      if (window.Tone && window.Tone.Transport) {
+        const audioTime = window.Tone.Transport.seconds;
+        const videoTime = video.currentTime;
+        const drift = Math.abs(audioTime - videoTime);
+        
+        // If drift exceeds 150ms, resync
+        if (drift > 0.15) {
+          console.log(`🔄 Resyncing video: drift ${(drift * 1000).toFixed(0)}ms`);
+          video.currentTime = audioTime;
+        }
+      }
+    }, 200);
+    
+    return () => {
+      if (syncIntervalRef.current) {
+        clearInterval(syncIntervalRef.current);
+        syncIntervalRef.current = null;
+      }
+    };
+  }, [isPlaying]);
+
+  // Sync to currentTime prop
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -100,7 +136,6 @@ const VideoPlayer = ({
   if (!actualVideoUrl) {
     return (
       <div className="h-full w-full bg-black flex items-center justify-center relative">
-        {/* Video Playback Area Label - Top Left */}
         <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded text-sm font-medium z-10">
           Video Playback Area
         </div>
@@ -116,7 +151,6 @@ const VideoPlayer = ({
 
   return (
     <div className="h-full w-full bg-black relative flex items-center justify-center">
-      {/* Video Playback Area Label - Top Left */}
       <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded text-sm font-medium z-10">
         Video Playback Area
         {selectedVideo?.title && (
@@ -124,11 +158,14 @@ const VideoPlayer = ({
         )}
       </div>
 
+      {/* CHROMEBOOK OPTIMIZATION: preload="auto" and playsInline */}
       <video
         ref={videoRef}
         src={actualVideoUrl}
         className="max-h-full max-w-full object-contain cursor-pointer"
         onClick={handleVideoClick}
+        preload="auto"
+        playsInline
         style={{ width: 'auto', height: 'auto' }}
       />
 
