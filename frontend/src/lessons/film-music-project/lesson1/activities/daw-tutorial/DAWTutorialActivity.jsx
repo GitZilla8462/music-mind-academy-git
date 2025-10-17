@@ -25,7 +25,7 @@ const DAWTutorialActivity = ({ onComplete }) => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
   const [idleTime, setIdleTime] = useState(0);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [isProcessingClick, setIsProcessingClick] = useState(false);
   const [isProcessingSuccess, setIsProcessingSuccess] = useState(false);
   const [showDevTools, setShowDevTools] = useState(false);
@@ -427,20 +427,19 @@ const DAWTutorialActivity = ({ onComplete }) => {
         </div>
       )}
 
-      {/* ⚠️ TEMPORARY DEV TOOLS - REMOVE AFTER TESTING ⚠️ */}
-      {process.env.NODE_ENV === 'development' && (
+      {/* Dev Tools - Available in all environments */}
+      {true && (
         <div className="fixed top-4 right-4 z-50">
           <button
             onClick={() => setShowDevTools(!showDevTools)}
-            className="bg-red-600 text-white px-3 py-1 rounded text-xs font-mono hover:bg-red-700 transition-colors shadow-lg border-2 border-yellow-400 animate-pulse"
+            className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-mono hover:bg-blue-700 transition-colors shadow-lg"
           >
-            {showDevTools ? 'Hide' : 'Show'} Dev Tools [TEMPORARY]
+            {showDevTools ? 'Hide' : 'Show'} Dev Tools
           </button>
           
           {showDevTools && (
-            <div className="mt-2 bg-gray-800 border-2 border-red-500 rounded-lg p-3 shadow-xl max-w-xs">
-              <div className="text-red-400 text-xs font-mono mb-2 font-bold">⚠️ TEMPORARY DEV TOOLS ⚠️</div>
-              <div className="text-yellow-300 text-xs mb-2 font-semibold">REMOVE AFTER TESTING!</div>
+            <div className="mt-2 bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
+              <div className="text-blue-400 text-xs font-mono mb-2 font-bold">🛠️ DEV TOOLS</div>
               
               {/* Challenge Navigator */}
               <div className="mb-3">
@@ -476,9 +475,9 @@ const DAWTutorialActivity = ({ onComplete }) => {
                 </button>
                 <button
                   onClick={devCompleteAll}
-                  className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold border-2 border-yellow-400"
+                  className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold"
                 >
-                  🚀 COMPLETE ALL → SchoolBeneathActivity
+                  🚀 Complete All → Next Activity
                 </button>
               </div>
               
