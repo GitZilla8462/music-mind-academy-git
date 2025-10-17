@@ -185,7 +185,7 @@ const Lesson1 = () => {
     setShowNavigation(prev => !prev);
   }, []);
 
-  // DEV: Skip to specific activity
+  // Skip to specific activity
   const skipToActivity = useCallback((index) => {
     if (index < 0 || index >= lesson1Config.activities.length) return;
     console.log('Skipping to activity:', index);
@@ -195,7 +195,7 @@ const Lesson1 = () => {
     }
   }, [lessonStarted, lesson1Config.activities.length]);
 
-  // DEV: Skip to next activity
+  // Skip to next activity
   const skipNext = useCallback(() => {
     if (currentActivity < lesson1Config.activities.length - 1) {
       skipToActivity(currentActivity + 1);
@@ -208,20 +208,19 @@ const Lesson1 = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 relative overflow-hidden">
-      {/* ⚠️ TEMPORARY SKIP TOOLS - REMOVE AFTER TESTING ⚠️ */}
-      {process.env.NODE_ENV === 'development' && lessonStarted && (
+      {/* Skip Tools - Available in all environments */}
+      {lessonStarted && (
         <div className="fixed bottom-4 right-4 z-50">
           <button
             onClick={() => setShowSkipTools(!showSkipTools)}
-            className="bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-mono hover:bg-red-700 transition-colors shadow-lg border-2 border-yellow-400 animate-pulse mb-2"
+            className="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-mono hover:bg-blue-700 transition-colors shadow-lg mb-2"
           >
-            {showSkipTools ? 'Hide' : 'Show'} Skip Tools [TEMP]
+            {showSkipTools ? 'Hide' : 'Show'} Skip Tools
           </button>
           
           {showSkipTools && (
-            <div className="bg-gray-800 border-2 border-red-500 rounded-lg p-3 shadow-xl max-w-xs">
-              <div className="text-red-400 text-xs font-mono mb-2 font-bold">⚠️ TEMPORARY SKIP TOOLS ⚠️</div>
-              <div className="text-yellow-300 text-xs mb-3 font-semibold">REMOVE AFTER TESTING!</div>
+            <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
+              <div className="text-blue-400 text-xs font-mono mb-2 font-bold">🛠️ LESSON NAVIGATION</div>
               
               {/* Activity Navigator */}
               <div className="mb-3">
@@ -258,9 +257,9 @@ const Lesson1 = () => {
                 </button>
                 <button
                   onClick={() => skipToActivity(3)}
-                  className="w-full bg-green-600 text-white text-xs px-3 py-2 rounded hover:bg-green-700 transition-colors font-semibold border-2 border-yellow-400"
+                  className="w-full bg-green-600 text-white text-xs px-3 py-2 rounded hover:bg-green-700 transition-colors font-semibold"
                 >
-                  🎵 Jump to SchoolBeneathActivity
+                  🎵 Jump to School Beneath Activity
                 </button>
               </div>
               
