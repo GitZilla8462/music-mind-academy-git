@@ -1,5 +1,5 @@
 // File: /src/pages/projects/film-music-score/shared/VideoPlayer.jsx
-// OPTIMIZED FOR CHROMEBOOK PERFORMANCE - COMPLETE FILE
+// OPTIMIZED FOR CHROMEBOOK PERFORMANCE - SYNC DISABLED
 
 import React, { useRef, useEffect, useState } from 'react';
 import { Play } from 'lucide-react';
@@ -18,7 +18,6 @@ const VideoPlayer = ({
 }) => {
   const videoRef = useRef(null);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const syncIntervalRef = useRef(null);
 
   // Extract video URL from either prop format
   const actualVideoUrl = videoUrl || 
@@ -80,49 +79,20 @@ const VideoPlayer = ({
     }
   }, [isPlaying]);
 
-  // CHROMEBOOK OPTIMIZATION: Sync video to audio clock
+  // CHROMEBOOK FIX: Aggressive 200ms resync DISABLED
+  // The constant resyncing was causing lag and choppy playback on Chromebooks
+  // Let the browser handle sync naturally - baseline H.264 is light enough
+  // If sync issues occur, increase threshold to 500ms instead of removing entirely
+
+  // Sync to currentTime prop only when paused (for manual seeking)
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !isPlaying) {
-      if (syncIntervalRef.current) {
-        clearInterval(syncIntervalRef.current);
-        syncIntervalRef.current = null;
-      }
-      return;
-    }
-    
-    // Sync video to external audio clock every 200ms
-    syncIntervalRef.current = setInterval(() => {
-      if (window.Tone && window.Tone.Transport) {
-        const audioTime = window.Tone.Transport.seconds;
-        const videoTime = video.currentTime;
-        const drift = Math.abs(audioTime - videoTime);
-        
-        // If drift exceeds 150ms, resync
-        if (drift > 0.15) {
-          console.log(`🔄 Resyncing video: drift ${(drift * 1000).toFixed(0)}ms`);
-          video.currentTime = audioTime;
-        }
-      }
-    }, 200);
-    
-    return () => {
-      if (syncIntervalRef.current) {
-        clearInterval(syncIntervalRef.current);
-        syncIntervalRef.current = null;
-      }
-    };
-  }, [isPlaying]);
+    if (!video || isPlaying) return; // Only sync when paused
 
-  // Sync to currentTime prop
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (Math.abs(video.currentTime - currentTime) > 0.1) {
+    if (Math.abs(video.currentTime - currentTime) > 0.5) {
       video.currentTime = currentTime;
     }
-  }, [currentTime]);
+  }, [currentTime, isPlaying]);
 
   const handleVideoClick = () => {
     if (isPlaying) {
