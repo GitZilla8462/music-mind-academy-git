@@ -235,7 +235,7 @@ export const useChallengeHandlers = (
       loopId
     }));
 
-    if (currentChallenge?.id === 21) {
+    if (currentChallenge?.id === 20) {  // FIXED: Changed from 21 to 20
       handleCorrectAction();
     }
   }, [currentChallenge, setDawContext, handleCorrectAction]);

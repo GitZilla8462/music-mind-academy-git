@@ -371,17 +371,17 @@ const VideoPlayer = ({
         input[type="range"].volume-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
-          width: 16px;
-          height: 16px;
+          width: 14px;
+          height: 14px;
           border-radius: 50%;
           background: white;
           cursor: pointer;
-          margin-top: -6px;
+          margin-top: .75px;
         }
         
         input[type="range"].volume-slider::-moz-range-thumb {
-          width: 16px;
-          height: 16px;
+          width: 14px;
+          height: 14px;
           border-radius: 50%;
           background: white;
           cursor: pointer;

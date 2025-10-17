@@ -70,30 +70,7 @@ export const DAW_CHALLENGES = [
     autoAdvanceOnCorrect: true,
     greyOutDAW: true
   },
-  // QUESTION 5 - UPDATED: Fixed pause detection
-  {
-    id: 5,
-    section: "Loop Library",
-    question: "Click play to preview a loop, then click pause to stop it",
-    type: 'interactive-task',
-    instruction: "Click the play button next to any loop name to hear a preview, then hit the pause button to stop the example.",
-    hint: "Click the play button next to a loop name, then click it again (it becomes a pause button) to stop",
-    correctAnswer: "Click on the loop preview button",
-    validation: (context) => {
-      // Must have played AND paused - check both conditions
-      return (context.action === 'loop-preview-paused' || context.action === 'loop-preview') && 
-             context.hasPlayedLoop === true && 
-             context.hasPausedLoop === true;
-    },
-    allowSkip: true,
-    lockFeatures: {
-      allowLoopDrag: false,
-      allowPlayback: false,
-      allowVolumeChange: false,
-      allowZoom: false,
-      allowLoopPreview: true
-    }
-  },
+
   {
     id: 6,
     section: "Loop Library",
@@ -109,7 +86,6 @@ export const DAW_CHALLENGES = [
   },
 
   // SECTION 3: TIMELINE & TRACKS (Challenges 7-11)
-  // QUESTION 7 (was 8) - Timeline question now comes first
   {
     id: 7,
     section: "Timeline & Tracks",
@@ -123,7 +99,6 @@ export const DAW_CHALLENGES = [
     autoAdvanceOnCorrect: true,
     greyOutDAW: true
   },
-  // QUESTION 8 (was 7) - UPDATED: Clarified text about Track 1/Track 2 area
   {
     id: 8,
     section: "Timeline & Tracks",
@@ -152,7 +127,6 @@ export const DAW_CHALLENGES = [
     hint: "Pick any loop you like and drag it onto the first track",
     correctAnswer: "Loops",
     validation: (context) => {
-      // Only validate if this is specifically a loop placement on track index 0 (Track 1)
       return context.action === 'loop-placed' && 
              context.trackIndex === 0 && 
              context.placedLoops?.length > 0;
@@ -176,7 +150,8 @@ export const DAW_CHALLENGES = [
     choices: ["Timeline", "Playhead", "Track", "Measure Line"],
     correctIndex: 1,
     autoAdvanceOnCorrect: true,
-    greyOutDAW: true
+    greyOutDAW: true,
+    allowSkip: false
   },
   {
     id: 11,
@@ -188,7 +163,7 @@ export const DAW_CHALLENGES = [
     correctAnswer: "Yes",
     validation: (context) => context.action === 'loop-moved',
     requiresLoopPlaced: true,
-    allowSkip: true,
+    allowSkip: false,
     lockFeatures: {
       allowLoopDrag: true,
       allowLoopMove: true,
@@ -197,7 +172,6 @@ export const DAW_CHALLENGES = [
   },
 
   // SECTION 4: TRACK CONTROLS (Challenges 12-14)
-  // QUESTION 12 - UPDATED: Changed "slider" to "buttons"
   {
     id: 12,
     section: "Track Controls",
@@ -205,10 +179,9 @@ export const DAW_CHALLENGES = [
     type: 'interactive-task',
     instruction: "Find the volume buttons in any track header and click them to change the volume.",
     hint: "Look for the < and > buttons with a percentage number between them in the track header.",
-    correctAnswer: "Volume Fader",
+    correctAnswer: "Adjust volume",
     validation: (context) => context.action === 'track-volume-changed',
-    requiresLoopPlaced: true,
-    allowSkip: true,
+    allowSkip: false,
     lockFeatures: {
       allowLoopDrag: true,
       allowVolumeChange: true,
@@ -218,59 +191,60 @@ export const DAW_CHALLENGES = [
   {
     id: 13,
     section: "Track Controls",
-    question: "What does the 'S' button on a track do?",
+    question: "What does the S button on each track do?",
     type: 'multiple-choice',
     instruction: "Select your answer below",
-    hint: "Solo means to hear only that track",
-    correctAnswer: "Solo - plays only that track",
-    choices: ["Stop the track", "Solo - plays only that track", "Save the track", "Select the track"],
+    hint: "It lets you hear just one track by itself",
+    correctAnswer: "Solo (play only that track)",
+    choices: ["Stop the track", "Solo (play only that track)", "Save the track", "Select the track"],
     correctIndex: 1,
     autoAdvanceOnCorrect: true,
-    greyOutDAW: true
+    greyOutDAW: true,
+    allowSkip: false
   },
   {
     id: 14,
     section: "Track Controls",
-    question: "Click the 'S' button on any track to solo it.",
+    question: "Click the S (Solo) button on any track.",
     type: 'interactive-task',
-    instruction: "Click the 'S' button in a track header",
-    hint: "The 'S' button is in the track header next to the mute button",
-    correctAnswer: "Solo button",
+    instruction: "Find and click the S button in any track header",
+    hint: "The S button is next to the volume controls in the track header",
+    correctAnswer: "Solo track",
     validation: (context) => context.action === 'track-solo-toggled',
     requiresLoopPlaced: true,
-    allowSkip: true,
+    allowSkip: false,
     lockFeatures: {
       allowLoopDrag: true,
-      allowVolumeChange: true,
       allowSolo: true,
       allowPlayback: false
     }
   },
 
-  // SECTION 5: ZOOM & VIEW (Challenges 15-16)
+  // SECTION 5: NAVIGATION (Challenges 15-16)
   {
     id: 15,
-    section: "Zoom & View",
-    question: "If you want to see more detail for precise editing, should you zoom IN or OUT?",
+    section: "Navigation",
+    question: "What allows you to see more detail or fit more of your composition on screen?",
     type: 'multiple-choice',
     instruction: "Select your answer below",
-    hint: "Zooming in shows more detail, like using a magnifying glass",
-    correctAnswer: "Zoom IN",
-    choices: ["Zoom IN", "Zoom OUT"],
-    correctIndex: 0,
+    hint: "You can make things bigger or smaller",
+    correctAnswer: "Zoom",
+    choices: ["Pan", "Zoom", "Scroll", "Resize"],
+    correctIndex: 1,
     autoAdvanceOnCorrect: true,
-    greyOutDAW: true
+    greyOutDAW: true,
+    allowSkip: false
   },
   {
     id: 16,
-    section: "Zoom & View",
-    question: "Use the zoom controls to zoom in on the timeline.",
+    section: "Navigation",
+    question: "Zoom in to see more detail of your loops.",
     type: 'interactive-task',
     instruction: "Click the + button or use the zoom slider",
     hint: "Look for zoom controls, usually near the timeline header",
     correctAnswer: "Zoom in",
     validation: (context) => context.action === 'zoomed' && context.zoomDirection === 'in',
-    allowSkip: true,
+    allowSkip: false,
     lockFeatures: {
       allowLoopDrag: true,
       allowZoom: true,
@@ -278,7 +252,7 @@ export const DAW_CHALLENGES = [
     }
   },
 
-  // SECTION 6: PLAYBACK & TRANSPORT (Challenges 17-21)
+  // SECTION 6: PLAYBACK & TRANSPORT (Challenges 17-19)
   {
     id: 17,
     section: "Playback",
@@ -319,41 +293,26 @@ export const DAW_CHALLENGES = [
     correctAnswer: "Stop",
     validation: (context) => context.action === 'playback-stopped',
     requiresLoopPlaced: true,
-    allowSkip: true,
+    allowSkip: false,
     lockFeatures: {
       allowLoopDrag: true,
       allowPlayback: true,
       allowVolumeChange: true
     }
   },
+
+  // SECTION 7: LOOP EDITING (Challenge 20)
   {
     id: 20,
     section: "Loop Editing",
-    question: "Make your loop longer by dragging its right edge to extend it.",
+    question: "Delete a loop by clicking on the red trash can icon on the loop.",
     type: 'interactive-task',
-    instruction: "Hover over the right edge of a loop and drag it to the right",
-    hint: "The cursor will change when you hover over the edge of a loop - click and drag to resize",
-    correctAnswer: "Resize loop",
-    validation: (context) => context.action === 'loop-resized',
-    requiresLoopPlaced: true,
-    allowSkip: true,
-    lockFeatures: {
-      allowLoopDrag: true,
-      allowLoopResize: true,
-      allowPlayback: false
-    }
-  },
-  {
-    id: 21,
-    section: "Loop Editing",
-    question: "Delete a loop by right-clicking on it and selecting delete.",
-    type: 'interactive-task',
-    instruction: "Right-click on any loop and select delete, or press Delete key",
-    hint: "Right-click on a loop block to see the delete option",
+    instruction: "Click the red trash can icon on the loop",
+    hint: "Click the red trash can icon on the loop",
     correctAnswer: "Delete loop",
     validation: (context) => context.action === 'loop-deleted',
     requiresLoopPlaced: true,
-    allowSkip: true,
+    allowSkip: false,
     lockFeatures: {
       allowLoopDrag: true,
       allowPlayback: false
