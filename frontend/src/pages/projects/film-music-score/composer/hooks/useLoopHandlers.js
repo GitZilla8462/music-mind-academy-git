@@ -1,5 +1,6 @@
 // hooks/useLoopHandlers.js - All loop-related event handlers
-import { useCallback } from 'react';
+// 🔥 FIXED: Infinite rerender loop during resize
+import { useCallback, useRef, useEffect } from 'react';
 
 export const useLoopHandlers = ({
   lockFeatures,
@@ -22,6 +23,9 @@ export const useLoopHandlers = ({
   previewLoop,
   tutorialMode
 }) => {
+  
+  // 🔥 FIX: Add ref to track scheduling timeout
+  const scheduleTimeoutRef = useRef(null);
   
   const handleLoopDrop = useCallback(async (loopData, trackIndex, startTime) => {
     if (lockFeatures.allowLoopDrag === false) {
@@ -151,6 +155,7 @@ export const useLoopHandlers = ({
     setSelectedLoop(selectedLoop === loopId ? null : loopId);
   }, [selectedLoop, setSelectedLoop]);
 
+  // 🔥 FIX: Debounce scheduleLoops to prevent infinite loop during resize
   const handleLoopUpdate = useCallback((loopId, updates) => {
     if (lockFeatures.allowLoopMove === false) {
       console.log('Loop movement is locked');
@@ -170,7 +175,15 @@ export const useLoopHandlers = ({
     setPlacedLoops(updatedLoops);
     setHasUnsavedChanges(true);
     
-    scheduleLoops(updatedLoops, selectedVideo?.duration || 60, trackStates);
+    // 🔥 FIX: Debounce scheduleLoops to prevent infinite loop during resize
+    if (scheduleTimeoutRef.current) {
+      clearTimeout(scheduleTimeoutRef.current);
+    }
+    
+    scheduleTimeoutRef.current = setTimeout(() => {
+      scheduleLoops(updatedLoops, selectedVideo?.duration || 60, trackStates);
+      scheduleTimeoutRef.current = null;
+    }, 150); // Wait 150ms after last update before rescheduling
   }, [
     placedLoops, scheduleLoops, selectedVideo?.duration, trackStates, 
     onLoopUpdateCallback, lockFeatures, setPlacedLoops, setHasUnsavedChanges
@@ -205,6 +218,15 @@ export const useLoopHandlers = ({
     previewLoop, audioReady, showToast, onLoopPreviewCallback, 
     lockFeatures, tutorialMode
   ]);
+
+  // 🔥 FIX: Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scheduleTimeoutRef.current) {
+        clearTimeout(scheduleTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return {
     handleLoopDrop,

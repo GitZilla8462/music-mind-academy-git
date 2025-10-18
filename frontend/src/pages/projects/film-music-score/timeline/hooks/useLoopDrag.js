@@ -105,6 +105,20 @@ export const useLoopDrag = (
     
     const snapPoints = [];
     
+    // FIXED: Always add timeline start (0:00) as a snap point
+    snapPoints.push({
+      time: 0,
+      type: 'timeline-start',
+      loopName: 'Timeline Start'
+    });
+    
+    // FIXED: Also add timeline end as a snap point
+    snapPoints.push({
+      time: duration,
+      type: 'timeline-end',
+      loopName: 'Timeline End'
+    });
+    
     allLoops.forEach(loop => {
       if (loop.id === draggedLoopId) return;
       
@@ -138,7 +152,7 @@ export const useLoopDrag = (
     });
     
     return snapPoints;
-  }, [allLoops]);
+  }, [allLoops, duration]);
 
   // Apply snapping to a time value (can be disabled with Shift key)
   const applySnapping = useCallback((targetTime, draggedLoopId) => {
@@ -157,11 +171,27 @@ export const useLoopDrag = (
     let closestSnap = null;
     let minDistance = SNAP_THRESHOLD;
     
+    // FIXED: Prioritize timeline boundaries over other snap points
+    // Check timeline start and end first with higher priority
     snapPoints.forEach(snapPoint => {
       const distance = Math.abs(targetTime - snapPoint.time);
+      
+      // Timeline boundaries get priority when within threshold
+      const isTimelineBoundary = snapPoint.type === 'timeline-start' || snapPoint.type === 'timeline-end';
+      
       if (distance < minDistance) {
-        minDistance = distance;
-        closestSnap = snapPoint;
+        // If current closest is a timeline boundary, only replace with another timeline boundary or closer snap
+        if (closestSnap && (closestSnap.type === 'timeline-start' || closestSnap.type === 'timeline-end')) {
+          // Only replace if this is also a timeline boundary or significantly closer
+          if (isTimelineBoundary || distance < minDistance * 0.5) {
+            minDistance = distance;
+            closestSnap = snapPoint;
+          }
+        } else {
+          // No timeline boundary currently selected, accept any closer snap
+          minDistance = distance;
+          closestSnap = snapPoint;
+        }
       }
     });
     

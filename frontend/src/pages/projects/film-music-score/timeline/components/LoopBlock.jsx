@@ -12,6 +12,7 @@ const LoopBlock = React.memo(({
   trackStates, 
   selectedLoop, 
   draggedLoop,
+  videoDuration,
   onLoopMouseDown,
   onLoopSelect, 
   onLoopUpdate,
@@ -59,29 +60,33 @@ const LoopBlock = React.memo(({
     return TIMELINE_CONSTANTS.CATEGORY_COLORS[loop.category] || TIMELINE_CONSTANTS.CATEGORY_COLORS.Default;
   }, [loop.color, loop.category]);
 
-  const { numRepeats, actualRepeats, fullLoops } = useMemo(() => {
+  const { numRepeats, actualRepeats, fullLoops, hasPartialLoop } = useMemo(() => {
     const originalDuration = originalDurationRef.current || loop.duration;
     const currentDuration = loop.endTime - loop.startTime;
-    const actualRepeats = currentDuration / originalDuration; // Can be fractional like 1.7
-    const repeats = Math.ceil(actualRepeats); // Round up for notch display
+    const actualRepeats = currentDuration / originalDuration;
+    const repeats = Math.ceil(actualRepeats);
     
-    // Only count as a full loop if it's actually >= 1.0 (with small tolerance for floating point)
-    const fullLoopsCount = actualRepeats >= 0.9999 ? Math.floor(actualRepeats) : 0;
+    // Calculate full loops more carefully
+    const fullLoopsCount = Math.floor(actualRepeats);
     
-    // Debug log to see what's happening
+    // Check if there's a partial loop
+    const hasPartialLoop = (currentDuration % originalDuration) > 0.01;
+    
     console.log(`📊 ${loop.name} repeats calc:`, {
       originalDuration: originalDuration.toFixed(2),
       currentDuration: currentDuration.toFixed(2),
       actualRepeats: actualRepeats.toFixed(4),
       fullLoops: fullLoopsCount,
+      hasPartialLoop,
       numRepeats: repeats,
-      shouldShowNotch: fullLoopsCount > 1
+      shouldShowNotch: fullLoopsCount > 1 || hasPartialLoop
     });
     
     return { 
       numRepeats: Math.max(1, repeats),
       actualRepeats: Math.max(1, actualRepeats),
-      fullLoops: fullLoopsCount
+      fullLoops: fullLoopsCount,
+      hasPartialLoop
     };
   }, [loop.endTime, loop.startTime, loop.duration, loop.name]);
 
@@ -151,46 +156,22 @@ const LoopBlock = React.memo(({
     if (canvas.width <= 0 || canvas.height <= 0) return;
     
     const { width: canvasWidth, height: canvasHeight } = canvas;
-    
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    const originalDuration = originalDurationRef.current || loop.duration;
+    const currentDuration = loop.endTime - loop.startTime;
+    const fullLoops = Math.floor(currentDuration / originalDuration);
+    const partialLoop = (currentDuration % originalDuration);
+    const totalSections = fullLoops + (partialLoop > 0.01 ? 1 : 0);
+    const notchRadius = 6;
+    const strokeOpacity = '40';
+
     ctx.save();
-    
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
     try {
-      const originalDuration = originalDurationRef.current || loop.duration;
-      const currentDuration = loop.endTime - loop.startTime;
-      
-      const baseOpacity = '60';
-      const strokeOpacity = 'AA';
-      const notchRadius = 6;
-      
-      ctx.fillStyle = loopColor + baseOpacity;
+      // STEP 1: Draw main waveform bars
+      ctx.fillStyle = loopColor + '99';
       ctx.strokeStyle = loopColor + strokeOpacity;
       ctx.lineWidth = 0.5;
-      
-      ctx.beginPath();
-      ctx.rect(0, 0, canvasWidth, canvasHeight);
-      
-      // Draw notches at each FULL loop boundary (but not at the very end)
-      // Only draw if we have more than 1 full loop completed
-      if (fullLoops > 1) {
-        for (let i = 1; i < fullLoops; i++) {
-          // Position notch at the exact pixel where each full loop ends
-          const loopTime = i * originalDuration;
-          const x = (loopTime / currentDuration) * canvasWidth;
-          
-          ctx.moveTo(x + notchRadius, 0);
-          ctx.arc(x, 0, notchRadius, 0, Math.PI, true);
-          
-          ctx.moveTo(x + notchRadius, canvasHeight);
-          ctx.arc(x, canvasHeight, notchRadius, 0, Math.PI, false);
-        }
-      }
-      
-      ctx.clip();
-      
-      // Draw waveform - repeat pattern for visual continuity
-      const partialLoop = currentDuration % originalDuration;
-      const totalSections = fullLoops + (partialLoop > 0.01 ? 1 : 0); // Small tolerance
       
       for (let repeat = 0; repeat < totalSections; repeat++) {
         const isPartialRepeat = (repeat === fullLoops && partialLoop > 0.01);
@@ -216,7 +197,7 @@ const LoopBlock = React.memo(({
           }
         }
         
-        // Draw vertical line at full loop boundaries (but not at the very end)
+        // STEP 2: Draw vertical divider lines between repeats
         if (repeat > 0 && repeat < fullLoops) {
           ctx.strokeStyle = loopColor + 'DD';
           ctx.lineWidth = 2;
@@ -231,6 +212,7 @@ const LoopBlock = React.memo(({
         }
       }
       
+      // STEP 3: Draw highlighted peaks (brighter waveform highlights)
       ctx.fillStyle = loopColor + 'FF';
       for (let repeat = 0; repeat < totalSections; repeat++) {
         const isPartialRepeat = (repeat === fullLoops && partialLoop > 0.01);
@@ -255,6 +237,7 @@ const LoopBlock = React.memo(({
           }
         }
       }
+      
     } catch (error) {
       console.error('Error drawing waveform:', error);
     } finally {
@@ -293,11 +276,9 @@ const LoopBlock = React.memo(({
       const pixelsPerSecond = timeToPixel(1) - timeToPixel(0);
       const originalDuration = originalDurationRef.current || loop.duration;
       
-      // Find the scrollable timeline container
       const loopElement = document.querySelector(`[data-loop-id="${loop.id}"]`);
       if (!loopElement) return;
       
-      // Get the timeline scroll container (look for overflow-auto parent)
       let scrollContainer = loopElement.parentElement;
       while (scrollContainer && !scrollContainer.classList.contains('overflow-auto')) {
         scrollContainer = scrollContainer.parentElement;
@@ -308,72 +289,35 @@ const LoopBlock = React.memo(({
       }
       
       const scrollLeft = scrollContainer?.scrollLeft || 0;
-      
-      // Get the timeline content area that contains the loops
       const timelineContent = loopElement.parentElement;
       if (!timelineContent) return;
       
       const contentRect = timelineContent.getBoundingClientRect();
-      
-      // Calculate mouse position relative to timeline content + scroll
       const mouseXRelativeToContent = e.clientX - contentRect.left + scrollLeft;
-      
-      // Convert pixel position to time
       const mouseTime = mouseXRelativeToContent / pixelsPerSecond;
       
-      // DEBUG: Log the values
-      console.log(`🔧 RESIZE DEBUG:`, {
-        direction: resizeDirection,
-        mouseClientX: e.clientX,
-        contentLeft: contentRect.left,
-        scrollLeft,
-        mouseXRelativeToContent,
-        pixelsPerSecond,
-        mouseTime: mouseTime.toFixed(2),
-        loopStartTime: loop.startTime.toFixed(2),
-        loopEndTime: loop.endTime.toFixed(2)
-      });
-      
       if (resizeDirection === 'right') {
-        // Calculate new duration from loop start to mouse position
         const newDuration = mouseTime - loop.startTime;
-        
-        // Minimum one loop duration
         const minDuration = originalDuration;
-        const constrainedDuration = Math.max(minDuration, newDuration);
-        
+        const maxDuration = videoDuration - loop.startTime;
+        const constrainedDuration = Math.max(minDuration, Math.min(maxDuration, newDuration));
         const newEndTime = loop.startTime + constrainedDuration;
         
-        console.log(`  → New end time: ${newEndTime.toFixed(2)}s (duration: ${constrainedDuration.toFixed(2)}s)`);
-        
-        // Update on any change - allows fractional durations
-        if (Math.abs(newEndTime - loop.endTime) > 0.01) {
-          onLoopUpdate(loop.id, {
-            endTime: newEndTime
-          });
-          
+        if (Math.abs(newEndTime - loop.endTime) > 0.1) {
+          onLoopUpdate(loop.id, { endTime: newEndTime });
           if (onLoopResize) {
             onLoopResize(loop.id, constrainedDuration);
           }
         }
       } else if (resizeDirection === 'left') {
-        // Calculate new duration from mouse position to loop end
         const newDuration = loop.endTime - mouseTime;
-        
-        // Minimum one loop duration
         const minDuration = originalDuration;
-        const constrainedDuration = Math.max(minDuration, newDuration);
-        
-        // Calculate new start time
+        const maxDuration = Math.min(videoDuration, loop.endTime);
+        const constrainedDuration = Math.max(minDuration, Math.min(maxDuration, newDuration));
         const newStartTime = loop.endTime - constrainedDuration;
         
-        console.log(`  → New start time: ${newStartTime.toFixed(2)}s (duration: ${constrainedDuration.toFixed(2)}s)`);
-        
-        if (Math.abs(newStartTime - loop.startTime) > 0.01 && newStartTime >= 0) {
-          onLoopUpdate(loop.id, {
-            startTime: newStartTime
-          });
-          
+        if (Math.abs(newStartTime - loop.startTime) > 0.5 && newStartTime >= 0) {
+          onLoopUpdate(loop.id, { startTime: newStartTime });
           if (onLoopResize) {
             onLoopResize(loop.id, constrainedDuration);
           }
@@ -398,7 +342,7 @@ const LoopBlock = React.memo(({
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
-  }, [isResizing, resizeDirection, loop, onLoopUpdate, onLoopResize, timeToPixel]);
+  }, [isResizing, resizeDirection, loop, onLoopUpdate, onLoopResize, timeToPixel, videoDuration]);
 
   const handleDelete = useCallback((e) => {
     e.stopPropagation();
@@ -469,127 +413,132 @@ const LoopBlock = React.memo(({
       className={`absolute cursor-move transition-all duration-150 ${
         trackState?.muted ? 'opacity-50' : ''
       } ${
-        isDragged ? 'cursor-grabbing' : ''
+        isDragged ? 'opacity-60' : ''
+      } ${
+        isResizing ? 'z-50' : 'z-10'
       }`}
       style={{
-        left: leftPosition,
-        top: topPosition + 8,
-        width: width,
-        height: TIMELINE_CONSTANTS.TRACK_HEIGHT - 16,
+        left: `${leftPosition}px`,
+        top: `${topPosition + 8}px`,
+        width: `${width}px`,
+        height: `${TIMELINE_CONSTANTS.TRACK_HEIGHT - 16}px`,
+        backgroundColor: categoryColor.bg,
+        borderRadius: '4px',
+        overflow: 'visible',
         ...dragStyle
       }}
       onMouseDown={handleMouseDown}
-      data-loop-block="true"
       data-loop-id={loop.id}
     >
+      {/* SVG mask to create cutout notches */}
       <svg
-        width={width}
-        height={TIMELINE_CONSTANTS.TRACK_HEIGHT - 16}
-        className="absolute inset-0"
-        style={{ overflow: 'visible' }}
+        className="absolute inset-0 pointer-events-none"
+        style={{ width: '100%', height: '100%', overflow: 'visible' }}
       >
         <defs>
           <mask id={`notch-mask-${loop.id}`}>
-            <rect width={width} height={TIMELINE_CONSTANTS.TRACK_HEIGHT - 16} fill="white" />
-            {fullLoops > 1 && Array.from({ length: fullLoops - 1 }).map((_, index) => {
+            {/* White rectangle is the base shape */}
+            <rect x="0" y="0" width="100%" height="100%" fill="white" />
+            
+            {/* Black shapes create transparent cutouts */}
+            {(() => {
               const originalDuration = originalDurationRef.current || loop.duration;
               const currentDuration = loop.endTime - loop.startTime;
-              const loopNumber = index + 1;
+              const hasPartialLoop = (currentDuration % originalDuration) > 0.01;
               
-              // Position notch at exact full loop boundary (but not at the very end)
-              const loopTime = loopNumber * originalDuration;
-              const x = (loopTime / currentDuration) * width;
-              const notchRadius = 6;
+              // FIXED: Include notch for partial loop start
+              const totalNotches = hasPartialLoop ? fullLoops : Math.max(0, fullLoops - 1);
               
-              return (
-                <g key={index}>
-                  <circle cx={x} cy={0} r={notchRadius} fill="black" />
-                  <circle cx={x} cy={TIMELINE_CONSTANTS.TRACK_HEIGHT - 16} r={notchRadius} fill="black" />
-                </g>
-              );
-            })}
+              return Array.from({ length: totalNotches }).map((_, index) => {
+                const loopNumber = index + 1;
+                const loopTime = loopNumber * originalDuration;
+                const x = (loopTime / currentDuration) * width;
+                const notchSize = 8;
+                const blockHeight = TIMELINE_CONSTANTS.TRACK_HEIGHT - 16;
+                
+                return (
+                  <g key={index}>
+                    {/* Top triangle cutout (black = transparent in mask) */}
+                    <path
+                      d={`M ${x - notchSize},0 L ${x},${notchSize} L ${x + notchSize},0 Z`}
+                      fill="black"
+                    />
+                    
+                    {/* Bottom triangle cutout */}
+                    <path
+                      d={`M ${x - notchSize},${blockHeight} L ${x},${blockHeight - notchSize} L ${x + notchSize},${blockHeight} Z`}
+                      fill="black"
+                    />
+                  </g>
+                );
+              });
+            })()}
           </mask>
         </defs>
         
-        <rect
-          width={width}
-          height={TIMELINE_CONSTANTS.TRACK_HEIGHT - 16}
+        {/* Apply mask to a background rect */}
+        <rect 
+          x="0" 
+          y="0" 
+          width="100%" 
+          height="100%" 
           fill={categoryColor.bg}
           mask={`url(#notch-mask-${loop.id})`}
-          rx="4"
         />
         
+        {/* Draw border path that follows the cutout shape */}
         <path
           d={(() => {
-            const h = TIMELINE_CONSTANTS.TRACK_HEIGHT - 16;
-            const r = 4;
-            const notchRadius = 6;
+            const blockHeight = TIMELINE_CONSTANTS.TRACK_HEIGHT - 16;
+            const notchSize = 8;
             const originalDuration = originalDurationRef.current || loop.duration;
             const currentDuration = loop.endTime - loop.startTime;
+            const hasPartialLoop = (currentDuration % originalDuration) > 0.01;
             
-            let path = `M ${r} 0`;
+            // FIXED: Include notch for partial loop
+            const totalNotches = hasPartialLoop ? fullLoops : Math.max(0, fullLoops - 1);
             
-            // Add notches at full loop boundaries (only if fullLoops > 1)
-            if (fullLoops > 1) {
-              for (let i = 1; i < fullLoops; i++) {
-                const loopTime = i * originalDuration;
+            let pathData = `M 0,0`; // Start top-left
+            
+            // Draw top edge with notches
+            if (totalNotches > 0) {
+              for (let i = 0; i < totalNotches; i++) {
+                const loopNumber = i + 1;
+                const loopTime = loopNumber * originalDuration;
                 const x = (loopTime / currentDuration) * width;
                 
-                path += ` L ${x - notchRadius} 0`;
-                path += ` A ${notchRadius} ${notchRadius} 0 0 1 ${x + notchRadius} 0`;
+                pathData += ` L ${x - notchSize},0`; // Line to notch start
+                pathData += ` L ${x},${notchSize}`; // Down into notch
+                pathData += ` L ${x + notchSize},0`; // Back up from notch
               }
             }
             
-            path += ` L ${width - r} 0 Q ${width} 0 ${width} ${r}`;
-            path += ` L ${width} ${h - r}`;
-            path += ` Q ${width} ${h} ${width - r} ${h}`;
+            pathData += ` L ${width},0`; // Continue to top-right
+            pathData += ` L ${width},${blockHeight}`; // Down right side
             
-            // Add notches at bottom (only if fullLoops > 1)
-            if (fullLoops > 1) {
-              for (let i = fullLoops - 1; i > 0; i--) {
-                const loopTime = i * originalDuration;
+            // Draw bottom edge with notches (right to left)
+            if (totalNotches > 0) {
+              for (let i = totalNotches - 1; i >= 0; i--) {
+                const loopNumber = i + 1;
+                const loopTime = loopNumber * originalDuration;
                 const x = (loopTime / currentDuration) * width;
                 
-                path += ` L ${x + notchRadius} ${h}`;
-                path += ` A ${notchRadius} ${notchRadius} 0 0 1 ${x - notchRadius} ${h}`;
+                pathData += ` L ${x + notchSize},${blockHeight}`; // Line to notch start
+                pathData += ` L ${x},${blockHeight - notchSize}`; // Up into notch
+                pathData += ` L ${x - notchSize},${blockHeight}`; // Back down from notch
               }
             }
             
-            path += ` L ${r} ${h} Q 0 ${h} 0 ${h - r}`;
-            path += ` L 0 ${r}`;
-            path += ` Q 0 0 ${r} 0`;
-            path += ' Z';
+            pathData += ` L 0,${blockHeight}`; // Continue to bottom-left
+            pathData += ` Z`; // Close path
             
-            return path;
+            return pathData;
           })()}
           fill="none"
           stroke={isSelected ? '#60a5fa' : categoryColor.accent}
-          strokeWidth="2"
+          strokeWidth={isSelected ? "2" : "1"}
+          opacity={isSelected ? "1" : "0.5"}
         />
-        
-        {fullLoops > 1 && Array.from({ length: fullLoops - 1 }).map((_, index) => {
-          const originalDuration = originalDurationRef.current || loop.duration;
-          const currentDuration = loop.endTime - loop.startTime;
-          const loopNumber = index + 1;
-          
-          // Position line at exact full loop boundary (but not at the very end)
-          const loopTime = loopNumber * originalDuration;
-          const x = (loopTime / currentDuration) * width;
-          const notchRadius = 6;
-          
-          return (
-            <line
-              key={index}
-              x1={x}
-              y1={notchRadius + 2}
-              x2={x}
-              y2={(TIMELINE_CONSTANTS.TRACK_HEIGHT - 16) - notchRadius - 2}
-              stroke={categoryColor.accent}
-              strokeWidth="2"
-              opacity="0.5"
-            />
-          );
-        })}
       </svg>
 
       {isSelected && (

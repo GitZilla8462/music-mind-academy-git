@@ -1,5 +1,6 @@
-// useVolumeControl.js - FIXED: Apply track volume with SOLO support
-import { useEffect } from 'react';
+// useVolumeControl.js - FIXED: Prevent infinite rerender during resize
+// 🔥 KEY FIX: Use ref for placedLoops to avoid triggering on every state change
+import { useEffect, useRef } from 'react';
 
 export const useVolumeControl = ({
   audioReady,
@@ -9,6 +10,15 @@ export const useVolumeControl = ({
   volume,
   isMuted
 }) => {
+  // 🔥 FIX: Use ref to track placed loops without triggering rerenders
+  const placedLoopsRef = useRef(placedLoops);
+  
+  // Update ref when placedLoops changes
+  useEffect(() => {
+    placedLoopsRef.current = placedLoops;
+  }, [placedLoops]);
+  
+  // 🔥 FIX: Only trigger volume updates when audio settings change, NOT when loops change
   useEffect(() => {
     if (!audioReady || !playersRef.current) {
       console.log('Volume control skipped - audioReady:', audioReady, 'playersRef:', !!playersRef.current);
@@ -18,7 +28,7 @@ export const useVolumeControl = ({
     console.log('=== APPLYING VOLUME CHANGES ===');
     console.log('Master volume:', volume);
     console.log('Muted:', isMuted);
-    console.log('Total loops:', placedLoops.length);
+    console.log('Total loops:', placedLoopsRef.current.length);
     
     // Check if any tracks are soloed
     const soloedTracks = Object.keys(trackStates).filter(trackId => trackStates[trackId].solo);
@@ -31,7 +41,8 @@ export const useVolumeControl = ({
     let successCount = 0;
     let failCount = 0;
     
-    placedLoops.forEach(loop => {
+    // 🔥 FIX: Use the ref value, not the state value
+    placedLoopsRef.current.forEach(loop => {
       const player = playersRef.current[loop.id];
       const trackState = trackStates[`track-${loop.trackIndex}`];
       
@@ -96,5 +107,6 @@ export const useVolumeControl = ({
     
     console.log(`=== VOLUME UPDATE COMPLETE: ${successCount} success, ${failCount} failed ===\n`);
     
-  }, [audioReady, playersRef, placedLoops, trackStates, volume, isMuted]);
+  }, [audioReady, playersRef, trackStates, volume, isMuted]);
+  // 🔥 FIX: Removed placedLoops from dependencies! Now only triggers on audio settings changes
 };

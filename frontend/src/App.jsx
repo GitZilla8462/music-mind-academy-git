@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { ClassProvider } from './context/ClassContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -292,6 +292,12 @@ const AppContent = () => {
 };
 
 const App = () => {
+  // Set page title based on site mode
+  useEffect(() => {
+    const siteMode = import.meta.env.VITE_SITE_MODE;
+    document.title = siteMode === 'edu' ? 'Music Room Tools' : 'Music Mind Academy';
+  }, []);
+
   return (
     <Router>
       <AuthProvider>

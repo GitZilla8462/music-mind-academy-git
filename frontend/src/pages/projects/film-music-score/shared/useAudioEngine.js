@@ -1,685 +1,453 @@
-// ============================================================================
-// FILE: useAudioEngine.js - OPTIMIZED FOR CHROMEBOOK PERFORMANCE
-// ============================================================================
-
-import { useState, useRef, useEffect, useCallback } from 'react';
+// shared/useAudioEngine.js - FIXED: Proper native audio lifecycle management
+import { useState, useRef, useCallback, useEffect } from 'react';
 import * as Tone from 'tone';
 
-// Helper to calculate repeat schedule for extended loops
-const calculateLoopRepeats = (loop, currentTransportTime) => {
-  const totalDuration = loop.endTime - loop.startTime;
-  const originalDuration = loop.duration;
-  const numRepeats = Math.ceil(totalDuration / originalDuration);
-  
-  const repeats = [];
-  for (let i = 0; i < numRepeats; i++) {
-    const repeatStart = loop.startTime + (i * originalDuration);
-    const repeatEnd = Math.min(loop.startTime + ((i + 1) * originalDuration), loop.endTime);
-    
-    if (repeatEnd > currentTransportTime) {
-      repeats.push({
-        startTime: repeatStart,
-        endTime: repeatEnd,
-        duration: repeatEnd - repeatStart,
-        index: i
-      });
-    }
-  }
-  return repeats;
-};
-
-export const useAudioEngine = () => {
+export const useAudioEngine = (videoDuration = 60) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [volume, setVolume] = useState(0.8);
+  const [volume, setVolume] = useState(0.7);
   const [isMuted, setIsMuted] = useState(false);
   
-  const playersRef = useRef({});
-  const nativePlayersRef = useRef({}); 
-  const scheduledLoopsRef = useRef({});
-  const loopTimeoutsRef = useRef({});
-  const animationFrameRef = useRef(null);
-  const audioInitialized = useRef(false);
-  const transportStartTime = useRef(0);
-  const lastScheduledLoops = useRef([]);
-  const currentlyPlayingLoops = useRef(new Set());
-  
-  // CRITICAL: Debounce refs to prevent seek spam
-  const seekTimeoutRef = useRef(null);
+  const playersRef = useRef(new Map());
+  const scheduledEventsRef = useRef([]);
+  const activeNativeAudioRef = useRef(new Set()); // Track active native audio elements
+  const rafRef = useRef(null);
   const lastSeekTimeRef = useRef(0);
-  const pendingSeekRef = useRef(null);
-  const SEEK_DEBOUNCE_MS = 400; // INCREASED from 150ms to 400ms for Chromebooks
-
-  // CHROMEBOOK DETECTION
-  const isChromebook = /CrOS/.test(navigator.userAgent);
+  const SEEK_DEBOUNCE_MS = 100;
+  const previewPlayerRef = useRef(null);
+  const transportStoppedByStopRef = useRef(false);
 
   const initializeAudio = useCallback(async () => {
-    if (!audioInitialized.current) {
-      try {
-        // CRITICAL OPTIMIZATION: Set context for playback mode with increased lookahead
-        Tone.setContext(new Tone.Context({ 
-          latencyHint: "playback",  // Prioritizes smooth playback over low latency
-          lookAhead: 0.3,           // INCREASED from 0.1 to 0.3 for stability
-        }));
-        
-        if (Tone.context.state === 'suspended') {
-          await Tone.context.resume();
-        }
-        
-        await Tone.start();
-        audioInitialized.current = true;
-        
-        window.Tone = Tone;
-        
-        // Set Transport lookahead for scheduling
-        Tone.Transport.lookAhead = 0.3; // INCREASED for Chromebook stability
-        
-        Tone.Transport.on('start', () => {
-          setIsPlaying(true);
-          transportStartTime.current = Tone.now();
-        });
-        
-        Tone.Transport.on('pause', () => {
-          setIsPlaying(false);
-        });
-        
-        Tone.Transport.on('stop', () => {
-          setIsPlaying(false);
-          stopAllCurrentLoops();
-        });
-        
-        Tone.Destination.volume.value = Tone.gainToDb(0.8);
-      } catch (error) {
-        console.error('Failed to initialize audio:', error);
-        throw error;
-      }
-    }
-  }, []);
-
-  const stopAllCurrentLoops = useCallback(() => {
-    Object.keys(loopTimeoutsRef.current).forEach(loopId => {
-      if (loopTimeoutsRef.current[loopId]) {
-        clearTimeout(loopTimeoutsRef.current[loopId]);
-        delete loopTimeoutsRef.current[loopId];
-      }
-    });
-    
-    currentlyPlayingLoops.current.forEach(loopId => {
-      const baseLoopId = loopId.split('-repeat-')[0];
-      const player = playersRef.current[baseLoopId];
-      if (player) {
-        try {
-          if (player.isNative) {
-            player.stop();
-          } else if (player.state === 'started') {
-            player.stop();
-          }
-        } catch (e) {
-          console.warn(`Error stopping loop ${loopId}:`, e);
-        }
-      }
-    });
-    currentlyPlayingLoops.current.clear();
-  }, []);
-
-  const createNativePlayer = useCallback((loop) => {
-    const audioElement = new Audio();
-    audioElement.src = loop.file;
-    audioElement.preload = 'auto';
-    audioElement.volume = (loop.volume || 0.8) * volume;
-    audioElement.dataset.loopId = loop.id;
-    audioElement.dataset.loopName = loop.name;
-    
-    audioElement.loop = true;
-    
-    const player = {
-      audio: audioElement,
-      loaded: false,
-      isNative: true,
-      loopId: loop.id,
-      loopingTimeout: null,
-      start: (time = 0, offset = 0, duration) => {
-        try {
-          audioElement.currentTime = offset;
-          audioElement.volume = (loop.volume || 0.8) * volume * (isMuted ? 0 : 1);
-          
-          const promise = audioElement.play();
-          if (promise) {
-            promise.then(() => {
-              currentlyPlayingLoops.current.add(loop.id);
-              
-              if (duration && duration > 0) {
-                if (player.loopingTimeout) {
-                  clearTimeout(player.loopingTimeout);
-                }
-                player.loopingTimeout = setTimeout(() => {
-                  if (!audioElement.paused) {
-                    audioElement.pause();
-                    audioElement.currentTime = 0;
-                    currentlyPlayingLoops.current.delete(loop.id);
-                  }
-                }, duration * 1000);
-              }
-            }).catch(e => {
-              console.error(`Native audio play failed for ${loop.name}:`, e);
-              currentlyPlayingLoops.current.delete(loop.id);
-            });
-          }
-        } catch (error) {
-          console.error(`Error starting native audio for ${loop.name}:`, error);
-        }
-      },
-      stop: () => {
-        if (player.loopingTimeout) {
-          clearTimeout(player.loopingTimeout);
-          player.loopingTimeout = null;
-        }
-        audioElement.pause();
-        audioElement.currentTime = 0;
-        currentlyPlayingLoops.current.delete(loop.id);
-      },
-      dispose: () => {
-        if (player.loopingTimeout) {
-          clearTimeout(player.loopingTimeout);
-        }
-        audioElement.pause();
-        audioElement.src = '';
-        currentlyPlayingLoops.current.delete(loop.id);
-      },
-      volume: {
-        get value() { return audioElement.volume; },
-        set value(vol) { 
-          audioElement.volume = Math.max(0, Math.min(1, vol));
-        }
-      }
-    };
-
-    audioElement.addEventListener('canplaythrough', () => {
-      player.loaded = true;
-    });
-
-    audioElement.addEventListener('error', (e) => {
-      console.error(`Native audio error for ${loop.name}:`, e);
-    });
-
-    return player;
-  }, [volume, isMuted]);
-
-  const createLoopPlayer = useCallback(async (loop) => {
-    const playerKey = loop.id;
-    
-    if (playersRef.current[playerKey]) {
-      return playersRef.current[playerKey];
+    if (Tone.context.state !== 'running') {
+      await Tone.start();
+      console.log('Audio context initialized');
     }
     
-    // CHROMEBOOK OPTIMIZATION: Prefer native audio for better performance
-    if (isChromebook) {
-      console.log(`🖥️ Chromebook detected: Using native audio for ${loop.name}`);
-      const nativePlayer = createNativePlayer(loop);
-      playersRef.current[playerKey] = nativePlayer;
-      nativePlayersRef.current[playerKey] = nativePlayer;
-      return new Promise((resolve) => {
-        setTimeout(() => resolve(nativePlayer), 500);
-      });
-    }
+    Tone.Transport.loop = false;
+    Tone.Transport.position = 0;
     
-    try {
-      const player = new Tone.Player({
-        url: loop.file,
-        autostart: false,
-        loop: false,
-        volume: Tone.gainToDb(loop.volume || 0.8)
-      }).toDestination();
-
-      const loadTimeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Tone.js load timeout')), 5000)
-      );
-
-      await Promise.race([player.load(), loadTimeout]);
+    Tone.Transport.on('stop', () => {
+      console.log('🛑 Transport stopped event');
       
-      if (player.loaded) {
-        playersRef.current[playerKey] = player;
+      if (transportStoppedByStopRef.current) {
+        console.log('  ↳ Stop was called by user - cleaning up');
+        transportStoppedByStopRef.current = false;
+        return;
+      }
+      
+      console.log('  ↳ Natural end of Transport - not seeking to 0');
+    });
+  }, []);
+
+  const clearScheduledEvents = useCallback(() => {
+    // Clear all scheduled events (timeouts and Tone.js events)
+    scheduledEventsRef.current.forEach(event => {
+      if (event.type === 'transport') {
+        try {
+          Tone.Transport.clear(event.id);
+        } catch (err) {
+          console.error('Error clearing transport event:', err);
+        }
+      } else if (event.type === 'native-timeout') {
+        clearTimeout(event.id);
+      }
+    });
+    scheduledEventsRef.current = [];
+    
+    // Stop all active native audio elements
+    activeNativeAudioRef.current.forEach(audio => {
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+      } catch (err) {
+        console.error('Error stopping active native audio:', err);
+      }
+    });
+    activeNativeAudioRef.current.clear();
+    
+    // Stop Tone.js players (they handle their own scheduling)
+    playersRef.current.forEach((player) => {
+      try {
+        if (!player.isNative) {
+          player.stop();
+        }
+      } catch (err) {
+        console.error('Error stopping Tone.js player:', err);
+      }
+    });
+  }, []);
+
+  const createLoopPlayer = useCallback(async (loopData, placedLoopId) => {
+    try {
+      const playerKey = placedLoopId || loopData.id;
+      console.log(`Creating player for: ${loopData.name} with key: ${playerKey}`);
+      
+      if (playersRef.current.has(playerKey)) {
+        console.log(`  ✓ Player already exists for ${playerKey}`);
+        return playersRef.current.get(playerKey);
+      }
+
+      const isMp3 = loopData.file.toLowerCase().endsWith('.mp3');
+      
+      if (isMp3) {
+        console.log(`  🎵 Using native HTML5 Audio for MP3: ${loopData.name}`);
+        const audio = new Audio();
+        audio.preload = 'auto';
+        audio.src = loopData.file;
+        
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Native audio load timeout'));
+          }, 5000);
+          
+          audio.addEventListener('canplaythrough', () => {
+            clearTimeout(timeout);
+            console.log(`  ✅ Native audio loaded: ${loopData.name}, duration: ${audio.duration}s`);
+            resolve();
+          }, { once: true });
+          
+          audio.addEventListener('error', (e) => {
+            clearTimeout(timeout);
+            console.error(`  ❌ Native audio load error for ${loopData.name}:`, e);
+            reject(new Error(`Failed to load: ${e.message || 'Unknown error'}`));
+          }, { once: true });
+          
+          audio.load();
+        });
+        
+        const wrappedPlayer = {
+          audio,
+          isNative: true,
+          loaded: true,
+          stop: () => {
+            audio.pause();
+            audio.currentTime = 0;
+          }
+        };
+        
+        playersRef.current.set(playerKey, wrappedPlayer);
+        console.log(`  ✅ Stored native player with key: ${playerKey}`);
+        return wrappedPlayer;
+        
+      } else {
+        console.log(`  🎹 Using Tone.js Player for: ${loopData.name}`);
+        const player = new Tone.Player({
+          url: loopData.file,
+          loop: false,
+          fadeIn: 0.01,
+          fadeOut: 0.01,
+          onload: () => {
+            console.log(`  ✅ Tone.js player loaded: ${loopData.name}, duration: ${player.buffer.duration}s`);
+          }
+        }).toDestination();
+        
+        await Tone.loaded();
+        
+        playersRef.current.set(playerKey, player);
+        console.log(`  ✅ Stored Tone.js player with key: ${playerKey}`);
         return player;
-      } else {
-        throw new Error('Tone.js player not loaded');
       }
+      
     } catch (error) {
-      try {
-        const nativePlayer = createNativePlayer(loop);
-        playersRef.current[playerKey] = nativePlayer;
-        nativePlayersRef.current[playerKey] = nativePlayer;
-        
-        return new Promise((resolve) => {
-          setTimeout(() => resolve(nativePlayer), 500);
-        });
-      } catch (nativeError) {
-        console.error(`Both Tone.js and native audio failed for ${loop.name}:`, nativeError);
-        throw nativeError;
-      }
-    }
-  }, [createNativePlayer, isChromebook]);
-
-  const getActiveLoopsAtTime = useCallback((placedLoops, currentTime) => {
-    return placedLoops.filter(loop => 
-      !loop.muted && 
-      currentTime >= loop.startTime && 
-      currentTime < loop.endTime
-    );
-  }, []);
-
-  const startLoopWithOffset = useCallback(async (loop, currentTime, trackStates = {}) => {
-    if (loop.muted || currentTime < loop.startTime || currentTime >= loop.endTime) {
-      return;
-    }
-
-    const player = playersRef.current[loop.id];
-    if (!player || (!player.loaded && !player.isNative)) {
-      return;
-    }
-
-    const trackState = trackStates[`track-${loop.trackIndex}`] || {};
-    if (trackState.muted) {
-      return;
-    }
-
-    const soloedTracks = Object.keys(trackStates).filter(trackId => trackStates[trackId].solo);
-    const hasSoloedTracks = soloedTracks.length > 0;
-    const shouldPlayBasedOnSolo = !hasSoloedTracks || trackState.solo;
-    
-    if (!shouldPlayBasedOnSolo) {
-      return;
-    }
-
-    try {
-      const positionInLoop = currentTime - loop.startTime;
-      const remainingDuration = loop.endTime - currentTime;
-      const offsetIntoAudioFile = positionInLoop % loop.duration;
-
-      const trackVolume = trackState.volume !== undefined ? trackState.volume : 0.7;
-      const loopVolume = loop.volume !== undefined ? loop.volume : 0.8;
-      const finalVolume = loopVolume * trackVolume * volume;
-
-      if (remainingDuration < 0.1) {
-        return;
-      }
-
-      if (player.isNative) {
-        player.audio.currentTime = offsetIntoAudioFile;
-        player.audio.volume = Math.max(0, Math.min(1, finalVolume));
-        player.audio.loop = true;
-        
-        const promise = player.audio.play();
-        if (promise) {
-          promise.then(() => {
-            currentlyPlayingLoops.current.add(loop.id);
-            
-            loopTimeoutsRef.current[loop.id] = setTimeout(() => {
-              if (!player.audio.paused) {
-                player.audio.pause();
-                player.audio.currentTime = 0;
-                player.audio.loop = false;
-                currentlyPlayingLoops.current.delete(loop.id);
-                delete loopTimeoutsRef.current[loop.id];
-              }
-            }, remainingDuration * 1000);
-          }).catch(e => {
-            console.error(`Play failed:`, e);
-          });
-        }
-      } else {
-        const dbValue = finalVolume === 0 ? -Infinity : Tone.gainToDb(finalVolume);
-        player.volume.value = dbValue;
-        player.start(Tone.now(), offsetIntoAudioFile, remainingDuration);
-        currentlyPlayingLoops.current.add(loop.id);
-      }
-    } catch (error) {
-      console.error(`Error starting loop with offset ${loop.name}:`, error);
-    }
-  }, [volume]);
-
-  // OPTIMIZED: Batch schedule loops for better sync
-  const scheduleLoops = useCallback((placedLoops, duration, trackStates = {}) => {
-    if (!audioInitialized.current || !Array.isArray(placedLoops)) {
-      return;
-    }
-
-    Tone.Transport.cancel();
-    Object.keys(scheduledLoopsRef.current).forEach(key => {
-      delete scheduledLoopsRef.current[key];
-    });
-
-    stopAllCurrentLoops();
-
-    const currentTransportTime = Tone.Transport.seconds;
-    const isTransportPlaying = Tone.Transport.state === 'started';
-
-    console.log(`\n=== SCHEDULING LOOPS at time ${currentTransportTime.toFixed(2)}s ===`);
-    console.log(`Transport playing: ${isTransportPlaying}`);
-    console.log(`Total loops to consider: ${placedLoops.length}`);
-
-    const soloedTracks = Object.keys(trackStates).filter(trackId => trackStates[trackId].solo);
-    const hasSoloedTracks = soloedTracks.length > 0;
-
-    // CRITICAL: Group loops by start time for synchronized playback
-    const loopsByStartTime = new Map();
-
-    placedLoops.forEach((loop) => {
-      const player = playersRef.current[loop.id];
-      const trackState = trackStates[`track-${loop.trackIndex}`] || {};
-      
-      if (loop.muted || !player || (!player.loaded && !player.isNative)) {
-        return;
-      }
-      
-      if (trackState.muted) {
-        return;
-      }
-      
-      if (hasSoloedTracks && !trackState.solo) {
-        return;
-      }
-
-      const repeats = calculateLoopRepeats(loop, currentTransportTime);
-      
-      repeats.forEach((repeat) => {
-        if (!loopsByStartTime.has(repeat.startTime)) {
-          loopsByStartTime.set(repeat.startTime, []);
-        }
-        loopsByStartTime.get(repeat.startTime).push({
-          loop,
-          player,
-          trackState,
-          repeat
-        });
-      });
-    });
-
-    let scheduledCount = 0;
-
-    // OPTIMIZED: Schedule in batches by start time
-    loopsByStartTime.forEach((loops, startTime) => {
-      const trackVolume = loops[0].trackState.volume !== undefined ? loops[0].trackState.volume : 0.7;
-      const loopVolume = loops[0].loop.volume !== undefined ? loops[0].loop.volume : 0.8;
-      const finalVolume = loopVolume * trackVolume * volume;
-      
-      if (startTime <= currentTransportTime && isTransportPlaying) {
-        // Start immediately with offset
-        loops.forEach(({ loop, player, repeat }) => {
-          const offsetIntoAudioFile = currentTransportTime - startTime;
-          const actualRemainingTime = repeat.endTime - currentTransportTime;
-          
-          if (actualRemainingTime > 0.05) {
-            try {
-              if (player.isNative) {
-                player.audio.currentTime = offsetIntoAudioFile;
-                player.audio.volume = Math.max(0, Math.min(1, finalVolume));
-                player.audio.loop = true;
-                
-                const promise = player.audio.play();
-                if (promise) {
-                  promise.then(() => {
-                    currentlyPlayingLoops.current.add(loop.id);
-                    
-                    loopTimeoutsRef.current[loop.id] = setTimeout(() => {
-                      if (!player.audio.paused && currentlyPlayingLoops.current.has(loop.id)) {
-                        player.audio.pause();
-                        player.audio.currentTime = 0;
-                        player.audio.loop = false;
-                        currentlyPlayingLoops.current.delete(loop.id);
-                        delete loopTimeoutsRef.current[loop.id];
-                      }
-                    }, actualRemainingTime * 1000);
-                  }).catch(e => {
-                    console.error(`ERROR playing ${loop.name}:`, e);
-                  });
-                }
-              } else {
-                const dbValue = finalVolume === 0 ? -Infinity : Tone.gainToDb(finalVolume);
-                player.volume.value = dbValue;
-                player.start(Tone.now(), offsetIntoAudioFile, actualRemainingTime);
-                currentlyPlayingLoops.current.add(loop.id);
-              }
-            } catch (error) {
-              console.error(`ERROR starting ${loop.name}:`, error);
-            }
-          }
-        });
-        scheduledCount += loops.length;
-      } else if (startTime > currentTransportTime) {
-        // OPTIMIZED: Batch schedule all loops at same time
-        const scheduleId = Tone.Transport.schedule((time) => {
-          loops.forEach(({ loop, player, repeat }) => {
-            const totalDuration = repeat.duration;
-
-            try {
-              if (player.isNative) {
-                player.audio.currentTime = 0;
-                player.audio.volume = Math.max(0, Math.min(1, finalVolume));
-                player.audio.loop = true;
-                
-                const promise = player.audio.play();
-                if (promise) {
-                  promise.then(() => {
-                    currentlyPlayingLoops.current.add(loop.id);
-                    
-                    loopTimeoutsRef.current[loop.id] = setTimeout(() => {
-                      if (!player.audio.paused && currentlyPlayingLoops.current.has(loop.id)) {
-                        player.audio.pause();
-                        player.audio.currentTime = 0;
-                        player.audio.loop = false;
-                        currentlyPlayingLoops.current.delete(loop.id);
-                        delete loopTimeoutsRef.current[loop.id];
-                      }
-                    }, totalDuration * 1000);
-                  }).catch(e => {
-                    console.error(`ERROR playing ${loop.name}:`, e);
-                  });
-                }
-              } else {
-                const dbValue = finalVolume === 0 ? -Infinity : Tone.gainToDb(finalVolume);
-                player.volume.value = dbValue;
-                player.start(time, 0, totalDuration);
-                currentlyPlayingLoops.current.add(loop.id);
-              }
-            } catch (error) {
-              console.error(`ERROR starting ${loop.name}:`, error);
-            }
-          });
-        }, startTime);
-
-        scheduledLoopsRef.current[`group-${startTime}`] = scheduleId;
-        scheduledCount += loops.length;
-      }
-    });
-
-    console.log(`\n=== SUMMARY: ${scheduledCount} scheduled in ${loopsByStartTime.size} groups ===\n`);
-    lastScheduledLoops.current = placedLoops;
-  }, [volume, stopAllCurrentLoops]);
-
-  const play = useCallback(async () => {
-    try {
-      await initializeAudio();
-      // CHROMEBOOK OPTIMIZATION: Start with lookahead buffer
-      Tone.Transport.start("+0.2");
-    } catch (error) {
-      console.error('Error starting playback:', error);
+      console.error(`❌ Failed to create player for ${loopData.name}:`, error);
       throw error;
     }
-  }, [initializeAudio]);
+  }, []);
+
+  const scheduleLoops = useCallback((placedLoops, duration, trackStates) => {
+    clearScheduledEvents();
+    
+    const schedulingStartTime = Tone.Transport.seconds;
+    const isTransportPlaying = Tone.Transport.state === 'started';
+    
+    console.log(`\n=== SCHEDULING LOOPS at time ${schedulingStartTime.toFixed(2)}s ===`);
+    console.log(`Transport playing: ${isTransportPlaying}`);
+    console.log(`Total loops to consider: ${placedLoops.length}`);
+    
+    const groupedLoops = new Map();
+    placedLoops.forEach(loop => {
+      if (!groupedLoops.has(loop.id)) {
+        groupedLoops.set(loop.id, []);
+      }
+      groupedLoops.get(loop.id).push(loop);
+    });
+    
+    let scheduledCount = 0;
+    const scheduledEvents = [];
+    
+    groupedLoops.forEach((loopGroup, loopId) => {
+      loopGroup.forEach(loop => {
+        console.log(`🔍 Loop: ${loop.name}`, loop);
+        
+        const player = playersRef.current.get(loop.id);
+        if (!player) {
+          console.warn(`  ⚠️ No player found for ${loop.name} (key: ${loop.id})`);
+          return;
+        }
+        
+        const trackId = `track-${loop.trackIndex}`;
+        const trackState = trackStates[trackId];
+        
+        if (!trackState) {
+          console.warn(`  ⚠️ No track state for ${trackId}`);
+          return;
+        }
+        
+        const trackVolume = trackState.volume ?? 0.7;
+        const loopVolume = loop.volume ?? 1.0;
+        const effectiveVolume = trackVolume * loopVolume;
+        
+        if (trackState.muted || effectiveVolume < 0.01) {
+          console.log(`  🔇 ${loop.name} is muted (track: ${trackState.muted}, volume: ${effectiveVolume.toFixed(2)})`);
+          return;
+        }
+        
+        const actualPlayer = player.isNative ? player.audio : player;
+        if (actualPlayer) {
+          if (player.isNative) {
+            actualPlayer.volume = effectiveVolume;
+          } else {
+            actualPlayer.volume.value = Tone.gainToDb(effectiveVolume);
+          }
+        }
+        
+        const loopStartTime = loop.startTime;
+        const loopEndTime = loop.endTime;
+        const loopDuration = loop.duration;
+        
+        if (loopEndTime <= schedulingStartTime) {
+          console.log(`  ⏭️ Loop ends at ${loopEndTime.toFixed(2)}s (before current ${schedulingStartTime.toFixed(2)}s) - skipping entirely`);
+          return;
+        }
+        
+        const totalLoopDuration = loopEndTime - loopStartTime;
+        const numRepeats = Math.ceil(totalLoopDuration / loopDuration);
+        
+        console.log(`  📊 Scheduling ${loop.name}:`);
+        console.log(`     Video times: ${loopStartTime.toFixed(2)}s → ${loopEndTime.toFixed(2)}s`);
+        console.log(`     Loop duration: ${loopDuration.toFixed(2)}s`);
+        console.log(`     Repeats needed: ${numRepeats}`);
+        console.log(`     Track ${loop.trackIndex} volume: ${effectiveVolume.toFixed(2)}`);
+        
+        // Schedule each repeat with proper offset calculation
+        for (let i = 0; i < numRepeats; i++) {
+          const repeatStartTime = loopStartTime + (i * loopDuration);
+          const repeatEndTime = Math.min(repeatStartTime + loopDuration, loopEndTime);
+          
+          // Skip if this repeat is entirely before current time
+          if (repeatEndTime <= schedulingStartTime) {
+            console.log(`  ⏭️  Repeat ${i + 1} ends at ${repeatEndTime.toFixed(2)}s (before ${schedulingStartTime.toFixed(2)}s) - skipping`);
+            continue;
+          }
+          
+          // Calculate offset within the loop if starting mid-loop
+          let loopOffset = 0;
+          let actualDuration = loopDuration;
+          let actualStartTime = repeatStartTime;
+          
+          if (repeatStartTime < schedulingStartTime && repeatEndTime > schedulingStartTime) {
+            // We're starting playback in the middle of this repeat
+            loopOffset = schedulingStartTime - repeatStartTime;
+            actualDuration = repeatEndTime - schedulingStartTime;
+            actualStartTime = schedulingStartTime;
+            console.log(`  🎯 Starting mid-loop: offset ${loopOffset.toFixed(2)}s, duration ${actualDuration.toFixed(2)}s`);
+          } else if (repeatEndTime > loopEndTime) {
+            // This is a partial repeat at the end
+            actualDuration = loopEndTime - repeatStartTime;
+            console.log(`  ✂️ Partial end repeat: duration ${actualDuration.toFixed(2)}s`);
+          }
+          
+          // Calculate Transport time for this repeat
+          const transportTime = Math.max(0, actualStartTime - schedulingStartTime);
+          
+          console.log(`  ▶️  Scheduling repeat ${i + 1}/${numRepeats} at Transport ${transportTime.toFixed(2)}s (video ${actualStartTime.toFixed(2)}s)`);
+          
+          // Only actually schedule if transport is playing
+          if (!isTransportPlaying) {
+            console.log(`  ⏸️ Transport stopped - not scheduling this repeat`);
+            continue;
+          }
+          
+          const actualPlayer = player.isNative ? player.audio : player;
+          
+          if (player.isNative) {
+            // Native HTML5 Audio - clone the audio element for each repeat
+            const delay = transportTime * 1000;
+            
+            // Create a NEW audio element clone for this specific repeat
+            const audioClone = player.audio.cloneNode(true);
+            audioClone.volume = player.audio.volume;
+            audioClone.load(); // Prepare the clone
+            
+            const timeoutId = setTimeout(() => {
+              if (!trackState.muted && effectiveVolume > 0.01) {
+                audioClone.currentTime = loopOffset;
+                
+                // Track this as active audio
+                activeNativeAudioRef.current.add(audioClone);
+                
+                audioClone.play().catch(err => {
+                  console.error(`Failed to play native audio for ${loop.name}:`, err);
+                  activeNativeAudioRef.current.delete(audioClone);
+                });
+                
+                // Stop the audio after actualDuration
+                const stopTimeoutId = setTimeout(() => {
+                  audioClone.pause();
+                  audioClone.currentTime = 0;
+                  audioClone.src = ''; // Release resources
+                  activeNativeAudioRef.current.delete(audioClone);
+                }, actualDuration * 1000);
+                scheduledEvents.push({ type: 'native-timeout', id: stopTimeoutId });
+              }
+            }, delay);
+            scheduledEvents.push({ type: 'native-timeout', id: timeoutId });
+            scheduledCount++;
+          } else {
+            // Tone.js Player - provide offset parameter
+            actualPlayer.start(`+${transportTime}`, loopOffset, actualDuration);
+            scheduledCount++;
+          }
+        }
+      });
+    });
+    
+    scheduledEventsRef.current = scheduledEvents;
+    console.log(`\n=== SUMMARY: ${scheduledCount} scheduled in ${groupedLoops.size} groups ===\n`);
+  }, [clearScheduledEvents]);
+
+  const play = useCallback(async () => {
+    console.log(`🎬 Starting playback at ${Tone.Transport.seconds.toFixed(2)}s`);
+    
+    if (Tone.Transport.state !== 'started') {
+      Tone.Transport.start();
+      console.log('✅ Transport started immediately');
+    } else {
+      console.log('ℹ️ Transport already running');
+    }
+    
+    setIsPlaying(true);
+  }, []);
 
   const pause = useCallback(() => {
+    console.log('⏸️ Pausing playback');
     Tone.Transport.pause();
-    stopAllCurrentLoops();
-  }, [stopAllCurrentLoops]);
+    setIsPlaying(false);
+    clearScheduledEvents();
+  }, [clearScheduledEvents]);
 
   const stop = useCallback(() => {
+    console.log('⏹️ Stopping playback');
+    transportStoppedByStopRef.current = true;
     Tone.Transport.stop();
-    stopAllCurrentLoops();
-  }, [stopAllCurrentLoops]);
+    Tone.Transport.position = 0;
+    setIsPlaying(false);
+    setCurrentTime(0);
+    clearScheduledEvents();
+  }, [clearScheduledEvents]);
 
   const seek = useCallback((time) => {
-    const clampedTime = Math.max(0, time);
+    const now = Date.now();
+    if (now - lastSeekTimeRef.current < SEEK_DEBOUNCE_MS) {
+      return;
+    }
+    lastSeekTimeRef.current = now;
     
-    pendingSeekRef.current = clampedTime;
+    console.log(`Seeking to ${time.toFixed(2)}s`);
     
-    if (seekTimeoutRef.current) {
-      clearTimeout(seekTimeoutRef.current);
+    const wasPlaying = Tone.Transport.state === 'started';
+    
+    if (wasPlaying) {
+      Tone.Transport.pause();
     }
     
-    // CHROMEBOOK OPTIMIZATION: Increased debounce time
-    seekTimeoutRef.current = setTimeout(() => {
-      const targetTime = pendingSeekRef.current;
-      
-      if (Math.abs(targetTime - lastSeekTimeRef.current) < 0.01) {
-        console.log(`Skipping duplicate seek to ${targetTime.toFixed(2)}s`);
-        return;
-      }
-      
-      console.log(`Seeking to ${targetTime.toFixed(2)}s`);
-      lastSeekTimeRef.current = targetTime;
-      
-      Tone.Transport.seconds = targetTime;
-      setCurrentTime(targetTime);
-      stopAllCurrentLoops();
-      
-      seekTimeoutRef.current = null;
-      pendingSeekRef.current = null;
-    }, SEEK_DEBOUNCE_MS);
+    clearScheduledEvents();
+    Tone.Transport.seconds = time;
+    setCurrentTime(time);
     
-    setCurrentTime(clampedTime);
-  }, [stopAllCurrentLoops, SEEK_DEBOUNCE_MS]);
+    if (wasPlaying) {
+      setTimeout(() => {
+        Tone.Transport.start();
+      }, 50);
+    }
+  }, [clearScheduledEvents]);
 
   const setMasterVolume = useCallback((vol) => {
-    const clampedVolume = Math.max(0, Math.min(1, vol));
-    setVolume(clampedVolume);
-    
-    if (!isMuted && window.Tone) {
-      const dbValue = clampedVolume === 0 ? -Infinity : window.Tone.gainToDb(clampedVolume);
-      window.Tone.Destination.volume.value = dbValue;
-    }
-    
-    Object.values(playersRef.current).forEach(player => {
-      if (player && player.isNative && player.audio) {
-        const finalVolume = isMuted ? 0 : clampedVolume;
-        player.audio.volume = Math.max(0, Math.min(1, finalVolume));
-      }
-    });
-  }, [isMuted]);
+    setVolume(vol);
+    Tone.Destination.volume.value = Tone.gainToDb(vol);
+  }, []);
 
   const toggleMute = useCallback(() => {
     setIsMuted(prev => {
       const newMuted = !prev;
-      
-      if (newMuted) {
-        if (window.Tone) {
-          window.Tone.Destination.volume.value = -Infinity;
-        }
-        Object.values(playersRef.current).forEach(player => {
-          if (player && player.isNative && player.audio) {
-            player.audio.volume = 0;
-          }
-        });
-      } else {
-        if (window.Tone) {
-          const dbValue = volume === 0 ? -Infinity : window.Tone.gainToDb(volume);
-          window.Tone.Destination.volume.value = dbValue;
-        }
-        Object.values(playersRef.current).forEach(player => {
-          if (player && player.isNative && player.audio) {
-            player.audio.volume = Math.max(0, Math.min(1, volume));
-          }
-        });
-      }
-      
+      Tone.Destination.mute = newMuted;
       return newMuted;
     });
-  }, [volume]);
+  }, []);
 
-  const previewLoop = useCallback(async (loop) => {
+  const previewLoop = useCallback(async (loopData) => {
+    if (previewPlayerRef.current) {
+      try {
+        if (previewPlayerRef.current.isNative) {
+          previewPlayerRef.current.audio.pause();
+          previewPlayerRef.current.audio.currentTime = 0;
+        } else {
+          previewPlayerRef.current.stop();
+        }
+      } catch (err) {
+        console.error('Error stopping previous preview:', err);
+      }
+      previewPlayerRef.current = null;
+    }
+
     try {
-      await initializeAudio();
+      const player = await createLoopPlayer(loopData, `preview-${Date.now()}`);
+      previewPlayerRef.current = player;
       
-      let player = playersRef.current[loop.id];
-      if (!player) {
-        player = await createLoopPlayer(loop);
-      }
-      
-      if (player && (player.loaded || player.isNative)) {
-        Object.values(playersRef.current).forEach(p => {
-          if (p.loaded && p.state === 'started') {
-            p.stop();
-          }
-          if (p.isNative && p.audio && !p.audio.paused) {
-            p.stop();
-          }
-        });
-        
-        player.start();
+      if (player.isNative) {
+        player.audio.volume = volume;
+        await player.audio.play();
       } else {
-        throw new Error('Player not ready for preview');
+        player.volume.value = Tone.gainToDb(volume);
+        player.start();
       }
+      
+      console.log(`🎧 Previewing: ${loopData.name}`);
     } catch (error) {
-      console.error('Error previewing loop:', error);
+      console.error('Preview error:', error);
       throw error;
     }
-  }, [initializeAudio, createLoopPlayer]);
+  }, [createLoopPlayer, volume]);
 
   useEffect(() => {
     const updateTime = () => {
-      if (isPlaying) {
+      if (Tone.Transport.state === 'started') {
         const newTime = Tone.Transport.seconds;
         setCurrentTime(newTime);
-        animationFrameRef.current = requestAnimationFrame(updateTime);
+        
+        if (newTime >= videoDuration) {
+          console.log('🎬 Reached end of video duration, stopping playback');
+          Tone.Transport.stop();
+          Tone.Transport.position = 0;
+          setIsPlaying(false);
+          setCurrentTime(0);
+          clearScheduledEvents();
+          return;
+        }
       }
+      rafRef.current = requestAnimationFrame(updateTime);
     };
 
     if (isPlaying) {
-      animationFrameRef.current = requestAnimationFrame(updateTime);
-    } else {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      rafRef.current = requestAnimationFrame(updateTime);
     }
 
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
       }
     };
-  }, [isPlaying]);
-
-  useEffect(() => {
-    return () => {
-      if (seekTimeoutRef.current) {
-        clearTimeout(seekTimeoutRef.current);
-      }
-      
-      Tone.Transport.cancel();
-      Tone.Transport.stop();
-      
-      Object.keys(loopTimeoutsRef.current).forEach(loopId => {
-        if (loopTimeoutsRef.current[loopId]) {
-          clearTimeout(loopTimeoutsRef.current[loopId]);
-        }
-      });
-      
-      Object.values(playersRef.current).forEach(player => {
-        if (player && player.dispose) {
-          player.dispose();
-        }
-      });
-      
-      Object.values(nativePlayersRef.current).forEach(player => {
-        if (player && player.dispose) {
-          player.dispose();
-        }
-      });
-      
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, []);
+  }, [isPlaying, videoDuration, clearScheduledEvents]);
 
   return {
     isPlaying,

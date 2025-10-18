@@ -1,4 +1,5 @@
 // composer/MusicComposer.jsx - Main orchestrator (refactored)
+// FIXED: Reordered hooks so selectedVideo exists before useAudioEngine
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -46,26 +47,7 @@ const MusicComposer = ({
   const playersCreatedRef = useRef(false);
   const savedLoopsRef = useRef(null);
 
-  // Audio engine hook
-  const {
-    isPlaying,
-    currentTime,
-    volume,
-    isMuted,
-    play,
-    pause,
-    stop,
-    seek,
-    setMasterVolume,
-    toggleMute,
-    previewLoop,
-    createLoopPlayer,
-    scheduleLoops,
-    initializeAudio,
-    playersRef
-  } = useAudioEngine();
-
-  // Central state management
+  // FIXED: Central state management FIRST (so selectedVideo exists)
   const {
     selectedVideo,
     setSelectedVideo,
@@ -99,6 +81,25 @@ const MusicComposer = ({
     setIsResizingTop,
     containerRef
   } = useComposerState(preselectedVideo);
+
+  // FIXED: Audio engine hook SECOND (now selectedVideo exists)
+  const {
+    isPlaying,
+    currentTime,
+    volume,
+    isMuted,
+    play,
+    pause,
+    stop,
+    seek,
+    setMasterVolume,
+    toggleMute,
+    previewLoop,
+    createLoopPlayer,
+    scheduleLoops,
+    initializeAudio,
+    playersRef
+  } = useAudioEngine(selectedVideo?.duration);
 
   // STEP 1: Store initial loops and load into state immediately
   useEffect(() => {

@@ -1,5 +1,5 @@
 // File: /src/pages/projects/film-music-score/timeline/TimelineContent.jsx
-// FIXED: Pass placedLoops to enable snap guides AND onLoopResizeCallback
+// FIXED: Pass placedLoops to enable snap guides AND onLoopResizeCallback AND videoDuration
 
 import React, { forwardRef, useCallback } from 'react';
 import TimeMarkers from './components/TimeMarkers';
@@ -134,7 +134,7 @@ const TimelineContent = forwardRef(({
           style={{ height: TIMELINE_CONSTANTS.HEADER_HEIGHT }}
           onScroll={onTimeHeaderScroll}
         >
-          <div 
+          <div
             className="relative bg-gray-800"
             style={{ width: timelineWidth, height: TIMELINE_CONSTANTS.HEADER_HEIGHT }}
           >
@@ -268,7 +268,7 @@ const TimelineContent = forwardRef(({
               isInHeader={false}
             />
 
-            {/* Loops - FIXED: Added onLoopResize prop */}
+            {/* Loops - FIXED: Added videoDuration prop */}
             {placedLoops
               .filter(loop => trackStates[`track-${loop.trackIndex}`]?.visible !== false)
               .map((loop) => (
@@ -279,6 +279,7 @@ const TimelineContent = forwardRef(({
                   trackStates={trackStates}
                   selectedLoop={selectedLoop}
                   draggedLoop={draggedLoop}
+                  videoDuration={duration}
                   onLoopMouseDown={handleLoopMouseDown}
                   onLoopSelect={onLoopSelect}
                   onLoopUpdate={onLoopUpdate}
