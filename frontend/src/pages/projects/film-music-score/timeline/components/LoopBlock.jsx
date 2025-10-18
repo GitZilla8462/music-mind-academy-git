@@ -66,10 +66,7 @@ const LoopBlock = React.memo(({
     const actualRepeats = currentDuration / originalDuration;
     const repeats = Math.ceil(actualRepeats);
     
-    // Calculate full loops more carefully
     const fullLoopsCount = Math.floor(actualRepeats);
-    
-    // Check if there's a partial loop
     const hasPartialLoop = (currentDuration % originalDuration) > 0.01;
     
     console.log(`📊 ${loop.name} repeats calc:`, {
@@ -168,52 +165,10 @@ const LoopBlock = React.memo(({
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
     try {
-      // STEP 1: Draw main waveform bars
       ctx.fillStyle = loopColor + '99';
       ctx.strokeStyle = loopColor + strokeOpacity;
       ctx.lineWidth = 0.5;
       
-      for (let repeat = 0; repeat < totalSections; repeat++) {
-        const isPartialRepeat = (repeat === fullLoops && partialLoop > 0.01);
-        const repeatDuration = isPartialRepeat ? partialLoop : originalDuration;
-        const repeatWidth = (repeatDuration / currentDuration) * canvasWidth;
-        const offsetX = (repeat * originalDuration / currentDuration) * canvasWidth;
-        
-        const barWidth = Math.max(0.5, repeatWidth / waveformData.length);
-        
-        for (let i = 0; i < waveformData.length; i++) {
-          const amplitude = waveformData[i];
-          const enhancedAmplitude = Math.pow(amplitude, 0.6);
-          const barHeight = Math.max(1, enhancedAmplitude * (canvasHeight - 6));
-          const x = offsetX + (i * barWidth);
-          const y = Math.max(0, (canvasHeight - barHeight) / 2);
-          
-          if (x >= canvasWidth) break;
-          
-          ctx.fillRect(x, y, Math.max(1, barWidth - 0.5), barHeight);
-          
-          if (barHeight > 2) {
-            ctx.strokeRect(x, y, Math.max(1, barWidth - 0.5), barHeight);
-          }
-        }
-        
-        // STEP 2: Draw vertical divider lines between repeats
-        if (repeat > 0 && repeat < fullLoops) {
-          ctx.strokeStyle = loopColor + 'DD';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          const x = (repeat * originalDuration / currentDuration) * canvasWidth;
-          ctx.moveTo(x, notchRadius + 2);
-          ctx.lineTo(x, canvasHeight - notchRadius - 2);
-          ctx.stroke();
-          
-          ctx.strokeStyle = loopColor + strokeOpacity;
-          ctx.lineWidth = 0.5;
-        }
-      }
-      
-      // STEP 3: Draw highlighted peaks (brighter waveform highlights)
-      ctx.fillStyle = loopColor + 'FF';
       for (let repeat = 0; repeat < totalSections; repeat++) {
         const isPartialRepeat = (repeat === fullLoops && partialLoop > 0.01);
         const repeatDuration = isPartialRepeat ? partialLoop : originalDuration;
@@ -298,7 +253,7 @@ const LoopBlock = React.memo(({
       
       if (resizeDirection === 'right') {
         const newDuration = mouseTime - loop.startTime;
-        const minDuration = originalDuration;
+        const minDuration = 0.1;  // ✅ FIXED: Allow loops as short as 0.1 seconds
         const maxDuration = videoDuration - loop.startTime;
         const constrainedDuration = Math.max(minDuration, Math.min(maxDuration, newDuration));
         const newEndTime = loop.startTime + constrainedDuration;
@@ -311,7 +266,7 @@ const LoopBlock = React.memo(({
         }
       } else if (resizeDirection === 'left') {
         const newDuration = loop.endTime - mouseTime;
-        const minDuration = originalDuration;
+        const minDuration = 0.1;  // ✅ FIXED: Allow loops as short as 0.1 seconds
         const maxDuration = Math.min(videoDuration, loop.endTime);
         const constrainedDuration = Math.max(minDuration, Math.min(maxDuration, newDuration));
         const newStartTime = loop.endTime - constrainedDuration;
@@ -430,107 +385,84 @@ const LoopBlock = React.memo(({
       onMouseDown={handleMouseDown}
       data-loop-id={loop.id}
     >
-      {/* SVG mask to create cutout notches */}
       <svg
         className="absolute inset-0 pointer-events-none"
         style={{ width: '100%', height: '100%', overflow: 'visible' }}
       >
         <defs>
           <mask id={`notch-mask-${loop.id}`}>
-            {/* White rectangle is the base shape */}
             <rect x="0" y="0" width="100%" height="100%" fill="white" />
             
-            {/* Black shapes create transparent cutouts */}
             {(() => {
               const originalDuration = originalDurationRef.current || loop.duration;
               const currentDuration = loop.endTime - loop.startTime;
               const hasPartialLoop = (currentDuration % originalDuration) > 0.01;
               
-              // FIXED: Include notch for partial loop start
-              const totalNotches = hasPartialLoop ? fullLoops : Math.max(0, fullLoops - 1);
+              const totalNotches = hasPartialLoop ? Math.floor(currentDuration / originalDuration) : Math.max(0, Math.floor(currentDuration / originalDuration) - 1);
               
-              return Array.from({ length: totalNotches }).map((_, index) => {
-                const loopNumber = index + 1;
+              if (totalNotches === 0) return null;
+              
+              const notchSize = 8;
+              const notches = [];
+              
+              for (let i = 0; i < totalNotches; i++) {
+                const loopNumber = i + 1;
                 const loopTime = loopNumber * originalDuration;
                 const x = (loopTime / currentDuration) * width;
-                const notchSize = 8;
-                const blockHeight = TIMELINE_CONSTANTS.TRACK_HEIGHT - 16;
                 
-                return (
-                  <g key={index}>
-                    {/* Top triangle cutout (black = transparent in mask) */}
-                    <path
-                      d={`M ${x - notchSize},0 L ${x},${notchSize} L ${x + notchSize},0 Z`}
-                      fill="black"
-                    />
-                    
-                    {/* Bottom triangle cutout */}
-                    <path
-                      d={`M ${x - notchSize},${blockHeight} L ${x},${blockHeight - notchSize} L ${x + notchSize},${blockHeight} Z`}
-                      fill="black"
-                    />
-                  </g>
+                notches.push(
+                  <circle key={`notch-${i}`} cx={x} cy="0" r={notchSize} fill="black" />,
+                  <circle key={`notch-bottom-${i}`} cx={x} cy={TIMELINE_CONSTANTS.TRACK_HEIGHT - 16} r={notchSize} fill="black" />
                 );
-              });
+              }
+              
+              return notches;
             })()}
           </mask>
         </defs>
         
-        {/* Apply mask to a background rect */}
-        <rect 
-          x="0" 
-          y="0" 
-          width="100%" 
-          height="100%" 
-          fill={categoryColor.bg}
-          mask={`url(#notch-mask-${loop.id})`}
-        />
-        
-        {/* Draw border path that follows the cutout shape */}
         <path
           d={(() => {
-            const blockHeight = TIMELINE_CONSTANTS.TRACK_HEIGHT - 16;
-            const notchSize = 8;
             const originalDuration = originalDurationRef.current || loop.duration;
             const currentDuration = loop.endTime - loop.startTime;
             const hasPartialLoop = (currentDuration % originalDuration) > 0.01;
+            const blockHeight = TIMELINE_CONSTANTS.TRACK_HEIGHT - 16;
+            const notchSize = 8;
             
-            // FIXED: Include notch for partial loop
+            const fullLoops = Math.floor(currentDuration / originalDuration);
             const totalNotches = hasPartialLoop ? fullLoops : Math.max(0, fullLoops - 1);
             
-            let pathData = `M 0,0`; // Start top-left
+            let pathData = `M 0,0`;
             
-            // Draw top edge with notches
             if (totalNotches > 0) {
               for (let i = 0; i < totalNotches; i++) {
                 const loopNumber = i + 1;
                 const loopTime = loopNumber * originalDuration;
                 const x = (loopTime / currentDuration) * width;
                 
-                pathData += ` L ${x - notchSize},0`; // Line to notch start
-                pathData += ` L ${x},${notchSize}`; // Down into notch
-                pathData += ` L ${x + notchSize},0`; // Back up from notch
+                pathData += ` L ${x - notchSize},0`;
+                pathData += ` L ${x},${notchSize}`;
+                pathData += ` L ${x + notchSize},0`;
               }
             }
             
-            pathData += ` L ${width},0`; // Continue to top-right
-            pathData += ` L ${width},${blockHeight}`; // Down right side
+            pathData += ` L ${width},0`;
+            pathData += ` L ${width},${blockHeight}`;
             
-            // Draw bottom edge with notches (right to left)
             if (totalNotches > 0) {
               for (let i = totalNotches - 1; i >= 0; i--) {
                 const loopNumber = i + 1;
                 const loopTime = loopNumber * originalDuration;
                 const x = (loopTime / currentDuration) * width;
                 
-                pathData += ` L ${x + notchSize},${blockHeight}`; // Line to notch start
-                pathData += ` L ${x},${blockHeight - notchSize}`; // Up into notch
-                pathData += ` L ${x - notchSize},${blockHeight}`; // Back down from notch
+                pathData += ` L ${x + notchSize},${blockHeight}`;
+                pathData += ` L ${x},${blockHeight - notchSize}`;
+                pathData += ` L ${x - notchSize},${blockHeight}`;
               }
             }
             
-            pathData += ` L 0,${blockHeight}`; // Continue to bottom-left
-            pathData += ` Z`; // Close path
+            pathData += ` L 0,${blockHeight}`;
+            pathData += ` Z`;
             
             return pathData;
           })()}

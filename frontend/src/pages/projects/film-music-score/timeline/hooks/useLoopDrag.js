@@ -1,4 +1,4 @@
-// /timeline/hooks/useLoopDrag.js - FIXED: Smoother dragging with optional magnetic snap
+// /timeline/hooks/useLoopDrag.js - FIXED: Removed setTimeout to prevent loop bounce-back
 import { useEffect, useCallback, useRef } from 'react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
 
@@ -84,6 +84,7 @@ export const useLoopDrag = (
       const xPos = timeToPixel(snapTime);
       guide.style.left = `${xPos}px`;
       guide.style.opacity = '0.9';
+      console.log(`Showing snap guide at time ${snapTime}s, pixel ${xPos}px`);
     } else {
       guide.style.opacity = '0';
     }
@@ -151,6 +152,7 @@ export const useLoopDrag = (
       }
     });
     
+    console.log(`Found ${snapPoints.length} snap points`);
     return snapPoints;
   }, [allLoops, duration]);
 
@@ -196,6 +198,7 @@ export const useLoopDrag = (
     });
     
     if (closestSnap) {
+      console.log(`Snapping to ${closestSnap.type} at ${closestSnap.time}s (${closestSnap.loopName})`);
       return {
         time: closestSnap.time,
         isSnapping: true,
@@ -248,6 +251,7 @@ export const useLoopDrag = (
     
     setDraggedLoop(loop);
     onLoopSelect(loop.id);
+
     setDragOffset({ x: 0, y: 0 });
     
     console.log(`Started dragging loop: ${loop.name} on track ${loop.trackIndex} (Hold Shift for fine positioning)`);
@@ -332,6 +336,7 @@ export const useLoopDrag = (
       // Hide snap guide
       updateSnapGuide(null, false);
       
+      // Apply any final pending updates
       if (pendingUpdateRef.current) {
         applyUpdate();
       }
@@ -341,10 +346,11 @@ export const useLoopDrag = (
         rafRef.current = null;
       }
       
-      setTimeout(() => {
-        setDraggedLoop(null);
-        setDragOffset({ x: 0, y: 0 });
-      }, 50);
+      // FIXED: Clear drag state immediately to prevent visual glitches
+      // The previous 50ms setTimeout was causing the loop to "bounce back" 
+      // because it remained in dragged state during re-renders
+      setDraggedLoop(null);
+      setDragOffset({ x: 0, y: 0 });
       
       dragStartRef.current = {
         startX: 0,
@@ -361,6 +367,7 @@ export const useLoopDrag = (
       
       window.lastDragEndTime = Date.now();
       
+      // Prevent accidental clicks after drag
       document.addEventListener('click', preventClick, { capture: true, once: true });
       setTimeout(() => {
         document.removeEventListener('click', preventClick, { capture: true });
@@ -375,6 +382,7 @@ export const useLoopDrag = (
 
   useEffect(() => {
     if (draggedLoop) {
+      console.log('Setting up drag event listeners');
       document.addEventListener('mousemove', handleMouseMove, { passive: true });
       document.addEventListener('mouseup', handleMouseUp, { passive: true });
       
@@ -386,6 +394,7 @@ export const useLoopDrag = (
       }
       
       return () => {
+        console.log('Cleaning up drag event listeners');
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
         document.body.style.userSelect = '';

@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import { ClassProvider } from './context/ClassContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
+// Import styles - including snap guide styles
+import './App.css';
+
 // Import authentication-related components
 import AuthPage from './pages/AuthPage';
 import AdminDashboard from './pages/AdminDashboard';
@@ -28,6 +31,55 @@ import TeacherSubmissionViewer from './components/dashboard/teacherdashboard/Tea
 // Import lesson components
 import SimpleLessonPlaceholder from './lessons/components/LessonPlayer';
 import Lesson1 from './lessons/film-music-project/lesson1/Lesson1';
+
+// Add global styles for snap guide
+const snapGuideStyles = `
+  /* Snap guide line (blue line that appears when snapping) */
+  #snap-guide {
+    position: absolute !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: 3px !important;
+    background: linear-gradient(
+      to bottom, 
+      rgba(59, 130, 246, 0.3),
+      rgba(59, 130, 246, 1),
+      rgba(59, 130, 246, 1),
+      rgba(59, 130, 246, 0.3)
+    ) !important;
+    box-shadow: 
+      0 0 12px rgba(59, 130, 246, 1),
+      0 0 24px rgba(59, 130, 246, 0.6),
+      inset 0 0 4px rgba(255, 255, 255, 0.5) !important;
+    z-index: 1000 !important;
+    pointer-events: none !important;
+    transition: opacity 0.15s ease !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  /* Pulsing animation for active snap guide */
+  @keyframes snap-guide-pulse {
+    0%, 100% {
+      opacity: 0.8;
+      box-shadow: 
+        0 0 12px rgba(59, 130, 246, 1),
+        0 0 24px rgba(59, 130, 246, 0.6);
+    }
+    50% {
+      opacity: 1;
+      box-shadow: 
+        0 0 16px rgba(59, 130, 246, 1),
+        0 0 32px rgba(59, 130, 246, 0.8),
+        0 0 48px rgba(59, 130, 246, 0.4);
+    }
+  }
+
+  /* Apply animation when visible */
+  #snap-guide[style*="opacity: 0.9"] {
+    animation: snap-guide-pulse 1s ease-in-out infinite;
+  }
+`;
 
 // Protected Route Component with better error handling
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -76,6 +128,17 @@ const AppContent = () => {
     showToast('Assignment created successfully!', 'success');
     navigate('/teacher'); 
   };
+
+  // Inject snap guide styles on mount
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.innerHTML = snapGuideStyles;
+    document.head.appendChild(styleElement);
+    
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
 
   // IF CLASSROOM MODE, SHOW ONLY CLASSROOM ROUTES
   if (isClassroomMode) {
