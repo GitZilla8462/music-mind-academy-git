@@ -278,23 +278,7 @@ export const DAW_CHALLENGES = [
     }
   },
 
-  // SECTION 7: LOOP PREVIEW (Challenge 20)
-  {
-    id: 20,
-    section: "Loop Preview",
-    question: "Before adding a loop to your timeline, you can preview it. Click on any loop in the library to hear it.",
-    type: 'interactive-task',
-    instruction: "Click on any loop name in the Loop Library to preview it",
-    hint: "Just click on a loop name in the left panel",
-    correctAnswer: "Loop previewed",
-    validation: (context) => context.action === 'loop-previewed',
-    lockFeatures: {
-      allowLoopDrag: true,
-      allowLoopLibraryClick: true
-    }
-  },
-
-  // FINAL CHALLENGE (Challenge 21)
+  // FINAL CHALLENGE (Challenge 20)
   {
     id: 21,
     section: "Completion",
