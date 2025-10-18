@@ -23,7 +23,7 @@ const ChallengePanel = ({
   onRepeatQuestion
 }) => {
   return (
-    <div className="bg-white border-b border-gray-200 shadow-lg z-40 relative">
+    <div className="bg-white border-8 border-orange-500 shadow-2xl z-40 relative">
       {/* Progress Bar - Ultra Thin */}
       <div className="h-0.5 bg-gray-200">
         <div 
@@ -80,80 +80,69 @@ const ChallengePanel = ({
           </>
         )}
 
-        {/* Feedback Badge - Inline */}
+        {/* Spacer to push buttons right */}
+        <div className="flex-1"></div>
+
+        {/* Feedback Icon */}
         {feedback && (
-          <div className={`flex items-center gap-1 px-2 py-1 rounded border whitespace-nowrap flex-shrink-0 ${
-            feedback.type === 'success' 
-              ? 'bg-green-50 border-green-500 text-green-800' 
-              : 'bg-red-50 border-red-500 text-red-800'
-          }`}>
+          <div className="flex items-center gap-1 flex-shrink-0">
             {feedback.type === 'success' ? (
-              <CheckCircle size={12} />
+              <CheckCircle className="text-green-600" size={16} />
             ) : (
-              <XCircle size={12} />
+              <XCircle className="text-red-600" size={16} />
             )}
-            <span className="font-semibold text-xs">{feedback.message}</span>
+            <span className={`text-xs font-medium ${
+              feedback.type === 'success' ? 'text-green-600' : 'text-red-600'
+            }`}>
+              {feedback.message}
+            </span>
           </div>
         )}
 
-        {/* Next button (for multiple choice after correct answer) */}
-        {currentChallenge.type === 'multiple-choice' && 
-         feedback?.type === 'success' && 
-         !currentChallenge.autoAdvanceOnCorrect && (
-          <button
-            onClick={onNextChallenge}
-            className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium text-xs whitespace-nowrap flex-shrink-0"
-          >
-            Next
-          </button>
-        )}
+        {/* Hint Button */}
+        <button
+          onClick={() => setShowHint(!showHint)}
+          className="flex items-center gap-1 px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors flex-shrink-0"
+          title="Show hint"
+        >
+          <HelpCircle size={12} />
+          <span className="text-xs font-medium">Hint</span>
+        </button>
 
-        {/* Spacer to push right-side items to the end */}
-        <div className="flex-1 min-w-4"></div>
+        {/* Voice Toggle */}
+        <button
+          onClick={() => setVoiceEnabled(!voiceEnabled)}
+          className="flex items-center gap-1 px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition-colors flex-shrink-0"
+          title={voiceEnabled ? "Disable voice" : "Enable voice"}
+        >
+          {voiceEnabled ? <Volume2 size={12} /> : <VolumeX size={12} />}
+        </button>
 
-        {/* Right Side - Hint and Volume only */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Hint Button */}
-          {currentChallenge.hint && !showHint && (
-            <button
-              onClick={() => setShowHint(true)}
-              className="flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
-              title="Show hint"
-            >
-              <HelpCircle size={12} />
-              <span className="text-xs font-medium">Hint</span>
-            </button>
-          )}
-
-          {/* Volume Toggle */}
-          <button
-            onClick={() => setVoiceEnabled(!voiceEnabled)}
-            className={`p-1 rounded transition-colors ${
-              voiceEnabled ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
-            }`}
-            title={voiceEnabled ? 'Voice enabled' : 'Voice disabled'}
-          >
-            {voiceEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
-          </button>
-        </div>
+        {/* Repeat Question Button */}
+        <button
+          onClick={onRepeatQuestion}
+          className="px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors flex-shrink-0 text-xs font-medium"
+          title="Repeat question"
+        >
+          🔊
+        </button>
       </div>
 
-      {/* Expanded Content - Only for Hint/Explanation (shown below when needed) */}
-      {(showHint || showExplanation) && (
-        <div className="px-3 pb-2 space-y-1">
-          {/* Explanation - Compact */}
-          {showExplanation && currentChallenge.explanation && (
-            <div className="p-1.5 bg-blue-50 border border-blue-200 rounded text-xs text-blue-900">
-              {currentChallenge.explanation}
-            </div>
-          )}
+      {/* Hint Panel - Slides down below the main row */}
+      {showHint && (
+        <div className="px-3 py-2 bg-yellow-50 border-t border-yellow-200">
+          <div className="text-xs text-yellow-900">
+            <span className="font-semibold">Hint:</span> {currentChallenge.hint}
+          </div>
+        </div>
+      )}
 
-          {/* Hint Content - Compact */}
-          {showHint && currentChallenge.hint && (
-            <div className="p-1.5 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-900">
-              <strong>Hint:</strong> {currentChallenge.hint}
-            </div>
-          )}
+      {/* Explanation Panel - Shows after correct answer */}
+      {showExplanation && currentChallenge.explanation && (
+        <div className="px-3 py-2 bg-green-50 border-t border-green-200">
+          <div className="text-xs text-green-900">
+            <span className="font-semibold">Explanation:</span> {currentChallenge.explanation}
+          </div>
         </div>
       )}
     </div>

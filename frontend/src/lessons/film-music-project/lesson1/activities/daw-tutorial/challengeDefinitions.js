@@ -13,7 +13,6 @@ export const DAW_CHALLENGES = [
     correctAnswer: "Video Player",
     validation: (context) => context.action === 'video-player-clicked',
     highlightSelector: '.video-player-container',
-    allowSkip: false,
     lockFeatures: {
       allowLoopDrag: false,
       allowPlayback: false,
@@ -33,8 +32,7 @@ export const DAW_CHALLENGES = [
     choices: ["True", "False"],
     correctIndex: 0,
     explanation: "Watching the video helps you create music that matches the emotion and timing of each scene",
-    autoAdvanceOnCorrect: true,
-    greyOutDAW: true
+    autoAdvanceOnCorrect: true
   },
 
   // SECTION 2: LOOP LIBRARY (Challenges 3-6)
@@ -48,7 +46,6 @@ export const DAW_CHALLENGES = [
     correctAnswer: "Loop Library (or Browser)",
     validation: (context) => context.action === 'loop-library-clicked',
     highlightSelector: '.loop-library',
-    allowSkip: false,
     lockFeatures: {
       allowLoopDrag: false,
       allowPlayback: false,
@@ -67,91 +64,85 @@ export const DAW_CHALLENGES = [
     correctAnswer: "Loops",
     choices: ["Tracks", "Loops", "Clips", "Samples"],
     correctIndex: 1,
-    autoAdvanceOnCorrect: true,
-    greyOutDAW: true
+    autoAdvanceOnCorrect: true
   },
-
+  {
+    id: 5,
+    section: "Loop Library",
+    question: "Drag any loop from the library onto the timeline.",
+    type: 'interactive-task',
+    instruction: "Click and hold on any loop, then drag it to a track on the timeline",
+    hint: "Pick any loop you like and drag it to one of the empty tracks",
+    correctAnswer: "Yes",
+    validation: (context) => context.action === 'loop-placed' && context.placedLoops.length > 0,
+    lockFeatures: {
+      allowLoopDrag: true,
+      allowPlayback: false
+    }
+  },
   {
     id: 6,
     section: "Loop Library",
     question: "Loops are organized into categories. Which category would you use for rhythm?",
     type: 'multiple-choice',
     instruction: "Select your answer below",
-    hint: "Think about which instrument provides the beat",
+    hint: "Think about what instrument keeps the beat",
     correctAnswer: "Drums",
-    choices: ["Bass", "Drums", "Synth", "FX"],
+    choices: ["Bass", "Drums", "Melody", "Effects"],
     correctIndex: 1,
-    autoAdvanceOnCorrect: true,
-    greyOutDAW: true
+    autoAdvanceOnCorrect: true
   },
 
   // SECTION 3: TIMELINE & TRACKS (Challenges 7-11)
   {
     id: 7,
     section: "Timeline & Tracks",
-    question: "What is the main workspace where you arrange loops in chronological order?",
+    question: "The horizontal area where you arrange loops is called the what?",
     type: 'multiple-choice',
     instruction: "Select your answer below",
-    hint: "It shows time from left to right with vertical measure lines",
+    hint: "It shows time flowing from left to right",
     correctAnswer: "Timeline",
-    choices: ["Loop Library", "Timeline", "Video Player", "Transport Controls"],
-    correctIndex: 1,
-    autoAdvanceOnCorrect: true,
-    greyOutDAW: true
+    choices: ["Timeline", "Track List", "Loop Area", "Stage"],
+    correctIndex: 0,
+    autoAdvanceOnCorrect: true
   },
   {
     id: 8,
     section: "Timeline & Tracks",
-    question: "Click on any track header (the area where Track 1 or Track 2 are labeled on the left).",
-    type: 'identify-click',
-    instruction: "Click on any track header - the numbered boxes on the left that identify each track.",
-    hint: "Look for the numbered boxes (1, 2, 3, etc.) on the left side of the timeline. Click on any one of them.",
+    question: "Each horizontal row in the timeline is called a what?",
+    type: 'multiple-choice',
+    instruction: "Select your answer below",
+    hint: "Each instrument typically gets its own row",
     correctAnswer: "Track",
-    validation: (context) => context.action === 'track-header-clicked',
-    highlightSelector: '.track-header',
-    allowSkip: false,
-    lockFeatures: {
-      allowLoopDrag: false,
-      allowPlayback: false,
-      allowVolumeChange: false,
-      allowZoom: false,
-      allowTrackHeaderClick: true
-    }
+    choices: ["Lane", "Track", "Channel", "Strip"],
+    correctIndex: 1,
+    autoAdvanceOnCorrect: true
   },
   {
     id: 9,
     section: "Timeline & Tracks",
-    question: "Drag any loop from the library onto Track 1.",
-    type: 'drag-drop-task',
-    instruction: "Click and hold a loop, then drag it to the first track",
-    hint: "Pick any loop you like and drag it onto the first track",
-    correctAnswer: "Loops",
-    validation: (context) => {
-      return context.action === 'loop-placed' && 
-             context.trackIndex === 0 && 
-             context.placedLoops?.length > 0;
-    },
-    allowSkip: false,
+    question: "Click on any track header (the name area on the left of a track).",
+    type: 'interactive-task',
+    instruction: "Click on the track name/header area on the left side",
+    hint: "It's the colored area on the left that shows the track name",
+    correctAnswer: "Yes",
+    validation: (context) => context.action === 'track-header-clicked',
+    requiresLoopPlaced: false,
     lockFeatures: {
-      allowLoopDrag: true,
-      allowPlayback: false,
-      allowVolumeChange: false,
-      allowZoom: false
+      allowLoopDrag: true
     }
   },
   {
     id: 10,
     section: "Timeline & Tracks",
-    question: "What is the vertical line that shows the current playback position?",
+    question: "The vertical line that shows your current playback position is called the what?",
     type: 'multiple-choice',
     instruction: "Select your answer below",
     hint: "It's usually red and shows where you are in the song",
     correctAnswer: "Playhead",
     choices: ["Timeline", "Playhead", "Track", "Measure Line"],
     correctIndex: 1,
-    autoAdvanceOnCorrect: true,
-    greyOutDAW: true,
-    allowSkip: false
+    autoAdvanceOnCorrect: true
   },
   {
     id: 11,
@@ -163,7 +154,6 @@ export const DAW_CHALLENGES = [
     correctAnswer: "Yes",
     validation: (context) => context.action === 'loop-moved',
     requiresLoopPlaced: true,
-    allowSkip: false,
     lockFeatures: {
       allowLoopDrag: true,
       allowLoopMove: true,
@@ -181,7 +171,6 @@ export const DAW_CHALLENGES = [
     hint: "Look for the < and > buttons with a percentage number between them in the track header.",
     correctAnswer: "Adjust volume",
     validation: (context) => context.action === 'track-volume-changed',
-    allowSkip: false,
     lockFeatures: {
       allowLoopDrag: true,
       allowVolumeChange: true,
@@ -198,9 +187,7 @@ export const DAW_CHALLENGES = [
     correctAnswer: "Solo (play only that track)",
     choices: ["Stop the track", "Solo (play only that track)", "Save the track", "Select the track"],
     correctIndex: 1,
-    autoAdvanceOnCorrect: true,
-    greyOutDAW: true,
-    allowSkip: false
+    autoAdvanceOnCorrect: true
   },
   {
     id: 14,
@@ -212,7 +199,6 @@ export const DAW_CHALLENGES = [
     correctAnswer: "Solo track",
     validation: (context) => context.action === 'track-solo-toggled',
     requiresLoopPlaced: true,
-    allowSkip: false,
     lockFeatures: {
       allowLoopDrag: true,
       allowSolo: true,
@@ -227,95 +213,99 @@ export const DAW_CHALLENGES = [
     question: "What allows you to see more detail or fit more of your composition on screen?",
     type: 'multiple-choice',
     instruction: "Select your answer below",
-    hint: "You can make things bigger or smaller",
-    correctAnswer: "Zoom",
-    choices: ["Pan", "Zoom", "Scroll", "Resize"],
+    hint: "It changes how much time you can see at once",
+    correctAnswer: "Zoom controls",
+    choices: ["Pan controls", "Zoom controls", "View mode", "Scale"],
     correctIndex: 1,
-    autoAdvanceOnCorrect: true,
-    greyOutDAW: true,
-    allowSkip: false
+    autoAdvanceOnCorrect: true
   },
   {
     id: 16,
     section: "Navigation",
-    question: "Zoom in to see more detail of your loops.",
+    question: "Use the zoom controls (+ or - buttons) to change the timeline view.",
     type: 'interactive-task',
-    instruction: "Click the + button or use the zoom slider",
-    hint: "Look for zoom controls, usually near the timeline header",
-    correctAnswer: "Zoom in",
-    validation: (context) => context.action === 'zoomed' && context.zoomDirection === 'in',
-    allowSkip: false,
+    instruction: "Click the + or - zoom buttons to change the timeline zoom level",
+    hint: "Look for the zoom buttons, usually near the timeline",
+    correctAnswer: "Zoom changed",
+    validation: (context) => context.action === 'zoom-changed',
     lockFeatures: {
       allowLoopDrag: true,
-      allowZoom: true,
-      allowPlayback: false
+      allowZoom: true
     }
   },
 
-  // SECTION 6: PLAYBACK & TRANSPORT (Challenges 17-19)
+  // SECTION 6: PLAYBACK (Challenges 17-19)
   {
     id: 17,
     section: "Playback",
-    question: "Which button starts playing your composition?",
+    question: "True or False: You should listen to your composition regularly to hear how it sounds.",
     type: 'multiple-choice',
     instruction: "Select your answer below",
-    hint: "It's the triangle pointing to the right",
-    correctAnswer: "Play button",
-    choices: ["Stop button", "Play button", "Record button", "Loop button"],
-    correctIndex: 1,
-    autoAdvanceOnCorrect: true,
-    greyOutDAW: true
+    hint: "Composers need to hear their work to make good decisions",
+    correctAnswer: "True",
+    choices: ["True", "False"],
+    correctIndex: 0,
+    explanation: "Listening helps you make better musical choices and catch mistakes",
+    autoAdvanceOnCorrect: true
   },
   {
     id: 18,
     section: "Playback",
-    question: "Click the Play button to hear your music with the video.",
+    question: "Click the Play button to start playback of your composition.",
     type: 'interactive-task',
-    instruction: "Click the Play button at the bottom",
-    hint: "The Play button is in the transport controls at the bottom",
-    correctAnswer: "Play",
+    instruction: "Find and click the Play button (usually a triangle icon)",
+    hint: "The Play button is typically in the transport controls",
+    correctAnswer: "Play started",
     validation: (context) => context.action === 'playback-started',
     requiresLoopPlaced: true,
-    allowSkip: false,
     lockFeatures: {
       allowLoopDrag: true,
-      allowPlayback: true,
-      allowVolumeChange: true
+      allowPlayback: true
     }
   },
   {
     id: 19,
     section: "Playback",
-    question: "Stop the playback by clicking the square Stop button.",
+    question: "Click the Stop button to stop playback.",
     type: 'interactive-task',
-    instruction: "Click the Stop button (square icon) at the bottom",
-    hint: "The Stop button is next to the Play button in the transport controls",
-    correctAnswer: "Stop",
+    instruction: "Find and click the Stop button (usually a square icon)",
+    hint: "The Stop button is next to the Play button",
+    correctAnswer: "Play stopped",
     validation: (context) => context.action === 'playback-stopped',
-    requiresLoopPlaced: true,
-    allowSkip: false,
     lockFeatures: {
       allowLoopDrag: true,
-      allowPlayback: true,
-      allowVolumeChange: true
+      allowPlayback: true
     }
   },
 
-  // SECTION 7: LOOP EDITING (Challenge 20)
+  // SECTION 7: LOOP PREVIEW (Challenge 20)
   {
     id: 20,
-    section: "Loop Editing",
-    question: "Delete a loop by clicking on the red trash can icon on the loop.",
+    section: "Loop Preview",
+    question: "Before adding a loop to your timeline, you can preview it. Click on any loop in the library to hear it.",
     type: 'interactive-task',
-    instruction: "Click the red trash can icon on the loop",
-    hint: "Click the red trash can icon on the loop",
-    correctAnswer: "Delete loop",
-    validation: (context) => context.action === 'loop-deleted',
-    requiresLoopPlaced: true,
-    allowSkip: false,
+    instruction: "Click on any loop name in the Loop Library to preview it",
+    hint: "Just click on a loop name in the left panel",
+    correctAnswer: "Loop previewed",
+    validation: (context) => context.action === 'loop-previewed',
     lockFeatures: {
       allowLoopDrag: true,
-      allowPlayback: false
+      allowLoopLibraryClick: true
     }
+  },
+
+  // FINAL CHALLENGE (Challenge 21)
+  {
+    id: 21,
+    section: "Completion",
+    question: "Congratulations! You've learned the basics of the DAW. Ready to move on?",
+    type: 'multiple-choice',
+    instruction: "Select 'Yes' to complete the tutorial",
+    hint: "Click 'Yes' when you're ready",
+    correctAnswer: "Yes",
+    choices: ["Yes, I'm ready!", "Let me practice more"],
+    correctIndex: 0,
+    explanation: "Great work! You're ready to start composing your own film music.",
+    autoAdvanceOnCorrect: true
   }
 ];

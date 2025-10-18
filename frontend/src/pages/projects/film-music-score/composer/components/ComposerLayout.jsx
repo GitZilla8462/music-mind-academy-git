@@ -100,8 +100,8 @@ const ComposerLayout = ({
         {tutorialMode ? (
           // Tutorial Mode - Fixed heights without resizing
           <>
-            {/* Video Player */}
-            <div className="flex-shrink-0" style={{ height: '300px' }}>
+            {/* Video Player - REDUCED TO 150px (50% smaller) */}
+            <div className="flex-shrink-0" style={{ height: '150px' }}>
               <div 
                 className="h-full p-4"
                 onClick={() => {
