@@ -21,7 +21,7 @@ const DAWTutorialActivity = ({ onComplete }) => {
     lastInteraction: null
   });
   const [idleTime, setIdleTime] = useState(0);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(false); // CHANGED: Default to false
   const [hasError, setHasError] = useState(false);
   const [isProcessingSuccess, setIsProcessingSuccess] = useState(false);
   const [isProcessingClick, setIsProcessingClick] = useState(false);
@@ -48,26 +48,13 @@ const DAWTutorialActivity = ({ onComplete }) => {
     return timeoutId;
   }, []);
 
-  // Text-to-speech
+  // Text-to-speech - REMOVED FUNCTIONALITY
   const speakText = useCallback((text, enabled) => {
-    if (!enabled || !('speechSynthesis' in window) || !isMountedRef.current) return;
-    
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9;
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
-    
-    const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(voice => 
-      voice.name.includes('Google') || voice.name.includes('Natural')
-    );
-    if (preferredVoice) utterance.voice = preferredVoice;
-    
-    window.speechSynthesis.speak(utterance);
+    // Voice narration disabled
+    return;
   }, []);
 
-  // Next challenge function - DEFINED EARLY
+  // Next challenge function
   const nextChallenge = useCallback(() => {
     if (isProcessingSuccess || !isMountedRef.current) return;
     
@@ -75,6 +62,7 @@ const DAWTutorialActivity = ({ onComplete }) => {
       if (!completionCalledRef.current) {
         completionCalledRef.current = true;
         
+        // Cancel any speech synthesis just in case
         if ('speechSynthesis' in window) {
           window.speechSynthesis.cancel();
         }
@@ -105,15 +93,8 @@ const DAWTutorialActivity = ({ onComplete }) => {
     setIdleTime(0);
     setDawContext(prev => ({ ...prev, action: null }));
     
-    setSafeTimeout(() => {
-      if (isMountedRef.current) {
-        const nextChallenge = DAW_CHALLENGES[currentChallengeIndex + 1];
-        if (nextChallenge) {
-          speakText(nextChallenge.question, voiceEnabled);
-        }
-      }
-    }, 500);
-  }, [currentChallengeIndex, voiceEnabled, isProcessingSuccess, onComplete, setSafeTimeout, speakText]);
+    // REMOVED: Voice narration on next challenge
+  }, [currentChallengeIndex, isProcessingSuccess, onComplete, setSafeTimeout]);
 
   // Challenge interaction handlers
   const handlers = {
@@ -285,13 +266,12 @@ const DAWTutorialActivity = ({ onComplete }) => {
       
       setCompletedChallenges(prev => new Set([...prev, currentChallenge.id]));
       
-      // Always auto-advance after showing success message
       setSafeTimeout(() => {
         if (isMountedRef.current) {
           nextChallenge();
           setIsProcessingSuccess(false);
         }
-      }, 1500); // 1.5 second delay to show the success message
+      }, 1500);
     }
 
     setSafeTimeout(() => {
@@ -317,12 +297,11 @@ const DAWTutorialActivity = ({ onComplete }) => {
       
       setCompletedChallenges(prev => new Set([...prev, currentChallenge.id]));
       
-      // Always auto-advance for multiple choice questions after a brief delay
       setSafeTimeout(() => {
         if (isMountedRef.current) {
           nextChallenge();
         }
-      }, 1500); // 1.5 second delay to show the success message
+      }, 1500);
     } else {
       setFeedback({ type: 'error', message: 'Not quite. Try again!' });
       
@@ -356,15 +335,8 @@ const DAWTutorialActivity = ({ onComplete }) => {
     setIsProcessingClick(false);
     setDawContext(prev => ({ ...prev, action: null }));
     
-    setSafeTimeout(() => {
-      if (isMountedRef.current) {
-        const newChallenge = DAW_CHALLENGES[index];
-        if (newChallenge) {
-          speakText(newChallenge.question, voiceEnabled);
-        }
-      }
-    }, 500);
-  }, [voiceEnabled, setSafeTimeout, speakText]);
+    // REMOVED: Voice narration when skipping to challenge
+  }, []);
 
   // DEV: Complete tutorial immediately
   const devCompleteAll = useCallback(() => {
@@ -392,12 +364,11 @@ const DAWTutorialActivity = ({ onComplete }) => {
     }
   }, [onComplete, setSafeTimeout]);
 
-  // Repeat question
+  // Repeat question - REMOVED VOICE
   const repeatQuestion = useCallback(() => {
-    if (isMountedRef.current && currentChallenge) {
-      speakText(currentChallenge.question, true);
-    }
-  }, [currentChallenge, speakText]);
+    // Voice disabled - this button can be hidden in ChallengePanel
+    console.log('Repeat question clicked (voice disabled)');
+  }, []);
 
   // Check if challenge can be attempted
   const canAttemptChallenge = useCallback(() => {
@@ -449,24 +420,8 @@ const DAWTutorialActivity = ({ onComplete }) => {
     return () => clearTimeout(timer);
   }, [setSafeTimeout]);
 
-  // Load voices on mount
-  useEffect(() => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.getVoices();
-    }
-  }, []);
-
-  // Speak first challenge question after DAW is ready
-  useEffect(() => {
-    if (isDAWReady && currentChallenge && currentChallengeIndex === 0 && voiceEnabled && isMountedRef.current) {
-      const timer = setSafeTimeout(() => {
-        if (isMountedRef.current) {
-          speakText(currentChallenge.question, voiceEnabled);
-        }
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isDAWReady, currentChallenge, currentChallengeIndex, voiceEnabled, setSafeTimeout, speakText]);
+  // REMOVED: Load voices effect
+  // REMOVED: Speak first challenge effect
 
   // Idle timer
   useEffect(() => {
