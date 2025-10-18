@@ -28,13 +28,8 @@ const Lesson1 = () => {
 
   // COMPLETE LESSON CONFIGURATION
   const lesson1Config = {
-    title: "Introduction to Film Music",
-    description: "Learn the basics of film music composition and create your first mysterious score.",
-    estimatedTime: 45,
-    difficulty: "beginner",
+    title: "Introduction to the Digital Audio Workstation",
     learningObjectives: [
-      "Understand how music enhances storytelling in films",
-      "Learn the fundamental concepts of film music composition",
       "Master the DAW interface and basic controls",
       "Practice placing and manipulating music loops",
       "Create a mysterious film score using layering techniques"
@@ -44,27 +39,27 @@ const Lesson1 = () => {
         id: 1,
         type: "video",
         title: "Lesson Introduction",
-        description: "Introduction to film music composition",
+        estimatedTime: "3 min",
         src: "/lessons/film-music-project/lesson1/Lesson1intro.mp4"
       },
       {
         id: 2,
         type: "daw-tutorial",
         title: "DAW Basics Interactive Tutorial",
-        description: "Learn the DAW interface through guided challenges"
+        estimatedTime: "5 min"
       },
       {
         id: 3,
         type: "video",
         title: "Activity Introduction",
-        description: "Your composition assignment for The School Beneath",
+        estimatedTime: "2 min",
         src: "/lessons/film-music-project/lesson1/Lesson1activityintro.mp4"
       },
       {
         id: 4,
         type: "school-beneath-activity",
-        title: "The School Beneath - Composition Exercise",
-        description: "Create a mysterious film score using instrumentation, layering, and structure"
+        title: "The School Beneath",
+        estimatedTime: "10 min"
       }
     ]
   };
@@ -348,17 +343,17 @@ const Lesson1 = () => {
       <div className={`h-screen flex flex-col ${showNavigation ? 'pt-10' : 'pt-0'} transition-all duration-300`}>
         {!lessonStarted ? (
           // COMPACT Lesson Start/Resume Screen
-          <div className="flex-1 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg shadow-2xl p-6 max-w-3xl w-full max-h-[85vh] overflow-y-auto">
-              {/* Header - COMPACT */}
-              <div className="mb-4">
-                <h1 className="text-2xl font-bold text-gray-800 mb-1">{lesson1Config.title}</h1>
-                <p className="text-sm text-gray-600">{lesson1Config.description}</p>
+          <div className="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-gray-800 via-gray-900 to-black">
+            <div className="bg-white rounded-xl shadow-2xl p-5 max-w-4xl w-full">
+              {/* Header */}
+              <div className="mb-5 text-center">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{lesson1Config.title}</h1>
+                <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 mx-auto rounded-full"></div>
               </div>
 
-              {/* Resume Notice - COMPACT */}
+              {/* Resume Notice */}
               {savedProgress && (
-                <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
+                <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 p-2.5 rounded">
                   <div className="flex items-start">
                     <div className="flex-shrink-0">
                       <RotateCcw className="h-4 w-4 text-blue-500" />
@@ -374,69 +369,69 @@ const Lesson1 = () => {
                 </div>
               )}
 
-              {/* Two Column Layout for Learning Objectives and Info */}
-              <div className="grid md:grid-cols-2 gap-4 mb-4">
-                {/* Learning Objectives - COMPACT */}
-                <div>
-                  <h2 className="text-base font-semibold mb-2">What You'll Learn</h2>
-                  <ul className="space-y-1">
+              {/* Two Column Layout */}
+              <div className="grid md:grid-cols-2 gap-5 mb-5">
+                {/* Activities - LEFT COLUMN */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-lg font-bold text-gray-800 flex items-center">
+                      <span className="bg-blue-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm mr-2">📋</span>
+                      Activities
+                    </h2>
+                    <span className="text-sm font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
+                      Total: ~20 min
+                    </span>
+                  </div>
+                  <div className="space-y-2.5">
+                    {lesson1Config.activities.map((activity, index) => (
+                      <div key={index} className="bg-white p-3 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center flex-1">
+                            <span className="bg-blue-100 text-blue-700 font-bold w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2.5 flex-shrink-0">
+                              {index + 1}
+                            </span>
+                            <div className="font-medium text-gray-800 text-sm">{activity.title}</div>
+                          </div>
+                          <div className="text-xs font-semibold text-blue-600 ml-2 whitespace-nowrap bg-blue-50 px-2.5 py-1 rounded-full">
+                            ≈ {activity.estimatedTime}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* What You'll Learn - RIGHT COLUMN */}
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border border-green-100">
+                  <h2 className="text-lg font-bold mb-3 text-gray-800 flex items-center">
+                    <span className="bg-green-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm mr-2">🎯</span>
+                    What You'll Learn
+                  </h2>
+                  <ul className="space-y-2.5">
                     {lesson1Config.learningObjectives.map((objective, index) => (
-                      <li key={index} className="flex items-start space-x-1.5 text-sm">
-                        <CheckCircle className="text-green-500 mt-0.5 flex-shrink-0" size={14} />
-                        <span className="text-gray-700">{objective}</span>
+                      <li key={index} className="flex items-start space-x-2.5 bg-white p-3 rounded-lg shadow-sm border border-green-100">
+                        <CheckCircle className="text-green-500 mt-0.5 flex-shrink-0" size={18} />
+                        <span className="text-gray-700 text-sm leading-relaxed">{objective}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-
-                {/* Lesson Info - COMPACT */}
-                <div className="space-y-2">
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-center flex-1">
-                        <div className="text-xl font-bold text-blue-600">{lesson1Config.estimatedTime}</div>
-                        <div className="text-xs text-gray-500">Minutes</div>
-                      </div>
-                      <div className="text-center flex-1 border-l border-r border-gray-300">
-                        <div className="text-xl font-bold text-green-600 capitalize">{lesson1Config.difficulty}</div>
-                        <div className="text-xs text-gray-500">Difficulty</div>
-                      </div>
-                      <div className="text-center flex-1">
-                        <div className="text-xl font-bold text-purple-600">{lesson1Config.activities.length}</div>
-                        <div className="text-xs text-gray-500">Activities</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Activity List Preview */}
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <h3 className="text-xs font-semibold text-gray-700 mb-2">Activities:</h3>
-                    <ol className="space-y-1">
-                      {lesson1Config.activities.map((activity, index) => (
-                        <li key={index} className="text-xs text-gray-600 flex items-start">
-                          <span className="font-semibold mr-1.5">{index + 1}.</span>
-                          <span className="flex-1">{activity.title}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                </div>
               </div>
 
-              {/* Start/Resume Buttons - COMPACT */}
-              <div className="space-y-2">
+              {/* Start/Resume Buttons */}
+              <div className="space-y-2.5">
                 {savedProgress ? (
                   <>
                     <button 
                       onClick={resumeLesson}
-                      className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-base font-semibold inline-flex items-center justify-center space-x-2 transform hover:scale-105 w-full"
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all text-base font-semibold inline-flex items-center justify-center space-x-2 transform hover:scale-105 w-full shadow-lg hover:shadow-xl"
                     >
-                      <RotateCcw size={18} />
+                      <RotateCcw size={20} />
                       <span>Resume Lesson</span>
                     </button>
                     <button 
                       onClick={startOver}
-                      className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium inline-flex items-center justify-center space-x-2 w-full"
+                      className="bg-gray-100 text-gray-700 px-8 py-2.5 rounded-xl hover:bg-gray-200 transition-all text-sm font-medium inline-flex items-center justify-center space-x-2 w-full border-2 border-gray-200 hover:border-gray-300"
                     >
                       <Play size={16} />
                       <span>Start Over</span>
@@ -445,9 +440,9 @@ const Lesson1 = () => {
                 ) : (
                   <button 
                     onClick={startLesson}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-base font-semibold inline-flex items-center justify-center space-x-2 transform hover:scale-105 w-full"
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all text-base font-semibold inline-flex items-center justify-center space-x-2 transform hover:scale-105 w-full shadow-lg hover:shadow-xl"
                   >
-                    <Play size={18} />
+                    <Play size={20} />
                     <span>Start Lesson</span>
                   </button>
                 )}
