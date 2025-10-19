@@ -1,5 +1,6 @@
 // File: /src/lessons/film-music-project/lesson1/Lesson1.jsx
 // Complete lesson with COMPACT introduction screen
+// UPDATED: Added Two Stars and a Wish reflection activity support
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -8,6 +9,7 @@ import { useAuth } from '../../../context/AuthContext';
 import VideoPlayer from '../../components/activities/video/VideoPlayer';
 import DAWTutorialActivity from './activities/daw-tutorial/DAWTutorialActivity';
 import SchoolBeneathActivity from './activities/SchoolBeneathActivity';
+import TwoStarsAndAWishActivity from './activities/two-stars-and-a-wish/TwoStarsAndAWishActivity';
 
 const LESSON_PROGRESS_KEY = 'lesson1-progress';
 
@@ -25,6 +27,7 @@ const Lesson1 = () => {
   // Check if viewing saved work
   const searchParams = new URLSearchParams(location.search);
   const viewSavedMode = searchParams.get('view') === 'saved';
+  const viewReflectionMode = searchParams.get('view') === 'reflection';
 
   // COMPLETE LESSON CONFIGURATION
   const lesson1Config = {
@@ -32,7 +35,8 @@ const Lesson1 = () => {
     learningObjectives: [
       "Master the DAW interface and basic controls",
       "Practice placing and manipulating music loops",
-      "Create a mysterious film score using layering techniques"
+      "Create a mysterious film score using layering techniques",
+      "Reflect on your creative process and musical decisions"
     ],
     activities: [
       {
@@ -60,6 +64,12 @@ const Lesson1 = () => {
         type: "school-beneath-activity",
         title: "The School Beneath",
         estimatedTime: "10 min"
+      },
+      {
+        id: 5,
+        type: "two-stars-wish",
+        title: "Reflection Activity",
+        estimatedTime: "5 min"
       }
     ]
   };
@@ -68,6 +78,12 @@ const Lesson1 = () => {
   useEffect(() => {
     if (viewSavedMode) {
       setCurrentActivity(3); // Index of school-beneath-activity
+      setLessonStarted(true);
+      return;
+    }
+
+    if (viewReflectionMode) {
+      setCurrentActivity(4); // Index of reflection activity
       setLessonStarted(true);
       return;
     }
@@ -83,11 +99,11 @@ const Lesson1 = () => {
         localStorage.removeItem(LESSON_PROGRESS_KEY);
       }
     }
-  }, [viewSavedMode]);
+  }, [viewSavedMode, viewReflectionMode]);
 
   // Save progress to localStorage
   const saveProgress = useCallback(() => {
-    if (viewSavedMode) return; // Don't save progress in view mode
+    if (viewSavedMode || viewReflectionMode) return; // Don't save progress in view mode
 
     const progress = {
       currentActivity,
@@ -98,14 +114,14 @@ const Lesson1 = () => {
     
     localStorage.setItem(LESSON_PROGRESS_KEY, JSON.stringify(progress));
     console.log('Lesson progress saved:', progress);
-  }, [currentActivity, activityCompleted, lessonStarted, viewSavedMode]);
+  }, [currentActivity, activityCompleted, lessonStarted, viewSavedMode, viewReflectionMode]);
 
   // Save progress whenever it changes
   useEffect(() => {
-    if (lessonStarted && !viewSavedMode) {
+    if (lessonStarted && !viewSavedMode && !viewReflectionMode) {
       saveProgress();
     }
-  }, [currentActivity, activityCompleted, lessonStarted, saveProgress, viewSavedMode]);
+  }, [currentActivity, activityCompleted, lessonStarted, saveProgress, viewSavedMode, viewReflectionMode]);
 
   const handleBackNavigation = useCallback((e) => {
     e.preventDefault();
@@ -291,7 +307,7 @@ const Lesson1 = () => {
 
             {/* Lesson Context */}
             <div className="text-xs text-gray-400 flex-shrink-0">
-              {viewSavedMode ? 'Viewing Saved Work' : 'Intro to the DAW'}
+              {viewSavedMode ? 'Viewing Saved Composition' : viewReflectionMode ? 'Viewing Saved Reflection' : 'Intro to the DAW'}
             </div>
 
             {/* Lesson Title */}
@@ -300,7 +316,7 @@ const Lesson1 = () => {
             </div>
 
             {/* Progress Bar - Grows to fill available space */}
-            {!viewSavedMode && (
+            {!viewSavedMode && !viewReflectionMode && (
               <div className="flex-1 min-w-[200px] max-w-md">
                 <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
                   <div 
@@ -312,7 +328,7 @@ const Lesson1 = () => {
             )}
 
             {/* Activity Counter */}
-            {!viewSavedMode && (
+            {!viewSavedMode && !viewReflectionMode && (
               <div className="text-sm text-gray-300 flex-shrink-0">
                 Activity {currentActivity + 1} of {lesson1Config.activities.length}
               </div>
@@ -379,7 +395,7 @@ const Lesson1 = () => {
                       Activities
                     </h2>
                     <span className="text-sm font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
-                      Total: ~20 min
+                      Total: ~25 min
                     </span>
                   </div>
                   <div className="space-y-2.5">
@@ -483,6 +499,15 @@ const Lesson1 = () => {
                       key={`school-beneath-${currentActivity}`}
                       onComplete={handleActivityComplete}
                       viewMode={viewSavedMode}
+                    />
+                  )}
+
+                  {/* Two Stars and a Wish Reflection Activity */}
+                  {currentActivityData.type === 'two-stars-wish' && (
+                    <TwoStarsAndAWishActivity 
+                      key={`reflection-${currentActivity}`}
+                      onComplete={handleActivityComplete}
+                      viewMode={viewReflectionMode}
                     />
                   )}
                 </div>
