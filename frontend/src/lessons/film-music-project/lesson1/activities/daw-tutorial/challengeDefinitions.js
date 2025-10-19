@@ -6,7 +6,7 @@ export const DAW_CHALLENGES = [
   {
     id: 1,
     section: "Video Player",
-    question: "Click on the area of the DAW that allows you to watch a video while composing music.",
+    question: "Click on the video player where you can watch the film clip.",
     type: 'identify-click',
     instruction: "Click anywhere on the video player at the top",
     hint: "The video player is the large area at the top showing the film clip",
@@ -24,7 +24,7 @@ export const DAW_CHALLENGES = [
   {
     id: 2,
     section: "Video Player",
-    question: "True or False: The video helps you match your music to the mood and timing of scenes.",
+    question: "True or False: Watching the video helps you create music that fits the scene.",
     type: 'multiple-choice',
     instruction: "Select your answer below",
     hint: "Music needs to match what's happening on screen",
@@ -39,7 +39,7 @@ export const DAW_CHALLENGES = [
   {
     id: 3,
     section: "Loop Library",
-    question: "Click on the area where you find all the available music loops to use in your composition.",
+    question: "Click on the Loop Library on the left side of the screen.",
     type: 'identify-click',
     instruction: "Click anywhere in the Loop Library panel on the left",
     hint: "It's the entire left panel with categories and sound names",
@@ -57,7 +57,7 @@ export const DAW_CHALLENGES = [
   {
     id: 4,
     section: "Loop Library",
-    question: "What are the short, repeatable musical phrases in the library called?",
+    question: "What do we call the short, repeating music clips in the library?",
     type: 'multiple-choice',
     instruction: "Select your answer below",
     hint: "They're designed to repeat seamlessly",
@@ -83,7 +83,7 @@ export const DAW_CHALLENGES = [
   {
     id: 6,
     section: "Loop Library",
-    question: "Loops are organized into categories. Which category would you use for rhythm?",
+    question: "Which category would you click to find rhythm sounds?",
     type: 'multiple-choice',
     instruction: "Select your answer below",
     hint: "Think about what instrument keeps the beat",
@@ -97,7 +97,7 @@ export const DAW_CHALLENGES = [
   {
     id: 7,
     section: "Timeline & Tracks",
-    question: "The horizontal area where you arrange loops is called the what?",
+    question: "What's the name of the horizontal area where you arrange your loops?",
     type: 'multiple-choice',
     instruction: "Select your answer below",
     hint: "It shows time flowing from left to right",
@@ -109,7 +109,7 @@ export const DAW_CHALLENGES = [
   {
     id: 8,
     section: "Timeline & Tracks",
-    question: "Each horizontal row in the timeline is called a what?",
+    question: "What do we call each horizontal row in the timeline?",
     type: 'multiple-choice',
     instruction: "Select your answer below",
     hint: "Each instrument typically gets its own row",
@@ -121,10 +121,10 @@ export const DAW_CHALLENGES = [
   {
     id: 9,
     section: "Timeline & Tracks",
-    question: "Click on any track header (the name area on the left of a track).",
+    question: "Click on any track header.",
     type: 'interactive-task',
     instruction: "Click on the track name/header area on the left side",
-    hint: "It's the colored area on the left that shows the track name",
+    hint: "It's the colored area on the left that shows the track name and controls",
     correctAnswer: "Yes",
     validation: (context) => context.action === 'track-header-clicked',
     requiresLoopPlaced: false,
@@ -135,10 +135,10 @@ export const DAW_CHALLENGES = [
   {
     id: 10,
     section: "Timeline & Tracks",
-    question: "The vertical line that shows your current playback position is called the what?",
+    question: "What's the name of the vertical line that shows where you are in the song?",
     type: 'multiple-choice',
     instruction: "Select your answer below",
-    hint: "It's usually red and shows where you are in the song",
+    hint: "It's usually red and moves as the music plays",
     correctAnswer: "Playhead",
     choices: ["Timeline", "Playhead", "Track", "Measure Line"],
     correctIndex: 1,
@@ -165,10 +165,10 @@ export const DAW_CHALLENGES = [
   {
     id: 12,
     section: "Track Controls",
-    question: "Click the volume buttons (< or >) on any track to adjust its level.",
+    question: "Find the volume controls on a track and change the volume.",
     type: 'interactive-task',
-    instruction: "Find the volume buttons in any track header and click them to change the volume.",
-    hint: "Look for the < and > buttons with a percentage number between them in the track header.",
+    instruction: "Click the volume buttons (< or >) in any track header to adjust the level",
+    hint: "Look for the < and > buttons with a percentage number between them in the track header",
     correctAnswer: "Adjust volume",
     validation: (context) => context.action === 'track-volume-changed',
     lockFeatures: {
@@ -210,10 +210,10 @@ export const DAW_CHALLENGES = [
   {
     id: 15,
     section: "Navigation",
-    question: "What allows you to see more detail or fit more of your composition on screen?",
+    question: "What controls let you zoom in to see more detail or zoom out to see more of your song?",
     type: 'multiple-choice',
     instruction: "Select your answer below",
-    hint: "It changes how much time you can see at once",
+    hint: "These controls change how much time you can see at once",
     correctAnswer: "Zoom controls",
     choices: ["Pan controls", "Zoom controls", "View mode", "Scale"],
     correctIndex: 1,
@@ -238,7 +238,7 @@ export const DAW_CHALLENGES = [
   {
     id: 17,
     section: "Playback",
-    question: "True or False: You should listen to your composition regularly to hear how it sounds.",
+    question: "True or False: It's important to listen to your music as you create it.",
     type: 'multiple-choice',
     instruction: "Select your answer below",
     hint: "Composers need to hear their work to make good decisions",
@@ -251,10 +251,10 @@ export const DAW_CHALLENGES = [
   {
     id: 18,
     section: "Playback",
-    question: "Click the Play button to start playback of your composition.",
+    question: "Click the Play button at the bottom of your screen to start playback of your composition.",
     type: 'interactive-task',
     instruction: "Find and click the Play button (usually a triangle icon)",
-    hint: "The Play button is typically in the transport controls",
+    hint: "The Play button is in the transport controls at the bottom of the screen",
     correctAnswer: "Play started",
     validation: (context) => context.action === 'playback-started',
     requiresLoopPlaced: true,
@@ -280,7 +280,7 @@ export const DAW_CHALLENGES = [
 
   // FINAL CHALLENGE (Challenge 20)
   {
-    id: 21,
+    id: 20,
     section: "Completion",
     question: "Congratulations! You've learned the basics of the DAW. Ready to move on?",
     type: 'multiple-choice',

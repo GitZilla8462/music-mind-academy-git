@@ -20,8 +20,8 @@ const DAWTutorialActivity = ({ onComplete }) => {
     action: null,
     lastInteraction: null
   });
-  const [idleTime, setIdleTime] = useState(0);
-  const [voiceEnabled, setVoiceEnabled] = useState(false); // CHANGED: Default to false
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceVolume, setVoiceVolume] = useState(0.5);
   const [hasError, setHasError] = useState(false);
   const [isProcessingSuccess, setIsProcessingSuccess] = useState(false);
   const [isProcessingClick, setIsProcessingClick] = useState(false);
@@ -32,6 +32,7 @@ const DAWTutorialActivity = ({ onComplete }) => {
   const completionCalledRef = useRef(false);
   const hasInitialized = useRef(false);
   const timeoutsRef = useRef([]);
+  const hasSpokenFirstChallenge = useRef(false);
 
   // Current challenge
   const currentChallenge = DAW_CHALLENGES[currentChallengeIndex];
@@ -48,11 +49,43 @@ const DAWTutorialActivity = ({ onComplete }) => {
     return timeoutId;
   }, []);
 
-  // Text-to-speech - REMOVED FUNCTIONALITY
-  const speakText = useCallback((text, enabled) => {
-    // Voice narration disabled
-    return;
-  }, []);
+  // Text-to-speech - FULLY IMPLEMENTED WITH VOLUME CONTROL
+  const speakText = useCallback((text, enabled = voiceEnabled) => {
+    if (!enabled || !text) {
+      console.log('Voice disabled or no text provided');
+      return;
+    }
+    
+    // Cancel any ongoing speech
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      
+      // Small delay to ensure cancellation completes
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        utterance.volume = voiceVolume;
+        
+        // Use a clear voice if available
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(voice => 
+          voice.name.includes('Google') || 
+          voice.name.includes('Microsoft') ||
+          voice.lang.startsWith('en')
+        );
+        
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
+        
+        window.speechSynthesis.speak(utterance);
+        console.log('🔊 Speaking:', text, 'at volume:', voiceVolume);
+      }, 100);
+    } else {
+      console.warn('Speech synthesis not supported in this browser');
+    }
+  }, [voiceEnabled, voiceVolume]);
 
   // Next challenge function
   const nextChallenge = useCallback(() => {
@@ -62,7 +95,7 @@ const DAWTutorialActivity = ({ onComplete }) => {
       if (!completionCalledRef.current) {
         completionCalledRef.current = true;
         
-        // Cancel any speech synthesis just in case
+        // Cancel any speech synthesis
         if ('speechSynthesis' in window) {
           window.speechSynthesis.cancel();
         }
@@ -90,11 +123,18 @@ const DAWTutorialActivity = ({ onComplete }) => {
     setFeedback(null);
     setShowHint(false);
     setShowExplanation(false);
-    setIdleTime(0);
     setDawContext(prev => ({ ...prev, action: null }));
     
-    // REMOVED: Voice narration on next challenge
-  }, [currentChallengeIndex, isProcessingSuccess, onComplete, setSafeTimeout]);
+    // Speak the new challenge question
+    const nextChallengeData = DAW_CHALLENGES[currentChallengeIndex + 1];
+    if (nextChallengeData && voiceEnabled && isMountedRef.current) {
+      setSafeTimeout(() => {
+        if (isMountedRef.current) {
+          speakText(nextChallengeData.question, voiceEnabled);
+        }
+      }, 500);
+    }
+  }, [currentChallengeIndex, isProcessingSuccess, onComplete, setSafeTimeout, voiceEnabled, speakText]);
 
   // Challenge interaction handlers
   const handlers = {
@@ -107,7 +147,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
         action: 'loop-placed',
         lastInteraction: Date.now()
       }));
-      setIdleTime(0);
     }, []),
 
     handleLoopDelete: useCallback((loopId) => {
@@ -119,7 +158,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
         action: 'loop-deleted',
         lastInteraction: Date.now()
       }));
-      setIdleTime(0);
     }, []),
 
     handleLoopMove: useCallback((loopId, newTimePosition) => {
@@ -133,7 +171,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
         action: 'loop-moved',
         lastInteraction: Date.now()
       }));
-      setIdleTime(0);
     }, []),
 
     handleLoopResize: useCallback((loopId, newDuration) => {
@@ -144,7 +181,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
         action: 'loop-resized',
         lastInteraction: Date.now()
       }));
-      setIdleTime(0);
     }, []),
 
     handleTrackHeaderClick: useCallback((trackIndex) => {
@@ -155,7 +191,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
         action: 'track-header-clicked',
         lastInteraction: Date.now()
       }));
-      setIdleTime(0);
     }, []),
 
     handleTrackVolumeChange: useCallback((trackIndex, volume) => {
@@ -166,7 +201,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
         action: 'track-volume-changed',
         lastInteraction: Date.now()
       }));
-      setIdleTime(0);
     }, []),
 
     handleSoloToggle: useCallback((trackIndex) => {
@@ -177,7 +211,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
         action: 'track-solo-toggled',
         lastInteraction: Date.now()
       }));
-      setIdleTime(0);
     }, []),
 
     handleZoomChange: useCallback((zoomLevel) => {
@@ -188,7 +221,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
         action: 'zoom-changed',
         lastInteraction: Date.now()
       }));
-      setIdleTime(0);
     }, []),
 
     handleLoopLibraryClick: useCallback(() => {
@@ -199,7 +231,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
         action: 'loop-library-clicked',
         lastInteraction: Date.now()
       }));
-      setIdleTime(0);
     }, []),
 
     handleVideoPlayerClick: useCallback(() => {
@@ -210,7 +241,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
         action: 'video-player-clicked',
         lastInteraction: Date.now()
       }));
-      setIdleTime(0);
     }, []),
 
     handleLoopPreview: useCallback(() => {
@@ -221,7 +251,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
         action: 'loop-previewed',
         lastInteraction: Date.now()
       }));
-      setIdleTime(0);
     }, []),
 
     handlePlaybackStart: useCallback(() => {
@@ -232,7 +261,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
         action: 'playback-started',
         lastInteraction: Date.now()
       }));
-      setIdleTime(0);
     }, []),
 
     handlePlaybackStop: useCallback(() => {
@@ -243,7 +271,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
         action: 'playback-stopped',
         lastInteraction: Date.now()
       }));
-      setIdleTime(0);
     }, [])
   };
 
@@ -330,13 +357,22 @@ const DAWTutorialActivity = ({ onComplete }) => {
     setFeedback(null);
     setShowHint(false);
     setShowExplanation(false);
-    setIdleTime(0);
     setIsProcessingSuccess(false);
     setIsProcessingClick(false);
     setDawContext(prev => ({ ...prev, action: null }));
+    hasSpokenFirstChallenge.current = false;
     
-    // REMOVED: Voice narration when skipping to challenge
-  }, []);
+    // Speak the new challenge
+    const newChallenge = DAW_CHALLENGES[index];
+    if (newChallenge && voiceEnabled && isMountedRef.current) {
+      setSafeTimeout(() => {
+        if (isMountedRef.current) {
+          speakText(newChallenge.question, voiceEnabled);
+          hasSpokenFirstChallenge.current = true;
+        }
+      }, 500);
+    }
+  }, [voiceEnabled, speakText, setSafeTimeout]);
 
   // DEV: Complete tutorial immediately
   const devCompleteAll = useCallback(() => {
@@ -364,11 +400,12 @@ const DAWTutorialActivity = ({ onComplete }) => {
     }
   }, [onComplete, setSafeTimeout]);
 
-  // Repeat question - REMOVED VOICE
+  // Repeat question
   const repeatQuestion = useCallback(() => {
-    // Voice disabled - this button can be hidden in ChallengePanel
-    console.log('Repeat question clicked (voice disabled)');
-  }, []);
+    if (currentChallenge && voiceEnabled && isMountedRef.current) {
+      speakText(currentChallenge.question, voiceEnabled);
+    }
+  }, [currentChallenge, voiceEnabled, speakText]);
 
   // Check if challenge can be attempted
   const canAttemptChallenge = useCallback(() => {
@@ -409,6 +446,24 @@ const DAWTutorialActivity = ({ onComplete }) => {
     }
   }, []);
 
+  // Load voices
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      const loadVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        console.log('📢 Available voices:', voices.length);
+        if (voices.length > 0) {
+          console.log('First voice:', voices[0].name);
+        }
+      };
+      
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    } else {
+      console.warn('Speech synthesis not supported');
+    }
+  }, []);
+
   // Auto-ready after short delay
   useEffect(() => {
     const timer = setSafeTimeout(() => {
@@ -420,20 +475,19 @@ const DAWTutorialActivity = ({ onComplete }) => {
     return () => clearTimeout(timer);
   }, [setSafeTimeout]);
 
-  // REMOVED: Load voices effect
-  // REMOVED: Speak first challenge effect
-
-  // Idle timer
+  // Speak first challenge when DAW is ready - ONLY ONCE
   useEffect(() => {
-    if (!feedback && currentChallenge && currentChallenge.type !== 'multiple-choice' && isMountedRef.current) {
-      const timer = setSafeTimeout(() => {
+    if (isDAWReady && currentChallenge && voiceEnabled && isMountedRef.current && !hasSpokenFirstChallenge.current) {
+      console.log('🎯 DAW is ready, speaking first challenge...');
+      hasSpokenFirstChallenge.current = true;
+      
+      setSafeTimeout(() => {
         if (isMountedRef.current) {
-          setIdleTime(prev => prev + 1);
+          speakText(currentChallenge.question, voiceEnabled);
         }
       }, 1000);
-      return () => clearTimeout(timer);
     }
-  }, [idleTime, feedback, currentChallenge, setSafeTimeout]);
+  }, [isDAWReady]);
 
   // Error boundary fallback
   if (hasError) {
@@ -547,6 +601,8 @@ const DAWTutorialActivity = ({ onComplete }) => {
                 <div>Challenge: {currentChallengeIndex + 1}/{DAW_CHALLENGES.length}</div>
                 <div>Completed: {completedChallenges.size}</div>
                 <div>DAW Ready: {isDAWReady ? 'Yes' : 'No'}</div>
+                <div>Voice: {voiceEnabled ? 'ON' : 'OFF'}</div>
+                <div>Volume: {Math.round(voiceVolume * 100)}%</div>
                 <div>Mounted: {isMountedRef.current ? 'Yes' : 'No'}</div>
               </div>
             </div>
@@ -585,6 +641,8 @@ const DAWTutorialActivity = ({ onComplete }) => {
           showExplanation={showExplanation}
           voiceEnabled={voiceEnabled}
           setVoiceEnabled={setVoiceEnabled}
+          voiceVolume={voiceVolume}
+          setVoiceVolume={setVoiceVolume}
           onMultipleChoiceAnswer={handleMultipleChoiceAnswer}
           onNextChallenge={nextChallenge}
           onSkipChallenge={skipChallenge}
@@ -622,39 +680,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
           showToast={(msg, type) => console.log(msg, type)}
         />
       </div>
-
-      {/* Idle Reminder */}
-      {idleTime > 30 && !feedback && isDAWReady && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fadeIn">
-          <div className="bg-white p-6 rounded-lg max-w-md shadow-2xl">
-            <h3 className="text-lg font-bold mb-2 text-gray-800">Need some help?</h3>
-            <p className="mb-4 text-gray-600">{currentChallenge.instruction}</p>
-            <div className="flex space-x-3">
-              <button
-                onClick={() => {
-                  if (isMountedRef.current) {
-                    setShowHint(true);
-                    setIdleTime(0);
-                  }
-                }}
-                className="flex-1 bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition-colors"
-              >
-                Show Hint
-              </button>
-              <button
-                onClick={() => {
-                  if (isMountedRef.current) {
-                    setIdleTime(0);
-                  }
-                }}
-                className="flex-1 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
-              >
-                I've Got This
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Requirement Warning */}
       {!canAttemptChallenge() && isDAWReady && (
