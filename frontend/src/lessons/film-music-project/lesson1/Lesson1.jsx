@@ -34,7 +34,10 @@ const Lesson1 = () => {
   const classroomRole = localStorage.getItem('classroom-user-role');
   const isTeacher = user?.role === 'teacher' || classroomRole === 'teacher';
   
-  // Navigation tools available for: Teachers (always) OR Anyone in development mode
+  // Navigation tools available for:
+  // - Teachers (always, in any mode)
+  // - Development environment (always, for debugging)
+  // NOT available for students in production
   const canAccessNavTools = isTeacher || isDevelopment;
 
   // COMPLETE LESSON CONFIGURATION

@@ -540,7 +540,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
         </div>
       )}
 
-      {/* Navigation Tools Panel - Dropdown from top right */}
+      {/* Navigation Tools Panel - Dropdown from top right - ONLY IF canAccessNavTools */}
       {navToolsEnabled && canAccessNavTools && (
         <div className="fixed top-16 right-4 z-50">
           <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
