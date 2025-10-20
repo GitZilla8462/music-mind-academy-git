@@ -1,5 +1,6 @@
 // File: /src/lessons/film-music-project/lesson1/activities/two-stars-and-a-wish/ReflectionModal.jsx
 // COMPLETE: Voice narration, minimizable, separate screens per question, composition visible behind
+// FIXED: Step 5 summary button now always visible without scrolling
 
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, Star, Sparkles, Volume2, VolumeX, HelpCircle, Minimize2, Maximize2 } from 'lucide-react';
@@ -114,9 +115,6 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
       }
     };
   }, [currentStep, reflectionData.reviewType, reflectionData.partnerName]);
-
-  // Remove the separate useEffect that was resetting hasSpoken
-  // This was causing the issue - it was preventing speech
 
   // Dragging handlers
   const handleMouseDown = (e) => {
@@ -357,8 +355,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="flex-1 overflow-y-auto px-6 py-4" style={{ pointerEvents: 'auto' }}>
+      {/* Content Area - MODIFIED FOR STEP 5 */}
+      <div className={`flex-1 overflow-y-auto px-6 py-4 ${currentStep === 5 ? 'flex flex-col' : ''}`} style={{ pointerEvents: 'auto' }}>
         
         {/* STEP 0: Choose Review Type - CENTERED */}
         {currentStep === 0 && (
@@ -592,71 +590,77 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
           </div>
         )}
 
-        {/* STEP 5: Summary with Read Direction */}
+        {/* STEP 5: Summary with FIXED BUTTON - NO SCROLLING REQUIRED */}
         {currentStep === 5 && (
-          <div className="space-y-4">
-            <div className="text-center mb-4">
-              <Sparkles className="mx-auto text-yellow-500 mb-2" size={48} />
-              <h2 className="text-2xl font-bold text-gray-800">🎵 Your Reflection Summary</h2>
-              <p className="text-sm text-gray-600 mt-1">
-                You reviewed: {reflectionData.reviewType === 'self' ? 'Your own composition' : `${reflectionData.partnerName}'s composition`}
-              </p>
-            </div>
-
-            {/* Direction to Read Aloud */}
-            <div className={`p-4 rounded-lg border-2 text-center ${
-              reflectionData.reviewType === 'self' 
-                ? 'bg-blue-50 border-blue-300' 
-                : 'bg-purple-50 border-purple-300'
-            }`}>
-              <p className="text-lg font-bold text-gray-800 mb-2">📖 Now Read Your Reflection Aloud!</p>
-              <p className="text-gray-700">
-                {reflectionData.reviewType === 'self' 
-                  ? 'Read your reflection to yourself or share it with a neighbor.'
-                  : `Read this feedback out loud to ${reflectionData.partnerName}.`
-                }
-              </p>
-            </div>
-
-            <div className="space-y-4 bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-lg border-2 border-blue-200">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Star className="text-yellow-500" size={20} />
-                  <h3 className="font-bold text-gray-800">STAR 1: Using the DAW</h3>
-                </div>
-                <p className="text-gray-700 bg-white p-3 rounded border border-gray-200">{reflectionData.star1}</p>
+          <>
+            {/* Scrollable content area */}
+            <div className="flex-1 overflow-y-auto space-y-4">
+              <div className="text-center mb-4">
+                <Sparkles className="mx-auto text-yellow-500 mb-2" size={48} />
+                <h2 className="text-2xl font-bold text-gray-800">🎵 Your Reflection Summary</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  You reviewed: {reflectionData.reviewType === 'self' ? 'Your own composition' : `${reflectionData.partnerName}'s composition`}
+                </p>
               </div>
 
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Star className="text-yellow-500" size={20} />
-                  <h3 className="font-bold text-gray-800">STAR 2: Loop Timing & Music Sound</h3>
-                </div>
-                <p className="text-gray-700 bg-white p-3 rounded border border-gray-200">{reflectionData.star2}</p>
+              {/* Direction to Read Aloud */}
+              <div className={`p-4 rounded-lg border-2 text-center ${
+                reflectionData.reviewType === 'self' 
+                  ? 'bg-blue-50 border-blue-300' 
+                  : 'bg-purple-50 border-purple-300'
+              }`}>
+                <p className="text-lg font-bold text-gray-800 mb-2">📖 Now Read Your Reflection Aloud!</p>
+                <p className="text-gray-700">
+                  {reflectionData.reviewType === 'self' 
+                    ? 'Read your reflection to yourself or share it with a neighbor.'
+                    : `Read this feedback out loud to ${reflectionData.partnerName}.`
+                  }
+                </p>
               </div>
 
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="text-purple-500" size={20} />
-                  <h3 className="font-bold text-gray-800">WISH: What to try next</h3>
+              <div className="space-y-4 bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-lg border-2 border-blue-200 mb-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Star className="text-yellow-500" size={20} />
+                    <h3 className="font-bold text-gray-800">STAR 1: Using the DAW</h3>
+                  </div>
+                  <p className="text-gray-700 bg-white p-3 rounded border border-gray-200">{reflectionData.star1}</p>
                 </div>
-                <p className="text-gray-700 bg-white p-3 rounded border border-gray-200">{reflectionData.wish}</p>
+
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Star className="text-yellow-500" size={20} />
+                    <h3 className="font-bold text-gray-800">STAR 2: Loop Timing & Music Sound</h3>
+                  </div>
+                  <p className="text-gray-700 bg-white p-3 rounded border border-gray-200">{reflectionData.star2}</p>
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="text-purple-500" size={20} />
+                    <h3 className="font-bold text-gray-800">WISH: What to try next</h3>
+                  </div>
+                  <p className="text-gray-700 bg-white p-3 rounded border border-gray-200">{reflectionData.wish}</p>
+                </div>
               </div>
             </div>
 
-            <button
-              onClick={handleDone}
-              className="w-full mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-            >
-              <CheckCircle size={20} />
-              Done - Return to Home
-            </button>
-          </div>
+            {/* FIXED FOOTER with button - ALWAYS VISIBLE */}
+            <div className="flex-shrink-0 pt-4 border-t-2 border-gray-200 bg-white">
+              <button
+                onClick={handleDone}
+                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <CheckCircle size={20} />
+                Done - Return to Home
+              </button>
+            </div>
+          </>
         )}
       </div>
 
       {/* Hint Section */}
-      {showHint && (
+      {showHint && currentStep !== 5 && (
         <div className="px-4 py-3 bg-yellow-50 border-t-2 border-yellow-200 flex-shrink-0" style={{ pointerEvents: 'auto' }}>
           <div className="text-sm text-yellow-900">
             <span className="font-semibold">💡 Hint:</span> Take your time to think about your answer. Be specific and honest in your reflection!
