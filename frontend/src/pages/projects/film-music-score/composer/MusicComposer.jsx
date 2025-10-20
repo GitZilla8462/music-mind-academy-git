@@ -1,5 +1,5 @@
 // composer/MusicComposer.jsx - Main orchestrator (refactored)
-// FIXED: Reordered hooks so selectedVideo exists before useAudioEngine
+// FIXED: Added onDAWReadyCallback with tutorial mode support
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -34,6 +34,7 @@ const MusicComposer = ({
   onLoopPreviewCallback,
   onPlaybackStartCallback,
   onPlaybackStopCallback,
+  onDAWReadyCallback,
   lockFeatures = {},
   highlightSelector,
   hideHeader = false,
@@ -46,8 +47,9 @@ const MusicComposer = ({
   const navigate = useNavigate();
   const playersCreatedRef = useRef(false);
   const savedLoopsRef = useRef(null);
+  const dawReadyCalledRef = useRef(false);
 
-  // FIXED: Central state management FIRST (so selectedVideo exists)
+  // Central state management FIRST (so selectedVideo exists)
   const {
     selectedVideo,
     setSelectedVideo,
@@ -82,7 +84,7 @@ const MusicComposer = ({
     containerRef
   } = useComposerState(preselectedVideo);
 
-  // FIXED: Audio engine hook SECOND (now selectedVideo exists)
+  // Audio engine hook SECOND (now selectedVideo exists)
   const {
     isPlaying,
     currentTime,
@@ -100,6 +102,29 @@ const MusicComposer = ({
     initializeAudio,
     playersRef
   } = useAudioEngine(selectedVideo?.duration);
+
+  // Notify when DAW is ready for tutorial mode
+  useEffect(() => {
+    // For tutorial mode: DAW is ready once audio initializes (no video needed)
+    // For normal mode: DAW is ready when we have video AND audio
+    const isDawReady = tutorialMode 
+      ? audioReady && !videoLoading  // Tutorial just needs audio
+      : selectedVideo && audioReady && !videoLoading;  // Normal needs video + audio
+    
+    if (isDawReady && !dawReadyCalledRef.current && onDAWReadyCallback) {
+      console.log('✅ DAW is fully initialized - calling onDAWReadyCallback');
+      console.log('   - tutorialMode:', tutorialMode);
+      console.log('   - selectedVideo:', !!selectedVideo);
+      console.log('   - audioReady:', audioReady);
+      console.log('   - videoLoading:', videoLoading);
+      dawReadyCalledRef.current = true;
+      
+      // Use setTimeout to ensure state updates have propagated
+      setTimeout(() => {
+        onDAWReadyCallback();
+      }, 100);
+    }
+  }, [selectedVideo, audioReady, tutorialMode, videoLoading, onDAWReadyCallback]);
 
   // STEP 1: Store initial loops and load into state immediately
   useEffect(() => {
@@ -123,10 +148,8 @@ const MusicComposer = ({
       console.log('🎵 Audio ready! Creating players for', savedLoopsRef.current.length, 'saved loops...');
       
       savedLoopsRef.current.forEach(loop => {
-        // CRITICAL FIX: Use the PLACED loop ID (unique ID) as the key
-        // The loopData.id should match what we'll look up later (loop.id)
         const loopData = {
-          id: loop.id,  // Use placed loop ID, not originalId!
+          id: loop.id,
           originalId: loop.originalId || loop.id.split('-')[0] + '-' + loop.id.split('-')[1],
           name: loop.name,
           file: loop.file,
@@ -137,7 +160,6 @@ const MusicComposer = ({
         console.log('  → Creating player for:', loopData.name, 'with ID:', loop.id);
         
         try {
-          // Pass loopData where id = placed loop ID
           createLoopPlayer(loopData, loop.id);
           console.log('  ✅ Player stored with key:', loop.id);
         } catch (error) {

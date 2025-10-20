@@ -1,6 +1,5 @@
 // File: /src/lessons/film-music-project/lesson1/Lesson1.jsx
-// Complete lesson with COMPACT introduction screen
-// UPDATED: Added Two Stars and a Wish reflection activity support
+// Complete lesson with navigation tools for teachers
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -21,13 +20,22 @@ const Lesson1 = () => {
   const [lessonStarted, setLessonStarted] = useState(false);
   const [activityCompleted, setActivityCompleted] = useState({});
   const [showNavigation, setShowNavigation] = useState(true);
-  const [showSkipTools, setShowSkipTools] = useState(false);
   const [savedProgress, setSavedProgress] = useState(null);
+  const [navToolsEnabled, setNavToolsEnabled] = useState(false);
 
-  // Check if viewing saved work
+  // Check if viewing saved work or reflection
   const searchParams = new URLSearchParams(location.search);
   const viewSavedMode = searchParams.get('view') === 'saved';
   const viewReflectionMode = searchParams.get('view') === 'reflection';
+
+  // Determine if user can access navigation tools
+  const isDevelopment = import.meta.env.DEV;
+  const isClassroomUser = localStorage.getItem('classroom-logged-in') === 'true';
+  const classroomRole = localStorage.getItem('classroom-user-role');
+  const isTeacher = user?.role === 'teacher' || classroomRole === 'teacher';
+  
+  // Navigation tools available for: Teachers (always) OR Anyone in development mode
+  const canAccessNavTools = isTeacher || isDevelopment;
 
   // COMPLETE LESSON CONFIGURATION
   const lesson1Config = {
@@ -35,8 +43,7 @@ const Lesson1 = () => {
     learningObjectives: [
       "Master the DAW interface and basic controls",
       "Practice placing and manipulating music loops",
-      "Create a mysterious film score using layering techniques",
-      "Reflect on your creative process and musical decisions"
+      "Create a mysterious film score using layering techniques"
     ],
     activities: [
       {
@@ -77,46 +84,42 @@ const Lesson1 = () => {
   // Load saved progress on mount
   useEffect(() => {
     if (viewSavedMode) {
-      setCurrentActivity(3); // Index of school-beneath-activity
+      setCurrentActivity(3);
       setLessonStarted(true);
       return;
     }
 
     if (viewReflectionMode) {
-      setCurrentActivity(4); // Index of reflection activity
+      setCurrentActivity(4);
       setLessonStarted(true);
       return;
     }
 
-    const saved = localStorage.getItem(LESSON_PROGRESS_KEY);
-    if (saved) {
-      try {
+    try {
+      const saved = localStorage.getItem(LESSON_PROGRESS_KEY);
+      if (saved) {
         const progress = JSON.parse(saved);
-        console.log('Found saved lesson progress:', progress);
         setSavedProgress(progress);
-      } catch (error) {
-        console.error('Error loading saved progress:', error);
-        localStorage.removeItem(LESSON_PROGRESS_KEY);
       }
+    } catch (error) {
+      console.error('Error loading saved progress:', error);
     }
   }, [viewSavedMode, viewReflectionMode]);
 
-  // Save progress to localStorage
+  // Save progress automatically
   const saveProgress = useCallback(() => {
-    if (viewSavedMode || viewReflectionMode) return; // Don't save progress in view mode
-
-    const progress = {
-      currentActivity,
-      activityCompleted,
-      timestamp: new Date().toISOString(),
-      lessonStarted
-    };
-    
-    localStorage.setItem(LESSON_PROGRESS_KEY, JSON.stringify(progress));
-    console.log('Lesson progress saved:', progress);
+    if (!viewSavedMode && !viewReflectionMode) {
+      const progress = {
+        currentActivity,
+        activityCompleted,
+        lessonStarted,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem(LESSON_PROGRESS_KEY, JSON.stringify(progress));
+    }
   }, [currentActivity, activityCompleted, lessonStarted, viewSavedMode, viewReflectionMode]);
 
-  // Save progress whenever it changes
+  // Auto-save progress
   useEffect(() => {
     if (lessonStarted && !viewSavedMode && !viewReflectionMode) {
       saveProgress();
@@ -162,7 +165,6 @@ const Lesson1 = () => {
     if (currentActivity < lesson1Config.activities.length - 1) {
       setCurrentActivity(prev => prev + 1);
     } else {
-      // Lesson complete - clear progress
       localStorage.removeItem(LESSON_PROGRESS_KEY);
       console.log('Lesson completed - progress cleared');
     }
@@ -196,7 +198,7 @@ const Lesson1 = () => {
     setShowNavigation(prev => !prev);
   }, []);
 
-  // Skip to specific activity
+  // Skip to specific activity (for navigation tools in Lesson1)
   const skipToActivity = useCallback((index) => {
     if (index < 0 || index >= lesson1Config.activities.length) return;
     console.log('Skipping to activity:', index);
@@ -219,72 +221,79 @@ const Lesson1 = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 relative overflow-hidden">
-      {/* Skip Tools - Available in all environments */}
-      {lessonStarted && (
-        <div className="fixed bottom-4 right-4 z-50">
-          <button
-            onClick={() => setShowSkipTools(!showSkipTools)}
-            className="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-mono hover:bg-blue-700 transition-colors shadow-lg mb-2"
-          >
-            {showSkipTools ? 'Hide' : 'Show'} Skip Tools
-          </button>
-          
-          {showSkipTools && (
-            <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
-              <div className="text-blue-400 text-xs font-mono mb-2 font-bold">🛠️ LESSON NAVIGATION</div>
-              
-              {/* Activity Navigator */}
-              <div className="mb-3">
-                <div className="text-gray-300 text-xs mb-2 font-semibold">Jump to Activity:</div>
-                <div className="space-y-1">
-                  {lesson1Config.activities.map((activity, index) => (
-                    <button
-                      key={index}
-                      onClick={() => skipToActivity(index)}
-                      className={`w-full text-left text-xs px-3 py-2 rounded transition-colors ${
-                        currentActivity === index
-                          ? 'bg-purple-600 text-white font-bold'
-                          : activityCompleted[index]
-                          ? 'bg-green-700 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      <div className="font-semibold">{index + 1}. {activity.title}</div>
-                      <div className="text-xs opacity-75">{activity.type}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Quick Actions */}
+      {/* Navigation Tools Toggle - Only for Teachers or Dev Mode */}
+      {canAccessNavTools && lessonStarted && !viewSavedMode && !viewReflectionMode && (
+        <button 
+          onClick={() => setNavToolsEnabled(!navToolsEnabled)}
+          className="fixed top-20 right-4 z-50 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-lg"
+        >
+          {navToolsEnabled ? '🧭 Hide Navigation Tools' : '🧭 Show Navigation Tools'}
+        </button>
+      )}
+
+      {/* Navigation Tools Panel - Only for Lesson-Level Activities */}
+      {navToolsEnabled && canAccessNavTools && lessonStarted && !viewSavedMode && !viewReflectionMode && currentActivityData?.type !== 'daw-tutorial' && (
+        <div className="fixed top-32 right-4 z-50">
+          <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
+            <div className="text-blue-400 text-xs font-mono mb-2 font-bold">🧭 LESSON NAVIGATION</div>
+            
+            {/* Activity Navigator */}
+            <div className="mb-3">
+              <div className="text-gray-300 text-xs mb-2 font-semibold">Jump to Activity:</div>
               <div className="space-y-1">
-                <button
-                  onClick={skipNext}
-                  disabled={currentActivity >= lesson1Config.activities.length - 1}
-                  className="w-full bg-blue-600 text-white text-xs px-3 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold flex items-center justify-center gap-2"
-                >
-                  <SkipForward size={14} />
-                  Skip to Next Activity
-                </button>
-                <button
-                  onClick={() => skipToActivity(3)}
-                  className="w-full bg-green-600 text-white text-xs px-3 py-2 rounded hover:bg-green-700 transition-colors font-semibold"
-                >
-                  🎵 Jump to School Beneath Activity
-                </button>
-              </div>
-              
-              {/* Current Status */}
-              <div className="mt-3 pt-2 border-t border-gray-700 text-xs text-gray-400 font-mono">
-                <div>Activity: {currentActivity + 1}/{lesson1Config.activities.length}</div>
-                <div>Type: {currentActivityData?.type}</div>
-                <div>Completed: {Object.keys(activityCompleted).length}</div>
-                <div className="text-purple-400 mt-1 truncate" title={currentActivityData?.title}>
-                  {currentActivityData?.title}
-                </div>
+                {lesson1Config.activities.map((activity, index) => (
+                  <button
+                    key={index}
+                    onClick={() => skipToActivity(index)}
+                    className={`w-full text-left text-xs px-3 py-2 rounded transition-colors ${
+                      currentActivity === index
+                        ? 'bg-purple-600 text-white font-bold'
+                        : activityCompleted[index]
+                        ? 'bg-green-700 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    <div className="font-semibold">{index + 1}. {activity.title}</div>
+                    <div className="text-xs opacity-75">{activity.type}</div>
+                  </button>
+                ))}
               </div>
             </div>
-          )}
+            
+            {/* Quick Actions */}
+            <div className="space-y-1">
+              <button
+                onClick={skipNext}
+                disabled={currentActivity >= lesson1Config.activities.length - 1}
+                className="w-full bg-blue-600 text-white text-xs px-3 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold flex items-center justify-center gap-2"
+              >
+                <SkipForward size={14} />
+                Skip to Next Activity
+              </button>
+              <button
+                onClick={() => skipToActivity(3)}
+                className="w-full bg-green-600 text-white text-xs px-3 py-2 rounded hover:bg-green-700 transition-colors font-semibold"
+              >
+                🎵 Jump to School Beneath Activity
+              </button>
+              <button
+                onClick={() => skipToActivity(4)}
+                className="w-full bg-purple-600 text-white text-xs px-3 py-2 rounded hover:bg-purple-700 transition-colors font-semibold"
+              >
+                ⭐ Jump to Reflection Activity
+              </button>
+            </div>
+            
+            {/* Current Status */}
+            <div className="mt-3 pt-2 border-t border-gray-700 text-xs text-gray-400 font-mono">
+              <div>Activity: {currentActivity + 1}/{lesson1Config.activities.length}</div>
+              <div>Type: {currentActivityData?.type}</div>
+              <div>Completed: {Object.keys(activityCompleted).length}</div>
+              <div className="text-purple-400 mt-1 truncate" title={currentActivityData?.title}>
+                {currentActivityData?.title}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -307,7 +316,7 @@ const Lesson1 = () => {
 
             {/* Lesson Context */}
             <div className="text-xs text-gray-400 flex-shrink-0">
-              {viewSavedMode ? 'Viewing Saved Composition' : viewReflectionMode ? 'Viewing Saved Reflection' : 'Intro to the DAW'}
+              {viewSavedMode ? 'Viewing Saved Work' : viewReflectionMode ? 'Viewing Reflection' : 'Intro to the DAW'}
             </div>
 
             {/* Lesson Title */}
@@ -358,7 +367,7 @@ const Lesson1 = () => {
       {/* Main Content */}
       <div className={`h-screen flex flex-col ${showNavigation ? 'pt-10' : 'pt-0'} transition-all duration-300`}>
         {!lessonStarted ? (
-          // COMPACT Lesson Start/Resume Screen
+          // Lesson Start/Resume Screen
           <div className="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-gray-800 via-gray-900 to-black">
             <div className="bg-white rounded-xl shadow-2xl p-5 max-w-4xl w-full">
               {/* Header */}
@@ -387,7 +396,7 @@ const Lesson1 = () => {
 
               {/* Two Column Layout */}
               <div className="grid md:grid-cols-2 gap-5 mb-5">
-                {/* Activities - LEFT COLUMN */}
+                {/* Activities */}
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100">
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-lg font-bold text-gray-800 flex items-center">
@@ -417,7 +426,7 @@ const Lesson1 = () => {
                   </div>
                 </div>
 
-                {/* What You'll Learn - RIGHT COLUMN */}
+                {/* What You'll Learn */}
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border border-green-100">
                   <h2 className="text-lg font-bold mb-3 text-gray-800 flex items-center">
                     <span className="bg-green-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm mr-2">🎯</span>
@@ -490,6 +499,8 @@ const Lesson1 = () => {
                     <DAWTutorialActivity 
                       key={`daw-tutorial-${currentActivity}`}
                       onComplete={handleActivityComplete}
+                      navToolsEnabled={navToolsEnabled}
+                      canAccessNavTools={canAccessNavTools}
                     />
                   )}
 

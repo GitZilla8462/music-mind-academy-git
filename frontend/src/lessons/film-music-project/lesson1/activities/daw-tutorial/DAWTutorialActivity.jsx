@@ -1,11 +1,12 @@
 // File: /src/lessons/film-music-project/lesson1/activities/daw-tutorial/DAWTutorialActivity.jsx
+// FINAL: Navigation tools dropdown from top right, no extra toggle
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import MusicComposer from '../../../../../pages/projects/film-music-score/composer/MusicComposer';
 import ChallengePanel from './ChallengePanel';
 import { DAW_CHALLENGES } from './challengeDefinitions';
 
-const DAWTutorialActivity = ({ onComplete }) => {
+const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNavTools = false }) => {
   // Core state
   const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0);
   const [completedChallenges, setCompletedChallenges] = useState(new Set());
@@ -25,7 +26,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
   const [hasError, setHasError] = useState(false);
   const [isProcessingSuccess, setIsProcessingSuccess] = useState(false);
   const [isProcessingClick, setIsProcessingClick] = useState(false);
-  const [showDevTools, setShowDevTools] = useState(false);
 
   // Refs
   const isMountedRef = useRef(true);
@@ -33,6 +33,7 @@ const DAWTutorialActivity = ({ onComplete }) => {
   const hasInitialized = useRef(false);
   const timeoutsRef = useRef([]);
   const hasSpokenFirstChallenge = useRef(false);
+  const dawReadyTimeoutRef = useRef(null);
 
   // Current challenge
   const currentChallenge = DAW_CHALLENGES[currentChallengeIndex];
@@ -45,57 +46,76 @@ const DAWTutorialActivity = ({ onComplete }) => {
         callback();
       }
     }, delay);
+    
     timeoutsRef.current.push(timeoutId);
     return timeoutId;
   }, []);
 
-  // Text-to-speech - FULLY IMPLEMENTED WITH VOLUME CONTROL
-  const speakText = useCallback((text, enabled = voiceEnabled) => {
-    if (!enabled || !text) {
-      console.log('Voice disabled or no text provided');
-      return;
-    }
-    
-    // Cancel any ongoing speech
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      
-      // Small delay to ensure cancellation completes
-      setTimeout(() => {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 0.9;
-        utterance.pitch = 1.0;
-        utterance.volume = voiceVolume;
-        
-        // Use a clear voice if available
-        const voices = window.speechSynthesis.getVoices();
-        const preferredVoice = voices.find(voice => 
-          voice.name.includes('Google') || 
-          voice.name.includes('Microsoft') ||
-          voice.lang.startsWith('en')
-        );
-        
-        if (preferredVoice) {
-          utterance.voice = preferredVoice;
+  // Fallback timeout to force DAW ready state after 5 seconds
+  useEffect(() => {
+    if (!isDAWReady) {
+      console.log('⏱️ Starting 5-second fallback timer for DAW initialization...');
+      dawReadyTimeoutRef.current = setTimeout(() => {
+        if (!isDAWReady && isMountedRef.current) {
+          console.warn('⚠️ DAW callback not received after 5s, forcing ready state');
+          setIsDAWReady(true);
         }
-        
-        window.speechSynthesis.speak(utterance);
-        console.log('🔊 Speaking:', text, 'at volume:', voiceVolume);
-      }, 100);
-    } else {
-      console.warn('Speech synthesis not supported in this browser');
+      }, 5000);
     }
-  }, [voiceEnabled, voiceVolume]);
 
-  // Next challenge function
+    return () => {
+      if (dawReadyTimeoutRef.current) {
+        clearTimeout(dawReadyTimeoutRef.current);
+      }
+    };
+  }, [isDAWReady]);
+
+  // Text-to-speech function
+  const speakText = useCallback((text, enabled) => {
+    if (!enabled || !('speechSynthesis' in window) || !isMountedRef.current) return;
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    utterance.volume = voiceVolume;
+
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice = voices.find(voice => 
+      voice.name.includes('Google') || voice.name.includes('Microsoft')
+    );
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
+
+    if (isMountedRef.current) {
+      window.speechSynthesis.speak(utterance);
+    }
+  }, [voiceVolume]);
+
+  // Speak first challenge on DAW ready
+  useEffect(() => {
+    if (isDAWReady && !hasSpokenFirstChallenge.current && currentChallenge && voiceEnabled && isMountedRef.current) {
+      setSafeTimeout(() => {
+        if (isMountedRef.current) {
+          speakText(currentChallenge.question, voiceEnabled);
+          hasSpokenFirstChallenge.current = true;
+        }
+      }, 1000);
+    }
+  }, [isDAWReady, currentChallenge, voiceEnabled, speakText, setSafeTimeout]);
+
+  // Next challenge
   const nextChallenge = useCallback(() => {
-    if (isProcessingSuccess || !isMountedRef.current) return;
+    if (!isMountedRef.current) return;
+    
+    setIsProcessingSuccess(true);
     
     if (currentChallengeIndex >= DAW_CHALLENGES.length - 1) {
       if (!completionCalledRef.current) {
         completionCalledRef.current = true;
         
-        // Cancel any speech synthesis
         if ('speechSynthesis' in window) {
           window.speechSynthesis.cancel();
         }
@@ -282,44 +302,38 @@ const DAWTutorialActivity = ({ onComplete }) => {
 
     setIsProcessingClick(true);
 
-    const isValid = currentChallenge.validation?.(dawContext) || false;
-    
+    const isValid = currentChallenge.validation?.(dawContext);
+
     if (isValid) {
-      setIsProcessingSuccess(true);
-      setFeedback({ 
-        type: 'success', 
-        message: currentChallenge.explanation || 'Correct! Well done!' 
-      });
-      
+      setFeedback({ type: 'success', message: 'Perfect! Great job!' });
       setCompletedChallenges(prev => new Set([...prev, currentChallenge.id]));
       
       setSafeTimeout(() => {
         if (isMountedRef.current) {
+          setIsProcessingClick(false);
           nextChallenge();
-          setIsProcessingSuccess(false);
         }
       }, 1500);
+    } else {
+      setSafeTimeout(() => {
+        if (isMountedRef.current) {
+          setIsProcessingClick(false);
+        }
+      }, 100);
     }
+  }, [dawContext.action, currentChallenge, feedback, isProcessingClick, nextChallenge, setSafeTimeout, dawContext]);
 
-    setSafeTimeout(() => {
-      if (isMountedRef.current) {
-        setIsProcessingClick(false);
-      }
-    }, 300);
-  }, [dawContext.action, currentChallenge, feedback, isProcessingClick, nextChallenge, setSafeTimeout]);
+  // Handle multiple choice answers
+  const handleMultipleChoiceAnswer = useCallback((answer, index) => {
+    if (feedback || !currentChallenge || !isMountedRef.current) return;
 
-  // Handle multiple choice answer
-  const handleMultipleChoiceAnswer = useCallback((choiceIndex) => {
-    if (feedback || !isMountedRef.current) return;
-    
-    setUserAnswer(choiceIndex);
-    
-    const isCorrect = choiceIndex === currentChallenge.correctIndex;
-    
+    setUserAnswer(answer);
+    const isCorrect = index === currentChallenge.correctIndex;
+
     if (isCorrect) {
       setFeedback({ 
         type: 'success', 
-        message: currentChallenge.explanation || 'Correct! Great job!' 
+        message: currentChallenge.explanation || 'Perfect! Great job!' 
       });
       
       setCompletedChallenges(prev => new Set([...prev, currentChallenge.id]));
@@ -348,8 +362,8 @@ const DAWTutorialActivity = ({ onComplete }) => {
     }
   }, [currentChallenge, nextChallenge]);
 
-  // DEV: Skip to any challenge
-  const devSkipToChallenge = useCallback((index) => {
+  // Navigation: Skip to any challenge
+  const navSkipToChallenge = useCallback((index) => {
     if (index < 0 || index >= DAW_CHALLENGES.length || !isMountedRef.current) return;
     
     setCurrentChallengeIndex(index);
@@ -374,8 +388,8 @@ const DAWTutorialActivity = ({ onComplete }) => {
     }
   }, [voiceEnabled, speakText, setSafeTimeout]);
 
-  // DEV: Complete tutorial immediately
-  const devCompleteAll = useCallback(() => {
+  // Navigation: Complete all immediately
+  const navCompleteAll = useCallback(() => {
     if (!completionCalledRef.current && isMountedRef.current) {
       completionCalledRef.current = true;
       
@@ -407,14 +421,6 @@ const DAWTutorialActivity = ({ onComplete }) => {
     }
   }, [currentChallenge, voiceEnabled, speakText]);
 
-  // Check if challenge can be attempted
-  const canAttemptChallenge = useCallback(() => {
-    if (currentChallenge && currentChallenge.requiresLoopPlaced && dawContext.placedLoops.length === 0) {
-      return false;
-    }
-    return true;
-  }, [currentChallenge, dawContext.placedLoops.length]);
-
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -422,6 +428,10 @@ const DAWTutorialActivity = ({ onComplete }) => {
       
       timeoutsRef.current.forEach(timeoutId => clearTimeout(timeoutId));
       timeoutsRef.current = [];
+      
+      if (dawReadyTimeoutRef.current) {
+        clearTimeout(dawReadyTimeoutRef.current);
+      }
       
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -450,58 +460,42 @@ const DAWTutorialActivity = ({ onComplete }) => {
   useEffect(() => {
     if ('speechSynthesis' in window) {
       const loadVoices = () => {
-        const voices = window.speechSynthesis.getVoices();
-        console.log('📢 Available voices:', voices.length);
-        if (voices.length > 0) {
-          console.log('First voice:', voices[0].name);
-        }
+        console.log('Voices loaded:', window.speechSynthesis.getVoices().length);
       };
       
+      window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
       loadVoices();
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    } else {
-      console.warn('Speech synthesis not supported');
+      
+      return () => {
+        window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
+      };
     }
   }, []);
 
-  // Auto-ready after short delay
-  useEffect(() => {
-    const timer = setSafeTimeout(() => {
-      if (isMountedRef.current) {
-        setIsDAWReady(true);
-      }
-    }, 2000);
+  // DAW ready callback
+  const handleDAWReady = useCallback(() => {
+    console.log('✅ DAW is ready for challenges (callback received)');
     
-    return () => clearTimeout(timer);
-  }, [setSafeTimeout]);
-
-  // Speak first challenge when DAW is ready - ONLY ONCE
-  useEffect(() => {
-    if (isDAWReady && currentChallenge && voiceEnabled && isMountedRef.current && !hasSpokenFirstChallenge.current) {
-      console.log('🎯 DAW is ready, speaking first challenge...');
-      hasSpokenFirstChallenge.current = true;
-      
-      setSafeTimeout(() => {
-        if (isMountedRef.current) {
-          speakText(currentChallenge.question, voiceEnabled);
-        }
-      }, 1000);
+    // Clear the fallback timeout since we got the callback
+    if (dawReadyTimeoutRef.current) {
+      clearTimeout(dawReadyTimeoutRef.current);
+      dawReadyTimeoutRef.current = null;
     }
-  }, [isDAWReady]);
+    
+    setIsDAWReady(true);
+  }, []);
 
-  // Error boundary fallback
+  // Error state
   if (hasError) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-gray-900">
-        <div className="text-center text-white max-w-md">
-          <div className="text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold mb-4">Something went wrong</h2>
-          <p className="mb-4">The tutorial encountered an error.</p>
+        <div className="text-center text-white">
+          <div className="text-red-500 text-xl mb-4">Something went wrong</div>
           <button
             onClick={() => window.location.reload()}
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Refresh Page
+            Reload Page
           </button>
         </div>
       </div>
@@ -541,72 +535,66 @@ const DAWTutorialActivity = ({ onComplete }) => {
             <div className="w-64 h-2 bg-gray-700 rounded-full overflow-hidden">
               <div className="h-full bg-blue-500 animate-pulse" style={{ width: '60%' }}></div>
             </div>
+            <div className="text-gray-400 text-sm mt-4">This should only take a moment</div>
           </div>
         </div>
       )}
 
-      {/* Dev Tools */}
-      {true && (
-        <div className="fixed top-4 right-4 z-50">
-          <button
-            onClick={() => setShowDevTools(!showDevTools)}
-            className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-mono hover:bg-blue-700 transition-colors shadow-lg"
-          >
-            {showDevTools ? 'Hide' : 'Show'} Dev Tools
-          </button>
-          
-          {showDevTools && (
-            <div className="mt-2 bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
-              <div className="text-blue-400 text-xs font-mono mb-2 font-bold">🛠️ DEV TOOLS</div>
-              
-              <div className="mb-3">
-                <div className="text-gray-300 text-xs mb-1 font-semibold">Jump to Challenge:</div>
-                <div className="grid grid-cols-5 gap-1">
-                  {DAW_CHALLENGES.map((challenge, index) => (
-                    <button
-                      key={index}
-                      onClick={() => devSkipToChallenge(index)}
-                      className={`text-xs px-2 py-1 rounded font-mono transition-colors ${
-                        currentChallengeIndex === index
-                          ? 'bg-purple-600 text-white font-bold'
-                          : completedChallenges.has(challenge.id)
-                          ? 'bg-green-700 text-white'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                      title={challenge.question}
-                    >
-                      {index + 1}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="space-y-1">
-                <button
-                  onClick={() => devSkipToChallenge(currentChallengeIndex + 1)}
-                  disabled={currentChallengeIndex >= DAW_CHALLENGES.length - 1}
-                  className="w-full bg-blue-600 text-white text-xs px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
-                >
-                  Skip Next
-                </button>
-                <button
-                  onClick={devCompleteAll}
-                  className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold"
-                >
-                  🚀 Complete All → Next Activity
-                </button>
-              </div>
-              
-              <div className="mt-3 pt-2 border-t border-gray-700 text-xs text-gray-400 font-mono">
-                <div>Challenge: {currentChallengeIndex + 1}/{DAW_CHALLENGES.length}</div>
-                <div>Completed: {completedChallenges.size}</div>
-                <div>DAW Ready: {isDAWReady ? 'Yes' : 'No'}</div>
-                <div>Voice: {voiceEnabled ? 'ON' : 'OFF'}</div>
-                <div>Volume: {Math.round(voiceVolume * 100)}%</div>
-                <div>Mounted: {isMountedRef.current ? 'Yes' : 'No'}</div>
+      {/* Navigation Tools Panel - Dropdown from top right */}
+      {navToolsEnabled && canAccessNavTools && (
+        <div className="fixed top-16 right-4 z-50">
+          <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
+            <div className="text-blue-400 text-xs font-mono mb-2 font-bold">🧭 TUTORIAL NAVIGATION</div>
+            
+            {/* Activity Navigator */}
+            <div className="mb-3">
+              <div className="text-gray-300 text-xs mb-2 font-semibold">Jump to Challenge:</div>
+              <div className="grid grid-cols-5 gap-1">
+                {DAW_CHALLENGES.map((challenge, index) => (
+                  <button
+                    key={index}
+                    onClick={() => navSkipToChallenge(index)}
+                    className={`text-xs px-2 py-1 rounded font-mono transition-colors ${
+                      currentChallengeIndex === index
+                        ? 'bg-purple-600 text-white font-bold'
+                        : completedChallenges.has(challenge.id)
+                        ? 'bg-green-700 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                    title={challenge.question}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
               </div>
             </div>
-          )}
+            
+            {/* Quick Actions */}
+            <div className="space-y-1">
+              <button
+                onClick={() => navSkipToChallenge(currentChallengeIndex + 1)}
+                disabled={currentChallengeIndex >= DAW_CHALLENGES.length - 1}
+                className="w-full bg-blue-600 text-white text-xs px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
+              >
+                Skip to Next Challenge
+              </button>
+              <button
+                onClick={navCompleteAll}
+                className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold"
+              >
+                🚀 Complete All → Next Activity
+              </button>
+            </div>
+            
+            {/* Current Status */}
+            <div className="mt-3 pt-2 border-t border-gray-700 text-xs text-gray-400 font-mono">
+              <div>Challenge: {currentChallengeIndex + 1}/{DAW_CHALLENGES.length}</div>
+              <div>Completed: {completedChallenges.size}</div>
+              <div>DAW Ready: {isDAWReady ? 'Yes' : 'No'}</div>
+              <div>Voice: {voiceEnabled ? 'ON' : 'OFF'}</div>
+              <div>Volume: {Math.round(voiceVolume * 100)}%</div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -666,29 +654,17 @@ const DAWTutorialActivity = ({ onComplete }) => {
           onLoopPreviewCallback={handlers.handleLoopPreview}
           onPlaybackStartCallback={handlers.handlePlaybackStart}
           onPlaybackStopCallback={handlers.handlePlaybackStop}
+          onDAWReadyCallback={handleDAWReady}
           tutorialMode={true}
-          highlightSelector={currentChallenge.highlightSelector}
-          lockFeatures={currentChallenge.lockFeatures}
           preselectedVideo={{
-            id: 'video-playback-area',
-            title: 'Video Playback Area',
-            duration: 30,
-            videoPath: '/lessons/film-music-project/lesson1/VideoPlaybackArea.mp4'
+            id: 'daw-tutorial',
+            title: 'DAW Tutorial',
+            duration: 60,
+            videoPath: '/lessons/videos/film-music-loop-project/SchoolMystery.mp4'
           }}
-          hideHeader={true}
-          hideSubmitButton={true}
-          showToast={(msg, type) => console.log(msg, type)}
+          lockFeatures={currentChallenge?.lockFeatures || {}}
         />
       </div>
-
-      {/* Requirement Warning */}
-      {!canAttemptChallenge() && isDAWReady && (
-        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white px-6 py-3 rounded-lg shadow-lg z-40">
-          <p className="text-sm font-medium">
-            Please place at least one loop on the timeline before attempting this challenge
-          </p>
-        </div>
-      )}
     </div>
   );
 };
