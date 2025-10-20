@@ -324,10 +324,10 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   }, [dawContext.action, currentChallenge, feedback, isProcessingClick, nextChallenge, setSafeTimeout, dawContext]);
 
   // Handle multiple choice answers
-  const handleMultipleChoiceAnswer = useCallback((answer, index) => {
+  const handleMultipleChoiceAnswer = useCallback((index) => {
     if (feedback || !currentChallenge || !isMountedRef.current) return;
 
-    setUserAnswer(answer);
+    setUserAnswer(index);
     const isCorrect = index === currentChallenge.correctIndex;
 
     if (isCorrect) {
