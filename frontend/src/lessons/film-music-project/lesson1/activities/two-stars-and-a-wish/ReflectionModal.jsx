@@ -1,6 +1,7 @@
 // File: /src/lessons/film-music-project/lesson1/activities/two-stars-and-a-wish/ReflectionModal.jsx
 // COMPLETE: Voice narration, minimizable, separate screens per question, composition visible behind
 // FIXED: Step 5 summary button now always visible without scrolling
+// FIXED: Better voice selection for natural US English
 
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, Star, Sparkles, Volume2, VolumeX, HelpCircle, Minimize2, Maximize2 } from 'lucide-react';
@@ -55,7 +56,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
     }
   }, [viewMode]);
 
-  // Voice synthesis
+  // Voice synthesis with better voice selection
   const speak = (text) => {
     if (!voiceEnabled || !text) return;
     
@@ -68,14 +69,27 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
       utterance.pitch = 1.0;
       
       const voices = window.speechSynthesis.getVoices();
+      
+      // Priority order for voice selection:
+      // 1. Samantha (Mac - natural US English)
+      // 2. Google US English Female
+      // 3. Microsoft voices (US English)
+      // 4. Any English voice with "United States" in the name
+      // 5. Default voice
       const preferredVoice = voices.find(voice => 
-        voice.name.includes('Google') || 
-        voice.name.includes('Microsoft') ||
-        voice.lang.startsWith('en')
-      );
+        voice.name === 'Samantha' || 
+        voice.name === 'Google US English' ||
+        voice.name === 'Google US English Female' ||
+        (voice.name.includes('Microsoft') && voice.lang === 'en-US') ||
+        voice.name.includes('Zira') || // Microsoft Zira (US English)
+        (voice.lang === 'en-US' && voice.name.includes('United States'))
+      ) || voices.find(voice => voice.lang.startsWith('en-US'));
       
       if (preferredVoice) {
         utterance.voice = preferredVoice;
+        console.log('Using voice:', preferredVoice.name, preferredVoice.lang);
+      } else {
+        console.log('Using default voice');
       }
       
       window.speechSynthesis.speak(utterance);

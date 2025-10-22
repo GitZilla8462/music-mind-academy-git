@@ -1,7 +1,7 @@
 // File: /src/lessons/film-music-project/lesson1/activities/daw-tutorial/ChallengePanel.jsx
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Volume2, VolumeX, HelpCircle, SkipForward, CheckCircle, XCircle } from 'lucide-react';
+import { Volume2, VolumeX, HelpCircle, SkipForward, CheckCircle, XCircle, Minimize2, Maximize2 } from 'lucide-react';
 
 const ChallengePanel = ({
   currentChallenge,
@@ -24,9 +24,15 @@ const ChallengePanel = ({
   onSkipChallenge,
   onRepeatQuestion
 }) => {
-  const [position, setPosition] = useState({ 
-    x: window.innerWidth / 2 - 200, 
-    y: 200
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [position, setPosition] = useState(() => {
+    // Start in bottom right corner
+    const panelWidth = 400;
+    const panelHeight = 400;
+    return {
+      x: window.innerWidth - panelWidth,
+      y: window.innerHeight - panelHeight
+    };
   });
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef({ startX: 0, startY: 0, initialX: 0, initialY: 0 });
@@ -97,18 +103,24 @@ const ChallengePanel = ({
           utterance.pitch = 1.0;
           
           const voices = window.speechSynthesis.getVoices();
+          
+          // Prioritize US English voices to avoid weird accents
           const preferredVoice = voices.find(voice => 
-            voice.name.includes('Google') || 
-            voice.name.includes('Microsoft') ||
-            voice.lang.startsWith('en')
-          );
+            voice.lang === 'en-US' && (
+              voice.name.includes('Google US English') ||
+              voice.name.includes('Microsoft David') ||
+              voice.name.includes('Microsoft Mark') ||
+              voice.name.includes('Samantha') ||
+              voice.name.includes('Alex')
+            )
+          ) || voices.find(voice => voice.lang === 'en-US') || voices.find(voice => voice.lang.startsWith('en'));
           
           if (preferredVoice) {
             utterance.voice = preferredVoice;
           }
           
           window.speechSynthesis.speak(utterance);
-          console.log('🔊 Restarted speech with new volume:', newVolume);
+          console.log('ðŸ”Š Restarted speech with new volume:', newVolume);
         }
       }, 100);
     }
@@ -124,6 +136,43 @@ const ChallengePanel = ({
     setVoiceEnabled(!voiceEnabled);
     console.log('Voice toggled:', !voiceEnabled);
   };
+
+  // Minimized view
+  if (isMinimized) {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          right: '20px',
+          bottom: '20px',
+          width: '250px',
+          zIndex: 1000,
+          pointerEvents: 'auto'
+        }}
+        className="bg-white rounded-lg shadow-2xl border-4 border-orange-500"
+        onMouseDown={handleMouseDown}
+      >
+        <div className="drag-handle bg-orange-500 px-4 py-2 flex items-center justify-between cursor-move">
+          <div className="text-white font-bold text-sm">
+            Challenge {currentChallengeIndex + 1}/{totalChallenges}
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsMinimized(false);
+            }}
+            className="p-1 bg-white/20 rounded hover:bg-white/30 transition-colors"
+            title="Restore panel"
+          >
+            <Maximize2 size={16} className="text-white" />
+          </button>
+        </div>
+        <div className="px-4 py-2 text-sm text-gray-600">
+          Click to restore
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -202,6 +251,18 @@ const ChallengePanel = ({
           >
             <HelpCircle size={16} className="text-white" />
           </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsMinimized(true);
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="p-1.5 bg-white/20 rounded hover:bg-white/30 transition-colors"
+            title="Minimize panel"
+          >
+            <Minimize2 size={16} className="text-white" />
+          </button>
         </div>
       </div>
 
@@ -227,15 +288,15 @@ const ChallengePanel = ({
             {currentChallenge.choices.map((choice, index) => (
               <button
                 key={index}
-                onClick={() => onMultipleChoiceAnswer(index)}
-                disabled={feedback !== null && userAnswer === index}
+                onClick={() => onMultipleChoiceAnswer(choice, index)}
+                disabled={feedback !== null && userAnswer === choice}
                 className={`w-full px-4 py-3 rounded-lg border-2 text-left font-medium transition-all ${
-                  userAnswer === index
+                  userAnswer === choice
                     ? feedback?.type === 'success'
                       ? 'border-green-500 bg-green-50 text-green-900'
                       : 'border-red-500 bg-red-50 text-red-900'
                     : 'border-gray-300 hover:border-blue-400 bg-white hover:bg-blue-50 text-gray-800'
-                } ${feedback !== null && userAnswer === index ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                } ${feedback !== null && userAnswer === choice ? 'cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 {choice}
               </button>
@@ -266,7 +327,7 @@ const ChallengePanel = ({
           style={{ pointerEvents: 'auto' }}
         >
           <div className="text-sm text-yellow-900">
-            <span className="font-semibold">💡 Hint:</span> {currentChallenge.hint}
+            <span className="font-semibold">ðŸ’¡ Hint:</span> {currentChallenge.hint}
           </div>
         </div>
       )}
@@ -299,7 +360,7 @@ const ChallengePanel = ({
           style={{ pointerEvents: 'auto' }}
         >
           <div className="text-sm text-green-900">
-            <span className="font-semibold">✓ Explanation:</span> {currentChallenge.explanation}
+            <span className="font-semibold">âœ“ Explanation:</span> {currentChallenge.explanation}
           </div>
         </div>
       )}

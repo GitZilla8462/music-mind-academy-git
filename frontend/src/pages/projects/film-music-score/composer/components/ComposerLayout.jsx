@@ -27,6 +27,8 @@ const ComposerLayout = ({
   submissionNotes,
   isDemo,
   isPractice,
+  restrictToCategory,
+  lockedMood,
   
   // Callbacks
   onLoopLibraryClick,
@@ -82,6 +84,8 @@ const ComposerLayout = ({
           onLoopDragStart={() => {}}
           tutorialMode={tutorialMode}
           lockFeatures={lockFeatures}
+          restrictToCategory={restrictToCategory}
+          lockedMood={lockedMood}
         />
       </div>
 

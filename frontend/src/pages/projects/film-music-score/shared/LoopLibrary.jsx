@@ -1,9 +1,9 @@
 // File: /src/pages/projects/film-music-score/shared/LoopLibrary.jsx
 // Dynamic loop library with backend API integration
-// FIXED: Loop preview plays once and stops automatically
+// UPDATED: Added restrictToCategory and lockedMood props to lock filters for lessons
 
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, Volume2, Search, Filter } from 'lucide-react';
+import { Play, Pause, Volume2, Search, Filter, Lock } from 'lucide-react';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
@@ -27,7 +27,9 @@ const LoopLibrary = ({
   onLoopPreview, 
   onLoopDragStart,
   tutorialMode = false,
-  lockFeatures = {}
+  lockFeatures = {},
+  restrictToCategory = null,  // NEW: Restrict to specific mood category
+  lockedMood = null            // NEW: Lock mood filter to specific value
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
@@ -35,9 +37,21 @@ const LoopLibrary = ({
   const [loading, setLoading] = useState(true);
   const [currentAudio, setCurrentAudio] = useState(null);
   const [error, setError] = useState(null);
-  const [moodFilter, setMoodFilter] = useState('All');
+  const [moodFilter, setMoodFilter] = useState(lockedMood || 'All');  // UPDATED: Use locked mood if provided
   const [instrumentFilter, setInstrumentFilter] = useState('All');
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
+  // DEBUG: Log props on mount
+  useEffect(() => {
+    console.log('🔍 LoopLibrary Props:', { restrictToCategory, lockedMood });
+  }, []);
+
+  // Lock mood filter when lockedMood is set
+  useEffect(() => {
+    if (lockedMood) {
+      setMoodFilter(lockedMood);
+    }
+  }, [lockedMood]);
 
   // Load loops from backend API
   useEffect(() => {
@@ -210,118 +224,95 @@ const LoopLibrary = ({
   // Filter loops by mood, instrument, and search term, then sort alphabetically
   const filteredLoops = loops
     .filter(loop => {
+      // Apply mood filter
       const matchesMood = moodFilter === 'All' || loop.mood === moodFilter;
+      
+      // Apply instrument filter
       const matchesInstrument = instrumentFilter === 'All' || loop.instrument === instrumentFilter;
-      const matchesSearch = loop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        loop.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-      return matchesMood && matchesInstrument && matchesSearch;
+      
+      // Apply search term filter
+      const matchesSearch = searchTerm === '' || 
+        loop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        loop.mood.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        loop.instrument.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (loop.subType && loop.subType.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      // NEW: Apply restrictToCategory filter (hard restriction)
+      const matchesRestriction = !restrictToCategory || loop.mood === restrictToCategory;
+      
+      return matchesMood && matchesInstrument && matchesSearch && matchesRestriction;
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  // FIXED: Handle loop preview playback - plays once and stops
+  // Stop currently playing loop
+  const stopCurrentLoop = () => {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      currentAudio.src = '';
+      setCurrentAudio(null);
+    }
+    setCurrentlyPlaying(null);
+  };
+
+  // Play or stop a loop
   const handlePlayLoop = async (loop) => {
-    if (lockFeatures.allowLoopPreview === false) {
-      console.log('Loop preview is locked');
+    if (isPlayingAudio) {
+      console.log('Already processing audio, please wait...');
       return;
     }
 
-    if (isPlayingAudio) {
-      console.log('Audio action already in progress, ignoring click');
+    if (currentlyPlaying === loop.id) {
+      stopCurrentLoop();
+      if (onLoopPreview) {
+        onLoopPreview(loop, false);
+      }
       return;
+    }
+
+    if (currentAudio) {
+      stopCurrentLoop();
     }
 
     setIsPlayingAudio(true);
 
     try {
-      const isCurrentlyPlaying = currentlyPlaying === loop.id;
-      
-      if (isCurrentlyPlaying && currentAudio) {
-        // STOPPING - Stop current audio
-        console.log(`Stopping preview for: ${loop.name}`);
-        try {
-          currentAudio.pause();
-          currentAudio.currentTime = 0;
-          currentAudio.loop = false; // Ensure loop is disabled
-          currentAudio.src = '';
-        } catch (e) {
-          console.error('Error stopping audio:', e);
-        }
-        
-        setCurrentlyPlaying(null);
-        setCurrentAudio(null);
-        
-        return;
-      }
-
-      // PLAYING - Stop any existing audio first
-      if (currentAudio) {
-        console.log('Cleaning up previous audio');
-        try {
-          currentAudio.pause();
-          currentAudio.currentTime = 0;
-          currentAudio.loop = false;
-          currentAudio.src = '';
-        } catch (e) {
-          console.error('Error cleaning up previous audio:', e);
-        }
-        setCurrentAudio(null);
-        setCurrentlyPlaying(null);
-        
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-
-      if (!loop.accessible) {
-        alert(`Audio file "${loop.name}" is not accessible.`);
-        return;
-      }
-
-      console.log(`Starting preview for: ${loop.name}`);
-      
       const audio = new Audio();
-      audio.loop = false; // CHANGED: No looping - play once only
       audio.volume = 0.7;
-      audio.crossOrigin = 'anonymous';
-      audio.preload = 'auto';
-      
-      // ADDED: Auto-stop when audio ends
-      const handleEnded = () => {
-        console.log(`Preview ended for: ${loop.name}`);
+      audio.loop = false;
+
+      audio.addEventListener('ended', () => {
+        console.log(`Loop finished playing: ${loop.name}`);
         setCurrentlyPlaying(null);
         setCurrentAudio(null);
-      };
-      
-      audio.addEventListener('ended', handleEnded, { once: true });
-      
+        if (onLoopPreview) {
+          onLoopPreview(loop, false);
+        }
+      }, { once: true });
+
       const loadPromise = new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
-          reject(new Error('Audio load timeout'));
-        }, 20000);
-        
-        const cleanup = () => {
-          audio.removeEventListener('canplaythrough', handleCanPlay);
-          audio.removeEventListener('error', handleError);
-        };
-        
-        const handleCanPlay = () => {
+          audio.src = '';
+          reject(new Error('Audio load timeout (10s)'));
+        }, 10000);
+
+        const handleLoad = () => {
           clearTimeout(timeout);
-          cleanup();
           resolve();
         };
-        
+
         const handleError = (e) => {
           clearTimeout(timeout);
-          cleanup();
-          reject(new Error(`Audio load failed: ${e.target.error?.message || 'Unknown error'}`));
+          reject(new Error(`Failed to load audio: ${e.message || 'Unknown error'}`));
         };
-        
-        audio.addEventListener('canplaythrough', handleCanPlay, { once: true });
+
+        audio.addEventListener('canplaythrough', handleLoad, { once: true });
         audio.addEventListener('error', handleError, { once: true });
       });
 
       audio.src = loop.file;
       await loadPromise;
 
-      // Set state before playing
       setCurrentlyPlaying(loop.id);
       setCurrentAudio(audio);
 
@@ -329,6 +320,10 @@ const LoopLibrary = ({
       if (playPromise) {
         await playPromise;
         console.log(`Successfully playing: ${loop.name} (will play once and stop)`);
+      }
+
+      if (onLoopPreview) {
+        onLoopPreview(loop, true);
       }
       
     } catch (error) {
@@ -353,11 +348,18 @@ const LoopLibrary = ({
     };
   }, [currentAudio]);
 
-  // Handle drag start
+  // Handle drag start - UPDATED: Check if loop matches restriction
   const handleDragStart = (e, loop) => {
     if (lockFeatures.allowLoopDrag === false) {
       e.preventDefault();
       console.log('Loop dragging is locked');
+      return;
+    }
+
+    // NEW: Prevent dragging restricted loops
+    if (restrictToCategory && loop.mood !== restrictToCategory) {
+      e.preventDefault();
+      console.log(`Loop drag prevented - only ${restrictToCategory} loops allowed`);
       return;
     }
 
@@ -366,6 +368,11 @@ const LoopLibrary = ({
     if (onLoopDragStart) {
       onLoopDragStart(loop);
     }
+  };
+
+  // NEW: Check if a loop is restricted (for visual feedback)
+  const isLoopRestricted = (loop) => {
+    return restrictToCategory && loop.mood !== restrictToCategory;
   };
 
   if (loading) {
@@ -402,8 +409,20 @@ const LoopLibrary = ({
       <div className="p-2 border-b border-gray-700">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-sm font-semibold text-white">Loops</h2>
-          <span className="text-xs text-gray-400">{loops.length}</span>
+          <span className="text-xs text-gray-400">{filteredLoops.length}</span>
         </div>
+
+        {/* NEW: Restriction Notice */}
+        {restrictToCategory && (
+          <div className="mb-2 bg-blue-900/30 border border-blue-500/50 rounded px-2 py-1.5">
+            <div className="flex items-center gap-1.5">
+              <Lock size={12} className="text-blue-400 flex-shrink-0" />
+              <span className="text-xs text-blue-300 font-medium">
+                Only {restrictToCategory} loops
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Search */}
         <div className="relative mb-2">
@@ -419,17 +438,25 @@ const LoopLibrary = ({
 
         {/* Filters - Compact Version */}
         <div className="space-y-1.5">
-          {/* MOOD FILTER */}
-          <select
-            value={moodFilter}
-            onChange={(e) => setMoodFilter(e.target.value)}
-            className="w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-blue-500 focus:outline-none px-2 py-1.5"
-          >
-            <option value="All">All Moods</option>
-            {moods.filter(m => m !== 'All').map(mood => (
-              <option key={mood} value={mood}>{mood}</option>
-            ))}
-          </select>
+          {/* MOOD FILTER - UPDATED: Show locked state */}
+          <div className="relative">
+            <select
+              value={moodFilter}
+              onChange={(e) => !lockedMood && setMoodFilter(e.target.value)}
+              disabled={!!lockedMood}
+              className={`w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-blue-500 focus:outline-none px-2 py-1.5 ${
+                lockedMood ? 'opacity-60 cursor-not-allowed' : ''
+              }`}
+            >
+              <option value="All">All Moods</option>
+              {moods.filter(m => m !== 'All').map(mood => (
+                <option key={mood} value={mood}>{mood}</option>
+              ))}
+            </select>
+            {lockedMood && (
+              <Lock size={12} className="absolute right-2 top-2 text-gray-400 pointer-events-none" />
+            )}
+          </div>
 
           {/* INSTRUMENT FILTER */}
           <select
@@ -445,68 +472,85 @@ const LoopLibrary = ({
         </div>
       </div>
 
-      {/* Loop List - UPDATED: Smaller, more compact fonts for 160px width */}
+      {/* Loop List - UPDATED: Visual feedback for restricted loops */}
       <div className="flex-1 overflow-y-auto p-1.5">
         <div className="space-y-1">
-          {filteredLoops.map((loop) => (
-            <div
-              key={loop.id}
-              className="group relative bg-gray-700 hover:bg-gray-600 rounded p-1.5 cursor-move transition-colors border border-gray-600 hover:border-gray-500"
-              draggable={lockFeatures.allowLoopDrag !== false}
-              onDragStart={(e) => handleDragStart(e, loop)}
-            >
-              <div className="flex items-center justify-between gap-1.5">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-white text-xs font-medium truncate leading-tight">
-                    {loop.name}
-                  </h3>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <span 
-                      className="px-1 py-0.5 rounded text-white font-semibold text-xs leading-none"
-                      style={{ backgroundColor: loop.color, fontSize: '10px' }}
-                    >
-                      {loop.instrument}
-                    </span>
-                    <span className="text-gray-400 text-xs" style={{ fontSize: '10px' }}>
-                      {Math.round(loop.duration)}s
-                    </span>
+          {filteredLoops.map((loop) => {
+            const restricted = isLoopRestricted(loop);
+            return (
+              <div
+                key={loop.id}
+                className={`group relative rounded p-1.5 transition-colors border ${
+                  restricted 
+                    ? 'bg-gray-800 border-gray-700 opacity-40 cursor-not-allowed' 
+                    : 'bg-gray-700 hover:bg-gray-600 cursor-move border-gray-600 hover:border-gray-500'
+                }`}
+                draggable={lockFeatures.allowLoopDrag !== false && !restricted}
+                onDragStart={(e) => handleDragStart(e, loop)}
+              >
+                <div className="flex items-center justify-between gap-1.5">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-white text-xs font-medium truncate leading-tight">
+                      {loop.name}
+                    </h3>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <span 
+                        className="px-1 py-0.5 rounded text-white font-semibold text-xs leading-none"
+                        style={{ backgroundColor: loop.color, fontSize: '10px' }}
+                      >
+                        {loop.instrument}
+                      </span>
+                      <span className="text-gray-400 text-xs" style={{ fontSize: '10px' }}>
+                        {Math.round(loop.duration)}s
+                      </span>
+                    </div>
                   </div>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (!restricted) {
+                        handlePlayLoop(loop);
+                      }
+                    }}
+                    disabled={!loop.loaded || !loop.accessible || lockFeatures.allowLoopPreview === false || isPlayingAudio || restricted}
+                    className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+                      currentlyPlaying === loop.id
+                        ? 'bg-green-600 hover:bg-green-700 text-white'
+                        : loop.loaded && loop.accessible && lockFeatures.allowLoopPreview !== false && !isPlayingAudio && !restricted
+                        ? 'bg-gray-600 hover:bg-gray-500 text-gray-300'
+                        : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                    }`}
+                    title={restricted ? "Restricted" : (isPlayingAudio ? "Processing..." : (currentlyPlaying === loop.id ? "Playing" : "Play"))}
+                  >
+                    {currentlyPlaying === loop.id ? <Pause size={12} /> : <Play size={12} />}
+                  </button>
                 </div>
 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    handlePlayLoop(loop);
-                  }}
-                  disabled={!loop.loaded || !loop.accessible || lockFeatures.allowLoopPreview === false || isPlayingAudio}
-                  className={`flex-shrink-0 p-1 rounded-full transition-colors ${
-                    currentlyPlaying === loop.id
-                      ? 'bg-green-600 hover:bg-green-700 text-white'
-                      : loop.loaded && loop.accessible && lockFeatures.allowLoopPreview !== false && !isPlayingAudio
-                      ? 'bg-gray-600 hover:bg-gray-500 text-gray-300'
-                      : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                  }`}
-                  title={isPlayingAudio ? "Processing..." : (currentlyPlaying === loop.id ? "Playing" : "Play")}
-                >
-                  {currentlyPlaying === loop.id ? <Pause size={12} /> : <Play size={12} />}
-                </button>
+                {lockFeatures.allowLoopDrag !== false && !restricted && (
+                  <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="text-gray-400 text-xs" style={{ fontSize: '9px' }}>Drag</div>
+                  </div>
+                )}
+
+                {restricted && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <Lock size={16} className="text-gray-600" />
+                  </div>
+                )}
               </div>
-
-              {lockFeatures.allowLoopDrag !== false && (
-                <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="text-gray-400 text-xs" style={{ fontSize: '9px' }}>Drag</div>
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {filteredLoops.length === 0 && (
           <div className="text-center text-gray-400 mt-6">
             <Volume2 size={32} className="mx-auto mb-2 opacity-50" />
             <p className="text-xs">No loops found</p>
-            <p className="text-xs mt-1" style={{ fontSize: '10px' }}>Try different filters</p>
+            <p className="text-xs mt-1" style={{ fontSize: '10px' }}>
+              {restrictToCategory ? `Only ${restrictToCategory} loops available` : 'Try different filters'}
+            </p>
           </div>
         )}
       </div>
@@ -516,8 +560,10 @@ const LoopLibrary = ({
         <div className="flex items-center justify-between text-xs text-gray-400">
           <span>{filteredLoops.length}/{loops.length}</span>
           <span className="truncate ml-1">
-            {moodFilter !== 'All' && `${moodFilter}`}
-            {moodFilter !== 'All' && instrumentFilter !== 'All' && ' • '}
+            {restrictToCategory && `ðŸ”’ ${restrictToCategory}`}
+            {restrictToCategory && (moodFilter !== 'All' || instrumentFilter !== 'All') && ' â€¢ '}
+            {moodFilter !== 'All' && !restrictToCategory && `${moodFilter}`}
+            {moodFilter !== 'All' && instrumentFilter !== 'All' && ' â€¢ '}
             {instrumentFilter !== 'All' && `${instrumentFilter}`}
           </span>
         </div>

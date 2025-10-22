@@ -22,7 +22,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
     lastInteraction: null
   });
   const [voiceEnabled, setVoiceEnabled] = useState(true);
-  const [voiceVolume, setVoiceVolume] = useState(0.5);
+  const [voiceVolume, setVoiceVolume] = useState(0.3);
   const [hasError, setHasError] = useState(false);
   const [isProcessingSuccess, setIsProcessingSuccess] = useState(false);
   const [isProcessingClick, setIsProcessingClick] = useState(false);
@@ -54,10 +54,10 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   // Fallback timeout to force DAW ready state after 5 seconds
   useEffect(() => {
     if (!isDAWReady) {
-      console.log('⏱️ Starting 5-second fallback timer for DAW initialization...');
+      console.log('â±ï¸ Starting 5-second fallback timer for DAW initialization...');
       dawReadyTimeoutRef.current = setTimeout(() => {
         if (!isDAWReady && isMountedRef.current) {
-          console.warn('⚠️ DAW callback not received after 5s, forcing ready state');
+          console.warn('âš ï¸ DAW callback not received after 5s, forcing ready state');
           setIsDAWReady(true);
         }
       }, 5000);
@@ -82,11 +82,21 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
     utterance.volume = voiceVolume;
 
     const voices = window.speechSynthesis.getVoices();
+    
+    // Prioritize US English voices to avoid weird accents
     const preferredVoice = voices.find(voice => 
-      voice.name.includes('Google') || voice.name.includes('Microsoft')
-    );
+      voice.lang === 'en-US' && (
+        voice.name.includes('Google US English') ||
+        voice.name.includes('Microsoft David') ||
+        voice.name.includes('Microsoft Mark') ||
+        voice.name.includes('Samantha') ||
+        voice.name.includes('Alex')
+      )
+    ) || voices.find(voice => voice.lang === 'en-US') || voices.find(voice => voice.lang.startsWith('en'));
+    
     if (preferredVoice) {
       utterance.voice = preferredVoice;
+      console.log('🎤 Using voice:', preferredVoice.name, preferredVoice.lang);
     }
 
     if (isMountedRef.current) {
@@ -324,10 +334,10 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   }, [dawContext.action, currentChallenge, feedback, isProcessingClick, nextChallenge, setSafeTimeout, dawContext]);
 
   // Handle multiple choice answers
-  const handleMultipleChoiceAnswer = useCallback((index) => {
+  const handleMultipleChoiceAnswer = useCallback((answer, index) => {
     if (feedback || !currentChallenge || !isMountedRef.current) return;
 
-    setUserAnswer(index);
+    setUserAnswer(answer);
     const isCorrect = index === currentChallenge.correctIndex;
 
     if (isCorrect) {
@@ -474,7 +484,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
 
   // DAW ready callback
   const handleDAWReady = useCallback(() => {
-    console.log('✅ DAW is ready for challenges (callback received)');
+    console.log('âœ… DAW is ready for challenges (callback received)');
     
     // Clear the fallback timeout since we got the callback
     if (dawReadyTimeoutRef.current) {
@@ -540,11 +550,11 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
         </div>
       )}
 
-      {/* Navigation Tools Panel - Dropdown from top right - ONLY IF canAccessNavTools */}
+      {/* Navigation Tools Panel - Dropdown from top right */}
       {navToolsEnabled && canAccessNavTools && (
         <div className="fixed top-16 right-4 z-50">
           <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
-            <div className="text-blue-400 text-xs font-mono mb-2 font-bold">🧭 TUTORIAL NAVIGATION</div>
+            <div className="text-blue-400 text-xs font-mono mb-2 font-bold">ðŸ§­ TUTORIAL NAVIGATION</div>
             
             {/* Activity Navigator */}
             <div className="mb-3">
@@ -582,7 +592,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
                 onClick={navCompleteAll}
                 className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold"
               >
-                🚀 Complete All → Next Activity
+                ðŸš€ Complete All â†’ Next Activity
               </button>
             </div>
             
@@ -607,7 +617,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
       {isDAWReady && currentChallenge.type === 'multiple-choice' && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-35 pointer-events-none">
           <div className="bg-orange-500 text-white px-8 py-4 rounded-lg shadow-2xl border-4 border-orange-600 animate-pulse">
-            <div className="text-xl font-bold text-center mb-2">👆 Answer the Question Above 👆</div>
+            <div className="text-xl font-bold text-center mb-2">ðŸ‘† Answer the Question Above ðŸ‘†</div>
             <div className="text-sm text-center">Look at the orange challenge bar at the top of the screen</div>
           </div>
         </div>
