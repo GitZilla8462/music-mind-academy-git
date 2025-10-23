@@ -1,6 +1,7 @@
 // File: /src/lessons/film-music-project/lesson1/activities/SchoolBeneathActivity.jsx
 // Composition exercise for "The School Beneath" mysterious trailer
 // UPDATED: Now triggers reflection modal after submission
+// FIXED: Corrected symbol encoding AND mood/category validation logic
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -95,10 +96,14 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
   const checkRequirements = () => {
     console.log('Checking requirements with loops:', placedLoops);
     
-    // Verify all loops are Mysterious category
-    const allMysterious = placedLoops.every(loop => loop.mood === 'Mysterious');
+    // FIXED: Check both mood and category for Mysterious loops
+    const allMysterious = placedLoops.every(loop => 
+      loop.mood === 'Mysterious' || loop.category === 'Mysterious'
+    );
+    
     if (!allMysterious) {
       console.warn('Non-Mysterious loops detected!');
+      console.log('Loop categories:', placedLoops.map(l => ({ mood: l.mood, category: l.category })));
       setRequirements({
         instrumentation: false,
         layering: false,
@@ -109,14 +114,14 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
     
     const uniqueLoops = new Set(placedLoops.map(loop => loop.originalId || loop.id));
     const hasInstrumentation = uniqueLoops.size >= 5;
-    console.log('Instrumentation check:', hasInstrumentation, 'Unique loops:', uniqueLoops.size);
+    console.log('✓ Instrumentation check:', hasInstrumentation, 'Unique loops:', uniqueLoops.size);
 
     const startTimes = new Set(placedLoops.map(loop => Math.floor(loop.startTime)));
     const hasLayering = startTimes.size >= 3 && placedLoops.length >= 5;
-    console.log('Layering check:', hasLayering, 'Unique start times:', startTimes.size);
+    console.log('✓ Layering check:', hasLayering, 'Unique start times:', startTimes.size, 'Total loops:', placedLoops.length);
 
     const hasStructure = placedLoops.length >= 5;
-    console.log('Structure check:', hasStructure);
+    console.log('✓ Structure check:', hasStructure, 'Total loops:', placedLoops.length);
 
     const newRequirements = {
       instrumentation: hasInstrumentation,
@@ -124,28 +129,32 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
       structure: hasStructure
     };
     
-    console.log('Requirements updated:', newRequirements);
+    console.log('📊 Requirements updated:', newRequirements);
     setRequirements(newRequirements);
   };
 
   const handleLoopPlaced = (loopData, trackIndex, startTime) => {
     console.log('Loop placed callback received:', loopData, trackIndex, startTime);
     
-    // ONLY allow Mysterious loops for School Beneath activity
-    if (loopData.mood !== 'Mysterious') {
-      console.warn('Rejected non-Mysterious loop:', loopData.category);
+    // FIXED: Check both mood and category for Mysterious loops
+    const isMysteriousLoop = loopData.mood === 'Mysterious' || loopData.category === 'Mysterious';
+    
+    if (!isMysteriousLoop) {
+      console.warn('Rejected non-Mysterious loop:', { mood: loopData.mood, category: loopData.category });
       setSaveMessage('❌ Only Mysterious loops allowed!');
       setTimeout(() => setSaveMessage(''), 2000);
       return;
     }
     
+    // FIXED: Store both mood and category in the placed loop
     const newLoop = {
       id: `${loopData.id}-${Date.now()}`,
       originalId: loopData.id,
       name: loopData.name,
       file: loopData.file,
       duration: loopData.duration,
-      category: loopData.category,
+      category: loopData.category || 'Mysterious',
+      mood: loopData.mood || 'Mysterious',  // Add mood property
       color: loopData.color,
       trackIndex,
       startTime,
@@ -194,7 +203,7 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
     localStorage.setItem('school-beneath-composition', JSON.stringify(compositionData));
     console.log('Progress saved to localStorage:', compositionData);
     
-    setSaveMessage('Progress saved! âœ“');
+    setSaveMessage('Progress saved! ✓');
     setTimeout(() => setSaveMessage(''), 3000);
   };
 
@@ -262,7 +271,7 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
                     : 'bg-gray-700 border-gray-600'
                 }`}>
                   <span className={requirements.instrumentation ? 'text-green-400' : 'text-gray-500'}>
-                    {requirements.instrumentation ? 'âœ“' : 'â—‹'}
+                    {requirements.instrumentation ? '✓' : '○'}
                   </span>
                   <span className="font-semibold">Instrumentation:</span>
                   <span className="text-gray-300">5+ Mysterious loops</span>
@@ -274,7 +283,7 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
                     : 'bg-gray-700 border-gray-600'
                 }`}>
                   <span className={requirements.layering ? 'text-green-400' : 'text-gray-500'}>
-                    {requirements.layering ? 'âœ“' : 'â—‹'}
+                    {requirements.layering ? '✓' : '○'}
                   </span>
                   <span className="font-semibold">Layering:</span>
                   <span className="text-gray-300">3+ different times</span>
@@ -286,7 +295,7 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
                     : 'bg-gray-700 border-gray-600'
                 }`}>
                   <span className={requirements.structure ? 'text-green-400' : 'text-gray-500'}>
-                    {requirements.structure ? 'âœ“' : 'â—‹'}
+                    {requirements.structure ? '✓' : '○'}
                   </span>
                   <span className="font-semibold">Structure:</span>
                   <span className="text-gray-300">5+ loops total</span>

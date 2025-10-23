@@ -455,6 +455,8 @@ const MusicComposer = ({
         setSubmissionNotes={setSubmissionNotes}
         setHasUnsavedChanges={setHasUnsavedChanges}
         containerRef={containerRef}
+        restrictToCategory={restrictToCategory}  // ADD THIS LINE
+        lockedMood={lockedMood}                  // ADD THIS LINE
         lockFeatures={lockFeatures}
         highlightSelector={highlightSelector}
       />
