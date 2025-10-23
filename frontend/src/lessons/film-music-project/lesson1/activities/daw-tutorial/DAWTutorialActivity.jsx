@@ -61,10 +61,10 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   // Fallback timeout to force DAW ready state after 5 seconds
   useEffect(() => {
     if (!isDAWReady) {
-      console.log('⏱️ Starting 5-second fallback timer for DAW initialization...');
+      console.log('â±ï¸ Starting 5-second fallback timer for DAW initialization...');
       dawReadyTimeoutRef.current = setTimeout(() => {
         if (!isDAWReady && isMountedRef.current) {
-          console.warn('⚠️ DAW callback not received after 5s, forcing ready state');
+          console.warn('âš ï¸ DAW callback not received after 5s, forcing ready state');
           setIsDAWReady(true);
         }
       }, 5000);
@@ -103,7 +103,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
     
     if (preferredVoice) {
       utterance.voice = preferredVoice;
-      console.log('🎤 Using voice:', preferredVoice.name, preferredVoice.lang);
+      console.log('ðŸŽ¤ Using voice:', preferredVoice.name, preferredVoice.lang);
     }
 
     if (isMountedRef.current) {
@@ -114,14 +114,33 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   // Speak first challenge on DAW ready
   useEffect(() => {
     if (isDAWReady && !hasSpokenFirstChallenge.current && currentChallenge && voiceEnabled && isMountedRef.current) {
+      // Only speak if we're still on the first challenge (index 0)
+      if (currentChallengeIndex === 0) {
+        setSafeTimeout(() => {
+          if (isMountedRef.current) {
+            speakText(currentChallenge.question, voiceEnabled);
+            hasSpokenFirstChallenge.current = true;
+          }
+        }, 1000);
+      }
+    }
+  }, [isDAWReady, voiceEnabled, speakText, setSafeTimeout, currentChallengeIndex, currentChallenge]);
+
+  // Speak challenge question when challenge changes (but not on first load or exploration mode)
+  useEffect(() => {
+    if (isDAWReady && 
+        currentChallengeIndex > 0 && 
+        currentChallenge && 
+        voiceEnabled && 
+        isMountedRef.current &&
+        !showExplorationMode) {
       setSafeTimeout(() => {
         if (isMountedRef.current) {
           speakText(currentChallenge.question, voiceEnabled);
-          hasSpokenFirstChallenge.current = true;
         }
-      }, 1000);
+      }, 500);
     }
-  }, [isDAWReady, currentChallenge, voiceEnabled, speakText, setSafeTimeout]);
+  }, [currentChallengeIndex, isDAWReady, voiceEnabled, speakText, setSafeTimeout, currentChallenge, showExplorationMode]);
 
   // Calculate time remaining when tutorial completes
   const calculateTimeRemaining = useCallback(() => {
@@ -137,11 +156,11 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   const startExplorationMode = useCallback(() => {
     const remaining = calculateTimeRemaining();
     
-    console.log('🎉 Tutorial complete! Time remaining:', Math.floor(remaining / 1000), 'seconds');
+    console.log('ðŸŽ‰ Tutorial complete! Time remaining:', Math.floor(remaining / 1000), 'seconds');
     
     if (remaining <= 0) {
       // No time left, advance immediately
-      console.log('⏰ No time remaining, advancing to next activity');
+      console.log('â° No time remaining, advancing to next activity');
       setSafeTimeout(() => {
         if (isMountedRef.current && !completionCalledRef.current) {
           completionCalledRef.current = true;
@@ -164,7 +183,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
               clearInterval(explorationTimerRef.current);
             }
             
-            console.log('⏰ Exploration time complete, advancing to next activity');
+            console.log('â° Exploration time complete, advancing to next activity');
             
             if (isMountedRef.current && !completionCalledRef.current) {
               completionCalledRef.current = true;
@@ -201,7 +220,16 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
     setIsProcessingSuccess(true);
     
     if (currentChallengeIndex >= DAW_CHALLENGES.length - 1) {
-      // Tutorial complete - check time and start exploration or advance
+      // Tutorial complete - speak exploration mode message
+      if (voiceEnabled && isMountedRef.current) {
+        setSafeTimeout(() => {
+          if (isMountedRef.current) {
+            speakText("Tutorial complete! Excellent work! Use the remaining time to explore and create music freely.", voiceEnabled);
+          }
+        }, 500);
+      }
+      
+      // Check time and start exploration or advance
       startExplorationMode();
       return;
     }
@@ -213,15 +241,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
     setShowExplanation(false);
     setDawContext(prev => ({ ...prev, action: null }));
     
-    // Speak the new challenge question
-    const nextChallengeData = DAW_CHALLENGES[currentChallengeIndex + 1];
-    if (nextChallengeData && voiceEnabled && isMountedRef.current) {
-      setSafeTimeout(() => {
-        if (isMountedRef.current) {
-          speakText(nextChallengeData.question, voiceEnabled);
-        }
-      }, 500);
-    }
+    // Don't speak here - it will be handled by the challenge change effect below
   }, [currentChallengeIndex, isProcessingSuccess, startExplorationMode, setSafeTimeout, voiceEnabled, speakText]);
 
   // Challenge interaction handlers
@@ -442,19 +462,13 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
     setIsProcessingSuccess(false);
     setIsProcessingClick(false);
     setDawContext(prev => ({ ...prev, action: null }));
-    hasSpokenFirstChallenge.current = false;
     
-    // Speak the new challenge
-    const newChallenge = DAW_CHALLENGES[index];
-    if (newChallenge && voiceEnabled && isMountedRef.current) {
-      setSafeTimeout(() => {
-        if (isMountedRef.current) {
-          speakText(newChallenge.question, voiceEnabled);
-          hasSpokenFirstChallenge.current = true;
-        }
-      }, 500);
+    // Don't speak here - it will be handled by the challenge change effect
+    // Just reset the flag if we're going back to challenge 0
+    if (index === 0) {
+      hasSpokenFirstChallenge.current = false;
     }
-  }, [voiceEnabled, speakText, setSafeTimeout]);
+  }, []);
 
   // Navigation: Complete all immediately
   const navCompleteAll = useCallback(() => {
@@ -546,7 +560,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
 
   // DAW ready callback
   const handleDAWReady = useCallback(() => {
-    console.log('✅ DAW is ready for challenges (callback received)');
+    console.log('âœ… DAW is ready for challenges (callback received)');
     
     // Clear the fallback timeout since we got the callback
     if (dawReadyTimeoutRef.current) {
@@ -624,7 +638,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
       {navToolsEnabled && canAccessNavTools && !showExplorationMode && (
         <div className="fixed top-16 right-4 z-50">
           <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
-            <div className="text-blue-400 text-xs font-mono mb-2 font-bold">🧭 TUTORIAL NAVIGATION</div>
+            <div className="text-blue-400 text-xs font-mono mb-2 font-bold">ðŸ§­ TUTORIAL NAVIGATION</div>
             
             {/* Activity Navigator */}
             <div className="mb-3">
@@ -662,7 +676,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
                 onClick={navCompleteAll}
                 className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold"
               >
-                🚀 Complete All → Next Activity
+                ðŸš€ Complete All â†’ Next Activity
               </button>
             </div>
             
@@ -687,7 +701,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
       {isDAWReady && !showExplorationMode && currentChallenge?.type === 'multiple-choice' && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-35 pointer-events-none">
           <div className="bg-orange-500 text-white px-8 py-4 rounded-lg shadow-2xl border-4 border-orange-600 animate-pulse">
-            <div className="text-xl font-bold text-center mb-2">👆 Answer the Question Above 👆</div>
+            <div className="text-xl font-bold text-center mb-2">ðŸ‘† Answer the Question Above ðŸ‘†</div>
             <div className="text-sm text-center">Look at the orange challenge bar at the top of the screen</div>
           </div>
         </div>
@@ -743,7 +757,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
             id: 'daw-tutorial',
             title: 'DAW Tutorial',
             duration: 60,
-            videoPath: '/lessons/videos/film-music-loop-project/SchoolMystery.mp4'
+            videoPath: '/lessons/film-music-project/lesson1/VideoPlaybackArea.mp4'
           }}
           lockFeatures={showExplorationMode ? {} : (currentChallenge?.lockFeatures || {})}
         />
