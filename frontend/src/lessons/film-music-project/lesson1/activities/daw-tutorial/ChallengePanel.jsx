@@ -1,7 +1,7 @@
 // File: /src/lessons/film-music-project/lesson1/activities/daw-tutorial/ChallengePanel.jsx
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Volume2, VolumeX, HelpCircle, SkipForward, CheckCircle, XCircle, Minimize2, Maximize2 } from 'lucide-react';
+import { Volume2, VolumeX, HelpCircle, SkipForward, CheckCircle, XCircle, Minimize2, Maximize2, Sparkles } from 'lucide-react';
 
 const ChallengePanel = ({
   currentChallenge,
@@ -22,7 +22,10 @@ const ChallengePanel = ({
   onMultipleChoiceAnswer,
   onNextChallenge,
   onSkipChallenge,
-  onRepeatQuestion
+  onRepeatQuestion,
+  showExplorationMode = false,
+  timeRemaining = 0,
+  formatTime = (ms) => '0:00'
 }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [position, setPosition] = useState(() => {
@@ -30,8 +33,8 @@ const ChallengePanel = ({
     const panelWidth = 400;
     const panelHeight = 400;
     return {
-      x: window.innerWidth - panelWidth,
-      y: window.innerHeight - panelHeight
+      x: window.innerWidth - panelWidth - 20,
+      y: window.innerHeight - panelHeight - 20
     };
   });
   const [isDragging, setIsDragging] = useState(false);
@@ -81,8 +84,8 @@ const ChallengePanel = ({
     }
   }, [isDragging]);
 
-  const needsClickThrough = currentChallenge.type === 'interactive-task' || 
-                           currentChallenge.type === 'identify-click';
+  const needsClickThrough = !showExplorationMode && (currentChallenge?.type === 'interactive-task' || 
+                           currentChallenge?.type === 'identify-click');
 
   const handleVolumeChange = (e) => {
     e.stopPropagation(); // Prevent drag from starting
@@ -120,7 +123,7 @@ const ChallengePanel = ({
           }
           
           window.speechSynthesis.speak(utterance);
-          console.log('ðŸ”Š Restarted speech with new volume:', newVolume);
+          console.log('🎙️ Restarted speech with new volume:', newVolume);
         }
       }, 100);
     }
@@ -154,7 +157,7 @@ const ChallengePanel = ({
       >
         <div className="drag-handle bg-orange-500 px-4 py-2 flex items-center justify-between cursor-move">
           <div className="text-white font-bold text-sm">
-            Challenge {currentChallengeIndex + 1}/{totalChallenges}
+            {showExplorationMode ? 'Exploration Mode' : `Challenge ${currentChallengeIndex + 1}/${totalChallenges}`}
           </div>
           <button
             onClick={(e) => {
@@ -203,7 +206,7 @@ const ChallengePanel = ({
         style={{ pointerEvents: 'auto' }}
       >
         <div className="text-white font-bold text-xs pointer-events-none">
-          Challenge Question
+          {showExplorationMode ? 'Exploration Mode' : 'Challenge Question'}
         </div>
         
         <div className="flex items-center gap-2" onMouseDown={(e) => e.stopPropagation()}>
@@ -240,17 +243,19 @@ const ChallengePanel = ({
             {voiceEnabled ? <Volume2 size={16} className="text-white" /> : <VolumeX size={16} className="text-white" />}
           </button>
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowHint(!showHint);
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-            className="p-1.5 bg-yellow-500 rounded hover:bg-yellow-600 transition-colors"
-            title="Show hint"
-          >
-            <HelpCircle size={16} className="text-white" />
-          </button>
+          {!showExplorationMode && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowHint(!showHint);
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              className="p-1.5 bg-yellow-500 rounded hover:bg-yellow-600 transition-colors"
+              title="Show hint"
+            >
+              <HelpCircle size={16} className="text-white" />
+            </button>
+          )}
 
           <button
             onClick={(e) => {
@@ -266,73 +271,118 @@ const ChallengePanel = ({
         </div>
       </div>
 
-      <div 
-        className="px-4 py-2 bg-gray-100 border-b border-gray-200 flex-shrink-0"
-        style={{ pointerEvents: 'auto' }}
-      >
-        <div className="text-xs font-semibold text-gray-600">
-          Challenge {currentChallengeIndex + 1} of {totalChallenges}
+      {!showExplorationMode && (
+        <div 
+          className="px-4 py-2 bg-gray-100 border-b border-gray-200 flex-shrink-0"
+          style={{ pointerEvents: 'auto' }}
+        >
+          <div className="text-xs font-semibold text-gray-600">
+            Challenge {currentChallengeIndex + 1} of {totalChallenges}
+          </div>
         </div>
-      </div>
+      )}
 
       <div 
         className="px-4 py-4 flex-1 overflow-y-auto"
         style={{ pointerEvents: 'auto' }}
       >
-        <p className="text-gray-800 text-base leading-relaxed mb-4">
-          {currentChallenge.question}
-        </p>
+        {showExplorationMode ? (
+          // EXPLORATION MODE CONTENT
+          <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
+            <div className="animate-bounce">
+              <Sparkles className="text-yellow-500 mx-auto" size={64} />
+            </div>
+            
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                🎉 Tutorial Complete!
+              </h2>
+              <p className="text-gray-700 text-base leading-relaxed">
+                Excellent work! Use the remaining time to explore and create music freely.
+              </p>
+            </div>
 
-        {currentChallenge.type === 'multiple-choice' && (
-          <div className="space-y-2 mt-4">
-            {currentChallenge.choices.map((choice, index) => (
-              <button
-                key={index}
-                onClick={() => onMultipleChoiceAnswer(choice, index)}
-                disabled={feedback !== null && userAnswer === choice}
-                className={`w-full px-4 py-3 rounded-lg border-2 text-left font-medium transition-all ${
-                  userAnswer === choice
-                    ? feedback?.type === 'success'
-                      ? 'border-green-500 bg-green-50 text-green-900'
-                      : 'border-red-500 bg-red-50 text-red-900'
-                    : 'border-gray-300 hover:border-blue-400 bg-white hover:bg-blue-50 text-gray-800'
-                } ${feedback !== null && userAnswer === choice ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-              >
-                {choice}
-              </button>
-            ))}
+            <div className="bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-300 rounded-lg p-6 w-full">
+              <div className="text-sm text-gray-600 mb-2 font-semibold">
+                Time Remaining:
+              </div>
+              <div className="text-5xl font-bold text-green-600 mb-2">
+                {formatTime(timeRemaining)}
+              </div>
+              <div className="text-xs text-gray-500">
+                The DAW is fully unlocked - experiment!
+              </div>
+            </div>
+
+            <div className="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-4 w-full">
+              <div className="font-semibold mb-2">💡 Try these ideas:</div>
+              <ul className="text-left space-y-1 text-xs">
+                <li>• Add more loops and layer different sounds</li>
+                <li>• Adjust volume levels on each track</li>
+                <li>• Move loops around to different times</li>
+                <li>• Use the solo button to hear one track</li>
+              </ul>
+            </div>
           </div>
-        )}
-
-        {currentChallenge.type === 'interactive-task' && (
-          <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
-            <p className="text-blue-900 text-sm font-medium">
-              {currentChallenge.instruction}
+        ) : (
+          // CHALLENGE QUESTION CONTENT
+          <>
+            <p className="text-gray-800 text-base leading-relaxed mb-4">
+              {currentChallenge?.question}
             </p>
-          </div>
-        )}
 
-        {currentChallenge.type === 'identify-click' && (
-          <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
-            <p className="text-blue-900 text-sm font-medium">
-              {currentChallenge.instruction}
-            </p>
-          </div>
+            {currentChallenge?.type === 'multiple-choice' && (
+              <div className="space-y-2 mt-4">
+                {currentChallenge.choices.map((choice, index) => (
+                  <button
+                    key={index}
+                    onClick={() => onMultipleChoiceAnswer(choice, index)}
+                    disabled={feedback !== null && userAnswer === choice}
+                    className={`w-full px-4 py-3 rounded-lg border-2 text-left font-medium transition-all ${
+                      userAnswer === choice
+                        ? feedback?.type === 'success'
+                          ? 'border-green-500 bg-green-50 text-green-900'
+                          : 'border-red-500 bg-red-50 text-red-900'
+                        : 'border-gray-300 hover:border-blue-400 bg-white hover:bg-blue-50 text-gray-800'
+                    } ${feedback !== null && userAnswer === choice ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                  >
+                    {choice}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {currentChallenge?.type === 'interactive-task' && (
+              <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                <p className="text-blue-900 text-sm font-medium">
+                  {currentChallenge.instruction}
+                </p>
+              </div>
+            )}
+
+            {currentChallenge?.type === 'identify-click' && (
+              <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                <p className="text-blue-900 text-sm font-medium">
+                  {currentChallenge.instruction}
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {showHint && (
+      {!showExplorationMode && showHint && (
         <div 
           className="px-4 py-3 bg-yellow-50 border-t-2 border-yellow-200 flex-shrink-0"
           style={{ pointerEvents: 'auto' }}
         >
           <div className="text-sm text-yellow-900">
-            <span className="font-semibold">ðŸ’¡ Hint:</span> {currentChallenge.hint}
+            <span className="font-semibold">💡 Hint:</span> {currentChallenge?.hint}
           </div>
         </div>
       )}
 
-      {feedback && (
+      {!showExplorationMode && feedback && (
         <div 
           className={`px-4 py-3 border-t-2 flex items-center gap-2 flex-shrink-0 ${
             feedback.type === 'success' 
@@ -354,18 +404,18 @@ const ChallengePanel = ({
         </div>
       )}
 
-      {showExplanation && currentChallenge.explanation && (
+      {!showExplorationMode && showExplanation && currentChallenge?.explanation && (
         <div 
           className="px-4 py-3 bg-green-50 border-t-2 border-green-200 flex-shrink-0"
           style={{ pointerEvents: 'auto' }}
         >
           <div className="text-sm text-green-900">
-            <span className="font-semibold">âœ“ Explanation:</span> {currentChallenge.explanation}
+            <span className="font-semibold">✓ Explanation:</span> {currentChallenge.explanation}
           </div>
         </div>
       )}
 
-      {currentChallenge.allowSkip && (
+      {!showExplorationMode && currentChallenge?.allowSkip && (
         <div 
           className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex-shrink-0"
           style={{ pointerEvents: 'auto' }}

@@ -1,5 +1,5 @@
 // File: /src/lessons/film-music-project/lesson1/Lesson1.jsx
-// Complete lesson with navigation tools for teachers
+// Complete lesson with navigation tools for teachers and lesson timer
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -11,6 +11,7 @@ import SchoolBeneathActivity from './activities/SchoolBeneathActivity';
 import TwoStarsAndAWishActivity from './activities/two-stars-and-a-wish/TwoStarsAndAWishActivity';
 
 const LESSON_PROGRESS_KEY = 'lesson1-progress';
+const LESSON_TIMER_KEY = 'lesson1-timer';
 
 const Lesson1 = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const Lesson1 = () => {
   const [showNavigation, setShowNavigation] = useState(true);
   const [savedProgress, setSavedProgress] = useState(null);
   const [navToolsEnabled, setNavToolsEnabled] = useState(false);
+  const [lessonStartTime, setLessonStartTime] = useState(null);
 
   // Check if viewing saved work or reflection
   const searchParams = new URLSearchParams(location.search);
@@ -104,6 +106,13 @@ const Lesson1 = () => {
         const progress = JSON.parse(saved);
         setSavedProgress(progress);
       }
+
+      // Load saved timer
+      const savedTimer = localStorage.getItem(LESSON_TIMER_KEY);
+      if (savedTimer) {
+        const timerData = JSON.parse(savedTimer);
+        setLessonStartTime(timerData.startTime);
+      }
     } catch (error) {
       console.error('Error loading saved progress:', error);
     }
@@ -119,15 +128,24 @@ const Lesson1 = () => {
         timestamp: new Date().toISOString()
       };
       localStorage.setItem(LESSON_PROGRESS_KEY, JSON.stringify(progress));
+
+      // Save timer
+      if (lessonStartTime) {
+        const timerData = {
+          startTime: lessonStartTime,
+          timestamp: new Date().toISOString()
+        };
+        localStorage.setItem(LESSON_TIMER_KEY, JSON.stringify(timerData));
+      }
     }
-  }, [currentActivity, activityCompleted, lessonStarted, viewSavedMode, viewReflectionMode]);
+  }, [currentActivity, activityCompleted, lessonStarted, lessonStartTime, viewSavedMode, viewReflectionMode]);
 
   // Auto-save progress
   useEffect(() => {
     if (lessonStarted && !viewSavedMode && !viewReflectionMode) {
       saveProgress();
     }
-  }, [currentActivity, activityCompleted, lessonStarted, saveProgress, viewSavedMode, viewReflectionMode]);
+  }, [currentActivity, activityCompleted, lessonStarted, lessonStartTime, saveProgress, viewSavedMode, viewReflectionMode]);
 
   const handleBackNavigation = useCallback((e) => {
     e.preventDefault();
@@ -169,13 +187,17 @@ const Lesson1 = () => {
       setCurrentActivity(prev => prev + 1);
     } else {
       localStorage.removeItem(LESSON_PROGRESS_KEY);
+      localStorage.removeItem(LESSON_TIMER_KEY);
       console.log('Lesson completed - progress cleared');
     }
   }, [currentActivity, lesson1Config.activities.length]);
 
   const startLesson = useCallback(() => {
+    const startTime = Date.now();
+    setLessonStartTime(startTime);
     setLessonStarted(true);
     setSavedProgress(null);
+    console.log('Lesson started at:', new Date(startTime).toISOString());
   }, []);
 
   const resumeLesson = useCallback(() => {
@@ -185,16 +207,26 @@ const Lesson1 = () => {
       setLessonStarted(true);
       setSavedProgress(null);
       console.log('Resuming lesson from activity:', savedProgress.currentActivity + 1);
+      
+      // If no start time saved, start timer now
+      if (!lessonStartTime) {
+        const startTime = Date.now();
+        setLessonStartTime(startTime);
+        console.log('Timer started on resume at:', new Date(startTime).toISOString());
+      }
     }
-  }, [savedProgress]);
+  }, [savedProgress, lessonStartTime]);
 
   const startOver = useCallback(() => {
     localStorage.removeItem(LESSON_PROGRESS_KEY);
+    localStorage.removeItem(LESSON_TIMER_KEY);
     setCurrentActivity(0);
     setActivityCompleted({});
     setLessonStarted(true);
     setSavedProgress(null);
-    console.log('Starting lesson over from beginning');
+    const startTime = Date.now();
+    setLessonStartTime(startTime);
+    console.log('Starting lesson over from beginning at:', new Date(startTime).toISOString());
   }, []);
 
   const toggleNavigation = useCallback(() => {
@@ -208,6 +240,8 @@ const Lesson1 = () => {
     setCurrentActivity(index);
     if (!lessonStarted) {
       setLessonStarted(true);
+      const startTime = Date.now();
+      setLessonStartTime(startTime);
     }
   }, [lessonStarted, lesson1Config.activities.length]);
 
@@ -504,6 +538,7 @@ const Lesson1 = () => {
                       onComplete={handleActivityComplete}
                       navToolsEnabled={navToolsEnabled}
                       canAccessNavTools={canAccessNavTools}
+                      lessonStartTime={lessonStartTime}
                     />
                   )}
 

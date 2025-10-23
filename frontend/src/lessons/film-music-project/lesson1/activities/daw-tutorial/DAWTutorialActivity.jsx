@@ -1,12 +1,14 @@
 // File: /src/lessons/film-music-project/lesson1/activities/daw-tutorial/DAWTutorialActivity.jsx
-// FINAL: Navigation tools dropdown from top right, no extra toggle
+// FINAL: Navigation tools dropdown from top right, exploration mode with timer after tutorial complete
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import MusicComposer from '../../../../../pages/projects/film-music-score/composer/MusicComposer';
 import ChallengePanel from './ChallengePanel';
 import { DAW_CHALLENGES } from './challengeDefinitions';
 
-const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNavTools = false }) => {
+const DAW_TUTORIAL_DURATION = 13 * 60 * 1000; // 13 minutes in milliseconds
+
+const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNavTools = false, lessonStartTime }) => {
   // Core state
   const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0);
   const [completedChallenges, setCompletedChallenges] = useState(new Set());
@@ -26,6 +28,10 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   const [hasError, setHasError] = useState(false);
   const [isProcessingSuccess, setIsProcessingSuccess] = useState(false);
   const [isProcessingClick, setIsProcessingClick] = useState(false);
+  
+  // Timer and exploration mode state
+  const [showExplorationMode, setShowExplorationMode] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(0);
 
   // Refs
   const isMountedRef = useRef(true);
@@ -34,6 +40,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   const timeoutsRef = useRef([]);
   const hasSpokenFirstChallenge = useRef(false);
   const dawReadyTimeoutRef = useRef(null);
+  const explorationTimerRef = useRef(null);
 
   // Current challenge
   const currentChallenge = DAW_CHALLENGES[currentChallengeIndex];
@@ -54,10 +61,10 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   // Fallback timeout to force DAW ready state after 5 seconds
   useEffect(() => {
     if (!isDAWReady) {
-      console.log('â±ï¸ Starting 5-second fallback timer for DAW initialization...');
+      console.log('⏱️ Starting 5-second fallback timer for DAW initialization...');
       dawReadyTimeoutRef.current = setTimeout(() => {
         if (!isDAWReady && isMountedRef.current) {
-          console.warn('âš ï¸ DAW callback not received after 5s, forcing ready state');
+          console.warn('⚠️ DAW callback not received after 5s, forcing ready state');
           setIsDAWReady(true);
         }
       }, 5000);
@@ -116,6 +123,77 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
     }
   }, [isDAWReady, currentChallenge, voiceEnabled, speakText, setSafeTimeout]);
 
+  // Calculate time remaining when tutorial completes
+  const calculateTimeRemaining = useCallback(() => {
+    if (!lessonStartTime) return 0;
+    
+    const elapsed = Date.now() - lessonStartTime;
+    const remaining = DAW_TUTORIAL_DURATION - elapsed;
+    
+    return Math.max(0, remaining);
+  }, [lessonStartTime]);
+
+  // Start exploration mode timer
+  const startExplorationMode = useCallback(() => {
+    const remaining = calculateTimeRemaining();
+    
+    console.log('🎉 Tutorial complete! Time remaining:', Math.floor(remaining / 1000), 'seconds');
+    
+    if (remaining <= 0) {
+      // No time left, advance immediately
+      console.log('⏰ No time remaining, advancing to next activity');
+      setSafeTimeout(() => {
+        if (isMountedRef.current && !completionCalledRef.current) {
+          completionCalledRef.current = true;
+          onComplete();
+        }
+      }, 2000); // Brief 2-second delay to show completion message
+    } else {
+      // Time remaining, show exploration mode
+      setTimeRemaining(remaining);
+      setShowExplorationMode(true);
+      
+      // Start countdown timer
+      explorationTimerRef.current = setInterval(() => {
+        setTimeRemaining(prev => {
+          const newTime = prev - 1000;
+          
+          if (newTime <= 0) {
+            // Time's up!
+            if (explorationTimerRef.current) {
+              clearInterval(explorationTimerRef.current);
+            }
+            
+            console.log('⏰ Exploration time complete, advancing to next activity');
+            
+            if (isMountedRef.current && !completionCalledRef.current) {
+              completionCalledRef.current = true;
+              
+              if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+              }
+              
+              try {
+                if (window.Tone && window.Tone.Transport) {
+                  window.Tone.Transport.stop();
+                  window.Tone.Transport.cancel();
+                }
+              } catch (error) {
+                console.error('Error stopping Tone.js:', error);
+              }
+              
+              onComplete();
+            }
+            
+            return 0;
+          }
+          
+          return newTime;
+        });
+      }, 1000);
+    }
+  }, [calculateTimeRemaining, onComplete, setSafeTimeout]);
+
   // Next challenge
   const nextChallenge = useCallback(() => {
     if (!isMountedRef.current) return;
@@ -123,28 +201,8 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
     setIsProcessingSuccess(true);
     
     if (currentChallengeIndex >= DAW_CHALLENGES.length - 1) {
-      if (!completionCalledRef.current) {
-        completionCalledRef.current = true;
-        
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-        }
-        
-        try {
-          if (window.Tone && window.Tone.Transport) {
-            window.Tone.Transport.stop();
-            window.Tone.Transport.cancel();
-          }
-        } catch (error) {
-          console.error('Error stopping Tone.js:', error);
-        }
-        
-        setSafeTimeout(() => {
-          if (isMountedRef.current) {
-            onComplete();
-          }
-        }, 500);
-      }
+      // Tutorial complete - check time and start exploration or advance
+      startExplorationMode();
       return;
     }
     
@@ -164,7 +222,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
         }
       }, 500);
     }
-  }, [currentChallengeIndex, isProcessingSuccess, onComplete, setSafeTimeout, voiceEnabled, speakText]);
+  }, [currentChallengeIndex, isProcessingSuccess, startExplorationMode, setSafeTimeout, voiceEnabled, speakText]);
 
   // Challenge interaction handlers
   const handlers = {
@@ -443,6 +501,10 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
         clearTimeout(dawReadyTimeoutRef.current);
       }
       
+      if (explorationTimerRef.current) {
+        clearInterval(explorationTimerRef.current);
+      }
+      
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
@@ -484,7 +546,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
 
   // DAW ready callback
   const handleDAWReady = useCallback(() => {
-    console.log('âœ… DAW is ready for challenges (callback received)');
+    console.log('✅ DAW is ready for challenges (callback received)');
     
     // Clear the fallback timeout since we got the callback
     if (dawReadyTimeoutRef.current) {
@@ -494,6 +556,14 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
     
     setIsDAWReady(true);
   }, []);
+
+  // Format time for display
+  const formatTime = (ms) => {
+    const totalSeconds = Math.ceil(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
 
   // Error state
   if (hasError) {
@@ -513,7 +583,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   }
 
   // Loading state with safety check
-  if (!currentChallenge && !hasError) {
+  if (!currentChallenge && !hasError && !showExplorationMode) {
     if (currentChallengeIndex >= DAW_CHALLENGES.length && !completionCalledRef.current && isMountedRef.current) {
       completionCalledRef.current = true;
       setSafeTimeout(() => {
@@ -551,10 +621,10 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
       )}
 
       {/* Navigation Tools Panel - Dropdown from top right */}
-      {navToolsEnabled && canAccessNavTools && (
+      {navToolsEnabled && canAccessNavTools && !showExplorationMode && (
         <div className="fixed top-16 right-4 z-50">
           <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
-            <div className="text-blue-400 text-xs font-mono mb-2 font-bold">ðŸ§­ TUTORIAL NAVIGATION</div>
+            <div className="text-blue-400 text-xs font-mono mb-2 font-bold">🧭 TUTORIAL NAVIGATION</div>
             
             {/* Activity Navigator */}
             <div className="mb-3">
@@ -592,7 +662,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
                 onClick={navCompleteAll}
                 className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold"
               >
-                ðŸš€ Complete All â†’ Next Activity
+                🚀 Complete All → Next Activity
               </button>
             </div>
             
@@ -609,21 +679,21 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
       )}
 
       {/* Opaque overlay when question is active - ONLY FOR MULTIPLE CHOICE */}
-      {isDAWReady && currentChallenge.type === 'multiple-choice' && (
+      {isDAWReady && !showExplorationMode && currentChallenge?.type === 'multiple-choice' && (
         <div className="absolute inset-0 bg-black/50 z-30 pointer-events-none" />
       )}
 
       {/* Message directing users to challenge bar - ONLY FOR MULTIPLE CHOICE */}
-      {isDAWReady && currentChallenge.type === 'multiple-choice' && (
+      {isDAWReady && !showExplorationMode && currentChallenge?.type === 'multiple-choice' && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-35 pointer-events-none">
           <div className="bg-orange-500 text-white px-8 py-4 rounded-lg shadow-2xl border-4 border-orange-600 animate-pulse">
-            <div className="text-xl font-bold text-center mb-2">ðŸ‘† Answer the Question Above ðŸ‘†</div>
+            <div className="text-xl font-bold text-center mb-2">👆 Answer the Question Above 👆</div>
             <div className="text-sm text-center">Look at the orange challenge bar at the top of the screen</div>
           </div>
         </div>
       )}
 
-      {/* Challenge Panel */}
+      {/* Challenge Panel - Show during tutorial or exploration mode */}
       {isDAWReady && (
         <ChallengePanel
           currentChallenge={currentChallenge}
@@ -645,6 +715,9 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
           onNextChallenge={nextChallenge}
           onSkipChallenge={skipChallenge}
           onRepeatQuestion={repeatQuestion}
+          showExplorationMode={showExplorationMode}
+          timeRemaining={timeRemaining}
+          formatTime={formatTime}
         />
       )}
 
@@ -665,14 +738,14 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
           onPlaybackStartCallback={handlers.handlePlaybackStart}
           onPlaybackStopCallback={handlers.handlePlaybackStop}
           onDAWReadyCallback={handleDAWReady}
-          tutorialMode={true}
+          tutorialMode={!showExplorationMode}
           preselectedVideo={{
             id: 'daw-tutorial',
             title: 'DAW Tutorial',
             duration: 60,
             videoPath: '/lessons/videos/film-music-loop-project/SchoolMystery.mp4'
           }}
-          lockFeatures={currentChallenge?.lockFeatures || {}}
+          lockFeatures={showExplorationMode ? {} : (currentChallenge?.lockFeatures || {})}
         />
       </div>
     </div>
