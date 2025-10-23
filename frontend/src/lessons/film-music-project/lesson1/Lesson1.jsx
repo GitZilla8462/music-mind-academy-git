@@ -28,6 +28,7 @@ const Lesson1 = () => {
   // Check if viewing saved work or reflection
   const searchParams = new URLSearchParams(location.search);
   const viewSavedMode = searchParams.get('view') === 'saved';
+  const viewBonusMode = searchParams.get('view') === 'bonus';
   const viewReflectionMode = searchParams.get('view') === 'reflection';
 
   // Determine if user can access navigation tools
@@ -89,6 +90,12 @@ const Lesson1 = () => {
   // Load saved progress on mount
   useEffect(() => {
     if (viewSavedMode) {
+      setCurrentActivity(3);
+      setLessonStarted(true);
+      return;
+    }
+
+    if (viewBonusMode) {
       setCurrentActivity(3);
       setLessonStarted(true);
       return;
@@ -264,7 +271,7 @@ const Lesson1 = () => {
           onClick={() => setNavToolsEnabled(!navToolsEnabled)}
           className="fixed top-20 right-4 z-50 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-lg"
         >
-          {navToolsEnabled ? '🧭 Hide Navigation Tools' : '🧭 Show Navigation Tools'}
+          {navToolsEnabled ? 'ðŸ§­ Hide Navigation Tools' : 'ðŸ§­ Show Navigation Tools'}
         </button>
       )}
 
@@ -272,7 +279,7 @@ const Lesson1 = () => {
       {navToolsEnabled && canAccessNavTools && lessonStarted && !viewSavedMode && !viewReflectionMode && currentActivityData?.type !== 'daw-tutorial' && (
         <div className="fixed top-32 right-4 z-50">
           <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
-            <div className="text-blue-400 text-xs font-mono mb-2 font-bold">🧭 LESSON NAVIGATION</div>
+            <div className="text-blue-400 text-xs font-mono mb-2 font-bold">ðŸ§­ LESSON NAVIGATION</div>
             
             {/* Activity Navigator */}
             <div className="mb-3">
@@ -311,13 +318,13 @@ const Lesson1 = () => {
                 onClick={() => skipToActivity(3)}
                 className="w-full bg-green-600 text-white text-xs px-3 py-2 rounded hover:bg-green-700 transition-colors font-semibold"
               >
-                🎵 Jump to School Beneath Activity
+                ðŸŽµ Jump to School Beneath Activity
               </button>
               <button
                 onClick={() => skipToActivity(4)}
                 className="w-full bg-purple-600 text-white text-xs px-3 py-2 rounded hover:bg-purple-700 transition-colors font-semibold"
               >
-                ⭐ Jump to Reflection Activity
+                â­ Jump to Reflection Activity
               </button>
             </div>
             
@@ -437,7 +444,7 @@ const Lesson1 = () => {
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100">
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-lg font-bold text-gray-800 flex items-center">
-                      <span className="bg-blue-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm mr-2">📋</span>
+                      <span className="bg-blue-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm mr-2">ðŸ“‹</span>
                       Activities
                     </h2>
                     <span className="text-sm font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
@@ -455,7 +462,7 @@ const Lesson1 = () => {
                             <div className="font-medium text-gray-800 text-sm">{activity.title}</div>
                           </div>
                           <div className="text-xs font-semibold text-blue-600 ml-2 whitespace-nowrap bg-blue-50 px-2.5 py-1 rounded-full">
-                            ≈ {activity.estimatedTime}
+                            â‰ˆ {activity.estimatedTime}
                           </div>
                         </div>
                       </div>
@@ -466,7 +473,7 @@ const Lesson1 = () => {
                 {/* What You'll Learn */}
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border border-green-100">
                   <h2 className="text-lg font-bold mb-3 text-gray-800 flex items-center">
-                    <span className="bg-green-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm mr-2">🎯</span>
+                    <span className="bg-green-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm mr-2">ðŸŽ¯</span>
                     What You'll Learn
                   </h2>
                   <ul className="space-y-2.5">
@@ -547,7 +554,9 @@ const Lesson1 = () => {
                     <SchoolBeneathActivity 
                       key={`school-beneath-${currentActivity}`}
                       onComplete={handleActivityComplete}
-                      viewMode={viewSavedMode}
+                      viewMode={viewSavedMode || viewBonusMode}
+                      viewBonusMode={viewBonusMode}
+                      lessonStartTime={lessonStartTime}
                     />
                   )}
 

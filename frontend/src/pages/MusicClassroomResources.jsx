@@ -6,7 +6,9 @@ function MusicClassroomResources() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [savedComposition, setSavedComposition] = useState(null);
+  const [savedBonusComposition, setSavedBonusComposition] = useState(null);
   const [savedReflection, setSavedReflection] = useState(null);
+  const [dawStats, setDawStats] = useState(null);
 
   // Check if already logged in on mount
   useEffect(() => {
@@ -30,20 +32,32 @@ function MusicClassroomResources() {
     setUsername('');
     setPassword('');
     setSavedComposition(null);
+    setSavedBonusComposition(null);
     setSavedReflection(null);
+    setDawStats(null);
     localStorage.removeItem('classroom-logged-in');
   };
 
-  // Load saved composition AND reflection from localStorage when logged in
+  // Load ALL saved data from localStorage when logged in
   useEffect(() => {
     if (loggedIn) {
-      // Load composition
+      // Load main composition
       const savedComp = localStorage.getItem('school-beneath-composition');
       if (savedComp) {
         try {
           setSavedComposition(JSON.parse(savedComp));
         } catch (error) {
           console.error('Error loading saved composition:', error);
+        }
+      }
+
+      // Load bonus composition
+      const savedBonus = localStorage.getItem('school-beneath-bonus');
+      if (savedBonus) {
+        try {
+          setSavedBonusComposition(JSON.parse(savedBonus));
+        } catch (error) {
+          console.error('Error loading bonus composition:', error);
         }
       }
 
@@ -54,6 +68,16 @@ function MusicClassroomResources() {
           setSavedReflection(JSON.parse(savedRefl));
         } catch (error) {
           console.error('Error loading saved reflection:', error);
+        }
+      }
+
+      // Load DAW stats
+      const stats = localStorage.getItem('lesson1-daw-stats');
+      if (stats) {
+        try {
+          setDawStats(JSON.parse(stats));
+        } catch (error) {
+          console.error('Error loading DAW stats:', error);
         }
       }
     }
@@ -206,12 +230,12 @@ function MusicClassroomResources() {
           style={{
             padding: '10px 20px',
             fontSize: '14px',
+            fontWeight: '600',
             backgroundColor: '#e53e3e',
             color: 'white',
             border: 'none',
-            borderRadius: '6px',
+            borderRadius: '8px',
             cursor: 'pointer',
-            fontWeight: '500',
             transition: 'background-color 0.2s'
           }}
           onMouseEnter={(e) => e.target.style.backgroundColor = '#c53030'}
@@ -222,332 +246,469 @@ function MusicClassroomResources() {
       </header>
 
       {/* Main Content */}
-      <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
-        
-        {/* Available Resources */}
-        <h2 style={{ 
-          fontSize: '24px', 
-          fontWeight: '600',
-          color: '#1a202c',
-          marginBottom: '16px'
-        }}>
-          Available Lessons
-        </h2>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-          gap: '24px'
-        }}>
-          {classroomResources.map((resource) => (
-            <div 
-              key={resource.id}
-              style={{
-                backgroundColor: 'white',
-                padding: '24px',
-                borderRadius: '12px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                transition: 'box-shadow 0.2s, transform 0.2s',
-                cursor: 'pointer'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-              onClick={() => window.location.href = resource.url}
-            >
-              <div style={{ marginBottom: '12px' }}>
-                <span style={{
-                  display: 'inline-block',
-                  padding: '4px 12px',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  borderRadius: '12px',
-                  backgroundColor: resource.projectType === 'lesson' ? '#c6f6d5' : resource.projectType === 'project' ? '#bee3f8' : '#e9d5ff',
-                  color: resource.projectType === 'lesson' ? '#22543d' : resource.projectType === 'project' ? '#2c5282' : '#5b21b6'
-                }}>
-                  {resource.projectType}
-                </span>
-              </div>
-              
-              <h3 style={{ 
-                fontSize: '20px', 
-                fontWeight: '600',
-                color: '#1a202c',
-                marginBottom: '12px'
-              }}>
-                {resource.title}
-              </h3>
-              
-              <p style={{ 
-                fontSize: '14px', 
-                color: '#718096',
-                lineHeight: '1.6',
-                marginBottom: '16px'
-              }}>
-                {resource.description}
-              </p>
-              
-              <div style={{ 
-                borderTop: '1px solid #e2e8f0',
-                paddingTop: '12px'
-              }}>
-                <a 
-                  href={resource.demoUrl}
-                  onClick={(e) => e.stopPropagation()}
+      <div style={{ padding: '40px' }}>
+        {/* Resources Grid */}
+        {classroomResources.length > 0 && (
+          <div style={{ marginBottom: '40px' }}>
+            <h2 style={{ 
+              fontSize: '24px', 
+              fontWeight: '600',
+              color: '#2d3748',
+              marginBottom: '20px'
+            }}>
+              📚 Available Lessons
+            </h2>
+            
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+              gap: '24px'
+            }}>
+              {classroomResources.map((resource) => (
+                <div
+                  key={resource.id}
                   style={{
-                    fontSize: '14px',
-                    color: '#4299e1',
-                    fontWeight: '500',
-                    textDecoration: 'none'
+                    backgroundColor: 'white',
+                    borderRadius: '12px',
+                    padding: '24px',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    transition: 'box-shadow 0.2s, transform 0.2s',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                    e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
-                  Demo →
-                </a>
-              </div>
-            </div>
-          ))}
-        </div>
+                  <div style={{ 
+                    display: 'inline-block',
+                    padding: '6px 12px',
+                    backgroundColor: '#ebf8ff',
+                    color: '#2c5282',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    borderRadius: '6px',
+                    marginBottom: '12px'
+                  }}>
+                    {resource.projectType.toUpperCase()}
+                  </div>
 
-        {/* Saved Work Section - UPDATED WITH REFLECTION BUTTON */}
-        {(savedComposition || savedReflection) && (
+                  <h3 style={{ 
+                    fontSize: '20px',
+                    fontWeight: '600',
+                    color: '#2d3748',
+                    marginBottom: '8px'
+                  }}>
+                    {resource.title}
+                  </h3>
+
+                  <p style={{ 
+                    fontSize: '14px',
+                    color: '#718096',
+                    marginBottom: '20px',
+                    lineHeight: '1.6'
+                  }}>
+                    {resource.description}
+                  </p>
+
+                  <button
+                    onClick={() => {
+                      window.location.href = resource.url;
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      backgroundColor: '#4299e1',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#3182ce'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#4299e1'}
+                  >
+                    {resource.projectType === 'lesson' ? 'Start Lesson' : 'Start Activity'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* MY WORK SECTION - EXPANDED */}
+        {(savedComposition || savedBonusComposition || savedReflection || dawStats) && (
           <div style={{ marginTop: '40px' }}>
             <h2 style={{ 
               fontSize: '24px', 
               fontWeight: '600',
-              color: '#1a202c',
-              marginBottom: '16px'
+              color: '#2d3748',
+              marginBottom: '20px'
             }}>
-              My Saved Work
+              📁 My Saved Work
             </h2>
-            <div 
-              style={{
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
+              gap: '24px'
+            }}>
+              {/* Card for Lesson 1 Saved Work */}
+              <div style={{
                 backgroundColor: 'white',
-                padding: '24px',
                 borderRadius: '12px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                border: '2px solid #48bb78'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ marginBottom: '8px' }}>
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '4px 12px',
-                      fontSize: '12px',
+                padding: '24px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}>
+                <div style={{ 
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '20px',
+                  paddingBottom: '16px',
+                  borderBottom: '2px solid #e2e8f0'
+                }}>
+                  <span style={{ fontSize: '32px' }}>🎵</span>
+                  <div>
+                    <h3 style={{ 
+                      fontSize: '20px',
                       fontWeight: '600',
-                      borderRadius: '12px',
-                      backgroundColor: '#c6f6d5',
-                      color: '#22543d'
+                      color: '#2d3748',
+                      margin: 0
                     }}>
-                      ✓ Work Saved
-                    </span>
+                      Lesson 1: School Beneath
+                    </h3>
+                    <p style={{ 
+                      fontSize: '14px',
+                      color: '#718096',
+                      margin: '4px 0 0 0'
+                    }}>
+                      Film Music Composition
+                    </p>
                   </div>
-                  <h3 style={{ 
-                    fontSize: '20px', 
-                    fontWeight: '600',
-                    color: '#1a202c',
-                    marginBottom: '16px'
+                </div>
+
+                {/* DAW Tutorial Stats */}
+                {dawStats && (
+                  <div style={{ 
+                    backgroundColor: '#f7fafc',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    marginBottom: '16px',
+                    border: '1px solid #e2e8f0'
                   }}>
-                    The School Beneath - Film Music Project
-                  </h3>
-                  
-                  {/* Composition Stats (only if composition exists) */}
-                  {savedComposition && (
-                    <>
-                      <div style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                        gap: '16px',
-                        marginBottom: '16px'
-                      }}>
-                        <div>
-                          <div style={{ fontSize: '12px', color: '#718096' }}>Loops Used</div>
-                          <div style={{ fontSize: '20px', fontWeight: '600', color: '#2d3748' }}>
-                            {savedComposition.loopCount}
-                          </div>
-                        </div>
-                        <div>
-                          <div style={{ fontSize: '12px', color: '#718096' }}>Submitted</div>
-                          <div style={{ fontSize: '14px', fontWeight: '500', color: '#2d3748' }}>
-                            {new Date(savedComposition.completedAt).toLocaleDateString()} at {new Date(savedComposition.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        </div>
-                        <div>
-                          <div style={{ fontSize: '12px', color: '#718096' }}>Duration</div>
-                          <div style={{ fontSize: '14px', fontWeight: '500', color: '#2d3748' }}>
-                            {Math.round(savedComposition.videoDuration)}s
-                          </div>
+                    <div style={{ 
+                      fontSize: '14px', 
+                      fontWeight: '600',
+                      color: '#2d3748',
+                      marginBottom: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <span>🎯</span>
+                      <span>DAW Tutorial Performance</span>
+                    </div>
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'repeat(2, 1fr)',
+                      gap: '12px'
+                    }}>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#718096' }}>Correct Answers</div>
+                        <div style={{ 
+                          fontSize: '24px', 
+                          fontWeight: '700', 
+                          color: '#48bb78'
+                        }}>
+                          {dawStats.correct}
                         </div>
                       </div>
-
-                      {/* Requirements Status */}
-                      <div style={{ 
-                        borderTop: '1px solid #e2e8f0',
-                        paddingTop: '12px',
-                        marginBottom: '16px'
-                      }}>
-                        <div style={{ fontSize: '12px', color: '#718096', marginBottom: '8px' }}>
-                          Requirements Met:
-                        </div>
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                          <span style={{
-                            padding: '4px 8px',
-                            fontSize: '12px',
-                            borderRadius: '4px',
-                            backgroundColor: savedComposition.requirements.instrumentation ? '#c6f6d5' : '#fed7d7',
-                            color: savedComposition.requirements.instrumentation ? '#22543d' : '#742a2a'
-                          }}>
-                            {savedComposition.requirements.instrumentation ? '✓' : '✗'} Instrumentation
-                          </span>
-                          <span style={{
-                            padding: '4px 8px',
-                            fontSize: '12px',
-                            borderRadius: '4px',
-                            backgroundColor: savedComposition.requirements.layering ? '#c6f6d5' : '#fed7d7',
-                            color: savedComposition.requirements.layering ? '#22543d' : '#742a2a'
-                          }}>
-                            {savedComposition.requirements.layering ? '✓' : '✗'} Layering
-                          </span>
-                          <span style={{
-                            padding: '4px 8px',
-                            fontSize: '12px',
-                            borderRadius: '4px',
-                            backgroundColor: savedComposition.requirements.structure ? '#c6f6d5' : '#fed7d7',
-                            color: savedComposition.requirements.structure ? '#22543d' : '#742a2a'
-                          }}>
-                            {savedComposition.requirements.structure ? '✓' : '✗'} Structure
-                          </span>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#718096' }}>Incorrect Answers</div>
+                        <div style={{ 
+                          fontSize: '24px', 
+                          fontWeight: '700', 
+                          color: '#f56565'
+                        }}>
+                          {dawStats.incorrect}
                         </div>
                       </div>
-                    </>
-                  )}
+                    </div>
+                    {dawStats.correct + dawStats.incorrect > 0 && (
+                      <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e2e8f0' }}>
+                        <div style={{ fontSize: '12px', color: '#718096', marginBottom: '4px' }}>
+                          Accuracy Rate
+                        </div>
+                        <div style={{ 
+                          fontSize: '18px', 
+                          fontWeight: '600', 
+                          color: '#2d3748'
+                        }}>
+                          {Math.round((dawStats.correct / (dawStats.correct + dawStats.incorrect)) * 100)}%
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                  {/* Reflection Info (only if reflection exists) */}
-                  {savedReflection && (
+                {/* Main Composition Info */}
+                {savedComposition && (
+                  <>
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                      gap: '16px',
+                      marginBottom: '16px'
+                    }}>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#718096' }}>Main Composition</div>
+                        <div style={{ fontSize: '18px', fontWeight: '600', color: '#2d3748' }}>
+                          {savedComposition.loopCount} loops
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#718096' }}>Submitted</div>
+                        <div style={{ fontSize: '13px', fontWeight: '500', color: '#2d3748' }}>
+                          {new Date(savedComposition.completedAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#718096' }}>Duration</div>
+                        <div style={{ fontSize: '13px', fontWeight: '500', color: '#2d3748' }}>
+                          {Math.round(savedComposition.videoDuration)}s
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Requirements Status */}
                     <div style={{ 
                       borderTop: '1px solid #e2e8f0',
                       paddingTop: '12px',
                       marginBottom: '16px'
                     }}>
                       <div style={{ fontSize: '12px', color: '#718096', marginBottom: '8px' }}>
-                        Reflection Completed:
+                        Requirements Met:
                       </div>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                         <span style={{
                           padding: '4px 8px',
                           fontSize: '12px',
                           borderRadius: '4px',
-                          backgroundColor: '#e9d5ff',
-                          color: '#5b21b6',
-                          fontWeight: '600'
+                          backgroundColor: savedComposition.requirements.instrumentation ? '#c6f6d5' : '#fed7d7',
+                          color: savedComposition.requirements.instrumentation ? '#22543d' : '#742a2a'
                         }}>
-                          ⭐ Two Stars and a Wish
+                          {savedComposition.requirements.instrumentation ? '✓' : '✗'} Instrumentation
                         </span>
-                        <span style={{ fontSize: '12px', color: '#718096' }}>
-                          ({savedReflection.reviewType === 'self' ? 'Self-Reflection' : `Partner: ${savedReflection.partnerName}`})
+                        <span style={{
+                          padding: '4px 8px',
+                          fontSize: '12px',
+                          borderRadius: '4px',
+                          backgroundColor: savedComposition.requirements.layering ? '#c6f6d5' : '#fed7d7',
+                          color: savedComposition.requirements.layering ? '#22543d' : '#742a2a'
+                        }}>
+                          {savedComposition.requirements.layering ? '✓' : '✗'} Layering
+                        </span>
+                        <span style={{
+                          padding: '4px 8px',
+                          fontSize: '12px',
+                          borderRadius: '4px',
+                          backgroundColor: savedComposition.requirements.structure ? '#c6f6d5' : '#fed7d7',
+                          color: savedComposition.requirements.structure ? '#22543d' : '#742a2a'
+                        }}>
+                          {savedComposition.requirements.structure ? '✓' : '✗'} Structure
                         </span>
                       </div>
                     </div>
-                  )}
+                  </>
+                )}
 
-                  {/* Action Buttons - UPDATED WITH VIEW REFLECTION BUTTON */}
+                {/* Bonus Composition Info */}
+                {savedBonusComposition && (
+                  <div style={{ 
+                    backgroundColor: '#fef5e7',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    marginBottom: '16px',
+                    border: '2px solid #f6ad55'
+                  }}>
+                    <div style={{ 
+                      fontSize: '13px', 
+                      fontWeight: '600',
+                      color: '#c05621',
+                      marginBottom: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <span>✨</span>
+                      <span>Bonus Composition Created!</span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#744210' }}>
+                      {savedBonusComposition.loopCount} loops • Saved on {new Date(savedBonusComposition.savedAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                )}
+
+                {/* Reflection Info */}
+                {savedReflection && (
                   <div style={{ 
                     borderTop: '1px solid #e2e8f0',
-                    paddingTop: '16px',
-                    display: 'flex',
-                    gap: '12px',
-                    flexWrap: 'wrap'
+                    paddingTop: '12px',
+                    marginBottom: '16px'
                   }}>
-                    {savedComposition && (
-                      <button
-                        onClick={() => {
-                          window.location.href = '/lessons/film-music-project/lesson1?view=saved';
-                        }}
-                        style={{
-                          flex: '1 1 200px',
-                          padding: '12px 24px',
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          backgroundColor: '#4299e1',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          transition: 'background-color 0.2s',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '8px'
-                        }}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = '#3182ce'}
-                        onMouseLeave={(e) => e.target.style.backgroundColor = '#4299e1'}
-                      >
-                        <span>📝</span>
-                        <span>View Composition</span>
-                      </button>
-                    )}
+                    <div style={{ fontSize: '12px', color: '#718096', marginBottom: '8px' }}>
+                      Reflection Completed:
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span style={{
+                        padding: '4px 8px',
+                        fontSize: '12px',
+                        borderRadius: '4px',
+                        backgroundColor: '#e9d5ff',
+                        color: '#5b21b6',
+                        fontWeight: '600'
+                      }}>
+                        ⭐ Two Stars and a Wish
+                      </span>
+                      <span style={{ fontSize: '12px', color: '#718096' }}>
+                        ({savedReflection.reviewType === 'self' ? 'Self-Reflection' : `Partner: ${savedReflection.partnerName}`})
+                      </span>
+                    </div>
+                  </div>
+                )}
 
-                    {savedReflection && (
-                      <button
-                        onClick={() => {
-                          window.location.href = '/lessons/film-music-project/lesson1?view=reflection';
-                        }}
-                        style={{
-                          flex: '1 1 200px',
-                          padding: '12px 24px',
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          backgroundColor: '#9f7aea',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          transition: 'background-color 0.2s',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '8px'
-                        }}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = '#805ad5'}
-                        onMouseLeave={(e) => e.target.style.backgroundColor = '#9f7aea'}
-                      >
-                        <span>⭐</span>
-                        <span>View Reflection</span>
-                      </button>
-                    )}
-
+                {/* Action Buttons */}
+                <div style={{ 
+                  borderTop: '1px solid #e2e8f0',
+                  paddingTop: '16px',
+                  display: 'flex',
+                  gap: '12px',
+                  flexWrap: 'wrap'
+                }}>
+                  {savedComposition && (
                     <button
                       onClick={() => {
-                        if (window.confirm('Are you sure you want to delete ALL your saved work (composition and reflection)? This cannot be undone.')) {
-                          localStorage.removeItem('school-beneath-composition');
-                          localStorage.removeItem('school-beneath-reflection');
-                          setSavedComposition(null);
-                          setSavedReflection(null);
-                          alert('All saved work deleted successfully');
-                        }
+                        window.location.href = '/lessons/film-music-project/lesson1?view=saved';
                       }}
                       style={{
-                        padding: '12px 24px',
+                        flex: '1 1 150px',
+                        padding: '12px 20px',
                         fontSize: '14px',
                         fontWeight: '600',
-                        backgroundColor: '#e53e3e',
+                        backgroundColor: '#4299e1',
                         color: 'white',
                         border: 'none',
                         borderRadius: '8px',
                         cursor: 'pointer',
-                        transition: 'background-color 0.2s'
+                        transition: 'background-color 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
                       }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = '#c53030'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = '#e53e3e'}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#3182ce'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = '#4299e1'}
                     >
-                      Delete All
+                      <span>📝</span>
+                      <span>View Main</span>
                     </button>
-                  </div>
+                  )}
+
+                  {savedBonusComposition && (
+                    <button
+                      onClick={() => {
+                        window.location.href = '/lessons/film-music-project/lesson1?view=bonus';
+                      }}
+                      style={{
+                        flex: '1 1 150px',
+                        padding: '12px 20px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        backgroundColor: '#ed8936',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#dd6b20'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = '#ed8936'}
+                    >
+                      <span>✨</span>
+                      <span>View Bonus</span>
+                    </button>
+                  )}
+
+                  {savedReflection && (
+                    <button
+                      onClick={() => {
+                        window.location.href = '/lessons/film-music-project/lesson1?view=reflection';
+                      }}
+                      style={{
+                        flex: '1 1 150px',
+                        padding: '12px 20px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        backgroundColor: '#9f7aea',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#805ad5'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = '#9f7aea'}
+                    >
+                      <span>⭐</span>
+                      <span>Reflection</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to delete ALL your saved work (DAW stats, compositions, and reflection)? This cannot be undone.')) {
+                        localStorage.removeItem('school-beneath-composition');
+                        localStorage.removeItem('school-beneath-bonus');
+                        localStorage.removeItem('school-beneath-reflection');
+                        localStorage.removeItem('lesson1-daw-stats');
+                        setSavedComposition(null);
+                        setSavedBonusComposition(null);
+                        setSavedReflection(null);
+                        setDawStats(null);
+                        alert('All saved work deleted successfully');
+                      }
+                    }}
+                    style={{
+                      padding: '12px 20px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      backgroundColor: '#e53e3e',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#c53030'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#e53e3e'}
+                  >
+                    Delete All
+                  </button>
                 </div>
               </div>
             </div>

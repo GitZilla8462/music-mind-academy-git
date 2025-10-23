@@ -1,14 +1,15 @@
 // File: /src/lessons/film-music-project/lesson1/activities/SchoolBeneathActivity.jsx
 // Composition exercise for "The School Beneath" mysterious trailer
-// UPDATED: Now triggers reflection modal after submission
-// FIXED: Corrected symbol encoding AND mood/category validation logic
+// UPDATED: 30-minute timer with exploration mode after submission
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
-import TwoStarsAndAWishActivity from './two-stars-and-a-wish/TwoStarsAndAWishActivity';
+import { Sparkles, Clock } from 'lucide-react';
 
-const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
+const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = false, lessonStartTime }) => {
   const navigate = useNavigate();
   const [requirements, setRequirements] = useState({
     instrumentation: false,  // 5+ Mysterious loops
@@ -19,12 +20,18 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
   const [videoDuration, setVideoDuration] = useState(null);
   const [isLoadingVideo, setIsLoadingVideo] = useState(true);
   const [saveMessage, setSaveMessage] = useState('');
-  const [showReflection, setShowReflection] = useState(false);
+  const [isExplorationMode, setIsExplorationMode] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(0);
+  const timerRef = useRef(null);
+  const hasSubmittedRef = useRef(false);
+  const autoAdvanceCalledRef = useRef(false);
+  const [isMinimizedModal, setIsMinimizedModal] = useState(false);
 
   // Load saved composition if in view mode
   useEffect(() => {
     if (viewMode) {
-      const saved = localStorage.getItem('school-beneath-composition');
+      const storageKey = viewBonusMode ? 'school-beneath-bonus' : 'school-beneath-composition';
+      const saved = localStorage.getItem(storageKey);
       if (saved) {
         try {
           const data = JSON.parse(saved);
@@ -38,7 +45,50 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
         }
       }
     }
-  }, [viewMode]);
+  }, [viewMode, viewBonusMode]);
+
+  // Calculate time remaining and start countdown
+  useEffect(() => {
+    if (!lessonStartTime || viewMode) return;
+
+    const calculateRemaining = () => {
+      const elapsed = Date.now() - lessonStartTime;
+      const remaining = SCHOOL_BENEATH_DEADLINE - elapsed;
+      return Math.max(0, remaining);
+    };
+
+    // Initial calculation
+    const remaining = calculateRemaining();
+    setTimeRemaining(remaining);
+
+    // Start countdown timer
+    timerRef.current = setInterval(() => {
+      const newRemaining = calculateRemaining();
+      setTimeRemaining(newRemaining);
+
+      // When time hits 0, auto-advance
+      if (newRemaining <= 0 && !autoAdvanceCalledRef.current) {
+        autoAdvanceCalledRef.current = true;
+        clearInterval(timerRef.current);
+        
+        // Auto-save current work
+        handleAutoSave();
+        
+        // Show brief toast
+        setSaveMessage('⏰ Time\'s up! Great work - let\'s share!');
+        
+        setTimeout(() => {
+          onComplete();
+        }, 2000);
+      }
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [lessonStartTime, viewMode, onComplete]);
 
   // Detect video duration on mount (skip if in viewMode)
   useEffect(() => {
@@ -87,23 +137,19 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
     };
   }, [viewMode]);
 
-  // Check requirements as loops are placed (skip in viewMode)
+  // Check requirements as loops are placed (skip in viewMode or exploration mode)
   useEffect(() => {
-    if (viewMode || placedLoops.length === 0) return;
+    if (viewMode || placedLoops.length === 0 || isExplorationMode) return;
     checkRequirements();
-  }, [placedLoops, viewMode]);
+  }, [placedLoops, viewMode, isExplorationMode]);
 
   const checkRequirements = () => {
     console.log('Checking requirements with loops:', placedLoops);
     
-    // FIXED: Check both mood and category for Mysterious loops
-    const allMysterious = placedLoops.every(loop => 
-      loop.mood === 'Mysterious' || loop.category === 'Mysterious'
-    );
-    
+    // Verify all loops are Mysterious category
+    const allMysterious = placedLoops.every(loop => loop.mood === 'Mysterious');
     if (!allMysterious) {
       console.warn('Non-Mysterious loops detected!');
-      console.log('Loop categories:', placedLoops.map(l => ({ mood: l.mood, category: l.category })));
       setRequirements({
         instrumentation: false,
         layering: false,
@@ -114,14 +160,14 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
     
     const uniqueLoops = new Set(placedLoops.map(loop => loop.originalId || loop.id));
     const hasInstrumentation = uniqueLoops.size >= 5;
-    console.log('✓ Instrumentation check:', hasInstrumentation, 'Unique loops:', uniqueLoops.size);
+    console.log('Instrumentation check:', hasInstrumentation, 'Unique loops:', uniqueLoops.size);
 
     const startTimes = new Set(placedLoops.map(loop => Math.floor(loop.startTime)));
     const hasLayering = startTimes.size >= 3 && placedLoops.length >= 5;
-    console.log('✓ Layering check:', hasLayering, 'Unique start times:', startTimes.size, 'Total loops:', placedLoops.length);
+    console.log('Layering check:', hasLayering, 'Unique start times:', startTimes.size);
 
     const hasStructure = placedLoops.length >= 5;
-    console.log('✓ Structure check:', hasStructure, 'Total loops:', placedLoops.length);
+    console.log('Structure check:', hasStructure);
 
     const newRequirements = {
       instrumentation: hasInstrumentation,
@@ -129,32 +175,29 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
       structure: hasStructure
     };
     
-    console.log('📊 Requirements updated:', newRequirements);
+    console.log('Requirements updated:', newRequirements);
     setRequirements(newRequirements);
   };
 
   const handleLoopPlaced = (loopData, trackIndex, startTime) => {
     console.log('Loop placed callback received:', loopData, trackIndex, startTime);
     
-    // FIXED: Check both mood and category for Mysterious loops
-    const isMysteriousLoop = loopData.mood === 'Mysterious' || loopData.category === 'Mysterious';
-    
-    if (!isMysteriousLoop) {
-      console.warn('Rejected non-Mysterious loop:', { mood: loopData.mood, category: loopData.category });
+    // ONLY restrict to Mysterious in non-exploration mode
+    if (!isExplorationMode && loopData.mood !== 'Mysterious') {
+      console.warn('Rejected non-Mysterious loop:', loopData.category);
       setSaveMessage('❌ Only Mysterious loops allowed!');
       setTimeout(() => setSaveMessage(''), 2000);
       return;
     }
     
-    // FIXED: Store both mood and category in the placed loop
     const newLoop = {
       id: `${loopData.id}-${Date.now()}`,
       originalId: loopData.id,
       name: loopData.name,
       file: loopData.file,
       duration: loopData.duration,
-      category: loopData.category || 'Mysterious',
-      mood: loopData.mood || 'Mysterious',  // Add mood property
+      category: loopData.category,
+      mood: loopData.mood,
       color: loopData.color,
       trackIndex,
       startTime,
@@ -191,8 +234,10 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
   };
 
   const handleSaveProgress = () => {
+    const storageKey = isExplorationMode ? 'school-beneath-bonus' : 'school-beneath-composition';
+    
     const compositionData = {
-      title: 'The School Beneath',
+      title: isExplorationMode ? 'The School Beneath - Bonus' : 'The School Beneath',
       placedLoops: placedLoops,
       savedAt: new Date().toISOString(),
       loopCount: placedLoops.length,
@@ -200,17 +245,49 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
       videoDuration: videoDuration
     };
     
-    localStorage.setItem('school-beneath-composition', JSON.stringify(compositionData));
-    console.log('Progress saved to localStorage:', compositionData);
+    localStorage.setItem(storageKey, JSON.stringify(compositionData));
+    console.log('Progress saved to localStorage:', storageKey, compositionData);
     
     setSaveMessage('Progress saved! ✓');
     setTimeout(() => setSaveMessage(''), 3000);
   };
 
-  // UPDATED: Submit triggers reflection modal instead of navigating away
+  const handleAutoSave = () => {
+    if (isExplorationMode) {
+      // Save bonus composition
+      const bonusData = {
+        title: 'The School Beneath - Bonus',
+        placedLoops: placedLoops,
+        savedAt: new Date().toISOString(),
+        loopCount: placedLoops.length,
+        videoDuration: videoDuration
+      };
+      localStorage.setItem('school-beneath-bonus', JSON.stringify(bonusData));
+      console.log('Auto-saved bonus composition');
+    } else {
+      // Save regular composition
+      const compositionData = {
+        title: 'The School Beneath',
+        placedLoops: placedLoops,
+        savedAt: new Date().toISOString(),
+        loopCount: placedLoops.length,
+        requirements: requirements,
+        videoDuration: videoDuration
+      };
+      localStorage.setItem('school-beneath-composition', JSON.stringify(compositionData));
+      console.log('Auto-saved composition');
+    }
+  };
+
+  // Submit triggers exploration mode
   const handleSubmitActivity = () => {
-    console.log('Submitting activity - saving composition and showing reflection');
+    if (hasSubmittedRef.current) return;
     
+    console.log('Submitting activity - saving composition and entering exploration mode');
+    
+    hasSubmittedRef.current = true;
+    
+    // Save the completed assignment
     const compositionData = {
       title: 'The School Beneath',
       placedLoops: placedLoops,
@@ -223,24 +300,52 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
     localStorage.setItem('school-beneath-composition', JSON.stringify(compositionData));
     console.log('Composition saved to localStorage:', compositionData);
     
-    // Show reflection modal
-    setShowReflection(true);
+    // Enter exploration mode - clear loops for bonus composition
+    setIsExplorationMode(true);
+    setPlacedLoops([]);
+    setSaveMessage('✓ Submitted! Now create a bonus composition!');
+    setTimeout(() => setSaveMessage(''), 3000);
+    
+    // Speak the exploration message
+    setTimeout(() => {
+      const message = "Great job with your composition! For the remaining time, you may explore all the loops available. What would your trailer sound like with heroic, scary, or upbeat loops?";
+      
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(message);
+        utterance.volume = 0.5;
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(voice => 
+          voice.name === 'Samantha' || 
+          voice.name === 'Google US English' ||
+          voice.name === 'Google US English Female' ||
+          (voice.name.includes('Microsoft') && voice.lang === 'en-US') ||
+          voice.name.includes('Zira') ||
+          (voice.lang === 'en-US' && voice.name.includes('United States'))
+        ) || voices.find(voice => voice.lang.startsWith('en-US'));
+        
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+          console.log('Using voice:', preferredVoice.name, preferredVoice.lang);
+        }
+        
+        window.speechSynthesis.speak(utterance);
+      }
+    }, 500);
   };
 
-  // Called when reflection is complete
-  const handleReflectionComplete = () => {
-    console.log('Reflection complete, navigating home');
-    window.location.href = '/';
+  const formatTime = (ms) => {
+    const totalSeconds = Math.ceil(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   const allRequirementsMet = Object.values(requirements).every(met => met);
-
-  // Show reflection modal overlay
-  if (showReflection) {
-    return (
-      <TwoStarsAndAWishActivity onComplete={handleReflectionComplete} />
-    );
-  }
 
   if (isLoadingVideo || videoDuration === null) {
     return (
@@ -256,54 +361,145 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
 
   return (
     <div className="h-screen w-full flex flex-col bg-gray-900">
+      {/* Exploration Mode Timer Modal */}
+      {isExplorationMode && timeRemaining > 0 && (
+        <div
+          style={{
+            position: 'fixed',
+            right: '20px',
+            bottom: '20px',
+            width: isMinimizedModal ? '280px' : '340px',
+            zIndex: 1000,
+            pointerEvents: 'auto'
+          }}
+          className="bg-white rounded-lg shadow-2xl border-4 border-green-500"
+        >
+          <div className="bg-gradient-to-r from-green-500 to-emerald-500 px-4 py-2.5 flex items-center justify-between">
+            <div className="text-white font-semibold text-sm flex items-center gap-2">
+              <Sparkles size={16} className="animate-pulse" />
+              <span>Bonus Exploration</span>
+              <span className="bg-white/20 px-2 py-0.5 rounded text-xs font-bold">
+                {formatTime(timeRemaining)}
+              </span>
+            </div>
+            <button
+              onClick={() => setIsMinimizedModal(!isMinimizedModal)}
+              className="text-white hover:bg-white/20 p-1 rounded transition-colors"
+              title={isMinimizedModal ? "Expand" : "Minimize"}
+            >
+              {isMinimizedModal ? (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="10" height="10" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="3" y1="13" x2="13" y2="13" />
+                </svg>
+              )}
+            </button>
+          </div>
+          
+          {!isMinimizedModal && (
+            <div className="p-4 space-y-3">
+              <div className="text-center bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-3 border-2 border-green-200">
+                <div className="text-sm text-gray-700 mb-2 font-semibold leading-relaxed">
+                  🎉 Great job with your composition!
+                </div>
+                <div className="text-xs text-gray-600 leading-relaxed">
+                  Explore all loops available!
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-3">
+                <div className="text-xs text-gray-800 leading-relaxed">
+                  <div className="font-bold mb-2 text-blue-900 text-sm">What would your trailer sound like with:</div>
+                  <ul className="space-y-1 text-xs">
+                    <li className="flex items-start gap-2">
+                      <span className="text-yellow-500 font-bold">⭐</span>
+                      <span><strong>Heroic</strong> loops?</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-purple-500 font-bold">👻</span>
+                      <span><strong>Scary</strong> loops?</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-orange-500 font-bold">🎊</span>
+                      <span><strong>Upbeat</strong> loops?</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Header */}
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">
         <div className="px-4 py-2">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 flex-1 min-w-0 overflow-x-auto">
               <h2 className="text-sm font-bold whitespace-nowrap flex-shrink-0">
-                {viewMode ? 'Viewing Saved Work: ' : ''}The School Beneath - Composition Assignment
+                {viewMode ? (viewBonusMode ? "Viewing Bonus Composition: " : "Viewing Saved Work: ") : ""}
+                {isExplorationMode ? '🎵 Bonus Composition - The School Beneath' : 'The School Beneath - Composition Assignment'}
               </h2>
               
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <div className={`flex items-center gap-1 px-2 py-1 rounded border text-xs ${
-                  requirements.instrumentation 
-                    ? 'bg-green-900/30 border-green-500' 
-                    : 'bg-gray-700 border-gray-600'
-                }`}>
-                  <span className={requirements.instrumentation ? 'text-green-400' : 'text-gray-500'}>
-                    {requirements.instrumentation ? '✓' : '○'}
-                  </span>
-                  <span className="font-semibold">Instrumentation:</span>
-                  <span className="text-gray-300">5+ Mysterious loops</span>
-                </div>
+              {!isExplorationMode && !viewMode && (
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded border text-xs ${
+                    requirements.instrumentation 
+                      ? 'bg-green-900/30 border-green-500' 
+                      : 'bg-gray-700 border-gray-600'
+                  }`}>
+                    <span className={requirements.instrumentation ? 'text-green-400' : 'text-gray-500'}>
+                      {requirements.instrumentation ? '✓' : '○'}
+                    </span>
+                    <span className="font-semibold">Instrumentation:</span>
+                    <span className="text-gray-300">5+ Mysterious loops</span>
+                  </div>
 
-                <div className={`flex items-center gap-1 px-2 py-1 rounded border text-xs ${
-                  requirements.layering 
-                    ? 'bg-green-900/30 border-green-500' 
-                    : 'bg-gray-700 border-gray-600'
-                }`}>
-                  <span className={requirements.layering ? 'text-green-400' : 'text-gray-500'}>
-                    {requirements.layering ? '✓' : '○'}
-                  </span>
-                  <span className="font-semibold">Layering:</span>
-                  <span className="text-gray-300">3+ different times</span>
-                </div>
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded border text-xs ${
+                    requirements.layering 
+                      ? 'bg-green-900/30 border-green-500' 
+                      : 'bg-gray-700 border-gray-600'
+                  }`}>
+                    <span className={requirements.layering ? 'text-green-400' : 'text-gray-500'}>
+                      {requirements.layering ? '✓' : '○'}
+                    </span>
+                    <span className="font-semibold">Layering:</span>
+                    <span className="text-gray-300">3+ different times</span>
+                  </div>
 
-                <div className={`flex items-center gap-1 px-2 py-1 rounded border text-xs ${
-                  requirements.structure 
-                    ? 'bg-green-900/30 border-green-500' 
-                    : 'bg-gray-700 border-gray-600'
-                }`}>
-                  <span className={requirements.structure ? 'text-green-400' : 'text-gray-500'}>
-                    {requirements.structure ? '✓' : '○'}
-                  </span>
-                  <span className="font-semibold">Structure:</span>
-                  <span className="text-gray-300">5+ loops total</span>
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded border text-xs ${
+                    requirements.structure 
+                      ? 'bg-green-900/30 border-green-500' 
+                      : 'bg-gray-700 border-gray-600'
+                  }`}>
+                    <span className={requirements.structure ? 'text-green-400' : 'text-gray-500'}>
+                      {requirements.structure ? '✓' : '○'}
+                    </span>
+                    <span className="font-semibold">Structure:</span>
+                    <span className="text-gray-300">5+ loops total</span>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {isExplorationMode && (
+                <div className="flex items-center gap-2 bg-green-900/30 border border-green-500 px-3 py-1 rounded text-xs">
+                  <Sparkles size={14} className="text-green-400" />
+                  <span className="text-green-300 font-semibold">All Loops Unlocked!</span>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0">
+              {!viewMode && lessonStartTime && !isExplorationMode && (
+                <div className="flex items-center gap-1 text-xs text-gray-300 bg-gray-700 px-2 py-1 rounded">
+                  <Clock size={14} />
+                  <span>{formatTime(timeRemaining)}</span>
+                </div>
+              )}
+
               <div className="text-xs text-gray-400">
                 {placedLoops.length} loops
               </div>
@@ -330,7 +526,7 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
                 >
                   Back to Resources
                 </button>
-              ) : (
+              ) : !isExplorationMode ? (
                 <button
                   onClick={handleSubmitActivity}
                   disabled={!allRequirementsMet}
@@ -342,7 +538,7 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
                 >
                   Submit
                 </button>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
@@ -360,9 +556,9 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false }) => {
             duration: videoDuration,
             videoPath: '/lessons/videos/film-music-loop-project/SchoolMystery.mp4'
           }}
-          filterLoopCategory="Mysterious"
-          lockedMood="Mysterious"
-          restrictToCategory="Mysterious"
+          filterLoopCategory={isExplorationMode ? null : "Mysterious"}
+          lockedMood={isExplorationMode ? null : "Mysterious"}
+          restrictToCategory={isExplorationMode ? null : "Mysterious"}
           hideHeader={true}
           hideSubmitButton={true}
           isLessonMode={true}
