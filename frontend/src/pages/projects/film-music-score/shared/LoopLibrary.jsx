@@ -31,22 +31,22 @@ const LoopLibrary = ({
   lockFeatures = {},
   restrictToCategory = null,
   lockedMood = null,
-  showSoundEffects = false  // NEW PROP: Enable sound effects
+  showSoundEffects = false,  // NEW PROP: Enable sound effects
+  currentlyPlayingLoopId = null  // NEW PROP: Track which loop is playing from parent
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
   const [loops, setLoops] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentAudio, setCurrentAudio] = useState(null);
   const [error, setError] = useState(null);
   const [moodFilter, setMoodFilter] = useState(lockedMood || 'All');
   const [instrumentFilter, setInstrumentFilter] = useState('All');
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [soundEffectsEnabled, setSoundEffectsEnabled] = useState(false);  // NEW STATE
+  const [soundEffectsEnabled, setSoundEffectsEnabled] = useState(true);  // NEW STATE - Default to true
 
   // DEBUG: Log props on mount
   useEffect(() => {
-    console.log('🔍 LoopLibrary Props:', { restrictToCategory, lockedMood, showSoundEffects });
+    console.log('Ã°Å¸â€Â LoopLibrary Props:', { restrictToCategory, lockedMood, showSoundEffects });
   }, []);
 
   // Lock mood filter when lockedMood is set
@@ -55,6 +55,15 @@ const LoopLibrary = ({
       setMoodFilter(lockedMood);
     }
   }, [lockedMood]);
+
+  // Sync UI state with parent's currently playing loop
+  useEffect(() => {
+    if (currentlyPlayingLoopId === null && currentlyPlaying !== null) {
+      // Parent says nothing is playing, but we think something is - reset UI
+      setCurrentlyPlaying(null);
+      setIsPlayingAudio(false);
+    }
+  }, [currentlyPlayingLoopId, currentlyPlaying]);
 
   // Load loops from backend API
   useEffect(() => {
@@ -223,9 +232,9 @@ const LoopLibrary = ({
     }
   };
 
-  // Combine loops and sound effects if enabled
+  // Combine loops and sound effects if enabled - SOUND EFFECTS FIRST
   const allItems = soundEffectsEnabled && showSoundEffects 
-    ? [...loops, ...soundEffects]
+    ? [...soundEffects, ...loops]  // Sound effects at TOP
     : loops;
 
   // Extract unique moods and instruments
@@ -272,16 +281,8 @@ const LoopLibrary = ({
 
   // Handle playing loop
   const handlePlayLoop = async (loop) => {
-    // Stop currently playing audio
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-      setCurrentlyPlaying(null);
-    }
-
-    // If clicking the same loop, just stop it
+    // If clicking the same loop, toggle off
     if (currentlyPlaying === loop.id) {
-      setCurrentAudio(null);
       setCurrentlyPlaying(null);
       setIsPlayingAudio(false);
       
@@ -292,51 +293,13 @@ const LoopLibrary = ({
       return;
     }
 
-    // Play new loop
+    // Play new loop - let parent handle actual audio playback
+    setCurrentlyPlaying(loop.id);
     setIsPlayingAudio(true);
-    const audio = new Audio(loop.file);
-    audio.volume = loop.volume;
     
-    audio.addEventListener('ended', () => {
-      setCurrentlyPlaying(null);
-      setCurrentAudio(null);
-      setIsPlayingAudio(false);
-      
-      // Notify parent that preview stopped
-      if (onLoopPreview) {
-        onLoopPreview(loop, false);
-      }
-    });
-
-    audio.addEventListener('error', (e) => {
-      console.error('Error playing loop:', e);
-      setCurrentlyPlaying(null);
-      setCurrentAudio(null);
-      setIsPlayingAudio(false);
-      
-      // Notify parent that preview stopped
-      if (onLoopPreview) {
-        onLoopPreview(loop, false);
-      }
-    });
-
-    try {
-      await audio.play();
-      setCurrentAudio(audio);
-      setCurrentlyPlaying(loop.id);
-      
-      // Notify parent that preview started
-      if (onLoopPreview) {
-        onLoopPreview(loop, true);
-      }
-    } catch (error) {
-      console.error('Failed to play loop:', error);
-      setIsPlayingAudio(false);
-      
-      // Notify parent that preview stopped
-      if (onLoopPreview) {
-        onLoopPreview(loop, false);
-      }
+    // Notify parent that preview started
+    if (onLoopPreview) {
+      onLoopPreview(loop, true);
     }
   };
 
@@ -354,16 +317,6 @@ const LoopLibrary = ({
       onLoopDragStart(loop);
     }
   };
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.src = '';
-      }
-    };
-  }, [currentAudio]);
 
   if (loading) {
     return (
@@ -470,7 +423,7 @@ const LoopLibrary = ({
                 className="w-3.5 h-3.5 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
               />
               <span className="text-xs text-purple-300 font-medium flex items-center gap-1">
-                🔊 Show Sound Effects
+                Show Sound Effects
               </span>
             </label>
           )}
@@ -502,7 +455,7 @@ const LoopLibrary = ({
                     <h3 className={`text-xs font-medium truncate leading-tight ${
                       isSoundEffect ? 'text-purple-300' : 'text-white'
                     }`}>
-                      {isSoundEffect && '🔊 '}{loop.name}
+                      {loop.name}
                     </h3>
                     <div className="flex items-center gap-1 mt-0.5">
                       <span 
@@ -573,9 +526,9 @@ const LoopLibrary = ({
         <div className="flex items-center justify-between text-xs text-gray-400">
           <span>{filteredLoops.length}/{allItems.length}</span>
           <span className="truncate ml-1">
-            {soundEffectsEnabled && showSoundEffects && '🔊 SFX ON'}
+            {soundEffectsEnabled && showSoundEffects && 'SFX ON'}
             {soundEffectsEnabled && showSoundEffects && (restrictToCategory || moodFilter !== 'All' || instrumentFilter !== 'All') && ' • '}
-            {restrictToCategory && `🔒 ${restrictToCategory}`}
+            {restrictToCategory && `Locked: ${restrictToCategory}`}
             {restrictToCategory && (moodFilter !== 'All' || instrumentFilter !== 'All') && ' • '}
             {moodFilter !== 'All' && !restrictToCategory && `${moodFilter}`}
             {moodFilter !== 'All' && instrumentFilter !== 'All' && ' • '}

@@ -12,7 +12,9 @@ export const soundEffects = [
     type: 'soundEffect',
     color: '#f59e0b',
     volume: 0.8,
-    tags: ['electric', 'hit', 'impact', 'shock']
+    tags: ['electric', 'hit', 'impact', 'shock'],
+    loaded: true,
+    accessible: true
   },
   {
     id: 'sfx-electric-hit-2',
@@ -23,7 +25,9 @@ export const soundEffects = [
     type: 'soundEffect',
     color: '#f59e0b',
     volume: 0.8,
-    tags: ['electric', 'hit', 'impact', 'shock']
+    tags: ['electric', 'hit', 'impact', 'shock'],
+    loaded: true,
+    accessible: true
   },
   {
     id: 'sfx-electric-machine',
@@ -34,7 +38,9 @@ export const soundEffects = [
     type: 'soundEffect',
     color: '#3b82f6',
     volume: 0.7,
-    tags: ['electric', 'machine', 'mechanical', 'ambient']
+    tags: ['electric', 'machine', 'mechanical', 'ambient'],
+    loaded: true,
+    accessible: true
   },
   {
     id: 'sfx-electric-shock',
@@ -45,7 +51,9 @@ export const soundEffects = [
     type: 'soundEffect',
     color: '#f59e0b',
     volume: 0.8,
-    tags: ['electric', 'shock', 'zap', 'impact']
+    tags: ['electric', 'shock', 'zap', 'impact'],
+    loaded: true,
+    accessible: true
   },
   {
     id: 'sfx-machine-riser',
@@ -56,7 +64,9 @@ export const soundEffects = [
     type: 'soundEffect',
     color: '#8b5cf6',
     volume: 0.7,
-    tags: ['machine', 'riser', 'build', 'transition']
+    tags: ['machine', 'riser', 'build', 'transition'],
+    loaded: true,
+    accessible: true
   },
   {
     id: 'sfx-riser-1',
@@ -67,7 +77,9 @@ export const soundEffects = [
     type: 'soundEffect',
     color: '#8b5cf6',
     volume: 0.7,
-    tags: ['riser', 'build', 'transition', 'tension']
+    tags: ['riser', 'build', 'transition', 'tension'],
+    loaded: true,
+    accessible: true
   },
   {
     id: 'sfx-riser-2',
@@ -78,7 +90,9 @@ export const soundEffects = [
     type: 'soundEffect',
     color: '#8b5cf6',
     volume: 0.7,
-    tags: ['riser', 'build', 'transition', 'tension']
+    tags: ['riser', 'build', 'transition', 'tension'],
+    loaded: true,
+    accessible: true
   },
   {
     id: 'sfx-riser-3',
@@ -89,7 +103,9 @@ export const soundEffects = [
     type: 'soundEffect',
     color: '#8b5cf6',
     volume: 0.7,
-    tags: ['riser', 'build', 'transition', 'tension']
+    tags: ['riser', 'build', 'transition', 'tension'],
+    loaded: true,
+    accessible: true
   },
   {
     id: 'sfx-scary-woosh-1',
@@ -100,7 +116,9 @@ export const soundEffects = [
     type: 'soundEffect',
     color: '#dc2626',
     volume: 0.75,
-    tags: ['woosh', 'scary', 'transition', 'horror']
+    tags: ['woosh', 'scary', 'transition', 'horror'],
+    loaded: true,
+    accessible: true
   },
   {
     id: 'sfx-scary-woosh-2',
@@ -111,7 +129,9 @@ export const soundEffects = [
     type: 'soundEffect',
     color: '#dc2626',
     volume: 0.75,
-    tags: ['woosh', 'scary', 'transition', 'horror']
+    tags: ['woosh', 'scary', 'transition', 'horror'],
+    loaded: true,
+    accessible: true
   },
   {
     id: 'sfx-woosh-1',
@@ -122,7 +142,9 @@ export const soundEffects = [
     type: 'soundEffect',
     color: '#06b6d4',
     volume: 0.75,
-    tags: ['woosh', 'transition', 'movement', 'air']
+    tags: ['woosh', 'transition', 'movement', 'air'],
+    loaded: true,
+    accessible: true
   }
 ];
 

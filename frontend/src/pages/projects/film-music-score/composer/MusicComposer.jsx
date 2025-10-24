@@ -1,7 +1,7 @@
 // composer/MusicComposer.jsx - Main orchestrator (refactored)
 // FIXED: Added onDAWReadyCallback with tutorial mode support
 // UPDATED: Added showSoundEffects prop support
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 // Hooks
@@ -52,6 +52,7 @@ const MusicComposer = ({
   const playersCreatedRef = useRef(false);
   const savedLoopsRef = useRef(null);
   const dawReadyCalledRef = useRef(false);
+  const [currentlyPlayingPreview, setCurrentlyPlayingPreview] = useState(null);
 
   // Central state management FIRST (so selectedVideo exists)
   const {
@@ -88,6 +89,11 @@ const MusicComposer = ({
     containerRef
   } = useComposerState(preselectedVideo);
 
+  // DEBUG: Log showSoundEffects prop
+  React.useEffect(() => {
+    console.log('ðŸŽµ MusicComposer showSoundEffects prop:', showSoundEffects);
+  }, [showSoundEffects]);
+
   // Audio engine hook SECOND (now selectedVideo exists)
   const {
     isPlaying,
@@ -116,7 +122,7 @@ const MusicComposer = ({
       : selectedVideo && audioReady && !videoLoading;  // Normal needs video + audio
     
     if (isDawReady && !dawReadyCalledRef.current && onDAWReadyCallback) {
-      console.log('✅ DAW is fully initialized - calling onDAWReadyCallback');
+      console.log('Ã¢Å“â€¦ DAW is fully initialized - calling onDAWReadyCallback');
       console.log('   - tutorialMode:', tutorialMode);
       console.log('   - selectedVideo:', !!selectedVideo);
       console.log('   - audioReady:', audioReady);
@@ -133,7 +139,7 @@ const MusicComposer = ({
   // STEP 1: Store initial loops and load into state immediately
   useEffect(() => {
     if (initialPlacedLoops && initialPlacedLoops.length > 0) {
-      console.log('🎵 Initializing with saved loops:', initialPlacedLoops);
+      console.log('Ã°Å¸Å½Âµ Initializing with saved loops:', initialPlacedLoops);
       savedLoopsRef.current = initialPlacedLoops;
       setPlacedLoops(initialPlacedLoops);
     }
@@ -141,7 +147,7 @@ const MusicComposer = ({
 
   // STEP 2: Create audio players when audio becomes ready
   useEffect(() => {
-    console.log('🔍 Player creation check:', {
+    console.log('Ã°Å¸â€Â Player creation check:', {
       audioReady,
       hasSavedLoops: savedLoopsRef.current !== null,
       playersCreated: playersCreatedRef.current,
@@ -149,7 +155,7 @@ const MusicComposer = ({
     });
 
     if (audioReady && savedLoopsRef.current && !playersCreatedRef.current) {
-      console.log('🎵 Audio ready! Creating players for', savedLoopsRef.current.length, 'saved loops...');
+      console.log('Ã°Å¸Å½Âµ Audio ready! Creating players for', savedLoopsRef.current.length, 'saved loops...');
       
       savedLoopsRef.current.forEach(loop => {
         const loopData = {
@@ -161,18 +167,18 @@ const MusicComposer = ({
           category: loop.category
         };
         
-        console.log('  → Creating player for:', loopData.name, 'with ID:', loop.id);
+        console.log('  Ã¢â€ â€™ Creating player for:', loopData.name, 'with ID:', loop.id);
         
         try {
           createLoopPlayer(loopData, loop.id);
-          console.log('  ✅ Player stored with key:', loop.id);
+          console.log('  Ã¢Å“â€¦ Player stored with key:', loop.id);
         } catch (error) {
-          console.error('  ❌ Failed to create player for:', loopData.name, error);
+          console.error('  Ã¢ÂÅ’ Failed to create player for:', loopData.name, error);
         }
       });
       
       playersCreatedRef.current = true;
-      console.log('✅ All audio players created for saved loops');
+      console.log('Ã¢Å“â€¦ All audio players created for saved loops');
     }
   }, [audioReady, createLoopPlayer, placedLoops.length]);
 
@@ -221,7 +227,15 @@ const MusicComposer = ({
     onLoopDropCallback,
     onLoopDeleteCallback,
     onLoopUpdateCallback,
-    onLoopPreviewCallback,
+    onLoopPreviewCallback: useCallback((loop, isPlaying) => {
+      // Track which loop is currently playing
+      setCurrentlyPlayingPreview(isPlaying ? loop.id : null);
+      
+      // Call the original callback
+      if (onLoopPreviewCallback) {
+        onLoopPreviewCallback(loop, isPlaying);
+      }
+    }, [onLoopPreviewCallback]),
     audioReady,
     showToast,
     placedLoops,
@@ -462,6 +476,7 @@ const MusicComposer = ({
         showSoundEffects={showSoundEffects}
         lockFeatures={lockFeatures}
         highlightSelector={highlightSelector}
+        currentlyPlayingPreview={currentlyPlayingPreview}
       />
     </div>
   );

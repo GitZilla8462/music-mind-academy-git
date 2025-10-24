@@ -1,5 +1,5 @@
 // hooks/useLoopHandlers.js - All loop-related event handlers
-// 🔥 FIXED: Infinite rerender loop during resize
+// ðŸ”¥ FIXED: Infinite rerender loop during resize
 import { useCallback, useRef, useEffect } from 'react';
 
 export const useLoopHandlers = ({
@@ -24,7 +24,7 @@ export const useLoopHandlers = ({
   tutorialMode
 }) => {
   
-  // 🔥 FIX: Add ref to track scheduling timeout
+  // ðŸ”¥ FIX: Add ref to track scheduling timeout
   const scheduleTimeoutRef = useRef(null);
   
   const handleLoopDrop = useCallback(async (loopData, trackIndex, startTime) => {
@@ -155,7 +155,7 @@ export const useLoopHandlers = ({
     setSelectedLoop(selectedLoop === loopId ? null : loopId);
   }, [selectedLoop, setSelectedLoop]);
 
-  // 🔥 FIX: Debounce scheduleLoops to prevent infinite loop during resize
+  // ðŸ”¥ FIX: Debounce scheduleLoops to prevent infinite loop during resize
   const handleLoopUpdate = useCallback((loopId, updates) => {
     if (lockFeatures.allowLoopMove === false) {
       console.log('Loop movement is locked');
@@ -175,7 +175,7 @@ export const useLoopHandlers = ({
     setPlacedLoops(updatedLoops);
     setHasUnsavedChanges(true);
     
-    // 🔥 FIX: Debounce scheduleLoops to prevent infinite loop during resize
+    // ðŸ”¥ FIX: Debounce scheduleLoops to prevent infinite loop during resize
     if (scheduleTimeoutRef.current) {
       clearTimeout(scheduleTimeoutRef.current);
     }
@@ -208,8 +208,21 @@ export const useLoopHandlers = ({
       return;
     }
     
+    // Only call previewLoop when starting playback
+    // When isPlaying is false, the user clicked stop - no action needed
+    // as clicking the same loop again will stop it via previewLoop's built-in stop logic
+    if (!isPlaying) {
+      return;
+    }
+    
     try {
-      await previewLoop(loop);
+      // Pass a callback to notify when preview ends
+      await previewLoop(loop, (endedLoop) => {
+        // Notify parent that preview stopped
+        if (onLoopPreviewCallback) {
+          onLoopPreviewCallback(endedLoop, false);
+        }
+      });
     } catch (error) {
       console.error('Error previewing loop:', error);
       showToast?.(`Failed to preview "${loop.name}" - ${error.message}`, 'error');
@@ -219,7 +232,7 @@ export const useLoopHandlers = ({
     lockFeatures, tutorialMode
   ]);
 
-  // 🔥 FIX: Cleanup timeout on unmount
+  // ðŸ”¥ FIX: Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (scheduleTimeoutRef.current) {

@@ -31,6 +31,7 @@ const ComposerLayout = ({
   restrictToCategory,
   lockedMood,
   showSoundEffects,  // NEW PROP
+  currentlyPlayingPreview,  // NEW PROP: Track which preview is playing
   
   // Callbacks
   onLoopLibraryClick,
@@ -64,6 +65,11 @@ const ComposerLayout = ({
   lockFeatures,
   highlightSelector
 }) => {
+  // DEBUG: Log showSoundEffects prop
+  React.useEffect(() => {
+    console.log('ðŸŽ¨ ComposerLayout showSoundEffects prop:', showSoundEffects);
+  }, [showSoundEffects]);
+
   return (
     <div 
       ref={containerRef} 
@@ -89,6 +95,7 @@ const ComposerLayout = ({
           restrictToCategory={restrictToCategory}
           lockedMood={lockedMood}
           showSoundEffects={showSoundEffects}  // PASS THROUGH
+          currentlyPlayingLoopId={currentlyPlayingPreview}  // PASS THROUGH
         />
       </div>
 
