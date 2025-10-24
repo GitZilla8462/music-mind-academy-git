@@ -141,21 +141,7 @@ function MusicClassroomResources() {
             Classroom Login
           </h2>
           
-          {/* Demo Credentials Info */}
-          <div style={{
-            backgroundColor: '#EBF8FF',
-            border: '2px solid #90CDF4',
-            padding: '16px',
-            borderRadius: '8px',
-            marginBottom: '20px'
-          }}>
-            <div style={{ fontSize: '14px', color: '#2C5282' }}>
-              <p style={{ fontWeight: '600', marginBottom: '8px' }}>Demo Accounts:</p>
-              <p style={{ marginBottom: '4px' }}><strong>Student:</strong> tuba343 / music2025</p>
-              <p><strong>Teacher:</strong> teacher / teach2025</p>
-            </div>
-          </div>
-          
+
           <input 
             type="text" 
             placeholder="Username" 
