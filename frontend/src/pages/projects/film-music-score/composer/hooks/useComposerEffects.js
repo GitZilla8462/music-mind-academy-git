@@ -48,6 +48,9 @@ export const useComposerEffects = ({
   isPlaying
 }) => {
   
+  // Track if we've already loaded a video to prevent re-initialization
+  const hasLoadedVideoRef = useRef(false);
+  
   // Initialize video with dynamic duration loading
   useEffect(() => {
     // Skip if we already have a video loaded
@@ -56,7 +59,14 @@ export const useComposerEffects = ({
       return;
     }
     
+    // Skip if we've already attempted to load (prevents multiple re-runs)
+    if (hasLoadedVideoRef.current) {
+      return;
+    }
+    
     const loadVideo = async () => {
+      hasLoadedVideoRef.current = true; // Mark as attempted
+      
       if (!preselectedVideo && videoId) {
         setVideoLoading(true);
         try {
@@ -143,7 +153,7 @@ export const useComposerEffects = ({
     };
 
     loadVideo();
-  }, [videoId, preselectedVideo, selectedVideo]);
+  }, [videoId, preselectedVideo]);
 
   // Auto-save functionality (disabled for demo and practice modes)
   useEffect(() => {
