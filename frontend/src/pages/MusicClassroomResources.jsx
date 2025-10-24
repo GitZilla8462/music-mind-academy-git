@@ -22,6 +22,11 @@ function MusicClassroomResources() {
     if (username === 'tuba343' && password === 'music2025') {
       setLoggedIn(true);
       localStorage.setItem('classroom-logged-in', 'true');
+      localStorage.setItem('classroom-user-role', 'student');
+    } else if (username === 'teacher' && password === 'teach2025') {
+      setLoggedIn(true);
+      localStorage.setItem('classroom-logged-in', 'true');
+      localStorage.setItem('classroom-user-role', 'teacher');
     } else {
       alert('Wrong username or password');
     }
@@ -36,6 +41,7 @@ function MusicClassroomResources() {
     setSavedReflection(null);
     setDawStats(null);
     localStorage.removeItem('classroom-logged-in');
+    localStorage.removeItem('classroom-user-role');
   };
 
   // Load ALL saved data from localStorage when logged in
@@ -134,6 +140,21 @@ function MusicClassroomResources() {
           }}>
             Classroom Login
           </h2>
+          
+          {/* Demo Credentials Info */}
+          <div style={{
+            backgroundColor: '#EBF8FF',
+            border: '2px solid #90CDF4',
+            padding: '16px',
+            borderRadius: '8px',
+            marginBottom: '20px'
+          }}>
+            <div style={{ fontSize: '14px', color: '#2C5282' }}>
+              <p style={{ fontWeight: '600', marginBottom: '8px' }}>Demo Accounts:</p>
+              <p style={{ marginBottom: '4px' }}><strong>Student:</strong> tuba343 / music2025</p>
+              <p><strong>Teacher:</strong> teacher / teach2025</p>
+            </div>
+          </div>
           
           <input 
             type="text" 
@@ -256,7 +277,7 @@ function MusicClassroomResources() {
               color: '#2d3748',
               marginBottom: '20px'
             }}>
-              📚 Available Lessons
+              ðŸ“š Available Lessons
             </h2>
             
             <div style={{
@@ -351,7 +372,7 @@ function MusicClassroomResources() {
               color: '#2d3748',
               marginBottom: '20px'
             }}>
-              📁 My Saved Work
+              ðŸ“ My Saved Work
             </h2>
 
             <div style={{
@@ -374,7 +395,7 @@ function MusicClassroomResources() {
                   paddingBottom: '16px',
                   borderBottom: '2px solid #e2e8f0'
                 }}>
-                  <span style={{ fontSize: '32px' }}>🎵</span>
+                  <span style={{ fontSize: '32px' }}>ðŸŽµ</span>
                   <div>
                     <h3 style={{ 
                       fontSize: '20px',
@@ -412,7 +433,7 @@ function MusicClassroomResources() {
                       alignItems: 'center',
                       gap: '8px'
                     }}>
-                      <span>🎯</span>
+                      <span>ðŸŽ¯</span>
                       <span>DAW Tutorial Performance</span>
                     </div>
                     <div style={{ 
@@ -504,7 +525,7 @@ function MusicClassroomResources() {
                           backgroundColor: savedComposition.requirements.instrumentation ? '#c6f6d5' : '#fed7d7',
                           color: savedComposition.requirements.instrumentation ? '#22543d' : '#742a2a'
                         }}>
-                          {savedComposition.requirements.instrumentation ? '✓' : '✗'} Instrumentation
+                          {savedComposition.requirements.instrumentation ? 'âœ“' : 'âœ—'} Instrumentation
                         </span>
                         <span style={{
                           padding: '4px 8px',
@@ -513,7 +534,7 @@ function MusicClassroomResources() {
                           backgroundColor: savedComposition.requirements.layering ? '#c6f6d5' : '#fed7d7',
                           color: savedComposition.requirements.layering ? '#22543d' : '#742a2a'
                         }}>
-                          {savedComposition.requirements.layering ? '✓' : '✗'} Layering
+                          {savedComposition.requirements.layering ? 'âœ“' : 'âœ—'} Layering
                         </span>
                         <span style={{
                           padding: '4px 8px',
@@ -522,7 +543,7 @@ function MusicClassroomResources() {
                           backgroundColor: savedComposition.requirements.structure ? '#c6f6d5' : '#fed7d7',
                           color: savedComposition.requirements.structure ? '#22543d' : '#742a2a'
                         }}>
-                          {savedComposition.requirements.structure ? '✓' : '✗'} Structure
+                          {savedComposition.requirements.structure ? 'âœ“' : 'âœ—'} Structure
                         </span>
                       </div>
                     </div>
@@ -547,11 +568,11 @@ function MusicClassroomResources() {
                       alignItems: 'center',
                       gap: '6px'
                     }}>
-                      <span>✨</span>
+                      <span>âœ¨</span>
                       <span>Bonus Composition Created!</span>
                     </div>
                     <div style={{ fontSize: '12px', color: '#744210' }}>
-                      {savedBonusComposition.loopCount} loops • Saved on {new Date(savedBonusComposition.savedAt).toLocaleDateString()}
+                      {savedBonusComposition.loopCount} loops â€¢ Saved on {new Date(savedBonusComposition.savedAt).toLocaleDateString()}
                     </div>
                   </div>
                 )}
@@ -575,7 +596,7 @@ function MusicClassroomResources() {
                         color: '#5b21b6',
                         fontWeight: '600'
                       }}>
-                        ⭐ Two Stars and a Wish
+                        â­ Two Stars and a Wish
                       </span>
                       <span style={{ fontSize: '12px', color: '#718096' }}>
                         ({savedReflection.reviewType === 'self' ? 'Self-Reflection' : `Partner: ${savedReflection.partnerName}`})
@@ -616,7 +637,7 @@ function MusicClassroomResources() {
                       onMouseEnter={(e) => e.target.style.backgroundColor = '#3182ce'}
                       onMouseLeave={(e) => e.target.style.backgroundColor = '#4299e1'}
                     >
-                      <span>📝</span>
+                      <span>ðŸ“</span>
                       <span>View Main</span>
                     </button>
                   )}
@@ -645,7 +666,7 @@ function MusicClassroomResources() {
                       onMouseEnter={(e) => e.target.style.backgroundColor = '#dd6b20'}
                       onMouseLeave={(e) => e.target.style.backgroundColor = '#ed8936'}
                     >
-                      <span>✨</span>
+                      <span>âœ¨</span>
                       <span>View Bonus</span>
                     </button>
                   )}
@@ -674,7 +695,7 @@ function MusicClassroomResources() {
                       onMouseEnter={(e) => e.target.style.backgroundColor = '#805ad5'}
                       onMouseLeave={(e) => e.target.style.backgroundColor = '#9f7aea'}
                     >
-                      <span>⭐</span>
+                      <span>â­</span>
                       <span>Reflection</span>
                     </button>
                   )}
