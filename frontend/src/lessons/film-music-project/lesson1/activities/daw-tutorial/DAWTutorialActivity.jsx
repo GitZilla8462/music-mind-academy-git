@@ -66,10 +66,10 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   // Fallback timeout to force DAW ready state after 5 seconds
   useEffect(() => {
     if (!isDAWReady) {
-      console.log('â±ï¸ Starting 5-second fallback timer for DAW initialization...');
+      console.log('Ã¢ÂÂ±Ã¯Â¸Â Starting 5-second fallback timer for DAW initialization...');
       dawReadyTimeoutRef.current = setTimeout(() => {
         if (!isDAWReady && isMountedRef.current) {
-          console.warn('âš ï¸ DAW callback not received after 5s, forcing ready state');
+          console.warn('Ã¢Å¡Â Ã¯Â¸Â DAW callback not received after 5s, forcing ready state');
           setIsDAWReady(true);
         }
       }, 5000);
@@ -108,7 +108,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
     
     if (preferredVoice) {
       utterance.voice = preferredVoice;
-      console.log('ðŸŽ¤ Using voice:', preferredVoice.name, preferredVoice.lang);
+      console.log('Ã°Å¸Å½Â¤ Using voice:', preferredVoice.name, preferredVoice.lang);
     }
 
     if (isMountedRef.current) {
@@ -142,14 +142,14 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   const startExplorationMode = useCallback(() => {
     const remaining = calculateTimeRemaining();
     
-    console.log('ðŸŽ‰ Tutorial complete! Time remaining:', Math.floor(remaining / 1000), 'seconds');
+    console.log('Ã°Å¸Å½â€° Tutorial complete! Time remaining:', Math.floor(remaining / 1000), 'seconds');
     // Save DAW tutorial stats
     saveDAWStats(correctAnswers, incorrectAnswers);
 
     
     if (remaining <= 0) {
       // No time left, advance immediately
-      console.log('â° No time remaining, advancing to next activity');
+      console.log('Ã¢ÂÂ° No time remaining, advancing to next activity');
       setSafeTimeout(() => {
         if (isMountedRef.current && !completionCalledRef.current) {
           completionCalledRef.current = true;
@@ -172,7 +172,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
               clearInterval(explorationTimerRef.current);
             }
             
-            console.log('â° Exploration time complete, advancing to next activity');
+            console.log('Ã¢ÂÂ° Exploration time complete, advancing to next activity');
             
             if (isMountedRef.current && !completionCalledRef.current) {
               completionCalledRef.current = true;
@@ -557,7 +557,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
 
   // DAW ready callback
   const handleDAWReady = useCallback(() => {
-    console.log('âœ… DAW is ready for challenges (callback received)');
+    console.log('Ã¢Å“â€¦ DAW is ready for challenges (callback received)');
     
     // Clear the fallback timeout since we got the callback
     if (dawReadyTimeoutRef.current) {
@@ -635,7 +635,18 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
       {navToolsEnabled && canAccessNavTools && !showExplorationMode && (
         <div className="fixed top-16 right-4 z-50">
           <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
-            <div className="text-blue-400 text-xs font-mono mb-2 font-bold">ðŸ§­ TUTORIAL NAVIGATION</div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-blue-400 text-xs font-mono font-bold">🧭 TUTORIAL NAVIGATION</div>
+              <button
+                onClick={() => setNavToolsEnabled(false)}
+                className="text-gray-400 hover:text-white p-1 rounded hover:bg-gray-700 transition-colors"
+                title="Minimize panel"
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="3" y1="13" x2="13" y2="13" />
+                </svg>
+              </button>
+            </div>
             
             {/* Activity Navigator */}
             <div className="mb-3">
@@ -673,7 +684,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
                 onClick={navCompleteAll}
                 className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold"
               >
-                ðŸš€ Complete All â†’ Next Activity
+                🚀 Complete All → Next Activity
               </button>
             </div>
             
@@ -698,7 +709,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
       {isDAWReady && !showExplorationMode && currentChallenge?.type === 'multiple-choice' && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-35 pointer-events-none">
           <div className="bg-orange-500 text-white px-8 py-4 rounded-lg shadow-2xl border-4 border-orange-600 animate-pulse">
-            <div className="text-xl font-bold text-center mb-2">ðŸ‘† Answer the Question Above ðŸ‘†</div>
+            <div className="text-xl font-bold text-center mb-2">Ã°Å¸â€˜â€  Answer the Question Above Ã°Å¸â€˜â€ </div>
             <div className="text-sm text-center">Look at the orange challenge bar at the top of the screen</div>
           </div>
         </div>

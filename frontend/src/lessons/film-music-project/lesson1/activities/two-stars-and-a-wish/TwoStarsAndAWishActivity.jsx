@@ -1,5 +1,6 @@
 // File: /src/lessons/film-music-project/lesson1/activities/two-stars-and-a-wish/TwoStarsAndAWishActivity.jsx
 // Main wrapper component for the reflection activity
+// UPDATED: Modal in bottom right, no screen dimming, DAW fully visible
 
 import React from 'react';
 import MusicComposer from '../../../../../pages/projects/film-music-score/composer/MusicComposer';
@@ -41,7 +42,7 @@ const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false }) => {
 
   return (
     <div className="h-screen w-full relative bg-gray-900">
-      {/* Composition visible in background */}
+      {/* Composition fully visible - NO OVERLAY */}
       <div className="absolute inset-0">
         <MusicComposer
           tutorialMode={false}
@@ -61,8 +62,8 @@ const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false }) => {
         />
       </div>
 
-      {/* Modal overlay with semi-transparent background */}
-      <div className="absolute inset-0 bg-black/30 flex items-center justify-center" style={{ pointerEvents: 'none' }}>
+      {/* Modal in bottom right corner with pointer events enabled */}
+      <div className="absolute inset-0 pointer-events-none">
         <ReflectionModal 
           compositionData={compositionData}
           onComplete={onComplete}

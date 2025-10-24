@@ -1,16 +1,14 @@
 // File: /src/lessons/film-music-project/lesson1/activities/two-stars-and-a-wish/ReflectionModal.jsx
-// COMPLETE: Voice narration, minimizable, separate screens per question, composition visible behind
-// FIXED: Step 5 summary button now always visible without scrolling
-// FIXED: Better voice selection for natural US English
+// UPDATED: Bottom-right positioning, teacher instruction step, no screen dimming
+// Steps: 0=teacher instruction, 1=choose type, 2=listen & share, 3=star1, 4=star2, 5=wish, 6=summary
 
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, Star, Sparkles, Volume2, VolumeX, HelpCircle, Minimize2, Maximize2 } from 'lucide-react';
-import MusicComposer from '../../../../../pages/projects/film-music-score/composer/MusicComposer';
 import { SELF_REFLECTION_PROMPTS, PARTNER_REFLECTION_OPTIONS } from './reflectionPrompts';
 
 const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
-  // Steps: 0=choose type, 1=listen, 2=star1, 3=star2, 4=wish, 5=summary
-  const [currentStep, setCurrentStep] = useState(viewMode ? 5 : 0);
+  // Steps: 0=teacher instruction, 1=choose type, 2=listen & share, 3=star1, 4=star2, 5=wish, 6=summary
+  const [currentStep, setCurrentStep] = useState(viewMode ? 6 : 0);
   const [reflectionData, setReflectionData] = useState({
     reviewType: null,
     partnerName: '',
@@ -33,12 +31,6 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
   const [showHint, setShowHint] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
 
-  const [position, setPosition] = useState({ 
-    x: window.innerWidth / 2 - 300, 
-    y: 100
-  });
-  const [isDragging, setIsDragging] = useState(false);
-  const dragRef = useRef({ startX: 0, startY: 0, initialX: 0, initialY: 0 });
   const hasSpokenRef = useRef(false);
 
   // Load saved reflection if in view mode
@@ -70,18 +62,12 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
       
       const voices = window.speechSynthesis.getVoices();
       
-      // Priority order for voice selection:
-      // 1. Samantha (Mac - natural US English)
-      // 2. Google US English Female
-      // 3. Microsoft voices (US English)
-      // 4. Any English voice with "United States" in the name
-      // 5. Default voice
       const preferredVoice = voices.find(voice => 
         voice.name === 'Samantha' || 
         voice.name === 'Google US English' ||
         voice.name === 'Google US English Female' ||
         (voice.name.includes('Microsoft') && voice.lang === 'en-US') ||
-        voice.name.includes('Zira') || // Microsoft Zira (US English)
+        voice.name.includes('Zira') ||
         (voice.lang === 'en-US' && voice.name.includes('United States'))
       ) || voices.find(voice => voice.lang.startsWith('en-US'));
       
@@ -102,19 +88,21 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
     const reviewTarget = reflectionData.reviewType === 'self' ? 'your' : `${partnerName}'s`;
     
     const messages = {
-      0: "Whose composition are you reviewing? Choose whether you'll reflect on your own work or a friend's composition.",
-      1: `Now, listen to ${reviewTarget} entire film score from beginning to end. Pay attention to: How the music tools, such as timeline, tracks, and volume, were used. How the loops are timed with the video. And the overall sound and mood of the music.`,
-      2: "Star 1: Think about what went well with using the DAW tools. What did you do well?",
-      3: "Star 2: Think about what worked well with the loop timing and music sound.",
-      4: "Now for the Wish: What do you want to try or improve next time?",
-      5: reflectionData.reviewType === 'self' 
+      0: "Time to reflect on your work! First, ask your teacher: Are you reviewing your own composition, or will you be reviewing a partner's work?",
+      1: "Whose composition are you reviewing? Choose whether you'll reflect on your own work or a friend's composition.",
+      2: reflectionData.reviewType === 'self'
+        ? "Now, listen to your entire film score from beginning to end. Pay attention to: How the music tools, such as timeline, tracks, and volume, were used. How the loops are timed with the video. And the overall sound and mood of the music."
+        : `Now it's time to share! First, share your score with ${partnerName} so they can see and hear your work. Then, listen to ${partnerName}'s entire film score from beginning to end. Pay attention to: How the music tools were used. How the loops are timed with the video. And the overall sound and mood of the music.`,
+      3: "Star 1: Think about what went well with using the DAW tools. What did you do well?",
+      4: "Star 2: Think about what worked well with the loop timing and music sound.",
+      5: "Now for the Wish: What do you want to try or improve next time?",
+      6: reflectionData.reviewType === 'self' 
         ? "Here's your complete reflection summary! Now read your reflection out loud to yourself or share it with a neighbor."
         : `Here's your complete reflection summary! Now read your feedback out loud to ${partnerName}.`
     };
 
     const message = messages[currentStep];
     if (message) {
-      // Always speak when step changes - reset the ref first
       hasSpokenRef.current = false;
       
       setTimeout(() => {
@@ -130,44 +118,6 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
     };
   }, [currentStep, reflectionData.reviewType, reflectionData.partnerName]);
 
-  // Dragging handlers
-  const handleMouseDown = (e) => {
-    if (e.target.closest('.drag-handle') && !e.target.closest('button') && !e.target.closest('input')) {
-      setIsDragging(true);
-      dragRef.current = {
-        startX: e.clientX,
-        startY: e.clientY,
-        initialX: position.x,
-        initialY: position.y
-      };
-    }
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    const deltaX = e.clientX - dragRef.current.startX;
-    const deltaY = e.clientY - dragRef.current.startY;
-    setPosition({
-      x: dragRef.current.initialX + deltaX,
-      y: dragRef.current.initialY + deltaY
-    });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging]);
-
   // Step navigation
   const goToNextStep = () => {
     setCurrentStep(prev => prev + 1);
@@ -182,6 +132,11 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
   };
 
   const handleContinueFromStep0 = () => {
+    // Just move to step 1 (choose review type)
+    goToNextStep();
+  };
+
+  const handleContinueFromStep1 = () => {
     if (reflectionData.reviewType === 'partner' && !reflectionData.partnerName.trim()) {
       alert('Please enter your partner\'s name');
       return;
@@ -224,8 +179,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
   };
 
   const handleDone = () => {
-    console.log('Done button clicked, viewMode:', viewMode);
-    window.location.href = '/';
+    console.log('Done button clicked, calling onComplete');
+    onComplete();
   };
 
   const handleVolumeChange = (e) => {
@@ -252,7 +207,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
     setVoiceEnabled(!voiceEnabled);
   };
 
-  const progressPercent = (currentStep / 5) * 100;
+  const progressPercent = (currentStep / 6) * 100;
 
   // Minimized view
   if (isMinimized) {
@@ -260,16 +215,15 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
       <div
         style={{
           position: 'fixed',
-          left: `${position.x}px`,
-          top: `${position.y}px`,
-          width: '250px',
+          right: '20px',
+          bottom: '20px',
+          width: '280px',
           zIndex: 1000,
           pointerEvents: 'auto'
         }}
         className="bg-white rounded-lg shadow-2xl border-4 border-orange-500"
-        onMouseDown={handleMouseDown}
       >
-        <div className="drag-handle bg-orange-500 px-4 py-2 flex items-center justify-between cursor-move">
+        <div className="bg-orange-500 px-4 py-2 flex items-center justify-between">
           <div className="text-white font-bold text-sm flex items-center gap-2">
             <Star size={16} />
             Reflection Activity
@@ -295,15 +249,14 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
     <div
       style={{
         position: 'fixed',
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        width: currentStep === 0 ? '500px' : '600px',
+        right: '20px',
+        bottom: '20px',
+        width: currentStep === 0 || currentStep === 1 ? '500px' : '600px',
         maxHeight: '80vh',
         zIndex: 1000,
         pointerEvents: 'auto'
       }}
       className="bg-white rounded-lg shadow-2xl border-4 border-orange-500 overflow-hidden flex flex-col"
-      onMouseDown={handleMouseDown}
     >
       {/* Progress Bar */}
       <div className="h-1 bg-gray-200 flex-shrink-0">
@@ -314,7 +267,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
       </div>
 
       {/* Header */}
-      <div className="drag-handle bg-orange-500 px-4 py-2 flex items-center justify-between cursor-move flex-shrink-0">
+      <div className="bg-orange-500 px-4 py-2 flex items-center justify-between flex-shrink-0">
         <div className="text-white font-bold text-sm flex items-center gap-2">
           <Star size={16} />
           Two Stars and a Wish
@@ -369,11 +322,53 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
         </div>
       </div>
 
-      {/* Content Area - MODIFIED FOR STEP 5 */}
-      <div className={`flex-1 overflow-y-auto px-6 py-4 ${currentStep === 5 ? 'flex flex-col' : ''}`} style={{ pointerEvents: 'auto' }}>
+      {/* Content Area */}
+      <div className={`flex-1 overflow-y-auto px-6 py-4 ${currentStep === 6 ? 'flex flex-col' : ''}`} style={{ pointerEvents: 'auto' }}>
         
-        {/* STEP 0: Choose Review Type - CENTERED */}
+        {/* STEP 0: Ask Teacher - NEW STEP */}
         {currentStep === 0 && (
+          <div className="space-y-4">
+            <div className="text-center mb-4">
+              <div className="text-5xl mb-3">👨‍🏫</div>
+              <h2 className="text-xl font-bold text-gray-800">Time to Reflect!</h2>
+            </div>
+            
+            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+              <p className="text-gray-800 text-base leading-relaxed font-semibold mb-3">
+                Before you begin your reflection:
+              </p>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                Ask your teacher whether you will be:
+              </p>
+              <ul className="mt-2 space-y-2 text-sm text-gray-700">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 font-bold">✓</span>
+                  <span>Reviewing your own composition (self-reflection)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span>Reviewing a partner's composition (peer feedback)</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+              <p className="text-sm text-gray-700 leading-relaxed">
+                <span className="font-semibold">💡 Note:</span> Once your teacher tells you which type of review to do, click Continue below to proceed.
+              </p>
+            </div>
+
+            <button
+              onClick={handleContinueFromStep0}
+              className="w-full mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Continue →
+            </button>
+          </div>
+        )}
+
+        {/* STEP 1: Choose Review Type */}
+        {currentStep === 1 && (
           <div className="space-y-4">
             <h2 className="text-xl font-bold text-gray-800 text-center">Whose composition are you reviewing?</h2>
             
@@ -419,7 +414,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
             </div>
 
             <button
-              onClick={handleContinueFromStep0}
+              onClick={handleContinueFromStep1}
               disabled={!reflectionData.reviewType}
               className="w-full mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
@@ -428,22 +423,51 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
           </div>
         )}
 
-        {/* STEP 1: Listen to Composition */}
-        {currentStep === 1 && (
+        {/* STEP 2: Listen & Share */}
+        {currentStep === 2 && (
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-gray-800">Listen to the Composition</h2>
-            <p className="text-gray-700">
-              Listen to {reflectionData.reviewType === 'self' ? 'your' : `${reflectionData.partnerName}'s`} entire film score.
-            </p>
+            <h2 className="text-xl font-bold text-gray-800">
+              {reflectionData.reviewType === 'self' ? 'Listen to Your Composition' : 'Share & Listen'}
+            </h2>
             
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-              <p className="text-sm font-semibold text-blue-900 mb-2">Pay attention to:</p>
-              <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                <li>How the music tools (timeline, tracks, volume) were used</li>
-                <li>How the loops are timed with the video</li>
-                <li>The overall sound and mood of the music</li>
-              </ul>
-            </div>
+            {reflectionData.reviewType === 'self' ? (
+              <>
+                <p className="text-gray-700">
+                  Listen to your entire film score from beginning to end.
+                </p>
+                
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                  <p className="text-sm font-semibold text-blue-900 mb-2">Pay attention to:</p>
+                  <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                    <li>How the music tools (timeline, tracks, volume) were used</li>
+                    <li>How the loops are timed with the video</li>
+                    <li>The overall sound and mood of the music</li>
+                  </ul>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4 mb-3">
+                  <p className="text-sm font-semibold text-green-900 mb-2">🔄 First: Share your score</p>
+                  <p className="text-sm text-green-800">
+                    Share your score with {reflectionData.partnerName} so they can see and hear your work.
+                  </p>
+                </div>
+
+                <p className="text-gray-700 font-semibold">
+                  Now, listen to {reflectionData.partnerName}'s entire film score from beginning to end.
+                </p>
+                
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                  <p className="text-sm font-semibold text-blue-900 mb-2">Pay attention to:</p>
+                  <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                    <li>How the music tools (timeline, tracks, volume) were used</li>
+                    <li>How the loops are timed with the video</li>
+                    <li>The overall sound and mood of the music</li>
+                  </ul>
+                </div>
+              </>
+            )}
 
             <button
               onClick={goToNextStep}
@@ -454,8 +478,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
           </div>
         )}
 
-        {/* STEP 2: Star 1 */}
-        {currentStep === 2 && (
+        {/* STEP 3: Star 1 */}
+        {currentStep === 3 && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Star className="text-yellow-500" size={24} />
@@ -504,8 +528,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
           </div>
         )}
 
-        {/* STEP 3: Star 2 */}
-        {currentStep === 3 && (
+        {/* STEP 4: Star 2 */}
+        {currentStep === 4 && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Star className="text-yellow-500" size={24} />
@@ -554,8 +578,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
           </div>
         )}
 
-        {/* STEP 4: Wish */}
-        {currentStep === 4 && (
+        {/* STEP 5: Wish */}
+        {currentStep === 5 && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="text-purple-500" size={24} />
@@ -604,10 +628,9 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
           </div>
         )}
 
-        {/* STEP 5: Summary with FIXED BUTTON - NO SCROLLING REQUIRED */}
-        {currentStep === 5 && (
+        {/* STEP 6: Summary */}
+        {currentStep === 6 && (
           <>
-            {/* Scrollable content area */}
             <div className="flex-1 overflow-y-auto space-y-4">
               <div className="text-center mb-4">
                 <Sparkles className="mx-auto text-yellow-500 mb-2" size={48} />
@@ -617,7 +640,6 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
                 </p>
               </div>
 
-              {/* Direction to Read Aloud */}
               <div className={`p-4 rounded-lg border-2 text-center ${
                 reflectionData.reviewType === 'self' 
                   ? 'bg-blue-50 border-blue-300' 
@@ -659,14 +681,13 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
               </div>
             </div>
 
-            {/* FIXED FOOTER with button - ALWAYS VISIBLE */}
             <div className="flex-shrink-0 pt-4 border-t-2 border-gray-200 bg-white">
               <button
                 onClick={handleDone}
                 className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
               >
                 <CheckCircle size={20} />
-                Done - Return to Home
+                Done - Complete Lesson
               </button>
             </div>
           </>
@@ -674,7 +695,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
       </div>
 
       {/* Hint Section */}
-      {showHint && currentStep !== 5 && (
+      {showHint && currentStep !== 6 && (
         <div className="px-4 py-3 bg-yellow-50 border-t-2 border-yellow-200 flex-shrink-0" style={{ pointerEvents: 'auto' }}>
           <div className="text-sm text-yellow-900">
             <span className="font-semibold">💡 Hint:</span> Take your time to think about your answer. Be specific and honest in your reflection!
