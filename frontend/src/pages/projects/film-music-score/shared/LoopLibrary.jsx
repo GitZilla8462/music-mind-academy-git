@@ -1,9 +1,10 @@
 // File: /src/pages/projects/film-music-score/shared/LoopLibrary.jsx
 // Dynamic loop library with backend API integration
-// UPDATED: Added restrictToCategory and lockedMood props to lock filters for lessons
+// UPDATED: Added showSoundEffects prop and checkbox to display sound effects
 
 import React, { useState, useEffect } from 'react';
 import { Play, Pause, Volume2, Search, Filter, Lock } from 'lucide-react';
+import { soundEffects } from './soundEffectsData';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
@@ -28,8 +29,9 @@ const LoopLibrary = ({
   onLoopDragStart,
   tutorialMode = false,
   lockFeatures = {},
-  restrictToCategory = null,  // NEW: Restrict to specific mood category
-  lockedMood = null            // NEW: Lock mood filter to specific value
+  restrictToCategory = null,
+  lockedMood = null,
+  showSoundEffects = false  // NEW PROP: Enable sound effects
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
@@ -37,13 +39,14 @@ const LoopLibrary = ({
   const [loading, setLoading] = useState(true);
   const [currentAudio, setCurrentAudio] = useState(null);
   const [error, setError] = useState(null);
-  const [moodFilter, setMoodFilter] = useState(lockedMood || 'All');  // UPDATED: Use locked mood if provided
+  const [moodFilter, setMoodFilter] = useState(lockedMood || 'All');
   const [instrumentFilter, setInstrumentFilter] = useState('All');
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [soundEffectsEnabled, setSoundEffectsEnabled] = useState(false);  // NEW STATE
 
   // DEBUG: Log props on mount
   useEffect(() => {
-    console.log('🔍 LoopLibrary Props:', { restrictToCategory, lockedMood });
+    console.log('🔍 LoopLibrary Props:', { restrictToCategory, lockedMood, showSoundEffects });
   }, []);
 
   // Lock mood filter when lockedMood is set
@@ -168,7 +171,8 @@ const LoopLibrary = ({
       tags: tags,
       size: size,
       created: created,
-      extension: extension
+      extension: extension,
+      type: 'loop'  // Mark as loop (not sound effect)
     };
   };
 
@@ -194,151 +198,164 @@ const LoopLibrary = ({
         
         testAudio.addEventListener('error', (e) => {
           clearTimeout(timeout);
-          reject(new Error(`Load error: ${e.message}`));
+          reject(e);
         });
       });
 
       testAudio.src = path;
       const result = await loadPromise;
       
+      // Update loop with actual duration
       setLoops(prev => prev.map(loop => 
         loop.id === loopId 
           ? { ...loop, duration: result.duration, loaded: true, accessible: true }
           : loop
       ));
       
+      testAudio.src = '';
     } catch (error) {
       console.warn(`Failed to load audio for ${loopId}:`, error);
       setLoops(prev => prev.map(loop => 
         loop.id === loopId 
-          ? { ...loop, duration: 4, loaded: true, accessible: false }
+          ? { ...loop, loaded: true, accessible: false }
           : loop
       ));
     }
   };
 
-  // Get unique moods and instruments for filters
-  const moods = ['All', ...new Set(loops.map(loop => loop.mood))].sort();
-  const instruments = ['All', ...new Set(loops.map(loop => loop.instrument))].sort();
+  // Combine loops and sound effects if enabled
+  const allItems = soundEffectsEnabled && showSoundEffects 
+    ? [...loops, ...soundEffects]
+    : loops;
 
-  // Filter loops by mood, instrument, and search term, then sort alphabetically
-  const filteredLoops = loops
-    .filter(loop => {
-      // Apply mood filter
-      const matchesMood = moodFilter === 'All' || loop.mood === moodFilter;
-      
-      // Apply instrument filter
-      const matchesInstrument = instrumentFilter === 'All' || loop.instrument === instrumentFilter;
-      
-      // Apply search term filter
-      const matchesSearch = searchTerm === '' || 
-        loop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        loop.mood.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        loop.instrument.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (loop.subType && loop.subType.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      // NEW: Apply restrictToCategory filter (hard restriction)
-      const matchesRestriction = !restrictToCategory || loop.mood === restrictToCategory;
-      
-      return matchesMood && matchesInstrument && matchesSearch && matchesRestriction;
-    })
-    .sort((a, b) => a.name.localeCompare(b.name));
+  // Extract unique moods and instruments
+  const moods = ['All', ...new Set(loops.map(l => l.mood).filter(Boolean))].sort();
+  const instruments = ['All', ...new Set(loops.map(l => l.instrument).filter(Boolean))].sort();
 
-  // Stop currently playing loop
-  const stopCurrentLoop = () => {
+  // Filter function
+  const isLoopRestricted = (loop) => {
+    if (restrictToCategory && loop.mood !== restrictToCategory) {
+      return true;
+    }
+    return false;
+  };
+
+  // Filter loops and sound effects
+  const filteredLoops = allItems.filter(item => {
+    // Search filter
+    if (searchTerm && !item.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+
+    // Sound effects don't have mood/instrument filters
+    if (item.type === 'soundEffect') {
+      return true;
+    }
+
+    // Mood filter (only for music loops)
+    if (moodFilter !== 'All' && item.mood !== moodFilter) {
+      return false;
+    }
+
+    // Instrument filter (only for music loops)
+    if (instrumentFilter !== 'All' && item.instrument !== instrumentFilter) {
+      return false;
+    }
+
+    // Restriction check (only for music loops)
+    if (restrictToCategory) {
+      return item.mood === restrictToCategory;
+    }
+
+    return true;
+  });
+
+  // Handle playing loop
+  const handlePlayLoop = async (loop) => {
+    // Stop currently playing audio
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.currentTime = 0;
-      currentAudio.src = '';
-      setCurrentAudio(null);
-    }
-    setCurrentlyPlaying(null);
-  };
-
-  // Play or stop a loop
-  const handlePlayLoop = async (loop) => {
-    if (isPlayingAudio) {
-      console.log('Already processing audio, please wait...');
-      return;
+      setCurrentlyPlaying(null);
     }
 
+    // If clicking the same loop, just stop it
     if (currentlyPlaying === loop.id) {
-      stopCurrentLoop();
+      setCurrentAudio(null);
+      setCurrentlyPlaying(null);
+      setIsPlayingAudio(false);
+      
+      // Notify parent that preview stopped
       if (onLoopPreview) {
         onLoopPreview(loop, false);
       }
       return;
     }
 
-    if (currentAudio) {
-      stopCurrentLoop();
-    }
-
+    // Play new loop
     setIsPlayingAudio(true);
+    const audio = new Audio(loop.file);
+    audio.volume = loop.volume;
+    
+    audio.addEventListener('ended', () => {
+      setCurrentlyPlaying(null);
+      setCurrentAudio(null);
+      setIsPlayingAudio(false);
+      
+      // Notify parent that preview stopped
+      if (onLoopPreview) {
+        onLoopPreview(loop, false);
+      }
+    });
+
+    audio.addEventListener('error', (e) => {
+      console.error('Error playing loop:', e);
+      setCurrentlyPlaying(null);
+      setCurrentAudio(null);
+      setIsPlayingAudio(false);
+      
+      // Notify parent that preview stopped
+      if (onLoopPreview) {
+        onLoopPreview(loop, false);
+      }
+    });
 
     try {
-      const audio = new Audio();
-      audio.volume = 0.7;
-      audio.loop = false;
-
-      audio.addEventListener('ended', () => {
-        console.log(`Loop finished playing: ${loop.name}`);
-        setCurrentlyPlaying(null);
-        setCurrentAudio(null);
-        if (onLoopPreview) {
-          onLoopPreview(loop, false);
-        }
-      }, { once: true });
-
-      const loadPromise = new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          audio.src = '';
-          reject(new Error('Audio load timeout (10s)'));
-        }, 10000);
-
-        const handleLoad = () => {
-          clearTimeout(timeout);
-          resolve();
-        };
-
-        const handleError = (e) => {
-          clearTimeout(timeout);
-          reject(new Error(`Failed to load audio: ${e.message || 'Unknown error'}`));
-        };
-
-        audio.addEventListener('canplaythrough', handleLoad, { once: true });
-        audio.addEventListener('error', handleError, { once: true });
-      });
-
-      audio.src = loop.file;
-      await loadPromise;
-
-      setCurrentlyPlaying(loop.id);
+      await audio.play();
       setCurrentAudio(audio);
-
-      const playPromise = audio.play();
-      if (playPromise) {
-        await playPromise;
-        console.log(`Successfully playing: ${loop.name} (will play once and stop)`);
-      }
-
+      setCurrentlyPlaying(loop.id);
+      
+      // Notify parent that preview started
       if (onLoopPreview) {
         onLoopPreview(loop, true);
       }
-      
     } catch (error) {
-      console.error('Failed to play audio:', error);
-      alert(`Failed to play "${loop.name}": ${error.message}`);
-      setCurrentlyPlaying(null);
-      setCurrentAudio(null);
-    } finally {
-      setTimeout(() => {
-        setIsPlayingAudio(false);
-      }, 300);
+      console.error('Failed to play loop:', error);
+      setIsPlayingAudio(false);
+      
+      // Notify parent that preview stopped
+      if (onLoopPreview) {
+        onLoopPreview(loop, false);
+      }
     }
   };
 
-  // Cleanup audio on unmount
+  // Handle drag start
+  const handleDragStart = (e, loop) => {
+    if (lockFeatures.allowLoopDrag === false || isLoopRestricted(loop)) {
+      e.preventDefault();
+      return;
+    }
+
+    e.dataTransfer.effectAllowed = 'copy';
+    e.dataTransfer.setData('application/json', JSON.stringify(loop));
+    
+    if (onLoopDragStart) {
+      onLoopDragStart(loop);
+    }
+  };
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (currentAudio) {
@@ -347,33 +364,6 @@ const LoopLibrary = ({
       }
     };
   }, [currentAudio]);
-
-  // Handle drag start - UPDATED: Check if loop matches restriction
-  const handleDragStart = (e, loop) => {
-    if (lockFeatures.allowLoopDrag === false) {
-      e.preventDefault();
-      console.log('Loop dragging is locked');
-      return;
-    }
-
-    // NEW: Prevent dragging restricted loops
-    if (restrictToCategory && loop.mood !== restrictToCategory) {
-      e.preventDefault();
-      console.log(`Loop drag prevented - only ${restrictToCategory} loops allowed`);
-      return;
-    }
-
-    e.dataTransfer.setData('application/json', JSON.stringify(loop));
-    e.dataTransfer.effectAllowed = 'copy';
-    if (onLoopDragStart) {
-      onLoopDragStart(loop);
-    }
-  };
-
-  // NEW: Check if a loop is restricted (for visual feedback)
-  const isLoopRestricted = (loop) => {
-    return restrictToCategory && loop.mood !== restrictToCategory;
-  };
 
   if (loading) {
     return (
@@ -469,20 +459,39 @@ const LoopLibrary = ({
               <option key={inst} value={inst}>{inst}</option>
             ))}
           </select>
+
+          {/* NEW: SOUND EFFECTS CHECKBOX */}
+          {showSoundEffects && (
+            <label className="flex items-center gap-2 bg-purple-900/30 border border-purple-500/50 rounded px-2 py-1.5 cursor-pointer hover:bg-purple-900/50 transition-colors">
+              <input
+                type="checkbox"
+                checked={soundEffectsEnabled}
+                onChange={(e) => setSoundEffectsEnabled(e.target.checked)}
+                className="w-3.5 h-3.5 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
+              />
+              <span className="text-xs text-purple-300 font-medium flex items-center gap-1">
+                🔊 Show Sound Effects
+              </span>
+            </label>
+          )}
         </div>
       </div>
 
-      {/* Loop List - UPDATED: Visual feedback for restricted loops */}
+      {/* Loop List - UPDATED: Visual feedback for sound effects */}
       <div className="flex-1 overflow-y-auto p-1.5">
         <div className="space-y-1">
           {filteredLoops.map((loop) => {
             const restricted = isLoopRestricted(loop);
+            const isSoundEffect = loop.type === 'soundEffect';
+            
             return (
               <div
                 key={loop.id}
                 className={`group relative rounded p-1.5 transition-colors border ${
                   restricted 
                     ? 'bg-gray-800 border-gray-700 opacity-40 cursor-not-allowed' 
+                    : isSoundEffect
+                    ? 'bg-purple-900/30 hover:bg-purple-900/50 cursor-move border-purple-600 hover:border-purple-500'
                     : 'bg-gray-700 hover:bg-gray-600 cursor-move border-gray-600 hover:border-gray-500'
                 }`}
                 draggable={lockFeatures.allowLoopDrag !== false && !restricted}
@@ -490,15 +499,17 @@ const LoopLibrary = ({
               >
                 <div className="flex items-center justify-between gap-1.5">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-white text-xs font-medium truncate leading-tight">
-                      {loop.name}
+                    <h3 className={`text-xs font-medium truncate leading-tight ${
+                      isSoundEffect ? 'text-purple-300' : 'text-white'
+                    }`}>
+                      {isSoundEffect && '🔊 '}{loop.name}
                     </h3>
                     <div className="flex items-center gap-1 mt-0.5">
                       <span 
                         className="px-1 py-0.5 rounded text-white font-semibold text-xs leading-none"
                         style={{ backgroundColor: loop.color, fontSize: '10px' }}
                       >
-                        {loop.instrument}
+                        {isSoundEffect ? loop.category : loop.instrument}
                       </span>
                       <span className="text-gray-400 text-xs" style={{ fontSize: '10px' }}>
                         {Math.round(loop.duration)}s
@@ -519,7 +530,9 @@ const LoopLibrary = ({
                       currentlyPlaying === loop.id
                         ? 'bg-green-600 hover:bg-green-700 text-white'
                         : loop.loaded && loop.accessible && lockFeatures.allowLoopPreview !== false && !isPlayingAudio && !restricted
-                        ? 'bg-gray-600 hover:bg-gray-500 text-gray-300'
+                        ? isSoundEffect 
+                          ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                          : 'bg-gray-600 hover:bg-gray-500 text-gray-300'
                         : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                     }`}
                     title={restricted ? "Restricted" : (isPlayingAudio ? "Processing..." : (currentlyPlaying === loop.id ? "Playing" : "Play"))}
@@ -547,7 +560,7 @@ const LoopLibrary = ({
         {filteredLoops.length === 0 && (
           <div className="text-center text-gray-400 mt-6">
             <Volume2 size={32} className="mx-auto mb-2 opacity-50" />
-            <p className="text-xs">No loops found</p>
+            <p className="text-xs">No {soundEffectsEnabled && showSoundEffects ? 'items' : 'loops'} found</p>
             <p className="text-xs mt-1" style={{ fontSize: '10px' }}>
               {restrictToCategory ? `Only ${restrictToCategory} loops available` : 'Try different filters'}
             </p>
@@ -558,12 +571,14 @@ const LoopLibrary = ({
       {/* Footer */}
       <div className="p-2 border-t border-gray-700 bg-gray-800">
         <div className="flex items-center justify-between text-xs text-gray-400">
-          <span>{filteredLoops.length}/{loops.length}</span>
+          <span>{filteredLoops.length}/{allItems.length}</span>
           <span className="truncate ml-1">
-            {restrictToCategory && `ðŸ”’ ${restrictToCategory}`}
-            {restrictToCategory && (moodFilter !== 'All' || instrumentFilter !== 'All') && ' â€¢ '}
+            {soundEffectsEnabled && showSoundEffects && '🔊 SFX ON'}
+            {soundEffectsEnabled && showSoundEffects && (restrictToCategory || moodFilter !== 'All' || instrumentFilter !== 'All') && ' • '}
+            {restrictToCategory && `🔒 ${restrictToCategory}`}
+            {restrictToCategory && (moodFilter !== 'All' || instrumentFilter !== 'All') && ' • '}
             {moodFilter !== 'All' && !restrictToCategory && `${moodFilter}`}
-            {moodFilter !== 'All' && instrumentFilter !== 'All' && ' â€¢ '}
+            {moodFilter !== 'All' && instrumentFilter !== 'All' && ' • '}
             {instrumentFilter !== 'All' && `${instrumentFilter}`}
           </span>
         </div>

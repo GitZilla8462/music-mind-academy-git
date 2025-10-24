@@ -1,5 +1,6 @@
 // composer/MusicComposer.jsx - Main orchestrator (refactored)
 // FIXED: Added onDAWReadyCallback with tutorial mode support
+// UPDATED: Added showSoundEffects prop support
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -43,7 +44,8 @@ const MusicComposer = ({
   initialPlacedLoops = undefined,
   readOnly = false,
   restrictToCategory = null,
-  lockedMood = null
+  lockedMood = null,
+  showSoundEffects = false
 }) => {
   const { videoId, assignmentId } = useParams();
   const navigate = useNavigate();
@@ -455,8 +457,9 @@ const MusicComposer = ({
         setSubmissionNotes={setSubmissionNotes}
         setHasUnsavedChanges={setHasUnsavedChanges}
         containerRef={containerRef}
-        restrictToCategory={restrictToCategory}  // ADD THIS LINE
-        lockedMood={lockedMood}                  // ADD THIS LINE
+        restrictToCategory={restrictToCategory}
+        lockedMood={lockedMood}
+        showSoundEffects={showSoundEffects}
         lockFeatures={lockFeatures}
         highlightSelector={highlightSelector}
       />

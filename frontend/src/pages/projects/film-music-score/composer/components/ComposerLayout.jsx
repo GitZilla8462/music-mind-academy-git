@@ -1,9 +1,10 @@
 // File: /src/pages/projects/film-music-score/composer/components/ComposerLayout.jsx
 // Main layout with resizable panels using ResizableSplitPane
+// UPDATED: Added showSoundEffects prop passthrough
 
 import React from 'react';
 import LoopLibrary from '../../shared/LoopLibrary';
-import VideoPlayer from '../../shared/VideoPlayer';  // CORRECT IMPORT
+import VideoPlayer from '../../shared/VideoPlayer';
 import Timeline from '../../timeline/Timeline';
 import TransportControls from '../../shared/TransportControls';
 import NotesPanel from './NotesPanel';
@@ -29,6 +30,7 @@ const ComposerLayout = ({
   isPractice,
   restrictToCategory,
   lockedMood,
+  showSoundEffects,  // NEW PROP
   
   // Callbacks
   onLoopLibraryClick,
@@ -86,6 +88,7 @@ const ComposerLayout = ({
           lockFeatures={lockFeatures}
           restrictToCategory={restrictToCategory}
           lockedMood={lockedMood}
+          showSoundEffects={showSoundEffects}  // PASS THROUGH
         />
       </div>
 

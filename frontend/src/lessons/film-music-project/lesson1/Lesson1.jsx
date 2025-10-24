@@ -9,6 +9,7 @@ import VideoPlayer from '../../components/activities/video/VideoPlayer';
 import DAWTutorialActivity from './activities/daw-tutorial/DAWTutorialActivity';
 import SchoolBeneathActivity from './activities/SchoolBeneathActivity';
 import TwoStarsAndAWishActivity from './activities/two-stars-and-a-wish/TwoStarsAndAWishActivity';
+import SoundEffectsActivity from './activities/SoundEffectsActivity';
 
 const LESSON_PROGRESS_KEY = 'lesson1-progress';
 const LESSON_TIMER_KEY = 'lesson1-timer';
@@ -83,6 +84,12 @@ const Lesson1 = () => {
         type: "two-stars-wish",
         title: "Reflection Activity",
         estimatedTime: "5 min"
+      },
+      {
+        id: 6,
+        type: "sound-effects",
+        title: "Bonus: Add Sound Effects",
+        estimatedTime: "Remaining time"
       }
     ]
   };
@@ -271,7 +278,7 @@ const Lesson1 = () => {
           onClick={() => setNavToolsEnabled(!navToolsEnabled)}
           className="fixed top-20 right-4 z-50 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-lg"
         >
-          {navToolsEnabled ? '🧭 Hide Navigation Tools' : '🧭 Show Navigation Tools'}
+          {navToolsEnabled ? 'Ã°Å¸Â§Â­ Hide Navigation Tools' : 'Ã°Å¸Â§Â­ Show Navigation Tools'}
         </button>
       )}
 
@@ -279,7 +286,7 @@ const Lesson1 = () => {
       {navToolsEnabled && canAccessNavTools && lessonStarted && !viewSavedMode && !viewReflectionMode && currentActivityData?.type !== 'daw-tutorial' && (
         <div className="fixed top-32 right-4 z-50">
           <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
-            <div className="text-blue-400 text-xs font-mono mb-2 font-bold">🧭 LESSON NAVIGATION</div>
+            <div className="text-blue-400 text-xs font-mono mb-2 font-bold">Ã°Å¸Â§Â­ LESSON NAVIGATION</div>
             
             {/* Activity Navigator */}
             <div className="mb-3">
@@ -318,7 +325,7 @@ const Lesson1 = () => {
                 onClick={() => skipToActivity(3)}
                 className="w-full bg-green-600 text-white text-xs px-3 py-2 rounded hover:bg-green-700 transition-colors font-semibold"
               >
-                🎵 Jump to School Beneath Activity
+                Ã°Å¸Å½Âµ Jump to School Beneath Activity
               </button>
               <button
                 onClick={() => skipToActivity(4)}
@@ -566,6 +573,15 @@ const Lesson1 = () => {
                       key={`reflection-${currentActivity}`}
                       onComplete={handleActivityComplete}
                       viewMode={viewReflectionMode}
+                    />
+                  )}
+
+                  {/* Sound Effects Bonus Activity */}
+                  {currentActivityData.type === 'sound-effects' && (
+                    <SoundEffectsActivity 
+                      key={`sound-effects-${currentActivity}`}
+                      onComplete={handleActivityComplete}
+                      viewMode={false}
                     />
                   )}
                 </div>
