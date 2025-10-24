@@ -120,7 +120,7 @@ function MusicClassroomResources() {
             color: '#1a202c',
             marginBottom: '10px'
           }}>
-            Music Classroom Resources
+            Music Room Tools
           </h1>
         </div>
         
@@ -226,7 +226,7 @@ function MusicClassroomResources() {
             color: '#1a202c',
             margin: 0
           }}>
-            Music Classroom Resources
+            Music Room Tools
           </h1>
           <p style={{ fontSize: '14px', color: '#718096', margin: '4px 0 0 0' }}>
             Available Lessons & Activities
@@ -263,7 +263,7 @@ function MusicClassroomResources() {
               color: '#2d3748',
               marginBottom: '20px'
             }}>
-              ðŸ“š Available Lessons
+              Available Lessons
             </h2>
             
             <div style={{
