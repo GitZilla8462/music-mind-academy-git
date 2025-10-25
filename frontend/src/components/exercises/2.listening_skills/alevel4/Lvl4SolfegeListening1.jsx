@@ -346,7 +346,7 @@ const generatePatternSet = () => {
   const questionIndex = (questionCounter - 1) % QUESTION_BANK.length;
   const currentQuestion = QUESTION_BANK[questionIndex];
   
-  console.log(`🎵 QUESTION ${questionIndex + 1} | Overall Question ${questionCounter}`);
+  console.log(`♪ QUESTION ${questionIndex + 1} | Overall Question ${questionCounter}`);
   console.log(`📝 Current Question Index: ${questionIndex}`);
   
   // Create copies of all four patterns
@@ -370,7 +370,7 @@ const generatePatternSet = () => {
     .filter(note => !note.isRest)
     .map(note => note.syllable)
     .join(', ');
-  console.log(`🎵 Correct pattern: ${patternDescription}`);
+  console.log(`♪ Correct pattern: ${patternDescription}`);
 
   return {
     patterns: shuffledPatterns,

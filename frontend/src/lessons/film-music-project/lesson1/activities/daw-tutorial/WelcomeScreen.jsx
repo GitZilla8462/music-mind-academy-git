@@ -7,7 +7,7 @@ const WelcomeScreen = ({ onStart }) => {
     <div className="h-full bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center">
       <div className="text-center p-8 max-w-2xl">
         <div className="mb-6">
-          <div className="text-6xl mb-4">🎵</div>
+          <div className="text-6xl mb-4">♪</div>
         </div>
         <h2 className="text-4xl font-bold text-white mb-6">
           Welcome to Your DAW Tutorial!

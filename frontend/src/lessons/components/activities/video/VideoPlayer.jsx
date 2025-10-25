@@ -51,13 +51,13 @@ const VideoPlayer = ({
     let controlsTimeout;
 
     const handleLoadedMetadata = () => {
-      console.log('✅ Video loaded, duration:', video.duration);
+      console.log('[OK] Video loaded, duration:', video.duration);
       setIsLoaded(true);
       setDuration(video.duration);
     };
 
     const handleError = (e) => {
-      console.error('❌ Video error:', e);
+      console.error('[Error] Video error:', e);
       setError('Video failed to load');
     };
 

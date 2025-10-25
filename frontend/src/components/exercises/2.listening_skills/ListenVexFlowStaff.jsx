@@ -78,7 +78,7 @@ const ListenVexFlowStaff = ({
     };
 
     const { totalBeats } = calculateMeasureMetrics(pattern);
-    console.log(`🎵 Pattern analysis: ${pattern.length} notes, ${totalBeats} beats total`);
+    console.log(`♪ Pattern analysis: ${pattern.length} notes, ${totalBeats} beats total`);
 
     // Base container dimensions - use fixed heights instead of proportional
     const baseDimensions = mobileScale ? {
@@ -148,7 +148,7 @@ const ListenVexFlowStaff = ({
       const getVexFlowNote = (noteData) => {
         // FIXED: Check if this is a rest first
         if (noteData.isRest || noteData.pitch === null || noteData.type === 'rest') {
-          console.log(`🎵 Creating rest with duration: ${noteData.duration}`);
+          console.log(`♪ Creating rest with duration: ${noteData.duration}`);
           return null; // Return null to indicate this should be a rest
         }
         
@@ -156,7 +156,7 @@ const ListenVexFlowStaff = ({
         
         // Use custom note mapping if provided
         if (noteMapping && noteMapping[pitch]) {
-          console.log(`🎵 Using custom mapping: ${pitch} → ${noteMapping[pitch]}`);
+          console.log(`♪ Using custom mapping: ${pitch} → ${noteMapping[pitch]}`);
           return noteMapping[pitch];
         }
         
@@ -178,7 +178,7 @@ const ListenVexFlowStaff = ({
         
         const vexFlowNote = completeNoteMap[pitch];
         if (vexFlowNote) {
-          console.log(`🎵 Using default mapping: ${pitch} → ${vexFlowNote}`);
+          console.log(`♪ Using default mapping: ${pitch} → ${vexFlowNote}`);
           return vexFlowNote;
         } else {
           console.warn(`⚠️ Unknown pitch: ${pitch}, defaulting to c/4`);
@@ -228,7 +228,7 @@ const ListenVexFlowStaff = ({
           measureBreakIndex = Math.ceil(pattern.length / 2);
         }
         
-        console.log(`🎵 Splitting at index ${measureBreakIndex}: Measure 1 (${measureBreakIndex} notes), Measure 2 (${pattern.length - measureBreakIndex} notes)`);
+        console.log(`♪ Splitting at index ${measureBreakIndex}: Measure 1 (${measureBreakIndex} notes), Measure 2 (${pattern.length - measureBreakIndex} notes)`);
         
         // Calculate metrics for each measure
         const measure1Notes = pattern.slice(0, measureBreakIndex);
@@ -262,7 +262,7 @@ const ListenVexFlowStaff = ({
           measure2Width = availableWidth - measure1Width;
         }
         
-        console.log(`🎵 Measure widths: M1=${measure1Width}px (${measure1Metrics.totalBeats} beats), M2=${measure2Width}px (${measure2Metrics.totalBeats} beats)`);
+        console.log(`♪ Measure widths: M1=${measure1Width}px (${measure1Metrics.totalBeats} beats), M2=${measure2Width}px (${measure2Metrics.totalBeats} beats)`);
         
         // Create first measure - position staff lower to show full staff
         const stave1 = new Stave(margins.left, mobileScale ? 15 : 20, measure1Width);
@@ -271,7 +271,7 @@ const ListenVexFlowStaff = ({
         
         // NEW: Add key signature if provided
         if (keySignature) {
-          console.log(`🎵 Adding key signature: ${keySignature}`);
+          console.log(`♪ Adding key signature: ${keySignature}`);
           stave1.addKeySignature(keySignature);
         }
         
@@ -296,7 +296,7 @@ const ListenVexFlowStaff = ({
           let note;
           if (vexFlowPitch === null) {
             // FIXED: Create a rest positioned higher
-            console.log(`🎵 Rest ${index + 1}: duration ${noteData.duration}`);
+            console.log(`♪ Rest ${index + 1}: duration ${noteData.duration}`);
             note = new StaveNote({
               clef: 'treble',
               keys: ['b/4'], // Higher position for rest (B4 line)
@@ -306,7 +306,7 @@ const ListenVexFlowStaff = ({
             });
           } else {
             // FIXED: Create a regular note
-            console.log(`🎵 Note ${index + 1}: ${noteData.pitch} (${noteData.syllable}) → ${vexFlowPitch}`);
+            console.log(`♪ Note ${index + 1}: ${noteData.pitch} (${noteData.syllable}) → ${vexFlowPitch}`);
             note = new StaveNote({
               clef: 'treble',
               keys: [vexFlowPitch],
@@ -409,7 +409,7 @@ const ListenVexFlowStaff = ({
         // Use most of available width for single measure
         const staveWidth = Math.max(availableWidth * 0.95, mobileScale ? 140 : 200);
         
-        console.log(`🎵 Single measure: ${staveWidth}px width, ${measureMetrics.totalBeats} beats`);
+        console.log(`♪ Single measure: ${staveWidth}px width, ${measureMetrics.totalBeats} beats`);
         
         const stave = new Stave(margins.left, mobileScale ? 0 : 1, staveWidth);
         stave.addClef('treble');
@@ -417,7 +417,7 @@ const ListenVexFlowStaff = ({
         
         // NEW: Add key signature if provided
         if (keySignature) {
-          console.log(`🎵 Adding key signature: ${keySignature}`);
+          console.log(`♪ Adding key signature: ${keySignature}`);
           stave.addKeySignature(keySignature);
         }
         
@@ -433,7 +433,7 @@ const ListenVexFlowStaff = ({
           let note;
           if (vexFlowPitch === null) {
             // FIXED: Create a rest positioned higher
-            console.log(`🎵 Rest ${index + 1}: duration ${noteData.duration}`);
+            console.log(`♪ Rest ${index + 1}: duration ${noteData.duration}`);
             note = new StaveNote({
               clef: 'treble',
               keys: ['b/4'], // Higher position for rest (B4 line)
@@ -443,7 +443,7 @@ const ListenVexFlowStaff = ({
             });
           } else {
             // FIXED: Create a regular note
-            console.log(`🎵 Note ${index + 1}: ${noteData.pitch} (${noteData.syllable}) → ${vexFlowPitch}`);
+            console.log(`♪ Note ${index + 1}: ${noteData.pitch} (${noteData.syllable}) → ${vexFlowPitch}`);
             note = new StaveNote({
               clef: 'treble',
               keys: [vexFlowPitch],
@@ -517,10 +517,10 @@ const ListenVexFlowStaff = ({
       }
 
       containerRef.current.appendChild(containerDiv);
-      console.log('✅ VexFlow rendered successfully with FIXED F# display');
+      console.log('[OK] VexFlow rendered successfully with FIXED F# display');
 
     } catch (error) {
-      console.error('❌ VexFlow rendering error:', error);
+      console.error('[Error] VexFlow rendering error:', error);
       
       // Improved fallback display
       containerDiv.innerHTML = '';

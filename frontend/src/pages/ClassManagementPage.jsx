@@ -13,7 +13,7 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
 const ClassManagementPage = ({ showToast }) => {
   const { classId } = useParams();
   const navigate = useNavigate();
-  const { token, logout } = useAuth(); // ✅ Get the token from the AuthContext
+  const { token, logout } = useAuth(); // [OK] Get the token from the AuthContext
   
   const [classData, setClassData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,7 +30,7 @@ const ClassManagementPage = ({ showToast }) => {
   const [studentToDelete, setStudentToDelete] = useState(null);
   const [showDeleteClassModal, setShowDeleteClassModal] = useState(false);
 
-  // ✅ FIXED: No need for getToken() helper, as you can get the token directly from useAuth()
+  // [OK] FIXED: No need for getToken() helper, as you can get the token directly from useAuth()
   useEffect(() => {
     const fetchClassData = async () => {
       if (!token) {
@@ -84,7 +84,7 @@ const ClassManagementPage = ({ showToast }) => {
       return;
     }
     
-    // ✅ FIXED: Use the token from AuthContext
+    // [OK] FIXED: Use the token from AuthContext
     try {
       const response = await axios.post(`${API_BASE_URL}/api/teachers/classes/${classId}/students`, {
         name: accountName,
@@ -110,7 +110,7 @@ const ClassManagementPage = ({ showToast }) => {
   
   const handleBulkAddStudents = async (e) => {
     e.preventDefault();
-    // ✅ FIXED: Use the token from AuthContext
+    // [OK] FIXED: Use the token from AuthContext
     setIsBulkAddingLoading(true);
     try {
       const response = await axios.post(`${API_BASE_URL}/api/teachers/classes/${classId}/students/bulk`, {
@@ -154,7 +154,7 @@ const ClassManagementPage = ({ showToast }) => {
   const handleDeleteStudent = async () => {
     if (!studentToDelete) return;
     
-    // ✅ FIXED: Use the token from AuthContext
+    // [OK] FIXED: Use the token from AuthContext
     try {
       const response = await axios.delete(`${API_BASE_URL}/api/teachers/classes/${classId}/students/${studentToDelete._id}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -176,7 +176,7 @@ const ClassManagementPage = ({ showToast }) => {
   };
 
   const handleDeleteClass = async () => {
-    // ✅ FIXED: Use the token from AuthContext
+    // [OK] FIXED: Use the token from AuthContext
     try {
       const response = await axios.delete(`${API_BASE_URL}/api/teachers/classes/${classId}`, {
         headers: { Authorization: `Bearer ${token}` }

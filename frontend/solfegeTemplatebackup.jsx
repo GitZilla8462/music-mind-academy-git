@@ -1191,7 +1191,7 @@ const SolfegeIDTemplate = ({ config = {}, onClose }) => {
         const newPattern = config.generatePattern();
         setPattern(newPattern);
         console.log(
-          '🎵 Pattern:',
+          '♪ Pattern:',
           newPattern.map((note) => note.syllable || 'rest').join('-')
         );
 
@@ -1325,7 +1325,7 @@ const SolfegeIDTemplate = ({ config = {}, onClose }) => {
       const newPattern = config.generatePattern(currentPatternIndex);
       setPattern(newPattern);
       console.log(
-        '🎵 Pattern:',
+        '♪ Pattern:',
         newPattern.map((note) => note.syllable || 'rest').join('-')
       );
       let firstNoteIndex = 0;

@@ -270,7 +270,7 @@ const generatePatternSet = () => {
   
   const currentQuestion = QUESTION_BANK[currentQuestionIndex % QUESTION_BANK.length];
   
-  console.log(`🎵 QUESTION ${(currentQuestionIndex % QUESTION_BANK.length) + 1} | Overall Question ${questionCounter}`);
+  console.log(`♪ QUESTION ${(currentQuestionIndex % QUESTION_BANK.length) + 1} | Overall Question ${questionCounter}`);
   console.log(`📝 Current Question Index: ${currentQuestionIndex % QUESTION_BANK.length}`);
   console.log(`🎯 Original Correct Answer: Pattern ${['A', 'B', 'C', 'D'][currentQuestion.correctAnswer]}`);
   
@@ -287,7 +287,7 @@ const generatePatternSet = () => {
   const correctPattern = [...shuffledPatterns[newCorrectIndex]];
   const correctLetter = ['A', 'B', 'C', 'D'][newCorrectIndex];
 
-  console.log(`✅ Shuffled Correct Answer: ${correctLetter} (Position ${newCorrectIndex})`);
+  console.log(`[OK] Shuffled Correct Answer: ${correctLetter} (Position ${newCorrectIndex})`);
   console.log(`📍 Pattern Shuffle: Original positions ${positionMapping} → Shuffled to ${shuffledPositions}`);
   console.log(`🔀 Original Pattern ${['A', 'B', 'C', 'D'][originalCorrectIndex]} is now in position ${correctLetter}`);
   console.log(`🎼 Correct pattern length: ${correctPattern.length} notes`);

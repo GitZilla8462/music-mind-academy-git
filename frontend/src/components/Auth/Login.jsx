@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
     const [formData, setFormData] = useState({
-        usernameOrEmail: '', // ✅ Change 'email' to 'usernameOrEmail'
+        usernameOrEmail: '', // [OK] Change 'email' to 'usernameOrEmail'
         password: ''
     });
     const [error, setError] = useState('');
@@ -19,7 +19,7 @@ const Login = () => {
         e.preventDefault();
         setError('');
         
-        // ✅ Call the updated login function with both username and password
+        // [OK] Call the updated login function with both username and password
         const result = await login(usernameOrEmail, password);
         if (!result.success) {
             setError(result.error);
@@ -34,8 +34,8 @@ const Login = () => {
                 </div>
             )}
             <input
-                type="text" // ✅ Change input type to 'text'
-                placeholder="Email or Username" // ✅ Update placeholder
+                type="text" // [OK] Change input type to 'text'
+                placeholder="Email or Username" // [OK] Update placeholder
                 name="usernameOrEmail"
                 value={usernameOrEmail}
                 onChange={onChange}

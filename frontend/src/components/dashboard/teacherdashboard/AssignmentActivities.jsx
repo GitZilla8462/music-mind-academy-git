@@ -2,10 +2,10 @@
 import React from 'react';
 import { ChevronLeft } from 'lucide-react';
 
-// ✅ Add projectData prop
+// [OK] Add projectData prop
 const AssignmentActivities = ({ onAssignToStudents, projectData, onClose, onBackToAssignments }) => {
   // Mock data for assignment activities
-  // ✅ Now using data passed via projectData prop
+  // [OK] Now using data passed via projectData prop
   const assignmentActivities = projectData ? projectData.activities : [];
 
   return (

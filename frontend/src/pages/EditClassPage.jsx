@@ -58,7 +58,7 @@ const EditClassPage = ({ showToast }) => {
       
       try {
         setIsLoading(true);
-        // ✅ Use Axios and correct URL for your Node.js backend
+        // [OK] Use Axios and correct URL for your Node.js backend
         const response = await axios.get(`${API_BASE_URL}/api/teachers/classes/${classId}`, {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -123,7 +123,7 @@ const EditClassPage = ({ showToast }) => {
         description: description.trim() 
       };
       
-      // ✅ Use Axios and correct URL for your Node.js backend
+      // [OK] Use Axios and correct URL for your Node.js backend
       await axios.put(`${API_BASE_URL}/api/teachers/classes/${classId}`, updatedData, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -142,7 +142,7 @@ const EditClassPage = ({ showToast }) => {
     if (!token || !classId) return;
     
     try {
-      // ✅ Use Axios and correct URL for your Node.js backend
+      // [OK] Use Axios and correct URL for your Node.js backend
       await axios.delete(`${API_BASE_URL}/api/teachers/classes/${classId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });

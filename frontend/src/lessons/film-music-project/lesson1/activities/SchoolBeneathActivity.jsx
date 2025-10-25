@@ -186,7 +186,7 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
     // ONLY restrict to Mysterious in non-exploration mode
     if (!isExplorationMode && loopData.mood !== 'Mysterious') {
       console.warn('Rejected non-Mysterious loop:', loopData.category);
-      setSaveMessage('❌ Only Mysterious loops allowed!');
+      setSaveMessage('[Error] Only Mysterious loops allowed!');
       setTimeout(() => setSaveMessage(''), 2000);
       return;
     }
@@ -308,7 +308,7 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
     // Small delay to ensure state update propagates, then enter exploration mode
     setTimeout(() => {
       setIsExplorationMode(true);
-      setSaveMessage('✅ Submitted! Now create a bonus composition!');
+      setSaveMessage('[OK] Submitted! Now create a bonus composition!');
       setTimeout(() => setSaveMessage(''), 3000);
       
       // Speak the exploration message
@@ -450,7 +450,7 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
             <div className="flex items-center gap-3 flex-1 min-w-0 overflow-x-auto">
               <h2 className="text-sm font-bold whitespace-nowrap flex-shrink-0">
                 {viewMode ? (viewBonusMode ? "Viewing Bonus Composition: " : "Viewing Saved Work: ") : ""}
-                {isExplorationMode ? '🎵 Bonus Composition - The School Beneath' : 'The School Beneath - Composition Assignment'}
+                {isExplorationMode ? '♪ Bonus Composition - The School Beneath' : 'The School Beneath - Composition Assignment'}
               </h2>
               
               {!isExplorationMode && !viewMode && (

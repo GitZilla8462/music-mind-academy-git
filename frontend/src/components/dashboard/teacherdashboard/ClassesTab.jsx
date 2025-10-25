@@ -15,7 +15,7 @@ const ClassesTab = ({ showToast, setActiveTab }) => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // ✅ FIXED: Use the correct, consistent key and storage methods
+  // [OK] FIXED: Use the correct, consistent key and storage methods
   const getToken = useCallback(() => {
     return localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
   }, []);

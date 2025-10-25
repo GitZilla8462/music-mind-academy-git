@@ -268,7 +268,7 @@ const SolfegeExerciseFour = ({ onClose }) => {
     // Initialize vocal audio samples with better debugging
     const initVocalAudio = async () => {
       try {
-        console.log('🎵 Initializing vocal audio...');
+        console.log('♪ Initializing vocal audio...');
         
         const audio = {
           'Do': new Audio('/teacher_dashboard/sounds/do.mp3'),
@@ -284,22 +284,22 @@ const SolfegeExerciseFour = ({ onClose }) => {
           audioFile.volume = 0.8;
           
           audioFile.onloadeddata = () => {
-            console.log(`✅ ${key} audio loaded successfully`);
+            console.log(`[OK] ${key} audio loaded successfully`);
           };
           
           audioFile.onerror = (e) => {
-            console.log(`❌ ${key} audio failed to load:`, audioFile.src);
+            console.log(`[Error] ${key} audio failed to load:`, audioFile.src);
           };
           
           audioFile.oncanplaythrough = () => {
-            console.log(`✅ ${key} audio ready to play`);
+            console.log(`[OK] ${key} audio ready to play`);
           };
         }
         
         setSolfegeAudio(audio);
-        console.log('🎵 Vocal audio initialization complete');
+        console.log('♪ Vocal audio initialization complete');
       } catch (error) {
-        console.log('❌ Vocal audio initialization failed:', error);
+        console.log('[Error] Vocal audio initialization failed:', error);
       }
     };
 
@@ -374,7 +374,7 @@ const SolfegeExerciseFour = ({ onClose }) => {
     // Play the vocal solfege when button is clicked
     if (solfegeAudio && solfegeAudio[selectedSyllable]) {
       try {
-        console.log(`🎵 Attempting to play ${selectedSyllable} vocal...`);
+        console.log(`♪ Attempting to play ${selectedSyllable} vocal...`);
         
         // Reset and play the vocal sample
         solfegeAudio[selectedSyllable].currentTime = 0;
@@ -383,10 +383,10 @@ const SolfegeExerciseFour = ({ onClose }) => {
         
         if (playPromise !== undefined) {
           await playPromise;
-          console.log(`✅ ${selectedSyllable} vocal played successfully`);
+          console.log(`[OK] ${selectedSyllable} vocal played successfully`);
         }
       } catch (error) {
-        console.log(`❌ Vocal audio failed for ${selectedSyllable}:`, error.message);
+        console.log(`[Error] Vocal audio failed for ${selectedSyllable}:`, error.message);
         // Fallback to piano sound if vocal fails
         if (synth) {
           console.log('🎹 Using piano fallback');
@@ -394,7 +394,7 @@ const SolfegeExerciseFour = ({ onClose }) => {
         }
       }
     } else {
-      console.log('❌ No vocal audio available, using piano');
+      console.log('[Error] No vocal audio available, using piano');
       // Fallback to piano if no vocal audio
       if (synth) {
         synth.triggerAttackRelease(currentNote.pitch, "4n");
@@ -523,11 +523,11 @@ const SolfegeExerciseFour = ({ onClose }) => {
           <div className="text-center">
             {selectedAnswer === currentNote?.syllable ? (
               <div className="text-green-600 text-xl font-semibold">
-                ✅ Correct!
+                [OK] Correct!
               </div>
             ) : (
               <div className="text-red-600 text-xl font-semibold">
-                ❌ Incorrect. The answer was: {currentNote?.syllable}
+                [Error] Incorrect. The answer was: {currentNote?.syllable}
               </div>
             )}
           </div>

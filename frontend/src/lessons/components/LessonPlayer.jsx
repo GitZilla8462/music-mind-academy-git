@@ -160,7 +160,7 @@ const SimpleLessonPlaceholder = ({ lessonId = 'film-music-1' }) => {
           <div>Lesson ID: {lessonData.id}</div>
           <div>Category: {lessonData.category}</div>
           <div>Created: {new Date(lessonData.createdAt).toLocaleDateString()}</div>
-          <div>API Connection: ✅ Connected to backend</div>
+          <div>API Connection: [OK] Connected to backend</div>
         </div>
       </div>
     </div>

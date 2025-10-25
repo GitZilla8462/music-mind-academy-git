@@ -634,7 +634,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false }) => {
             <div className="flex-1 overflow-y-auto space-y-4">
               <div className="text-center mb-4">
                 <Sparkles className="mx-auto text-yellow-500 mb-2" size={48} />
-                <h2 className="text-2xl font-bold text-gray-800">🎵 Your Reflection Summary</h2>
+                <h2 className="text-2xl font-bold text-gray-800">♪ Your Reflection Summary</h2>
                 <p className="text-sm text-gray-600 mt-1">
                   You reviewed: {reflectionData.reviewType === 'self' ? 'Your own composition' : `${reflectionData.partnerName}'s composition`}
                 </p>

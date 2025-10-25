@@ -41,7 +41,7 @@ const ClassesAndAssignmentsTab = ({
     activeSubTab,
     onSubTabChange,
     showToast,
-    refreshAssignments // ✅ NEW: Prop to refresh assignments
+    refreshAssignments // [OK] NEW: Prop to refresh assignments
 }) => {
     const { token } = useAuth();
 
@@ -52,7 +52,7 @@ const ClassesAndAssignmentsTab = ({
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 showToast(response.data.message, 'success');
-                refreshAssignments(); // ✅ FIX: Call the refresh function here
+                refreshAssignments(); // [OK] FIX: Call the refresh function here
             } catch (error) {
                 console.error('Error deleting all assignments:', error);
                 const errorMessage = error.response?.data?.error || 'Failed to delete all assignments. Please try again.';

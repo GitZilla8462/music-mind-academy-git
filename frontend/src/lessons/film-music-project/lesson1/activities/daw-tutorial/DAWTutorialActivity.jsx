@@ -557,7 +557,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
 
   // DAW ready callback
   const handleDAWReady = useCallback(() => {
-    console.log('✅ DAW is ready for challenges (callback received)');
+    console.log('[OK] DAW is ready for challenges (callback received)');
     
     // Clear the fallback timeout since we got the callback
     if (dawReadyTimeoutRef.current) {
@@ -673,7 +673,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
                 onClick={navCompleteAll}
                 className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold"
               >
-                🚀 Complete All ➡️ Next Activity
+                [Launch] Complete All ➡️ Next Activity
               </button>
             </div>
             

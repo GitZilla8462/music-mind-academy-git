@@ -16,7 +16,7 @@ const StudentGradesTab = ({ grades = {}, showToast }) => {
 
   const getTypeIcon = (type) => {
     switch (type) {
-      case 'practice': return '🎵';
+      case 'practice': return '♪';
       case 'test': return '📝';
       case 'quiz': return '❓';
       case 'assessment': return '📊';

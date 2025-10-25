@@ -191,7 +191,7 @@ const FourStaveDisplay = ({
   const { isMobile, isTablet, isLandscape } = useResponsiveMusic();
 
   // Debug logging
-  console.log('🎵 FourStaveDisplay render:', {
+  console.log('♪ FourStaveDisplay render:', {
     patternSet: !!patternSet,
     vexFlowLoaded,
     useVexFlow,
@@ -454,7 +454,7 @@ const ListenSolfegeIDTemplate = ({
         // Generate pattern set immediately (doesn't need audio)
         setCurrentPatternSet(memoizedGeneratePatternSet());
         
-        console.log('✅ Components initialized successfully');
+        console.log('[OK] Components initialized successfully');
       } catch (error) {
         console.error('Failed to initialize components:', error);
         // Still try to set pattern set
@@ -547,7 +547,7 @@ const ListenSolfegeIDTemplate = ({
     setPlayingNoteIndex(-1);
     const pattern = currentPatternSet.correctPattern;
     
-    console.log(`🎵 Starting playback with ${pattern.length} notes`);
+    console.log(`♪ Starting playback with ${pattern.length} notes`);
     
     // Store playback reference for cleanup - use a ref that survives re-renders
     const playbackId = Date.now();
@@ -570,7 +570,7 @@ const ListenSolfegeIDTemplate = ({
         }
         
         const noteData = pattern[i];
-        console.log(`🎵 Playing note ${i + 1}/${pattern.length}: ${noteData.syllable} (${noteData.pitch})`);
+        console.log(`♪ Playing note ${i + 1}/${pattern.length}: ${noteData.syllable} (${noteData.pitch})`);
         
         // Calculate note duration for playback
         const getNoteDuration = (noteData) => {
@@ -661,7 +661,7 @@ const ListenSolfegeIDTemplate = ({
         }
       }
       
-      console.log(`✅ Playback completed (cancelled: ${playbackCancelled})`);
+      console.log(`[OK] Playback completed (cancelled: ${playbackCancelled})`);
       
     } catch (error) {
       console.error('Error playing pattern:', error);
@@ -674,7 +674,7 @@ const ListenSolfegeIDTemplate = ({
         
         // Call completion callback if provided and not cancelled
         if (onComplete && !playbackCancelled) {
-          console.log('🎵 Calling completion callback');
+          console.log('♪ Calling completion callback');
           onComplete();
         }
       } else {
@@ -689,7 +689,7 @@ const ListenSolfegeIDTemplate = ({
       try {
         // Start Tone.js audio context
         await Tone.start();
-        console.log('✅ Tone.js started successfully');
+        console.log('[OK] Tone.js started successfully');
         
         // Additional mobile audio context setup
         if (isMobile && Tone.getContext().state !== 'running') {
@@ -742,7 +742,7 @@ const ListenSolfegeIDTemplate = ({
           
           newSynth.connect(reverb);
           setSynth(newSynth);
-          console.log('✅ Synth created successfully after user interaction');
+          console.log('[OK] Synth created successfully after user interaction');
         }
         
         setAudioInitialized(true);
@@ -752,12 +752,12 @@ const ListenSolfegeIDTemplate = ({
         // Wait a bit longer to ensure everything is ready
         setTimeout(async () => {
           if (currentPatternSet) {
-            console.log('🎵 Playing pattern after Start Exercise clicked');
+            console.log('♪ Playing pattern after Start Exercise clicked');
             await playPattern(true); // Play immediately after initialization
           }
         }, isMobile ? 500 : 400); // Longer delay to ensure audio is ready
       } catch (error) {
-        console.error('❌ Failed to start audio context:', error);
+        console.error('[Error] Failed to start audio context:', error);
       }
     }
   }, [audioInitialized, currentPatternSet, hasPlayedCurrentQuestion, isMobile, synth, playPattern]);
@@ -774,7 +774,7 @@ const ListenSolfegeIDTemplate = ({
         !isProcessingAnswerRef.current && // ADDED: Don't auto-play if processing answer
         currentQuestionIndex > 0) {
       
-      console.log(`🎵 Auto-playing pattern for question ${currentQuestionIndex + 1}`);
+      console.log(`♪ Auto-playing pattern for question ${currentQuestionIndex + 1}`);
       
       const autoPlayDelay = isMobile ? 1000 : 800;
       const autoPlayTimer = setTimeout(() => {
@@ -877,7 +877,7 @@ const ListenSolfegeIDTemplate = ({
     
     // Try to play pattern with completion callback
     const handlePlaybackComplete = () => {
-      console.log('🎵 Playback completed, clearing fallback and transitioning...');
+      console.log('♪ Playback completed, clearing fallback and transitioning...');
       
       // Clear the fallback timeout since playback completed
       if (transitionTimeoutRef.current) {
@@ -898,9 +898,9 @@ const ListenSolfegeIDTemplate = ({
         return;
       }
       
-      console.log('🎵 Starting answer playback...');
+      console.log('♪ Starting answer playback...');
       playPattern(false, handlePlaybackComplete).catch((error) => {
-        console.error('❌ Playback failed:', error);
+        console.error('[Error] Playback failed:', error);
         // If playback fails, still trigger transition after short delay
         if (isProcessingAnswerRef.current) {
           setTimeout(() => {
@@ -940,7 +940,7 @@ const ListenSolfegeIDTemplate = ({
     setPlayingNoteIndex(-1);
     setCurrentPatternSet(memoizedGeneratePatternSet());
     
-    console.log('✅ Exercise reset completed');
+    console.log('[OK] Exercise reset completed');
   };
 
   // FIXED: Cleanup on unmount
@@ -1086,13 +1086,13 @@ const ListenSolfegeIDTemplate = ({
                 <div className={`text-green-600 font-semibold ${
                   isMobile ? 'text-lg' : 'text-xl'
                 }`}>
-                  ✅ Correct! Pattern {currentPatternSet.correctLetter}
+                  [OK] Correct! Pattern {currentPatternSet.correctLetter}
                 </div>
               ) : (
                 <div className={`text-red-600 font-semibold ${
                   isMobile ? 'text-lg' : 'text-xl'
                 }`}>
-                  ❌ Incorrect. The correct answer was Pattern {currentPatternSet.correctLetter}
+                  [Error] Incorrect. The correct answer was Pattern {currentPatternSet.correctLetter}
                 </div>
               )}
             </div>

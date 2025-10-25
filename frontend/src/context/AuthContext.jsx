@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }) => {
     const login = async (usernameOrEmail, password) => {
         setLoading(true);
         try {
-            console.log('🚀 Attempting login for:', usernameOrEmail);
+            console.log('[Launch] Attempting login for:', usernameOrEmail);
             console.log('🔍 Using API base URL:', API_BASE_URL);
             
             // Check if the input is an email address
@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }) => {
                 body: JSON.stringify(payload)
             });
             
-            console.log('✅ Login response received:', data);
+            console.log('[OK] Login response received:', data);
             
             const { token: newToken, user: userData } = data;
             

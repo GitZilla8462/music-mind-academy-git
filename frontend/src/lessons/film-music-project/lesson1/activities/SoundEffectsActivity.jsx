@@ -135,7 +135,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false }) => {
     localStorage.setItem('school-beneath-composition', JSON.stringify(compositionData));
     console.log('Composition with sound effects saved:', compositionData);
     
-    setSaveMessage('✅ Saved with sound effects!');
+    setSaveMessage('[OK] Saved with sound effects!');
     setTimeout(() => setSaveMessage(''), 3000);
   };
 
@@ -143,7 +143,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false }) => {
   const handleSubmit = () => {
     handleSaveProgress(); // Save first
     
-    setSaveMessage('✅ Submitted! Great work!');
+    setSaveMessage('[OK] Submitted! Great work!');
     setTimeout(() => {
       setSaveMessage('');
     }, 2000);
@@ -256,7 +256,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false }) => {
             <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-3">
               <div className="text-xs text-gray-700 space-y-1">
                 <div className="flex justify-between">
-                  <span>🎵 Music Loops:</span>
+                  <span>♪ Music Loops:</span>
                   <span className="font-bold">{musicLoops.length}</span>
                 </div>
                 <div className="flex justify-between">
@@ -286,7 +286,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false }) => {
               onClick={handleSubmit}
               className="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors text-sm"
             >
-              ✅ Submit (can resubmit)
+              [OK] Submit (can resubmit)
             </button>
           </div>
         </div>
@@ -319,7 +319,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false }) => {
           </div>
           <div className="px-4 py-2 text-sm text-gray-600">
             <div className="flex justify-between text-xs">
-              <span>🎵 Loops: {musicLoops.length}</span>
+              <span>♪ Loops: {musicLoops.length}</span>
               <span>🔊 SFX: {soundEffectLoops.length}</span>
             </div>
           </div>
@@ -338,7 +338,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false }) => {
 
             <div className="flex items-center gap-2 flex-shrink-0">
               <div className="text-xs text-gray-400">
-                🎵 {musicLoops.length} loops | 🔊 {soundEffectLoops.length} SFX
+                ♪ {musicLoops.length} loops | 🔊 {soundEffectLoops.length} SFX
               </div>
 
               {saveMessage && (

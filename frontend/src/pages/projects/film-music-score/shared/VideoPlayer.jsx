@@ -45,7 +45,7 @@ const VideoPlayer = ({
     if (!video) return;
 
     const handleLoadedMetadata = () => {
-      console.log('✅ Video metadata loaded, duration:', video.duration);
+      console.log('[OK] Video metadata loaded, duration:', video.duration);
       setIsVideoLoaded(true);
       if (onVideoReady) {
         onVideoReady(video.duration);

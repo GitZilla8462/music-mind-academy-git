@@ -21,7 +21,7 @@ const AssignmentsSubTab = ({ assignments, onDeleteAllAssignments }) => {
         }
     };
     
-    // ✅ NEW: Handle click on the assignment card
+    // [OK] NEW: Handle click on the assignment card
     const handleViewStudents = (assignmentId) => {
         navigate(`/teacher/projects/${assignmentId}/submissions`);
     };
@@ -42,7 +42,7 @@ const AssignmentsSubTab = ({ assignments, onDeleteAllAssignments }) => {
 
                         return (
                             <li key={assignment._id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                                {/* ✅ MODIFIED: Added onClick to the container div to navigate */}
+                                {/* [OK] MODIFIED: Added onClick to the container div to navigate */}
                                 <div 
                                   className="flex justify-between items-start cursor-pointer transition-colors duration-200 hover:bg-gray-50"
                                   onClick={() => handleViewStudents(assignment._id)}

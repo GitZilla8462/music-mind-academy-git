@@ -23,7 +23,7 @@ const AssignmentsSubTab = ({ assignments, onDeleteAllAssignments }) => {
         navigate(`/teacher/assignments/${assignmentId}/submissions`);
     };
 
-    // ✅ FIX: Removed the grouping logic entirely. The 'assignments' prop is already the correct, full list.
+    // [OK] FIX: Removed the grouping logic entirely. The 'assignments' prop is already the correct, full list.
     const assignmentsToDisplay = assignments;
 
     return (

@@ -253,7 +253,7 @@ const LoopBlock = React.memo(({
       
       if (resizeDirection === 'right') {
         const newDuration = mouseTime - loop.startTime;
-        const minDuration = 0.1;  // ✅ FIXED: Allow loops as short as 0.1 seconds
+        const minDuration = 0.1;  // [OK] FIXED: Allow loops as short as 0.1 seconds
         const maxDuration = videoDuration - loop.startTime;
         const constrainedDuration = Math.max(minDuration, Math.min(maxDuration, newDuration));
         const newEndTime = loop.startTime + constrainedDuration;
@@ -266,7 +266,7 @@ const LoopBlock = React.memo(({
         }
       } else if (resizeDirection === 'left') {
         const newDuration = loop.endTime - mouseTime;
-        const minDuration = 0.1;  // ✅ FIXED: Allow loops as short as 0.1 seconds
+        const minDuration = 0.1;  // [OK] FIXED: Allow loops as short as 0.1 seconds
         const maxDuration = Math.min(videoDuration, loop.endTime);
         const constrainedDuration = Math.max(minDuration, Math.min(maxDuration, newDuration));
         const newStartTime = loop.endTime - constrainedDuration;

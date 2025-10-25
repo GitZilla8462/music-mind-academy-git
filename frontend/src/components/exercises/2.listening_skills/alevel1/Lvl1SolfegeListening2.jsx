@@ -130,7 +130,7 @@ const generatePatternSet = () => {
   
   const currentQuestion = QUESTION_BANK[currentQuestionIndex % QUESTION_BANK.length];
   
-  console.log(`🎵 QUESTION ${(currentQuestionIndex % QUESTION_BANK.length) + 1} | Overall Question ${questionCounter}`);
+  console.log(`♪ QUESTION ${(currentQuestionIndex % QUESTION_BANK.length) + 1} | Overall Question ${questionCounter}`);
   console.log(`📝 Current Question Index: ${currentQuestionIndex % QUESTION_BANK.length}`);
   
   // FIXED: Randomly choose which pattern will be correct (0, 1, 2, or 3)
@@ -147,8 +147,8 @@ const generatePatternSet = () => {
   const patternDescription = correctPattern.map(note => 
     note.isRest ? 'REST' : note.syllable
   ).join('-');
-  console.log(`🎵 Pattern that will be PLAYED: ${patternDescription}`);
-  console.log(`✅ Correct Answer: ${correctLetter} (Position ${randomCorrectIndex})`);
+  console.log(`♪ Pattern that will be PLAYED: ${patternDescription}`);
+  console.log(`[OK] Correct Answer: ${correctLetter} (Position ${randomCorrectIndex})`);
   console.log(`🎼 Correct pattern length: ${correctPattern.length} notes`);
   
   currentQuestionIndex++;

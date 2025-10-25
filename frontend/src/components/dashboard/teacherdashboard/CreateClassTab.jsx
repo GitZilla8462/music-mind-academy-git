@@ -12,7 +12,7 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
 const CreateClassTab = ({ showToast, setActiveTab, onClassCreated }) => {
   const [className, setClassName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-  const { token } = useAuth(); // ✅ Get the token from the AuthContext
+  const { token } = useAuth(); // [OK] Get the token from the AuthContext
 
   const handleCreateClass = useCallback(async () => {
     if (!className) {
@@ -22,7 +22,7 @@ const CreateClassTab = ({ showToast, setActiveTab, onClassCreated }) => {
 
     setIsCreating(true);
     
-    // ✅ FIXED: Use the token from the AuthContext, which is guaranteed to be correct.
+    // [OK] FIXED: Use the token from the AuthContext, which is guaranteed to be correct.
     if (!token) {
       showToast('Authentication token not found. Please log in again.', 'error');
       setIsCreating(false);

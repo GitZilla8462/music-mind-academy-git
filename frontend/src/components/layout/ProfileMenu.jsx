@@ -7,7 +7,7 @@ const ProfileMenu = ({
   profileOpen, 
   toggleProfile, 
   handleLogout,
-  isAuthenticated = true  // ✅ Add isAuthenticated prop
+  isAuthenticated = true  // [OK] Add isAuthenticated prop
 }) => {
   return (
     <div className="relative">
@@ -20,7 +20,7 @@ const ProfileMenu = ({
           <User size={16} className="text-white" />
         </div>
         <span className="hidden md:block">
-          {isAuthenticated ? teacherName : "Not Authenticated"}  {/* ✅ Use isAuthenticated */}
+          {isAuthenticated ? teacherName : "Not Authenticated"}  {/* [OK] Use isAuthenticated */}
         </span>
         <ChevronDown size={16} />
       </button>
