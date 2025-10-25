@@ -3,21 +3,13 @@ const router = express.Router();
 const fs = require('fs').promises;
 const path = require('path');
 
-// Path to your loops directory - now in backend/public
-// This works on Railway because the audio files are in the backend folder
 const LOOPS_DIR = path.join(__dirname, '../public/projects/film-music-score/loops');
-
-// Supported audio file extensions
 const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.m4a'];
 
-/**
- * Scan the loops directory and return all audio files
- */
 async function scanLoopsDirectory() {
   try {
     console.log(`Scanning loops directory: ${LOOPS_DIR}`);
     
-    // Check if directory exists
     try {
       await fs.access(LOOPS_DIR);
     } catch (err) {
@@ -26,11 +18,9 @@ async function scanLoopsDirectory() {
       return [];
     }
 
-    // Read all files in the directory
     const files = await fs.readdir(LOOPS_DIR);
     console.log(`Found ${files.length} total files in directory`);
     
-    // Filter for audio files only
     const audioFiles = files.filter(file => {
       const ext = path.extname(file).toLowerCase();
       return AUDIO_EXTENSIONS.includes(ext);
@@ -46,30 +36,22 @@ async function scanLoopsDirectory() {
   }
 }
 
-/**
- * Get duration based on mood category
- * These durations were measured from the actual audio files
- */
 function getDurationForMood(mood) {
   const durations = {
-    'upbeat': 7.58,      // 7.575500 seconds
-    'mysterious': 13.77,  // 13.766550 seconds
-    'scary': 13.77,       // 13.766550 seconds
-    'heroic': 17.53,      // 17.528150 seconds
-    'neutral': 4.0        // Default fallback
+    'upbeat': 7.58,
+    'mysterious': 13.77,
+    'scary': 13.77,
+    'heroic': 17.53,
+    'neutral': 4.0
   };
   
   return durations[mood] || 4.0;
 }
 
-/**
- * Convert filename to loop object with metadata
- */
 function createLoopObject(filename) {
   const extension = path.extname(filename).toLowerCase().substring(1);
   const nameWithoutExt = path.basename(filename, path.extname(filename)).trim();
   
-  // Parse mood/category from filename
   const nameLower = nameWithoutExt.toLowerCase();
   let mood = 'neutral';
   if (nameLower.includes('sad')) mood = 'sad';
@@ -81,7 +63,6 @@ function createLoopObject(filename) {
   else if (nameLower.includes('scary')) mood = 'scary';
   else if (nameLower.includes('heroic')) mood = 'heroic';
 
-  // Parse instrument type
   let instrument = 'other';
   if (nameLower.includes('bass')) instrument = 'bass';
   else if (nameLower.includes('drum') || nameLower.includes('percussion')) instrument = 'drums';
@@ -94,7 +75,6 @@ function createLoopObject(filename) {
   else if (nameLower.includes('brass')) instrument = 'brass';
   else if (nameLower.includes('vocal')) instrument = 'vocals';
 
-  // Get the correct duration based on mood
   const duration = getDurationForMood(mood);
 
   return {
@@ -105,11 +85,10 @@ function createLoopObject(filename) {
     filename: filename,
     mood: mood,
     instrument: instrument,
-    duration: duration  // ✨ NEW: Added duration field
+    duration: duration
   };
 }
 
-// GET /api/loops - Get all available loops
 router.get('/', async (req, res) => {
   try {
     const files = await scanLoopsDirectory();
@@ -128,7 +107,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/loops/rescan
 router.post('/rescan', async (req, res) => {
   try {
     console.log('\n🔄 Rescan requested');
@@ -147,7 +125,6 @@ router.post('/rescan', async (req, res) => {
   }
 });
 
-// GET /api/loops/by-mood/:mood
 router.get('/by-mood/:mood', async (req, res) => {
   try {
     const files = await scanLoopsDirectory();
@@ -164,7 +141,6 @@ router.get('/by-mood/:mood', async (req, res) => {
   }
 });
 
-// GET /api/loops/by-instrument/:instrument
 router.get('/by-instrument/:instrument', async (req, res) => {
   try {
     const files = await scanLoopsDirectory();
@@ -181,7 +157,6 @@ router.get('/by-instrument/:instrument', async (req, res) => {
   }
 });
 
-// GET /api/loops/:id - Get specific loop by ID
 router.get('/:id', async (req, res) => {
   try {
     const files = await scanLoopsDirectory();
