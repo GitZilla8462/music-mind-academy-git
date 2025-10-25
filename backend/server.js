@@ -61,29 +61,34 @@ app.use('/api/musicresources', musicresourcesRoutes); // 🆕 NEW ROUTE
 
 // A simple test route to check if the server is working
 app.get('/', (req, res) => {
-    res.json({
-        message: 'Music Education Platform API is running!',
-        version: '1.0.0',
-        endpoints: {
-            auth: '/api/auth/login',
-            admin: {
-                stats: '/api/admin/stats',
-                teachers: '/api/admin/teachers',
-                students: '/api/admin/students',
-                schools: '/api/admin/schools'
-            },
-            loops: '/api/loops',
-            lessons: '/api/lessons',
-            musicresources: '/api/musicresources/assignments' // 🆕 NEW ENDPOINT
-        }
-    });
+  res.json({
+      message: 'Music Education Platform API is running!',
+      version: '1.0.0',
+      endpoints: {
+          auth: '/api/auth/login',
+          admin: {
+              stats: '/api/admin/stats',
+              teachers: '/api/admin/teachers',
+              students: '/api/admin/students',
+              schools: '/api/admin/schools'
+          },
+          loops: '/api/loops',
+          lessons: '/api/lessons',
+          musicresources: '/api/musicresources/assignments'
+      }
+  });
 });
+
+// ================================
+// SERVE AUDIO FILES FROM BACKEND
+// ================================
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ================================
 // ADD THESE LINES FOR REACT SPA ROUTING
 // ================================
 
-// Serve static files from React build folder
+// Serve static files from React build folder (only used if frontend deployed with backend)
 app.use(express.static(path.join(__dirname, '../frontend/build')));
 
 // Handle React routing - catch all non-API requests and serve React app

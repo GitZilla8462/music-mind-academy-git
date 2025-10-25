@@ -3,9 +3,9 @@ const router = express.Router();
 const fs = require('fs').promises;
 const path = require('path');
 
-// Path to your loops directory - adjust based on where backend is located
-// If backend is at /backend and frontend is at /frontend, use:
-const LOOPS_DIR = path.join(__dirname, '../../frontend/public/projects/film-music-score/loops');
+// Path to your loops directory - now in backend/public
+// This works on Railway because the audio files are in the backend folder
+const LOOPS_DIR = path.join(__dirname, '../public/projects/film-music-score/loops');
 
 // Supported audio file extensions
 const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.m4a'];
@@ -61,18 +61,22 @@ function createLoopObject(filename) {
   else if (nameLower.includes('calm')) mood = 'calm';
   else if (nameLower.includes('anxious')) mood = 'anxious';
   else if (nameLower.includes('peaceful')) mood = 'peaceful';
-  else if (nameLower.includes('mystery')) mood = 'mystery';
+  else if (nameLower.includes('mystery') || nameLower.includes('mysterious')) mood = 'mysterious';
+  else if (nameLower.includes('scary')) mood = 'scary';
+  else if (nameLower.includes('heroic')) mood = 'heroic';
 
   // Parse instrument type
   let instrument = 'other';
   if (nameLower.includes('bass')) instrument = 'bass';
-  else if (nameLower.includes('drum')) instrument = 'drums';
+  else if (nameLower.includes('drum') || nameLower.includes('percussion')) instrument = 'drums';
   else if (nameLower.includes('guitar')) instrument = 'guitar';
   else if (nameLower.includes('piano') || nameLower.includes('keys')) instrument = 'piano';
   else if (nameLower.includes('string')) instrument = 'strings';
   else if (nameLower.includes('synth')) instrument = 'synth';
   else if (nameLower.includes('bell')) instrument = 'bells';
   else if (nameLower.includes('clarinet')) instrument = 'clarinet';
+  else if (nameLower.includes('brass')) instrument = 'brass';
+  else if (nameLower.includes('vocal')) instrument = 'vocals';
 
   return {
     id: nameWithoutExt.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-'),
