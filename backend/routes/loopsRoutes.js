@@ -47,6 +47,22 @@ async function scanLoopsDirectory() {
 }
 
 /**
+ * Get duration based on mood category
+ * These durations were measured from the actual audio files
+ */
+function getDurationForMood(mood) {
+  const durations = {
+    'upbeat': 7.58,      // 7.575500 seconds
+    'mysterious': 13.77,  // 13.766550 seconds
+    'scary': 13.77,       // 13.766550 seconds
+    'heroic': 17.53,      // 17.528150 seconds
+    'neutral': 4.0        // Default fallback
+  };
+  
+  return durations[mood] || 4.0;
+}
+
+/**
  * Convert filename to loop object with metadata
  */
 function createLoopObject(filename) {
@@ -78,6 +94,9 @@ function createLoopObject(filename) {
   else if (nameLower.includes('brass')) instrument = 'brass';
   else if (nameLower.includes('vocal')) instrument = 'vocals';
 
+  // Get the correct duration based on mood
+  const duration = getDurationForMood(mood);
+
   return {
     id: nameWithoutExt.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-'),
     name: nameWithoutExt,
@@ -85,7 +104,8 @@ function createLoopObject(filename) {
     extension: extension,
     filename: filename,
     mood: mood,
-    instrument: instrument
+    instrument: instrument,
+    duration: duration  // ✨ NEW: Added duration field
   };
 }
 
