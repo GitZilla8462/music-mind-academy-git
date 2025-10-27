@@ -1,9 +1,10 @@
 // File: /src/pages/projects/film-music-score/timeline/components/TimeMarkers.jsx
+// UPDATED: Added TIMELINE label inline with time markers at the left
 
 import React from 'react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
 
-const TimeMarkers = ({ duration, timeToPixel }) => {
+const TimeMarkers = ({ duration, timeToPixel, showTimelineLabel = false }) => {
   const timeMarkers = [];
   const secondMarkers = [];
   
@@ -44,6 +45,16 @@ const TimeMarkers = ({ duration, timeToPixel }) => {
 
   return (
     <>
+      {/* TIMELINE label - positioned at the very left, inline with time markers */}
+      {showTimelineLabel && (
+        <div
+          className="absolute flex items-end text-white"
+          style={{ left: -60, bottom: 0 }}
+        >
+          <span className="text-xs font-semibold">TIMELINE</span>
+        </div>
+      )}
+      
       {/* Major time markers with labels */}
       {timeMarkers}
       {/* Minor second markers (hash marks) */}

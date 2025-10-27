@@ -43,7 +43,8 @@ const TimelineContent = forwardRef(({
   onTrackHeaderClick,
   tutorialMode = false,
   lockFeatures = {},
-  highlightSelector
+  highlightSelector,
+  showTimelineLabel = false  // NEW PROP
 }, {
   timelineRef,
   timelineScrollRef,
@@ -138,7 +139,11 @@ const TimelineContent = forwardRef(({
             className="relative bg-gray-800"
             style={{ width: timelineWidth, height: TIMELINE_CONSTANTS.HEADER_HEIGHT }}
           >
-            <TimeMarkers duration={duration} timeToPixel={timeToPixel} />
+            <TimeMarkers 
+              duration={duration} 
+              timeToPixel={timeToPixel} 
+              showTimelineLabel={showTimelineLabel}
+            />
             
             <Playhead
               currentTime={currentTime}

@@ -1,7 +1,7 @@
 // File: /src/lessons/film-music-project/lesson1/activities/SchoolBeneathActivity.jsx
 // Composition exercise for "The School Beneath" mysterious trailer
-// UPDATED: 30-minute timer with exploration mode after submission
-// FIXED: Clear timeline when entering exploration mode, improved modal styling
+// UPDATED: Split layout - assignment panel moves to left of video player
+// Header now only has title and action buttons (Save/Submit moved to top right)
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -200,188 +200,210 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
       category: loopData.category,
       mood: loopData.mood,
       color: loopData.color,
-      trackIndex,
-      startTime,
-      endTime: startTime + loopData.duration,
-      volume: 1,
-      muted: false
+      trackIndex: trackIndex,
+      startTime: startTime,
+      volume: 1.0
     };
     
-    setPlacedLoops(prev => {
-      const updated = [...prev, newLoop];
-      console.log('Updated placedLoops:', updated);
-      return updated;
-    });
+    setPlacedLoops(prev => [...prev, newLoop]);
+    console.log('Loop added to state:', newLoop);
   };
 
   const handleLoopDeleted = (loopId) => {
     console.log('Loop deleted callback received:', loopId);
-    setPlacedLoops(prev => {
-      const updated = prev.filter(loop => loop.id !== loopId);
-      console.log('Updated placedLoops after delete:', updated);
-      return updated;
-    });
+    setPlacedLoops(prev => prev.filter(loop => loop.id !== loopId));
   };
 
   const handleLoopUpdated = (loopId, updates) => {
     console.log('Loop updated callback received:', loopId, updates);
-    setPlacedLoops(prev => {
-      const updated = prev.map(loop => 
-        loop.id === loopId ? { ...loop, ...updates } : loop
-      );
-      console.log('Updated placedLoops after update:', updated);
-      return updated;
-    });
-  };
-
-  const handleSaveProgress = () => {
-    const storageKey = isExplorationMode ? 'school-beneath-bonus' : 'school-beneath-composition';
-    
-    const compositionData = {
-      title: isExplorationMode ? 'The School Beneath - Bonus' : 'The School Beneath',
-      placedLoops: placedLoops,
-      savedAt: new Date().toISOString(),
-      loopCount: placedLoops.length,
-      requirements: requirements,
-      videoDuration: videoDuration
-    };
-    
-    localStorage.setItem(storageKey, JSON.stringify(compositionData));
-    console.log('Progress saved to localStorage:', storageKey, compositionData);
-    
-    setSaveMessage('Progress saved! ✔');
-    setTimeout(() => setSaveMessage(''), 3000);
-  };
-
-  const handleAutoSave = () => {
-    if (isExplorationMode) {
-      // Save bonus composition
-      const bonusData = {
-        title: 'The School Beneath - Bonus',
-        placedLoops: placedLoops,
-        savedAt: new Date().toISOString(),
-        loopCount: placedLoops.length,
-        videoDuration: videoDuration
-      };
-      localStorage.setItem('school-beneath-bonus', JSON.stringify(bonusData));
-      console.log('Auto-saved bonus composition');
-    } else {
-      // Save regular composition
-      const compositionData = {
-        title: 'The School Beneath',
-        placedLoops: placedLoops,
-        savedAt: new Date().toISOString(),
-        loopCount: placedLoops.length,
-        requirements: requirements,
-        videoDuration: videoDuration
-      };
-      localStorage.setItem('school-beneath-composition', JSON.stringify(compositionData));
-      console.log('Auto-saved composition');
-    }
-  };
-
-  // Submit triggers exploration mode
-  const handleSubmitActivity = () => {
-    if (hasSubmittedRef.current) return;
-    
-    console.log('Submitting activity - saving composition and entering exploration mode');
-    
-    hasSubmittedRef.current = true;
-    
-    // Save the completed assignment
-    const compositionData = {
-      title: 'The School Beneath',
-      placedLoops: placedLoops,
-      completedAt: new Date().toISOString(),
-      loopCount: placedLoops.length,
-      requirements: requirements,
-      videoDuration: videoDuration
-    };
-    
-    localStorage.setItem('school-beneath-composition', JSON.stringify(compositionData));
-    console.log('Composition saved to localStorage:', compositionData);
-    
-    // CRITICAL FIX: Clear the loops FIRST before entering exploration mode
-    // This ensures the MusicComposer receives an empty array and clears the timeline
-    setPlacedLoops([]);
-    
-    // Small delay to ensure state update propagates, then enter exploration mode
-    setTimeout(() => {
-      setIsExplorationMode(true);
-      setSaveMessage('[OK] Submitted! Now create a bonus composition!');
-      setTimeout(() => setSaveMessage(''), 3000);
-      
-      // Speak the exploration message
-      setTimeout(() => {
-        const message = "Great job with your composition! For the remaining time, you may explore all the loops available. What would your trailer sound like with heroic, scary, or upbeat loops?";
-        
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-          
-          const utterance = new SpeechSynthesisUtterance(message);
-          utterance.volume = 0.5;
-          utterance.rate = 0.9;
-          utterance.pitch = 1.0;
-          
-          const voices = window.speechSynthesis.getVoices();
-          const preferredVoice = voices.find(voice => 
-            voice.name === 'Samantha' || 
-            voice.name === 'Google US English' ||
-            voice.name === 'Google US English Female' ||
-            (voice.name.includes('Microsoft') && voice.lang === 'en-US') ||
-            voice.name.includes('Zira') ||
-            (voice.lang === 'en-US' && voice.name.includes('United States'))
-          ) || voices.find(voice => voice.lang.startsWith('en-US'));
-          
-          if (preferredVoice) {
-            utterance.voice = preferredVoice;
-            console.log('Using voice:', preferredVoice.name, preferredVoice.lang);
-          }
-          
-          window.speechSynthesis.speak(utterance);
-        }
-      }, 500);
-    }, 100);
+    setPlacedLoops(prev => prev.map(loop =>
+      loop.id === loopId ? { ...loop, ...updates } : loop
+    ));
   };
 
   const formatTime = (ms) => {
-    const totalSeconds = Math.ceil(ms / 1000);
+    const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const allRequirementsMet = Object.values(requirements).every(met => met);
+  const handleSaveProgress = () => {
+    const saveData = {
+      placedLoops,
+      requirements,
+      videoDuration,
+      timestamp: Date.now()
+    };
+    
+    localStorage.setItem('school-beneath-composition', JSON.stringify(saveData));
+    setSaveMessage('✓ Progress saved!');
+    setTimeout(() => setSaveMessage(''), 2000);
+    console.log('Saved composition:', saveData);
+  };
 
-  if (isLoadingVideo || videoDuration === null) {
+  const handleAutoSave = () => {
+    const saveData = {
+      placedLoops,
+      requirements,
+      videoDuration,
+      timestamp: Date.now()
+    };
+    
+    localStorage.setItem('school-beneath-composition', JSON.stringify(saveData));
+    console.log('Auto-saved composition:', saveData);
+  };
+
+  const handleSubmitActivity = () => {
+    if (hasSubmittedRef.current) return;
+    
+    const saveData = {
+      placedLoops,
+      requirements,
+      videoDuration,
+      timestamp: Date.now()
+    };
+    
+    localStorage.setItem('school-beneath-composition', JSON.stringify(saveData));
+    console.log('Submitted composition:', saveData);
+    
+    hasSubmittedRef.current = true;
+    setSaveMessage('✓ Submitted!');
+    
+    // Switch to exploration mode
+    setIsExplorationMode(true);
+    setPlacedLoops([]);
+  };
+
+  const allRequirementsMet = requirements.instrumentation && 
+                             requirements.layering && 
+                             requirements.structure;
+
+  if (isLoadingVideo && !viewMode) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-gray-900">
+      <div className="h-full flex items-center justify-center bg-gray-900">
         <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <div className="text-lg">Loading video...</div>
-          <div className="text-sm text-gray-400 mt-2">Detecting video duration...</div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Loading video...</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="h-screen w-full flex flex-col bg-gray-900">
-      {/* Exploration Mode Timer Modal - UPDATED STYLING TO MATCH DAWTutorial */}
-      {isExplorationMode && timeRemaining > 0 && (
-        <div
-          style={{
-            position: 'fixed',
-            right: '20px',
-            bottom: '20px',
-            width: isMinimizedModal ? '250px' : '400px',
-            height: isMinimizedModal ? 'auto' : '400px',
-            zIndex: 1000,
-            pointerEvents: 'auto'
-          }}
-          className="bg-white rounded-lg shadow-2xl border-4 border-green-500 overflow-hidden flex flex-col"
+  // Create assignment panel content to pass to MusicComposer
+  const assignmentPanelContent = !viewMode && !isExplorationMode ? (
+    <div className="h-full bg-gray-800 text-white p-2 flex flex-col gap-2 overflow-y-auto">
+      {/* Save/Submit Buttons at Top */}
+      <div className="flex flex-col gap-1">
+        <button
+          onClick={handleSaveProgress}
+          className="w-full px-3 py-1 text-xs rounded font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
         >
-          <div className="bg-gradient-to-r from-green-500 to-emerald-500 px-4 py-2 flex items-center justify-between flex-shrink-0">
+          Save
+        </button>
+        <button
+          onClick={handleSubmitActivity}
+          disabled={!allRequirementsMet}
+          className={`w-full px-3 py-1 text-xs rounded font-medium transition-colors ${
+            allRequirementsMet
+              ? 'bg-green-600 hover:bg-green-700 text-white'
+              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+          }`}
+        >
+          Submit
+        </button>
+      </div>
+
+      {/* Composition Assignment - 2x Smaller */}
+      <div>
+        <h3 className="font-bold text-[10px] mb-1">Composition Assignment</h3>
+      </div>
+
+      <div className="space-y-1">
+        <h4 className="font-semibold text-[9px] text-gray-400">Requirements:</h4>
+        
+        <div className={`flex items-start gap-1 px-1 py-0.5 rounded border ${
+          requirements.instrumentation 
+            ? 'bg-green-900/30 border-green-500' 
+            : 'bg-gray-700 border-gray-600'
+        }`}>
+          <span className={`flex-shrink-0 text-[9px] ${requirements.instrumentation ? 'text-green-400' : 'text-gray-500'}`}>
+            {requirements.instrumentation ? '✓' : '○'}
+          </span>
+          <div className="text-[9px]">
+            <div className="font-semibold">Instrumentation</div>
+            <div className="text-gray-300">5+ Mysterious loops</div>
+          </div>
+        </div>
+
+        <div className={`flex items-start gap-1 px-1 py-0.5 rounded border ${
+          requirements.layering 
+            ? 'bg-green-900/30 border-green-500' 
+            : 'bg-gray-700 border-gray-600'
+        }`}>
+          <span className={`flex-shrink-0 text-[9px] ${requirements.layering ? 'text-green-400' : 'text-gray-500'}`}>
+            {requirements.layering ? '✓' : '○'}
+          </span>
+          <div className="text-[9px]">
+            <div className="font-semibold">Layering</div>
+            <div className="text-gray-300">3+ different times</div>
+          </div>
+        </div>
+
+        <div className={`flex items-start gap-1 px-1 py-0.5 rounded border ${
+          requirements.structure 
+            ? 'bg-green-900/30 border-green-500' 
+            : 'bg-gray-700 border-gray-600'
+        }`}>
+          <span className={`flex-shrink-0 text-[9px] ${requirements.structure ? 'text-green-400' : 'text-gray-500'}`}>
+            {requirements.structure ? '✓' : '○'}
+          </span>
+          <div className="text-[9px]">
+            <div className="font-semibold">Structure</div>
+            <div className="text-gray-300">5+ loops total</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : isExplorationMode ? (
+    <div className="h-full bg-gray-800 text-white p-2 flex flex-col gap-2 overflow-y-auto">
+      <div>
+        <h3 className="font-bold text-[10px] mb-1">✨ Bonus Exploration</h3>
+        <p className="text-[9px] text-gray-300 leading-relaxed">
+          Great job! Use the remaining time to explore.
+        </p>
+      </div>
+      
+      <div className="bg-gradient-to-br from-green-900/30 to-blue-900/30 border border-green-500 rounded-lg p-2">
+        <div className="text-[9px] text-gray-300 mb-1 font-semibold">
+          Time Remaining:
+        </div>
+        <div className="text-xl font-bold text-green-400 mb-1">
+          {formatTime(timeRemaining)}
+        </div>
+        <div className="text-[9px] text-gray-400">
+          All loops unlocked!
+        </div>
+      </div>
+
+      <div className="text-[9px] text-gray-300 bg-blue-900/30 border border-blue-500 rounded-lg p-2">
+        <div className="font-semibold mb-1">💡 Try these:</div>
+        <ul className="space-y-0.5 text-[9px]">
+          <li>⭐ <strong>Heroic</strong> loops</li>
+          <li>👻 <strong>Scary</strong> loops</li>
+          <li>🎊 <strong>Upbeat</strong> loops</li>
+          <li>🎭 Mix moods</li>
+        </ul>
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <div className="h-full flex flex-col bg-gray-900">
+      {/* Exploration Mode Minimizable Modal */}
+      {isExplorationMode && !isMinimizedModal && (
+        <div className="fixed top-16 right-4 z-50 w-80 bg-white rounded-lg shadow-2xl flex flex-col max-h-96 border-2 border-green-500">
+          <div className="bg-gradient-to-r from-green-500 to-blue-500 px-3 py-2 rounded-t-lg flex items-center justify-between flex-shrink-0">
             <div className="text-white font-bold text-sm">
               <span>Bonus Exploration</span>
             </div>
@@ -398,156 +420,80 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
             </button>
           </div>
           
-          {!isMinimizedModal && (
-            <div className="p-4 flex-1 overflow-y-auto">
-              <div className="flex flex-col items-center text-center space-y-3">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-800 mb-1">
-                    🎉 Assignment Submitted!
-                  </h2>
-                  <p className="text-gray-700 text-sm leading-relaxed">
-                    Great job! Use the remaining time to explore.
-                  </p>
-                </div>
+          <div className="p-4 flex-1 overflow-y-auto">
+            <div className="flex flex-col items-center text-center space-y-3">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800 mb-1">
+                  🎉 Assignment Submitted!
+                </h2>
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  Great job! Use the remaining time to explore.
+                </p>
+              </div>
 
-                <div className="bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-300 rounded-lg p-3 w-full">
-                  <div className="text-xs text-gray-600 mb-1 font-semibold">
-                    Time Remaining:
-                  </div>
-                  <div className="text-4xl font-bold text-green-600 mb-1">
-                    {formatTime(timeRemaining)}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    All loops unlocked - experiment!
-                  </div>
+              <div className="bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-300 rounded-lg p-3 w-full">
+                <div className="text-xs text-gray-600 mb-1 font-semibold">
+                  Time Remaining:
                 </div>
-
-                <div className="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-3 w-full">
-                  <div className="font-semibold mb-2 text-sm">💡 Try these ideas:</div>
-                  <ul className="text-left space-y-1 text-xs">
-                    <li>⭐ <strong>Heroic</strong> loops for an adventure feel</li>
-                    <li>👻 <strong>Scary</strong> loops for extra suspense</li>
-                    <li>🎊 <strong>Upbeat</strong> loops for a happy ending</li>
-                    <li>🎭 Mix moods to create your own unique style</li>
-                  </ul>
+                <div className="text-4xl font-bold text-green-600 mb-1">
+                  {formatTime(timeRemaining)}
+                </div>
+                <div className="text-xs text-gray-500">
+                  All loops unlocked - experiment!
                 </div>
               </div>
+
+              <div className="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-3 w-full">
+                <div className="font-semibold mb-2 text-sm">💡 Try these ideas:</div>
+                <ul className="text-left space-y-1 text-xs">
+                  <li>⭐ <strong>Heroic</strong> loops for an adventure feel</li>
+                  <li>👻 <strong>Scary</strong> loops for extra suspense</li>
+                  <li>🎊 <strong>Upbeat</strong> loops for a happy ending</li>
+                  <li>🎭 Mix moods to create your own unique style</li>
+                </ul>
+              </div>
             </div>
-          )}
-          
-          {isMinimizedModal && (
-            <div className="px-4 py-2 text-sm text-gray-600">
-              {formatTime(timeRemaining)} remaining
-            </div>
-          )}
+          </div>
         </div>
       )}
 
-      {/* Header */}
+      {/* Activity Header - Shows content in sandbox mode, empty in lesson mode */}
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">
         <div className="px-4 py-2">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 flex-1 min-w-0 overflow-x-auto">
-              <h2 className="text-sm font-bold whitespace-nowrap flex-shrink-0">
-                {viewMode ? (viewBonusMode ? "Viewing Bonus Composition: " : "Viewing Saved Work: ") : ""}
-                {isExplorationMode ? '♪ Bonus Composition - The School Beneath' : 'The School Beneath - Composition Assignment'}
-              </h2>
-              
-              {!isExplorationMode && !viewMode && (
+            {/* Show content only if NOT in lesson mode (standalone/sandbox) */}
+            {!lessonStartTime ? (
+              <>
+                <h2 className="text-sm font-bold whitespace-nowrap">
+                  {viewMode ? (viewBonusMode ? "Viewing Bonus Composition: " : "Viewing Saved Work: ") : ""}
+                  {isExplorationMode ? '♪ Bonus Composition - The School Beneath' : 'The School Beneath - Composition Assignment'}
+                </h2>
+
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <div className={`flex items-center gap-1 px-2 py-1 rounded border text-xs ${
-                    requirements.instrumentation 
-                      ? 'bg-green-900/30 border-green-500' 
-                      : 'bg-gray-700 border-gray-600'
-                  }`}>
-                    <span className={requirements.instrumentation ? 'text-green-400' : 'text-gray-500'}>
-                      {requirements.instrumentation ? '✓' : '○'}
-                    </span>
-                    <span className="font-semibold">Instrumentation:</span>
-                    <span className="text-gray-300">5+ Mysterious loops</span>
+                  <div className="text-xs text-gray-400">
+                    {placedLoops.length} loops
                   </div>
 
-                  <div className={`flex items-center gap-1 px-2 py-1 rounded border text-xs ${
-                    requirements.layering 
-                      ? 'bg-green-900/30 border-green-500' 
-                      : 'bg-gray-700 border-gray-600'
-                  }`}>
-                    <span className={requirements.layering ? 'text-green-400' : 'text-gray-500'}>
-                      {requirements.layering ? '✓' : '○'}
-                    </span>
-                    <span className="font-semibold">Layering:</span>
-                    <span className="text-gray-300">3+ different times</span>
-                  </div>
+                  {saveMessage && (
+                    <div className="text-xs text-green-400 font-semibold animate-pulse">
+                      {saveMessage}
+                    </div>
+                  )}
 
-                  <div className={`flex items-center gap-1 px-2 py-1 rounded border text-xs ${
-                    requirements.structure 
-                      ? 'bg-green-900/30 border-green-500' 
-                      : 'bg-gray-700 border-gray-600'
-                  }`}>
-                    <span className={requirements.structure ? 'text-green-400' : 'text-gray-500'}>
-                      {requirements.structure ? '✓' : '○'}
-                    </span>
-                    <span className="font-semibold">Structure:</span>
-                    <span className="text-gray-300">5+ loops total</span>
-                  </div>
+                  {viewMode && (
+                    <button
+                      onClick={() => navigate('/')}
+                      className="px-4 py-1.5 text-sm rounded font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Back to Resources
+                    </button>
+                  )}
                 </div>
-              )}
-
-              {isExplorationMode && (
-                <div className="flex items-center gap-2 bg-green-900/30 border border-green-500 px-3 py-1 rounded text-xs">
-                  <span className="text-green-300 font-semibold">✨ All Loops Unlocked!</span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {!viewMode && lessonStartTime && !isExplorationMode && (
-                <div className="flex items-center gap-1 text-xs text-gray-300 bg-gray-700 px-2 py-1 rounded">
-                  <Clock size={14} />
-                  <span>{formatTime(timeRemaining)}</span>
-                </div>
-              )}
-
-              <div className="text-xs text-gray-400">
-                {placedLoops.length} loops
-              </div>
-
-              {saveMessage && (
-                <div className="text-xs text-green-400 font-semibold animate-pulse">
-                  {saveMessage}
-                </div>
-              )}
-
-              {!viewMode && (
-                <button
-                  onClick={handleSaveProgress}
-                  className="px-4 py-1.5 text-sm rounded font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Save Progress
-                </button>
-              )}
-
-              {viewMode ? (
-                <button
-                  onClick={() => navigate('/')}
-                  className="px-4 py-1.5 text-sm rounded font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Back to Resources
-                </button>
-              ) : !isExplorationMode ? (
-                <button
-                  onClick={handleSubmitActivity}
-                  disabled={!allRequirementsMet}
-                  className={`px-4 py-1.5 text-sm rounded font-medium transition-colors ${
-                    allRequirementsMet
-                      ? 'bg-green-600 hover:bg-green-700 text-white'
-                      : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  Submit
-                </button>
-              ) : null}
-            </div>
+              </>
+            ) : (
+              // Empty when in lesson mode (behind navigation header)
+              <div></div>
+            )}
           </div>
         </div>
       </div>
@@ -574,6 +520,7 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
           initialPlacedLoops={viewMode ? placedLoops : undefined}
           readOnly={viewMode}
           key={`composer-${isExplorationMode ? 'exploration' : 'assignment'}`}
+          assignmentPanelContent={assignmentPanelContent}
         />
       </div>
     </div>

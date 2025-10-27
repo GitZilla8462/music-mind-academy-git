@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
 import { Sparkles, Volume2, VolumeX, Minimize2, Maximize2 } from 'lucide-react';
 
-const SoundEffectsActivity = ({ onComplete, viewMode = false }) => {
+const SoundEffectsActivity = ({ onComplete, viewMode = false, lessonStartTime = null }) => {
   const navigate = useNavigate();
   const [placedLoops, setPlacedLoops] = useState([]);
   const [videoDuration, setVideoDuration] = useState(null);
@@ -184,7 +184,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false }) => {
           <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-2.5 flex items-center justify-between">
             <div className="text-white font-semibold text-sm flex items-center gap-2">
               <Sparkles size={16} className="animate-pulse" />
-              <span>🎬 Bonus: Add Sound Effects!</span>
+              <span>ðŸŽ¬ Bonus: Add Sound Effects!</span>
             </div>
             <div className="flex items-center gap-2">
               {/* Voice controls */}
@@ -211,7 +211,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false }) => {
             {/* Main message */}
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-3 border-2 border-purple-200">
               <div className="text-sm text-gray-800 mb-2 font-semibold leading-relaxed">
-                🎉 Great job finishing your reflection!
+                ðŸŽ‰ Great job finishing your reflection!
               </div>
               <div className="text-xs text-gray-700 leading-relaxed">
                 For the remainder of class, you'll get to add <strong>sound effects</strong> to your trailer.
@@ -224,15 +224,15 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false }) => {
                 <div className="font-bold mb-2 text-blue-900 text-sm">Sound effects you can add:</div>
                 <ul className="space-y-1 text-xs">
                   <li className="flex items-start gap-2">
-                    <span className="text-yellow-500 font-bold">⚡</span>
+                    <span className="text-yellow-500 font-bold">âš¡</span>
                     <span><strong>Electric shocks & impacts</strong></span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-purple-500 font-bold">📈</span>
+                    <span className="text-purple-500 font-bold">ðŸ“ˆ</span>
                     <span><strong>Risers</strong> to build tension</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-blue-500 font-bold">💨</span>
+                    <span className="text-blue-500 font-bold">ðŸ’¨</span>
                     <span><strong>Wooshes</strong> for movement</span>
                   </li>
                 </ul>
@@ -244,7 +244,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false }) => {
               <div className="text-xs text-gray-800 leading-relaxed">
                 <div className="font-bold mb-2 text-green-900">How to add sound effects:</div>
                 <ol className="space-y-1 text-xs list-decimal list-inside">
-                  <li>Look for the <strong>☑️ Show Sound Effects</strong> checkbox in the Loop Library</li>
+                  <li>Look for the <strong>â˜‘ï¸ Show Sound Effects</strong> checkbox in the Loop Library</li>
                   <li>Check it to see all available sound effects</li>
                   <li>Drag sound effects onto your timeline just like music loops</li>
                   <li>Place them at the perfect moments in your video!</li>
@@ -256,11 +256,11 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false }) => {
             <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-3">
               <div className="text-xs text-gray-700 space-y-1">
                 <div className="flex justify-between">
-                  <span>♪ Music Loops:</span>
+                  <span>â™ª Music Loops:</span>
                   <span className="font-bold">{musicLoops.length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>🔊 Sound Effects:</span>
+                  <span>ðŸ”Š Sound Effects:</span>
                   <span className="font-bold text-purple-600">{soundEffectLoops.length}</span>
                 </div>
               </div>
@@ -279,7 +279,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false }) => {
               onClick={handleSaveProgress}
               className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
             >
-              💾 Save Progress
+              ðŸ’¾ Save Progress
             </button>
             
             <button
@@ -319,48 +319,57 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false }) => {
           </div>
           <div className="px-4 py-2 text-sm text-gray-600">
             <div className="flex justify-between text-xs">
-              <span>♪ Loops: {musicLoops.length}</span>
-              <span>🔊 SFX: {soundEffectLoops.length}</span>
+              <span>â™ª Loops: {musicLoops.length}</span>
+              <span>ðŸ”Š SFX: {soundEffectLoops.length}</span>
             </div>
           </div>
         </div>
       )}
 
       {/* Header */}
+      {/* Activity Header - Shows content in sandbox mode, empty in lesson mode */}
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">
         <div className="px-4 py-2">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <h2 className="text-sm font-bold whitespace-nowrap">
-                🎬 The School Beneath - Add Sound Effects
-              </h2>
-            </div>
-
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <div className="text-xs text-gray-400">
-                ♪ {musicLoops.length} loops | 🔊 {soundEffectLoops.length} SFX
-              </div>
-
-              {saveMessage && (
-                <div className="text-xs text-green-400 font-semibold animate-pulse">
-                  {saveMessage}
+            {/* Show content only if NOT in lesson mode (standalone/sandbox) */}
+            {!lessonStartTime ? (
+              <>
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <h2 className="text-sm font-bold whitespace-nowrap">
+                    The School Beneath - Add Sound Effects
+                  </h2>
                 </div>
-              )}
 
-              <button
-                onClick={handleSaveProgress}
-                className="px-4 py-1.5 text-sm rounded font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Save Progress
-              </button>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="text-xs text-gray-400">
+                    {musicLoops.length} loops | {soundEffectLoops.length} SFX
+                  </div>
 
-              <button
-                onClick={handleSubmit}
-                className="px-4 py-1.5 text-sm rounded font-medium transition-colors bg-green-600 hover:bg-green-700 text-white"
-              >
-                Submit
-              </button>
-            </div>
+                  {saveMessage && (
+                    <div className="text-xs text-green-400 font-semibold animate-pulse">
+                      {saveMessage}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleSaveProgress}
+                    className="px-4 py-1.5 text-sm rounded font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Save Progress
+                  </button>
+
+                  <button
+                    onClick={handleSubmit}
+                    className="px-4 py-1.5 text-sm rounded font-medium transition-colors bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </>
+            ) : (
+              // Empty when in lesson mode (behind navigation header)
+              <div></div>
+            )}
           </div>
         </div>
       </div>

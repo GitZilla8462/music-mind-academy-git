@@ -25,7 +25,13 @@ const Timeline = ({
   onZoomChange,
   tutorialMode = false,
   lockFeatures = {},
-  highlightSelector
+  highlightSelector,
+  showTimelineLabel = false,  // NEW PROP
+  // Transport controls
+  onPlay,
+  onPause,
+  onStop,
+  onRestart
 }) => {
   // Refs for timeline elements
   const timelineRef = useRef(null);
@@ -90,6 +96,14 @@ const Timeline = ({
           localZoom={localZoom}
           onZoomChange={handleZoomChangeWithCallback}
           duration={duration}
+          showTimelineLabel={showTimelineLabel}
+          isPlaying={isPlaying}
+          onPlay={onPlay}
+          onPause={onPause}
+          onStop={onStop}
+          onRestart={onRestart}
+          currentTime={currentTime}
+          onSeek={onSeek}
         />
         
         {/* Timeline Content */}
@@ -132,6 +146,7 @@ const Timeline = ({
           tutorialMode={tutorialMode}
           lockFeatures={lockFeatures}
           highlightSelector={highlightSelector}
+          showTimelineLabel={showTimelineLabel}
         />
       </div>
 

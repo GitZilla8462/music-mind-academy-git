@@ -123,7 +123,7 @@ const ChallengePanel = ({
           }
           
           window.speechSynthesis.speak(utterance);
-          console.log('🎙️ Restarted speech with new volume:', newVolume);
+          console.log('Restarted speech with new volume:', newVolume);
         }
       }, 100);
     }
@@ -289,13 +289,9 @@ const ChallengePanel = ({
         {showExplorationMode ? (
           // EXPLORATION MODE CONTENT
           <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
-            <div className="animate-bounce">
-              <Sparkles className="text-yellow-500 mx-auto" size={64} />
-            </div>
-            
             <div>
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                🎉 Tutorial Complete!
+                Tutorial Complete!
               </h2>
               <p className="text-gray-700 text-base leading-relaxed">
                 Excellent work! Use the remaining time to explore and create music freely.
@@ -314,15 +310,6 @@ const ChallengePanel = ({
               </div>
             </div>
 
-            <div className="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-4 w-full">
-              <div className="font-semibold mb-2">💡 Try these ideas:</div>
-              <ul className="text-left space-y-1 text-xs">
-                <li>• Add more loops and layer different sounds</li>
-                <li>• Adjust volume levels on each track</li>
-                <li>• Move loops around to different times</li>
-                <li>• Use the solo button to hear one track</li>
-              </ul>
-            </div>
           </div>
         ) : (
           // CHALLENGE QUESTION CONTENT
@@ -377,7 +364,7 @@ const ChallengePanel = ({
           style={{ pointerEvents: 'auto' }}
         >
           <div className="text-sm text-yellow-900">
-            <span className="font-semibold">💡 Hint:</span> {currentChallenge?.hint}
+            <span className="font-semibold">Hint:</span> {currentChallenge?.hint}
           </div>
         </div>
       )}
@@ -410,7 +397,7 @@ const ChallengePanel = ({
           style={{ pointerEvents: 'auto' }}
         >
           <div className="text-sm text-green-900">
-            <span className="font-semibold">✓ Explanation:</span> {currentChallenge.explanation}
+            <span className="font-semibold">Explanation:</span> {currentChallenge.explanation}
           </div>
         </div>
       )}

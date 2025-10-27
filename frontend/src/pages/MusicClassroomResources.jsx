@@ -211,182 +211,170 @@ function MusicClassroomResources() {
     <div style={{ minHeight: '100vh', backgroundColor: '#f0f4f8' }}>
       {/* Header */}
       <header style={{ 
-        backgroundColor: 'white',
-        borderBottom: '1px solid #e2e8f0',
-        padding: '20px 40px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        backgroundColor: 'white', 
+        borderBottom: '2px solid #e2e8f0',
+        padding: '20px 0'
       }}>
-        <div>
+        <div style={{ 
+          maxWidth: '1280px', 
+          margin: '0 auto',
+          padding: '0 24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
           <h1 style={{ 
-            fontSize: '28px', 
+            fontSize: '24px', 
             fontWeight: 'bold',
             color: '#1a202c',
             margin: 0
           }}>
             Music Room Tools
           </h1>
-          <p style={{ fontSize: '14px', color: '#718096', margin: '4px 0 0 0' }}>
-            Available Lessons & Activities
-          </p>
+          <button 
+            onClick={handleLogout}
+            style={{ 
+              padding: '10px 24px',
+              fontSize: '16px',
+              fontWeight: '500',
+              backgroundColor: '#e53e3e',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#c53030'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#e53e3e'}
+          >
+            Logout
+          </button>
         </div>
-        <button
-          onClick={handleLogout}
-          style={{
-            padding: '10px 20px',
-            fontSize: '14px',
-            fontWeight: '600',
-            backgroundColor: '#e53e3e',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            transition: 'background-color 0.2s'
-          }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#c53030'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#e53e3e'}
-        >
-          Logout
-        </button>
       </header>
 
-      {/* Main Content */}
-      <div style={{ padding: '40px' }}>
-        {/* Resources Grid */}
-        {classroomResources.length > 0 && (
-          <div style={{ marginBottom: '40px' }}>
-            <h2 style={{ 
-              fontSize: '24px', 
-              fontWeight: '600',
-              color: '#2d3748',
-              marginBottom: '20px'
+      <div style={{ 
+        maxWidth: '1280px', 
+        margin: '0 auto',
+        padding: '40px 24px'
+      }}>
+        <div style={{ 
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '24px',
+          maxWidth: '600px'
+        }}>
+          {/* Resources Cards */}
+          {classroomResources.map(resource => (
+            <div key={resource.id} style={{ 
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '24px',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              cursor: 'pointer'
+            }}
+            onClick={() => window.location.href = resource.url}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 8px 12px rgba(0,0,0,0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
             }}>
-              Available Lessons
+              <div style={{ marginBottom: '16px' }}>
+                <span style={{ 
+                  display: 'inline-block',
+                  padding: '4px 12px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  backgroundColor: resource.projectType === 'lesson' ? '#bee3f8' : '#c6f6d5',
+                  color: resource.projectType === 'lesson' ? '#2c5282' : '#22543d',
+                  borderRadius: '16px',
+                  textTransform: 'uppercase'
+                }}>
+                  {resource.projectType}
+                </span>
+              </div>
+              <h2 style={{ 
+                fontSize: '20px',
+                fontWeight: '700',
+                color: '#1a202c',
+                marginBottom: '12px'
+              }}>
+                {resource.title}
+              </h2>
+              <p style={{ 
+                fontSize: '15px',
+                color: '#4a5568',
+                lineHeight: '1.6',
+                marginBottom: '16px'
+              }}>
+                {resource.description}
+              </p>
+              <button style={{ 
+                padding: '10px 20px',
+                fontSize: '14px',
+                fontWeight: '600',
+                backgroundColor: '#4299e1',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s',
+                width: '100%'
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#3182ce'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#4299e1'}>
+                Open {resource.projectType === 'lesson' ? 'Lesson' : 'Project'}
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Saved Work Section */}
+        {(savedComposition || savedBonusComposition || savedReflection || dawStats) && (
+          <div style={{ marginTop: '48px' }}>
+            <h2 style={{ 
+              fontSize: '28px',
+              fontWeight: '700',
+              color: '#1a202c',
+              marginBottom: '24px'
+            }}>
+              My Saved Work
             </h2>
             
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-              gap: '24px'
+            <div style={{ 
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '24px',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
             }}>
-              {classroomResources.map((resource) => (
-                <div
-                  key={resource.id}
-                  style={{
-                    backgroundColor: 'white',
-                    borderRadius: '12px',
-                    padding: '24px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    transition: 'box-shadow 0.2s, transform 0.2s',
-                    cursor: 'pointer'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  <div style={{ 
-                    display: 'inline-block',
-                    padding: '6px 12px',
-                    backgroundColor: '#ebf8ff',
-                    color: '#2c5282',
-                    fontSize: '12px',
-                    fontWeight: '600',
-                    borderRadius: '6px',
-                    marginBottom: '12px'
-                  }}>
-                    {resource.projectType.toUpperCase()}
-                  </div>
-
-                  <h3 style={{ 
-                    fontSize: '20px',
-                    fontWeight: '600',
-                    color: '#2d3748',
-                    marginBottom: '8px'
-                  }}>
-                    {resource.title}
-                  </h3>
-
-                  <p style={{ 
-                    fontSize: '14px',
-                    color: '#718096',
-                    marginBottom: '20px',
-                    lineHeight: '1.6'
-                  }}>
-                    {resource.description}
-                  </p>
-
-                  <button
-                    onClick={() => {
-                      window.location.href = resource.url;
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      backgroundColor: '#4299e1',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = '#3182ce'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = '#4299e1'}
-                  >
-                    {resource.projectType === 'lesson' ? 'Start Lesson' : 'Start Activity'}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* MY WORK SECTION - EXPANDED */}
-        {(savedComposition || savedBonusComposition || savedReflection || dawStats) && (
-          <div style={{ marginTop: '40px' }}>
-            <h2 style={{ 
-              fontSize: '24px', 
-              fontWeight: '600',
-              color: '#2d3748',
-              marginBottom: '20px'
-            }}>
-              ðŸ“ My Saved Work
-            </h2>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
-              gap: '24px'
-            }}>
-              {/* Card for Lesson 1 Saved Work */}
-              <div style={{
-                backgroundColor: 'white',
-                borderRadius: '12px',
-                padding: '24px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-              }}>
+              <div>
+                {/* Title section */}
                 <div style={{ 
-                  display: 'flex',
+                  display: 'flex', 
                   alignItems: 'center',
                   gap: '12px',
                   marginBottom: '20px',
                   paddingBottom: '16px',
                   borderBottom: '2px solid #e2e8f0'
                 }}>
-                  <span style={{ fontSize: '32px' }}>ðŸŽµ</span>
+                  <div style={{
+                    backgroundColor: '#4299e1',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <span style={{ fontSize: '24px', color: 'white' }}>♪</span>
+                  </div>
                   <div>
                     <h3 style={{ 
-                      fontSize: '20px',
-                      fontWeight: '600',
-                      color: '#2d3748',
+                      fontSize: '18px',
+                      fontWeight: '700',
+                      color: '#1a202c',
                       margin: 0
                     }}>
                       Lesson 1: School Beneath
@@ -419,7 +407,6 @@ function MusicClassroomResources() {
                       alignItems: 'center',
                       gap: '8px'
                     }}>
-                      <span>ðŸŽ¯</span>
                       <span>DAW Tutorial Performance</span>
                     </div>
                     <div style={{ 
@@ -448,20 +435,22 @@ function MusicClassroomResources() {
                         </div>
                       </div>
                     </div>
-                    {dawStats.correct + dawStats.incorrect > 0 && (
-                      <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e2e8f0' }}>
-                        <div style={{ fontSize: '12px', color: '#718096', marginBottom: '4px' }}>
-                          Accuracy Rate
-                        </div>
-                        <div style={{ 
-                          fontSize: '18px', 
-                          fontWeight: '600', 
-                          color: '#2d3748'
-                        }}>
-                          {Math.round((dawStats.correct / (dawStats.correct + dawStats.incorrect)) * 100)}%
-                        </div>
+                    <div style={{ 
+                      marginTop: '12px',
+                      paddingTop: '12px',
+                      borderTop: '1px solid #e2e8f0'
+                    }}>
+                      <div style={{ fontSize: '12px', color: '#718096' }}>Accuracy Rate</div>
+                      <div style={{ 
+                        fontSize: '20px', 
+                        fontWeight: '700', 
+                        color: '#4299e1'
+                      }}>
+                        {dawStats.correct + dawStats.incorrect > 0 
+                          ? Math.round((dawStats.correct / (dawStats.correct + dawStats.incorrect)) * 100)
+                          : 0}%
                       </div>
-                    )}
+                    </div>
                   </div>
                 )}
 
@@ -469,36 +458,32 @@ function MusicClassroomResources() {
                 {savedComposition && (
                   <>
                     <div style={{ 
-                      display: 'grid', 
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                      gap: '16px',
-                      marginBottom: '16px'
+                      backgroundColor: '#f0f9ff',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      marginBottom: '12px',
+                      border: '2px solid #4299e1'
                     }}>
-                      <div>
-                        <div style={{ fontSize: '12px', color: '#718096' }}>Main Composition</div>
-                        <div style={{ fontSize: '18px', fontWeight: '600', color: '#2d3748' }}>
-                          {savedComposition.loopCount} loops
-                        </div>
+                      <div style={{ 
+                        fontSize: '13px', 
+                        fontWeight: '600',
+                        color: '#2b6cb0',
+                        marginBottom: '8px'
+                      }}>
+                        Main Composition Saved
                       </div>
-                      <div>
-                        <div style={{ fontSize: '12px', color: '#718096' }}>Submitted</div>
-                        <div style={{ fontSize: '13px', fontWeight: '500', color: '#2d3748' }}>
-                          {new Date(savedComposition.completedAt).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '12px', color: '#718096' }}>Duration</div>
-                        <div style={{ fontSize: '13px', fontWeight: '500', color: '#2d3748' }}>
-                          {Math.round(savedComposition.videoDuration)}s
-                        </div>
+                      <div style={{ fontSize: '12px', color: '#2c5282' }}>
+                        {savedComposition.loopCount} loops • Saved on {new Date(savedComposition.savedAt).toLocaleDateString()}
                       </div>
                     </div>
 
                     {/* Requirements Status */}
                     <div style={{ 
-                      borderTop: '1px solid #e2e8f0',
-                      paddingTop: '12px',
-                      marginBottom: '16px'
+                      backgroundColor: '#f7fafc',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      marginBottom: '16px',
+                      border: '1px solid #e2e8f0'
                     }}>
                       <div style={{ fontSize: '12px', color: '#718096', marginBottom: '8px' }}>
                         Requirements Met:
@@ -508,10 +493,10 @@ function MusicClassroomResources() {
                           padding: '4px 8px',
                           fontSize: '12px',
                           borderRadius: '4px',
-                          backgroundColor: savedComposition.requirements.instrumentation ? '#c6f6d5' : '#fed7d7',
-                          color: savedComposition.requirements.instrumentation ? '#22543d' : '#742a2a'
+                          backgroundColor: savedComposition.requirements.minLoops ? '#c6f6d5' : '#fed7d7',
+                          color: savedComposition.requirements.minLoops ? '#22543d' : '#742a2a'
                         }}>
-                          {savedComposition.requirements.instrumentation ? 'âœ“' : 'âœ—'} Instrumentation
+                          {savedComposition.requirements.minLoops ? '✓' : '✗'} Minimum Loops
                         </span>
                         <span style={{
                           padding: '4px 8px',
@@ -520,7 +505,7 @@ function MusicClassroomResources() {
                           backgroundColor: savedComposition.requirements.layering ? '#c6f6d5' : '#fed7d7',
                           color: savedComposition.requirements.layering ? '#22543d' : '#742a2a'
                         }}>
-                          {savedComposition.requirements.layering ? 'âœ“' : 'âœ—'} Layering
+                          {savedComposition.requirements.layering ? '✓' : '✗'} Layering
                         </span>
                         <span style={{
                           padding: '4px 8px',
@@ -529,7 +514,7 @@ function MusicClassroomResources() {
                           backgroundColor: savedComposition.requirements.structure ? '#c6f6d5' : '#fed7d7',
                           color: savedComposition.requirements.structure ? '#22543d' : '#742a2a'
                         }}>
-                          {savedComposition.requirements.structure ? 'âœ“' : 'âœ—'} Structure
+                          {savedComposition.requirements.structure ? '✓' : '✗'} Structure
                         </span>
                       </div>
                     </div>
@@ -554,11 +539,10 @@ function MusicClassroomResources() {
                       alignItems: 'center',
                       gap: '6px'
                     }}>
-                      <span>âœ¨</span>
                       <span>Bonus Composition Created!</span>
                     </div>
                     <div style={{ fontSize: '12px', color: '#744210' }}>
-                      {savedBonusComposition.loopCount} loops â€¢ Saved on {new Date(savedBonusComposition.savedAt).toLocaleDateString()}
+                      {savedBonusComposition.loopCount} loops • Saved on {new Date(savedBonusComposition.savedAt).toLocaleDateString()}
                     </div>
                   </div>
                 )}
@@ -582,7 +566,7 @@ function MusicClassroomResources() {
                         color: '#5b21b6',
                         fontWeight: '600'
                       }}>
-                        â­ Two Stars and a Wish
+                        Two Stars and a Wish
                       </span>
                       <span style={{ fontSize: '12px', color: '#718096' }}>
                         ({savedReflection.reviewType === 'self' ? 'Self-Reflection' : `Partner: ${savedReflection.partnerName}`})
@@ -623,7 +607,6 @@ function MusicClassroomResources() {
                       onMouseEnter={(e) => e.target.style.backgroundColor = '#3182ce'}
                       onMouseLeave={(e) => e.target.style.backgroundColor = '#4299e1'}
                     >
-                      <span>ðŸ“</span>
                       <span>View Main</span>
                     </button>
                   )}
@@ -652,7 +635,6 @@ function MusicClassroomResources() {
                       onMouseEnter={(e) => e.target.style.backgroundColor = '#dd6b20'}
                       onMouseLeave={(e) => e.target.style.backgroundColor = '#ed8936'}
                     >
-                      <span>âœ¨</span>
                       <span>View Bonus</span>
                     </button>
                   )}
@@ -681,7 +663,6 @@ function MusicClassroomResources() {
                       onMouseEnter={(e) => e.target.style.backgroundColor = '#805ad5'}
                       onMouseLeave={(e) => e.target.style.backgroundColor = '#9f7aea'}
                     >
-                      <span>â­</span>
                       <span>Reflection</span>
                     </button>
                   )}

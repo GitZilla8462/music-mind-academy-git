@@ -1,6 +1,7 @@
 // File: /src/pages/projects/film-music-score/composer/components/ComposerLayout.jsx
 // Main layout with resizable panels using ResizableSplitPane
-// UPDATED: Added showSoundEffects prop passthrough
+// UPDATED: Split video area into left (assignment panel) and right (video player)
+// UPDATED: Timeline label moved inline with time markers
 
 import React from 'react';
 import LoopLibrary from '../../shared/LoopLibrary';
@@ -30,8 +31,9 @@ const ComposerLayout = ({
   isPractice,
   restrictToCategory,
   lockedMood,
-  showSoundEffects,  // NEW PROP
-  currentlyPlayingPreview,  // NEW PROP: Track which preview is playing
+  showSoundEffects,
+  currentlyPlayingPreview,
+  assignmentPanelContent,  // NEW PROP
   
   // Callbacks
   onLoopLibraryClick,
@@ -65,15 +67,10 @@ const ComposerLayout = ({
   lockFeatures,
   highlightSelector
 }) => {
-  // DEBUG: Log showSoundEffects prop
-  React.useEffect(() => {
-    console.log('ðŸŽ¨ ComposerLayout showSoundEffects prop:', showSoundEffects);
-  }, [showSoundEffects]);
-
   return (
     <div 
       ref={containerRef} 
-      className="flex-1 flex overflow-hidden min-h-0 pb-20"
+      className="flex-1 flex overflow-hidden min-h-0"
     >
       {/* Left Panel - Loop Library */}
       <div 
@@ -94,8 +91,8 @@ const ComposerLayout = ({
           lockFeatures={lockFeatures}
           restrictToCategory={restrictToCategory}
           lockedMood={lockedMood}
-          showSoundEffects={showSoundEffects}  // PASS THROUGH
-          currentlyPlayingLoopId={currentlyPlayingPreview}  // PASS THROUGH
+          showSoundEffects={showSoundEffects}
+          currentlyPlayingLoopId={currentlyPlayingPreview}
         />
       </div>
 
@@ -114,7 +111,7 @@ const ComposerLayout = ({
         {tutorialMode ? (
           // Tutorial Mode - Fixed heights without resizing
           <>
-            {/* Video Player - REDUCED TO 150px (50% smaller) */}
+            {/* Video Player */}
             <div className="flex-shrink-0" style={{ height: '150px' }}>
               <div 
                 className="h-full p-4"
@@ -157,34 +154,48 @@ const ComposerLayout = ({
                 tutorialMode={tutorialMode}
                 lockFeatures={lockFeatures}
                 highlightSelector={highlightSelector}
+                onPlay={handlePlay}
+                onPause={pause}
+                onStop={handleStop}
+                onRestart={handleRestart}
               />
             </div>
           </>
         ) : (
-          // Normal Mode - ResizableSplitPane
+          // Normal Mode - ResizableSplitPane with split video area
           <ResizableSplitPane
-            initialTopHeight={200}
+            initialTopHeight={280}
             minTopHeight={100}
             minBottomHeight={300}
             topContent={
-              // Video Player Section
-              <div 
-                className="h-full p-4"
-                onClick={() => {
-                  if (onVideoPlayerClick) {
-                    onVideoPlayerClick();
-                  }
-                }}
-              >
-                <div className="h-full">
-                  <VideoPlayer
-                    selectedVideo={selectedVideo}
-                    isPlaying={isPlaying}
-                    currentTime={currentTime}
-                    onSeek={handleSeek}
-                    onPlay={handlePlay}
-                    onPause={pause}
-                  />
+              // Split: Assignment Panel (left) + Video Player (right)
+              <div className="h-full flex">
+                {/* Assignment Panel - Only show if content provided */}
+                {assignmentPanelContent && (
+                  <div className="w-80 border-r border-gray-700 flex-shrink-0">
+                    {assignmentPanelContent}
+                  </div>
+                )}
+                
+                {/* Video Player Section - Takes remaining space */}
+                <div 
+                  className="flex-1 p-4"
+                  onClick={() => {
+                    if (onVideoPlayerClick) {
+                      onVideoPlayerClick();
+                    }
+                  }}
+                >
+                  <div className="h-full">
+                    <VideoPlayer
+                      selectedVideo={selectedVideo}
+                      isPlaying={isPlaying}
+                      currentTime={currentTime}
+                      onSeek={handleSeek}
+                      onPlay={handlePlay}
+                      onPause={pause}
+                    />
+                  </div>
                 </div>
               </div>
             }
@@ -209,6 +220,11 @@ const ComposerLayout = ({
                   tutorialMode={false}
                   lockFeatures={lockFeatures}
                   highlightSelector={highlightSelector}
+                  showTimelineLabel={true}
+                  onPlay={handlePlay}
+                  onPause={pause}
+                  onStop={handleStop}
+                  onRestart={handleRestart}
                 />
               </div>
             }
@@ -224,26 +240,6 @@ const ComposerLayout = ({
           setHasUnsavedChanges={setHasUnsavedChanges}
         />
       )}
-
-      {/* Fixed Transport Controls */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-800">
-        <TransportControls
-          isPlaying={isPlaying}
-          currentTime={currentTime}
-          duration={selectedVideo?.duration || 60}
-          volume={volume}
-          isMuted={isMuted}
-          onPlay={handlePlay}
-          onPause={pause}
-          onStop={handleStop}
-          onSeek={handleSeek}
-          onVolumeChange={setMasterVolume}
-          onToggleMute={toggleMute}
-          onRestart={handleRestart}
-          tutorialMode={tutorialMode}
-          lockFeatures={lockFeatures}
-        />
-      </div>
     </div>
   );
 };

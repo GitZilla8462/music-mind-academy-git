@@ -45,7 +45,9 @@ const MusicComposer = ({
   readOnly = false,
   restrictToCategory = null,
   lockedMood = null,
-  showSoundEffects = false
+  showSoundEffects = false,
+  assignmentPanelContent = null,
+  isLessonMode = false  // NEW PROP - indicates if in a lesson or standalone
 }) => {
   const { videoId, assignmentId } = useParams();
   const navigate = useNavigate();
@@ -91,7 +93,7 @@ const MusicComposer = ({
 
   // DEBUG: Log showSoundEffects prop
   React.useEffect(() => {
-    console.log('ðŸŽµ MusicComposer showSoundEffects prop:', showSoundEffects);
+    console.log('Ã°Å¸Å½Âµ MusicComposer showSoundEffects prop:', showSoundEffects);
   }, [showSoundEffects]);
 
   // Audio engine hook SECOND (now selectedVideo exists)
@@ -122,7 +124,7 @@ const MusicComposer = ({
       : selectedVideo && audioReady && !videoLoading;  // Normal needs video + audio
     
     if (isDawReady && !dawReadyCalledRef.current && onDAWReadyCallback) {
-      console.log('Ã¢Å“â€¦ DAW is fully initialized - calling onDAWReadyCallback');
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DAW is fully initialized - calling onDAWReadyCallback');
       console.log('   - tutorialMode:', tutorialMode);
       console.log('   - selectedVideo:', !!selectedVideo);
       console.log('   - audioReady:', audioReady);
@@ -139,7 +141,7 @@ const MusicComposer = ({
   // STEP 1: Store initial loops and load into state immediately
   useEffect(() => {
     if (initialPlacedLoops && initialPlacedLoops.length > 0) {
-      console.log('Ã°Å¸Å½Âµ Initializing with saved loops:', initialPlacedLoops);
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Initializing with saved loops:', initialPlacedLoops);
       savedLoopsRef.current = initialPlacedLoops;
       setPlacedLoops(initialPlacedLoops);
     }
@@ -147,7 +149,7 @@ const MusicComposer = ({
 
   // STEP 2: Create audio players when audio becomes ready
   useEffect(() => {
-    console.log('Ã°Å¸â€Â Player creation check:', {
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Player creation check:', {
       audioReady,
       hasSavedLoops: savedLoopsRef.current !== null,
       playersCreated: playersCreatedRef.current,
@@ -155,7 +157,7 @@ const MusicComposer = ({
     });
 
     if (audioReady && savedLoopsRef.current && !playersCreatedRef.current) {
-      console.log('Ã°Å¸Å½Âµ Audio ready! Creating players for', savedLoopsRef.current.length, 'saved loops...');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Audio ready! Creating players for', savedLoopsRef.current.length, 'saved loops...');
       
       savedLoopsRef.current.forEach(loop => {
         const loopData = {
@@ -167,18 +169,18 @@ const MusicComposer = ({
           category: loop.category
         };
         
-        console.log('  Ã¢â€ â€™ Creating player for:', loopData.name, 'with ID:', loop.id);
+        console.log('  ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Creating player for:', loopData.name, 'with ID:', loop.id);
         
         try {
           createLoopPlayer(loopData, loop.id);
-          console.log('  Ã¢Å“â€¦ Player stored with key:', loop.id);
+          console.log('  ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Player stored with key:', loop.id);
         } catch (error) {
-          console.error('  Ã¢ÂÅ’ Failed to create player for:', loopData.name, error);
+          console.error('  ÃƒÂ¢Ã‚ÂÃ…â€™ Failed to create player for:', loopData.name, error);
         }
       });
       
       playersCreatedRef.current = true;
-      console.log('Ã¢Å“â€¦ All audio players created for saved loops');
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ All audio players created for saved loops');
     }
   }, [audioReady, createLoopPlayer, placedLoops.length]);
 
@@ -477,6 +479,7 @@ const MusicComposer = ({
         lockFeatures={lockFeatures}
         highlightSelector={highlightSelector}
         currentlyPlayingPreview={currentlyPlayingPreview}
+        assignmentPanelContent={assignmentPanelContent}
       />
     </div>
   );

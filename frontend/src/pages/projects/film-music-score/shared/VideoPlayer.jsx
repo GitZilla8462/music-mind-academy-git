@@ -30,7 +30,7 @@ const VideoPlayer = ({
 
   // Debug logging
   useEffect(() => {
-    console.log('🎬 VideoPlayer Debug:', {
+    console.log('ðŸŽ¬ VideoPlayer Debug:', {
       hasVideoUrl: !!videoUrl,
       hasSelectedVideo: !!selectedVideo,
       selectedVideoObject: selectedVideo,
@@ -138,18 +138,6 @@ const VideoPlayer = ({
         playsInline
         style={{ width: 'auto', height: 'auto' }}
       />
-
-      {/* Play/Pause Overlay */}
-      {!isPlaying && isVideoLoaded && (
-        <div 
-          className="absolute inset-0 flex items-center justify-center bg-black/20 cursor-pointer"
-          onClick={handleVideoClick}
-        >
-          <div className="bg-black/60 backdrop-blur-sm rounded-full p-6 hover:bg-black/70 transition-colors">
-            <Play size={48} className="text-white" />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -128,10 +128,10 @@ export const DAW_CHALLENGES = [
   {
     id: 9,
     section: "Navigation",
-    question: "Use the zoom controls (+ or - buttons) to change the timeline view.",
+    question: "Use the zoom controls on the right side of the page to change the timeline view.The zoom controls might be behind this orange challenge box.",
     type: 'interactive-task',
-    instruction: "Click the + or - zoom buttons to change the timeline zoom level",
-    hint: "Look for the zoom buttons, usually near the timeline",
+    instruction: "Click the + or - zoom buttons to change the timeline zoom level. They're on the right side of the screen - drag this box if you need to!",
+    hint: "The zoom buttons are on the right side of the timeline. If you can't see them, drag this orange box to a different position!",
     correctAnswer: "Zoom changed",
     validation: (context) => context.action === 'zoom-changed',
     lockFeatures: {
@@ -157,7 +157,7 @@ export const DAW_CHALLENGES = [
   {
     id: 11,
     section: "Playback",
-    question: "Click the Play button at the bottom of your screen to start playback of your composition.",
+    question: "Click the Play button in the middle of your screen. It is a triangle, and may be behind this challenge box.",
     type: 'interactive-task',
     instruction: "Find and click the Play button (usually a triangle icon)",
     hint: "The Play button is in the transport controls at the bottom of the screen",
@@ -172,7 +172,7 @@ export const DAW_CHALLENGES = [
   {
     id: 12,
     section: "Playback",
-    question: "Click the Stop button to stop playback.",
+    question: "Click the Stop button to stop playback. It is a square, and may be behind this challenge box.",
     type: 'interactive-task',
     instruction: "Find and click the Stop button (usually a square icon)",
     hint: "The Stop button is next to the Play button",

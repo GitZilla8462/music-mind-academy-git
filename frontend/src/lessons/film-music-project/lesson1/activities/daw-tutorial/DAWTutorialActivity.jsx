@@ -2,6 +2,7 @@
 // FINAL: Navigation tools dropdown from top right, exploration mode with timer after tutorial complete
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Minimize2, Maximize2 } from 'lucide-react';
 import MusicComposer from '../../../../../pages/projects/film-music-score/composer/MusicComposer';
 import ChallengePanel from './ChallengePanel';
 import { DAW_CHALLENGES } from './challengeDefinitions';
@@ -37,6 +38,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   // Timer and exploration mode state
   const [showExplorationMode, setShowExplorationMode] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [isNavToolsMinimized, setIsNavToolsMinimized] = useState(false);
 
   // Refs
   const isMountedRef = useRef(true);
@@ -66,10 +68,10 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   // Fallback timeout to force DAW ready state after 5 seconds
   useEffect(() => {
     if (!isDAWReady) {
-      console.log('⏱️ Starting 5-second fallback timer for DAW initialization...');
+      console.log('â±ï¸ Starting 5-second fallback timer for DAW initialization...');
       dawReadyTimeoutRef.current = setTimeout(() => {
         if (!isDAWReady && isMountedRef.current) {
-          console.warn('⚠️ DAW callback not received after 5s, forcing ready state');
+          console.warn('âš ï¸ DAW callback not received after 5s, forcing ready state');
           setIsDAWReady(true);
         }
       }, 5000);
@@ -108,7 +110,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
     
     if (preferredVoice) {
       utterance.voice = preferredVoice;
-      console.log('🎤 Using voice:', preferredVoice.name, preferredVoice.lang);
+      console.log('ðŸŽ¤ Using voice:', preferredVoice.name, preferredVoice.lang);
     }
 
     if (isMountedRef.current) {
@@ -142,14 +144,14 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   const startExplorationMode = useCallback(() => {
     const remaining = calculateTimeRemaining();
     
-    console.log('🎉 Tutorial complete! Time remaining:', Math.floor(remaining / 1000), 'seconds');
+    console.log('ðŸŽ‰ Tutorial complete! Time remaining:', Math.floor(remaining / 1000), 'seconds');
     // Save DAW tutorial stats
     saveDAWStats(correctAnswers, incorrectAnswers);
 
     
     if (remaining <= 0) {
       // No time left, advance immediately
-      console.log('⏰ No time remaining, advancing to next activity');
+      console.log('â° No time remaining, advancing to next activity');
       setSafeTimeout(() => {
         if (isMountedRef.current && !completionCalledRef.current) {
           completionCalledRef.current = true;
@@ -172,7 +174,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
               clearInterval(explorationTimerRef.current);
             }
             
-            console.log('⏰ Exploration time complete, advancing to next activity');
+            console.log('â° Exploration time complete, advancing to next activity');
             
             if (isMountedRef.current && !completionCalledRef.current) {
               completionCalledRef.current = true;
@@ -633,61 +635,88 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
 
       {/* Navigation Tools Panel - Dropdown from top right */}
       {navToolsEnabled && canAccessNavTools && !showExplorationMode && (
-        <div className="fixed top-16 right-4 z-50">
-          <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
-            <div className="text-blue-400 text-xs font-mono mb-2 font-bold">🧭 TUTORIAL NAVIGATION</div>
-            
-            {/* Activity Navigator */}
-            <div className="mb-3">
-              <div className="text-gray-300 text-xs mb-2 font-semibold">Jump to Challenge:</div>
-              <div className="grid grid-cols-5 gap-1">
-                {DAW_CHALLENGES.map((challenge, index) => (
-                  <button
-                    key={index}
-                    onClick={() => navSkipToChallenge(index)}
-                    className={`text-xs px-2 py-1 rounded font-mono transition-colors ${
-                      currentChallengeIndex === index
-                        ? 'bg-purple-600 text-white font-bold'
-                        : completedChallenges.has(challenge.id)
-                        ? 'bg-green-700 text-white'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                    title={challenge.question}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
+        <div className="fixed top-4 right-4 z-50">
+          {isNavToolsMinimized ? (
+            // Minimized view
+            <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-2 shadow-xl">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-blue-400 text-xs font-mono font-bold">🧭 NAV</div>
+                <button
+                  onClick={() => setIsNavToolsMinimized(false)}
+                  className="p-1 bg-blue-600 rounded hover:bg-blue-700 transition-colors"
+                  title="Restore navigation panel"
+                >
+                  <Maximize2 size={14} className="text-white" />
+                </button>
               </div>
             </div>
-            
-            {/* Quick Actions */}
-            <div className="space-y-1">
-              <button
-                onClick={() => navSkipToChallenge(currentChallengeIndex + 1)}
-                disabled={currentChallengeIndex >= DAW_CHALLENGES.length - 1}
-                className="w-full bg-blue-600 text-white text-xs px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
-              >
-                Skip to Next Challenge
-              </button>
-              <button
-                onClick={navCompleteAll}
-                className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold"
-              >
-                [Launch] Complete All ➡️ Next Activity
-              </button>
+          ) : (
+            // Full view
+            <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-blue-400 text-xs font-mono font-bold">🧭 TUTORIAL NAVIGATION</div>
+                <button
+                  onClick={() => setIsNavToolsMinimized(true)}
+                  className="p-1 bg-blue-600 rounded hover:bg-blue-700 transition-colors"
+                  title="Minimize navigation panel"
+                >
+                  <Minimize2 size={14} className="text-white" />
+                </button>
+              </div>
+              
+              {/* Activity Navigator */}
+              <div className="mb-3">
+                <div className="text-gray-300 text-xs mb-2 font-semibold">Jump to Challenge:</div>
+                <div className="grid grid-cols-5 gap-1">
+                  {DAW_CHALLENGES.map((challenge, index) => (
+                    <button
+                      key={index}
+                      onClick={() => navSkipToChallenge(index)}
+                      className={`text-xs px-2 py-1 rounded font-mono transition-colors ${
+                        currentChallengeIndex === index
+                          ? 'bg-purple-600 text-white font-bold'
+                          : completedChallenges.has(challenge.id)
+                          ? 'bg-green-700 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                      title={challenge.question}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Quick Actions */}
+              <div className="space-y-1">
+                <button
+                  onClick={() => navSkipToChallenge(currentChallengeIndex + 1)}
+                  disabled={currentChallengeIndex >= DAW_CHALLENGES.length - 1}
+                  className="w-full bg-blue-600 text-white text-xs px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
+                >
+                  Skip to Next Challenge
+                </button>
+                <button
+                  onClick={navCompleteAll}
+                  className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold"
+                >
+                  [Launch] Complete All ➡️ Next Activity
+                </button>
+              </div>
+              
+              {/* Current Status */}
+              <div className="mt-3 pt-2 border-t border-gray-700 text-xs text-gray-400 font-mono">
+                <div>Challenge: {currentChallengeIndex + 1}/{DAW_CHALLENGES.length}</div>
+                <div>Completed: {completedChallenges.size}</div>
+                <div>DAW Ready: {isDAWReady ? 'Yes' : 'No'}</div>
+                <div>Voice: {voiceEnabled ? 'ON' : 'OFF'}</div>
+                <div>Volume: {Math.round(voiceVolume * 100)}%</div>
+              </div>
             </div>
-            
-            {/* Current Status */}
-            <div className="mt-3 pt-2 border-t border-gray-700 text-xs text-gray-400 font-mono">
-              <div>Challenge: {currentChallengeIndex + 1}/{DAW_CHALLENGES.length}</div>
-              <div>Completed: {completedChallenges.size}</div>
-              <div>DAW Ready: {isDAWReady ? 'Yes' : 'No'}</div>
-              <div>Voice: {voiceEnabled ? 'ON' : 'OFF'}</div>
-              <div>Volume: {Math.round(voiceVolume * 100)}%</div>
-            </div>
-          </div>
+          )}
         </div>
       )}
+
 
       {/* Opaque overlay when question is active - ONLY FOR MULTIPLE CHOICE */}
       {isDAWReady && !showExplorationMode && currentChallenge?.type === 'multiple-choice' && (
@@ -698,7 +727,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
       {isDAWReady && !showExplorationMode && currentChallenge?.type === 'multiple-choice' && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-35 pointer-events-none">
           <div className="bg-orange-500 text-white px-8 py-4 rounded-lg shadow-2xl border-4 border-orange-600 animate-pulse">
-            <div className="text-xl font-bold text-center mb-2">👆 Answer the Question Above 👆</div>
+            <div className="text-xl font-bold text-center mb-2">ðŸ‘† Answer the Question Above ðŸ‘†</div>
             <div className="text-sm text-center">Look at the orange challenge bar at the top of the screen</div>
           </div>
         </div>
