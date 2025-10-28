@@ -1,5 +1,5 @@
 // ============================================================================
-// FILE: usePlaybackHandlers.js - FIXED play sequence timing
+// FILE: usePlaybackHandlers.js - FIXED with track state initialization
 // ============================================================================
 
 import { useCallback, useRef } from 'react';
@@ -42,16 +42,42 @@ export const usePlaybackHandlers = ({
     try {
       console.log(`Starting playback with ${placedLoops.length} loops`);
       
+      // Check if track states are initialized
+      const hasTrackStates = Object.keys(trackStates).length > 0;
+      if (!hasTrackStates) {
+        console.warn('⚠️  Track states not initialized yet!');
+      }
+      
       // CRITICAL FIX: Start transport FIRST, then schedule immediately after
       await play();
-      console.log('✅ Transport started');
+      console.log('✅ Transport start called');
       
       // Now schedule loops while transport is running
       if (placedLoops.length > 0) {
         console.log('📅 Scheduling loops after transport start...');
-        // Small delay to ensure transport state is updated
-        await new Promise(resolve => setTimeout(resolve, 50));
-        scheduleLoops(placedLoops, selectedVideo?.duration || 60, trackStates);
+        
+        // IMPORTANT: Wait longer and verify transport is actually running
+        // Transport.start() is synchronous but state update has a tiny delay
+        await new Promise(resolve => setTimeout(resolve, 150));
+        
+        // Use track states if available, otherwise create default states
+        const statesForScheduling = hasTrackStates 
+          ? trackStates 
+          : (() => {
+              console.log('🔧 Creating default track states for scheduling');
+              const defaults = {};
+              for (let i = 0; i < 8; i++) {
+                defaults[`track-${i}`] = { 
+                  volume: 0.7, 
+                  muted: false, 
+                  solo: false 
+                };
+              }
+              return defaults;
+            })();
+        
+        console.log('🎵 Scheduling with track states:', Object.keys(statesForScheduling));
+        scheduleLoops(placedLoops, selectedVideo?.duration || 60, statesForScheduling);
       }
       
       console.log('Playback started successfully');
@@ -109,7 +135,20 @@ export const usePlaybackHandlers = ({
     if (placedLoops.length > 0) {
       lastScheduleTimeRef.current = now;
       console.log('Rescheduling loops after seek...');
-      scheduleLoops(placedLoops, selectedVideo?.duration || 60, trackStates);
+      
+      // Use track states if available, otherwise create defaults
+      const hasTrackStates = Object.keys(trackStates).length > 0;
+      const statesForScheduling = hasTrackStates 
+        ? trackStates 
+        : (() => {
+            const defaults = {};
+            for (let i = 0; i < 8; i++) {
+              defaults[`track-${i}`] = { volume: 0.7, muted: false, solo: false };
+            }
+            return defaults;
+          })();
+      
+      scheduleLoops(placedLoops, selectedVideo?.duration || 60, statesForScheduling);
     }
   }, [audioReady, seek, placedLoops, scheduleLoops, selectedVideo?.duration, trackStates, SCHEDULE_DEBOUNCE_MS]);
 

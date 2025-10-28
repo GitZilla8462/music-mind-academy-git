@@ -27,15 +27,15 @@ export const useAudioEngine = (videoDuration = 60) => {
     Tone.Transport.position = 0;
     
     Tone.Transport.on('stop', () => {
-      console.log('ðŸ›‘ Transport stopped event');
+      console.log('Ã°Å¸â€ºâ€˜ Transport stopped event');
       
       if (transportStoppedByStopRef.current) {
-        console.log('  â†³ Stop was called by user - cleaning up');
+        console.log('  Ã¢â€ Â³ Stop was called by user - cleaning up');
         transportStoppedByStopRef.current = false;
         return;
       }
       
-      console.log('  â†³ Natural end of Transport - not seeking to 0');
+      console.log('  Ã¢â€ Â³ Natural end of Transport - not seeking to 0');
     });
   }, []);
 
@@ -83,14 +83,14 @@ export const useAudioEngine = (videoDuration = 60) => {
       console.log(`Creating player for: ${loopData.name} with key: ${playerKey}`);
       
       if (playersRef.current.has(playerKey)) {
-        console.log(`  âœ“ Player already exists for ${playerKey}`);
+        console.log(`  Ã¢Å“â€œ Player already exists for ${playerKey}`);
         return playersRef.current.get(playerKey);
       }
 
       const isMp3 = loopData.file.toLowerCase().endsWith('.mp3');
       
       if (isMp3) {
-        console.log(`  ðŸŽµ Using native HTML5 Audio for MP3: ${loopData.name}`);
+        console.log(`  Ã°Å¸Å½Âµ Using native HTML5 Audio for MP3: ${loopData.name}`);
         const audio = new Audio();
         audio.preload = 'auto';
         audio.src = loopData.file;
@@ -102,13 +102,13 @@ export const useAudioEngine = (videoDuration = 60) => {
           
           audio.addEventListener('canplaythrough', () => {
             clearTimeout(timeout);
-            console.log(`  âœ… Native audio loaded: ${loopData.name}, duration: ${audio.duration}s`);
+            console.log(`  Ã¢Å“â€¦ Native audio loaded: ${loopData.name}, duration: ${audio.duration}s`);
             resolve();
           }, { once: true });
           
           audio.addEventListener('error', (e) => {
             clearTimeout(timeout);
-            console.error(`  âŒ Native audio load error for ${loopData.name}:`, e);
+            console.error(`  Ã¢ÂÅ’ Native audio load error for ${loopData.name}:`, e);
             reject(new Error(`Failed to load: ${e.message || 'Unknown error'}`));
           }, { once: true });
           
@@ -126,30 +126,30 @@ export const useAudioEngine = (videoDuration = 60) => {
         };
         
         playersRef.current.set(playerKey, wrappedPlayer);
-        console.log(`  âœ… Stored native player with key: ${playerKey}`);
+        console.log(`  Ã¢Å“â€¦ Stored native player with key: ${playerKey}`);
         return wrappedPlayer;
         
       } else {
-        console.log(`  ðŸŽ¹ Using Tone.js Player for: ${loopData.name}`);
+        console.log(`  Ã°Å¸Å½Â¹ Using Tone.js Player for: ${loopData.name}`);
         const player = new Tone.Player({
           url: loopData.file,
           loop: false,
           fadeIn: 0.01,
           fadeOut: 0.01,
           onload: () => {
-            console.log(`  âœ… Tone.js player loaded: ${loopData.name}, duration: ${player.buffer.duration}s`);
+            console.log(`  Ã¢Å“â€¦ Tone.js player loaded: ${loopData.name}, duration: ${player.buffer.duration}s`);
           }
         }).toDestination();
         
         await Tone.loaded();
         
         playersRef.current.set(playerKey, player);
-        console.log(`  âœ… Stored Tone.js player with key: ${playerKey}`);
+        console.log(`  Ã¢Å“â€¦ Stored Tone.js player with key: ${playerKey}`);
         return player;
       }
       
     } catch (error) {
-      console.error(`âŒ Failed to create player for ${loopData.name}:`, error);
+      console.error(`Ã¢ÂÅ’ Failed to create player for ${loopData.name}:`, error);
       throw error;
     }
   }, []);
@@ -177,11 +177,11 @@ export const useAudioEngine = (videoDuration = 60) => {
     
     groupedLoops.forEach((loopGroup, loopId) => {
       loopGroup.forEach(loop => {
-        console.log(`ðŸ” Loop: ${loop.name}`, loop);
+        console.log(`Ã°Å¸â€Â Loop: ${loop.name}`, loop);
         
         const player = playersRef.current.get(loop.id);
         if (!player) {
-          console.warn(`  âš ï¸ No player found for ${loop.name} (key: ${loop.id})`);
+          console.warn(`  Ã¢Å¡Â Ã¯Â¸Â No player found for ${loop.name} (key: ${loop.id})`);
           return;
         }
         
@@ -189,7 +189,7 @@ export const useAudioEngine = (videoDuration = 60) => {
         const trackState = trackStates[trackId];
         
         if (!trackState) {
-          console.warn(`  âš ï¸ No track state for ${trackId}`);
+          console.warn(`  Ã¢Å¡Â Ã¯Â¸Â No track state for ${trackId}`);
           return;
         }
         
@@ -198,7 +198,7 @@ export const useAudioEngine = (videoDuration = 60) => {
         const effectiveVolume = trackVolume * loopVolume;
         
         if (trackState.muted || effectiveVolume < 0.01) {
-          console.log(`  ðŸ”‡ ${loop.name} is muted (track: ${trackState.muted}, volume: ${effectiveVolume.toFixed(2)})`);
+          console.log(`  Ã°Å¸â€â€¡ ${loop.name} is muted (track: ${trackState.muted}, volume: ${effectiveVolume.toFixed(2)})`);
           return;
         }
         
@@ -216,15 +216,15 @@ export const useAudioEngine = (videoDuration = 60) => {
         const loopDuration = loop.duration;
         
         if (loopEndTime <= schedulingStartTime) {
-          console.log(`  â­ï¸ Loop ends at ${loopEndTime.toFixed(2)}s (before current ${schedulingStartTime.toFixed(2)}s) - skipping entirely`);
+          console.log(`  Ã¢ÂÂ­Ã¯Â¸Â Loop ends at ${loopEndTime.toFixed(2)}s (before current ${schedulingStartTime.toFixed(2)}s) - skipping entirely`);
           return;
         }
         
         const totalLoopDuration = loopEndTime - loopStartTime;
         const numRepeats = Math.ceil(totalLoopDuration / loopDuration);
         
-        console.log(`  ðŸ“Š Scheduling ${loop.name}:`);
-        console.log(`     Video times: ${loopStartTime.toFixed(2)}s â†’ ${loopEndTime.toFixed(2)}s`);
+        console.log(`  Ã°Å¸â€œÅ  Scheduling ${loop.name}:`);
+        console.log(`     Video times: ${loopStartTime.toFixed(2)}s Ã¢â€ â€™ ${loopEndTime.toFixed(2)}s`);
         console.log(`     Loop duration: ${loopDuration.toFixed(2)}s`);
         console.log(`     Repeats needed: ${numRepeats}`);
         console.log(`     Track ${loop.trackIndex} volume: ${effectiveVolume.toFixed(2)}`);
@@ -236,7 +236,7 @@ export const useAudioEngine = (videoDuration = 60) => {
           
           // Skip if this repeat is entirely before current time
           if (repeatEndTime <= schedulingStartTime) {
-            console.log(`  â­ï¸  Repeat ${i + 1} ends at ${repeatEndTime.toFixed(2)}s (before ${schedulingStartTime.toFixed(2)}s) - skipping`);
+            console.log(`  Ã¢ÂÂ­Ã¯Â¸Â  Repeat ${i + 1} ends at ${repeatEndTime.toFixed(2)}s (before ${schedulingStartTime.toFixed(2)}s) - skipping`);
             continue;
           }
           
@@ -250,21 +250,21 @@ export const useAudioEngine = (videoDuration = 60) => {
             loopOffset = schedulingStartTime - repeatStartTime;
             actualDuration = repeatEndTime - schedulingStartTime;
             actualStartTime = schedulingStartTime;
-            console.log(`  ðŸŽ¯ Starting mid-loop: offset ${loopOffset.toFixed(2)}s, duration ${actualDuration.toFixed(2)}s`);
+            console.log(`  Ã°Å¸Å½Â¯ Starting mid-loop: offset ${loopOffset.toFixed(2)}s, duration ${actualDuration.toFixed(2)}s`);
           } else if (repeatEndTime > loopEndTime) {
             // This is a partial repeat at the end
             actualDuration = loopEndTime - repeatStartTime;
-            console.log(`  âœ‚ï¸ Partial end repeat: duration ${actualDuration.toFixed(2)}s`);
+            console.log(`  Ã¢Å“â€šÃ¯Â¸Â Partial end repeat: duration ${actualDuration.toFixed(2)}s`);
           }
           
           // Calculate Transport time for this repeat
           const transportTime = Math.max(0, actualStartTime - schedulingStartTime);
           
-          console.log(`  â–¶ï¸  Scheduling repeat ${i + 1}/${numRepeats} at Transport ${transportTime.toFixed(2)}s (video ${actualStartTime.toFixed(2)}s)`);
+          console.log(`  Ã¢â€“Â¶Ã¯Â¸Â  Scheduling repeat ${i + 1}/${numRepeats} at Transport ${transportTime.toFixed(2)}s (video ${actualStartTime.toFixed(2)}s)`);
           
           // Only actually schedule if transport is playing
           if (!isTransportPlaying) {
-            console.log(`  â¸ï¸ Transport stopped - not scheduling this repeat`);
+            console.log(`  Ã¢ÂÂ¸Ã¯Â¸Â Transport stopped - not scheduling this repeat`);
             continue;
           }
           
@@ -317,27 +317,27 @@ export const useAudioEngine = (videoDuration = 60) => {
   }, [clearScheduledEvents]);
 
   const play = useCallback(async () => {
-    console.log(`ðŸŽ¬ Starting playback at ${Tone.Transport.seconds.toFixed(2)}s`);
+    console.log(`Ã°Å¸Å½Â¬ Starting playback at ${Tone.Transport.seconds.toFixed(2)}s`);
     
     if (Tone.Transport.state !== 'started') {
       Tone.Transport.start();
-      console.log('âœ… Transport started immediately');
+      console.log('Ã¢Å“â€¦ Transport started immediately');
     } else {
-      console.log('â„¹ï¸ Transport already running');
+      console.log('Ã¢â€žÂ¹Ã¯Â¸Â Transport already running');
     }
     
     setIsPlaying(true);
   }, []);
 
   const pause = useCallback(() => {
-    console.log('â¸ï¸ Pausing playback');
+    console.log('Ã¢ÂÂ¸Ã¯Â¸Â Pausing playback');
     Tone.Transport.pause();
     setIsPlaying(false);
     clearScheduledEvents();
   }, [clearScheduledEvents]);
 
   const stop = useCallback(() => {
-    console.log('â¹ï¸ Stopping playback');
+    console.log('Ã¢ÂÂ¹Ã¯Â¸Â Stopping playback');
     transportStoppedByStopRef.current = true;
     Tone.Transport.stop();
     Tone.Transport.position = 0;
@@ -410,7 +410,7 @@ export const useAudioEngine = (videoDuration = 60) => {
         
         // Add ended event listener to clean up when preview finishes
         player.audio.addEventListener('ended', () => {
-          console.log(`✅ Preview ended: ${loopData.name}`);
+          console.log(`âœ… Preview ended: ${loopData.name}`);
           previewPlayerRef.current = null;
           
           // Call onEnded callback if provided
@@ -425,7 +425,7 @@ export const useAudioEngine = (videoDuration = 60) => {
         player.start();
       }
       
-      console.log(`ðŸŽ§ Previewing: ${loopData.name}`);
+      console.log(`Ã°Å¸Å½Â§ Previewing: ${loopData.name}`);
     } catch (error) {
       console.error('Preview error:', error);
       throw error;
@@ -438,8 +438,9 @@ export const useAudioEngine = (videoDuration = 60) => {
         const newTime = Tone.Transport.seconds;
         setCurrentTime(newTime);
         
-        if (newTime >= videoDuration) {
-          console.log('ðŸŽ¬ Reached end of video duration, stopping playback');
+        // FIXED: Only check end of video if we have a valid duration
+        if (videoDuration && videoDuration > 0 && newTime >= videoDuration) {
+          console.log(`🎬 Reached end of video duration (${videoDuration}s), stopping playback`);
           Tone.Transport.stop();
           Tone.Transport.position = 0;
           setIsPlaying(false);

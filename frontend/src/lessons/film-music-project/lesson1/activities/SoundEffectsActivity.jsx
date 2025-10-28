@@ -1,11 +1,11 @@
 // File: /src/lessons/film-music-project/lesson1/activities/SoundEffectsActivity.jsx
 // Bonus activity: Add sound effects to completed composition
-// NO TIME LIMIT - Teacher controls when to advance
+// UPDATED: Uses left panel structure (like SchoolBeneathActivity) with NO emojis
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
-import { Sparkles, Volume2, VolumeX, Minimize2, Maximize2 } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 const SoundEffectsActivity = ({ onComplete, viewMode = false, lessonStartTime = null }) => {
   const navigate = useNavigate();
@@ -13,7 +13,6 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false, lessonStartTime = 
   const [videoDuration, setVideoDuration] = useState(null);
   const [isLoadingVideo, setIsLoadingVideo] = useState(true);
   const [saveMessage, setSaveMessage] = useState('');
-  const [isMinimizedModal, setIsMinimizedModal] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [voiceVolume, setVoiceVolume] = useState(0.5);
   const hasSpokenRef = useRef(false);
@@ -43,7 +42,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false, lessonStartTime = 
   // Voice narration on mount
   useEffect(() => {
     if (!isLoadingVideo && !hasSpokenRef.current && voiceEnabled) {
-      const message = "Great job finishing your reflection! For the remainder of class, you'll get to add sound effects to your trailer. Sound effects like electric shocks, risers, and wooshes can make your film score even more exciting and realistic. Your music is already loaded - now add sound effects on top!";
+      const message = "For the remainder of class, you'll get to add sound effects to your trailer. Sound effects like electric shocks, risers, and wooshes can make your film score even more exciting and realistic. Your music is already loaded - now add sound effects on top!";
       
       setTimeout(() => {
         speakText(message);
@@ -135,7 +134,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false, lessonStartTime = 
     localStorage.setItem('school-beneath-composition', JSON.stringify(compositionData));
     console.log('Composition with sound effects saved:', compositionData);
     
-    setSaveMessage('[OK] Saved with sound effects!');
+    setSaveMessage('Saved!');
     setTimeout(() => setSaveMessage(''), 3000);
   };
 
@@ -143,7 +142,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false, lessonStartTime = 
   const handleSubmit = () => {
     handleSaveProgress(); // Save first
     
-    setSaveMessage('[OK] Submitted! Great work!');
+    setSaveMessage('Submitted!');
     setTimeout(() => {
       setSaveMessage('');
     }, 2000);
@@ -164,169 +163,86 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false, lessonStartTime = 
     );
   }
 
+  // Left panel content (similar to SchoolBeneathActivity structure)
+  const assignmentPanelContent = (
+    <div className="h-full bg-gray-800 text-white p-2 flex flex-col gap-2 overflow-y-auto">
+      {/* Title - BIG */}
+      <div className="text-center">
+        <h3 className="font-bold text-base mb-1 flex items-center justify-center gap-1">
+          <Sparkles size={16} className="text-purple-400" />
+          <span>Bonus: Add Sound Effects</span>
+        </h3>
+      </div>
+
+      {/* Action Buttons at TOP */}
+      <div className="space-y-1">
+        {saveMessage && (
+          <div className="text-[9px] text-green-400 font-semibold text-center bg-green-900/20 py-1 rounded">
+            {saveMessage}
+          </div>
+        )}
+        
+        <button
+          onClick={handleSaveProgress}
+          className="w-full bg-blue-600 text-white px-2 py-1.5 rounded text-xs font-semibold hover:bg-blue-700 transition-colors"
+        >
+          Save
+        </button>
+        
+        <button
+          onClick={handleSubmit}
+          className="w-full bg-green-600 text-white px-2 py-1.5 rounded text-xs font-semibold hover:bg-green-700 transition-colors"
+        >
+          Submit
+        </button>
+      </div>
+
+      {/* Sound effects available */}
+      <div className="bg-blue-900/30 border border-blue-500 rounded-lg p-2">
+        <div className="text-[9px] text-gray-300 leading-relaxed space-y-1">
+          <div className="font-bold mb-1 text-blue-300 text-[10px]">Sound effects you can add:</div>
+          <ul className="space-y-0.5 text-[9px]">
+            <li className="flex items-start gap-1">
+              <span className="text-yellow-400">-</span>
+              <span><strong>Electric shocks & impacts</strong></span>
+            </li>
+            <li className="flex items-start gap-1">
+              <span className="text-purple-400">-</span>
+              <span><strong>Risers</strong> to build tension</span>
+            </li>
+            <li className="flex items-start gap-1">
+              <span className="text-blue-400">-</span>
+              <span><strong>Wooshes</strong> for movement</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      {/* How to add */}
+      <div className="bg-green-900/30 border border-green-500 rounded-lg p-2">
+        <div className="text-[9px] text-gray-300 leading-relaxed">
+          <div className="font-bold mb-1 text-green-300 text-[10px]">How to add sound effects:</div>
+          <ol className="space-y-0.5 text-[9px] list-decimal list-inside">
+            <li>Look for <strong>Show Sound Effects</strong> checkbox</li>
+            <li>Check it to see available sound effects</li>
+            <li>Drag onto timeline like music loops</li>
+            <li>Place at perfect moments in your video!</li>
+          </ol>
+        </div>
+      </div>
+
+      {/* Stats - Sound Effects Only */}
+      <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-2">
+        <div className="text-[9px] text-gray-300 flex justify-between">
+          <span>Sound Effects Added:</span>
+          <span className="font-bold text-purple-400 text-sm">{soundEffectLoops.length}</span>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="h-screen w-full flex flex-col bg-gray-900">
-      {/* Floating Instructional Modal */}
-      {!isMinimizedModal && (
-        <div
-          style={{
-            position: 'fixed',
-            right: '20px',
-            bottom: '20px',
-            width: '380px',
-            maxHeight: '500px',
-            zIndex: 1000,
-            pointerEvents: 'auto'
-          }}
-          className="bg-white rounded-lg shadow-2xl border-4 border-purple-500 overflow-hidden flex flex-col"
-        >
-          {/* Header */}
-          <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-2.5 flex items-center justify-between">
-            <div className="text-white font-semibold text-sm flex items-center gap-2">
-              <Sparkles size={16} className="animate-pulse" />
-              <span>ðŸŽ¬ Bonus: Add Sound Effects!</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {/* Voice controls */}
-              <button
-                onClick={() => setVoiceEnabled(!voiceEnabled)}
-                className="p-1.5 bg-white/20 rounded hover:bg-white/30 transition-colors"
-                title={voiceEnabled ? "Mute voice" : "Unmute voice"}
-              >
-                {voiceEnabled ? <Volume2 size={14} className="text-white" /> : <VolumeX size={14} className="text-white" />}
-              </button>
-              
-              <button
-                onClick={() => setIsMinimizedModal(true)}
-                className="p-1.5 bg-white/20 rounded hover:bg-white/30 transition-colors"
-                title="Minimize"
-              >
-                <Minimize2 size={14} className="text-white" />
-              </button>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {/* Main message */}
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-3 border-2 border-purple-200">
-              <div className="text-sm text-gray-800 mb-2 font-semibold leading-relaxed">
-                ðŸŽ‰ Great job finishing your reflection!
-              </div>
-              <div className="text-xs text-gray-700 leading-relaxed">
-                For the remainder of class, you'll get to add <strong>sound effects</strong> to your trailer.
-              </div>
-            </div>
-
-            {/* Instructions */}
-            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-3">
-              <div className="text-xs text-gray-800 leading-relaxed space-y-2">
-                <div className="font-bold mb-2 text-blue-900 text-sm">Sound effects you can add:</div>
-                <ul className="space-y-1 text-xs">
-                  <li className="flex items-start gap-2">
-                    <span className="text-yellow-500 font-bold">âš¡</span>
-                    <span><strong>Electric shocks & impacts</strong></span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-500 font-bold">ðŸ“ˆ</span>
-                    <span><strong>Risers</strong> to build tension</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-blue-500 font-bold">ðŸ’¨</span>
-                    <span><strong>Wooshes</strong> for movement</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* How to use */}
-            <div className="bg-green-50 border-2 border-green-300 rounded-lg p-3">
-              <div className="text-xs text-gray-800 leading-relaxed">
-                <div className="font-bold mb-2 text-green-900">How to add sound effects:</div>
-                <ol className="space-y-1 text-xs list-decimal list-inside">
-                  <li>Look for the <strong>â˜‘ï¸ Show Sound Effects</strong> checkbox in the Loop Library</li>
-                  <li>Check it to see all available sound effects</li>
-                  <li>Drag sound effects onto your timeline just like music loops</li>
-                  <li>Place them at the perfect moments in your video!</li>
-                </ol>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-3">
-              <div className="text-xs text-gray-700 space-y-1">
-                <div className="flex justify-between">
-                  <span>â™ª Music Loops:</span>
-                  <span className="font-bold">{musicLoops.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>ðŸ”Š Sound Effects:</span>
-                  <span className="font-bold text-purple-600">{soundEffectLoops.length}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer with action buttons */}
-          <div className="border-t-2 border-gray-200 p-3 bg-white space-y-2">
-            {saveMessage && (
-              <div className="text-xs text-green-600 font-semibold text-center animate-pulse mb-2">
-                {saveMessage}
-              </div>
-            )}
-            
-            <button
-              onClick={handleSaveProgress}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
-            >
-              ðŸ’¾ Save Progress
-            </button>
-            
-            <button
-              onClick={handleSubmit}
-              className="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors text-sm"
-            >
-              [OK] Submit (can resubmit)
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Minimized modal */}
-      {isMinimizedModal && (
-        <div
-          style={{
-            position: 'fixed',
-            right: '20px',
-            bottom: '20px',
-            width: '280px',
-            zIndex: 1000,
-            pointerEvents: 'auto'
-          }}
-          className="bg-white rounded-lg shadow-2xl border-4 border-purple-500"
-        >
-          <div className="bg-purple-500 px-4 py-2 flex items-center justify-between">
-            <div className="text-white font-semibold text-sm flex items-center gap-2">
-              <Sparkles size={14} />
-              <span>Sound Effects Activity</span>
-            </div>
-            <button
-              onClick={() => setIsMinimizedModal(false)}
-              className="p-1 bg-white/20 rounded hover:bg-white/30 transition-colors"
-            >
-              <Maximize2 size={14} className="text-white" />
-            </button>
-          </div>
-          <div className="px-4 py-2 text-sm text-gray-600">
-            <div className="flex justify-between text-xs">
-              <span>â™ª Loops: {musicLoops.length}</span>
-              <span>ðŸ”Š SFX: {soundEffectLoops.length}</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Header */}
+    <div className="h-full flex flex-col bg-gray-900">
       {/* Activity Header - Shows content in sandbox mode, empty in lesson mode */}
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">
         <div className="px-4 py-2">
@@ -342,7 +258,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false, lessonStartTime = 
 
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <div className="text-xs text-gray-400">
-                    {musicLoops.length} loops | {soundEffectLoops.length} SFX
+                    {soundEffectLoops.length} SFX added
                   </div>
 
                   {saveMessage && (
@@ -374,7 +290,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false, lessonStartTime = 
         </div>
       </div>
 
-      {/* Main Composer */}
+      {/* Main Composer with Left Panel */}
       <div className="flex-1 min-h-0">
         <MusicComposer
           onLoopDropCallback={handleLoopPlaced}
@@ -394,6 +310,7 @@ const SoundEffectsActivity = ({ onComplete, viewMode = false, lessonStartTime = 
           showToast={(msg, type) => console.log(msg, type)}
           initialPlacedLoops={placedLoops}
           readOnly={false}
+          assignmentPanelContent={assignmentPanelContent}
         />
       </div>
     </div>
