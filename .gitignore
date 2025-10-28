@@ -9,3 +9,4 @@ dist/
 .DS_Store
 .vscode/
 backend/data/
+backend/public/projects/film-music-score/audio-backups-*/
