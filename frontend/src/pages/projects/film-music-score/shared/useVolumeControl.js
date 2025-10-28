@@ -1,5 +1,5 @@
-// useVolumeControl.js - FIXED: Prevent infinite rerender during resize
-// 🔥 KEY FIX: Use ref for placedLoops to avoid triggering on every state change
+// useVolumeControl.js - FIXED: Wait for players to be ready before applying volumes
+// ✅ KEY FIX: Check if players exist before trying to apply volumes
 import { useEffect, useRef } from 'react';
 
 export const useVolumeControl = ({
@@ -10,7 +10,7 @@ export const useVolumeControl = ({
   volume,
   isMuted
 }) => {
-  // 🔥 FIX: Use ref to track placed loops without triggering rerenders
+  // Use ref to track placed loops without triggering rerenders
   const placedLoopsRef = useRef(placedLoops);
   
   // Update ref when placedLoops changes
@@ -18,10 +18,19 @@ export const useVolumeControl = ({
     placedLoopsRef.current = placedLoops;
   }, [placedLoops]);
   
-  // 🔥 FIX: Only trigger volume updates when audio settings change, NOT when loops change
+  // ✅ FIX: Only trigger volume updates when audio settings change AND players exist
   useEffect(() => {
     if (!audioReady || !playersRef.current) {
       console.log('Volume control skipped - audioReady:', audioReady, 'playersRef:', !!playersRef.current);
+      return;
+    }
+    
+    // ✅ NEW: Check if we actually have players for the loops before proceeding
+    const hasPlayers = placedLoopsRef.current.length === 0 || 
+                      placedLoopsRef.current.some(loop => playersRef.current[loop.id]);
+    
+    if (!hasPlayers && placedLoopsRef.current.length > 0) {
+      console.log('⏳ Volume control waiting - players not yet created for', placedLoopsRef.current.length, 'loops');
       return;
     }
     
@@ -41,13 +50,12 @@ export const useVolumeControl = ({
     let successCount = 0;
     let failCount = 0;
     
-    // 🔥 FIX: Use the ref value, not the state value
     placedLoopsRef.current.forEach(loop => {
       const player = playersRef.current[loop.id];
       const trackState = trackStates[`track-${loop.trackIndex}`];
       
       if (!player) {
-        console.log(`⚠️ No player for ${loop.name}`);
+        console.log(`⚠️ No player for ${loop.name} (ID: ${loop.id})`);
         failCount++;
         return;
       }
@@ -67,7 +75,7 @@ export const useVolumeControl = ({
       const masterVol = volume;
       const trackMuted = trackState.muted ? 0 : 1;
       const masterMuted = isMuted ? 0 : 1;
-      const soloMultiplier = shouldPlayBasedOnSolo ? 1 : 0; // Mute if not soloed when solo is active
+      const soloMultiplier = shouldPlayBasedOnSolo ? 1 : 0;
       
       // Final volume = loop × track × master × mute states × solo state
       const finalVolume = loopVolume * trackVolume * masterVol * trackMuted * masterMuted * soloMultiplier;
@@ -108,5 +116,4 @@ export const useVolumeControl = ({
     console.log(`=== VOLUME UPDATE COMPLETE: ${successCount} success, ${failCount} failed ===\n`);
     
   }, [audioReady, playersRef, trackStates, volume, isMuted]);
-  // 🔥 FIX: Removed placedLoops from dependencies! Now only triggers on audio settings changes
 };

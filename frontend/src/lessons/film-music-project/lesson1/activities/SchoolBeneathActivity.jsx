@@ -1,21 +1,26 @@
 // File: /src/lessons/film-music-project/lesson1/activities/SchoolBeneathActivity.jsx
-// Composition exercise for "The School Beneath" mysterious trailer
-// UPDATED: Split layout - assignment panel moves to left of video player
-// Header now only has title and action buttons (Save/Submit moved to top right)
+// ENHANCED VERSION with Two-Modal Flow and Voice Announcements
+// NEW FEATURES:
+// 1. "Aha Moment" modal when requirements are met
+// 2. Voice announcement when requirements complete
+// 3. "Submit Success" modal with countdown
+// 4. Voice announcement for bonus exploration
+// 5. Auto-save bonus composition during exploration
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
 import { Clock, Minimize2, Maximize2 } from 'lucide-react';
+import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
+import { saveComposition, saveBonusComposition } from '../lessonStorageUtils';
 
 const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = false, lessonStartTime }) => {
   const navigate = useNavigate();
   const [requirements, setRequirements] = useState({
-    instrumentation: false,  // 5+ Mysterious loops
-    layering: false,         // Different start times
-    structure: false         // Proper alignment
+    instrumentation: false,
+    layering: false,
+    structure: false
   });
   const [placedLoops, setPlacedLoops] = useState([]);
   const [videoDuration, setVideoDuration] = useState(null);
@@ -27,6 +32,40 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
   const hasSubmittedRef = useRef(false);
   const autoAdvanceCalledRef = useRef(false);
   const [isMinimizedModal, setIsMinimizedModal] = useState(false);
+  
+  // NEW: Modal states for the two-modal flow
+  const [showAhaMomentModal, setShowAhaMomentModal] = useState(false);
+  const [showSubmitSuccessModal, setShowSubmitSuccessModal] = useState(false);
+  const [submitCountdown, setSubmitCountdown] = useState(5);
+  const hasAnnouncedAhaRef = useRef(false);
+  const hasAnnouncedSubmitRef = useRef(false);
+
+  // NEW: Web Speech API helper function
+  const speakMessage = (message) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      
+      // Try to get a good voice
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice = voices.find(voice => 
+        voice.name === 'Samantha' || 
+        voice.name === 'Google US English' ||
+        voice.name === 'Google US English Female' ||
+        (voice.lang === 'en-US' && voice.name.includes('Microsoft')) ||
+        voice.lang.startsWith('en-US')
+      );
+      
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+      
+      window.speechSynthesis.speak(utterance);
+    }
+  };
 
   // Load saved composition if in view mode
   useEffect(() => {
@@ -58,24 +97,18 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
       return Math.max(0, remaining);
     };
 
-    // Initial calculation
     const remaining = calculateRemaining();
     setTimeRemaining(remaining);
 
-    // Start countdown timer
     timerRef.current = setInterval(() => {
       const newRemaining = calculateRemaining();
       setTimeRemaining(newRemaining);
 
-      // When time hits 0, auto-advance
       if (newRemaining <= 0 && !autoAdvanceCalledRef.current) {
         autoAdvanceCalledRef.current = true;
         clearInterval(timerRef.current);
         
-        // Auto-save current work
         handleAutoSave();
-        
-        // Show brief toast
         setSaveMessage('⏰ Time\'s up! Great work - let\'s share!');
         
         setTimeout(() => {
@@ -91,11 +124,9 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
     };
   }, [lessonStartTime, viewMode, onComplete]);
 
-  // Detect video duration on mount (skip if in viewMode)
+  // Detect video duration on mount
   useEffect(() => {
-    if (viewMode) {
-      return;
-    }
+    if (viewMode) return;
 
     const videoPath = '/lessons/videos/film-music-loop-project/SchoolMystery.mp4';
     const videoElement = document.createElement('video');
@@ -107,7 +138,6 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
       console.log('Video duration detected:', duration, 'seconds');
       setVideoDuration(duration);
       setIsLoadingVideo(false);
-      
       videoElement.removeEventListener('loadedmetadata', handleMetadata);
       videoElement.src = '';
     };
@@ -138,16 +168,60 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
     };
   }, [viewMode]);
 
-  // Check requirements as loops are placed (skip in viewMode or exploration mode)
+  // Check requirements as loops are placed
   useEffect(() => {
     if (viewMode || placedLoops.length === 0 || isExplorationMode) return;
     checkRequirements();
   }, [placedLoops, viewMode, isExplorationMode]);
 
+  // NEW: Detect when all requirements are met for first time
+  useEffect(() => {
+    const allMet = requirements.instrumentation && 
+                   requirements.layering && 
+                   requirements.structure;
+    
+    if (allMet && !hasAnnouncedAhaRef.current && !isExplorationMode && !viewMode) {
+      hasAnnouncedAhaRef.current = true;
+      
+      // Show "Aha Moment" modal
+      setShowAhaMomentModal(true);
+      
+      // Speak the announcement
+      speakMessage("Good job! Your work can now be submitted. Hit the save and submit button at this time.");
+    }
+  }, [requirements, isExplorationMode, viewMode]);
+
+  // NEW: Handle submit success modal countdown
+  useEffect(() => {
+    if (showSubmitSuccessModal && submitCountdown > 0) {
+      const timer = setTimeout(() => {
+        setSubmitCountdown(prev => prev - 1);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    } else if (showSubmitSuccessModal && submitCountdown === 0) {
+      // Countdown complete - enter exploration mode
+      setShowSubmitSuccessModal(false);
+      setIsExplorationMode(true);
+      setSubmitCountdown(5); // Reset for next time
+    }
+  }, [showSubmitSuccessModal, submitCountdown]);
+
+  // NEW: Auto-save bonus composition during exploration
+  useEffect(() => {
+    if (isExplorationMode && placedLoops.length > 0 && !viewMode) {
+      const autoSaveTimer = setTimeout(() => {
+        saveBonusComposition(placedLoops, videoDuration);
+        console.log('Auto-saved bonus composition');
+      }, 2000);
+      
+      return () => clearTimeout(autoSaveTimer);
+    }
+  }, [placedLoops, isExplorationMode, videoDuration, viewMode]);
+
   const checkRequirements = () => {
     console.log('Checking requirements with loops:', placedLoops);
     
-    // Verify all loops are Mysterious category
     const allMysterious = placedLoops.every(loop => loop.mood === 'Mysterious');
     if (!allMysterious) {
       console.warn('Non-Mysterious loops detected!');
@@ -161,14 +235,11 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
     
     const uniqueLoops = new Set(placedLoops.map(loop => loop.originalId || loop.id));
     const hasInstrumentation = uniqueLoops.size >= 5;
-    console.log('Instrumentation check:', hasInstrumentation, 'Unique loops:', uniqueLoops.size);
 
     const startTimes = new Set(placedLoops.map(loop => Math.floor(loop.startTime)));
     const hasLayering = startTimes.size >= 3 && placedLoops.length >= 5;
-    console.log('Layering check:', hasLayering, 'Unique start times:', startTimes.size);
 
     const hasStructure = placedLoops.length >= 5;
-    console.log('Structure check:', hasStructure);
 
     const newRequirements = {
       instrumentation: hasInstrumentation,
@@ -176,17 +247,15 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
       structure: hasStructure
     };
     
-    console.log('Requirements updated:', newRequirements);
     setRequirements(newRequirements);
   };
 
   const handleLoopPlaced = (loopData, trackIndex, startTime) => {
     console.log('Loop placed callback received:', loopData, trackIndex, startTime);
     
-    // ONLY restrict to Mysterious in non-exploration mode
     if (!isExplorationMode && loopData.mood !== 'Mysterious') {
       console.warn('Rejected non-Mysterious loop:', loopData.category);
-      setSaveMessage('[Error] Only Mysterious loops allowed!');
+      setSaveMessage('❌ Only Mysterious loops allowed!');
       setTimeout(() => setSaveMessage(''), 2000);
       return;
     }
@@ -206,16 +275,13 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
     };
     
     setPlacedLoops(prev => [...prev, newLoop]);
-    console.log('Loop added to state:', newLoop);
   };
 
   const handleLoopDeleted = (loopId) => {
-    console.log('Loop deleted callback received:', loopId);
     setPlacedLoops(prev => prev.filter(loop => loop.id !== loopId));
   };
 
   const handleLoopUpdated = (loopId, updates) => {
-    console.log('Loop updated callback received:', loopId, updates);
     setPlacedLoops(prev => prev.map(loop =>
       loop.id === loopId ? { ...loop, ...updates } : loop
     ));
@@ -239,7 +305,6 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
     localStorage.setItem('school-beneath-composition', JSON.stringify(saveData));
     setSaveMessage('✓ Progress saved!');
     setTimeout(() => setSaveMessage(''), 2000);
-    console.log('Saved composition:', saveData);
   };
 
   const handleAutoSave = () => {
@@ -251,28 +316,26 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
     };
     
     localStorage.setItem('school-beneath-composition', JSON.stringify(saveData));
-    console.log('Auto-saved composition:', saveData);
   };
 
+  // NEW: Enhanced submit handler with modal flow
   const handleSubmitActivity = () => {
     if (hasSubmittedRef.current) return;
     
-    const saveData = {
-      placedLoops,
-      requirements,
-      videoDuration,
-      timestamp: Date.now()
-    };
-    
-    localStorage.setItem('school-beneath-composition', JSON.stringify(saveData));
-    console.log('Submitted composition:', saveData);
+    // Save the main composition using the utility function
+    saveComposition(placedLoops, requirements, videoDuration);
+    console.log('Submitted composition with saveComposition()');
     
     hasSubmittedRef.current = true;
-    setSaveMessage('✓ Submitted!');
     
-    // Switch to exploration mode
-    setIsExplorationMode(true);
-    setPlacedLoops([]);
+    // Show submit success modal
+    setShowSubmitSuccessModal(true);
+    
+    // Speak the success message
+    if (!hasAnnouncedSubmitRef.current) {
+      hasAnnouncedSubmitRef.current = true;
+      speakMessage("Your work has been saved in the main menu. Now you have bonus time until the reflection activity. All loops have been unlocked. Let's hear how adding the scary, heroic, or upbeat loops give the video a different feeling with the time you have left.");
+    }
   };
 
   const allRequirementsMet = requirements.instrumentation && 
@@ -290,31 +353,31 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
     );
   }
 
-  // Create assignment panel content to pass to MusicComposer
+  // Assignment panel content
   const assignmentPanelContent = !viewMode && !isExplorationMode ? (
     <div className="h-full bg-gray-800 text-white p-2 flex flex-col gap-2 overflow-y-auto">
-      {/* Save/Submit Buttons at Top */}
+      {/* Save/Submit Buttons */}
       <div className="flex flex-col gap-1">
         <button
           onClick={handleSaveProgress}
           className="w-full px-3 py-1 text-xs rounded font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
         >
-          Save
+          Save Progress
         </button>
         <button
           onClick={handleSubmitActivity}
           disabled={!allRequirementsMet}
-          className={`w-full px-3 py-1 text-xs rounded font-medium transition-colors ${
+          className={`w-full px-3 py-1 text-xs rounded font-medium transition-all ${
             allRequirementsMet
-              ? 'bg-green-600 hover:bg-green-700 text-white'
+              ? 'bg-green-600 hover:bg-green-700 text-white animate-pulse shadow-lg shadow-green-500/50'
               : 'bg-gray-600 text-gray-400 cursor-not-allowed'
           }`}
         >
-          Submit
+          {allRequirementsMet ? '✓ Save & Submit' : 'Submit (Complete Requirements)'}
         </button>
       </div>
 
-      {/* Composition Assignment - 2x Smaller */}
+      {/* Assignment Requirements */}
       <div>
         <h3 className="font-bold text-[10px] mb-1">Composition Assignment</h3>
       </div>
@@ -400,9 +463,126 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
 
   return (
     <div className="h-full flex flex-col bg-gray-900">
-      {/* Exploration Mode Minimizable Modal */}
+      {/* MODAL 1: "Aha Moment" - All Requirements Met */}
+      {showAhaMomentModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[200]">
+          <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl shadow-2xl max-w-md w-full mx-4 border-2 border-green-400">
+            <div className="bg-gradient-to-r from-green-500 to-blue-500 px-6 py-3 rounded-t-xl">
+              <h2 className="text-2xl font-bold text-white text-center">
+                🎉 Great Job!
+              </h2>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <p className="text-gray-800 text-center font-semibold text-lg">
+                You've completed all the requirements!
+              </p>
+              
+              <div className="space-y-2 bg-white rounded-lg p-4 border border-green-300">
+                <div className="flex items-center gap-2 text-green-700">
+                  <span className="text-lg">✓</span>
+                  <span className="font-medium">Instrumentation - 5+ Mysterious loops</span>
+                </div>
+                <div className="flex items-center gap-2 text-green-700">
+                  <span className="text-lg">✓</span>
+                  <span className="font-medium">Layering - Different start times</span>
+                </div>
+                <div className="flex items-center gap-2 text-green-700">
+                  <span className="text-lg">✓</span>
+                  <span className="font-medium">Structure - Proper alignment</span>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <p className="text-gray-700 font-medium mb-2">
+                  Your composition is ready to submit!
+                </p>
+                <p className="text-sm text-gray-600">
+                  Click the <span className="font-bold text-green-600">"Save & Submit"</span> button 
+                  in the left panel to save your work and unlock bonus exploration time.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowAhaMomentModal(false)}
+                className="w-full py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold rounded-lg hover:from-green-600 hover:to-blue-600 transition-all shadow-lg"
+              >
+                Got It!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: "Submit Success" - Transition to Exploration */}
+      {showSubmitSuccessModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[200]">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 border-2 border-green-400">
+            <div className="bg-gradient-to-r from-green-500 to-blue-500 px-6 py-4 rounded-t-xl">
+              <h2 className="text-3xl font-bold text-white text-center">
+                🎉 Assignment Submitted!
+              </h2>
+            </div>
+            
+            <div className="p-8 space-y-5 text-center">
+              <div className="text-5xl animate-bounce">
+                ✓
+              </div>
+
+              <p className="text-xl text-gray-800 font-semibold">
+                Your work has been saved in the main menu.
+              </p>
+
+              <div className="bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-300 rounded-lg p-5">
+                <p className="text-lg text-gray-700 font-medium mb-2">
+                  Now you have <span className="text-green-600 font-bold">BONUS TIME</span> until the reflection activity!
+                </p>
+                <p className="text-md text-gray-600">
+                  🔓 All loops have been unlocked!
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="font-semibold text-gray-800 mb-3">💡 Try adding:</div>
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div className="bg-white rounded p-2 border border-yellow-300">
+                    <div className="text-2xl mb-1">⭐</div>
+                    <div className="font-medium text-gray-700">Heroic</div>
+                    <div className="text-xs text-gray-500">Adventure feel</div>
+                  </div>
+                  <div className="bg-white rounded p-2 border border-purple-300">
+                    <div className="text-2xl mb-1">👻</div>
+                    <div className="font-medium text-gray-700">Scary</div>
+                    <div className="text-xs text-gray-500">Extra suspense</div>
+                  </div>
+                  <div className="bg-white rounded p-2 border border-pink-300">
+                    <div className="text-2xl mb-1">🎊</div>
+                    <div className="font-medium text-gray-700">Upbeat</div>
+                    <div className="text-xs text-gray-500">Different mood</div>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-gray-600 italic">
+                Let's hear how different loops give the video a completely different feeling!
+              </p>
+
+              <div className="mt-6 bg-gray-100 rounded-lg p-4">
+                <p className="text-sm text-gray-600 font-medium">
+                  Starting Exploration Mode in
+                </p>
+                <p className="text-4xl font-bold text-green-600 mt-2">
+                  {submitCountdown}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Exploration Mode Minimizable Modal (existing) */}
       {isExplorationMode && !isMinimizedModal && (
-        <div className="fixed top-16 right-4 z-50 w-80 bg-white rounded-lg shadow-2xl flex flex-col max-h-96 border-2 border-green-500">
+        <div className="fixed top-16 right-4 z-[200] w-80 bg-white rounded-lg shadow-2xl flex flex-col max-h-96 border-2 border-green-500">
           <div className="bg-gradient-to-r from-green-500 to-blue-500 px-3 py-2 rounded-t-lg flex items-center justify-between flex-shrink-0">
             <div className="text-white font-bold text-sm">
               <span>Bonus Exploration</span>
@@ -410,13 +590,9 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
             <button
               onClick={() => setIsMinimizedModal(!isMinimizedModal)}
               className="text-white hover:bg-white/20 p-1 rounded transition-colors"
-              title={isMinimizedModal ? "Expand" : "Minimize"}
+              title="Minimize"
             >
-              {isMinimizedModal ? (
-                <Maximize2 size={16} />
-              ) : (
-                <Minimize2 size={16} />
-              )}
+              <Minimize2 size={16} />
             </button>
           </div>
           
@@ -457,11 +633,10 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
         </div>
       )}
 
-      {/* Activity Header - Shows content in sandbox mode, empty in lesson mode */}
+      {/* Activity Header */}
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">
         <div className="px-4 py-2">
           <div className="flex items-center justify-between gap-3">
-            {/* Show content only if NOT in lesson mode (standalone/sandbox) */}
             {!lessonStartTime ? (
               <>
                 <h2 className="text-sm font-bold whitespace-nowrap">
@@ -491,7 +666,6 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
                 </div>
               </>
             ) : (
-              // Empty when in lesson mode (behind navigation header)
               <div></div>
             )}
           </div>
