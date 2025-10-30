@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { ClassProvider } from './context/ClassContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { SessionProvider } from './context/SessionContext';
 
 // Import styles - including snap guide styles
 import './App.css';
@@ -31,6 +32,12 @@ import TeacherSubmissionViewer from './components/dashboard/teacherdashboard/Tea
 // Import lesson components
 import SimpleLessonPlaceholder from './lessons/components/LessonPlayer';
 import Lesson1 from './lessons/film-music-project/lesson1/Lesson1';
+
+// Import presentation view
+import PresentationView from './components/PresentationView';
+
+// Import session start page
+import SessionStartPage from './pages/SessionStartPage';
 
 // Add global styles for snap guide
 const snapGuideStyles = `
@@ -143,8 +150,15 @@ const AppContent = () => {
   // IF CLASSROOM MODE, SHOW ONLY CLASSROOM ROUTES
   if (isClassroomMode) {
     return (
-      <Routes>
+      <SessionProvider>
+        <Routes>
         <Route path="/" element={<MusicClassroomResources />} />
+        
+        {/* Session Start Page - Shows session code before starting lesson */}
+        <Route path="/session-start" element={<SessionStartPage />} />
+        
+        {/* Presentation View Route - NO AUTHENTICATION REQUIRED */}
+        <Route path="/presentation" element={<PresentationView />} />
         
         {/* Allow access to lessons without authentication in classroom mode */}
         <Route path="/lessons/film-music-project/lesson1" element={<Lesson1 />} />
@@ -159,12 +173,14 @@ const AppContent = () => {
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </SessionProvider>
     );
   }
 
   // OTHERWISE, SHOW COMMERCIAL SITE (all your existing routes)
   return (
-    <ClassProvider>
+    <SessionProvider>
+      <ClassProvider>
       {toast && (
         <div 
           className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${
@@ -186,6 +202,12 @@ const AppContent = () => {
       <Routes>
         {/* PUBLIC ROUTES */}
         <Route path="/login" element={<AuthPage />} />
+        
+        {/* Session Start Page - Available in commercial mode */}
+        <Route path="/session-start" element={<SessionStartPage />} />
+        
+        {/* Presentation View Route - Available in commercial mode too */}
+        <Route path="/presentation" element={<PresentationView />} />
         
         {/* DYNAMIC ROOT ROUTE */}
         <Route path="/" element={
@@ -351,6 +373,7 @@ const AppContent = () => {
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </ClassProvider>
+    </SessionProvider>
   );
 };
 

@@ -1,15 +1,19 @@
 // File: /src/lessons/film-music-project/lesson1/Lesson1.jsx
 // Complete lesson with navigation tools for teachers and lesson timer
+// UPDATED: Now supports Nearpod-style session mode
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Home, Play, CheckCircle, X, Menu, SkipForward, RotateCcw } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
+import { useSession } from '../../../context/SessionContext';
 import VideoPlayer from '../../components/activities/video/VideoPlayer';
 import DAWTutorialActivity from './activities/daw-tutorial/DAWTutorialActivity';
 import SchoolBeneathActivity from './activities/SchoolBeneathActivity';
 import TwoStarsAndAWishActivity from './activities/two-stars-and-a-wish/TwoStarsAndAWishActivity';
 import SoundEffectsActivity from './activities/SoundEffectsActivity';
+import TeacherControlPanel from '../../../components/TeacherControlPanel';
+import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 
 const LESSON_PROGRESS_KEY = 'lesson1-progress';
 const LESSON_TIMER_KEY = 'lesson1-timer';
@@ -18,6 +22,20 @@ const Lesson1 = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { 
+    startSession, 
+    joinSession, 
+    getCurrentStage, 
+    setCurrentStage,
+    getStudents,
+    getProgressStats,
+    endSession,
+    markActivityComplete,
+    isInSession,
+    userRole: sessionRole,
+    sessionCode
+  } = useSession();
+  
   const [currentActivity, setCurrentActivity] = useState(0);
   const [lessonStarted, setLessonStarted] = useState(false);
   const [activityCompleted, setActivityCompleted] = useState({});
@@ -25,12 +43,26 @@ const Lesson1 = () => {
   const [savedProgress, setSavedProgress] = useState(null);
   const [navToolsEnabled, setNavToolsEnabled] = useState(false);
   const [lessonStartTime, setLessonStartTime] = useState(null);
+  const [sessionMode, setSessionMode] = useState(false);
+  const [sessionInitialized, setSessionInitialized] = useState(false);
+  
+  // Individual activity timers
+  const [activityTimers, setActivityTimers] = useState({
+    'daw-tutorial': { preset: 5, current: 0, isRunning: false },
+    'school-beneath': { preset: 10, current: 0, isRunning: false },
+    'reflection': { preset: 5, current: 0, isRunning: false }
+  });
 
   // Check if viewing saved work or reflection
   const searchParams = new URLSearchParams(location.search);
   const viewSavedMode = searchParams.get('view') === 'saved';
   const viewBonusMode = searchParams.get('view') === 'bonus';
   const viewReflectionMode = searchParams.get('view') === 'reflection';
+  
+  // Session mode detection
+  const urlSessionCode = searchParams.get('session');
+  const urlRole = searchParams.get('role');
+  const isSessionMode = !!(urlSessionCode && urlRole);
 
   // Determine if user can access navigation tools
   const isDevelopment = import.meta.env.DEV;
@@ -43,6 +75,26 @@ const Lesson1 = () => {
   // - Development environment (always, for debugging)
   // NOT available for students in production
   const canAccessNavTools = isTeacher || isDevelopment;
+  
+  // Initialize session on mount if session params exist
+  useEffect(() => {
+    if (isSessionMode && !sessionInitialized) {
+      console.log('Session mode detected:', { urlSessionCode, urlRole });
+      
+      if (urlRole === 'teacher') {
+        startSession(urlSessionCode, 'teacher');
+        console.log('Teacher session started:', urlSessionCode);
+      } else if (urlRole === 'student') {
+        const studentId = localStorage.getItem('classroom-user-id') || 'student-' + Date.now();
+        const studentName = localStorage.getItem('classroom-username') || 'Student';
+        joinSession(urlSessionCode, studentId, studentName);
+        console.log('Student joining session:', { urlSessionCode, studentId, studentName });
+      }
+      
+      setSessionMode(true);
+      setSessionInitialized(true);
+    }
+  }, [isSessionMode, sessionInitialized, urlSessionCode, urlRole, startSession, joinSession]);
 
   // COMPLETE LESSON CONFIGURATION
   const lesson1Config = {
@@ -93,6 +145,63 @@ const Lesson1 = () => {
       }
     ]
   };
+  
+  // Session stages for TeacherControlPanel
+  const lessonStages = [
+    { 
+      id: 'locked', 
+      label: 'Join with Class Code', 
+      description: 'Students enter session code',
+      type: 'waiting'
+    },
+    { 
+      id: 'intro-video', 
+      label: 'Start Introduction Video', 
+      description: 'Lesson intro video', 
+      hasProgress: false,
+      type: 'video',
+      duration: '3:00'
+    },
+    { 
+      id: 'daw-tutorial', 
+      label: 'Unlock DAW Tutorial', 
+      description: 'Interactive DAW basics', 
+      hasProgress: true,
+      type: 'activity',
+      recommendedMinutes: 5
+    },
+    { 
+      id: 'activity-intro', 
+      label: 'Activity Introduction Video', 
+      description: 'Activity introduction video', 
+      hasProgress: false,
+      type: 'video',
+      duration: '2:00'
+    },
+    { 
+      id: 'school-beneath', 
+      label: 'Unlock School Beneath', 
+      description: 'The School Beneath composition', 
+      hasProgress: true,
+      type: 'activity',
+      recommendedMinutes: 10
+    },
+    { 
+      id: 'reflection', 
+      label: 'Unlock Reflection', 
+      description: 'Two Stars and a Wish', 
+      hasProgress: true,
+      type: 'activity',
+      recommendedMinutes: 5
+    },
+    { 
+      id: 'sound-effects', 
+      label: 'Unlock Bonus: Sound Effects', 
+      description: 'Add sound effects', 
+      hasProgress: true,
+      type: 'bonus'
+    }
+  ];
 
   // Load saved progress on mount
   useEffect(() => {
@@ -189,6 +298,21 @@ const Lesson1 = () => {
     }
   }, [user, navigate]);
 
+  // Open presentation view in new window for projection
+  const openPresentationView = () => {
+    const presentationUrl = `/presentation?session=${sessionCode}`;
+    console.log('🎬 Opening presentation view:', presentationUrl);
+    
+    const popup = window.open(presentationUrl, 'PresentationView', 'width=1920,height=1080,menubar=no,toolbar=no,location=no');
+    
+    if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+      alert('Popup blocked! Please allow popups for this site and try again.');
+      console.error('❌ Popup was blocked');
+    } else {
+      console.log('✅ Presentation view opened successfully');
+    }
+  };
+
   const handleActivityComplete = useCallback(() => {
     console.log('Activity complete, moving to next activity');
     
@@ -266,12 +390,540 @@ const Lesson1 = () => {
     }
   }, [currentActivity, skipToActivity, lesson1Config.activities.length]);
 
+  // Timer format helper
+  const formatTime = useCallback((seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }, []);
+
+  // Activity Timer Controls
+  const adjustPresetTime = useCallback((activityId, delta) => {
+    setActivityTimers(prev => ({
+      ...prev,
+      [activityId]: {
+        ...prev[activityId],
+        preset: Math.max(1, Math.min(60, prev[activityId].preset + delta))
+      }
+    }));
+  }, []);
+
+  const startActivityTimer = useCallback((activityId) => {
+    const preset = activityTimers[activityId].preset;
+    const seconds = preset * 60;
+    
+    setActivityTimers(prev => ({
+      ...prev,
+      [activityId]: {
+        ...prev[activityId],
+        current: seconds,
+        isRunning: true
+      }
+    }));
+
+    // Update Firebase
+    if (sessionCode) {
+      import('firebase/database').then(({ getDatabase, ref, set: firebaseSet }) => {
+        const db = getDatabase();
+        const sessionRef = ref(db, `sessions/${sessionCode}`);
+        
+        firebaseSet(sessionRef, {
+          currentStage: getCurrentStage ? getCurrentStage() : 'locked',
+          countdownTime: seconds,
+          timestamp: Date.now()
+        });
+      });
+    }
+  }, [activityTimers, sessionCode, getCurrentStage]);
+
+  const pauseActivityTimer = useCallback((activityId) => {
+    setActivityTimers(prev => ({
+      ...prev,
+      [activityId]: {
+        ...prev[activityId],
+        isRunning: false
+      }
+    }));
+  }, []);
+
+  const resumeActivityTimer = useCallback((activityId) => {
+    setActivityTimers(prev => ({
+      ...prev,
+      [activityId]: {
+        ...prev[activityId],
+        isRunning: true
+      }
+    }));
+  }, []);
+
+  const resetActivityTimer = useCallback((activityId) => {
+    setActivityTimers(prev => ({
+      ...prev,
+      [activityId]: {
+        ...prev[activityId],
+        current: 0,
+        isRunning: false
+      }
+    }));
+
+    // Update Firebase to clear timer
+    if (sessionCode) {
+      import('firebase/database').then(({ getDatabase, ref, set: firebaseSet }) => {
+        const db = getDatabase();
+        const sessionRef = ref(db, `sessions/${sessionCode}`);
+        
+        firebaseSet(sessionRef, {
+          currentStage: getCurrentStage ? getCurrentStage() : 'locked',
+          countdownTime: 0,
+          timestamp: Date.now()
+        });
+      });
+    }
+  }, [sessionCode, getCurrentStage]);
+
+  // Activity timer countdown effect
+  useEffect(() => {
+    const intervals = [];
+    
+    Object.keys(activityTimers).forEach(activityId => {
+      const timer = activityTimers[activityId];
+      
+      if (timer.isRunning && timer.current > 0) {
+        const interval = setInterval(() => {
+          setActivityTimers(prev => {
+            const newCurrent = prev[activityId].current - 1;
+            
+            // Time's up!
+            if (newCurrent <= 0) {
+              // Show alert
+              setTimeout(() => {
+                alert(`⏰ Time's Up for ${activityId}! Students can continue working.`);
+              }, 100);
+              
+              // Play notification
+              if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('Time\'s Up!', {
+                  body: `${activityId} timer has finished.`
+                });
+              }
+              
+              return {
+                ...prev,
+                [activityId]: {
+                  ...prev[activityId],
+                  current: 0,
+                  isRunning: false
+                }
+              };
+            }
+            
+            // Update Firebase
+            if (sessionCode) {
+              import('firebase/database').then(({ getDatabase, ref, set: firebaseSet }) => {
+                const db = getDatabase();
+                const sessionRef = ref(db, `sessions/${sessionCode}`);
+                
+                firebaseSet(sessionRef, {
+                  currentStage: getCurrentStage ? getCurrentStage() : 'locked',
+                  countdownTime: newCurrent,
+                  timestamp: Date.now()
+                });
+              });
+            }
+            
+            return {
+              ...prev,
+              [activityId]: {
+                ...prev[activityId],
+                current: newCurrent
+              }
+            };
+          });
+        }, 1000);
+        
+        intervals.push(interval);
+      }
+    });
+    
+    return () => intervals.forEach(interval => clearInterval(interval));
+  }, [activityTimers, sessionCode, getCurrentStage]);
+
+  // Auto-start timer when activity stage is unlocked
+  useEffect(() => {
+    if (!getCurrentStage) return;
+    
+    const currentStageId = getCurrentStage();
+    const currentStageData = lessonStages.find(s => s.id === currentStageId);
+    
+    // If this is an activity stage with a recommended time, auto-start the timer
+    if (currentStageData?.type === 'activity' && currentStageData.recommendedMinutes) {
+      const timer = activityTimers[currentStageId];
+      
+      // Only auto-start if timer hasn't been started yet (current is 0 and not running)
+      if (timer && timer.current === 0 && !timer.isRunning) {
+        console.log('Auto-starting timer for', currentStageId);
+        startActivityTimer(currentStageId);
+      }
+    }
+  }, [getCurrentStage, lessonStages, activityTimers, startActivityTimer]);
+
   const currentActivityData = lesson1Config.activities[currentActivity];
   const isLessonComplete = currentActivity >= lesson1Config.activities.length;
   const progressPercent = ((currentActivity + 1) / lesson1Config.activities.length) * 100;
+  
+  // Helper function: Map session stage to activity type
+  const getActivityForStage = (stage) => {
+    const stageMap = {
+      'intro-video': 'video',
+      'daw-tutorial': 'daw-tutorial',
+      'activity-intro': 'video',
+      'school-beneath': 'school-beneath-activity',
+      'reflection': 'two-stars-wish',
+      'sound-effects': 'sound-effects'
+    };
+    return stageMap[stage];
+  };
+  
+  // Helper function: Get current stage for students
+  const currentStage = isSessionMode && sessionRole === 'student' ? getCurrentStage() : null;
+  
+  // Helper function: Determine what student should see
+  const getStudentView = () => {
+    if (!currentStage || currentStage === 'locked') {
+      return 'locked';
+    }
+    return getActivityForStage(currentStage);
+  };
+  
+  // Helper: Handle activity completion in session mode
+  const handleSessionActivityComplete = useCallback((activityId) => {
+    if (sessionRole === 'student') {
+      markActivityComplete(activityId, 'completed');
+      console.log('Student marked activity complete:', activityId);
+    }
+  }, [sessionRole, markActivityComplete]);
 
   return (
     <div className="min-h-screen bg-gray-900 relative overflow-hidden">
+      {/* SESSION MODE: Student View */}
+      {isSessionMode && sessionRole === 'student' && (
+        <>
+          {getStudentView() === 'locked' ? (
+            <StudentWaitingScreen />
+          ) : (
+            <div className="h-screen flex flex-col">
+              {/* Render ONLY the current unlocked activity */}
+              <div className="flex-1 overflow-hidden">
+                {/* STUDENTS SKIP INTRO VIDEO - Teacher plays on projector */}
+                
+                {getStudentView() === 'daw-tutorial' && (
+                  <DAWTutorialActivity 
+                    onComplete={() => handleSessionActivityComplete('daw-tutorial')}
+                    navToolsEnabled={false}
+                    canAccessNavTools={false}
+                    lessonStartTime={lessonStartTime}
+                  />
+                )}
+                
+                {/* STUDENTS SKIP ACTIVITY INTRO VIDEO - Teacher plays on projector */}
+                
+                {getStudentView() === 'school-beneath-activity' && (
+                  <SchoolBeneathActivity 
+                    onComplete={() => handleSessionActivityComplete('school-beneath')}
+                    viewMode={false}
+                    lessonStartTime={lessonStartTime}
+                  />
+                )}
+                
+                {getStudentView() === 'two-stars-wish' && (
+                  <TwoStarsAndAWishActivity 
+                    onComplete={() => handleSessionActivityComplete('reflection')}
+                    viewMode={false}
+                  />
+                )}
+                
+                {getStudentView() === 'sound-effects' && (
+                  <SoundEffectsActivity 
+                    onComplete={() => handleSessionActivityComplete('sound-effects')}
+                    viewMode={false}
+                    lessonStartTime={lessonStartTime}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+      
+      {/* SESSION MODE: Teacher View - Clean Control Panel Only */}
+      {isSessionMode && sessionRole === 'teacher' && (
+        <div className="h-screen flex flex-col bg-gray-100">
+          {/* Header */}
+          <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">{lesson1Config.title}</h1>
+              <p className="text-sm text-gray-600 mb-4">Teacher Control Panel • Session: {sessionCode}</p>
+              <button
+                onClick={openPresentationView}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold shadow-lg hover:shadow-xl inline-flex items-center space-x-3 text-lg"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span>Open Presentation View</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Control Panel Content - Inline (Not Floating Modal) */}
+          <div className="flex-1 overflow-auto p-6">
+            <div className="max-w-4xl mx-auto">
+              {/* Session Info Card */}
+              <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-800">Session Information</h2>
+                    <p className="text-sm text-gray-600 mt-1">Control your live lesson from here</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-gray-500">Session Code</div>
+                    <div className="text-3xl font-black text-blue-600 tracking-wider font-mono">{sessionCode}</div>
+                  </div>
+                </div>
+                
+                {/* Students Joined */}
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-gray-700">Students Joined</span>
+                    <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                      {getCurrentStage ? (getStudents ? getStudents().length : 0) : 0}
+                    </span>
+                  </div>
+                  {getCurrentStage && getStudents && getStudents().length === 0 ? (
+                    <p className="text-sm text-gray-600 text-center py-2">Waiting for students to join...</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {getCurrentStage && getStudents && getStudents().map(student => (
+                        <span key={student.id} className="bg-white px-3 py-1 rounded-full text-sm text-gray-700 border border-blue-200">
+                          {student.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Lesson Control Panel - Redesigned with Inline Timers */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-xl font-bold text-gray-800 mb-6">Lesson Control</h2>
+                
+                <div className="space-y-3">
+                  {lessonStages.map((stage, index) => {
+                    const isCurrent = getCurrentStage && stage.id === getCurrentStage();
+                    const currentStageIndex = getCurrentStage ? lessonStages.findIndex(s => s.id === getCurrentStage()) : -1;
+                    const isPast = index < currentStageIndex;
+                    const timer = activityTimers[stage.id];
+
+                    return (
+                      <div key={stage.id} className="relative">
+                        <div className={`
+                          w-full p-4 rounded-lg transition-all flex items-center justify-between
+                          ${isCurrent 
+                            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg' 
+                            : isPast 
+                              ? 'bg-gray-100 text-gray-600' 
+                              : 'bg-white border-2 border-gray-200'
+                          }
+                        `}>
+                          {/* Left Side: Stage Info and Button */}
+                          <button
+                            onClick={() => setCurrentStage && setCurrentStage(stage.id)}
+                            disabled={isCurrent}
+                            className={`flex items-center gap-3 flex-1 text-left ${isCurrent ? 'cursor-default' : 'cursor-pointer'}`}
+                          >
+                            {/* Number/Icon */}
+                            <div className={`
+                              flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
+                              ${isCurrent 
+                                ? 'bg-white text-blue-600' 
+                                : isPast 
+                                  ? 'bg-green-100 text-green-600' 
+                                  : 'bg-gray-100 text-gray-400'
+                              }
+                            `}>
+                              {isCurrent ? '▶' : isPast ? '✓' : index + 1}
+                            </div>
+                            
+                            {/* Label */}
+                            <div className="flex-1">
+                              <div className="font-semibold">{stage.label}</div>
+                              {stage.description && (
+                                <div className={`text-xs mt-0.5 ${isCurrent ? 'text-blue-100' : 'text-gray-500'}`}>
+                                  {stage.description}
+                                </div>
+                              )}
+                            </div>
+                          </button>
+
+                          {/* Right Side: Timer Controls */}
+                          <div className="flex items-center gap-2 ml-4">
+                            {/* Video Duration (Static) */}
+                            {stage.type === 'video' && (
+                              <div className={`text-sm font-mono ${isCurrent ? 'text-blue-100' : 'text-gray-500'}`}>
+                                Duration: {stage.duration}
+                              </div>
+                            )}
+
+                            {/* Activity Timer Controls */}
+                            {stage.type === 'activity' && timer && (
+                              <div className="flex items-center gap-2">
+                                {!timer.isRunning && timer.current === 0 ? (
+                                  // Before starting
+                                  <>
+                                    <button
+                                      onClick={() => adjustPresetTime(stage.id, -1)}
+                                      className={`w-7 h-7 rounded flex items-center justify-center font-bold ${
+                                        isCurrent ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                                      }`}
+                                    >
+                                      −
+                                    </button>
+                                    <div className={`w-16 text-center font-mono font-bold ${
+                                      isCurrent ? 'text-white' : 'text-gray-800'
+                                    }`}>
+                                      {timer.preset}:00
+                                    </div>
+                                    <button
+                                      onClick={() => adjustPresetTime(stage.id, 1)}
+                                      className={`w-7 h-7 rounded flex items-center justify-center font-bold ${
+                                        isCurrent ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                                      }`}
+                                    >
+                                      +
+                                    </button>
+                                    <button
+                                      onClick={() => startActivityTimer(stage.id)}
+                                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded font-semibold text-sm transition-all"
+                                    >
+                                      Start Timer
+                                    </button>
+                                  </>
+                                ) : timer.isRunning ? (
+                                  // Timer running
+                                  <>
+                                    <div className={`w-20 text-center font-mono font-bold text-lg ${
+                                      timer.current <= 60 ? 'text-red-400 animate-pulse' : isCurrent ? 'text-white' : 'text-blue-600'
+                                    }`}>
+                                      {formatTime(timer.current)}
+                                    </div>
+                                    <button
+                                      onClick={() => pauseActivityTimer(stage.id)}
+                                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded font-semibold text-sm transition-all"
+                                    >
+                                      Pause
+                                    </button>
+                                    <button
+                                      onClick={() => resetActivityTimer(stage.id)}
+                                      className={`px-3 py-1.5 rounded font-semibold text-sm transition-all ${
+                                        isCurrent ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                                      }`}
+                                    >
+                                      Reset
+                                    </button>
+                                  </>
+                                ) : (
+                                  // Paused or finished
+                                  <>
+                                    <div className={`w-20 text-center font-mono font-bold text-lg ${
+                                      timer.current === 0 ? 'text-red-500' : isCurrent ? 'text-white' : 'text-blue-600'
+                                    }`}>
+                                      {formatTime(timer.current)}
+                                    </div>
+                                    {timer.current > 0 && (
+                                      <button
+                                        onClick={() => resumeActivityTimer(stage.id)}
+                                        className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded font-semibold text-sm transition-all"
+                                      >
+                                        Resume
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={() => resetActivityTimer(stage.id)}
+                                      className={`px-3 py-1.5 rounded font-semibold text-sm transition-all ${
+                                        isCurrent ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                                      }`}
+                                    >
+                                      Reset
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Bonus/No Timer */}
+                            {stage.type === 'bonus' && (
+                              <div className={`text-sm italic ${isCurrent ? 'text-blue-100' : 'text-gray-500'}`}>
+                                No time limit
+                              </div>
+                            )}
+
+                            {/* Waiting Screen */}
+                            {stage.type === 'waiting' && isCurrent && (
+                              <div className="text-sm font-mono bg-white/20 px-3 py-1 rounded text-white">
+                                Code: {sessionCode}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Progress Stats */}
+                        {isCurrent && stage.hasProgress && getProgressStats && (
+                          <div className="mt-2 ml-11 bg-blue-50 rounded-lg p-3 text-sm">
+                            {(() => {
+                              const stats = getProgressStats(stage.id.replace('-unlocked', ''));
+                              return stats ? (
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-700">
+                                    Progress: <strong className="text-blue-600">{stats.completed}/{stats.total}</strong> completed
+                                  </span>
+                                  {stats.working > 0 && (
+                                    <span className="text-blue-600 text-xs">
+                                      {stats.working} currently working
+                                    </span>
+                                  )}
+                                </div>
+                              ) : null;
+                            })()}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* End Session Button */}
+                <div className="mt-8 pt-6 border-t-2 border-gray-200">
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to end this session? All students will be disconnected.')) {
+                        endSession && endSession();
+                        window.location.href = '/';
+                      }
+                    }}
+                    className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                  >
+                    🔚 End Session
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* NON-SESSION MODE: Normal lesson flow - only show if NOT in session mode */}
+      {!isSessionMode && (
+        <>
       {/* Navigation Tools Toggle - Only for Teachers or Dev Mode */}
       {canAccessNavTools && lessonStarted && !viewSavedMode && !viewReflectionMode && (
         <button 
@@ -609,6 +1261,8 @@ const Lesson1 = () => {
           </div>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 };

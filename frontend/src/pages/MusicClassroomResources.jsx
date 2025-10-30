@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { staticProjects } from './CreateAssignmentPage';
+import { createSession, sessionExists } from '../firebase/config';
 
 function MusicClassroomResources() {
+  const navigate = useNavigate();
   const [loggedIn, setLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -9,6 +12,15 @@ function MusicClassroomResources() {
   const [savedBonusComposition, setSavedBonusComposition] = useState(null);
   const [savedReflection, setSavedReflection] = useState(null);
   const [dawStats, setDawStats] = useState(null);
+  
+  // Session state
+  const [sessionCodeInput, setSessionCodeInput] = useState('');
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [isJoiningSession, setIsJoiningSession] = useState(false);
+  const [sessionError, setSessionError] = useState('');
+  
+  // Get user role
+  const userRole = localStorage.getItem('classroom-user-role');
 
   // Check if already logged in on mount
   useEffect(() => {
@@ -23,10 +35,14 @@ function MusicClassroomResources() {
       setLoggedIn(true);
       localStorage.setItem('classroom-logged-in', 'true');
       localStorage.setItem('classroom-user-role', 'student');
+      localStorage.setItem('classroom-username', username); // Store username
+      localStorage.setItem('classroom-user-id', username);  // Store user ID
     } else if (username === 'teacher' && password === 'teach2025') {
       setLoggedIn(true);
       localStorage.setItem('classroom-logged-in', 'true');
       localStorage.setItem('classroom-user-role', 'teacher');
+      localStorage.setItem('classroom-username', 'Teacher'); // Store username
+      localStorage.setItem('classroom-user-id', 'teacher');  // Store user ID
     } else {
       alert('Wrong username or password');
     }
@@ -42,6 +58,52 @@ function MusicClassroomResources() {
     setDawStats(null);
     localStorage.removeItem('classroom-logged-in');
     localStorage.removeItem('classroom-user-role');
+  };
+
+  // TEACHER: Start a session - GO DIRECTLY TO CONTROL PANEL
+  const handleStartSession = async (lessonId) => {
+    setIsCreatingSession(true);
+    setSessionError('');
+    
+    try {
+      const code = await createSession('teacher', lessonId);
+      console.log('Session created with code:', code);
+      
+      // Go directly to lesson control panel (not session start page)
+      window.location.href = `/lessons/film-music-project/lesson1?session=${code}&role=teacher`;
+    } catch (error) {
+      console.error('Error creating session:', error);
+      setSessionError('Failed to create session. Please try again.');
+      setIsCreatingSession(false);
+    }
+  };
+
+  // STUDENT: Join a session
+  const handleJoinSession = async () => {
+    if (!sessionCodeInput || sessionCodeInput.length !== 4) {
+      setSessionError('Please enter a 4-digit code');
+      return;
+    }
+
+    setIsJoiningSession(true);
+    setSessionError('');
+
+    try {
+      const exists = await sessionExists(sessionCodeInput);
+      
+      if (!exists) {
+        setSessionError('Session not found. Check the code and try again.');
+        setIsJoiningSession(false);
+        return;
+      }
+
+      // Redirect to lesson in student mode
+      window.location.href = `/lessons/film-music-project/lesson1?session=${sessionCodeInput}&role=student`;
+    } catch (error) {
+      console.error('Error joining session:', error);
+      setSessionError('Failed to join session. Please try again.');
+      setIsJoiningSession(false);
+    }
   };
 
   // Load ALL saved data from localStorage when logged in
@@ -257,6 +319,103 @@ function MusicClassroomResources() {
         margin: '0 auto',
         padding: '40px 24px'
       }}>
+        {/* STUDENT: Join Session Box */}
+        {userRole === 'student' && (
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '24px',
+            marginBottom: '32px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            maxWidth: '600px'
+          }}>
+            <h2 style={{
+              fontSize: '20px',
+              fontWeight: '700',
+              color: '#1a202c',
+              marginBottom: '16px'
+            }}>
+              Join Live Session
+            </h2>
+            <p style={{
+              fontSize: '14px',
+              color: '#718096',
+              marginBottom: '16px'
+            }}>
+              Enter the 4-digit code from your teacher to join the lesson
+            </p>
+            
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+              <input
+                type="text"
+                placeholder="Enter code (e.g. 7284)"
+                value={sessionCodeInput}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                  setSessionCodeInput(value);
+                  setSessionError('');
+                }}
+                maxLength={4}
+                style={{
+                  flex: 1,
+                  padding: '12px 16px',
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  textAlign: 'center',
+                  letterSpacing: '4px',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '8px',
+                  outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#4299e1'}
+                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                onKeyPress={(e) => e.key === 'Enter' && handleJoinSession()}
+              />
+              <button
+                onClick={handleJoinSession}
+                disabled={isJoiningSession || sessionCodeInput.length !== 4}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  backgroundColor: sessionCodeInput.length === 4 && !isJoiningSession ? '#48bb78' : '#e2e8f0',
+                  color: sessionCodeInput.length === 4 && !isJoiningSession ? 'white' : '#a0aec0',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: sessionCodeInput.length === 4 && !isJoiningSession ? 'pointer' : 'not-allowed',
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => {
+                  if (sessionCodeInput.length === 4 && !isJoiningSession) {
+                    e.target.style.backgroundColor = '#38a169';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (sessionCodeInput.length === 4 && !isJoiningSession) {
+                    e.target.style.backgroundColor = '#48bb78';
+                  }
+                }}
+              >
+                {isJoiningSession ? 'Joining...' : 'Join'}
+              </button>
+            </div>
+            
+            {sessionError && (
+              <div style={{
+                marginTop: '12px',
+                padding: '12px',
+                backgroundColor: '#fed7d7',
+                color: '#742a2a',
+                borderRadius: '6px',
+                fontSize: '14px'
+              }}>
+                {sessionError}
+              </div>
+            )}
+          </div>
+        )}
+
         <div style={{ 
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
@@ -270,17 +429,7 @@ function MusicClassroomResources() {
               borderRadius: '12px',
               padding: '24px',
               boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              cursor: 'pointer'
-            }}
-            onClick={() => window.location.href = resource.url}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 8px 12px rgba(0,0,0,0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+              transition: 'transform 0.2s, box-shadow 0.2s'
             }}>
               <div style={{ marginBottom: '16px' }}>
                 <span style={{ 
@@ -312,27 +461,94 @@ function MusicClassroomResources() {
               }}>
                 {resource.description}
               </p>
-              <button style={{ 
-                padding: '10px 20px',
-                fontSize: '14px',
-                fontWeight: '600',
-                backgroundColor: '#4299e1',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s',
-                width: '100%'
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#3182ce'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#4299e1'}>
-                Open {resource.projectType === 'lesson' ? 'Lesson' : 'Project'}
-              </button>
+              
+              {/* TEACHER: Show two buttons */}
+              {userRole === 'teacher' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <button 
+                    onClick={() => handleStartSession(resource.id)}
+                    disabled={isCreatingSession}
+                    style={{ 
+                      padding: '10px 20px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      backgroundColor: isCreatingSession ? '#e2e8f0' : '#48bb78',
+                      color: isCreatingSession ? '#a0aec0' : 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: isCreatingSession ? 'not-allowed' : 'pointer',
+                      transition: 'background-color 0.2s',
+                      width: '100%'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isCreatingSession) e.target.style.backgroundColor = '#38a169';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isCreatingSession) e.target.style.backgroundColor = '#48bb78';
+                    }}
+                  >
+                    {isCreatingSession ? 'Creating Session...' : '🎯 Start Live Session'}
+                  </button>
+                  <button 
+                    onClick={() => window.location.href = resource.url}
+                    style={{ 
+                      padding: '10px 20px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      backgroundColor: '#4299e1',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s',
+                      width: '100%'
+                    }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#3182ce'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#4299e1'}
+                  >
+                    📖 Preview Lesson
+                  </button>
+                </div>
+              ) : (
+                /* STUDENT: Show regular open button */
+                <button 
+                  onClick={() => window.location.href = resource.url}
+                  style={{ 
+                    padding: '10px 20px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    backgroundColor: '#4299e1',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s',
+                    width: '100%'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#3182ce'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#4299e1'}
+                >
+                  Open {resource.projectType === 'lesson' ? 'Lesson' : 'Project'}
+                </button>
+              )}
+              
+              {sessionError && userRole === 'teacher' && (
+                <div style={{
+                  marginTop: '8px',
+                  padding: '8px',
+                  backgroundColor: '#fed7d7',
+                  color: '#742a2a',
+                  borderRadius: '6px',
+                  fontSize: '12px'
+                }}>
+                  {sessionError}
+                </div>
+              )}
             </div>
           ))}
         </div>
 
-        {/* Saved Work Section */}
+        {/* Saved Work Section - keeping all your existing code */}
         {(savedComposition || savedBonusComposition || savedReflection || dawStats) && (
           <div style={{ marginTop: '48px' }}>
             <h2 style={{ 
