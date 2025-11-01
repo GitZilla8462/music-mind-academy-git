@@ -1,11 +1,6 @@
 // File: /src/lessons/film-music-project/lesson1/activities/SchoolBeneathActivity.jsx
 // ENHANCED VERSION with Two-Modal Flow and Voice Announcements
-// NEW FEATURES:
-// 1. "Aha Moment" modal when requirements are met
-// 2. Voice announcement when requirements complete
-// 3. "Submit Success" modal with countdown
-// 4. Voice announcement for bonus exploration
-// 5. Auto-save bonus composition during exploration
+// UPDATED: isSessionMode prop to hide timer for students in session mode
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +10,13 @@ import { saveComposition, saveBonusComposition } from '../lessonStorageUtils';
 
 const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes in milliseconds
 
-const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = false, lessonStartTime }) => {
+const SchoolBeneathActivity = ({ 
+  onComplete, 
+  viewMode = false, 
+  viewBonusMode = false, 
+  lessonStartTime,
+  isSessionMode = false  // NEW: Hide timer in session mode
+}) => {
   const navigate = useNavigate();
   const [requirements, setRequirements] = useState({
     instrumentation: false,
@@ -87,9 +88,9 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
     }
   }, [viewMode, viewBonusMode]);
 
-  // Calculate time remaining and start countdown
+  // Calculate time remaining and start countdown - ONLY IN SELF-GUIDED MODE
   useEffect(() => {
-    if (!lessonStartTime || viewMode) return;
+    if (!lessonStartTime || viewMode || isSessionMode) return;  // NEW: Skip timer in session mode
 
     const calculateRemaining = () => {
       const elapsed = Date.now() - lessonStartTime;
@@ -122,7 +123,7 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
         clearInterval(timerRef.current);
       }
     };
-  }, [lessonStartTime, viewMode, onComplete]);
+  }, [lessonStartTime, viewMode, isSessionMode, onComplete]);  // NEW: Added isSessionMode to deps
 
   // Detect video duration on mount
   useEffect(() => {
@@ -437,17 +438,20 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
         </p>
       </div>
       
-      <div className="bg-gradient-to-br from-green-900/30 to-blue-900/30 border border-green-500 rounded-lg p-2">
-        <div className="text-[9px] text-gray-300 mb-1 font-semibold">
-          Time Remaining:
+      {/* Timer Display - ONLY SHOW IN SELF-GUIDED MODE */}
+      {!isSessionMode && (
+        <div className="bg-gradient-to-br from-green-900/30 to-blue-900/30 border border-green-500 rounded-lg p-2">
+          <div className="text-[9px] text-gray-300 mb-1 font-semibold">
+            Time Remaining:
+          </div>
+          <div className="text-xl font-bold text-green-400 mb-1">
+            {formatTime(timeRemaining)}
+          </div>
+          <div className="text-[9px] text-gray-400">
+            All loops unlocked!
+          </div>
         </div>
-        <div className="text-xl font-bold text-green-400 mb-1">
-          {formatTime(timeRemaining)}
-        </div>
-        <div className="text-[9px] text-gray-400">
-          All loops unlocked!
-        </div>
-      </div>
+      )}
 
       <div className="text-[9px] text-gray-300 bg-blue-900/30 border border-blue-500 rounded-lg p-2">
         <div className="font-semibold mb-1">💡 Try these:</div>
@@ -580,8 +584,8 @@ const SchoolBeneathActivity = ({ onComplete, viewMode = false, viewBonusMode = f
         </div>
       )}
 
-      {/* Exploration Mode Minimizable Modal (existing) */}
-      {isExplorationMode && !isMinimizedModal && (
+      {/* Exploration Mode Minimizable Modal (existing) - HIDE TIMER IN SESSION MODE */}
+      {isExplorationMode && !isMinimizedModal && !isSessionMode && (
         <div className="fixed top-16 right-4 z-[200] w-80 bg-white rounded-lg shadow-2xl flex flex-col max-h-96 border-2 border-green-500">
           <div className="bg-gradient-to-r from-green-500 to-blue-500 px-3 py-2 rounded-t-lg flex items-center justify-between flex-shrink-0">
             <div className="text-white font-bold text-sm">

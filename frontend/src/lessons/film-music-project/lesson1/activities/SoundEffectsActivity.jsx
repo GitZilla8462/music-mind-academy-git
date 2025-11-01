@@ -1,13 +1,18 @@
 // File: /src/lessons/film-music-project/lesson1/activities/SoundEffectsActivity.jsx
 // Bonus activity: Add sound effects to completed composition
-// UPDATED: Uses left panel structure (like SchoolBeneathActivity) with NO emojis
+// UPDATED: isSessionMode prop to hide timer for students in session mode
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
 import { Sparkles } from 'lucide-react';
 
-const SoundEffectsActivity = ({ onComplete, viewMode = false, lessonStartTime = null }) => {
+const SoundEffectsActivity = ({ 
+  onComplete, 
+  viewMode = false, 
+  lessonStartTime = null,
+  isSessionMode = false  // NEW: Hide timer in session mode
+}) => {
   const navigate = useNavigate();
   const [placedLoops, setPlacedLoops] = useState([]);
   const [videoDuration, setVideoDuration] = useState(null);

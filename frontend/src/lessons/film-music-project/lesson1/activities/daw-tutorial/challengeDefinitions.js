@@ -128,10 +128,10 @@ export const DAW_CHALLENGES = [
   {
     id: 9,
     section: "Navigation",
-    question: "Use the zoom controls on the right side of the page to change the timeline view.The zoom controls might be behind this orange challenge box.",
+    question: "Use the zoom controls on the right side of the page to zoom in and out. Drag the blue dot to the left and right to zoom in and out.",
     type: 'interactive-task',
-    instruction: "Click the + or - zoom buttons to change the timeline zoom level. They're on the right side of the screen - drag this box if you need to!",
-    hint: "The zoom buttons are on the right side of the timeline. If you can't see them, drag this orange box to a different position!",
+    instruction: "Drag the blue dot on the zoom slider left and right to change the zoom level. The zoom controls are on the right side of the screen - drag this box if you need to!",
+    hint: "Look for the zoom slider on the right side of the timeline. Drag the blue dot left (zoom out) or right (zoom in). If you can't see it, drag this orange box to a different position!",
     correctAnswer: "Zoom changed",
     validation: (context) => context.action === 'zoom-changed',
     lockFeatures: {
@@ -157,10 +157,10 @@ export const DAW_CHALLENGES = [
   {
     id: 11,
     section: "Playback",
-    question: "Click the Play button in the middle of your screen. It is a triangle, and may be behind this challenge box.",
+    question: "Click the Play button in the middle of your screen. It is a triangle and it is below the video player in the middle of the screen.",
     type: 'interactive-task',
-    instruction: "Find and click the Play button (usually a triangle icon)",
-    hint: "The Play button is in the transport controls at the bottom of the screen",
+    instruction: "Find and click the Play button (triangle icon) below the video player in the middle of the screen",
+    hint: "The Play button is a triangle icon located below the video player in the center of the screen",
     correctAnswer: "Play started",
     validation: (context) => context.action === 'playback-started',
     requiresLoopPlaced: true,
@@ -172,10 +172,10 @@ export const DAW_CHALLENGES = [
   {
     id: 12,
     section: "Playback",
-    question: "Click the Stop button to stop playback. It is a square, and may be behind this challenge box.",
+    question: "Click the Stop button to stop playback. It is a square and is right next to the play button.",
     type: 'interactive-task',
-    instruction: "Find and click the Stop button (usually a square icon)",
-    hint: "The Stop button is next to the Play button",
+    instruction: "Find and click the Stop button (square icon) right next to the Play button",
+    hint: "The Stop button is a square icon located right next to the Play button",
     correctAnswer: "Play stopped",
     validation: (context) => context.action === 'playback-stopped',
     lockFeatures: {

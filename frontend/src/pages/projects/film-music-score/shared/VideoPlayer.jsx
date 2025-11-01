@@ -1,5 +1,6 @@
 // File: /src/pages/projects/film-music-score/shared/VideoPlayer.jsx
 // OPTIMIZED FOR CHROMEBOOK PERFORMANCE - SYNC DISABLED
+// UPDATED: Added tutorial highlight support
 
 import React, { useRef, useEffect, useState } from 'react';
 import { Play } from 'lucide-react';
@@ -14,7 +15,8 @@ const VideoPlayer = ({
   onPause,
   onSeek,
   onVideoReady,
-  duration
+  duration,
+  highlighted = false  // NEW: Highlight for tutorial
 }) => {
   const videoRef = useRef(null);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
@@ -30,14 +32,15 @@ const VideoPlayer = ({
 
   // Debug logging
   useEffect(() => {
-    console.log('ðŸŽ¬ VideoPlayer Debug:', {
+    console.log('🎬 VideoPlayer Debug:', {
       hasVideoUrl: !!videoUrl,
       hasSelectedVideo: !!selectedVideo,
       selectedVideoObject: selectedVideo,
       actualVideoUrl,
-      isVideoLoaded
+      isVideoLoaded,
+      highlighted
     });
-  }, [videoUrl, selectedVideo, actualVideoUrl, isVideoLoaded]);
+  }, [videoUrl, selectedVideo, actualVideoUrl, isVideoLoaded, highlighted]);
 
   // Load video metadata
   useEffect(() => {
@@ -45,7 +48,7 @@ const VideoPlayer = ({
     if (!video) return;
 
     const handleLoadedMetadata = () => {
-      console.log('[OK] Video metadata loaded, duration:', video.duration);
+      console.log('[OK] Video loaded, duration:', video.duration);
       setIsVideoLoaded(true);
       if (onVideoReady) {
         onVideoReady(video.duration);
@@ -105,7 +108,7 @@ const VideoPlayer = ({
   // Check if we have a valid video URL
   if (!actualVideoUrl) {
     return (
-      <div className="h-full w-full bg-black flex items-center justify-center relative">
+      <div className={`h-full w-full bg-black flex items-center justify-center relative ${highlighted ? 'tutorial-highlight' : ''}`}>
         <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded text-sm font-medium z-10">
           Video Playback Area
         </div>
@@ -120,7 +123,7 @@ const VideoPlayer = ({
   }
 
   return (
-    <div className="h-full w-full bg-black relative flex items-center justify-center">
+    <div className={`h-full w-full bg-black relative flex items-center justify-center video-player-container ${highlighted ? 'tutorial-highlight' : ''}`}>
       <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded text-sm font-medium z-10">
         Video Playback Area
         {selectedVideo?.title && (

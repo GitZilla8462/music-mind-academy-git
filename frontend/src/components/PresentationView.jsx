@@ -1,6 +1,164 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getDatabase, ref, onValue, set } from 'firebase/database';
+import SummarySlide from '../lessons/film-music-project/lesson1/components/Summaryslide';
+import { summarySlides } from '../lessons/film-music-project/lesson1/summarySlideContent';
+
+// Professional Timer Component
+const ProfessionalTimer = ({ seconds, isCountingDown, initialCountdownTime }) => {
+  const formatTime = (secs) => {
+    const mins = Math.floor(secs / 60);
+    const remainingSecs = secs % 60;
+    return `${mins}:${remainingSecs.toString().padStart(2, '0')}`;
+  };
+
+  // Calculate color based on time remaining (for countdown)
+  const getTimerColor = () => {
+    if (!isCountingDown) return '#3b82f6'; // Soft blue for count-up
+    
+    if (seconds > 120) return '#3b82f6'; // Soft blue - plenty of time
+    if (seconds > 60) return '#f59e0b'; // Warm amber - halfway
+    return '#ef4444'; // Gentle coral/red - running out
+  };
+
+  // Calculate progress percentage (0-100)
+  // For countdown: starts at 100% (full circle) and goes to 0% (empty)
+  const getProgressPercentage = () => {
+    if (!isCountingDown) return 0; // No progress ring for count-up
+    
+    // Use the initial countdown time - this is the key fix!
+    // If initialCountdownTime is 0 or not set, use current seconds as fallback
+    const maxTime = initialCountdownTime > 0 ? initialCountdownTime : seconds;
+    
+    if (maxTime === 0) return 0;
+    
+    // Return percentage remaining (100% when full time, 0% when time is up)
+    return (seconds / maxTime) * 100;
+  };
+
+  const timerColor = getTimerColor();
+  const progressPercentage = getProgressPercentage();
+  const radius = 45;
+  const circumference = 2 * Math.PI * radius;
+  
+  // strokeDashoffset calculation:
+  // When progress is 100%, offset should be 0 (full circle visible)
+  // When progress is 0%, offset should be circumference (nothing visible)
+  const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
+
+  return (
+    <div style={{
+      position: 'absolute',
+      top: '30px',
+      right: '30px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '8px'
+    }}>
+      {/* Circular Progress Ring */}
+      <div style={{ position: 'relative', width: '120px', height: '120px' }}>
+        {/* Background circle */}
+        <svg width="120" height="120" style={{ transform: 'rotate(-90deg)' }}>
+          <circle
+            cx="60"
+            cy="60"
+            r={radius}
+            fill="none"
+            stroke="#e5e7eb"
+            strokeWidth="8"
+          />
+          {/* Progress circle - only show for countdown */}
+          {isCountingDown && (
+            <circle
+              cx="60"
+              cy="60"
+              r={radius}
+              fill="none"
+              stroke={timerColor}
+              strokeWidth="8"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.3s ease' }}
+            />
+          )}
+        </svg>
+        
+        {/* Time display in center */}
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '2px'
+        }}>
+          <div style={{
+            fontSize: '28px',
+            fontWeight: '600',
+            color: '#1f2937',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            letterSpacing: '-0.5px'
+          }}>
+            {formatTime(seconds)}
+          </div>
+          <div style={{
+            fontSize: '11px',
+            fontWeight: '500',
+            color: '#9ca3af',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+          }}>
+            {isCountingDown ? 'remaining' : 'elapsed'}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Session Code Badge Component - for top left corner
+const SessionCodeBadge = ({ sessionCode, isDarkBackground = false }) => {
+  return (
+    <div style={{
+      position: 'absolute',
+      top: '30px',
+      left: '30px',
+      backgroundColor: isDarkBackground ? 'rgba(255, 255, 255, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+      backdropFilter: 'blur(8px)',
+      padding: '12px 24px',
+      borderRadius: '12px',
+      border: `2px solid ${isDarkBackground ? 'rgba(255, 255, 255, 0.2)' : 'rgba(59, 130, 246, 0.3)'}`,
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px'
+      }}>
+        <span style={{
+          color: isDarkBackground ? 'rgba(255, 255, 255, 0.7)' : '#6b7280',
+          fontSize: '14px',
+          fontWeight: '600'
+        }}>
+          Code:
+        </span>
+        <span style={{
+          color: isDarkBackground ? '#ffffff' : '#3b82f6',
+          fontSize: '20px',
+          fontWeight: '700',
+          fontFamily: 'monospace',
+          letterSpacing: '2px'
+        }}>
+          {sessionCode}
+        </span>
+      </div>
+    </div>
+  );
+};
 
 const PresentationView = () => {
   const [searchParams] = useSearchParams();
@@ -9,6 +167,8 @@ const PresentationView = () => {
   const [timer, setTimer] = useState(0);
   const [countdownTime, setCountdownTime] = useState(0);
   const [isCountingDown, setIsCountingDown] = useState(false);
+  const [initialCountdownTime, setInitialCountdownTime] = useState(0);
+  const [lastUpdateTime, setLastUpdateTime] = useState(0);
 
   // Timer effect - starts when activity is unlocked
   useEffect(() => {
@@ -27,6 +187,8 @@ const PresentationView = () => {
       setTimer(0);
       setCountdownTime(0);
       setIsCountingDown(false);
+      setInitialCountdownTime(0);
+      setLastUpdateTime(0);
     }
   }, [currentStage, isCountingDown, countdownTime]);
 
@@ -49,19 +211,60 @@ const PresentationView = () => {
         const data = snapshot.val();
         if (data) {
           console.log('Session data received:', data);
-          setCurrentStage(data.currentStage || 'locked');
+          
+          // Check if stage changed - reset timer states
+          if (data.currentStage && data.currentStage !== currentStage) {
+            console.log('Stage changed from', currentStage, 'to', data.currentStage);
+            setCurrentStage(data.currentStage);
+            // Reset all timer states when stage changes
+            setTimer(0);
+            setCountdownTime(0);
+            setIsCountingDown(false);
+            setInitialCountdownTime(0);
+            setLastUpdateTime(0);
+          }
           
           // Sync countdown timer if present
-          if (data.countdownTime !== undefined) {
-            setCountdownTime(data.countdownTime);
-            setIsCountingDown(data.countdownTime > 0);
+          if (data.countdownTime !== undefined && data.timestamp) {
+            const newCountdownTime = data.countdownTime;
+            const newTimestamp = data.timestamp;
+            
+            // Only process if this is a newer update than the last one we saw
+            // This helps ignore stale/competing timer updates
+            if (newTimestamp > lastUpdateTime) {
+              console.log('Processing countdown update:', newCountdownTime, 'timestamp:', newTimestamp);
+              setLastUpdateTime(newTimestamp);
+              
+              if (newCountdownTime > 0) {
+                // Only update initial time if this is a significant increase
+                // OR if we don't have an initial time yet
+                const isSignificantIncrease = newCountdownTime > countdownTime + 100;
+                const needsInitialTime = initialCountdownTime === 0;
+                
+                if (isSignificantIncrease || needsInitialTime) {
+                  console.log('New countdown detected! Setting initialCountdownTime to:', newCountdownTime);
+                  setInitialCountdownTime(newCountdownTime);
+                }
+                
+                setCountdownTime(newCountdownTime);
+                setIsCountingDown(true);
+              } else {
+                setIsCountingDown(false);
+                // Reset initial time when countdown stops
+                if (newCountdownTime === 0) {
+                  setInitialCountdownTime(0);
+                }
+              }
+            } else {
+              console.log('Ignoring stale countdown update:', newCountdownTime, 'timestamp:', newTimestamp);
+            }
           }
         }
       });
       
       return () => unsubscribe();
     }
-  }, [sessionCode]);
+  }, [sessionCode, currentStage, isCountingDown, initialCountdownTime, countdownTime, lastUpdateTime]);
 
   if (!sessionCode) {
     return (
@@ -80,6 +283,7 @@ const PresentationView = () => {
   }
 
   // Waiting screen with session code
+  // Note: Session code is already the main focus of this screen, so no badge needed
   if (currentStage === 'locked') {
     return (
       <div style={{
@@ -88,8 +292,8 @@ const PresentationView = () => {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        backgroundColor: '#1a202c',
-        color: 'white',
+        backgroundColor: '#ffffff',
+        color: '#1f2937',
         padding: '40px'
       }}>
         <div style={{
@@ -101,25 +305,26 @@ const PresentationView = () => {
         </div>
         <h1 style={{
           fontSize: '48px',
-          fontWeight: 'bold',
-          marginBottom: '20px'
+          fontWeight: '700',
+          marginBottom: '20px',
+          color: '#1f2937'
         }}>
           Session Code
         </h1>
         <div style={{
           fontSize: '120px',
-          fontWeight: 'bold',
+          fontWeight: '700',
           fontFamily: 'monospace',
           letterSpacing: '20px',
-          color: '#60a5fa',
+          color: '#3b82f6',
           marginBottom: '40px',
-          textShadow: '0 0 20px rgba(96, 165, 250, 0.5)'
+          textShadow: '0 2px 10px rgba(59, 130, 246, 0.1)'
         }}>
           {sessionCode}
         </div>
         <p style={{
           fontSize: '24px',
-          color: '#9ca3af',
+          color: '#6b7280',
           textAlign: 'center',
           maxWidth: '600px'
         }}>
@@ -133,12 +338,37 @@ const PresentationView = () => {
             }
             50% {
               transform: scale(1.1);
-              opacity: 0.8;
+              opacity: 0.7;
             }
           }
         `}</style>
       </div>
     );
+  }
+
+  // Summary slides
+  const summaryStages = {
+    'intro-summary': 'introVideo',
+    'daw-summary': 'dawTutorial',
+    'activity-summary': 'activityIntro',
+    'school-summary': 'schoolBeneath',
+    'reflection-summary': 'reflection'
+  };
+
+  if (summaryStages[currentStage]) {
+    const slideContent = summarySlides[summaryStages[currentStage]];
+    
+    if (slideContent) {
+      return (
+        <SummarySlide
+          title={slideContent.title}
+          points={slideContent.points}
+          estimatedTime={slideContent.estimatedTime}
+          icon={slideContent.icon}
+          sessionCode={sessionCode}
+        />
+      );
+    }
   }
 
   // Video stages
@@ -151,8 +381,12 @@ const PresentationView = () => {
         justifyContent: 'center',
         minHeight: '100vh',
         backgroundColor: 'black',
-        padding: '20px'
+        padding: '20px',
+        position: 'relative'
       }}>
+        {/* Session Code Badge */}
+        <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={true} />
+        
         <h2 style={{
           color: 'white',
           fontSize: '32px',
@@ -196,8 +430,12 @@ const PresentationView = () => {
         justifyContent: 'center',
         minHeight: '100vh',
         backgroundColor: 'black',
-        padding: '20px'
+        padding: '20px',
+        position: 'relative'
       }}>
+        {/* Session Code Badge */}
+        <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={true} />
+        
         <h2 style={{
           color: 'white',
           fontSize: '32px',
@@ -235,30 +473,50 @@ const PresentationView = () => {
   const activityScreens = {
     'daw-tutorial': {
       title: 'DAW Basics Interactive Tutorial',
-      icon: '📝',
-      description: 'Students are completing an interactive tutorial on their devices',
-      subtitle: 'They are learning about Digital Audio Workstation basics and answering questions as they go.',
+      icon: '🎹',
+      subtitle: 'Learn the fundamentals of Digital Audio Workstation',
+      steps: [
+        { number: '1', text: 'Complete all interactive questions about the DAW interface.' },
+        { number: '2', text: 'Click every button, control, and panel to learn what they accomplish.' },
+        { number: '3', text: 'Finish the tutorial to unlock the next activity.' }
+      ],
+      bonus: 'You can experiment with sounds in Exploration Mode!',
       color: '#3b82f6'
     },
     'school-beneath': {
-      title: 'The School Beneath',
+      title: 'The School Beneath Composition Assignment',
       icon: '🎵',
-      description: 'Students are creating their mysterious film score',
-      subtitle: 'Composing music that matches the mood and atmosphere of an underwater school.',
+      subtitle: 'Create mysterious music for the underwater school',
+      steps: [
+        { number: '1', text: 'Use five or more different loops in your composition.' },
+        { number: '2', text: 'Create three or more layers by playing loops together.' },
+        { number: '3', text: 'Place five or more total loops to complete your musical score.' }
+      ],
+      bonus: 'You will unlock the Name That Loop game when you complete your composition!',
       color: '#8b5cf6'
     },
     'reflection': {
-      title: 'Reflection Activity',
+      title: 'Reflection Activity: Two Stars and a Wish',
       icon: '⭐⭐',
-      description: 'Students are reflecting on their learning',
-      subtitle: 'Two Stars and a Wish - What went well and what they want to improve.',
+      subtitle: 'Reflect on your learning and composition process',
+      steps: [
+        { number: '1', text: 'Identify two things that went well in your work today.' },
+        { number: '2', text: 'Share one thing you want to improve or learn more about.' },
+        { number: '3', text: 'Think about what you learned about film music today.' }
+      ],
+      bonus: 'You can play the Name That Loop game with your partner!',
       color: '#ec4899'
     },
     'sound-effects': {
-      title: 'Bonus: Add Sound Effects',
-      icon: '🎧',
-      description: 'Bonus Challenge: Adding Sound Effects!',
-      subtitle: 'Enhancing compositions with atmospheric sounds and effects.',
+      title: 'Class Sharing & Reflection',
+      icon: '🎤',
+      subtitle: 'Share your compositions and learning as a class',
+      steps: [
+        { number: '1', text: 'Observe your partner\'s work and share one star you noticed.' },
+        { number: '2', text: 'Reflect on one challenge you overcame in your composition.' },
+        { number: '3', text: 'Share what you learned about film music today with the class.' }
+      ],
+      bonus: 'Listen carefully to hear the variety of musical choices your classmates made!',
       color: '#10b981'
     }
   };
@@ -273,114 +531,133 @@ const PresentationView = () => {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        backgroundColor: '#1a202c',
-        color: 'white',
-        padding: '60px',
+        backgroundColor: '#ffffff',
+        color: '#1f2937',
+        padding: '80px 60px',
         position: 'relative'
       }}>
-        {/* Timer in top right */}
-        <div style={{
-          position: 'absolute',
-          top: '30px',
-          right: '30px',
-          fontSize: isCountingDown ? '48px' : '28px',
-          fontFamily: 'monospace',
-          backgroundColor: isCountingDown && countdownTime <= 60 
-            ? 'rgba(239, 68, 68, 0.9)' 
-            : isCountingDown 
-            ? 'rgba(59, 130, 246, 0.9)' 
-            : 'rgba(255, 255, 255, 0.1)',
-          padding: isCountingDown ? '25px 40px' : '15px 25px',
-          borderRadius: '12px',
-          border: isCountingDown && countdownTime <= 60
-            ? '3px solid rgb(220, 38, 38)'
-            : '2px solid rgba(255, 255, 255, 0.2)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '10px',
-          boxShadow: isCountingDown ? '0 8px 32px rgba(0, 0, 0, 0.3)' : 'none',
-          animation: isCountingDown && countdownTime <= 10 ? 'pulse 1s ease-in-out infinite' : 'none'
-        }}>
-          {isCountingDown ? (
-            <>
-              <span style={{ fontSize: '20px', opacity: 0.8 }}>Time Remaining</span>
-              <div style={{ 
-                fontSize: '56px', 
-                fontWeight: 'bold',
-                color: countdownTime <= 60 ? '#fef2f2' : 'white'
-              }}>
-                {formatTime(countdownTime)}
-              </div>
-            </>
-          ) : (
-            <>
-              <span style={{ fontSize: '24px' }}>⏱️</span>
-              {formatTime(timer)}
-            </>
-          )}
-        </div>
+        {/* Session Code Badge */}
+        <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={false} />
+        
+        {/* Professional Timer */}
+        <ProfessionalTimer 
+          seconds={isCountingDown ? countdownTime : timer} 
+          isCountingDown={isCountingDown}
+          initialCountdownTime={initialCountdownTime}
+        />
 
+        {/* Icon */}
         <div style={{
           fontSize: '100px',
-          marginBottom: '30px',
-          animation: 'float 3s ease-in-out infinite'
+          marginBottom: '32px'
         }}>
           {activityData.icon}
         </div>
 
+        {/* Title - MUCH LARGER */}
         <h1 style={{
-          fontSize: '48px',
-          fontWeight: 'bold',
-          marginBottom: '20px',
-          textAlign: 'center'
+          fontSize: '56px',
+          fontWeight: '700',
+          marginBottom: '16px',
+          textAlign: 'center',
+          color: '#1f2937',
+          maxWidth: '1100px',
+          lineHeight: '1.2'
         }}>
           {activityData.title}
         </h1>
 
+        {/* Subtitle - LARGER */}
         <p style={{
-          fontSize: '28px',
-          color: '#9ca3af',
-          marginBottom: '15px',
-          textAlign: 'center'
-        }}>
-          {activityData.description}
-        </p>
-
-        <p style={{
-          fontSize: '20px',
+          fontSize: '24px',
           color: '#6b7280',
+          marginBottom: '56px',
           textAlign: 'center',
-          maxWidth: '800px',
-          marginBottom: '40px'
+          maxWidth: '800px'
         }}>
           {activityData.subtitle}
         </p>
 
+        {/* Steps - Numbered with MUCH LARGER TEXT */}
         <div style={{
           display: 'flex',
-          alignItems: 'center',
-          gap: '15px',
-          padding: '20px 40px',
-          backgroundColor: activityData.color,
-          borderRadius: '50px',
-          fontSize: '24px',
-          fontWeight: 'bold'
+          flexDirection: 'column',
+          gap: '32px',
+          width: '100%',
+          maxWidth: '1100px',
+          marginBottom: '40px'
         }}>
-          <span style={{ fontSize: '28px' }}>⏱️</span>
-          Activity In Progress
+          {activityData.steps.map((step, index) => (
+            <div key={index} style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '32px',
+              padding: '36px',
+              backgroundColor: '#f9fafb',
+              borderRadius: '16px',
+              border: '2px solid #e5e7eb'
+            }}>
+              {/* Number circle - LARGER */}
+              <div style={{
+                minWidth: '72px',
+                height: '72px',
+                borderRadius: '50%',
+                backgroundColor: activityData.color,
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '36px',
+                fontWeight: '700',
+                flexShrink: 0
+              }}>
+                {step.number}
+              </div>
+              
+              {/* Content - MUCH LARGER TEXT - Full sentence only */}
+              <div style={{ flex: 1, paddingTop: '8px' }}>
+                <div style={{
+                  fontSize: '32px',
+                  color: '#374151',
+                  lineHeight: '1.4',
+                  fontWeight: '400'
+                }}>
+                  {step.text}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
-        <style>{`
-          @keyframes float {
-            0%, 100% {
-              transform: translateY(0px);
-            }
-            50% {
-              transform: translateY(-20px);
-            }
-          }
-        `}</style>
+        {/* Bonus text - LARGER */}
+        {activityData.bonus && (
+          <p style={{
+            fontSize: '22px',
+            color: '#f59e0b',
+            fontWeight: '600',
+            textAlign: 'center',
+            marginBottom: '40px'
+          }}>
+            {activityData.bonus}
+          </p>
+        )}
+
+        {/* Status badge - LARGER */}
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '18px 36px',
+          backgroundColor: '#f0fdf4',
+          border: '2px solid #86efac',
+          borderRadius: '999px',
+          fontSize: '20px',
+          fontWeight: '600',
+          color: '#166534'
+        }}>
+          <span style={{ fontSize: '24px' }}>✓</span>
+          Activity In Progress
+        </div>
       </div>
     );
   }
@@ -391,8 +668,8 @@ const PresentationView = () => {
       alignItems: 'center',
       justifyContent: 'center',
       minHeight: '100vh',
-      backgroundColor: '#1a202c',
-      color: 'white',
+      backgroundColor: '#ffffff',
+      color: '#1f2937',
       fontSize: '24px'
     }}>
       Unknown activity: {currentStage}

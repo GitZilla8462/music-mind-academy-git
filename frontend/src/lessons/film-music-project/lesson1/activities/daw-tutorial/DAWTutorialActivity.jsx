@@ -1,16 +1,24 @@
 // File: /src/lessons/film-music-project/lesson1/activities/daw-tutorial/DAWTutorialActivity.jsx
 // FINAL: Navigation tools dropdown from top right, exploration mode with timer after tutorial complete
+// UPDATED: isSessionMode prop to hide timer for students in session mode
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Minimize2, Maximize2 } from 'lucide-react';
 import MusicComposer from '../../../../../pages/projects/film-music-score/composer/MusicComposer';
-import ChallengePanel from './ChallengePanel';
+import ChallengeSidebar from './ChallengeSidebar';
 import { DAW_CHALLENGES } from './challengeDefinitions';
 import { saveDAWStats } from '../../lessonStorageUtils';
+import './TutorialHighlight.css';  // Tutorial highlight animations
 
 const DAW_TUTORIAL_DURATION = 13 * 60 * 1000; // 13 minutes in milliseconds
 
-const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNavTools = false, lessonStartTime }) => {
+const DAWTutorialActivity = ({ 
+  onComplete, 
+  navToolsEnabled = false, 
+  canAccessNavTools = false, 
+  lessonStartTime,
+  isSessionMode = false  // NEW: Hide timer in session mode
+}) => {
   // Core state
   const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0);
   const [completedChallenges, setCompletedChallenges] = useState(new Set());
@@ -68,10 +76,10 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   // Fallback timeout to force DAW ready state after 5 seconds
   useEffect(() => {
     if (!isDAWReady) {
-      console.log('â±ï¸ Starting 5-second fallback timer for DAW initialization...');
+      console.log('⏱️ Starting 5-second fallback timer for DAW initialization...');
       dawReadyTimeoutRef.current = setTimeout(() => {
         if (!isDAWReady && isMountedRef.current) {
-          console.warn('âš ï¸ DAW callback not received after 5s, forcing ready state');
+          console.warn('⚠️ DAW callback not received after 5s, forcing ready state');
           setIsDAWReady(true);
         }
       }, 5000);
@@ -110,7 +118,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
     
     if (preferredVoice) {
       utterance.voice = preferredVoice;
-      console.log('ðŸŽ¤ Using voice:', preferredVoice.name, preferredVoice.lang);
+      console.log('🎤 Using voice:', preferredVoice.name, preferredVoice.lang);
     }
 
     if (isMountedRef.current) {
@@ -144,14 +152,14 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   const startExplorationMode = useCallback(() => {
     const remaining = calculateTimeRemaining();
     
-    console.log('ðŸŽ‰ Tutorial complete! Time remaining:', Math.floor(remaining / 1000), 'seconds');
+    console.log('🎉 Tutorial complete! Time remaining:', Math.floor(remaining / 1000), 'seconds');
     // Save DAW tutorial stats
     saveDAWStats(correctAnswers, incorrectAnswers);
 
     
     if (remaining <= 0) {
       // No time left, advance immediately
-      console.log('â° No time remaining, advancing to next activity');
+      console.log('⏰ No time remaining, advancing to next activity');
       setSafeTimeout(() => {
         if (isMountedRef.current && !completionCalledRef.current) {
           completionCalledRef.current = true;
@@ -174,7 +182,7 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
               clearInterval(explorationTimerRef.current);
             }
             
-            console.log('â° Exploration time complete, advancing to next activity');
+            console.log('⏰ Exploration time complete, advancing to next activity');
             
             if (isMountedRef.current && !completionCalledRef.current) {
               completionCalledRef.current = true;
@@ -208,14 +216,20 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
   const nextChallenge = useCallback(() => {
     if (!isMountedRef.current) return;
     
-    setIsProcessingSuccess(true);
-    
     if (currentChallengeIndex >= DAW_CHALLENGES.length - 1) {
       // Tutorial complete - check time and start exploration or advance
-      startExplorationMode();
+      setIsProcessingSuccess(true);
+      
+      setSafeTimeout(() => {
+        if (isMountedRef.current) {
+          startExplorationMode();
+          setIsProcessingSuccess(false); // Reset processing state
+        }
+      }, 500);
       return;
     }
     
+    setIsProcessingSuccess(true);
     setCurrentChallengeIndex(prev => prev + 1);
     setUserAnswer(null);
     setFeedback(null);
@@ -229,10 +243,17 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
       setSafeTimeout(() => {
         if (isMountedRef.current) {
           speakText(nextChallengeData.question, voiceEnabled);
+          setIsProcessingSuccess(false); // Reset after speaking
+        }
+      }, 500);
+    } else {
+      setSafeTimeout(() => {
+        if (isMountedRef.current) {
+          setIsProcessingSuccess(false);
         }
       }, 500);
     }
-  }, [currentChallengeIndex, isProcessingSuccess, startExplorationMode, setSafeTimeout, voiceEnabled, speakText]);
+  }, [currentChallengeIndex, startExplorationMode, setSafeTimeout, voiceEnabled, speakText]);
 
   // Challenge interaction handlers
   const handlers = {
@@ -578,6 +599,42 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  // Assignment panel content - Challenge sidebar for left panel
+  const assignmentPanelContent = isDAWReady ? (
+    <ChallengeSidebar
+      currentChallenge={currentChallenge}
+      currentChallengeIndex={currentChallengeIndex}
+      totalChallenges={DAW_CHALLENGES.length}
+      progressPercent={progressPercent}
+      userAnswer={userAnswer}
+      feedback={feedback}
+      showHint={showHint}
+      setShowHint={setShowHint}
+      showExplanation={showExplanation}
+      voiceEnabled={voiceEnabled}
+      setVoiceEnabled={setVoiceEnabled}
+      voiceVolume={voiceVolume}
+      setVoiceVolume={setVoiceVolume}
+      onMultipleChoiceAnswer={handleMultipleChoiceAnswer}
+      onSkipChallenge={skipChallenge}
+      showExplorationMode={showExplorationMode}
+      timeRemaining={timeRemaining}
+      formatTime={formatTime}
+      isSessionMode={isSessionMode}  // NEW: Pass to sidebar
+    />
+  ) : null;
+
+  console.log('🎯 Challenge Sidebar Status:', {
+    isDAWReady,
+    hasContent: !!assignmentPanelContent,
+    contentType: assignmentPanelContent?.type?.name,
+    currentChallenge: currentChallenge?.id,
+    currentQuestion: currentChallenge?.question?.substring(0, 50),
+    showExplorationMode,
+    isSessionMode  // NEW: Log session mode
+  });
+  console.log('📦 assignmentPanelContent object:', assignmentPanelContent);
+
   // Error state
   if (hasError) {
     return (
@@ -717,50 +774,6 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
         </div>
       )}
 
-
-      {/* Opaque overlay when question is active - ONLY FOR MULTIPLE CHOICE */}
-      {isDAWReady && !showExplorationMode && currentChallenge?.type === 'multiple-choice' && (
-        <div className="absolute inset-0 bg-black/50 z-30 pointer-events-none" />
-      )}
-
-      {/* Message directing users to challenge bar - ONLY FOR MULTIPLE CHOICE */}
-      {isDAWReady && !showExplorationMode && currentChallenge?.type === 'multiple-choice' && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-35 pointer-events-none">
-          <div className="bg-orange-500 text-white px-8 py-4 rounded-lg shadow-2xl border-4 border-orange-600 animate-pulse">
-            <div className="text-xl font-bold text-center mb-2">ðŸ‘† Answer the Question Above ðŸ‘†</div>
-            <div className="text-sm text-center">Look at the orange challenge bar at the top of the screen</div>
-          </div>
-        </div>
-      )}
-
-      {/* Challenge Panel - Show during tutorial or exploration mode */}
-      {isDAWReady && (
-        <ChallengePanel
-          currentChallenge={currentChallenge}
-          currentChallengeIndex={currentChallengeIndex}
-          totalChallenges={DAW_CHALLENGES.length}
-          progressPercent={progressPercent}
-          isPanelCollapsed={isPanelCollapsed}
-          setIsPanelCollapsed={setIsPanelCollapsed}
-          userAnswer={userAnswer}
-          feedback={feedback}
-          showHint={showHint}
-          setShowHint={setShowHint}
-          showExplanation={showExplanation}
-          voiceEnabled={voiceEnabled}
-          setVoiceEnabled={setVoiceEnabled}
-          voiceVolume={voiceVolume}
-          setVoiceVolume={setVoiceVolume}
-          onMultipleChoiceAnswer={handleMultipleChoiceAnswer}
-          onNextChallenge={nextChallenge}
-          onSkipChallenge={skipChallenge}
-          onRepeatQuestion={repeatQuestion}
-          showExplorationMode={showExplorationMode}
-          timeRemaining={timeRemaining}
-          formatTime={formatTime}
-        />
-      )}
-
       {/* Main DAW Area */}
       <div className="flex-1 flex flex-col min-h-0">
         <MusicComposer
@@ -786,6 +799,11 @@ const DAWTutorialActivity = ({ onComplete, navToolsEnabled = false, canAccessNav
             videoPath: '/lessons/videos/film-music-loop-project/SchoolMystery.mp4'
           }}
           lockFeatures={showExplorationMode ? {} : (currentChallenge?.lockFeatures || {})}
+          highlightSelector={currentChallenge?.highlightSelector}
+          hideHeader={true}
+          hideSubmitButton={true}
+          isLessonMode={true}
+          assignmentPanelContent={assignmentPanelContent}
         />
       </div>
     </div>

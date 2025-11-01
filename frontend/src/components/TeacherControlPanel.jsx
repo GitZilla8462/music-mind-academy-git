@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getDatabase, ref, onValue, set } from 'firebase/database';
 import { Clock, Play, Pause, SkipForward, RefreshCw, Users, TrendingUp } from 'lucide-react';
 
@@ -10,6 +10,7 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [customMinutes, setCustomMinutes] = useState(5);
   const [timerMode, setTimerMode] = useState('countdown'); // 'countdown' or 'count-up'
+  const timerIntervalRef = useRef(null);
 
   // Listen to session updates
   useEffect(() => {
@@ -37,37 +38,63 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
 
   // Countdown timer effect
   useEffect(() => {
+    // Clear any existing interval first
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
     if (!isCountingDown || countdownTime <= 0) return;
 
-    const interval = setInterval(() => {
-      const newTime = countdownTime - 1;
-      
-      if (newTime <= 0) {
-        setIsCountingDown(false);
-        setCountdownTime(0);
-        // Play sound or show notification
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('Time\'s Up!', {
-            body: 'The countdown timer has finished.',
-            icon: '/icon.png'
+    timerIntervalRef.current = setInterval(() => {
+      setCountdownTime(prevTime => {
+        const newTime = prevTime - 1;
+        
+        if (newTime <= 0) {
+          setIsCountingDown(false);
+          clearInterval(timerIntervalRef.current);
+          timerIntervalRef.current = null;
+          
+          // Play sound or show notification
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('Time\'s Up!', {
+              body: 'The countdown timer has finished.',
+              icon: '/icon.png'
+            });
+          }
+          
+          // Update Firebase
+          const db = getDatabase();
+          const sessionRef = ref(db, `sessions/${sessionCode}`);
+          set(sessionRef, {
+            currentStage,
+            countdownTime: 0,
+            timestamp: Date.now()
           });
+          
+          return 0;
         }
-      } else {
-        setCountdownTime(newTime);
-      }
 
-      // Update Firebase
-      const db = getDatabase();
-      const sessionRef = ref(db, `sessions/${sessionCode}`);
-      set(sessionRef, {
-        currentStage,
-        countdownTime: newTime,
-        timestamp: Date.now()
-      }, { merge: true });
+        // Update Firebase
+        const db = getDatabase();
+        const sessionRef = ref(db, `sessions/${sessionCode}`);
+        set(sessionRef, {
+          currentStage,
+          countdownTime: newTime,
+          timestamp: Date.now()
+        });
+        
+        return newTime;
+      });
     }, 1000);
 
-    return () => clearInterval(interval);
-  }, [isCountingDown, countdownTime, sessionCode, currentStage]);
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
+  }, [isCountingDown, sessionCode, currentStage]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -76,6 +103,12 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
   };
 
   const startCountdown = (minutes) => {
+    // Clear any existing timer
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
     const seconds = minutes * 60;
     setCountdownTime(seconds);
     setIsCountingDown(true);
@@ -87,11 +120,15 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
       currentStage,
       countdownTime: seconds,
       timestamp: Date.now()
-    }, { merge: true });
+    });
   };
 
   const pauseTimer = () => {
     setIsCountingDown(false);
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
   };
 
   const resumeTimer = () => {
@@ -101,6 +138,12 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
   };
 
   const resetTimer = () => {
+    // Clear the interval
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
     setCountdownTime(0);
     setIsCountingDown(false);
 
@@ -111,10 +154,19 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
       currentStage,
       countdownTime: 0,
       timestamp: Date.now()
-    }, { merge: true });
+    });
   };
 
   const advanceToStage = (stageId) => {
+    // CRITICAL: Stop the current timer before advancing
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    
+    setIsCountingDown(false);
+    setCountdownTime(0);
+
     const db = getDatabase();
     const sessionRef = ref(db, `sessions/${sessionCode}`);
     
@@ -125,8 +177,6 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
     });
 
     setCurrentStage(stageId);
-    setCountdownTime(0);
-    setIsCountingDown(false);
   };
 
   const currentStageIndex = lessonStages.findIndex(s => s.id === currentStage);

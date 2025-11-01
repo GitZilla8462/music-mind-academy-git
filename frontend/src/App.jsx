@@ -39,6 +39,9 @@ import PresentationView from './components/PresentationView';
 // Import session start page
 import SessionStartPage from './pages/SessionStartPage';
 
+// Import join with code page
+import JoinWithCode from './pages/JoinWithCode';
+
 // Add global styles for snap guide
 const snapGuideStyles = `
   /* Snap guide line (blue line that appears when snapping) */
@@ -153,6 +156,9 @@ const AppContent = () => {
       <SessionProvider>
         <Routes>
         <Route path="/" element={<MusicClassroomResources />} />
+        
+        {/* Join Page - NO AUTHENTICATION REQUIRED */}
+        <Route path="/join" element={<JoinWithCode />} />
         
         {/* Session Start Page - Shows session code before starting lesson */}
         <Route path="/session-start" element={<SessionStartPage />} />

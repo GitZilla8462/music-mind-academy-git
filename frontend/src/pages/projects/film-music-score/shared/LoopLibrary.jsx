@@ -32,7 +32,8 @@ const LoopLibrary = ({
   restrictToCategory = null,
   lockedMood = null,
   showSoundEffects = false,  // NEW PROP: Enable sound effects
-  currentlyPlayingLoopId = null  // NEW PROP: Track which loop is playing from parent
+  currentlyPlayingLoopId = null,  // NEW PROP: Track which loop is playing from parent
+  highlighted = false  // NEW PROP: Highlight for tutorial
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
@@ -347,7 +348,7 @@ const LoopLibrary = ({
   }
 
   return (
-    <div className="h-full flex flex-col bg-gray-800">
+    <div className={`h-full flex flex-col bg-gray-800 loop-library ${highlighted ? 'tutorial-highlight' : ''}`}>
       {/* Header - COMPACT VERSION */}
       <div className="p-2 border-b border-gray-700">
         <div className="flex items-center justify-between mb-2">

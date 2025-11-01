@@ -14,6 +14,8 @@ import TwoStarsAndAWishActivity from './activities/two-stars-and-a-wish/TwoStars
 import SoundEffectsActivity from './activities/SoundEffectsActivity';
 import TeacherControlPanel from '../../../components/TeacherControlPanel';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
+import SummarySlide from './components/Summaryslide';
+import { summarySlides } from './summarySlideContent';
 
 const LESSON_PROGRESS_KEY = 'lesson1-progress';
 const LESSON_TIMER_KEY = 'lesson1-timer';
@@ -154,13 +156,31 @@ const Lesson1 = () => {
       description: 'Students enter session code',
       type: 'waiting'
     },
+    
+    // Summary before intro video
+    { 
+      id: 'intro-summary', 
+      label: 'Show Welcome Instructions', 
+      description: 'Introduction summary',
+      type: 'summary',
+      content: 'introVideo'
+    },
     { 
       id: 'intro-video', 
-      label: 'Start Introduction Video', 
+      label: 'Play Introduction Video', 
       description: 'Lesson intro video', 
       hasProgress: false,
       type: 'video',
       duration: '3:00'
+    },
+    
+    // Summary before DAW tutorial
+    { 
+      id: 'daw-summary', 
+      label: 'Show DAW Instructions', 
+      description: 'DAW tutorial summary',
+      type: 'summary',
+      content: 'dawTutorial'
     },
     { 
       id: 'daw-tutorial', 
@@ -170,13 +190,31 @@ const Lesson1 = () => {
       type: 'activity',
       recommendedMinutes: 5
     },
+    
+    // Summary before activity intro
+    { 
+      id: 'activity-summary', 
+      label: 'Show Activity Instructions', 
+      description: 'Activity intro summary',
+      type: 'summary',
+      content: 'activityIntro'
+    },
     { 
       id: 'activity-intro', 
-      label: 'Activity Introduction Video', 
+      label: 'Play Activity Introduction', 
       description: 'Activity introduction video', 
       hasProgress: false,
       type: 'video',
       duration: '2:00'
+    },
+    
+    // Summary before School Beneath
+    { 
+      id: 'school-summary', 
+      label: 'Show Composition Instructions', 
+      description: 'School Beneath summary',
+      type: 'summary',
+      content: 'schoolBeneath'
     },
     { 
       id: 'school-beneath', 
@@ -186,6 +224,15 @@ const Lesson1 = () => {
       type: 'activity',
       recommendedMinutes: 10
     },
+    
+    // Summary before reflection
+    { 
+      id: 'reflection-summary', 
+      label: 'Show Reflection Instructions', 
+      description: 'Reflection summary',
+      type: 'summary',
+      content: 'reflection'
+    },
     { 
       id: 'reflection', 
       label: 'Unlock Reflection', 
@@ -194,6 +241,7 @@ const Lesson1 = () => {
       type: 'activity',
       recommendedMinutes: 5
     },
+    
     { 
       id: 'sound-effects', 
       label: 'Unlock Bonus: Sound Effects', 
@@ -301,15 +349,15 @@ const Lesson1 = () => {
   // Open presentation view in new window for projection
   const openPresentationView = () => {
     const presentationUrl = `/presentation?session=${sessionCode}`;
-    console.log('🎬 Opening presentation view:', presentationUrl);
+    console.log('ðŸŽ¬ Opening presentation view:', presentationUrl);
     
     const popup = window.open(presentationUrl, 'PresentationView', 'width=1920,height=1080,menubar=no,toolbar=no,location=no');
     
     if (!popup || popup.closed || typeof popup.closed === 'undefined') {
       alert('Popup blocked! Please allow popups for this site and try again.');
-      console.error('❌ Popup was blocked');
+      console.error('âŒ Popup was blocked');
     } else {
-      console.log('✅ Presentation view opened successfully');
+      console.log('âœ… Presentation view opened successfully');
     }
   };
 
@@ -497,7 +545,7 @@ const Lesson1 = () => {
             if (newCurrent <= 0) {
               // Show alert
               setTimeout(() => {
-                alert(`⏰ Time's Up for ${activityId}! Students can continue working.`);
+                alert(`â° Time's Up for ${activityId}! Students can continue working.`);
               }, 100);
               
               // Play notification
@@ -574,10 +622,15 @@ const Lesson1 = () => {
   // Helper function: Map session stage to activity type
   const getActivityForStage = (stage) => {
     const stageMap = {
+      'intro-summary': 'summary',
       'intro-video': 'video',
+      'daw-summary': 'summary',
       'daw-tutorial': 'daw-tutorial',
+      'activity-summary': 'summary',
       'activity-intro': 'video',
+      'school-summary': 'summary',
       'school-beneath': 'school-beneath-activity',
+      'reflection-summary': 'summary',
       'reflection': 'two-stars-wish',
       'sound-effects': 'sound-effects'
     };
@@ -610,6 +663,24 @@ const Lesson1 = () => {
         <>
           {getStudentView() === 'locked' ? (
             <StudentWaitingScreen />
+          ) : getStudentView() === 'summary' ? (
+            // Render Summary Slide
+            (() => {
+              const currentStageData = lessonStages.find(stage => stage.id === currentStage);
+              const slideContent = summarySlides[currentStageData?.content];
+              
+              return slideContent ? (
+                <SummarySlide
+                  title={slideContent.title}
+                  points={slideContent.points}
+                  estimatedTime={slideContent.estimatedTime}
+                  icon={slideContent.icon}
+                  sessionCode={sessionCode}
+                />
+              ) : (
+                <StudentWaitingScreen />
+              );
+            })()
           ) : (
             <div className="h-screen flex flex-col">
               {/* Render ONLY the current unlocked activity */}
@@ -662,7 +733,7 @@ const Lesson1 = () => {
           <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
             <div className="text-center">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">{lesson1Config.title}</h1>
-              <p className="text-sm text-gray-600 mb-4">Teacher Control Panel • Session: {sessionCode}</p>
+              <p className="text-sm text-gray-600 mb-4">Teacher Control Panel â€¢ Session: {sessionCode}</p>
               <button
                 onClick={openPresentationView}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold shadow-lg hover:shadow-xl inline-flex items-center space-x-3 text-lg"
@@ -751,7 +822,7 @@ const Lesson1 = () => {
                                   : 'bg-gray-100 text-gray-400'
                               }
                             `}>
-                              {isCurrent ? '▶' : isPast ? '✓' : index + 1}
+                              {isCurrent ? (<Play size={14} fill="currentColor" />) : isPast ? (<CheckCircle size={14} />) : (index + 1)}
                             </div>
                             
                             {/* Label */}
@@ -786,7 +857,7 @@ const Lesson1 = () => {
                                         isCurrent ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                                       }`}
                                     >
-                                      −
+                                      âˆ’
                                     </button>
                                     <div className={`w-16 text-center font-mono font-bold ${
                                       isCurrent ? 'text-white' : 'text-gray-800'
@@ -912,7 +983,7 @@ const Lesson1 = () => {
                     }}
                     className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
                   >
-                    🔚 End Session
+                    ðŸ”š End Session
                   </button>
                 </div>
               </div>

@@ -2,6 +2,7 @@
 // Main layout with resizable panels using ResizableSplitPane
 // UPDATED: Split video area into left (assignment panel) and right (video player)
 // UPDATED: Timeline label moved inline with time markers
+// UPDATED: Added assignment panel support for tutorial mode
 
 import React from 'react';
 import LoopLibrary from '../../shared/LoopLibrary';
@@ -93,6 +94,7 @@ const ComposerLayout = ({
           lockedMood={lockedMood}
           showSoundEffects={showSoundEffects}
           currentlyPlayingLoopId={currentlyPlayingPreview}
+          highlighted={highlightSelector === '.loop-library'}
         />
       </div>
 
@@ -109,58 +111,72 @@ const ComposerLayout = ({
       {/* Center Panel - Video and Timeline with ResizableSplitPane */}
       <div className="flex-1 flex flex-col overflow-hidden min-h-0">
         {tutorialMode ? (
-          // Tutorial Mode - Fixed heights without resizing
-          <>
-            {/* Video Player */}
-            <div className="flex-shrink-0" style={{ height: '150px' }}>
-              <div 
-                className="h-full p-4"
-                onClick={() => {
-                  if (onVideoPlayerClick) {
-                    onVideoPlayerClick();
-                  }
-                }}
-              >
-                <div className="h-full">
-                  <VideoPlayer
-                    selectedVideo={selectedVideo}
-                    isPlaying={isPlaying}
-                    currentTime={currentTime}
-                    onSeek={handleSeek}
-                    onPlay={handlePlay}
-                    onPause={pause}
-                  />
+          // Tutorial Mode - Resizable split with taller default for challenge sidebar
+          <ResizableSplitPane
+            initialTopHeight={500}
+            minTopHeight={200}
+            minBottomHeight={300}
+            topContent={
+              // Video Player Area - Split into assignment panel + video
+              <div className="h-full flex">
+                {/* Assignment Panel - Only show if content provided */}
+                {assignmentPanelContent && (
+                  <div className="w-80 border-r border-gray-700 flex-shrink-0">
+                    {assignmentPanelContent}
+                  </div>
+                )}
+                
+                {/* Video Player Section - Takes remaining space */}
+                <div 
+                  className="flex-1 p-4"
+                  onClick={() => {
+                    if (onVideoPlayerClick) {
+                      onVideoPlayerClick();
+                    }
+                  }}
+                >
+                  <div className="h-full">
+                    <VideoPlayer
+                      selectedVideo={selectedVideo}
+                      isPlaying={isPlaying}
+                      currentTime={currentTime}
+                      onSeek={handleSeek}
+                      onPlay={handlePlay}
+                      onPause={pause}
+                    highlighted={highlightSelector === '.video-player-container'} />
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* Timeline */}
-            <div className="flex-1 min-h-0">
-              <Timeline
-                placedLoops={placedLoops}
-                duration={selectedVideo?.duration || 60}
-                currentTime={currentTime}
-                onLoopDrop={handleLoopDrop}
-                onLoopDelete={handleLoopDelete}
-                onLoopSelect={handleLoopSelect}
-                onLoopUpdate={handleLoopUpdate}
-                onLoopResize={onLoopResizeCallback}
-                onSeek={handleSeek}
-                selectedLoop={selectedLoop}
-                isPlaying={isPlaying}
-                onTrackStateChange={handleTrackStateChange}
-                onTrackHeaderClick={onTrackHeaderClick}
-                onZoomChange={onZoomChange}
-                tutorialMode={tutorialMode}
-                lockFeatures={lockFeatures}
-                highlightSelector={highlightSelector}
-                onPlay={handlePlay}
-                onPause={pause}
-                onStop={handleStop}
-                onRestart={handleRestart}
-              />
-            </div>
-          </>
+            }
+            bottomContent={
+              // Timeline Section
+              <div className="h-full">
+                <Timeline
+                  placedLoops={placedLoops}
+                  duration={selectedVideo?.duration || 60}
+                  currentTime={currentTime}
+                  onLoopDrop={handleLoopDrop}
+                  onLoopDelete={handleLoopDelete}
+                  onLoopSelect={handleLoopSelect}
+                  onLoopUpdate={handleLoopUpdate}
+                  onLoopResize={onLoopResizeCallback}
+                  onSeek={handleSeek}
+                  selectedLoop={selectedLoop}
+                  isPlaying={isPlaying}
+                  onTrackStateChange={handleTrackStateChange}
+                  onTrackHeaderClick={onTrackHeaderClick}
+                  onZoomChange={onZoomChange}
+                  tutorialMode={tutorialMode}
+                  lockFeatures={lockFeatures}
+                  highlightSelector={highlightSelector}
+                  onPlay={handlePlay}
+                  onPause={pause}
+                  onStop={handleStop}
+                  onRestart={handleRestart}
+                />
+              </div>
+            }
+          />
         ) : (
           // Normal Mode - ResizableSplitPane with split video area
           <ResizableSplitPane
@@ -194,7 +210,7 @@ const ComposerLayout = ({
                       onSeek={handleSeek}
                       onPlay={handlePlay}
                       onPause={pause}
-                    />
+                    highlighted={highlightSelector === '.video-player-container'} />
                   </div>
                 </div>
               </div>
