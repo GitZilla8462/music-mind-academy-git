@@ -172,6 +172,7 @@ const PresentationView = () => {
   // Use refs to track the last Firebase values to prevent duplicate processing
   const lastFirebaseCountdown = useRef(null);
   const lastFirebaseStage = useRef(null);
+  const lastFirebaseTimerActive = useRef(null);
 
   // ✅ LOCAL COUNTDOWN TIMER - Runs independently every second
   useEffect(() => {
@@ -227,27 +228,52 @@ const PresentationView = () => {
         lastFirebaseCountdown.current = null;
       }
       
-      // ✅ COUNTDOWN CONTROL SIGNALS
+      // ✅ COUNTDOWN CONTROL SIGNALS - Firebase only controls start/pause/resume, timer runs locally
       if (data.countdownTime !== undefined) {
         const firebaseTime = data.countdownTime;
+        const firebaseActive = data.timerActive;
         
-        // Only process if this is a NEW value from Firebase
+        console.log('🔍 Timer state check:', {
+          firebaseTime,
+          firebaseActive,
+          lastTime: lastFirebaseCountdown.current,
+          lastActive: lastFirebaseTimerActive.current,
+          currentlyCountingDown: isCountingDown
+        });
+        
+        // Check if countdown time changed (new timer started or reset)
         if (firebaseTime !== lastFirebaseCountdown.current) {
-          console.log('⏱️  Countdown signal:', firebaseTime);
+          console.log('⏱️  Countdown time changed:', lastFirebaseCountdown.current, '→', firebaseTime);
           lastFirebaseCountdown.current = firebaseTime;
+          lastFirebaseTimerActive.current = firebaseActive;
           
           if (firebaseTime > 0) {
-            // Start/restart countdown
-            console.log('▶️  Starting local countdown from', firebaseTime);
+            // New countdown starting - set the time and respect the active flag
+            // undefined means start (for backwards compatibility), false means don't start
+            const shouldStart = firebaseActive !== false;
+            console.log('▶️  Starting local countdown from', firebaseTime, 'active:', firebaseActive, 'shouldStart:', shouldStart);
             setInitialCountdownTime(firebaseTime);
             setCountdownTime(firebaseTime);
-            setIsCountingDown(true);
+            setIsCountingDown(shouldStart);
           } else {
-            // Stop countdown
+            // Reset/stop countdown
             console.log('⏹️  Stopping countdown');
             setCountdownTime(0);
             setIsCountingDown(false);
             setInitialCountdownTime(0);
+          }
+        } 
+        // Check if only the timerActive flag changed (pause/resume)
+        else if (firebaseActive !== lastFirebaseTimerActive.current) {
+          console.log('🎛️  Timer active state changed:', lastFirebaseTimerActive.current, '→', firebaseActive);
+          lastFirebaseTimerActive.current = firebaseActive;
+          
+          if (firebaseActive === false) {
+            console.log('⏸️  Teacher paused timer');
+            setIsCountingDown(false);
+          } else if (firebaseActive === true && countdownTime > 0) {
+            console.log('▶️  Teacher resumed timer');
+            setIsCountingDown(true);
           }
         }
       }

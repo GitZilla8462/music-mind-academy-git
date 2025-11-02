@@ -141,6 +141,13 @@ const Lesson1 = () => {
       );
     }
     
+    // 🎬 VIDEO STAGES: Students don't see videos - they watch on main screen
+    if (currentStageData?.type === 'video') {
+      return <StudentWaitingScreen 
+        lessonTitle="Please watch the video on the main screen" 
+      />;
+    }
+    
     // Student viewing active activity
     const activityType = getActivityForStage(currentStage);
     const activity = lesson1Config.activities.find(a => a.type === activityType);

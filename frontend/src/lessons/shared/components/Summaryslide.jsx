@@ -1,6 +1,6 @@
-// File: /src/lessons/film-music-project/lesson1/components/SummarySlide.jsx
+// File: /src/lessons/shared/components/Summaryslide.jsx
 // Instructional slide shown before each major activity
-// REDESIGNED: Google Slides style - guaranteed to fit on any projector screen (16:9)
+// UPDATED: Simplified format - just text points, no titles. Smaller numbers, larger text.
 
 import React from 'react';
 import { Clock } from 'lucide-react';
@@ -43,22 +43,19 @@ const SummarySlide = ({ title, points, estimatedTime, icon, sessionCode }) => {
               )}
             </div>
 
-            {/* Three Points - Middle 60% - LARGE TEXT */}
+            {/* Three Points - Middle 60% - LARGE TEXT, SMALLER NUMBERS */}
             <div className="flex-1 flex flex-col justify-center space-y-6">
               {points.map((point, index) => (
                 <div key={index} className="flex items-center gap-6">
-                  {/* Number Circle */}
-                  <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                    <span className="text-white text-3xl font-bold">{index + 1}</span>
+                  {/* Number Circle - SMALLER */}
+                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white text-2xl font-bold">{index + 1}</span>
                   </div>
                   
-                  {/* Content - READABLE FROM BACK OF ROOM */}
+                  {/* Content - LARGER TEXT, READABLE FROM BACK OF ROOM */}
                   <div className="flex-1">
-                    <div className="text-3xl font-bold text-gray-900 mb-1">
-                      {point.title}
-                    </div>
-                    <div className="text-4xl text-gray-700 font-medium leading-snug">
-                      {point.description}
+                    <div className="text-5xl text-gray-800 font-semibold leading-snug">
+                      {point}
                     </div>
                   </div>
                 </div>

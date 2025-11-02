@@ -357,6 +357,27 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
 
         {/* Stage Buttons */}
         <div className="space-y-2">
+          {/* START LESSON - First Row */}
+          <a
+            href={`/presentation?session=${sessionCode}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full text-left px-4 py-3 rounded-lg transition-all bg-green-600 hover:bg-green-700 text-white font-semibold"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-medium flex items-center gap-2">
+                  <span className="text-xl">📽️</span>
+                  Start Lesson - Open Presentation
+                </div>
+                <div className="text-sm opacity-90">Click to open the lesson on your projector/screen</div>
+              </div>
+              <div className="bg-white text-green-600 px-3 py-1 rounded text-xs font-bold">
+                STEP 1
+              </div>
+            </div>
+          </a>
+          
           {lessonStages.map((stage, index) => {
             const isCurrent = stage.id === currentStage;
             const isPast = index < currentStageIndex;
