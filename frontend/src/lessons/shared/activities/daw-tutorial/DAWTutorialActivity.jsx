@@ -1,14 +1,14 @@
-// File: /src/lessons/film-music-project/lesson1/activities/daw-tutorial/DAWTutorialActivity.jsx
-// FINAL: Navigation tools dropdown from top right, exploration mode with timer after tutorial complete
-// UPDATED: isSessionMode prop to hide timer for students in session mode
+// File: /src/lessons/shared/activities/daw-tutorial/DAWTutorialActivity.jsx
+// FIXED: Navigation tools dropdown from top right, exploration mode with timer after tutorial complete
+// Session mode support: no auto-advance in exploration mode during class
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Minimize2, Maximize2 } from 'lucide-react';
-import MusicComposer from '../../../../../pages/projects/film-music-score/composer/MusicComposer';
+import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
 import ChallengeSidebar from './ChallengeSidebar';
 import { DAW_CHALLENGES } from './challengeDefinitions';
-import { saveDAWStats } from '../../lessonStorageUtils';
-import './TutorialHighlight.css';  // Tutorial highlight animations
+import { saveDAWStats } from "../../../film-music-project/lesson1/lessonStorageUtils";
+import './TutorialHighlight.css';
 
 const DAW_TUTORIAL_DURATION = 13 * 60 * 1000; // 13 minutes in milliseconds
 
@@ -17,7 +17,7 @@ const DAWTutorialActivity = ({
   navToolsEnabled = false, 
   canAccessNavTools = false, 
   lessonStartTime,
-  isSessionMode = false  // NEW: Hide timer in session mode
+  isSessionMode = false  // ✅ NEW: Detect if we're in session mode
 }) => {
   // Core state
   const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0);
@@ -105,7 +105,6 @@ const DAWTutorialActivity = ({
 
     const voices = window.speechSynthesis.getVoices();
     
-    // Prioritize US English voices to avoid weird accents
     const preferredVoice = voices.find(voice => 
       voice.lang === 'en-US' && (
         voice.name.includes('Google US English') ||
@@ -148,15 +147,27 @@ const DAWTutorialActivity = ({
     return Math.max(0, remaining);
   }, [lessonStartTime]);
 
-  // Start exploration mode timer
+  // ✅ FIXED: Start exploration mode with proper session mode handling
   const startExplorationMode = useCallback(() => {
     const remaining = calculateTimeRemaining();
     
     console.log('🎉 Tutorial complete! Time remaining:', Math.floor(remaining / 1000), 'seconds');
+    console.log('📊 Session mode:', isSessionMode);
+    
     // Save DAW tutorial stats
     saveDAWStats(correctAnswers, incorrectAnswers);
 
+    // ✅ IN SESSION MODE: Show exploration WITHOUT auto-advance timer
+    // Students explore freely until teacher manually advances the stage
+    if (isSessionMode) {
+      console.log('📱 Session mode: Entering exploration mode (no auto-advance, teacher controls)');
+      setShowExplorationMode(true);
+      setTimeRemaining(0); // No timer in session mode
+      // Note: onComplete() will be called when teacher advances stage via SessionContext
+      return;
+    }
     
+    // NORMAL MODE: Check time remaining and use countdown
     if (remaining <= 0) {
       // No time left, advance immediately
       console.log('⏰ No time remaining, advancing to next activity');
@@ -165,9 +176,10 @@ const DAWTutorialActivity = ({
           completionCalledRef.current = true;
           onComplete();
         }
-      }, 2000); // Brief 2-second delay to show completion message
+      }, 2000);
     } else {
-      // Time remaining, show exploration mode
+      // Time remaining, show exploration mode with countdown
+      console.log('✨ Entering exploration mode with', Math.floor(remaining / 1000), 'seconds remaining');
       setTimeRemaining(remaining);
       setShowExplorationMode(true);
       
@@ -177,7 +189,6 @@ const DAWTutorialActivity = ({
           const newTime = prev - 1000;
           
           if (newTime <= 0) {
-            // Time's up!
             if (explorationTimerRef.current) {
               clearInterval(explorationTimerRef.current);
             }
@@ -210,26 +221,21 @@ const DAWTutorialActivity = ({
         });
       }, 1000);
     }
-  }, [calculateTimeRemaining, onComplete, setSafeTimeout, correctAnswers, incorrectAnswers]);
+  }, [calculateTimeRemaining, onComplete, setSafeTimeout, correctAnswers, incorrectAnswers, isSessionMode]);
 
   // Next challenge
   const nextChallenge = useCallback(() => {
     if (!isMountedRef.current) return;
     
+    setIsProcessingSuccess(true);
+    
     if (currentChallengeIndex >= DAW_CHALLENGES.length - 1) {
       // Tutorial complete - check time and start exploration or advance
-      setIsProcessingSuccess(true);
-      
-      setSafeTimeout(() => {
-        if (isMountedRef.current) {
-          startExplorationMode();
-          setIsProcessingSuccess(false); // Reset processing state
-        }
-      }, 500);
+      console.log('🏁 Last challenge completed! Starting exploration mode...');
+      startExplorationMode();
       return;
     }
     
-    setIsProcessingSuccess(true);
     setCurrentChallengeIndex(prev => prev + 1);
     setUserAnswer(null);
     setFeedback(null);
@@ -243,13 +249,6 @@ const DAWTutorialActivity = ({
       setSafeTimeout(() => {
         if (isMountedRef.current) {
           speakText(nextChallengeData.question, voiceEnabled);
-          setIsProcessingSuccess(false); // Reset after speaking
-        }
-      }, 500);
-    } else {
-      setSafeTimeout(() => {
-        if (isMountedRef.current) {
-          setIsProcessingSuccess(false);
         }
       }, 500);
     }
@@ -375,6 +374,7 @@ const DAWTutorialActivity = ({
     handlePlaybackStart: useCallback(() => {
       if (!isMountedRef.current) return;
       
+      console.log('▶️ Playback started - setting action');
       setDawContext(prev => ({
         ...prev,
         action: 'playback-started',
@@ -385,6 +385,7 @@ const DAWTutorialActivity = ({
     handlePlaybackStop: useCallback(() => {
       if (!isMountedRef.current) return;
       
+      console.log('⏹️ Playback stopped - setting action');
       setDawContext(prev => ({
         ...prev,
         action: 'playback-stopped',
@@ -399,9 +400,12 @@ const DAWTutorialActivity = ({
     if (currentChallenge.type === 'multiple-choice') return;
     if (feedback) return;
 
+    console.log('🔍 Validating action:', dawContext.action, 'for challenge:', currentChallenge.id);
+
     setIsProcessingClick(true);
 
     const isValid = currentChallenge.validation?.(dawContext);
+    console.log('✅ Validation result:', isValid);
 
     if (isValid) {
       setFeedback({ type: 'success', message: 'Perfect! Great job!' });
@@ -558,9 +562,11 @@ const DAWTutorialActivity = ({
   useEffect(() => {
     if (!hasInitialized.current) {
       hasInitialized.current = true;
-      console.log('DAW Tutorial initialized - Total challenges:', DAW_CHALLENGES.length);
+      console.log('🎓 DAW Tutorial initialized');
+      console.log('📊 Total challenges:', DAW_CHALLENGES.length);
+      console.log('📱 Session mode:', isSessionMode);
     }
-  }, []);
+  }, [isSessionMode]);
 
   // Load voices
   useEffect(() => {
@@ -580,9 +586,8 @@ const DAWTutorialActivity = ({
 
   // DAW ready callback
   const handleDAWReady = useCallback(() => {
-    console.log('[OK] DAW is ready for challenges (callback received)');
+    console.log('[✓] DAW is ready for challenges');
     
-    // Clear the fallback timeout since we got the callback
     if (dawReadyTimeoutRef.current) {
       clearTimeout(dawReadyTimeoutRef.current);
       dawReadyTimeoutRef.current = null;
@@ -620,20 +625,9 @@ const DAWTutorialActivity = ({
       showExplorationMode={showExplorationMode}
       timeRemaining={timeRemaining}
       formatTime={formatTime}
-      isSessionMode={isSessionMode}  // NEW: Pass to sidebar
+      isSessionMode={isSessionMode}
     />
   ) : null;
-
-  console.log('🎯 Challenge Sidebar Status:', {
-    isDAWReady,
-    hasContent: !!assignmentPanelContent,
-    contentType: assignmentPanelContent?.type?.name,
-    currentChallenge: currentChallenge?.id,
-    currentQuestion: currentChallenge?.question?.substring(0, 50),
-    showExplorationMode,
-    isSessionMode  // NEW: Log session mode
-  });
-  console.log('📦 assignmentPanelContent object:', assignmentPanelContent);
 
   // Error state
   if (hasError) {
@@ -690,38 +684,33 @@ const DAWTutorialActivity = ({
         </div>
       )}
 
-      {/* Navigation Tools Panel - Dropdown from top right */}
-      {navToolsEnabled && canAccessNavTools && !showExplorationMode && (
+      {/* Navigation Tools Panel - Only for teachers/dev in non-session mode */}
+      {navToolsEnabled && canAccessNavTools && !showExplorationMode && !isSessionMode && (
         <div className="fixed top-4 right-4 z-50">
           {isNavToolsMinimized ? (
-            // Minimized view
             <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-2 shadow-xl">
               <div className="flex items-center justify-between gap-2">
                 <div className="text-blue-400 text-xs font-mono font-bold">🧭 NAV</div>
                 <button
                   onClick={() => setIsNavToolsMinimized(false)}
                   className="p-1 bg-blue-600 rounded hover:bg-blue-700 transition-colors"
-                  title="Restore navigation panel"
                 >
                   <Maximize2 size={14} className="text-white" />
                 </button>
               </div>
             </div>
           ) : (
-            // Full view
             <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-3 shadow-xl max-w-xs">
               <div className="flex items-center justify-between mb-2">
-                <div className="text-blue-400 text-xs font-mono font-bold">🧭 TUTORIAL NAVIGATION</div>
+                <div className="text-blue-400 text-xs font-mono font-bold">🧭 TUTORIAL NAV</div>
                 <button
                   onClick={() => setIsNavToolsMinimized(true)}
                   className="p-1 bg-blue-600 rounded hover:bg-blue-700 transition-colors"
-                  title="Minimize navigation panel"
                 >
                   <Minimize2 size={14} className="text-white" />
                 </button>
               </div>
               
-              {/* Activity Navigator */}
               <div className="mb-3">
                 <div className="text-gray-300 text-xs mb-2 font-semibold">Jump to Challenge:</div>
                 <div className="grid grid-cols-5 gap-1">
@@ -736,7 +725,6 @@ const DAWTutorialActivity = ({
                           ? 'bg-green-700 text-white'
                           : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                       }`}
-                      title={challenge.question}
                     >
                       {index + 1}
                     </button>
@@ -744,7 +732,6 @@ const DAWTutorialActivity = ({
                 </div>
               </div>
               
-              {/* Quick Actions */}
               <div className="space-y-1">
                 <button
                   onClick={() => navSkipToChallenge(currentChallengeIndex + 1)}
@@ -757,17 +744,14 @@ const DAWTutorialActivity = ({
                   onClick={navCompleteAll}
                   className="w-full bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 transition-colors font-semibold"
                 >
-                  [Launch] Complete All ➡️ Next Activity
+                  Complete All → Next Activity
                 </button>
               </div>
               
-              {/* Current Status */}
               <div className="mt-3 pt-2 border-t border-gray-700 text-xs text-gray-400 font-mono">
                 <div>Challenge: {currentChallengeIndex + 1}/{DAW_CHALLENGES.length}</div>
                 <div>Completed: {completedChallenges.size}</div>
-                <div>DAW Ready: {isDAWReady ? 'Yes' : 'No'}</div>
-                <div>Voice: {voiceEnabled ? 'ON' : 'OFF'}</div>
-                <div>Volume: {Math.round(voiceVolume * 100)}%</div>
+                <div>Mode: {isSessionMode ? 'Session' : 'Normal'}</div>
               </div>
             </div>
           )}

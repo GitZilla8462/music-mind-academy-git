@@ -5,8 +5,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, Minimize2, Maximize2 } from 'lucide-react';
-import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
-import { saveComposition, saveBonusComposition } from '../lessonStorageUtils';
+import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
+import { saveComposition, saveBonusComposition } from '../../film-music-project/lesson1/lessonStorageUtils';
 
 const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes in milliseconds
 

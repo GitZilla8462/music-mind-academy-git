@@ -3,7 +3,7 @@
 // UPDATED: Modal in bottom right, no screen dimming, DAW fully visible
 
 import React from 'react';
-import MusicComposer from '../../../../../pages/projects/film-music-score/composer/MusicComposer';
+import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
 import ReflectionModal from './ReflectionModal';
 
 const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false }) => {

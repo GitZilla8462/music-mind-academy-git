@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getDatabase, ref, onValue, set } from 'firebase/database';
-import SummarySlide from '../lessons/film-music-project/lesson1/components/Summaryslide';
+import SummarySlide from "../lessons/shared/components/Summaryslide";
 import { summarySlides } from '../lessons/film-music-project/lesson1/summarySlideContent';
 
 // Professional Timer Component
@@ -168,29 +168,28 @@ const PresentationView = () => {
   const [countdownTime, setCountdownTime] = useState(0);
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [initialCountdownTime, setInitialCountdownTime] = useState(0);
-  const [lastUpdateTime, setLastUpdateTime] = useState(0);
+  
+  // Use refs to track the last Firebase values to prevent duplicate processing
+  const lastFirebaseCountdown = useRef(null);
+  const lastFirebaseStage = useRef(null);
 
-  // Timer effect - starts when activity is unlocked
+  // ✅ LOCAL COUNTDOWN TIMER - Runs independently every second
   useEffect(() => {
-    if (currentStage !== 'locked') {
-      const interval = setInterval(() => {
-        if (isCountingDown && countdownTime > 0) {
-          // Countdown mode
-          setCountdownTime(prev => Math.max(0, prev - 1));
-        } else if (!isCountingDown) {
-          // Count-up mode
-          setTimer(prev => prev + 1);
+    if (!isCountingDown || countdownTime <= 0) return;
+
+    const interval = setInterval(() => {
+      setCountdownTime(prev => {
+        const newValue = prev - 1;
+        if (newValue <= 0) {
+          setIsCountingDown(false);
+          return 0;
         }
-      }, 1000);
-      return () => clearInterval(interval);
-    } else {
-      setTimer(0);
-      setCountdownTime(0);
-      setIsCountingDown(false);
-      setInitialCountdownTime(0);
-      setLastUpdateTime(0);
-    }
-  }, [currentStage, isCountingDown, countdownTime]);
+        return newValue;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isCountingDown, countdownTime]);
 
   // Format timer as MM:SS
   const formatTime = (seconds) => {
@@ -199,72 +198,66 @@ const PresentationView = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Subscribe to session updates without joining
+  // ✅ FIREBASE LISTENER - Only for control signals
   useEffect(() => {
-    if (sessionCode) {
-      console.log('Presentation View listening to session:', sessionCode);
+    if (!sessionCode) return;
+
+    console.log('🔊 Presentation View connected to session:', sessionCode);
+    
+    const db = getDatabase();
+    const sessionRef = ref(db, `sessions/${sessionCode}`);
+    
+    const unsubscribe = onValue(sessionRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      console.log('📡 Firebase update:', data);
       
-      const db = getDatabase();
-      const sessionRef = ref(db, `sessions/${sessionCode}`);
+      // ✅ STAGE CHANGES - Reset everything
+      if (data.currentStage && data.currentStage !== lastFirebaseStage.current) {
+        console.log('🎬 Stage changed:', lastFirebaseStage.current, '→', data.currentStage);
+        lastFirebaseStage.current = data.currentStage;
+        setCurrentStage(data.currentStage);
+        
+        // Reset all timer states on stage change
+        setTimer(0);
+        setCountdownTime(0);
+        setIsCountingDown(false);
+        setInitialCountdownTime(0);
+        lastFirebaseCountdown.current = null;
+      }
       
-      const unsubscribe = onValue(sessionRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          console.log('Session data received:', data);
+      // ✅ COUNTDOWN CONTROL SIGNALS
+      if (data.countdownTime !== undefined) {
+        const firebaseTime = data.countdownTime;
+        
+        // Only process if this is a NEW value from Firebase
+        if (firebaseTime !== lastFirebaseCountdown.current) {
+          console.log('⏱️  Countdown signal:', firebaseTime);
+          lastFirebaseCountdown.current = firebaseTime;
           
-          // Check if stage changed - reset timer states
-          if (data.currentStage && data.currentStage !== currentStage) {
-            console.log('Stage changed from', currentStage, 'to', data.currentStage);
-            setCurrentStage(data.currentStage);
-            // Reset all timer states when stage changes
-            setTimer(0);
+          if (firebaseTime > 0) {
+            // Start/restart countdown
+            console.log('▶️  Starting local countdown from', firebaseTime);
+            setInitialCountdownTime(firebaseTime);
+            setCountdownTime(firebaseTime);
+            setIsCountingDown(true);
+          } else {
+            // Stop countdown
+            console.log('⏹️  Stopping countdown');
             setCountdownTime(0);
             setIsCountingDown(false);
             setInitialCountdownTime(0);
-            setLastUpdateTime(0);
-          }
-          
-          // Sync countdown timer if present
-          if (data.countdownTime !== undefined && data.timestamp) {
-            const newCountdownTime = data.countdownTime;
-            const newTimestamp = data.timestamp;
-            
-            // Only process if this is a newer update than the last one we saw
-            // This helps ignore stale/competing timer updates
-            if (newTimestamp > lastUpdateTime) {
-              console.log('Processing countdown update:', newCountdownTime, 'timestamp:', newTimestamp);
-              setLastUpdateTime(newTimestamp);
-              
-              if (newCountdownTime > 0) {
-                // Only update initial time if this is a significant increase
-                // OR if we don't have an initial time yet
-                const isSignificantIncrease = newCountdownTime > countdownTime + 100;
-                const needsInitialTime = initialCountdownTime === 0;
-                
-                if (isSignificantIncrease || needsInitialTime) {
-                  console.log('New countdown detected! Setting initialCountdownTime to:', newCountdownTime);
-                  setInitialCountdownTime(newCountdownTime);
-                }
-                
-                setCountdownTime(newCountdownTime);
-                setIsCountingDown(true);
-              } else {
-                setIsCountingDown(false);
-                // Reset initial time when countdown stops
-                if (newCountdownTime === 0) {
-                  setInitialCountdownTime(0);
-                }
-              }
-            } else {
-              console.log('Ignoring stale countdown update:', newCountdownTime, 'timestamp:', newTimestamp);
-            }
           }
         }
-      });
-      
-      return () => unsubscribe();
-    }
-  }, [sessionCode, currentStage, isCountingDown, initialCountdownTime, countdownTime, lastUpdateTime]);
+      }
+    });
+    
+    return () => {
+      console.log('🔇 Disconnecting from session:', sessionCode);
+      unsubscribe();
+    };
+  }, [sessionCode]);
 
   if (!sessionCode) {
     return (
@@ -283,7 +276,6 @@ const PresentationView = () => {
   }
 
   // Waiting screen with session code
-  // Note: Session code is already the main focus of this screen, so no badge needed
   if (currentStage === 'locked') {
     return (
       <div style={{
@@ -346,6 +338,126 @@ const PresentationView = () => {
     );
   }
 
+  // Welcome Instructions Screen
+  if (currentStage === 'welcome-instructions') {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        backgroundColor: '#ffffff',
+        color: '#1f2937',
+        padding: '80px 60px',
+        position: 'relative'
+      }}>
+        <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={false} />
+        
+        <div style={{ fontSize: '100px', marginBottom: '32px' }}>🎬</div>
+
+        <h1 style={{
+          fontSize: '56px',
+          fontWeight: '700',
+          marginBottom: '16px',
+          textAlign: 'center',
+          color: '#1f2937',
+          maxWidth: '1100px',
+          lineHeight: '1.2'
+        }}>
+          Welcome to Film Music Lesson 1
+        </h1>
+
+        <p style={{
+          fontSize: '24px',
+          color: '#6b7280',
+          marginBottom: '56px',
+          textAlign: 'center',
+          maxWidth: '800px'
+        }}>
+          Today you'll learn how music enhances storytelling in film
+        </p>
+
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '32px',
+          width: '100%',
+          maxWidth: '1100px',
+          marginBottom: '40px'
+        }}>
+          {[
+            { num: '1', text: 'Follow along with the presentation on this screen' },
+            { num: '2', text: 'Complete activities on your own device when instructed' },
+            { num: '3', text: 'Ask questions and share your creative ideas throughout the lesson' }
+          ].map((item, i) => (
+            <div key={i} style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '32px',
+              padding: '36px',
+              backgroundColor: '#f9fafb',
+              borderRadius: '16px',
+              border: '2px solid #e5e7eb'
+            }}>
+              <div style={{
+                minWidth: '72px',
+                height: '72px',
+                borderRadius: '50%',
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '36px',
+                fontWeight: '700',
+                flexShrink: 0
+              }}>
+                {item.num}
+              </div>
+              <div style={{ flex: 1, paddingTop: '8px' }}>
+                <div style={{
+                  fontSize: '32px',
+                  color: '#374151',
+                  lineHeight: '1.4',
+                  fontWeight: '400'
+                }}>
+                  {item.text}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p style={{
+          fontSize: '22px',
+          color: '#10b981',
+          fontWeight: '600',
+          textAlign: 'center',
+          marginBottom: '40px'
+        }}>
+          Get ready to create amazing film music!
+        </p>
+
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '18px 36px',
+          backgroundColor: '#eff6ff',
+          border: '2px solid #93c5fd',
+          borderRadius: '999px',
+          fontSize: '20px',
+          fontWeight: '600',
+          color: '#1e40af'
+        }}>
+          <span style={{ fontSize: '24px' }}>👋</span>
+          Waiting for Teacher to Continue
+        </div>
+      </div>
+    );
+  }
+
   // Summary slides
   const summaryStages = {
     'intro-summary': 'introVideo',
@@ -384,14 +496,9 @@ const PresentationView = () => {
         padding: '20px',
         position: 'relative'
       }}>
-        {/* Session Code Badge */}
         <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={true} />
         
-        <h2 style={{
-          color: 'white',
-          fontSize: '32px',
-          marginBottom: '20px'
-        }}>
+        <h2 style={{ color: 'white', fontSize: '32px', marginBottom: '20px' }}>
           Lesson Introduction
         </h2>
         <video
@@ -399,7 +506,6 @@ const PresentationView = () => {
           controls
           autoPlay
           onEnded={() => {
-            // Automatically advance to daw-tutorial when video ends
             const db = getDatabase();
             const sessionRef = ref(db, `sessions/${sessionCode}`);
             set(sessionRef, {
@@ -407,14 +513,9 @@ const PresentationView = () => {
               timestamp: Date.now()
             });
           }}
-          style={{
-            width: '90%',
-            maxWidth: '1200px',
-            maxHeight: '80vh'
-          }}
+          style={{ width: '90%', maxWidth: '1200px', maxHeight: '80vh' }}
         >
           <source src="/lessons/film-music-project/lesson1/Lesson1intro.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
         </video>
       </div>
     );
@@ -433,14 +534,9 @@ const PresentationView = () => {
         padding: '20px',
         position: 'relative'
       }}>
-        {/* Session Code Badge */}
         <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={true} />
         
-        <h2 style={{
-          color: 'white',
-          fontSize: '32px',
-          marginBottom: '20px'
-        }}>
+        <h2 style={{ color: 'white', fontSize: '32px', marginBottom: '20px' }}>
           Activity Introduction
         </h2>
         <video
@@ -448,7 +544,6 @@ const PresentationView = () => {
           controls
           autoPlay
           onEnded={() => {
-            // Automatically advance to school-beneath activity when video ends
             const db = getDatabase();
             const sessionRef = ref(db, `sessions/${sessionCode}`);
             set(sessionRef, {
@@ -456,14 +551,9 @@ const PresentationView = () => {
               timestamp: Date.now()
             });
           }}
-          style={{
-            width: '90%',
-            maxWidth: '1200px',
-            maxHeight: '80vh'
-          }}
+          style={{ width: '90%', maxWidth: '1200px', maxHeight: '80vh' }}
         >
           <source src="/lessons/film-music-project/lesson1/Lesson1activityintro.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
         </video>
       </div>
     );
@@ -536,25 +626,19 @@ const PresentationView = () => {
         padding: '80px 60px',
         position: 'relative'
       }}>
-        {/* Session Code Badge */}
         <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={false} />
         
-        {/* Professional Timer */}
-        <ProfessionalTimer 
-          seconds={isCountingDown ? countdownTime : timer} 
-          isCountingDown={isCountingDown}
-          initialCountdownTime={initialCountdownTime}
-        />
+        {/* Professional Timer - Only show when countdown is active */}
+        {(isCountingDown && countdownTime > 0) && (
+          <ProfessionalTimer 
+            seconds={countdownTime} 
+            isCountingDown={true}
+            initialCountdownTime={initialCountdownTime}
+          />
+        )}
 
-        {/* Icon */}
-        <div style={{
-          fontSize: '100px',
-          marginBottom: '32px'
-        }}>
-          {activityData.icon}
-        </div>
+        <div style={{ fontSize: '100px', marginBottom: '32px' }}>{activityData.icon}</div>
 
-        {/* Title - MUCH LARGER */}
         <h1 style={{
           fontSize: '56px',
           fontWeight: '700',
@@ -567,7 +651,6 @@ const PresentationView = () => {
           {activityData.title}
         </h1>
 
-        {/* Subtitle - LARGER */}
         <p style={{
           fontSize: '24px',
           color: '#6b7280',
@@ -578,7 +661,6 @@ const PresentationView = () => {
           {activityData.subtitle}
         </p>
 
-        {/* Steps - Numbered with MUCH LARGER TEXT */}
         <div style={{
           display: 'flex',
           flexDirection: 'column',
@@ -597,7 +679,6 @@ const PresentationView = () => {
               borderRadius: '16px',
               border: '2px solid #e5e7eb'
             }}>
-              {/* Number circle - LARGER */}
               <div style={{
                 minWidth: '72px',
                 height: '72px',
@@ -614,7 +695,6 @@ const PresentationView = () => {
                 {step.number}
               </div>
               
-              {/* Content - MUCH LARGER TEXT - Full sentence only */}
               <div style={{ flex: 1, paddingTop: '8px' }}>
                 <div style={{
                   fontSize: '32px',
@@ -629,7 +709,6 @@ const PresentationView = () => {
           ))}
         </div>
 
-        {/* Bonus text - LARGER */}
         {activityData.bonus && (
           <p style={{
             fontSize: '22px',
@@ -642,7 +721,6 @@ const PresentationView = () => {
           </p>
         )}
 
-        {/* Status badge - LARGER */}
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',

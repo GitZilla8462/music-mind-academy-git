@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
+import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
 import { Sparkles } from 'lucide-react';
 
 const SoundEffectsActivity = ({ 

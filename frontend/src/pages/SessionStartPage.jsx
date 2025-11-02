@@ -1,29 +1,73 @@
-// SessionStartPage.jsx
+// SessionStartPage.jsx  
+// FIXED: Now creates Firebase session with initial data
 // Full-page session code display (replaces modal)
 // Located at: /src/pages/SessionStartPage.jsx
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { getDatabase, ref, set } from 'firebase/database';
 
 const SessionStartPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Get session code from navigation state
+  // Get session data from navigation state
   const sessionCode = location.state?.sessionCode || 'ERROR';
+  const classId = location.state?.classId || null;
   const lessonPath = location.state?.lessonPath || '/lessons/film-music-project/lesson1';
+  const lessonTitle = location.state?.lessonTitle || 'Lesson';
+  
+  const [sessionCreated, setSessionCreated] = useState(false);
 
   const copySessionCode = () => {
     navigator.clipboard.writeText(sessionCode);
     alert('Session code copied!');
   };
 
-  // Auto-open control panel in a new tab when page loads
+  // Create Firebase session and open control panel
   useEffect(() => {
-    // Open teacher control panel in new tab
-    const controlPanelUrl = `${lessonPath}?session=${sessionCode}&role=teacher`;
-    window.open(controlPanelUrl, '_blank');
-  }, [lessonPath, sessionCode]);
+    const initializeSession = async () => {
+      if (sessionCode === 'ERROR' || sessionCreated) return;
+
+      try {
+        console.log('🔥 Creating Firebase session:', {
+          sessionCode,
+          classId,
+          lessonPath
+        });
+
+        // Create session in Firebase with initial locked state
+        const db = getDatabase();
+        const sessionRef = ref(db, `sessions/${sessionCode}`);
+        
+        await set(sessionRef, {
+          createdAt: Date.now(),
+          currentStage: 'locked', // ✅ CRITICAL: Start locked
+          classId: classId,
+          lessonId: lessonPath,
+          lessonTitle: lessonTitle,
+          teacherId: 'teacher', // Replace with actual teacher ID if available
+          countdownTime: 0,
+          timerActive: false,
+          timestamp: Date.now()
+        });
+
+        console.log('✅ Firebase session created successfully');
+        setSessionCreated(true);
+
+        // Open teacher control panel in new tab with classId
+        const controlPanelUrl = `${lessonPath}?session=${sessionCode}&role=teacher${classId ? `&classId=${classId}` : ''}`;
+        console.log('🎬 Opening teacher control panel:', controlPanelUrl);
+        window.open(controlPanelUrl, '_blank');
+
+      } catch (error) {
+        console.error('❌ Error creating Firebase session:', error);
+        alert('Failed to create session. Please try again.');
+      }
+    };
+
+    initializeSession();
+  }, [sessionCode, classId, lessonPath, lessonTitle, sessionCreated]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 flex items-center justify-center p-8">
@@ -72,7 +116,7 @@ const SessionStartPage = () => {
               <ol className="space-y-4 text-gray-700">
                 <li className="flex items-start">
                   <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">1</span>
-                  <span className="pt-1 text-lg">Open the lesson page on your device</span>
+                  <span className="pt-1 text-lg">Go to the join page: <strong className="text-blue-600">Your-Site.com/join</strong></span>
                 </li>
                 <li className="flex items-start">
                   <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">2</span>
@@ -80,26 +124,49 @@ const SessionStartPage = () => {
                 </li>
                 <li className="flex items-start">
                   <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">3</span>
-                  <span className="pt-1 text-lg">Wait for activities to unlock</span>
+                  <span className="pt-1 text-lg">Wait for you to unlock activities</span>
                 </li>
               </ol>
             </div>
 
             {/* Teacher Instructions */}
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-orange-200 rounded-2xl p-8 text-center">
-              <p className="text-lg text-gray-700 mb-2">
-                <strong className="text-orange-600">📋 Teacher:</strong> Keep this screen projected for students to see the code.
-              </p>
-              <p className="text-base text-gray-600">
-                Open your teacher control panel in another tab to begin the lesson.
-              </p>
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-orange-200 rounded-2xl p-8">
+              <div className="text-center mb-4">
+                <p className="text-lg text-gray-700 mb-2">
+                  <strong className="text-orange-600">📋 Teacher:</strong> Keep this screen projected for students to see the code.
+                </p>
+                <p className="text-base text-gray-600">
+                  Your teacher control panel should have opened in a new tab.
+                </p>
+              </div>
+              
+              {/* Troubleshooting */}
+              {sessionCreated && (
+                <div className="mt-4 pt-4 border-t border-orange-200">
+                  <p className="text-sm text-gray-600 mb-2">
+                    Control panel didn't open?
+                  </p>
+                  <button
+                    onClick={() => {
+                      const controlPanelUrl = `${lessonPath}?session=${sessionCode}&role=teacher${classId ? `&classId=${classId}` : ''}`;
+                      window.open(controlPanelUrl, '_blank');
+                    }}
+                    className="text-blue-600 hover:text-blue-700 font-semibold underline"
+                  >
+                    Click here to open it manually
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Bottom note */}
-        <div className="text-center mt-8 text-white/80 text-sm">
+        <div className="text-center mt-8 text-white/80 text-sm space-y-2">
           <p>💡 Keep this page open and projected while you control the lesson from your control panel</p>
+          {sessionCreated && (
+            <p className="text-green-300">✅ Session created in Firebase successfully</p>
+          )}
         </div>
       </div>
     </div>

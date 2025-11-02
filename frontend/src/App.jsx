@@ -30,7 +30,7 @@ import EditAssignmentPage from './components/dashboard/teacherdashboard/EditAssi
 import TeacherSubmissionViewer from './components/dashboard/teacherdashboard/TeacherSubmissionViewer.jsx';
 
 // Import lesson components
-import SimpleLessonPlaceholder from './lessons/components/LessonPlayer';
+import SimpleLessonPlaceholder from "./lessons/shared/components/LessonPlayer";
 import Lesson1 from './lessons/film-music-project/lesson1/Lesson1';
 
 // Import presentation view
@@ -41,6 +41,9 @@ import SessionStartPage from './pages/SessionStartPage';
 
 // Import join with code page
 import JoinWithCode from './pages/JoinWithCode';
+
+// ✅ NEW: Import debug tool
+import FirebaseSessionInspector from './components/FirebaseSessionInspector';
 
 // Add global styles for snap guide
 const snapGuideStyles = `
@@ -157,6 +160,9 @@ const AppContent = () => {
         <Routes>
         <Route path="/" element={<MusicClassroomResources />} />
         
+        {/* ✅ NEW: Debug tool for inspecting Firebase sessions */}
+        <Route path="/debug-session" element={<FirebaseSessionInspector />} />
+        
         {/* Join Page - NO AUTHENTICATION REQUIRED */}
         <Route path="/join" element={<JoinWithCode />} />
         
@@ -208,6 +214,9 @@ const AppContent = () => {
       <Routes>
         {/* PUBLIC ROUTES */}
         <Route path="/login" element={<AuthPage />} />
+        
+        {/* ✅ NEW: Debug tool for inspecting Firebase sessions */}
+        <Route path="/debug-session" element={<FirebaseSessionInspector />} />
         
         {/* Session Start Page - Available in commercial mode */}
         <Route path="/session-start" element={<SessionStartPage />} />

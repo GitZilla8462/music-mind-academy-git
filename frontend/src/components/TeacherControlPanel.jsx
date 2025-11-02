@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getDatabase, ref, onValue, set } from 'firebase/database';
-import { Clock, Play, Pause, SkipForward, RefreshCw, Users, TrendingUp } from 'lucide-react';
+import { Clock, Play, Pause, SkipForward, RefreshCw, Users } from 'lucide-react';
 
 const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
   const [currentStage, setCurrentStage] = useState(currentStageId || 'locked');
   const [students, setStudents] = useState([]);
-  const [progressStats, setProgressStats] = useState({});
   const [countdownTime, setCountdownTime] = useState(0);
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [customMinutes, setCustomMinutes] = useState(5);
-  const [timerMode, setTimerMode] = useState('countdown'); // 'countdown' or 'count-up'
   const timerIntervalRef = useRef(null);
+  const lastFirebaseUpdateRef = useRef(0);
+  const FIREBASE_UPDATE_INTERVAL = 5000; // Only update Firebase every 5 seconds
 
   // Listen to session updates
   useEffect(() => {
@@ -23,10 +23,13 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
       const data = snapshot.val();
       if (data) {
         setCurrentStage(data.currentStage || 'locked');
-        if (data.countdownTime !== undefined) {
+        
+        // Only update local state if timer isn't running locally
+        if (!timerIntervalRef.current && data.countdownTime !== undefined) {
           setCountdownTime(data.countdownTime);
           setIsCountingDown(data.countdownTime > 0);
         }
+        
         if (data.students) {
           setStudents(Object.values(data.students));
         }
@@ -36,7 +39,7 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
     return () => unsubscribe();
   }, [sessionCode]);
 
-  // Countdown timer effect
+  // Countdown timer effect - LOCAL ONLY, periodic Firebase sync
   useEffect(() => {
     // Clear any existing interval first
     if (timerIntervalRef.current) {
@@ -63,26 +66,33 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
             });
           }
           
-          // Update Firebase
+          // Update Firebase - timer finished
           const db = getDatabase();
           const sessionRef = ref(db, `sessions/${sessionCode}`);
           set(sessionRef, {
             currentStage,
             countdownTime: 0,
+            timerActive: false,
             timestamp: Date.now()
           });
           
           return 0;
         }
 
-        // Update Firebase
-        const db = getDatabase();
-        const sessionRef = ref(db, `sessions/${sessionCode}`);
-        set(sessionRef, {
-          currentStage,
-          countdownTime: newTime,
-          timestamp: Date.now()
-        });
+        // Only update Firebase every 5 seconds to reduce load
+        const now = Date.now();
+        if (now - lastFirebaseUpdateRef.current >= FIREBASE_UPDATE_INTERVAL) {
+          lastFirebaseUpdateRef.current = now;
+          
+          const db = getDatabase();
+          const sessionRef = ref(db, `sessions/${sessionCode}`);
+          set(sessionRef, {
+            currentStage,
+            countdownTime: newTime,
+            timerActive: true,
+            timestamp: now
+          });
+        }
         
         return newTime;
       });
@@ -112,13 +122,16 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
     const seconds = minutes * 60;
     setCountdownTime(seconds);
     setIsCountingDown(true);
+    lastFirebaseUpdateRef.current = Date.now();
 
-    // Update Firebase
+    // Update Firebase with initial time
     const db = getDatabase();
     const sessionRef = ref(db, `sessions/${sessionCode}`);
     set(sessionRef, {
       currentStage,
       countdownTime: seconds,
+      timerActive: true,
+      timerStartTime: Date.now(), // Add start time for client-side calculation
       timestamp: Date.now()
     });
   };
@@ -129,11 +142,33 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
       clearInterval(timerIntervalRef.current);
       timerIntervalRef.current = null;
     }
+
+    // Update Firebase - timer paused
+    const db = getDatabase();
+    const sessionRef = ref(db, `sessions/${sessionCode}`);
+    set(sessionRef, {
+      currentStage,
+      countdownTime,
+      timerActive: false,
+      timestamp: Date.now()
+    });
   };
 
   const resumeTimer = () => {
     if (countdownTime > 0) {
       setIsCountingDown(true);
+      lastFirebaseUpdateRef.current = Date.now();
+
+      // Update Firebase - timer resumed
+      const db = getDatabase();
+      const sessionRef = ref(db, `sessions/${sessionCode}`);
+      set(sessionRef, {
+        currentStage,
+        countdownTime,
+        timerActive: true,
+        timerStartTime: Date.now(),
+        timestamp: Date.now()
+      });
     }
   };
 
@@ -153,6 +188,7 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
     set(sessionRef, {
       currentStage,
       countdownTime: 0,
+      timerActive: false,
       timestamp: Date.now()
     });
   };
@@ -165,14 +201,34 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
     }
     
     setIsCountingDown(false);
-    setCountdownTime(0);
+
+    // ✅ Default countdown times for each stage (in seconds)
+    const stageDefaultTimes = {
+      'locked': 0,
+      'welcome-instructions': 0,
+      'intro-summary': 0,
+      'intro-video': 0,
+      'daw-summary': 0,
+      'daw-tutorial': 300,        // 5 minutes
+      'activity-summary': 0,
+      'activity-intro': 0,
+      'school-summary': 0,
+      'school-beneath': 600,       // 10 minutes
+      'reflection-summary': 0,
+      'reflection': 180,           // 3 minutes
+      'sound-effects': 300         // 5 minutes
+    };
+
+    const defaultTime = stageDefaultTimes[stageId] || 0;
+    setCountdownTime(defaultTime);
 
     const db = getDatabase();
     const sessionRef = ref(db, `sessions/${sessionCode}`);
     
     set(sessionRef, {
       currentStage: stageId,
-      countdownTime: 0, // Reset timer when advancing
+      countdownTime: defaultTime,  // ✅ Write the default time!
+      timerActive: false,
       timestamp: Date.now()
     });
 
@@ -205,7 +261,7 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
             <Clock size={20} />
             Activity Timer
           </h3>
-          {isCountingDown && (
+          {countdownTime > 0 && (
             <div className={`text-3xl font-mono font-bold ${
               countdownTime <= 60 ? 'text-red-400 animate-pulse' : 'text-blue-400'
             }`}>

@@ -128,8 +128,9 @@ export const DAW_CHALLENGES = [
   {
     id: 9,
     section: "Navigation",
-    question: "Use the zoom controls on the right side of the page to zoom in and out. Drag the blue dot to the left and right to zoom in and out.",
-    type: 'interactive-task',
+    question: "Drag the blue button on the zoom controls to zoom in and out.",
+    highlightSelector: '.zoom-controls',  // MISSING THIS
+  type: 'interactive-task',
     instruction: "Drag the blue dot on the zoom slider left and right to change the zoom level. The zoom controls are on the right side of the screen - drag this box if you need to!",
     hint: "Look for the zoom slider on the right side of the timeline. Drag the blue dot left (zoom out) or right (zoom in). If you can't see it, drag this orange box to a different position!",
     correctAnswer: "Zoom changed",

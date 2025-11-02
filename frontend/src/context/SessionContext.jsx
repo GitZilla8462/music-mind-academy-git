@@ -1,4 +1,5 @@
 // Session Context for managing classroom sessions
+// FIXED: Now supports classId to link sessions to classes
 // src/context/SessionContext.jsx
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -22,6 +23,7 @@ export const useSession = () => {
 
 export const SessionProvider = ({ children }) => {
   const [sessionCode, setSessionCode] = useState(null);
+  const [classId, setClassId] = useState(null); // ✅ ADDED
   const [sessionData, setSessionData] = useState(null);
   const [userRole, setUserRole] = useState(null); // 'teacher' or 'student'
   const [userId, setUserId] = useState(null);
@@ -37,6 +39,12 @@ export const SessionProvider = ({ children }) => {
       console.log('Session data updated:', data);
       setSessionData(data);
       setIsInSession(!!data);
+      
+      // ✅ ADDED: Extract classId from session data if available
+      if (data?.classId && !classId) {
+        setClassId(data.classId);
+        console.log('ClassId set from session data:', data.classId);
+      }
     });
 
     return () => {
@@ -47,12 +55,19 @@ export const SessionProvider = ({ children }) => {
 
   /**
    * Start a new session (teacher only)
+   * ✅ UPDATED: Now accepts optional classId parameter
    */
-  const startSession = (code, teacherId) => {
+  const startSession = (code, teacherId, classIdParam = null) => {
     setSessionCode(code);
     setUserRole('teacher');
     setUserId(teacherId);
     setIsInSession(true);
+    
+    // ✅ ADDED: Store classId if provided
+    if (classIdParam) {
+      setClassId(classIdParam);
+      console.log('Session started with classId:', classIdParam);
+    }
   };
 
   /**
@@ -77,6 +92,7 @@ export const SessionProvider = ({ children }) => {
    */
   const leaveSession = () => {
     setSessionCode(null);
+    setClassId(null); // ✅ ADDED
     setSessionData(null);
     setUserRole(null);
     setUserId(null);
@@ -197,6 +213,7 @@ export const SessionProvider = ({ children }) => {
   const value = {
     // State
     sessionCode,
+    classId, // ✅ ADDED
     sessionData,
     userRole,
     userId,
