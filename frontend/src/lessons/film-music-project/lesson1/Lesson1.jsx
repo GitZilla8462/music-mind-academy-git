@@ -41,10 +41,14 @@ const Lesson1 = () => {
   // Session mode detection and permissions
   const sessionMode = useSessionMode();
   
+  // Get effective role - use urlRole as fallback
+  const effectiveRole = sessionRole || sessionMode.urlRole;
+  
   // Debug logging
   console.log('🔍 Lesson1 Render:', {
     isSessionMode: sessionMode.isSessionMode,
     sessionRole,
+    effectiveRole,
     sessionCode,
     urlRole: sessionMode.urlRole,
     sessionInitialized: sessionMode.sessionInitialized
@@ -99,8 +103,8 @@ const Lesson1 = () => {
     ? getCurrentStage() 
     : null;
 
-  // Show loading while session is initializing
-  if (sessionMode.isSessionMode && !sessionRole) {
+  // Show loading while session is initializing - only if we have NO role at all
+  if (sessionMode.isSessionMode && !effectiveRole) {
     console.log('⏳ Waiting for session role to be set...');
     return (
       <div className="h-screen flex items-center justify-center bg-gray-900">
@@ -116,7 +120,7 @@ const Lesson1 = () => {
   // ========================================
   // SESSION MODE: STUDENT VIEW
   // ========================================
-  if (sessionMode.isSessionMode && sessionRole === 'student') {
+  if (sessionMode.isSessionMode && effectiveRole === 'student') {
     console.log('📱 Rendering STUDENT view');
     
     // Student waiting for teacher to start
@@ -176,7 +180,7 @@ const Lesson1 = () => {
   // ========================================
   // SESSION MODE: TEACHER VIEW
   // ========================================
-  if (sessionMode.isSessionMode && sessionRole === 'teacher') {
+  if (sessionMode.isSessionMode && effectiveRole === 'teacher') {
     console.log('👨‍🏫 Rendering TEACHER control panel');
     return (
       <SessionTeacherPanel

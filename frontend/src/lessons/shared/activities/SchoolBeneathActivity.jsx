@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { Clock, Minimize2, Maximize2 } from 'lucide-react';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
 import { saveComposition, saveBonusComposition } from '../../film-music-project/lesson1/lessonStorageUtils';
+import SoundEffectsActivity from './SoundEffectsActivity';
 
 const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes in milliseconds
 
@@ -40,6 +41,9 @@ const SchoolBeneathActivity = ({
   const [submitCountdown, setSubmitCountdown] = useState(5);
   const hasAnnouncedAhaRef = useRef(false);
   const hasAnnouncedSubmitRef = useRef(false);
+  
+  // NEW: State to show Sound Effects activity after submission
+  const [showSoundEffects, setShowSoundEffects] = useState(false);
 
   // NEW: Web Speech API helper function
   const speakMessage = (message) => {
@@ -110,7 +114,7 @@ const SchoolBeneathActivity = ({
         clearInterval(timerRef.current);
         
         handleAutoSave();
-        setSaveMessage('⏰ Time\'s up! Great work - let\'s share!');
+        setSaveMessage('â° Time\'s up! Great work - let\'s share!');
         
         setTimeout(() => {
           onComplete();
@@ -192,7 +196,7 @@ const SchoolBeneathActivity = ({
     }
   }, [requirements, isExplorationMode, viewMode]);
 
-  // NEW: Handle submit success modal countdown
+  // NEW: Handle submit success modal countdown - transition to Sound Effects Activity
   useEffect(() => {
     if (showSubmitSuccessModal && submitCountdown > 0) {
       const timer = setTimeout(() => {
@@ -201,12 +205,19 @@ const SchoolBeneathActivity = ({
       
       return () => clearTimeout(timer);
     } else if (showSubmitSuccessModal && submitCountdown === 0) {
-      // Countdown complete - enter exploration mode
+      // Countdown complete - show Sound Effects Activity
       setShowSubmitSuccessModal(false);
-      setIsExplorationMode(true);
-      setSubmitCountdown(5); // Reset for next time
+      setShowSoundEffects(true);
+      
+      // In session mode, students stay on same stage but see different content
+      // In non-session mode, call onComplete to advance
+      if (!isSessionMode && onComplete) {
+        setTimeout(() => {
+          onComplete();
+        }, 500);
+      }
     }
-  }, [showSubmitSuccessModal, submitCountdown]);
+  }, [showSubmitSuccessModal, submitCountdown, onComplete, isSessionMode]);
 
   // NEW: Auto-save bonus composition during exploration
   useEffect(() => {
@@ -256,7 +267,7 @@ const SchoolBeneathActivity = ({
     
     if (!isExplorationMode && loopData.mood !== 'Mysterious') {
       console.warn('Rejected non-Mysterious loop:', loopData.category);
-      setSaveMessage('❌ Only Mysterious loops allowed!');
+      setSaveMessage('âŒ Only Mysterious loops allowed!');
       setTimeout(() => setSaveMessage(''), 2000);
       return;
     }
@@ -304,7 +315,7 @@ const SchoolBeneathActivity = ({
     };
     
     localStorage.setItem('school-beneath-composition', JSON.stringify(saveData));
-    setSaveMessage('✓ Progress saved!');
+    setSaveMessage('âœ“ Progress saved!');
     setTimeout(() => setSaveMessage(''), 2000);
   };
 
@@ -374,7 +385,7 @@ const SchoolBeneathActivity = ({
               : 'bg-gray-600 text-gray-400 cursor-not-allowed'
           }`}
         >
-          {allRequirementsMet ? '✓ Save & Submit' : 'Submit (Complete Requirements)'}
+          {allRequirementsMet ? 'âœ“ Save & Submit' : 'Submit (Complete Requirements)'}
         </button>
       </div>
 
@@ -392,7 +403,7 @@ const SchoolBeneathActivity = ({
             : 'bg-gray-700 border-gray-600'
         }`}>
           <span className={`flex-shrink-0 text-[9px] ${requirements.instrumentation ? 'text-green-400' : 'text-gray-500'}`}>
-            {requirements.instrumentation ? '✓' : '○'}
+            {requirements.instrumentation ? 'âœ“' : 'â—‹'}
           </span>
           <div className="text-[9px]">
             <div className="font-semibold">Instrumentation</div>
@@ -406,7 +417,7 @@ const SchoolBeneathActivity = ({
             : 'bg-gray-700 border-gray-600'
         }`}>
           <span className={`flex-shrink-0 text-[9px] ${requirements.layering ? 'text-green-400' : 'text-gray-500'}`}>
-            {requirements.layering ? '✓' : '○'}
+            {requirements.layering ? 'âœ“' : 'â—‹'}
           </span>
           <div className="text-[9px]">
             <div className="font-semibold">Layering</div>
@@ -420,7 +431,7 @@ const SchoolBeneathActivity = ({
             : 'bg-gray-700 border-gray-600'
         }`}>
           <span className={`flex-shrink-0 text-[9px] ${requirements.structure ? 'text-green-400' : 'text-gray-500'}`}>
-            {requirements.structure ? '✓' : '○'}
+            {requirements.structure ? 'âœ“' : 'â—‹'}
           </span>
           <div className="text-[9px]">
             <div className="font-semibold">Structure</div>
@@ -432,7 +443,7 @@ const SchoolBeneathActivity = ({
   ) : isExplorationMode ? (
     <div className="h-full bg-gray-800 text-white p-2 flex flex-col gap-2 overflow-y-auto">
       <div>
-        <h3 className="font-bold text-[10px] mb-1">✨ Bonus Exploration</h3>
+        <h3 className="font-bold text-[10px] mb-1">âœ¨ Bonus Exploration</h3>
         <p className="text-[9px] text-gray-300 leading-relaxed">
           Great job! Use the remaining time to explore.
         </p>
@@ -454,16 +465,28 @@ const SchoolBeneathActivity = ({
       )}
 
       <div className="text-[9px] text-gray-300 bg-blue-900/30 border border-blue-500 rounded-lg p-2">
-        <div className="font-semibold mb-1">💡 Try these:</div>
+        <div className="font-semibold mb-1">ðŸ’¡ Try these:</div>
         <ul className="space-y-0.5 text-[9px]">
-          <li>⭐ <strong>Heroic</strong> loops</li>
-          <li>👻 <strong>Scary</strong> loops</li>
-          <li>🎊 <strong>Upbeat</strong> loops</li>
-          <li>🎭 Mix moods</li>
+          <li>â­ <strong>Heroic</strong> loops</li>
+          <li>ðŸ‘» <strong>Scary</strong> loops</li>
+          <li>ðŸŽŠ <strong>Upbeat</strong> loops</li>
+          <li>ðŸŽ­ Mix moods</li>
         </ul>
       </div>
     </div>
   ) : null;
+
+  // If Sound Effects mode is active, render that component instead
+  if (showSoundEffects) {
+    return (
+      <SoundEffectsActivity
+        onComplete={onComplete}
+        viewMode={false}
+        lessonStartTime={lessonStartTime}
+        isSessionMode={isSessionMode}
+      />
+    );
+  }
 
   return (
     <div className="h-full flex flex-col bg-gray-900">
@@ -473,7 +496,7 @@ const SchoolBeneathActivity = ({
           <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl shadow-2xl max-w-md w-full mx-4 border-2 border-green-400">
             <div className="bg-gradient-to-r from-green-500 to-blue-500 px-6 py-3 rounded-t-xl">
               <h2 className="text-2xl font-bold text-white text-center">
-                🎉 Great Job!
+                ðŸŽ‰ Great Job!
               </h2>
             </div>
             
@@ -484,15 +507,15 @@ const SchoolBeneathActivity = ({
               
               <div className="space-y-2 bg-white rounded-lg p-4 border border-green-300">
                 <div className="flex items-center gap-2 text-green-700">
-                  <span className="text-lg">✓</span>
+                  <span className="text-lg">âœ“</span>
                   <span className="font-medium">Instrumentation - 5+ Mysterious loops</span>
                 </div>
                 <div className="flex items-center gap-2 text-green-700">
-                  <span className="text-lg">✓</span>
+                  <span className="text-lg">âœ“</span>
                   <span className="font-medium">Layering - Different start times</span>
                 </div>
                 <div className="flex items-center gap-2 text-green-700">
-                  <span className="text-lg">✓</span>
+                  <span className="text-lg">âœ“</span>
                   <span className="font-medium">Structure - Proper alignment</span>
                 </div>
               </div>
@@ -524,13 +547,13 @@ const SchoolBeneathActivity = ({
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 border-2 border-green-400">
             <div className="bg-gradient-to-r from-green-500 to-blue-500 px-6 py-4 rounded-t-xl">
               <h2 className="text-3xl font-bold text-white text-center">
-                🎉 Assignment Submitted!
+                ðŸŽ‰ Assignment Submitted!
               </h2>
             </div>
             
             <div className="p-8 space-y-5 text-center">
               <div className="text-5xl animate-bounce">
-                ✓
+                âœ“
               </div>
 
               <p className="text-xl text-gray-800 font-semibold">
@@ -542,25 +565,25 @@ const SchoolBeneathActivity = ({
                   Now you have <span className="text-green-600 font-bold">BONUS TIME</span> until the reflection activity!
                 </p>
                 <p className="text-md text-gray-600">
-                  🔓 All loops have been unlocked!
+                  ðŸ”“ All loops have been unlocked!
                 </p>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="font-semibold text-gray-800 mb-3">💡 Try adding:</div>
+                <div className="font-semibold text-gray-800 mb-3">ðŸ’¡ Try adding:</div>
                 <div className="grid grid-cols-3 gap-2 text-sm">
                   <div className="bg-white rounded p-2 border border-yellow-300">
-                    <div className="text-2xl mb-1">⭐</div>
+                    <div className="text-2xl mb-1">â­</div>
                     <div className="font-medium text-gray-700">Heroic</div>
                     <div className="text-xs text-gray-500">Adventure feel</div>
                   </div>
                   <div className="bg-white rounded p-2 border border-purple-300">
-                    <div className="text-2xl mb-1">👻</div>
+                    <div className="text-2xl mb-1">ðŸ‘»</div>
                     <div className="font-medium text-gray-700">Scary</div>
                     <div className="text-xs text-gray-500">Extra suspense</div>
                   </div>
                   <div className="bg-white rounded p-2 border border-pink-300">
-                    <div className="text-2xl mb-1">🎊</div>
+                    <div className="text-2xl mb-1">ðŸŽŠ</div>
                     <div className="font-medium text-gray-700">Upbeat</div>
                     <div className="text-xs text-gray-500">Different mood</div>
                   </div>
@@ -573,7 +596,7 @@ const SchoolBeneathActivity = ({
 
               <div className="mt-6 bg-gray-100 rounded-lg p-4">
                 <p className="text-sm text-gray-600 font-medium">
-                  Starting Exploration Mode in
+                  Starting Sound Effects Activity in
                 </p>
                 <p className="text-4xl font-bold text-green-600 mt-2">
                   {submitCountdown}
@@ -604,7 +627,7 @@ const SchoolBeneathActivity = ({
             <div className="flex flex-col items-center text-center space-y-3">
               <div>
                 <h2 className="text-xl font-bold text-gray-800 mb-1">
-                  🎉 Assignment Submitted!
+                  ðŸŽ‰ Assignment Submitted!
                 </h2>
                 <p className="text-gray-700 text-sm leading-relaxed">
                   Great job! Use the remaining time to explore.
@@ -624,12 +647,12 @@ const SchoolBeneathActivity = ({
               </div>
 
               <div className="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-3 w-full">
-                <div className="font-semibold mb-2 text-sm">💡 Try these ideas:</div>
+                <div className="font-semibold mb-2 text-sm">ðŸ’¡ Try these ideas:</div>
                 <ul className="text-left space-y-1 text-xs">
-                  <li>⭐ <strong>Heroic</strong> loops for an adventure feel</li>
-                  <li>👻 <strong>Scary</strong> loops for extra suspense</li>
-                  <li>🎊 <strong>Upbeat</strong> loops for a happy ending</li>
-                  <li>🎭 Mix moods to create your own unique style</li>
+                  <li>â­ <strong>Heroic</strong> loops for an adventure feel</li>
+                  <li>ðŸ‘» <strong>Scary</strong> loops for extra suspense</li>
+                  <li>ðŸŽŠ <strong>Upbeat</strong> loops for a happy ending</li>
+                  <li>ðŸŽ­ Mix moods to create your own unique style</li>
                 </ul>
               </div>
             </div>
@@ -645,7 +668,7 @@ const SchoolBeneathActivity = ({
               <>
                 <h2 className="text-sm font-bold whitespace-nowrap">
                   {viewMode ? (viewBonusMode ? "Viewing Bonus Composition: " : "Viewing Saved Work: ") : ""}
-                  {isExplorationMode ? '♪ Bonus Composition - The School Beneath' : 'The School Beneath - Composition Assignment'}
+                  {isExplorationMode ? 'â™ª Bonus Composition - The School Beneath' : 'The School Beneath - Composition Assignment'}
                 </h2>
 
                 <div className="flex items-center gap-2 flex-shrink-0">

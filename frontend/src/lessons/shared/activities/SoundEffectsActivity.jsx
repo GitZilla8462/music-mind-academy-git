@@ -47,7 +47,7 @@ const SoundEffectsActivity = ({
   // Voice narration on mount
   useEffect(() => {
     if (!isLoadingVideo && !hasSpokenRef.current && voiceEnabled) {
-      const message = "For the remainder of class, you'll get to add sound effects to your trailer. Sound effects like electric shocks, risers, and wooshes can make your film score even more exciting and realistic. Your music is already loaded - now add sound effects on top!";
+      const message = "Great job on your composition! For the remaining time, you can explore and add sound effects to your trailer. Sound effects like electric shocks, risers, and wooshes can make your film score even more exciting and realistic. Your music is already loaded, now add sound effects on top!";
       
       setTimeout(() => {
         speakText(message);
@@ -175,8 +175,9 @@ const SoundEffectsActivity = ({
       <div className="text-center">
         <h3 className="font-bold text-base mb-1 flex items-center justify-center gap-1">
           <Sparkles size={16} className="text-purple-400" />
-          <span>Bonus: Add Sound Effects</span>
+          <span>Bonus Activity</span>
         </h3>
+        <p className="text-xs text-gray-300">Explore and add sound effects for the remaining time</p>
       </div>
 
       {/* Action Buttons at TOP */}

@@ -1,5 +1,5 @@
 // File: /lessons/film-music-project/lesson1/lesson1Config.js
-// Lesson 1 configuration - activities, stages, and constants
+// Lesson 1 configuration - FIXED VERSION
 
 export const LESSON_PROGRESS_KEY = 'lesson1-progress';
 export const LESSON_TIMER_KEY = 'lesson1-timer';
@@ -14,13 +14,14 @@ export const lessonSections = [
     subtitle: 'Welcome & DAW Tutorial',
     icon: '🎬',
     color: 'blue',
-    estimatedTime: 10, // Total minutes for this section
+    estimatedTime: 10,
     stages: [
       { 
         id: 'intro-summary', 
         type: 'summary', 
         label: 'Show Welcome Instructions',
-        description: 'Display introduction summary'
+        description: 'Display introduction summary',
+        duration: 1
       },
       { 
         id: 'intro-video', 
@@ -33,7 +34,8 @@ export const lessonSections = [
         id: 'daw-summary', 
         type: 'summary', 
         label: 'Show DAW Instructions',
-        description: 'Display DAW tutorial summary'
+        description: 'Display DAW tutorial summary',
+        duration: 1
       },
       { 
         id: 'daw-tutorial', 
@@ -42,7 +44,8 @@ export const lessonSections = [
         duration: 5,
         hasTimer: true,
         trackProgress: true,
-        description: 'Interactive DAW basics'
+        description: 'Interactive DAW basics',
+        bonusDescription: 'Bonus Activity: Explore the DAW'
       }
     ]
   },
@@ -52,13 +55,14 @@ export const lessonSections = [
     subtitle: 'The School Beneath',
     icon: '🎵',
     color: 'purple',
-    estimatedTime: 14, // Total minutes for this section
+    estimatedTime: 14,
     stages: [
       { 
         id: 'activity-summary', 
         type: 'summary', 
         label: 'Show Activity Instructions',
-        description: 'Display summary slide'
+        description: 'Display summary slide',
+        duration: 1
       },
       { 
         id: 'activity-intro', 
@@ -71,7 +75,8 @@ export const lessonSections = [
         id: 'school-summary', 
         type: 'summary', 
         label: 'Show Composition Instructions',
-        description: 'Display composition requirements'
+        description: 'Display composition requirements',
+        duration: 1
       },
       { 
         id: 'school-beneath', 
@@ -80,7 +85,8 @@ export const lessonSections = [
         duration: 10,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students compose music'
+        description: 'Students compose music',
+        bonusDescription: 'Bonus Activity: Adding Sound Effects'
       }
     ]
   },
@@ -90,41 +96,28 @@ export const lessonSections = [
     subtitle: 'Two Stars and a Wish',
     icon: '⭐',
     color: 'yellow',
-    estimatedTime: 5,
+    estimatedTime: 10,
     stages: [
       { 
         id: 'reflection-summary', 
         type: 'summary', 
         label: 'Show Reflection Instructions',
-        description: 'Display reflection prompt'
+        description: 'Display reflection prompt',
+        duration: 1
       },
       { 
         id: 'reflection', 
         type: 'activity', 
         label: 'Unlock Reflection', 
-        duration: 5,
+        duration: 10,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students complete reflection'
+        description: 'Students complete reflection',
+        bonusDescription: 'Bonus Activity: Guess the Loop with a Friend Game'  // ✅ ADDED
       }
     ]
   },
-  {
-    id: 'bonus',
-    title: 'Bonus Activity',
-    subtitle: 'Add Sound Effects',
-    icon: '🎧',
-    color: 'green',
-    estimatedTime: 0, // Remaining time
-    stages: [
-      { 
-        id: 'sound-effects', 
-        type: 'bonus', 
-        label: 'Unlock Bonus: Sound Effects',
-        description: 'Add sound effects to composition'
-      }
-    ]
-  },
+  // ❌ REMOVED: Bonus Activity section is gone from teacher panel
   {
     id: 'conclusion',
     title: 'Conclusion',
@@ -137,7 +130,8 @@ export const lessonSections = [
         id: 'conclusion',
         type: 'discussion',
         label: 'Class Discussion',
-        description: 'Wrap up lesson, review key concepts'
+        description: 'Wrap up lesson, review key concepts',
+        duration: 2
       }
     ]
   }
@@ -151,7 +145,7 @@ export const lesson1Config = {
     "Practice placing and manipulating music loops",
     "Create a mysterious film score using layering techniques"
   ],
-  lessonSections, // ✅ Include lessonSections in the config
+  lessonSections,
   activities: [
     {
       id: 1,
@@ -194,6 +188,7 @@ export const lesson1Config = {
   ]
 };
 
+// ✅ FIXED: Add hasTimer and duration properties to lessonStages
 export const lessonStages = [
   { 
     id: 'locked', 
@@ -206,7 +201,8 @@ export const lessonStages = [
     label: 'Show Welcome Instructions', 
     description: 'Introduction summary',
     type: 'summary',
-    content: 'introVideo'
+    content: 'introVideo',
+    duration: 1
   },
   { 
     id: 'intro-video', 
@@ -214,29 +210,33 @@ export const lessonStages = [
     description: 'Lesson intro video', 
     hasProgress: false,
     type: 'video',
-    duration: '3:00'
+    duration: 3
   },
   { 
     id: 'daw-summary', 
     label: 'Show DAW Instructions', 
     description: 'DAW tutorial summary',
     type: 'summary',
-    content: 'dawTutorial'
+    content: 'dawTutorial',
+    duration: 1
   },
   { 
     id: 'daw-tutorial', 
     label: 'Unlock DAW Tutorial', 
-    description: 'Interactive DAW basics', 
+    description: 'Interactive DAW basics',
+    bonusDescription: 'Bonus Activity: Explore the DAW',
     hasProgress: true,
     type: 'activity',
-    recommendedMinutes: 5
+    hasTimer: true,
+    duration: 5
   },
   { 
     id: 'activity-summary', 
     label: 'Show Activity Instructions', 
     description: 'Activity intro summary',
     type: 'summary',
-    content: 'activityIntro'
+    content: 'activityIntro',
+    duration: 1
   },
   { 
     id: 'activity-intro', 
@@ -244,44 +244,60 @@ export const lessonStages = [
     description: 'Activity introduction video', 
     hasProgress: false,
     type: 'video',
-    duration: '2:00'
+    duration: 2
   },
   { 
     id: 'school-summary', 
     label: 'Show Composition Instructions', 
     description: 'School Beneath summary',
     type: 'summary',
-    content: 'schoolBeneath'
+    content: 'schoolBeneath',
+    duration: 1
   },
   { 
     id: 'school-beneath', 
     label: 'Unlock School Beneath', 
     description: 'The School Beneath composition', 
+    bonusDescription: 'Bonus Activity: Adding Sound Effects',
     hasProgress: true,
     type: 'activity',
-    recommendedMinutes: 10
+    hasTimer: true,
+    duration: 10
   },
   { 
     id: 'reflection-summary', 
     label: 'Show Reflection Instructions', 
     description: 'Reflection summary',
     type: 'summary',
-    content: 'reflection'
+    content: 'reflection',
+    duration: 1
   },
   { 
     id: 'reflection', 
     label: 'Unlock Reflection', 
     description: 'Two Stars and a Wish', 
+    bonusDescription: 'Bonus Activity: Guess the Loop with a Friend Game',
     hasProgress: true,
     type: 'activity',
-    recommendedMinutes: 5
+    hasTimer: true,
+    duration: 10  // ✅ CORRECT
   },
+  // Keep sound-effects for backward compatibility but it won't show in teacher panel
   { 
     id: 'sound-effects', 
     label: 'Unlock Bonus: Sound Effects', 
     description: 'Add sound effects', 
     hasProgress: true,
-    type: 'bonus'
+    type: 'bonus',
+    hasTimer: true,
+    duration: 5
+  },
+  {
+    id: 'conclusion',
+    label: 'Class Discussion',
+    description: 'Wrap up lesson',
+    type: 'discussion',
+    duration: 2
   }
 ];
 

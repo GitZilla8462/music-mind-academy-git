@@ -357,25 +357,15 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
 
         {/* Stage Buttons */}
         <div className="space-y-2">
-          {/* START LESSON - First Row */}
+          {/* START LESSON - First stage-like row */}
           <a
             href={`/presentation?session=${sessionCode}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full text-left px-4 py-3 rounded-lg transition-all bg-green-600 hover:bg-green-700 text-white font-semibold"
+            className="block w-full text-left px-4 py-3 rounded-lg transition-all bg-green-600 hover:bg-green-700 text-white"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium flex items-center gap-2">
-                  <span className="text-xl">📽️</span>
-                  Start Lesson - Open Presentation
-                </div>
-                <div className="text-sm opacity-90">Click to open the lesson on your projector/screen</div>
-              </div>
-              <div className="bg-white text-green-600 px-3 py-1 rounded text-xs font-bold">
-                STEP 1
-              </div>
-            </div>
+            <div className="font-semibold text-lg">Start Lesson</div>
+            <div className="text-sm text-gray-200 opacity-75">Open Presentation</div>
           </a>
           
           {lessonStages.map((stage, index) => {

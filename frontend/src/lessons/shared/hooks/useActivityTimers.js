@@ -1,14 +1,24 @@
 // File: /lessons/shared/hooks/useActivityTimers.js
-// Activity timer management hook - reusable across all lessons
+// Activity timer management hook - FIXED VERSION
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getDatabase, ref, set as firebaseSet } from 'firebase/database';
 
 export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) => {
-  const [activityTimers, setActivityTimers] = useState({
-    'daw-tutorial': { preset: 5, current: 0, isRunning: false },
-    'school-beneath': { preset: 10, current: 0, isRunning: false },
-    'reflection': { preset: 5, current: 0, isRunning: false }
+  // ✅ Initialize ALL stages with timers from lessonStages
+  const [activityTimers, setActivityTimers] = useState(() => {
+    const initialTimers = {};
+    lessonStages?.forEach(stage => {
+      if (stage.hasTimer && stage.duration) {
+        initialTimers[stage.id] = {
+          presetTime: stage.duration,  // ✅ Changed from 'preset' to 'presetTime'
+          timeRemaining: 0,             // ✅ Changed from 'current' to 'timeRemaining'
+          isActive: false                // ✅ Changed from 'isRunning' to 'isActive'
+        };
+      }
+    });
+    console.log('📊 Initialized timers:', initialTimers);
+    return initialTimers;
   });
   
   // Track which timers have been auto-started to prevent repeated calls
@@ -21,31 +31,83 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }, []);
 
-  // Adjust preset time
+  // ✅ Adjust preset time - accepts minutes as delta
   const adjustPresetTime = useCallback((activityId, delta) => {
-    setActivityTimers(prev => ({
-      ...prev,
-      [activityId]: {
-        ...prev[activityId],
-        preset: Math.max(1, Math.min(60, prev[activityId].preset + delta))
-      }
-    }));
+    console.log(`⏱️  Adjusting ${activityId} by ${delta} minutes`);
+    setActivityTimers(prev => {
+      const currentTimer = prev[activityId];
+      if (!currentTimer) return prev;
+      
+      const newPreset = Math.max(1, Math.min(60, currentTimer.presetTime + delta));
+      console.log(`   New preset: ${newPreset} minutes`);
+      
+      return {
+        ...prev,
+        [activityId]: {
+          ...currentTimer,
+          presetTime: newPreset
+        }
+      };
+    });
   }, []);
 
-  // Start timer
-  const startActivityTimer = useCallback((activityId) => {
-    const preset = activityTimers[activityId].preset;
-    const seconds = preset * 60;
+  // ✅ Start timer - accepts activityId and optional duration in MINUTES
+  const startActivityTimer = useCallback((activityId, durationMinutes = null) => {
+    console.log(`▶️  Starting timer for ${activityId}`, { durationMinutes });
     
+    setActivityTimers(prev => {
+      const currentTimer = prev[activityId];
+      if (!currentTimer) {
+        console.warn(`⚠️  No timer config for ${activityId}`);
+        return prev;
+      }
+      
+      // Use provided duration or fall back to preset
+      const minutes = durationMinutes !== null ? durationMinutes : currentTimer.presetTime;
+      const seconds = minutes * 60;
+      
+      console.log(`   Starting with ${minutes} minutes (${seconds} seconds)`);
+      
+      return {
+        ...prev,
+        [activityId]: {
+          ...currentTimer,
+          timeRemaining: seconds,
+          isActive: true
+        }
+      };
+    });
+
+    // Update Firebase
+    if (sessionCode) {
+      const minutes = durationMinutes !== null ? durationMinutes : activityTimers[activityId]?.presetTime || 5;
+      const seconds = minutes * 60;
+      
+      const db = getDatabase();
+      const sessionRef = ref(db, `sessions/${sessionCode}`);
+      
+      firebaseSet(sessionRef, {
+        currentStage: getCurrentStage ? getCurrentStage() : 'locked',
+        countdownTime: seconds,
+        timerActive: true,
+        timestamp: Date.now()
+      });
+      
+      console.log(`📡 Firebase updated: ${seconds}s, active: true`);
+    }
+  }, [activityTimers, sessionCode, getCurrentStage]);
+
+  // Pause timer
+  const pauseActivityTimer = useCallback((activityId) => {
+    console.log(`⏸️  Pausing timer for ${activityId}`);
     setActivityTimers(prev => ({
       ...prev,
       [activityId]: {
         ...prev[activityId],
-        current: seconds,
-        isRunning: true
+        isActive: false
       }
     }));
-
+    
     // Update Firebase
     if (sessionCode) {
       const db = getDatabase();
@@ -53,36 +115,42 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
       
       firebaseSet(sessionRef, {
         currentStage: getCurrentStage ? getCurrentStage() : 'locked',
-        countdownTime: seconds,
+        countdownTime: activityTimers[activityId]?.timeRemaining || 0,
+        timerActive: false,
         timestamp: Date.now()
       });
     }
-  }, [activityTimers, sessionCode, getCurrentStage]);
-
-  // Pause timer
-  const pauseActivityTimer = useCallback((activityId) => {
-    setActivityTimers(prev => ({
-      ...prev,
-      [activityId]: {
-        ...prev[activityId],
-        isRunning: false
-      }
-    }));
-  }, []);
+  }, [sessionCode, getCurrentStage, activityTimers]);
 
   // Resume timer
   const resumeActivityTimer = useCallback((activityId) => {
+    console.log(`▶️  Resuming timer for ${activityId}`);
     setActivityTimers(prev => ({
       ...prev,
       [activityId]: {
         ...prev[activityId],
-        isRunning: true
+        isActive: true
       }
     }));
-  }, []);
+    
+    // Update Firebase
+    if (sessionCode) {
+      const db = getDatabase();
+      const sessionRef = ref(db, `sessions/${sessionCode}`);
+      
+      firebaseSet(sessionRef, {
+        currentStage: getCurrentStage ? getCurrentStage() : 'locked',
+        countdownTime: activityTimers[activityId]?.timeRemaining || 0,
+        timerActive: true,
+        timestamp: Date.now()
+      });
+    }
+  }, [sessionCode, getCurrentStage, activityTimers]);
 
-  // Reset timer
+  // ✅ Reset timer
   const resetActivityTimer = useCallback((activityId) => {
+    console.log(`🔄 Resetting timer for ${activityId}`);
+    
     // Clear auto-started flag so it can be auto-started again
     autoStartedTimers.current.delete(activityId);
     
@@ -90,8 +158,8 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
       ...prev,
       [activityId]: {
         ...prev[activityId],
-        current: 0,
-        isRunning: false
+        timeRemaining: 0,
+        isActive: false
       }
     }));
 
@@ -103,25 +171,29 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
       firebaseSet(sessionRef, {
         currentStage: getCurrentStage ? getCurrentStage() : 'locked',
         countdownTime: 0,
+        timerActive: false,
         timestamp: Date.now()
       });
     }
   }, [sessionCode, getCurrentStage]);
 
-  // Countdown effect
+  // ✅ Countdown effect
   useEffect(() => {
     const intervals = [];
     
     Object.keys(activityTimers).forEach(activityId => {
       const timer = activityTimers[activityId];
       
-      if (timer.isRunning && timer.current > 0) {
+      if (timer.isActive && timer.timeRemaining > 0) {
         const interval = setInterval(() => {
           setActivityTimers(prev => {
-            const newCurrent = prev[activityId].current - 1;
+            const currentTimer = prev[activityId];
+            if (!currentTimer) return prev;
+            
+            const newTimeRemaining = currentTimer.timeRemaining - 1;
             
             // Time's up!
-            if (newCurrent <= 0) {
+            if (newTimeRemaining <= 0) {
               setTimeout(() => {
                 alert(`⏰ Time's Up for ${activityId}! Students can continue working.`);
               }, 100);
@@ -141,6 +213,7 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
                 firebaseSet(sessionRef, {
                   currentStage: getCurrentStage ? getCurrentStage() : 'locked',
                   countdownTime: 0,
+                  timerActive: false,
                   timestamp: Date.now()
                 });
               }
@@ -148,21 +221,18 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
               return {
                 ...prev,
                 [activityId]: {
-                  ...prev[activityId],
-                  current: 0,
-                  isRunning: false
+                  ...currentTimer,
+                  timeRemaining: 0,
+                  isActive: false
                 }
               };
             }
             
-            // Update Firebase at strategic intervals to reduce updates:
-            // - Every 10 seconds for times > 60s
-            // - Every 5 seconds for times between 10-60s  
-            // - Every second for times < 10s (final countdown!)
+            // Update Firebase at strategic intervals
             const shouldUpdateFirebase = sessionCode && (
-              (newCurrent > 60 && newCurrent % 10 === 0) ||   // Every 10s when > 1 min
-              (newCurrent >= 10 && newCurrent <= 60 && newCurrent % 5 === 0) ||  // Every 5s in last minute
-              (newCurrent < 10)  // Every second in final 10 seconds
+              (newTimeRemaining > 60 && newTimeRemaining % 10 === 0) ||
+              (newTimeRemaining >= 10 && newTimeRemaining <= 60 && newTimeRemaining % 5 === 0) ||
+              (newTimeRemaining < 10)
             );
             
             if (shouldUpdateFirebase) {
@@ -171,7 +241,8 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
               
               firebaseSet(sessionRef, {
                 currentStage: getCurrentStage ? getCurrentStage() : 'locked',
-                countdownTime: newCurrent,
+                countdownTime: newTimeRemaining,
+                timerActive: true,
                 timestamp: Date.now()
               });
             }
@@ -179,8 +250,8 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
             return {
               ...prev,
               [activityId]: {
-                ...prev[activityId],
-                current: newCurrent
+                ...currentTimer,
+                timeRemaining: newTimeRemaining
               }
             };
           });
@@ -193,7 +264,7 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
     return () => intervals.forEach(interval => clearInterval(interval));
   }, [activityTimers, sessionCode, getCurrentStage]);
 
-  // Auto-start timer when activity stage is unlocked
+  // ✅ Auto-start timer when activity stage is unlocked
   useEffect(() => {
     if (!getCurrentStage || !lessonStages) return;
     
@@ -202,27 +273,25 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
     
     const currentStageData = lessonStages.find(s => s.id === currentStageId);
     
-    // If this is an activity stage with a recommended time, auto-start the timer
-    if (currentStageData?.type === 'activity' && currentStageData.recommendedMinutes) {
+    // If this stage has a timer, auto-start it
+    if (currentStageData?.hasTimer && activityTimers[currentStageId]) {
       const timer = activityTimers[currentStageId];
       
       // Only auto-start if:
-      // 1. Timer hasn't been started yet (current is 0 and not running)
-      // 2. Haven't already auto-started this timer (tracked by ref)
-      if (timer && timer.current === 0 && !timer.isRunning && !autoStartedTimers.current.has(currentStageId)) {
+      // 1. Timer hasn't been started yet (timeRemaining is 0 and not active)
+      // 2. Haven't already auto-started this timer
+      if (timer.timeRemaining === 0 && !timer.isActive && !autoStartedTimers.current.has(currentStageId)) {
         // Mark as auto-started
         autoStartedTimers.current.add(currentStageId);
         
-        // Use setTimeout to avoid state update during render
         setTimeout(() => {
-          console.log('Auto-starting timer for', currentStageId);
-          startActivityTimer(currentStageId);
+          console.log('🚀 Auto-starting timer for', currentStageId, 'with adjusted time:', timer.presetTime, 'min');
+          // ✅ FIXED: Pass the adjusted presetTime to ensure adjusted time is used
+          startActivityTimer(currentStageId, timer.presetTime);
         }, 100);
       }
     }
-  // Intentionally exclude activityTimers from dependencies to prevent repeated calls
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getCurrentStage, lessonStages, startActivityTimer]);
+  }, [getCurrentStage, lessonStages, activityTimers, startActivityTimer]);
 
   return {
     activityTimers,

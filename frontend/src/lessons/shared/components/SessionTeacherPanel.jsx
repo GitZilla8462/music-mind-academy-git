@@ -22,16 +22,37 @@ const SessionTeacherPanel = ({
   resetActivityTimer,
   onOpenPresentation
 }) => {
-  const [expandedSections, setExpandedSections] = useState(new Set(['introduction'])); // First section expanded by default
+  const [expandedSections, setExpandedSections] = useState(new Set()); // All sections closed by default
 
   const currentStage = getCurrentStage();
   const students = getStudents();
   const studentCount = students?.length || 0;
 
-  // Calculate total lesson time
-  const totalLessonTime = config.lessonSections?.reduce((total, section) => {
-    return total + (section.estimatedTime || 0);
-  }, 0) || 0;
+  // Calculate total lesson time dynamically from activity timers
+  const totalLessonTime = React.useMemo(() => {
+    if (!config.lessonSections) return 0;
+    
+    let total = 0;
+    config.lessonSections.forEach(section => {
+      section.stages.forEach(stage => {
+        if (stage.duration) {
+          // For stages with hasTimer, check if timer has been adjusted
+          if (stage.hasTimer) {
+            const timerData = activityTimers[stage.id];
+            const adjustedDuration = timerData?.presetTime ?? stage.duration;
+            total += adjustedDuration;
+            console.log(`📊 ${stage.id}: ${adjustedDuration} min (adjusted: ${timerData?.presetTime ? 'yes' : 'no'})`);
+          } else {
+            // For videos and other timed stages without hasTimer, just use duration
+            total += stage.duration;
+            console.log(`📊 ${stage.id}: ${stage.duration} min (fixed duration)`);
+          }
+        }
+      });
+    });
+    console.log(`📊 Total lesson time: ${total} minutes`);
+    return total;
+  }, [config.lessonSections, activityTimers]);
 
   // Toggle section expansion - ACCORDION STYLE (only one open at a time)
   const toggleSection = (sectionId) => {
@@ -68,8 +89,9 @@ const SessionTeacherPanel = ({
         const nextStageIndex = currentStageIndex + 1;
         
         if (nextStageIndex < lessonStages.length) {
-          setCurrentStage(lessonStages[nextStageIndex].id);
-          console.log('⏭️ Advanced to next stage via keyboard');
+          const nextStage = lessonStages[nextStageIndex];
+          jumpToStage(nextStage.id); // Use jumpToStage to trigger auto-timer
+          console.log('➡️ Advanced to next stage via keyboard');
         }
       }
       
@@ -79,8 +101,9 @@ const SessionTeacherPanel = ({
         const previousStageIndex = currentStageIndex - 1;
         
         if (previousStageIndex >= 0) {
-          setCurrentStage(lessonStages[previousStageIndex].id);
-          console.log('⏮️ Went back to previous stage via keyboard');
+          const previousStage = lessonStages[previousStageIndex];
+          jumpToStage(previousStage.id); // Use jumpToStage to trigger auto-timer
+          console.log('⬅️ Went back to previous stage via keyboard');
         }
       }
     };
@@ -123,9 +146,30 @@ const SessionTeacherPanel = ({
     return { completed: completedStages, total: section.stages.length };
   };
 
+  // ✅ NEW: Get dynamic estimated time for a section based on adjusted timers
+  const getSectionEstimatedTime = (section) => {
+    let total = 0;
+    section.stages.forEach(stage => {
+      if (stage.duration) {
+        if (stage.hasTimer) {
+          // Use adjusted timer value if available
+          const timerData = activityTimers[stage.id];
+          const adjustedDuration = timerData?.presetTime ?? stage.duration;
+          total += adjustedDuration;
+        } else {
+          // Use static duration for non-timer stages
+          total += stage.duration;
+        }
+      }
+    });
+    return total;
+  };
+
   // Jump to a specific stage
   const jumpToStage = (stageId) => {
+    console.log('🎯 Jumping to stage:', stageId);
     setCurrentStage(stageId);
+    
   };
 
   // Increase timer by 1 minute
@@ -196,26 +240,42 @@ const SessionTeacherPanel = ({
               <Users size={20} />
               <span className="font-semibold">{studentCount} Students</span>
             </div>
-            <div className="flex items-center gap-2 bg-blue-600 px-4 py-2 rounded-lg text-white">
-              <Clock size={20} />
-              <span className="font-semibold">{totalLessonTime} min total</span>
+            <div className="bg-gray-200 px-4 py-2 rounded-lg text-center">
+              <div className="text-xs text-gray-600 font-medium">Class Code</div>
+              <div className="text-gray-900 font-mono font-bold text-xl">{sessionCode}</div>
             </div>
-            <div className="bg-gray-200 text-gray-900 px-4 py-2 rounded-lg font-mono font-bold">
-              {sessionCode}
+            <div className="bg-blue-600 px-4 py-2 rounded-lg text-white text-center">
+              <div className="text-xs text-blue-200 font-medium">Total Lesson Time</div>
+              <div className="flex items-center gap-1 justify-center">
+                <Clock size={18} />
+                <span className="font-bold text-xl">{totalLessonTime} min</span>
+              </div>
             </div>
-            <button
-              onClick={onOpenPresentation}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            >
-              <ExternalLink size={18} />
-              Open Presentation
-            </button>
           </div>
         </div>
         
         {/* Keyboard Shortcuts Hint */}
         <div className="text-xs text-gray-500 mt-2">
           💡 Tip: Use <kbd className="px-2 py-1 bg-gray-200 rounded border border-gray-300">←</kbd> and <kbd className="px-2 py-1 bg-gray-200 rounded border border-gray-300">→</kbd> arrow keys to navigate stages
+        </div>
+      </div>
+
+      {/* START LESSON - Standalone card at the very top */}
+      <div className="mb-4">
+        <div
+          onClick={onOpenPresentation}
+          className="rounded-xl border-2 border-green-500 bg-green-600 hover:bg-green-700 overflow-hidden transition-all shadow-md cursor-pointer"
+        >
+          <div className="px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="text-4xl">🎬</div>
+              <div>
+                <h2 className="text-xl font-bold text-white">Start Lesson</h2>
+                <p className="text-sm text-green-100">Open Presentation</p>
+              </div>
+            </div>
+            <ExternalLink size={24} className="text-white" />
+          </div>
         </div>
       </div>
 
@@ -230,14 +290,24 @@ const SessionTeacherPanel = ({
           return (
             <div
               key={section.id}
-              className={`rounded-xl border-2 border-blue-500 overflow-hidden transition-all shadow-md ${
-                sectionStatus === 'active' ? 'bg-blue-100' : 'bg-gray-50'
+              className={`rounded-xl border-2 overflow-hidden transition-all shadow-md ${
+                sectionStatus === 'active' 
+                  ? 'border-blue-600 bg-blue-50 shadow-lg ring-2 ring-blue-300' 
+                  : 'border-gray-300 bg-white'
               }`}
             >
               {/* Section Header - Clickable */}
               <button
-                onClick={() => toggleSection(section.id)}
-                className="w-full px-6 py-4 flex items-center justify-between hover:bg-opacity-80 transition-colors"
+                onClick={() => {
+                  toggleSection(section.id);
+                  // Jump to first stage in section
+                  if (section.stages && section.stages.length > 0) {
+                    jumpToStage(section.stages[0].id);
+                  }
+                }}
+                className={`w-full px-6 py-4 flex items-center justify-between hover:bg-opacity-80 transition-colors ${
+                  sectionStatus === 'active' ? 'bg-blue-100' : ''
+                }`}
               >
                 <div className="flex items-center gap-4">
                   {/* Status Indicator */}
@@ -260,10 +330,10 @@ const SessionTeacherPanel = ({
                     </div>
                   </div>
 
-                  {/* Time Estimate */}
+                  {/* Time Estimate - ✅ NOW DYNAMIC */}
                   <div className="text-right">
                     <div className="text-sm text-gray-500">Time</div>
-                    <div className="font-semibold text-gray-900">{section.estimatedTime} min</div>
+                    <div className="font-semibold text-gray-900">{getSectionEstimatedTime(section)} min</div>
                   </div>
 
                   {/* Expand/Collapse Icon */}
@@ -306,12 +376,18 @@ const SessionTeacherPanel = ({
                               <div className="w-5 h-5 rounded-full border-2 border-gray-400" />
                             )}
 
-                            {/* Stage Info */}
+                            {/* Stage Info with THREE LINES */}
                             <div>
                               <div className={`font-medium ${isActive ? 'text-blue-900' : 'text-gray-900'}`}>
                                 {index + 1}. {stage.label}
                               </div>
                               <div className="text-xs text-gray-600">{stage.description}</div>
+                              {/* Third line for bonus description */}
+                              {stage.bonusDescription && (
+                                <div className="text-xs text-purple-600 font-medium mt-0.5">
+                                  {stage.bonusDescription}
+                                </div>
+                              )}
                             </div>
                           </div>
 
@@ -327,51 +403,85 @@ const SessionTeacherPanel = ({
                             {/* Timer Controls for Stage with Timer */}
                             {stage.hasTimer && (
                               <div className="flex items-center gap-2">
-                                {/* Plus Button */}
-                                <button
-                                  onClick={(e) => increaseTimer(stage.id, e)}
-                                  className="p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                                  title="Increase 1 min"
-                                >
-                                  <Plus size={16} />
-                                </button>
+                                {/* Plus Button - Only show when timer not running */}
+                                {!isTimerRunning && (
+                                  <button
+                                    onClick={(e) => increaseTimer(stage.id, e)}
+                                    className="p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                    title="Increase 1 min"
+                                  >
+                                    <Plus size={16} />
+                                  </button>
+                                )}
                                 
-                                {/* Timer Display */}
-                                <div className="font-mono text-lg font-bold text-blue-700 min-w-[60px] text-center">
-                                  {formatTime(timerData?.timeRemaining || (stage.duration * 60))}
+                                {/* Timer Display - Shows countdown in MM:SS when running, or preset time when not */}
+                                <div className={`flex items-center gap-1 px-3 py-1 rounded font-mono font-bold text-lg min-w-[80px] justify-center ${
+                                  isTimerRunning 
+                                    ? 'bg-green-100 text-green-700' 
+                                    : 'bg-blue-100 text-blue-700'
+                                }`}>
+                                  {isTimerRunning ? (
+                                    // Show countdown in MM:SS format when running
+                                    <span>{formatTime(timerData?.timeRemaining || 0)}</span>
+                                  ) : (
+                                    // Show preset minutes when not running
+                                    <>
+                                      <Clock size={14} />
+                                      <span>{timerData?.presetTime ?? stage.duration} min</span>
+                                    </>
+                                  )}
                                 </div>
                                 
-                                {/* Minus Button */}
-                                <button
-                                  onClick={(e) => decreaseTimer(stage.id, e)}
-                                  className="p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                                  title="Decrease 1 min"
-                                >
-                                  <Minus size={16} />
-                                </button>
+                                {/* Minus Button - Only show when timer not running */}
+                                {!isTimerRunning && (
+                                  <button
+                                    onClick={(e) => decreaseTimer(stage.id, e)}
+                                    className="p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                    title="Decrease 1 min"
+                                  >
+                                    <Minus size={16} />
+                                  </button>
+                                )}
 
-                                {/* Start Timer / Reset Button */}
+                                {/* Timer Control Buttons */}
                                 {!isTimerRunning ? (
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      startActivityTimer(stage.id, stage.duration);
+                                      // Use adjusted preset time, not original duration
+                                      const adjustedTime = timerData?.presetTime ?? stage.duration;
+                                      startActivityTimer(stage.id, adjustedTime);
                                     }}
                                     className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium transition-colors"
                                   >
                                     Start Timer
                                   </button>
                                 ) : (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      resetActivityTimer(stage.id);
-                                    }}
-                                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-medium transition-colors flex items-center gap-1"
-                                  >
-                                    <RotateCcw size={16} />
-                                    Reset
-                                  </button>
+                                  <div className="flex gap-2">
+                                    {/* Reset Button - LEFT */}
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        resetActivityTimer(stage.id);
+                                      }}
+                                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-medium transition-colors flex items-center gap-1"
+                                    >
+                                      <RotateCcw size={16} />
+                                      Reset
+                                    </button>
+                                    
+                                    {/* Pause Button - RIGHT */}
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        pauseActivityTimer(stage.id);
+                                      }}
+                                      className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-sm font-medium transition-colors flex items-center gap-1"
+                                    >
+                                      <Pause size={16} />
+                                      Pause
+                                    </button>
+                                  </div>
                                 )}
                               </div>
                             )}
@@ -390,7 +500,7 @@ const SessionTeacherPanel = ({
                                   e.stopPropagation();
                                   const nextStageIndex = lessonStages.findIndex(s => s.id === stage.id) + 1;
                                   if (nextStageIndex < lessonStages.length) {
-                                    setCurrentStage(lessonStages[nextStageIndex].id);
+                                    jumpToStage(lessonStages[nextStageIndex].id);
                                   }
                                 }}
                                 className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium transition-colors"
@@ -408,7 +518,7 @@ const SessionTeacherPanel = ({
                   {/* Quick Start Button */}
                   {sectionStatus === 'upcoming' && (
                     <button
-                      onClick={() => setCurrentStage(section.stages[0].id)}
+                      onClick={() => jumpToStage(section.stages[0].id)}
                       className={`w-full py-3 rounded-lg font-semibold text-white transition-colors ${colors.button} flex items-center justify-center gap-2`}
                     >
                       <Play size={20} />
