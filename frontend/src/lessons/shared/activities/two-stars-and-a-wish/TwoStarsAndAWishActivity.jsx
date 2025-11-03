@@ -1,12 +1,15 @@
-// File: /src/lessons/film-music-project/lesson1/activities/two-stars-and-a-wish/TwoStarsAndAWishActivity.jsx
+// File: /src/lessons/shared/activities/two-stars-and-a-wish/TwoStarsAndAWishActivity.jsx
 // Main wrapper component for the reflection activity
-// UPDATED: Modal in bottom right, no screen dimming, DAW fully visible
+// UPDATED: Shows bonus activity button after reflection completes in session mode
 
-import React from 'react';
+import React, { useState } from 'react';
 import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
-import ReflectionModal from './ReflectionModal';
+import ReflectionSidebar from './ReflectionSidebar';
+import NameThatLoopActivity from '../NameThatLoopActivity';
 
-const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false }) => {
+const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false, isSessionMode = false }) => {
+  const [showBonus, setShowBonus] = useState(false);
+  
   // Load saved composition data
   const getCompositionData = () => {
     const saved = localStorage.getItem('school-beneath-composition');
@@ -40,10 +43,64 @@ const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false }) => {
     );
   }
 
+  // Handle reflection complete
+  const handleReflectionComplete = () => {
+    console.log('🎉 Reflection complete!', { isSessionMode, showBonus });
+    
+    // In session mode, show bonus activity option
+    if (isSessionMode) {
+      setShowBonus(true);
+    } else {
+      // In normal mode, just call onComplete to advance
+      onComplete();
+    }
+  };
+
+  // If bonus is showing, render the bonus activity
+  if (showBonus) {
+    return (
+      <div className="h-screen w-full flex flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        {/* Header with option to go back */}
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-white">🎮 Bonus Activity: Name That Loop!</h2>
+            <p className="text-blue-100">Play the listening game with a partner</p>
+          </div>
+          <button
+            onClick={() => setShowBonus(false)}
+            className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
+          >
+            ← Back to Reflection
+          </button>
+        </div>
+        
+        {/* Bonus Activity */}
+        <div className="flex-1 overflow-hidden">
+          <NameThatLoopActivity 
+            onComplete={() => {
+              console.log('Bonus activity complete');
+              onComplete(); // Still marks reflection as complete
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Reflection sidebar content
+  const assignmentPanelContent = (
+    <ReflectionSidebar
+      compositionData={compositionData}
+      onComplete={handleReflectionComplete}
+      viewMode={viewMode}
+      isSessionMode={isSessionMode}
+    />
+  );
+
   return (
-    <div className="h-screen w-full relative bg-gray-900">
-      {/* Composition fully visible - NO OVERLAY */}
-      <div className="absolute inset-0">
+    <div className="h-screen w-full flex flex-col bg-gray-900">
+      {/* Main DAW Area with Sidebar */}
+      <div className="flex-1 flex flex-col min-h-0">
         <MusicComposer
           tutorialMode={false}
           preselectedVideo={{
@@ -59,15 +116,7 @@ const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false }) => {
           showToast={(msg, type) => console.log(msg, type)}
           initialPlacedLoops={compositionData?.placedLoops || []}
           readOnly={true}
-        />
-      </div>
-
-      {/* Modal in bottom right corner with pointer events enabled */}
-      <div className="absolute inset-0 pointer-events-none">
-        <ReflectionModal 
-          compositionData={compositionData}
-          onComplete={onComplete}
-          viewMode={viewMode}
+          assignmentPanelContent={assignmentPanelContent}
         />
       </div>
     </div>

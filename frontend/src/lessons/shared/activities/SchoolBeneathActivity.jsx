@@ -1,12 +1,14 @@
 // File: /src/lessons/film-music-project/lesson1/activities/SchoolBeneathActivity.jsx
 // ENHANCED VERSION with Two-Modal Flow and Voice Announcements
 // UPDATED: isSessionMode prop to hide timer for students in session mode
+// UPDATED: Firebase saving for compositions
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, Minimize2, Maximize2 } from 'lucide-react';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
 import { saveComposition, saveBonusComposition } from '../../film-music-project/lesson1/lessonStorageUtils';
+import { saveCompositionToServer } from '../../film-music-project/lesson1/compositionServerUtils';
 import SoundEffectsActivity from './SoundEffectsActivity';
 
 const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes in milliseconds
@@ -114,7 +116,7 @@ const SchoolBeneathActivity = ({
         clearInterval(timerRef.current);
         
         handleAutoSave();
-        setSaveMessage('â° Time\'s up! Great work - let\'s share!');
+        setSaveMessage('⏰ Time\'s up! Great work - let\'s share!');
         
         setTimeout(() => {
           onComplete();
@@ -267,7 +269,7 @@ const SchoolBeneathActivity = ({
     
     if (!isExplorationMode && loopData.mood !== 'Mysterious') {
       console.warn('Rejected non-Mysterious loop:', loopData.category);
-      setSaveMessage('âŒ Only Mysterious loops allowed!');
+      setSaveMessage('⚠ Only Mysterious loops allowed!');
       setTimeout(() => setSaveMessage(''), 2000);
       return;
     }
@@ -306,7 +308,8 @@ const SchoolBeneathActivity = ({
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const handleSaveProgress = () => {
+  // UPDATED: Save to both localStorage and Firebase
+  const handleSaveProgress = async () => {
     const saveData = {
       placedLoops,
       requirements,
@@ -315,7 +318,22 @@ const SchoolBeneathActivity = ({
     };
     
     localStorage.setItem('school-beneath-composition', JSON.stringify(saveData));
-    setSaveMessage('âœ“ Progress saved!');
+    
+    // Save to Firebase
+    try {
+      const result = await saveCompositionToServer(
+        {
+          ...saveData,
+          studentName: 'Student',
+        },
+        'school-beneath'
+      );
+      console.log('✅ Composition saved to Firebase:', result.shareCode);
+      setSaveMessage('✓ Saved!');
+    } catch (error) {
+      console.error('❌ Firebase save failed:', error);
+      setSaveMessage('✓ Saved locally!');
+    }
     setTimeout(() => setSaveMessage(''), 2000);
   };
 
@@ -330,13 +348,30 @@ const SchoolBeneathActivity = ({
     localStorage.setItem('school-beneath-composition', JSON.stringify(saveData));
   };
 
-  // NEW: Enhanced submit handler with modal flow
-  const handleSubmitActivity = () => {
+  // UPDATED: Enhanced submit handler with Firebase saving
+  const handleSubmitActivity = async () => {
     if (hasSubmittedRef.current) return;
     
     // Save the main composition using the utility function
     saveComposition(placedLoops, requirements, videoDuration);
     console.log('Submitted composition with saveComposition()');
+    
+    // Also save to Firebase
+    try {
+      const result = await saveCompositionToServer(
+        {
+          placedLoops,
+          requirements,
+          videoDuration,
+          studentName: 'Student',
+          timestamp: Date.now()
+        },
+        'school-beneath'
+      );
+      console.log('✅ Composition saved to Firebase:', result.shareCode);
+    } catch (error) {
+      console.error('❌ Firebase save failed:', error);
+    }
     
     hasSubmittedRef.current = true;
     
@@ -374,7 +409,7 @@ const SchoolBeneathActivity = ({
           onClick={handleSaveProgress}
           className="w-full px-3 py-1 text-xs rounded font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
         >
-          Save Progress
+          Save
         </button>
         <button
           onClick={handleSubmitActivity}
@@ -385,7 +420,7 @@ const SchoolBeneathActivity = ({
               : 'bg-gray-600 text-gray-400 cursor-not-allowed'
           }`}
         >
-          {allRequirementsMet ? 'âœ“ Save & Submit' : 'Submit (Complete Requirements)'}
+          {allRequirementsMet ? 'Submit' : 'Submit (Complete Requirements)'}
         </button>
       </div>
 
@@ -403,7 +438,7 @@ const SchoolBeneathActivity = ({
             : 'bg-gray-700 border-gray-600'
         }`}>
           <span className={`flex-shrink-0 text-[9px] ${requirements.instrumentation ? 'text-green-400' : 'text-gray-500'}`}>
-            {requirements.instrumentation ? 'âœ“' : 'â—‹'}
+            {requirements.instrumentation ? '✓' : '○'}
           </span>
           <div className="text-[9px]">
             <div className="font-semibold">Instrumentation</div>
@@ -417,7 +452,7 @@ const SchoolBeneathActivity = ({
             : 'bg-gray-700 border-gray-600'
         }`}>
           <span className={`flex-shrink-0 text-[9px] ${requirements.layering ? 'text-green-400' : 'text-gray-500'}`}>
-            {requirements.layering ? 'âœ“' : 'â—‹'}
+            {requirements.layering ? '✓' : '○'}
           </span>
           <div className="text-[9px]">
             <div className="font-semibold">Layering</div>
@@ -431,7 +466,7 @@ const SchoolBeneathActivity = ({
             : 'bg-gray-700 border-gray-600'
         }`}>
           <span className={`flex-shrink-0 text-[9px] ${requirements.structure ? 'text-green-400' : 'text-gray-500'}`}>
-            {requirements.structure ? 'âœ“' : 'â—‹'}
+            {requirements.structure ? '✓' : '○'}
           </span>
           <div className="text-[9px]">
             <div className="font-semibold">Structure</div>
@@ -443,7 +478,7 @@ const SchoolBeneathActivity = ({
   ) : isExplorationMode ? (
     <div className="h-full bg-gray-800 text-white p-2 flex flex-col gap-2 overflow-y-auto">
       <div>
-        <h3 className="font-bold text-[10px] mb-1">âœ¨ Bonus Exploration</h3>
+        <h3 className="font-bold text-[10px] mb-1">✨ Bonus Exploration</h3>
         <p className="text-[9px] text-gray-300 leading-relaxed">
           Great job! Use the remaining time to explore.
         </p>
@@ -465,12 +500,12 @@ const SchoolBeneathActivity = ({
       )}
 
       <div className="text-[9px] text-gray-300 bg-blue-900/30 border border-blue-500 rounded-lg p-2">
-        <div className="font-semibold mb-1">ðŸ’¡ Try these:</div>
+        <div className="font-semibold mb-1">💡 Try these:</div>
         <ul className="space-y-0.5 text-[9px]">
-          <li>â­ <strong>Heroic</strong> loops</li>
-          <li>ðŸ‘» <strong>Scary</strong> loops</li>
-          <li>ðŸŽŠ <strong>Upbeat</strong> loops</li>
-          <li>ðŸŽ­ Mix moods</li>
+          <li>⭐ <strong>Heroic</strong> loops</li>
+          <li>👻 <strong>Scary</strong> loops</li>
+          <li>🎊 <strong>Upbeat</strong> loops</li>
+          <li>🎭 Mix moods</li>
         </ul>
       </div>
     </div>
@@ -496,7 +531,7 @@ const SchoolBeneathActivity = ({
           <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl shadow-2xl max-w-md w-full mx-4 border-2 border-green-400">
             <div className="bg-gradient-to-r from-green-500 to-blue-500 px-6 py-3 rounded-t-xl">
               <h2 className="text-2xl font-bold text-white text-center">
-                ðŸŽ‰ Great Job!
+                🎉 Great Job!
               </h2>
             </div>
             
@@ -507,15 +542,15 @@ const SchoolBeneathActivity = ({
               
               <div className="space-y-2 bg-white rounded-lg p-4 border border-green-300">
                 <div className="flex items-center gap-2 text-green-700">
-                  <span className="text-lg">âœ“</span>
+                  <span className="text-lg">✓</span>
                   <span className="font-medium">Instrumentation - 5+ Mysterious loops</span>
                 </div>
                 <div className="flex items-center gap-2 text-green-700">
-                  <span className="text-lg">âœ“</span>
+                  <span className="text-lg">✓</span>
                   <span className="font-medium">Layering - Different start times</span>
                 </div>
                 <div className="flex items-center gap-2 text-green-700">
-                  <span className="text-lg">âœ“</span>
+                  <span className="text-lg">✓</span>
                   <span className="font-medium">Structure - Proper alignment</span>
                 </div>
               </div>
@@ -525,7 +560,7 @@ const SchoolBeneathActivity = ({
                   Your composition is ready to submit!
                 </p>
                 <p className="text-sm text-gray-600">
-                  Click the <span className="font-bold text-green-600">"Save & Submit"</span> button 
+                  Click the <span className="font-bold text-green-600">"Submit"</span> button 
                   in the left panel to save your work and unlock bonus exploration time.
                 </p>
               </div>
@@ -547,13 +582,13 @@ const SchoolBeneathActivity = ({
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 border-2 border-green-400">
             <div className="bg-gradient-to-r from-green-500 to-blue-500 px-6 py-4 rounded-t-xl">
               <h2 className="text-3xl font-bold text-white text-center">
-                ðŸŽ‰ Assignment Submitted!
+                🎉 Assignment Submitted!
               </h2>
             </div>
             
             <div className="p-8 space-y-5 text-center">
               <div className="text-5xl animate-bounce">
-                âœ“
+                ✓
               </div>
 
               <p className="text-xl text-gray-800 font-semibold">
@@ -565,25 +600,25 @@ const SchoolBeneathActivity = ({
                   Now you have <span className="text-green-600 font-bold">BONUS TIME</span> until the reflection activity!
                 </p>
                 <p className="text-md text-gray-600">
-                  ðŸ”“ All loops have been unlocked!
+                  🔓 All loops have been unlocked!
                 </p>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="font-semibold text-gray-800 mb-3">ðŸ’¡ Try adding:</div>
+                <div className="font-semibold text-gray-800 mb-3">💡 Try adding:</div>
                 <div className="grid grid-cols-3 gap-2 text-sm">
                   <div className="bg-white rounded p-2 border border-yellow-300">
-                    <div className="text-2xl mb-1">â­</div>
+                    <div className="text-2xl mb-1">⭐</div>
                     <div className="font-medium text-gray-700">Heroic</div>
                     <div className="text-xs text-gray-500">Adventure feel</div>
                   </div>
                   <div className="bg-white rounded p-2 border border-purple-300">
-                    <div className="text-2xl mb-1">ðŸ‘»</div>
+                    <div className="text-2xl mb-1">👻</div>
                     <div className="font-medium text-gray-700">Scary</div>
                     <div className="text-xs text-gray-500">Extra suspense</div>
                   </div>
                   <div className="bg-white rounded p-2 border border-pink-300">
-                    <div className="text-2xl mb-1">ðŸŽŠ</div>
+                    <div className="text-2xl mb-1">🎊</div>
                     <div className="font-medium text-gray-700">Upbeat</div>
                     <div className="text-xs text-gray-500">Different mood</div>
                   </div>
@@ -627,7 +662,7 @@ const SchoolBeneathActivity = ({
             <div className="flex flex-col items-center text-center space-y-3">
               <div>
                 <h2 className="text-xl font-bold text-gray-800 mb-1">
-                  ðŸŽ‰ Assignment Submitted!
+                  🎉 Assignment Submitted!
                 </h2>
                 <p className="text-gray-700 text-sm leading-relaxed">
                   Great job! Use the remaining time to explore.
@@ -647,12 +682,12 @@ const SchoolBeneathActivity = ({
               </div>
 
               <div className="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-3 w-full">
-                <div className="font-semibold mb-2 text-sm">ðŸ’¡ Try these ideas:</div>
+                <div className="font-semibold mb-2 text-sm">💡 Try these ideas:</div>
                 <ul className="text-left space-y-1 text-xs">
-                  <li>â­ <strong>Heroic</strong> loops for an adventure feel</li>
-                  <li>ðŸ‘» <strong>Scary</strong> loops for extra suspense</li>
-                  <li>ðŸŽŠ <strong>Upbeat</strong> loops for a happy ending</li>
-                  <li>ðŸŽ­ Mix moods to create your own unique style</li>
+                  <li>⭐ <strong>Heroic</strong> loops for an adventure feel</li>
+                  <li>👻 <strong>Scary</strong> loops for extra suspense</li>
+                  <li>🎊 <strong>Upbeat</strong> loops for a happy ending</li>
+                  <li>🎭 Mix moods to create your own unique style</li>
                 </ul>
               </div>
             </div>
@@ -668,7 +703,7 @@ const SchoolBeneathActivity = ({
               <>
                 <h2 className="text-sm font-bold whitespace-nowrap">
                   {viewMode ? (viewBonusMode ? "Viewing Bonus Composition: " : "Viewing Saved Work: ") : ""}
-                  {isExplorationMode ? 'â™ª Bonus Composition - The School Beneath' : 'The School Beneath - Composition Assignment'}
+                  {isExplorationMode ? '♪ Bonus Composition - The School Beneath' : 'The School Beneath - Composition Assignment'}
                 </h2>
 
                 <div className="flex items-center gap-2 flex-shrink-0">

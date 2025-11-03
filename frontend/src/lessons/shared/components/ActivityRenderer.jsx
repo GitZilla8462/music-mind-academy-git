@@ -8,6 +8,7 @@ import DAWTutorialActivity from '../activities/daw-tutorial/DAWTutorialActivity'
 import SchoolBeneathActivity from '../activities/SchoolBeneathActivity';
 import TwoStarsAndAWishActivity from '../activities/two-stars-and-a-wish/TwoStarsAndAWishActivity';
 import SoundEffectsActivity from '../activities/SoundEffectsActivity';
+import NameThatLoopActivity from '../activities/NameThatLoopActivity';  // ✅ ADDED
 
 const ActivityRenderer = ({
   activity,
@@ -18,7 +19,7 @@ const ActivityRenderer = ({
   viewMode = false,
   viewBonusMode = false,
   showCountdown = false,  // Only true for presentation view
-  isSessionMode = false   // ✅ ADD THIS PROP
+  isSessionMode = false
 }) => {
   if (!activity) return null;
 
@@ -75,6 +76,16 @@ const ActivityRenderer = ({
           onComplete={onComplete}
           viewMode={viewMode}
           lessonStartTime={lessonStartTime}
+        />
+      );
+
+    // ✅ ADDED: Name That Loop bonus activity
+    case 'name-that-loop':
+      return (
+        <NameThatLoopActivity 
+          key={`name-that-loop-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
         />
       );
 

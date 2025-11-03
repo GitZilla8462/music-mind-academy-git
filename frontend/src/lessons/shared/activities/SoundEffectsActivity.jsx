@@ -1,10 +1,12 @@
 // File: /src/lessons/film-music-project/lesson1/activities/SoundEffectsActivity.jsx
 // Bonus activity: Add sound effects to completed composition
 // UPDATED: isSessionMode prop to hide timer for students in session mode
+// UPDATED: Firebase saving for compositions
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
+import { saveCompositionToServer } from '../../film-music-project/lesson1/compositionServerUtils';
 import { Sparkles } from 'lucide-react';
 
 const SoundEffectsActivity = ({ 
@@ -121,8 +123,8 @@ const SoundEffectsActivity = ({
     );
   };
 
-  // Save composition (overwrites original School Beneath)
-  const handleSaveProgress = () => {
+  // UPDATED: Save composition to both localStorage and Firebase
+  const handleSaveProgress = async () => {
     const musicLoops = placedLoops.filter(l => l.type !== 'soundEffect');
     const soundEffectLoops = placedLoops.filter(l => l.type === 'soundEffect');
     
@@ -139,13 +141,28 @@ const SoundEffectsActivity = ({
     localStorage.setItem('school-beneath-composition', JSON.stringify(compositionData));
     console.log('Composition with sound effects saved:', compositionData);
     
-    setSaveMessage('Saved!');
+    // Save to Firebase
+    try {
+      const result = await saveCompositionToServer(
+        {
+          ...compositionData,
+          studentName: 'Student',
+        },
+        'sound-effects'
+      );
+      console.log('✅ Composition saved to Firebase:', result.shareCode);
+      setSaveMessage('Saved!');
+    } catch (error) {
+      console.error('❌ Firebase save failed:', error);
+      setSaveMessage('Saved locally!');
+    }
+    
     setTimeout(() => setSaveMessage(''), 3000);
   };
 
-  // Submit (can be resubmitted)
-  const handleSubmit = () => {
-    handleSaveProgress(); // Save first
+  // UPDATED: Submit with Firebase saving
+  const handleSubmit = async () => {
+    await handleSaveProgress(); // Save first
     
     setSaveMessage('Submitted!');
     setTimeout(() => {
@@ -266,26 +283,6 @@ const SoundEffectsActivity = ({
                   <div className="text-xs text-gray-400">
                     {soundEffectLoops.length} SFX added
                   </div>
-
-                  {saveMessage && (
-                    <div className="text-xs text-green-400 font-semibold animate-pulse">
-                      {saveMessage}
-                    </div>
-                  )}
-
-                  <button
-                    onClick={handleSaveProgress}
-                    className="px-4 py-1.5 text-sm rounded font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    Save Progress
-                  </button>
-
-                  <button
-                    onClick={handleSubmit}
-                    className="px-4 py-1.5 text-sm rounded font-medium transition-colors bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    Submit
-                  </button>
                 </div>
               </>
             ) : (

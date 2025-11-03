@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { sessionExists } from '../firebase/config';
+import JoinPageCompositions from '../components/JoinPageCompositions';
+import JoinPageReflections from '../components/JoinPageReflections';
 
 const JoinWithCode = () => {
   const [code, setCode] = useState('');
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('compositions'); // 'compositions' or 'reflections'
 
   const handleJoinSession = async () => {
     if (code.length !== 4) {
@@ -38,13 +41,13 @@ const JoinWithCode = () => {
       display: 'flex', 
       flexDirection: 'column', 
       alignItems: 'center', 
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       minHeight: '100vh',
       backgroundColor: '#f0f4f8',
       padding: '20px'
     }}>
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '48px', marginTop: '40px' }}>
         <h1 style={{ 
           fontSize: '56px', 
           fontWeight: 'bold', 
@@ -165,9 +168,64 @@ const JoinWithCode = () => {
         marginTop: '32px',
         textAlign: 'center',
         color: '#a0aec0',
-        fontSize: '14px'
+        fontSize: '14px',
+        marginBottom: '48px'
       }}>
         <p>Don't have a code? Ask your teacher to start a session.</p>
+      </div>
+
+      {/* Student Work Section with Tabs */}
+      <div style={{ 
+        maxWidth: '1400px', 
+        width: '100%',
+        marginTop: '20px'
+      }}>
+        {/* Tab Navigation */}
+        <div style={{
+          display: 'flex',
+          gap: '16px',
+          marginBottom: '24px',
+          borderBottom: '2px solid #2d3748'
+        }}>
+          <button
+            onClick={() => setActiveTab('compositions')}
+            style={{
+              padding: '12px 24px',
+              fontSize: '16px',
+              fontWeight: '600',
+              color: activeTab === 'compositions' ? '#3182ce' : '#718096',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderBottom: activeTab === 'compositions' ? '3px solid #3182ce' : '3px solid transparent',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              marginBottom: '-2px'
+            }}
+          >
+            🎵 Compositions
+          </button>
+          <button
+            onClick={() => setActiveTab('reflections')}
+            style={{
+              padding: '12px 24px',
+              fontSize: '16px',
+              fontWeight: '600',
+              color: activeTab === 'reflections' ? '#805ad5' : '#718096',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderBottom: activeTab === 'reflections' ? '3px solid #805ad5' : '3px solid transparent',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              marginBottom: '-2px'
+            }}
+          >
+            ⭐ Reflections
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'compositions' && <JoinPageCompositions />}
+        {activeTab === 'reflections' && <JoinPageReflections />}
       </div>
     </div>
   );

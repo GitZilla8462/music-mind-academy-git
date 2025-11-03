@@ -41,16 +41,16 @@ const SessionTeacherPanel = ({
             const timerData = activityTimers[stage.id];
             const adjustedDuration = timerData?.presetTime ?? stage.duration;
             total += adjustedDuration;
-            console.log(`📊 ${stage.id}: ${adjustedDuration} min (adjusted: ${timerData?.presetTime ? 'yes' : 'no'})`);
+            console.log(`ðŸ“Š ${stage.id}: ${adjustedDuration} min (adjusted: ${timerData?.presetTime ? 'yes' : 'no'})`);
           } else {
             // For videos and other timed stages without hasTimer, just use duration
             total += stage.duration;
-            console.log(`📊 ${stage.id}: ${stage.duration} min (fixed duration)`);
+            console.log(`ðŸ“Š ${stage.id}: ${stage.duration} min (fixed duration)`);
           }
         }
       });
     });
-    console.log(`📊 Total lesson time: ${total} minutes`);
+    console.log(`ðŸ“Š Total lesson time: ${total} minutes`);
     return total;
   }, [config.lessonSections, activityTimers]);
 
@@ -80,6 +80,44 @@ const SessionTeacherPanel = ({
     }
   }, [currentStage, config.lessonSections]);
 
+  // ✅ Auto-advance to bonus activity when all students complete reflection
+  useEffect(() => {
+    console.log('🔍 Auto-advance useEffect running...');
+    console.log('   Current stage:', currentStage);
+    
+    if (currentStage !== 'reflection') {
+      console.log('   ❌ Not on reflection stage, skipping');
+      return;
+    }
+    
+    const currentStudents = getStudents();
+    console.log('   Students:', currentStudents);
+    console.log('   Student count:', currentStudents?.length || 0);
+    
+    if (!currentStudents || currentStudents.length === 0) {
+      console.log('   ❌ No students found, skipping');
+      return;
+    }
+    
+    const reflectionStats = getProgressStats('reflection');
+    console.log('   Reflection stats:', reflectionStats);
+    console.log('   Completed:', reflectionStats.completed, '/', reflectionStats.total);
+    
+    if (reflectionStats.total > 0 && reflectionStats.completed === reflectionStats.total) {
+      console.log('🎉 All students completed reflection! Auto-advancing to Name That Loop bonus...');
+      console.log('   Students:', reflectionStats.completed, '/', reflectionStats.total);
+      
+      const timer = setTimeout(() => {
+        setCurrentStage('name-that-loop');
+        console.log('✅ Auto-advanced to name-that-loop stage');
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    } else {
+      console.log('   ⏳ Waiting for all students to complete...');
+    }
+  }, [currentStage, getProgressStats, setCurrentStage, getStudents, students]);
+
   // Keyboard navigation - Right arrow advances to next stage
   useEffect(() => {
     const handleKeyPress = (event) => {
@@ -91,7 +129,7 @@ const SessionTeacherPanel = ({
         if (nextStageIndex < lessonStages.length) {
           const nextStage = lessonStages[nextStageIndex];
           jumpToStage(nextStage.id); // Use jumpToStage to trigger auto-timer
-          console.log('➡️ Advanced to next stage via keyboard');
+          console.log('âž¡ï¸ Advanced to next stage via keyboard');
         }
       }
       
@@ -103,7 +141,7 @@ const SessionTeacherPanel = ({
         if (previousStageIndex >= 0) {
           const previousStage = lessonStages[previousStageIndex];
           jumpToStage(previousStage.id); // Use jumpToStage to trigger auto-timer
-          console.log('⬅️ Went back to previous stage via keyboard');
+          console.log('â¬…ï¸ Went back to previous stage via keyboard');
         }
       }
     };
@@ -146,7 +184,7 @@ const SessionTeacherPanel = ({
     return { completed: completedStages, total: section.stages.length };
   };
 
-  // ✅ NEW: Get dynamic estimated time for a section based on adjusted timers
+  // âœ… NEW: Get dynamic estimated time for a section based on adjusted timers
   const getSectionEstimatedTime = (section) => {
     let total = 0;
     section.stages.forEach(stage => {
@@ -167,7 +205,7 @@ const SessionTeacherPanel = ({
 
   // Jump to a specific stage
   const jumpToStage = (stageId) => {
-    console.log('🎯 Jumping to stage:', stageId);
+    console.log('ðŸŽ¯ Jumping to stage:', stageId);
     setCurrentStage(stageId);
     
   };
@@ -256,7 +294,7 @@ const SessionTeacherPanel = ({
         
         {/* Keyboard Shortcuts Hint */}
         <div className="text-xs text-gray-500 mt-2">
-          💡 Tip: Use <kbd className="px-2 py-1 bg-gray-200 rounded border border-gray-300">←</kbd> and <kbd className="px-2 py-1 bg-gray-200 rounded border border-gray-300">→</kbd> arrow keys to navigate stages
+          ðŸ’¡ Tip: Use <kbd className="px-2 py-1 bg-gray-200 rounded border border-gray-300">â†</kbd> and <kbd className="px-2 py-1 bg-gray-200 rounded border border-gray-300">â†’</kbd> arrow keys to navigate stages
         </div>
       </div>
 
@@ -268,7 +306,7 @@ const SessionTeacherPanel = ({
         >
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="text-4xl">🎬</div>
+              <div className="text-4xl">ðŸŽ¬</div>
               <div>
                 <h2 className="text-xl font-bold text-white">Start Lesson</h2>
                 <p className="text-sm text-green-100">Open Presentation</p>
@@ -330,7 +368,7 @@ const SessionTeacherPanel = ({
                     </div>
                   </div>
 
-                  {/* Time Estimate - ✅ NOW DYNAMIC */}
+                  {/* Time Estimate - âœ… NOW DYNAMIC */}
                   <div className="text-right">
                     <div className="text-sm text-gray-500">Time</div>
                     <div className="font-semibold text-gray-900">{getSectionEstimatedTime(section)} min</div>

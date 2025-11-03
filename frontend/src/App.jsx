@@ -42,6 +42,9 @@ import SessionStartPage from './pages/SessionStartPage';
 // Import join with code page
 import JoinWithCode from './pages/JoinWithCode';
 
+// Import composition viewer
+import CompositionViewer from './pages/CompositionViewer';
+
 // ✅ NEW: Import debug tool
 import FirebaseSessionInspector from './components/FirebaseSessionInspector';
 
@@ -166,6 +169,9 @@ const AppContent = () => {
         {/* Join Page - NO AUTHENTICATION REQUIRED */}
         <Route path="/join" element={<JoinWithCode />} />
         
+        {/* ✅ NEW: Composition Viewer - View shared compositions */}
+        <Route path="/view-composition/:shareCode" element={<CompositionViewer />} />
+        
         {/* Session Start Page - Shows session code before starting lesson */}
         <Route path="/session-start" element={<SessionStartPage />} />
         
@@ -217,6 +223,9 @@ const AppContent = () => {
         
         {/* ✅ NEW: Debug tool for inspecting Firebase sessions */}
         <Route path="/debug-session" element={<FirebaseSessionInspector />} />
+        
+        {/* ✅ NEW: Composition Viewer - Also available in commercial mode */}
+        <Route path="/view-composition/:shareCode" element={<CompositionViewer />} />
         
         {/* Session Start Page - Available in commercial mode */}
         <Route path="/session-start" element={<SessionStartPage />} />
