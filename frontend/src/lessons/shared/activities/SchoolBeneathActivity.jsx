@@ -572,48 +572,7 @@ const SchoolBeneathActivity = ({
         </div>
       </div>
     </div>
-  ) : isExplorationMode ? (
-    <div className="h-full bg-gray-800 text-white p-2 flex flex-col gap-2 overflow-y-auto">
-      {/* Auto-Save Indicator for Bonus */}
-      {studentId && (
-        <div className="bg-gray-700 rounded px-2 py-1 flex items-center justify-center">
-          <AutoSaveIndicator lastSaved={lastSaved} isSaving={isSaving} />
-        </div>
-      )}
-      
-      <div>
-        <h3 className="font-bold text-[10px] mb-1">✨ Bonus Exploration</h3>
-        <p className="text-[9px] text-gray-300 leading-relaxed">
-          Great job! Use the remaining time to explore.
-        </p>
-      </div>
-      
-      {/* Timer Display - ONLY SHOW IN SELF-GUIDED MODE */}
-      {!isSessionMode && (
-        <div className="bg-gradient-to-br from-green-900/30 to-blue-900/30 border border-green-500 rounded-lg p-2">
-          <div className="text-[9px] text-gray-300 mb-1 font-semibold">
-            Time Remaining:
-          </div>
-          <div className="text-xl font-bold text-green-400 mb-1">
-            {formatTime(timeRemaining)}
-          </div>
-          <div className="text-[9px] text-gray-400">
-            All loops unlocked!
-          </div>
-        </div>
-      )}
-
-      <div className="text-[9px] text-gray-300 bg-blue-900/30 border border-blue-500 rounded-lg p-2">
-        <div className="font-semibold mb-1">💡 Try these:</div>
-        <ul className="space-y-0.5 text-[9px]">
-          <li>⭐ <strong>Heroic</strong> loops</li>
-          <li>👻 <strong>Scary</strong> loops</li>
-          <li>🎊 <strong>Upbeat</strong> loops</li>
-          <li>🎭 Mix moods</li>
-        </ul>
-      </div>
-    </div>
-  ) : null;
+  ) : null; // Removed exploration mode panel - nothing shows after submission
 
   // ============================================================================
   // RENDER: SOUND EFFECTS MODE
@@ -687,10 +646,10 @@ const SchoolBeneathActivity = ({
         </div>
       )}
 
-      {/* MODAL 2: "Submit Success" - Transition to Exploration */}
+      {/* MODAL 2: "Submit Success" - Simplified */}
       {showSubmitSuccessModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[200]">
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 border-2 border-green-400">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 border-2 border-green-400">
             <div className="bg-gradient-to-r from-green-500 to-blue-500 px-6 py-4 rounded-t-xl">
               <h2 className="text-3xl font-bold text-white text-center">
                 🎉 Assignment Submitted!
@@ -706,40 +665,6 @@ const SchoolBeneathActivity = ({
                 Your work has been saved!
               </p>
 
-              <div className="bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-300 rounded-lg p-5">
-                <p className="text-lg text-gray-700 font-medium mb-2">
-                  Now you have <span className="text-green-600 font-bold">BONUS TIME</span> until the reflection activity!
-                </p>
-                <p className="text-md text-gray-600">
-                  🔓 All loops have been unlocked!
-                </p>
-              </div>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="font-semibold text-gray-800 mb-3">💡 Try adding:</div>
-                <div className="grid grid-cols-3 gap-2 text-sm">
-                  <div className="bg-white rounded p-2 border border-yellow-300">
-                    <div className="text-2xl mb-1">⭐</div>
-                    <div className="font-medium text-gray-700">Heroic</div>
-                    <div className="text-xs text-gray-500">Adventure feel</div>
-                  </div>
-                  <div className="bg-white rounded p-2 border border-purple-300">
-                    <div className="text-2xl mb-1">👻</div>
-                    <div className="font-medium text-gray-700">Scary</div>
-                    <div className="text-xs text-gray-500">Extra suspense</div>
-                  </div>
-                  <div className="bg-white rounded p-2 border border-pink-300">
-                    <div className="text-2xl mb-1">🎊</div>
-                    <div className="font-medium text-gray-700">Upbeat</div>
-                    <div className="text-xs text-gray-500">Different mood</div>
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-gray-600 italic">
-                Let's hear how different loops give the video a completely different feeling!
-              </p>
-
               <div className="mt-6 bg-gray-100 rounded-lg p-4">
                 <p className="text-sm text-gray-600 font-medium">
                   Starting Sound Effects Activity in
@@ -753,58 +678,7 @@ const SchoolBeneathActivity = ({
         </div>
       )}
 
-      {/* Exploration Mode Minimizable Modal - HIDE IN SESSION MODE */}
-      {isExplorationMode && !isMinimizedModal && !isSessionMode && (
-        <div className="fixed top-16 right-4 z-[200] w-80 bg-white rounded-lg shadow-2xl flex flex-col max-h-96 border-2 border-green-500">
-          <div className="bg-gradient-to-r from-green-500 to-blue-500 px-3 py-2 rounded-t-lg flex items-center justify-between flex-shrink-0">
-            <div className="text-white font-bold text-sm">
-              <span>Bonus Exploration</span>
-            </div>
-            <button
-              onClick={() => setIsMinimizedModal(!isMinimizedModal)}
-              className="text-white hover:bg-white/20 p-1 rounded transition-colors"
-              title="Minimize"
-            >
-              <Minimize2 size={16} />
-            </button>
-          </div>
-          
-          <div className="p-4 flex-1 overflow-y-auto">
-            <div className="flex flex-col items-center text-center space-y-3">
-              <div>
-                <h2 className="text-xl font-bold text-gray-800 mb-1">
-                  🎉 Assignment Submitted!
-                </h2>
-                <p className="text-gray-700 text-sm leading-relaxed">
-                  Great job! Use the remaining time to explore.
-                </p>
-              </div>
-
-              <div className="bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-300 rounded-lg p-3 w-full">
-                <div className="text-xs text-gray-600 mb-1 font-semibold">
-                  Time Remaining:
-                </div>
-                <div className="text-4xl font-bold text-green-600 mb-1">
-                  {formatTime(timeRemaining)}
-                </div>
-                <div className="text-xs text-gray-500">
-                  All loops unlocked - experiment!
-                </div>
-              </div>
-
-              <div className="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-3 w-full">
-                <div className="font-semibold mb-2 text-sm">💡 Try these ideas:</div>
-                <ul className="text-left space-y-1 text-xs">
-                  <li>⭐ <strong>Heroic</strong> loops for an adventure feel</li>
-                  <li>👻 <strong>Scary</strong> loops for extra suspense</li>
-                  <li>🎊 <strong>Upbeat</strong> loops for a happy ending</li>
-                  <li>🎭 Mix moods to create your own unique style</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Exploration Mode Modal - REMOVED - No longer shows after submission */}
 
       {/* Activity Header */}
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">

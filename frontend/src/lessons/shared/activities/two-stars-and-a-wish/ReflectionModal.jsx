@@ -171,14 +171,18 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
       submittedAt: new Date().toISOString()
     };
 
+    // Save reflection data to localStorage
     localStorage.setItem('school-beneath-reflection', JSON.stringify(finalData));
     console.log('Reflection saved:', finalData);
 
     goToNextStep();
   };
 
-  const handleDone = () => {
-    console.log('Done button clicked, calling onComplete');
+  const handleSubmitReflection = () => {
+    // This is called from the summary step (step 6)
+    // Reflection is already saved from handleFinalSubmit
+    // Now we call onComplete to transition to the game
+    console.log('Submit Reflection clicked - transitioning to game');
     onComplete();
   };
 
@@ -204,68 +208,53 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
     setVoiceEnabled(!voiceEnabled);
   };
 
-  const toggleMinimize = (e) => {
-    e.stopPropagation();
-    setIsMinimized(!isMinimized);
+  const toggleMinimize = () => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
+    setIsMinimized(!isMinimized);
   };
 
-  // Get step title for minimized view
-  const getStepTitle = () => {
-    if (currentStep === 0) return "Teacher Instruction";
-    if (currentStep === 1) return "Choose Review Type";
-    if (currentStep === 2) return "Listen & Share";
-    if (currentStep === 3) return "Star 1";
-    if (currentStep === 4) return "Star 2";
-    if (currentStep === 5) return "Wish";
-    if (currentStep === 6) return "Summary";
-    return "Reflection";
-  };
-
-  // Minimized view
+  // If minimized, show small header only
   if (isMinimized) {
     return (
-      <div 
-        className="fixed top-4 left-4 z-50 bg-purple-600 text-white rounded-lg shadow-2xl cursor-pointer hover:bg-purple-700 transition-colors"
-        onClick={toggleMinimize}
-        style={{ pointerEvents: 'auto' }}
-      >
-        <div className="px-4 py-3 flex items-center gap-3">
-          <Sparkles size={20} />
-          <span className="font-semibold">Reflection: {getStepTitle()}</span>
-          <Maximize2 size={18} className="ml-2" />
-        </div>
+      <div className="fixed top-4 left-4 z-40">
+        <button
+          onClick={toggleMinimize}
+          className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:from-purple-700 hover:to-blue-700 transition-all flex items-center gap-2"
+        >
+          <Maximize2 size={16} />
+          <span className="font-semibold">Show Reflection</span>
+        </button>
       </div>
     );
   }
 
-  // Full modal view
   return (
-    <div 
-      className="fixed top-4 left-4 z-50 bg-white rounded-lg shadow-2xl border-2 border-purple-600 flex flex-col overflow-hidden"
-      style={{ 
-        width: '480px', 
-        maxHeight: 'calc(100vh - 32px)',
-        pointerEvents: 'auto'
-      }}
-    >
+    <div className="fixed top-4 left-4 z-40 w-96 max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-purple-200">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-3 flex items-center justify-between flex-shrink-0">
+      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-3 rounded-t-xl flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <Sparkles size={20} />
-          <h1 className="text-lg font-bold">Two Stars and a Wish</h1>
+          <h2 className="font-bold text-lg">
+            {currentStep === 0 && "Teacher Instructions"}
+            {currentStep === 1 && "Choose Review Type"}
+            {currentStep === 2 && "Listen & Share"}
+            {currentStep === 3 && "⭐ Star 1"}
+            {currentStep === 4 && "⭐ Star 2"}
+            {currentStep === 5 && "✨ Wish"}
+            {currentStep === 6 && "📝 Summary"}
+          </h2>
         </div>
         <div className="flex items-center gap-2">
-          {/* Volume Control */}
-          <div className="flex items-center gap-1">
+          {/* Voice Controls */}
+          <div className="flex items-center gap-1 bg-white/20 rounded-lg px-2 py-1">
             <button
               onClick={handleMuteToggle}
-              className="p-1 hover:bg-white/20 rounded transition-colors"
+              className="hover:bg-white/20 p-1 rounded transition-colors"
               title={voiceEnabled ? "Mute voice" : "Unmute voice"}
             >
-              {voiceEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+              {voiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
             </button>
             {voiceEnabled && (
               <input
@@ -275,64 +264,47 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
                 step="0.1"
                 value={voiceVolume}
                 onChange={handleVolumeChange}
-                className="w-16 h-1"
-                title="Adjust volume"
+                className="w-16 h-1 accent-white"
+                title="Voice volume"
               />
             )}
           </div>
-          {/* Hint Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowHint(!showHint);
-            }}
-            className="p-1 hover:bg-white/20 rounded transition-colors"
-            title="Show hint"
-          >
-            <HelpCircle size={18} />
-          </button>
+          
           {/* Minimize Button */}
           <button
             onClick={toggleMinimize}
-            className="p-1 hover:bg-white/20 rounded transition-colors"
+            className="hover:bg-white/20 p-1 rounded transition-colors"
             title="Minimize"
           >
-            <Minimize2 size={18} />
+            <Minimize2 size={16} />
           </button>
         </div>
       </div>
 
-      {/* Content Area - Scrollable */}
-      <div className="flex-1 overflow-y-auto p-6">
+      {/* Content Area with Scroll */}
+      <div className="flex-1 overflow-y-auto p-4">
         {/* STEP 0: Teacher Instruction */}
         {currentStep === 0 && (
           <div className="space-y-4">
-            <div className="text-center mb-4">
-              <div className="text-4xl mb-3">👩‍🏫</div>
-              <h2 className="text-xl font-bold text-gray-800 mb-2">Teacher Check-In</h2>
-              <p className="text-sm text-gray-600">Before you begin your reflection...</p>
-            </div>
-
-            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
-              <p className="text-gray-800 font-semibold mb-3">
-                🙋 Ask your teacher:
-              </p>
-              <p className="text-gray-700 text-sm leading-relaxed">
-                "Are we reviewing our <strong>own</strong> composition today, or will we be reviewing a <strong>partner's</strong> work?"
-              </p>
-            </div>
-
             <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
-              <p className="text-sm text-gray-700">
-                <span className="font-semibold">💡 Why ask?</span> Your teacher will tell you whether today's lesson focuses on self-reflection or peer feedback!
+              <p className="text-lg font-bold text-gray-800 mb-2">👨‍🏫 For Teachers:</p>
+              <p className="text-gray-700 mb-3">
+                Before students begin their reflection, please decide:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-gray-700 mb-3">
+                <li>Will students reflect on their <strong>own</strong> composition?</li>
+                <li>Or will they provide feedback on a <strong>partner's</strong> composition?</li>
+              </ul>
+              <p className="text-gray-700">
+                Make your selection and communicate it to the class before they proceed.
               </p>
             </div>
 
             <button
               onClick={handleContinueFromStep0}
-              className="w-full mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
             >
-              Continue →
+              Continue to Reflection →
             </button>
           </div>
         )}
@@ -340,26 +312,27 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
         {/* STEP 1: Choose Review Type */}
         {currentStep === 1 && (
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Whose composition are you reviewing?</h2>
-            
+            <p className="text-gray-700 mb-4">
+              Whose composition are you reviewing?
+            </p>
+
             <div className="space-y-3">
               <button
                 onClick={() => handleReviewTypeSelection('self')}
                 className={`w-full p-4 rounded-lg border-2 transition-all ${
                   reflectionData.reviewType === 'self'
-                    ? 'border-blue-500 bg-blue-50 shadow-md'
-                    : 'border-gray-300 hover:border-blue-300 hover:bg-gray-50'
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-300 hover:border-blue-300'
                 }`}
               >
-                <div className="flex items-start gap-3">
-                  <div className="text-2xl">🎵</div>
-                  <div className="text-left flex-1">
-                    <div className="font-bold text-gray-800 mb-1">My Own Composition</div>
-                    <div className="text-sm text-gray-600">I'll reflect on my own film score</div>
+                <div className="text-left">
+                  <div className="font-bold text-gray-800 flex items-center gap-2">
+                    {reflectionData.reviewType === 'self' && <CheckCircle className="text-blue-600" size={20} />}
+                    Self-Review
                   </div>
-                  {reflectionData.reviewType === 'self' && (
-                    <CheckCircle className="text-blue-500 flex-shrink-0" size={24} />
-                  )}
+                  <div className="text-sm text-gray-600 mt-1">
+                    Reflect on your own composition
+                  </div>
                 </div>
               </button>
 
@@ -367,19 +340,18 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
                 onClick={() => handleReviewTypeSelection('partner')}
                 className={`w-full p-4 rounded-lg border-2 transition-all ${
                   reflectionData.reviewType === 'partner'
-                    ? 'border-purple-500 bg-purple-50 shadow-md'
-                    : 'border-gray-300 hover:border-purple-300 hover:bg-gray-50'
+                    ? 'border-purple-500 bg-purple-50'
+                    : 'border-gray-300 hover:border-purple-300'
                 }`}
               >
-                <div className="flex items-start gap-3">
-                  <div className="text-2xl">👥</div>
-                  <div className="text-left flex-1">
-                    <div className="font-bold text-gray-800 mb-1">A Partner's Composition</div>
-                    <div className="text-sm text-gray-600">I'll give feedback to a classmate</div>
+                <div className="text-left">
+                  <div className="font-bold text-gray-800 flex items-center gap-2">
+                    {reflectionData.reviewType === 'partner' && <CheckCircle className="text-purple-600" size={20} />}
+                    Partner Review
                   </div>
-                  {reflectionData.reviewType === 'partner' && (
-                    <CheckCircle className="text-purple-500 flex-shrink-0" size={24} />
-                  )}
+                  <div className="text-sm text-gray-600 mt-1">
+                    Give feedback on a friend's composition
+                  </div>
                 </div>
               </button>
             </div>
@@ -387,7 +359,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
             {reflectionData.reviewType === 'partner' && (
               <div className="mt-4">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  What is your partner's name?
+                  Partner's Name:
                 </label>
                 <input
                   type="text"
@@ -399,70 +371,55 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
               </div>
             )}
 
-            <button
-              onClick={handleContinueFromStep1}
-              disabled={!reflectionData.reviewType}
-              className={`w-full mt-4 px-6 py-3 rounded-lg font-semibold transition-colors ${
-                reflectionData.reviewType
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              Continue →
-            </button>
+            {reflectionData.reviewType && (
+              <button
+                onClick={handleContinueFromStep1}
+                className="w-full mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Continue →
+              </button>
+            )}
           </div>
         )}
 
         {/* STEP 2: Listen & Share */}
         {currentStep === 2 && (
           <div className="space-y-4">
-            <div className="text-center mb-4">
-              <div className="text-4xl mb-3">🎧</div>
-              <h2 className="text-xl font-bold text-gray-800">Listen & Share</h2>
+            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+              <p className="text-lg font-bold text-gray-800 mb-2">
+                🎧 {reflectionData.reviewType === 'self' ? 'Listen to Your Score' : 'Share & Listen'}
+              </p>
+              {reflectionData.reviewType === 'self' ? (
+                <div className="text-gray-700 space-y-2">
+                  <p>Listen to your entire film score from beginning to end.</p>
+                  <p className="font-semibold mt-3">Pay attention to:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-2">
+                    <li>How you used the DAW tools (timeline, tracks, volume)</li>
+                    <li>How your loops are timed with the video</li>
+                    <li>The overall sound and mood of your music</li>
+                  </ul>
+                </div>
+              ) : (
+                <div className="text-gray-700 space-y-2">
+                  <p className="font-semibold">1. Share your score with {reflectionData.partnerName}</p>
+                  <p className="text-sm ml-3">Let them see and hear your composition first</p>
+                  
+                  <p className="font-semibold mt-3">2. Listen to {reflectionData.partnerName}'s score</p>
+                  <p className="text-sm ml-3">Pay attention to:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-6 text-sm">
+                    <li>How they used the DAW tools</li>
+                    <li>How their loops are timed with the video</li>
+                    <li>The overall sound and mood of their music</li>
+                  </ul>
+                </div>
+              )}
             </div>
-
-            {reflectionData.reviewType === 'self' ? (
-              <div className="space-y-3">
-                <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
-                  <p className="text-sm text-gray-800 font-semibold mb-2">Listen to your entire film score</p>
-                  <p className="text-sm text-gray-700">Press play and watch/listen from beginning to end.</p>
-                </div>
-
-                <div className="bg-gray-50 border border-gray-300 rounded-lg p-3">
-                  <p className="text-xs font-semibold text-gray-700 mb-2">Pay attention to:</p>
-                  <ul className="text-xs text-gray-600 space-y-1">
-                    <li>✓ How you used the DAW tools (timeline, tracks, volume)</li>
-                    <li>✓ How your loops are timed with the video</li>
-                    <li>✓ The overall sound and mood of your music</li>
-                  </ul>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4">
-                  <p className="text-sm text-gray-800 font-semibold mb-2">Share & Listen Together</p>
-                  <ol className="text-sm text-gray-700 space-y-2">
-                    <li>1. Share your score with {reflectionData.partnerName}</li>
-                    <li>2. Listen to {reflectionData.partnerName}'s entire film score</li>
-                  </ol>
-                </div>
-
-                <div className="bg-gray-50 border border-gray-300 rounded-lg p-3">
-                  <p className="text-xs font-semibold text-gray-700 mb-2">Pay attention to:</p>
-                  <ul className="text-xs text-gray-600 space-y-1">
-                    <li>✓ How they used the DAW tools</li>
-                    <li>✓ How their loops are timed with the video</li>
-                    <li>✓ The overall sound and mood of their music</li>
-                  </ul>
-                </div>
-              </div>
-            )}
 
             <button
               onClick={goToNextStep}
-              className="w-full mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
             >
-              I've Listened - Continue →
+              Ready for Star 1 →
             </button>
           </div>
         )}
@@ -618,7 +575,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
               onClick={handleFinalSubmit}
               className="w-full mt-4 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
             >
-              Submit Reflection →
+              View Summary →
             </button>
           </div>
         )}
@@ -626,6 +583,15 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
         {/* STEP 6: Summary */}
         {currentStep === 6 && (
           <div className="space-y-4">
+            {/* SUBMIT BUTTON AT TOP */}
+            <button
+              onClick={handleSubmitReflection}
+              className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <CheckCircle size={20} />
+              {isSessionMode ? 'Submit Reflection' : 'Submit Reflection'}
+            </button>
+
             <div className="text-center mb-4">
               <Sparkles className="mx-auto text-yellow-500 mb-2" size={48} />
               <h2 className="text-2xl font-bold text-gray-800">♪ Your Reflection Summary</h2>
@@ -673,14 +639,6 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
                 <p className="text-gray-700 bg-white p-3 rounded border border-gray-200">{reflectionData.wish}</p>
               </div>
             </div>
-
-            <button
-              onClick={handleDone}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-            >
-              <CheckCircle size={20} />
-              {isSessionMode ? 'Done - Wait for Teacher' : 'Done - Complete Lesson'}
-            </button>
           </div>
         )}
 

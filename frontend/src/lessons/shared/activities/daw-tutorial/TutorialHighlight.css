@@ -39,30 +39,33 @@
   z-index: 100;
 }
 
-/* Overlay pointer to show where to click */
-.tutorial-highlight::after {
-  content: '👆 Click Here';
-  position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(234, 179, 8, 0.95);
-  color: #1f2937;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-  pointer-events: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  animation: bounce 1s ease-in-out infinite;
+/* Add proper inset to loop library highlight (question 2) */
+.loop-library.tutorial-highlight {
+  box-shadow: inset 4px 4px 0 0 rgba(234, 179, 8, 0.8),
+              inset -12px 4px 0 0 rgba(234, 179, 8, 0.8),
+              inset 4px -4px 0 0 rgba(234, 179, 8, 0.8),
+              inset -12px -4px 0 0 rgba(234, 179, 8, 0.8),
+              inset 0 0 20px rgba(234, 179, 8, 0.4);
 }
 
-@keyframes bounce {
+/* Override the animation for loop library to use inset with proper right spacing */
+@keyframes pulseYellowBorderInset {
   0%, 100% {
-    transform: translateX(-50%) translateY(0);
+    box-shadow: inset 4px 4px 0 0 rgba(234, 179, 8, 0.8),
+                inset -12px 4px 0 0 rgba(234, 179, 8, 0.8),
+                inset 4px -4px 0 0 rgba(234, 179, 8, 0.8),
+                inset -12px -4px 0 0 rgba(234, 179, 8, 0.8),
+                inset 0 0 20px rgba(234, 179, 8, 0.4);
   }
   50% {
-    transform: translateX(-50%) translateY(-8px);
+    box-shadow: inset 8px 8px 0 0 rgba(234, 179, 8, 0.8),
+                inset -16px 8px 0 0 rgba(234, 179, 8, 0.8),
+                inset 8px -8px 0 0 rgba(234, 179, 8, 0.8),
+                inset -16px -8px 0 0 rgba(234, 179, 8, 0.8),
+                inset 0 0 30px rgba(234, 179, 8, 0.6);
   }
+}
+
+.loop-library.tutorial-highlight {
+  animation: pulseYellowBorderInset 2s ease-in-out infinite;
 }

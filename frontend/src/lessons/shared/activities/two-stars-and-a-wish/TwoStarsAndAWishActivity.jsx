@@ -1,8 +1,8 @@
 // File: /src/lessons/film-music-project/lesson1/activities/two-stars-and-a-wish/TwoStarsAndAWishActivity.jsx
 // Main wrapper component for the reflection activity
-// UPDATED: Uses ReflectionModal as floating overlay instead of sidebar
+// UPDATED: Preserves reflection and composition when returning from bonus game
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
 import ReflectionModal from './ReflectionModal';
 import NameThatLoopActivity from '../NameThatLoopActivity';
@@ -10,6 +10,22 @@ import NameThatLoopActivity from '../NameThatLoopActivity';
 const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false, isSessionMode = false }) => {
   const [showBonus, setShowBonus] = useState(false);
   const [isDAWReady, setIsDAWReady] = useState(false);
+  const [reflectionCompleted, setReflectionCompleted] = useState(false);
+  
+  // Check if reflection is already completed when component mounts
+  useEffect(() => {
+    const savedReflection = localStorage.getItem('school-beneath-reflection');
+    if (savedReflection) {
+      try {
+        const data = JSON.parse(savedReflection);
+        if (data.submittedAt) {
+          setReflectionCompleted(true);
+        }
+      } catch (error) {
+        console.error('Error loading reflection status:', error);
+      }
+    }
+  }, []);
   
   // Load saved composition data
   const getCompositionData = () => {
@@ -47,6 +63,9 @@ const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false, isSessionMode 
   // Handle reflection complete
   const handleReflectionComplete = () => {
     console.log('🎉 Reflection complete!', { isSessionMode, showBonus });
+    
+    // Mark reflection as completed
+    setReflectionCompleted(true);
     
     // In session mode, show bonus activity option
     if (isSessionMode) {
@@ -133,7 +152,7 @@ const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false, isSessionMode 
         <ReflectionModal
           compositionData={compositionData}
           onComplete={handleReflectionComplete}
-          viewMode={viewMode}
+          viewMode={reflectionCompleted ? true : viewMode}
           isSessionMode={isSessionMode}
         />
       )}
