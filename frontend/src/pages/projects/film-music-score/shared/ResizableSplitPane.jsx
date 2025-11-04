@@ -78,7 +78,7 @@ const ResizableSplitPane = ({
         className={`flex-shrink-0 bg-gray-700 border-y border-gray-600 flex items-center justify-center cursor-row-resize transition-colors ${
           isDragging ? 'bg-blue-600' : 'hover:bg-gray-600'
         }`}
-        style={{ height: '8px', zIndex: 100 }}
+        style={{ height: '8px', zIndex: 40 }}
         onMouseDown={handleMouseDown}
       >
         <GripHorizontal 

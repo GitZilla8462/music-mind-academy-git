@@ -298,63 +298,74 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
   // Game Setup Screen
   if (!gameStarted) {
     return (
-      <div className="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-8">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
-          <div className="text-center mb-8">
-            <div className="text-6xl mb-4">🎵</div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Name That Loop!</h1>
-            <p className="text-lg text-gray-600">Partner Listening Game</p>
+      <div className="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-4xl w-full">
+          {/* Compact Title */}
+          <div className="text-center mb-4">
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center justify-center gap-2">
+              <span className="text-4xl">🎵</span>
+              Name That Loop! Partner Listening Game
+            </h1>
           </div>
 
-          <div className="bg-blue-50 rounded-xl p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center">
-              <Users className="mr-2 text-blue-600" />
-              How to Play
-            </h2>
-            <ol className="space-y-2 text-gray-700">
-              <li className="flex items-start">
-                <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-0.5">1</span>
-                <span>Sit together with your partner at one computer</span>
-              </li>
-              <li className="flex items-start">
-                <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-0.5">2</span>
-                <span>A loop will play - listen carefully!</span>
-              </li>
-              <li className="flex items-start">
-                <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-0.5">3</span>
-                <span>The current player picks from 4 options (A, B, C, D)</span>
-              </li>
-              <li className="flex items-start">
-                <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-0.5">4</span>
-                <span>Answer faster for bonus points! (Up to +10 for speed)</span>
-              </li>
-              <li className="flex items-start">
-                <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-0.5">5</span>
-                <span>Using a hint reduces your score and removes speed bonus</span>
-              </li>
-              <li className="flex items-start">
-                <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-0.5">6</span>
-                <span>Take turns and see who gets the highest score!</span>
-              </li>
-            </ol>
-          </div>
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-2 gap-6 mb-4">
+            {/* Left Column - How to Play */}
+            <div className="bg-blue-50 rounded-xl p-4">
+              <h2 className="text-lg font-bold text-gray-900 mb-2 flex items-center">
+                <Users className="mr-2 text-blue-600" size={20} />
+                How to Play
+              </h2>
+              <ol className="space-y-1.5 text-sm text-gray-700">
+                <li className="flex items-start">
+                  <span className="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0 mt-0.5">1</span>
+                  <span>Sit together at one computer</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0 mt-0.5">2</span>
+                  <span>Listen to the loop carefully</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0 mt-0.5">3</span>
+                  <span>Pick from 4 options (A, B, C, D)</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0 mt-0.5">4</span>
+                  <span>Answer fast for bonus points!</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0 mt-0.5">5</span>
+                  <span>Take turns & see who wins!</span>
+                </li>
+              </ol>
+              
+              <div className="mt-3 pt-3 border-t border-blue-200">
+                <p className="text-xs text-gray-600 flex items-start">
+                  <Lightbulb className="mr-1.5 text-yellow-600 flex-shrink-0 mt-0.5" size={14} />
+                  <span>Using a hint removes speed bonus</span>
+                </p>
+              </div>
+            </div>
 
-          <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4 mb-6">
-            <h3 className="font-bold text-gray-900 mb-2 flex items-center">
-              <Clock className="mr-2 text-green-600" size={20} />
-              Speed Bonus Points
-            </h3>
-            <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
-              <div>&lt;2s: <span className="font-bold text-green-600">+10 points</span></div>
-              <div>2-4s: <span className="font-bold text-green-600">+8 points</span></div>
-              <div>4-6s: <span className="font-bold text-blue-600">+6 points</span></div>
-              <div>6-8s: <span className="font-bold text-blue-600">+4 points</span></div>
-              <div>8-10s: <span className="font-bold text-yellow-600">+2 points</span></div>
-              <div>&gt;10s: <span className="font-bold text-gray-600">+0 points</span></div>
+            {/* Right Column - Speed Bonus */}
+            <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
+              <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center">
+                <Clock className="mr-2 text-green-600" size={20} />
+                Speed Bonus Points
+              </h3>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-700">
+                <div>&lt;2s: <span className="font-bold text-green-600">+10</span></div>
+                <div>2-4s: <span className="font-bold text-green-600">+8</span></div>
+                <div>4-6s: <span className="font-bold text-blue-600">+6</span></div>
+                <div>6-8s: <span className="font-bold text-blue-600">+4</span></div>
+                <div>8-10s: <span className="font-bold text-yellow-600">+2</span></div>
+                <div>&gt;10s: <span className="font-bold text-gray-600">+0</span></div>
+              </div>
             </div>
           </div>
 
-          <div className="mb-6">
+          {/* Number of Rounds Selector */}
+          <div className="mb-4">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Number of Rounds
             </label>
@@ -375,26 +386,10 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
             </div>
           </div>
 
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Loop Category
-            </label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-            >
-              {categories.map(cat => (
-                <option key={cat} value={cat}>
-                  {cat === 'all' ? 'All Categories' : cat}
-                </option>
-              ))}
-            </select>
-          </div>
-
+          {/* Start Button */}
           <button
             onClick={handleStartGame}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-bold text-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-bold text-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
           >
             <Play size={24} />
             <span>Start Game!</span>
@@ -409,51 +404,51 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
     const winner = scores.player1 > scores.player2 ? 1 : scores.player2 > scores.player1 ? 2 : null;
     
     return (
-      <div className="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-8">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
-          <div className="text-center mb-8">
-            <Trophy className="w-24 h-24 mx-auto text-yellow-500 mb-4" />
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Game Over!</h1>
+      <div className="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-2xl w-full">
+          <div className="text-center mb-5">
+            <Trophy className="w-16 h-16 mx-auto text-yellow-500 mb-3" />
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">Game Over!</h1>
             {winner ? (
-              <p className="text-2xl text-gray-600">Player {winner} Wins! 🎉</p>
+              <p className="text-xl text-gray-600">Player {winner} Wins! 🎉</p>
             ) : (
-              <p className="text-2xl text-gray-600">It's a Tie! 🤝</p>
+              <p className="text-xl text-gray-600">It's a Tie! 🤝</p>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-6 mb-8">
-            <div className={`rounded-xl p-6 text-center ${
+          <div className="grid grid-cols-2 gap-4 mb-5">
+            <div className={`rounded-xl p-4 text-center ${
               winner === 1 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-white' : 'bg-blue-50'
             }`}>
-              <div className="text-sm font-semibold mb-2 opacity-80">Player 1</div>
-              <div className="text-5xl font-bold mb-1">{scores.player1}</div>
-              <div className="text-sm opacity-80">points</div>
-              {winner === 1 && <Star className="w-8 h-8 mx-auto mt-2" fill="currentColor" />}
+              <div className="text-xs font-semibold mb-1.5 opacity-80">Player 1</div>
+              <div className="text-4xl font-bold mb-0.5">{scores.player1}</div>
+              <div className="text-xs opacity-80">points</div>
+              {winner === 1 && <Star className="w-6 h-6 mx-auto mt-1.5" fill="currentColor" />}
             </div>
             
-            <div className={`rounded-xl p-6 text-center ${
+            <div className={`rounded-xl p-4 text-center ${
               winner === 2 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-white' : 'bg-purple-50'
             }`}>
-              <div className="text-sm font-semibold mb-2 opacity-80">Player 2</div>
-              <div className="text-5xl font-bold mb-1">{scores.player2}</div>
-              <div className="text-sm opacity-80">points</div>
-              {winner === 2 && <Star className="w-8 h-8 mx-auto mt-2" fill="currentColor" />}
+              <div className="text-xs font-semibold mb-1.5 opacity-80">Player 2</div>
+              <div className="text-4xl font-bold mb-0.5">{scores.player2}</div>
+              <div className="text-xs opacity-80">points</div>
+              {winner === 2 && <Star className="w-6 h-6 mx-auto mt-1.5" fill="currentColor" />}
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <button
               onClick={handleRestartGame}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-bold text-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
             >
-              <RotateCcw size={24} />
+              <RotateCcw size={20} />
               <span>Play Again</span>
             </button>
             
             {onComplete && (
               <button
                 onClick={onComplete}
-                className="w-full bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-300 transition-colors"
+                className="w-full bg-gray-200 text-gray-700 py-2.5 rounded-xl font-semibold hover:bg-gray-300 transition-colors"
               >
                 Return to Lesson
               </button>
@@ -466,17 +461,17 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
 
   // Game Playing Screen
   return (
-    <div className="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-8">
+    <div className="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
       <audio ref={audioRef} src={currentLoop?.src} />
       
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-3xl w-full">
+      <div className="bg-white rounded-2xl shadow-2xl p-5 max-w-3xl w-full">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-gray-200">
+        <div className="flex items-center justify-between mb-3 pb-2 border-b-2 border-gray-200">
           <div className="text-sm text-gray-600">
-            Round <span className="font-bold text-2xl text-gray-900">{currentRound}</span> / {roundsToPlay}
+            Round <span className="font-bold text-xl text-gray-900">{currentRound}</span> / {roundsToPlay}
           </div>
           
-          <div className={`px-6 py-2 rounded-full font-bold text-lg ${
+          <div className={`px-4 py-1.5 rounded-full font-bold text-base ${
             currentPlayer === 1 
               ? 'bg-blue-100 text-blue-800' 
               : 'bg-purple-100 text-purple-800'
@@ -488,60 +483,60 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
             onClick={handleRestartGame}
             className="text-gray-500 hover:text-gray-700 transition-colors"
           >
-            <RotateCcw size={20} />
+            <RotateCcw size={18} />
           </button>
         </div>
 
         {/* Score Display */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className={`rounded-lg p-4 text-center transition-all ${
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className={`rounded-lg p-3 text-center transition-all ${
             currentPlayer === 1 
               ? 'bg-blue-100 border-2 border-blue-500' 
               : 'bg-gray-100'
           }`}>
-            <div className="text-sm font-semibold text-gray-600 mb-1">Player 1</div>
-            <div className="text-3xl font-bold text-gray-900">{scores.player1}</div>
+            <div className="text-xs font-semibold text-gray-600 mb-0.5">Player 1</div>
+            <div className="text-2xl font-bold text-gray-900">{scores.player1}</div>
           </div>
           
-          <div className={`rounded-lg p-4 text-center transition-all ${
+          <div className={`rounded-lg p-3 text-center transition-all ${
             currentPlayer === 2 
               ? 'bg-purple-100 border-2 border-purple-500' 
               : 'bg-gray-100'
           }`}>
-            <div className="text-sm font-semibold text-gray-600 mb-1">Player 2</div>
-            <div className="text-3xl font-bold text-gray-900">{scores.player2}</div>
+            <div className="text-xs font-semibold text-gray-600 mb-0.5">Player 2</div>
+            <div className="text-2xl font-bold text-gray-900">{scores.player2}</div>
           </div>
         </div>
 
         {!guessResult ? (
           <>
             {/* Timer Display */}
-            <div className="text-center mb-4">
-              <div className="inline-flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-full">
-                <Clock size={20} className="text-gray-600" />
-                <span className="font-mono text-xl font-bold text-gray-900">
+            <div className="text-center mb-3">
+              <div className="inline-flex items-center space-x-2 bg-gray-100 px-3 py-1.5 rounded-full">
+                <Clock size={18} className="text-gray-600" />
+                <span className="font-mono text-lg font-bold text-gray-900">
                   {formatTime(currentTime)}
                 </span>
               </div>
             </div>
 
             {/* Play Button */}
-            <div className="text-center mb-6">
-              <div className="text-2xl font-bold text-gray-900 mb-4">
-                🎧 Listen carefully and guess the loop!
+            <div className="text-center mb-4">
+              <div className="text-lg font-bold text-gray-900 mb-2">
+                🎧 Listen and guess the loop!
               </div>
               <button
                 onClick={playLoop}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-3 mx-auto"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-bold text-base hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 mx-auto"
               >
                 {isPlaying ? (
                   <>
-                    <Pause size={24} />
+                    <Pause size={20} />
                     <span>Pause Loop</span>
                   </>
                 ) : (
                   <>
-                    <Play size={24} />
+                    <Play size={20} />
                     <span>Play Loop</span>
                   </>
                 )}
@@ -550,12 +545,12 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
 
             {/* Hint Button */}
             {!showHint && (
-              <div className="text-center mb-6">
+              <div className="text-center mb-3">
                 <button
                   onClick={handleShowHint}
-                  className="text-blue-600 hover:text-blue-700 font-semibold flex items-center justify-center mx-auto space-x-2"
+                  className="text-blue-600 hover:text-blue-700 text-sm font-semibold flex items-center justify-center mx-auto space-x-1.5"
                 >
-                  <Lightbulb size={20} />
+                  <Lightbulb size={16} />
                   <span>Need a hint? (No speed bonus)</span>
                 </button>
               </div>
@@ -563,14 +558,14 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
 
             {/* Hint Display */}
             {showHint && (
-              <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mb-6">
+              <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-3 mb-4">
                 <div className="flex items-start space-x-2">
-                  <Lightbulb className="text-yellow-600 mt-0.5 flex-shrink-0" size={20} />
-                  <div>
+                  <Lightbulb className="text-yellow-600 mt-0.5 flex-shrink-0" size={18} />
+                  <div className="text-sm">
                     <div className="font-semibold text-gray-900">Hint:</div>
                     <div className="text-gray-700">
                       Category: <span className="font-bold">{currentLoop.category}</span>
-                      <div className="text-sm text-gray-600 mt-1">
+                      <div className="text-xs text-gray-600 mt-0.5">
                         (Speed bonus disabled)
                       </div>
                     </div>
@@ -580,14 +575,14 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
             )}
 
             {/* Answer Options - Always 4 choices (A, B, C, D) */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               {guessOptions.slice(0, 4).map((option, index) => (
                 <button
                   key={index}
                   onClick={() => handleGuess(option)}
-                  className="w-full bg-gray-100 hover:bg-gray-200 text-left px-6 py-4 rounded-xl font-semibold text-lg transition-colors border-2 border-transparent hover:border-gray-300"
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-left px-4 py-3 rounded-xl font-semibold text-base transition-colors border-2 border-transparent hover:border-gray-300"
                 >
-                  <span className="text-gray-500 mr-3 font-bold">{String.fromCharCode(65 + index)})</span>
+                  <span className="text-gray-500 mr-2 font-bold">{String.fromCharCode(65 + index)})</span>
                   {option}
                 </button>
               ))}
@@ -596,41 +591,41 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
         ) : (
           /* Result Screen */
           <div className="text-center">
-            <div className={`text-6xl mb-4 ${guessResult.isCorrect ? 'animate-bounce' : ''}`}>
+            <div className={`text-5xl mb-3 ${guessResult.isCorrect ? 'animate-bounce' : ''}`}>
               {guessResult.isCorrect ? '✅' : '❌'}
             </div>
             
-            <div className={`text-3xl font-bold mb-3 ${
+            <div className={`text-2xl font-bold mb-2 ${
               guessResult.isCorrect ? 'text-green-600' : 'text-red-600'
             }`}>
               {guessResult.isCorrect ? 'Correct!' : 'Wrong!'}
             </div>
             
             {guessResult.isCorrect ? (
-              <div className="mb-6">
-                <div className="text-2xl font-bold text-gray-900 mb-3">
+              <div className="mb-4">
+                <div className="text-xl font-bold text-gray-900 mb-2">
                   +{guessResult.points} points! 🎉
                 </div>
                 
                 {/* Points Breakdown */}
-                <div className="inline-block bg-gray-100 rounded-lg p-4 text-left">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center justify-between space-x-8">
+                <div className="inline-block bg-gray-100 rounded-lg p-3 text-left">
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex items-center justify-between space-x-6">
                       <span className="text-gray-600">Answer time:</span>
                       <span className="font-bold text-gray-900">{formatTime(guessResult.timeElapsed)}</span>
                     </div>
-                    <div className="flex items-center justify-between space-x-8">
+                    <div className="flex items-center justify-between space-x-6">
                       <span className="text-gray-600">Base points:</span>
                       <span className="font-bold text-blue-600">+{guessResult.basePoints}</span>
                     </div>
                     {guessResult.speedBonus > 0 && (
-                      <div className="flex items-center justify-between space-x-8">
+                      <div className="flex items-center justify-between space-x-6">
                         <span className="text-gray-600">Speed bonus:</span>
                         <span className="font-bold text-green-600">+{guessResult.speedBonus}</span>
                       </div>
                     )}
                     {hintUsed && (
-                      <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-300">
+                      <div className="text-xs text-gray-500 mt-1.5 pt-1.5 border-t border-gray-300">
                         Hint used - no speed bonus
                       </div>
                     )}
@@ -638,10 +633,10 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
                 </div>
               </div>
             ) : (
-              <div className="text-xl text-gray-700 mb-6">
+              <div className="text-lg text-gray-700 mb-4">
                 The correct answer was:<br />
                 <span className="font-bold text-gray-900">{guessResult.correctAnswer}</span>
-                <div className="text-sm text-gray-500 mt-2">
+                <div className="text-sm text-gray-500 mt-1">
                   You answered in {formatTime(guessResult.timeElapsed)}
                 </div>
               </div>
@@ -649,7 +644,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
             
             <button
               onClick={handleNextRound}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-bold text-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
             >
               {currentRound >= roundsToPlay ? 'See Results' : 'Next Round →'}
             </button>

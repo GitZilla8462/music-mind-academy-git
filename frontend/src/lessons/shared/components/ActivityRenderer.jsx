@@ -66,6 +66,7 @@ const ActivityRenderer = ({
           key={`reflection-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}
+          isSessionMode={isSessionMode}  // ✅ FIXED: Added isSessionMode prop
         />
       );
 

@@ -1,14 +1,15 @@
-// File: /src/lessons/shared/activities/two-stars-and-a-wish/TwoStarsAndAWishActivity.jsx
+// File: /src/lessons/film-music-project/lesson1/activities/two-stars-and-a-wish/TwoStarsAndAWishActivity.jsx
 // Main wrapper component for the reflection activity
-// UPDATED: Shows bonus activity button after reflection completes in session mode
+// UPDATED: Uses ReflectionModal as floating overlay instead of sidebar
 
 import React, { useState } from 'react';
 import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
-import ReflectionSidebar from './ReflectionSidebar';
+import ReflectionModal from './ReflectionModal';
 import NameThatLoopActivity from '../NameThatLoopActivity';
 
 const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false, isSessionMode = false }) => {
   const [showBonus, setShowBonus] = useState(false);
+  const [isDAWReady, setIsDAWReady] = useState(false);
   
   // Load saved composition data
   const getCompositionData = () => {
@@ -87,21 +88,28 @@ const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false, isSessionMode 
     );
   }
 
-  // Reflection sidebar content
-  const assignmentPanelContent = (
-    <ReflectionSidebar
-      compositionData={compositionData}
-      onComplete={handleReflectionComplete}
-      viewMode={viewMode}
-      isSessionMode={isSessionMode}
-    />
-  );
-
   return (
-    <div className="h-screen w-full flex flex-col bg-gray-900">
-      {/* Main DAW Area with Sidebar */}
+    <div className="h-full w-full flex flex-col bg-gray-900 relative">
+      {/* Loading Overlay - Show while DAW initializes */}
+      {!isDAWReady && (
+        <div className="absolute inset-0 bg-gray-900 flex items-center justify-center z-50">
+          <div className="text-center">
+            <div className="text-white text-xl mb-4">Loading Reflection Activity...</div>
+            <div className="w-64 h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-full bg-purple-500 animate-pulse" style={{ width: '60%' }}></div>
+            </div>
+            <div className="text-gray-400 text-sm mt-4">Preparing your composition</div>
+          </div>
+        </div>
+      )}
+
+      {/* Main DAW Area - Full Screen */}
       <div className="flex-1 flex flex-col min-h-0">
         <MusicComposer
+          onDAWReadyCallback={() => {
+            console.log('✅ DAW ready for reflection activity');
+            setIsDAWReady(true);
+          }}
           tutorialMode={false}
           preselectedVideo={{
             id: 'school-beneath',
@@ -116,9 +124,19 @@ const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false, isSessionMode 
           showToast={(msg, type) => console.log(msg, type)}
           initialPlacedLoops={compositionData?.placedLoops || []}
           readOnly={true}
-          assignmentPanelContent={assignmentPanelContent}
+          assignmentPanelContent={null}
         />
       </div>
+
+      {/* Floating Reflection Modal - Only show when DAW is ready */}
+      {isDAWReady && (
+        <ReflectionModal
+          compositionData={compositionData}
+          onComplete={handleReflectionComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      )}
     </div>
   );
 };

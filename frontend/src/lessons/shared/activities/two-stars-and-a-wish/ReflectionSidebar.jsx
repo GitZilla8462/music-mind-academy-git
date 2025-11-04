@@ -1,11 +1,10 @@
-// File: /src/lessons/shared/activities/two-stars-and-a-wish/ReflectionSidebar.jsx
-// Fixed left sidebar for reflection activity - matches ChallengeSidebar pattern
-// Steps: 0=teacher instruction, 1=choose type, 2=listen & share, 3=star1, 4=star2, 5=wish, 6=summary
+// File: /src/lessons/film-music-project/lesson1/activities/two-stars-and-a-wish/ReflectionSidebar.jsx
+// Full-height sidebar for reflection activity - matches ChallengeSidebar pattern
+// UPDATED: Full height sidebar matching DAWTutorialActivity ChallengeSidebar
 
 import React, { useState, useEffect, useRef } from 'react';
-import { CheckCircle, Star, Sparkles, Volume2, VolumeX, HelpCircle } from 'lucide-react';
+import { CheckCircle, Star, Sparkles, Volume2, VolumeX, HelpCircle, Minimize2, Maximize2 } from 'lucide-react';
 import { SELF_REFLECTION_PROMPTS, PARTNER_REFLECTION_OPTIONS } from './reflectionPrompts';
-import { saveReflection } from '../../../film-music-project/lesson1/reflectionServerUtils';
 
 const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSessionMode = false }) => {
   // Steps: 0=teacher instruction, 1=choose type, 2=listen & share, 3=star1, 4=star2, 5=wish, 6=summary
@@ -32,9 +31,6 @@ const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSe
   const [showHint, setShowHint] = useState(false);
 
   const hasSpokenRef = useRef(false);
-
-  // Calculate progress percentage
-  const progressPercent = (currentStep / 6) * 100;
 
   // Load saved reflection if in view mode
   useEffect(() => {
@@ -76,6 +72,7 @@ const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSe
       
       if (preferredVoice) {
         utterance.voice = preferredVoice;
+        console.log('Using voice:', preferredVoice.name, preferredVoice.lang);
       }
       
       window.speechSynthesis.speak(utterance);
@@ -165,46 +162,16 @@ const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSe
     goToNextStep();
   };
 
-  const handleFinalSubmit = async () => {
+  const handleFinalSubmit = () => {
     const finalData = {
       ...reflectionData,
       submittedAt: new Date().toISOString()
     };
 
-    // Save to localStorage
     localStorage.setItem('school-beneath-reflection', JSON.stringify(finalData));
-    console.log('Reflection saved locally:', finalData);
+    console.log('Reflection saved:', finalData);
 
-    // Save to Firebase
-    try {
-      // Get student name from localStorage or prompt
-      let studentName = localStorage.getItem('student-name');
-      if (!studentName) {
-        studentName = prompt('Enter your name to save your reflection:');
-        if (studentName) {
-          localStorage.setItem('student-name', studentName);
-        } else {
-          studentName = 'Anonymous Student';
-        }
-      }
-
-      const { shareCode, shareUrl } = await saveReflection(
-        studentName,
-        finalData,
-        'two-stars-wish'
-      );
-
-      console.log('✅ Reflection saved to Firebase with code:', shareCode);
-      console.log('Share URL:', shareUrl);
-
-      // Store share code for display
-      setReflectionData(prev => ({ ...prev, shareCode, shareUrl }));
-    } catch (error) {
-      console.error('Failed to save reflection to Firebase:', error);
-      alert('Your reflection was saved locally, but could not be shared online.');
-    }
-
-    goToNextStep(); // Go to summary
+    goToNextStep();
   };
 
   const handleDone = () => {
@@ -232,31 +199,36 @@ const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSe
     setVoiceEnabled(!voiceEnabled);
   };
 
+  // Get step title
   const getStepTitle = () => {
-    const titles = {
-      0: "Teacher Instruction",
-      1: "Choose Review Type",
-      2: "Listen & Share",
-      3: "STAR 1: Using the DAW",
-      4: "STAR 2: Loop Timing & Sound",
-      5: "WISH: What to Try Next",
-      6: "Reflection Summary"
-    };
-    return titles[currentStep] || "Reflection";
+    switch(currentStep) {
+      case 0: return 'Teacher Instruction';
+      case 1: return 'Choose Review Type';
+      case 2: return 'Listen & Share';
+      case 3: return 'Star 1: DAW Tools';
+      case 4: return 'Star 2: Timing & Sound';
+      case 5: return 'Wish: Next Time';
+      case 6: return 'Reflection Summary';
+      default: return 'Reflection';
+    }
   };
 
+  // Get progress percentage
+  const progressPercent = (currentStep / 6) * 100;
+
+  // MAIN RENDER - MATCHING ChallengeSidebar STRUCTURE
   return (
-    <div className="h-full bg-white text-gray-800 flex flex-col overflow-hidden border-4 border-orange-600">
+    <div className="h-full bg-white text-gray-800 flex flex-col overflow-hidden border-4 border-purple-600">
       {/* Progress Bar */}
       <div className="h-2 bg-gray-200 flex-shrink-0">
         <div 
-          className="h-full bg-blue-400 transition-all duration-500"
+          className="h-full bg-purple-400 transition-all duration-500"
           style={{ width: `${progressPercent}%` }}
         />
       </div>
 
       {/* Header Section */}
-      <div className="bg-orange-600 px-3 py-2 border-b border-orange-700 flex-shrink-0">
+      <div className="bg-purple-600 px-3 py-2 border-b border-purple-700 flex-shrink-0">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-xs font-bold text-white">Reflection Activity</h3>
           <div className="flex items-center gap-1">
@@ -290,77 +262,99 @@ const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSe
             </button>
 
             {/* Hint Toggle */}
-            {currentStep !== 6 && (
-              <button
-                onClick={() => setShowHint(!showHint)}
-                className="p-1 bg-yellow-500 rounded hover:bg-yellow-600 transition-colors"
-                title="Show hint"
-              >
-                <HelpCircle size={14} className="text-white" />
-              </button>
-            )}
+            <button
+              onClick={() => setShowHint(!showHint)}
+              className="p-1 bg-yellow-500 rounded hover:bg-yellow-600 transition-colors"
+              title="Show hint"
+            >
+              <HelpCircle size={14} className="text-white" />
+            </button>
           </div>
         </div>
 
         {/* Step Progress */}
         <div className="text-[10px] text-white">
-          Step {currentStep + 1} of 7 • {getStepTitle()}
+          {getStepTitle()} • Step {currentStep + 1} of 7
         </div>
       </div>
 
       {/* Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-white">
+        
         {/* STEP 0: Teacher Instruction */}
         {currentStep === 0 && (
           <div className="space-y-4">
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-              <h2 className="text-lg font-bold text-gray-900 mb-3">👩‍🏫 Ask Your Teacher</h2>
-              <p className="text-sm text-gray-700 leading-relaxed">
-                Before starting, ask your teacher:<br />
-                <strong>"Will I be reviewing my own composition, or will I be reviewing a partner's work?"</strong>
+            <div className="bg-blue-100 border-2 border-blue-300 rounded-lg p-4">
+              <h2 className="text-lg font-bold text-gray-800 mb-3">🎓 For the Teacher</h2>
+              <p className="text-sm text-gray-700 mb-4">
+                Before students begin, please explain whether they will be:
+              </p>
+              <ul className="text-sm text-gray-700 space-y-2 ml-4 list-disc">
+                <li><strong>Self-reflection:</strong> Reviewing their own composition</li>
+                <li><strong>Partner reflection:</strong> Reviewing a classmate's composition</li>
+              </ul>
+            </div>
+
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+              <p className="text-xs text-gray-700">
+                <strong>Next:</strong> Students will choose their review type and complete a Two Stars and a Wish reflection.
               </p>
             </div>
 
             <button
               onClick={handleContinueFromStep0}
-              className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
+              className="w-full mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
             >
-              Continue →
+              Continue to Choose Type →
             </button>
           </div>
         )}
 
         {/* STEP 1: Choose Review Type */}
         {currentStep === 1 && (
-          <div className="space-y-3">
-            <h2 className="text-base font-bold text-gray-900">Who are you reviewing?</h2>
+          <div className="space-y-4">
+            <div className="bg-gray-100 border border-gray-300 rounded-lg p-3">
+              <p className="text-sm font-semibold text-gray-800 mb-3">
+                Whose composition are you reviewing?
+              </p>
+            </div>
 
             <button
               onClick={() => handleReviewTypeSelection('self')}
-              className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
+              className={`w-full px-4 py-4 rounded-lg border-2 text-left transition-all ${
                 reflectionData.reviewType === 'self'
                   ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-300 hover:border-blue-300'
+                  : 'border-gray-300 bg-white hover:border-blue-300'
               }`}
             >
-              <div className="font-bold text-gray-900 mb-1 text-sm">✏️ My Own Composition</div>
-              <div className="text-xs text-gray-600">I'll reflect on my own work</div>
+              <div className="flex items-start gap-3">
+                <div className="text-2xl">🎵</div>
+                <div>
+                  <div className="font-semibold text-gray-800 text-sm">My Own Composition</div>
+                  <div className="text-xs text-gray-600 mt-1">Review your own work</div>
+                </div>
+              </div>
             </button>
 
             <button
               onClick={() => handleReviewTypeSelection('partner')}
-              className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
+              className={`w-full px-4 py-4 rounded-lg border-2 text-left transition-all ${
                 reflectionData.reviewType === 'partner'
                   ? 'border-purple-500 bg-purple-50'
-                  : 'border-gray-300 hover:border-purple-300'
+                  : 'border-gray-300 bg-white hover:border-purple-300'
               }`}
             >
-              <div className="font-bold text-gray-900 mb-1 text-sm">👥 A Partner's Composition</div>
-              <div className="text-xs text-gray-600">I'll give feedback to a classmate</div>
+              <div className="flex items-start gap-3">
+                <div className="text-2xl">👥</div>
+                <div>
+                  <div className="font-semibold text-gray-800 text-sm">Partner's Composition</div>
+                  <div className="text-xs text-gray-600 mt-1">Review a classmate's work</div>
+                </div>
+              </div>
             </button>
 
             {reflectionData.reviewType === 'partner' && (
-              <div className="mt-3">
+              <div className="mt-4">
                 <label className="block text-xs font-semibold text-gray-700 mb-2">
                   Partner's Name:
                 </label>
@@ -368,79 +362,72 @@ const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSe
                   type="text"
                   value={reflectionData.partnerName}
                   onChange={handlePartnerNameChange}
-                  placeholder="Enter your partner's name"
-                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm"
+                  placeholder="Enter partner's name"
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
                 />
               </div>
             )}
 
-            <button
-              onClick={handleContinueFromStep1}
-              disabled={!reflectionData.reviewType}
-              className="w-full mt-3 px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-            >
-              Continue →
-            </button>
+            {reflectionData.reviewType && (
+              <button
+                onClick={handleContinueFromStep1}
+                className="w-full mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
+              >
+                Continue to Listen & Share →
+              </button>
+            )}
           </div>
         )}
 
         {/* STEP 2: Listen & Share */}
         {currentStep === 2 && (
           <div className="space-y-4">
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-4">
-              <h2 className="text-base font-bold text-gray-900 mb-3">
-                {reflectionData.reviewType === 'self' ? '🎧 Listen to Your Music' : '🎧 Listen & Share'}
-              </h2>
-              
-              {reflectionData.reviewType === 'self' ? (
-                <div className="space-y-2 text-xs text-gray-700">
-                  <p>Now, listen to your entire film score from beginning to end.</p>
-                  <p className="font-semibold mt-3">Pay attention to:</p>
-                  <ul className="list-disc ml-4 space-y-1">
-                    <li>How the music tools (timeline, tracks, volume) were used</li>
-                    <li>How the loops are timed with the video</li>
-                    <li>The overall sound and mood of the music</li>
-                  </ul>
-                </div>
-              ) : (
-                <div className="space-y-2 text-xs text-gray-700">
-                  <p><strong>First:</strong> Share your score with {reflectionData.partnerName} so they can see and hear your work.</p>
-                  <p><strong>Then:</strong> Listen to {reflectionData.partnerName}'s entire film score from beginning to end.</p>
-                  <p className="font-semibold mt-3">Pay attention to:</p>
-                  <ul className="list-disc ml-4 space-y-1">
-                    <li>How the music tools were used</li>
-                    <li>How the loops are timed with the video</li>
-                    <li>The overall sound and mood of the music</li>
-                  </ul>
-                </div>
-              )}
+            <div className="bg-gray-100 border border-gray-300 rounded-lg p-3">
+              <p className="text-sm text-gray-800 leading-relaxed">
+                {reflectionData.reviewType === 'self' ? (
+                  <>Now, <strong>listen to your entire film score</strong> from beginning to end.</>
+                ) : (
+                  <>Now it's time to share! First, <strong>share your score with {reflectionData.partnerName}</strong> so they can see and hear your work. Then, <strong>listen to {reflectionData.partnerName}'s entire film score</strong> from beginning to end.</>
+                )}
+              </p>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="text-xs font-semibold mb-2 text-gray-800">🎧 What to listen for:</div>
+              <ul className="text-[10px] text-gray-700 space-y-1">
+                <li>✓ How the music tools (timeline, tracks, volume) were used</li>
+                <li>✓ How the loops are timed with the video</li>
+                <li>✓ The overall sound and mood of the music</li>
+              </ul>
             </div>
 
             <button
               onClick={goToNextStep}
-              className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
+              className="w-full mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
             >
-              Ready to Reflect →
+              Continue to Star 1 →
             </button>
           </div>
         )}
 
         {/* STEP 3: Star 1 */}
         {currentStep === 3 && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Star className="text-yellow-500" size={20} />
               <h2 className="text-base font-bold text-gray-800">
-                {reflectionData.reviewType === 'self' ? 'STAR 1: Using the DAW' : `STAR 1: DAW Tools`}
+                {reflectionData.reviewType === 'self' ? 'STAR 1: Using the DAW' : `STAR 1: What worked well?`}
               </h2>
             </div>
 
-            <p className="text-xs text-gray-700 font-semibold">
-              {reflectionData.reviewType === 'self' 
-                ? SELF_REFLECTION_PROMPTS.star1.question
-                : PARTNER_REFLECTION_OPTIONS.star1.question.replace('[Partner Name]', reflectionData.partnerName)
-              }
-            </p>
+            <div className="bg-gray-100 border border-gray-300 rounded-lg p-3">
+              <p className="text-sm text-gray-800 font-semibold">
+                {reflectionData.reviewType === 'self' 
+                  ? SELF_REFLECTION_PROMPTS.star1.question
+                  : PARTNER_REFLECTION_OPTIONS.star1.question.replace('[Partner Name]', reflectionData.partnerName)
+                }
+              </p>
+            </div>
 
             {!customInputs.star1 ? (
               <select
@@ -461,14 +448,14 @@ const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSe
                 value={reflectionData.star1}
                 onChange={(e) => handleTextChange('star1', e.target.value)}
                 placeholder="Type your custom answer..."
-                rows={3}
+                rows={4}
                 className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none resize-none text-sm"
               />
             )}
 
             <button
               onClick={() => handleSubmitQuestion('star1')}
-              className="w-full mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
+              className="w-full mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
             >
               Continue to Star 2 →
             </button>
@@ -477,7 +464,7 @@ const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSe
 
         {/* STEP 4: Star 2 */}
         {currentStep === 4 && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Star className="text-yellow-500" size={20} />
               <h2 className="text-base font-bold text-gray-800">
@@ -485,12 +472,14 @@ const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSe
               </h2>
             </div>
 
-            <p className="text-xs text-gray-700 font-semibold">
-              {reflectionData.reviewType === 'self' 
-                ? SELF_REFLECTION_PROMPTS.star2.question
-                : PARTNER_REFLECTION_OPTIONS.star2.question.replace('[Partner Name]', reflectionData.partnerName)
-              }
-            </p>
+            <div className="bg-gray-100 border border-gray-300 rounded-lg p-3">
+              <p className="text-sm text-gray-800 font-semibold">
+                {reflectionData.reviewType === 'self' 
+                  ? SELF_REFLECTION_PROMPTS.star2.question
+                  : PARTNER_REFLECTION_OPTIONS.star2.question.replace('[Partner Name]', reflectionData.partnerName)
+                }
+              </p>
+            </div>
 
             {!customInputs.star2 ? (
               <select
@@ -511,14 +500,14 @@ const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSe
                 value={reflectionData.star2}
                 onChange={(e) => handleTextChange('star2', e.target.value)}
                 placeholder="Type your custom answer..."
-                rows={3}
+                rows={4}
                 className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none resize-none text-sm"
               />
             )}
 
             <button
               onClick={() => handleSubmitQuestion('star2')}
-              className="w-full mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
+              className="w-full mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
             >
               Continue to Wish →
             </button>
@@ -527,7 +516,7 @@ const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSe
 
         {/* STEP 5: Wish */}
         {currentStep === 5 && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="text-purple-500" size={20} />
               <h2 className="text-base font-bold text-gray-800">
@@ -535,12 +524,14 @@ const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSe
               </h2>
             </div>
 
-            <p className="text-xs text-gray-700 font-semibold">
-              {reflectionData.reviewType === 'self' 
-                ? SELF_REFLECTION_PROMPTS.wish.question
-                : PARTNER_REFLECTION_OPTIONS.wish.question
-              }
-            </p>
+            <div className="bg-gray-100 border border-gray-300 rounded-lg p-3">
+              <p className="text-sm text-gray-800 font-semibold">
+                {reflectionData.reviewType === 'self' 
+                  ? SELF_REFLECTION_PROMPTS.wish.question
+                  : PARTNER_REFLECTION_OPTIONS.wish.question
+                }
+              </p>
+            </div>
 
             {!customInputs.wish ? (
               <select
@@ -561,14 +552,14 @@ const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSe
                 value={reflectionData.wish}
                 onChange={(e) => handleTextChange('wish', e.target.value)}
                 placeholder="Type your custom answer..."
-                rows={3}
+                rows={4}
                 className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none resize-none text-sm"
               />
             )}
 
             <button
               onClick={handleFinalSubmit}
-              className="w-full mt-3 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors text-sm"
+              className="w-full mt-4 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors text-sm"
             >
               Submit Reflection →
             </button>
@@ -577,41 +568,21 @@ const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSe
 
         {/* STEP 6: Summary */}
         {currentStep === 6 && (
-          <div className="space-y-3">
-            {/* Done Button at Top */}
-            <button
-              onClick={handleDone}
-              className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"
-            >
-              <CheckCircle size={16} />
-              {isSessionMode ? 'Play Bonus Game! 🎮' : 'Done - Continue to Bonus Activity'}
-            </button>
-
-            <div className="text-center mb-3">
-              <Sparkles className="mx-auto text-yellow-500 mb-2" size={32} />
-              <h2 className="text-lg font-bold text-gray-800">♪ Your Reflection</h2>
+          <div className="space-y-4">
+            <div className="text-center">
+              <Sparkles className="mx-auto text-yellow-500 mb-2" size={36} />
+              <h2 className="text-lg font-bold text-gray-800">♪ Your Reflection Summary</h2>
               <p className="text-xs text-gray-600 mt-1">
                 You reviewed: {reflectionData.reviewType === 'self' ? 'Your own composition' : `${reflectionData.partnerName}'s composition`}
               </p>
             </div>
-
-            {/* Share Code Display */}
-            {reflectionData.shareCode && (
-              <div className="bg-green-50 border-2 border-green-300 rounded-lg p-3">
-                <p className="text-xs font-bold text-green-900 mb-1">✅ Reflection Saved!</p>
-                <p className="text-xs text-green-800 mb-2">Share Code:</p>
-                <code className="text-sm text-green-700 font-mono bg-white px-2 py-1 rounded border border-green-200">
-                  {reflectionData.shareCode}
-                </code>
-              </div>
-            )}
 
             <div className={`p-3 rounded-lg border-2 text-center ${
               reflectionData.reviewType === 'self' 
                 ? 'bg-blue-50 border-blue-300' 
                 : 'bg-purple-50 border-purple-300'
             }`}>
-              <p className="text-sm font-bold text-gray-800 mb-1">📖 Read Aloud!</p>
+              <p className="text-sm font-bold text-gray-800 mb-1">📖 Now Read Your Reflection Aloud!</p>
               <p className="text-xs text-gray-700">
                 {reflectionData.reviewType === 'self' 
                   ? 'Read your reflection to yourself or share it with a neighbor.'
@@ -647,14 +618,27 @@ const ReflectionSidebar = ({ compositionData, onComplete, viewMode = false, isSe
             </div>
           </div>
         )}
+
+        {/* Hint Section */}
+        {showHint && currentStep !== 6 && (
+          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3">
+            <div className="text-xs text-yellow-900">
+              <span className="font-semibold">💡 Hint:</span> Take your time to think about your answer. Be specific and honest in your reflection!
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Hint Section */}
-      {showHint && currentStep !== 6 && (
-        <div className="bg-yellow-50 px-3 py-2 border-t-2 border-yellow-200 flex-shrink-0">
-          <div className="text-xs text-yellow-900">
-            <span className="font-semibold">💡 Hint:</span> Take your time to think about your answer. Be specific and honest in your reflection!
-          </div>
+      {/* Done Button (only on summary step) */}
+      {currentStep === 6 && (
+        <div className="bg-gray-50 px-3 py-2 border-t border-gray-200 flex-shrink-0">
+          <button
+            onClick={handleDone}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold"
+          >
+            <CheckCircle size={16} />
+            {isSessionMode ? 'Done - Wait for Teacher' : 'Done - Complete Lesson'}
+          </button>
         </div>
       )}
     </div>
