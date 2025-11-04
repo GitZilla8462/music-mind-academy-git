@@ -1,8 +1,120 @@
 // File: /src/lessons/film-music-project/lesson1/compositionServerUtils.js
-// Firebase-based utility for saving and retrieving compositions
-// No separate backend needed!
+// Dual-save system:
+// 1. localStorage = Private auto-saves for each student (no bandwidth cost)
+// 2. Firebase = Teacher submissions with share codes (existing system)
 
-import { getDatabase, ref, set, get, remove, query, orderByChild } from 'firebase/database';
+import { getDatabase, ref, set, get, remove } from 'firebase/database';
+
+// ============================================================================
+// LOCAL STORAGE FUNCTIONS (Private, per-student auto-saves)
+// ============================================================================
+
+const LOCAL_STORAGE_KEY = 'student-compositions-autosave';
+
+/**
+ * Auto-save composition to localStorage (private, no bandwidth)
+ * @param {Object} compositionData - The composition data
+ * @param {string} activityType - Type of activity
+ * @param {string} studentName - Student's name for identification
+ * @returns {Object} Success status
+ */
+export const autoSaveComposition = (compositionData, activityType, studentName) => {
+  try {
+    // Get existing saves
+    const existingSaves = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
+    
+    // Create unique key for this student + activity
+    const saveKey = `${studentName}-${activityType}`;
+    
+    // Save with timestamp
+    existingSaves[saveKey] = {
+      composition: compositionData,
+      activityType,
+      studentName,
+      lastSaved: new Date().toISOString(),
+      autoSave: true
+    };
+    
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existingSaves));
+    
+    console.log(`✅ Auto-saved locally for ${studentName} - ${activityType}`);
+    return { success: true, lastSaved: existingSaves[saveKey].lastSaved };
+  } catch (error) {
+    console.error('❌ Auto-save failed:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Load student's saved composition from localStorage
+ * @param {string} activityType - Type of activity
+ * @param {string} studentName - Student's name
+ * @returns {Object|null} Saved composition or null
+ */
+export const loadAutoSavedComposition = (activityType, studentName) => {
+  try {
+    const existingSaves = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
+    const saveKey = `${studentName}-${activityType}`;
+    
+    const saved = existingSaves[saveKey];
+    if (saved) {
+      console.log(`✅ Loaded auto-save for ${studentName} - ${activityType}`);
+      return saved;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('❌ Failed to load auto-save:', error);
+    return null;
+  }
+};
+
+/**
+ * Get all auto-saved compositions for a student
+ * @param {string} studentName - Student's name
+ * @returns {Array} Array of saved compositions
+ */
+export const getAllAutoSavesForStudent = (studentName) => {
+  try {
+    const existingSaves = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
+    
+    // Filter saves for this student
+    const studentSaves = Object.values(existingSaves).filter(
+      save => save.studentName === studentName
+    );
+    
+    return studentSaves;
+  } catch (error) {
+    console.error('❌ Failed to get auto-saves:', error);
+    return [];
+  }
+};
+
+/**
+ * Delete an auto-saved composition
+ * @param {string} activityType - Type of activity
+ * @param {string} studentName - Student's name
+ * @returns {boolean} Success status
+ */
+export const deleteAutoSave = (activityType, studentName) => {
+  try {
+    const existingSaves = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
+    const saveKey = `${studentName}-${activityType}`;
+    
+    delete existingSaves[saveKey];
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existingSaves));
+    
+    console.log(`✅ Deleted auto-save for ${studentName} - ${activityType}`);
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to delete auto-save:', error);
+    return false;
+  }
+};
+
+// ============================================================================
+// FIREBASE FUNCTIONS (Teacher submissions with share codes - UNCHANGED)
+// ============================================================================
 
 /**
  * Generate a unique share code for a composition
@@ -12,7 +124,7 @@ export const generateShareCode = () => {
 };
 
 /**
- * Save composition to Firebase
+ * Submit composition to Firebase for teacher viewing
  * @param {Object} compositionData - The composition data to save
  * @param {string} activityType - Type of activity ('school-beneath' or 'sound-effects')
  * @returns {Promise<Object>} Response with shareCode and success status
@@ -36,7 +148,7 @@ export const saveCompositionToServer = async (compositionData, activityType) => 
     const compositionRef = ref(db, `compositions/${shareCode}`);
     await set(compositionRef, submissionData);
     
-    console.log('✅ Composition saved to Firebase:', shareCode);
+    console.log('✅ Composition submitted to Firebase for teacher:', shareCode);
     
     // Also save to localStorage as backup
     const localSaves = JSON.parse(localStorage.getItem('saved-compositions') || '[]');
@@ -47,10 +159,10 @@ export const saveCompositionToServer = async (compositionData, activityType) => 
       success: true,
       shareCode,
       shareUrl: submissionData.shareUrl,
-      message: 'Composition saved successfully!'
+      message: 'Composition submitted to teacher successfully!'
     };
   } catch (error) {
-    console.error('Error saving composition to Firebase:', error);
+    console.error('Error submitting composition to Firebase:', error);
     
     // Fallback: save to localStorage only
     const shareCode = generateShareCode();
@@ -78,7 +190,7 @@ export const saveCompositionToServer = async (compositionData, activityType) => 
 };
 
 /**
- * Get all saved compositions from Firebase
+ * Get all submitted compositions from Firebase (for teacher viewing)
  * @returns {Promise<Array>} Array of saved compositions
  */
 export const getAllCompositions = async () => {
@@ -106,7 +218,7 @@ export const getAllCompositions = async () => {
 };
 
 /**
- * Get a specific composition by share code
+ * Get a specific composition by share code (for viewing)
  * @param {string} shareCode - The share code to look up
  * @returns {Promise<Object|null>} The composition data or null if not found
  */
@@ -133,7 +245,7 @@ export const getCompositionByCode = async (shareCode) => {
 };
 
 /**
- * Delete a composition
+ * Delete a composition from Firebase
  * @param {string} shareCode - The share code of the composition to delete
  * @returns {Promise<boolean>} Success status
  */

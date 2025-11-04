@@ -116,7 +116,7 @@ const SessionStartPage = () => {
               <ol className="space-y-4 text-gray-700">
                 <li className="flex items-start">
                   <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">1</span>
-                  <span className="pt-1 text-lg">Go to the join page: <strong className="text-blue-600">Your-Site.com/join</strong></span>
+                  <span className="pt-1 text-lg">Go to the join page: <strong className="text-blue-600">musicroomtools.org/join</strong></span>
                 </li>
                 <li className="flex items-start">
                   <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">2</span>

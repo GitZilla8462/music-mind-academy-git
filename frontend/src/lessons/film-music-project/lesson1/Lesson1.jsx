@@ -20,7 +20,6 @@ import SessionTeacherPanel from '../../shared/components/SessionTeacherPanel';
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 import SummarySlide from '../../shared/components/Summaryslide';
-import NameThatLoopActivity from '../../shared/activities/NameThatLoopActivity';
 
 const LESSON_PROGRESS_KEY = 'lesson1-progress';
 const LESSON_TIMER_KEY = 'lesson1-timer';
@@ -96,37 +95,13 @@ const Lesson1 = () => {
     if (sessionRole === 'student') {
       markActivityComplete(activityId, 'completed');
       console.log('Student marked activity complete:', activityId);
-      
-      // ✅ Track reflection completion in localStorage for bonus activity trigger
-      if (activityId === 'reflection') {
-        const storageKey = `reflection-completed-${sessionCode}`;
-        localStorage.setItem(storageKey, 'true');
-        console.log('🎉 Student completed reflection! Bonus activity will be shown.');
-      }
     }
   };
 
-  // ✅ Check if current student has completed reflection (for bonus activity)
-  // Get current stage for students (MUST be declared before any hooks that use it)
+  // Get current stage for students
   const currentStage = sessionMode.isSessionMode && sessionRole === 'student' 
     ? getCurrentStage() 
     : null;
-
-  const hasCompletedReflection = () => {
-    if (!sessionCode) return false;
-    const storageKey = `reflection-completed-${sessionCode}`;
-    return localStorage.getItem(storageKey) === 'true';
-  };
-
-  // ✅ Clear reflection completion flag when entering reflection stage
-  React.useEffect(() => {
-    if (sessionMode.isSessionMode && effectiveRole === 'student' && currentStage === 'reflection-summary') {
-      // Clear the flag when reflection instructions are shown
-      const storageKey = `reflection-completed-${sessionCode}`;
-      localStorage.removeItem(storageKey);
-      console.log('🔄 Cleared reflection completion flag for fresh start');
-    }
-  }, [currentStage, sessionCode, sessionMode.isSessionMode, effectiveRole]);
 
   // Show loading while session is initializing - only if we have NO role at all
   if (sessionMode.isSessionMode && !effectiveRole) {
@@ -151,6 +126,25 @@ const Lesson1 = () => {
     // Student waiting for teacher to start
     if (!currentStage || currentStage === 'locked') {
       return <StudentWaitingScreen />;
+    }
+    
+    // Session has ended - redirect to join page
+    if (currentStage === 'ended') {
+      console.log('📤 Session ended, redirecting to join page');
+      // Use a slight delay to ensure state updates complete
+      setTimeout(() => {
+        window.location.href = '/join';
+      }, 1000);
+      
+      return (
+        <div className="h-screen flex items-center justify-center bg-gray-900">
+          <div className="text-center">
+            <div className="text-6xl mb-4">✓</div>
+            <h1 className="text-white text-3xl font-bold mb-4">Session Has Ended</h1>
+            <p className="text-gray-400 text-lg">Redirecting to join page...</p>
+          </div>
+        </div>
+      );
     }
     
     // Student viewing summary slide
@@ -180,21 +174,6 @@ const Lesson1 = () => {
     // Student viewing active activity
     const activityType = getActivityForStage(currentStage);
     const activity = lesson1Config.activities.find(a => a.type === activityType);
-    
-    // ✅ BONUS ACTIVITY LOGIC: If student completed reflection, show bonus activity
-    if (currentStage === 'reflection' && hasCompletedReflection()) {
-      console.log('🎮 Showing bonus activity: Name That Loop');
-      return (
-        <div className="h-screen flex flex-col">
-          <div className="flex-1 overflow-hidden">
-            <NameThatLoopActivity 
-              onComplete={() => console.log('Bonus activity completed!')}
-              viewMode={false}
-            />
-          </div>
-        </div>
-      );
-    }
     
     if (!activity) {
       return <StudentWaitingScreen />;

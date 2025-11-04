@@ -38,7 +38,7 @@ const ProfessionalTimer = ({ seconds, isCountingDown, initialCountdownTime }) =>
 
   const timerColor = getTimerColor();
   const progressPercentage = getProgressPercentage();
-  const radius = 45;
+  const radius = 90;
   const circumference = 2 * Math.PI * radius;
   
   // strokeDashoffset calculation:
@@ -54,29 +54,29 @@ const ProfessionalTimer = ({ seconds, isCountingDown, initialCountdownTime }) =>
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      gap: '8px'
+      gap: '16px'
     }}>
       {/* Circular Progress Ring */}
-      <div style={{ position: 'relative', width: '120px', height: '120px' }}>
+      <div style={{ position: 'relative', width: '240px', height: '240px' }}>
         {/* Background circle */}
-        <svg width="120" height="120" style={{ transform: 'rotate(-90deg)' }}>
+        <svg width="240" height="240" style={{ transform: 'rotate(-90deg)' }}>
           <circle
-            cx="60"
-            cy="60"
+            cx="120"
+            cy="120"
             r={radius}
             fill="none"
             stroke="#e5e7eb"
-            strokeWidth="8"
+            strokeWidth="16"
           />
           {/* Progress circle - only show for countdown */}
           {isCountingDown && (
             <circle
-              cx="60"
-              cy="60"
+              cx="120"
+              cy="120"
               r={radius}
               fill="none"
               stroke={timerColor}
-              strokeWidth="8"
+              strokeWidth="16"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
@@ -94,23 +94,23 @@ const ProfessionalTimer = ({ seconds, isCountingDown, initialCountdownTime }) =>
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '2px'
+          gap: '4px'
         }}>
           <div style={{
-            fontSize: '28px',
+            fontSize: '56px',
             fontWeight: '600',
             color: '#1f2937',
             fontFamily: 'system-ui, -apple-system, sans-serif',
-            letterSpacing: '-0.5px'
+            letterSpacing: '-1px'
           }}>
             {formatTime(seconds)}
           </div>
           <div style={{
-            fontSize: '11px',
+            fontSize: '22px',
             fontWeight: '500',
             color: '#9ca3af',
             textTransform: 'uppercase',
-            letterSpacing: '0.5px'
+            letterSpacing: '1px'
           }}>
             {isCountingDown ? 'remaining' : 'elapsed'}
           </div>
@@ -120,7 +120,7 @@ const ProfessionalTimer = ({ seconds, isCountingDown, initialCountdownTime }) =>
   );
 };
 
-// Session Code Badge Component - for top left corner
+// Session Code Badge Component - for top left corner (2x size)
 const SessionCodeBadge = ({ sessionCode, isDarkBackground = false }) => {
   return (
     <div style={{
@@ -129,29 +129,29 @@ const SessionCodeBadge = ({ sessionCode, isDarkBackground = false }) => {
       left: '30px',
       backgroundColor: isDarkBackground ? 'rgba(255, 255, 255, 0.1)' : 'rgba(59, 130, 246, 0.1)',
       backdropFilter: 'blur(8px)',
-      padding: '12px 24px',
-      borderRadius: '12px',
-      border: `2px solid ${isDarkBackground ? 'rgba(255, 255, 255, 0.2)' : 'rgba(59, 130, 246, 0.3)'}`,
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+      padding: '24px 48px',
+      borderRadius: '24px',
+      border: `4px solid ${isDarkBackground ? 'rgba(255, 255, 255, 0.2)' : 'rgba(59, 130, 246, 0.3)'}`,
+      boxShadow: '0 8px 12px rgba(0, 0, 0, 0.1)'
     }}>
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '8px'
+        gap: '16px'
       }}>
         <span style={{
           color: isDarkBackground ? 'rgba(255, 255, 255, 0.7)' : '#6b7280',
-          fontSize: '14px',
+          fontSize: '28px',
           fontWeight: '600'
         }}>
           Code:
         </span>
         <span style={{
           color: isDarkBackground ? '#ffffff' : '#3b82f6',
-          fontSize: '20px',
+          fontSize: '40px',
           fontWeight: '700',
           fontFamily: 'monospace',
-          letterSpacing: '2px'
+          letterSpacing: '4px'
         }}>
           {sessionCode}
         </span>
@@ -203,7 +203,7 @@ const PresentationView = () => {
   useEffect(() => {
     if (!sessionCode) return;
 
-    console.log('🔊 Presentation View connected to session:', sessionCode);
+    console.log('📊 Presentation View connected to session:', sessionCode);
     
     const db = getDatabase();
     const sessionRef = ref(db, `sessions/${sessionCode}`);
@@ -243,7 +243,7 @@ const PresentationView = () => {
         
         // Check if countdown time changed (new timer started or reset)
         if (firebaseTime !== lastFirebaseCountdown.current) {
-          console.log('⏱️  Countdown time changed:', lastFirebaseCountdown.current, '→', firebaseTime);
+            console.log('⏱️  Countdown time changed:', lastFirebaseCountdown.current, '→', firebaseTime);
           lastFirebaseCountdown.current = firebaseTime;
           lastFirebaseTimerActive.current = firebaseActive;
           
@@ -319,7 +319,7 @@ const PresentationView = () => {
           marginBottom: '30px',
           animation: 'pulse 2s ease-in-out infinite'
         }}>
-          ♪
+          🎵
         </div>
         <h1 style={{
           fontSize: '48px',
@@ -327,7 +327,7 @@ const PresentationView = () => {
           marginBottom: '20px',
           color: '#1f2937'
         }}>
-          Session Code
+          musicroomtools.org/join
         </h1>
         <div style={{
           fontSize: '120px',
@@ -360,6 +360,53 @@ const PresentationView = () => {
             }
           }
         `}</style>
+      </div>
+    );
+  }
+
+  // Session Ended Screen
+  if (currentStage === 'ended') {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        backgroundColor: '#1a202c',
+        color: 'white',
+        padding: '40px'
+      }}>
+        <div style={{
+          fontSize: '100px',
+          marginBottom: '30px'
+        }}>
+          ✓
+        </div>
+        <h1 style={{
+          fontSize: '56px',
+          fontWeight: '700',
+          marginBottom: '20px',
+          color: 'white'
+        }}>
+          Session Ended
+        </h1>
+        <p style={{
+          fontSize: '24px',
+          color: '#a0aec0',
+          textAlign: 'center',
+          maxWidth: '600px',
+          marginBottom: '40px'
+        }}>
+          Thank you for participating! The teacher has ended this session.
+        </p>
+        <p style={{
+          fontSize: '18px',
+          color: '#718096',
+          textAlign: 'center'
+        }}>
+          You can close this window now.
+        </p>
       </div>
     );
   }
@@ -634,6 +681,18 @@ const PresentationView = () => {
       ],
       bonus: 'Listen carefully to hear the variety of musical choices your classmates made!',
       color: '#10b981'
+    },
+    'conclusion': {
+      title: 'Lesson Complete! 🎉',
+      icon: '🌟',
+      subtitle: 'Great work on today\'s film music lesson',
+      steps: [
+        { number: '1', text: 'You learned how music enhances storytelling in film.' },
+        { number: '2', text: 'You created your own composition for The School Beneath.' },
+        { number: '3', text: 'You reflected on your work and shared with classmates.' }
+      ],
+      bonus: 'Keep exploring music creation on your own!',
+      color: '#f59e0b'
     }
   };
 

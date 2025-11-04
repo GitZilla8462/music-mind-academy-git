@@ -1,5 +1,5 @@
 // File: /lessons/film-music-project/lesson1/lesson1Config.js
-// Lesson 1 configuration - CORRECTED (name-that-loop stage removed)
+// Lesson 1 configuration - FIXED VERSION
 
 export const LESSON_PROGRESS_KEY = 'lesson1-progress';
 export const LESSON_TIMER_KEY = 'lesson1-timer';
@@ -14,7 +14,7 @@ export const lessonSections = [
     subtitle: 'Welcome & DAW Tutorial',
     icon: '🎬',
     color: 'blue',
-    estimatedTime: 10,
+    estimatedTime: 9,
     stages: [
       { 
         id: 'intro-summary', 
@@ -41,7 +41,7 @@ export const lessonSections = [
         id: 'daw-tutorial', 
         type: 'activity', 
         label: 'Unlock DAW Tutorial', 
-        duration: 5,
+        duration: 4,
         hasTimer: true,
         trackProgress: true,
         description: 'Interactive DAW basics',
@@ -55,7 +55,7 @@ export const lessonSections = [
     subtitle: 'The School Beneath',
     icon: '🎵',
     color: 'purple',
-    estimatedTime: 14,
+    estimatedTime: 12,
     stages: [
       { 
         id: 'activity-summary', 
@@ -82,7 +82,7 @@ export const lessonSections = [
         id: 'school-beneath', 
         type: 'activity', 
         label: 'Unlock School Beneath', 
-        duration: 10,
+        duration: 8,
         hasTimer: true,
         trackProgress: true,
         description: 'Students compose music',
@@ -113,7 +113,7 @@ export const lessonSections = [
         hasTimer: true,
         trackProgress: true,
         description: 'Students complete reflection',
-        bonusDescription: 'Bonus Activity: Name That Loop Game'
+        bonusDescription: 'Bonus Activity: Guess the Loop with a Friend Game'
       }
     ]
   },
@@ -157,7 +157,7 @@ export const lesson1Config = {
       id: 2,
       type: "daw-tutorial",
       title: "DAW Basics Interactive Tutorial",
-      estimatedTime: "5 min"
+      estimatedTime: "4 min"
     },
     {
       id: 3,
@@ -170,7 +170,7 @@ export const lesson1Config = {
       id: 4,
       type: "school-beneath-activity",
       title: "The School Beneath",
-      estimatedTime: "10 min"
+      estimatedTime: "8 min"
     },
     {
       id: 5,
@@ -180,12 +180,6 @@ export const lesson1Config = {
     },
     {
       id: 6,
-      type: "name-that-loop",
-      title: "Bonus: Name That Loop",
-      estimatedTime: "Remaining time"
-    },
-    {
-      id: 7,
       type: "sound-effects",
       title: "Bonus: Add Sound Effects",
       estimatedTime: "Remaining time"
@@ -232,7 +226,7 @@ export const lessonStages = [
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 5
+    duration: 4
   },
   { 
     id: 'activity-summary', 
@@ -266,7 +260,7 @@ export const lessonStages = [
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 10
+    duration: 8
   },
   { 
     id: 'reflection-summary', 
@@ -280,20 +274,19 @@ export const lessonStages = [
     id: 'reflection', 
     label: 'Unlock Reflection', 
     description: 'Two Stars and a Wish', 
-    bonusDescription: 'Bonus Activity: Name That Loop Game',
+    bonusDescription: 'Bonus Activity: Guess the Loop with a Friend Game',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
     duration: 10
   },
-  // Keep sound-effects for backward compatibility
   { 
     id: 'sound-effects', 
     label: 'Unlock Bonus: Sound Effects', 
     description: 'Add sound effects', 
     hasProgress: true,
     type: 'bonus',
-    hasTimer: false,
+    hasTimer: true,
     duration: 5
   },
   {

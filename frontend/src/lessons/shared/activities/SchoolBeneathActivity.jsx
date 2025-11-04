@@ -1,7 +1,7 @@
 // File: /src/lessons/film-music-project/lesson1/activities/SchoolBeneathActivity.jsx
-// ENHANCED VERSION with Two-Modal Flow and Voice Announcements
-// UPDATED: isSessionMode prop to hide timer for students in session mode
-// UPDATED: Firebase saving for compositions
+// ENHANCED VERSION with Auto-Save, Two-Modal Flow, and Voice Announcements
+// UPDATED: Auto-save to localStorage every 5 seconds (zero bandwidth cost)
+// UPDATED: Uses anonymous student ID since names aren't collected
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,7 @@ import { Clock, Minimize2, Maximize2 } from 'lucide-react';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
 import { saveComposition, saveBonusComposition } from '../../film-music-project/lesson1/lessonStorageUtils';
 import { saveCompositionToServer } from '../../film-music-project/lesson1/compositionServerUtils';
+import { useAutoSave, AutoSaveIndicator } from '../../../hooks/useAutoSave.jsx';
 import SoundEffectsActivity from './SoundEffectsActivity';
 
 const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes in milliseconds
@@ -18,9 +19,25 @@ const SchoolBeneathActivity = ({
   viewMode = false, 
   viewBonusMode = false, 
   lessonStartTime,
-  isSessionMode = false  // NEW: Hide timer in session mode
+  isSessionMode = false
 }) => {
   const navigate = useNavigate();
+  
+  // Generate or retrieve anonymous student ID
+  const [studentId, setStudentId] = useState('');
+  
+  // Initialize student ID on mount
+  useEffect(() => {
+    let id = localStorage.getItem('anonymous-student-id');
+    if (!id) {
+      // Generate random ID: "Student-" + random number
+      id = `Student-${Math.floor(100000 + Math.random() * 900000)}`;
+      localStorage.setItem('anonymous-student-id', id);
+    }
+    setStudentId(id);
+    console.log('📝 Student ID:', id);
+  }, []);
+  
   const [requirements, setRequirements] = useState({
     instrumentation: false,
     layering: false,
@@ -37,17 +54,63 @@ const SchoolBeneathActivity = ({
   const autoAdvanceCalledRef = useRef(false);
   const [isMinimizedModal, setIsMinimizedModal] = useState(false);
   
-  // NEW: Modal states for the two-modal flow
+  // Modal states for the two-modal flow
   const [showAhaMomentModal, setShowAhaMomentModal] = useState(false);
   const [showSubmitSuccessModal, setShowSubmitSuccessModal] = useState(false);
   const [submitCountdown, setSubmitCountdown] = useState(5);
   const hasAnnouncedAhaRef = useRef(false);
   const hasAnnouncedSubmitRef = useRef(false);
   
-  // NEW: State to show Sound Effects activity after submission
+  // State to show Sound Effects activity after submission
   const [showSoundEffects, setShowSoundEffects] = useState(false);
-
-  // NEW: Web Speech API helper function
+  
+  // ============================================================================
+  // AUTO-SAVE INTEGRATION
+  // ============================================================================
+  
+  const compositionData = {
+    placedLoops,
+    requirements,
+    videoDuration,
+    timestamp: Date.now()
+  };
+  
+  // Add auto-save hook - only active when student has ID and not in view mode
+  const { lastSaved, isSaving, hasSavedWork, loadSavedWork, saveNow } = useAutoSave(
+    studentId,
+    isExplorationMode ? 'school-beneath-bonus' : 'school-beneath',
+    compositionData,
+    5000 // Auto-save every 5 seconds
+  );
+  
+  // Check for saved work on mount (after studentId is set)
+  useEffect(() => {
+    if (!studentId || viewMode) return;
+    
+    // Check if there's saved work
+    if (hasSavedWork) {
+      const saved = loadSavedWork();
+      if (saved && saved.placedLoops) {
+        // Ask if they want to load it
+        const shouldLoad = window.confirm(
+          "You have saved work from before. Would you like to continue where you left off?\n\n" +
+          "Click OK to load your previous work, or Cancel to start fresh."
+        );
+        
+        if (shouldLoad) {
+          setPlacedLoops(saved.placedLoops || []);
+          setRequirements(saved.requirements || requirements);
+          setVideoDuration(saved.videoDuration || 60);
+          console.log('✅ Loaded previous work from auto-save');
+        }
+      }
+    }
+  }, [studentId, hasSavedWork, viewMode]);
+  
+  // ============================================================================
+  // WEB SPEECH API
+  // ============================================================================
+  
   const speakMessage = (message) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -56,7 +119,6 @@ const SchoolBeneathActivity = ({
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
       
-      // Try to get a good voice
       const voices = window.speechSynthesis.getVoices();
       const preferredVoice = voices.find(voice => 
         voice.name === 'Samantha' || 
@@ -74,7 +136,10 @@ const SchoolBeneathActivity = ({
     }
   };
 
-  // Load saved composition if in view mode
+  // ============================================================================
+  // LOAD SAVED COMPOSITION (VIEW MODE)
+  // ============================================================================
+  
   useEffect(() => {
     if (viewMode) {
       const storageKey = viewBonusMode ? 'school-beneath-bonus' : 'school-beneath-composition';
@@ -94,9 +159,12 @@ const SchoolBeneathActivity = ({
     }
   }, [viewMode, viewBonusMode]);
 
-  // Calculate time remaining and start countdown - ONLY IN SELF-GUIDED MODE
+  // ============================================================================
+  // TIMER (ONLY IN SELF-GUIDED MODE)
+  // ============================================================================
+  
   useEffect(() => {
-    if (!lessonStartTime || viewMode || isSessionMode) return;  // NEW: Skip timer in session mode
+    if (!lessonStartTime || viewMode || isSessionMode) return;
 
     const calculateRemaining = () => {
       const elapsed = Date.now() - lessonStartTime;
@@ -116,7 +184,7 @@ const SchoolBeneathActivity = ({
         clearInterval(timerRef.current);
         
         handleAutoSave();
-        setSaveMessage('⏰ Time\'s up! Great work - let\'s share!');
+        setSaveMessage("⏰ Time's up! Great work - let's share!");
         
         setTimeout(() => {
           onComplete();
@@ -129,9 +197,12 @@ const SchoolBeneathActivity = ({
         clearInterval(timerRef.current);
       }
     };
-  }, [lessonStartTime, viewMode, isSessionMode, onComplete]);  // NEW: Added isSessionMode to deps
+  }, [lessonStartTime, viewMode, isSessionMode, onComplete]);
 
-  // Detect video duration on mount
+  // ============================================================================
+  // VIDEO DURATION DETECTION
+  // ============================================================================
+  
   useEffect(() => {
     if (viewMode) return;
 
@@ -175,13 +246,16 @@ const SchoolBeneathActivity = ({
     };
   }, [viewMode]);
 
-  // Check requirements as loops are placed
+  // ============================================================================
+  // REQUIREMENTS CHECKING
+  // ============================================================================
+  
   useEffect(() => {
     if (viewMode || placedLoops.length === 0 || isExplorationMode) return;
     checkRequirements();
   }, [placedLoops, viewMode, isExplorationMode]);
 
-  // NEW: Detect when all requirements are met for first time
+  // Detect when all requirements are met for first time
   useEffect(() => {
     const allMet = requirements.instrumentation && 
                    requirements.layering && 
@@ -190,15 +264,12 @@ const SchoolBeneathActivity = ({
     if (allMet && !hasAnnouncedAhaRef.current && !isExplorationMode && !viewMode) {
       hasAnnouncedAhaRef.current = true;
       
-      // Show "Aha Moment" modal
       setShowAhaMomentModal(true);
-      
-      // Speak the announcement
       speakMessage("Good job! Your work can now be submitted. Hit the save and submit button at this time.");
     }
   }, [requirements, isExplorationMode, viewMode]);
 
-  // NEW: Handle submit success modal countdown - transition to Sound Effects Activity
+  // Submit success modal countdown - transition to Sound Effects Activity
   useEffect(() => {
     if (showSubmitSuccessModal && submitCountdown > 0) {
       const timer = setTimeout(() => {
@@ -207,12 +278,9 @@ const SchoolBeneathActivity = ({
       
       return () => clearTimeout(timer);
     } else if (showSubmitSuccessModal && submitCountdown === 0) {
-      // Countdown complete - show Sound Effects Activity
       setShowSubmitSuccessModal(false);
       setShowSoundEffects(true);
       
-      // In session mode, students stay on same stage but see different content
-      // In non-session mode, call onComplete to advance
       if (!isSessionMode && onComplete) {
         setTimeout(() => {
           onComplete();
@@ -221,12 +289,12 @@ const SchoolBeneathActivity = ({
     }
   }, [showSubmitSuccessModal, submitCountdown, onComplete, isSessionMode]);
 
-  // NEW: Auto-save bonus composition during exploration
+  // Auto-save bonus composition during exploration (uses different key)
   useEffect(() => {
     if (isExplorationMode && placedLoops.length > 0 && !viewMode) {
       const autoSaveTimer = setTimeout(() => {
         saveBonusComposition(placedLoops, videoDuration);
-        console.log('Auto-saved bonus composition');
+        console.log('Auto-saved bonus composition to old storage');
       }, 2000);
       
       return () => clearTimeout(autoSaveTimer);
@@ -264,6 +332,10 @@ const SchoolBeneathActivity = ({
     setRequirements(newRequirements);
   };
 
+  // ============================================================================
+  // LOOP HANDLERS
+  // ============================================================================
+  
   const handleLoopPlaced = (loopData, trackIndex, startTime) => {
     console.log('Loop placed callback received:', loopData, trackIndex, startTime);
     
@@ -308,7 +380,11 @@ const SchoolBeneathActivity = ({
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // UPDATED: Save to both localStorage and Firebase
+  // ============================================================================
+  // SAVE HANDLERS
+  // ============================================================================
+  
+  // Manual save (uses old localStorage + Firebase)
   const handleSaveProgress = async () => {
     const saveData = {
       placedLoops,
@@ -317,14 +393,18 @@ const SchoolBeneathActivity = ({
       timestamp: Date.now()
     };
     
+    // Save to old localStorage key (for compatibility)
     localStorage.setItem('school-beneath-composition', JSON.stringify(saveData));
     
-    // Save to Firebase
+    // Also trigger auto-save
+    saveNow();
+    
+    // Save to Firebase for teacher viewing
     try {
       const result = await saveCompositionToServer(
         {
           ...saveData,
-          studentName: 'Student',
+          studentName: studentId,
         },
         'school-beneath'
       );
@@ -348,22 +428,22 @@ const SchoolBeneathActivity = ({
     localStorage.setItem('school-beneath-composition', JSON.stringify(saveData));
   };
 
-  // UPDATED: Enhanced submit handler with Firebase saving
+  // Submit handler with Firebase saving + enters exploration mode
   const handleSubmitActivity = async () => {
     if (hasSubmittedRef.current) return;
     
-    // Save the main composition using the utility function
+    // Save the main composition
     saveComposition(placedLoops, requirements, videoDuration);
     console.log('Submitted composition with saveComposition()');
     
-    // Also save to Firebase
+    // Save to Firebase for teacher
     try {
       const result = await saveCompositionToServer(
         {
           placedLoops,
           requirements,
           videoDuration,
-          studentName: 'Student',
+          studentName: studentId,
           timestamp: Date.now()
         },
         'school-beneath'
@@ -374,6 +454,9 @@ const SchoolBeneathActivity = ({
     }
     
     hasSubmittedRef.current = true;
+    
+    // Enter exploration mode
+    setIsExplorationMode(true);
     
     // Show submit success modal
     setShowSubmitSuccessModal(true);
@@ -389,6 +472,10 @@ const SchoolBeneathActivity = ({
                              requirements.layering && 
                              requirements.structure;
 
+  // ============================================================================
+  // LOADING STATE
+  // ============================================================================
+  
   if (isLoadingVideo && !viewMode) {
     return (
       <div className="h-full flex items-center justify-center bg-gray-900">
@@ -400,16 +487,26 @@ const SchoolBeneathActivity = ({
     );
   }
 
-  // Assignment panel content
+  // ============================================================================
+  // ASSIGNMENT PANEL CONTENT
+  // ============================================================================
+  
   const assignmentPanelContent = !viewMode && !isExplorationMode ? (
     <div className="h-full bg-gray-800 text-white p-2 flex flex-col gap-2 overflow-y-auto">
+      {/* Auto-Save Indicator */}
+      {studentId && (
+        <div className="bg-gray-700 rounded px-2 py-1 flex items-center justify-center">
+          <AutoSaveIndicator lastSaved={lastSaved} isSaving={isSaving} />
+        </div>
+      )}
+      
       {/* Save/Submit Buttons */}
       <div className="flex flex-col gap-1">
         <button
           onClick={handleSaveProgress}
           className="w-full px-3 py-1 text-xs rounded font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
         >
-          Save
+          💾 Save Now
         </button>
         <button
           onClick={handleSubmitActivity}
@@ -420,7 +517,7 @@ const SchoolBeneathActivity = ({
               : 'bg-gray-600 text-gray-400 cursor-not-allowed'
           }`}
         >
-          {allRequirementsMet ? 'Submit' : 'Submit (Complete Requirements)'}
+          {allRequirementsMet ? '📤 Submit' : 'Submit (Complete Requirements)'}
         </button>
       </div>
 
@@ -477,6 +574,13 @@ const SchoolBeneathActivity = ({
     </div>
   ) : isExplorationMode ? (
     <div className="h-full bg-gray-800 text-white p-2 flex flex-col gap-2 overflow-y-auto">
+      {/* Auto-Save Indicator for Bonus */}
+      {studentId && (
+        <div className="bg-gray-700 rounded px-2 py-1 flex items-center justify-center">
+          <AutoSaveIndicator lastSaved={lastSaved} isSaving={isSaving} />
+        </div>
+      )}
+      
       <div>
         <h3 className="font-bold text-[10px] mb-1">✨ Bonus Exploration</h3>
         <p className="text-[9px] text-gray-300 leading-relaxed">
@@ -511,7 +615,10 @@ const SchoolBeneathActivity = ({
     </div>
   ) : null;
 
-  // If Sound Effects mode is active, render that component instead
+  // ============================================================================
+  // RENDER: SOUND EFFECTS MODE
+  // ============================================================================
+  
   if (showSoundEffects) {
     return (
       <SoundEffectsActivity
@@ -523,6 +630,10 @@ const SchoolBeneathActivity = ({
     );
   }
 
+  // ============================================================================
+  // RENDER: MAIN ACTIVITY
+  // ============================================================================
+  
   return (
     <div className="h-full flex flex-col bg-gray-900">
       {/* MODAL 1: "Aha Moment" - All Requirements Met */}
@@ -592,7 +703,7 @@ const SchoolBeneathActivity = ({
               </div>
 
               <p className="text-xl text-gray-800 font-semibold">
-                Your work has been saved in the main menu.
+                Your work has been saved!
               </p>
 
               <div className="bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-300 rounded-lg p-5">
@@ -642,7 +753,7 @@ const SchoolBeneathActivity = ({
         </div>
       )}
 
-      {/* Exploration Mode Minimizable Modal (existing) - HIDE TIMER IN SESSION MODE */}
+      {/* Exploration Mode Minimizable Modal - HIDE IN SESSION MODE */}
       {isExplorationMode && !isMinimizedModal && !isSessionMode && (
         <div className="fixed top-16 right-4 z-[200] w-80 bg-white rounded-lg shadow-2xl flex flex-col max-h-96 border-2 border-green-500">
           <div className="bg-gradient-to-r from-green-500 to-blue-500 px-3 py-2 rounded-t-lg flex items-center justify-between flex-shrink-0">
@@ -707,6 +818,13 @@ const SchoolBeneathActivity = ({
                 </h2>
 
                 <div className="flex items-center gap-2 flex-shrink-0">
+                  {/* Auto-Save Indicator in Header */}
+                  {studentId && !viewMode && (
+                    <div className="mr-2">
+                      <AutoSaveIndicator lastSaved={lastSaved} isSaving={isSaving} />
+                    </div>
+                  )}
+                  
                   <div className="text-xs text-gray-400">
                     {placedLoops.length} loops
                   </div>
@@ -734,6 +852,7 @@ const SchoolBeneathActivity = ({
         </div>
       </div>
 
+      {/* DAW Component */}
       <div className="flex-1 min-h-0">
         <MusicComposer
           onLoopDropCallback={handleLoopPlaced}

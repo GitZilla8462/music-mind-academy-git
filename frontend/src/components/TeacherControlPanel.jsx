@@ -202,7 +202,7 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
     
     setIsCountingDown(false);
 
-    // ✅ Default countdown times for each stage (in seconds)
+    // âœ… Default countdown times for each stage (in seconds)
     const stageDefaultTimes = {
       'locked': 0,
       'welcome-instructions': 0,
@@ -227,7 +227,7 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
     
     set(sessionRef, {
       currentStage: stageId,
-      countdownTime: defaultTime,  // ✅ Write the default time!
+      countdownTime: defaultTime,  // âœ… Write the default time!
       timerActive: false,
       timestamp: Date.now()
     });
@@ -319,7 +319,7 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
               className="flex-1 bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
             >
               <Pause size={16} />
-              Pause
+              Stop
             </button>
           ) : countdownTime > 0 ? (
             <button
