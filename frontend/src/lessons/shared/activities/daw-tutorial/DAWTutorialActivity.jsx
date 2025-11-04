@@ -780,7 +780,7 @@ const DAWTutorialActivity = ({
             id: 'daw-tutorial',
             title: 'DAW Tutorial',
             duration: 60,
-            videoPath: '/lessons/videos/film-music-loop-project/SchoolMystery.mp4'
+            videoPath: '/lessons/film-music-project/lesson1/VideoPlaybackArea.mp4'
           }}
           lockFeatures={showExplorationMode ? {} : (currentChallenge?.lockFeatures || {})}
           highlightSelector={currentChallenge?.highlightSelector}
