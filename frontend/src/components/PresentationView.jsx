@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getDatabase, ref, onValue, set } from 'firebase/database';
-import SummarySlide from "../lessons/shared/components/Summaryslide";
-import { summarySlides } from '../lessons/film-music-project/lesson1/summarySlideContent';
+import CanvaImageSlide from "../lessons/shared/components/CanvaImageSlide";
 
-// Professional Timer Component
+// Professional Timer Component - UNCHANGED
 const ProfessionalTimer = ({ seconds, isCountingDown, initialCountdownTime }) => {
   const formatTime = (secs) => {
     const mins = Math.floor(secs / 60);
@@ -12,27 +11,17 @@ const ProfessionalTimer = ({ seconds, isCountingDown, initialCountdownTime }) =>
     return `${mins}:${remainingSecs.toString().padStart(2, '0')}`;
   };
 
-  // Calculate color based on time remaining (for countdown)
   const getTimerColor = () => {
-    if (!isCountingDown) return '#3b82f6'; // Soft blue for count-up
-    
-    if (seconds > 120) return '#3b82f6'; // Soft blue - plenty of time
-    if (seconds > 60) return '#f59e0b'; // Warm amber - halfway
-    return '#ef4444'; // Gentle coral/red - running out
+    if (!isCountingDown) return '#3b82f6';
+    if (seconds > 120) return '#3b82f6';
+    if (seconds > 60) return '#f59e0b';
+    return '#ef4444';
   };
 
-  // Calculate progress percentage (0-100)
-  // For countdown: starts at 100% (full circle) and goes to 0% (empty)
   const getProgressPercentage = () => {
-    if (!isCountingDown) return 0; // No progress ring for count-up
-    
-    // Use the initial countdown time - this is the key fix!
-    // If initialCountdownTime is 0 or not set, use current seconds as fallback
+    if (!isCountingDown) return 0;
     const maxTime = initialCountdownTime > 0 ? initialCountdownTime : seconds;
-    
     if (maxTime === 0) return 0;
-    
-    // Return percentage remaining (100% when full time, 0% when time is up)
     return (seconds / maxTime) * 100;
   };
 
@@ -40,10 +29,6 @@ const ProfessionalTimer = ({ seconds, isCountingDown, initialCountdownTime }) =>
   const progressPercentage = getProgressPercentage();
   const radius = 90;
   const circumference = 2 * Math.PI * radius;
-  
-  // strokeDashoffset calculation:
-  // When progress is 100%, offset should be 0 (full circle visible)
-  // When progress is 0%, offset should be circumference (nothing visible)
   const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
 
   return (
@@ -54,63 +39,40 @@ const ProfessionalTimer = ({ seconds, isCountingDown, initialCountdownTime }) =>
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      gap: '16px'
+      gap: '16px',
+      zIndex: 20,
+      backgroundColor: 'white',
+      padding: '20px',
+      borderRadius: '24px',
+      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
+      border: '4px solid #e5e7eb'
     }}>
-      {/* Circular Progress Ring */}
       <div style={{ position: 'relative', width: '240px', height: '240px' }}>
-        {/* Background circle */}
         <svg width="240" height="240" style={{ transform: 'rotate(-90deg)' }}>
-          <circle
-            cx="120"
-            cy="120"
-            r={radius}
-            fill="none"
-            stroke="#e5e7eb"
-            strokeWidth="16"
-          />
-          {/* Progress circle - only show for countdown */}
+          <circle cx="120" cy="120" r={radius} fill="none" stroke="#e5e7eb" strokeWidth="16" />
           {isCountingDown && (
             <circle
-              cx="120"
-              cy="120"
-              r={radius}
-              fill="none"
-              stroke={timerColor}
-              strokeWidth="16"
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
+              cx="120" cy="120" r={radius} fill="none"
+              stroke={timerColor} strokeWidth="16" strokeLinecap="round"
+              strokeDasharray={circumference} strokeDashoffset={strokeDashoffset}
               style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.3s ease' }}
             />
           )}
         </svg>
-        
-        {/* Time display in center */}
         <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
+          position: 'absolute', top: '50%', left: '50%',
           transform: 'translate(-50%, -50%)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '4px'
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px'
         }}>
           <div style={{
-            fontSize: '56px',
-            fontWeight: '600',
-            color: '#1f2937',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-            letterSpacing: '-1px'
+            fontSize: '56px', fontWeight: '600', color: '#1f2937',
+            fontFamily: 'system-ui, -apple-system, sans-serif', letterSpacing: '-1px'
           }}>
             {formatTime(seconds)}
           </div>
           <div style={{
-            fontSize: '22px',
-            fontWeight: '500',
-            color: '#9ca3af',
-            textTransform: 'uppercase',
-            letterSpacing: '1px'
+            fontSize: '22px', fontWeight: '500', color: '#9ca3af',
+            textTransform: 'uppercase', letterSpacing: '1px'
           }}>
             {isCountingDown ? 'remaining' : 'elapsed'}
           </div>
@@ -120,38 +82,27 @@ const ProfessionalTimer = ({ seconds, isCountingDown, initialCountdownTime }) =>
   );
 };
 
-// Session Code Badge Component - for top left corner (2x size)
-const SessionCodeBadge = ({ sessionCode, isDarkBackground = false }) => {
+// Session Code Badge Component - UPDATED with solid background
+const SessionCodeBadge = ({ sessionCode }) => {
   return (
     <div style={{
-      position: 'absolute',
-      top: '30px',
-      left: '30px',
-      backgroundColor: isDarkBackground ? 'rgba(255, 255, 255, 0.1)' : 'rgba(59, 130, 246, 0.1)',
-      backdropFilter: 'blur(8px)',
-      padding: '24px 48px',
-      borderRadius: '24px',
-      border: `4px solid ${isDarkBackground ? 'rgba(255, 255, 255, 0.2)' : 'rgba(59, 130, 246, 0.3)'}`,
-      boxShadow: '0 8px 12px rgba(0, 0, 0, 0.1)'
+      position: 'absolute', top: '30px', left: '30px',
+      backgroundColor: 'white',
+      padding: '24px 48px', borderRadius: '24px',
+      border: '4px solid #3b82f6',
+      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)', zIndex: 20
     }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px'
-      }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <span style={{
-          color: isDarkBackground ? 'rgba(255, 255, 255, 0.7)' : '#6b7280',
-          fontSize: '28px',
-          fontWeight: '600'
+          color: '#6b7280',
+          fontSize: '28px', fontWeight: '600'
         }}>
           Code:
         </span>
         <span style={{
-          color: isDarkBackground ? '#ffffff' : '#3b82f6',
-          fontSize: '40px',
-          fontWeight: '700',
-          fontFamily: 'monospace',
-          letterSpacing: '4px'
+          color: '#3b82f6',
+          fontSize: '40px', fontWeight: '700',
+          fontFamily: 'monospace', letterSpacing: '4px'
         }}>
           {sessionCode}
         </span>
@@ -164,20 +115,19 @@ const PresentationView = () => {
   const [searchParams] = useSearchParams();
   const sessionCode = searchParams.get('session');
   const [currentStage, setCurrentStage] = useState('locked');
+  const [lessonPath, setLessonPath] = useState('film-music-project/lesson1'); // Default
   const [timer, setTimer] = useState(0);
   const [countdownTime, setCountdownTime] = useState(0);
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [initialCountdownTime, setInitialCountdownTime] = useState(0);
   
-  // Use refs to track the last Firebase values to prevent duplicate processing
   const lastFirebaseCountdown = useRef(null);
   const lastFirebaseStage = useRef(null);
   const lastFirebaseTimerActive = useRef(null);
 
-  // ✅ LOCAL COUNTDOWN TIMER - Runs independently every second
+  // LOCAL COUNTDOWN TIMER - UNCHANGED
   useEffect(() => {
     if (!isCountingDown || countdownTime <= 0) return;
-
     const interval = setInterval(() => {
       setCountdownTime(prev => {
         const newValue = prev - 1;
@@ -188,21 +138,12 @@ const PresentationView = () => {
         return newValue;
       });
     }, 1000);
-
     return () => clearInterval(interval);
   }, [isCountingDown, countdownTime]);
 
-  // Format timer as MM:SS
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // ✅ FIREBASE LISTENER - Only for control signals
+  // FIREBASE LISTENER - Now also gets lesson path
   useEffect(() => {
     if (!sessionCode) return;
-
     console.log('📊 Presentation View connected to session:', sessionCode);
     
     const db = getDatabase();
@@ -214,13 +155,16 @@ const PresentationView = () => {
 
       console.log('📡 Firebase update:', data);
       
-      // ✅ STAGE CHANGES - Reset everything
+      // Get lesson path if available
+      if (data.lessonPath && data.lessonPath !== lessonPath) {
+        setLessonPath(data.lessonPath);
+        console.log('📚 Lesson path:', data.lessonPath);
+      }
+      
       if (data.currentStage && data.currentStage !== lastFirebaseStage.current) {
         console.log('🎬 Stage changed:', lastFirebaseStage.current, '→', data.currentStage);
         lastFirebaseStage.current = data.currentStage;
         setCurrentStage(data.currentStage);
-        
-        // Reset all timer states on stage change
         setTimer(0);
         setCountdownTime(0);
         setIsCountingDown(false);
@@ -228,614 +172,217 @@ const PresentationView = () => {
         lastFirebaseCountdown.current = null;
       }
       
-      // ✅ COUNTDOWN CONTROL SIGNALS - Firebase only controls start/pause/resume, timer runs locally
       if (data.countdownTime !== undefined) {
         const firebaseTime = data.countdownTime;
         const firebaseActive = data.timerActive;
         
-        console.log('🔍 Timer state check:', {
-          firebaseTime,
-          firebaseActive,
-          lastTime: lastFirebaseCountdown.current,
-          lastActive: lastFirebaseTimerActive.current,
-          currentlyCountingDown: isCountingDown
-        });
-        
-        // Check if countdown time changed (new timer started or reset)
         if (firebaseTime !== lastFirebaseCountdown.current) {
-            console.log('⏱️  Countdown time changed:', lastFirebaseCountdown.current, '→', firebaseTime);
           lastFirebaseCountdown.current = firebaseTime;
           lastFirebaseTimerActive.current = firebaseActive;
           
           if (firebaseTime > 0) {
-            // New countdown starting - set the time and respect the active flag
-            // undefined means start (for backwards compatibility), false means don't start
             const shouldStart = firebaseActive !== false;
-            console.log('▶️  Starting local countdown from', firebaseTime, 'active:', firebaseActive, 'shouldStart:', shouldStart);
             setInitialCountdownTime(firebaseTime);
             setCountdownTime(firebaseTime);
             setIsCountingDown(shouldStart);
           } else {
-            // Reset/stop countdown
-            console.log('⏹️  Stopping countdown');
             setCountdownTime(0);
             setIsCountingDown(false);
             setInitialCountdownTime(0);
           }
-        } 
-        // Check if only the timerActive flag changed (pause/resume)
-        else if (firebaseActive !== lastFirebaseTimerActive.current) {
-          console.log('🎛️  Timer active state changed:', lastFirebaseTimerActive.current, '→', firebaseActive);
+        } else if (firebaseActive !== lastFirebaseTimerActive.current) {
           lastFirebaseTimerActive.current = firebaseActive;
-          
           if (firebaseActive === false) {
-            console.log('⏸️  Teacher paused timer');
             setIsCountingDown(false);
           } else if (firebaseActive === true && countdownTime > 0) {
-            console.log('▶️  Teacher resumed timer');
             setIsCountingDown(true);
           }
         }
       }
     });
     
-    return () => {
-      console.log('🔇 Disconnecting from session:', sessionCode);
-      unsubscribe();
-    };
-  }, [sessionCode]);
+    return () => unsubscribe();
+  }, [sessionCode, countdownTime, lessonPath]);
+
+  // ========================================
+  // UNIVERSAL IMAGE PATH BUILDER
+  // Works for ANY lesson by building path dynamically
+  // ========================================
+  const getImagePath = (stageId) => {
+    // Convention: stage ID maps to same-named PNG file
+    return `/lessons/${lessonPath}/slides/${stageId}.png`;
+  };
+
+  // Stages that typically have timers (can be customized per lesson)
+  const stagesWithTimer = ['daw-tutorial', 'school-beneath', 'reflection', 'sound-effects'];
+
+  // Check if current stage should display a Canva image
+  const isCanvaSlideStage = (stage) => {
+    // Summary slides, activity instruction screens, welcome screens, etc.
+    const canvaStageTypes = [
+      'welcome-instructions',
+      'intro-summary',
+      'daw-summary',
+      'activity-summary',
+      'school-summary',
+      'reflection-summary',
+      'daw-tutorial',
+      'school-beneath',
+      'reflection',
+      'sound-effects',
+      'conclusion',
+      // Add more as needed
+    ];
+    return canvaStageTypes.includes(stage);
+  };
 
   if (!sessionCode) {
     return (
       <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        backgroundColor: '#1a202c',
-        color: 'white',
-        fontSize: '24px'
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        minHeight: '100vh', backgroundColor: '#1a202c',
+        color: 'white', fontSize: '24px'
       }}>
         No session code provided
       </div>
     );
   }
 
-  // Waiting screen with session code
+  // LOCKED - Waiting screen
   if (currentStage === 'locked') {
     return (
       <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        backgroundColor: '#ffffff',
-        color: '#1f2937',
-        padding: '40px'
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', minHeight: '100vh',
+        backgroundColor: '#ffffff', color: '#1f2937', padding: '40px'
       }}>
         <div style={{
-          fontSize: '80px',
-          marginBottom: '30px',
+          fontSize: '80px', marginBottom: '30px',
           animation: 'pulse 2s ease-in-out infinite'
         }}>
           🎵
         </div>
         <h1 style={{
-          fontSize: '48px',
-          fontWeight: '700',
-          marginBottom: '20px',
-          color: '#1f2937'
+          fontSize: '48px', fontWeight: '700',
+          marginBottom: '20px', color: '#1f2937'
         }}>
           musicroomtools.org/join
         </h1>
         <div style={{
-          fontSize: '120px',
-          fontWeight: '700',
-          fontFamily: 'monospace',
-          letterSpacing: '20px',
-          color: '#3b82f6',
-          marginBottom: '40px',
+          fontSize: '120px', fontWeight: '700', fontFamily: 'monospace',
+          letterSpacing: '20px', color: '#3b82f6', marginBottom: '40px',
           textShadow: '0 2px 10px rgba(59, 130, 246, 0.1)'
         }}>
           {sessionCode}
         </div>
         <p style={{
-          fontSize: '24px',
-          color: '#6b7280',
-          textAlign: 'center',
-          maxWidth: '600px'
+          fontSize: '24px', color: '#6b7280',
+          textAlign: 'center', maxWidth: '600px'
         }}>
           Waiting for teacher to start the lesson...
         </p>
         <style>{`
           @keyframes pulse {
-            0%, 100% {
-              transform: scale(1);
-              opacity: 1;
-            }
-            50% {
-              transform: scale(1.1);
-              opacity: 0.7;
-            }
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
           }
         `}</style>
       </div>
     );
   }
 
-  // Session Ended Screen
+  // SESSION ENDED
   if (currentStage === 'ended') {
     return (
       <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        backgroundColor: '#1a202c',
-        color: 'white',
-        padding: '40px'
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', minHeight: '100vh',
+        backgroundColor: '#1a202c', color: 'white', padding: '40px'
       }}>
-        <div style={{
-          fontSize: '100px',
-          marginBottom: '30px'
-        }}>
-          ✓
-        </div>
+        <div style={{ fontSize: '100px', marginBottom: '30px' }}>✓</div>
         <h1 style={{
-          fontSize: '56px',
-          fontWeight: '700',
-          marginBottom: '20px',
-          color: 'white'
+          fontSize: '56px', fontWeight: '700',
+          marginBottom: '20px', color: 'white'
         }}>
           Session Ended
         </h1>
         <p style={{
-          fontSize: '24px',
-          color: '#a0aec0',
-          textAlign: 'center',
-          maxWidth: '600px',
-          marginBottom: '40px'
+          fontSize: '24px', color: '#a0aec0',
+          textAlign: 'center', maxWidth: '600px', marginBottom: '40px'
         }}>
           Thank you for participating! The teacher has ended this session.
         </p>
-        <p style={{
-          fontSize: '18px',
-          color: '#718096',
-          textAlign: 'center'
-        }}>
+        <p style={{ fontSize: '18px', color: '#718096', textAlign: 'center' }}>
           You can close this window now.
         </p>
       </div>
     );
   }
 
-  // Welcome Instructions Screen
-  if (currentStage === 'welcome-instructions') {
-    return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        backgroundColor: '#ffffff',
-        color: '#1f2937',
-        padding: '80px 60px',
-        position: 'relative'
-      }}>
-        <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={false} />
-        
-        <div style={{ fontSize: '100px', marginBottom: '32px' }}>🎬</div>
-
-        <h1 style={{
-          fontSize: '56px',
-          fontWeight: '700',
-          marginBottom: '16px',
-          textAlign: 'center',
-          color: '#1f2937',
-          maxWidth: '1100px',
-          lineHeight: '1.2'
-        }}>
-          Welcome to Film Music Lesson 1
-        </h1>
-
-        <p style={{
-          fontSize: '24px',
-          color: '#6b7280',
-          marginBottom: '56px',
-          textAlign: 'center',
-          maxWidth: '800px'
-        }}>
-          Today you'll learn how music enhances storytelling in film
-        </p>
-
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '32px',
-          width: '100%',
-          maxWidth: '1100px',
-          marginBottom: '40px'
-        }}>
-          {[
-            { num: '1', text: 'Follow along with the presentation on this screen' },
-            { num: '2', text: 'Complete activities on your own device when instructed' },
-            { num: '3', text: 'Ask questions and share your creative ideas throughout the lesson' }
-          ].map((item, i) => (
-            <div key={i} style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '32px',
-              padding: '36px',
-              backgroundColor: '#f9fafb',
-              borderRadius: '16px',
-              border: '2px solid #e5e7eb'
-            }}>
-              <div style={{
-                minWidth: '72px',
-                height: '72px',
-                borderRadius: '50%',
-                backgroundColor: '#3b82f6',
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '36px',
-                fontWeight: '700',
-                flexShrink: 0
-              }}>
-                {item.num}
-              </div>
-              <div style={{ flex: 1, paddingTop: '8px' }}>
-                <div style={{
-                  fontSize: '32px',
-                  color: '#374151',
-                  lineHeight: '1.4',
-                  fontWeight: '400'
-                }}>
-                  {item.text}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <p style={{
-          fontSize: '22px',
-          color: '#10b981',
-          fontWeight: '600',
-          textAlign: 'center',
-          marginBottom: '40px'
-        }}>
-          Get ready to create amazing film music!
-        </p>
-
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '18px 36px',
-          backgroundColor: '#eff6ff',
-          border: '2px solid #93c5fd',
-          borderRadius: '999px',
-          fontSize: '20px',
-          fontWeight: '600',
-          color: '#1e40af'
-        }}>
-          <span style={{ fontSize: '24px' }}>👋</span>
-          Waiting for Teacher to Continue
-        </div>
-      </div>
-    );
-  }
-
-  // Summary slides
-  const summaryStages = {
-    'intro-summary': 'introVideo',
-    'daw-summary': 'dawTutorial',
-    'activity-summary': 'activityIntro',
-    'school-summary': 'schoolBeneath',
-    'reflection-summary': 'reflection'
-  };
-
-  if (summaryStages[currentStage]) {
-    const slideContent = summarySlides[summaryStages[currentStage]];
+  // VIDEO STAGES - Generic video player
+  if (currentStage === 'intro-video' || currentStage === 'activity-intro') {
+    const videoSrc = currentStage === 'intro-video' 
+      ? `/lessons/${lessonPath}/Lesson1intro.mp4`
+      : `/lessons/${lessonPath}/Lesson1activityintro.mp4`;
     
-    if (slideContent) {
-      return (
-        <SummarySlide
-          title={slideContent.title}
-          points={slideContent.points}
-          estimatedTime={slideContent.estimatedTime}
-          icon={slideContent.icon}
-          sessionCode={sessionCode}
-        />
-      );
-    }
-  }
-
-  // Video stages
-  if (currentStage === 'intro-video') {
     return (
       <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        backgroundColor: 'black',
-        padding: '20px',
-        position: 'relative'
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', minHeight: '100vh',
+        backgroundColor: 'black', padding: '20px', position: 'relative'
       }}>
-        <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={true} />
-        
+        <SessionCodeBadge sessionCode={sessionCode} />
         <h2 style={{ color: 'white', fontSize: '32px', marginBottom: '20px' }}>
-          Lesson Introduction
+          {currentStage === 'intro-video' ? 'Lesson Introduction' : 'Activity Introduction'}
         </h2>
         <video
-          key="intro-video"
-          controls
-          autoPlay
-          onEnded={() => {
-            const db = getDatabase();
-            const sessionRef = ref(db, `sessions/${sessionCode}`);
-            set(sessionRef, {
-              currentStage: 'daw-tutorial',
-              timestamp: Date.now()
-            });
-          }}
+          key={currentStage} controls autoPlay
           style={{ width: '90%', maxWidth: '1200px', maxHeight: '80vh' }}
         >
-          <source src="/lessons/film-music-project/lesson1/Lesson1intro.mp4" type="video/mp4" />
+          <source src={videoSrc} type="video/mp4" />
         </video>
       </div>
     );
   }
 
-  // Activity intro video
-  if (currentStage === 'activity-intro') {
+  // ========================================
+  // UNIVERSAL CANVA SLIDES
+  // Works for ANY stage that has a corresponding PNG
+  // ========================================
+  if (isCanvaSlideStage(currentStage)) {
+    const needsTimer = stagesWithTimer.includes(currentStage);
+    const imagePath = getImagePath(currentStage);
+    
     return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        backgroundColor: 'black',
-        padding: '20px',
-        position: 'relative'
-      }}>
-        <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={true} />
+      <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
+        <SessionCodeBadge sessionCode={sessionCode} />
         
-        <h2 style={{ color: 'white', fontSize: '32px', marginBottom: '20px' }}>
-          Activity Introduction
-        </h2>
-        <video
-          key="activity-intro-video"
-          controls
-          autoPlay
-          onEnded={() => {
-            const db = getDatabase();
-            const sessionRef = ref(db, `sessions/${sessionCode}`);
-            set(sessionRef, {
-              currentStage: 'school-beneath',
-              timestamp: Date.now()
-            });
-          }}
-          style={{ width: '90%', maxWidth: '1200px', maxHeight: '80vh' }}
-        >
-          <source src="/lessons/film-music-project/lesson1/Lesson1activityintro.mp4" type="video/mp4" />
-        </video>
-      </div>
-    );
-  }
-
-  // Activity stages with timer
-  const activityScreens = {
-    'daw-tutorial': {
-      title: 'DAW Basics Interactive Tutorial',
-      icon: '🎹',
-      subtitle: 'Learn the fundamentals of Digital Audio Workstation',
-      steps: [
-        { number: '1', text: 'Complete all interactive questions about the DAW interface.' },
-        { number: '2', text: 'Click every button, control, and panel to learn what they accomplish.' },
-        { number: '3', text: 'Finish the tutorial to unlock the next activity.' }
-      ],
-      bonus: 'You can experiment with sounds in Exploration Mode!',
-      color: '#3b82f6'
-    },
-    'school-beneath': {
-      title: 'The School Beneath Composition Assignment',
-      icon: '🎵',
-      subtitle: 'Create mysterious music for the underwater school',
-      steps: [
-        { number: '1', text: 'Use five or more different loops in your composition.' },
-        { number: '2', text: 'Create three or more layers by playing loops together.' },
-        { number: '3', text: 'Place five or more total loops to complete your musical score.' }
-      ],
-      bonus: 'You will unlock the Name That Loop game when you complete your composition!',
-      color: '#8b5cf6'
-    },
-    'reflection': {
-      title: 'Reflection Activity: Two Stars and a Wish',
-      icon: '⭐⭐',
-      subtitle: 'Reflect on your learning and composition process',
-      steps: [
-        { number: '1', text: 'Identify two things that went well in your work today.' },
-        { number: '2', text: 'Share one thing you want to improve or learn more about.' },
-        { number: '3', text: 'Think about what you learned about film music today.' }
-      ],
-      bonus: 'You can play the Name That Loop game with your partner!',
-      color: '#ec4899'
-    },
-    'sound-effects': {
-      title: 'Class Sharing & Reflection',
-      icon: '🎤',
-      subtitle: 'Share your compositions and learning as a class',
-      steps: [
-        { number: '1', text: 'Observe your partner\'s work and share one star you noticed.' },
-        { number: '2', text: 'Reflect on one challenge you overcame in your composition.' },
-        { number: '3', text: 'Share what you learned about film music today with the class.' }
-      ],
-      bonus: 'Listen carefully to hear the variety of musical choices your classmates made!',
-      color: '#10b981'
-    },
-    'conclusion': {
-      title: 'Lesson Complete! 🎉',
-      icon: '🌟',
-      subtitle: 'Great work on today\'s film music lesson',
-      steps: [
-        { number: '1', text: 'You learned how music enhances storytelling in film.' },
-        { number: '2', text: 'You created your own composition for The School Beneath.' },
-        { number: '3', text: 'You reflected on your work and shared with classmates.' }
-      ],
-      bonus: 'Keep exploring music creation on your own!',
-      color: '#f59e0b'
-    }
-  };
-
-  const activityData = activityScreens[currentStage];
-
-  if (activityData) {
-    return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        backgroundColor: '#ffffff',
-        color: '#1f2937',
-        padding: '80px 60px',
-        position: 'relative'
-      }}>
-        <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={false} />
-        
-        {/* Professional Timer - Only show when countdown is active */}
-        {(isCountingDown && countdownTime > 0) && (
+        {/* Timer (only for activity stages) */}
+        {needsTimer && isCountingDown && countdownTime > 0 && (
           <ProfessionalTimer 
             seconds={countdownTime} 
             isCountingDown={true}
             initialCountdownTime={initialCountdownTime}
           />
         )}
-
-        <div style={{ fontSize: '100px', marginBottom: '32px' }}>{activityData.icon}</div>
-
-        <h1 style={{
-          fontSize: '56px',
-          fontWeight: '700',
-          marginBottom: '16px',
-          textAlign: 'center',
-          color: '#1f2937',
-          maxWidth: '1100px',
-          lineHeight: '1.2'
-        }}>
-          {activityData.title}
-        </h1>
-
-        <p style={{
-          fontSize: '24px',
-          color: '#6b7280',
-          marginBottom: '56px',
-          textAlign: 'center',
-          maxWidth: '800px'
-        }}>
-          {activityData.subtitle}
-        </p>
-
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '32px',
-          width: '100%',
-          maxWidth: '1100px',
-          marginBottom: '40px'
-        }}>
-          {activityData.steps.map((step, index) => (
-            <div key={index} style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '32px',
-              padding: '36px',
-              backgroundColor: '#f9fafb',
-              borderRadius: '16px',
-              border: '2px solid #e5e7eb'
-            }}>
-              <div style={{
-                minWidth: '72px',
-                height: '72px',
-                borderRadius: '50%',
-                backgroundColor: activityData.color,
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '36px',
-                fontWeight: '700',
-                flexShrink: 0
-              }}>
-                {step.number}
-              </div>
-              
-              <div style={{ flex: 1, paddingTop: '8px' }}>
-                <div style={{
-                  fontSize: '32px',
-                  color: '#374151',
-                  lineHeight: '1.4',
-                  fontWeight: '400'
-                }}>
-                  {step.text}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {activityData.bonus && (
-          <p style={{
-            fontSize: '22px',
-            color: '#f59e0b',
-            fontWeight: '600',
-            textAlign: 'center',
-            marginBottom: '40px'
-          }}>
-            {activityData.bonus}
-          </p>
-        )}
-
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '18px 36px',
-          backgroundColor: '#f0fdf4',
-          border: '2px solid #86efac',
-          borderRadius: '999px',
-          fontSize: '20px',
-          fontWeight: '600',
-          color: '#166534'
-        }}>
-          <span style={{ fontSize: '24px' }}>✓</span>
-          Activity In Progress
-        </div>
+        
+        {/* Canva Image */}
+        <CanvaImageSlide
+          imagePath={imagePath}
+          sessionCode={sessionCode}
+        />
       </div>
     );
   }
 
+  // Fallback for unknown stages
   return (
     <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      backgroundColor: '#ffffff',
-      color: '#1f2937',
-      fontSize: '24px'
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      minHeight: '100vh', backgroundColor: '#ffffff',
+      color: '#1f2937', fontSize: '24px'
     }}>
-      Unknown activity: {currentStage}
+      Unknown stage: {currentStage}
     </div>
   );
 };

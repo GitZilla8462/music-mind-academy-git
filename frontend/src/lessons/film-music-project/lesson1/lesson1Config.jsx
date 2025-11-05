@@ -1,5 +1,5 @@
 // File: /lessons/film-music-project/lesson1/lesson1Config.js
-// Lesson 1 configuration - FIXED VERSION
+// Lesson 1 configuration - UPDATED with image slides
 
 export const LESSON_PROGRESS_KEY = 'lesson1-progress';
 export const LESSON_TIMER_KEY = 'lesson1-timer';
@@ -14,13 +14,20 @@ export const lessonSections = [
     subtitle: 'Welcome & DAW Tutorial',
     icon: '🎬',
     color: 'blue',
-    estimatedTime: 9,
+    estimatedTime: 10,
     stages: [
+      { 
+        id: 'welcome-instructions', 
+        type: 'summary', 
+        label: 'Show Welcome Instructions',
+        description: 'Display welcome screen',
+        duration: 1
+      },
       { 
         id: 'intro-summary', 
         type: 'summary', 
-        label: 'Show Welcome Instructions',
-        description: 'Display introduction summary',
+        label: 'Show Agenda',
+        description: 'Display lesson agenda',
         duration: 1
       },
       { 
@@ -177,12 +184,6 @@ export const lesson1Config = {
       type: "two-stars-wish",
       title: "Reflection Activity",
       estimatedTime: "5 min"
-    },
-    {
-      id: 6,
-      type: "sound-effects",
-      title: "Bonus: Add Sound Effects",
-      estimatedTime: "Remaining time"
     }
   ]
 };
@@ -195,9 +196,17 @@ export const lessonStages = [
     type: 'waiting'
   },
   { 
-    id: 'intro-summary', 
+    id: 'welcome-instructions', 
     label: 'Show Welcome Instructions', 
-    description: 'Introduction summary',
+    description: 'Welcome screen',
+    type: 'summary',
+    content: 'introVideo',
+    duration: 1
+  },
+  { 
+    id: 'intro-summary', 
+    label: 'Show Agenda', 
+    description: 'Lesson agenda',
     type: 'summary',
     content: 'introVideo',
     duration: 1
@@ -280,15 +289,6 @@ export const lessonStages = [
     hasTimer: true,
     duration: 10
   },
-  { 
-    id: 'sound-effects', 
-    label: 'Unlock Bonus: Sound Effects', 
-    description: 'Add sound effects', 
-    hasProgress: true,
-    type: 'bonus',
-    hasTimer: true,
-    duration: 5
-  },
   {
     id: 'conclusion',
     label: 'Class Discussion',
@@ -301,6 +301,7 @@ export const lessonStages = [
 // Helper function to map session stage to activity type
 export const getActivityForStage = (stage) => {
   const stageMap = {
+    'welcome-instructions': 'summary',
     'intro-summary': 'summary',
     'intro-video': 'video',
     'daw-summary': 'summary',
@@ -310,8 +311,7 @@ export const getActivityForStage = (stage) => {
     'school-summary': 'summary',
     'school-beneath': 'school-beneath-activity',
     'reflection-summary': 'summary',
-    'reflection': 'two-stars-wish',
-    'sound-effects': 'sound-effects'
+    'reflection': 'two-stars-wish'
   };
   return stageMap[stage];
 };
