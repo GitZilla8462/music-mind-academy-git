@@ -7,7 +7,6 @@ import { useSession } from "../../../context/SessionContext";
 
 // Config
 import { lesson1Config, lessonStages, getActivityForStage } from './lesson1Config';
-import { summarySlides } from './summarySlideContent';
 
 // Hooks
 import { useLesson } from '../../shared/hooks/useLesson';
@@ -19,10 +18,23 @@ import LessonStartScreen from '../../shared/components/LessonStartScreen';
 import SessionTeacherPanel from '../../shared/components/SessionTeacherPanel';
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
-import SummarySlide from '../../shared/components/Summaryslide';
 
 const LESSON_PROGRESS_KEY = 'lesson1-progress';
 const LESSON_TIMER_KEY = 'lesson1-timer';
+
+// Map stages to slide image filenames (matching PresentationView)
+const slideImages = {
+  'welcome-instructions': 'welcome-instructions.png',
+  'intro-summary': 'intro-summary.png',
+  'daw-summary': 'daw-summary.png',
+  'daw-tutorial': 'daw-tutorial.png',
+  'activity-summary': 'activity-summary.png',
+  'school-summary': 'school-summary.png',
+  'school-beneath': 'school-beneath.png',
+  'reflection-summary': 'reflection-summary.png',
+  'reflection': 'reflection.png',
+  'conclusion': 'conclusion.png'
+};
 
 const Lesson1 = () => {
   const navigate = useNavigate();
@@ -147,28 +159,33 @@ const Lesson1 = () => {
       );
     }
     
-    // Student viewing summary slide
+    // Student viewing summary slide - SHOW PNG IMAGES (matching presentation view)
     const currentStageData = lessonStages.find(stage => stage.id === currentStage);
     if (currentStageData?.type === 'summary') {
-      const slideContent = summarySlides[currentStageData?.content];
-      return slideContent ? (
-        <SummarySlide
-          title={slideContent.title}
-          points={slideContent.points}
-          estimatedTime={slideContent.estimatedTime}
-          icon={slideContent.icon}
-          sessionCode={sessionCode}
-        />
+      const imagePath = slideImages[currentStage];
+      return imagePath ? (
+        <div className="h-screen flex items-center justify-center bg-black">
+          <img 
+            src={`/lessons/film-music-project/lesson1/slides/${imagePath}`}
+            alt={currentStage}
+            className="max-w-full max-h-screen object-contain"
+          />
+        </div>
       ) : (
         <StudentWaitingScreen />
       );
     }
     
-    // ðŸŽ¬ VIDEO STAGES: Students don't see videos - they watch on main screen
+    // ðŸŽ¬ VIDEO STAGES: Students see static slide (not the video)
     if (currentStageData?.type === 'video') {
-      return <StudentWaitingScreen 
-        lessonTitle="Please watch the video on the main screen" 
-      />;
+      // Show a static "watch the main screen" message
+      return (
+        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <div className="text-8xl mb-8 animate-pulse">🎬</div>
+          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+          <p className="text-2xl text-gray-400">The video is playing on the projection screen</p>
+        </div>
+      );
     }
     
     // Student viewing active activity

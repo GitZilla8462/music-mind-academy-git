@@ -85,10 +85,21 @@ export const joinSession = async (sessionCode, studentId, studentName) => {
  * Update the current stage of the lesson
  * @param {string} sessionCode - Session code
  * @param {string} stage - New stage ('locked', 'activity1-unlocked', etc.)
+ * 
+ * ✅ FIXED: Now clears timer data when changing stages to prevent glitching
  */
 export const updateSessionStage = async (sessionCode, stage) => {
-  const stageRef = ref(database, `sessions/${sessionCode}/currentStage`);
-  await set(stageRef, stage);
+  const sessionRef = ref(database, `sessions/${sessionCode}`);
+  
+  // When changing stages, also clear any existing timer data
+  // This prevents old timer data from interfering with the new stage
+  await update(sessionRef, {
+    currentStage: stage,
+    timestamp: Date.now(),
+    // Clear timer data when changing stages
+    countdownTime: null,
+    timerActive: null
+  });
 };
 
 /**

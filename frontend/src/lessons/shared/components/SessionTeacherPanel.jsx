@@ -41,16 +41,16 @@ const SessionTeacherPanel = ({
             const timerData = activityTimers[stage.id];
             const adjustedDuration = timerData?.presetTime ?? stage.duration;
             total += adjustedDuration;
-            console.log(`📊 ${stage.id}: ${adjustedDuration} min (adjusted: ${timerData?.presetTime ? 'yes' : 'no'})`);
+            console.log(`ðŸ“Š ${stage.id}: ${adjustedDuration} min (adjusted: ${timerData?.presetTime ? 'yes' : 'no'})`);
           } else {
             // For videos and other timed stages without hasTimer, just use duration
             total += stage.duration;
-            console.log(`📊 ${stage.id}: ${stage.duration} min (fixed duration)`);
+            console.log(`ðŸ“Š ${stage.id}: ${stage.duration} min (fixed duration)`);
           }
         }
       });
     });
-    console.log(`📊 Total lesson time: ${total} minutes`);
+    console.log(`ðŸ“Š Total lesson time: ${total} minutes`);
     return total;
   }, [config.lessonSections, activityTimers]);
 
@@ -91,7 +91,7 @@ const SessionTeacherPanel = ({
         if (nextStageIndex < lessonStages.length) {
           const nextStage = lessonStages[nextStageIndex];
           jumpToStage(nextStage.id); // Use jumpToStage to trigger auto-timer
-          console.log('âž¡ï¸ Advanced to next stage via keyboard');
+          console.log('Ã¢Å¾Â¡Ã¯Â¸Â Advanced to next stage via keyboard');
         }
       }
       
@@ -103,7 +103,7 @@ const SessionTeacherPanel = ({
         if (previousStageIndex >= 0) {
           const previousStage = lessonStages[previousStageIndex];
           jumpToStage(previousStage.id); // Use jumpToStage to trigger auto-timer
-          console.log('â¬…ï¸ Went back to previous stage via keyboard');
+          console.log('Ã¢Â¬â€¦Ã¯Â¸Â Went back to previous stage via keyboard');
         }
       }
     };
@@ -146,7 +146,7 @@ const SessionTeacherPanel = ({
     return { completed: completedStages, total: section.stages.length };
   };
 
-  // âœ… NEW: Get dynamic estimated time for a section based on adjusted timers
+  // Ã¢Å“â€¦ NEW: Get dynamic estimated time for a section based on adjusted timers
   const getSectionEstimatedTime = (section) => {
     let total = 0;
     section.stages.forEach(stage => {
@@ -167,7 +167,7 @@ const SessionTeacherPanel = ({
 
   // Jump to a specific stage
   const jumpToStage = (stageId) => {
-    console.log('🎯 Jumping to stage:', stageId);
+    console.log('ðŸŽ¯ Jumping to stage:', stageId);
     setCurrentStage(stageId);
     
   };
@@ -227,7 +227,7 @@ const SessionTeacherPanel = ({
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 p-6">
+    <div className="min-h-screen bg-white text-gray-900 p-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -330,7 +330,7 @@ const SessionTeacherPanel = ({
                     </div>
                   </div>
 
-                  {/* Time Estimate - âœ… NOW DYNAMIC */}
+                  {/* Time Estimate - Ã¢Å“â€¦ NOW DYNAMIC */}
                   <div className="text-right">
                     <div className="text-sm text-gray-500">Time</div>
                     <div className="font-semibold text-gray-900">{getSectionEstimatedTime(section)} min</div>

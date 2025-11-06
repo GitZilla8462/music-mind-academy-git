@@ -1,5 +1,5 @@
 // File: /lessons/shared/hooks/useActivityTimers.js
-// Activity timer management hook - FIXED VERSION
+// Activity timer management hook - FIXED VERSION with stage cleanup
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getDatabase, ref, set as firebaseSet } from 'firebase/database';
@@ -23,6 +23,7 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
   
   // Track which timers have been auto-started to prevent repeated calls
   const autoStartedTimers = useRef(new Set());
+  const lastStageRef = useRef(null);
 
   // Format time helper
   const formatTime = useCallback((seconds) => {
@@ -177,6 +178,68 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
     }
   }, [sessionCode, getCurrentStage]);
 
+  // ✅ NEW: Stop all timers when leaving a timer stage
+  useEffect(() => {
+    if (!getCurrentStage || !lessonStages) return;
+    
+    const currentStageId = getCurrentStage();
+    if (!currentStageId) return;
+    
+    // If stage changed
+    if (lastStageRef.current && lastStageRef.current !== currentStageId) {
+      const previousStage = lessonStages.find(s => s.id === lastStageRef.current);
+      const currentStage = lessonStages.find(s => s.id === currentStageId);
+      
+      // If leaving a timer stage
+      if (previousStage?.hasTimer) {
+        const previousTimer = activityTimers[lastStageRef.current];
+        
+        // If timer was running, stop it immediately
+        if (previousTimer?.isActive) {
+          console.log(`🛑 Stage changed from ${lastStageRef.current} to ${currentStageId} - stopping timer`);
+          
+          // Immediately stop the timer to prevent race conditions
+          setActivityTimers(prev => ({
+            ...prev,
+            [lastStageRef.current]: {
+              ...prev[lastStageRef.current],
+              isActive: false,
+              timeRemaining: 0
+            }
+          }));
+          
+          // Immediately clear Firebase to prevent lingering updates
+          if (sessionCode) {
+            const db = getDatabase();
+            const sessionRef = ref(db, `sessions/${sessionCode}`);
+            
+            firebaseSet(sessionRef, {
+              currentStage: currentStageId,
+              countdownTime: null,
+              timerActive: null,
+              timestamp: Date.now()
+            });
+          }
+        }
+      } 
+      // If entering a non-timer stage from a non-timer stage, still clear Firebase timer data
+      else if (!currentStage?.hasTimer && sessionCode) {
+        console.log(`🧹 Entered non-timer stage ${currentStageId} - clearing Firebase timer data`);
+        const db = getDatabase();
+        const sessionRef = ref(db, `sessions/${sessionCode}`);
+        
+        firebaseSet(sessionRef, {
+          currentStage: currentStageId,
+          countdownTime: null,
+          timerActive: null,
+          timestamp: Date.now()
+        });
+      }
+    }
+    
+    lastStageRef.current = currentStageId;
+  }, [getCurrentStage, lessonStages, activityTimers, sessionCode]);
+
   // ✅ Countdown effect
   useEffect(() => {
     const intervals = [];
@@ -188,7 +251,11 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
         const interval = setInterval(() => {
           setActivityTimers(prev => {
             const currentTimer = prev[activityId];
-            if (!currentTimer) return prev;
+            
+            // ✅ CRITICAL: Stop immediately if timer is no longer active or doesn't exist
+            if (!currentTimer || !currentTimer.isActive || currentTimer.timeRemaining <= 0) {
+              return prev;
+            }
             
             const newTimeRemaining = currentTimer.timeRemaining - 1;
             
