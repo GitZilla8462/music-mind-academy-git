@@ -2,6 +2,7 @@
 // ENHANCED VERSION with Auto-Save, Two-Modal Flow, Voice Announcements, and Teacher Finalize
 // FIXED: Removed timestamp from compositionData to prevent infinite re-renders
 // FIXED: Added useEffect to handle session mode loading
+// DEBUG: Added logging to diagnose loading screen issue
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -25,6 +26,8 @@ const SchoolBeneathActivity = ({
 }) => {
   const navigate = useNavigate();
   const { sessionCode } = useSession();
+  
+  console.log('🎬 SchoolBeneathActivity props:', { isSessionMode, viewMode, sessionCode });
   
   // Generate or retrieve anonymous student ID
   const [studentId, setStudentId] = useState('');
@@ -50,10 +53,13 @@ const SchoolBeneathActivity = ({
   const [videoDuration, setVideoDuration] = useState(null);
   const [isLoadingVideo, setIsLoadingVideo] = useState(!isSessionMode);
   
+  console.log('🔧 Initial isLoadingVideo state:', !isSessionMode, 'isSessionMode:', isSessionMode);
+  
   // 🚨 CRITICAL: Update loading state when session mode changes
   useEffect(() => {
+    console.log('🔄 useEffect checking session mode:', isSessionMode);
     if (isSessionMode) {
-      console.log('🎬 Session mode detected, bypassing video loading screen');
+      console.log('🎬 Session mode detected, setting isLoadingVideo to false');
       setIsLoadingVideo(false);
     }
   }, [isSessionMode]);
@@ -449,16 +455,29 @@ const SchoolBeneathActivity = ({
   // LOADING STATE
   // ============================================================================
   
-  if (isLoadingVideo && !viewMode) {
+  console.log('🔍 Loading check:', { 
+    isLoadingVideo, 
+    viewMode, 
+    isSessionMode,
+    shouldShowLoading: isLoadingVideo && !viewMode && !isSessionMode 
+  });
+
+  if (isLoadingVideo && !viewMode && !isSessionMode) {
+    console.log('🚫 SHOWING LOADING SCREEN');
     return (
       <div className="h-full flex items-center justify-center bg-gray-900">
         <div className="text-white text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
           <p>Loading video...</p>
+          <p className="text-xs text-gray-400 mt-2">
+            Debug: isSessionMode={isSessionMode.toString()}, isLoadingVideo={isLoadingVideo.toString()}, viewMode={viewMode.toString()}
+          </p>
         </div>
       </div>
     );
   }
+
+  console.log('✅ BYPASSING LOADING SCREEN - Rendering DAW');
 
   // ============================================================================
   // ASSIGNMENT PANEL CONTENT
