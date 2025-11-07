@@ -1,19 +1,19 @@
 // File: /lessons/shared/hooks/useActivityTimers.js
-// Activity timer management hook - FIXED VERSION with stage cleanup
+// Activity timer management hook - FIXED: Only teacher controls countdown
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getDatabase, ref, set as firebaseSet } from 'firebase/database';
 
-export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) => {
+export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages, userRole) => {
   // ✅ Initialize ALL stages with timers from lessonStages
   const [activityTimers, setActivityTimers] = useState(() => {
     const initialTimers = {};
     lessonStages?.forEach(stage => {
       if (stage.hasTimer && stage.duration) {
         initialTimers[stage.id] = {
-          presetTime: stage.duration,  // ✅ Changed from 'preset' to 'presetTime'
-          timeRemaining: 0,             // ✅ Changed from 'current' to 'timeRemaining'
-          isActive: false                // ✅ Changed from 'isRunning' to 'isActive'
+          presetTime: stage.duration,
+          timeRemaining: 0,
+          isActive: false
         };
       }
     });
@@ -24,6 +24,7 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
   // Track which timers have been auto-started to prevent repeated calls
   const autoStartedTimers = useRef(new Set());
   const lastStageRef = useRef(null);
+  const intervalsRef = useRef([]);
 
   // Format time helper
   const formatTime = useCallback((seconds) => {
@@ -54,7 +55,7 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
 
   // ✅ Start timer - accepts activityId and optional duration in MINUTES
   const startActivityTimer = useCallback((activityId, durationMinutes = null) => {
-    console.log(`▶️  Starting timer for ${activityId}`, { durationMinutes });
+    console.log(`▶️  Starting timer for ${activityId}`, { durationMinutes, userRole });
     
     setActivityTimers(prev => {
       const currentTimer = prev[activityId];
@@ -79,9 +80,10 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
       };
     });
 
-    // Update Firebase
-    if (sessionCode) {
-      const minutes = durationMinutes !== null ? durationMinutes : activityTimers[activityId]?.presetTime || 5;
+    // Update Firebase - only if teacher or no session
+    if (sessionCode && (!userRole || userRole === 'teacher')) {
+      const currentTimer = activityTimers[activityId];
+      const minutes = durationMinutes !== null ? durationMinutes : currentTimer?.presetTime || 5;
       const seconds = minutes * 60;
       
       const db = getDatabase();
@@ -96,7 +98,7 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
       
       console.log(`📡 Firebase updated: ${seconds}s, active: true`);
     }
-  }, [activityTimers, sessionCode, getCurrentStage]);
+  }, [activityTimers, sessionCode, getCurrentStage, userRole]);
 
   // Pause timer
   const pauseActivityTimer = useCallback((activityId) => {
@@ -109,8 +111,8 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
       }
     }));
     
-    // Update Firebase
-    if (sessionCode) {
+    // Update Firebase - only if teacher or no session
+    if (sessionCode && (!userRole || userRole === 'teacher')) {
       const db = getDatabase();
       const sessionRef = ref(db, `sessions/${sessionCode}`);
       
@@ -121,7 +123,7 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
         timestamp: Date.now()
       });
     }
-  }, [sessionCode, getCurrentStage, activityTimers]);
+  }, [sessionCode, getCurrentStage, activityTimers, userRole]);
 
   // Resume timer
   const resumeActivityTimer = useCallback((activityId) => {
@@ -134,8 +136,8 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
       }
     }));
     
-    // Update Firebase
-    if (sessionCode) {
+    // Update Firebase - only if teacher or no session
+    if (sessionCode && (!userRole || userRole === 'teacher')) {
       const db = getDatabase();
       const sessionRef = ref(db, `sessions/${sessionCode}`);
       
@@ -146,7 +148,7 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
         timestamp: Date.now()
       });
     }
-  }, [sessionCode, getCurrentStage, activityTimers]);
+  }, [sessionCode, getCurrentStage, activityTimers, userRole]);
 
   // ✅ Reset timer
   const resetActivityTimer = useCallback((activityId) => {
@@ -164,8 +166,8 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
       }
     }));
 
-    // Update Firebase to clear timer
-    if (sessionCode) {
+    // Update Firebase to clear timer - only if teacher or no session
+    if (sessionCode && (!userRole || userRole === 'teacher')) {
       const db = getDatabase();
       const sessionRef = ref(db, `sessions/${sessionCode}`);
       
@@ -176,9 +178,9 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
         timestamp: Date.now()
       });
     }
-  }, [sessionCode, getCurrentStage]);
+  }, [sessionCode, getCurrentStage, userRole]);
 
-  // ✅ NEW: Stop all timers when leaving a timer stage
+  // ✅ Stop all timers when leaving a timer stage
   useEffect(() => {
     if (!getCurrentStage || !lessonStages) return;
     
@@ -198,6 +200,10 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
         if (previousTimer?.isActive) {
           console.log(`🛑 Stage changed from ${lastStageRef.current} to ${currentStageId} - stopping timer`);
           
+          // Clear any running intervals
+          intervalsRef.current.forEach(interval => clearInterval(interval));
+          intervalsRef.current = [];
+          
           // Immediately stop the timer to prevent race conditions
           setActivityTimers(prev => ({
             ...prev,
@@ -208,8 +214,8 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
             }
           }));
           
-          // Immediately clear Firebase to prevent lingering updates
-          if (sessionCode) {
+          // Immediately clear Firebase - only if teacher or no session
+          if (sessionCode && (!userRole || userRole === 'teacher')) {
             const db = getDatabase();
             const sessionRef = ref(db, `sessions/${sessionCode}`);
             
@@ -222,8 +228,8 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
           }
         }
       } 
-      // If entering a non-timer stage from a non-timer stage, still clear Firebase timer data
-      else if (!currentStage?.hasTimer && sessionCode) {
+      // If entering a non-timer stage, clear Firebase timer data
+      else if (!currentStage?.hasTimer && sessionCode && (!userRole || userRole === 'teacher')) {
         console.log(`🧹 Entered non-timer stage ${currentStageId} - clearing Firebase timer data`);
         const db = getDatabase();
         const sessionRef = ref(db, `sessions/${sessionCode}`);
@@ -238,11 +244,20 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
     }
     
     lastStageRef.current = currentStageId;
-  }, [getCurrentStage, lessonStages, activityTimers, sessionCode]);
+  }, [getCurrentStage, lessonStages, activityTimers, sessionCode, userRole]);
 
-  // ✅ Countdown effect
+  // ✅ Countdown effect - ONLY TEACHER CONTROLS THE COUNTDOWN
   useEffect(() => {
-    const intervals = [];
+    // 🚨 CRITICAL: Students should NEVER run countdown timers
+    // They only display what Firebase tells them
+    if (sessionCode && userRole === 'student') {
+      console.log('⏭️  Student mode: Skipping countdown effect (reading from Firebase only)');
+      return;
+    }
+
+    // Clear old intervals
+    intervalsRef.current.forEach(interval => clearInterval(interval));
+    intervalsRef.current = [];
     
     Object.keys(activityTimers).forEach(activityId => {
       const timer = activityTimers[activityId];
@@ -252,7 +267,7 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
           setActivityTimers(prev => {
             const currentTimer = prev[activityId];
             
-            // ✅ CRITICAL: Stop immediately if timer is no longer active or doesn't exist
+            // Stop immediately if timer is no longer active or doesn't exist
             if (!currentTimer || !currentTimer.isActive || currentTimer.timeRemaining <= 0) {
               return prev;
             }
@@ -272,8 +287,8 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
                 });
               }
               
-              // Update Firebase when timer finishes
-              if (sessionCode) {
+              // Update Firebase when timer finishes - only if teacher or no session
+              if (sessionCode && (!userRole || userRole === 'teacher')) {
                 const db = getDatabase();
                 const sessionRef = ref(db, `sessions/${sessionCode}`);
                 
@@ -295,8 +310,8 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
               };
             }
             
-            // Update Firebase at strategic intervals
-            const shouldUpdateFirebase = sessionCode && (
+            // Update Firebase at strategic intervals - only if teacher or no session
+            const shouldUpdateFirebase = (sessionCode && (!userRole || userRole === 'teacher')) && (
               (newTimeRemaining > 60 && newTimeRemaining % 10 === 0) ||
               (newTimeRemaining >= 10 && newTimeRemaining <= 60 && newTimeRemaining % 5 === 0) ||
               (newTimeRemaining < 10)
@@ -324,16 +339,22 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
           });
         }, 1000);
         
-        intervals.push(interval);
+        intervalsRef.current.push(interval);
       }
     });
     
-    return () => intervals.forEach(interval => clearInterval(interval));
-  }, [activityTimers, sessionCode, getCurrentStage]);
+    return () => {
+      intervalsRef.current.forEach(interval => clearInterval(interval));
+      intervalsRef.current = [];
+    };
+  }, [activityTimers, sessionCode, getCurrentStage, userRole]);
 
-  // ✅ Auto-start timer when activity stage is unlocked
+  // ✅ Auto-start timer when activity stage is unlocked - TEACHER ONLY
   useEffect(() => {
     if (!getCurrentStage || !lessonStages) return;
+    
+    // Students don't auto-start timers
+    if (sessionCode && userRole === 'student') return;
     
     const currentStageId = getCurrentStage();
     if (!currentStageId) return;
@@ -353,12 +374,11 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
         
         setTimeout(() => {
           console.log('🚀 Auto-starting timer for', currentStageId, 'with adjusted time:', timer.presetTime, 'min');
-          // ✅ FIXED: Pass the adjusted presetTime to ensure adjusted time is used
           startActivityTimer(currentStageId, timer.presetTime);
         }, 100);
       }
     }
-  }, [getCurrentStage, lessonStages, activityTimers, startActivityTimer]);
+  }, [getCurrentStage, lessonStages, activityTimers, startActivityTimer, sessionCode, userRole]);
 
   return {
     activityTimers,

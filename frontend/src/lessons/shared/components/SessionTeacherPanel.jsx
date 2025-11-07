@@ -1,8 +1,9 @@
 // File: /src/lessons/shared/components/SessionTeacherPanel.jsx
-// ENHANCED: Card-based teacher control panel with section groupings
+// ENHANCED: Card-based teacher control panel with section groupings + Save All Student Work (BLOCKING)
 
 import React, { useState, useEffect } from 'react';
-import { Clock, Play, Pause, SkipForward, CheckCircle, Users, ChevronDown, ChevronUp, ExternalLink, Plus, Minus, RotateCcw } from 'lucide-react';
+import { Clock, Play, Pause, SkipForward, CheckCircle, Users, ChevronDown, ChevronUp, ExternalLink, Plus, Minus, RotateCcw, Save } from 'lucide-react';
+import { getDatabase, ref, onValue, set } from 'firebase/database';
 
 const SessionTeacherPanel = ({
   config,
@@ -23,7 +24,10 @@ const SessionTeacherPanel = ({
   onOpenPresentation
 }) => {
   const [expandedSections, setExpandedSections] = useState(new Set()); // All sections closed by default
-
+  const [isFinalizing, setIsFinalizing] = useState(false);
+  const [studentsFinalized, setStudentsFinalized] = useState({});
+  const [hasFinalized, setHasFinalized] = useState(false); // Track if save completed
+  
   const currentStage = getCurrentStage();
   const students = getStudents();
   const studentCount = students?.length || 0;
@@ -41,16 +45,16 @@ const SessionTeacherPanel = ({
             const timerData = activityTimers[stage.id];
             const adjustedDuration = timerData?.presetTime ?? stage.duration;
             total += adjustedDuration;
-            console.log(`ðŸ“Š ${stage.id}: ${adjustedDuration} min (adjusted: ${timerData?.presetTime ? 'yes' : 'no'})`);
+            console.log(`📊 ${stage.id}: ${adjustedDuration} min (adjusted: ${timerData?.presetTime ? 'yes' : 'no'})`);
           } else {
             // For videos and other timed stages without hasTimer, just use duration
             total += stage.duration;
-            console.log(`ðŸ“Š ${stage.id}: ${stage.duration} min (fixed duration)`);
+            console.log(`📊 ${stage.id}: ${stage.duration} min (fixed duration)`);
           }
         }
       });
     });
-    console.log(`ðŸ“Š Total lesson time: ${total} minutes`);
+    console.log(`📊 Total lesson time: ${total} minutes`);
     return total;
   }, [config.lessonSections, activityTimers]);
 
@@ -80,6 +84,16 @@ const SessionTeacherPanel = ({
     }
   }, [currentStage, config.lessonSections]);
 
+  // Reset hasFinalized when entering a stage that requires save
+  useEffect(() => {
+    const currentStageConfig = lessonStages.find(s => s.id === currentStage);
+    // Reset if entering school-beneath OR any stage with requireSaveBeforeAdvance
+    if (currentStage === 'school-beneath' || currentStageConfig?.requireSaveBeforeAdvance) {
+      setHasFinalized(false); // Reset when entering a stage that requires finalization
+      console.log('🔄 Reset finalization status for:', currentStage);
+    }
+  }, [currentStage, lessonStages]);
+
   // Keyboard navigation - Right arrow advances to next stage
   useEffect(() => {
     const handleKeyPress = (event) => {
@@ -90,63 +104,81 @@ const SessionTeacherPanel = ({
         
         if (nextStageIndex < lessonStages.length) {
           const nextStage = lessonStages[nextStageIndex];
-          jumpToStage(nextStage.id); // Use jumpToStage to trigger auto-timer
-          console.log('Ã¢Å¾Â¡Ã¯Â¸Â Advanced to next stage via keyboard');
+          jumpToStage(nextStage.id); // Use jumpToStage to trigger auto-timer AND check for save requirement
+          console.log('⏩️ Advanced to next stage via keyboard');
         }
       }
       
       // Left arrow key - go back to previous stage
       if (event.key === 'ArrowLeft') {
         const currentStageIndex = lessonStages.findIndex(s => s.id === currentStage);
-        const previousStageIndex = currentStageIndex - 1;
+        const prevStageIndex = currentStageIndex - 1;
         
-        if (previousStageIndex >= 0) {
-          const previousStage = lessonStages[previousStageIndex];
-          jumpToStage(previousStage.id); // Use jumpToStage to trigger auto-timer
-          console.log('Ã¢Â¬â€¦Ã¯Â¸Â Went back to previous stage via keyboard');
+        if (prevStageIndex >= 0) {
+          const prevStage = lessonStages[prevStageIndex];
+          jumpToStage(prevStage.id);
+          console.log('⏪ Went back to previous stage via keyboard');
         }
       }
     };
 
-    // Add event listener
     window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [currentStage, lessonStages, hasFinalized]); // Add hasFinalized to deps
 
-    // Cleanup
-    return () => {
-      window.removeEventListener('keydown', handleKeyPress);
-    };
-  }, [currentStage, lessonStages, setCurrentStage]);
+  // Listen to students finalization progress
+  useEffect(() => {
+    if (!sessionCode) return;
 
-  // Get status for a stage
+    const db = getDatabase();
+    const finalizedRef = ref(db, `sessions/${sessionCode}/studentsFinalized`);
+
+    const unsubscribe = onValue(finalizedRef, (snapshot) => {
+      const data = snapshot.val();
+      setStudentsFinalized(data || {});
+    });
+
+    return () => unsubscribe();
+  }, [sessionCode]);
+
+  // Get status of a stage
   const getStageStatus = (stageId) => {
-    if (stageId === currentStage) return 'active';
-    
-    const currentStageIndex = lessonStages.findIndex(s => s.id === currentStage);
+    const currentIndex = lessonStages.findIndex(s => s.id === currentStage);
     const stageIndex = lessonStages.findIndex(s => s.id === stageId);
     
-    if (stageIndex < currentStageIndex) return 'completed';
+    if (stageId === currentStage) return 'active';
+    if (stageIndex < currentIndex) return 'completed';
     return 'upcoming';
   };
 
-  // Get status for entire section
+  // Get status of a section
   const getSectionStatus = (section) => {
-    const stageStatuses = section.stages.map(stage => getStageStatus(stage.id));
+    const hasActiveStage = section.stages.some(stage => stage.id === currentStage);
+    if (hasActiveStage) return 'active';
     
-    if (stageStatuses.includes('active')) return 'active';
-    if (stageStatuses.every(status => status === 'completed')) return 'completed';
-    if (stageStatuses.some(status => status === 'completed')) return 'in-progress';
+    const allCompleted = section.stages.every(stage => {
+      const status = getStageStatus(stage.id);
+      return status === 'completed';
+    });
+    if (allCompleted) return 'completed';
+    
     return 'upcoming';
   };
 
-  // Get progress for a section
+  // Get progress within a section
   const getSectionProgress = (section) => {
-    const completedStages = section.stages.filter(stage => 
-      getStageStatus(stage.id) === 'completed'
-    ).length;
-    return { completed: completedStages, total: section.stages.length };
+    const completed = section.stages.filter(stage => {
+      const status = getStageStatus(stage.id);
+      return status === 'completed';
+    }).length;
+    
+    return {
+      completed,
+      total: section.stages.length
+    };
   };
 
-  // Ã¢Å“â€¦ NEW: Get dynamic estimated time for a section based on adjusted timers
+  // Get estimated time for a section (with adjusted timers)
   const getSectionEstimatedTime = (section) => {
     let total = 0;
     section.stages.forEach(stage => {
@@ -165,11 +197,23 @@ const SessionTeacherPanel = ({
     return total;
   };
 
-  // Jump to a specific stage
+  // Jump to a specific stage - WITH BLOCKING CHECK
   const jumpToStage = (stageId) => {
-    console.log('ðŸŽ¯ Jumping to stage:', stageId);
-    setCurrentStage(stageId);
+    // Find the current stage config
+    const currentStageConfig = lessonStages.find(s => s.id === currentStage);
     
+    // Check if current stage requires finalization before leaving
+    // Works for: school-beneath (hardcoded) OR any stage with requireSaveBeforeAdvance flag
+    const requiresSave = currentStage === 'school-beneath' || currentStageConfig?.requireSaveBeforeAdvance;
+    
+    if (requiresSave && !hasFinalized) {
+      alert('⚠️ Please click "Save All Student Work" before advancing to the next activity!');
+      console.log('🚫 Blocked navigation - save required for:', currentStage);
+      return; // Block navigation
+    }
+    
+    console.log('🎯 Jumping to stage:', stageId);
+    setCurrentStage(stageId);
   };
 
   // Increase timer by 1 minute
@@ -182,6 +226,33 @@ const SessionTeacherPanel = ({
   const decreaseTimer = (stageId, e) => {
     e.stopPropagation(); // Prevent row click
     adjustPresetTime(stageId, -1);
+  };
+
+  // Finalize student work
+  const finalizeStudentWork = async () => {
+    setIsFinalizing(true);
+    setStudentsFinalized({});
+    
+    const db = getDatabase();
+    
+    // Set the finalize flag
+    await set(ref(db, `sessions/${sessionCode}/finalizeWork`), true);
+    
+    console.log('💾 Requesting all students to save their work...');
+  };
+
+  const clearFinalizeSignal = async () => {
+    const db = getDatabase();
+    
+    // Clear the finalize flag and finalized students
+    await set(ref(db, `sessions/${sessionCode}/finalizeWork`), false);
+    await set(ref(db, `sessions/${sessionCode}/studentsFinalized`), null);
+    
+    setIsFinalizing(false);
+    setStudentsFinalized({});
+    setHasFinalized(true); // ✅ Mark as completed - allows navigation
+    
+    console.log('✅ Finalize signal cleared - navigation unlocked');
   };
 
   // Section color mapping - WHITE AND BLUE THEME
@@ -330,7 +401,7 @@ const SessionTeacherPanel = ({
                     </div>
                   </div>
 
-                  {/* Time Estimate - Ã¢Å“â€¦ NOW DYNAMIC */}
+                  {/* Time Estimate - ✔️ NOW DYNAMIC */}
                   <div className="text-right">
                     <div className="text-sm text-gray-500">Time</div>
                     <div className="font-semibold text-gray-900">{getSectionEstimatedTime(section)} min</div>
@@ -514,6 +585,89 @@ const SessionTeacherPanel = ({
                       );
                     })}
                   </div>
+
+                  {/* Save All Student Work Button - Show for school-beneath OR any stage with requireSaveBeforeAdvance flag */}
+                  {(() => {
+                    const currentStageConfig = section.stages.find(s => s.id === currentStage);
+                    // Show button if: current stage is school-beneath OR stage has requireSaveBeforeAdvance flag
+                    const shouldShowSaveButton = currentStage === 'school-beneath' || currentStageConfig?.requireSaveBeforeAdvance;
+                    
+                    return shouldShowSaveButton && (
+                      <div className="mt-4 mb-4">
+                        {!isFinalizing ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              finalizeStudentWork();
+                            }}
+                            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg font-bold text-base transition-colors flex items-center justify-center gap-2 shadow-lg"
+                          >
+                            <Save size={20} />
+                            Save All Student Work
+                          </button>
+                        ) : (
+                          <div className="bg-yellow-100 border-2 border-yellow-600 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-bold text-yellow-900">Saving Student Work...</span>
+                              <span className="text-yellow-900 font-mono">
+                                {Object.keys(studentsFinalized).length} / {studentCount}
+                              </span>
+                            </div>
+                            
+                            {/* Progress Bar */}
+                            <div className="w-full bg-gray-300 rounded-full h-3 mb-3">
+                              <div 
+                                className="bg-yellow-500 h-3 rounded-full transition-all duration-300"
+                                style={{ 
+                                  width: `${studentCount > 0 ? (Object.keys(studentsFinalized).length / studentCount) * 100 : 0}%` 
+                                }}
+                              />
+                            </div>
+                            
+                            <div className="flex gap-2">
+                              {Object.keys(studentsFinalized).length === studentCount ? (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    clearFinalizeSignal();
+                                  }}
+                                  className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium transition-colors flex items-center justify-center gap-2"
+                                >
+                                  <CheckCircle size={16} />
+                                  All Saved! Continue
+                                </button>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      clearFinalizeSignal();
+                                    }}
+                                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded font-medium transition-colors"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      clearFinalizeSignal();
+                                    }}
+                                    className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded font-medium transition-colors"
+                                  >
+                                    Continue Anyway
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <p className="text-xs text-gray-500 mt-2 text-center">
+                          ⚠️ You must click this before advancing to the next activity
+                        </p>
+                      </div>
+                    );
+                  })()}
 
                   {/* Quick Start Button */}
                   {sectionStatus === 'upcoming' && (

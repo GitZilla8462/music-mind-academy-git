@@ -57,6 +57,7 @@ const ActivityRenderer = ({
           viewMode={viewMode}
           viewBonusMode={viewBonusMode}
           lessonStartTime={lessonStartTime}
+          isSessionMode={isSessionMode}
         />
       );
 
