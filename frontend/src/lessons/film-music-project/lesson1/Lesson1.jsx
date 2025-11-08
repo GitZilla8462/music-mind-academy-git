@@ -75,7 +75,7 @@ const Lesson1 = () => {
   const lesson = useLesson(lessonConfig);
   
   // Activity timers (used in session mode)
-  const timers = useActivityTimers(sessionCode, getCurrentStage, lessonStages);
+  const timers = useActivityTimers(sessionCode, getCurrentStage, lessonStages, effectiveRole);
 
   // Check for view modes from URL params
   const searchParams = new URLSearchParams(location.search);

@@ -1,6 +1,6 @@
 // File: /src/hooks/useAutoSave.jsx
 // Custom hook for auto-saving student compositions to localStorage
-// Shows "Saved ✓" indicator when save happens
+// FIXED: Use refs to prevent re-subscribing on every render
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { autoSaveComposition, loadAutoSavedComposition } from '../lessons/film-music-project/lesson1/compositionServerUtils';
@@ -19,41 +19,54 @@ export const useAutoSave = (studentName, activityType, compositionData, saveInte
   const [hasSavedWork, setHasSavedWork] = useState(false);
   const saveTimeoutRef = useRef(null);
   const lastDataRef = useRef(null);
+  
+  // 🚨 CRITICAL: Use ref to track current data without causing re-renders
+  const compositionDataRef = useRef(compositionData);
+  
+  useEffect(() => {
+    compositionDataRef.current = compositionData;
+  }, [compositionData]);
 
   // Check if there's existing saved work on mount
   useEffect(() => {
     if (studentName && activityType) {
       const saved = loadAutoSavedComposition(activityType, studentName);
       setHasSavedWork(!!saved);
+      if (saved) {
+        console.log('📂 Found saved work on mount for', studentName, '-', activityType);
+      }
     }
   }, [studentName, activityType]);
 
-  // Auto-save function
+  // Auto-save function - stable, doesn't change
   const performSave = useCallback(() => {
-    if (!studentName || !activityType || !compositionData) {
+    const currentData = compositionDataRef.current;
+    
+    if (!studentName || !activityType || !currentData) {
       return;
     }
 
     // Check if data actually changed (avoid unnecessary saves)
-    const currentDataStr = JSON.stringify(compositionData);
+    const currentDataStr = JSON.stringify(currentData);
     if (lastDataRef.current === currentDataStr) {
       return;
     }
 
     setIsSaving(true);
-    const result = autoSaveComposition(compositionData, activityType, studentName);
+    const result = autoSaveComposition(currentData, activityType, studentName);
     
     if (result.success) {
       setLastSaved(new Date(result.lastSaved));
       lastDataRef.current = currentDataStr;
       setHasSavedWork(true);
+      console.log(`✅ Auto-saved locally for ${studentName} - ${activityType}`);
     }
     
     // Show "Saving..." for at least 500ms for visual feedback
     setTimeout(() => {
       setIsSaving(false);
     }, 500);
-  }, [studentName, activityType, compositionData]);
+  }, [studentName, activityType]); // 🚨 NO compositionData dependency
 
   // Set up auto-save interval
   useEffect(() => {
@@ -61,20 +74,23 @@ export const useAutoSave = (studentName, activityType, compositionData, saveInte
       return;
     }
 
-    // Clear any existing timeout
+    // Clear any existing interval
     if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
+      clearInterval(saveTimeoutRef.current);
     }
 
-    // Set up new auto-save
-    saveTimeoutRef.current = setTimeout(() => {
+    // Set up new auto-save with setInterval (runs repeatedly every 5 seconds)
+    saveTimeoutRef.current = setInterval(() => {
       performSave();
     }, saveInterval);
+
+    console.log(`🔄 Auto-save started for ${studentName} - ${activityType} (every ${saveInterval/1000}s)`);
 
     // Cleanup on unmount or when dependencies change
     return () => {
       if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
+        clearInterval(saveTimeoutRef.current);
+        console.log(`🛑 Auto-save stopped for ${studentName} - ${activityType}`);
       }
     };
   }, [performSave, saveInterval, studentName, activityType]);
