@@ -1,13 +1,14 @@
 // File: /src/lessons/film-music-project/lesson1/activities/SoundEffectsActivity.jsx
 // Bonus activity: Add sound effects to completed composition
 // UPDATED: isSessionMode prop to hide timer for students in session mode
-// UPDATED: Firebase saving for compositions
+// UPDATED: Firebase saving for compositions + AUTO-SAVE every 5 seconds
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
 import { saveCompositionToServer } from '../../film-music-project/lesson1/compositionServerUtils';
 import { Sparkles } from 'lucide-react';
+import { useAutoSave, AutoSaveIndicator } from '../../../hooks/useAutoSave.jsx';
 
 const SoundEffectsActivity = ({ 
   onComplete, 
@@ -23,6 +24,32 @@ const SoundEffectsActivity = ({
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [voiceVolume, setVoiceVolume] = useState(0.5);
   const hasSpokenRef = useRef(false);
+  
+  // Student ID for auto-save
+  const [studentId, setStudentId] = useState('');
+  
+  useEffect(() => {
+    let id = localStorage.getItem('anonymous-student-id');
+    if (!id) {
+      id = `Student-${Math.floor(100000 + Math.random() * 900000)}`;
+      localStorage.setItem('anonymous-student-id', id);
+    }
+    setStudentId(id);
+  }, []);
+
+  // Auto-save composition with sound effects every 5 seconds
+  const compositionData = {
+    placedLoops,
+    videoDuration,
+    timestamp: Date.now()
+  };
+  
+  const { lastSaved, isSaving } = useAutoSave(
+    studentId,
+    'school-beneath',  // Same key as original composition
+    compositionData,
+    5000
+  );
 
   // Load School Beneath composition on mount
   useEffect(() => {
@@ -150,10 +177,10 @@ const SoundEffectsActivity = ({
         },
         'sound-effects'
       );
-      console.log('✅ Composition saved to Firebase:', result.shareCode);
+      console.log('âœ… Composition saved to Firebase:', result.shareCode);
       setSaveMessage('Saved!');
     } catch (error) {
-      console.error('❌ Firebase save failed:', error);
+      console.error('âŒ Firebase save failed:', error);
       setSaveMessage('Saved locally!');
     }
     

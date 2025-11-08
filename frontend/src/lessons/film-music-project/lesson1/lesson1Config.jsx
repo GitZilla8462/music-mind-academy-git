@@ -1,5 +1,5 @@
 // File: /lessons/film-music-project/lesson1/lesson1Config.js
-// Lesson 1 configuration - UPDATED with image slides
+// Lesson 1 configuration - SIMPLIFIED: Removed reflection-summary, direct to reflection activity
 
 export const LESSON_PROGRESS_KEY = 'lesson1-progress';
 export const LESSON_TIMER_KEY = 'lesson1-timer';
@@ -105,13 +105,6 @@ export const lessonSections = [
     color: 'yellow',
     estimatedTime: 10,
     stages: [
-      { 
-        id: 'reflection-summary', 
-        type: 'summary', 
-        label: 'Show Reflection Instructions',
-        description: 'Display reflection prompt',
-        duration: 1
-      },
       { 
         id: 'reflection', 
         type: 'activity', 
@@ -272,14 +265,6 @@ export const lessonStages = [
     duration: 8
   },
   { 
-    id: 'reflection-summary', 
-    label: 'Show Reflection Instructions', 
-    description: 'Reflection summary',
-    type: 'summary',
-    content: 'reflection',
-    duration: 1
-  },
-  { 
     id: 'reflection', 
     label: 'Unlock Reflection', 
     description: 'Two Stars and a Wish', 
@@ -310,7 +295,6 @@ export const getActivityForStage = (stage) => {
     'activity-intro': 'video',
     'school-summary': 'summary',
     'school-beneath': 'school-beneath-activity',
-    'reflection-summary': 'summary',
     'reflection': 'two-stars-wish'
   };
   return stageMap[stage];

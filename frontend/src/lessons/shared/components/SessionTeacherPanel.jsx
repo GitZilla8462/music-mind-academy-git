@@ -1,8 +1,10 @@
 // File: /src/lessons/shared/components/SessionTeacherPanel.jsx
-// ENHANCED: Card-based teacher control panel with section groupings
+// SIMPLIFIED: Card-based teacher control panel - removed Save All Student Work blocking
+// SIMPLIFIED: Seamless stage navigation
 
 import React, { useState, useEffect } from 'react';
-import { Clock, Play, Pause, SkipForward, CheckCircle, Users, ChevronDown, ChevronUp, ExternalLink, Plus, Minus, RotateCcw } from 'lucide-react';
+import { Clock, Play, Pause, SkipForward, CheckCircle, Users, ChevronDown, ChevronUp, ExternalLink, Plus, Minus, RotateCcw, Save } from 'lucide-react';
+import { getDatabase, ref, onValue, set } from 'firebase/database';
 
 const SessionTeacherPanel = ({
   config,
@@ -23,7 +25,7 @@ const SessionTeacherPanel = ({
   onOpenPresentation
 }) => {
   const [expandedSections, setExpandedSections] = useState(new Set()); // All sections closed by default
-
+  
   const currentStage = getCurrentStage();
   const students = getStudents();
   const studentCount = students?.length || 0;
@@ -80,6 +82,7 @@ const SessionTeacherPanel = ({
     }
   }, [currentStage, config.lessonSections]);
 
+
   // Keyboard navigation - Right arrow advances to next stage
   useEffect(() => {
     const handleKeyPress = (event) => {
@@ -90,63 +93,67 @@ const SessionTeacherPanel = ({
         
         if (nextStageIndex < lessonStages.length) {
           const nextStage = lessonStages[nextStageIndex];
-          jumpToStage(nextStage.id); // Use jumpToStage to trigger auto-timer
-          console.log('Ã¢Å¾Â¡Ã¯Â¸Â Advanced to next stage via keyboard');
+          jumpToStage(nextStage.id); // Use jumpToStage to trigger auto-timer AND check for save requirement
+          console.log('â©ï¸ Advanced to next stage via keyboard');
         }
       }
       
       // Left arrow key - go back to previous stage
       if (event.key === 'ArrowLeft') {
         const currentStageIndex = lessonStages.findIndex(s => s.id === currentStage);
-        const previousStageIndex = currentStageIndex - 1;
+        const prevStageIndex = currentStageIndex - 1;
         
-        if (previousStageIndex >= 0) {
-          const previousStage = lessonStages[previousStageIndex];
-          jumpToStage(previousStage.id); // Use jumpToStage to trigger auto-timer
-          console.log('Ã¢Â¬â€¦Ã¯Â¸Â Went back to previous stage via keyboard');
+        if (prevStageIndex >= 0) {
+          const prevStage = lessonStages[prevStageIndex];
+          jumpToStage(prevStage.id);
+          console.log('âª Went back to previous stage via keyboard');
         }
       }
     };
 
-    // Add event listener
     window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [currentStage, lessonStages]);
 
-    // Cleanup
-    return () => {
-      window.removeEventListener('keydown', handleKeyPress);
-    };
-  }, [currentStage, lessonStages, setCurrentStage]);
 
-  // Get status for a stage
+  // Get status of a stage
   const getStageStatus = (stageId) => {
-    if (stageId === currentStage) return 'active';
-    
-    const currentStageIndex = lessonStages.findIndex(s => s.id === currentStage);
+    const currentIndex = lessonStages.findIndex(s => s.id === currentStage);
     const stageIndex = lessonStages.findIndex(s => s.id === stageId);
     
-    if (stageIndex < currentStageIndex) return 'completed';
+    if (stageId === currentStage) return 'active';
+    if (stageIndex < currentIndex) return 'completed';
     return 'upcoming';
   };
 
-  // Get status for entire section
+  // Get status of a section
   const getSectionStatus = (section) => {
-    const stageStatuses = section.stages.map(stage => getStageStatus(stage.id));
+    const hasActiveStage = section.stages.some(stage => stage.id === currentStage);
+    if (hasActiveStage) return 'active';
     
-    if (stageStatuses.includes('active')) return 'active';
-    if (stageStatuses.every(status => status === 'completed')) return 'completed';
-    if (stageStatuses.some(status => status === 'completed')) return 'in-progress';
+    const allCompleted = section.stages.every(stage => {
+      const status = getStageStatus(stage.id);
+      return status === 'completed';
+    });
+    if (allCompleted) return 'completed';
+    
     return 'upcoming';
   };
 
-  // Get progress for a section
+  // Get progress within a section
   const getSectionProgress = (section) => {
-    const completedStages = section.stages.filter(stage => 
-      getStageStatus(stage.id) === 'completed'
-    ).length;
-    return { completed: completedStages, total: section.stages.length };
+    const completed = section.stages.filter(stage => {
+      const status = getStageStatus(stage.id);
+      return status === 'completed';
+    }).length;
+    
+    return {
+      completed,
+      total: section.stages.length
+    };
   };
 
-  // Ã¢Å“â€¦ NEW: Get dynamic estimated time for a section based on adjusted timers
+  // Get estimated time for a section (with adjusted timers)
   const getSectionEstimatedTime = (section) => {
     let total = 0;
     section.stages.forEach(stage => {
@@ -165,11 +172,10 @@ const SessionTeacherPanel = ({
     return total;
   };
 
-  // Jump to a specific stage
+  // Jump to a specific stage - SIMPLIFIED (no blocking)
   const jumpToStage = (stageId) => {
-    console.log('ðŸŽ¯ Jumping to stage:', stageId);
+    console.log('🎯 Jumping to stage:', stageId);
     setCurrentStage(stageId);
-    
   };
 
   // Increase timer by 1 minute
@@ -183,6 +189,9 @@ const SessionTeacherPanel = ({
     e.stopPropagation(); // Prevent row click
     adjustPresetTime(stageId, -1);
   };
+
+
+
 
   // Section color mapping - WHITE AND BLUE THEME
   const sectionColors = {
@@ -256,7 +265,6 @@ const SessionTeacherPanel = ({
         
         {/* Keyboard Shortcuts Hint */}
         <div className="text-xs text-gray-500 mt-2">
-          💡 Tip: Use <kbd className="px-2 py-1 bg-gray-200 rounded border border-gray-300">←</kbd> and <kbd className="px-2 py-1 bg-gray-200 rounded border border-gray-300">→</kbd> arrow keys to navigate stages
         </div>
       </div>
 
@@ -268,7 +276,6 @@ const SessionTeacherPanel = ({
         >
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="text-4xl">🎬</div>
               <div>
                 <h2 className="text-xl font-bold text-white">Start Lesson</h2>
                 <p className="text-sm text-green-100">Open Presentation</p>
@@ -314,7 +321,7 @@ const SessionTeacherPanel = ({
                   <div className={`w-3 h-3 rounded-full ${statusColors[sectionStatus]}`} />
                   
                   {/* Icon & Title */}
-                  <div className="text-4xl">{section.icon}</div>
+                  
                   <div className="text-left">
                     <h2 className="text-xl font-bold text-gray-900">{section.title}</h2>
                     <p className="text-sm text-gray-600">{section.subtitle}</p>
@@ -330,7 +337,7 @@ const SessionTeacherPanel = ({
                     </div>
                   </div>
 
-                  {/* Time Estimate - Ã¢Å“â€¦ NOW DYNAMIC */}
+                  {/* Time Estimate - âœ”ï¸ NOW DYNAMIC */}
                   <div className="text-right">
                     <div className="text-sm text-gray-500">Time</div>
                     <div className="font-semibold text-gray-900">{getSectionEstimatedTime(section)} min</div>

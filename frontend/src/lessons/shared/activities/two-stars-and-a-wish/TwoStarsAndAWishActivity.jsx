@@ -1,6 +1,6 @@
 // File: /src/lessons/film-music-project/lesson1/activities/two-stars-and-a-wish/TwoStarsAndAWishActivity.jsx
 // Main wrapper component for the reflection activity
-// UPDATED: Preserves reflection and composition when returning from bonus game
+// UPDATED: Loads from auto-save (no submit required), seamless transition from composition
 
 import React, { useState, useEffect } from 'react';
 import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
@@ -27,12 +27,26 @@ const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false, isSessionMode 
     }
   }, []);
   
-  // Load saved composition data
+  // Load saved composition data - tries submitted version first, then falls back to auto-save
   const getCompositionData = () => {
-    const saved = localStorage.getItem('school-beneath-composition');
+    // First, try to load from the submitted version
+    let saved = localStorage.getItem('school-beneath-composition');
+    
+    // If not found, fallback to auto-saved version
+    if (!saved) {
+      console.log('No submitted composition found, loading from auto-save');
+      saved = localStorage.getItem('school-beneath');
+    }
+    
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const data = JSON.parse(saved);
+        // Return the composition data (handles both formats)
+        return {
+          placedLoops: data.placedLoops || [],
+          requirements: data.requirements || {},
+          videoDuration: data.videoDuration || 60
+        };
       } catch (error) {
         console.error('Error loading composition:', error);
         return null;

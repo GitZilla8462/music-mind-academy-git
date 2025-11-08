@@ -500,24 +500,13 @@ const SchoolBeneathActivity = ({
         </div>
       )}
       
-      {/* Save/Submit Buttons */}
+      {/* Save and Submit Button - Always Enabled */}
       <div className="flex flex-col gap-1">
         <button
-          onClick={handleSaveProgress}
-          className="w-full px-3 py-1 text-xs rounded font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          💾 Save Now
-        </button>
-        <button
           onClick={handleSubmitActivity}
-          disabled={!allRequirementsMet}
-          className={`w-full px-3 py-1 text-xs rounded font-medium transition-all ${
-            allRequirementsMet
-              ? 'bg-green-600 hover:bg-green-700 text-white animate-pulse shadow-lg shadow-green-500/50'
-              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-          }`}
+          className="w-full px-3 py-2 text-sm rounded font-bold transition-all bg-green-600 hover:bg-green-700 text-white shadow-lg"
         >
-          {allRequirementsMet ? '📤 Submit' : 'Submit (Complete Requirements)'}
+          💾 Save and Submit
         </button>
       </div>
 
