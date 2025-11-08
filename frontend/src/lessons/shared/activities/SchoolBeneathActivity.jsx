@@ -1,8 +1,8 @@
 // File: /src/lessons/film-music-project/lesson1/activities/SchoolBeneathActivity.jsx
-// ENHANCED VERSION with Auto-Save, Two-Modal Flow, Voice Announcements, and Teacher Finalize
-// FIXED: Removed timestamp from compositionData to prevent infinite re-renders
-// FIXED: Added useEffect to handle session mode loading
-// DEBUG: Added logging to diagnose loading screen issue
+// ENHANCED VERSION with Auto-Save, Reflection Modal Integration, and Name That Loop Game
+// FIXED: Correct requirements (5+ instruments, 3+ simultaneous layers, 5+ total loops)
+// FIXED: Reflection modal appears on top of composition when teacher unlocks reflection
+// FIXED: Name That Loop game integration with back to reflection functionality
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,8 @@ import { saveComposition, saveBonusComposition } from '../../film-music-project/
 import { saveCompositionToServer } from '../../film-music-project/lesson1/compositionServerUtils';
 import { useAutoSave, AutoSaveIndicator } from '../../../hooks/useAutoSave.jsx';
 import { useSession } from '../../../context/SessionContext';
-import SoundEffectsActivity from './SoundEffectsActivity';
+import ReflectionModal from './two-stars-and-a-wish/ReflectionModal';
+import NameThatLoopActivity from './NameThatLoopActivity';
 
 const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes in milliseconds
 
@@ -64,7 +65,6 @@ const SchoolBeneathActivity = ({
     }
   }, [isSessionMode]);
   
-  const [saveMessage, setSaveMessage] = useState('');
   const [isExplorationMode, setIsExplorationMode] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const timerRef = useRef(null);
@@ -79,8 +79,9 @@ const SchoolBeneathActivity = ({
   const hasAnnouncedAhaRef = useRef(false);
   const hasAnnouncedSubmitRef = useRef(false);
   
-  // State to show Sound Effects activity after submission
-  const [showSoundEffects, setShowSoundEffects] = useState(false);
+  // NEW: Reflection modal and Name That Loop states
+  const [showReflectionModal, setShowReflectionModal] = useState(false);
+  const [showNameThatLoop, setShowNameThatLoop] = useState(false);
   
   // ============================================================================
   // AUTO-SAVE INTEGRATION
@@ -102,29 +103,51 @@ const SchoolBeneathActivity = ({
     5000 // Auto-save every 5 seconds
   );
   
-  // Check for saved work on mount (after studentId is set)
+  // Auto-load saved work on mount (after studentId is set) - NO CONFIRMATION NEEDED
   useEffect(() => {
     if (!studentId || viewMode) return;
     
-    // Check if there's saved work
+    // Silently load saved work if it exists
     if (hasSavedWork) {
       const saved = loadSavedWork();
-      if (saved && saved.placedLoops) {
-        // Ask if they want to load it
-        const shouldLoad = window.confirm(
-          "You have saved work from before. Would you like to continue where you left off?\n\n" +
-          "Click OK to load your previous work, or Cancel to start fresh."
-        );
-        
-        if (shouldLoad) {
-          setPlacedLoops(saved.placedLoops || []);
-          setRequirements(saved.requirements || requirements);
-          setVideoDuration(saved.videoDuration || 60);
-          console.log('✅ Loaded previous work from auto-save');
-        }
+      if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
+        setPlacedLoops(saved.placedLoops || []);
+        setRequirements(saved.requirements || requirements);
+        setVideoDuration(saved.videoDuration || 60);
+        console.log('✅ Auto-loaded previous work from auto-save:', saved.placedLoops.length, 'loops');
       }
     }
   }, [studentId, hasSavedWork, viewMode, loadSavedWork]);
+  
+  // ============================================================================
+  // SESSION STAGE LISTENER - REFLECTION MODAL
+  // ============================================================================
+  
+  useEffect(() => {
+    if (!isSessionMode || !sessionCode || viewMode) {
+      return;
+    }
+
+    console.log('👂 Listening for reflection stage in session:', sessionCode);
+
+    const db = getDatabase();
+    const stageRef = ref(db, `sessions/${sessionCode}/currentStage`);
+
+    const unsubscribe = onValue(stageRef, (snapshot) => {
+      const stage = snapshot.val();
+      console.log('📍 Stage changed to:', stage);
+      
+      if (stage === 'reflection') {
+        console.log('🎭 Opening reflection modal on top of composition');
+        setShowReflectionModal(true);
+      }
+    });
+
+    return () => {
+      console.log('🧹 Cleaning up stage listener');
+      unsubscribe();
+    };
+  }, [isSessionMode, sessionCode, viewMode]);
   
   // ============================================================================
   // TEACHER FINALIZE LISTENER
@@ -201,221 +224,198 @@ const SchoolBeneathActivity = ({
     });
 
     return () => {
-      console.log('🔇 Finalize listener cleanup for student:', studentId);
+      console.log('🧹 Cleaning up finalize listener');
       unsubscribe();
     };
-    // 🚨 CRITICAL: Don't include saveNow in dependencies - it causes re-renders
-    // We call it inside the listener, but don't need to re-subscribe when it changes
-  }, [isSessionMode, sessionCode, studentId, viewMode]);
+  }, [isSessionMode, sessionCode, studentId, viewMode, saveNow]);
   
   // ============================================================================
-  // WEB SPEECH API
+  // TIMER
   // ============================================================================
   
-  const speakMessage = (message) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(message);
-      utterance.rate = 0.9;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-      
-      const voices = window.speechSynthesis.getVoices();
-      const preferredVoice = voices.find(voice => 
-        voice.name === 'Samantha' || 
-        voice.name === 'Google US English' ||
-        voice.name === 'Google US English Female' ||
-        (voice.lang === 'en-US' && voice.name.includes('Microsoft')) ||
-        voice.lang.startsWith('en-US')
-      );
-      
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
-      
-      window.speechSynthesis.speak(utterance);
-    }
-  };
-
-  // ============================================================================
-  // LOAD SAVED COMPOSITION (VIEW MODE)
-  // ============================================================================
-  
+  // Start timer when component mounts in session mode
   useEffect(() => {
-    if (viewMode) {
-      const storageKey = viewBonusMode ? 'view-school-beneath-bonus' : 'view-school-beneath';
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        try {
-          const data = JSON.parse(saved);
-          setPlacedLoops(data.placedLoops || []);
-          setRequirements(data.requirements || requirements);
-          setVideoDuration(data.videoDuration || 60);
-          setIsLoadingVideo(false);
-        } catch (e) {
-          console.error('Failed to load saved composition:', e);
-        }
-      }
-    }
-  }, [viewMode, viewBonusMode]);
-
-  // ============================================================================
-  // VIDEO DURATION TRACKING
-  // ============================================================================
-  
-  useEffect(() => {
-    if (videoDuration !== null && videoDuration > 0) {
-      console.log('Video duration detected:', videoDuration, 'seconds');
-      setIsLoadingVideo(false);
-    }
-  }, [videoDuration]);
-
-  // ============================================================================
-  // REQUIREMENTS CHECKING
-  // ============================================================================
-  
-  useEffect(() => {
-    console.log('Checking requirements with loops:', placedLoops);
-    
-    // Count unique loop IDs (ignoring timestamps)
-    const uniqueLoops = new Set(placedLoops.map(loop => loop.originalId || loop.id));
-    const uniqueLoopCount = uniqueLoops.size;
-    
-    // Count unique start times (to check for layering)
-    const uniqueStartTimes = new Set(placedLoops.map(loop => Math.floor(loop.startTime)));
-    const hasLayering = uniqueStartTimes.size >= 2;
-    
-    // Check requirements
-    const instrumentation = uniqueLoopCount >= 3;
-    console.log('Instrumentation check:', instrumentation, 'Unique loops:', uniqueLoopCount);
-    
-    const layering = placedLoops.length >= 2 && hasLayering;
-    console.log('Layering check:', layering, 'Unique start times:', uniqueStartTimes.size);
-    
-    const structure = placedLoops.length >= 2;
-    console.log('Structure check:', structure);
-    
-    const newRequirements = {
-      instrumentation,
-      layering,
-      structure
-    };
-    
-    console.log('Requirements updated:', newRequirements);
-    setRequirements(newRequirements);
-  }, [placedLoops]);
-
-  // ============================================================================
-  // LOOP PLACEMENT HANDLERS
-  // ============================================================================
-  
-  const handleLoopPlaced = (loopData, trackIndex, startTime) => {
-    console.log('Loop placed callback received:', loopData, trackIndex, startTime);
-    
-    // Validate track index
-    if (trackIndex < 0 || trackIndex >= 4) {
-      console.error('Invalid track index:', trackIndex);
+    if (!isSessionMode || !lessonStartTime || viewMode) {
+      console.log('⏱️ Timer not starting:', { isSessionMode, lessonStartTime, viewMode });
       return;
     }
+
+    console.log('⏱️ Starting timer...');
+    const now = Date.now();
+    const elapsed = now - lessonStartTime;
+    const remaining = Math.max(0, SCHOOL_BENEATH_DEADLINE - elapsed);
     
-    // Generate unique ID for this placement
-    const placementId = `${loopData.id}-${Date.now()}`;
-    
-    const newLoop = {
-      id: placementId,
-      originalId: loopData.id,
-      name: loopData.name,
-      file: loopData.file,
-      duration: loopData.duration,
-      category: loopData.category,
-      mood: loopData.mood,
-      color: loopData.color,
-      trackIndex: trackIndex,
-      startTime: startTime,
-      volume: 1.0
+    setTimeRemaining(remaining);
+    console.log(`⏱️ Time remaining: ${Math.floor(remaining / 1000)}s`);
+
+    timerRef.current = setInterval(() => {
+      setTimeRemaining(prev => {
+        const newTime = Math.max(0, prev - 1000);
+        
+        // Log every 30 seconds
+        if (newTime % 30000 === 0) {
+          console.log(`⏱️ Time remaining: ${Math.floor(newTime / 1000)}s`);
+        }
+        
+        if (newTime === 0 && !autoAdvanceCalledRef.current) {
+          console.log('⏰ TIME UP! Auto-advancing...');
+          autoAdvanceCalledRef.current = true;
+          
+          // Force save before advancing
+          saveNow();
+          
+          setTimeout(() => {
+            if (onComplete) {
+              console.log('📞 Calling onComplete()');
+              onComplete();
+            }
+          }, 1000);
+        }
+        
+        return newTime;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) {
+        console.log('🧹 Cleaning up timer');
+        clearInterval(timerRef.current);
+      }
     };
-    
-    setPlacedLoops(prev => {
-      const updated = [...prev, newLoop];
-      console.log('Updated placedLoops:', updated);
-      return updated;
-    });
-  };
-
-  const handleLoopDeleted = (loopId) => {
-    setPlacedLoops(prev => prev.filter(loop => loop.id !== loopId));
-  };
-
-  const handleLoopUpdated = (loopId, updates) => {
-    setPlacedLoops(prev => prev.map(loop =>
-      loop.id === loopId ? { ...loop, ...updates } : loop
-    ));
-  };
-
+  }, [isSessionMode, lessonStartTime, onComplete, viewMode, saveNow]);
+  
+  // Format time remaining for display
   const formatTime = (ms) => {
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
-
+  
   // ============================================================================
-  // SAVE HANDLERS
+  // REQUIREMENT CHECKING - FIXED
   // ============================================================================
   
-  // Manual save (uses old localStorage + Firebase)
-  const handleSaveProgress = async () => {
-    const saveData = {
-      placedLoops,
-      requirements,
-      videoDuration,
-      timestamp: Date.now()
+  const checkRequirements = (loops) => {
+    console.log('🔍 Checking requirements with loops:', loops);
+    
+    // ✅ FIXED: Instrumentation - at least 5 different instruments
+    const instrumentTypes = new Set(
+      loops.map(loop => loop.instrument?.toLowerCase() || loop.category?.toLowerCase() || 'unknown')
+    );
+    const hasInstrumentation = instrumentTypes.size >= 5;
+    console.log('  Instrumentation (5+ types):', hasInstrumentation, 'Types:', Array.from(instrumentTypes));
+
+    // ✅ FIXED: Layering - at least 3 loops playing at the same time
+    // Find the maximum number of loops playing simultaneously at any point in time
+    let maxSimultaneous = 0;
+    
+    // Create a timeline of all start and end times
+    const events = [];
+    loops.forEach(loop => {
+      events.push({ time: loop.startTime, type: 'start' });
+      events.push({ time: loop.endTime, type: 'end' });
+    });
+    
+    // Sort events by time
+    events.sort((a, b) => a.time - b.time);
+    
+    // Count simultaneous loops at each event
+    let currentCount = 0;
+    events.forEach(event => {
+      if (event.type === 'start') {
+        currentCount++;
+        maxSimultaneous = Math.max(maxSimultaneous, currentCount);
+      } else {
+        currentCount--;
+      }
+    });
+    
+    const hasLayering = maxSimultaneous >= 3;
+    console.log('  Layering (3+ simultaneous):', hasLayering, 'Max simultaneous:', maxSimultaneous);
+
+    // ✅ FIXED: Structure - at least 5 loops total
+    const hasStructure = loops.length >= 5;
+    console.log('  Structure (5+ total):', hasStructure, 'Loop count:', loops.length);
+
+    const newRequirements = {
+      instrumentation: hasInstrumentation,
+      layering: hasLayering,
+      structure: hasStructure
     };
     
-    // Save to old localStorage key (for compatibility)
-    localStorage.setItem('school-beneath-composition', JSON.stringify(saveData));
+    setRequirements(newRequirements);
     
-    // Also trigger auto-save
+    // Check if all requirements met for the first time
+    const allMet = hasInstrumentation && hasLayering && hasStructure;
+    const wasAllMet = requirements.instrumentation && requirements.layering && requirements.structure;
+    
+    console.log('  All requirements met:', allMet, 'Was met before:', wasAllMet);
+    
+    if (allMet && !wasAllMet && !hasAnnouncedAhaRef.current && !viewMode) {
+      console.log('🎉 ALL REQUIREMENTS MET FOR FIRST TIME!');
+      hasAnnouncedAhaRef.current = true;
+      
+      // Show aha moment modal
+      setShowAhaMomentModal(true);
+      
+      // Voice announcement
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(
+          "Congratulations! You've completed all requirements. Your composition is ready to submit."
+        );
+        utterance.rate = 0.9;
+        utterance.pitch = 1.1;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+    
+    return newRequirements;
+  };
+  
+  // ============================================================================
+  // EVENT HANDLERS
+  // ============================================================================
+  
+  const handleLoopPlaced = (loop) => {
+    console.log('🎵 Loop placed:', loop);
+    const newLoops = [...placedLoops, loop];
+    setPlacedLoops(newLoops);
+    checkRequirements(newLoops);
+  };
+
+  const handleLoopDeleted = (loopId) => {
+    console.log('🗑️ Loop deleted:', loopId);
+    const newLoops = placedLoops.filter(loop => loop.id !== loopId);
+    setPlacedLoops(newLoops);
+    checkRequirements(newLoops);
+  };
+
+  const handleLoopUpdated = (updatedLoop) => {
+    console.log('✏️ Loop updated:', updatedLoop);
+    const newLoops = placedLoops.map(loop =>
+      loop.id === updatedLoop.id ? updatedLoop : loop
+    );
+    setPlacedLoops(newLoops);
+    checkRequirements(newLoops);
+  };
+
+  const handleSubmitActivity = async () => {
+    if (hasSubmittedRef.current) {
+      console.log('⚠️ Already submitted, ignoring duplicate submission');
+      return;
+    }
+    
+    console.log('📤 Submitting activity...');
+    hasSubmittedRef.current = true;
+    
+    // Close aha moment modal
+    setShowAhaMomentModal(false);
+
+    // Force immediate save using the hook
     saveNow();
     
-    // Save to Firebase for teacher viewing
-    try {
-      const result = await saveCompositionToServer(
-        {
-          ...saveData,
-          studentName: studentId,
-        },
-        'school-beneath'
-      );
-      console.log('✅ Composition saved to Firebase:', result.shareCode);
-      setSaveMessage('✓ Saved!');
-    } catch (error) {
-      console.error('❌ Firebase save failed:', error);
-      setSaveMessage('✓ Saved locally!');
-    }
-    setTimeout(() => setSaveMessage(''), 2000);
-  };
-
-  const handleAutoSave = () => {
-    const saveData = {
-      placedLoops,
-      requirements,
-      videoDuration,
-      timestamp: Date.now()
-    };
-    
-    localStorage.setItem('school-beneath-composition', JSON.stringify(saveData));
-  };
-
-  // Submit handler with Firebase saving + enters exploration mode
-  const handleSubmitActivity = async () => {
-    if (hasSubmittedRef.current) return;
-    
-    // Save the main composition
-    saveComposition(placedLoops, requirements, videoDuration);
-    console.log('Submitted composition with saveComposition()');
-    
-    // Save to Firebase for teacher
+    // Save to server
     try {
       const result = await saveCompositionToServer(
         {
@@ -423,129 +423,105 @@ const SchoolBeneathActivity = ({
           requirements,
           videoDuration,
           studentName: studentId,
-          timestamp: Date.now()
+          timestamp: Date.now() // ✅ Add timestamp only when actually saving
         },
         'school-beneath'
       );
-      console.log('✅ Composition saved to Firebase:', result.shareCode);
+      
+      console.log('✅ Saved to server:', result.shareCode);
     } catch (error) {
-      console.error('❌ Firebase save failed:', error);
+      console.error('❌ Server save failed:', error);
     }
     
-    hasSubmittedRef.current = true;
-    
-    // Enter exploration mode
-    setIsExplorationMode(true);
-    
-    // Show submit success modal
+    // Show submit success modal with countdown
     setShowSubmitSuccessModal(true);
     
-    // Speak the success message
-    if (!hasAnnouncedSubmitRef.current) {
+    // Voice announcement for submission
+    if (!hasAnnouncedSubmitRef.current && 'speechSynthesis' in window) {
       hasAnnouncedSubmitRef.current = true;
-      speakMessage("Your work has been saved in the main menu. Now you have bonus time until the reflection activity. All loops have been unlocked. Let's hear how adding the scary, heroic, or upbeat loops give the video a different feeling with the time you have left.");
+      const utterance = new SpeechSynthesisUtterance(
+        "Submission complete! All loops are now unlocked for exploration."
+      );
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
     }
+    
+    // Countdown and then switch to exploration mode
+    let countdown = 5;
+    const countdownInterval = setInterval(() => {
+      countdown--;
+      setSubmitCountdown(countdown);
+      
+      if (countdown === 0) {
+        clearInterval(countdownInterval);
+        setShowSubmitSuccessModal(false);
+        setIsExplorationMode(true);
+        console.log('🎉 Switched to exploration mode');
+      }
+    }, 1000);
   };
 
-  const allRequirementsMet = requirements.instrumentation && 
-                             requirements.layering && 
-                             requirements.structure;
-
   // ============================================================================
-  // LOADING STATE
+  // REFLECTION & NAME THAT LOOP HANDLERS
   // ============================================================================
   
-  console.log('🔍 Loading check:', { 
-    isLoadingVideo, 
-    viewMode, 
-    isSessionMode,
-    shouldShowLoading: isLoadingVideo && !viewMode && !isSessionMode 
-  });
-
-  if (isLoadingVideo && !viewMode && !isSessionMode) {
-    console.log('🚫 SHOWING LOADING SCREEN');
-    return (
-      <div className="h-full flex items-center justify-center bg-gray-900">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p>Loading video...</p>
-          <p className="text-xs text-gray-400 mt-2">
-            Debug: isSessionMode={isSessionMode.toString()}, isLoadingVideo={isLoadingVideo.toString()}, viewMode={viewMode.toString()}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  console.log('✅ BYPASSING LOADING SCREEN - Rendering DAW');
+  const handleReflectionComplete = () => {
+    console.log('✅ Reflection complete, opening Name That Loop');
+    setShowReflectionModal(false);
+    setShowNameThatLoop(true);
+  };
+  
+  const handleBackToReflection = () => {
+    console.log('⬅️ Going back to reflection from Name That Loop');
+    setShowNameThatLoop(false);
+    setShowReflectionModal(true);
+  };
 
   // ============================================================================
-  // ASSIGNMENT PANEL CONTENT
+  // ASSIGNMENT PANEL
   // ============================================================================
   
   const assignmentPanelContent = !viewMode && !isExplorationMode ? (
     <div className="h-full bg-gray-800 text-white p-2 flex flex-col gap-2 overflow-y-auto">
-      {/* Auto-Save Indicator */}
-      {studentId && (
-        <div className="bg-gray-700 rounded px-2 py-1 flex items-center justify-center">
-          <AutoSaveIndicator lastSaved={lastSaved} isSaving={isSaving} />
+      {/* Timer - BIG at top */}
+      {isSessionMode && timeRemaining > 0 && (
+        <div className="bg-blue-900/30 rounded p-2 text-center border border-blue-500/30">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <Clock size={14} className="text-blue-400" />
+            <span className="text-[9px] text-blue-300 font-semibold">Time Remaining</span>
+          </div>
+          <div className="text-xl font-bold text-blue-400 tabular-nums">
+            {formatTime(timeRemaining)}
+          </div>
         </div>
       )}
       
-      {/* Save/Submit Buttons */}
-      <div className="flex flex-col gap-1">
-        <button
-          onClick={handleSaveProgress}
-          className="w-full px-3 py-1 text-xs rounded font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          💾 Save Now
-        </button>
-        <button
-          onClick={handleSubmitActivity}
-          disabled={!allRequirementsMet}
-          className={`w-full px-3 py-1 text-xs rounded font-medium transition-all ${
-            allRequirementsMet
-              ? 'bg-green-600 hover:bg-green-700 text-white animate-pulse shadow-lg shadow-green-500/50'
-              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-          }`}
-        >
-          {allRequirementsMet ? '📤 Submit' : 'Submit (Complete Requirements)'}
-        </button>
-        
-        <button
-          onClick={handleSaveProgress}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
-        >
-          💾 Save Progress
-        </button>
-        
-        {saveMessage && (
-          <div className="text-[9px] text-green-400 font-semibold text-center bg-green-900/20 py-1 rounded">
-            {saveMessage}
-          </div>
-        )}
+      {/* Title - BIG */}
+      <div className="text-center">
+        <h3 className="font-bold text-base mb-1">🎬 School Beneath the Sea</h3>
+        <p className="text-xs text-gray-300">Create a mysterious underwater atmosphere</p>
       </div>
 
-      {/* Requirements Checklist */}
-      <div className="bg-gray-700 rounded p-2">
-        <h4 className="font-semibold text-xs mb-1.5">Assignment Requirements:</h4>
+      {/* Requirements Checklist - FIXED REQUIREMENTS */}
+      <div className="bg-gray-700/50 rounded p-2">
+        <p className="text-[10px] font-semibold mb-1.5 text-blue-300">Requirements:</p>
         <div className="space-y-1 text-[10px]">
           <div className={`flex items-start gap-1.5 ${requirements.instrumentation ? 'text-green-400' : 'text-gray-300'}`}>
             <span className="text-base leading-none">{requirements.instrumentation ? '✓' : '○'}</span>
             <span className="leading-tight">
-              <strong>Instrumentation:</strong> Use at least 3 different mysterious loops (bass, strings, piano)
+              <strong>Instrumentation:</strong> Use 5+ different instruments
             </span>
           </div>
           <div className={`flex items-start gap-1.5 ${requirements.layering ? 'text-green-400' : 'text-gray-300'}`}>
             <span className="text-base leading-none">{requirements.layering ? '✓' : '○'}</span>
             <span className="leading-tight">
-              <strong>Layering:</strong> Have loops playing at different times to create depth
+              <strong>Layering:</strong> Have 3+ loops playing at the same time
             </span>
           </div>
           <div className={`flex items-start gap-1.5 ${requirements.structure ? 'text-green-400' : 'text-gray-300'}`}>
             <span className="text-base leading-none">{requirements.structure ? '✓' : '○'}</span>
             <span className="leading-tight">
-              <strong>Structure:</strong> Place at least 2 loops to create a complete score
+              <strong>Structure:</strong> Place at least 5 loops total
             </span>
           </div>
         </div>
@@ -587,22 +563,6 @@ const SchoolBeneathActivity = ({
         <p className="text-[9px] text-green-200 mt-1">Your work is saved. Explore until the reflection activity starts.</p>
       </div>
 
-      {/* Action Buttons */}
-      <div className="space-y-1">
-        <button
-          onClick={handleSaveProgress}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
-        >
-          💾 Save Changes
-        </button>
-        
-        {saveMessage && (
-          <div className="text-[9px] text-green-400 font-semibold text-center bg-green-900/20 py-1 rounded">
-            {saveMessage}
-          </div>
-        )}
-      </div>
-
       {/* Exploration Tips */}
       <div className="bg-purple-900/30 rounded p-2 text-[9px] text-purple-200">
         <p className="font-semibold mb-1">🎵 Try These Experiments:</p>
@@ -628,21 +588,14 @@ const SchoolBeneathActivity = ({
   // RENDER
   // ============================================================================
   
-  // Show Sound Effects activity after submission in session mode
-  if (showSoundEffects && isSessionMode) {
-    return (
-      <SoundEffectsActivity
-        onComplete={onComplete}
-        viewMode={false}
-        lessonStartTime={lessonStartTime}
-      />
-    );
-  }
-  
   return (
     <div className="h-full w-full bg-gray-900">
       <MusicComposer
-        videoSrc="/projects/film-music-score/videos/school-beneath.mp4"
+        preselectedVideo={{
+          src: "/lessons/videos/film-music-loop-project/SchoolMystery.mp4",
+          title: "School Beneath the Sea",
+          duration: 60
+        }}
         onLoopPlaced={handleLoopPlaced}
         onLoopDeleted={handleLoopDeleted}
         onLoopUpdated={handleLoopUpdated}
@@ -655,9 +608,10 @@ const SchoolBeneathActivity = ({
         isExplorationMode={isExplorationMode}
         viewMode={viewMode}
         showSoundEffects={false}
+        hideHeader={true}
       />
 
-      {/* Aha Moment Modal */}
+      {/* Aha Moment Modal - Submit Button */}
       {showAhaMomentModal && !isMinimizedModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-gradient-to-br from-blue-900 to-purple-900 rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
@@ -728,6 +682,29 @@ const SchoolBeneathActivity = ({
               Closing in {submitCountdown} seconds...
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Reflection Modal - Appears when teacher unlocks reflection */}
+      {showReflectionModal && (
+        <ReflectionModal
+          compositionData={{ placedLoops, requirements, videoDuration }}
+          onComplete={handleReflectionComplete}
+          viewMode={false}
+          isSessionMode={isSessionMode}
+        />
+      )}
+
+      {/* Name That Loop Game - Full screen overlay */}
+      {showNameThatLoop && (
+        <div className="fixed inset-0 z-[60] bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+          <NameThatLoopActivity 
+            onComplete={() => {
+              console.log('🎮 Name That Loop complete');
+              setShowNameThatLoop(false);
+            }}
+            onBackToReflection={handleBackToReflection}
+          />
         </div>
       )}
     </div>

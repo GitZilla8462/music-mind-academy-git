@@ -1,5 +1,6 @@
 // File: /lessons/film-music-project/lesson1/Lesson1.jsx
 // REFACTORED - Main lesson orchestrator using shared hooks and components
+// FIXED: Keep SchoolBeneathActivity mounted during reflection stage
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -57,7 +58,7 @@ const Lesson1 = () => {
   const effectiveRole = sessionRole || sessionMode.urlRole;
   
   // Debug logging
-  console.log('ðŸ” Lesson1 Render:', {
+  console.log('📋 Lesson1 Render:', {
     isSessionMode: sessionMode.isSessionMode,
     sessionRole,
     effectiveRole,
@@ -86,7 +87,7 @@ const Lesson1 = () => {
   // Open presentation view in new window
   const openPresentationView = () => {
     const presentationUrl = `/presentation?session=${sessionCode}`;
-    console.log('ðŸŽ¬ Opening presentation view:', presentationUrl);
+    console.log('🎬 Opening presentation view:', presentationUrl);
     
     const popup = window.open(
       presentationUrl, 
@@ -96,9 +97,9 @@ const Lesson1 = () => {
     
     if (!popup || popup.closed || typeof popup.closed === 'undefined') {
       alert('Popup blocked! Please allow popups for this site and try again.');
-      console.error('âŒ Popup was blocked');
+      console.error('❌ Popup was blocked');
     } else {
-      console.log('âœ… Presentation view opened successfully');
+      console.log('✅ Presentation view opened successfully');
     }
   };
 
@@ -117,7 +118,7 @@ const Lesson1 = () => {
 
   // Show loading while session is initializing - only if we have NO role at all
   if (sessionMode.isSessionMode && !effectiveRole) {
-    console.log('â³ Waiting for session role to be set...');
+    console.log('⏳ Waiting for session role to be set...');
     return (
       <div className="h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
@@ -133,7 +134,7 @@ const Lesson1 = () => {
   // SESSION MODE: STUDENT VIEW
   // ========================================
   if (sessionMode.isSessionMode && effectiveRole === 'student') {
-    console.log('ðŸ“± Rendering STUDENT view');
+    console.log('📱 Rendering STUDENT view');
     
     // Student waiting for teacher to start
     if (!currentStage || currentStage === 'locked') {
@@ -176,7 +177,7 @@ const Lesson1 = () => {
       );
     }
     
-    // ðŸŽ¬ VIDEO STAGES: Students see static slide (not the video)
+    // 🎬 VIDEO STAGES: Students see static slide (not the video)
     if (currentStageData?.type === 'video') {
       // Show a static "watch the main screen" message
       return (
@@ -189,7 +190,16 @@ const Lesson1 = () => {
     }
     
     // Student viewing active activity
-    const activityType = getActivityForStage(currentStage);
+    let activityType = getActivityForStage(currentStage);
+    
+    // ✅ CRITICAL FIX: Keep School Beneath mounted during reflection
+    // The reflection modal will appear ON TOP of the composition
+    // This prevents the composition from being unmounted and losing student work
+    if (currentStage === 'reflection') {
+      console.log('🎭 Reflection stage detected - keeping SchoolBeneathActivity mounted');
+      activityType = 'school-beneath-activity';
+    }
+    
     const activity = lesson1Config.activities.find(a => a.type === activityType);
     
     if (!activity) {
@@ -217,7 +227,7 @@ const Lesson1 = () => {
   // SESSION MODE: TEACHER VIEW
   // ========================================
   if (sessionMode.isSessionMode && effectiveRole === 'teacher') {
-    console.log('ðŸ‘¨â€ðŸ« Rendering TEACHER control panel');
+    console.log('👨‍🏫 Rendering TEACHER control panel');
     return (
       <SessionTeacherPanel
         config={lesson1Config}
@@ -244,7 +254,7 @@ const Lesson1 = () => {
   // NORMAL MODE: LESSON START SCREEN
   // ========================================
   if (!lesson.lessonStarted && !viewSavedMode && !viewBonusMode && !viewReflectionMode) {
-    console.log('ðŸŽ¬ Rendering NORMAL lesson start screen');
+    console.log('🎬 Rendering NORMAL lesson start screen');
     return (
       <LessonStartScreen
         config={lesson1Config}
@@ -260,7 +270,7 @@ const Lesson1 = () => {
   // NORMAL MODE: ACTIVE LESSON
   // ========================================
   
-  console.log('ðŸŽ¯ Rendering NORMAL active lesson');
+  console.log('🎯 Rendering NORMAL active lesson');
   
   // Handle view modes (saved work, reflection, bonus)
   let activityToRender = lesson.currentActivityData;
