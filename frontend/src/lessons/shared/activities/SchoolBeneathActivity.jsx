@@ -40,6 +40,19 @@ const SchoolBeneathActivity = ({
   useEffect(() => {
     if (isReflectionStage && !reflectionCompleted) {
       console.log('Entering reflection stage');
+      
+      // Load saved composition if not already loaded
+      if (placedLoops.length === 0) {
+        const saved = loadSavedWork();
+        if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
+          console.log('Loading saved composition for reflection:', saved.placedLoops.length, 'loops');
+          setPlacedLoops(saved.placedLoops);
+          if (saved.requirements) {
+            setRequirements(saved.requirements);
+          }
+        }
+      }
+      
       setShowReflection(true);
     }
   }, [isReflectionStage, reflectionCompleted]);
