@@ -39,18 +39,19 @@ const SchoolBeneathActivity = ({
   // Detect when we enter reflection stage
   useEffect(() => {
     if (isReflectionStage && !reflectionCompleted) {
-      console.log('Entering reflection stage');
+      console.log('✅ Entering reflection stage');
       
-      // Load saved composition if not already loaded
-      if (placedLoops.length === 0) {
-        const saved = loadSavedWork();
-        if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
-          console.log('Loading saved composition for reflection:', saved.placedLoops.length, 'loops');
-          setPlacedLoops(saved.placedLoops);
-          if (saved.requirements) {
-            setRequirements(saved.requirements);
-          }
+      // ALWAYS load saved composition when entering reflection stage
+      // This ensures composition is available even if user was in middle of editing
+      const saved = loadSavedWork();
+      if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
+        console.log('📂 Loading saved composition for reflection:', saved.placedLoops.length, 'loops');
+        setPlacedLoops(saved.placedLoops);
+        if (saved.requirements) {
+          setRequirements(saved.requirements);
         }
+      } else {
+        console.warn('⚠️ No saved composition found for reflection!');
       }
       
       setShowReflection(true);
