@@ -8,7 +8,7 @@ import DAWTutorialActivity from '../activities/daw-tutorial/DAWTutorialActivity'
 import SchoolBeneathActivity from '../activities/SchoolBeneathActivity';
 import TwoStarsAndAWishActivity from '../activities/two-stars-and-a-wish/TwoStarsAndAWishActivity';
 import SoundEffectsActivity from '../activities/SoundEffectsActivity';
-import NameThatLoopActivity from '../activities/NameThatLoopActivity';  // ✅ ADDED
+import NameThatLoopActivity from '../activities/NameThatLoopActivity';  // âœ… ADDED
 
 const ActivityRenderer = ({
   activity,
@@ -67,7 +67,7 @@ const ActivityRenderer = ({
           key={`reflection-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}
-          isSessionMode={isSessionMode}  // ✅ FIXED: Added isSessionMode prop
+          isSessionMode={isSessionMode}  // âœ… FIXED: Added isSessionMode prop
         />
       );
 
@@ -81,7 +81,7 @@ const ActivityRenderer = ({
         />
       );
 
-    // ✅ ADDED: Name That Loop bonus activity
+    // âœ… ADDED: Name That Loop bonus activity
     case 'name-that-loop':
       return (
         <NameThatLoopActivity 
