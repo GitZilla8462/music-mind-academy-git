@@ -1,6 +1,8 @@
 // File: /src/pages/projects/film-music-score/shared/LoopLibrary.jsx
 // Dynamic loop library with backend API integration
 // UPDATED: Added showSoundEffects prop and checkbox to display sound effects
+// FIXED: Default soundEffectsEnabled to false (unchecked)
+// FIXED: Grey styling when unchecked, purple when checked
 
 import React, { useState, useEffect } from 'react';
 import { Play, Pause, Volume2, Search, Filter, Lock } from 'lucide-react';
@@ -43,11 +45,11 @@ const LoopLibrary = ({
   const [moodFilter, setMoodFilter] = useState(lockedMood || 'All');
   const [instrumentFilter, setInstrumentFilter] = useState('All');
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [soundEffectsEnabled, setSoundEffectsEnabled] = useState(true);  // NEW STATE - Default to true
+  const [soundEffectsEnabled, setSoundEffectsEnabled] = useState(false);  // FIXED: Default to false (unchecked)
 
   // DEBUG: Log props on mount
   useEffect(() => {
-    console.log('Ã°Å¸â€Â LoopLibrary Props:', { restrictToCategory, lockedMood, showSoundEffects });
+    console.log('🎵 LoopLibrary Props:', { restrictToCategory, lockedMood, showSoundEffects });
   }, []);
 
   // Lock mood filter when lockedMood is set
@@ -414,16 +416,22 @@ const LoopLibrary = ({
             ))}
           </select>
 
-          {/* NEW: SOUND EFFECTS CHECKBOX */}
+          {/* FIXED: SOUND EFFECTS CHECKBOX - Grey when unchecked, purple when checked */}
           {showSoundEffects && (
-            <label className="flex items-center gap-2 bg-purple-900/30 border border-purple-500/50 rounded px-2 py-1.5 cursor-pointer hover:bg-purple-900/50 transition-colors">
+            <label className={`flex items-center gap-2 rounded px-2 py-1.5 cursor-pointer transition-colors ${
+              soundEffectsEnabled 
+                ? 'bg-purple-900/30 border border-purple-500/50 hover:bg-purple-900/50'
+                : 'bg-gray-700/30 border border-gray-600/50 hover:bg-gray-700/50'
+            }`}>
               <input
                 type="checkbox"
                 checked={soundEffectsEnabled}
                 onChange={(e) => setSoundEffectsEnabled(e.target.checked)}
                 className="w-3.5 h-3.5 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
               />
-              <span className="text-xs text-purple-300 font-medium flex items-center gap-1">
+              <span className={`text-xs font-medium flex items-center gap-1 ${
+                soundEffectsEnabled ? 'text-purple-300' : 'text-gray-400'
+              }`}>
                 Show Sound Effects
               </span>
             </label>
