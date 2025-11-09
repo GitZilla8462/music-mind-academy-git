@@ -56,7 +56,7 @@ const Lesson1 = () => {
   const effectiveRole = sessionRole || sessionMode.urlRole;
   
   // Debug logging
-  console.log('Ã°Å¸â€Â Lesson1 Render:', {
+  console.log('🎬 Lesson1 Render:', {
     isSessionMode: sessionMode.isSessionMode,
     sessionRole,
     effectiveRole,
@@ -85,7 +85,7 @@ const Lesson1 = () => {
   // Open presentation view in new window
   const openPresentationView = () => {
     const presentationUrl = `/presentation?session=${sessionCode}`;
-    console.log('Ã°Å¸Å½Â¬ Opening presentation view:', presentationUrl);
+    console.log('🖼️ Opening presentation view:', presentationUrl);
     
     const popup = window.open(
       presentationUrl, 
@@ -95,9 +95,9 @@ const Lesson1 = () => {
     
     if (!popup || popup.closed || typeof popup.closed === 'undefined') {
       alert('Popup blocked! Please allow popups for this site and try again.');
-      console.error('Ã¢ÂÅ’ Popup was blocked');
+      console.error('❌ Popup was blocked');
     } else {
-      console.log('Ã¢Å“â€¦ Presentation view opened successfully');
+      console.log('✅ Presentation view opened successfully');
     }
   };
 
@@ -116,7 +116,7 @@ const Lesson1 = () => {
 
   // Show loading while session is initializing - only if we have NO role at all
   if (sessionMode.isSessionMode && !effectiveRole) {
-    console.log('Ã¢ÂÂ³ Waiting for session role to be set...');
+    console.log('⏳ Waiting for session role to be set...');
     return (
       <div className="h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
@@ -132,7 +132,7 @@ const Lesson1 = () => {
   // SESSION MODE: STUDENT VIEW
   // ========================================
   if (sessionMode.isSessionMode && effectiveRole === 'student') {
-    console.log('Ã°Å¸â€œÂ± Rendering STUDENT view');
+    console.log('👱 Rendering STUDENT view');
     
     // Student waiting for teacher to start
     if (!currentStage || currentStage === 'locked') {
@@ -141,7 +141,7 @@ const Lesson1 = () => {
     
     // Session has ended - redirect to join page
     if (currentStage === 'ended') {
-      console.log('ðŸ“¤ Session ended, redirecting to join page');
+      console.log('📤 Session ended, redirecting to join page');
       // Use a slight delay to ensure state updates complete
       setTimeout(() => {
         window.location.href = '/join';
@@ -150,7 +150,7 @@ const Lesson1 = () => {
       return (
         <div className="h-screen flex items-center justify-center bg-gray-900">
           <div className="text-center">
-            <div className="text-6xl mb-4">âœ“</div>
+            <div className="text-6xl mb-4">✔</div>
             <h1 className="text-white text-3xl font-bold mb-4">Session Has Ended</h1>
             <p className="text-gray-400 text-lg">Redirecting to join page...</p>
           </div>
@@ -183,7 +183,9 @@ const Lesson1 = () => {
     }
     
     // Student viewing active activity
-    const activityType = getActivityForStage(currentStage);
+    // ✅ FIX: If reflection stage, keep showing school-beneath activity (so modal appears on top)
+    const displayStage = currentStage === 'reflection' ? 'school-beneath' : currentStage;
+    const activityType = getActivityForStage(displayStage);
     const activity = lesson1Config.activities.find(a => a.type === activityType);
     
     if (!activity) {
@@ -211,7 +213,7 @@ const Lesson1 = () => {
   // SESSION MODE: TEACHER VIEW
   // ========================================
   if (sessionMode.isSessionMode && effectiveRole === 'teacher') {
-    console.log('Ã°Å¸â€˜Â¨Ã¢â‚¬ÂÃ°Å¸ÂÂ« Rendering TEACHER control panel');
+    console.log('👨‍🏫 Rendering TEACHER control panel');
     return (
       <SessionTeacherPanel
         config={lesson1Config}
@@ -238,7 +240,7 @@ const Lesson1 = () => {
   // NORMAL MODE: LESSON START SCREEN
   // ========================================
   if (!lesson.lessonStarted && !viewSavedMode && !viewBonusMode && !viewReflectionMode) {
-    console.log('Ã°Å¸Å½Â¬ Rendering NORMAL lesson start screen');
+    console.log('🖼️ Rendering NORMAL lesson start screen');
     return (
       <LessonStartScreen
         config={lesson1Config}
@@ -254,7 +256,7 @@ const Lesson1 = () => {
   // NORMAL MODE: ACTIVE LESSON
   // ========================================
   
-  console.log('Ã°Å¸Å½Â¯ Rendering NORMAL active lesson');
+  console.log('🖯 Rendering NORMAL active lesson');
   
   // Handle view modes (saved work, reflection, bonus)
   let activityToRender = lesson.currentActivityData;

@@ -4,8 +4,10 @@
 // UPDATED: Removed composition tips section for cleaner interface
 // FIXED: Reflection modal appears on top of composition when teacher unlocks reflection
 // FIXED: Name That Loop game integration with back to reflection functionality
+// FIXED: Requirements checking uses loop.name instead of loop.instrument
+// FIXED: Title changed from "School Beneath the Sea" to "School Beneath"
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, Minimize2, Maximize2 } from 'lucide-react';
 import { getDatabase, ref, onValue, set } from 'firebase/database';
@@ -16,6 +18,7 @@ import { useAutoSave, AutoSaveIndicator } from '../../../hooks/useAutoSave.jsx';
 import { useSession } from '../../../context/SessionContext';
 import ReflectionModal from './two-stars-and-a-wish/ReflectionModal';
 import NameThatLoopActivity from './NameThatLoopActivity';
+import SoundEffectsActivity from './SoundEffectsActivity';
 
 const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes in milliseconds
 
@@ -83,6 +86,9 @@ const SchoolBeneathActivity = ({
   // NEW: Reflection modal and Name That Loop states
   const [showReflectionModal, setShowReflectionModal] = useState(false);
   const [showNameThatLoop, setShowNameThatLoop] = useState(false);
+  
+  // NEW: State to show Sound Effects activity after submission
+  const [showSoundEffects, setShowSoundEffects] = useState(false);
   
   // ============================================================================
   // AUTO-SAVE INTEGRATION
@@ -297,62 +303,95 @@ const SchoolBeneathActivity = ({
   // REQUIREMENT CHECKING - FIXED
   // ============================================================================
   
-  const checkRequirements = (loops) => {
+  const checkRequirements = useCallback((loops) => {
     console.log('🔍 Checking requirements with loops:', loops);
     
-    // ✅ FIXED: Instrumentation - at least 5 different instruments
-    const instrumentTypes = new Set(
-      loops.map(loop => loop.instrument?.toLowerCase() || loop.category?.toLowerCase() || 'unknown')
+    // Debug: Log the first loop's properties to see what we're working with
+    if (loops.length > 0) {
+      console.log('  🔬 Sample loop structure:', {
+        name: loops[0].name,
+        startTime: loops[0].startTime,
+        endTime: loops[0].endTime,
+        allKeys: Object.keys(loops[0])
+      });
+    }
+    
+    // ✅ FIXED: Instrumentation - at least 5 different loop names (instruments)
+    const uniqueLoopNames = new Set(
+      loops.map(loop => loop.name || 'unknown')
     );
-    const hasInstrumentation = instrumentTypes.size >= 5;
-    console.log('  Instrumentation (5+ types):', hasInstrumentation, 'Types:', Array.from(instrumentTypes));
+    const hasInstrumentation = uniqueLoopNames.size >= 5;
+    console.log('  Instrumentation (5+ different loops):', hasInstrumentation, 'Unique loops:', Array.from(uniqueLoopNames));
 
     // ✅ FIXED: Layering - at least 3 loops playing at the same time
     // Find the maximum number of loops playing simultaneously at any point in time
     let maxSimultaneous = 0;
     
-    // Create a timeline of all start and end times
-    const events = [];
-    loops.forEach(loop => {
-      events.push({ time: loop.startTime, type: 'start' });
-      events.push({ time: loop.endTime, type: 'end' });
-    });
-    
-    // Sort events by time
-    events.sort((a, b) => a.time - b.time);
-    
-    // Count simultaneous loops at each event
-    let currentCount = 0;
-    events.forEach(event => {
-      if (event.type === 'start') {
-        currentCount++;
-        maxSimultaneous = Math.max(maxSimultaneous, currentCount);
-      } else {
-        currentCount--;
-      }
-    });
+    if (loops.length >= 3) {
+      // Create a timeline of all start and end times
+      const events = [];
+      loops.forEach(loop => {
+        // Skip loops without valid time data
+        if (typeof loop.startTime === 'number' && typeof loop.endTime === 'number') {
+          events.push({ time: loop.startTime, type: 'start', loopName: loop.name });
+          events.push({ time: loop.endTime, type: 'end', loopName: loop.name });
+        }
+      });
+      
+      // Sort events by time, with 'start' events before 'end' events at the same time
+      events.sort((a, b) => {
+        if (a.time !== b.time) return a.time - b.time;
+        // At same time, 'start' comes before 'end'
+        if (a.type === 'start' && b.type === 'end') return -1;
+        if (a.type === 'end' && b.type === 'start') return 1;
+        return 0;
+      });
+      
+      console.log('  📊 Event timeline:', events);
+      
+      // Count simultaneous loops at each event
+      let currentCount = 0;
+      const activeLoops = [];
+      
+      events.forEach(event => {
+        if (event.type === 'start') {
+          currentCount++;
+          activeLoops.push(event.loopName);
+          console.log(`    ▶️ ${(event.time || 0).toFixed(2)}s: ${event.loopName} starts (count: ${currentCount}) [${activeLoops.join(', ')}]`);
+          maxSimultaneous = Math.max(maxSimultaneous, currentCount);
+        } else {
+          currentCount--;
+          const index = activeLoops.indexOf(event.loopName);
+          if (index > -1) activeLoops.splice(index, 1);
+          console.log(`    ⏹️ ${(event.time || 0).toFixed(2)}s: ${event.loopName} ends (count: ${currentCount}) [${activeLoops.join(', ')}]`);
+        }
+      });
+      
+      console.log('  📈 Max simultaneous loops found:', maxSimultaneous);
+    }
     
     const hasLayering = maxSimultaneous >= 3;
     console.log('  Layering (3+ simultaneous):', hasLayering, 'Max simultaneous:', maxSimultaneous);
 
-    // ✅ REMOVED: Structure requirement (no longer needed)
-    // We only check instrumentation and layering now
+    // ✅ Structure requirement removed (always true now)
+    const hasStructure = true;
+    console.log('  Structure (removed):', hasStructure);
 
     const newRequirements = {
       instrumentation: hasInstrumentation,
       layering: hasLayering,
-      structure: false // No longer used, but kept for compatibility
+      structure: hasStructure
     };
     
     setRequirements(newRequirements);
     
-    // Check if all requirements met for the first time (only instrumentation + layering)
+    // Check if all requirements met for the first time
     const allMet = hasInstrumentation && hasLayering;
     const wasAllMet = requirements.instrumentation && requirements.layering;
     
     console.log('  All requirements met:', allMet, 'Was met before:', wasAllMet);
     
-    if (allMet && !wasAllMet && !hasAnnouncedAhaRef.current && !viewMode) {
+    if (allMet && !wasAllMet && !hasAnnouncedAhaRef.current && !viewMode && !isSessionMode) {
       console.log('🎉 ALL REQUIREMENTS MET FOR FIRST TIME!');
       hasAnnouncedAhaRef.current = true;
       
@@ -371,22 +410,45 @@ const SchoolBeneathActivity = ({
     }
     
     return newRequirements;
-  };
+  }, [viewMode, isSessionMode]); // Don't include requirements - causes infinite loop
+  
+  // ============================================================================
+  // REQUIREMENTS AUTO-CHECK - Runs after checkRequirements is defined
+  // ============================================================================
+  
+  useEffect(() => {
+    if (viewMode || placedLoops.length === 0) return;
+    
+    console.log('🔍 Auto-checking requirements with', placedLoops.length, 'loops');
+    checkRequirements(placedLoops);
+  }, [placedLoops, viewMode, checkRequirements]);
   
   // ============================================================================
   // EVENT HANDLERS
   // ============================================================================
   
-  const handleLoopPlaced = (loop) => {
-    console.log('🎵 Loop placed:', loop);
+  const handleLoopPlaced = (loopData, trackIndex, startTime) => {
+    console.log('🎵 Loop placed:', loopData, 'at trackIndex:', trackIndex, 'startTime:', startTime);
     
-    // ✅ Ensure loop has endTime calculated
-    if (!loop.endTime && loop.startTime !== undefined && loop.duration) {
-      loop.endTime = loop.startTime + loop.duration;
-      console.log('  📐 Calculated endTime:', loop.endTime, 'from startTime:', loop.startTime, '+ duration:', loop.duration);
-    }
+    // Create the loop object with proper timing properties
+    const newLoop = {
+      id: `${loopData.id}-${Date.now()}`,
+      originalId: loopData.id,
+      name: loopData.name,
+      file: loopData.file,
+      duration: loopData.duration,
+      category: loopData.category,
+      mood: loopData.mood,
+      type: loopData.type,
+      color: loopData.color,
+      trackIndex,
+      startTime,                              // ✅ Now properly set!
+      endTime: startTime + loopData.duration, // ✅ Now properly set!
+      volume: 1,
+      muted: false
+    };
     
-    const newLoops = [...placedLoops, loop];
+    const newLoops = [...placedLoops, newLoop];
     setPlacedLoops(newLoops);
     checkRequirements(newLoops);
   };
@@ -406,121 +468,95 @@ const SchoolBeneathActivity = ({
     setPlacedLoops(newLoops);
     checkRequirements(newLoops);
   };
-
-  const handleSubmitActivity = async () => {
-    if (hasSubmittedRef.current) {
-      console.log('⚠️ Already submitted, ignoring duplicate submission');
-      return;
-    }
+  
+  // Handle submission - saves composition and enters exploration mode
+  const handleSubmitActivity = () => {
+    console.log('💾 Submitting composition...');
     
-    console.log('📤 Submitting activity...');
     hasSubmittedRef.current = true;
     
-    // Close aha moment modal
+    // Save composition data
+    const compositionWithRequirements = {
+      ...compositionData,
+      requirements,
+      completedAt: new Date().toISOString()
+    };
+    
+    saveComposition(placedLoops, requirements, videoDuration);
+    
+    console.log('✅ Composition saved');
+    
+    // Show success modal
     setShowAhaMomentModal(false);
-
-    // Force immediate save using the hook
-    saveNow();
-    
-    // Save to server
-    try {
-      const result = await saveCompositionToServer(
-        {
-          placedLoops,
-          requirements,
-          videoDuration,
-          studentName: studentId,
-          timestamp: Date.now() // ✅ Add timestamp only when actually saving
-        },
-        'school-beneath'
-      );
-      
-      console.log('✅ Saved to server:', result.shareCode);
-    } catch (error) {
-      console.error('❌ Server save failed:', error);
-    }
-    
-    // Show submit success modal with countdown
     setShowSubmitSuccessModal(true);
     
-    // Voice announcement for submission
-    if (!hasAnnouncedSubmitRef.current && 'speechSynthesis' in window) {
+    // Voice announcement
+    if ('speechSynthesis' in window && !hasAnnouncedSubmitRef.current) {
       hasAnnouncedSubmitRef.current = true;
       const utterance = new SpeechSynthesisUtterance(
-        "Submission complete! All loops are now unlocked for exploration."
+        "Excellent work! Your composition has been saved. All loops are now unlocked for exploration."
       );
       utterance.rate = 0.9;
+      utterance.pitch = 1.1;
       window.speechSynthesis.speak(utterance);
     }
     
-    // Countdown and then switch to exploration mode
+    // Countdown for modal
     let countdown = 5;
+    setSubmitCountdown(countdown);
     const countdownInterval = setInterval(() => {
       countdown--;
       setSubmitCountdown(countdown);
-      
-      if (countdown === 0) {
+      if (countdown <= 0) {
         clearInterval(countdownInterval);
         setShowSubmitSuccessModal(false);
         setIsExplorationMode(true);
-        console.log('🎉 Switched to exploration mode');
+        console.log('🎉 Entering exploration mode!');
       }
     }, 1000);
   };
-
-  // ============================================================================
-  // REFLECTION & NAME THAT LOOP HANDLERS
-  // ============================================================================
   
+  // Handle reflection completion
   const handleReflectionComplete = () => {
-    console.log('✅ Reflection complete, opening Name That Loop');
+    console.log('✅ Reflection complete');
+    setShowReflectionModal(false);
+    // Don't call onComplete - teacher controls advancement
+  };
+  
+  // Handle bonus activity (Name That Loop)
+  const handlePlayNameThatLoop = () => {
+    console.log('🎮 Starting Name That Loop game');
     setShowReflectionModal(false);
     setShowNameThatLoop(true);
   };
   
   const handleBackToReflection = () => {
-    console.log('⬅️ Going back to reflection from Name That Loop');
+    console.log('◀️ Returning to reflection');
     setShowNameThatLoop(false);
     setShowReflectionModal(true);
   };
 
-  // ============================================================================
-  // ASSIGNMENT PANEL
-  // ============================================================================
-  
+  // Left panel content
   const assignmentPanelContent = !viewMode && !isExplorationMode ? (
     <div className="h-full bg-gray-800 text-white p-2 flex flex-col gap-2 overflow-y-auto">
-      {/* Timer - BIG at top */}
-      {isSessionMode && timeRemaining > 0 && (
-        <div className="bg-blue-900/30 rounded p-2 text-center border border-blue-500/30">
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <Clock size={14} className="text-blue-400" />
-            <span className="text-[9px] text-blue-300 font-semibold">Time Remaining</span>
-          </div>
-          <div className="text-xl font-bold text-blue-400 tabular-nums">
-            {formatTime(timeRemaining)}
-          </div>
-        </div>
-      )}
-      
       {/* Title - BIG */}
       <div className="text-center">
-        <h3 className="font-bold text-base mb-1">🎬 School Beneath the Sea</h3>
+        <h3 className="font-bold text-base mb-1">🎬 School Beneath</h3>
         <p className="text-xs text-gray-300">Create a mysterious underwater atmosphere</p>
       </div>
 
       {/* Requirements Checklist - SIMPLIFIED: Only Instrumentation and Layering */}
       <div className="bg-gray-700/50 rounded p-2">
-        <p className="text-[20px] font-semibold mb-2 text-blue-300">Requirements:</p>
-        <div className="space-y-2 text-[20px]">
-          <div className={`flex items-start gap-2 ${requirements.instrumentation ? 'text-green-400' : 'text-gray-300'}`}>
-            <span className="text-2xl leading-none">{requirements.instrumentation ? '✓' : '○'}</span>
+        <p className="text-[10px] font-semibold mb-1.5 text-blue-300">Requirements:</p>
+        <div className="space-y-1 text-[10px]">
+          <div className={`flex items-start gap-1.5 ${requirements.instrumentation ? 'text-green-400' : 'text-gray-300'}`}>
+            <span className="text-base leading-none">{requirements.instrumentation ? '✓' : '○'}</span>
             <span className="leading-tight">
               <strong>Instrumentation:</strong> Use 5+ different instruments
             </span>
           </div>
-          <div className={`flex items-start gap-2 ${requirements.layering ? 'text-green-400' : 'text-gray-300'}`}>
-            <span className="text-2xl leading-none">{requirements.layering ? '✓' : '○'}</span>
+          <div className={`flex items-start gap-1.5 ${requirements.layering ? 'text-green-400' : 'text-gray-300'}`}>
+            <span className="text-base leading-none">{requirements.layering ? '✓' : '○'}</span>
             <span className="leading-tight">
               <strong>Layering:</strong> Have 3+ loops playing at the same time
             </span>
@@ -583,7 +619,7 @@ const SchoolBeneathActivity = ({
       <MusicComposer
         preselectedVideo={{
           src: "/lessons/videos/film-music-loop-project/SchoolMystery.mp4",
-          title: "School Beneath the Sea",
+          title: "School Beneath",
           duration: 60
         }}
         onLoopDropCallback={handleLoopPlaced}
