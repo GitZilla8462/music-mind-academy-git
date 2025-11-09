@@ -1,5 +1,5 @@
 // File: /lessons/film-music-project/lesson1/lesson1Config.js
-// Lesson 1 configuration - SIMPLIFIED: Removed reflection-summary, direct to reflection activity
+// Lesson 1 configuration - UPDATED with image slides
 
 export const LESSON_PROGRESS_KEY = 'lesson1-progress';
 export const LESSON_TIMER_KEY = 'lesson1-timer';
@@ -12,7 +12,7 @@ export const lessonSections = [
     id: 'introduction',
     title: 'Introduction',
     subtitle: 'Welcome & DAW Tutorial',
-    icon: '🎬',
+    icon: 'ðŸŽ¬',
     color: 'blue',
     estimatedTime: 10,
     stages: [
@@ -60,7 +60,7 @@ export const lessonSections = [
     id: 'activity1',
     title: 'Activity 1 - Composition',
     subtitle: 'The School Beneath',
-    icon: '🎵',
+    icon: 'ðŸŽµ',
     color: 'purple',
     estimatedTime: 12,
     stages: [
@@ -101,7 +101,7 @@ export const lessonSections = [
     id: 'activity2',
     title: 'Activity 2 - Reflection',
     subtitle: 'Two Stars and a Wish',
-    icon: '⭐',
+    icon: 'â­',
     color: 'yellow',
     estimatedTime: 10,
     stages: [
@@ -121,7 +121,7 @@ export const lessonSections = [
     id: 'conclusion',
     title: 'Conclusion',
     subtitle: 'Whole Group Discussion',
-    icon: '👥',
+    icon: 'ðŸ‘¥',
     color: 'gray',
     estimatedTime: 2,
     stages: [
@@ -295,6 +295,7 @@ export const getActivityForStage = (stage) => {
     'activity-intro': 'video',
     'school-summary': 'summary',
     'school-beneath': 'school-beneath-activity',
+    'reflection-summary': 'summary',
     'reflection': 'two-stars-wish'
   };
   return stageMap[stage];

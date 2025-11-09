@@ -43,19 +43,19 @@ const StaticTimer = ({ seconds, isCountingDown }) => {
   );
 };
 
-// Session Code Badge Component
+// Session Code Badge Component - RESPONSIVE with viewport-based sizing
 const SessionCodeBadge = ({ sessionCode, isDarkBackground }) => {
   return (
     <div style={{
       position: 'absolute',
-      top: '20px',
-      left: '20px',
+      top: '1.2vw',
+      left: '1.2vw',
       display: 'flex',
       alignItems: 'center',
-      gap: '16px',
-      padding: '8px 12px',
+      gap: '1vw',
+      padding: '0.5vw 0.8vw',
       backgroundColor: isDarkBackground ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.9)',
-      borderRadius: '12px',
+      borderRadius: '0.8vw',
       backdropFilter: 'blur(10px)',
       border: isDarkBackground ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
       boxShadow: isDarkBackground 
@@ -66,21 +66,21 @@ const SessionCodeBadge = ({ sessionCode, isDarkBackground }) => {
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '16px'
+        gap: '1vw'
       }}>
         <span style={{
           color: isDarkBackground ? 'rgba(255, 255, 255, 0.7)' : '#6b7280',
-          fontSize: '28px',
+          fontSize: '1.8vw',
           fontWeight: '600'
         }}>
           Code:
         </span>
         <span style={{
           color: isDarkBackground ? '#ffffff' : '#3b82f6',
-          fontSize: '40px',
+          fontSize: '2.5vw',
           fontWeight: '700',
           fontFamily: 'monospace',
-          letterSpacing: '4px'
+          letterSpacing: '0.25vw'
         }}>
           {sessionCode}
         </span>
@@ -310,18 +310,17 @@ const PresentationView = () => {
     );
   }
 
-  // Map stages to slide image filenames
+  // Map stages to slide image filenames (using numbered slides 1.png - 8.png, plus 5b.png)
   const slideImages = {
-    'welcome-instructions': 'welcome-instructions.png',
-    'intro-summary': 'intro-summary.png',
-    'daw-summary': 'daw-summary.png',
-    'daw-tutorial': 'daw-tutorial.png',
-    'activity-summary': 'activity-summary.png',
-    'school-summary': 'school-summary.png',
-    'school-beneath': 'school-beneath.png',
-    'reflection-summary': 'reflection-summary.png',
-    'reflection': 'reflection.png',
-    'conclusion': 'conclusion.png'
+    'welcome-instructions': '1.png',
+    'intro-summary': '2.png',
+    'daw-summary': '3.png',
+    'daw-tutorial': '4.png',
+    'activity-summary': '5.png',
+    'school-summary': '5b.png',
+    'school-beneath': '6.png',
+    'reflection': '7.png',
+    'conclusion': '8.png'
   };
 
   // Render slide image if available
