@@ -151,7 +151,7 @@ const Timeline = ({
       </div>
 
       {/* Fixed Scrollbar */}
-      <div className="fixed bottom-20 z-50" style={{ left: '320px', right: '0' }}>
+      <div className="fixed bottom-0 z-50" style={{ left: '320px', right: '0' }}>
         <TimelineScrollbar
           timelineScrollRef={timelineScrollRef}
           timelineWidth={timelineWidth}

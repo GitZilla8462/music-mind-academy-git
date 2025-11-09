@@ -1,6 +1,7 @@
 // File: /lessons/film-music-project/lesson1/Lesson1.jsx
 // REFACTORED - Main lesson orchestrator using shared hooks and components
 // FIXED: Keep SchoolBeneathActivity mounted during reflection stage
+// UPDATED: Students see "Watch Main Screen" for ALL summary slides (not PNG images)
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -160,26 +161,20 @@ const Lesson1 = () => {
       );
     }
     
-    // Student viewing summary slide - SHOW PNG IMAGES (matching presentation view)
+    // 📊 SUMMARY SLIDES: Students see "Watch the Main Screen" message
     const currentStageData = lessonStages.find(stage => stage.id === currentStage);
     if (currentStageData?.type === 'summary') {
-      const imagePath = slideImages[currentStage];
-      return imagePath ? (
-        <div className="h-screen flex items-center justify-center bg-black">
-          <img 
-            src={`/lessons/film-music-project/lesson1/slides/${imagePath}`}
-            alt={currentStage}
-            className="max-w-full max-h-screen object-contain"
-          />
+      return (
+        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <div className="text-8xl mb-8 animate-pulse">🖥️</div>
+          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+          <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>
         </div>
-      ) : (
-        <StudentWaitingScreen />
       );
     }
     
     // 🎬 VIDEO STAGES: Students see static slide (not the video)
     if (currentStageData?.type === 'video') {
-      // Show a static "watch the main screen" message
       return (
         <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
           <div className="text-8xl mb-8 animate-pulse">🎬</div>

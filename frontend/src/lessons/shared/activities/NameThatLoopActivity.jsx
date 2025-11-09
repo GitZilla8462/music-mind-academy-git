@@ -8,12 +8,14 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
     console.log('✅ Loop data loaded:', loopsData?.length || 0, 'loops');
   }, []);
   const [gameStarted, setGameStarted] = useState(false);
+  const [numberOfPlayers, setNumberOfPlayers] = useState(null); // NEW: 2 or 3 players
+  const [showHowToPlay, setShowHowToPlay] = useState(false); // NEW: Show how to play after player selection
   const [currentRound, setCurrentRound] = useState(0);
   const [currentLoop, setCurrentLoop] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [guessResult, setGuessResult] = useState(null);
-  const [scores, setScores] = useState({ player1: 0, player2: 0 });
+  const [scores, setScores] = useState({ player1: 0, player2: 0, player3: 0 });
   const [currentPlayer, setCurrentPlayer] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [roundsToPlay, setRoundsToPlay] = useState(10);
@@ -23,8 +25,54 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
   const [startTime, setStartTime] = useState(null);
   const [answerTime, setAnswerTime] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [voiceEnabled, setVoiceEnabled] = useState(true); // NEW: Voice reading enabled by default
   
   const audioRef = useRef(null);
+
+  // Voice reading function (like DAW Tutorial)
+  const speakText = (text) => {
+    if (!voiceEnabled || !text) return;
+    
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Cancel any ongoing speech
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      
+      // Try to use a good English voice
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice = voices.find(voice => 
+        voice.lang === 'en-US' && (
+          voice.name.includes('Google US English') ||
+          voice.name.includes('Microsoft David') ||
+          voice.name.includes('Microsoft Mark') ||
+          voice.name.includes('Samantha') ||
+          voice.name.includes('Alex')
+        )
+      ) || voices.find(voice => voice.lang === 'en-US') || voices.find(voice => voice.lang.startsWith('en'));
+      
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+      
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Load voices when they're ready
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      const loadVoices = () => {
+        window.speechSynthesis.getVoices();
+      };
+      loadVoices();
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
+    }
+  }, []);
 
   // Validate that we have loop data
   if (!loopsData || loopsData.length === 0) {
@@ -153,11 +201,6 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
     setAnswerTime(0);
     
     console.log('✅ Round setup complete');
-    
-    // Auto-play the loop after a brief delay
-    setTimeout(() => {
-      playLoop();
-    }, 500);
   };
 
   // Play/pause loop
@@ -187,6 +230,29 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
     audio.addEventListener('ended', handleEnded);
     return () => audio.removeEventListener('ended', handleEnded);
   }, [currentLoop]);
+
+  // Auto-play loop when new round starts
+  useEffect(() => {
+    if (!currentLoop || !audioRef.current || guessResult) return;
+    
+    // Small delay to ensure audio element is ready
+    const timer = setTimeout(() => {
+      if (audioRef.current && currentLoop && !isPlaying) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play()
+          .then(() => {
+            setIsPlaying(true);
+            console.log('🔊 Auto-playing loop:', currentLoop.name);
+          })
+          .catch(err => {
+            console.error('Failed to auto-play:', err);
+            // If auto-play fails (browser policy), user will need to click play button
+          });
+      }
+    }, 600); // Increased delay for first question
+
+    return () => clearTimeout(timer);
+  }, [currentLoop, guessResult, isPlaying]);
 
   // Handle guess
   const handleGuess = (guessedName) => {
@@ -244,8 +310,16 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
         setIsPlaying(false);
       }
     } else {
-      // Switch players and start new round
-      setCurrentPlayer(prev => prev === 1 ? 2 : 1);
+      // Switch players and start new round (support 2 or 3 players)
+      setCurrentPlayer(prev => {
+        if (numberOfPlayers === 2) {
+          return prev === 1 ? 2 : 1;
+        } else { // 3 players
+          if (prev === 1) return 2;
+          if (prev === 2) return 3;
+          return 1;
+        }
+      });
       startNewRound();
     }
   };
@@ -260,7 +334,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
     
     setGameStarted(true);
     setCurrentRound(0);
-    setScores({ player1: 0, player2: 0 });
+    setScores({ player1: 0, player2: 0, player3: 0 });
     setCurrentPlayer(1);
     setGameComplete(false);
     startNewRound();
@@ -269,8 +343,10 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
   // Restart game
   const handleRestartGame = () => {
     setGameStarted(false);
+    setNumberOfPlayers(null);
+    setShowHowToPlay(false);
     setCurrentRound(0);
-    setScores({ player1: 0, player2: 0 });
+    setScores({ player1: 0, player2: 0, player3: 0 });
     setCurrentPlayer(1);
     setGameComplete(false);
     setCurrentLoop(null);
@@ -295,88 +371,139 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
     return `${seconds}s`;
   };
 
-  // Game Setup Screen
-  if (!gameStarted) {
+  // PLAYER SELECTION SCREEN (First Screen)
+  if (!numberOfPlayers) {
     return (
       <div className="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-6">
-        <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-4xl w-full">
-          {/* Compact Title */}
-          <div className="text-center mb-4">
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center justify-center gap-2">
-              <span className="text-4xl">🎵</span>
-              Name That Loop! Partner Listening Game
+        <div className="bg-white rounded-2xl shadow-2xl p-12 max-w-3xl w-full text-center">
+          {/* Large Warning */}
+          <div className="mb-8">
+            <h1 className="text-5xl font-black text-blue-600 mb-6 leading-tight">
+              YOU ONLY USE<br/>ONE DEVICE<br/>FOR THIS GAME
             </h1>
           </div>
 
-          {/* Two Column Layout */}
-          <div className="grid grid-cols-2 gap-6 mb-4">
-            {/* Left Column - How to Play */}
-            <div className="bg-blue-50 rounded-xl p-4">
-              <h2 className="text-lg font-bold text-gray-900 mb-2 flex items-center">
-                <Users className="mr-2 text-blue-600" size={20} />
-                How to Play
-              </h2>
-              <ol className="space-y-1.5 text-sm text-gray-700">
-                <li className="flex items-start">
-                  <span className="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0 mt-0.5">1</span>
-                  <span>Sit together at one computer</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0 mt-0.5">2</span>
-                  <span>Listen to the loop carefully</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0 mt-0.5">3</span>
-                  <span>Pick from 4 options (A, B, C, D)</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0 mt-0.5">4</span>
-                  <span>Answer fast for bonus points!</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0 mt-0.5">5</span>
-                  <span>Take turns & see who wins!</span>
-                </li>
-              </ol>
-              
-              <div className="mt-3 pt-3 border-t border-blue-200">
-                <p className="text-xs text-gray-600 flex items-start">
-                  <Lightbulb className="mr-1.5 text-yellow-600 flex-shrink-0 mt-0.5" size={14} />
-                  <span>Using a hint removes speed bonus</span>
-                </p>
-              </div>
+          {/* Player Selection */}
+          <div className="mb-8">
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">
+              How many players?
+            </h2>
+            <div className="flex gap-6 justify-center">
+              <button
+                onClick={() => {
+                  setNumberOfPlayers(2);
+                  speakText("Two players selected. You only use one device for this game. How to play: Sit together at one computer. Listen to the loop carefully. Pick from four options. Answer fast for more points! Take turns and see who wins!");
+                }}
+                className="bg-gradient-to-br from-blue-500 to-blue-700 text-white py-12 px-16 rounded-3xl font-black text-6xl hover:from-blue-600 hover:to-blue-800 transition-all shadow-2xl hover:shadow-3xl transform hover:scale-105"
+              >
+                2
+              </button>
+              <button
+                onClick={() => {
+                  setNumberOfPlayers(3);
+                  speakText("Three players selected. You only use one device for this game. How to play: Sit together at one computer. Listen to the loop carefully. Pick from four options. Answer fast for more points! Take turns and see who wins!");
+                }}
+                className="bg-gradient-to-br from-purple-500 to-purple-700 text-white py-12 px-16 rounded-3xl font-black text-6xl hover:from-purple-600 hover:to-purple-800 transition-all shadow-2xl hover:shadow-3xl transform hover:scale-105"
+              >
+                3
+              </button>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-            {/* Right Column - Speed Bonus */}
-            <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
-              <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center">
-                <Clock className="mr-2 text-green-600" size={20} />
-                Speed Bonus Points
-              </h3>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-700">
-                <div>&lt;2s: <span className="font-bold text-green-600">+10</span></div>
-                <div>2-4s: <span className="font-bold text-green-600">+8</span></div>
-                <div>4-6s: <span className="font-bold text-blue-600">+6</span></div>
-                <div>6-8s: <span className="font-bold text-blue-600">+4</span></div>
-                <div>8-10s: <span className="font-bold text-yellow-600">+2</span></div>
-                <div>&gt;10s: <span className="font-bold text-gray-600">+0</span></div>
-              </div>
+  // HOW TO PLAY SCREEN (After player selection, before game setup)
+  if (numberOfPlayers && !showHowToPlay) {
+    return (
+      <div className="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-4xl w-full max-h-[calc(100vh-32px)] overflow-y-auto">
+          {/* Title */}
+          <div className="text-center mb-4">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              🎵 How to Play
+            </h1>
+            <p className="text-xl text-gray-700">
+              {numberOfPlayers} Player Game
+            </p>
+          </div>
+
+          {/* Instructions */}
+          <div className="bg-blue-50 rounded-xl p-5 mb-4">
+            <ol className="space-y-3 text-xl text-gray-800">
+              <li className="flex items-start">
+                <span className="bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold mr-3 flex-shrink-0">1</span>
+                <span className="leading-relaxed pt-1">Sit together at one computer</span>
+              </li>
+              <li className="flex items-start">
+                <span className="bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold mr-3 flex-shrink-0">2</span>
+                <span className="leading-relaxed pt-1">Listen to the loop carefully</span>
+              </li>
+              <li className="flex items-start">
+                <span className="bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold mr-3 flex-shrink-0">3</span>
+                <span className="leading-relaxed pt-1">Pick from 4 options (A, B, C, D)</span>
+              </li>
+              <li className="flex items-start">
+                <span className="bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold mr-3 flex-shrink-0">4</span>
+                <span className="leading-relaxed pt-1">Answer fast for more points!</span>
+              </li>
+              <li className="flex items-start">
+                <span className="bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold mr-3 flex-shrink-0">5</span>
+                <span className="leading-relaxed pt-1">Take turns & see who wins!</span>
+              </li>
+            </ol>
+            
+            <div className="mt-4 pt-4 border-t-2 border-blue-200">
+              <p className="text-lg text-gray-700 flex items-center justify-center">
+                <Lightbulb className="mr-2 text-yellow-600" size={24} />
+                <span>Using a hint removes speed bonus</span>
+              </p>
             </div>
           </div>
 
+          {/* Continue Button */}
+          <button
+            onClick={() => {
+              setShowHowToPlay(true);
+              speakText("Select the number of rounds to play");
+            }}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-bold text-2xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+          >
+            Continue to Game Setup →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Game Setup Screen (After How to Play)
+  if (!gameStarted) {
+    return (
+      <div className="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
+          {/* Title */}
+          <div className="text-center mb-6">
+            <h1 className="text-4xl font-bold text-gray-900 flex items-center justify-center gap-3">
+              <span className="text-5xl">🎵</span>
+              Name That Loop!
+            </h1>
+            <p className="text-xl text-gray-700 mt-2">{numberOfPlayers} Player Game</p>
+          </div>
+
           {/* Number of Rounds Selector */}
-          <div className="mb-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <div className="mb-6">
+            <label className="block text-xl font-semibold text-gray-700 mb-3 text-center">
               Number of Rounds
             </label>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-4 gap-3">
               {[5, 10, 15, 20].map(num => (
                 <button
                   key={num}
                   onClick={() => setRoundsToPlay(num)}
-                  className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${
+                  className={`py-4 px-6 rounded-xl font-bold text-2xl transition-colors ${
                     roundsToPlay === num
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-blue-600 text-white shadow-lg'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
@@ -389,9 +516,9 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
           {/* Start Button */}
           <button
             onClick={handleStartGame}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-bold text-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-5 rounded-xl font-bold text-2xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-3"
           >
-            <Play size={24} />
+            <Play size={32} />
             <span>Start Game!</span>
           </button>
         </div>
@@ -401,7 +528,16 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
 
   // Game Complete Screen
   if (gameComplete) {
-    const winner = scores.player1 > scores.player2 ? 1 : scores.player2 > scores.player1 ? 2 : null;
+    // Find winner (support 2 or 3 players)
+    let winner = null;
+    let highScore = Math.max(scores.player1, scores.player2, numberOfPlayers === 3 ? scores.player3 : 0);
+    let winners = [];
+    
+    if (scores.player1 === highScore) winners.push(1);
+    if (scores.player2 === highScore) winners.push(2);
+    if (numberOfPlayers === 3 && scores.player3 === highScore) winners.push(3);
+    
+    winner = winners.length === 1 ? winners[0] : null; // null means tie
     
     return (
       <div className="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-6">
@@ -416,7 +552,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-5">
+          <div className={`grid ${numberOfPlayers === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-4 mb-5`}>
             <div className={`rounded-xl p-4 text-center ${
               winner === 1 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-white' : 'bg-blue-50'
             }`}>
@@ -434,6 +570,17 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
               <div className="text-xs opacity-80">points</div>
               {winner === 2 && <Star className="w-6 h-6 mx-auto mt-1.5" fill="currentColor" />}
             </div>
+
+            {numberOfPlayers === 3 && (
+              <div className={`rounded-xl p-4 text-center ${
+                winner === 3 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-white' : 'bg-green-50'
+              }`}>
+                <div className="text-xs font-semibold mb-1.5 opacity-80">Player 3</div>
+                <div className="text-4xl font-bold mb-0.5">{scores.player3}</div>
+                <div className="text-xs opacity-80">points</div>
+                {winner === 3 && <Star className="w-6 h-6 mx-auto mt-1.5" fill="currentColor" />}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2.5">
@@ -474,7 +621,9 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
           <div className={`px-4 py-1.5 rounded-full font-bold text-base ${
             currentPlayer === 1 
               ? 'bg-blue-100 text-blue-800' 
-              : 'bg-purple-100 text-purple-800'
+              : currentPlayer === 2
+              ? 'bg-purple-100 text-purple-800'
+              : 'bg-green-100 text-green-800'
           }`}>
             Player {currentPlayer}'s Turn
           </div>
@@ -488,7 +637,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
         </div>
 
         {/* Score Display */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className={`grid ${numberOfPlayers === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-3 mb-4`}>
           <div className={`rounded-lg p-3 text-center transition-all ${
             currentPlayer === 1 
               ? 'bg-blue-100 border-2 border-blue-500' 
@@ -506,6 +655,17 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
             <div className="text-xs font-semibold text-gray-600 mb-0.5">Player 2</div>
             <div className="text-2xl font-bold text-gray-900">{scores.player2}</div>
           </div>
+
+          {numberOfPlayers === 3 && (
+            <div className={`rounded-lg p-3 text-center transition-all ${
+              currentPlayer === 3 
+                ? 'bg-green-100 border-2 border-green-500' 
+                : 'bg-gray-100'
+            }`}>
+              <div className="text-xs font-semibold text-gray-600 mb-0.5">Player 3</div>
+              <div className="text-2xl font-bold text-gray-900">{scores.player3}</div>
+            </div>
+          )}
         </div>
 
         {!guessResult ? (

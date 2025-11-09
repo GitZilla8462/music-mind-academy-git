@@ -1,6 +1,7 @@
 // File: /src/lessons/film-music-project/lesson1/activities/SchoolBeneathActivity.jsx
 // ENHANCED VERSION with Auto-Save, Reflection Modal Integration, and Name That Loop Game
-// FIXED: Correct requirements (5+ instruments, 3+ simultaneous layers, 5+ total loops)
+// UPDATED: Simplified requirements (Instrumentation + Layering only, removed Structure)
+// UPDATED: Removed composition tips section for cleaner interface
 // FIXED: Reflection modal appears on top of composition when teacher unlocks reflection
 // FIXED: Name That Loop game integration with back to reflection functionality
 
@@ -334,21 +335,20 @@ const SchoolBeneathActivity = ({
     const hasLayering = maxSimultaneous >= 3;
     console.log('  Layering (3+ simultaneous):', hasLayering, 'Max simultaneous:', maxSimultaneous);
 
-    // ✅ FIXED: Structure - at least 5 loops total
-    const hasStructure = loops.length >= 5;
-    console.log('  Structure (5+ total):', hasStructure, 'Loop count:', loops.length);
+    // ✅ REMOVED: Structure requirement (no longer needed)
+    // We only check instrumentation and layering now
 
     const newRequirements = {
       instrumentation: hasInstrumentation,
       layering: hasLayering,
-      structure: hasStructure
+      structure: false // No longer used, but kept for compatibility
     };
     
     setRequirements(newRequirements);
     
-    // Check if all requirements met for the first time
-    const allMet = hasInstrumentation && hasLayering && hasStructure;
-    const wasAllMet = requirements.instrumentation && requirements.layering && requirements.structure;
+    // Check if all requirements met for the first time (only instrumentation + layering)
+    const allMet = hasInstrumentation && hasLayering;
+    const wasAllMet = requirements.instrumentation && requirements.layering;
     
     console.log('  All requirements met:', allMet, 'Was met before:', wasAllMet);
     
@@ -379,6 +379,13 @@ const SchoolBeneathActivity = ({
   
   const handleLoopPlaced = (loop) => {
     console.log('🎵 Loop placed:', loop);
+    
+    // ✅ Ensure loop has endTime calculated
+    if (!loop.endTime && loop.startTime !== undefined && loop.duration) {
+      loop.endTime = loop.startTime + loop.duration;
+      console.log('  📐 Calculated endTime:', loop.endTime, 'from startTime:', loop.startTime, '+ duration:', loop.duration);
+    }
+    
     const newLoops = [...placedLoops, loop];
     setPlacedLoops(newLoops);
     checkRequirements(newLoops);
@@ -502,40 +509,23 @@ const SchoolBeneathActivity = ({
         <p className="text-xs text-gray-300">Create a mysterious underwater atmosphere</p>
       </div>
 
-      {/* Requirements Checklist - FIXED REQUIREMENTS */}
+      {/* Requirements Checklist - SIMPLIFIED: Only Instrumentation and Layering */}
       <div className="bg-gray-700/50 rounded p-2">
-        <p className="text-[10px] font-semibold mb-1.5 text-blue-300">Requirements:</p>
-        <div className="space-y-1 text-[10px]">
-          <div className={`flex items-start gap-1.5 ${requirements.instrumentation ? 'text-green-400' : 'text-gray-300'}`}>
-            <span className="text-base leading-none">{requirements.instrumentation ? '✓' : '○'}</span>
+        <p className="text-[20px] font-semibold mb-2 text-blue-300">Requirements:</p>
+        <div className="space-y-2 text-[20px]">
+          <div className={`flex items-start gap-2 ${requirements.instrumentation ? 'text-green-400' : 'text-gray-300'}`}>
+            <span className="text-2xl leading-none">{requirements.instrumentation ? '✓' : '○'}</span>
             <span className="leading-tight">
               <strong>Instrumentation:</strong> Use 5+ different instruments
             </span>
           </div>
-          <div className={`flex items-start gap-1.5 ${requirements.layering ? 'text-green-400' : 'text-gray-300'}`}>
-            <span className="text-base leading-none">{requirements.layering ? '✓' : '○'}</span>
+          <div className={`flex items-start gap-2 ${requirements.layering ? 'text-green-400' : 'text-gray-300'}`}>
+            <span className="text-2xl leading-none">{requirements.layering ? '✓' : '○'}</span>
             <span className="leading-tight">
               <strong>Layering:</strong> Have 3+ loops playing at the same time
             </span>
           </div>
-          <div className={`flex items-start gap-1.5 ${requirements.structure ? 'text-green-400' : 'text-gray-300'}`}>
-            <span className="text-base leading-none">{requirements.structure ? '✓' : '○'}</span>
-            <span className="leading-tight">
-              <strong>Structure:</strong> Place at least 5 loops total
-            </span>
-          </div>
         </div>
-      </div>
-
-      {/* Tips Section */}
-      <div className="bg-blue-900/30 rounded p-2 text-[9px] text-blue-200">
-        <p className="font-semibold mb-1">💡 Composition Tips:</p>
-        <ul className="space-y-0.5 ml-3 list-disc">
-          <li>Start with a bass loop for foundation</li>
-          <li>Add strings or piano for melody</li>
-          <li>Layer loops at different times</li>
-          <li>Create a mysterious, underwater feeling</li>
-        </ul>
       </div>
       
       {/* Auto-save indicator at bottom */}
@@ -596,9 +586,9 @@ const SchoolBeneathActivity = ({
           title: "School Beneath the Sea",
           duration: 60
         }}
-        onLoopPlaced={handleLoopPlaced}
-        onLoopDeleted={handleLoopDeleted}
-        onLoopUpdated={handleLoopUpdated}
+        onLoopDropCallback={handleLoopPlaced}
+        onLoopDeleteCallback={handleLoopDeleted}
+        onLoopUpdateCallback={handleLoopUpdated}
         placedLoops={placedLoops}
         onVideoDurationDetected={setVideoDuration}
         assignmentPanelContent={assignmentPanelContent}

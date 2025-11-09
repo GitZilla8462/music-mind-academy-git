@@ -339,20 +339,6 @@ const PresentationView = () => {
       }}>
         <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={true} />
         
-        {/* Countdown Timer Display */}
-        {isCountingDown && countdownTime > 0 && (
-          <div style={{
-            position: 'absolute',
-            top: '20px',
-            right: '20px',
-            zIndex: 1000
-          }}>
-            <StaticTimer 
-              seconds={countdownTime} 
-              isCountingDown={true}
-            />
-          </div>
-        )}
         
         {/* Fullscreen Button */}
         <button

@@ -84,13 +84,50 @@ const ChallengeSidebar = ({
 
   // EXPLORATION MODE VIEW - HIDE TIMER IN SESSION MODE
   if (showExplorationMode) {
+    // Speak the message when exploration mode first shows
+    React.useEffect(() => {
+      if ('speechSynthesis' in window && voiceEnabled) {
+        // Small delay to ensure component is mounted
+        const timer = setTimeout(() => {
+          const message = "Tutorial Complete! Excellent work! Use the remaining time to explore and create music freely.";
+          const utterance = new SpeechSynthesisUtterance(message);
+          utterance.rate = 0.9;
+          utterance.pitch = 1.0;
+          utterance.volume = voiceVolume;
+          
+          const voices = window.speechSynthesis.getVoices();
+          const preferredVoice = voices.find(voice => 
+            voice.lang === 'en-US' && (
+              voice.name.includes('Google US English') ||
+              voice.name.includes('Microsoft David') ||
+              voice.name.includes('Microsoft Mark') ||
+              voice.name.includes('Samantha') ||
+              voice.name.includes('Alex')
+            )
+          ) || voices.find(voice => voice.lang === 'en-US') || voices.find(voice => voice.lang.startsWith('en'));
+          
+          if (preferredVoice) {
+            utterance.voice = preferredVoice;
+          }
+          
+          window.speechSynthesis.speak(utterance);
+        }, 300);
+        
+        return () => clearTimeout(timer);
+      }
+    }, []); // Empty dependency array so it only runs once
+    
     return (
       <div className="h-full bg-white text-gray-800 p-4 flex flex-col gap-4 overflow-y-auto border-4 border-orange-600">
         {/* Header */}
         <div className="text-center bg-orange-600 -m-4 mb-0 p-4 rounded-t-lg">
           <div className="text-2xl font-bold mb-2 text-white">🎉</div>
           <h2 className="text-lg font-bold mb-1 text-white">Tutorial Complete!</h2>
-          <p className="text-xs text-orange-100">
+        </div>
+
+        {/* Main Message in White Area */}
+        <div className="bg-white rounded-lg p-4 text-center">
+          <p className="text-base text-gray-800 leading-relaxed">
             Excellent work! Use the remaining time to explore and create music freely.
           </p>
         </div>
@@ -109,18 +146,6 @@ const ChallengeSidebar = ({
             </div>
           </div>
         )}
-
-        {/* Exploration Tips */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <div className="text-xs font-semibold mb-2 text-gray-800">💡 Things to try:</div>
-          <ul className="text-[10px] text-gray-700 space-y-1">
-            <li>🎵 Layer multiple loops together</li>
-            <li>🎚️ Adjust track volumes</li>
-            <li>✂️ Resize loops to match sections</li>
-            <li>🔄 Move loops to different times</li>
-            <li>🎭 Create your own soundtrack!</li>
-          </ul>
-        </div>
       </div>
     );
   }

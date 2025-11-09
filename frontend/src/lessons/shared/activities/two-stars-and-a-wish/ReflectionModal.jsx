@@ -26,7 +26,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
   });
 
   // Voice and UI state
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(false); // Disabled by default
   const [voiceVolume, setVoiceVolume] = useState(0.5);
   const [showHint, setShowHint] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
