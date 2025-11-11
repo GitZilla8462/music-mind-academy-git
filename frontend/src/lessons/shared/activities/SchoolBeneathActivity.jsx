@@ -93,19 +93,14 @@ const SchoolBeneathActivity = ({
     
     if (hasSavedWork) {
       const saved = loadSavedWork();
-      if (saved && saved.placedLoops) {
-        const shouldLoad = window.confirm(
-          "Continue where you left off?\n\nOK = load previous work\nCancel = start fresh"
-        );
-        
-        if (shouldLoad) {
-          setPlacedLoops(saved.placedLoops || []);
-          setVideoDuration(saved.videoDuration || 60);
-          console.log('✅ Loaded previous work');
-        }
+      if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
+        // Auto-load saved work (no confirmation needed - they can clear it if they want)
+        setPlacedLoops(saved.placedLoops || []);
+        setVideoDuration(saved.videoDuration || 60);
+        console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
       }
     }
-  }, [studentId, hasSavedWork, viewMode]);
+  }, [studentId, hasSavedWork, viewMode, loadSavedWork]);
   
   // ============================================================================
   // REFLECTION DETECTION
