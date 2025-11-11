@@ -46,8 +46,12 @@ import JoinWithCode from './pages/JoinWithCode';
 // Import composition viewer
 import CompositionViewer from './pages/CompositionViewer';
 
-// ✅ NEW: Import debug tool
+// Import debug tool
 import FirebaseSessionInspector from './components/FirebaseSessionInspector';
+
+// ✅ NEW: Import error logger and admin dashboard
+import ErrorLogger from './components/ErrorLogger';
+import AdminAllProblems from './pages/AdminAllProblems';
 
 // Add global styles for snap guide
 const snapGuideStyles = `
@@ -164,16 +168,19 @@ const AppContent = () => {
         <Routes>
         <Route path="/" element={<MusicClassroomResources />} />
         
-        {/* ✅ NEW: Debug tool for inspecting Firebase sessions */}
+        {/* ✅ NEW: Admin dashboard for monitoring all problems */}
+        <Route path="/admin/all-problems" element={<AdminAllProblems />} />
+        
+        {/* Debug tool for inspecting Firebase sessions */}
         <Route path="/debug-session" element={<FirebaseSessionInspector />} />
         
-        {/* ✅ NEW: Lesson Plan PDF Viewer */}
+        {/* Lesson Plan PDF Viewer */}
         <Route path="/lesson-plan/lesson1" element={<LessonPlanPDF />} />
         
         {/* Join Page - NO AUTHENTICATION REQUIRED */}
         <Route path="/join" element={<JoinWithCode />} />
         
-        {/* ✅ NEW: Composition Viewer - View shared compositions */}
+        {/* Composition Viewer - View shared compositions */}
         <Route path="/view-composition/:shareCode" element={<CompositionViewer />} />
         
         {/* Session Start Page - Shows session code before starting lesson */}
@@ -195,6 +202,9 @@ const AppContent = () => {
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      
+      {/* ✅ NEW: Error logger - red button for students */}
+      <ErrorLogger />
       </SessionProvider>
     );
   }
@@ -225,13 +235,16 @@ const AppContent = () => {
         {/* PUBLIC ROUTES */}
         <Route path="/login" element={<AuthPage />} />
         
-        {/* ✅ NEW: Debug tool for inspecting Firebase sessions */}
+        {/* ✅ NEW: Admin dashboard - Also available in commercial mode */}
+        <Route path="/admin/all-problems" element={<AdminAllProblems />} />
+        
+        {/* Debug tool for inspecting Firebase sessions */}
         <Route path="/debug-session" element={<FirebaseSessionInspector />} />
         
-        {/* ✅ NEW: Lesson Plan PDF Viewer - Also available in commercial mode */}
+        {/* Lesson Plan PDF Viewer - Also available in commercial mode */}
         <Route path="/lesson-plan/lesson1" element={<LessonPlanPDF />} />
         
-        {/* ✅ NEW: Composition Viewer - Also available in commercial mode */}
+        {/* Composition Viewer - Also available in commercial mode */}
         <Route path="/view-composition/:shareCode" element={<CompositionViewer />} />
         
         {/* Session Start Page - Available in commercial mode */}
@@ -404,6 +417,9 @@ const AppContent = () => {
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </ClassProvider>
+    
+    {/* ✅ NEW: Error logger - Also in commercial mode */}
+    <ErrorLogger />
     </SessionProvider>
   );
 };

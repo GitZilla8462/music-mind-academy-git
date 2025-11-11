@@ -1,4 +1,5 @@
 // Firebase configuration for Music Mind Academy
+// UPDATED: Added logging utility functions
 // src/firebase/config.js
 
 import { initializeApp } from 'firebase/app';
@@ -161,6 +162,88 @@ export const getSessionStudents = async (sessionCode) => {
       resolve(students ? Object.values(students) : []);
     }, { onlyOnce: true });
   });
+};
+
+// ==========================================
+// LOGGING FUNCTIONS (NEW)
+// ==========================================
+
+/**
+ * Log an error to Firebase for admin monitoring
+ * @param {string} sessionCode - Session code where error occurred
+ * @param {string} studentId - Student who experienced the error
+ * @param {string} message - Error message
+ * @param {object} data - Additional error data
+ */
+export const logError = async (sessionCode, studentId, message, data = {}) => {
+  try {
+    const logRef = ref(database, `session-logs/${sessionCode}/${studentId}`);
+    await push(logRef, {
+      type: 'error',
+      message,
+      timestamp: Date.now(),
+      data,
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown'
+    });
+  } catch (error) {
+    console.error('Failed to log error to Firebase:', error);
+  }
+};
+
+/**
+ * Log when a student gets kicked from a session
+ * @param {string} sessionCode - Session code
+ * @param {string} studentId - Student who was kicked
+ * @param {string} reason - Reason for kick
+ * @param {object} data - Additional context
+ */
+export const logKick = async (sessionCode, studentId, reason, data = {}) => {
+  try {
+    const logRef = ref(database, `session-logs/${sessionCode}/${studentId}`);
+    await push(logRef, {
+      type: 'kick',
+      reason,
+      timestamp: Date.now(),
+      data,
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown'
+    });
+    
+    // Also add to centralized problems list
+    const problemsRef = ref(database, 'all-problems');
+    await push(problemsRef, {
+      type: 'kick',
+      message: reason,
+      sessionCode,
+      studentId,
+      timestamp: Date.now(),
+      date: new Date().toISOString().split('T')[0],
+      data,
+      resolved: false
+    });
+  } catch (error) {
+    console.error('Failed to log kick to Firebase:', error);
+  }
+};
+
+/**
+ * Log a warning to Firebase
+ * @param {string} sessionCode - Session code
+ * @param {string} studentId - Student ID
+ * @param {string} message - Warning message
+ * @param {object} data - Additional data
+ */
+export const logWarning = async (sessionCode, studentId, message, data = {}) => {
+  try {
+    const logRef = ref(database, `session-logs/${sessionCode}/${studentId}`);
+    await push(logRef, {
+      type: 'warning',
+      message,
+      timestamp: Date.now(),
+      data
+    });
+  } catch (error) {
+    console.error('Failed to log warning to Firebase:', error);
+  }
 };
 
 export default database;
