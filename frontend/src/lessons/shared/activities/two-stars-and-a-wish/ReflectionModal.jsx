@@ -1,14 +1,14 @@
 // File: /src/lessons/film-music-project/lesson1/activities/two-stars-and-a-wish/ReflectionModal.jsx
 // UPDATED: Top-left positioning with minimize functionality
-// Steps: 0=teacher instruction, 1=choose type, 2=listen & share, 3=star1, 4=star2, 5=wish, 6=summary
+// Steps: 1=choose type, 2=listen & share, 3=star1, 4=star2, 5=wish, 6=summary
 
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, Star, Sparkles, Volume2, VolumeX, HelpCircle, Minimize2, Maximize2 } from 'lucide-react';
 import { SELF_REFLECTION_PROMPTS, PARTNER_REFLECTION_OPTIONS } from './reflectionPrompts';
 
 const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSessionMode = false }) => {
-  // Steps: 0=teacher instruction, 1=choose type, 2=listen & share, 3=star1, 4=star2, 5=wish, 6=summary
-  const [currentStep, setCurrentStep] = useState(viewMode ? 6 : 0);
+  // Steps: 1=choose type, 2=listen & share, 3=star1, 4=star2, 5=wish, 6=summary
+  const [currentStep, setCurrentStep] = useState(viewMode ? 6 : 1);
   const [reflectionData, setReflectionData] = useState({
     reviewType: null,
     partnerName: '',
@@ -88,7 +88,6 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
     const reviewTarget = reflectionData.reviewType === 'self' ? 'your' : `${partnerName}'s`;
     
     const messages = {
-      0: "Time to reflect on your work! First, ask your teacher: Are you reviewing your own composition, or will you be reviewing a partner's work?",
       1: "Whose composition are you reviewing? Choose whether you'll reflect on your own work or a friend's composition.",
       2: reflectionData.reviewType === 'self'
         ? "Now, listen to your entire film score from beginning to end. Pay attention to: How the music tools, such as timeline, tracks, and volume, were used. How the loops are timed with the video. And the overall sound and mood of the music."
@@ -129,10 +128,6 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
 
   const handlePartnerNameChange = (e) => {
     setReflectionData(prev => ({ ...prev, partnerName: e.target.value }));
-  };
-
-  const handleContinueFromStep0 = () => {
-    goToNextStep();
   };
 
   const handleContinueFromStep1 = () => {
@@ -283,32 +278,6 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
 
       {/* Content Area with Scroll */}
       <div className="flex-1 overflow-y-auto p-4">
-        {/* STEP 0: Teacher Instruction */}
-        {currentStep === 0 && (
-          <div className="space-y-4">
-            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
-              <p className="text-lg font-bold text-gray-800 mb-2">👨‍🏫 For Teachers:</p>
-              <p className="text-gray-700 mb-3">
-                Before students begin their reflection, please decide:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-gray-700 mb-3">
-                <li>Will students reflect on their <strong>own</strong> composition?</li>
-                <li>Or will they provide feedback on a <strong>partner's</strong> composition?</li>
-              </ul>
-              <p className="text-gray-700">
-                Make your selection and communicate it to the class before they proceed.
-              </p>
-            </div>
-
-            <button
-              onClick={handleContinueFromStep0}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-            >
-              Continue to Reflection →
-            </button>
-          </div>
-        )}
-
         {/* STEP 1: Choose Review Type */}
         {currentStep === 1 && (
           <div className="space-y-4">

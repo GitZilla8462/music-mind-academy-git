@@ -32,6 +32,7 @@ import TeacherSubmissionViewer from './components/dashboard/teacherdashboard/Tea
 // Import lesson components
 import SimpleLessonPlaceholder from "./lessons/shared/components/LessonPlayer";
 import Lesson1 from './lessons/film-music-project/lesson1/Lesson1';
+import LessonPlanPDF from './lessons/film-music-project/lesson1/LessonPlanPDF';
 
 // Import presentation view
 import PresentationView from './components/PresentationView';
@@ -166,6 +167,9 @@ const AppContent = () => {
         {/* ✅ NEW: Debug tool for inspecting Firebase sessions */}
         <Route path="/debug-session" element={<FirebaseSessionInspector />} />
         
+        {/* ✅ NEW: Lesson Plan PDF Viewer */}
+        <Route path="/lesson-plan/lesson1" element={<LessonPlanPDF />} />
+        
         {/* Join Page - NO AUTHENTICATION REQUIRED */}
         <Route path="/join" element={<JoinWithCode />} />
         
@@ -223,6 +227,9 @@ const AppContent = () => {
         
         {/* ✅ NEW: Debug tool for inspecting Firebase sessions */}
         <Route path="/debug-session" element={<FirebaseSessionInspector />} />
+        
+        {/* ✅ NEW: Lesson Plan PDF Viewer - Also available in commercial mode */}
+        <Route path="/lesson-plan/lesson1" element={<LessonPlanPDF />} />
         
         {/* ✅ NEW: Composition Viewer - Also available in commercial mode */}
         <Route path="/view-composition/:shareCode" element={<CompositionViewer />} />

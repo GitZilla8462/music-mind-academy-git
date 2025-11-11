@@ -96,6 +96,7 @@ const PresentationView = () => {
   const [countdownTime, setCountdownTime] = useState(0);
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [sessionData, setSessionData] = useState(null);
   
   const lastFirebaseCountdown = useRef(null);
   const lastFirebaseStage = useRef(null);
@@ -156,6 +157,7 @@ const PresentationView = () => {
       if (!data) return;
 
       console.log('Firebase update:', data);
+      setSessionData(data); // Store session data for student count
       
       // STAGE CHANGES - Reset everything
       if (data.currentStage && data.currentStage !== lastFirebaseStage.current) {
@@ -240,8 +242,8 @@ const PresentationView = () => {
     );
   }
 
-  // Waiting screen with session code
-  if (currentStage === 'locked') {
+  // ✅ FIXED: Waiting screen with session code (both 'locked' and 'join-code' stages)
+  if (currentStage === 'locked' || currentStage === 'join-code') {
     return (
       <div style={{
         display: 'flex',
@@ -273,6 +275,19 @@ const PresentationView = () => {
         <p style={{ fontSize: '24px', color: '#6b7280', textAlign: 'center', maxWidth: '600px' }}>
           Waiting for teacher to start the lesson...
         </p>
+        
+        {/* Student count */}
+        {sessionData?.studentsJoined && (
+          <div style={{ 
+            marginTop: '40px', 
+            fontSize: '28px', 
+            color: '#10b981',
+            fontWeight: '600'
+          }}>
+            👥 {Object.keys(sessionData.studentsJoined).length} student(s) joined
+          </div>
+        )}
+        
         <style>{`
           @keyframes pulse {
             0%, 100% { transform: scale(1); opacity: 1; }

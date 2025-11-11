@@ -1,9 +1,9 @@
 // File: /src/lessons/shared/components/SessionTeacherPanel.jsx
-// SIMPLIFIED: Card-based teacher control panel - removed Save All Student Work blocking
-// SIMPLIFIED: Seamless stage navigation
+// ENHANCED: Card-based teacher control panel with section groupings
+// UPDATED: Removed blocking navigation and Save All Student Work buttons
 
 import React, { useState, useEffect } from 'react';
-import { Clock, Play, Pause, SkipForward, CheckCircle, Users, ChevronDown, ChevronUp, ExternalLink, Plus, Minus, RotateCcw, Save } from 'lucide-react';
+import { Clock, Play, Pause, SkipForward, CheckCircle, Users, ChevronDown, ChevronUp, ExternalLink, Plus, Minus, RotateCcw } from 'lucide-react';
 import { getDatabase, ref, onValue, set } from 'firebase/database';
 
 const SessionTeacherPanel = ({
@@ -25,10 +25,25 @@ const SessionTeacherPanel = ({
   onOpenPresentation
 }) => {
   const [expandedSections, setExpandedSections] = useState(new Set()); // All sections closed by default
+  const [shouldOpenPresentation, setShouldOpenPresentation] = useState(false); // Track if we need to open presentation
   
   const currentStage = getCurrentStage();
   const students = getStudents();
   const studentCount = students?.length || 0;
+
+  // Open presentation when stage changes to join-code (if flag is set)
+  useEffect(() => {
+    if (shouldOpenPresentation && currentStage === 'join-code') {
+      console.log('✅ Stage changed to join-code via useEffect! Opening presentation...');
+      console.log('  Current stage:', currentStage);
+      
+      if (onOpenPresentation) {
+        onOpenPresentation();
+      }
+      
+      setShouldOpenPresentation(false); // Reset flag
+    }
+  }, [currentStage, shouldOpenPresentation, onOpenPresentation]);
 
   // Calculate total lesson time dynamically from activity timers
   const totalLessonTime = React.useMemo(() => {
@@ -43,16 +58,16 @@ const SessionTeacherPanel = ({
             const timerData = activityTimers[stage.id];
             const adjustedDuration = timerData?.presetTime ?? stage.duration;
             total += adjustedDuration;
-            console.log(`ðŸ“Š ${stage.id}: ${adjustedDuration} min (adjusted: ${timerData?.presetTime ? 'yes' : 'no'})`);
+            console.log(`📊 ${stage.id}: ${adjustedDuration} min (adjusted: ${timerData?.presetTime ? 'yes' : 'no'})`);
           } else {
             // For videos and other timed stages without hasTimer, just use duration
             total += stage.duration;
-            console.log(`ðŸ“Š ${stage.id}: ${stage.duration} min (fixed duration)`);
+            console.log(`📊 ${stage.id}: ${stage.duration} min (fixed duration)`);
           }
         }
       });
     });
-    console.log(`ðŸ“Š Total lesson time: ${total} minutes`);
+    console.log(`📊 Total lesson time: ${total} minutes`);
     return total;
   }, [config.lessonSections, activityTimers]);
 
@@ -70,18 +85,23 @@ const SessionTeacherPanel = ({
 
   // Auto-expand section when stage changes
   useEffect(() => {
+    console.log('🔄 Auto-expand effect triggered');
+    console.log('  Current stage:', currentStage);
+    
     if (currentStage) {
       // Find which section contains the current stage
       const activeSection = config.lessonSections?.find(section => 
         section.stages.some(stage => stage.id === currentStage)
       );
       
+      console.log('  Active section found:', activeSection?.id, activeSection?.title);
+      
       if (activeSection) {
+        console.log('  📂 Expanding section:', activeSection.id);
         setExpandedSections(new Set([activeSection.id]));
       }
     }
   }, [currentStage, config.lessonSections]);
-
 
   // Keyboard navigation - Right arrow advances to next stage
   useEffect(() => {
@@ -93,8 +113,10 @@ const SessionTeacherPanel = ({
         
         if (nextStageIndex < lessonStages.length) {
           const nextStage = lessonStages[nextStageIndex];
-          jumpToStage(nextStage.id); // Use jumpToStage to trigger auto-timer AND check for save requirement
-          console.log('â©ï¸ Advanced to next stage via keyboard');
+          jumpToStage(nextStage.id);
+          console.log('⏩️ Advanced to next stage via keyboard');
+        } else {
+          console.log('⏩️ Already at last stage');
         }
       }
       
@@ -103,10 +125,13 @@ const SessionTeacherPanel = ({
         const currentStageIndex = lessonStages.findIndex(s => s.id === currentStage);
         const prevStageIndex = currentStageIndex - 1;
         
-        if (prevStageIndex >= 0) {
+        // Only go back if we're not at the first stage (welcome-instructions)
+        if (prevStageIndex >= 0 && currentStageIndex > 0) {
           const prevStage = lessonStages[prevStageIndex];
           jumpToStage(prevStage.id);
-          console.log('âª Went back to previous stage via keyboard');
+          console.log('⏪ Went back to previous stage via keyboard');
+        } else {
+          console.log('⏪ Already at first stage (welcome-instructions)');
         }
       }
     };
@@ -114,7 +139,6 @@ const SessionTeacherPanel = ({
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [currentStage, lessonStages]);
-
 
   // Get status of a stage
   const getStageStatus = (stageId) => {
@@ -172,10 +196,17 @@ const SessionTeacherPanel = ({
     return total;
   };
 
-  // Jump to a specific stage - SIMPLIFIED (no blocking)
+  // Jump to a specific stage - NO BLOCKING
   const jumpToStage = (stageId) => {
-    console.log('🎯 Jumping to stage:', stageId);
+    console.log('🎯 jumpToStage() called');
+    console.log('  Target stage ID:', stageId);
+    console.log('  Current stage:', currentStage);
+    console.log('  Timestamp:', new Date().toISOString());
+    console.log('  Call stack:', new Error().stack);
+    
     setCurrentStage(stageId);
+    
+    console.log('✅ setCurrentStage called with:', stageId);
   };
 
   // Increase timer by 1 minute
@@ -190,40 +221,44 @@ const SessionTeacherPanel = ({
     adjustPresetTime(stageId, -1);
   };
 
-
-
-
-  // Section color mapping - WHITE AND BLUE THEME
+  // Section color mapping - PROFESSIONAL EDUCATION BLUE PALETTE
+  // Based on research: Blue promotes trust, calm, and reduces cognitive load
+  // Monochromatic with strategic accent colors for hierarchy
   const sectionColors = {
     blue: {
       border: 'border-blue-500',
       bg: 'bg-blue-50',
-      text: 'text-blue-700',
-      button: 'bg-blue-600 hover:bg-blue-700'
+      text: 'text-blue-800',
+      button: 'bg-blue-600 hover:bg-blue-700',
+      accent: 'bg-blue-100'
     },
     purple: {
-      border: 'border-blue-400',
-      bg: 'bg-blue-50',
-      text: 'text-blue-600',
-      button: 'bg-blue-500 hover:bg-blue-600'
+      border: 'border-indigo-400',
+      bg: 'bg-indigo-50',
+      text: 'text-indigo-800',
+      button: 'bg-indigo-600 hover:bg-indigo-700',
+      accent: 'bg-indigo-100'
     },
     yellow: {
-      border: 'border-blue-400',
-      bg: 'bg-blue-50',
-      text: 'text-blue-600',
-      button: 'bg-blue-500 hover:bg-blue-600'
+      border: 'border-amber-400',
+      bg: 'bg-amber-50',
+      text: 'text-amber-900',
+      button: 'bg-amber-600 hover:bg-amber-700',
+      accent: 'bg-amber-100'
     },
     green: {
-      border: 'border-blue-400',
-      bg: 'bg-blue-50',
-      text: 'text-blue-600',
-      button: 'bg-blue-500 hover:bg-blue-600'
+      border: 'border-teal-400',
+      bg: 'bg-teal-50',
+      text: 'text-teal-800',
+      button: 'bg-teal-600 hover:bg-teal-700',
+      accent: 'bg-teal-100'
     },
     gray: {
-      border: 'border-gray-400',
-      bg: 'bg-gray-50',
-      text: 'text-gray-700',
-      button: 'bg-gray-600 hover:bg-gray-700'
+      border: 'border-slate-300',
+      bg: 'bg-slate-50',
+      text: 'text-slate-800',
+      button: 'bg-slate-600 hover:bg-slate-700',
+      accent: 'bg-slate-100'
     }
   };
 
@@ -239,43 +274,101 @@ const SessionTeacherPanel = ({
     <div className="min-h-screen bg-white text-gray-900 p-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold text-blue-900">{config.title}</h1>
-            <p className="text-gray-600 mt-1">Teacher Control Panel</p>
+        <div className="mb-4">
+          <h1 className="text-3xl font-bold text-blue-900">{config.title}</h1>
+          <p className="text-gray-600 mt-1">Teacher Control Panel</p>
+        </div>
+        
+        {/* Compact Info Boxes - 3 across */}
+        <div className="grid grid-cols-3 gap-3 mb-3">
+          {/* Class Code */}
+          <div className="bg-slate-50 px-4 py-3 rounded-lg border border-slate-200 shadow-sm">
+            <div className="text-xs text-slate-600 font-medium mb-1">Class Code</div>
+            <div className="text-slate-900 font-mono font-bold text-2xl">{sessionCode}</div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-blue-600 px-4 py-2 rounded-lg text-white">
-              <Users size={20} />
-              <span className="font-semibold">{studentCount} Students</span>
+          
+          {/* Students */}
+          <div className="bg-blue-50 px-4 py-3 rounded-lg border border-blue-200 shadow-sm">
+            <div className="text-xs text-blue-700 font-medium mb-1">Students</div>
+            <div className="flex items-center gap-2">
+              <Users size={20} className="text-blue-600" />
+              <span className="font-bold text-2xl text-blue-900">{studentCount}</span>
             </div>
-            <div className="bg-gray-200 px-4 py-2 rounded-lg text-center">
-              <div className="text-xs text-gray-600 font-medium">Class Code</div>
-              <div className="text-gray-900 font-mono font-bold text-xl">{sessionCode}</div>
-            </div>
-            <div className="bg-blue-600 px-4 py-2 rounded-lg text-white text-center">
-              <div className="text-xs text-blue-200 font-medium">Total Lesson Time</div>
-              <div className="flex items-center gap-1 justify-center">
-                <Clock size={18} />
-                <span className="font-bold text-xl">{totalLessonTime} min</span>
-              </div>
+          </div>
+          
+          {/* Lesson Time */}
+          <div className="bg-indigo-50 px-4 py-3 rounded-lg border border-indigo-200 shadow-sm">
+            <div className="text-xs text-indigo-700 font-medium mb-1">Lesson Time</div>
+            <div className="flex items-center gap-2">
+              <Clock size={20} className="text-indigo-600" />
+              <span className="font-bold text-2xl text-indigo-900">{totalLessonTime} min</span>
             </div>
           </div>
         </div>
         
-        {/* Keyboard Shortcuts Hint */}
-        <div className="text-xs text-gray-500 mt-2">
+        {/* Lesson Plan Overview Button - Full Width */}
+        <button
+          onClick={() => {
+            // Open lesson plan PDF in new window
+            const lessonPlanUrl = '/lesson-plan/lesson1';
+            const popup = window.open(
+              lessonPlanUrl,
+              'LessonPlanPDF',
+              'width=1000,height=800,menubar=yes,toolbar=yes,location=no,scrollbars=yes'
+            );
+            
+            if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+              alert('Popup blocked! Please allow popups for this site and try again.');
+            } else {
+              popup.focus();
+            }
+          }}
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 border border-indigo-700 shadow-sm"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Lesson Plan Overview
+        </button>
+        
+        {/* Info Row */}
+        <div className="text-xs text-gray-500 mt-3">
+          💡 Use <kbd className="px-2 py-1 bg-gray-200 rounded border border-gray-300">←</kbd> and <kbd className="px-2 py-1 bg-gray-200 rounded border border-gray-300">→</kbd> arrow keys to navigate stages
         </div>
       </div>
 
       {/* START LESSON - Standalone card at the very top */}
       <div className="mb-4">
         <div
-          onClick={onOpenPresentation}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('🎬 START LESSON CLICKED');
+            console.log('  Current stage:', currentStage);
+            
+            // If already at join-code, just open presentation immediately
+            if (currentStage === 'join-code') {
+              console.log('  Already at join-code, opening presentation immediately');
+              if (onOpenPresentation) {
+                onOpenPresentation();
+              }
+              return;
+            }
+            
+            // Jump to join-code stage (shows join code screen)
+            console.log('  Jumping to join-code...');
+            jumpToStage('join-code');
+            
+            // Set flag so useEffect will open presentation when stage changes
+            setShouldOpenPresentation(true);
+            console.log('  Flag set - will open presentation when stage changes to join-code');
+          }}
           className="rounded-xl border-2 border-green-500 bg-green-600 hover:bg-green-700 overflow-hidden transition-all shadow-md cursor-pointer"
         >
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
+              <div className="text-4xl">🎬</div>
               <div>
                 <h2 className="text-xl font-bold text-white">Start Lesson</h2>
                 <p className="text-sm text-green-100">Open Presentation</p>
@@ -306,9 +399,14 @@ const SessionTeacherPanel = ({
               {/* Section Header - Clickable */}
               <button
                 onClick={() => {
+                  console.log('📦 Section header clicked:', section.id);
+                  console.log('  Section title:', section.title);
+                  console.log('  First stage in section:', section.stages?.[0]?.id);
+                  
                   toggleSection(section.id);
                   // Jump to first stage in section
                   if (section.stages && section.stages.length > 0) {
+                    console.log('  🎯 Auto-jumping to first stage:', section.stages[0].id);
                     jumpToStage(section.stages[0].id);
                   }
                 }}
@@ -321,7 +419,7 @@ const SessionTeacherPanel = ({
                   <div className={`w-3 h-3 rounded-full ${statusColors[sectionStatus]}`} />
                   
                   {/* Icon & Title */}
-                  
+                  <div className="text-4xl">{section.icon}</div>
                   <div className="text-left">
                     <h2 className="text-xl font-bold text-gray-900">{section.title}</h2>
                     <p className="text-sm text-gray-600">{section.subtitle}</p>
@@ -337,7 +435,7 @@ const SessionTeacherPanel = ({
                     </div>
                   </div>
 
-                  {/* Time Estimate - âœ”ï¸ NOW DYNAMIC */}
+                  {/* Time Estimate - ✔️ NOW DYNAMIC */}
                   <div className="text-right">
                     <div className="text-sm text-gray-500">Time</div>
                     <div className="font-semibold text-gray-900">{getSectionEstimatedTime(section)} min</div>
@@ -366,7 +464,20 @@ const SessionTeacherPanel = ({
                       return (
                         <div
                           key={stage.id}
-                          onClick={() => jumpToStage(stage.id)}
+                          onClick={(e) => {
+                            console.log('📋 Stage row clicked:', stage.id);
+                            console.log('  Stage label:', stage.label);
+                            console.log('  Click target:', e.target);
+                            console.log('  Current target:', e.currentTarget);
+                            console.log('  Timestamp:', new Date().toISOString());
+                            
+                            // Only jump if clicking the stage row itself, not child elements
+                            if (e.target === e.currentTarget) {
+                              jumpToStage(stage.id);
+                            } else {
+                              console.log('  ⚠️ Click on child element - ignoring to prevent accidental navigation');
+                            }
+                          }}
                           className={`flex items-center justify-between p-3 rounded-lg transition-all cursor-pointer ${
                             isActive ? 'bg-blue-200 border-2 border-blue-600' :
                             stageStatus === 'completed' ? 'bg-green-50 border border-green-300 hover:bg-green-100' :

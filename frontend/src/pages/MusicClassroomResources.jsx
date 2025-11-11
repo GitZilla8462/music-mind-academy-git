@@ -462,53 +462,32 @@ function MusicClassroomResources() {
                 {resource.description}
               </p>
               
-              {/* TEACHER: Show two buttons */}
+              {/* TEACHER: Show start session button */}
               {userRole === 'teacher' ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <button 
-                    onClick={() => handleStartSession(resource.id)}
-                    disabled={isCreatingSession}
-                    style={{ 
-                      padding: '10px 20px',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      backgroundColor: isCreatingSession ? '#e2e8f0' : '#48bb78',
-                      color: isCreatingSession ? '#a0aec0' : 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: isCreatingSession ? 'not-allowed' : 'pointer',
-                      transition: 'background-color 0.2s',
-                      width: '100%'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isCreatingSession) e.target.style.backgroundColor = '#38a169';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isCreatingSession) e.target.style.backgroundColor = '#48bb78';
-                    }}
-                  >
-                    {isCreatingSession ? 'Creating Session...' : '🎯 Start Live Session'}
-                  </button>
-                  <button 
-                    onClick={() => window.location.href = resource.url}
-                    style={{ 
-                      padding: '10px 20px',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      backgroundColor: '#4299e1',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.2s',
-                      width: '100%'
-                    }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = '#3182ce'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = '#4299e1'}
-                  >
-                    📖 Preview Lesson
-                  </button>
-                </div>
+                <button 
+                  onClick={() => handleStartSession(resource.id)}
+                  disabled={isCreatingSession}
+                  style={{ 
+                    padding: '10px 20px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    backgroundColor: isCreatingSession ? '#e2e8f0' : '#48bb78',
+                    color: isCreatingSession ? '#a0aec0' : 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: isCreatingSession ? 'not-allowed' : 'pointer',
+                    transition: 'background-color 0.2s',
+                    width: '100%'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isCreatingSession) e.target.style.backgroundColor = '#38a169';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isCreatingSession) e.target.style.backgroundColor = '#48bb78';
+                  }}
+                >
+                  {isCreatingSession ? 'Creating Session...' : '🎯 Start Live Session'}
+                </button>
               ) : (
                 /* STUDENT: Show regular open button */
                 <button 

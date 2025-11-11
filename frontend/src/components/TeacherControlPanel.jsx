@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getDatabase, ref, onValue, set } from 'firebase/database';
-import { Clock, Play, Pause, SkipForward, RefreshCw, Users, Save, CheckCircle } from 'lucide-react';
+import { Clock, Play, Pause, SkipForward, RefreshCw, Users } from 'lucide-react';
 
 const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
   const [currentStage, setCurrentStage] = useState(currentStageId || 'locked');
@@ -8,8 +8,6 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
   const [countdownTime, setCountdownTime] = useState(0);
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [customMinutes, setCustomMinutes] = useState(5);
-  const [isFinalizing, setIsFinalizing] = useState(false);
-  const [studentsFinalized, setStudentsFinalized] = useState({});
   const timerIntervalRef = useRef(null);
   const lastFirebaseUpdateRef = useRef(0);
   const FIREBASE_UPDATE_INTERVAL = 5000; // Only update Firebase every 5 seconds
@@ -36,21 +34,6 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
           setStudents(Object.values(data.students));
         }
       }
-    });
-
-    return () => unsubscribe();
-  }, [sessionCode]);
-
-  // Listen to students finalization progress
-  useEffect(() => {
-    if (!sessionCode) return;
-
-    const db = getDatabase();
-    const finalizedRef = ref(db, `sessions/${sessionCode}/studentsFinalized`);
-
-    const unsubscribe = onValue(finalizedRef, (snapshot) => {
-      const data = snapshot.val();
-      setStudentsFinalized(data || {});
     });
 
     return () => unsubscribe();
@@ -208,32 +191,6 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
       timerActive: false,
       timestamp: Date.now()
     });
-  };
-
-  const finalizeStudentWork = async () => {
-    setIsFinalizing(true);
-    setStudentsFinalized({});
-    
-    const db = getDatabase();
-    const sessionRef = ref(db, `sessions/${sessionCode}`);
-    
-    // Set the finalize flag
-    await set(ref(db, `sessions/${sessionCode}/finalizeWork`), true);
-    
-    console.log('💾 Requesting all students to save their work...');
-  };
-
-  const clearFinalizeSignal = async () => {
-    const db = getDatabase();
-    
-    // Clear the finalize flag and finalized students
-    await set(ref(db, `sessions/${sessionCode}/finalizeWork`), false);
-    await set(ref(db, `sessions/${sessionCode}/studentsFinalized`), null);
-    
-    setIsFinalizing(false);
-    setStudentsFinalized({});
-    
-    console.log('✅ Finalize signal cleared');
   };
 
   const advanceToStage = (stageId) => {
@@ -401,15 +358,18 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
         {/* Stage Buttons */}
         <div className="space-y-2">
           {/* START LESSON - First stage-like row */}
-          <a
-            href={`/presentation?session=${sessionCode}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => {
+              // Jump to the first stage
+              advanceToStage('welcome-instructions');
+              // Also open presentation view
+              window.open(`/presentation?session=${sessionCode}`, '_blank');
+            }}
             className="block w-full text-left px-4 py-3 rounded-lg transition-all bg-green-600 hover:bg-green-700 text-white"
           >
             <div className="font-semibold text-lg">Start Lesson</div>
             <div className="text-sm text-gray-200 opacity-75">Open Presentation</div>
-          </a>
+          </button>
           
           {lessonStages.map((stage, index) => {
             const isCurrent = stage.id === currentStage;
@@ -442,71 +402,6 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
             );
           })}
         </div>
-
-        {/* Finalize Student Work Button */}
-        {currentStage === 'school-beneath' && (
-          <div className="mt-4">
-            {!isFinalizing ? (
-              <button
-                onClick={finalizeStudentWork}
-                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg font-bold text-base transition-colors flex items-center justify-center gap-2 shadow-lg"
-              >
-                <Save size={20} />
-                Save All Student Work
-              </button>
-            ) : (
-              <div className="bg-yellow-900 border-2 border-yellow-600 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-yellow-200">Saving Student Work...</span>
-                  <span className="text-yellow-200 font-mono">
-                    {Object.keys(studentsFinalized).length} / {students.length}
-                  </span>
-                </div>
-                
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-700 rounded-full h-3 mb-3">
-                  <div 
-                    className="bg-yellow-500 h-3 rounded-full transition-all duration-300"
-                    style={{ 
-                      width: `${students.length > 0 ? (Object.keys(studentsFinalized).length / students.length) * 100 : 0}%` 
-                    }}
-                  />
-                </div>
-                
-                <div className="flex gap-2">
-                  {Object.keys(studentsFinalized).length === students.length ? (
-                    <button
-                      onClick={clearFinalizeSignal}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium transition-colors flex items-center justify-center gap-2"
-                    >
-                      <CheckCircle size={16} />
-                      All Saved! Continue
-                    </button>
-                  ) : (
-                    <>
-                      <button
-                        onClick={clearFinalizeSignal}
-                        className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded font-medium transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={clearFinalizeSignal}
-                        className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded font-medium transition-colors"
-                      >
-                        Continue Anyway
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            <p className="text-xs text-gray-400 mt-2 text-center">
-              Click this before advancing to ensure all work is saved to Firebase
-            </p>
-          </div>
-        )}
 
         {/* Next Button - Prominent */}
         {currentStageIndex < lessonStages.length - 1 && (

@@ -12,7 +12,7 @@ export const lessonSections = [
     id: 'introduction',
     title: 'Introduction',
     subtitle: 'Welcome & DAW Tutorial',
-    icon: 'ðŸŽ¬',
+    icon: '🎬',
     color: 'blue',
     estimatedTime: 10,
     stages: [
@@ -60,7 +60,7 @@ export const lessonSections = [
     id: 'activity1',
     title: 'Activity 1 - Composition',
     subtitle: 'The School Beneath',
-    icon: 'ðŸŽµ',
+    icon: '🎵',
     color: 'purple',
     estimatedTime: 12,
     stages: [
@@ -101,7 +101,7 @@ export const lessonSections = [
     id: 'activity2',
     title: 'Activity 2 - Reflection',
     subtitle: 'Two Stars and a Wish',
-    icon: 'â­',
+    icon: "⭐",
     color: 'yellow',
     estimatedTime: 10,
     stages: [
@@ -121,7 +121,7 @@ export const lessonSections = [
     id: 'conclusion',
     title: 'Conclusion',
     subtitle: 'Whole Group Discussion',
-    icon: 'ðŸ‘¥',
+    icon: "💬",
     color: 'gray',
     estimatedTime: 2,
     stages: [

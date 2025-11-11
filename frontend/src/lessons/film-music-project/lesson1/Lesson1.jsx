@@ -35,6 +35,10 @@ const slideImages = {
   'conclusion': '8.png'
 };
 
+// Store presentation windows by session code to persist across re-renders
+// Using a Map keyed by sessionCode allows multiple sessions to have their own popups
+const presentationWindows = new Map();
+
 const Lesson1 = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -82,24 +86,67 @@ const Lesson1 = () => {
   const viewBonusMode = searchParams.get('view') === 'bonus';
   const viewReflectionMode = searchParams.get('view') === 'reflection';
 
-  // Open presentation view in new window
-  const openPresentationView = () => {
+  // Open presentation view in new window - using Map keyed by sessionCode
+  const openPresentationView = React.useCallback(() => {
+    // Early return if no session code
+    if (!sessionCode) {
+      console.error('❌ No session code available');
+      return null;
+    }
+
+    // Check if we already have a window for this session
+    const existingWindow = presentationWindows.get(sessionCode);
+    
+    if (existingWindow && !existingWindow.closed) {
+      console.log('🔄 Presentation window already open, focusing...');
+      try {
+        existingWindow.focus();
+        return existingWindow;
+      } catch (e) {
+        console.warn('⚠️ Could not focus window, opening new one:', e);
+        presentationWindows.delete(sessionCode);
+      }
+    }
+
     const presentationUrl = `/presentation?session=${sessionCode}`;
-    console.log('🖼️ Opening presentation view:', presentationUrl);
+    console.log('🖼️ Opening new presentation view:', presentationUrl);
     
     const popup = window.open(
       presentationUrl, 
-      'PresentationView', 
-      'width=1920,height=1080,menubar=no,toolbar=no,location=no'
+      `PresentationView_${sessionCode}`, // Unique name per session
+      'width=1920,height=1080,menubar=no,toolbar=no,location=no,scrollbars=yes,resizable=yes'
     );
     
     if (!popup || popup.closed || typeof popup.closed === 'undefined') {
       alert('Popup blocked! Please allow popups for this site and try again.');
       console.error('❌ Popup was blocked');
-    } else {
-      console.log('✅ Presentation view opened successfully');
+      return null;
     }
-  };
+    
+    console.log('✅ Presentation view opened successfully');
+    presentationWindows.set(sessionCode, popup);
+    
+    // Monitor the window and clean up when it closes
+    const checkInterval = setInterval(() => {
+      if (popup.closed) {
+        console.log('🔴 Presentation window was closed');
+        presentationWindows.delete(sessionCode);
+        clearInterval(checkInterval);
+      }
+    }, 1000);
+    
+    // Also listen for beforeunload to clean up
+    const handleBeforeUnload = () => {
+      if (popup && !popup.closed) {
+        popup.close();
+      }
+      presentationWindows.delete(sessionCode);
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return popup;
+  }, [sessionCode]);
 
   // Handle session activity completion
   const handleSessionActivityComplete = (activityId) => {
@@ -135,7 +182,7 @@ const Lesson1 = () => {
     console.log('👱 Rendering STUDENT view');
     
     // Student waiting for teacher to start
-    if (!currentStage || currentStage === 'locked') {
+    if (!currentStage || currentStage === 'join-code') {
       return <StudentWaitingScreen />;
     }
     
