@@ -402,6 +402,47 @@ const LoopBlock = React.memo(({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showContextMenu]);
 
+  // ============================================================================
+  // DELETE KEY HANDLER - Works on all devices (PC, Mac, Chromebook)
+  // ============================================================================
+  useEffect(() => {
+    console.log('🔍 Loop selection state:', {
+      loopName: loop.name,
+      isSelected,
+      loopId: loop.id
+    });
+
+    if (!isSelected) return;
+
+    console.log('✅ Delete key listener ACTIVE for:', loop.name);
+
+    const handleKeyDown = (e) => {
+      console.log('⌨️ Key pressed:', {
+        key: e.key,
+        code: e.code,
+        loopName: loop.name,
+        isSelected,
+        target: e.target.tagName
+      });
+
+      // Delete or Backspace key when this loop is selected
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        // Prevent default backspace navigation
+        e.preventDefault();
+        console.log('🗑️ DELETE TRIGGERED for loop:', loop.name);
+        onLoopDelete(loop.id);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    console.log('👂 Keydown listener added for:', loop.name);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      console.log('👋 Keydown listener removed for:', loop.name);
+    };
+  }, [isSelected, loop.id, loop.name, onLoopDelete]);
+
   const handleMouseDown = useCallback((e) => {
     if (e.target.closest('button') || e.target.closest('.resize-handle')) {
       e.stopPropagation();
@@ -411,7 +452,10 @@ const LoopBlock = React.memo(({
     if (isResizing) return;
 
     if (!isSelected) {
+      console.log('🖱️ SELECTING loop:', loop.name, loop.id);
       onLoopSelect(loop.id);
+    } else {
+      console.log('🖱️ Loop already selected:', loop.name);
     }
 
     const startX = e.clientX;
@@ -709,6 +753,7 @@ const LoopBlock = React.memo(({
           <button
             onClick={handleDelete}
             className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 transition-colors flex items-center gap-2"
+            title="Delete this loop (or press Delete key)"
           >
             <Trash2 size={14} />
             <span>Delete Loop</span>
