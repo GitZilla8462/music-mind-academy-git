@@ -1,4 +1,5 @@
 {
+  "buildCommand": "git lfs pull && npm run build",
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -30,6 +31,15 @@
     },
     {
       "source": "/lessons/videos/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/lessons/film-music-project/lesson2/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
