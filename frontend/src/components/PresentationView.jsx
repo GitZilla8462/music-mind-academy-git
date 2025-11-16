@@ -103,8 +103,11 @@ const PresentationView = () => {
           setLessonConfig(configModule);
           setLessonBasePath(basePath);
           console.log('✅ Loaded', configModule.lessonStages.length, 'stages for', sessionData.lessonId);
+          console.log('🔍 First stage sample:', configModule.lessonStages[0]);
+          console.log('🔍 Config module keys:', Object.keys(configModule));
         } else {
           console.error('❌ No lessonStages found in config');
+          console.error('🔍 Config module:', configModule);
         }
       } catch (error) {
         console.error('❌ Error loading lesson config:', error);
@@ -229,6 +232,8 @@ const PresentationView = () => {
   // Get current stage data
   const currentStageData = lessonConfig?.lessonStages?.find(stage => stage.id === currentStage);
   console.log('📍 Current stage data:', currentStageData);
+  console.log('🔍 Looking for stage:', currentStage);
+  console.log('🔍 Available stages:', lessonConfig?.lessonStages?.map(s => s.id));
 
   // Waiting screen (both 'locked' and 'join-code' stages)
   if (currentStage === 'locked' || currentStage === 'join-code') {
@@ -597,87 +602,6 @@ const PresentationView = () => {
             e.target.style.display = 'none';
           }}
         />
-      </div>
-    );
-  }
-
-  // Legacy video stages (for backward compatibility with Lesson 1)
-  if (currentStage === 'intro-video') {
-    return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        backgroundColor: 'black',
-        padding: '20px',
-        position: 'relative'
-      }}>
-        <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={true} />
-        
-        <button
-          onClick={toggleFullscreen}
-          style={{
-            position: 'absolute',
-            bottom: '20px',
-            right: '20px',
-            padding: '12px 16px',
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-            border: '2px solid rgba(0, 0, 0, 0.1)',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '16px',
-            fontWeight: '600',
-            color: '#1f2937',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            zIndex: 1000,
-            transition: 'all 0.2s ease'
-          }}
-        >
-          {isFullscreen ? '⊗ Exit Fullscreen' : '⛶ Fullscreen'}
-        </button>
-        
-        <h2 style={{ color: 'white', fontSize: '32px', marginBottom: '20px' }}>
-          Lesson Introduction
-        </h2>
-        <video
-          key="intro-video"
-          controls
-          autoPlay
-          style={{ width: '90%', maxWidth: '1200px', maxHeight: '80vh' }}
-        >
-          <source src={`${lessonBasePath}/Lesson1intro.mp4`} type="video/mp4" />
-        </video>
-      </div>
-    );
-  }
-
-  if (currentStage === 'activity-intro') {
-    return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        backgroundColor: 'black',
-        padding: '20px',
-        position: 'relative'
-      }}>
-        <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={true} />
-        <h2 style={{ color: 'white', fontSize: '32px', marginBottom: '20px' }}>
-          Activity Introduction
-        </h2>
-        <video
-          key="activity-intro-video"
-          controls
-          autoPlay
-          style={{ width: '90%', maxWidth: '1200px', maxHeight: '80vh' }}
-        >
-          <source src={`${lessonBasePath}/Lesson1activityintro.mp4`} type="video/mp4" />
-        </video>
       </div>
     );
   }
