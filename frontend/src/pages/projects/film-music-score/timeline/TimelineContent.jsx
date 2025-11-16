@@ -1,5 +1,5 @@
 // File: /src/pages/projects/film-music-score/timeline/TimelineContent.jsx
-// FIXED: Pass placedLoops to enable snap guides AND onLoopResizeCallback AND videoDuration
+// UPDATED: Added selection box functionality, disabled timeline click seeking
 
 import React, { forwardRef, useCallback } from 'react';
 import TimeMarkers from './components/TimeMarkers';
@@ -44,7 +44,13 @@ const TimelineContent = forwardRef(({
   tutorialMode = false,
   lockFeatures = {},
   highlightSelector,
-  showTimelineLabel = false  // NEW PROP
+  showTimelineLabel = false,
+  // NEW: Selection box props
+  selectionBox,
+  selectedLoopIds,
+  setSelectedLoopIds,
+  handleSelectionStart,
+  isSelectingBox
 }, {
   timelineRef,
   timelineScrollRef,
@@ -52,7 +58,7 @@ const TimelineContent = forwardRef(({
   timeHeaderRef
 }) => {
 
-  // FIXED: Pass placedLoops to enable snap guide functionality
+  // FIXED: Pass placedLoops and selectedLoopIds for multi-select dragging
   const { handleLoopMouseDown } = useLoopDrag(
     timelineRef,
     timelineScrollRef,
@@ -66,8 +72,35 @@ const TimelineContent = forwardRef(({
     localZoom,
     onLoopUpdate,
     onLoopSelect,
-    placedLoops
+    placedLoops,
+    selectedLoopIds  // NEW: Pass selected loop IDs for multi-select drag
   );
+
+  // Wrap onLoopSelect to maintain multi-selection when clicking a multi-selected loop
+  const handleLoopSelectWithMulti = useCallback((loopId) => {
+    // If this loop is already in the multi-selection, don't clear it
+    if (selectedLoopIds?.has(loopId) && selectedLoopIds.size > 1) {
+      // Don't call onLoopSelect - keep the multi-selection intact
+      return;
+    }
+    // Otherwise, use normal single selection
+    onLoopSelect(loopId);
+  }, [selectedLoopIds, onLoopSelect]);
+
+  // Wrap onLoopDelete to handle multi-selection
+  const handleLoopDeleteWithMulti = useCallback((loopId) => {
+    // If this loop is part of a multi-selection, delete all selected loops
+    if (selectedLoopIds?.has(loopId) && selectedLoopIds.size > 1) {
+      selectedLoopIds.forEach(id => onLoopDelete(id));
+      // Clear the multi-selection after deleting
+      if (setSelectedLoopIds) {
+        setSelectedLoopIds(new Set());
+      }
+    } else {
+      // Otherwise just delete this one loop
+      onLoopDelete(loopId);
+    }
+  }, [selectedLoopIds, onLoopDelete]);
 
   // Drag and drop handling
   const handleDragOver = (e) => {
@@ -104,23 +137,47 @@ const TimelineContent = forwardRef(({
     setHoveredTrack(null);
   }, [pixelToTime, onLoopDrop, setHoveredTrack]);
 
-  // Timeline click for seeking - ignore clicks during playback
-  const handleTimelineClick = (e) => {
-    if (isPlaying) {
-      console.log('Timeline click ignored - playback is active');
+  // Timeline mouse down - start selection box
+  const handleTimelineMouseDown = (e) => {
+    // Don't interfere with playhead dragging or loop dragging
+    if (isDraggingPlayhead || draggedLoop) return;
+    
+    // Check if clicking on interactive elements
+    const target = e.target;
+    if (target.closest('.loop-block') || 
+        target.closest('[data-playhead]') ||
+        target.tagName === 'BUTTON') {
       return;
     }
     
-    if (draggedLoop || isDraggingPlayhead) return;
-    
-    if (Date.now() - (window.lastDragEndTime || 0) < 150) {
-      return;
+    // Let selection box handle it
+    if (handleSelectionStart) {
+      handleSelectionStart(e);
     }
-    
-    const rect = timelineRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const clickTime = Math.max(0, Math.min(duration, pixelToTime(x)));
-    onSeek(clickTime);
+  };
+
+  // Calculate selection box dimensions for rendering
+  const getSelectionBoxStyle = () => {
+    if (!selectionBox) return null;
+
+    const left = Math.min(selectionBox.startX, selectionBox.currentX);
+    const top = Math.min(selectionBox.startY, selectionBox.currentY);
+    const width = Math.abs(selectionBox.currentX - selectionBox.startX);
+    const height = Math.abs(selectionBox.currentY - selectionBox.startY);
+
+    return {
+      position: 'absolute',
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${width}px`,
+      height: `${height}px`,
+      border: '2px solid #3b82f6',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      pointerEvents: 'none',
+      zIndex: 9999,
+      boxShadow: '0 0 0 1px rgba(59, 130, 246, 0.3), 0 4px 12px rgba(59, 130, 246, 0.2)',
+      borderRadius: '2px'
+    };
   };
 
   return (
@@ -208,7 +265,7 @@ const TimelineContent = forwardRef(({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            onClick={handleTimelineClick}
+            onMouseDown={handleTimelineMouseDown}
           >
             {/* Timeline Grid Lines */}
             <TimelineGrid 
@@ -273,7 +330,7 @@ const TimelineContent = forwardRef(({
               isInHeader={false}
             />
 
-            {/* Loops - FIXED: Added videoDuration prop */}
+            {/* Loops - FIXED: Added videoDuration prop + multi-select highlighting */}
             {placedLoops
               .filter(loop => trackStates[`track-${loop.trackIndex}`]?.visible !== false)
               .map((loop) => (
@@ -286,12 +343,26 @@ const TimelineContent = forwardRef(({
                   draggedLoop={draggedLoop}
                   videoDuration={duration}
                   onLoopMouseDown={handleLoopMouseDown}
-                  onLoopSelect={onLoopSelect}
+                  onLoopSelect={handleLoopSelectWithMulti}
                   onLoopUpdate={onLoopUpdate}
                   onLoopResize={onLoopResizeCallback}
-                  onLoopDelete={onLoopDelete}
+                  onLoopDelete={handleLoopDeleteWithMulti}
+                  isMultiSelected={selectedLoopIds?.has(loop.id)}
                 />
               ))}
+
+            {/* Selection box overlay */}
+            {selectionBox && (
+              <div style={getSelectionBoxStyle()}>
+                {selectedLoopIds?.size > 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="bg-blue-600 text-white px-3 py-1 rounded-md shadow-lg text-sm font-semibold">
+                      {selectedLoopIds.size} loop{selectedLoopIds.size !== 1 ? 's' : ''}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Drop zone indicators */}
             {hoveredTrack !== null && (

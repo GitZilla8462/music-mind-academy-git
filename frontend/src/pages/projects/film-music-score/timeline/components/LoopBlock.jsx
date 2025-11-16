@@ -17,7 +17,8 @@ const LoopBlock = React.memo(({
   onLoopSelect, 
   onLoopUpdate,
   onLoopResize,
-  onLoopDelete
+  onLoopDelete,
+  isMultiSelected = false  // NEW: Multi-selection visual indicator
 }) => {
   const [waveformData, setWaveformData] = useState(null);
   const [isGeneratingWaveform, setIsGeneratingWaveform] = useState(false);
@@ -509,21 +510,23 @@ const LoopBlock = React.memo(({
 
   return (
     <div
-      className={`absolute cursor-move transition-all duration-150 ${
+      className={`loop-block absolute cursor-move transition-all duration-150 ${
         trackState?.muted ? 'opacity-50' : ''
       } ${
         isDragged ? 'opacity-60' : ''
       } ${
         isResizing ? 'z-50' : 'z-10'
+      } ${
+        isMultiSelected ? 'ring-2 ring-blue-400 ring-offset-1 ring-offset-gray-900' : ''
       }`}
       style={{
         left: `${leftPosition}px`,
         top: `${topPosition + 8}px`,
         width: `${width}px`,
         height: `${TIMELINE_CONSTANTS.TRACK_HEIGHT - 16}px`,
-        backgroundColor: categoryColor.bg,
-        borderRadius: '4px', // Rounded corners to match SVG
-        overflow: 'hidden', // Changed from 'visible' to clip waveform to rounded corners
+        backgroundColor: isMultiSelected ? categoryColor.accent + '40' : categoryColor.bg,
+        borderRadius: '4px',
+        overflow: 'hidden',
         ...dragStyle
       }}
       onMouseDown={handleMouseDown}

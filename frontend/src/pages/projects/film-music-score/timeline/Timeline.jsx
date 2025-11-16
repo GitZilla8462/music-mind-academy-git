@@ -1,5 +1,5 @@
-// Updated Timeline.jsx - Pass trackStates to parent, handle track header clicks, AND pass onLoopResizeCallback
-import React, { useRef, useEffect } from 'react';
+// Updated Timeline.jsx - Added selection box for multi-select functionality
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import TimelineHeader from './TimelineHeader';
 import TimelineContent from './TimelineContent';
 import TimelineScrollbar from './TimelineScrollbar';
@@ -7,6 +7,7 @@ import TimelineStatusBar from './TimelineStatusBar';
 import { useTimelineState } from './hooks/useTimelineState';
 import { useTimelineScroll } from './hooks/useTimelineScroll';
 import { usePlayheadDrag } from './hooks/usePlayheadDrag';
+import { useSelectionBox } from './hooks/useSelectionBox';
 
 const Timeline = ({
   placedLoops,
@@ -16,7 +17,7 @@ const Timeline = ({
   onLoopDelete,
   onLoopSelect,
   onLoopUpdate,
-  onLoopResizeCallback,  // ADDED: Callback for loop resize
+  onLoopResizeCallback,
   onSeek,
   selectedLoop,
   isPlaying,
@@ -26,7 +27,7 @@ const Timeline = ({
   tutorialMode = false,
   lockFeatures = {},
   highlightSelector,
-  showTimelineLabel = false,  // NEW PROP
+  showTimelineLabel = false,
   // Transport controls
   onPlay,
   onPause,
@@ -38,6 +39,9 @@ const Timeline = ({
   const timelineScrollRef = useRef(null);
   const headerScrollRef = useRef(null);
   const timeHeaderRef = useRef(null);
+
+  // Multi-selection state
+  const [multiSelectedLoops, setMultiSelectedLoops] = useState([]);
 
   // Custom hooks for state management
   const {
@@ -55,6 +59,23 @@ const Timeline = ({
     updateTrackState,
     handleZoomChange
   } = useTimelineState(duration);
+
+  // Selection box hook
+  const {
+    selectionBox,
+    selectedLoopIds,
+    setSelectedLoopIds,
+    handleSelectionStart,
+    isSelectingBox
+  } = useSelectionBox(
+    timelineRef,
+    timelineScrollRef,
+    placedLoops,
+    (loopIds) => {
+      setMultiSelectedLoops(loopIds);
+    },
+    isPlaying
+  );
 
   // Notify parent whenever track states change
   useEffect(() => {
@@ -85,6 +106,27 @@ const Timeline = ({
       onZoomChange(newZoom, oldZoom);
     }
   };
+
+  // Handle multi-delete with Delete/Backspace key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedLoopIds.size > 0) {
+        e.preventDefault();
+        
+        // Delete all selected loops
+        selectedLoopIds.forEach(loopId => {
+          onLoopDelete(loopId);
+        });
+        
+        // Clear selection
+        setSelectedLoopIds(new Set());
+        setMultiSelectedLoops([]);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedLoopIds, onLoopDelete, setSelectedLoopIds]);
 
   return (
     <>
@@ -147,6 +189,11 @@ const Timeline = ({
           lockFeatures={lockFeatures}
           highlightSelector={highlightSelector}
           showTimelineLabel={showTimelineLabel}
+          selectionBox={selectionBox}
+          selectedLoopIds={selectedLoopIds}
+          setSelectedLoopIds={setSelectedLoopIds}
+          handleSelectionStart={handleSelectionStart}
+          isSelectingBox={isSelectingBox}
         />
       </div>
 
@@ -158,6 +205,11 @@ const Timeline = ({
           duration={duration}
           currentTime={currentTime}
         />
+      </div>
+      
+      {/* Help text */}
+      <div className="fixed bottom-6 left-6 bg-gray-800 text-white text-xs px-3 py-2 rounded shadow-lg z-40">
+        💡 <strong>Tip:</strong> Click and drag on empty timeline to select multiple loops • Press Delete to remove • Drag playhead to seek
       </div>
     </>
   );
