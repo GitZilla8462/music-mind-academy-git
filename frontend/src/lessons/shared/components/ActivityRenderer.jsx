@@ -8,7 +8,9 @@ import DAWTutorialActivity from '../activities/daw-tutorial/DAWTutorialActivity'
 import SchoolBeneathActivity from '../activities/SchoolBeneathActivity';
 import TwoStarsAndAWishActivity from '../activities/two-stars-and-a-wish/TwoStarsAndAWishActivity';
 import SoundEffectsActivity from '../activities/SoundEffectsActivity';
-import NameThatLoopActivity from '../activities/NameThatLoopActivity';  // âœ… ADDED
+import NameThatLoopActivity from '../activities/layer-detective/NameThatLoopActivity';
+import LayerDetectiveActivity from '../activities/layer-detective/LayerDetectiveActivity';
+import SportsCompositionActivity from "../activities/SportsCompositionActivity";
 
 const ActivityRenderer = ({
   activity,
@@ -61,13 +63,24 @@ const ActivityRenderer = ({
         />
       );
 
+    case 'sports-composition-activity':
+      return (
+        <SportsCompositionActivity 
+          key={`sports-composition-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          lessonStartTime={lessonStartTime}
+          isSessionMode={isSessionMode}
+        />
+      );
+
     case 'two-stars-wish':
       return (
         <TwoStarsAndAWishActivity 
           key={`reflection-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}
-          isSessionMode={isSessionMode}  // âœ… FIXED: Added isSessionMode prop
+          isSessionMode={isSessionMode}
         />
       );
 
@@ -81,11 +94,21 @@ const ActivityRenderer = ({
         />
       );
 
-    // âœ… ADDED: Name That Loop bonus activity
+    // ✅ ADDED: Name That Loop bonus activity
     case 'name-that-loop':
       return (
         <NameThatLoopActivity 
           key={`name-that-loop-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+        />
+      );
+
+    // ✅ ADDED: Layer Detective warm-up activity
+    case 'layer-detective':
+      return (
+        <LayerDetectiveActivity 
+          key={`layer-detective-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}
         />

@@ -1,9 +1,9 @@
 // Firebase configuration for Music Mind Academy
-// UPDATED: Added logging utility functions
+// UPDATED: Added debug logging to createSession
 // src/firebase/config.js
 
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, set, onValue, update, remove, push } from 'firebase/database';
+import { getDatabase, ref, set, onValue, update, remove, push, get } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAv0tH8VmKizydKhdHfFFgKES9Ir-PfXtA",
@@ -33,87 +33,152 @@ export const generateSessionCode = () => {
 /**
  * Create a new classroom session
  * @param {string} teacherId - Teacher's ID
- * @param {string} lessonId - Lesson identifier
+ * @param {string} lessonId - Lesson identifier (e.g., 'music-loops-lesson1')
+ * @param {string} lessonRoute - Route to lesson (e.g., '/lessons/film-music-project/lesson2')
  * @returns {Promise<string>} Session code
  */
-export const createSession = async (teacherId, lessonId) => {
+export const createSession = async (teacherId, lessonId, lessonRoute) => {
+  // ✅ DEBUG CODE ADDED HERE
+  console.trace('🔍 CREATE SESSION CALLED FROM:');
+  console.log('📍 Parameters received:', { teacherId, lessonId, lessonRoute });
+  
+  // If lessonRoute is missing or wrong, log a warning
+  if (!lessonRoute || lessonRoute.includes('lesson1')) {
+    console.warn('⚠️ WARNING: Creating session without Lesson 2 route!');
+  }
+  
   const sessionCode = generateSessionCode();
   const sessionRef = ref(database, `sessions/${sessionCode}`);
   
-  await set(sessionRef, {
+  const sessionData = {
     teacherId,
     lessonId,
-    currentStage: 'locked',
+    lessonRoute,
+    currentStage: 'join-code',
     createdAt: Date.now(),
     studentsJoined: {},
-    studentProgress: {}
-  });
+    studentProgress: {},
+    timestamp: Date.now()
+  };
   
-  return sessionCode;
+  console.log('📝 Creating session with data:', sessionData);
+  
+  try {
+    await set(sessionRef, sessionData);
+    console.log(`✅ Session created: ${sessionCode} for ${lessonId} at ${lessonRoute}`);
+    
+    const snapshot = await get(sessionRef);
+    if (snapshot.exists()) {
+      console.log('✅ Verified session exists in Firebase:', snapshot.val());
+    } else {
+      console.error('❌ WARNING: Session was NOT found immediately after creation!');
+    }
+    
+    return sessionCode;
+  } catch (error) {
+    console.error('❌ Error creating session:', error);
+    throw error;
+  }
 };
 
 /**
  * Check if a session code exists
- * @param {string} sessionCode - 4-digit code
- * @returns {Promise<boolean>}
  */
 export const sessionExists = async (sessionCode) => {
-  return new Promise((resolve) => {
+  try {
     const sessionRef = ref(database, `sessions/${sessionCode}`);
-    onValue(sessionRef, (snapshot) => {
-      resolve(snapshot.exists());
-    }, { onlyOnce: true });
-  });
+    const snapshot = await get(sessionRef);
+    const exists = snapshot.exists();
+    console.log(`🔍 Session ${sessionCode} exists:`, exists);
+    return exists;
+  } catch (error) {
+    console.error('❌ Error checking session existence:', error);
+    return false;
+  }
+};
+
+/**
+ * Get session data including lesson route
+ */
+export const getSessionData = async (sessionCode) => {
+  try {
+    const sessionRef = ref(database, `sessions/${sessionCode}`);
+    const snapshot = await get(sessionRef);
+    
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      console.log(`📦 Got session data for ${sessionCode}:`, data);
+      return data;
+    }
+    
+    console.warn(`⚠️ No session data found for ${sessionCode}`);
+    return null;
+  } catch (error) {
+    console.error('❌ Error getting session data:', error);
+    return null;
+  }
 };
 
 /**
  * Student joins a session
- * @param {string} sessionCode - Session to join
- * @param {string} studentId - Student's ID
- * @param {string} studentName - Student's name
+ * ✅ UPDATED: Now includes score initialization
  */
 export const joinSession = async (sessionCode, studentId, studentName) => {
-  const studentRef = ref(database, `sessions/${sessionCode}/studentsJoined/${studentId}`);
-  
-  await set(studentRef, {
-    id: studentId,
-    name: studentName,
-    joinedAt: Date.now()
-  });
+  try {
+    const studentRef = ref(database, `sessions/${sessionCode}/studentsJoined/${studentId}`);
+    
+    await set(studentRef, {
+      id: studentId,
+      name: studentName,
+      joinedAt: Date.now(),
+      score: 0 // ✅ Initialize score at 0
+    });
+    
+    console.log(`✅ Student ${studentName} joined session ${sessionCode}`);
+  } catch (error) {
+    console.error('❌ Error joining session:', error);
+    throw error;
+  }
 };
 
 /**
  * Update the current stage of the lesson
- * @param {string} sessionCode - Session code
- * @param {string} stage - New stage ('locked', 'activity1-unlocked', etc.)
- * 
- * ✅ FIXED: Now clears timer data when changing stages to prevent glitching
  */
 export const updateSessionStage = async (sessionCode, stage) => {
-  const sessionRef = ref(database, `sessions/${sessionCode}`);
-  
-  // When changing stages, also clear any existing timer data
-  // This prevents old timer data from interfering with the new stage
-  await update(sessionRef, {
-    currentStage: stage,
-    timestamp: Date.now(),
-    // Clear timer data when changing stages
-    countdownTime: null,
-    timerActive: null
-  });
+  try {
+    const sessionRef = ref(database, `sessions/${sessionCode}`);
+    
+    await update(sessionRef, {
+      currentStage: stage,
+      timestamp: Date.now(),
+      countdownTime: null,
+      timerActive: null
+    });
+    
+    console.log(`✅ Updated session ${sessionCode} to stage: ${stage}`);
+  } catch (error) {
+    console.error('❌ Error updating session stage:', error);
+    throw error;
+  }
 };
 
 /**
- * Listen to session changes (for both teacher and students)
- * @param {string} sessionCode - Session code
- * @param {Function} callback - Called when session data changes
- * @returns {Function} Unsubscribe function
+ * Listen to session changes
  */
 export const subscribeToSession = (sessionCode, callback) => {
   const sessionRef = ref(database, `sessions/${sessionCode}`);
   
+  console.log(`👂 Subscribing to session: ${sessionCode}`);
+  
   const unsubscribe = onValue(sessionRef, (snapshot) => {
     const data = snapshot.val();
+    
+    if (data === null) {
+      console.warn(`⚠️ Session ${sessionCode} data is NULL - session may have been deleted`);
+    } else {
+      console.log(`📡 Session ${sessionCode} update:`, data.currentStage);
+    }
+    
     callback(data);
   });
   
@@ -122,10 +187,6 @@ export const subscribeToSession = (sessionCode, callback) => {
 
 /**
  * Update student progress on an activity
- * @param {string} sessionCode - Session code
- * @param {string} studentId - Student's ID
- * @param {string} activityId - Activity identifier
- * @param {string} status - 'working' | 'completed' | 'bonus-completed'
  */
 export const updateStudentProgress = async (sessionCode, studentId, activityId, status) => {
   const progressRef = ref(database, `sessions/${sessionCode}/studentProgress/${studentId}/${activityId}`);
@@ -133,26 +194,21 @@ export const updateStudentProgress = async (sessionCode, studentId, activityId, 
 };
 
 /**
- * End a session (cleanup)
- * @param {string} sessionCode - Session to end
+ * End a session
  */
 export const endSession = async (sessionCode) => {
   const sessionRef = ref(database, `sessions/${sessionCode}`);
   
-  // Mark as ended instead of deleting (so teacher can review)
   await update(sessionRef, {
     endedAt: Date.now(),
     currentStage: 'ended'
   });
   
-  // Optional: Delete after 24 hours
-  // setTimeout(() => remove(sessionRef), 24 * 60 * 60 * 1000);
+  console.log(`🔚 Session ${sessionCode} ended`);
 };
 
 /**
  * Get all students in a session
- * @param {string} sessionCode - Session code
- * @returns {Promise<Array>} Array of student objects
  */
 export const getSessionStudents = async (sessionCode) => {
   return new Promise((resolve) => {
@@ -165,16 +221,124 @@ export const getSessionStudents = async (sessionCode) => {
 };
 
 // ==========================================
-// LOGGING FUNCTIONS (NEW)
+// ✅ SCORE TRACKING FUNCTIONS (NEW)
 // ==========================================
 
 /**
- * Log an error to Firebase for admin monitoring
- * @param {string} sessionCode - Session code where error occurred
- * @param {string} studentId - Student who experienced the error
- * @param {string} message - Error message
- * @param {object} data - Additional error data
+ * Update a student's score (add points)
+ * @param {string} sessionCode - Session code
+ * @param {string} studentId - Student ID
+ * @param {number} pointsToAdd - Points to add to current score
  */
+export const updateStudentScore = async (sessionCode, studentId, pointsToAdd) => {
+  try {
+    const studentRef = ref(database, `sessions/${sessionCode}/studentsJoined/${studentId}`);
+    
+    // Get current score
+    const snapshot = await get(studentRef);
+    const currentScore = snapshot.val()?.score || 0;
+    
+    // Update score
+    await update(studentRef, {
+      score: currentScore + pointsToAdd,
+      lastUpdated: Date.now()
+    });
+    
+    console.log(`✅ Updated ${studentId} score: +${pointsToAdd} (total: ${currentScore + pointsToAdd})`);
+  } catch (error) {
+    console.error('❌ Error updating student score:', error);
+    throw error;
+  }
+};
+
+/**
+ * Set a student's score directly (overwrite)
+ */
+export const setStudentScore = async (sessionCode, studentId, newScore) => {
+  try {
+    const studentRef = ref(database, `sessions/${sessionCode}/studentsJoined/${studentId}`);
+    
+    await update(studentRef, {
+      score: newScore,
+      lastUpdated: Date.now()
+    });
+    
+    console.log(`✅ Set ${studentId} score to ${newScore}`);
+  } catch (error) {
+    console.error('❌ Error setting student score:', error);
+    throw error;
+  }
+};
+
+/**
+ * Award bonus points
+ */
+export const awardBonusPoints = async (sessionCode, studentId, bonusPoints, reason = '') => {
+  try {
+    await updateStudentScore(sessionCode, studentId, bonusPoints);
+    console.log(`🎁 Awarded ${bonusPoints} bonus points to ${studentId}${reason ? ` for: ${reason}` : ''}`);
+  } catch (error) {
+    console.error('❌ Error awarding bonus points:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get leaderboard (sorted by score)
+ */
+export const getLeaderboard = async (sessionCode, limit = 10) => {
+  try {
+    const sessionRef = ref(database, `sessions/${sessionCode}/studentsJoined`);
+    
+    const snapshot = await get(sessionRef);
+    if (!snapshot.exists()) return [];
+    
+    const students = snapshot.val();
+    const leaderboard = Object.entries(students)
+      .map(([id, data]) => ({
+        id,
+        name: data.name || id,
+        score: data.score || 0
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit);
+    
+    return leaderboard;
+  } catch (error) {
+    console.error('❌ Error getting leaderboard:', error);
+    return [];
+  }
+};
+
+/**
+ * Reset all scores in a session
+ */
+export const resetAllScores = async (sessionCode) => {
+  try {
+    const sessionRef = ref(database, `sessions/${sessionCode}/studentsJoined`);
+    
+    const snapshot = await get(sessionRef);
+    if (!snapshot.exists()) return;
+    
+    const students = snapshot.val();
+    const updates = {};
+    
+    Object.keys(students).forEach(studentId => {
+      updates[`${studentId}/score`] = 0;
+    });
+    
+    await update(sessionRef, updates);
+    console.log('🔄 All scores reset to 0');
+  } catch (error) {
+    console.error('❌ Error resetting scores:', error);
+    throw error;
+  }
+};
+
+// ==========================================
+// LOGGING FUNCTIONS
+// ==========================================
+
 export const logError = async (sessionCode, studentId, message, data = {}) => {
   try {
     const logRef = ref(database, `session-logs/${sessionCode}/${studentId}`);
@@ -190,13 +354,6 @@ export const logError = async (sessionCode, studentId, message, data = {}) => {
   }
 };
 
-/**
- * Log when a student gets kicked from a session
- * @param {string} sessionCode - Session code
- * @param {string} studentId - Student who was kicked
- * @param {string} reason - Reason for kick
- * @param {object} data - Additional context
- */
 export const logKick = async (sessionCode, studentId, reason, data = {}) => {
   try {
     const logRef = ref(database, `session-logs/${sessionCode}/${studentId}`);
@@ -208,7 +365,6 @@ export const logKick = async (sessionCode, studentId, reason, data = {}) => {
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown'
     });
     
-    // Also add to centralized problems list
     const problemsRef = ref(database, 'all-problems');
     await push(problemsRef, {
       type: 'kick',
@@ -225,13 +381,6 @@ export const logKick = async (sessionCode, studentId, reason, data = {}) => {
   }
 };
 
-/**
- * Log a warning to Firebase
- * @param {string} sessionCode - Session code
- * @param {string} studentId - Student ID
- * @param {string} message - Warning message
- * @param {object} data - Additional data
- */
 export const logWarning = async (sessionCode, studentId, message, data = {}) => {
   try {
     const logRef = ref(database, `session-logs/${sessionCode}/${studentId}`);

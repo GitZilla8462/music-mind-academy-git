@@ -32,7 +32,9 @@ import TeacherSubmissionViewer from './components/dashboard/teacherdashboard/Tea
 // Import lesson components
 import SimpleLessonPlaceholder from "./lessons/shared/components/LessonPlayer";
 import Lesson1 from './lessons/film-music-project/lesson1/Lesson1';
+import Lesson2 from './lessons/film-music-project/lesson2/Lesson2';
 import LessonPlanPDF from './lessons/film-music-project/lesson1/LessonPlanPDF';
+import MusicLoopsInMediaHub from './pages/MusicLoopsInMediaHub';
 
 // Import presentation view
 import PresentationView from './components/PresentationView';
@@ -191,8 +193,13 @@ const AppContent = () => {
         
         {/* Allow access to lessons without authentication in classroom mode */}
         <Route path="/lessons/film-music-project/lesson1" element={<Lesson1 />} />
+        <Route path="/lessons/film-music-project/lesson2" element={<Lesson2 />} />
         <Route path="/lessons/film-music-1" element={<Lesson1 />} />
+        <Route path="/lessons/film-music-2" element={<Lesson2 />} />
         <Route path="/lessons/:lessonId" element={<SimpleLessonPlaceholder />} />
+        
+        {/* Music Loops in Media Hub */}
+        <Route path="/music-loops-in-media" element={<MusicLoopsInMediaHub />} />
         
         {/* Allow access to projects without authentication in classroom mode */}
         <Route path="/projects/film-music-score" element={<VideoSelection showToast={showToast} isDemo={true} />} />

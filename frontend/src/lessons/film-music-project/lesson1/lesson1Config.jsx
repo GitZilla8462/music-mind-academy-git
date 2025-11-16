@@ -1,5 +1,5 @@
 // File: /lessons/film-music-project/lesson1/lesson1Config.js
-// Lesson 1 configuration - UPDATED with image slides
+// Lesson 1 configuration - UPDATED with presentationView data for new system
 
 export const LESSON_PROGRESS_KEY = 'lesson1-progress';
 export const LESSON_TIMER_KEY = 'lesson1-timer';
@@ -194,7 +194,11 @@ export const lessonStages = [
     description: 'Welcome screen',
     type: 'summary',
     content: 'introVideo',
-    duration: 1
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson1/slides/1.png'
+    }
   },
   { 
     id: 'intro-summary', 
@@ -202,7 +206,11 @@ export const lessonStages = [
     description: 'Lesson agenda',
     type: 'summary',
     content: 'introVideo',
-    duration: 1
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson1/slides/2.png'
+    }
   },
   { 
     id: 'intro-video', 
@@ -210,7 +218,12 @@ export const lessonStages = [
     description: 'Lesson intro video', 
     hasProgress: false,
     type: 'video',
-    duration: 3
+    duration: 3,
+    presentationView: {
+      type: 'video',
+      videoPath: '/lessons/film-music-project/lesson1/Lesson1intro.mp4',
+      title: 'Lesson Introduction'
+    }
   },
   { 
     id: 'daw-summary', 
@@ -218,7 +231,11 @@ export const lessonStages = [
     description: 'DAW tutorial summary',
     type: 'summary',
     content: 'dawTutorial',
-    duration: 1
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson1/slides/3.png'
+    }
   },
   { 
     id: 'daw-tutorial', 
@@ -228,7 +245,11 @@ export const lessonStages = [
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 4
+    duration: 4,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson1/slides/4.png'
+    }
   },
   { 
     id: 'activity-summary', 
@@ -236,7 +257,11 @@ export const lessonStages = [
     description: 'Activity intro summary',
     type: 'summary',
     content: 'activityIntro',
-    duration: 1
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson1/slides/5.png'
+    }
   },
   { 
     id: 'activity-intro', 
@@ -244,7 +269,12 @@ export const lessonStages = [
     description: 'Activity introduction video', 
     hasProgress: false,
     type: 'video',
-    duration: 2
+    duration: 2,
+    presentationView: {
+      type: 'video',
+      videoPath: '/lessons/film-music-project/lesson1/Lesson1activityintro.mp4',
+      title: 'Activity Introduction'
+    }
   },
   { 
     id: 'school-summary', 
@@ -252,7 +282,11 @@ export const lessonStages = [
     description: 'School Beneath summary',
     type: 'summary',
     content: 'schoolBeneath',
-    duration: 1
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson1/slides/5b.png'
+    }
   },
   { 
     id: 'school-beneath', 
@@ -262,7 +296,11 @@ export const lessonStages = [
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 8
+    duration: 8,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson1/slides/6.png'
+    }
   },
   { 
     id: 'reflection', 
@@ -272,14 +310,22 @@ export const lessonStages = [
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 10
+    duration: 10,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson1/slides/7.png'
+    }
   },
   {
     id: 'conclusion',
     label: 'Class Discussion',
     description: 'Wrap up lesson',
     type: 'discussion',
-    duration: 2
+    duration: 2,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson1/slides/8.png'
+    }
   }
 ];
 

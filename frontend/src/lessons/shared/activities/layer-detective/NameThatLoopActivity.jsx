@@ -5,7 +5,7 @@ import { loopsData } from './loopData';
 const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
   // Log loops data on component load
   useEffect(() => {
-    console.log('✅ Loop data loaded:', loopsData?.length || 0, 'loops');
+    console.log('âœ… Loop data loaded:', loopsData?.length || 0, 'loops');
   }, []);
   const [gameStarted, setGameStarted] = useState(false);
   const [numberOfPlayers, setNumberOfPlayers] = useState(null); // NEW: 2 or 3 players
@@ -139,18 +139,18 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
 
   // Start a new round
   const startNewRound = () => {
-    console.log('🎮 Starting new round...');
+    console.log('ðŸŽ® Starting new round...');
     const filteredLoops = getFilteredLoops();
-    console.log('📊 Filtered loops:', filteredLoops?.length || 0);
+    console.log('ðŸ“Š Filtered loops:', filteredLoops?.length || 0);
     
     // Safety check
     if (!filteredLoops || filteredLoops.length === 0) {
-      console.error('❌ No loops available for selected category');
+      console.error('âŒ No loops available for selected category');
       return;
     }
     
     const randomLoop = filteredLoops[Math.floor(Math.random() * filteredLoops.length)];
-    console.log('🎵 Selected loop:', randomLoop?.name);
+    console.log('ðŸŽµ Selected loop:', randomLoop?.name);
     
     // Generate answer options
     let options = [];
@@ -187,7 +187,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
       options.sort(() => Math.random() - 0.5);
     }
     
-    console.log('📝 Generated options:', options);
+    console.log('ðŸ“ Generated options:', options);
     
     setCurrentLoop(randomLoop);
     setGuessOptions(options);
@@ -200,7 +200,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
     setCurrentTime(0);
     setAnswerTime(0);
     
-    console.log('✅ Round setup complete');
+    console.log('âœ… Round setup complete');
   };
 
   // Play/pause loop
@@ -242,7 +242,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
         audioRef.current.play()
           .then(() => {
             setIsPlaying(true);
-            console.log('🔊 Auto-playing loop:', currentLoop.name);
+            console.log('ðŸ”Š Auto-playing loop:', currentLoop.name);
           })
           .catch(err => {
             console.error('Failed to auto-play:', err);
@@ -422,7 +422,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
           {/* Title */}
           <div className="text-center mb-4">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              🎵 How to Play
+              ðŸŽµ How to Play
             </h1>
             <p className="text-xl text-gray-700">
               {numberOfPlayers} Player Game
@@ -470,7 +470,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
             }}
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-bold text-2xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
           >
-            Continue to Game Setup →
+            Continue to Game Setup â†’
           </button>
         </div>
       </div>
@@ -485,7 +485,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
           {/* Title */}
           <div className="text-center mb-6">
             <h1 className="text-4xl font-bold text-gray-900 flex items-center justify-center gap-3">
-              <span className="text-5xl">🎵</span>
+              <span className="text-5xl">ðŸŽµ</span>
               Name That Loop!
             </h1>
             <p className="text-xl text-gray-700 mt-2">{numberOfPlayers} Player Game</p>
@@ -546,9 +546,9 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
             <Trophy className="w-16 h-16 mx-auto text-yellow-500 mb-3" />
             <h1 className="text-3xl font-bold text-gray-900 mb-1">Game Over!</h1>
             {winner ? (
-              <p className="text-xl text-gray-600">Player {winner} Wins! 🎉</p>
+              <p className="text-xl text-gray-600">Player {winner} Wins! ðŸŽ‰</p>
             ) : (
-              <p className="text-xl text-gray-600">It's a Tie! 🤝</p>
+              <p className="text-xl text-gray-600">It's a Tie! ðŸ¤</p>
             )}
           </div>
 
@@ -683,7 +683,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
             {/* Play Button */}
             <div className="text-center mb-4">
               <div className="text-lg font-bold text-gray-900 mb-2">
-                🎧 Listen and guess the loop!
+                ðŸŽ§ Listen and guess the loop!
               </div>
               <button
                 onClick={playLoop}
@@ -752,7 +752,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
           /* Result Screen */
           <div className="text-center">
             <div className={`text-5xl mb-3 ${guessResult.isCorrect ? 'animate-bounce' : ''}`}>
-              {guessResult.isCorrect ? '✅' : '❌'}
+              {guessResult.isCorrect ? 'âœ…' : 'âŒ'}
             </div>
             
             <div className={`text-2xl font-bold mb-2 ${
@@ -764,7 +764,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
             {guessResult.isCorrect ? (
               <div className="mb-4">
                 <div className="text-xl font-bold text-gray-900 mb-2">
-                  +{guessResult.points} points! 🎉
+                  +{guessResult.points} points! ðŸŽ‰
                 </div>
                 
                 {/* Points Breakdown */}
@@ -806,7 +806,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
               onClick={handleNextRound}
               className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
             >
-              {currentRound >= roundsToPlay ? 'See Results' : 'Next Round →'}
+              {currentRound >= roundsToPlay ? 'See Results' : 'Next Round â†’'}
             </button>
           </div>
         )}

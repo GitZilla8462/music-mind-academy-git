@@ -3,6 +3,7 @@
 // UPDATED: Added showSoundEffects prop and checkbox to display sound effects
 // FIXED: Default soundEffectsEnabled to false (unchecked)
 // FIXED: Grey styling when unchecked, purple when checked
+// FIXED: Added Hype mood detection
 
 import React, { useState, useEffect } from 'react';
 import { Play, Pause, Volume2, Search, Filter, Lock } from 'lucide-react';
@@ -141,6 +142,8 @@ const LoopLibrary = ({
       mood = 'Mysterious';
     } else if (nameLower.includes('heroic') || nameLower.includes('hero') || nameLower.includes('triumphant') || nameLower.includes('victory') || nameLower.includes('epic') || nameLower.includes('brave')) {
       mood = 'Heroic';
+    } else if (nameLower.includes('hype') || nameLower.includes('hyped') || nameLower.includes('pumped')) {
+      mood = 'Hype';
     } else if (nameLower.includes('upbeat') || nameLower.includes('happy') || nameLower.includes('energetic') || nameLower.includes('cheerful') || nameLower.includes('bright') || nameLower.includes('positive')) {
       mood = 'Upbeat';
     } else if (nameLower.includes('sad') || nameLower.includes('melancholy') || nameLower.includes('somber')) {

@@ -24,23 +24,27 @@ const LoopBlock = React.memo(({
   const [isResizing, setIsResizing] = useState(false);
   const [resizeDirection, setResizeDirection] = useState(null);
   const [waveformGenerated, setWaveformGenerated] = useState(false);
+  const [showContextMenu, setShowContextMenu] = useState(false);
+  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
   
   const originalDurationRef = useRef(null);
-  
+  const canvasRef = useRef(null);
+  const waveformCacheRef = useRef(new Map());
+  const contextMenuRef = useRef(null);
+
+  // Track original duration on first render
   useEffect(() => {
     if (originalDurationRef.current === null && loop.duration > 0) {
       originalDurationRef.current = loop.duration;
       console.log(`Stored original duration for ${loop.name}: ${loop.duration}s`);
     }
   }, [loop.duration, loop.name]);
-  
-  const canvasRef = useRef(null);
-  const waveformCacheRef = useRef(new Map());
 
   const isSelected = selectedLoop === loop.id;
   const isDragged = draggedLoop?.id === loop.id;
   const trackState = trackStates[`track-${loop.trackIndex}`];
   
+  // Calculate positions and dimensions
   const { leftPosition, width, topPosition } = useMemo(() => ({
     leftPosition: timeToPixel(loop.startTime),
     width: timeToPixel(loop.endTime) - timeToPixel(loop.startTime),
@@ -60,6 +64,7 @@ const LoopBlock = React.memo(({
     return TIMELINE_CONSTANTS.CATEGORY_COLORS[loop.category] || TIMELINE_CONSTANTS.CATEGORY_COLORS.Default;
   }, [loop.color, loop.category]);
 
+  // Calculate loop repeats for notch display
   const { numRepeats, actualRepeats, fullLoops, hasPartialLoop } = useMemo(() => {
     const originalDuration = originalDurationRef.current || loop.duration;
     const currentDuration = loop.endTime - loop.startTime;
@@ -69,26 +74,22 @@ const LoopBlock = React.memo(({
     const fullLoopsCount = Math.floor(actualRepeats);
     const hasPartialLoop = (currentDuration % originalDuration) > 0.01;
     
-    console.log(`📊 ${loop.name} repeats calc:`, {
-      originalDuration: originalDuration.toFixed(2),
-      currentDuration: currentDuration.toFixed(2),
-      actualRepeats: actualRepeats.toFixed(4),
-      fullLoops: fullLoopsCount,
-      hasPartialLoop,
-      numRepeats: repeats,
-      shouldShowNotch: fullLoopsCount > 1 || hasPartialLoop
-    });
-    
     return { 
       numRepeats: Math.max(1, repeats),
       actualRepeats: Math.max(1, actualRepeats),
       fullLoops: fullLoopsCount,
       hasPartialLoop
     };
-  }, [loop.endTime, loop.startTime, loop.duration, loop.name]);
+  }, [loop.endTime, loop.startTime, loop.duration]);
 
+  // ============================================================================
+  // IMPROVED WAVEFORM GENERATION - Uses RMS for better visualization
+  // ============================================================================
+  
   const generateWaveform = useCallback(async () => {
     const cacheKey = loop.file;
+    
+    // Check cache first
     if (waveformCacheRef.current.has(cacheKey)) {
       const cachedWaveform = waveformCacheRef.current.get(cacheKey);
       setWaveformData(cachedWaveform);
@@ -106,15 +107,17 @@ const LoopBlock = React.memo(({
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       
       const channelData = audioBuffer.getChannelData(0);
-      const samples = 200;
+      const samples = 200; // Fixed sample count for consistency
       const blockSize = Math.floor(channelData.length / samples);
       const waveform = [];
       
+      // Use RMS (Root Mean Square) for better waveform representation
       for (let i = 0; i < samples; i++) {
         const start = i * blockSize;
         const end = Math.min(start + blockSize, channelData.length);
         let sum = 0;
         
+        // Calculate RMS for this segment
         for (let j = start; j < end; j++) {
           sum += channelData[j] * channelData[j];
         }
@@ -123,15 +126,22 @@ const LoopBlock = React.memo(({
         waveform.push(rms);
       }
       
+      // Normalize to 0-1 range
       const maxRms = Math.max(...waveform);
       const normalizedWaveform = waveform.map(value => value / maxRms);
       
+      // Cache the waveform
       waveformCacheRef.current.set(cacheKey, normalizedWaveform);
       setWaveformData(normalizedWaveform);
       setWaveformGenerated(true);
+      
+      console.log(`✅ Waveform: ${loop.name} - ${samples} samples (RMS normalized)`);
+      
       audioContext.close();
     } catch (error) {
-      console.error('Failed to generate waveform:', error);
+      console.error(`❌ Waveform failed: ${loop.name}:`, error);
+      
+      // Fallback to sine-based waveform
       const fallbackWaveform = Array.from({ length: 200 }, (_, i) => 
         Math.abs(Math.sin(i * 0.1)) * 0.5 + Math.random() * 0.3
       );
@@ -144,6 +154,16 @@ const LoopBlock = React.memo(({
     }
   }, [loop.file, loop.name, waveformGenerated, isGeneratingWaveform]);
 
+  useEffect(() => {
+    if (!waveformGenerated && !isGeneratingWaveform) {
+      generateWaveform();
+    }
+  }, [generateWaveform, waveformGenerated, isGeneratingWaveform]);
+
+  // ============================================================================
+  // PROFESSIONAL GARAGEBAND-STYLE WAVEFORM DRAWING
+  // ============================================================================
+  
   const drawWaveform = useCallback(() => {
     if (!waveformData || !canvasRef.current || width <= 0) return;
     
@@ -155,41 +175,63 @@ const LoopBlock = React.memo(({
     const { width: canvasWidth, height: canvasHeight } = canvas;
     const originalDuration = originalDurationRef.current || loop.duration;
     const currentDuration = loop.endTime - loop.startTime;
+    const startOffset = loop.startOffset || 0; // Where in the audio we start
+    
+    // Calculate how the loop repeats
     const fullLoops = Math.floor(currentDuration / originalDuration);
     const partialLoop = (currentDuration % originalDuration);
     const totalSections = fullLoops + (partialLoop > 0.01 ? 1 : 0);
-    const notchRadius = 6;
-    const strokeOpacity = '40';
 
     ctx.save();
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
     try {
-      ctx.fillStyle = loopColor + '99';
-      ctx.strokeStyle = loopColor + strokeOpacity;
-      ctx.lineWidth = 0.5;
+      const centerY = canvasHeight / 2;
       
+      // Draw each loop repeat section
       for (let repeat = 0; repeat < totalSections; repeat++) {
         const isPartialRepeat = (repeat === fullLoops && partialLoop > 0.01);
         const repeatDuration = isPartialRepeat ? partialLoop : originalDuration;
         const repeatWidth = (repeatDuration / currentDuration) * canvasWidth;
         const offsetX = (repeat * originalDuration / currentDuration) * canvasWidth;
         
-        const barWidth = Math.max(0.5, repeatWidth / waveformData.length);
+        // Calculate which portion of waveform to show for this repeat
+        // Each repeat shows the SAME trimmed portion (from startOffset)
+        const startPercent = startOffset / originalDuration;
+        const startSample = Math.floor(startPercent * waveformData.length);
+        const samplesForThisRepeat = Math.ceil((repeatDuration / originalDuration) * waveformData.length);
         
-        for (let i = 0; i < waveformData.length; i++) {
-          const amplitude = waveformData[i];
-          if (amplitude > 0.7) {
-            const enhancedAmplitude = Math.pow(amplitude, 0.6);
-            const barHeight = Math.max(1, enhancedAmplitude * (canvasHeight - 6));
-            const x = offsetX + (i * barWidth);
-            const y = Math.max(0, (canvasHeight - barHeight) / 2);
-            const peakHeight = Math.max(2, barHeight * 0.3);
-            
-            if (x >= canvasWidth) break;
-            
-            ctx.fillRect(x, y, Math.max(1, barWidth - 0.5), peakHeight);
-          }
+        const barWidth = Math.max(1.5, repeatWidth / samplesForThisRepeat);
+        const barSpacing = Math.max(0.5, barWidth * 0.1);
+        
+        for (let i = 0; i < samplesForThisRepeat; i++) {
+          // Map to correct position in waveform (starting from startSample)
+          const waveformIndex = (startSample + i) % waveformData.length;
+          const amplitude = waveformData[waveformIndex];
+          
+          const enhancedAmplitude = Math.pow(amplitude, 0.7);
+          const maxBarHeight = canvasHeight - 8;
+          const barHeight = Math.max(2, enhancedAmplitude * maxBarHeight);
+          
+          const x = offsetX + (i * barWidth);
+          
+          if (x >= canvasWidth) break;
+          
+          // Create gradient for each bar
+          const gradient = ctx.createLinearGradient(0, centerY - barHeight/2, 0, centerY + barHeight/2);
+          gradient.addColorStop(0, loopColor + 'BB');
+          gradient.addColorStop(0.5, loopColor + 'FF');
+          gradient.addColorStop(1, loopColor + 'BB');
+          
+          ctx.fillStyle = gradient;
+          
+          const halfHeight = barHeight / 2;
+          ctx.fillRect(
+            x,
+            centerY - halfHeight,
+            Math.max(1, barWidth - barSpacing),
+            barHeight
+          );
         }
       }
       
@@ -198,13 +240,7 @@ const LoopBlock = React.memo(({
     } finally {
       ctx.restore();
     }
-  }, [waveformData, width, loop.endTime, loop.startTime, loop.duration, loop.name, loopColor]);
-
-  useEffect(() => {
-    if (!waveformGenerated && !isGeneratingWaveform) {
-      generateWaveform();
-    }
-  }, [generateWaveform, waveformGenerated, isGeneratingWaveform]);
+  }, [waveformData, width, loop.endTime, loop.startTime, loop.duration, loop.startOffset, loopColor]);
 
   useEffect(() => {
     if (waveformData && width > 0 && !isDragged && !isResizing) {
@@ -216,21 +252,22 @@ const LoopBlock = React.memo(({
     }
   }, [waveformData, width, drawWaveform, isDragged, isResizing]);
 
+  // ============================================================================
+  // RESIZE HANDLERS
+  // ============================================================================
+
   const handleResizeStart = useCallback((e, direction) => {
     e.stopPropagation();
     e.preventDefault();
     setIsResizing(true);
     setResizeDirection(direction);
-    console.log(`Starting ${direction} resize for ${loop.name}`);
-  }, [loop.name]);
+  }, []);
 
   useEffect(() => {
     if (!isResizing) return;
 
     const handleMouseMove = (e) => {
       const pixelsPerSecond = timeToPixel(1) - timeToPixel(0);
-      const originalDuration = originalDurationRef.current || loop.duration;
-      
       const loopElement = document.querySelector(`[data-loop-id="${loop.id}"]`);
       if (!loopElement) return;
       
@@ -253,7 +290,7 @@ const LoopBlock = React.memo(({
       
       if (resizeDirection === 'right') {
         const newDuration = mouseTime - loop.startTime;
-        const minDuration = 0.1;  // [OK] FIXED: Allow loops as short as 0.1 seconds
+        const minDuration = 0.1;
         const maxDuration = videoDuration - loop.startTime;
         const constrainedDuration = Math.max(minDuration, Math.min(maxDuration, newDuration));
         const newEndTime = loop.startTime + constrainedDuration;
@@ -265,23 +302,42 @@ const LoopBlock = React.memo(({
           }
         }
       } else if (resizeDirection === 'left') {
-        const newDuration = loop.endTime - mouseTime;
-        const minDuration = 0.1;  // [OK] FIXED: Allow loops as short as 0.1 seconds
-        const maxDuration = Math.min(videoDuration, loop.endTime);
-        const constrainedDuration = Math.max(minDuration, Math.min(maxDuration, newDuration));
-        const newStartTime = loop.endTime - constrainedDuration;
+        // Calculate new start time (user is dragging left edge)
+        const newStartTime = Math.max(0, mouseTime);
         
-        if (Math.abs(newStartTime - loop.startTime) > 0.5 && newStartTime >= 0) {
-          onLoopUpdate(loop.id, { startTime: newStartTime });
+        // CRITICAL: Keep the right edge (endTime) FIXED
+        // Don't change loop.endTime at all
+        const fixedEndTime = loop.endTime;
+        
+        // Calculate how much we're trimming from the left
+        const startTimeChange = newStartTime - loop.startTime;
+        
+        // Calculate new duration (from new start to fixed end)
+        const newDuration = fixedEndTime - newStartTime;
+        const minDuration = 0.1;
+        
+        if (newDuration >= minDuration && newStartTime >= 0 && Math.abs(startTimeChange) > 0.1) {
+          // Calculate the start offset in the audio file
+          // This tracks where in the original audio we should start playing
+          const currentStartOffset = loop.startOffset || 0;
+          const newStartOffset = currentStartOffset + startTimeChange;
+          
+          // Update ONLY the startTime and startOffset
+          // Do NOT update endTime - it stays fixed!
+          onLoopUpdate(loop.id, { 
+            startTime: newStartTime,
+            startOffset: newStartOffset  // Where in audio file to start
+            // endTime is NOT updated - stays fixed!
+          });
+          
           if (onLoopResize) {
-            onLoopResize(loop.id, constrainedDuration);
+            onLoopResize(loop.id, newDuration);
           }
         }
       }
     };
 
     const handleMouseUp = () => {
-      console.log(`Finished ${resizeDirection} resize`);
       setIsResizing(false);
       setResizeDirection(null);
     };
@@ -299,12 +355,52 @@ const LoopBlock = React.memo(({
     };
   }, [isResizing, resizeDirection, loop, onLoopUpdate, onLoopResize, timeToPixel, videoDuration]);
 
+  // ============================================================================
+  // MOUSE HANDLERS
+  // ============================================================================
+
   const handleDelete = useCallback((e) => {
     e.stopPropagation();
     e.preventDefault();
     e.nativeEvent.stopImmediatePropagation();
     onLoopDelete(loop.id);
+    setShowContextMenu(false);
   }, [loop.id, onLoopDelete]);
+
+  // ============================================================================
+  // CONTEXT MENU HANDLERS (GarageBand-style right-click)
+  // ============================================================================
+
+  const handleContextMenu = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Select the loop if not already selected
+    if (!isSelected) {
+      onLoopSelect(loop.id);
+    }
+    
+    // Position the context menu at the mouse cursor
+    setContextMenuPosition({
+      x: e.clientX,
+      y: e.clientY
+    });
+    setShowContextMenu(true);
+  }, [isSelected, onLoopSelect, loop.id]);
+
+  // Close context menu when clicking outside
+  useEffect(() => {
+    if (!showContextMenu) return;
+
+    const handleClickOutside = (e) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(e.target)) {
+        setShowContextMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showContextMenu]);
 
   const handleMouseDown = useCallback((e) => {
     if (e.target.closest('button') || e.target.closest('.resize-handle')) {
@@ -356,6 +452,10 @@ const LoopBlock = React.memo(({
     e.preventDefault();
   }, [onLoopMouseDown, loop, isResizing, onLoopSelect, isSelected]);
 
+  // ============================================================================
+  // RENDER
+  // ============================================================================
+
   const dragStyle = isDragged ? {
     opacity: 0.7,
     zIndex: 1000,
@@ -378,67 +478,51 @@ const LoopBlock = React.memo(({
         width: `${width}px`,
         height: `${TIMELINE_CONSTANTS.TRACK_HEIGHT - 16}px`,
         backgroundColor: categoryColor.bg,
-        borderRadius: '4px',
-        overflow: 'visible',
+        borderRadius: '4px', // Rounded corners to match SVG
+        overflow: 'hidden', // Changed from 'visible' to clip waveform to rounded corners
         ...dragStyle
       }}
       onMouseDown={handleMouseDown}
+      onContextMenu={handleContextMenu}
       data-loop-id={loop.id}
     >
+      {/* Logic Pro Style - Rounded Rectangle with Smart-Contrast Notches */}
       <svg
         className="absolute inset-0 pointer-events-none"
         style={{ width: '100%', height: '100%', overflow: 'visible' }}
       >
-        <defs>
-          <mask id={`notch-mask-${loop.id}`}>
-            <rect x="0" y="0" width="100%" height="100%" fill="white" />
-            
-            {(() => {
-              const originalDuration = originalDurationRef.current || loop.duration;
-              const currentDuration = loop.endTime - loop.startTime;
-              const hasPartialLoop = (currentDuration % originalDuration) > 0.01;
-              
-              const totalNotches = hasPartialLoop ? Math.floor(currentDuration / originalDuration) : Math.max(0, Math.floor(currentDuration / originalDuration) - 1);
-              
-              if (totalNotches === 0) return null;
-              
-              const notchSize = 8;
-              const notches = [];
-              
-              for (let i = 0; i < totalNotches; i++) {
-                const loopNumber = i + 1;
-                const loopTime = loopNumber * originalDuration;
-                const x = (loopTime / currentDuration) * width;
-                
-                notches.push(
-                  <circle key={`notch-${i}`} cx={x} cy="0" r={notchSize} fill="black" />,
-                  <circle key={`notch-bottom-${i}`} cx={x} cy={TIMELINE_CONSTANTS.TRACK_HEIGHT - 16} r={notchSize} fill="black" />
-                );
-              }
-              
-              return notches;
-            })()}
-          </mask>
-        </defs>
-        
         <path
           d={(() => {
             const originalDuration = originalDurationRef.current || loop.duration;
             const currentDuration = loop.endTime - loop.startTime;
-            const hasPartialLoop = (currentDuration % originalDuration) > 0.01;
+            const startOffset = loop.startOffset || 0;
             const blockHeight = TIMELINE_CONSTANTS.TRACK_HEIGHT - 16;
-            const notchSize = 8;
+            const cornerRadius = 4;
+            const notchSize = 4;
             
-            const fullLoops = Math.floor(currentDuration / originalDuration);
-            const totalNotches = hasPartialLoop ? fullLoops : Math.max(0, fullLoops - 1);
+            // Calculate where the loop markers should be based on ORIGINAL positions
+            const totalOriginalDuration = currentDuration + startOffset;
+            const fullLoops = Math.floor(totalOriginalDuration / originalDuration);
             
-            let pathData = `M 0,0`;
+            // Find which markers are visible (after startOffset, before end)
+            const visibleMarkers = [];
+            for (let i = 1; i <= fullLoops; i++) {
+              const markerTimeInOriginal = i * originalDuration;
+              
+              if (markerTimeInOriginal > startOffset && markerTimeInOriginal < (startOffset + currentDuration)) {
+                const markerTimeInVisible = markerTimeInOriginal - startOffset;
+                visibleMarkers.push(markerTimeInVisible);
+              }
+            }
             
-            if (totalNotches > 0) {
-              for (let i = 0; i < totalNotches; i++) {
-                const loopNumber = i + 1;
-                const loopTime = loopNumber * originalDuration;
-                const x = (loopTime / currentDuration) * width;
+            // Start with top-left rounded corner
+            let pathData = `M ${cornerRadius},0`;
+            
+            // Top edge with notches at FIXED positions
+            if (visibleMarkers.length > 0) {
+              for (let i = 0; i < visibleMarkers.length; i++) {
+                const markerTime = visibleMarkers[i];
+                const x = (markerTime / currentDuration) * width;
                 
                 pathData += ` L ${x - notchSize},0`;
                 pathData += ` L ${x},${notchSize}`;
@@ -446,14 +530,21 @@ const LoopBlock = React.memo(({
               }
             }
             
-            pathData += ` L ${width},0`;
-            pathData += ` L ${width},${blockHeight}`;
+            // Top-right corner
+            pathData += ` L ${width - cornerRadius},0`;
+            pathData += ` Q ${width},0 ${width},${cornerRadius}`;
             
-            if (totalNotches > 0) {
-              for (let i = totalNotches - 1; i >= 0; i--) {
-                const loopNumber = i + 1;
-                const loopTime = loopNumber * originalDuration;
-                const x = (loopTime / currentDuration) * width;
+            // Right edge
+            pathData += ` L ${width},${blockHeight - cornerRadius}`;
+            
+            // Bottom-right corner
+            pathData += ` Q ${width},${blockHeight} ${width - cornerRadius},${blockHeight}`;
+            
+            // Bottom edge with notches (reverse order)
+            if (visibleMarkers.length > 0) {
+              for (let i = visibleMarkers.length - 1; i >= 0; i--) {
+                const markerTime = visibleMarkers[i];
+                const x = (markerTime / currentDuration) * width;
                 
                 pathData += ` L ${x + notchSize},${blockHeight}`;
                 pathData += ` L ${x},${blockHeight - notchSize}`;
@@ -461,18 +552,107 @@ const LoopBlock = React.memo(({
               }
             }
             
-            pathData += ` L 0,${blockHeight}`;
-            pathData += ` Z`;
+            // Bottom-left corner
+            pathData += ` L ${cornerRadius},${blockHeight}`;
+            pathData += ` Q 0,${blockHeight} 0,${blockHeight - cornerRadius}`;
+            
+            // Left edge
+            pathData += ` L 0,${cornerRadius}`;
+            
+            // Close path back to top-left corner
+            pathData += ` Q 0,0 ${cornerRadius},0 Z`;
             
             return pathData;
           })()}
           fill="none"
-          stroke={isSelected ? '#60a5fa' : categoryColor.accent}
-          strokeWidth={isSelected ? "2" : "1"}
-          opacity={isSelected ? "1" : "0.5"}
+          stroke={(() => {
+            // Smart contrast: Calculate if loop color is light or dark
+            const hex = loopColor.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            
+            // Calculate perceived brightness (0-255)
+            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+            
+            // If selected, use blue
+            if (isSelected) return '#60a5fa';
+            
+            // Use white for dark colors, dark for light colors
+            return brightness > 128 ? '#00000080' : '#ffffff80';
+          })()}
+          strokeWidth={isSelected ? "2" : "1.5"}
+          opacity={isSelected ? "1" : "0.8"}
         />
       </svg>
 
+      {/* CLEAR VERTICAL SEPARATOR LINES - Highly Visible Loop Repeat Markers */}
+      {(() => {
+        const originalDuration = originalDurationRef.current || loop.duration;
+        const currentDuration = loop.endTime - loop.startTime;
+        const startOffset = loop.startOffset || 0;
+        
+        // Calculate how many complete loops fit in the ORIGINAL timeline (before trimming)
+        // This determines where the markers were originally placed
+        const totalOriginalDuration = currentDuration + startOffset;
+        const fullLoops = Math.floor(totalOriginalDuration / originalDuration);
+        const hasPartialLoop = (totalOriginalDuration % originalDuration) > 0.01;
+        
+        // We want to show markers at the ORIGINAL loop boundaries
+        // But only the ones that are visible (after the startOffset)
+        const markers = [];
+        
+        for (let i = 1; i <= fullLoops; i++) {
+          const markerTimeInOriginal = i * originalDuration;
+          
+          // Only show marker if it's after the startOffset (visible portion)
+          if (markerTimeInOriginal > startOffset) {
+            // Calculate position in the visible timeline
+            const markerTimeInVisible = markerTimeInOriginal - startOffset;
+            
+            // Only show if it's within the current duration (before the end)
+            if (markerTimeInVisible < currentDuration) {
+              markers.push(markerTimeInVisible);
+            }
+          }
+        }
+        
+        if (markers.length === 0) return null;
+        
+        // Calculate if loop color is light or dark for smart contrast
+        const hex = loopColor.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        
+        // Choose contrasting color
+        const separatorColor = brightness > 128 ? '#000000' : '#ffffff';
+        
+        return markers.map((markerTime, i) => {
+          const x = (markerTime / currentDuration) * width;
+          
+          return (
+            <div
+              key={i}
+              className="absolute pointer-events-none"
+              style={{
+                left: `${x}px`,
+                top: '2px',
+                bottom: '2px',
+                width: '2px',
+                transform: 'translateX(-1px)',
+                backgroundColor: separatorColor,
+                opacity: 0.5,
+                boxShadow: `0 0 4px ${separatorColor}`,
+                borderRadius: '1px'
+              }}
+            />
+          );
+        });
+      })()}
+
+      {/* Selection Highlight */}
       {isSelected && (
         <div 
           className="absolute inset-0 pointer-events-none rounded"
@@ -483,6 +663,7 @@ const LoopBlock = React.memo(({
         />
       )}
 
+      {/* Waveform Canvas */}
       <canvas
         ref={canvasRef}
         width={Math.max(1, width)} 
@@ -495,6 +676,7 @@ const LoopBlock = React.memo(({
         }}
       />
 
+      {/* Loop Info - Just name and duration, no delete button */}
       <div className="absolute inset-0 p-2 flex items-center justify-between pointer-events-none">
         <div className="flex flex-col min-w-0">
           <span 
@@ -510,24 +692,29 @@ const LoopBlock = React.memo(({
             {Math.round((loop.endTime - loop.startTime) * 10) / 10}s
           </span>
         </div>
-
-        {isSelected && (
-          <div className="flex items-center space-x-1 pointer-events-auto z-50">
-            <button
-              onClick={handleDelete}
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-              }}
-              className="p-1.5 rounded bg-red-600 hover:bg-red-700 text-white transition-colors shadow-lg border border-red-500 hover:border-red-400"
-              title="Delete loop"
-              type="button"
-            >
-              <Trash2 size={14} />
-            </button>
-          </div>
-        )}
       </div>
+
+      {/* Context Menu - Delete Only */}
+      {showContextMenu && (
+        <div
+          ref={contextMenuRef}
+          className="fixed bg-gray-800 rounded-lg shadow-2xl border border-gray-700 py-1 z-[9999]"
+          style={{
+            left: `${contextMenuPosition.x}px`,
+            top: `${contextMenuPosition.y}px`,
+            minWidth: '140px'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={handleDelete}
+            className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 transition-colors flex items-center gap-2"
+          >
+            <Trash2 size={14} />
+            <span>Delete Loop</span>
+          </button>
+        </div>
+      )}
 
       {/* LEFT RESIZE HANDLE */}
       <div
@@ -544,10 +731,6 @@ const LoopBlock = React.memo(({
           zIndex: 1000
         }}
       >
-        <div className={`absolute left-0 top-1/2 transform -translate-y-1/2 w-0.5 h-6 rounded-r transition-colors ${
-          isResizing && resizeDirection === 'left' ? 'bg-white' : 'bg-gray-800'
-        }`}></div>
-        
         {isResizing && resizeDirection === 'left' && (
           <div className="absolute -top-10 left-0 bg-black bg-opacity-90 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 pointer-events-none">
             {Math.round((loop.endTime - loop.startTime) * 10) / 10}s ({numRepeats}x)
@@ -563,17 +746,13 @@ const LoopBlock = React.memo(({
             : 'bg-blue-400 hover:bg-blue-300 w-1 opacity-60'
         }`}
         onMouseDown={(e) => handleResizeStart(e, 'right')}
-        title="Drag to resize loop (allows partial durations)"
+        title="Drag to resize loop"
         data-resize-handle="right"
         style={{
           width: isResizing && resizeDirection === 'right' ? '8px' : '4px',
           zIndex: 1000
         }}
       >
-        <div className={`absolute right-0 top-1/2 transform -translate-y-1/2 w-0.5 h-6 rounded-l transition-colors ${
-          isResizing && resizeDirection === 'right' ? 'bg-white' : 'bg-gray-800'
-        }`}></div>
-        
         {isResizing && resizeDirection === 'right' && (
           <div className="absolute -top-10 right-0 bg-black bg-opacity-90 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 pointer-events-none">
             {Math.round((loop.endTime - loop.startTime) * 10) / 10}s ({numRepeats}x)
@@ -581,6 +760,7 @@ const LoopBlock = React.memo(({
         )}
       </div>
 
+      {/* Loading Indicator */}
       {isGeneratingWaveform && (
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
           <div className="text-xs" style={{ color: categoryColor.text }}>

@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
 import ReflectionModal from './ReflectionModal';
-import NameThatLoopActivity from '../NameThatLoopActivity';
+import NameThatLoopActivity from '../layer-detective/NameThatLoopActivity';
 
 const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false, isSessionMode = false }) => {
   const [showBonus, setShowBonus] = useState(false);

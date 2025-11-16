@@ -1,4 +1,4 @@
-// shared/useAudioEngine.js - FIXED: Proper native audio lifecycle management
+// shared/useAudioEngine.js - FIXED: Proper native audio lifecycle management + LEFT-EDGE TRIMMING
 import { useState, useRef, useCallback, useEffect } from 'react';
 import * as Tone from 'tone';
 
@@ -27,15 +27,15 @@ export const useAudioEngine = (videoDuration = 60) => {
     Tone.Transport.position = 0;
     
     Tone.Transport.on('stop', () => {
-      console.log('Ã°Å¸â€ºâ€˜ Transport stopped event');
+      console.log('🛑 Transport stopped event');
       
       if (transportStoppedByStopRef.current) {
-        console.log('  Ã¢â€ Â³ Stop was called by user - cleaning up');
+        console.log('  ⏳ Stop was called by user - cleaning up');
         transportStoppedByStopRef.current = false;
         return;
       }
       
-      console.log('  Ã¢â€ Â³ Natural end of Transport - not seeking to 0');
+      console.log('  ⏳ Natural end of Transport - not seeking to 0');
     });
   }, []);
 
@@ -83,14 +83,14 @@ export const useAudioEngine = (videoDuration = 60) => {
       console.log(`Creating player for: ${loopData.name} with key: ${playerKey}`);
       
       if (playersRef.current.has(playerKey)) {
-        console.log(`  Ã¢Å“â€œ Player already exists for ${playerKey}`);
+        console.log(`  ✓ Player already exists for ${playerKey}`);
         return playersRef.current.get(playerKey);
       }
 
       const isMp3 = loopData.file.toLowerCase().endsWith('.mp3');
       
       if (isMp3) {
-        console.log(`  Ã°Å¸Å½Âµ Using native HTML5 Audio for MP3: ${loopData.name}`);
+        console.log(`  🎵 Using native HTML5 Audio for MP3: ${loopData.name}`);
         const audio = new Audio();
         audio.preload = 'auto';
         audio.src = loopData.file;
@@ -102,13 +102,13 @@ export const useAudioEngine = (videoDuration = 60) => {
           
           audio.addEventListener('canplaythrough', () => {
             clearTimeout(timeout);
-            console.log(`  Ã¢Å“â€¦ Native audio loaded: ${loopData.name}, duration: ${audio.duration}s`);
+            console.log(`  ✅ Native audio loaded: ${loopData.name}, duration: ${audio.duration}s`);
             resolve();
           }, { once: true });
           
           audio.addEventListener('error', (e) => {
             clearTimeout(timeout);
-            console.error(`  Ã¢ÂÅ’ Native audio load error for ${loopData.name}:`, e);
+            console.error(`  ❌ Native audio load error for ${loopData.name}:`, e);
             reject(new Error(`Failed to load: ${e.message || 'Unknown error'}`));
           }, { once: true });
           
@@ -126,30 +126,30 @@ export const useAudioEngine = (videoDuration = 60) => {
         };
         
         playersRef.current.set(playerKey, wrappedPlayer);
-        console.log(`  Ã¢Å“â€¦ Stored native player with key: ${playerKey}`);
+        console.log(`  ✅ Stored native player with key: ${playerKey}`);
         return wrappedPlayer;
         
       } else {
-        console.log(`  Ã°Å¸Å½Â¹ Using Tone.js Player for: ${loopData.name}`);
+        console.log(`  🎹 Using Tone.js Player for: ${loopData.name}`);
         const player = new Tone.Player({
           url: loopData.file,
           loop: false,
           fadeIn: 0.01,
           fadeOut: 0.01,
           onload: () => {
-            console.log(`  Ã¢Å“â€¦ Tone.js player loaded: ${loopData.name}, duration: ${player.buffer.duration}s`);
+            console.log(`  ✅ Tone.js player loaded: ${loopData.name}, duration: ${player.buffer.duration}s`);
           }
         }).toDestination();
         
         await Tone.loaded();
         
         playersRef.current.set(playerKey, player);
-        console.log(`  Ã¢Å“â€¦ Stored Tone.js player with key: ${playerKey}`);
+        console.log(`  ✅ Stored Tone.js player with key: ${playerKey}`);
         return player;
       }
       
     } catch (error) {
-      console.error(`Ã¢ÂÅ’ Failed to create player for ${loopData.name}:`, error);
+      console.error(`❌ Failed to create player for ${loopData.name}:`, error);
       throw error;
     }
   }, []);
@@ -177,11 +177,11 @@ export const useAudioEngine = (videoDuration = 60) => {
     
     groupedLoops.forEach((loopGroup, loopId) => {
       loopGroup.forEach(loop => {
-        console.log(`Ã°Å¸â€Â Loop: ${loop.name}`, loop);
+        console.log(`🎵 Loop: ${loop.name}`, loop);
         
         const player = playersRef.current.get(loop.id);
         if (!player) {
-          console.warn(`  Ã¢Å¡Â Ã¯Â¸Â No player found for ${loop.name} (key: ${loop.id})`);
+          console.warn(`  ⚠️ No player found for ${loop.name} (key: ${loop.id})`);
           return;
         }
         
@@ -189,7 +189,7 @@ export const useAudioEngine = (videoDuration = 60) => {
         const trackState = trackStates[trackId];
         
         if (!trackState) {
-          console.warn(`  Ã¢Å¡Â Ã¯Â¸Â No track state for ${trackId}`);
+          console.warn(`  ⚠️ No track state for ${trackId}`);
           return;
         }
         
@@ -198,7 +198,7 @@ export const useAudioEngine = (videoDuration = 60) => {
         const effectiveVolume = trackVolume * loopVolume;
         
         if (trackState.muted || effectiveVolume < 0.01) {
-          console.log(`  Ã°Å¸â€â€¡ ${loop.name} is muted (track: ${trackState.muted}, volume: ${effectiveVolume.toFixed(2)})`);
+          console.log(`  🔇 ${loop.name} is muted (track: ${trackState.muted}, volume: ${effectiveVolume.toFixed(2)})`);
           return;
         }
         
@@ -213,58 +213,69 @@ export const useAudioEngine = (videoDuration = 60) => {
         
         const loopStartTime = loop.startTime;
         const loopEndTime = loop.endTime;
-        const loopDuration = loop.duration;
+        const originalLoopDuration = loop.duration; // Original audio file duration
+        const placedLoopDuration = loopEndTime - loopStartTime; // Actual duration on timeline
         
         if (loopEndTime <= schedulingStartTime) {
-          console.log(`  Ã¢ÂÂ­Ã¯Â¸Â Loop ends at ${loopEndTime.toFixed(2)}s (before current ${schedulingStartTime.toFixed(2)}s) - skipping entirely`);
+          console.log(`  ⏭️ Loop ends at ${loopEndTime.toFixed(2)}s (before current ${schedulingStartTime.toFixed(2)}s) - skipping entirely`);
           return;
         }
         
-        const totalLoopDuration = loopEndTime - loopStartTime;
-        const numRepeats = Math.ceil(totalLoopDuration / loopDuration);
+        // Calculate repeats based on the PLACED duration (which may be trimmed)
+        const numRepeats = Math.ceil(placedLoopDuration / originalLoopDuration);
         
-        console.log(`  Ã°Å¸â€œÅ  Scheduling ${loop.name}:`);
-        console.log(`     Video times: ${loopStartTime.toFixed(2)}s Ã¢â€ â€™ ${loopEndTime.toFixed(2)}s`);
-        console.log(`     Loop duration: ${loopDuration.toFixed(2)}s`);
+        console.log(`  📍 Scheduling ${loop.name}:`);
+        console.log(`     Video times: ${loopStartTime.toFixed(2)}s → ${loopEndTime.toFixed(2)}s`);
+        console.log(`     Original loop duration: ${originalLoopDuration.toFixed(2)}s`);
+        console.log(`     Placed loop duration: ${placedLoopDuration.toFixed(2)}s`);
         console.log(`     Repeats needed: ${numRepeats}`);
         console.log(`     Track ${loop.trackIndex} volume: ${effectiveVolume.toFixed(2)}`);
+        if (loop.startOffset) {
+          console.log(`     ✂️ Left-edge trim offset: ${loop.startOffset.toFixed(2)}s`);
+        }
         
         // Schedule each repeat with proper offset calculation
         for (let i = 0; i < numRepeats; i++) {
-          const repeatStartTime = loopStartTime + (i * loopDuration);
-          const repeatEndTime = Math.min(repeatStartTime + loopDuration, loopEndTime);
+          const repeatStartTime = loopStartTime + (i * originalLoopDuration);
+          const repeatEndTime = Math.min(repeatStartTime + originalLoopDuration, loopEndTime);
           
           // Skip if this repeat is entirely before current time
           if (repeatEndTime <= schedulingStartTime) {
-            console.log(`  Ã¢ÂÂ­Ã¯Â¸Â  Repeat ${i + 1} ends at ${repeatEndTime.toFixed(2)}s (before ${schedulingStartTime.toFixed(2)}s) - skipping`);
+            console.log(`  ⏭️  Repeat ${i + 1} ends at ${repeatEndTime.toFixed(2)}s (before ${schedulingStartTime.toFixed(2)}s) - skipping`);
             continue;
           }
           
-          // Calculate offset within the loop if starting mid-loop
-          let loopOffset = 0;
-          let actualDuration = loopDuration;
+          // ✅ CRITICAL FIX: Calculate offset within the loop if starting mid-loop
+          // ALWAYS include the loop.startOffset (from left-edge trimming)
+          const trimOffset = loop.startOffset || 0; // Offset from left-edge trimming
+          let loopOffset = trimOffset; // Start with trim offset
+          let actualDuration = originalLoopDuration; // Use original duration
           let actualStartTime = repeatStartTime;
           
           if (repeatStartTime < schedulingStartTime && repeatEndTime > schedulingStartTime) {
             // We're starting playback in the middle of this repeat
-            loopOffset = schedulingStartTime - repeatStartTime;
+            const midLoopOffset = schedulingStartTime - repeatStartTime;
+            loopOffset = trimOffset + midLoopOffset; // Combine trim offset + mid-loop offset
             actualDuration = repeatEndTime - schedulingStartTime;
             actualStartTime = schedulingStartTime;
-            console.log(`  Ã°Å¸Å½Â¯ Starting mid-loop: offset ${loopOffset.toFixed(2)}s, duration ${actualDuration.toFixed(2)}s`);
+            console.log(`  🎯 Starting mid-loop: trim offset ${trimOffset.toFixed(2)}s + mid-loop ${midLoopOffset.toFixed(2)}s = ${loopOffset.toFixed(2)}s, duration ${actualDuration.toFixed(2)}s`);
           } else if (repeatEndTime > loopEndTime) {
             // This is a partial repeat at the end
             actualDuration = loopEndTime - repeatStartTime;
-            console.log(`  Ã¢Å“â€šÃ¯Â¸Â Partial end repeat: duration ${actualDuration.toFixed(2)}s`);
+            console.log(`  ✂️ Partial end repeat: offset ${loopOffset.toFixed(2)}s, duration ${actualDuration.toFixed(2)}s`);
+          } else {
+            // Normal repeat from the start (but with trim offset applied)
+            console.log(`  ▶️ Full repeat: starting from trim offset ${loopOffset.toFixed(2)}s, duration ${actualDuration.toFixed(2)}s`);
           }
           
           // Calculate Transport time for this repeat
           const transportTime = Math.max(0, actualStartTime - schedulingStartTime);
           
-          console.log(`  Ã¢â€“Â¶Ã¯Â¸Â  Scheduling repeat ${i + 1}/${numRepeats} at Transport ${transportTime.toFixed(2)}s (video ${actualStartTime.toFixed(2)}s)`);
+          console.log(`  ▶️  Scheduling repeat ${i + 1}/${numRepeats} at Transport ${transportTime.toFixed(2)}s (video ${actualStartTime.toFixed(2)}s)`);
           
           // Only actually schedule if transport is playing
           if (!isTransportPlaying) {
-            console.log(`  Ã¢ÂÂ¸Ã¯Â¸Â Transport stopped - not scheduling this repeat`);
+            console.log(`  ⏸️ Transport stopped - not scheduling this repeat`);
             continue;
           }
           
@@ -281,6 +292,7 @@ export const useAudioEngine = (videoDuration = 60) => {
             
             const timeoutId = setTimeout(() => {
               if (!trackState.muted && effectiveVolume > 0.01) {
+                // ✅ CRITICAL: Set currentTime to loopOffset (includes trim offset!)
                 audioClone.currentTime = loopOffset;
                 
                 // Track this as active audio
@@ -304,7 +316,7 @@ export const useAudioEngine = (videoDuration = 60) => {
             scheduledEvents.push({ type: 'native-timeout', id: timeoutId });
             scheduledCount++;
           } else {
-            // Tone.js Player - provide offset parameter
+            // ✅ CRITICAL: Tone.js Player - provide loopOffset parameter (includes trim offset!)
             actualPlayer.start(`+${transportTime}`, loopOffset, actualDuration);
             scheduledCount++;
           }
@@ -317,27 +329,27 @@ export const useAudioEngine = (videoDuration = 60) => {
   }, [clearScheduledEvents]);
 
   const play = useCallback(async () => {
-    console.log(`Ã°Å¸Å½Â¬ Starting playback at ${Tone.Transport.seconds.toFixed(2)}s`);
+    console.log(`🎬 Starting playback at ${Tone.Transport.seconds.toFixed(2)}s`);
     
     if (Tone.Transport.state !== 'started') {
       Tone.Transport.start();
-      console.log('Ã¢Å“â€¦ Transport started immediately');
+      console.log('✅ Transport started immediately');
     } else {
-      console.log('Ã¢â€žÂ¹Ã¯Â¸Â Transport already running');
+      console.log('⏯️ Transport already running');
     }
     
     setIsPlaying(true);
   }, []);
 
   const pause = useCallback(() => {
-    console.log('Ã¢ÂÂ¸Ã¯Â¸Â Pausing playback');
+    console.log('⏸️ Pausing playback');
     Tone.Transport.pause();
     setIsPlaying(false);
     clearScheduledEvents();
   }, [clearScheduledEvents]);
 
   const stop = useCallback(() => {
-    console.log('Ã¢ÂÂ¹Ã¯Â¸Â Stopping playback');
+    console.log('⏹️ Stopping playback');
     transportStoppedByStopRef.current = true;
     Tone.Transport.stop();
     Tone.Transport.position = 0;
@@ -410,7 +422,7 @@ export const useAudioEngine = (videoDuration = 60) => {
         
         // Add ended event listener to clean up when preview finishes
         player.audio.addEventListener('ended', () => {
-          console.log(`âœ… Preview ended: ${loopData.name}`);
+          console.log(`✅ Preview ended: ${loopData.name}`);
           previewPlayerRef.current = null;
           
           // Call onEnded callback if provided
@@ -425,7 +437,7 @@ export const useAudioEngine = (videoDuration = 60) => {
         player.start();
       }
       
-      console.log(`Ã°Å¸Å½Â§ Previewing: ${loopData.name}`);
+      console.log(`🎧 Previewing: ${loopData.name}`);
     } catch (error) {
       console.error('Preview error:', error);
       throw error;

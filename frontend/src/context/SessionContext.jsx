@@ -1,5 +1,5 @@
 // Session Context for managing classroom sessions
-// UPDATED: Logging only for UNEXPECTED errors, not normal session ends
+// UPDATED: Back to ORIGINAL behavior - no musical names
 // src/context/SessionContext.jsx
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
@@ -45,6 +45,7 @@ export const SessionProvider = ({ children }) => {
   
   const prevStageRef = useRef(null);
   const isNormalEndRef = useRef(false); // Track if this is a normal session end
+  const hasJoinedRef = useRef(false); // Track if student has already joined to prevent re-joining
 
   // Save to localStorage when session info changes
   useEffect(() => {
@@ -78,7 +79,7 @@ export const SessionProvider = ({ children }) => {
     console.log('📡 Subscribing to session:', sessionCode);
     setIsLoadingSession(true);
     
-    // ✅ Initialize logger if student is restoring from localStorage
+    // Initialize logger if student is restoring from localStorage
     if (userRole === 'student' && userId && !logger.isInitialized) {
       console.log('🔄 Initializing logger from restored session');
       const studentName = localStorage.getItem('current-session-studentName') || userId;
@@ -93,8 +94,8 @@ export const SessionProvider = ({ children }) => {
     const unsubscribe = subscribeToSession(sessionCode, (data) => {
       setIsLoadingSession(false);
       
-      // 🚨 ONLY log if session data becomes null UNEXPECTEDLY (not during normal end)
-      if (data === null && !isNormalEndRef.current) {
+      // ONLY log if session data becomes null UNEXPECTEDLY (not during normal end)
+      if (data === null && !isNormalEndRef.current && prevStageRef.current) {
         console.error('🔴 CRITICAL: Session data became NULL unexpectedly!');
         console.error('   Session code:', sessionCode);
         console.error('   Last stage:', prevStageRef.current);
@@ -110,7 +111,7 @@ export const SessionProvider = ({ children }) => {
         }
       }
       
-      // ℹ️ Session ended normally - just log to console, NO red button
+      // Session ended normally - just log to console, NO red button
       if (data?.currentStage === 'ended') {
         console.log('📋 Session ended normally by teacher');
         console.log('   Session code:', sessionCode);
@@ -118,8 +119,6 @@ export const SessionProvider = ({ children }) => {
         
         // Mark this as a normal end so we don't log errors
         isNormalEndRef.current = true;
-        
-        // DO NOT log to Firebase - this is normal behavior
       }
       
       // Log stage changes (info only)
@@ -137,14 +136,6 @@ export const SessionProvider = ({ children }) => {
         
         prevStageRef.current = data?.currentStage;
       }
-      
-      console.log('📊 Session update:', {
-        hasData: !!data,
-        currentStage: data?.currentStage,
-        studentsCount: Object.keys(data?.studentsJoined || {}).length,
-        isEnded: data?.currentStage === 'ended',
-        time: new Date().toLocaleTimeString()
-      });
       
       setSessionData(data);
       setIsInSession(!!data);
@@ -171,7 +162,7 @@ export const SessionProvider = ({ children }) => {
         console.log('👁️ Student tab became visible again');
         
         // Check if session data was lost while tab was hidden
-        if (!sessionData && sessionCode && !isNormalEndRef.current) {
+        if (!sessionData && sessionCode && !isNormalEndRef.current && prevStageRef.current) {
           console.error('⚠️ Session data lost while tab was hidden!');
           logger.warning('Session lost while tab hidden (possible Chromebook sleep)', {
             sessionCode
@@ -193,6 +184,7 @@ export const SessionProvider = ({ children }) => {
   useEffect(() => {
     if (isLoadingSession) return; // Ignore during initial load
     if (isNormalEndRef.current) return; // Ignore if session ended normally
+    if (!prevStageRef.current) return; // Ignore if we never loaded data in the first place
     
     if (sessionData === null && sessionCode && userRole === 'student') {
       console.error('🔴 DANGER: sessionData is NULL after being previously loaded!');
@@ -224,33 +216,127 @@ export const SessionProvider = ({ children }) => {
 
   const joinSession = async (code, studentId, studentName) => {
     try {
+      // Prevent re-joining if already joined
+      if (hasJoinedRef.current) {
+        console.log('⏭️ Student already joined, skipping re-join');
+        return true;
+      }
+      
       console.log('👤 Student joining session:', { code, studentId, studentName });
-      await firebaseJoinSession(code, studentId, studentName);
+      
+      // First, fetch the session data to get the lessonRoute
+      const { getDatabase, ref: dbRef, get } = await import('firebase/database');
+      const db = getDatabase();
+      const sessionRef = dbRef(db, `sessions/${code}`);
+      const snapshot = await get(sessionRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Session not found');
+      }
+      
+      const sessionData = snapshot.val();
+      const lessonRoute = sessionData.lessonRoute || sessionData.lessonId || '/lessons/film-music-project/lesson1';
+      
+      console.log('📚 Session lesson route:', lessonRoute);
+      console.log('📚 Full session data:', sessionData);
+      
+      // ✅ ORIGINAL BEHAVIOR: Join with the provided student name (no musical names)
+      await firebaseJoinSession(code, studentId, studentName || 'Student');
       
       setSessionCode(code);
       setUserRole('student');
       setUserId(studentId);
       setIsInSession(true);
-      isNormalEndRef.current = false; // Reset flag
+      isNormalEndRef.current = false;
       
-      // ✅ Save student name to localStorage
-      if (studentName) {
-        localStorage.setItem('current-session-studentName', studentName);
-      }
+      // Save student name to localStorage
+      localStorage.setItem('current-session-studentName', studentName || 'Student');
       
-      // ✅ Initialize logger with session info
+      // Initialize logger with session info
       logger.init({
         studentId,
         sessionCode: code,
-        lessonId: 'lesson1',
-        studentName
+        lessonId: sessionData.lessonId || lessonRoute,
+        studentName: studentName || 'Student'
       });
       
       console.log('✅ Student successfully joined session');
+      
+      // Mark as joined to prevent re-joining
+      hasJoinedRef.current = true;
+      
+      // ONLY navigate if we're NOT already on the correct page
+      const currentPath = window.location.pathname;
+      
+      if (!currentPath.includes(lessonRoute)) {
+        console.log('🚀 Navigating to:', `${lessonRoute}?session=${code}&role=student`);
+        window.location.href = `${lessonRoute}?session=${code}&role=student`;
+      } else {
+        console.log('✅ Already on correct lesson page, no redirect needed');
+      }
+      
       return true;
     } catch (error) {
       console.error('❌ Error joining session:', error);
       logger.error('Failed to join session', { error: error.message });
+      return false;
+    }
+  };
+
+  // ✅ NEW: Special join function for activities that need musical names
+  const joinSessionWithMusicalName = async (code, studentId) => {
+    try {
+      if (hasJoinedRef.current) {
+        console.log('⏭️ Student already joined, skipping re-join');
+        return true;
+      }
+      
+      console.log('🎵 Student joining with musical name:', { code, studentId });
+      
+      // Fetch the session data
+      const { getDatabase, ref: dbRef, get } = await import('firebase/database');
+      const db = getDatabase();
+      const sessionRef = dbRef(db, `sessions/${code}`);
+      const snapshot = await get(sessionRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Session not found');
+      }
+      
+      const sessionData = snapshot.val();
+      
+      // Generate unique musical name
+      const { generateUniqueMusicalName } = await import('../utils/musicalNameGenerator');
+      const existingNames = sessionData.studentsJoined 
+        ? Object.values(sessionData.studentsJoined).map(s => s.name)
+        : [];
+      
+      const musicalName = generateUniqueMusicalName(existingNames);
+      console.log('🎵 Generated musical name:', musicalName);
+      
+      // Join with musical name
+      await firebaseJoinSession(code, studentId, musicalName);
+      
+      // Rest of the join logic...
+      setSessionCode(code);
+      setUserRole('student');
+      setUserId(studentId);
+      setIsInSession(true);
+      
+      localStorage.setItem('current-session-studentName', musicalName);
+      
+      logger.init({
+        studentId,
+        sessionCode: code,
+        lessonId: sessionData.lessonId,
+        studentName: musicalName
+      });
+      
+      hasJoinedRef.current = true;
+      
+      return true;
+    } catch (error) {
+      console.error('❌ Error joining with musical name:', error);
       return false;
     }
   };
@@ -275,7 +361,8 @@ export const SessionProvider = ({ children }) => {
     setUserRole(null);
     setUserId(null);
     setIsInSession(false);
-    isNormalEndRef.current = false; // Reset flag
+    isNormalEndRef.current = false;
+    hasJoinedRef.current = false; // Reset join flag
   };
 
   const setCurrentStage = async (stage) => {
@@ -321,6 +408,12 @@ export const SessionProvider = ({ children }) => {
       isNormalEndRef.current = true; // Mark as normal end
       await firebaseEndSession(sessionCode);
       leaveSession();
+      
+      // Navigate back to homepage after a short delay
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 500);
+      
     } catch (error) {
       console.error('❌ Error ending session:', error);
     }
@@ -386,6 +479,7 @@ export const SessionProvider = ({ children }) => {
     // Actions
     startSession,
     joinSession,
+    joinSessionWithMusicalName, // ✅ NEW: For activities that need musical names
     leaveSession,
     setCurrentStage,
     markActivityComplete,

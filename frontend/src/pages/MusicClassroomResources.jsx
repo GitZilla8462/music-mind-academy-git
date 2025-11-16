@@ -1,7 +1,10 @@
+// File: /pages/MusicClassroomResources.jsx
+// SIMPLIFIED VERSION - Just two boxes, session button inside DAW box
+// ✅ FIXED: Students now join the correct lesson based on session data
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { staticProjects } from './CreateAssignmentPage';
-import { createSession, sessionExists } from '../firebase/config';
+import { createSession, getSessionData } from '../firebase/config';
 
 function MusicClassroomResources() {
   const navigate = useNavigate();
@@ -35,14 +38,14 @@ function MusicClassroomResources() {
       setLoggedIn(true);
       localStorage.setItem('classroom-logged-in', 'true');
       localStorage.setItem('classroom-user-role', 'student');
-      localStorage.setItem('classroom-username', username); // Store username
-      localStorage.setItem('classroom-user-id', username);  // Store user ID
+      localStorage.setItem('classroom-username', username);
+      localStorage.setItem('classroom-user-id', username);
     } else if (username === 'teacher' && password === 'teach2025') {
       setLoggedIn(true);
       localStorage.setItem('classroom-logged-in', 'true');
       localStorage.setItem('classroom-user-role', 'teacher');
-      localStorage.setItem('classroom-username', 'Teacher'); // Store username
-      localStorage.setItem('classroom-user-id', 'teacher');  // Store user ID
+      localStorage.setItem('classroom-username', 'Teacher');
+      localStorage.setItem('classroom-user-id', 'teacher');
     } else {
       alert('Wrong username or password');
     }
@@ -60,25 +63,29 @@ function MusicClassroomResources() {
     localStorage.removeItem('classroom-user-role');
   };
 
-  // TEACHER: Start a session - GO DIRECTLY TO CONTROL PANEL
-  const handleStartSession = async (lessonId) => {
+  // ✅ FIXED: TEACHER - Start a session with lesson route
+  const handleStartSession = async () => {
     setIsCreatingSession(true);
     setSessionError('');
     
     try {
-      const code = await createSession('teacher', lessonId);
-      console.log('Session created with code:', code);
+      const code = await createSession(
+        'teacher', 
+        'lesson1',
+        '/lessons/film-music-project/lesson1'  // ✅ Pass the lesson route
+      );
+      console.log('✅ Session created with code:', code);
       
-      // Go directly to lesson control panel (not session start page)
+      // Go directly to lesson control panel
       window.location.href = `/lessons/film-music-project/lesson1?session=${code}&role=teacher`;
     } catch (error) {
-      console.error('Error creating session:', error);
+      console.error('❌ Error creating session:', error);
       setSessionError('Failed to create session. Please try again.');
       setIsCreatingSession(false);
     }
   };
 
-  // STUDENT: Join a session
+  // ✅ FIXED: STUDENT - Join a session and go to correct lesson
   const handleJoinSession = async () => {
     if (!sessionCodeInput || sessionCodeInput.length !== 4) {
       setSessionError('Please enter a 4-digit code');
@@ -89,18 +96,24 @@ function MusicClassroomResources() {
     setSessionError('');
 
     try {
-      const exists = await sessionExists(sessionCodeInput);
+      // Get full session data including lesson route
+      const sessionData = await getSessionData(sessionCodeInput);
       
-      if (!exists) {
+      if (!sessionData) {
         setSessionError('Session not found. Check the code and try again.');
         setIsJoiningSession(false);
         return;
       }
 
-      // Redirect to lesson in student mode
-      window.location.href = `/lessons/film-music-project/lesson1?session=${sessionCodeInput}&role=student`;
+      // Get the lesson route from session data (fallback to lesson1 if not found)
+      const lessonRoute = sessionData.lessonRoute || '/lessons/film-music-project/lesson1';
+      
+      console.log(`✅ Student joining session ${sessionCodeInput} at route: ${lessonRoute}`);
+      
+      // Redirect to the SAME lesson as the teacher
+      window.location.href = `${lessonRoute}?session=${sessionCodeInput}&role=student`;
     } catch (error) {
-      console.error('Error joining session:', error);
+      console.error('❌ Error joining session:', error);
       setSessionError('Failed to join session. Please try again.');
       setIsJoiningSession(false);
     }
@@ -109,7 +122,6 @@ function MusicClassroomResources() {
   // Load ALL saved data from localStorage when logged in
   useEffect(() => {
     if (loggedIn) {
-      // Load main composition
       const savedComp = localStorage.getItem('school-beneath-composition');
       if (savedComp) {
         try {
@@ -119,7 +131,6 @@ function MusicClassroomResources() {
         }
       }
 
-      // Load bonus composition
       const savedBonus = localStorage.getItem('school-beneath-bonus');
       if (savedBonus) {
         try {
@@ -129,7 +140,6 @@ function MusicClassroomResources() {
         }
       }
 
-      // Load reflection
       const savedRefl = localStorage.getItem('school-beneath-reflection');
       if (savedRefl) {
         try {
@@ -139,7 +149,6 @@ function MusicClassroomResources() {
         }
       }
 
-      // Load DAW stats
       const stats = localStorage.getItem('lesson1-daw-stats');
       if (stats) {
         try {
@@ -150,19 +159,6 @@ function MusicClassroomResources() {
       }
     }
   }, [loggedIn]);
-
-  // Pull projects from CreateAssignmentPage and map to classroom format
-  // Filter to only show the DAW lesson
-  const classroomResources = staticProjects
-    .filter(project => project.projectId === 'film-music-unit-lesson-1')
-    .map(project => ({
-      id: project.projectId,
-      title: project.projectTitle,
-      projectType: project.projectType,
-      description: project.description,
-      demoUrl: project.demoUrl,
-      url: project.projectType === 'lesson' ? project.demoUrl : '/projects/video-selection'
-    }));
 
   // LOGIN PAGE
   if (!loggedIn) {
@@ -203,700 +199,509 @@ function MusicClassroomResources() {
             Classroom Login
           </h2>
           
-
           <input 
             type="text" 
             placeholder="Username" 
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            style={{ 
-              display: 'block', 
-              margin: '12px 0', 
-              padding: '12px 16px', 
+            onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+            style={{
               width: '100%',
-              fontSize: '16px',
-              border: '2px solid #e2e8f0',
+              padding: '12px',
+              marginBottom: '16px',
               borderRadius: '8px',
-              outline: 'none',
-              transition: 'border-color 0.2s'
+              border: '1px solid #e2e8f0',
+              fontSize: '16px'
             }}
-            onFocus={(e) => e.target.style.borderColor = '#4299e1'}
-            onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
           />
+          
           <input 
             type="password" 
-            placeholder="Password"
+            placeholder="Password" 
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-            style={{ 
-              display: 'block', 
-              margin: '12px 0', 
-              padding: '12px 16px', 
+            style={{
               width: '100%',
-              fontSize: '16px',
-              border: '2px solid #e2e8f0',
+              padding: '12px',
+              marginBottom: '24px',
               borderRadius: '8px',
-              outline: 'none',
-              transition: 'border-color 0.2s'
+              border: '1px solid #e2e8f0',
+              fontSize: '16px'
             }}
-            onFocus={(e) => e.target.style.borderColor = '#4299e1'}
-            onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
           />
+          
           <button 
-            onClick={handleLogin} 
-            style={{ 
-              padding: '14px', 
-              marginTop: '24px',
+            onClick={handleLogin}
+            style={{
               width: '100%',
-              fontSize: '18px',
-              fontWeight: '600',
+              padding: '14px',
               backgroundColor: '#4299e1',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '600',
               cursor: 'pointer',
               transition: 'background-color 0.2s'
             }}
             onMouseEnter={(e) => e.target.style.backgroundColor = '#3182ce'}
             onMouseLeave={(e) => e.target.style.backgroundColor = '#4299e1'}
           >
-            Access Resources
+            Login
           </button>
         </div>
       </div>
     );
   }
 
-  // RESOURCES PAGE (after login)
+  // MAIN DASHBOARD - SIMPLIFIED
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f0f4f8' }}>
-      {/* Header */}
-      <header style={{ 
-        backgroundColor: 'white', 
-        borderBottom: '2px solid #e2e8f0',
-        padding: '20px 0'
-      }}>
-        <div style={{ 
-          maxWidth: '1280px', 
-          margin: '0 auto',
-          padding: '0 24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <h1 style={{ 
-            fontSize: '24px', 
-            fontWeight: 'bold',
-            color: '#1a202c',
-            margin: 0
-          }}>
-            Music Room Tools
-          </h1>
-          <button 
-            onClick={handleLogout}
-            style={{ 
-              padding: '10px 24px',
-              fontSize: '16px',
-              fontWeight: '500',
-              backgroundColor: '#e53e3e',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#c53030'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#e53e3e'}
-          >
-            Logout
-          </button>
-        </div>
-      </header>
-
+    <div style={{ 
+      minHeight: '100vh', 
+      backgroundColor: '#f7fafc',
+      padding: '40px 20px'
+    }}>
+      {/* Simple Header */}
       <div style={{ 
-        maxWidth: '1280px', 
+        maxWidth: '1200px', 
         margin: '0 auto',
-        padding: '40px 24px'
+        marginBottom: '40px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
-        {/* STUDENT: Join Session Box */}
-        {userRole === 'student' && (
-          <div style={{
+        <h1 style={{ 
+          fontSize: '36px', 
+          fontWeight: 'bold',
+          color: '#1a202c'
+        }}>
+          Music Room Tools
+        </h1>
+        <button 
+          onClick={handleLogout}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#e53e3e',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            fontSize: '14px'
+          }}
+        >
+          Logout
+        </button>
+      </div>
+
+      {/* Two Boxes Side by Side */}
+      <div style={{ 
+        maxWidth: '1200px', 
+        margin: '0 auto',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+        gap: '24px'
+      }}>
+        
+        {/* BOX 1: Introduction to the DAW */}
+        <div 
+          style={{
             backgroundColor: 'white',
             borderRadius: '12px',
-            padding: '24px',
-            marginBottom: '32px',
+            padding: '32px',
             boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            maxWidth: '600px'
+            border: '2px solid #e2e8f0',
+            transition: 'all 0.2s'
+          }}
+        >
+          {/* Icon */}
+          <div style={{ 
+            fontSize: '64px', 
+            marginBottom: '20px',
+            textAlign: 'center'
           }}>
-            <h2 style={{
-              fontSize: '20px',
-              fontWeight: '700',
-              color: '#1a202c',
-              marginBottom: '16px'
-            }}>
-              Join Live Session
-            </h2>
-            <p style={{
-              fontSize: '14px',
-              color: '#718096',
-              marginBottom: '16px'
-            }}>
-              Enter the 4-digit code from your teacher to join the lesson
-            </p>
-            
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-              <input
-                type="text"
-                placeholder="Enter code (e.g. 7284)"
-                value={sessionCodeInput}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, '').slice(0, 4);
-                  setSessionCodeInput(value);
-                  setSessionError('');
-                }}
-                maxLength={4}
-                style={{
-                  flex: 1,
-                  padding: '12px 16px',
-                  fontSize: '18px',
-                  fontWeight: '600',
-                  textAlign: 'center',
-                  letterSpacing: '4px',
-                  border: '2px solid #e2e8f0',
-                  borderRadius: '8px',
-                  outline: 'none'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#4299e1'}
-                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
-                onKeyPress={(e) => e.key === 'Enter' && handleJoinSession()}
-              />
+            🎬
+          </div>
+          
+          {/* Title */}
+          <h3 style={{ 
+            fontSize: '26px', 
+            fontWeight: '600',
+            color: '#2d3748',
+            marginBottom: '16px',
+            textAlign: 'center'
+          }}>
+            Introduction to the DAW
+          </h3>
+          
+          {/* Description */}
+          <p style={{ 
+            color: '#718096', 
+            fontSize: '16px',
+            marginBottom: '24px',
+            lineHeight: '1.6',
+            textAlign: 'center'
+          }}>
+            This lesson will introduce students how to use the software for the music loops in media project.
+          </p>
+
+          {/* Divider */}
+          <div style={{
+            borderTop: '1px solid #e2e8f0',
+            margin: '24px 0'
+          }}></div>
+
+          {/* Teacher or Student Controls */}
+          {userRole === 'teacher' ? (
+            // TEACHER: Start Live Session Button
+            <div>
+              <div style={{
+                textAlign: 'center',
+                marginBottom: '16px',
+                fontSize: '14px',
+                color: '#718096'
+              }}>
+                👨‍🏫 Teacher Mode
+              </div>
+              
               <button
-                onClick={handleJoinSession}
-                disabled={isJoiningSession || sessionCodeInput.length !== 4}
+                onClick={handleStartSession}
+                disabled={isCreatingSession}
                 style={{
-                  padding: '12px 24px',
+                  width: '100%',
+                  padding: '16px 24px',
                   fontSize: '16px',
                   fontWeight: '600',
-                  backgroundColor: sessionCodeInput.length === 4 && !isJoiningSession ? '#48bb78' : '#e2e8f0',
-                  color: sessionCodeInput.length === 4 && !isJoiningSession ? 'white' : '#a0aec0',
+                  backgroundColor: isCreatingSession ? '#a0aec0' : '#4299e1',
+                  color: 'white',
                   border: 'none',
                   borderRadius: '8px',
-                  cursor: sessionCodeInput.length === 4 && !isJoiningSession ? 'pointer' : 'not-allowed',
-                  transition: 'all 0.2s',
-                  whiteSpace: 'nowrap'
+                  cursor: isCreatingSession ? 'not-allowed' : 'pointer',
+                  transition: 'background-color 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
                 }}
-                onMouseEnter={(e) => {
-                  if (sessionCodeInput.length === 4 && !isJoiningSession) {
-                    e.target.style.backgroundColor = '#38a169';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (sessionCodeInput.length === 4 && !isJoiningSession) {
-                    e.target.style.backgroundColor = '#48bb78';
-                  }
-                }}
+                onMouseEnter={(e) => !isCreatingSession && (e.target.style.backgroundColor = '#3182ce')}
+                onMouseLeave={(e) => !isCreatingSession && (e.target.style.backgroundColor = '#4299e1')}
               >
-                {isJoiningSession ? 'Joining...' : 'Join'}
+                {isCreatingSession ? 'Creating Session...' : '🎬 Start Live Session'}
               </button>
-            </div>
-            
-            {sessionError && (
-              <div style={{
-                marginTop: '12px',
-                padding: '12px',
-                backgroundColor: '#fed7d7',
-                color: '#742a2a',
-                borderRadius: '6px',
-                fontSize: '14px'
-              }}>
-                {sessionError}
-              </div>
-            )}
-          </div>
-        )}
 
-        <div style={{ 
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '24px',
-          maxWidth: '600px'
-        }}>
-          {/* Resources Cards */}
-          {classroomResources.map(resource => (
-            <div key={resource.id} style={{ 
-              backgroundColor: 'white',
-              borderRadius: '12px',
-              padding: '24px',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-              transition: 'transform 0.2s, box-shadow 0.2s'
-            }}>
-              <div style={{ marginBottom: '16px' }}>
-                <span style={{ 
-                  display: 'inline-block',
-                  padding: '4px 12px',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  backgroundColor: resource.projectType === 'lesson' ? '#bee3f8' : '#c6f6d5',
-                  color: resource.projectType === 'lesson' ? '#2c5282' : '#22543d',
-                  borderRadius: '16px',
-                  textTransform: 'uppercase'
-                }}>
-                  {resource.projectType}
-                </span>
-              </div>
-              <h2 style={{ 
-                fontSize: '20px',
-                fontWeight: '700',
-                color: '#1a202c',
-                marginBottom: '12px'
-              }}>
-                {resource.title}
-              </h2>
-              <p style={{ 
-                fontSize: '15px',
-                color: '#4a5568',
-                lineHeight: '1.6',
-                marginBottom: '16px'
-              }}>
-                {resource.description}
-              </p>
-              
-              {/* TEACHER: Show start session button */}
-              {userRole === 'teacher' ? (
-                <button 
-                  onClick={() => handleStartSession(resource.id)}
-                  disabled={isCreatingSession}
-                  style={{ 
-                    padding: '10px 20px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    backgroundColor: isCreatingSession ? '#e2e8f0' : '#48bb78',
-                    color: isCreatingSession ? '#a0aec0' : 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: isCreatingSession ? 'not-allowed' : 'pointer',
-                    transition: 'background-color 0.2s',
-                    width: '100%'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isCreatingSession) e.target.style.backgroundColor = '#38a169';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isCreatingSession) e.target.style.backgroundColor = '#48bb78';
-                  }}
-                >
-                  {isCreatingSession ? 'Creating Session...' : '🎯 Start Live Session'}
-                </button>
-              ) : (
-                /* STUDENT: Show regular open button */
-                <button 
-                  onClick={() => window.location.href = resource.url}
-                  style={{ 
-                    padding: '10px 20px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    backgroundColor: '#4299e1',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s',
-                    width: '100%'
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#3182ce'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#4299e1'}
-                >
-                  Open {resource.projectType === 'lesson' ? 'Lesson' : 'Project'}
-                </button>
-              )}
-              
-              {sessionError && userRole === 'teacher' && (
+              {sessionError && (
                 <div style={{
-                  marginTop: '8px',
-                  padding: '8px',
+                  marginTop: '12px',
+                  padding: '12px',
                   backgroundColor: '#fed7d7',
                   color: '#742a2a',
-                  borderRadius: '6px',
-                  fontSize: '12px'
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  textAlign: 'center'
                 }}>
                   {sessionError}
                 </div>
               )}
             </div>
-          ))}
-        </div>
-
-        {/* Saved Work Section - keeping all your existing code */}
-        {(savedComposition || savedBonusComposition || savedReflection || dawStats) && (
-          <div style={{ marginTop: '48px' }}>
-            <h2 style={{ 
-              fontSize: '28px',
-              fontWeight: '700',
-              color: '#1a202c',
-              marginBottom: '24px'
-            }}>
-              My Saved Work
-            </h2>
-            
-            <div style={{ 
-              backgroundColor: 'white',
-              borderRadius: '12px',
-              padding: '24px',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-            }}>
-              <div>
-                {/* Title section */}
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center',
-                  gap: '12px',
-                  marginBottom: '20px',
-                  paddingBottom: '16px',
-                  borderBottom: '2px solid #e2e8f0'
-                }}>
-                  <div style={{
-                    backgroundColor: '#4299e1',
+          ) : (
+            // STUDENT: Join Session
+            <div>
+              <div style={{
+                textAlign: 'center',
+                marginBottom: '16px',
+                fontSize: '14px',
+                color: '#718096'
+              }}>
+                👨‍🎓 Enter the 4-digit code from your teacher
+              </div>
+              
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
+                <input
+                  type="text"
+                  placeholder="CODE"
+                  value={sessionCodeInput}
+                  onChange={(e) => setSessionCodeInput(e.target.value.toUpperCase())}
+                  maxLength={4}
+                  style={{
+                    flex: 1,
+                    padding: '14px',
+                    fontSize: '20px',
+                    fontWeight: 'bold',
+                    textAlign: 'center',
                     borderRadius: '8px',
-                    padding: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <span style={{ fontSize: '24px', color: 'white' }}>♪</span>
+                    border: '2px solid #4299e1',
+                    letterSpacing: '4px'
+                  }}
+                />
+                <button
+                  onClick={handleJoinSession}
+                  disabled={isJoiningSession || sessionCodeInput.length !== 4}
+                  style={{
+                    padding: '14px 24px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    backgroundColor: (isJoiningSession || sessionCodeInput.length !== 4) ? '#a0aec0' : '#48bb78',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: (isJoiningSession || sessionCodeInput.length !== 4) ? 'not-allowed' : 'pointer',
+                    transition: 'background-color 0.2s',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {isJoiningSession ? 'Joining...' : 'Join'}
+                </button>
+              </div>
+
+              {sessionError && (
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: '#fed7d7',
+                  color: '#742a2a',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  textAlign: 'center'
+                }}>
+                  {sessionError}
+                </div>
+              )}
+
+              {/* Divider */}
+              <div style={{
+                borderTop: '1px solid #e2e8f0',
+                margin: '24px 0'
+              }}></div>
+
+              {/* Solo Practice Button */}
+              <button
+                onClick={() => navigate('/lessons/film-music-project/lesson1')}
+                style={{
+                  width: '100%',
+                  padding: '14px 24px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  backgroundColor: '#805ad5',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#6b46c1'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#805ad5'}
+              >
+                Practice Solo
+              </button>
+            </div>
+          )}
+
+          {/* Show saved work stats for students */}
+          {userRole === 'student' && (dawStats || savedComposition || savedReflection) && (
+            <div style={{ 
+              marginTop: '24px',
+              padding: '16px',
+              backgroundColor: '#f7fafc',
+              borderRadius: '8px',
+              fontSize: '13px'
+            }}>
+              <div style={{ 
+                fontWeight: '600',
+                color: '#2d3748',
+                marginBottom: '12px',
+                textAlign: 'center'
+              }}>
+                Your Progress
+              </div>
+              
+              {dawStats && (
+                <div style={{ marginBottom: '8px', color: '#4a5568', textAlign: 'center' }}>
+                  ✓ DAW Tutorial: {dawStats.correct} / {dawStats.correct + dawStats.incorrect} correct
+                </div>
+              )}
+
+              {savedComposition && (
+                <div style={{ 
+                  backgroundColor: '#e6fffa',
+                  borderRadius: '6px',
+                  padding: '12px',
+                  marginBottom: '12px',
+                  border: '2px solid #81e6d9',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ fontSize: '13px', fontWeight: '600', color: '#234e52', marginBottom: '6px' }}>
+                    ✓ Composition Saved!
                   </div>
-                  <div>
-                    <h3 style={{ 
-                      fontSize: '18px',
-                      fontWeight: '700',
-                      color: '#1a202c',
-                      margin: 0
-                    }}>
-                      Lesson 1: School Beneath
-                    </h3>
-                    <p style={{ 
-                      fontSize: '14px',
-                      color: '#718096',
-                      margin: '4px 0 0 0'
-                    }}>
-                      Film Music Composition
-                    </p>
+                  <div style={{ fontSize: '12px', color: '#285e61' }}>
+                    {savedComposition.loopCount} loops
                   </div>
                 </div>
+              )}
 
-                {/* DAW Tutorial Stats */}
-                {dawStats && (
-                  <div style={{ 
-                    backgroundColor: '#f7fafc',
-                    borderRadius: '8px',
-                    padding: '16px',
-                    marginBottom: '16px',
-                    border: '1px solid #e2e8f0'
-                  }}>
-                    <div style={{ 
-                      fontSize: '14px', 
-                      fontWeight: '600',
-                      color: '#2d3748',
-                      marginBottom: '12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <span>DAW Tutorial Performance</span>
-                    </div>
-                    <div style={{ 
-                      display: 'grid', 
-                      gridTemplateColumns: 'repeat(2, 1fr)',
-                      gap: '12px'
-                    }}>
-                      <div>
-                        <div style={{ fontSize: '12px', color: '#718096' }}>Correct Answers</div>
-                        <div style={{ 
-                          fontSize: '24px', 
-                          fontWeight: '700', 
-                          color: '#48bb78'
-                        }}>
-                          {dawStats.correct}
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '12px', color: '#718096' }}>Incorrect Answers</div>
-                        <div style={{ 
-                          fontSize: '24px', 
-                          fontWeight: '700', 
-                          color: '#f56565'
-                        }}>
-                          {dawStats.incorrect}
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ 
-                      marginTop: '12px',
-                      paddingTop: '12px',
-                      borderTop: '1px solid #e2e8f0'
-                    }}>
-                      <div style={{ fontSize: '12px', color: '#718096' }}>Accuracy Rate</div>
-                      <div style={{ 
-                        fontSize: '20px', 
-                        fontWeight: '700', 
-                        color: '#4299e1'
-                      }}>
-                        {dawStats.correct + dawStats.incorrect > 0 
-                          ? Math.round((dawStats.correct / (dawStats.correct + dawStats.incorrect)) * 100)
-                          : 0}%
-                      </div>
-                    </div>
-                  </div>
-                )}
+              {savedReflection && (
+                <div style={{ textAlign: 'center', color: '#4a5568', fontSize: '13px' }}>
+                  ✓ Reflection Complete
+                </div>
+              )}
 
-                {/* Main Composition Info */}
+              <div style={{ 
+                display: 'flex',
+                gap: '8px',
+                marginTop: '16px',
+                flexWrap: 'wrap'
+              }}>
                 {savedComposition && (
-                  <>
-                    <div style={{ 
-                      backgroundColor: '#f0f9ff',
-                      borderRadius: '8px',
-                      padding: '12px',
-                      marginBottom: '12px',
-                      border: '2px solid #4299e1'
-                    }}>
-                      <div style={{ 
-                        fontSize: '13px', 
-                        fontWeight: '600',
-                        color: '#2b6cb0',
-                        marginBottom: '8px'
-                      }}>
-                        Main Composition Saved
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#2c5282' }}>
-                        {savedComposition.loopCount} loops • Saved on {new Date(savedComposition.savedAt).toLocaleDateString()}
-                      </div>
-                    </div>
-
-                    {/* Requirements Status */}
-                    <div style={{ 
-                      backgroundColor: '#f7fafc',
-                      borderRadius: '8px',
-                      padding: '12px',
-                      marginBottom: '16px',
-                      border: '1px solid #e2e8f0'
-                    }}>
-                      <div style={{ fontSize: '12px', color: '#718096', marginBottom: '8px' }}>
-                        Requirements Met:
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        <span style={{
-                          padding: '4px 8px',
-                          fontSize: '12px',
-                          borderRadius: '4px',
-                          backgroundColor: savedComposition.requirements.minLoops ? '#c6f6d5' : '#fed7d7',
-                          color: savedComposition.requirements.minLoops ? '#22543d' : '#742a2a'
-                        }}>
-                          {savedComposition.requirements.minLoops ? '✓' : '✗'} Minimum Loops
-                        </span>
-                        <span style={{
-                          padding: '4px 8px',
-                          fontSize: '12px',
-                          borderRadius: '4px',
-                          backgroundColor: savedComposition.requirements.layering ? '#c6f6d5' : '#fed7d7',
-                          color: savedComposition.requirements.layering ? '#22543d' : '#742a2a'
-                        }}>
-                          {savedComposition.requirements.layering ? '✓' : '✗'} Layering
-                        </span>
-                        <span style={{
-                          padding: '4px 8px',
-                          fontSize: '12px',
-                          borderRadius: '4px',
-                          backgroundColor: savedComposition.requirements.structure ? '#c6f6d5' : '#fed7d7',
-                          color: savedComposition.requirements.structure ? '#22543d' : '#742a2a'
-                        }}>
-                          {savedComposition.requirements.structure ? '✓' : '✗'} Structure
-                        </span>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Bonus Composition Info */}
-                {savedBonusComposition && (
-                  <div style={{ 
-                    backgroundColor: '#fef5e7',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    marginBottom: '16px',
-                    border: '2px solid #f6ad55'
-                  }}>
-                    <div style={{ 
-                      fontSize: '13px', 
-                      fontWeight: '600',
-                      color: '#c05621',
-                      marginBottom: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}>
-                      <span>Bonus Composition Created!</span>
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#744210' }}>
-                      {savedBonusComposition.loopCount} loops • Saved on {new Date(savedBonusComposition.savedAt).toLocaleDateString()}
-                    </div>
-                  </div>
-                )}
-
-                {/* Reflection Info */}
-                {savedReflection && (
-                  <div style={{ 
-                    borderTop: '1px solid #e2e8f0',
-                    paddingTop: '12px',
-                    marginBottom: '16px'
-                  }}>
-                    <div style={{ fontSize: '12px', color: '#718096', marginBottom: '8px' }}>
-                      Reflection Completed:
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                      <span style={{
-                        padding: '4px 8px',
-                        fontSize: '12px',
-                        borderRadius: '4px',
-                        backgroundColor: '#e9d5ff',
-                        color: '#5b21b6',
-                        fontWeight: '600'
-                      }}>
-                        Two Stars and a Wish
-                      </span>
-                      <span style={{ fontSize: '12px', color: '#718096' }}>
-                        ({savedReflection.reviewType === 'self' ? 'Self-Reflection' : `Partner: ${savedReflection.partnerName}`})
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div style={{ 
-                  borderTop: '1px solid #e2e8f0',
-                  paddingTop: '16px',
-                  display: 'flex',
-                  gap: '12px',
-                  flexWrap: 'wrap'
-                }}>
-                  {savedComposition && (
-                    <button
-                      onClick={() => {
-                        window.location.href = '/lessons/film-music-project/lesson1?view=saved';
-                      }}
-                      style={{
-                        flex: '1 1 150px',
-                        padding: '12px 20px',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        backgroundColor: '#4299e1',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.2s',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px'
-                      }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = '#3182ce'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = '#4299e1'}
-                    >
-                      <span>View Main</span>
-                    </button>
-                  )}
-
-                  {savedBonusComposition && (
-                    <button
-                      onClick={() => {
-                        window.location.href = '/lessons/film-music-project/lesson1?view=bonus';
-                      }}
-                      style={{
-                        flex: '1 1 150px',
-                        padding: '12px 20px',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        backgroundColor: '#ed8936',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.2s',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px'
-                      }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = '#dd6b20'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = '#ed8936'}
-                    >
-                      <span>View Bonus</span>
-                    </button>
-                  )}
-
-                  {savedReflection && (
-                    <button
-                      onClick={() => {
-                        window.location.href = '/lessons/film-music-project/lesson1?view=reflection';
-                      }}
-                      style={{
-                        flex: '1 1 150px',
-                        padding: '12px 20px',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        backgroundColor: '#9f7aea',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.2s',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px'
-                      }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = '#805ad5'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = '#9f7aea'}
-                    >
-                      <span>Reflection</span>
-                    </button>
-                  )}
-
                   <button
-                    onClick={() => {
-                      if (window.confirm('Are you sure you want to delete ALL your saved work (DAW stats, compositions, and reflection)? This cannot be undone.')) {
-                        localStorage.removeItem('school-beneath-composition');
-                        localStorage.removeItem('school-beneath-bonus');
-                        localStorage.removeItem('school-beneath-reflection');
-                        localStorage.removeItem('lesson1-daw-stats');
-                        setSavedComposition(null);
-                        setSavedBonusComposition(null);
-                        setSavedReflection(null);
-                        setDawStats(null);
-                        alert('All saved work deleted successfully');
-                      }
-                    }}
+                    onClick={() => window.location.href = '/lessons/film-music-project/lesson1?view=saved'}
                     style={{
-                      padding: '12px 20px',
-                      fontSize: '14px',
+                      flex: '1 1 120px',
+                      padding: '10px 16px',
+                      fontSize: '13px',
                       fontWeight: '600',
-                      backgroundColor: '#e53e3e',
+                      backgroundColor: '#4299e1',
                       color: 'white',
                       border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.2s'
+                      borderRadius: '6px',
+                      cursor: 'pointer'
                     }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = '#c53030'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = '#e53e3e'}
                   >
-                    Delete All
+                    View Work
                   </button>
-                </div>
+                )}
+
+                <button
+                  onClick={() => {
+                    if (window.confirm('Delete all saved work? This cannot be undone.')) {
+                      localStorage.removeItem('school-beneath-composition');
+                      localStorage.removeItem('school-beneath-bonus');
+                      localStorage.removeItem('school-beneath-reflection');
+                      localStorage.removeItem('lesson1-daw-stats');
+                      setSavedComposition(null);
+                      setSavedBonusComposition(null);
+                      setSavedReflection(null);
+                      setDawStats(null);
+                      alert('All saved work deleted');
+                    }
+                  }}
+                  style={{
+                    padding: '10px 16px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    backgroundColor: '#e53e3e',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Delete All
+                </button>
               </div>
             </div>
+          )}
+        </div>
+
+        {/* BOX 2: Music Loops in Media Project */}
+        <div 
+          onClick={() => navigate('/music-loops-in-media')}
+          style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            borderRadius: '12px',
+            padding: '32px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            color: 'white'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-4px)';
+            e.currentTarget.style.boxShadow = '0 12px 20px rgba(102, 126, 234, 0.4)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+          }}
+        >
+          {/* Icon */}
+          <div style={{ 
+            fontSize: '64px', 
+            marginBottom: '20px',
+            textAlign: 'center'
+          }}>
+            🎵
           </div>
-        )}
+          
+          {/* Title */}
+          <h3 style={{ 
+            fontSize: '26px', 
+            fontWeight: '600',
+            marginBottom: '16px',
+            textAlign: 'center',
+            color: 'white'
+          }}>
+            Music Loops in Media Project
+          </h3>
+          
+          {/* Description */}
+          <p style={{ 
+            fontSize: '16px',
+            marginBottom: '24px',
+            lineHeight: '1.6',
+            textAlign: 'center',
+            color: 'rgba(255,255,255,0.95)'
+          }}>
+            5-lesson unit: Compose music for sports highlights, video games, cooking videos, comedy ads, and student choice projects.
+          </p>
+
+          {/* Badges */}
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            marginBottom: '24px'
+          }}>
+            <div style={{
+              padding: '8px 16px',
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              borderRadius: '6px',
+              fontSize: '14px',
+              fontWeight: '600',
+              backdropFilter: 'blur(10px)'
+            }}>
+              5 Lessons
+            </div>
+            <div style={{
+              padding: '8px 16px',
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              borderRadius: '6px',
+              fontSize: '14px',
+              fontWeight: '600',
+              backdropFilter: 'blur(10px)'
+            }}>
+              ⏱️ 35 min each
+            </div>
+          </div>
+
+          {/* Lesson List */}
+          <div style={{
+            backgroundColor: 'rgba(255,255,255,0.15)',
+            borderRadius: '8px',
+            padding: '20px',
+            fontSize: '15px',
+            lineHeight: '1.8',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '12px', textAlign: 'center' }}>
+              Includes:
+            </div>
+            <div>🏀 Sports Highlights</div>
+            <div>🎮 Video Game Music</div>
+            <div>🍳 Cooking Videos</div>
+            <div>😂 Comedy Ads</div>
+            <div>⭐ Student Choice</div>
+          </div>
+        </div>
       </div>
     </div>
   );
