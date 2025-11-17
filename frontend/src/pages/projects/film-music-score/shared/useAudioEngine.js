@@ -1,4 +1,4 @@
-// shared/useAudioEngine.js - FIXED: Proper native audio lifecycle management + LEFT-EDGE TRIMMING
+// shared/useAudioEngine.js - FIXED: Proper native audio lifecycle management + LEFT-EDGE TRIMMING + PREVIEW TOGGLE
 import { useState, useRef, useCallback, useEffect } from 'react';
 import * as Tone from 'tone';
 
@@ -15,6 +15,7 @@ export const useAudioEngine = (videoDuration = 60) => {
   const lastSeekTimeRef = useRef(0);
   const SEEK_DEBOUNCE_MS = 100;
   const previewPlayerRef = useRef(null);
+  const currentPreviewLoopIdRef = useRef(null); // 🔥 NEW: Track which loop is currently previewing
   const transportStoppedByStopRef = useRef(false);
 
   const initializeAudio = useCallback(async () => {
@@ -397,8 +398,13 @@ export const useAudioEngine = (videoDuration = 60) => {
     });
   }, []);
 
+  // 🔥 FIXED: Preview loop now properly toggles on/off for the same loop
   const previewLoop = useCallback(async (loopData, onEnded = null) => {
+    // 🔥 FIX: Check if we're trying to preview the same loop that's already playing
+    const isSameLoop = currentPreviewLoopIdRef.current === loopData.id;
+    
     if (previewPlayerRef.current) {
+      console.log(`🛑 Stopping previous preview: ${currentPreviewLoopIdRef.current}`);
       try {
         if (previewPlayerRef.current.isNative) {
           previewPlayerRef.current.audio.pause();
@@ -410,26 +416,38 @@ export const useAudioEngine = (videoDuration = 60) => {
         console.error('Error stopping previous preview:', err);
       }
       previewPlayerRef.current = null;
+      currentPreviewLoopIdRef.current = null;
+      
+      // 🔥 FIX: If clicking same loop, just stop and return (don't restart)
+      if (isSameLoop) {
+        console.log(`⏹️ Same loop clicked - stopping preview only`);
+        if (onEnded) {
+          onEnded(loopData);
+        }
+        return;
+      }
     }
 
+    // Only start a new preview if we're not stopping the same loop
     try {
+      console.log(`▶️ Starting new preview: ${loopData.name}`);
       const player = await createLoopPlayer(loopData, `preview-${Date.now()}`);
       previewPlayerRef.current = player;
+      currentPreviewLoopIdRef.current = loopData.id; // Track which loop is playing
       
       if (player.isNative) {
         player.audio.volume = volume;
-        player.audio.loop = false; // Never loop during preview
+        player.audio.loop = false;
         
-        // Add ended event listener to clean up when preview finishes
         player.audio.addEventListener('ended', () => {
           console.log(`✅ Preview ended: ${loopData.name}`);
           previewPlayerRef.current = null;
+          currentPreviewLoopIdRef.current = null;
           
-          // Call onEnded callback if provided
           if (onEnded) {
             onEnded(loopData);
           }
-        });
+        }, { once: true });
         
         await player.audio.play();
       } else {
@@ -440,6 +458,7 @@ export const useAudioEngine = (videoDuration = 60) => {
       console.log(`🎧 Previewing: ${loopData.name}`);
     } catch (error) {
       console.error('Preview error:', error);
+      currentPreviewLoopIdRef.current = null;
       throw error;
     }
   }, [createLoopPlayer, volume]);

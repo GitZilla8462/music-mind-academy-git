@@ -1,28 +1,29 @@
-// File: /src/pages/projects/film-music-score/shared/LoopLibrary.jsx
-// Dynamic loop library with backend API integration
-// UPDATED: Added showSoundEffects prop and checkbox to display sound effects
-// FIXED: Default soundEffectsEnabled to false (unchecked)
-// FIXED: Grey styling when unchecked, purple when checked
-// FIXED: Added Hype mood detection
+// File: LoopLibrary.jsx
+// CHROMEBOOK FIX: Proper preview button state management
+// 
+// KEY CHANGES:
+// 1. Removed isPlayingAudio state that was disabling buttons
+// 2. Added short debounce (300ms) to prevent double-clicks
+// 3. Button disabled state only during debounce, not during playback
+// 4. This allows Chromebook users to click pause button
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Volume2, Search, Filter, Lock } from 'lucide-react';
 import { soundEffects } from './soundEffectsData';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
-// Distinct instrument colors - high contrast
 const INSTRUMENT_COLORS = {
-  'Guitar': '#f97316',    // Orange
-  'Bass': '#2563eb',      // Deep Blue
-  'Drums': '#dc2626',     // Red
-  'Keys': '#06b6d4',      // Teal/Cyan
-  'Synth': '#db2777',     // Magenta
-  'Strings': '#16a34a',   // Green
-  'Brass': '#eab308',     // Gold
-  'Woodwinds': '#3b82f6', // Light Blue
-  'Vocals': '#a855f7',    // Purple
-  'Other': '#6b7280'      // Gray
+  'Guitar': '#f97316',
+  'Bass': '#2563eb',
+  'Drums': '#dc2626',
+  'Keys': '#06b6d4',
+  'Synth': '#db2777',
+  'Strings': '#16a34a',
+  'Brass': '#eab308',
+  'Woodwinds': '#3b82f6',
+  'Vocals': '#a855f7',
+  'Other': '#6b7280'
 };
 
 const LoopLibrary = ({ 
@@ -34,9 +35,9 @@ const LoopLibrary = ({
   lockFeatures = {},
   restrictToCategory = null,
   lockedMood = null,
-  showSoundEffects = false,  // NEW PROP: Enable sound effects
-  currentlyPlayingLoopId = null,  // NEW PROP: Track which loop is playing from parent
-  highlighted = false  // NEW PROP: Highlight for tutorial
+  showSoundEffects = false,
+  currentlyPlayingLoopId = null,
+  highlighted = false
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
@@ -45,31 +46,32 @@ const LoopLibrary = ({
   const [error, setError] = useState(null);
   const [moodFilter, setMoodFilter] = useState(lockedMood || 'All');
   const [instrumentFilter, setInstrumentFilter] = useState('All');
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [soundEffectsEnabled, setSoundEffectsEnabled] = useState(false);  // FIXED: Default to false (unchecked)
+  const [soundEffectsEnabled, setSoundEffectsEnabled] = useState(false);
+  
+  // CHROMEBOOK FIX: Use debounce instead of isPlayingAudio
+  const [buttonDebouncing, setButtonDebouncing] = useState(false);
+  const debounceTimeoutRef = useRef(null);
 
-  // DEBUG: Log props on mount
   useEffect(() => {
     console.log('🎵 LoopLibrary Props:', { restrictToCategory, lockedMood, showSoundEffects });
   }, []);
 
-  // Lock mood filter when lockedMood is set
   useEffect(() => {
     if (lockedMood) {
       setMoodFilter(lockedMood);
     }
   }, [lockedMood]);
 
-  // Sync UI state with parent's currently playing loop
+  // CHROMEBOOK FIX: Sync with parent's currently playing state
   useEffect(() => {
     if (currentlyPlayingLoopId === null && currentlyPlaying !== null) {
-      // Parent says nothing is playing, but we think something is - reset UI
+      console.log('🔄 Parent stopped preview, resetting UI');
       setCurrentlyPlaying(null);
-      setIsPlayingAudio(false);
+      setButtonDebouncing(false);
     }
   }, [currentlyPlayingLoopId, currentlyPlaying]);
 
-  // Load loops from backend API
+  // Load loops from backend
   useEffect(() => {
     const loadLoopsFromAPI = async () => {
       setLoading(true);
@@ -89,7 +91,6 @@ const LoopLibrary = ({
         setLoops(processedLoops);
         setLoading(false);
 
-        // Test audio accessibility for all loops
         processedLoops.forEach(loop => {
           testAudioFile(loop.file, loop.id);
         });
@@ -105,12 +106,11 @@ const LoopLibrary = ({
     loadLoopsFromAPI();
   }, []);
 
-  // Convert backend loop data to frontend format
   const createLoopFromServerData = (serverLoop) => {
     const { name, file, extension, size, created } = serverLoop;
     const nameLower = name.toLowerCase();
     
-    // Detect instrument from filename
+    // Detect instrument
     let instrument = 'Other';
     if (nameLower.includes('guitar') || nameLower.includes('gtr')) {
       instrument = 'Guitar';
@@ -132,10 +132,8 @@ const LoopLibrary = ({
       instrument = 'Vocals';
     }
     
-    // Detect mood from filename
+    // Detect mood
     let mood = 'Neutral';
-    
-    // Priority order matters - check most specific moods first
     if (nameLower.includes('scary') || nameLower.includes('horror') || nameLower.includes('frightening') || nameLower.includes('creepy')) {
       mood = 'Scary';
     } else if (nameLower.includes('mysterious') || nameLower.includes('mystery') || nameLower.includes('suspense') || nameLower.includes('enigma')) {
@@ -158,16 +156,7 @@ const LoopLibrary = ({
       mood = 'Romantic';
     }
     
-    // Detect sub-type
-    let subType = null;
-    if (nameLower.includes('electric')) subType = 'Electric';
-    else if (nameLower.includes('acoustic')) subType = 'Acoustic';
-    
-    // Build searchable tags
     const tags = [instrument, mood];
-    if (subType) tags.push(subType);
-    if (nameLower.includes('layer')) tags.push('layered');
-    if (nameLower.includes('loop')) tags.push('loop');
     
     return {
       id: serverLoop.id,
@@ -175,7 +164,6 @@ const LoopLibrary = ({
       file: file,
       instrument: instrument,
       mood: mood,
-      subType: subType,
       color: INSTRUMENT_COLORS[instrument],
       category: instrument,
       duration: 4,
@@ -187,11 +175,10 @@ const LoopLibrary = ({
       size: size,
       created: created,
       extension: extension,
-      type: 'loop'  // Mark as loop (not sound effect)
+      type: 'loop'
     };
   };
 
-  // Test if audio file is accessible and get its duration
   const testAudioFile = async (path, loopId) => {
     try {
       const testAudio = new Audio();
@@ -220,7 +207,6 @@ const LoopLibrary = ({
       testAudio.src = path;
       const result = await loadPromise;
       
-      // Update loop with actual duration
       setLoops(prev => prev.map(loop => 
         loop.id === loopId 
           ? { ...loop, duration: result.duration, loaded: true, accessible: true }
@@ -238,16 +224,14 @@ const LoopLibrary = ({
     }
   };
 
-  // Combine loops and sound effects if enabled - SOUND EFFECTS FIRST
+  // Combine loops and sound effects
   const allItems = soundEffectsEnabled && showSoundEffects 
-    ? [...soundEffects, ...loops]  // Sound effects at TOP
+    ? [...soundEffects, ...loops]
     : loops;
 
-  // Extract unique moods and instruments
   const moods = ['All', ...new Set(loops.map(l => l.mood).filter(Boolean))].sort();
   const instruments = ['All', ...new Set(loops.map(l => l.instrument).filter(Boolean))].sort();
 
-  // Filter function
   const isLoopRestricted = (loop) => {
     if (restrictToCategory && loop.mood !== restrictToCategory) {
       return true;
@@ -255,29 +239,24 @@ const LoopLibrary = ({
     return false;
   };
 
-  // Filter loops and sound effects
+  // Filter loops
   const filteredLoops = allItems.filter(item => {
-    // Search filter
     if (searchTerm && !item.name.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
 
-    // Sound effects don't have mood/instrument filters
     if (item.type === 'soundEffect') {
       return true;
     }
 
-    // Mood filter (only for music loops)
     if (moodFilter !== 'All' && item.mood !== moodFilter) {
       return false;
     }
 
-    // Instrument filter (only for music loops)
     if (instrumentFilter !== 'All' && item.instrument !== instrumentFilter) {
       return false;
     }
 
-    // Restriction check (only for music loops)
     if (restrictToCategory) {
       return item.mood === restrictToCategory;
     }
@@ -285,25 +264,61 @@ const LoopLibrary = ({
     return true;
   });
 
-  // Handle playing loop
+  // CHROMEBOOK FIX: Improved play handler
   const handlePlayLoop = async (loop) => {
-    // If clicking the same loop, toggle off
-    if (currentlyPlaying === loop.id) {
-      setCurrentlyPlaying(null);
-      setIsPlayingAudio(false);
-      
-      // Notify parent that preview stopped
-      if (onLoopPreview) {
-        onLoopPreview(loop, false);
-      }
+    console.log('🎵 Preview button clicked:', { 
+      loopId: loop.id, 
+      currentlyPlaying,
+      debouncing: buttonDebouncing
+    });
+    
+    // Prevent rapid clicking during debounce
+    if (buttonDebouncing) {
+      console.log('⏸️ Ignoring click during debounce period');
       return;
     }
 
-    // Play new loop - let parent handle actual audio playback
-    setCurrentlyPlaying(loop.id);
-    setIsPlayingAudio(true);
+    // Start debounce period (300ms)
+    setButtonDebouncing(true);
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    debounceTimeoutRef.current = setTimeout(() => {
+      setButtonDebouncing(false);
+      debounceTimeoutRef.current = null;
+    }, 300);
+
+    // If clicking same loop, stop it
+    if (currentlyPlaying === loop.id) {
+      console.log('⏹️ Stopping preview');
+      
+      // 🔥 FIX: Call onLoopPreview FIRST (to actually stop the audio)
+      // THEN update the UI state
+      if (onLoopPreview) {
+        onLoopPreview(loop, false);
+      }
+      
+      // Update UI state after audio is stopped
+      setCurrentlyPlaying(null);
+      return;
+    }
+
+    // Stop previous preview if exists
+    if (currentlyPlaying !== null) {
+      console.log('🛑 Stopping previous preview');
+      const prevLoop = allItems.find(l => l.id === currentlyPlaying);
+      if (prevLoop && onLoopPreview) {
+        onLoopPreview(prevLoop, false);
+      }
+    }
+
+    // Start new preview
+    console.log('▶️ Starting preview');
     
-    // Notify parent that preview started
+    // 🔥 FIX: Update UI state FIRST, then start audio
+    // This way the audio engine can check if something is already playing
+    setCurrentlyPlaying(loop.id);
+    
     if (onLoopPreview) {
       onLoopPreview(loop, true);
     }
@@ -323,6 +338,15 @@ const LoopLibrary = ({
       onLoopDragStart(loop);
     }
   };
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -354,14 +378,13 @@ const LoopLibrary = ({
 
   return (
     <div className={`h-full flex flex-col bg-gray-800 loop-library ${highlighted ? 'tutorial-highlight' : ''}`}>
-      {/* Header - COMPACT VERSION */}
+      {/* Header */}
       <div className="p-2 border-b border-gray-700">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-sm font-semibold text-white">Loops</h2>
           <span className="text-xs text-gray-400">{filteredLoops.length}</span>
         </div>
 
-        {/* NEW: Restriction Notice */}
         {restrictToCategory && (
           <div className="mb-2 bg-blue-900/30 border border-blue-500/50 rounded px-2 py-1.5">
             <div className="flex items-center gap-1.5">
@@ -385,9 +408,9 @@ const LoopLibrary = ({
           />
         </div>
 
-        {/* Filters - Compact Version */}
+        {/* Filters */}
         <div className="space-y-1.5">
-          {/* MOOD FILTER - UPDATED: Show locked state */}
+          {/* Mood filter */}
           <div className="relative">
             <select
               value={moodFilter}
@@ -407,7 +430,7 @@ const LoopLibrary = ({
             )}
           </div>
 
-          {/* INSTRUMENT FILTER */}
+          {/* Instrument filter */}
           <select
             value={instrumentFilter}
             onChange={(e) => setInstrumentFilter(e.target.value)}
@@ -419,7 +442,7 @@ const LoopLibrary = ({
             ))}
           </select>
 
-          {/* FIXED: SOUND EFFECTS CHECKBOX - Grey when unchecked, purple when checked */}
+          {/* Sound effects checkbox */}
           {showSoundEffects && (
             <label className={`flex items-center gap-2 rounded px-2 py-1.5 cursor-pointer transition-colors ${
               soundEffectsEnabled 
@@ -442,12 +465,13 @@ const LoopLibrary = ({
         </div>
       </div>
 
-      {/* Loop List - UPDATED: Visual feedback for sound effects */}
+      {/* Loop List - CHROMEBOOK FIX APPLIED HERE */}
       <div className="flex-1 overflow-y-auto p-1.5">
         <div className="space-y-1">
           {filteredLoops.map((loop) => {
             const restricted = isLoopRestricted(loop);
             const isSoundEffect = loop.type === 'soundEffect';
+            const isThisLoopPlaying = currentlyPlaying === loop.id;
             
             return (
               <div
@@ -482,27 +506,38 @@ const LoopLibrary = ({
                     </div>
                   </div>
 
+                  {/* CHROMEBOOK FIX: Button only disabled during debounce, not during playback */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
-                      if (!restricted) {
+                      if (!restricted && !buttonDebouncing) {
                         handlePlayLoop(loop);
                       }
                     }}
-                    disabled={!loop.loaded || !loop.accessible || lockFeatures.allowLoopPreview === false || isPlayingAudio || restricted}
+                    disabled={
+                      !loop.loaded || 
+                      !loop.accessible || 
+                      lockFeatures.allowLoopPreview === false || 
+                      buttonDebouncing ||  // Only disabled during debounce!
+                      restricted
+                    }
                     className={`flex-shrink-0 p-1 rounded-full transition-colors ${
-                      currentlyPlaying === loop.id
+                      isThisLoopPlaying
                         ? 'bg-green-600 hover:bg-green-700 text-white'
-                        : loop.loaded && loop.accessible && lockFeatures.allowLoopPreview !== false && !isPlayingAudio && !restricted
+                        : loop.loaded && loop.accessible && !buttonDebouncing && !restricted
                         ? isSoundEffect 
                           ? 'bg-purple-600 hover:bg-purple-700 text-white'
                           : 'bg-gray-600 hover:bg-gray-500 text-gray-300'
                         : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                     }`}
-                    title={restricted ? "Restricted" : (isPlayingAudio ? "Processing..." : (currentlyPlaying === loop.id ? "Playing" : "Play"))}
+                    title={
+                      restricted ? "Restricted" : 
+                      buttonDebouncing ? "Processing..." : 
+                      isThisLoopPlaying ? "Stop Preview" : "Play Preview"
+                    }
                   >
-                    {currentlyPlaying === loop.id ? <Pause size={12} /> : <Play size={12} />}
+                    {isThisLoopPlaying ? <Pause size={12} /> : <Play size={12} />}
                   </button>
                 </div>
 

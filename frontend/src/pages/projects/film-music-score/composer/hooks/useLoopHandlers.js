@@ -1,5 +1,6 @@
 // hooks/useLoopHandlers.js - All loop-related event handlers
-// ðŸ”¥ FIXED: Infinite rerender loop during resize
+// 🔥 FIXED: Infinite rerender loop during resize
+// 🔥 CHROMEBOOK FIX: Preview stop functionality now works properly
 import { useCallback, useRef, useEffect } from 'react';
 
 export const useLoopHandlers = ({
@@ -24,7 +25,7 @@ export const useLoopHandlers = ({
   tutorialMode
 }) => {
   
-  // ðŸ”¥ FIX: Add ref to track scheduling timeout
+  // 🔥 FIX: Add ref to track scheduling timeout
   const scheduleTimeoutRef = useRef(null);
   
   const handleLoopDrop = useCallback(async (loopData, trackIndex, startTime) => {
@@ -155,7 +156,7 @@ export const useLoopHandlers = ({
     setSelectedLoop(selectedLoop === loopId ? null : loopId);
   }, [selectedLoop, setSelectedLoop]);
 
-  // ðŸ”¥ FIX: Debounce scheduleLoops to prevent infinite loop during resize
+  // 🔥 FIX: Debounce scheduleLoops to prevent infinite loop during resize
   const handleLoopUpdate = useCallback((loopId, updates) => {
     if (lockFeatures.allowLoopMove === false) {
       console.log('Loop movement is locked');
@@ -175,7 +176,7 @@ export const useLoopHandlers = ({
     setPlacedLoops(updatedLoops);
     setHasUnsavedChanges(true);
     
-    // ðŸ”¥ FIX: Debounce scheduleLoops to prevent infinite loop during resize
+    // 🔥 FIX: Debounce scheduleLoops to prevent infinite loop during resize
     if (scheduleTimeoutRef.current) {
       clearTimeout(scheduleTimeoutRef.current);
     }
@@ -189,11 +190,14 @@ export const useLoopHandlers = ({
     onLoopUpdateCallback, lockFeatures, setPlacedLoops, setHasUnsavedChanges
   ]);
 
+  // 🔥 CHROMEBOOK FIX: Handle stop explicitly, don't rely on toggle behavior
   const handleLoopPreview = useCallback(async (loop, isPlaying) => {
     if (lockFeatures.allowLoopPreview === false) {
       console.log('Loop preview is locked');
       return;
     }
+
+    console.log('🎧 handleLoopPreview called:', { loopName: loop.name, isPlaying });
 
     if (onLoopPreviewCallback) {
       onLoopPreviewCallback(loop, isPlaying);
@@ -208,21 +212,34 @@ export const useLoopHandlers = ({
       return;
     }
     
-    // Only call previewLoop when starting playback
-    // When isPlaying is false, the user clicked stop - no action needed
-    // as clicking the same loop again will stop it via previewLoop's built-in stop logic
-    if (!isPlaying) {
-      return;
-    }
+    // 🔥 FIX: When stopping (isPlaying=false), we need to:
+    // 1. Call previewLoop to toggle/stop the audio
+    // 2. The previewLoop function should detect the loop is playing and stop it
+    //
+    // The key issue was that LoopLibrary was setting currentlyPlaying=null
+    // BEFORE calling this function, which broke the toggle detection.
+    // But previewLoop should still work if we pass it the loop that was playing.
     
     try {
-      // Pass a callback to notify when preview ends
-      await previewLoop(loop, (endedLoop) => {
-        // Notify parent that preview stopped
-        if (onLoopPreviewCallback) {
-          onLoopPreviewCallback(endedLoop, false);
-        }
-      });
+      if (isPlaying) {
+        // Starting preview
+        console.log('▶️ Calling previewLoop to START:', loop.name);
+        await previewLoop(loop, (endedLoop) => {
+          console.log('✅ Preview ended callback for:', endedLoop.name);
+          if (onLoopPreviewCallback) {
+            onLoopPreviewCallback(endedLoop, false);
+          }
+        });
+      } else {
+        // Stopping preview - call previewLoop which should stop it
+        console.log('⏹️ Calling previewLoop to STOP:', loop.name);
+        await previewLoop(loop, (endedLoop) => {
+          console.log('✅ Preview stopped callback for:', endedLoop.name);
+          if (onLoopPreviewCallback) {
+            onLoopPreviewCallback(endedLoop, false);
+          }
+        });
+      }
     } catch (error) {
       console.error('Error previewing loop:', error);
       showToast?.(`Failed to preview "${loop.name}" - ${error.message}`, 'error');
@@ -232,7 +249,7 @@ export const useLoopHandlers = ({
     lockFeatures, tutorialMode
   ]);
 
-  // ðŸ”¥ FIX: Cleanup timeout on unmount
+  // 🔥 FIX: Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (scheduleTimeoutRef.current) {
