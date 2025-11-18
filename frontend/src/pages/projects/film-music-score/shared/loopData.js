@@ -280,34 +280,35 @@ export const getInstruments = () => {
 
 // ============================================================================
 // VIDEO DATA - for the Film Music Score composer
+// FIXED: Removed hard-coded durations - let the video player detect them!
 // ============================================================================
 
 export const videos = [
   {
     id: 'school-beneath',
     title: 'The School Beneath',
-    duration: 60, // Will be detected dynamically
+    // FIXED: No duration property - will be detected from actual video file
     videoPath: '/lessons/videos/film-music-loop-project/SchoolMystery.mp4',
     thumbnail: '/lessons/videos/film-music-loop-project/SchoolMystery-thumb.jpg'
   },
   {
     id: 'basketball',
     title: 'Basketball Highlights',
-    duration: 60,
+    // FIXED: No duration property - will be detected from actual video file
     videoPath: '/lessons/film-music-project/lesson2/basketball.mp4',
     thumbnail: '/lessons/film-music-project/lesson2/basketball-thumb.jpg'
   },
   {
     id: 'skateboarding',
     title: 'Skateboarding Tricks',
-    duration: 60,
+    // FIXED: No duration property - will be detected from actual video file
     videoPath: '/lessons/film-music-project/lesson2/skateboard.mp4',
     thumbnail: '/lessons/film-music-project/lesson2/skateboard-thumb.jpg'
   },
   {
     id: 'football',
     title: 'Football Action',
-    duration: 60,
+    // FIXED: No duration property - will be detected from actual video file
     videoPath: '/lessons/film-music-project/lesson2/football.mp4',
     thumbnail: '/lessons/film-music-project/lesson2/football-thumb.jpg'
   }

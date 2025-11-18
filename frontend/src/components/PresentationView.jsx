@@ -1,6 +1,6 @@
 // File: /src/components/PresentationView.jsx
 // ✅ UPDATED: Now uses presentationView data from lesson configs instead of hardcoded stage mappings
-// ✅ UPDATED: Added Layer Detective Class Demo support
+// ✅ UPDATED: Added Layer Detective Class Demo support with SessionCodeBadge
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -339,6 +339,7 @@ const PresentationView = () => {
         );
       }
       
+      // Note: Session code is already built into LayerDetectivePresentationView component header
       return <LayerDetectiveLeaderboard sessionData={sessionData} />;
     }
     
@@ -360,10 +361,15 @@ const PresentationView = () => {
         );
       }
       
-      return <LayerDetectiveResults sessionData={sessionData} />;
+      return (
+        <div className="h-screen w-full relative">
+          <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={false} />
+          <LayerDetectiveResults sessionData={sessionData} />
+        </div>
+      );
     }
     
-    // ✅ NEW: RENDER LAYER DETECTIVE CLASS DEMO
+    // ✅ NEW: RENDER LAYER DETECTIVE CLASS DEMO WITH SESSION CODE BADGE
     if (type === 'layer-detective-class-demo') {
       const handleDemoComplete = () => {
         console.log('✅ Class demo complete - advancing to next stage');
@@ -388,13 +394,15 @@ const PresentationView = () => {
       };
       
       return (
-        <div className="h-screen w-full">
+        <div className="h-screen w-full relative">
+          <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={false} />
+          
           <React.Suspense fallback={
             <div className="h-full flex items-center justify-center bg-gradient-to-br from-orange-900 via-red-900 to-pink-900">
               <div className="text-white text-2xl">Loading class demo...</div>
             </div>
           }>
-            <LayerDetectiveClassDemo onComplete={handleDemoComplete} />
+            <LayerDetectiveClassDemo onComplete={handleDemoComplete} sessionData={sessionData} />
           </React.Suspense>
         </div>
       );

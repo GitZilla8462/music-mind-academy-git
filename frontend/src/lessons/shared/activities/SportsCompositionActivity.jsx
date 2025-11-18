@@ -1,6 +1,6 @@
 // File: SportsCompositionActivity.jsx
 // Sports Highlight Reel Composition - Optimized for Chromebook screens (1366x768)
-// UPDATED: Compact layouts for video selection and preview to fit on smaller screens
+// FIXED: Removed hard-coded durations - now detects actual video lengths!
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -13,14 +13,15 @@ import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/le
 
 const SPORTS_COMPOSITION_DEADLINE = 10 * 60 * 1000; // 10 minutes
 
-// Video options for sports highlights
+// FIXED: Video options WITHOUT hard-coded durations
+// Duration will be detected dynamically from the actual video files
 const SPORTS_VIDEOS = [
   {
     id: 'soccer',
     title: 'Soccer Highlights',
     thumbnail: '/lessons/film-music-project/lesson2/soccer-thumb.png',
     videoPath: '/lessons/film-music-project/lesson2/SoccerHighlightReel.mp4',
-    duration: 75,
+    // REMOVED: duration property - will be detected dynamically
     description: 'Exciting soccer goals, passes, and game action',
     emoji: '⚽'
   },
@@ -29,7 +30,7 @@ const SPORTS_VIDEOS = [
     title: 'Basketball Highlights',
     thumbnail: '/lessons/film-music-project/lesson2/basketball-thumb.png',
     videoPath: '/lessons/film-music-project/lesson2/BasketballHighlightReel.mp4',
-    duration: 75,
+    // REMOVED: duration property - will be detected dynamically
     description: 'High-energy basketball action with dunks and fast breaks',
     emoji: '🏀'
   },
@@ -38,11 +39,40 @@ const SPORTS_VIDEOS = [
     title: 'Skateboarding Tricks',
     thumbnail: '/lessons/film-music-project/lesson2/skateboard-thumb.png',
     videoPath: '/lessons/film-music-project/lesson2/SkateboardHighlighReel.mp4',
-    duration: 68,
+    // REMOVED: duration property - will be detected dynamically
     description: 'Street skateboarding with technical tricks and stunts',
     emoji: '🛹'
   }
 ];
+
+// Helper function to detect video duration
+const detectVideoDuration = async (videoPath) => {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    
+    const timeout = setTimeout(() => {
+      video.src = '';
+      reject(new Error('Video duration detection timeout'));
+    }, 10000);
+    
+    video.addEventListener('loadedmetadata', () => {
+      clearTimeout(timeout);
+      const duration = video.duration;
+      console.log(`✅ Detected duration for ${videoPath}: ${duration}s (${Math.floor(duration/60)}:${Math.floor(duration%60).toString().padStart(2, '0')})`);
+      video.src = '';
+      resolve(duration);
+    });
+    
+    video.addEventListener('error', (e) => {
+      clearTimeout(timeout);
+      video.src = '';
+      reject(new Error(`Video load error: ${e.message || 'Unknown error'}`));
+    });
+    
+    video.src = videoPath;
+  });
+};
 
 
 const SportsCompositionActivity = ({ 
@@ -65,6 +95,10 @@ const SportsCompositionActivity = ({
     return !saved;
   });
   const [previewingVideo, setPreviewingVideo] = useState(null);
+  
+  // NEW: Track detected durations for all videos
+  const [videoDurations, setVideoDurations] = useState({});
+  const [detectingDurations, setDetectingDurations] = useState(false);
   
   // Reflection flow states
   const [showReflection, setShowReflection] = useState(false);
@@ -94,6 +128,32 @@ const SportsCompositionActivity = ({
     console.log('🏀 Student ID:', id);
   }, []);
   
+  // NEW: Detect video durations on mount
+  useEffect(() => {
+    const detectAllDurations = async () => {
+      console.log('🎬 Starting video duration detection for all sports videos...');
+      setDetectingDurations(true);
+      
+      const durations = {};
+      
+      for (const video of SPORTS_VIDEOS) {
+        try {
+          const duration = await detectVideoDuration(video.videoPath);
+          durations[video.id] = duration;
+        } catch (error) {
+          console.error(`❌ Failed to detect duration for ${video.id}:`, error);
+          // Don't set a fallback - let it stay undefined so we know it failed
+        }
+      }
+      
+      console.log('✅ All video durations detected:', durations);
+      setVideoDurations(durations);
+      setDetectingDurations(false);
+    };
+    
+    detectAllDurations();
+  }, []);
+  
   // Check if reflection is already completed on mount
   useEffect(() => {
     const savedReflection = localStorage.getItem('sports-reflection');
@@ -110,31 +170,40 @@ const SportsCompositionActivity = ({
     }
   }, []);
   
-  // Load previously selected video on mount
+  // Load previously selected video on mount - WITH detected duration
   useEffect(() => {
     const savedVideoSelection = getSelectedVideo();
     console.log('🎬 Loading saved video selection:', savedVideoSelection);
     
     if (savedVideoSelection) {
-      const video = SPORTS_VIDEOS.find(v => v.id === savedVideoSelection.videoId);
-      console.log('🎬 Found video object:', video);
+      const videoTemplate = SPORTS_VIDEOS.find(v => v.id === savedVideoSelection.videoId);
+      console.log('🎬 Found video template:', videoTemplate);
       
-      if (video) {
-        setSelectedVideo(video);
-        setVideoDuration(video.duration);
-        setShowVideoSelection(false);
-        setIsLoadingVideo(false); // Mark as loaded
-        console.log('✅ Loaded saved video selection:', video.title, 'Path:', video.videoPath);
+      if (videoTemplate) {
+        // Wait for duration detection if not available yet
+        if (videoDurations[videoTemplate.id]) {
+          const video = {
+            ...videoTemplate,
+            duration: videoDurations[videoTemplate.id]
+          };
+          setSelectedVideo(video);
+          setVideoDuration(video.duration);
+          setShowVideoSelection(false);
+          setIsLoadingVideo(false);
+          console.log('✅ Loaded saved video with detected duration:', video.title, 'Duration:', video.duration, 's');
+        } else {
+          console.log('⏳ Waiting for duration detection to complete...');
+          setIsLoadingVideo(true);
+        }
       } else {
         console.error('❌ Video not found for ID:', savedVideoSelection.videoId);
         setIsLoadingVideo(false);
       }
     } else {
-      // No saved video - ready to show selection screen
       console.log('ℹ️ No saved video selection found');
       setIsLoadingVideo(false);
     }
-  }, []);
+  }, [videoDurations]); // Re-run when durations are detected
   
   // AUTO-SAVE
   const compositionData = {
@@ -222,130 +291,126 @@ const SportsCompositionActivity = ({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [lessonStartTime, viewMode, isSessionMode, onComplete]);
+  }, [lessonStartTime, onComplete, viewMode, isSessionMode]);
   
-  // VIDEO SELECTION HANDLER
-  const handleVideoSelect = (video) => {
-    console.log('🎬 Video selected:', video.title);
-    console.log('   Keeping existing loops:', placedLoops.length);
-    setSelectedVideo(video);
-    setVideoDuration(video.duration);
-    setShowVideoSelection(false);
-    setPreviewingVideo(null);
-    setIsLoadingVideo(false);
-    saveSelectedVideo(video.id, video.title);
-    // Note: placedLoops are preserved when changing videos
-  };
-  
-  // CHANGE VIDEO HANDLER - with confirmation to preserve work
-  const handleChangeVideo = () => {
-    const hasLoops = placedLoops.length > 0;
-    
-    if (hasLoops) {
-      const confirmChange = window.confirm(
-        `You have ${placedLoops.length} loop(s) placed. Changing videos will keep your loops, but they may not match the new video's timing. Continue?`
-      );
-      
-      if (!confirmChange) {
-        return; // User cancelled
-      }
-    }
-    
-    console.log('🔄 Changing video - returning to selection, keeping loops:', placedLoops.length);
-    setShowVideoSelection(true);
-    setPreviewingVideo(null);
-    // Note: placedLoops are kept, allowing students to reuse their work
-  };
-  
-  // PREVIEW VIDEO HANDLER
-  const handlePreviewVideo = (video) => {
-    console.log('👁️ Previewing video:', video.title);
-    setPreviewingVideo(video);
-  };
-  
-  // LOOP HANDLERS
-  const handleLoopPlaced = (loopData, trackIndex, startTime) => {
-    const newLoop = {
-      id: `${loopData.id}-${Date.now()}`,
-      originalId: loopData.id,
-      name: loopData.name,
-      file: loopData.file,
-      duration: loopData.duration,
-      category: loopData.category,
-      mood: loopData.mood,
-      color: loopData.color,
-      trackIndex: trackIndex,
-      startTime: startTime,
-      endTime: startTime + loopData.duration,
-      volume: 1.0
-    };
-    
-    setPlacedLoops(prev => [...prev, newLoop]);
-  };
-
-  const handleLoopDeleted = (loopId) => {
-    setPlacedLoops(prev => prev.filter(loop => loop.id !== loopId));
-  };
-
-  const handleLoopUpdated = (loopId, updates) => {
-    setPlacedLoops(prev => prev.map(loop =>
-      loop.id === loopId ? { ...loop, ...updates } : loop
-    ));
-  };
-
   const formatTime = (ms) => {
+    if (!ms || ms < 0) return '0:00';
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
   
-  // ============================================================================
-  // VIDEO PREVIEW SCREEN - COMPACT for Chromebook (1366x768)
-  // ============================================================================
-  if (previewingVideo && !viewMode) {
+  // VIDEO SELECTION HANDLERS
+  const handleVideoSelect = (video) => {
+    console.log('🎬 Video selected:', video.title);
+    
+    // Get the detected duration
+    const detectedDuration = videoDurations[video.id];
+    
+    if (!detectedDuration) {
+      console.error('❌ Duration not available for video:', video.id);
+      alert('Video duration not loaded yet. Please wait a moment and try again.');
+      return;
+    }
+    
+    const videoWithDuration = {
+      ...video,
+      duration: detectedDuration
+    };
+    
+    setSelectedVideo(videoWithDuration);
+    setVideoDuration(detectedDuration);
+    setShowVideoSelection(false);
+    saveSelectedVideo(video.id, video.title);
+    
+    console.log('✅ Video selected with detected duration:', videoWithDuration.title, 'Duration:', detectedDuration, 's');
+  };
+  
+  const handlePreviewVideo = (video) => {
+    console.log('🎬 Previewing video:', video.title);
+    setPreviewingVideo(video);
+  };
+  
+  const handleClosePreview = () => {
+    setPreviewingVideo(null);
+  };
+  
+  const handleConfirmVideo = () => {
+    if (previewingVideo) {
+      handleVideoSelect(previewingVideo);
+      setPreviewingVideo(null);
+    }
+  };
+  
+  const handleChangeVideo = () => {
+    const confirmChange = window.confirm(
+      'Are you sure you want to change your video? Your current composition will be saved, but you\'ll need to start a new one for the different video.'
+    );
+    
+    if (confirmChange) {
+      console.log('🔄 Changing video - saving current work and showing selection');
+      setShowVideoSelection(true);
+      setSelectedVideo(null);
+      setVideoDuration(null);
+    }
+  };
+  
+  // COMPOSITION EVENT HANDLERS
+  const handleLoopPlaced = (loop, trackIndex, startTime) => {
+    console.log(`🎵 Loop placed: ${loop.name} on track ${trackIndex} at ${startTime}s`);
+  };
+  
+  const handleLoopDeleted = (loopId) => {
+    console.log(`🗑️ Loop deleted: ${loopId}`);
+  };
+  
+  const handleLoopUpdated = (loopId, updates) => {
+    console.log(`✏️ Loop updated: ${loopId}`, updates);
+  };
+  
+  // VIDEO PREVIEW FULLSCREEN
+  if (previewingVideo) {
     return (
-      <div className="h-full flex flex-col bg-black">
-        {/* Compact Header - 50px */}
-        <div className="bg-gradient-to-r from-orange-600 to-red-600 px-4 py-2 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setPreviewingVideo(null)}
-              className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors text-sm font-semibold"
-            >
-              ← Back
-            </button>
-            <div>
-              <h2 className="text-lg font-bold text-white">{previewingVideo.title}</h2>
-              <p className="text-xs text-orange-100">{previewingVideo.description}</p>
-            </div>
-          </div>
-          <div className="text-white text-sm">
-            {previewingVideo.emoji} ⏱️ {previewingVideo.duration}s
-          </div>
-        </div>
-        
-        {/* Video Player - Fits in remaining space (~600px) */}
-        <div className="flex-1 flex items-center justify-center p-4 bg-black min-h-0">
-          <div className="w-full max-w-5xl">
-            <video
-              key={previewingVideo.id}
-              className="w-full rounded-lg shadow-2xl"
-              style={{ maxHeight: 'calc(100vh - 180px)' }}
-              controls
-              autoPlay
-              src={previewingVideo.videoPath}
-            >
-              Your browser does not support the video tag.
-            </video>
-          </div>
-        </div>
-        
-        {/* Compact Action Bar - 60px */}
-        <div className="bg-gradient-to-r from-orange-600 to-red-600 px-6 py-3 flex items-center justify-center flex-shrink-0 border-t border-orange-500">
+      <div className="fixed inset-0 bg-black z-50 flex flex-col">
+        {/* Top bar */}
+        <div className="bg-gradient-to-r from-orange-600 to-red-600 p-4 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-white">
+            Preview: {previewingVideo.title}
+          </h2>
           <button
-            onClick={() => handleVideoSelect(previewingVideo)}
-            className="px-8 py-3 bg-white text-orange-600 rounded-xl font-bold text-lg hover:bg-orange-50 transition-all shadow-xl transform hover:scale-105"
+            onClick={handleClosePreview}
+            className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
+          >
+            ✕ Close Preview
+          </button>
+        </div>
+        
+        {/* Video player */}
+        <div className="flex-1 flex items-center justify-center">
+          <video
+            src={previewingVideo.videoPath}
+            controls
+            autoPlay
+            className="max-w-full max-h-full"
+            style={{ maxHeight: 'calc(100vh - 180px)' }}
+          >
+            <source src={previewingVideo.videoPath} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        
+        {/* Bottom action bar */}
+        <div className="bg-gray-900 p-6 flex items-center justify-center gap-4">
+          <button
+            onClick={handleClosePreview}
+            className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold text-lg transition-colors"
+          >
+            ← Back to Selection
+          </button>
+          <button
+            onClick={handleConfirmVideo}
+            className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg font-bold text-lg shadow-lg transition-all"
           >
             ✓ Compose with {previewingVideo.title}
           </button>
@@ -355,7 +420,7 @@ const SportsCompositionActivity = ({
   }
   
   // ============================================================================
-  // VIDEO SELECTION SCREEN - COMPACT for Chromebook
+  // VIDEO SELECTION SCREEN - WITH DETECTED DURATIONS
   // ============================================================================
   if (showVideoSelection && !viewMode) {
     return (
@@ -368,44 +433,61 @@ const SportsCompositionActivity = ({
             <p className="text-xl text-orange-200">
               Pick one sport to create high-energy music for!
             </p>
+            {detectingDurations && (
+              <p className="text-sm text-yellow-300 mt-2">
+                ⏳ Detecting video durations...
+              </p>
+            )}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {SPORTS_VIDEOS.map((video) => (
-              <div
-                key={video.id}
-                className="bg-white rounded-xl overflow-hidden shadow-2xl transform hover:scale-105 transition-all duration-300"
-              >
-                {/* Better sized emoji display - 160px */}
-                <div className="relative h-40 bg-gray-900 overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center text-7xl">
-                    {video.emoji}
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                </div>
-                
-                {/* Better spaced card content */}
-                <div className="p-4">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {video.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2 min-h-[40px]">
-                    {video.description}
-                  </p>
-                  <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                    <span>⏱️ {video.duration}s</span>
+            {SPORTS_VIDEOS.map((video) => {
+              const duration = videoDurations[video.id];
+              const durationDisplay = duration 
+                ? `${Math.floor(duration / 60)}:${Math.floor(duration % 60).toString().padStart(2, '0')}`
+                : '...';
+              
+              return (
+                <div
+                  key={video.id}
+                  className="bg-white rounded-xl overflow-hidden shadow-2xl transform hover:scale-105 transition-all duration-300"
+                >
+                  {/* Better sized emoji display - 160px */}
+                  <div className="relative h-40 bg-gray-900 overflow-hidden">
+                    <div className="absolute inset-0 flex items-center justify-center text-7xl">
+                      {video.emoji}
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                   </div>
                   
-                  {/* Preview Button */}
-                  <button
-                    onClick={() => handlePreviewVideo(video)}
-                    className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-bold hover:from-orange-600 hover:to-red-600 transition-all shadow-lg text-base"
-                  >
-                    👁️ Watch Preview
-                  </button>
+                  {/* Better spaced card content */}
+                  <div className="p-4">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      {video.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2 min-h-[40px]">
+                      {video.description}
+                    </p>
+                    <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+                      <span>⏱️ {durationDisplay}</span>
+                    </div>
+                    
+                    {/* Preview Button */}
+                    <button
+                      onClick={() => handlePreviewVideo(video)}
+                      disabled={!duration}
+                      className={`w-full py-2.5 rounded-lg font-bold transition-all shadow-lg text-base ${
+                        duration
+                          ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      {duration ? '👁️ Watch Preview' : '⏳ Loading...'}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -413,12 +495,12 @@ const SportsCompositionActivity = ({
   }
   
   // LOADING STATE - Also wait for video to be selected
-  if ((isLoadingVideo || (!selectedVideo && !showVideoSelection)) && !viewMode) {
+  if ((isLoadingVideo || (!selectedVideo && !showVideoSelection) || detectingDurations) && !viewMode) {
     return (
       <div className="h-full flex items-center justify-center bg-gray-900">
         <div className="text-white text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p>Loading video...</p>
+          <p>{detectingDurations ? 'Detecting video durations...' : 'Loading video...'}</p>
         </div>
       </div>
     );
@@ -461,6 +543,11 @@ const SportsCompositionActivity = ({
           <div className="flex items-center gap-3">
             <h2 className="text-sm font-bold">
               {selectedVideo?.title} - Composition
+              {selectedVideo?.duration && (
+                <span className="text-xs text-gray-400 ml-2">
+                  ({Math.floor(selectedVideo.duration / 60)}:{Math.floor(selectedVideo.duration % 60).toString().padStart(2, '0')})
+                </span>
+              )}
             </h2>
             
             {/* Change Video button - Always visible (moved to left side) */}
@@ -522,7 +609,7 @@ const SportsCompositionActivity = ({
             preselectedVideo={{
               id: selectedVideo.id,
               title: selectedVideo.title,
-              duration: selectedVideo.duration,
+              duration: selectedVideo.duration,  // ✅ Now uses DETECTED duration!
               videoPath: selectedVideo.videoPath
             }}
             restrictToCategory={null}

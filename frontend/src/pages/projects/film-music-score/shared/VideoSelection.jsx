@@ -25,7 +25,8 @@ const VideoSelection = ({ onVideoSelect, isDemo = false, isPractice = false }) =
       title: 'The School Beneath',
       videoPath: '/lessons/videos/film-music-loop-project/SchoolMystery.mp4',
       thumbnailTime: 10,
-      duration: videoDurations['school-mystery'] || 30 // Use detected duration or fallback
+      // FIXED: Use detected duration or null (not a fallback number)
+      duration: videoDurations['school-mystery'] || null
     }
     // Remove comedy and peaceful until you add those video files
   ];
@@ -80,7 +81,7 @@ const VideoSelection = ({ onVideoSelect, isDemo = false, isPractice = false }) =
     });
   };
 
-  // Load video durations first
+  // FIXED: Load video durations with proper error handling and logging
   useEffect(() => {
     const loadVideoDurations = async () => {
       const videoList = [
@@ -90,6 +91,8 @@ const VideoSelection = ({ onVideoSelect, isDemo = false, isPractice = false }) =
         }
       ];
 
+      console.log('🎬 Starting video duration detection...');
+
       for (const video of videoList) {
         try {
           const tempVideo = document.createElement('video');
@@ -98,22 +101,34 @@ const VideoSelection = ({ onVideoSelect, isDemo = false, isPractice = false }) =
           
           await new Promise((resolve, reject) => {
             tempVideo.addEventListener('loadedmetadata', () => {
+              const duration = tempVideo.duration;
+              console.log(`✅ Video ${video.id} detected duration: ${duration}s (${Math.floor(duration/60)}:${Math.floor(duration%60).toString().padStart(2, '0')})`);
+              
               setVideoDurations(prev => ({
                 ...prev,
-                [video.id]: tempVideo.duration
+                [video.id]: duration
               }));
-              console.log(`Video ${video.id} duration:`, tempVideo.duration);
               resolve();
             });
-            tempVideo.addEventListener('error', reject);
             
-            // Timeout after 5 seconds
-            setTimeout(() => reject(new Error('Timeout')), 5000);
+            tempVideo.addEventListener('error', (e) => {
+              console.error(`❌ Failed to load ${video.id}:`, e);
+              reject(e);
+            });
+            
+            // Timeout after 10 seconds (increased from 5)
+            setTimeout(() => {
+              console.error(`⏰ Timeout loading ${video.id}`);
+              reject(new Error('Timeout'));
+            }, 10000);
           });
         } catch (error) {
-          console.error(`Failed to load duration for ${video.id}:`, error);
+          console.error(`❌ Failed to load duration for ${video.id}:`, error);
+          // Don't set a fallback - let it stay null so we know it failed
         }
       }
+      
+      console.log('🎬 Video duration detection complete:', videoDurations);
     };
 
     loadVideoDurations();
@@ -172,6 +187,15 @@ const VideoSelection = ({ onVideoSelect, isDemo = false, isPractice = false }) =
 
   const handleStartComposing = (video, e) => {
     e.stopPropagation();
+    
+    // FIXED: Don't navigate if duration hasn't been detected yet
+    if (!video.duration) {
+      console.warn('⚠️ Cannot start composing - video duration not yet detected');
+      alert('Please wait for the video to load completely before starting.');
+      return;
+    }
+    
+    console.log(`🎵 Starting composer with video duration: ${video.duration}s`);
     
     // Route based on mode and user role
     if (isDemo) {
@@ -299,6 +323,13 @@ const VideoSelection = ({ onVideoSelect, isDemo = false, isPractice = false }) =
                     <Play size={48} className="text-gray-400" />
                   </div>
                 )}
+                
+                {/* ADDED: Duration badge */}
+                {video.duration && (
+                  <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs font-medium">
+                    {Math.floor(video.duration / 60)}:{String(Math.floor(video.duration % 60)).padStart(2, '0')}
+                  </div>
+                )}
               </div>
               
               <div className="p-6">
@@ -315,8 +346,11 @@ const VideoSelection = ({ onVideoSelect, isDemo = false, isPractice = false }) =
                   
                   <button
                     onClick={(e) => handleStartComposing(video, e)}
+                    disabled={!video.duration}
                     className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
-                      isDemo
+                      !video.duration
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : isDemo
                         ? 'bg-purple-600 hover:bg-purple-700 text-white'
                         : isPractice
                         ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
@@ -327,7 +361,12 @@ const VideoSelection = ({ onVideoSelect, isDemo = false, isPractice = false }) =
                   >
                     <Music size={18} />
                     <span>
-                      {isDemo ? 'Try Demo' : isPractice ? 'Practice' : isAssignmentMode ? 'Complete Assignment' : 'Compose'}
+                      {!video.duration 
+                        ? 'Loading...' 
+                        : isDemo ? 'Try Demo' 
+                        : isPractice ? 'Practice' 
+                        : isAssignmentMode ? 'Complete Assignment' 
+                        : 'Compose'}
                     </span>
                   </button>
                 </div>

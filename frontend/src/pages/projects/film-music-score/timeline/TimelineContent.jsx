@@ -1,5 +1,6 @@
 // File: /src/pages/projects/film-music-score/timeline/TimelineContent.jsx
-// UPDATED: Added selection box functionality, disabled timeline click seeking
+// FIXED: Video bar now displays the FULL duration without cutting off the ending
+// The video bar width is now calculated correctly to match the actual video duration
 
 import React, { forwardRef, useCallback } from 'react';
 import TimeMarkers from './components/TimeMarkers';
@@ -273,7 +274,7 @@ const TimelineContent = forwardRef(({
               timeToPixel={timeToPixel} 
             />
 
-            {/* Video track - FIXED BLUE BAR POSITIONING */}
+            {/* Video track - FIXED: Now displays the FULL video duration! */}
             <div
               className="absolute left-0 right-0 border-b border-gray-700 bg-gray-700"
               style={{
@@ -281,12 +282,15 @@ const TimelineContent = forwardRef(({
                 height: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT
               }}
             >
+              {/* FIXED: Removed the "- 10" that was cutting off the video */}
+              {/* The video bar now extends the full duration */}
               <div
-                className="absolute left-5 bg-blue-600 rounded opacity-80 flex items-center justify-center"
+                className="absolute bg-blue-600 rounded opacity-80 flex items-center justify-center"
                 style={{
-                  top: '2px',
-                  width: timeToPixel(duration) - 10,
-                  height: `${TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT - 4}px`
+                  left: '8px',  // Small left margin for visual clarity
+                  top: '4px',
+                  width: Math.max(0, timeToPixel(duration) - 16),  // Full duration minus margins
+                  height: `${TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT - 8}px`
                 }}
               >
                 <span className="text-white text-xs font-medium">

@@ -39,15 +39,31 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
   
   const audioRefs = useRef([]);
 
-  // ✅ Component mount logging
-  useEffect(() => {
-    console.log('🎮 LayerDetective mounted for student:', userId);
-    console.log('📍 Session code:', sessionCode);
+// ✅ Component mount/unmount logging with audio cleanup
+useEffect(() => {
+  console.log('🎮 LayerDetective mounted for student:', userId);
+  console.log('📍 Session code:', sessionCode);
+  
+  return () => {
+    console.log('🎮 LayerDetective unmounting - stopping all audio');
     
-    return () => {
-      console.log('🎮 LayerDetective unmounting');
-    };
-  }, []);
+    // Stop all audio when component unmounts
+    audioRefs.current.forEach(audio => {
+      if (audio) {
+        try {
+          audio.pause();
+          audio.currentTime = 0;
+          audio.src = ''; // Release audio resource
+        } catch (err) {
+          console.error('Error stopping audio on unmount:', err);
+        }
+      }
+    });
+    
+    // Clear the refs
+    audioRefs.current = [];
+  };
+}, []);
 
   // ✅ Global error handler for this component
   useEffect(() => {
