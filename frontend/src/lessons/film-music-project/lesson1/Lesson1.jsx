@@ -229,6 +229,25 @@ const Lesson1 = () => {
       );
     }
     
+    // 💬 DISCUSSION/CONCLUSION STAGES: Students see "Watch the Main Screen"
+    console.log('🔍 Checking for discussion stage:', {
+      currentStage,
+      stageType: currentStageData?.type,
+      isDiscussion: currentStageData?.type === 'discussion',
+      isConclusion: currentStage === 'conclusion'
+    });
+    
+    if (currentStageData?.type === 'discussion' || currentStage === 'conclusion') {
+      console.log('✅ Showing discussion "Watch Main Screen" message');
+      return (
+        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <div className="text-8xl mb-8 animate-pulse">🖥️</div>
+          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+          <p className="text-2xl text-gray-400">Your teacher is leading a class discussion</p>
+        </div>
+      );
+    }
+    
     // Student viewing active activity
     // ✅ FIX: If reflection stage, keep showing school-beneath activity (so modal appears on top)
     const displayStage = currentStage === 'reflection' ? 'school-beneath' : currentStage;
