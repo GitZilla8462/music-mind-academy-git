@@ -4,7 +4,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from "../../../context/SessionContext";
-import { Monitor, Video, Gamepad2 } from 'lucide-react';
+import { Monitor, Video, Gamepad2, Trophy } from 'lucide-react';
 
 // Config
 import { lesson2Config, lessonStages, getActivityForStage } from './Lesson2config';
@@ -268,6 +268,17 @@ const Lesson2 = () => {
       );
     }
     
+    // RESULTS: Students see "Watch the Main Screen" for game results
+    if (currentStageData?.type === 'results') {
+      return (
+        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 text-white p-8">
+          <Trophy className="w-32 h-32 mb-8 animate-pulse text-yellow-400" />
+          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+          <p className="text-2xl text-gray-300">Viewing game results and scores</p>
+        </div>
+      );
+    }
+    
     // VIDEO STAGES: Students see static slide
     if (currentStageData?.type === 'video') {
       return (
@@ -275,6 +286,17 @@ const Lesson2 = () => {
           <Video className="w-32 h-32 mb-8 animate-pulse text-white" />
           <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
           <p className="text-2xl text-gray-400">The video is playing on the projection screen</p>
+        </div>
+      );
+    }
+    
+    // DISCUSSION/CONCLUSION STAGES: Students see "Watch the Main Screen"
+    if (currentStageData?.type === 'discussion' || currentStage === 'conclusion') {
+      return (
+        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
+          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+          <p className="text-2xl text-gray-400">Your teacher is leading a class discussion</p>
         </div>
       );
     }
