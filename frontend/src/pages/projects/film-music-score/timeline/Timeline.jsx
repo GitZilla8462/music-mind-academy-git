@@ -207,10 +207,6 @@ const Timeline = ({
         />
       </div>
       
-      {/* Help text */}
-      <div className="fixed bottom-6 left-6 bg-gray-800 text-white text-xs px-3 py-2 rounded shadow-lg z-40">
-        💡 <strong>Tip:</strong> Click and drag on empty timeline to select multiple loops • Press Delete to remove • Drag playhead to seek
-      </div>
     </>
   );
 };

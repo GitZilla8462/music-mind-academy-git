@@ -1,14 +1,15 @@
 // File: /src/lessons/shared/activities/layer-detective/LayerDetectiveActivity.jsx
-// Visual layer counting game - 20 RANDOMIZED questions
+// Visual layer counting game - 16 RANDOMIZED questions (3 choices: A, B, C)
 // ✅ COMPLETE WITH SCORING: Timer, speed bonus, Firebase score updates
 // ✅ WITH NAME GENERATION: Auto-generated player names with badges
 // ✅ FIXED: Added error logging, audio failure detection, heartbeat monitoring
+// ✅ UPDATED: Changed from 4 choices to 3 choices (removed all 4-layer questions)
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Volume2, VolumeX, Play, Pause, RotateCcw, Trophy, Clock } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { updateStudentScore } from '../../../../firebase/config';
-import { getDatabase, ref, update, push, set } from 'firebase/database'; // ✅ FIXED: Added push and set
+import { getDatabase, ref, update, push, set } from 'firebase/database';
 import { generatePlayerName, getPlayerColor, getPlayerEmoji } from './nameGenerator';
 
 const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
@@ -20,7 +21,7 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
   const [showAnswer, setShowAnswer] = useState(false);
   const [guessResult, setGuessResult] = useState(null);
   const [score, setScore] = useState(0);
-  const [totalRounds] = useState(20); // 20 questions
+  const [totalRounds] = useState(16); // 16 questions (removed 4-layer questions)
   const [gameComplete, setGameComplete] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
@@ -38,7 +39,7 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
   
   const audioRefs = useRef([]);
 
-  // ✅ NEW: Component mount logging
+  // ✅ Component mount logging
   useEffect(() => {
     console.log('🎮 LayerDetective mounted for student:', userId);
     console.log('📍 Session code:', sessionCode);
@@ -48,7 +49,7 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
     };
   }, []);
 
-  // ✅ NEW: Global error handler for this component
+  // ✅ Global error handler for this component
   useEffect(() => {
     const errorHandler = (event) => {
       console.error('❌ Unhandled error in LayerDetective:', event.error);
@@ -83,7 +84,7 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
     return () => window.removeEventListener('error', errorHandler);
   }, [sessionCode, userId, playerName]);
 
-  // ✅ NEW: Heartbeat system - detect frozen/crashed students
+  // ✅ Heartbeat system - detect frozen/crashed students
   useEffect(() => {
     if (!sessionCode || !userId || !gameStarted) return;
     
@@ -149,10 +150,10 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
     return `${seconds}s`;
   };
 
-  // ALL 20 QUESTIONS - Will be shuffled
+  // 16 QUESTIONS (removed all 4-layer questions)
   // ✅ RULE: Each question uses loops from ONLY ONE MOOD (all Heroic OR all Upbeat)
   const allQuestions = [
-    // HEROIC MOOD - Questions 1-10 (all Heroic loops only)
+    // HEROIC MOOD - Questions 1-8 (1-3 layers only)
     {
       id: 1,
       correctAnswer: 'A',
@@ -181,23 +182,12 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
       ]
     },
     {
-      id: 4,
-      correctAnswer: 'D',
-      mood: 'Heroic',
-      layers: [
-        { name: 'Heroic Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 1.mp3', color: '#EF4444' },
-        { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.mp3', color: '#F59E0B' },
-        { name: 'Heroic Strings 1', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 1.mp3', color: '#10B981' },
-        { name: 'Heroic Synth 1', category: 'Synth', file: '/projects/film-music-score/loops/Heroic Synth 1.mp3', color: '#8B5CF6' }
-      ]
-    },
-    {
       id: 5,
       correctAnswer: 'B',
       mood: 'Heroic',
       layers: [
         { name: 'Heroic Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 2.mp3', color: '#DC2626' },
-        { name: 'Heroic Brass 1', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 1.mp3', color: '#EA580C' }
+        { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.mp3', color: '#EA580C' }
       ]
     },
     {
@@ -206,7 +196,7 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
       mood: 'Heroic',
       layers: [
         { name: 'Heroic Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 2.mp3', color: '#DC2626' },
-        { name: 'Heroic Brass 1', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 1.mp3', color: '#EA580C' },
+        { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.mp3', color: '#EA580C' },
         { name: 'Heroic Synth 2', category: 'Synth', file: '/projects/film-music-score/loops/Heroic Synth 2.mp3', color: '#7C3AED' }
       ]
     },
@@ -216,17 +206,6 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
       mood: 'Heroic',
       layers: [
         { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.mp3', color: '#F59E0B' }
-      ]
-    },
-    {
-      id: 8,
-      correctAnswer: 'D',
-      mood: 'Heroic',
-      layers: [
-        { name: 'Heroic Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 2.mp3', color: '#DC2626' },
-        { name: 'Heroic Brass 1', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 1.mp3', color: '#EA580C' },
-        { name: 'Heroic Strings 1', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 1.mp3', color: '#10B981' },
-        { name: 'Heroic Synth 2', category: 'Synth', file: '/projects/film-music-score/loops/Heroic Synth 2.mp3', color: '#7C3AED' }
       ]
     },
     {
@@ -248,7 +227,7 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
       ]
     },
 
-    // UPBEAT MOOD - Questions 11-20 (all Upbeat loops only)
+    // UPBEAT MOOD - Questions 11-16 (1-3 layers only)
     {
       id: 11,
       correctAnswer: 'A',
@@ -277,23 +256,12 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
       ]
     },
     {
-      id: 14,
-      correctAnswer: 'D',
-      mood: 'Upbeat',
-      layers: [
-        { name: 'Upbeat Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 1.mp3', color: '#DC2626' },
-        { name: 'Upbeat Electric Guitar', category: 'Guitar', file: '/projects/film-music-score/loops/Upbeat Electric Guitar.mp3', color: '#EA580C' },
-        { name: 'Upbeat Piano', category: 'Piano', file: '/projects/film-music-score/loops/Upbeat Piano.mp3', color: '#10B981' },
-        { name: 'Upbeat Synth', category: 'Synth', file: '/projects/film-music-score/loops/Upbeat Synth.mp3', color: '#8B5CF6' }
-      ]
-    },
-    {
       id: 15,
       correctAnswer: 'B',
       mood: 'Upbeat',
       layers: [
         { name: 'Upbeat Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 2.mp3', color: '#EF4444' },
-        { name: 'Upbeat Bass', category: 'Bass', file: '/projects/film-music-score/loops/Upbeat Bass.mp3', color: '#F59E0B' }
+        { name: 'Upbeat Electric Bass', category: 'Bass', file: '/projects/film-music-score/loops/Upbeat Electric Bass.mp3', color: '#F59E0B' }
       ]
     },
     {
@@ -302,8 +270,8 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
       mood: 'Upbeat',
       layers: [
         { name: 'Upbeat Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 2.mp3', color: '#EF4444' },
-        { name: 'Upbeat Bass', category: 'Bass', file: '/projects/film-music-score/loops/Upbeat Bass.mp3', color: '#F59E0B' },
-        { name: 'Upbeat Synth', category: 'Synth', file: '/projects/film-music-score/loops/Upbeat Synth.mp3', color: '#8B5CF6' }
+        { name: 'Upbeat Electric Bass', category: 'Bass', file: '/projects/film-music-score/loops/Upbeat Electric Bass.mp3', color: '#F59E0B' },
+        { name: 'Upbeat Strings', category: 'Strings', file: '/projects/film-music-score/loops/Upbeat Strings.mp3', color: '#8B5CF6' }
       ]
     },
     {
@@ -315,23 +283,12 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
       ]
     },
     {
-      id: 18,
-      correctAnswer: 'D',
-      mood: 'Upbeat',
-      layers: [
-        { name: 'Upbeat Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 2.mp3', color: '#EF4444' },
-        { name: 'Upbeat Bass', category: 'Bass', file: '/projects/film-music-score/loops/Upbeat Bass.mp3', color: '#F59E0B' },
-        { name: 'Upbeat Piano', category: 'Piano', file: '/projects/film-music-score/loops/Upbeat Piano.mp3', color: '#10B981' },
-        { name: 'Upbeat Synth', category: 'Synth', file: '/projects/film-music-score/loops/Upbeat Synth.mp3', color: '#8B5CF6' }
-      ]
-    },
-    {
       id: 19,
       correctAnswer: 'C',
       mood: 'Upbeat',
       layers: [
         { name: 'Upbeat Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 1.mp3', color: '#DC2626' },
-        { name: 'Upbeat Synth', category: 'Synth', file: '/projects/film-music-score/loops/Upbeat Synth.mp3', color: '#8B5CF6' },
+        { name: 'Upbeat Clarinet', category: 'Woodwinds', file: '/projects/film-music-score/loops/Upbeat Clarinet.mp3', color: '#8B5CF6' },
         { name: 'Upbeat Electric Guitar', category: 'Guitar', file: '/projects/film-music-score/loops/Upbeat Electric Guitar.mp3', color: '#EA580C' }
       ]
     },
@@ -368,7 +325,7 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
     return () => clearInterval(interval);
   }, [startTime, showAnswer]);
 
-  // ✅ IMPROVED: Play layers with comprehensive error handling
+  // ✅ Play layers with comprehensive error handling
   const playLayers = async () => {
     if (!currentQuestion) {
       console.warn('⚠️ No current question available');
@@ -743,11 +700,11 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
                 </li>
                 <li className="flex items-start">
                   <span className="font-bold mr-2">2.</span>
-                  <span>Count how many layers you hear (1-4)</span>
+                  <span>Count how many layers you hear (1-3)</span>
                 </li>
                 <li className="flex items-start">
                   <span className="font-bold mr-2">3.</span>
-                  <span>Choose your answer: A, B, C, or D</span>
+                  <span>Choose your answer: A, B, or C</span>
                 </li>
                 <li className="flex items-start">
                   <span className="font-bold mr-2">4.</span>
@@ -847,10 +804,10 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
                 </button>
               </div>
 
-              {/* Visual Placeholder - Very Compact */}
+              {/* Visual Placeholder - 3 layers only */}
               <div className="bg-gray-50 rounded-lg p-2 mb-2 border-2 border-gray-300">
                 <div className="space-y-1">
-                  {[1, 2, 3, 4].map((row) => (
+                  {[1, 2, 3].map((row) => (
                     <div
                       key={row}
                       className="h-8 bg-gray-200 rounded-md flex items-center justify-center text-gray-400 text-xs font-semibold"
@@ -861,13 +818,12 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
                 </div>
               </div>
 
-              {/* Answer Buttons - Compact */}
-              <div className="grid grid-cols-2 gap-2">
+              {/* Answer Buttons - 3 choices only (A, B, C) */}
+              <div className="grid grid-cols-3 gap-2">
                 {[
                   { letter: 'A', num: 1, label: '1 Layer' },
                   { letter: 'B', num: 2, label: '2 Layers' },
-                  { letter: 'C', num: 3, label: '3 Layers' },
-                  { letter: 'D', num: 4, label: '4 Layers' }
+                  { letter: 'C', num: 3, label: '3 Layers' }
                 ].map(option => (
                   <button
                     key={option.letter}
@@ -952,7 +908,7 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
                     </div>
                   ))}
                   
-                  {[...Array(4 - numLayers)].map((_, index) => (
+                  {[...Array(3 - numLayers)].map((_, index) => (
                     <div
                       key={`empty-${index}`}
                       className="h-8 bg-gray-200 rounded-md flex items-center justify-center text-gray-400 text-xs font-semibold opacity-30"

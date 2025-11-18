@@ -2,6 +2,7 @@
 // src/components/StudentWaitingScreen.jsx
 
 import React, { useEffect } from 'react';
+import VirtualKeyboard from '../lessons/shared/activities/keyboard/VirtualKeyboard.jsx';
 
 const StudentWaitingScreen = ({ 
   lessonTitle = "Film Music - Lesson 1",
@@ -87,91 +88,51 @@ const StudentWaitingScreen = ({
     );
   }
 
-  // Normal waiting screen
+  // Normal waiting screen - show keyboard with header
   return (
     <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
       minHeight: '100vh',
       backgroundColor: '#1a202c',
       color: 'white',
-      padding: '20px'
+      display: 'flex',
+      flexDirection: 'column'
     }}>
-      {/* Animated Music Note */}
+      {/* Header - Waiting message */}
       <div style={{
-        fontSize: '80px',
-        marginBottom: '30px',
-        animation: 'pulse 2s ease-in-out infinite'
+        padding: '20px',
+        textAlign: 'center',
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        borderBottom: '2px solid rgba(255,255,255,0.1)'
       }}>
-        ♪
+        <div style={{
+          fontSize: '28px',
+          fontWeight: 'bold',
+          marginBottom: '8px',
+          animation: 'pulse 2s ease-in-out infinite'
+        }}>
+          ♪ Waiting for your teacher...
+        </div>
+        <p style={{
+          fontSize: '16px',
+          color: '#a0aec0',
+          margin: 0
+        }}>
+          {lessonTitle}
+        </p>
       </div>
 
-      <h1 style={{
-        fontSize: '32px',
-        fontWeight: 'bold',
-        marginBottom: '16px',
-        textAlign: 'center'
-      }}>
-        Waiting for your teacher...
-      </h1>
-
-      <p style={{
-        fontSize: '18px',
-        color: '#a0aec0',
-        textAlign: 'center',
-        marginBottom: '40px'
-      }}>
-        {lessonTitle}
-      </p>
-
-      {/* Loading dots */}
-      <div style={{
-        display: 'flex',
-        gap: '12px'
-      }}>
-        <div style={{
-          width: '12px',
-          height: '12px',
-          backgroundColor: '#4299e1',
-          borderRadius: '50%',
-          animation: 'bounce 1.4s ease-in-out infinite'
-        }} />
-        <div style={{
-          width: '12px',
-          height: '12px',
-          backgroundColor: '#4299e1',
-          borderRadius: '50%',
-          animation: 'bounce 1.4s ease-in-out 0.2s infinite'
-        }} />
-        <div style={{
-          width: '12px',
-          height: '12px',
-          backgroundColor: '#4299e1',
-          borderRadius: '50%',
-          animation: 'bounce 1.4s ease-in-out 0.4s infinite'
-        }} />
+      {/* Virtual Keyboard - fills the rest of the screen */}
+      <div style={{ flex: 1, overflow: 'hidden' }}>
+        <VirtualKeyboard onExit={null} />
       </div>
 
       <style>{`
         @keyframes pulse {
           0%, 100% {
-            transform: scale(1);
             opacity: 1;
           }
           50% {
-            transform: scale(1.1);
-            opacity: 0.8;
-          }
-        }
-
-        @keyframes bounce {
-          0%, 80%, 100% {
-            transform: translateY(0);
-          }
-          40% {
-            transform: translateY(-20px);
+            opacity: 0.7;
           }
         }
       `}</style>
