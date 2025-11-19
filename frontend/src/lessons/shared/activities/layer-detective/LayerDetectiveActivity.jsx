@@ -4,9 +4,11 @@
 // ✅ WITH NAME GENERATION: Auto-generated player names with badges
 // ✅ FIXED: Added error logging, audio failure detection, heartbeat monitoring
 // ✅ UPDATED: Changed from 4 choices to 3 choices (removed all 4-layer questions)
+// ✅ CHROMEBOOK FIX: Compact start screen for 1366x768 displays
+// ✅ PRACTICE MORE: Button to continue with same score instead of resetting
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Volume2, VolumeX, Play, Pause, RotateCcw, Trophy, Clock } from 'lucide-react';
+import { Volume2, VolumeX, Play, Pause, RotateCcw, Trophy, Clock, RefreshCw } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { updateStudentScore } from '../../../../firebase/config';
 import { getDatabase, ref, update, push, set } from 'firebase/database';
@@ -593,12 +595,30 @@ useEffect(() => {
       setGameStarted(true);
       setCurrentQuestion(shuffledQuestions[0]);
       console.log('🎮 Game started!');
+      
+      // ✅ CRITICAL: Save player name to Firebase so presentation view can display it!
+      if (sessionCode && userId && playerName) {
+        try {
+          const db = getDatabase();
+          update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+            playerName: playerName,
+            playerColor: playerColor,
+            playerEmoji: playerEmoji,
+            activityStarted: 'layer-detective',
+            lastUpdated: Date.now()
+          });
+          console.log('✅ Player name saved to Firebase:', playerName);
+        } catch (err) {
+          console.error('❌ Failed to save player name to Firebase:', err);
+        }
+      }
     } catch (error) {
       console.error('❌ Error starting game:', error);
     }
   };
 
-  const restartGame = () => {
+  // ✅ FIXED: Practice More - keeps score, reshuffles questions
+  const practiceMore = () => {
     try {
       // Stop any playing audio
       audioRefs.current.forEach(audio => {
@@ -612,27 +632,27 @@ useEffect(() => {
       const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
       setShuffledQuestions(shuffled);
       
-      // Reset all states
-      setGameStarted(false);
-      setCurrentRound(0);
-      setScore(0);
+      // Reset round states but KEEP the score!
       setGameComplete(false);
-      setCurrentQuestion(null);
+      setCurrentRound(0);
+      setCurrentQuestion(shuffled[0]);
       setShowAnswer(false);
       setGuessResult(null);
       setIsPlaying(false);
       setStartTime(null);
       setAnswerTime(0);
       setCurrentTime(0);
+      setGameStarted(true);
       
-      console.log('🔄 Game restarted');
+      console.log('🔄 Practice mode - continuing with score:', score);
     } catch (error) {
-      console.error('❌ Error restarting game:', error);
+      console.error('❌ Error in practiceMore:', error);
     }
   };
 
   const numLayers = currentQuestion?.layers.length || 0;
 
+  // COMPLETION SCREEN - ✅ FIXED with Practice More button
   if (gameComplete) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 flex items-center justify-center p-4">
@@ -649,24 +669,22 @@ useEffect(() => {
               <span className="text-2xl font-bold text-white">{playerName}</span>
             </div>
             
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Game Complete!</h1>
-            <p className="text-gray-600 mb-6">You're a Layer Detective Master!</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Great Job!</h1>
+            <p className="text-gray-600 mb-6">You completed {totalRounds} questions!</p>
             
             <div className="bg-gradient-to-r from-orange-100 to-red-100 rounded-lg p-6 mb-6">
               <div className="text-5xl font-bold text-gray-900 mb-2">{score}</div>
               <div className="text-lg text-gray-700">Total Points</div>
-              <div className="text-sm text-gray-600 mt-2">
-                {totalRounds} questions answered
-              </div>
             </div>
 
             <div className="space-y-3">
+              {/* ✅ FIXED: Practice More button instead of Play Again */}
               <button
-                onClick={restartGame}
+                onClick={practiceMore}
                 className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white py-3 rounded-lg font-bold text-lg hover:from-orange-700 hover:to-red-700 transition-all shadow-lg flex items-center justify-center space-x-2"
               >
-                <RotateCcw size={20} />
-                <span>Play Again</span>
+                <RefreshCw size={20} />
+                <span>Practice More</span>
               </button>
               
               {!viewMode && (
@@ -684,61 +702,52 @@ useEffect(() => {
     );
   }
 
+  // START SCREEN - ✅ FIXED: Much more compact for Chromebooks (1366x768)
   if (!gameStarted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-2xl p-8 max-w-lg w-full">
+        <div className="bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full">
           <div className="text-center">
-            <div className="text-6xl mb-4">🎵</div>
+            <div className="text-5xl mb-3">🎵</div>
             
-            {/* Player Badge */}
+            {/* Player Badge - Compact */}
             {playerName && (
               <div 
-                className="inline-flex items-center space-x-3 px-6 py-3 rounded-full mb-6 shadow-lg"
+                className="inline-flex items-center space-x-2 px-4 py-2 rounded-full mb-4 shadow-lg"
                 style={{ backgroundColor: playerColor }}
               >
-                <span className="text-3xl">{playerEmoji}</span>
-                <span className="text-2xl font-bold text-white">{playerName}</span>
+                <span className="text-2xl">{playerEmoji}</span>
+                <span className="text-lg font-bold text-white">{playerName}</span>
               </div>
             )}
             
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Layer Detective</h1>
-            <p className="text-xl text-gray-700 mb-8">
-              Listen carefully and count how many layers you hear!
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Layer Detective</h1>
+            <p className="text-lg text-gray-700 mb-4">
+              Count the layers you hear!
             </p>
             
-            <div className="bg-orange-50 rounded-lg p-6 mb-8 text-left">
-              <h2 className="font-bold text-lg text-gray-900 mb-3">How to Play:</h2>
-              <ol className="space-y-2 text-gray-700">
-                <li className="flex items-start">
-                  <span className="font-bold mr-2">1.</span>
-                  <span>Press <strong>Play</strong> to hear the loops</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="font-bold mr-2">2.</span>
-                  <span>Count how many layers you hear (1-3)</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="font-bold mr-2">3.</span>
-                  <span>Choose your answer: A, B, or C</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="font-bold mr-2">4.</span>
-                  <span>Answer fast for bonus points!</span>
-                </li>
+            {/* Compact Instructions */}
+            <div className="bg-orange-50 rounded-lg p-4 mb-4 text-left">
+              <h2 className="font-bold text-base text-gray-900 mb-2">How to Play:</h2>
+              <ol className="space-y-1 text-sm text-gray-700">
+                <li><strong>1.</strong> Press Play to hear the loops</li>
+                <li><strong>2.</strong> Count the layers (1-3)</li>
+                <li><strong>3.</strong> Choose A, B, or C</li>
+                <li><strong>4.</strong> Answer fast for bonus points!</li>
               </ol>
             </div>
 
-            <div className="bg-blue-50 rounded-lg p-4 mb-8">
+            {/* Compact Question Count */}
+            <div className="bg-blue-50 rounded-lg p-3 mb-4">
               <div className="flex items-center justify-center space-x-2 text-blue-800">
-                <Trophy size={24} />
-                <span className="font-bold text-lg">{totalRounds} Questions</span>
+                <Trophy size={20} />
+                <span className="font-bold">{totalRounds} Questions</span>
               </div>
             </div>
 
             <button
               onClick={startGame}
-              className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white py-4 rounded-lg font-bold text-xl hover:from-orange-700 hover:to-red-700 transition-all shadow-lg"
+              className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white py-3 rounded-lg font-bold text-xl hover:from-orange-700 hover:to-red-700 transition-all shadow-lg"
             >
               Start Game
             </button>
@@ -748,6 +757,7 @@ useEffect(() => {
     );
   }
 
+  // GAME SCREEN (already compact)
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl p-4 max-w-md w-full">

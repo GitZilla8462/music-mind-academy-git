@@ -254,7 +254,7 @@ const LoopBlock = React.memo(({
   }, [waveformData, width, drawWaveform, isDragged, isResizing]);
 
   // ============================================================================
-  // RESIZE HANDLERS
+  // RESIZE HANDLERS - FIXED: No more jumping!
   // ============================================================================
 
   const handleResizeStart = useCallback((e, direction) => {
@@ -268,7 +268,6 @@ const LoopBlock = React.memo(({
     if (!isResizing) return;
 
     const handleMouseMove = (e) => {
-      const pixelsPerSecond = timeToPixel(1) - timeToPixel(0);
       const loopElement = document.querySelector(`[data-loop-id="${loop.id}"]`);
       if (!loopElement) return;
       
@@ -287,7 +286,12 @@ const LoopBlock = React.memo(({
       
       const contentRect = timelineContent.getBoundingClientRect();
       const mouseXRelativeToContent = e.clientX - contentRect.left + scrollLeft;
-      const mouseTime = mouseXRelativeToContent / pixelsPerSecond;
+      
+      // FIXED: Calculate mouse time properly accounting for left margin
+      // This prevents the loop from jumping when you start resizing
+      const leftMargin = TIMELINE_CONSTANTS.MARGIN_WIDTH / 2;
+      const pixelsPerSecond = timeToPixel(1) - timeToPixel(0);
+      const mouseTime = (mouseXRelativeToContent - leftMargin) / pixelsPerSecond;
       
       if (resizeDirection === 'right') {
         const newDuration = mouseTime - loop.startTime;

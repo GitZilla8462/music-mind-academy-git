@@ -1,6 +1,7 @@
 // Layer Detective Presentation View - ONLY for Layer Detective activity
 // Shows ALL students in scrollable list with generated names
 // src/lessons/shared/activities/layer-detective/LayerDectectivePresentationView.jsx
+// ✅ FIXED: Now correctly reads playerName from Firebase (not displayName)
 
 import React, { useState, useEffect } from 'react';
 import { Trophy, Users, Clock, Music, Star } from 'lucide-react';
@@ -17,13 +18,16 @@ const LayerDetectivePresentationView = ({ sessionData, onEndActivity }) => {
     const students = Object.entries(sessionData.studentsJoined)
       .map(([id, data]) => ({
         id,
-        name: data.displayName || data.name || 'Student',  // ✅ Use displayName (generated name)
+        name: data.playerName || data.displayName || data.name || 'Student',  // ✅ Check playerName FIRST
         score: data.score || 0,
         playerColor: data.playerColor || '#3B82F6',        // ✅ Player color
         playerEmoji: data.playerEmoji || '🎵',             // ✅ Player emoji
         joinedAt: data.joinedAt
       }))
       .sort((a, b) => b.score - a.score);
+    
+    console.log('📊 Leaderboard updated:', students.length, 'students');
+    console.log('🎮 Sample student data:', students[0]); // Debug: see what data we're getting
     
     setLeaderboard(students);
   }, [sessionData]);
