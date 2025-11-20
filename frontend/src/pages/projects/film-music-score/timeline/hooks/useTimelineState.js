@@ -1,4 +1,4 @@
-// /timeline/hooks/useTimelineState.js - FIXED: Now properly uses MARGIN_WIDTH to show full video
+// /timeline/hooks/useTimelineState.js - FIXED: Removed left margin gap
 import { useState, useEffect, useMemo } from 'react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
 
@@ -27,14 +27,13 @@ export const useTimelineState = (duration) => {
     setTrackStates(initialStates);
   }, []);
 
-  // FIXED: Timeline width calculation now uses proper MARGIN_WIDTH constant
+  // FIXED: Timeline width calculation - uses right margin + small left padding
   const timelineWidth = useMemo(() => {
-    // Calculate base scale so that 50% zoom shows full duration + margin
     const pixelsPerSecond = 24; // Base pixels per second
     const contentWidth = duration * pixelsPerSecond * localZoom;
     const minWidth = 800; // Minimum width for usability
     
-    // FIXED: Use MARGIN_WIDTH constant (200) to ensure full video is visible
+    // Use MARGIN_WIDTH for RIGHT padding + small left padding is added in timeToPixel
     const totalWidth = Math.max(minWidth, contentWidth) + TIMELINE_CONSTANTS.MARGIN_WIDTH;
     
     console.log('📏 Timeline Width Calculation:', {
@@ -42,37 +41,38 @@ export const useTimelineState = (duration) => {
       localZoom,
       pixelsPerSecond,
       contentWidth: contentWidth.toFixed(2),
-      marginWidth: TIMELINE_CONSTANTS.MARGIN_WIDTH,
+      rightMargin: TIMELINE_CONSTANTS.MARGIN_WIDTH,
+      leftPadding: 16,
       totalWidth: totalWidth.toFixed(2)
     });
     
     return totalWidth;
   }, [duration, localZoom]);
 
-  // FIXED: Time to pixel conversion using proper margins
+  // FIXED: Time to pixel conversion - 16px left padding for visual breathing room
   const timeToPixel = useMemo(() => (time) => {
-    // Use half the margin width as left padding for visual balance
-    const leftMargin = TIMELINE_CONSTANTS.MARGIN_WIDTH / 2;
-    const contentAreaWidth = timelineWidth - TIMELINE_CONSTANTS.MARGIN_WIDTH;
+    // Comfortable left padding for visual clarity (16px)
+    const LEFT_PADDING = 16;
+    const contentAreaWidth = timelineWidth - TIMELINE_CONSTANTS.MARGIN_WIDTH - LEFT_PADDING;
     
-    // Convert time to pixel position within the content area
-    const pixelInContent = (time / duration) * contentAreaWidth;
+    // Convert time to pixel position
+    const pixelPosition = (time / duration) * contentAreaWidth;
     
-    // Add left margin offset to get absolute position
-    return pixelInContent + leftMargin;
+    // Add padding offset
+    return pixelPosition + LEFT_PADDING;
   }, [duration, timelineWidth]);
   
-  // FIXED: Pixel to time conversion using proper margins
+  // FIXED: Pixel to time conversion - Account for 16px left padding
   const pixelToTime = useMemo(() => (pixel) => {
-    // Use half the margin width as left padding
-    const leftMargin = TIMELINE_CONSTANTS.MARGIN_WIDTH / 2;
-    const contentAreaWidth = timelineWidth - TIMELINE_CONSTANTS.MARGIN_WIDTH;
+    // Left padding matches timeToPixel
+    const LEFT_PADDING = 16;
+    const contentAreaWidth = timelineWidth - TIMELINE_CONSTANTS.MARGIN_WIDTH - LEFT_PADDING;
     
-    // Remove margin offset to get position within content area
-    const pixelInContent = pixel - leftMargin;
+    // Remove padding offset before converting
+    const adjustedPixel = pixel - LEFT_PADDING;
     
     // Convert pixel position to time
-    const time = (pixelInContent / contentAreaWidth) * duration;
+    const time = (adjustedPixel / contentAreaWidth) * duration;
     
     // Clamp to valid time range
     return Math.max(0, Math.min(duration, time));

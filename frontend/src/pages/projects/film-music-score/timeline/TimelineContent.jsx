@@ -1,4 +1,5 @@
 // File: /src/pages/projects/film-music-score/timeline/TimelineContent.jsx
+// FIXED: Hidden left scrollbar - only right scrollbar is visible
 // FIXED: Video bar now displays the FULL duration without cutting off the ending
 // The video bar width is now calculated correctly to match the actual video duration
 
@@ -185,7 +186,8 @@ const TimelineContent = forwardRef(({
     <div className="flex flex-1 min-h-0 relative">
       {/* Fixed time header */}
       <div className="absolute top-0 left-0 right-0 z-30 flex">
-        <div className="w-48 bg-gray-800 border-r border-gray-700" style={{ height: TIMELINE_CONSTANTS.HEADER_HEIGHT }} />
+        {/* Spacer matching track headers width - 154px */}
+        <div className="bg-gray-800 border-r border-gray-600" style={{ width: '154px', height: TIMELINE_CONSTANTS.HEADER_HEIGHT }} />
         
         <div 
           ref={timeHeaderRef}
@@ -214,17 +216,32 @@ const TimelineContent = forwardRef(({
         </div>
       </div>
 
-      {/* Track headers */}
+      {/* Track headers - FIXED: Hidden scrollbar with overflow-y-scroll and custom CSS */}
+      {/* FIXED: Reduced width from 192px to 154px (80% width) */}
+      {/* FIXED: Added paddingBottom to match timeline scroll container */}
       <div 
         ref={headerScrollRef}
-        className="w-48 bg-gray-800 border-r border-gray-700 overflow-y-auto overflow-x-hidden z-20"
+        className="bg-gray-800 border-r border-gray-600 overflow-y-scroll overflow-x-hidden z-20 scrollbar-hidden"
         onScroll={onHeaderScroll}
         style={{ 
+          width: '154px',
           maxHeight: '576px',
           minHeight: 0,
-          paddingTop: TIMELINE_CONSTANTS.HEADER_HEIGHT
+          paddingTop: TIMELINE_CONSTANTS.HEADER_HEIGHT,
+          paddingBottom: '20px',  // CRITICAL: Must match timeline's paddingBottom
+          // Hide scrollbar for Webkit browsers (Chrome, Safari, Edge)
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none', // Firefox
+          msOverflowStyle: 'none'  // IE and Edge
         }}
       >
+        {/* Inline style to hide webkit scrollbar */}
+        <style jsx>{`
+          .scrollbar-hidden::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        
         <div style={{ height: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + TIMELINE_CONSTANTS.NUM_TRACKS * TIMELINE_CONSTANTS.TRACK_HEIGHT }}>
           <VideoTrackHeader />
           {Array.from({ length: TIMELINE_CONSTANTS.NUM_TRACKS }, (_, i) => (

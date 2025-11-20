@@ -1,8 +1,8 @@
 // File: /src/pages/projects/film-music-score/timeline/TimelineHeader.jsx
-// UPDATED: Added transport controls (play/pause/stop/skip) on left side of zoom controls
+// FIXED: Removed loop count/zoom text, centered transport controls over video area
 
-import React, { useMemo } from 'react';
-import { Activity, Play, Pause, Square, SkipBack, SkipForward, RotateCcw } from 'lucide-react';
+import React from 'react';
+import { Play, Pause, Square, SkipBack, SkipForward, RotateCcw } from 'lucide-react';
 
 const TimelineHeader = ({ 
   placedLoops, 
@@ -39,79 +39,61 @@ const TimelineHeader = ({
 
   return (
     <div className="bg-gray-800 px-3 py-1 border-b border-gray-700 flex-shrink-0">
-      <div className="flex items-center relative">
-        {/* Left side - Loop count and zoom info */}
-        <div className="flex items-center space-x-3">
-          {!showTimelineLabel && (
-            <>
-              <h3 className="text-white font-semibold text-sm">Timeline</h3>
-              <div className="flex items-center space-x-1.5 text-xs text-gray-400">
-                <Activity size={12} />
-                <span>{placedLoops.length} loops</span>
-                <span>•</span>
-                <span>Zoom: {Math.round(localZoom * 100)}%</span>
-              </div>
-            </>
-          )}
-          {showTimelineLabel && (
-            <div className="flex items-center space-x-1.5 text-xs text-gray-400">
-              <Activity size={12} />
-              <span>{placedLoops.length} loops</span>
-              <span>•</span>
-              <span>Zoom: {Math.round(localZoom * 100)}%</span>
-            </div>
-          )}
-        </div>
+      <div className="flex items-center justify-center relative">
+        {/* Left spacer - takes up same width as track headers (154px) */}
+        <div className="flex-shrink-0" style={{ width: '154px' }}></div>
 
-        {/* Center - Transport Controls (positioned to align with video area) */}
-        <div className="absolute left-[63%] transform -translate-x-1/2 flex items-center space-x-1 bg-gray-700/50 rounded px-1 py-0.5">
-          <button
-            onClick={onRestart}
-            className="p-1 rounded transition-colors text-gray-400 hover:text-white hover:bg-gray-600"
-            title="Restart"
-          >
-            <RotateCcw size={14} />
-          </button>
-          
-          <button
-            onClick={skipBackward}
-            className="p-1 rounded transition-colors text-gray-400 hover:text-white hover:bg-gray-600"
-            title="Skip back 10s"
-          >
-            <SkipBack size={14} />
-          </button>
+        {/* Center - Transport Controls (centered in remaining space) */}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex items-center space-x-1 bg-gray-700/50 rounded px-1 py-0.5">
+            <button
+              onClick={onRestart}
+              className="p-1 rounded transition-colors text-gray-400 hover:text-white hover:bg-gray-600"
+              title="Restart"
+            >
+              <RotateCcw size={14} />
+            </button>
+            
+            <button
+              onClick={skipBackward}
+              className="p-1 rounded transition-colors text-gray-400 hover:text-white hover:bg-gray-600"
+              title="Skip back 10s"
+            >
+              <SkipBack size={14} />
+            </button>
 
-          <button
-            onClick={handlePlayPause}
-            className={`p-1.5 rounded transition-colors ${
-              isPlaying
-                ? 'bg-green-600 hover:bg-green-700 text-white'
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
-            }`}
-            title={isPlaying ? "Pause" : "Play"}
-          >
-            {isPlaying ? <Pause size={16} /> : <Play size={16} />}
-          </button>
+            <button
+              onClick={handlePlayPause}
+              className={`p-1.5 rounded transition-colors ${
+                isPlaying
+                  ? 'bg-green-600 hover:bg-green-700 text-white'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+              title={isPlaying ? "Pause" : "Play"}
+            >
+              {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+            </button>
 
-          <button
-            onClick={onStop}
-            className="p-1 rounded transition-colors text-gray-400 hover:text-white hover:bg-gray-600"
-            title="Stop"
-          >
-            <Square size={14} />
-          </button>
+            <button
+              onClick={onStop}
+              className="p-1 rounded transition-colors text-gray-400 hover:text-white hover:bg-gray-600"
+              title="Stop"
+            >
+              <Square size={14} />
+            </button>
 
-          <button
-            onClick={skipForward}
-            className="p-1 rounded transition-colors text-gray-400 hover:text-white hover:bg-gray-600"
-            title="Skip forward 10s"
-          >
-            <SkipForward size={14} />
-          </button>
+            <button
+              onClick={skipForward}
+              className="p-1 rounded transition-colors text-gray-400 hover:text-white hover:bg-gray-600"
+              title="Skip forward 10s"
+            >
+              <SkipForward size={14} />
+            </button>
+          </div>
         </div>
 
         {/* Right side - Zoom slider with hash marks */}
-        <div className="ml-auto flex items-center space-x-2 bg-gray-700 rounded-lg px-3 py-1">
+        <div className="flex items-center space-x-2 bg-gray-700 rounded-lg px-3 py-1 flex-shrink-0">
           <span className="text-xs text-gray-400">Zoom:</span>
           <div className="relative flex items-center">
             {/* Zoom slider */}

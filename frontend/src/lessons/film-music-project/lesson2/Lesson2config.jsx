@@ -1,7 +1,6 @@
 // File: /lessons/film-music-project/lesson2/Lesson2config.jsx
 // Lesson 2: Sports Highlight Reel Music - Configuration
-// ✅ UPDATED: Added presentationView to all stages for slide display
-// ✅ UPDATED: Video selection is now PART of sports-composition, not a separate stage
+// ✅ UPDATED: New structure matching lesson plan with DAW Challenge
 
 export const LESSON_PROGRESS_KEY = 'lesson2-progress';
 export const LESSON_TIMER_KEY = 'lesson2-timer';
@@ -13,86 +12,48 @@ export const lessonSections = [
   {
     id: 'introduction',
     title: 'Introduction',
-    subtitle: 'Texture & Layering Concepts',
+    subtitle: 'Welcome & DAW Challenge',
     icon: '🎬',
     color: 'blue',
-    estimatedTime: 9,
+    estimatedTime: 10,
     stages: [
       { 
-        id: 'welcome-instructions', 
+        id: 'sports-highlight-intro', 
         type: 'summary', 
-        label: 'Show Welcome Instructions',
+        label: 'Sports Highlight Reel Introduction',
         description: 'Display welcome screen - Slide 1',
         duration: 1
       },
       { 
-        id: 'lesson-goals', 
+        id: 'show-agenda', 
         type: 'summary', 
-        label: 'Show Lesson Goals',
-        description: 'Display lesson objectives - Slide 2',
+        label: 'Show Agenda',
+        description: 'Display lesson agenda - Slide 2',
         duration: 1
       },
       { 
-        id: 'texture-definition', 
+        id: 'introduce-daw', 
         type: 'summary', 
-        label: 'Texture Definition',
-        description: 'Explain texture in music - Slide 3',
-        duration: 2
-      },
-      { 
-        id: 'texture-continued', 
-        type: 'summary', 
-        label: 'Texture Continued',
-        description: 'Continue texture explanation - Slide 4',
-        duration: 2
-      },
-      { 
-        id: 'layers-in-music', 
-        type: 'summary', 
-        label: 'Layers in Music',
-        description: 'Explain layering concept - Slide 5',
-        duration: 3
-      }
-    ]
-  },
-  {
-    id: 'warm-up-activity',
-    title: 'Warm-Up Activity',
-    subtitle: 'Layer Detective Game',
-    icon: '🕵️',
-    color: 'orange',
-    estimatedTime: 9,
-    stages: [
-      { 
-        id: 'layer-detective-rules', 
-        type: 'summary', 
-        label: 'Layer Detective Rules',
-        description: 'Show game instructions - Slide 6',
+        label: 'Introduce Digital Audio Workstation',
+        description: 'Display DAW overview - Slide 3',
         duration: 1
       },
       { 
-        id: 'layer-detective-class-demo', 
-        type: 'class-demo', 
-        label: 'Layer Detective Class Demo',
-        description: 'Demonstrate game on main screen',
-        duration: 2
+        id: 'introduce-daw-challenge', 
+        type: 'summary', 
+        label: 'Introduce DAW Challenge',
+        description: 'Display DAW challenge instructions - Slide 4',
+        duration: 1
       },
       { 
-        id: 'layer-detective', 
+        id: 'daw-tutorial', 
         type: 'activity', 
-        label: 'Start Layer Detective Game', 
-        duration: 4,
-        hasTimer: false,
-        trackProgress: false,
-        description: 'Interactive game to identify layers',
-        bonusDescription: 'Leaderboard shown on main screen'
-      },
-      { 
-        id: 'layer-detective-results', 
-        type: 'results', 
-        label: 'Show Game Results',
-        description: 'Winner celebration screen',
-        duration: 2
+        label: 'Unlock DAW Challenge', 
+        duration: 6,
+        hasTimer: true,
+        trackProgress: true,
+        description: 'Interactive DAW basics - Slide 5',
+        bonusDescription: 'Bonus Activity: Explore the DAW'
       }
     ]
   },
@@ -102,19 +63,33 @@ export const lessonSections = [
     subtitle: 'Sports Highlight Music',
     icon: '🎵',
     color: 'red',
-    estimatedTime: 11,
+    estimatedTime: 15,
     stages: [
       { 
-        id: 'composition-directions', 
+        id: 'introduce-video', 
         type: 'summary', 
-        label: 'Show Composition Directions',
+        label: 'Introduce Video',
+        description: 'Display video introduction - Slide 6',
+        duration: 1
+      },
+      { 
+        id: 'sports-video', 
+        type: 'video', 
+        label: 'Play SportsHighlightComposition.mp4',
+        description: 'Play composition video',
+        duration: 3
+      },
+      { 
+        id: 'composition-instructions', 
+        type: 'summary', 
+        label: 'Show Composition Instructions',
         description: 'Display requirements - Slide 7',
         duration: 1
       },
       { 
         id: 'sports-composition', 
         type: 'activity', 
-        label: 'Unlock Sports Composition', 
+        label: 'Unlock Composition Activity', 
         duration: 10,
         hasTimer: true,
         trackProgress: true,
@@ -129,16 +104,23 @@ export const lessonSections = [
     subtitle: 'Two Stars and a Wish',
     icon: "⭐",
     color: 'yellow',
-    estimatedTime: 5,
+    estimatedTime: 7,
     stages: [
+      { 
+        id: 'show-reflection', 
+        type: 'summary', 
+        label: 'Show Two Stars and a Wish Activity',
+        description: 'Display reflection instructions - Slide 9',
+        duration: 2
+      },
       { 
         id: 'reflection', 
         type: 'activity', 
-        label: 'Unlock Reflection', 
+        label: 'Unlock Two Stars and a Wish Activity', 
         duration: 5,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students complete reflection - Slide 9',
+        description: 'Students complete reflection',
         bonusDescription: 'Bonus: Share Your Work'
       }
     ]
@@ -155,7 +137,7 @@ export const lessonSections = [
         id: 'conclusion',
         type: 'discussion',
         label: 'Class Discussion',
-        description: 'Review texture and layering - Slide 10',
+        description: 'Review and wrap up - Slide 10',
         duration: 2
       }
     ]
@@ -165,27 +147,26 @@ export const lessonSections = [
 export const lesson2Config = {
   id: 'lesson2',
   title: "Sports Highlight Reel Music",
-  subtitle: "Texture & Layering",
+  subtitle: "Introduction to the DAW",
   learningObjectives: [
-    "Understand texture and layering in music composition",
+    "Master the DAW interface and basic controls",
     "Create high-energy music for sports highlights",
-    "Layer multiple loops to build intensity and excitement"
+    "Practice placing and manipulating music loops"
   ],
   lessonSections,
   activities: [
     {
       id: 1,
-      type: "video",
-      title: "Lesson Introduction",
-      estimatedTime: "3 min",
-      src: "/lessons/film-music-project/lesson2/Lesson2intro.mp4"
+      type: "daw-tutorial",
+      title: "DAW Challenge",
+      estimatedTime: "6 min"
     },
     {
       id: 2,
-      type: "layer-detective",
-      title: "Layer Detective Warm-Up",
-      estimatedTime: "4 min",
-      component: "LayerDetectiveActivity"
+      type: "video",
+      title: "Sports Composition Video",
+      estimatedTime: "3 min",
+      src: "/lessons/film-music-project/lesson2/SportsHighlightComposition.mp4"
     },
     {
       id: 3,
@@ -205,7 +186,6 @@ export const lesson2Config = {
 
 // ========================================
 // LESSON STAGES - With presentationView data for each stage
-// ✅ Video selection is now PART of sports-composition stage
 // ========================================
 export const lessonStages = [
   { 
@@ -215,8 +195,8 @@ export const lessonStages = [
     type: 'waiting'
   },
   { 
-    id: 'welcome-instructions', 
-    label: 'Show Welcome Instructions', 
+    id: 'sports-highlight-intro', 
+    label: 'Sports Highlight Reel Introduction', 
     description: 'Welcome screen - Slide 1',
     type: 'summary',
     duration: 1,
@@ -226,9 +206,9 @@ export const lessonStages = [
     }
   },
   { 
-    id: 'lesson-goals', 
-    label: 'Show Lesson Goals', 
-    description: 'Lesson objectives - Slide 2',
+    id: 'show-agenda', 
+    label: 'Show Agenda', 
+    description: 'Lesson agenda - Slide 2',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -237,42 +217,45 @@ export const lessonStages = [
     }
   },
   { 
-    id: 'texture-definition', 
-    label: 'Texture Definition', 
-    description: 'What is texture? - Slide 3',
+    id: 'introduce-daw', 
+    label: 'Introduce Digital Audio Workstation', 
+    description: 'DAW overview - Slide 3',
     type: 'summary',
-    duration: 2,
+    duration: 1,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson2/slides/3.png'
     }
   },
   { 
-    id: 'texture-continued', 
-    label: 'Texture Continued', 
-    description: 'More about texture - Slide 4',
+    id: 'introduce-daw-challenge', 
+    label: 'Introduce DAW Challenge', 
+    description: 'DAW challenge instructions - Slide 4',
     type: 'summary',
-    duration: 2,
+    duration: 1,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson2/slides/4.png'
     }
   },
   { 
-    id: 'layers-in-music', 
-    label: 'Layers in Music', 
-    description: 'How layers create texture - Slide 5',
-    type: 'summary',
-    duration: 3,
+    id: 'daw-tutorial', 
+    label: 'Unlock DAW Challenge', 
+    description: 'Interactive DAW basics - Slide 5',
+    bonusDescription: 'Bonus Activity: Explore the DAW',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: true,
+    duration: 6,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson2/slides/5.png'
     }
   },
   { 
-    id: 'layer-detective-rules', 
-    label: 'Layer Detective Rules', 
-    description: 'Game instructions - Slide 6',
+    id: 'introduce-video', 
+    label: 'Introduce Video', 
+    description: 'Video introduction - Slide 6',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -281,41 +264,20 @@ export const lessonStages = [
     }
   },
   { 
-    id: 'layer-detective-class-demo', 
-    label: 'Layer Detective Class Demo', 
-    description: 'Demonstrate game on main screen',
-    type: 'class-demo',
-    duration: 2,
+    id: 'sports-video', 
+    label: 'Play SportsHighlightComposition.mp4', 
+    description: 'Composition video', 
+    type: 'video',
+    duration: 3,
     presentationView: {
-      type: 'layer-detective-class-demo',
-      component: 'LayerDetectiveClassDemo'
+      type: 'video',
+      videoPath: '/lessons/film-music-project/lesson2/SportsHighlightComposition.mp4',
+      title: 'Sports Composition Introduction'
     }
   },
   { 
-    id: 'layer-detective', 
-    label: 'Layer Detective Game', 
-    description: 'Interactive warm-up activity',
-    type: 'activity',
-    duration: 4,
-    presentationView: {
-      type: 'layer-detective-leaderboard',
-      component: 'LayerDetectivePresentationView'
-    }
-  },
-  { 
-    id: 'layer-detective-results', 
-    label: 'Show Game Results', 
-    description: 'Winner celebration',
-    type: 'results',
-    duration: 2,
-    presentationView: {
-      type: 'layer-detective-results',
-      component: 'LayerDetectiveResults'
-    }
-  },
-  { 
-    id: 'composition-directions', 
-    label: 'Show Composition Directions', 
+    id: 'composition-instructions', 
+    label: 'Show Composition Instructions', 
     description: 'Requirements - Slide 7',
     type: 'summary',
     duration: 1,
@@ -326,7 +288,7 @@ export const lessonStages = [
   },
   { 
     id: 'sports-composition', 
-    label: 'Unlock Sports Composition', 
+    label: 'Unlock Composition Activity', 
     description: 'Choose video & compose music - Slide 8', 
     bonusDescription: 'Bonus: Add More Layers',
     hasProgress: true,
@@ -339,9 +301,20 @@ export const lessonStages = [
     }
   },
   { 
+    id: 'show-reflection', 
+    label: 'Show Two Stars and a Wish Activity', 
+    description: 'Reflection instructions - Slide 9',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson2/slides/9.png'
+    }
+  },
+  { 
     id: 'reflection', 
-    label: 'Unlock Reflection', 
-    description: 'Two Stars and a Wish - Slide 9', 
+    label: 'Unlock Two Stars and a Wish Activity', 
+    description: 'Students complete reflection', 
     bonusDescription: 'Bonus: Share Your Work',
     hasProgress: true,
     type: 'activity',
@@ -368,17 +341,16 @@ export const lessonStages = [
 // Helper function to map session stage to activity type
 export const getActivityForStage = (stage) => {
   const stageMap = {
-    'welcome-instructions': 'summary',
-    'lesson-goals': 'summary',
-    'texture-definition': 'summary',
-    'texture-continued': 'summary',
-    'layers-in-music': 'summary',
-    'layer-detective-rules': 'summary',
-    'layer-detective-class-demo': 'layer-detective',
-    'layer-detective': 'layer-detective',
-    'layer-detective-results': 'layer-detective-results',
-    'composition-directions': 'summary',
-    'sports-composition': 'sports-composition-activity',  // Includes video selection!
+    'sports-highlight-intro': 'summary',
+    'show-agenda': 'summary',
+    'introduce-daw': 'summary',
+    'introduce-daw-challenge': 'summary',
+    'daw-tutorial': 'daw-tutorial',
+    'introduce-video': 'summary',
+    'sports-video': 'video',
+    'composition-instructions': 'summary',
+    'sports-composition': 'sports-composition-activity',
+    'show-reflection': 'summary',
     'reflection': 'sports-composition-activity',  // Show composition during reflection
     'conclusion': 'discussion'
   };

@@ -264,95 +264,115 @@ const LoopBlock = React.memo(({
     setResizeDirection(direction);
   }, []);
 
+  // Use RAF for smooth resize updates
+  const rafRef = useRef(null);
+  const lastResizeUpdate = useRef(0);
+
   useEffect(() => {
     if (!isResizing) return;
 
     const handleMouseMove = (e) => {
-      const loopElement = document.querySelector(`[data-loop-id="${loop.id}"]`);
-      if (!loopElement) return;
-      
-      let scrollContainer = loopElement.parentElement;
-      while (scrollContainer && !scrollContainer.classList.contains('overflow-auto')) {
-        scrollContainer = scrollContainer.parentElement;
-        if (scrollContainer === document.body) {
-          scrollContainer = null;
-          break;
-        }
+      // Cancel any pending RAF
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
       }
-      
-      const scrollLeft = scrollContainer?.scrollLeft || 0;
-      const timelineContent = loopElement.parentElement;
-      if (!timelineContent) return;
-      
-      const contentRect = timelineContent.getBoundingClientRect();
-      const mouseXRelativeToContent = e.clientX - contentRect.left + scrollLeft;
-      
-      // FIXED: Calculate mouse time properly accounting for left margin
-      // This prevents the loop from jumping when you start resizing
-      const leftMargin = TIMELINE_CONSTANTS.MARGIN_WIDTH / 2;
-      const pixelsPerSecond = timeToPixel(1) - timeToPixel(0);
-      const mouseTime = (mouseXRelativeToContent - leftMargin) / pixelsPerSecond;
-      
-      if (resizeDirection === 'right') {
-        const newDuration = mouseTime - loop.startTime;
-        const minDuration = 0.1;
-        const maxDuration = videoDuration - loop.startTime;
-        const constrainedDuration = Math.max(minDuration, Math.min(maxDuration, newDuration));
-        const newEndTime = loop.startTime + constrainedDuration;
+
+      // Schedule update on next frame for butter-smooth responsiveness
+      rafRef.current = requestAnimationFrame(() => {
+        const loopElement = document.querySelector(`[data-loop-id="${loop.id}"]`);
+        if (!loopElement) return;
         
-        if (Math.abs(newEndTime - loop.endTime) > 0.1) {
-          onLoopUpdate(loop.id, { endTime: newEndTime });
-          if (onLoopResize) {
-            onLoopResize(loop.id, constrainedDuration);
+        let scrollContainer = loopElement.parentElement;
+        while (scrollContainer && !scrollContainer.classList.contains('overflow-auto')) {
+          scrollContainer = scrollContainer.parentElement;
+          if (scrollContainer === document.body) {
+            scrollContainer = null;
+            break;
           }
         }
-      } else if (resizeDirection === 'left') {
-        // Calculate new start time (user is dragging left edge)
-        const newStartTime = Math.max(0, mouseTime);
         
-        // CRITICAL: Keep the right edge (endTime) FIXED
-        // Don't change loop.endTime at all
-        const fixedEndTime = loop.endTime;
+        const scrollLeft = scrollContainer?.scrollLeft || 0;
+        const timelineContent = loopElement.parentElement;
+        if (!timelineContent) return;
         
-        // Calculate how much we're trimming from the left
-        const startTimeChange = newStartTime - loop.startTime;
+        const contentRect = timelineContent.getBoundingClientRect();
+        const mouseXRelativeToContent = e.clientX - contentRect.left + scrollLeft;
         
-        // Calculate new duration (from new start to fixed end)
-        const newDuration = fixedEndTime - newStartTime;
-        const minDuration = 0.1;
+        // FIXED: Use correct 16px left padding (matches useTimelineState.js)
+        const LEFT_PADDING = 16;  // Must match the LEFT_PADDING in useTimelineState.js
+        const pixelsPerSecond = timeToPixel(1) - timeToPixel(0);
+        const mouseTime = (mouseXRelativeToContent - LEFT_PADDING) / pixelsPerSecond;
         
-        if (newDuration >= minDuration && newStartTime >= 0 && Math.abs(startTimeChange) > 0.1) {
-          // Calculate the start offset in the audio file
-          // This tracks where in the original audio we should start playing
-          const currentStartOffset = loop.startOffset || 0;
-          const newStartOffset = currentStartOffset + startTimeChange;
+        if (resizeDirection === 'right') {
+          const newDuration = mouseTime - loop.startTime;
+          const minDuration = 0.1;
+          const maxDuration = videoDuration - loop.startTime;
+          const constrainedDuration = Math.max(minDuration, Math.min(maxDuration, newDuration));
+          const newEndTime = loop.startTime + constrainedDuration;
           
-          // Update ONLY the startTime and startOffset
-          // Do NOT update endTime - it stays fixed!
-          onLoopUpdate(loop.id, { 
-            startTime: newStartTime,
-            startOffset: newStartOffset  // Where in audio file to start
-            // endTime is NOT updated - stays fixed!
-          });
+          // ULTRA-RESPONSIVE: Update every frame, no threshold check
+          // Only skip if value is exactly the same
+          if (newEndTime !== loop.endTime) {
+            onLoopUpdate(loop.id, { endTime: newEndTime });
+            if (onLoopResize) {
+              onLoopResize(loop.id, constrainedDuration);
+            }
+          }
+        } else if (resizeDirection === 'left') {
+          // Calculate new start time (user is dragging left edge)
+          const newStartTime = Math.max(0, mouseTime);
           
-          if (onLoopResize) {
-            onLoopResize(loop.id, newDuration);
+          // CRITICAL: Keep the right edge (endTime) FIXED
+          const fixedEndTime = loop.endTime;
+          
+          // Calculate how much we're trimming from the left
+          const startTimeChange = newStartTime - loop.startTime;
+          
+          // Calculate new duration (from new start to fixed end)
+          const newDuration = fixedEndTime - newStartTime;
+          const minDuration = 0.1;
+          
+          // ULTRA-RESPONSIVE: Update every frame, no threshold check
+          if (newDuration >= minDuration && newStartTime >= 0 && startTimeChange !== 0) {
+            // Calculate the start offset in the audio file
+            const currentStartOffset = loop.startOffset || 0;
+            const newStartOffset = currentStartOffset + startTimeChange;
+            
+            // Update ONLY the startTime and startOffset
+            onLoopUpdate(loop.id, { 
+              startTime: newStartTime,
+              startOffset: newStartOffset
+            });
+            
+            if (onLoopResize) {
+              onLoopResize(loop.id, newDuration);
+            }
           }
         }
-      }
+      });
     };
 
     const handleMouseUp = () => {
+      // Cancel any pending RAF
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
       setIsResizing(false);
       setResizeDirection(null);
     };
 
-    document.addEventListener('mousemove', handleMouseMove, { passive: false });
+    document.addEventListener('mousemove', handleMouseMove, { passive: true });
     document.addEventListener('mouseup', handleMouseUp);
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
 
     return () => {
+      // Cancel RAF on cleanup
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
       document.body.style.cursor = '';
@@ -637,20 +657,17 @@ const LoopBlock = React.memo(({
         />
       </svg>
 
-      {/* CLEAR VERTICAL SEPARATOR LINES - Highly Visible Loop Repeat Markers */}
+      {/* CLEAR VERTICAL SEPARATOR LINES - WHITE ONLY, THICKER & MORE VISIBLE */}
       {(() => {
         const originalDuration = originalDurationRef.current || loop.duration;
         const currentDuration = loop.endTime - loop.startTime;
         const startOffset = loop.startOffset || 0;
         
         // Calculate how many complete loops fit in the ORIGINAL timeline (before trimming)
-        // This determines where the markers were originally placed
         const totalOriginalDuration = currentDuration + startOffset;
         const fullLoops = Math.floor(totalOriginalDuration / originalDuration);
-        const hasPartialLoop = (totalOriginalDuration % originalDuration) > 0.01;
         
-        // We want to show markers at the ORIGINAL loop boundaries
-        // But only the ones that are visible (after the startOffset)
+        // Find visible markers (after startOffset, before end)
         const markers = [];
         
         for (let i = 1; i <= fullLoops; i++) {
@@ -670,15 +687,8 @@ const LoopBlock = React.memo(({
         
         if (markers.length === 0) return null;
         
-        // Calculate if loop color is light or dark for smart contrast
-        const hex = loopColor.replace('#', '');
-        const r = parseInt(hex.substr(0, 2), 16);
-        const g = parseInt(hex.substr(2, 2), 16);
-        const b = parseInt(hex.substr(4, 2), 16);
-        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-        
-        // Choose contrasting color
-        const separatorColor = brightness > 128 ? '#000000' : '#ffffff';
+        // FIXED: Always use WHITE markers (no dark markers)
+        const separatorColor = '#ffffff';
         
         return markers.map((markerTime, i) => {
           const x = (markerTime / currentDuration) * width;
@@ -691,11 +701,11 @@ const LoopBlock = React.memo(({
                 left: `${x}px`,
                 top: '2px',
                 bottom: '2px',
-                width: '2px',
-                transform: 'translateX(-1px)',
+                width: '3px',  // THICKER: Increased from 2px to 3px
+                transform: 'translateX(-1.5px)',  // Adjusted centering for 3px width
                 backgroundColor: separatorColor,
-                opacity: 0.5,
-                boxShadow: `0 0 4px ${separatorColor}`,
+                opacity: 0.7,  // MORE VISIBLE: Increased from 0.5 to 0.7
+                boxShadow: `0 0 6px ${separatorColor}, 0 0 2px ${separatorColor}`,  // STRONGER GLOW
                 borderRadius: '1px'
               }}
             />

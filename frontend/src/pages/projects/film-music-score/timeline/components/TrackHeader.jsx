@@ -1,4 +1,5 @@
 // File: /src/pages/projects/film-music-score/timeline/components/TrackHeader.jsx
+// FIXED: Changed width from w-40 to w-48 to eliminate gap
 
 import React from 'react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
@@ -31,34 +32,34 @@ const TrackHeader = ({
 
   return (
     <div 
-      className={`track-header w-40 bg-gray-800 border-r border-gray-600 border-b border-gray-700 ${
+      className={`track-header bg-gray-800 border-r border-gray-600 border-b border-gray-700 ${
         hoveredTrack === trackIndex ? 'bg-gray-700' : ''
       } ${hasLoops ? 'ring-1 ring-blue-500/30' : ''} ${
         tutorialMode ? 'cursor-pointer' : ''
       }`}
-      style={{ height: TIMELINE_CONSTANTS.TRACK_HEIGHT }}
+      style={{ width: '154px', height: TIMELINE_CONSTANTS.TRACK_HEIGHT }}
       onClick={handleHeaderClick}
     >
-      <div className="p-2">
-        <div className="flex items-center space-x-2 mb-1">
-          <span className="text-white text-xs font-medium w-12">
+      <div className="px-2 py-1.5">
+        <div className="flex items-center space-x-1.5 mb-1">
+          <span className="text-white text-[10px] font-medium w-11 flex-shrink-0 whitespace-nowrap overflow-hidden text-ellipsis">
             {trackState.name || `Track ${trackIndex + 1}`}
           </span>
           
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-0.5 flex-1">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 const newVolume = Math.max(0, (trackState.volume || 0.7) - 0.05);
                 updateTrackState(trackId, { volume: newVolume });
               }}
-              className="w-4 h-4 bg-gray-600 hover:bg-gray-500 rounded text-xs text-white flex items-center justify-center transition-colors"
+              className="w-4 h-4 bg-gray-600 hover:bg-gray-500 rounded text-xs text-white flex items-center justify-center transition-colors flex-shrink-0"
               title="Decrease volume"
             >
               ‹
             </button>
             
-            <span className="text-xs text-gray-400 w-8 text-center">
+            <span className="text-xs text-gray-400 w-7 text-center flex-shrink-0">
               {Math.round((trackState.volume || 0.7) * 100)}%
             </span>
             
@@ -68,7 +69,7 @@ const TrackHeader = ({
                 const newVolume = Math.min(1, (trackState.volume || 0.7) + 0.05);
                 updateTrackState(trackId, { volume: newVolume });
               }}
-              className="w-4 h-4 bg-gray-600 hover:bg-gray-500 rounded text-xs text-white flex items-center justify-center transition-colors"
+              className="w-4 h-4 bg-gray-600 hover:bg-gray-500 rounded text-xs text-white flex items-center justify-center transition-colors flex-shrink-0"
               title="Increase volume"
             >
               ›
@@ -76,17 +77,18 @@ const TrackHeader = ({
           </div>
         </div>
 
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-0.5">
           <button
             onClick={(e) => {
               e.stopPropagation();
               updateTrackState(trackId, { muted: !trackState.muted });
             }}
-            className={`px-1.5 py-0.5 text-xs rounded transition-colors ${
+            className={`px-1 text-[9px] leading-none rounded transition-colors flex-shrink-0 ${
               trackState.muted 
                 ? 'bg-red-500 text-white' 
                 : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
             }`}
+            style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             title="Mute"
           >
             M
@@ -97,11 +99,12 @@ const TrackHeader = ({
               e.stopPropagation();
               updateTrackState(trackId, { solo: !trackState.solo });
             }}
-            className={`px-1.5 py-0.5 text-xs rounded transition-colors ${
+            className={`px-1 text-[9px] leading-none rounded transition-colors flex-shrink-0 ${
               trackState.solo 
                 ? 'bg-yellow-500 text-black' 
                 : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
             }`}
+            style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             title="Solo"
           >
             S
