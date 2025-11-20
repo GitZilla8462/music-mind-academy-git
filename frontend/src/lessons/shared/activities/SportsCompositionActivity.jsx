@@ -170,6 +170,32 @@ const SportsCompositionActivity = ({
     }
   }, []);
   
+  // ============================================================================
+  // REFLECTION DETECTION - Shows modal when teacher advances to reflection stage
+  // ============================================================================
+  
+  useEffect(() => {
+    console.log('🏀 Reflection Check:', {
+      isReflectionStage,
+      reflectionCompleted,
+      studentId,
+      showReflection,
+      viewingReflection
+    });
+    
+    // Show reflection when teacher advances to reflection stage
+    // Only show if not already showing (prevents infinite loop)
+    if (isReflectionStage && !showReflection && !viewingReflection && studentId) {
+      console.log('✅ Showing reflection modal');
+      setShowReflection(true);
+      
+      // If already completed, set viewing mode
+      if (reflectionCompleted) {
+        setViewingReflection(true);
+      }
+    }
+  }, [isReflectionStage, reflectionCompleted, studentId, showReflection, viewingReflection]);
+  
   // Load previously selected video on mount - WITH detected duration
   useEffect(() => {
     const savedVideoSelection = getSelectedVideo();
@@ -205,7 +231,7 @@ const SportsCompositionActivity = ({
     }
   }, [videoDurations]); // Re-run when durations are detected
   
-  // AUTO-SAVE
+  // AUTO-SAVE - Single composition that works with any video
   const compositionData = {
     placedLoops,
     videoDuration,
@@ -213,27 +239,34 @@ const SportsCompositionActivity = ({
     timestamp: Date.now()
   };
   
+  // Use single key for all videos - composition transfers between videos
   const { lastSaved, isSaving, hasSavedWork, loadSavedWork } = useAutoSave(
     studentId,
-    'sports-composition',
+    'sports-composition',  // ✅ Single key - same loops for all videos
     compositionData,
     5000
   );
   
-  // Load saved work on mount
+  // Load saved work on mount ONLY (not when video changes)
   useEffect(() => {
     if (!studentId || viewMode || !selectedVideo) return;
+    
+    // Only load once on initial mount
+    const hasLoaded = sessionStorage.getItem('sports-composition-loaded');
+    if (hasLoaded) return;
+    
+    console.log('🎬 Initial load - checking for saved work');
     
     if (hasSavedWork) {
       const saved = loadSavedWork();
       if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
-        if (saved.videoId === selectedVideo.id) {
-          setPlacedLoops(saved.placedLoops || []);
-          setVideoDuration(saved.videoDuration || selectedVideo.duration);
-          console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
-        }
+        setPlacedLoops(saved.placedLoops || []);
+        setVideoDuration(saved.videoDuration || selectedVideo.duration);
+        console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
       }
     }
+    
+    sessionStorage.setItem('sports-composition-loaded', 'true');
   }, [studentId, hasSavedWork, viewMode, loadSavedWork, selectedVideo]);
   
   // REFLECTION DETECTION
@@ -345,14 +378,14 @@ const SportsCompositionActivity = ({
   
   const handleChangeVideo = () => {
     const confirmChange = window.confirm(
-      'Are you sure you want to change your video? Your current composition will be saved, but you\'ll need to start a new one for the different video.'
+      'Change video? Your loops will stay on the timeline and play with the new video you select.'
     );
     
     if (confirmChange) {
-      console.log('🔄 Changing video - saving current work and showing selection');
+      console.log('🔄 Showing video selection (keeping current composition loaded)');
+      // Don't set selectedVideo to null - this would unmount MusicComposer
+      // Just show the video selection overlay
       setShowVideoSelection(true);
-      setSelectedVideo(null);
-      setVideoDuration(null);
     }
   };
   
@@ -420,79 +453,7 @@ const SportsCompositionActivity = ({
   }
   
   // ============================================================================
-  // VIDEO SELECTION SCREEN - WITH DETECTED DURATIONS
-  // ============================================================================
-  if (showVideoSelection && !viewMode) {
-    return (
-      <div className="h-full flex items-center justify-center bg-gradient-to-br from-orange-900 via-red-900 to-pink-900 p-6 overflow-y-auto">
-        <div className="max-w-5xl w-full my-4">
-          <div className="text-center mb-6">
-            <h1 className="text-4xl font-bold text-white mb-3">
-              Choose Your Sports Video
-            </h1>
-            <p className="text-xl text-orange-200">
-              Pick one sport to create high-energy music for!
-            </p>
-            {detectingDurations && (
-              <p className="text-sm text-yellow-300 mt-2">
-                ⏳ Detecting video durations...
-              </p>
-            )}
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {SPORTS_VIDEOS.map((video) => {
-              const duration = videoDurations[video.id];
-              const durationDisplay = duration 
-                ? `${Math.floor(duration / 60)}:${Math.floor(duration % 60).toString().padStart(2, '0')}`
-                : '...';
-              
-              return (
-                <div
-                  key={video.id}
-                  className="bg-white rounded-xl overflow-hidden shadow-2xl transform hover:scale-105 transition-all duration-300"
-                >
-                  {/* Better sized emoji display - 160px */}
-                  <div className="relative h-40 bg-gray-900 overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center text-7xl">
-                      {video.emoji}
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                  </div>
-                  
-                  {/* Better spaced card content */}
-                  <div className="p-4">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {video.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2 min-h-[40px]">
-                      {video.description}
-                    </p>
-                    <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                      <span>⏱️ {durationDisplay}</span>
-                    </div>
-                    
-                    {/* Preview Button */}
-                    <button
-                      onClick={() => handlePreviewVideo(video)}
-                      disabled={!duration}
-                      className={`w-full py-2.5 rounded-lg font-bold transition-all shadow-lg text-base ${
-                        duration
-                          ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
-                    >
-                      {duration ? '👁️ Watch Preview' : '⏳ Loading...'}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // VIDEO SELECTION SCREEN - Now renders as overlay (moved to bottom of component)
   
   // LOADING STATE - Also wait for video to be selected
   if ((isLoadingVideo || (!selectedVideo && !showVideoSelection) || detectingDurations) && !viewMode) {
@@ -506,38 +467,11 @@ const SportsCompositionActivity = ({
     );
   }
   
-  // BONUS GAME
-  if (showBonusGame) {
-    return (
-      <div className="h-screen w-full flex flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-white">Bonus: Name That Loop!</h2>
-            <p className="text-blue-100">Play the listening game with a partner</p>
-          </div>
-          
-          <button
-            onClick={() => setShowBonusGame(false)}
-            className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
-          >
-            ← Back to Composition
-          </button>
-        </div>
-        
-        <div className="flex-1 overflow-hidden">
-          <NameThatLoopActivity 
-            onComplete={() => {
-              console.log('Bonus complete');
-            }}
-          />
-        </div>
-      </div>
-    );
-  }
+  // BONUS GAME - Now renders as overlay to prevent composition from unmounting
   
   // MAIN ACTIVITY
   return (
-    <div className="h-full flex flex-col bg-gray-900">
+    <div className="h-full flex flex-col bg-gray-900 relative">{/* Added relative for overlay positioning */}
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">
         <div className="px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -549,16 +483,6 @@ const SportsCompositionActivity = ({
                 </span>
               )}
             </h2>
-            
-            {/* Change Video button - Always visible (moved to left side) */}
-            {!viewMode && (
-              <button
-                onClick={handleChangeVideo}
-                className="px-3 py-1.5 text-xs rounded bg-orange-600 hover:bg-orange-700 font-semibold transition-colors flex items-center gap-1"
-              >
-                🎬 Change Video
-              </button>
-            )}
           </div>
           
           <div className="flex items-center gap-4">
@@ -601,7 +525,7 @@ const SportsCompositionActivity = ({
       <div className="flex-1 min-h-0">
         {selectedVideo ? (
           <MusicComposer
-            key={showBonusGame ? 'bonus-active' : 'composition-active'}
+            key={`sports-composer-${selectedVideo?.id || 'none'}`}  // Key based on video selection only - prevents re-mount when reflection appears
             onLoopDropCallback={handleLoopPlaced}
             onLoopDeleteCallback={handleLoopDeleted}
             onLoopUpdateCallback={handleLoopUpdated}
@@ -614,7 +538,7 @@ const SportsCompositionActivity = ({
             }}
             restrictToCategory={null}
             lockedMood={null}
-            showSoundEffects={false}
+            showSoundEffects={true}  // ✅ Show sound effects checkbox
             hideHeader={true}
             hideSubmitButton={true}
             isLessonMode={true}
@@ -652,6 +576,101 @@ const SportsCompositionActivity = ({
           viewMode={viewingReflection}
           isSessionMode={isSessionMode}
         />
+      )}
+      
+      {/* Bonus game as overlay - keeps composition mounted underneath */}
+      {showBonusGame && (
+        <div className="absolute inset-0 z-50 flex flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-white">Bonus: Name That Loop!</h2>
+              <p className="text-blue-100">Play the listening game with a partner</p>
+            </div>
+            
+            <button
+              onClick={() => setShowBonusGame(false)}
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
+            >
+              ← Back to Composition
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-hidden">
+            <NameThatLoopActivity 
+              onComplete={() => {
+                console.log('Bonus complete');
+              }}
+            />
+          </div>
+        </div>
+      )}
+      
+      {/* Video selection as overlay - keeps composition and loops mounted */}
+      {showVideoSelection && !viewMode && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-gradient-to-br from-orange-900 via-red-900 to-pink-900 p-6 overflow-y-auto">
+          <div className="max-w-5xl w-full my-4">
+            <div className="text-center mb-6">
+              <h1 className="text-4xl font-bold text-white mb-3">
+                Choose Your Sports Video
+              </h1>
+              <p className="text-xl text-orange-200">
+                Your loops will play with whichever video you choose!
+              </p>
+              {detectingDurations && (
+                <p className="text-sm text-yellow-300 mt-2">
+                  ⏳ Detecting video durations...
+                </p>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {SPORTS_VIDEOS.map((video) => {
+                const duration = videoDurations[video.id];
+                const durationDisplay = duration 
+                  ? `${Math.floor(duration / 60)}:${Math.floor(duration % 60).toString().padStart(2, '0')}`
+                  : '...';
+                
+                return (
+                  <div
+                    key={video.id}
+                    className="bg-white rounded-xl overflow-hidden shadow-2xl transform hover:scale-105 transition-all duration-300"
+                  >
+                    <div className="relative h-40 bg-gray-900 overflow-hidden">
+                      <div className="absolute inset-0 flex items-center justify-center text-7xl">
+                        {video.emoji}
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    </div>
+                    
+                    <div className="p-4">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        {video.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2 min-h-[40px]">
+                        {video.description}
+                      </p>
+                      <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+                        <span>⏱️ {durationDisplay}</span>
+                      </div>
+                      
+                      <button
+                        onClick={() => handlePreviewVideo(video)}
+                        disabled={!duration}
+                        className={`w-full py-2.5 rounded-lg font-bold transition-all shadow-lg text-base ${
+                          duration
+                            ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
+                      >
+                        {duration ? '👁️ Watch Preview' : '⏳ Loading...'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 // File: SchoolBeneathActivity.jsx
+// File: SchoolBeneathActivity.jsx
 // SIMPLIFIED VERSION - All loops + sound effects from start, no submit button, reflection modal on teacher command
 // âœ… UPDATED: Added "View My Reflection & Composition" functionality
 
@@ -281,41 +282,18 @@ const SchoolBeneathActivity = ({
   // BONUS GAME
   // ============================================================================
   
-  if (showBonusGame) {
-    return (
-      <div className="h-screen w-full flex flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-white">Bonus: Name That Loop!</h2>
-            <p className="text-blue-100">Play the listening game with a partner</p>
-          </div>
-          
-          {/* âœ… SOLUTION 1: Simple back button - view reflection from composition page */}
-          <button
-            onClick={() => setShowBonusGame(false)}
-            className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
-          >
-            â† Back to Composition
-          </button>
-        </div>
-        
-        <div className="flex-1 overflow-hidden">
-          <NameThatLoopActivity 
-            onComplete={() => {
-              console.log('Bonus complete');
-            }}
-          />
-        </div>
-      </div>
-    );
-  }
+  // ============================================================================
+  // BONUS GAME - Now renders as overlay to prevent composition from unmounting
+  // ============================================================================
+  
+  // BONUS GAME moved to overlay at bottom of component
   
   // ============================================================================
   // MAIN ACTIVITY
   // ============================================================================
   
   return (
-    <div className="h-full flex flex-col bg-gray-900">
+    <div className="h-full flex flex-col bg-gray-900 relative">{/* Added relative for overlay positioning */}
       {/* Header */}
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">
         <div className="px-4 py-2 flex items-center justify-between">
@@ -410,9 +388,36 @@ const SchoolBeneathActivity = ({
             setViewingReflection(false);
             setShowBonusGame(true);
           }}
-          viewMode={viewingReflection}  // âœ… Pass viewMode when viewing (not first time)
+          viewMode={viewingReflection}
           isSessionMode={isSessionMode}
         />
+      )}
+      
+      {/* Bonus game as overlay - keeps composition mounted underneath */}
+      {showBonusGame && (
+        <div className="absolute inset-0 z-50 flex flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-white">Bonus: Name That Loop!</h2>
+              <p className="text-blue-100">Play the listening game with a partner</p>
+            </div>
+            
+            <button
+              onClick={() => setShowBonusGame(false)}
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
+            >
+              Back to Composition
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-hidden">
+            <NameThatLoopActivity 
+              onComplete={() => {
+                console.log('Bonus complete');
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

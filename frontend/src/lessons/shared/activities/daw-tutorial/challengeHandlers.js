@@ -1,4 +1,5 @@
 // File: /src/lessons/film-music-project/lesson1/activities/daw-tutorial/challengeHandlers.js
+// UPDATED: Loop deletion handler now checks for Challenge 13
 
 import { useCallback } from 'react';
 
@@ -42,7 +43,7 @@ export const useChallengeHandlers = (
       action: 'loop-library-clicked'
     }));
 
-    if (currentChallenge?.id === 3) {
+    if (currentChallenge?.id === 2) {
       handleCorrectAction();
     }
     
@@ -104,7 +105,7 @@ export const useChallengeHandlers = (
       trackIndex
     }));
 
-    if (currentChallenge?.id === 9) {
+    if (currentChallenge?.id === 4) {
       handleCorrectAction();
     }
   }, [currentChallenge, dawContext.placedLoops, setDawContext, handleCorrectAction]);
@@ -120,8 +121,8 @@ export const useChallengeHandlers = (
       newTime
     }));
 
-    // ONLY validate if current challenge is specifically challenge 11 (move loop)
-    if (currentChallenge?.id === 11) {
+    // ONLY validate if current challenge is specifically challenge 7 (move loop)
+    if (currentChallenge?.id === 7) {
       handleCorrectAction();
     }
   }, [currentChallenge, setDawContext, handleCorrectAction]);
@@ -139,7 +140,7 @@ export const useChallengeHandlers = (
       newDuration
     }));
 
-    // ONLY validate if current challenge is specifically challenge 20 (resize loop)
+    // ONLY validate if current challenge is specifically for resize (if you add one later)
     if (currentChallenge?.id === 20) {
       console.log('✅ Challenge 20 detected - calling handleCorrectAction');
       handleCorrectAction();
@@ -186,12 +187,12 @@ export const useChallengeHandlers = (
     
     setDawContext(prev => ({
       ...prev,
-      action: 'zoomed',
+      action: 'zoom-changed',
       zoomLevel: newZoom,
       zoomDirection: direction
     }));
 
-    if (currentChallenge?.id === 16 && direction === 'in') {
+    if (currentChallenge?.id === 9) {
       handleCorrectAction();
     }
   }, [currentChallenge, setDawContext, handleCorrectAction]);
@@ -205,7 +206,7 @@ export const useChallengeHandlers = (
       action: 'playback-started'
     }));
 
-    if (currentChallenge?.id === 18) {
+    if (currentChallenge?.id === 11) {
       handleCorrectAction();
     }
   }, [currentChallenge, setDawContext, handleCorrectAction]);
@@ -219,23 +220,28 @@ export const useChallengeHandlers = (
       action: 'playback-stopped'
     }));
 
-    if (currentChallenge?.id === 19) {
+    if (currentChallenge?.id === 12) {
       handleCorrectAction();
     }
   }, [currentChallenge, setDawContext, handleCorrectAction]);
 
-  // Loop deletion handler
+  // Loop deletion handler - UPDATED for Challenge 13
   const handleLoopDelete = useCallback((loopId) => {
-    console.log('Loop deleted:', loopId);
+    console.log('🗑️ Loop deleted:', loopId);
+    console.log('🗑️ Current challenge ID:', currentChallenge?.id);
     
     setDawContext(prev => ({
       ...prev,
       action: 'loop-deleted',
       placedLoops: prev.placedLoops.filter(l => l.id !== loopId),
-      loopId
+      loopId,
+      deletedLoopId: loopId,
+      deletedAt: Date.now()
     }));
 
-    if (currentChallenge?.id === 20) {  // FIXED: Changed from 21 to 20
+    // Validate if current challenge is Challenge 13 (delete loop)
+    if (currentChallenge?.id === 13) {
+      console.log('✅ Challenge 13 detected - loop deleted successfully!');
       handleCorrectAction();
     }
   }, [currentChallenge, setDawContext, handleCorrectAction]);

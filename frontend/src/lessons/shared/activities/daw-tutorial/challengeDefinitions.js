@@ -1,5 +1,6 @@
 // File: /src/lessons/film-music-project/lesson1/activities/daw-tutorial/challengeDefinitions.js
 // All challenge data definitions for the DAW tutorial
+// UPDATED: Added Challenge 13 - Delete a loop using keyboard
 
 export const DAW_CHALLENGES = [
   // SECTION 1: VIDEO PLAYER
@@ -129,8 +130,8 @@ export const DAW_CHALLENGES = [
     id: 9,
     section: "Navigation",
     question: "Drag the blue button on the zoom controls to zoom in and out.",
-    highlightSelector: '.zoom-controls',  // MISSING THIS
-  type: 'interactive-task',
+    highlightSelector: '.zoom-controls',
+    type: 'interactive-task',
     instruction: "Drag the blue dot on the zoom slider left and right to change the zoom level. The zoom controls are on the right side of the screen - drag this box if you need to!",
     hint: "Look for the zoom slider on the right side of the timeline. Drag the blue dot left (zoom out) or right (zoom in). If you can't see it, drag this orange box to a different position!",
     correctAnswer: "Zoom changed",
@@ -181,6 +182,24 @@ export const DAW_CHALLENGES = [
     validation: (context) => context.action === 'playback-stopped',
     lockFeatures: {
       allowLoopDrag: true,
+      allowPlayback: true
+    }
+  },
+
+  // SECTION 7: LOOP MANAGEMENT
+  {
+    id: 13,
+    section: "Loop Management",
+    question: "Delete a loop by clicking on it to select it, then pressing the Backspace or Delete key on your keyboard.",
+    type: 'interactive-task',
+    instruction: "First click on a loop in the timeline to select it (it will be highlighted), then press Backspace or Delete on your keyboard",
+    hint: "Click on any loop block in the timeline to select it first, then use your keyboard's Backspace or Delete key to remove it",
+    correctAnswer: "Loop deleted",
+    validation: (context) => context.action === 'loop-deleted',
+    requiresLoopPlaced: true,
+    lockFeatures: {
+      allowLoopDrag: true,
+      allowLoopDelete: true,
       allowPlayback: true
     }
   },

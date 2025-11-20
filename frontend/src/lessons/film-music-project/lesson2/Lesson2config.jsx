@@ -104,15 +104,8 @@ export const lessonSections = [
     subtitle: 'Two Stars and a Wish',
     icon: "⭐",
     color: 'yellow',
-    estimatedTime: 7,
+    estimatedTime: 5,
     stages: [
-      { 
-        id: 'show-reflection', 
-        type: 'summary', 
-        label: 'Show Two Stars and a Wish Activity',
-        description: 'Display reflection instructions - Slide 9',
-        duration: 2
-      },
       { 
         id: 'reflection', 
         type: 'activity', 
@@ -301,17 +294,6 @@ export const lessonStages = [
     }
   },
   { 
-    id: 'show-reflection', 
-    label: 'Show Two Stars and a Wish Activity', 
-    description: 'Reflection instructions - Slide 9',
-    type: 'summary',
-    duration: 2,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/9.png'
-    }
-  },
-  { 
     id: 'reflection', 
     label: 'Unlock Two Stars and a Wish Activity', 
     description: 'Students complete reflection', 
@@ -350,8 +332,7 @@ export const getActivityForStage = (stage) => {
     'sports-video': 'video',
     'composition-instructions': 'summary',
     'sports-composition': 'sports-composition-activity',
-    'show-reflection': 'summary',
-    'reflection': 'sports-composition-activity',  // Show composition during reflection
+    'reflection': 'sports-composition-activity',  // Show composition during reflection (modal appears on top)
     'conclusion': 'discussion'
   };
   return stageMap[stage];
