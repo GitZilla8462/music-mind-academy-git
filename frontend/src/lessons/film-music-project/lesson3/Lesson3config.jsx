@@ -1,6 +1,7 @@
 // File: /lessons/film-music-project/lesson3/Lesson3config.jsx
 // Lesson 3: City Soundscapes - Configuration
 // Music concept: Texture and Layering
+// ✅ UPDATED: Added Layer Detective class demo, individual game, and city video selection
 
 export const LESSON_PROGRESS_KEY = 'lesson3-progress';
 export const LESSON_TIMER_KEY = 'lesson3-timer';
@@ -60,7 +61,7 @@ export const lessonSections = [
     subtitle: 'Identify Layers Game',
     icon: '🔍',
     color: 'orange',
-    estimatedTime: 7,
+    estimatedTime: 10,
     stages: [
       { 
         id: 'introduce-layer-detective', 
@@ -68,6 +69,13 @@ export const lessonSections = [
         label: 'Introduce Layer Detective Game',
         description: 'Introduce the Layer Detective activity - Slide 6',
         duration: 1
+      },
+      { 
+        id: 'layer-detective-class-demo', 
+        type: 'class-demo', 
+        label: 'Layer Detective Class Demo', 
+        duration: 3,
+        description: 'Whole-class demo on projection screen'
       },
       { 
         id: 'layer-detective', 
@@ -117,8 +125,8 @@ export const lessonSections = [
         duration: 10,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students compose city soundscape music',
-        bonusDescription: 'Bonus: Add More Layers and Variation'
+        description: 'Students choose city & compose soundscape',
+        bonusDescription: 'Bonus: Play Layer Detective Again'
       },
       { 
         id: 'reflection', 
@@ -164,19 +172,25 @@ export const lesson3Config = {
   activities: [
     {
       id: 1,
-      type: "layer-detective",
-      title: "Layer Detective Game",
+      type: "layer-detective-class-demo",
+      title: "Layer Detective Class Demo",
       estimatedTime: "3 min"
     },
     {
       id: 2,
-      type: "city-composition-activity",
-      title: "Compose Your City Soundscape",
-      estimatedTime: "10 min",
-      includesVideoSelection: false
+      type: "layer-detective",
+      title: "Layer Detective Game",
+      estimatedTime: "5 min"
     },
     {
       id: 3,
+      type: "city-composition-activity",
+      title: "Compose Your City Soundscape",
+      estimatedTime: "10 min",
+      includesVideoSelection: true  // ✅ City selection built into activity
+    },
+    {
+      id: 4,
       type: "two-stars-wish",
       title: "Reflection Activity",
       estimatedTime: "3 min"
@@ -261,6 +275,16 @@ export const lessonStages = [
     }
   },
   { 
+    id: 'layer-detective-class-demo', 
+    label: 'Layer Detective Class Demo', 
+    description: 'Whole-class demo on projection screen',
+    type: 'class-demo',
+    duration: 3,
+    presentationView: {
+      type: 'layer-detective-class-demo'  // ✅ Full-screen class demo
+    }
+  },
+  { 
     id: 'layer-detective', 
     label: 'Unlock Layer Detective Game', 
     description: 'Students play layer identification game',
@@ -308,8 +332,8 @@ export const lessonStages = [
   { 
     id: 'city-composition', 
     label: 'Unlock Composition Activity', 
-    description: 'Students compose city soundscape - Slide 9', 
-    bonusDescription: 'Bonus: Add More Layers and Variation',
+    description: 'Students choose city & compose soundscape - Slide 9', 
+    bonusDescription: 'Bonus: Play Layer Detective Again',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
@@ -355,12 +379,13 @@ export const getActivityForStage = (stage) => {
     'texture-continued': 'summary',
     'layers-and-texture': 'summary',
     'introduce-layer-detective': 'summary',
-    'layer-detective': 'layer-detective',
+    'layer-detective-class-demo': 'layer-detective-class-demo',  // ✅ Class demo
+    'layer-detective': 'layer-detective',  // ✅ Individual game
     'layer-detective-results': 'results',  // ✅ Results screen
     'composition-instructions': 'summary',
     'composition-instructions-continued': 'summary',
-    'city-composition': 'city-composition-activity',
-    'reflection': 'city-composition-activity',  // Show composition during reflection (modal appears on top)
+    'city-composition': 'city-composition-activity',  // ✅ Now includes city selection
+    'reflection': 'city-composition-activity',  // ✅ Show composition, modal appears on top (matches Lesson 2 flow)
     'conclusion': 'discussion'
   };
   return stageMap[stage];

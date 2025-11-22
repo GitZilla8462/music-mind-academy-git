@@ -1,5 +1,6 @@
 // File: /src/lessons/film-music-project/lesson3/lesson3StorageUtils.js
 // Storage management for Lesson 3 - City Soundscapes
+// ✅ UPDATED: Added city video selection storage
 
 // Storage Keys
 export const STORAGE_KEYS = {
@@ -7,7 +8,8 @@ export const STORAGE_KEYS = {
   REFLECTION: 'city-reflection',
   LESSON_TIMER: 'lesson3-timer',
   LESSON_PROGRESS: 'lesson3-progress',
-  LAYER_DETECTIVE_SCORE: 'lesson3-layer-detective-score'
+  LAYER_DETECTIVE_SCORE: 'lesson3-layer-detective-score',
+  SELECTED_VIDEO: 'city-selected-video'  // ✅ Added
 };
 
 // Helper to ensure loop has all required properties
@@ -28,6 +30,28 @@ const normalizeLoop = (loop) => {
     volume: loop.volume !== undefined ? loop.volume : 1,
     muted: loop.muted !== undefined ? loop.muted : false
   };
+};
+
+// ✅ Selected City Video
+export const saveSelectedVideo = (videoId, videoTitle) => {
+  const selection = {
+    videoId,
+    videoTitle,
+    selectedAt: new Date().toISOString()
+  };
+  localStorage.setItem(STORAGE_KEYS.SELECTED_VIDEO, JSON.stringify(selection));
+  console.log('✅ City video selection saved:', selection);
+  return selection;
+};
+
+export const getSelectedVideo = () => {
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.SELECTED_VIDEO);
+    return data ? JSON.parse(data) : null;
+  } catch (error) {
+    console.error('Error loading selected video:', error);
+    return null;
+  }
 };
 
 // Layer Detective Score
@@ -55,11 +79,12 @@ export const getLayerDetectiveScore = () => {
 };
 
 // City Composition
-export const saveCityComposition = (placedLoops, requirements, compositionDuration) => {
+export const saveCityComposition = (placedLoops, requirements, compositionDuration, videoId) => {
   const normalizedLoops = placedLoops.map(normalizeLoop);
   
   const composition = {
     title: 'City Soundscape',
+    videoId: videoId,  // ✅ Now saves which city video was used
     placedLoops: normalizedLoops,
     requirements,
     compositionDuration,
@@ -126,6 +151,7 @@ export const clearAllLesson3Data = () => {
 // Get complete lesson summary
 export const getLesson3Summary = () => {
   return {
+    selectedVideo: getSelectedVideo(),
     layerDetectiveScore: getLayerDetectiveScore(),
     composition: getCityComposition(),
     reflection: getCityReflection()

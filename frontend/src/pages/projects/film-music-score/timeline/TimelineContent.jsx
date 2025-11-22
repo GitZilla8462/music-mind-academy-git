@@ -351,7 +351,7 @@ const TimelineContent = forwardRef(({
               isInHeader={false}
             />
 
-            {/* Loops - FIXED: Added videoDuration prop + multi-select highlighting */}
+            {/* Loops - FIXED: Added videoDuration prop + multi-select highlighting + SNAP PROPS */}
             {placedLoops
               .filter(loop => trackStates[`track-${loop.trackIndex}`]?.visible !== false)
               .map((loop) => (
@@ -359,6 +359,7 @@ const TimelineContent = forwardRef(({
                   key={loop.id} 
                   loop={loop}
                   timeToPixel={timeToPixel}
+                  pixelToTime={pixelToTime}  // NEW: Required for snap calculations
                   trackStates={trackStates}
                   selectedLoop={selectedLoop}
                   draggedLoop={draggedLoop}
@@ -369,6 +370,8 @@ const TimelineContent = forwardRef(({
                   onLoopResize={onLoopResizeCallback}
                   onLoopDelete={handleLoopDeleteWithMulti}
                   isMultiSelected={selectedLoopIds?.has(loop.id)}
+                  allPlacedLoops={placedLoops}  // NEW: Required for finding snap points
+                  timelineRef={timelineRef}  // NEW: Required for rendering snap guide
                 />
               ))}
 

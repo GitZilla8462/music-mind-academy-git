@@ -16,7 +16,7 @@ const LayerDetectiveResults = ({ sessionData, onPlayAgain, onNextActivity }) => 
     const students = Object.entries(sessionData.studentsJoined)
       .map(([id, data]) => ({
         id,
-        name: data.displayName || data.name || 'Student',  // ✅ Use displayName
+        name: data.playerName || data.displayName || data.name || 'Student',  // ✅ Check playerName FIRST (generated name)
         score: data.score || 0,
         playerColor: data.playerColor || '#3B82F6',        // ✅ Player color
         playerEmoji: data.playerEmoji || '🎵'              // ✅ Player emoji

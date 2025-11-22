@@ -28,6 +28,7 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [shuffledQuestions, setShuffledQuestions] = useState([]);
+  const [isPracticeMode, setIsPracticeMode] = useState(false); // ✅ Track if in practice mode
   
   // Timer states for scoring
   const [startTime, setStartTime] = useState(null);
@@ -551,8 +552,8 @@ useEffect(() => {
         setGameComplete(true);
         console.log('🎉 Game complete! Final score:', score);
         
-        // Update Firebase score
-        if (sessionCode && userId && !viewMode) {
+        // ✅ ONLY save score to Firebase if NOT in practice mode
+        if (sessionCode && userId && !viewMode && !isPracticeMode) {
           try {
             updateStudentScore(sessionCode, userId, score);
             
@@ -565,6 +566,8 @@ useEffect(() => {
           } catch (firebaseErr) {
             console.error('❌ Failed to save score to Firebase:', firebaseErr);
           }
+        } else if (isPracticeMode) {
+          console.log('🔄 Practice mode - score NOT saved to Firebase');
         }
       } else {
         // Next round
@@ -617,7 +620,7 @@ useEffect(() => {
     }
   };
 
-  // ✅ FIXED: Practice More - keeps score, reshuffles questions
+  // ✅ FIXED: Practice More - resets score and reshuffles questions
   const practiceMore = () => {
     try {
       // Stop any playing audio
@@ -632,7 +635,9 @@ useEffect(() => {
       const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
       setShuffledQuestions(shuffled);
       
-      // Reset round states but KEEP the score!
+      // Reset EVERYTHING including score for practice mode
+      setScore(0); // ✅ RESET SCORE for practice
+      setIsPracticeMode(true); // ✅ Enable practice mode - won't save to Firebase
       setGameComplete(false);
       setCurrentRound(0);
       setCurrentQuestion(shuffled[0]);
@@ -644,7 +649,7 @@ useEffect(() => {
       setCurrentTime(0);
       setGameStarted(true);
       
-      console.log('🔄 Practice mode - continuing with score:', score);
+      console.log('🔄 Practice mode - score reset to 0, Firebase saving disabled');
     } catch (error) {
       console.error('❌ Error in practiceMore:', error);
     }
@@ -678,7 +683,7 @@ useEffect(() => {
             </div>
 
             <div className="space-y-3">
-              {/* ✅ FIXED: Practice More button instead of Play Again */}
+              {/* ✅ Practice More button */}
               <button
                 onClick={practiceMore}
                 className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white py-3 rounded-lg font-bold text-lg hover:from-orange-700 hover:to-red-700 transition-all shadow-lg flex items-center justify-center space-x-2"
@@ -686,15 +691,6 @@ useEffect(() => {
                 <RefreshCw size={20} />
                 <span>Practice More</span>
               </button>
-              
-              {!viewMode && (
-                <button
-                  onClick={onComplete}
-                  className="w-full bg-gray-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-gray-700 transition-all"
-                >
-                  Continue to Next Activity
-                </button>
-              )}
             </div>
           </div>
         </div>

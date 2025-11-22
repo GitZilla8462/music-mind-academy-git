@@ -11,6 +11,7 @@ import SoundEffectsActivity from '../activities/SoundEffectsActivity';
 import NameThatLoopActivity from '../activities/layer-detective/NameThatLoopActivity';
 import LayerDetectiveActivity from '../activities/layer-detective/LayerDetectiveActivity';
 import SportsCompositionActivity from "../activities/SportsCompositionActivity";
+import CityCompositionActivity from "../activities/CityCompositionActivity";
 
 const ActivityRenderer = ({
   activity,
@@ -67,6 +68,18 @@ const ActivityRenderer = ({
       return (
         <SportsCompositionActivity 
           key={`sports-composition-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          lessonStartTime={lessonStartTime}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: City Composition Activity
+    case 'city-composition-activity':
+      return (
+        <CityCompositionActivity 
+          key={`city-composition-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}
           lessonStartTime={lessonStartTime}

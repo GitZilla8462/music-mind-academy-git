@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Trash2 } from 'lucide-react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
+import { useLoopResize } from '../hooks/useLoopResize';
 
 // Drag detection constants
 const DRAG_THRESHOLD = 5;
@@ -9,6 +10,7 @@ const CLICK_MAX_DURATION = 200;
 const LoopBlock = React.memo(({ 
   loop, 
   timeToPixel, 
+  pixelToTime,  // NEW: Added for resize snapping
   trackStates, 
   selectedLoop, 
   draggedLoop,
@@ -18,7 +20,9 @@ const LoopBlock = React.memo(({
   onLoopUpdate,
   onLoopResize,
   onLoopDelete,
-  isMultiSelected = false  // NEW: Multi-selection visual indicator
+  isMultiSelected = false,  // NEW: Multi-selection visual indicator
+  allPlacedLoops = [],  // NEW: All placed loops for snap calculations
+  timelineRef = null  // NEW: Reference to timeline for snap guide rendering
 }) => {
   const [waveformData, setWaveformData] = useState(null);
   const [isGeneratingWaveform, setIsGeneratingWaveform] = useState(false);
@@ -32,6 +36,15 @@ const LoopBlock = React.memo(({
   const canvasRef = useRef(null);
   const waveformCacheRef = useRef(new Map());
   const contextMenuRef = useRef(null);
+
+  // NEW: Initialize resize snap guide hook
+  const { applySnapping, updateSnapGuide, hideSnapGuide } = useLoopResize(
+    timelineRef,
+    allPlacedLoops,
+    videoDuration,
+    timeToPixel,
+    pixelToTime
+  );
 
   // Track original duration on first render
   useEffect(() => {
@@ -304,23 +317,40 @@ const LoopBlock = React.memo(({
         const mouseTime = (mouseXRelativeToContent - LEFT_PADDING) / pixelsPerSecond;
         
         if (resizeDirection === 'right') {
-          const newDuration = mouseTime - loop.startTime;
+          let newEndTime = mouseTime;
+          
+          // Apply snapping to the RIGHT edge (endTime)
+          const snapResult = applySnapping(newEndTime, loop.id);
+          newEndTime = snapResult.time;
+          
+          // Update visual snap guide
+          updateSnapGuide(snapResult.isSnapping ? snapResult.time : null, snapResult.isSnapping);
+          
+          // Calculate duration from start to (possibly snapped) end
+          const newDuration = newEndTime - loop.startTime;
           const minDuration = 0.1;
           const maxDuration = videoDuration - loop.startTime;
           const constrainedDuration = Math.max(minDuration, Math.min(maxDuration, newDuration));
-          const newEndTime = loop.startTime + constrainedDuration;
+          const finalEndTime = loop.startTime + constrainedDuration;
           
           // ULTRA-RESPONSIVE: Update every frame, no threshold check
           // Only skip if value is exactly the same
-          if (newEndTime !== loop.endTime) {
-            onLoopUpdate(loop.id, { endTime: newEndTime });
+          if (finalEndTime !== loop.endTime) {
+            onLoopUpdate(loop.id, { endTime: finalEndTime });
             if (onLoopResize) {
               onLoopResize(loop.id, constrainedDuration);
             }
           }
         } else if (resizeDirection === 'left') {
           // Calculate new start time (user is dragging left edge)
-          const newStartTime = Math.max(0, mouseTime);
+          let newStartTime = Math.max(0, mouseTime);
+          
+          // Apply snapping to the LEFT edge (startTime)
+          const snapResult = applySnapping(newStartTime, loop.id);
+          newStartTime = snapResult.time;
+          
+          // Update visual snap guide
+          updateSnapGuide(snapResult.isSnapping ? snapResult.time : null, snapResult.isSnapping);
           
           // CRITICAL: Keep the right edge (endTime) FIXED
           const fixedEndTime = loop.endTime;
@@ -358,6 +388,10 @@ const LoopBlock = React.memo(({
         cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
       }
+      
+      // Hide the snap guide
+      hideSnapGuide();
+      
       setIsResizing(false);
       setResizeDirection(null);
     };
@@ -378,7 +412,7 @@ const LoopBlock = React.memo(({
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
-  }, [isResizing, resizeDirection, loop, onLoopUpdate, onLoopResize, timeToPixel, videoDuration]);
+  }, [isResizing, resizeDirection, loop, onLoopUpdate, onLoopResize, timeToPixel, videoDuration, applySnapping, updateSnapGuide, hideSnapGuide]);
 
   // ============================================================================
   // MOUSE HANDLERS

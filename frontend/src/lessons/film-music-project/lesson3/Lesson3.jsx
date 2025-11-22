@@ -1,10 +1,12 @@
 // File: /lessons/film-music-project/lesson3/Lesson3.jsx
 // City Soundscapes - Main lesson orchestrator
+// ✅ UPDATED: Added Layer Detective class demo, individual game, results, and city video selection
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from "../../../context/SessionContext";
 import { Monitor, Gamepad2, Trophy } from 'lucide-react';
+import { getDatabase, ref, onValue } from 'firebase/database';
 
 // Config
 import { lesson3Config, lessonStages, getActivityForStage } from './Lesson3config';
@@ -25,6 +27,123 @@ const LESSON_TIMER_KEY = 'lesson3-timer';
 
 // Store presentation windows by session code
 const presentationWindows = new Map();
+
+// Component to show student their own results
+const StudentResultsBadge = ({ sessionCode, userId }) => {
+  const [myData, setMyData] = React.useState(null);
+  const [myRank, setMyRank] = React.useState(null);
+  
+  React.useEffect(() => {
+    if (!sessionCode || !userId) return;
+    
+    // Subscribe to session data to get student's score and ranking
+    const db = getDatabase();
+    const sessionRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    
+    const unsubscribe = onValue(sessionRef, (snapshot) => {
+      const students = snapshot.val();
+      if (!students) return;
+      
+      // Get my data
+      const myStudentData = students[userId];
+      if (!myStudentData) return;
+      
+      setMyData({
+        name: myStudentData.playerName || myStudentData.displayName || 'You',
+        score: myStudentData.score || 0,
+        playerColor: myStudentData.playerColor || '#3B82F6',
+        playerEmoji: myStudentData.playerEmoji || '🎵'
+      });
+      
+      // Calculate my rank
+      const allStudents = Object.entries(students)
+        .map(([id, data]) => ({ id, score: data.score || 0 }))
+        .sort((a, b) => b.score - a.score);
+      
+      const rank = allStudents.findIndex(s => s.id === userId) + 1;
+      setMyRank(rank);
+    });
+    
+    return () => unsubscribe();
+  }, [sessionCode, userId]);
+  
+  if (!myData) return null;
+  
+  const getMedalEmoji = (rank) => {
+    if (rank === 1) return '🥇';
+    if (rank === 2) return '🥈';
+    if (rank === 3) return '🥉';
+    return `#${rank}`;
+  };
+  
+  const isTopThree = myRank && myRank <= 3;
+  
+  return (
+    <div className="mt-8 animate-fadeIn">
+      <div 
+        className={`bg-gradient-to-r ${
+          isTopThree 
+            ? 'from-yellow-500/30 to-orange-500/30 border-yellow-400' 
+            : 'from-white/10 to-white/5 border-white/20'
+        } backdrop-blur-lg rounded-2xl p-6 border-2 shadow-2xl max-w-md mx-auto`}
+      >
+        <div className="text-center mb-4">
+          <div className="text-4xl mb-2">
+            {myData.playerEmoji}
+          </div>
+          <h3 
+            className="text-2xl font-bold mb-1"
+            style={{ color: myData.playerColor }}
+          >
+            {myData.name}
+          </h3>
+          <div className="text-sm text-gray-300">That's you!</div>
+        </div>
+        
+        <div className="flex items-center justify-around">
+          <div className="text-center">
+            <div className="text-4xl font-bold mb-1">{getMedalEmoji(myRank)}</div>
+            <div className="text-sm text-gray-300">
+              {myRank === 1 ? '1st Place' : myRank === 2 ? '2nd Place' : myRank === 3 ? '3rd Place' : `${myRank}th Place`}
+            </div>
+          </div>
+          
+          <div className="h-16 w-px bg-white/20"></div>
+          
+          <div className="text-center">
+            <div className="text-4xl font-bold text-yellow-400 mb-1">{myData.score}</div>
+            <div className="text-sm text-gray-300">Points</div>
+          </div>
+        </div>
+        
+        {isTopThree && (
+          <div className="mt-4 text-center">
+            <div className="inline-flex items-center space-x-1 bg-yellow-500/20 px-4 py-2 rounded-full">
+              <span className="text-yellow-400 font-bold">🌟 Top 3 Finisher!</span>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.8s ease-out;
+        }
+      `}</style>
+    </div>
+  );
+};
 
 // Separate component for Layer Detective to avoid React hooks violations
 const LayerDetectiveLoader = ({ onComplete }) => {
@@ -84,11 +203,125 @@ const LayerDetectiveLoader = ({ onComplete }) => {
   );
 };
 
+// Separate component for Layer Detective Class Demo
+const LayerDetectiveClassDemoLoader = ({ onComplete }) => {
+  const [LayerDetectiveClassDemo, setLayerDetectiveClassDemo] = React.useState(null);
+  const [loadError, setLoadError] = React.useState(false);
+  
+  React.useEffect(() => {
+    // Try to dynamically import the class demo component
+    import('../../shared/activities/layer-detective/LayerDetectiveClassDemo')
+      .then(module => {
+        console.log('✅ LayerDetectiveClassDemo loaded');
+        setLayerDetectiveClassDemo(() => module.default);
+      })
+      .catch(error => {
+        console.error('❌ Failed to load LayerDetectiveClassDemo:', error);
+        setLoadError(true);
+      });
+  }, []);
+  
+  if (loadError) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-500 to-red-600 text-white p-8">
+        <div className="text-8xl mb-8">⚠️</div>
+        <h1 className="text-5xl font-bold mb-4">Component Not Found</h1>
+        <p className="text-2xl mb-8">LayerDetectiveClassDemo.jsx is missing</p>
+        <div className="bg-white/20 rounded-xl p-6 max-w-2xl backdrop-blur-sm text-left">
+          <p className="text-lg mb-4">
+            <strong>Teacher:</strong> Please add this file to your project:
+          </p>
+          <ol className="text-base opacity-90 space-y-2 list-decimal list-inside">
+            <li>LayerDetectiveClassDemo.jsx</li>
+          </ol>
+          <p className="text-sm mt-4 opacity-75">
+            Place at: <code className="bg-black/30 px-2 py-1 rounded">src/lessons/shared/activities/layer-detective/</code>
+          </p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!LayerDetectiveClassDemo) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-white text-lg">Loading Layer Detective Class Demo...</div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="h-screen flex flex-col">
+      <LayerDetectiveClassDemo
+        onComplete={onComplete}
+      />
+    </div>
+  );
+};
+
+// Separate component for Layer Detective Partner Game
+const LayerDetectivePartnerGameLoader = ({ onComplete }) => {
+  const [LayerDetectivePartnerGame, setLayerDetectivePartnerGame] = React.useState(null);
+  const [loadError, setLoadError] = React.useState(false);
+  
+  React.useEffect(() => {
+    // Try to dynamically import the partner game component
+    import('../../shared/activities/layer-detective/LayerDetectivePartnerGame')
+      .then(module => {
+        console.log('✅ LayerDetectivePartnerGame loaded');
+        setLayerDetectivePartnerGame(() => module.default);
+      })
+      .catch(error => {
+        console.error('❌ Failed to load LayerDetectivePartnerGame:', error);
+        setLoadError(true);
+      });
+  }, []);
+  
+  if (loadError) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-500 to-red-600 text-white p-8">
+        <div className="text-8xl mb-8">⚠️</div>
+        <h1 className="text-5xl font-bold mb-4">Component Not Found</h1>
+        <p className="text-2xl mb-8">LayerDetectivePartnerGame.jsx is missing</p>
+        <div className="bg-white/20 rounded-xl p-6 max-w-2xl backdrop-blur-sm text-left">
+          <p className="text-lg mb-4">
+            <strong>Teacher:</strong> Please add this file to your project:
+          </p>
+          <ol className="text-base opacity-90 space-y-2 list-decimal list-inside">
+            <li>LayerDetectivePartnerGame.jsx</li>
+          </ol>
+          <p className="text-sm mt-4 opacity-75">
+            Place at: <code className="bg-black/30 px-2 py-1 rounded">src/lessons/shared/activities/layer-detective/</code>
+          </p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!LayerDetectivePartnerGame) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-white text-lg">Loading Layer Detective Partner Game...</div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="h-screen flex flex-col">
+      <LayerDetectivePartnerGame
+        onComplete={onComplete}
+        viewMode={false}
+      />
+    </div>
+  );
+};
+
 const Lesson3 = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { 
     sessionCode,
+    userId,
     getCurrentStage, 
     setCurrentStage,
     getStudents,
@@ -274,8 +507,13 @@ const Lesson3 = () => {
       return (
         <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 text-white p-8">
           <Trophy className="w-32 h-32 mb-8 animate-pulse text-yellow-400" />
-          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-300">Viewing game results and scores</p>
+          <h1 className="text-5xl font-bold mb-4">Great Job!</h1>
+          <p className="text-2xl text-gray-300">Check the main screen to see final scores!</p>
+          
+          {/* Show student their own data */}
+          {sessionCode && userId && (
+            <StudentResultsBadge sessionCode={sessionCode} userId={userId} />
+          )}
         </div>
       );
     }
@@ -289,6 +527,16 @@ const Lesson3 = () => {
           <p className="text-2xl text-gray-400">Your teacher is leading a class discussion</p>
         </div>
       );
+    }
+    
+    // Special case: Layer Detective activity - render separate component
+    if (currentStage === 'layer-detective') {
+      return <LayerDetectiveLoader onComplete={() => handleSessionActivityComplete(currentStage)} />;
+    }
+    
+    // Special case: Layer Detective Partner Game - render separate component
+    if (currentStage === 'reflection' && getActivityForStage('reflection') === 'layer-detective-partner-game') {
+      return <LayerDetectivePartnerGameLoader onComplete={() => handleSessionActivityComplete(currentStage)} />;
     }
     
     // Student viewing active activity
