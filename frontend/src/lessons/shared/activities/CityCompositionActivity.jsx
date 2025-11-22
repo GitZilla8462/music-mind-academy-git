@@ -20,7 +20,6 @@ const CITY_VIDEOS = [
     title: 'New York City',
     subtitle: 'The City That Never Sleeps',
     videoPath: '/lessons/film-music-project/lesson3/NYCMontage.mp4',
-    description: 'Fast-paced urban energy with yellow cabs, skyscrapers, and busy streets',
     emoji: '🗽'
   },
   {
@@ -28,7 +27,6 @@ const CITY_VIDEOS = [
     title: 'Paris',
     subtitle: 'The City of Light',
     videoPath: '/lessons/film-music-project/lesson3/ParisMontage.mp4',
-    description: 'Elegant European atmosphere with cafes, architecture, and culture',
     emoji: '🗼'
   },
   {
@@ -36,7 +34,6 @@ const CITY_VIDEOS = [
     title: 'Madrid',
     subtitle: 'The Heart of Spain',
     videoPath: '/lessons/film-music-project/lesson3/MadridMontage.mp4',
-    description: 'Vibrant Spanish energy with plazas, markets, and lively streets',
     emoji: '🏛️'
   }
 ];
