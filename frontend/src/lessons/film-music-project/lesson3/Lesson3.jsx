@@ -1,13 +1,13 @@
-// File: /lessons/film-music-project/lesson2/Lesson2.jsx
-// Sports Highlight Reel Music - Main lesson orchestrator
+// File: /lessons/film-music-project/lesson3/Lesson3.jsx
+// City Soundscapes - Main lesson orchestrator
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from "../../../context/SessionContext";
-import { Monitor, Video, Gamepad2, Trophy } from 'lucide-react';
+import { Monitor, Gamepad2, Trophy } from 'lucide-react';
 
 // Config
-import { lesson2Config, lessonStages, getActivityForStage } from './Lesson2config';
+import { lesson3Config, lessonStages, getActivityForStage } from './Lesson3config';
 
 // Hooks
 import { useLesson } from '../../shared/hooks/useLesson';
@@ -20,8 +20,8 @@ import SessionTeacherPanel from '../../shared/components/SessionTeacherPanel';
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 
-const LESSON_PROGRESS_KEY = 'lesson2-progress';
-const LESSON_TIMER_KEY = 'lesson2-timer';
+const LESSON_PROGRESS_KEY = 'lesson3-progress';
+const LESSON_TIMER_KEY = 'lesson3-timer';
 
 // Store presentation windows by session code
 const presentationWindows = new Map();
@@ -57,7 +57,6 @@ const LayerDetectiveLoader = ({ onComplete }) => {
           <ol className="text-base opacity-90 space-y-2 list-decimal list-inside">
             <li>LayerDetectiveActivity.jsx</li>
             <li>loopData.js (for layer detective)</li>
-            <li>NameThatLoopActivity.jsx</li>
           </ol>
           <p className="text-sm mt-4 opacity-75">
             Place at: <code className="bg-black/30 px-2 py-1 rounded">src/lessons/shared/activities/layer-detective/</code>
@@ -85,7 +84,7 @@ const LayerDetectiveLoader = ({ onComplete }) => {
   );
 };
 
-const Lesson2 = () => {
+const Lesson3 = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { 
@@ -105,18 +104,20 @@ const Lesson2 = () => {
   // Get effective role
   const effectiveRole = sessionRole || sessionMode.urlRole;
   
-  console.log('🏀 Lesson2 Render:', {
+  console.log('🏙️ Lesson3 Render:', {
     isSessionMode: sessionMode.isSessionMode,
     sessionRole,
     effectiveRole,
     sessionCode,
     urlRole: sessionMode.urlRole,
-    sessionInitialized: sessionMode.sessionInitialized
+    sessionInitialized: sessionMode.sessionInitialized,
+    location: location.pathname,
+    searchParams: location.search
   });
   
   // Main lesson state (only used in non-session mode)
   const lessonConfig = { 
-    ...lesson2Config, 
+    ...lesson3Config, 
     progressKey: LESSON_PROGRESS_KEY, 
     timerKey: LESSON_TIMER_KEY 
   };
@@ -207,7 +208,7 @@ const Lesson2 = () => {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
           <p className="text-white text-lg">Initializing session...</p>
           <p className="text-gray-400 text-sm mt-2">Session Code: {sessionCode || sessionMode.urlSessionCode}</p>
         </div>
@@ -236,7 +237,7 @@ const Lesson2 = () => {
       return (
         <div className="h-screen flex items-center justify-center bg-gray-900">
           <div className="text-center">
-            <div className="text-6xl mb-4">✓</div>
+            <div className="text-6xl mb-4">✔</div>
             <h1 className="text-white text-3xl font-bold mb-4">Session Has Ended</h1>
             <p className="text-gray-400 text-lg">Redirecting to join page...</p>
           </div>
@@ -279,17 +280,6 @@ const Lesson2 = () => {
       );
     }
     
-    // VIDEO STAGES: Students see static slide
-    if (currentStageData?.type === 'video') {
-      return (
-        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
-          <Video className="w-32 h-32 mb-8 animate-pulse text-white" />
-          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-400">The video is playing on the projection screen</p>
-        </div>
-      );
-    }
-    
     // DISCUSSION/CONCLUSION STAGES: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'discussion' || currentStage === 'conclusion') {
       return (
@@ -302,17 +292,22 @@ const Lesson2 = () => {
     }
     
     // Student viewing active activity
-    const displayStage = currentStage === 'reflection' ? 'sports-composition' : currentStage;
+    const displayStage = currentStage === 'reflection' ? 'city-composition' : currentStage;
     const activityType = getActivityForStage(displayStage);
     
-    // Special case: Layer Detective activity - render separate component
-    if (currentStage === 'layer-detective') {
-      return <LayerDetectiveLoader onComplete={() => handleSessionActivityComplete(currentStage)} />;
-    }
+    console.log('🎯 Student Activity Rendering:', {
+      currentStage,
+      displayStage,
+      activityType,
+      currentStageData
+    });
     
-    const activity = lesson2Config.activities.find(a => a.type === activityType);
+    const activity = lesson3Config.activities.find(a => a.type === activityType);
+    
+    console.log('🎯 Found activity:', activity);
     
     if (!activity) {
+      console.log('❌ No activity found for type:', activityType);
       return <StudentWaitingScreen />;
     }
     
@@ -340,7 +335,7 @@ const Lesson2 = () => {
     console.log('👨‍🏫 Rendering TEACHER control panel');
     return (
       <SessionTeacherPanel
-        config={lesson2Config}
+        config={lesson3Config}
         sessionCode={sessionCode}
         lessonStages={lessonStages}
         getCurrentStage={getCurrentStage}
@@ -367,7 +362,7 @@ const Lesson2 = () => {
     console.log('🖼️ Rendering NORMAL lesson start screen');
     return (
       <LessonStartScreen
-        config={lesson2Config}
+        config={lesson3Config}
         savedProgress={lesson.savedProgress}
         onStartLesson={lesson.startLesson}
         onResumeLesson={lesson.resumeLesson}
@@ -388,10 +383,10 @@ const Lesson2 = () => {
   let viewModeActive = false;
   
   if (viewSavedMode) {
-    activityToRender = lesson2Config.activities.find(a => a.type === 'sports-composition-activity');
+    activityToRender = lesson3Config.activities.find(a => a.type === 'city-composition-activity');
     viewModeActive = true;
   } else if (viewReflectionMode) {
-    activityToRender = lesson2Config.activities.find(a => a.type === 'two-stars-wish');
+    activityToRender = lesson3Config.activities.find(a => a.type === 'two-stars-wish');
     viewModeActive = true;
   }
 
@@ -415,4 +410,4 @@ const Lesson2 = () => {
   );
 };
 
-export default Lesson2;
+export default Lesson3;

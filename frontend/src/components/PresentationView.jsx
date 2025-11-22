@@ -1,6 +1,7 @@
 // File: /src/components/PresentationView.jsx
 // ✅ UPDATED: Now uses presentationView data from lesson configs instead of hardcoded stage mappings
 // ✅ UPDATED: Added Layer Detective Class Demo support with SessionCodeBadge
+// ✅ UPDATED: Added Lesson 4 (Chef's Soundtrack) support
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -96,6 +97,12 @@ const PresentationView = () => {
         } else if (sessionData.lessonRoute.includes('lesson2')) {
           configModule = await import('../lessons/film-music-project/lesson2/Lesson2config');
           basePath = '/lessons/film-music-project/lesson2';
+        } else if (sessionData.lessonRoute.includes('lesson3')) {
+          configModule = await import('../lessons/film-music-project/lesson3/Lesson3config');
+          basePath = '/lessons/film-music-project/lesson3';
+        } else if (sessionData.lessonRoute.includes('lesson4')) {
+          configModule = await import('../lessons/film-music-project/lesson4/Lesson4config');
+          basePath = '/lessons/film-music-project/lesson4';
         }
         // Add more lessons here as needed
         

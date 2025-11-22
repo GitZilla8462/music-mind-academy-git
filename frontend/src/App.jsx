@@ -33,6 +33,8 @@ import TeacherSubmissionViewer from './components/dashboard/teacherdashboard/Tea
 import SimpleLessonPlaceholder from "./lessons/shared/components/LessonPlayer";
 import Lesson1 from './lessons/film-music-project/lesson1/Lesson1';
 import Lesson2 from './lessons/film-music-project/lesson2/Lesson2';
+import Lesson3 from './lessons/film-music-project/lesson3/Lesson3'; // ✅ ADDED
+import Lesson4 from './lessons/film-music-project/lesson4/Lesson4';
 import LessonPlanPDF from './lessons/film-music-project/lesson1/LessonPlanPDF';
 import MusicLoopsInMediaHub from './pages/MusicLoopsInMediaHub';
 
@@ -194,6 +196,8 @@ const AppContent = () => {
         {/* Allow access to lessons without authentication in classroom mode */}
         <Route path="/lessons/film-music-project/lesson1" element={<Lesson1 />} />
         <Route path="/lessons/film-music-project/lesson2" element={<Lesson2 />} />
+        <Route path="/lessons/film-music-project/lesson3" element={<Lesson3 />} /> {/* ✅ ADDED */}
+        <Route path="/lessons/film-music-project/lesson4" element={<Lesson4 />} />
         <Route path="/lessons/film-music-1" element={<Lesson1 />} />
         <Route path="/lessons/film-music-2" element={<Lesson2 />} />
         <Route path="/lessons/:lessonId" element={<SimpleLessonPlaceholder />} />
@@ -278,6 +282,24 @@ const AppContent = () => {
         <Route path="/lessons/film-music-project/lesson1" element={
           <ProtectedRoute>
             <Lesson1 />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/lessons/film-music-project/lesson2" element={
+          <ProtectedRoute>
+            <Lesson2 />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/lessons/film-music-project/lesson3" element={
+          <ProtectedRoute>
+            <Lesson3 />
+          </ProtectedRoute>
+        } /> {/* ✅ ADDED */}
+        
+        <Route path="/lessons/film-music-project/lesson4" element={
+          <ProtectedRoute>
+            <Lesson4 />
           </ProtectedRoute>
         } />
         

@@ -1,7 +1,7 @@
 // File: /pages/MusicLoopsInMediaHub.jsx
 // Music Loops in Media Project - Hub page for all 5 lessons
-// ✅ FIXED: Now passes lessonRoute to createSession
-// ✅ FIXED: Lesson IDs now match their routes correctly
+// ✅ FIXED: Lesson IDs now match actual lesson identifiers (lesson2, lesson3, lesson4, etc.)
+// ✅ FIXED: Lesson4 (Cooking Process Video) now available for live sessions
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -27,11 +27,13 @@ const MusicLoopsInMediaHub = () => {
 
   // ✅ FIXED: Now passes lessonRoute as third parameter
   const handleStartSession = async (lessonId, lessonRoute) => {
+    console.log('🎬 Starting session for:', { lessonId, lessonRoute });
     setCreatingSession(lessonId);
     
     try {
       const code = await createSession('teacher', lessonId, lessonRoute);
       console.log(`✅ Session created: ${code} for ${lessonId} at route ${lessonRoute}`);
+      console.log(`🔗 Redirecting to: ${lessonRoute}?session=${code}&role=teacher`);
       
       window.location.href = `${lessonRoute}?session=${code}&role=teacher`;
     } catch (error) {
@@ -43,7 +45,7 @@ const MusicLoopsInMediaHub = () => {
 
   const lessons = [
     {
-      id: 'music-loops-lesson2',  // ✅ FIXED: Now matches lesson2 route
+      id: 'lesson2',  // ✅ FIXED: Use actual lesson ID
       number: 1,
       title: 'Sports Highlight Reel Music',
       concept: 'Texture & Layering',
@@ -56,33 +58,33 @@ const MusicLoopsInMediaHub = () => {
       available: true
     },
     {
-      id: 'music-loops-lesson3',  // ✅ FIXED: Updated to lesson3
+      id: 'lesson3',  // ✅ FIXED: Use actual lesson ID
       number: 2,
-      title: 'Video Game Music',
-      concept: 'Repetition & Variation',
-      description: 'Compose looping music for Roblox, Minecraft, or Rocket League gameplay',
-      icon: '🎮',
-      color: 'from-purple-500 to-pink-500',
-      videos: ['Roblox', 'Minecraft', 'Rocket League'],
+      title: 'City Soundscapes',
+      concept: 'Texture & Layering',
+      description: 'Learn about musical texture and create layered city soundscapes',
+      icon: '🏙️',
+      color: 'from-green-500 to-teal-500',
+      videos: ['City Atmosphere'],
       duration: '35 minutes',
-      route: '/lessons/film-music-project/lesson3',  // ✅ FIXED: Future lesson route
-      available: false
+      route: '/lessons/film-music-project/lesson3',
+      available: true  // ✅ Now available for live sessions
     },
     {
-      id: 'music-loops-lesson4',  // ✅ FIXED: Updated to lesson4
+      id: 'lesson4',  // ✅ FIXED: Use actual lesson ID
       number: 3,
-      title: 'Cooking Process Video',
+      title: "Chef's Soundtrack",
       concept: 'Mood Progression',
       description: 'Score a cooking video with music that evolves throughout the process',
       icon: '🍳',
       color: 'from-yellow-500 to-orange-500',
       videos: ['Recipe Tutorial', 'Food Preparation', 'Plating'],
       duration: '35 minutes',
-      route: '/lessons/film-music-project/lesson4',  // ✅ FIXED: Future lesson route
-      available: false
+      route: '/lessons/film-music-project/lesson4',
+      available: true  // ✅ Now available for live sessions
     },
     {
-      id: 'music-loops-lesson5',  // ✅ FIXED: Updated to lesson5
+      id: 'lesson5',  // ✅ FIXED: Use actual lesson ID
       number: 4,
       title: 'Comedy Advertisement',
       concept: 'Contrast & Timing',
@@ -91,11 +93,11 @@ const MusicLoopsInMediaHub = () => {
       color: 'from-green-500 to-teal-500',
       videos: ['Product Ad', 'Skit', 'Infomercial'],
       duration: '35 minutes',
-      route: '/lessons/film-music-project/lesson5',  // ✅ FIXED: Future lesson route
+      route: '/lessons/film-music-project/lesson5',
       available: false
     },
     {
-      id: 'music-loops-lesson6',  // ✅ FIXED: Updated to lesson6
+      id: 'lesson6',  // ✅ FIXED: Use actual lesson ID
       number: 5,
       title: 'Student Choice Composition',
       concept: 'Apply All Skills',
@@ -104,7 +106,7 @@ const MusicLoopsInMediaHub = () => {
       color: 'from-blue-500 to-indigo-500',
       videos: ['Student Selected'],
       duration: '35 minutes',
-      route: '/lessons/film-music-project/lesson6',  // ✅ FIXED: Future lesson route
+      route: '/lessons/film-music-project/lesson6',
       available: false
     }
   ];

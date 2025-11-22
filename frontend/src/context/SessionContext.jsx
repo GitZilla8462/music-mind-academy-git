@@ -1,5 +1,5 @@
 // Session Context for managing classroom sessions
-// UPDATED: Back to ORIGINAL behavior - no musical names
+// UPDATED: Prioritize URL params over localStorage for session code
 // src/context/SessionContext.jsx
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
@@ -23,14 +23,38 @@ export const useSession = () => {
 };
 
 export const SessionProvider = ({ children }) => {
-  // Restore from localStorage on page reload
+  // ✅ FIXED: Check URL params FIRST, then fall back to localStorage
   const [sessionCode, setSessionCode] = useState(() => {
+    // Priority 1: URL parameter (for new sessions)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSessionCode = urlParams.get('session');
+    
+    if (urlSessionCode) {
+      console.log('🆕 Using session from URL:', urlSessionCode);
+      localStorage.setItem('current-session-code', urlSessionCode);
+      return urlSessionCode;
+    }
+    
+    // Priority 2: localStorage (for page refreshes)
     const saved = localStorage.getItem('current-session-code');
-    if (saved) console.log('🔄 Restoring session from localStorage:', saved);
-    return saved || null;
+    if (saved) {
+      console.log('🔄 Restoring session from localStorage:', saved);
+      return saved;
+    }
+    
+    return null;
   });
   
   const [userRole, setUserRole] = useState(() => {
+    // Check URL first for role
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlRole = urlParams.get('role');
+    
+    if (urlRole) {
+      localStorage.setItem('current-session-role', urlRole);
+      return urlRole;
+    }
+    
     return localStorage.getItem('current-session-role') || null;
   });
   
@@ -44,8 +68,34 @@ export const SessionProvider = ({ children }) => {
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   
   const prevStageRef = useRef(null);
-  const isNormalEndRef = useRef(false); // Track if this is a normal session end
-  const hasJoinedRef = useRef(false); // Track if student has already joined to prevent re-joining
+  const isNormalEndRef = useRef(false);
+  const hasJoinedRef = useRef(false);
+
+  // ✅ ADDED: Watch for URL changes (browser back/forward, etc)
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlSessionCode = urlParams.get('session');
+      const urlRole = urlParams.get('role');
+      
+      if (urlSessionCode && urlSessionCode !== sessionCode) {
+        console.log('🔄 Session code changed in URL:', urlSessionCode);
+        setSessionCode(urlSessionCode);
+        localStorage.setItem('current-session-code', urlSessionCode);
+      }
+      
+      if (urlRole && urlRole !== userRole) {
+        console.log('🔄 Role changed in URL:', urlRole);
+        setUserRole(urlRole);
+        localStorage.setItem('current-session-role', urlRole);
+      }
+    };
+    
+    // Listen for URL changes (popstate for back/forward)
+    window.addEventListener('popstate', handleUrlChange);
+    
+    return () => window.removeEventListener('popstate', handleUrlChange);
+  }, [sessionCode, userRole]);
 
   // Save to localStorage when session info changes
   useEffect(() => {
@@ -182,9 +232,9 @@ export const SessionProvider = ({ children }) => {
   
   // Monitor if session data disappears AFTER being loaded (ignore initial null and normal ends)
   useEffect(() => {
-    if (isLoadingSession) return; // Ignore during initial load
-    if (isNormalEndRef.current) return; // Ignore if session ended normally
-    if (!prevStageRef.current) return; // Ignore if we never loaded data in the first place
+    if (isLoadingSession) return;
+    if (isNormalEndRef.current) return;
+    if (!prevStageRef.current) return;
     
     if (sessionData === null && sessionCode && userRole === 'student') {
       console.error('🔴 DANGER: sessionData is NULL after being previously loaded!');
@@ -206,7 +256,7 @@ export const SessionProvider = ({ children }) => {
     setUserRole('teacher');
     setUserId(teacherId);
     setIsInSession(true);
-    isNormalEndRef.current = false; // Reset flag
+    isNormalEndRef.current = false;
     
     if (classIdParam) {
       setClassId(classIdParam);
@@ -240,7 +290,6 @@ export const SessionProvider = ({ children }) => {
       console.log('📚 Session lesson route:', lessonRoute);
       console.log('📚 Full session data:', sessionData);
       
-      // ✅ ORIGINAL BEHAVIOR: Join with the provided student name (no musical names)
       await firebaseJoinSession(code, studentId, studentName || 'Student');
       
       setSessionCode(code);
@@ -283,7 +332,6 @@ export const SessionProvider = ({ children }) => {
     }
   };
 
-  // ✅ NEW: Special join function for activities that need musical names
   const joinSessionWithMusicalName = async (code, studentId) => {
     try {
       if (hasJoinedRef.current) {
@@ -293,7 +341,6 @@ export const SessionProvider = ({ children }) => {
       
       console.log('🎵 Student joining with musical name:', { code, studentId });
       
-      // Fetch the session data
       const { getDatabase, ref: dbRef, get } = await import('firebase/database');
       const db = getDatabase();
       const sessionRef = dbRef(db, `sessions/${code}`);
@@ -305,7 +352,6 @@ export const SessionProvider = ({ children }) => {
       
       const sessionData = snapshot.val();
       
-      // Generate unique musical name
       const { generateUniqueMusicalName } = await import('../utils/musicalNameGenerator');
       const existingNames = sessionData.studentsJoined 
         ? Object.values(sessionData.studentsJoined).map(s => s.name)
@@ -314,10 +360,8 @@ export const SessionProvider = ({ children }) => {
       const musicalName = generateUniqueMusicalName(existingNames);
       console.log('🎵 Generated musical name:', musicalName);
       
-      // Join with musical name
       await firebaseJoinSession(code, studentId, musicalName);
       
-      // Rest of the join logic...
       setSessionCode(code);
       setUserRole('student');
       setUserId(studentId);
@@ -344,12 +388,10 @@ export const SessionProvider = ({ children }) => {
   const leaveSession = () => {
     console.log('🚪 Leaving session:', { sessionCode, userRole });
     
-    // Cleanup logger
     if (userRole === 'student') {
       logger.cleanup();
     }
     
-    // Clear localStorage
     localStorage.removeItem('current-session-code');
     localStorage.removeItem('current-session-role');
     localStorage.removeItem('current-session-userId');
@@ -362,7 +404,7 @@ export const SessionProvider = ({ children }) => {
     setUserId(null);
     setIsInSession(false);
     isNormalEndRef.current = false;
-    hasJoinedRef.current = false; // Reset join flag
+    hasJoinedRef.current = false;
   };
 
   const setCurrentStage = async (stage) => {
@@ -405,11 +447,10 @@ export const SessionProvider = ({ children }) => {
 
     try {
       console.log('🛑 Teacher ending session normally:', sessionCode);
-      isNormalEndRef.current = true; // Mark as normal end
+      isNormalEndRef.current = true;
       await firebaseEndSession(sessionCode);
       leaveSession();
       
-      // Navigate back to homepage after a short delay
       setTimeout(() => {
         window.location.href = '/';
       }, 500);
@@ -467,7 +508,6 @@ export const SessionProvider = ({ children }) => {
   };
 
   const value = {
-    // State
     sessionCode,
     classId,
     sessionData,
@@ -476,16 +516,14 @@ export const SessionProvider = ({ children }) => {
     isInSession,
     isLoadingSession,
     
-    // Actions
     startSession,
     joinSession,
-    joinSessionWithMusicalName, // ✅ NEW: For activities that need musical names
+    joinSessionWithMusicalName,
     leaveSession,
     setCurrentStage,
     markActivityComplete,
     endSession,
     
-    // Getters
     getCurrentStage,
     getStudents,
     getStudentProgress,
