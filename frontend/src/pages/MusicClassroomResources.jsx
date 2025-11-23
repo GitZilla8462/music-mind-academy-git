@@ -1,6 +1,6 @@
 // File: /pages/MusicClassroomResources.jsx
-// SIMPLIFIED VERSION - Just two boxes, session button inside DAW box
-// ✅ FIXED: Students now join the correct lesson based on session data
+// UPDATED VERSION - Join code area half as small + Saved compositions display below
+// ✅ Shows saved city compositions with video thumbnail and composition details
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +15,9 @@ function MusicClassroomResources() {
   const [savedBonusComposition, setSavedBonusComposition] = useState(null);
   const [savedReflection, setSavedReflection] = useState(null);
   const [dawStats, setDawStats] = useState(null);
+  
+  // ✅ NEW: City composition state
+  const [savedCityComposition, setSavedCityComposition] = useState(null);
   
   // Session state
   const [sessionCodeInput, setSessionCodeInput] = useState('');
@@ -59,11 +62,12 @@ function MusicClassroomResources() {
     setSavedBonusComposition(null);
     setSavedReflection(null);
     setDawStats(null);
+    setSavedCityComposition(null);
     localStorage.removeItem('classroom-logged-in');
     localStorage.removeItem('classroom-user-role');
   };
 
-  // ✅ FIXED: TEACHER - Start a session with lesson route
+  // TEACHER - Start a session with lesson route
   const handleStartSession = async () => {
     setIsCreatingSession(true);
     setSessionError('');
@@ -72,11 +76,10 @@ function MusicClassroomResources() {
       const code = await createSession(
         'teacher', 
         'lesson1',
-        '/lessons/film-music-project/lesson1'  // ✅ Pass the lesson route
+        '/lessons/film-music-project/lesson1'
       );
       console.log('✅ Session created with code:', code);
       
-      // Go directly to lesson control panel
       window.location.href = `/lessons/film-music-project/lesson1?session=${code}&role=teacher`;
     } catch (error) {
       console.error('❌ Error creating session:', error);
@@ -85,7 +88,7 @@ function MusicClassroomResources() {
     }
   };
 
-  // ✅ FIXED: STUDENT - Join a session and go to correct lesson
+  // STUDENT - Join a session and go to correct lesson
   const handleJoinSession = async () => {
     if (!sessionCodeInput || sessionCodeInput.length !== 4) {
       setSessionError('Please enter a 4-digit code');
@@ -96,7 +99,6 @@ function MusicClassroomResources() {
     setSessionError('');
 
     try {
-      // Get full session data including lesson route
       const sessionData = await getSessionData(sessionCodeInput);
       
       if (!sessionData) {
@@ -105,12 +107,10 @@ function MusicClassroomResources() {
         return;
       }
 
-      // Get the lesson route from session data (fallback to lesson1 if not found)
       const lessonRoute = sessionData.lessonRoute || '/lessons/film-music-project/lesson1';
       
       console.log(`✅ Student joining session ${sessionCodeInput} at route: ${lessonRoute}`);
       
-      // Redirect to the SAME lesson as the teacher
       window.location.href = `${lessonRoute}?session=${sessionCodeInput}&role=student`;
     } catch (error) {
       console.error('❌ Error joining session:', error);
@@ -155,6 +155,22 @@ function MusicClassroomResources() {
           setDawStats(JSON.parse(stats));
         } catch (error) {
           console.error('Error loading DAW stats:', error);
+        }
+      }
+      
+      // ✅ NEW: Load city composition
+      const studentId = localStorage.getItem('anonymous-student-id');
+      if (studentId) {
+        const cityKey = `city-composition-${studentId}`;
+        const savedCity = localStorage.getItem(cityKey);
+        if (savedCity) {
+          try {
+            const data = JSON.parse(savedCity);
+            setSavedCityComposition(data);
+            console.log('✅ Loaded saved city composition:', data);
+          } catch (error) {
+            console.error('Error loading city composition:', error);
+          }
         }
       }
     }
@@ -255,7 +271,7 @@ function MusicClassroomResources() {
     );
   }
 
-  // MAIN DASHBOARD - SIMPLIFIED
+  // MAIN DASHBOARD
   return (
     <div style={{ 
       minHeight: '100vh', 
@@ -405,18 +421,18 @@ function MusicClassroomResources() {
               )}
             </div>
           ) : (
-            // STUDENT: Join Session
+            // STUDENT: Join Session - ✅ HALF AS SMALL
             <div>
               <div style={{
                 textAlign: 'center',
-                marginBottom: '16px',
-                fontSize: '14px',
+                marginBottom: '8px',
+                fontSize: '12px',
                 color: '#718096'
               }}>
-                👨‍🎓 Enter the 4-digit code from your teacher
+                👨‍🎓 Enter code
               </div>
               
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
                 <input
                   type="text"
                   placeholder="CODE"
@@ -425,26 +441,26 @@ function MusicClassroomResources() {
                   maxLength={4}
                   style={{
                     flex: 1,
-                    padding: '14px',
-                    fontSize: '20px',
+                    padding: '8px',
+                    fontSize: '16px',
                     fontWeight: 'bold',
                     textAlign: 'center',
-                    borderRadius: '8px',
+                    borderRadius: '6px',
                     border: '2px solid #4299e1',
-                    letterSpacing: '4px'
+                    letterSpacing: '3px'
                   }}
                 />
                 <button
                   onClick={handleJoinSession}
                   disabled={isJoiningSession || sessionCodeInput.length !== 4}
                   style={{
-                    padding: '14px 24px',
-                    fontSize: '16px',
+                    padding: '8px 16px',
+                    fontSize: '14px',
                     fontWeight: '600',
                     backgroundColor: (isJoiningSession || sessionCodeInput.length !== 4) ? '#a0aec0' : '#48bb78',
                     color: 'white',
                     border: 'none',
-                    borderRadius: '8px',
+                    borderRadius: '6px',
                     cursor: (isJoiningSession || sessionCodeInput.length !== 4) ? 'not-allowed' : 'pointer',
                     transition: 'background-color 0.2s',
                     whiteSpace: 'nowrap'
@@ -456,11 +472,11 @@ function MusicClassroomResources() {
 
               {sessionError && (
                 <div style={{
-                  padding: '12px',
+                  padding: '8px',
                   backgroundColor: '#fed7d7',
                   color: '#742a2a',
-                  borderRadius: '8px',
-                  fontSize: '14px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
                   textAlign: 'center'
                 }}>
                   {sessionError}
@@ -470,7 +486,7 @@ function MusicClassroomResources() {
               {/* Divider */}
               <div style={{
                 borderTop: '1px solid #e2e8f0',
-                margin: '24px 0'
+                margin: '16px 0'
               }}></div>
 
               {/* Solo Practice Button */}
@@ -478,13 +494,13 @@ function MusicClassroomResources() {
                 onClick={() => navigate('/lessons/film-music-project/lesson1')}
                 style={{
                   width: '100%',
-                  padding: '14px 24px',
-                  fontSize: '16px',
+                  padding: '12px 24px',
+                  fontSize: '14px',
                   fontWeight: '600',
                   backgroundColor: '#805ad5',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '8px',
+                  borderRadius: '6px',
                   cursor: 'pointer',
                   transition: 'background-color 0.2s'
                 }}
@@ -493,10 +509,92 @@ function MusicClassroomResources() {
               >
                 Practice Solo
               </button>
+              
+              {/* ✅ NEW: SAVED CITY COMPOSITION DISPLAY */}
+              {savedCityComposition && (
+                <div style={{
+                  marginTop: '20px',
+                  borderTop: '1px solid #e2e8f0',
+                  paddingTop: '20px'
+                }}>
+                  <div style={{
+                    textAlign: 'center',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: '#2d3748',
+                    marginBottom: '12px'
+                  }}>
+                    💾 Saved Composition
+                  </div>
+                  
+                  <div style={{
+                    backgroundColor: '#f7fafc',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    border: '2px solid #e2e8f0'
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      marginBottom: '8px'
+                    }}>
+                      <div style={{ fontSize: '32px' }}>
+                        {savedCityComposition.composition.videoEmoji || '🏙️'}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          color: '#2d3748'
+                        }}>
+                          {savedCityComposition.composition.videoTitle || 'City Soundscape'}
+                        </div>
+                        <div style={{
+                          fontSize: '12px',
+                          color: '#718096'
+                        }}>
+                          {savedCityComposition.composition.placedLoops?.length || 0} loops • {' '}
+                          {Math.floor((savedCityComposition.composition.videoDuration || 0) / 60)}:{Math.floor((savedCityComposition.composition.videoDuration || 0) % 60).toString().padStart(2, '0')}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style={{
+                      fontSize: '11px',
+                      color: '#a0aec0',
+                      textAlign: 'center',
+                      marginBottom: '8px'
+                    }}>
+                      Saved {new Date(savedCityComposition.lastSaved).toLocaleString()}
+                    </div>
+                    
+                    <button
+                      onClick={() => {
+                        // Navigate to lesson 3 to view composition
+                        navigate('/lessons/film-music-project/lesson3');
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        backgroundColor: '#4299e1',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      👁️ View Composition
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Show saved work stats for students */}
+          {/* Show saved work stats for students (Lesson 1) */}
           {userRole === 'student' && (dawStats || savedComposition || savedReflection) && (
             <div style={{ 
               marginTop: '24px',
@@ -511,7 +609,7 @@ function MusicClassroomResources() {
                 marginBottom: '12px',
                 textAlign: 'center'
               }}>
-                Your Progress
+                Your Progress (Lesson 1)
               </div>
               
               {dawStats && (
