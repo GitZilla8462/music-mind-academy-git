@@ -1,6 +1,7 @@
 // File: /src/lessons/film-music-project/lesson1/activities/two-stars-and-a-wish/ReflectionModal.jsx
 // UPDATED: Top-left positioning with minimize functionality
 // Steps: 1=choose type, 2=listen & share, 3=star1, 4=star2, 5=wish, 6=summary
+// UPDATED: Step 6 now has READ ALOUD banner at top, submit button at bottom
 
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, Star, Sparkles, Volume2, VolumeX, HelpCircle, Minimize2, Maximize2 } from 'lucide-react';
@@ -549,37 +550,25 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           </div>
         )}
 
-        {/* STEP 6: Summary */}
+        {/* STEP 6: Summary - UPDATED with READ ALOUD at very top */}
         {currentStep === 6 && (
           <div className="space-y-4">
-            {/* SUBMIT BUTTON AT TOP */}
-            <button
-              onClick={handleSubmitReflection}
-              className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-            >
-              <CheckCircle size={20} />
-              {isSessionMode ? 'Submit Reflection' : 'Submit Reflection'}
-            </button>
+            {/* READ ALOUD INSTRUCTION AT VERY TOP */}
+            <div className={`p-4 rounded-lg border-2 text-center ${
+              reflectionData.reviewType === 'self' 
+                ? 'bg-blue-100 border-blue-400' 
+                : 'bg-purple-100 border-purple-400'
+            }`}>
+              <p className="text-xl font-bold text-gray-800">
+                📖 Now read your reflection out loud to {reflectionData.reviewType === 'self' ? 'yourself or a neighbor' : reflectionData.partnerName}.
+              </p>
+            </div>
 
             <div className="text-center mb-4">
               <Sparkles className="mx-auto text-yellow-500 mb-2" size={48} />
               <h2 className="text-2xl font-bold text-gray-800">♪ Your Reflection Summary</h2>
               <p className="text-sm text-gray-600 mt-1">
                 You reviewed: {reflectionData.reviewType === 'self' ? 'Your own composition' : `${reflectionData.partnerName}'s composition`}
-              </p>
-            </div>
-
-            <div className={`p-4 rounded-lg border-2 text-center ${
-              reflectionData.reviewType === 'self' 
-                ? 'bg-blue-50 border-blue-300' 
-                : 'bg-purple-50 border-purple-300'
-            }`}>
-              <p className="text-lg font-bold text-gray-800 mb-2">📖 Now Read Your Reflection Aloud!</p>
-              <p className="text-gray-700">
-                {reflectionData.reviewType === 'self' 
-                  ? 'Read your reflection to yourself or share it with a neighbor.'
-                  : `Read this feedback out loud to ${reflectionData.partnerName}.`
-                }
               </p>
             </div>
 
@@ -608,6 +597,15 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
                 <p className="text-gray-700 bg-white p-3 rounded border border-gray-200">{reflectionData.wish}</p>
               </div>
             </div>
+
+            {/* SUBMIT BUTTON AT BOTTOM */}
+            <button
+              onClick={handleSubmitReflection}
+              className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <CheckCircle size={20} />
+              {isSessionMode ? 'Submit Reflection' : 'Submit Reflection'}
+            </button>
           </div>
         )}
 

@@ -1,6 +1,8 @@
 // File: /src/lessons/shared/activities/layer-detective/LayerDetectivePartnerGame.jsx
 // Layer Detective Partner Game - 2-3 player turn-based game
 // ✅ OPTIMIZED for Chromebook screens (1366x768)
+// ✅ FIXED: Correct loop files, organized by mood, no mood mixing
+// ✅ FIXED: Correct answer logic - A=1 layer, B=2 layers, C=3 layers
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Volume2, Play, Pause, RotateCcw, Trophy, Users, Lightbulb, CheckCircle, Star, Clock, AlertCircle } from 'lucide-react';
@@ -26,24 +28,75 @@ const LayerDetectivePartnerGame = ({ onComplete, viewMode = false }) => {
   
   const audioRefs = useRef([]);
 
-  // All possible loop combinations for questions
-  const allLoops = [
-    // Heroic loops
-    { name: 'Heroic Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 1.mp3', color: '#EF4444' },
-    { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.mp3', color: '#F59E0B' },
-    { name: 'Heroic Strings 1', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 1.mp3', color: '#10B981' },
-    { name: 'Heroic Synth 1', category: 'Synth', file: '/projects/film-music-score/loops/Heroic Synth 1.mp3', color: '#8B5CF6' },
-    { name: 'Heroic Choir 1', category: 'Choir', file: '/projects/film-music-score/loops/Heroic Choir 1.mp3', color: '#EC4899' },
-    { name: 'Heroic Bass 1', category: 'Bass', file: '/projects/film-music-score/loops/Heroic Bass 1.mp3', color: '#3B82F6' },
-    
-    // Scary loops
-    { name: 'Scary Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Scary Drums 1.mp3', color: '#EF4444' },
-    { name: 'Scary Brass 1', category: 'Brass', file: '/projects/film-music-score/loops/Scary Brass 1.mp3', color: '#F59E0B' },
-    { name: 'Scary Strings 2', category: 'Strings', file: '/projects/film-music-score/loops/Scary Strings 2.mp3', color: '#10B981' },
-    { name: 'Scary Synth 2', category: 'Synth', file: '/projects/film-music-score/loops/Scary Synth 2.mp3', color: '#8B5CF6' },
-    { name: 'Scary Choir 1', category: 'Choir', file: '/projects/film-music-score/loops/Scary Choir 1.mp3', color: '#EC4899' },
-    { name: 'Scary Bass 1', category: 'Bass', file: '/projects/film-music-score/loops/Scary Bass 1.mp3', color: '#3B82F6' },
-  ];
+  // ✅ FIXED: All loops organized by mood - ONLY uses loops that actually exist in /public/projects/film-music-score/loops/
+  // ✅ RULE: Each question will use loops from ONLY ONE MOOD
+  const loopsByMood = {
+    Heroic: [
+      { name: 'Heroic Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 1.mp3', color: '#EF4444' },
+      { name: 'Heroic Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 2.mp3', color: '#DC2626' },
+      { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.mp3', color: '#F59E0B' },
+      { name: 'Heroic Strings 1', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 1.mp3', color: '#10B981' },
+      { name: 'Heroic Strings 2', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 2.mp3', color: '#059669' },
+      { name: 'Heroic Strings 3', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 3.mp3', color: '#047857' },
+      { name: 'Heroic Synth 1', category: 'Synth', file: '/projects/film-music-score/loops/Heroic Synth 1.mp3', color: '#8B5CF6' },
+      { name: 'Heroic Synth 2', category: 'Synth', file: '/projects/film-music-score/loops/Heroic Synth 2.mp3', color: '#7C3AED' },
+      { name: 'Heroic Vocals', category: 'Vocals', file: '/projects/film-music-score/loops/Heroic Vocals.mp3', color: '#EC4899' },
+      { name: 'Heroic Bass 1', category: 'Bass', file: '/projects/film-music-score/loops/Heroic Bass 1.mp3', color: '#3B82F6' }
+    ],
+    Scary: [
+      { name: 'Scary Percussion 1', category: 'Percussion', file: '/projects/film-music-score/loops/Scary Percussion 1.mp3', color: '#EF4444' },
+      { name: 'Scary Percussion 2', category: 'Percussion', file: '/projects/film-music-score/loops/Scary Percussion 2.mp3', color: '#DC2626' },
+      { name: 'Scary Brass 1', category: 'Brass', file: '/projects/film-music-score/loops/Scary Brass 1.mp3', color: '#F59E0B' },
+      { name: 'Scary Strings 1', category: 'Strings', file: '/projects/film-music-score/loops/Scary Strings 1.mp3', color: '#10B981' },
+      { name: 'Scary Strings 2', category: 'Strings', file: '/projects/film-music-score/loops/Scary Strings 2.mp3', color: '#059669' },
+      { name: 'Scary Strings 3', category: 'Strings', file: '/projects/film-music-score/loops/Scary Strings 3.mp3', color: '#047857' },
+      { name: 'Scary Strings 4', category: 'Strings', file: '/projects/film-music-score/loops/Scary Strings 4.mp3', color: '#065F46' },
+      { name: 'Scary Synth 1', category: 'Synth', file: '/projects/film-music-score/loops/Scary Synth 1.mp3', color: '#8B5CF6' },
+      { name: 'Scary Synth 2', category: 'Synth', file: '/projects/film-music-score/loops/Scary Synth 2.mp3', color: '#7C3AED' },
+      { name: 'Scary Synth 3', category: 'Synth', file: '/projects/film-music-score/loops/Scary Synth 3.mp3', color: '#6D28D9' },
+      { name: 'Scary Synth 4', category: 'Synth', file: '/projects/film-music-score/loops/Scary Synth 4.mp3', color: '#5B21B6' },
+      { name: 'Scary Bass 1', category: 'Bass', file: '/projects/film-music-score/loops/Scary Bass 1.mp3', color: '#3B82F6' },
+      { name: 'Scary Bass 2', category: 'Bass', file: '/projects/film-music-score/loops/Scary Bass 2.mp3', color: '#2563EB' },
+      { name: 'Scary Bass 3', category: 'Bass', file: '/projects/film-music-score/loops/Scary Bass 3.mp3', color: '#1D4ED8' }
+    ],
+    Upbeat: [
+      { name: 'Upbeat Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 1.mp3', color: '#EF4444' },
+      { name: 'Upbeat Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 2.mp3', color: '#DC2626' },
+      { name: 'Upbeat Electric Guitar', category: 'Guitar', file: '/projects/film-music-score/loops/Upbeat Electric Guitar.mp3', color: '#F59E0B' },
+      { name: 'Upbeat Piano', category: 'Piano', file: '/projects/film-music-score/loops/Upbeat Piano.mp3', color: '#10B981' },
+      { name: 'Upbeat Strings', category: 'Strings', file: '/projects/film-music-score/loops/Upbeat Strings.mp3', color: '#8B5CF6' },
+      { name: 'Upbeat Electric Bass', category: 'Bass', file: '/projects/film-music-score/loops/Upbeat Electric Bass.mp3', color: '#3B82F6' },
+      { name: 'Upbeat String Bass', category: 'Bass', file: '/projects/film-music-score/loops/Upbeat String Bass.mp3', color: '#2563EB' },
+      { name: 'Upbeat Clarinet', category: 'Woodwinds', file: '/projects/film-music-score/loops/Upbeat Clarinet.mp3', color: '#EC4899' },
+      { name: 'Upbeat Bells', category: 'Bells', file: '/projects/film-music-score/loops/Upbeat Bells.mp3', color: '#F59E0B' }
+    ],
+    Mysterious: [
+      { name: 'Mysterious Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Mysterious  Drums 2.mp3', color: '#EF4444' },
+      { name: 'Mysterious Guitar', category: 'Guitar', file: '/projects/film-music-score/loops/Mysterious Guitar.mp3', color: '#F59E0B' },
+      { name: 'Mysterious Strings', category: 'Strings', file: '/projects/film-music-score/loops/Mysterious Strings.mp3', color: '#10B981' },
+      { name: 'Mysterious Strings 2', category: 'Strings', file: '/projects/film-music-score/loops/Mysterious Strings 2.mp3', color: '#059669' },
+      { name: 'Mysterious Synth 1', category: 'Synth', file: '/projects/film-music-score/loops/Mysterious Synth 1.mp3', color: '#8B5CF6' },
+      { name: 'Mysterious Synth 2', category: 'Synth', file: '/projects/film-music-score/loops/Mysterious Synth 2.mp3', color: '#7C3AED' },
+      { name: 'Mysterious Synth 3', category: 'Synth', file: '/projects/film-music-score/loops/Mysterious  Synth 3.mp3', color: '#6D28D9' },
+      { name: 'Mysterious Bass 1', category: 'Bass', file: '/projects/film-music-score/loops/Mysterious Bass 1.mp3', color: '#3B82F6' },
+      { name: 'Mysterious Bass 2', category: 'Bass', file: '/projects/film-music-score/loops/Mysterious Bass 2.mp3', color: '#2563EB' }
+    ],
+    Hype: [
+      { name: 'Hype Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Hype Drums 1.wav', color: '#EF4444' },
+      { name: 'Hype Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Hype Drums 2.wav', color: '#DC2626' },
+      { name: 'Hype Drums 3', category: 'Drums', file: '/projects/film-music-score/loops/Hype Drums 3.wav', color: '#B91C1C' },
+      { name: 'Hype Guitar 1', category: 'Guitar', file: '/projects/film-music-score/loops/Hype Guitar 1.wav', color: '#F59E0B' },
+      { name: 'Hype Guitar 2', category: 'Guitar', file: '/projects/film-music-score/loops/Hype Guitar 2.wav', color: '#D97706' },
+      { name: 'Hype Keys 1', category: 'Keys', file: '/projects/film-music-score/loops/Hype Keys 1.wav', color: '#10B981' },
+      { name: 'Hype Synth 1', category: 'Synth', file: '/projects/film-music-score/loops/Hype Synth 1.wav', color: '#8B5CF6' },
+      { name: 'Hype Synth 2', category: 'Synth', file: '/projects/film-music-score/loops/Hype Synth 2.wav', color: '#7C3AED' },
+      { name: 'Hype Synth Lead 1', category: 'Synth Lead', file: '/projects/film-music-score/loops/Hype Synth Lead 1.wav', color: '#EC4899' },
+      { name: 'Hype Synth Lead 2', category: 'Synth Lead', file: '/projects/film-music-score/loops/Hype Synth Lead 2.wav', color: '#DB2777' },
+      { name: 'Hype Synth Lead 3', category: 'Synth Lead', file: '/projects/film-music-score/loops/Hype Synth Lead 3.wav', color: '#BE185D' },
+      { name: 'Hype Bass 1', category: 'Bass', file: '/projects/film-music-score/loops/Hype Bass 1.wav', color: '#3B82F6' },
+      { name: 'Hype Bass 2', category: 'Bass', file: '/projects/film-music-score/loops/Hype Bass 2.wav', color: '#2563EB' }
+    ]
+  };
 
   // Voice reading function
   const speakText = (text) => {
@@ -110,21 +163,40 @@ const LayerDetectivePartnerGame = ({ onComplete, viewMode = false }) => {
     return 0;
   };
 
-  // Generate a random question with 1-3 layers (A, B, or C)
+  // ✅ FIXED: Generate a random question with 1-3 layers from ONLY ONE MOOD
   const generateQuestion = () => {
+    console.log('🎮 Generating new question...');
+    
     // Randomly choose how many layers (1-3)
     const numLayers = Math.floor(Math.random() * 3) + 1;
+    console.log(`📊 Selected ${numLayers} layers`);
     
-    // Randomly select that many loops
-    const shuffled = [...allLoops].sort(() => Math.random() - 0.5);
+    // Randomly choose one mood
+    const moods = Object.keys(loopsByMood);
+    const selectedMood = moods[Math.floor(Math.random() * moods.length)];
+    console.log(`🎭 Selected mood: ${selectedMood}`);
+    
+    // Get loops from that mood only
+    const availableLoops = loopsByMood[selectedMood];
+    console.log(`🎵 Available loops from ${selectedMood}: ${availableLoops.length}`);
+    
+    // Randomly select that many loops from the same mood
+    const shuffled = [...availableLoops].sort(() => Math.random() - 0.5);
     const selectedLayers = shuffled.slice(0, numLayers);
     
-    // Map number to letter: 1=A, 2=B, 3=C
+    console.log(`✅ Selected layers:`, selectedLayers.map(l => l.name));
+    
+    // ✅ FIXED: Correct answer mapping
+    // 1 layer = A, 2 layers = B, 3 layers = C
     const letterMap = { 1: 'A', 2: 'B', 3: 'C' };
+    const correctAnswer = letterMap[numLayers];
+    
+    console.log(`✅ Correct answer: ${correctAnswer} (${numLayers} layer${numLayers > 1 ? 's' : ''})`);
     
     return {
       layers: selectedLayers,
-      correctAnswer: letterMap[numLayers]
+      correctAnswer: correctAnswer,
+      mood: selectedMood
     };
   };
 
@@ -133,7 +205,7 @@ const LayerDetectivePartnerGame = ({ onComplete, viewMode = false }) => {
     console.log('🎮 Starting new layer detective round...');
     
     const question = generateQuestion();
-    console.log('🎵 Generated question:', question.layers.length, 'layers');
+    console.log('🎵 Question ready:', question);
     
     setCurrentQuestion(question);
     setGuessResult(null);
@@ -214,6 +286,8 @@ const LayerDetectivePartnerGame = ({ onComplete, viewMode = false }) => {
   const handleGuess = (guessedLetter) => {
     if (guessResult) return;
     
+    console.log(`🎯 Player guessed: ${guessedLetter}, Correct answer: ${currentQuestion.correctAnswer}`);
+    
     const isCorrect = guessedLetter === currentQuestion.correctAnswer;
     const timeElapsed = Date.now() - startTime;
     setAnswerTime(timeElapsed);
@@ -231,6 +305,8 @@ const LayerDetectivePartnerGame = ({ onComplete, viewMode = false }) => {
       
       points = basePoints + speedBonus;
     }
+    
+    console.log(`✅ Result: ${isCorrect ? 'CORRECT' : 'WRONG'}, Points: ${points}`);
     
     // Update score for current player
     setScores(prev => ({
@@ -538,15 +614,6 @@ const LayerDetectivePartnerGame = ({ onComplete, viewMode = false }) => {
               <RotateCcw size={18} />
               <span>Play Again</span>
             </button>
-            
-            {onComplete && (
-              <button
-                onClick={onComplete}
-                className="w-full bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors text-sm"
-              >
-                Back to Composition
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -678,6 +745,7 @@ const LayerDetectivePartnerGame = ({ onComplete, viewMode = false }) => {
                   <div className="text-xs">
                     <div className="font-semibold text-gray-900">Hint:</div>
                     <div className="text-gray-700">
+                      Mood: <span className="font-bold">{currentQuestion.mood}</span> | 
                       Categories: <span className="font-bold">
                         {[...new Set(currentQuestion.layers.map(l => l.category))].join(', ')}
                       </span>
@@ -760,6 +828,37 @@ const LayerDetectivePartnerGame = ({ onComplete, viewMode = false }) => {
                 </div>
               </div>
             )}
+            
+            {/* ✅ Visual Loop Display - Shows what was played */}
+            <div className="bg-blue-50 rounded-lg p-2 mb-3 border-2 border-blue-300">
+              <h3 className="text-sm font-bold text-gray-900 mb-1 text-center">
+                🎵 The loops you heard:
+              </h3>
+              <div className="space-y-1">
+                {currentQuestion.layers.map((layer, index) => (
+                  <div
+                    key={index}
+                    className="h-10 rounded-md flex items-center px-2 text-white font-bold text-xs shadow-lg"
+                    style={{ backgroundColor: layer.color }}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className="truncate">{layer.name}</span>
+                      <span className="text-xs opacity-90 ml-2 bg-white/20 px-2 py-0.5 rounded">{layer.category}</span>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Show empty slots for remaining layers */}
+                {[...Array(3 - currentQuestion.layers.length)].map((_, index) => (
+                  <div
+                    key={`empty-${index}`}
+                    className="h-10 bg-gray-200 rounded-md flex items-center justify-center text-gray-400 text-xs font-semibold opacity-30"
+                  >
+                    (No loop)
+                  </div>
+                ))}
+              </div>
+            </div>
             
             <button
               onClick={handleNextRound}
