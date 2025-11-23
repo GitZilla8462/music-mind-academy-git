@@ -1,6 +1,7 @@
 // File: CityCompositionActivity.jsx
 // City Soundscape Composition - Matches SportsCompositionActivity structure
 // Uses MusicComposer component with city video selection
+// ✅ UPDATED: Added Tokyo as 4th city, optimized for 1366x768 with 4-column grid
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -35,6 +36,13 @@ const CITY_VIDEOS = [
     subtitle: 'The Heart of Spain',
     videoPath: '/lessons/film-music-project/lesson3/MadridMontage.mp4',
     emoji: '🏛️'
+  },
+  {
+    id: 'tokyo',
+    title: 'Tokyo',
+    subtitle: 'The City of the Future',
+    videoPath: '/lessons/film-music-project/lesson3/TokyoMontage.mp4',
+    emoji: '🏯'
   }
 ];
 
@@ -545,15 +553,15 @@ const CityCompositionActivity = ({
         </div>
       )}
       
-      {/* Video selection as overlay */}
+      {/* Video selection as overlay - ✅ OPTIMIZED FOR 1366x768 */}
       {showVideoSelection && !viewMode && (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6 overflow-y-auto">
-          <div className="max-w-5xl w-full my-4">
-            <div className="text-center mb-6">
-              <h1 className="text-4xl font-bold text-white mb-3">
+          <div className="max-w-6xl w-full my-4">
+            <div className="text-center mb-5">
+              <h1 className="text-3xl font-bold text-white mb-2">
                 🏙️ Choose Your City
               </h1>
-              <p className="text-xl text-blue-200">
+              <p className="text-lg text-blue-200">
                 Select a city to compose music for
               </p>
               {detectingDurations && (
@@ -563,7 +571,8 @@ const CityCompositionActivity = ({
               )}
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* ✅ CHANGED: 4 columns with smaller gap and compact cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {CITY_VIDEOS.map((video) => {
                 const duration = videoDurations[video.id];
                 const durationDisplay = duration 
@@ -575,29 +584,29 @@ const CityCompositionActivity = ({
                     key={video.id}
                     className="bg-white rounded-xl overflow-hidden shadow-2xl transform hover:scale-105 transition-all duration-300"
                   >
-                    <div className="relative h-40 bg-gradient-to-br from-blue-500 to-purple-600 overflow-hidden">
-                      <div className="absolute inset-0 flex items-center justify-center text-7xl">
+                    {/* ✅ CHANGED: Reduced height and emoji size */}
+                    <div className="relative h-32 bg-gradient-to-br from-blue-500 to-purple-600 overflow-hidden">
+                      <div className="absolute inset-0 flex items-center justify-center text-6xl">
                         {video.emoji}
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                     </div>
                     
-                    <div className="p-4">
-                      <h3 className="text-xl font-bold text-gray-900 mb-1">
+                    {/* ✅ CHANGED: Reduced padding and font sizes */}
+                    <div className="p-3">
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">
                         {video.title}
                       </h3>
-                      <p className="text-sm text-gray-500 mb-2">{video.subtitle}</p>
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2 min-h-[40px]">
-                        {video.description}
-                      </p>
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+                      <p className="text-xs text-gray-500 mb-2">{video.subtitle}</p>
+                      <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
                         <span>⏱️ {durationDisplay}</span>
                       </div>
                       
+                      {/* ✅ CHANGED: Reduced button padding and font size */}
                       <button
                         onClick={() => handlePreviewVideo(video)}
                         disabled={!duration}
-                        className={`w-full py-2.5 rounded-lg font-bold transition-all shadow-lg text-base ${
+                        className={`w-full py-2 rounded-lg font-bold transition-all shadow-lg text-sm ${
                           duration
                             ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'

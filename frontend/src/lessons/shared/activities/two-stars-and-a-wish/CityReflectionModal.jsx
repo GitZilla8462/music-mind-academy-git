@@ -2,6 +2,7 @@
 // City Soundscape Reflection Modal - Purple overlay that stays on top of composition
 // Adapted from SportsReflectionModal for city soundscapes
 // Allows students to reflect while composition remains accessible underneath
+// ✅ UPDATED: "Read out loud" instruction moved to top of summary and made more prominent
 
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, Star, Sparkles, Volume2, VolumeX, Minimize2, Maximize2, Smile } from 'lucide-react';
@@ -563,12 +564,23 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
           </div>
         )}
 
-        {/* STEP 7: Summary */}
+        {/* STEP 7: Summary - ✅ UPDATED with prominent "read out loud" at top */}
         {currentStep === 7 && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-2" />
               <h3 className="font-bold text-gray-900">Your Reflection Summary</h3>
+            </div>
+
+            {/* ✅ READ OUT LOUD INSTRUCTION - NOW AT TOP AND PROMINENT */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-4 border-2 border-blue-700 shadow-lg animate-pulse">
+              <p className="text-white text-center font-bold text-lg leading-relaxed">
+                📖 Now read your reflection out loud
+                {reflectionData.reviewType === 'self' 
+                  ? ' to yourself or share it with a neighbor!'
+                  : ` to ${reflectionData.partnerName}!`
+                }
+              </p>
             </div>
 
             <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-4 border-2 border-purple-200 space-y-3">
@@ -605,16 +617,6 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
                   <p className="text-gray-700">{reflectionData.meme}</p>
                 </div>
               )}
-            </div>
-
-            <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-              <p className="text-sm text-gray-700">
-                📖 <strong>Now read your reflection out loud</strong>
-                {reflectionData.reviewType === 'self' 
-                  ? ' to yourself or share it with a neighbor.'
-                  : ` to ${reflectionData.partnerName}.`
-                }
-              </p>
             </div>
 
             {!viewMode && (
