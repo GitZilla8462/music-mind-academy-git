@@ -341,44 +341,8 @@ const LoopBlock = React.memo(({
               onLoopResize(loop.id, constrainedDuration);
             }
           }
-        } else if (resizeDirection === 'left') {
-          // Calculate new start time (user is dragging left edge)
-          let newStartTime = Math.max(0, mouseTime);
-          
-          // Apply snapping to the LEFT edge (startTime)
-          const snapResult = applySnapping(newStartTime, loop.id);
-          newStartTime = snapResult.time;
-          
-          // Update visual snap guide
-          updateSnapGuide(snapResult.isSnapping ? snapResult.time : null, snapResult.isSnapping);
-          
-          // CRITICAL: Keep the right edge (endTime) FIXED
-          const fixedEndTime = loop.endTime;
-          
-          // Calculate how much we're trimming from the left
-          const startTimeChange = newStartTime - loop.startTime;
-          
-          // Calculate new duration (from new start to fixed end)
-          const newDuration = fixedEndTime - newStartTime;
-          const minDuration = 0.1;
-          
-          // ULTRA-RESPONSIVE: Update every frame, no threshold check
-          if (newDuration >= minDuration && newStartTime >= 0 && startTimeChange !== 0) {
-            // Calculate the start offset in the audio file
-            const currentStartOffset = loop.startOffset || 0;
-            const newStartOffset = currentStartOffset + startTimeChange;
-            
-            // Update ONLY the startTime and startOffset
-            onLoopUpdate(loop.id, { 
-              startTime: newStartTime,
-              startOffset: newStartOffset
-            });
-            
-            if (onLoopResize) {
-              onLoopResize(loop.id, newDuration);
-            }
-          }
         }
+        // Left resize removed - left edge now triggers loop drag instead
       });
     };
 
@@ -812,27 +776,7 @@ const LoopBlock = React.memo(({
         </div>
       )}
 
-      {/* LEFT RESIZE HANDLE */}
-      <div
-        className={`resize-handle absolute top-0 bottom-0 left-0 cursor-col-resize transition-all ${
-          isResizing && resizeDirection === 'left'
-            ? 'bg-blue-500 w-2 opacity-100' 
-            : 'bg-blue-400 hover:bg-blue-300 w-1 opacity-60'
-        }`}
-        onMouseDown={(e) => handleResizeStart(e, 'left')}
-        title="Drag left to shrink loop"
-        data-resize-handle="left"
-        style={{
-          width: isResizing && resizeDirection === 'left' ? '8px' : '4px',
-          zIndex: 1000
-        }}
-      >
-        {isResizing && resizeDirection === 'left' && (
-          <div className="absolute -top-10 left-0 bg-black bg-opacity-90 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 pointer-events-none">
-            {Math.round((loop.endTime - loop.startTime) * 10) / 10}s ({numRepeats}x)
-          </div>
-        )}
-      </div>
+      {/* LEFT EDGE - No resize handle, clicking here will trigger loop drag */}
 
       {/* RIGHT RESIZE HANDLE */}
       <div

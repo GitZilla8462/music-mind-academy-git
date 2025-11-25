@@ -1,4 +1,5 @@
 // composer/MusicComposer.jsx - Main orchestrator (refactored)
+// FIXED: Added compositionKey prop for universal auto-save/load
 // FIXED: Added onDAWReadyCallback with tutorial mode support
 // UPDATED: Added showSoundEffects prop support
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -47,7 +48,11 @@ const MusicComposer = ({
   lockedMood = null,
   showSoundEffects = false,
   assignmentPanelContent = null,
-  isLessonMode = false  // NEW PROP - indicates if in a lesson or standalone
+  isLessonMode = false,
+  // NEW: Universal composition key for auto-save/load
+  // Examples: "city-composition", "sports-composition", "lesson1-activity"
+  // If not provided, falls back to videoPath or assignmentId
+  compositionKey = null
 }) => {
   const { videoId, assignmentId } = useParams();
   const navigate = useNavigate();
@@ -93,7 +98,7 @@ const MusicComposer = ({
 
   // DEBUG: Log showSoundEffects prop
   React.useEffect(() => {
-    console.log('Ã°Å¸Å½Âµ MusicComposer showSoundEffects prop:', showSoundEffects);
+    console.log('🎵 MusicComposer showSoundEffects prop:', showSoundEffects);
   }, [showSoundEffects]);
 
   // Audio engine hook SECOND (now selectedVideo exists)
@@ -124,7 +129,7 @@ const MusicComposer = ({
       : selectedVideo && audioReady && !videoLoading;  // Normal needs video + audio
     
     if (isDawReady && !dawReadyCalledRef.current && onDAWReadyCallback) {
-      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DAW is fully initialized - calling onDAWReadyCallback');
+      console.log('✅ DAW is fully initialized - calling onDAWReadyCallback');
       console.log('   - tutorialMode:', tutorialMode);
       console.log('   - selectedVideo:', !!selectedVideo);
       console.log('   - audioReady:', audioReady);
@@ -141,7 +146,7 @@ const MusicComposer = ({
   // STEP 1: Store initial loops and load into state immediately
   useEffect(() => {
     if (initialPlacedLoops && initialPlacedLoops.length > 0) {
-      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Initializing with saved loops:', initialPlacedLoops);
+      console.log('🎵 Initializing with saved loops:', initialPlacedLoops);
       savedLoopsRef.current = initialPlacedLoops;
       setPlacedLoops(initialPlacedLoops);
     }
@@ -149,7 +154,7 @@ const MusicComposer = ({
 
   // STEP 2: Create audio players when audio becomes ready
   useEffect(() => {
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Player creation check:', {
+    console.log('🔊 Player creation check:', {
       audioReady,
       hasSavedLoops: savedLoopsRef.current !== null,
       playersCreated: playersCreatedRef.current,
@@ -157,7 +162,7 @@ const MusicComposer = ({
     });
 
     if (audioReady && savedLoopsRef.current && !playersCreatedRef.current) {
-      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Audio ready! Creating players for', savedLoopsRef.current.length, 'saved loops...');
+      console.log('🎵 Audio ready! Creating players for', savedLoopsRef.current.length, 'saved loops...');
       
       savedLoopsRef.current.forEach(loop => {
         const loopData = {
@@ -169,18 +174,18 @@ const MusicComposer = ({
           category: loop.category
         };
         
-        console.log('  ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Creating player for:', loopData.name, 'with ID:', loop.id);
+        console.log('  → Creating player for:', loopData.name, 'with ID:', loop.id);
         
         try {
           createLoopPlayer(loopData, loop.id);
-          console.log('  ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Player stored with key:', loop.id);
+          console.log('  ✅ Player stored with key:', loop.id);
         } catch (error) {
-          console.error('  ÃƒÂ¢Ã‚ÂÃ…â€™ Failed to create player for:', loopData.name, error);
+          console.error('  ❌ Failed to create player for:', loopData.name, error);
         }
       });
       
       playersCreatedRef.current = true;
-      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ All audio players created for saved loops');
+      console.log('✅ All audio players created for saved loops');
     }
   }, [audioReady, createLoopPlayer, placedLoops.length]);
 
@@ -253,7 +258,7 @@ const MusicComposer = ({
     tutorialMode
   });
 
-  // All useEffect logic
+  // All useEffect logic - NOW WITH compositionKey
   useComposerEffects({
     videoId,
     preselectedVideo,
@@ -289,7 +294,9 @@ const MusicComposer = ({
     seek,
     handlePlay,
     handleRestart,
-    isPlaying
+    isPlaying,
+    // NEW: Pass compositionKey for universal save/load
+    compositionKey
   });
 
   // Track state change handler with callback
@@ -367,7 +374,11 @@ const MusicComposer = ({
       if (response.ok) {
         showToast?.('Film score submitted successfully!', 'success');
         setHasUnsavedChanges(false);
-        localStorage.removeItem(`composition-${assignmentId}`);
+        
+        // Clear saved composition using the same key logic
+        const saveKey = compositionKey || assignmentId || videoId || preselectedVideo?.videoPath || 'default-composition';
+        localStorage.removeItem(`composition-${saveKey}`);
+        
         setTimeout(() => navigate('/student'), 1500);
       } else {
         const errorData = await response.json();

@@ -2,6 +2,7 @@
 // City Soundscape Composition - Matches SportsCompositionActivity structure
 // Uses MusicComposer component with city video selection
 // ✅ UPDATED: Added SAVE button to manually save composition to localStorage
+// ✅ FIXED: Changed sessionStorage to useRef to allow reload on refresh
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -114,8 +115,13 @@ const CityCompositionActivity = ({
   const [videoDuration, setVideoDuration] = useState(null);
   const [isLoadingVideo, setIsLoadingVideo] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [saveMessage, setSaveMessage] = useState(null);
   const timerRef = useRef(null);
   const autoAdvanceCalledRef = useRef(false);
+  
+  // ✅ FIXED: Use ref instead of sessionStorage so it resets on page refresh
+  const hasLoadedRef = useRef(false);
+  const isSavingRef = useRef(false);
   
   // Initialize student ID
   useEffect(() => {
@@ -239,12 +245,12 @@ const CityCompositionActivity = ({
   );
   
   // Load saved work on mount ONLY - includes manual saves
+  // ✅ FIXED: Use ref instead of sessionStorage so refresh reloads saved work
   useEffect(() => {
     if (!studentId || !selectedVideo) return;
     
-    // Skip if already loaded this session
-    const hasLoaded = sessionStorage.getItem(`city-composition-loaded-${studentId}`);
-    if (hasLoaded) {
+    // Skip if already loaded this session (ref resets on refresh, allowing reload)
+    if (hasLoadedRef.current) {
       console.log('⏭️ Already loaded this session, skipping');
       return;
     }
@@ -266,7 +272,7 @@ const CityCompositionActivity = ({
             setPlacedLoops(data.composition.placedLoops);
             setVideoDuration(data.composition.videoDuration || selectedVideo.duration);
             console.log('✅ Loaded from manual save:', data.composition.placedLoops.length, 'loops for', selectedVideo.title);
-            sessionStorage.setItem(`city-composition-loaded-${studentId}`, 'true');
+            hasLoadedRef.current = true;
             return;
           } else {
             console.log('⚠️ Saved video mismatch - saved:', data.composition.videoId, 'current:', selectedVideo.id);
@@ -286,14 +292,14 @@ const CityCompositionActivity = ({
           setPlacedLoops(saved.placedLoops || []);
           setVideoDuration(saved.videoDuration || selectedVideo.duration);
           console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
-          sessionStorage.setItem(`city-composition-loaded-${studentId}`, 'true');
+          hasLoadedRef.current = true;
           return;
         }
       }
     }
     
     console.log('ℹ️ No saved work found for this video');
-    sessionStorage.setItem(`city-composition-loaded-${studentId}`, 'true');
+    hasLoadedRef.current = true;
   }, [studentId, hasSavedWork, loadSavedWork, selectedVideo]);
   
   // REFLECTION VIEW HANDLERS
@@ -304,16 +310,31 @@ const CityCompositionActivity = ({
   };
   
   // ✅ MANUAL SAVE HANDLER - Saves to localStorage for viewing on join page
-  const handleManualSave = () => {
+  const handleManualSave = (silent = false) => {
+    // Prevent duplicate saves
+    if (isSavingRef.current) {
+      console.log('⏸️ Save already in progress, skipping duplicate');
+      return;
+    }
+    
     if (!studentId || !selectedVideo) {
-      alert('❌ Cannot save: Missing student ID or video selection');
+      if (!silent) {
+        setSaveMessage({ type: 'error', text: '❌ Cannot save: Missing student ID or video selection' });
+        setTimeout(() => setSaveMessage(null), 3000);
+      }
       return;
     }
     
     if (placedLoops.length === 0) {
-      alert('❌ Cannot save: No loops placed yet');
+      if (!silent) {
+        setSaveMessage({ type: 'error', text: '❌ Cannot save: No loops placed yet' });
+        setTimeout(() => setSaveMessage(null), 3000);
+      }
       return;
     }
+    
+    // Set saving flag
+    isSavingRef.current = true;
     
     const saveKey = `city-composition-${studentId}`;
     const saveData = {
@@ -331,7 +352,16 @@ const CityCompositionActivity = ({
     
     localStorage.setItem(saveKey, JSON.stringify(saveData));
     console.log('💾 Manual save complete:', saveKey, saveData);
-    alert('✅ Composition saved! You can view it from the Music Room Tools homepage.');
+    
+    if (!silent) {
+      setSaveMessage({ type: 'success', text: '✅ Composition saved!' });
+      setTimeout(() => setSaveMessage(null), 3000);
+    }
+    
+    // Reset saving flag after a short delay
+    setTimeout(() => {
+      isSavingRef.current = false;
+    }, 500);
   };
   
   // TIMER (self-guided mode only)
@@ -514,6 +544,27 @@ const CityCompositionActivity = ({
   // MAIN ACTIVITY
   return (
     <div className="h-full flex flex-col bg-gray-900 relative">
+      {/* Save Message Toast */}
+      {saveMessage && (
+        <div 
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-xl font-bold text-white transition-all duration-300 ${
+            saveMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+          }`}
+          style={{ 
+            animation: 'fadeIn 0.3s ease-in'
+          }}
+        >
+          {saveMessage.text}
+        </div>
+      )}
+      
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translate(-50%, -20px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
+        }
+      `}</style>
+      
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">
         <div className="px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -528,8 +579,8 @@ const CityCompositionActivity = ({
           </div>
           
           <div className="flex items-center gap-4">
-            {/* ✅ SAVE BUTTON - Top Right - Now works in session mode too */}
-            {studentId && !viewMode && selectedVideo && placedLoops.length > 0 && (
+            {/* ✅ SAVE BUTTON - Top Right - Now works in session mode and view mode */}
+            {studentId && selectedVideo && placedLoops.length > 0 && (
               <button
                 onClick={handleManualSave}
                 className="px-4 py-1.5 text-sm rounded bg-green-600 hover:bg-green-700 font-bold transition-colors"
@@ -560,7 +611,13 @@ const CityCompositionActivity = ({
             
             {viewMode && (
               <button
-                onClick={() => navigate('/')}
+                onClick={() => {
+                  // Auto-save silently before leaving if there are loops
+                  if (placedLoops.length > 0 && studentId && selectedVideo) {
+                    handleManualSave(true);
+                  }
+                  navigate('/');
+                }}
                 className="px-4 py-1.5 text-sm rounded bg-blue-600 hover:bg-blue-700"
               >
                 Back
@@ -574,6 +631,7 @@ const CityCompositionActivity = ({
         {selectedVideo ? (
           <MusicComposer
             key={`city-composer-${selectedVideo?.id || 'none'}`}
+            compositionKey={`city-composition-${selectedVideo?.id}`}
             onLoopDropCallback={handleLoopPlaced}
             onLoopDeleteCallback={handleLoopDeleted}
             onLoopUpdateCallback={handleLoopUpdated}

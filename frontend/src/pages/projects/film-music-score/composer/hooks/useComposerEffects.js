@@ -1,5 +1,5 @@
 // ============================================================================
-// FILE 3: useComposerEffects.js - FIXED with debounced keyboard shortcuts
+// FILE: useComposerEffects.js - FIXED auto-save for tutorial/lesson mode
 // ============================================================================
 
 import { useEffect, useRef } from 'react';
@@ -45,11 +45,17 @@ export const useComposerEffects = ({
   seek,
   handlePlay,
   handleRestart,
-  isPlaying
+  isPlaying,
+  
+  // NEW: Universal composition key for save/load
+  compositionKey = null
 }) => {
   
   // Track if we've already loaded a video to prevent re-initialization
   const hasLoadedVideoRef = useRef(false);
+  
+  // Track if we've already loaded saved composition to prevent overwriting user changes
+  const hasLoadedSavedCompositionRef = useRef(false);
   
   // Initialize video with dynamic duration loading
   useEffect(() => {
@@ -155,9 +161,21 @@ export const useComposerEffects = ({
     loadVideo();
   }, [videoId, preselectedVideo]);
 
-  // Auto-save functionality (disabled for demo and practice modes)
+  // ============================================================================
+  // AUTO-SAVE - NOW WORKS IN ALL MODES (including tutorial/lesson mode)
+  // Uses compositionKey if provided, otherwise falls back to other identifiers
+  // ============================================================================
   useEffect(() => {
-    if (hasUnsavedChanges && assignmentId && !tutorialMode && !isDemo && !isPractice) {
+    // Create a save key - use compositionKey first, then fallback chain
+    const saveKey = compositionKey
+      || assignmentId 
+      || videoId 
+      || preselectedVideo?.id 
+      || preselectedVideo?.videoPath 
+      || 'default-composition';
+    
+    // Only save if there are changes AND we have loops to save
+    if (hasUnsavedChanges && placedLoops.length > 0) {
       const autoSave = setTimeout(() => {
         const compositionData = {
           selectedVideo,
@@ -167,33 +185,48 @@ export const useComposerEffects = ({
           lastModified: new Date().toISOString()
         };
         
-        localStorage.setItem(`composition-${assignmentId}`, JSON.stringify(compositionData));
-        console.log('Auto-saved composition');
+        localStorage.setItem(`composition-${saveKey}`, JSON.stringify(compositionData));
+        console.log('✅ Auto-saved composition to:', `composition-${saveKey}`, `(${placedLoops.length} loops)`);
       }, 2000);
 
       return () => clearTimeout(autoSave);
     }
-  }, [placedLoops, submissionNotes, hasUnsavedChanges, assignmentId, selectedVideo, videoId, tutorialMode, isDemo, isPractice]);
+  }, [placedLoops, submissionNotes, hasUnsavedChanges, assignmentId, selectedVideo, videoId, preselectedVideo, compositionKey]);
 
-  // Load saved composition on mount (disabled for demo and practice modes)
+  // ============================================================================
+  // LOAD SAVED COMPOSITION ON MOUNT - NOW WORKS IN ALL MODES
+  // Uses compositionKey if provided, otherwise falls back to other identifiers
+  // ============================================================================
   useEffect(() => {
-    if (assignmentId && !tutorialMode && !isDemo && !isPractice) {
-      const saved = localStorage.getItem(`composition-${assignmentId}`);
-      if (saved) {
-        try {
-          const data = JSON.parse(saved);
-          if (data.placedLoops) {
-            setPlacedLoops(data.placedLoops);
-          }
-          if (data.submissionNotes) {
-            setSubmissionNotes(data.submissionNotes);
-          }
-        } catch (error) {
-          console.error('Error loading saved composition:', error);
+    // Only load once to prevent overwriting user's work during the session
+    if (hasLoadedSavedCompositionRef.current) {
+      return;
+    }
+    
+    const saveKey = compositionKey
+      || assignmentId 
+      || videoId 
+      || preselectedVideo?.id 
+      || preselectedVideo?.videoPath 
+      || 'default-composition';
+    
+    const saved = localStorage.getItem(`composition-${saveKey}`);
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.placedLoops && data.placedLoops.length > 0) {
+          console.log('📂 Loading saved composition from:', `composition-${saveKey}`, `(${data.placedLoops.length} loops)`);
+          setPlacedLoops(data.placedLoops);
+          hasLoadedSavedCompositionRef.current = true;
         }
+        if (data.submissionNotes) {
+          setSubmissionNotes(data.submissionNotes);
+        }
+      } catch (error) {
+        console.error('Error loading saved composition:', error);
       }
     }
-  }, [assignmentId, tutorialMode, isDemo, isPractice, setPlacedLoops, setSubmissionNotes]);
+  }, [assignmentId, videoId, preselectedVideo, setPlacedLoops, setSubmissionNotes, compositionKey]);
 
   // Auto-initialize audio for all modes
   useEffect(() => {
