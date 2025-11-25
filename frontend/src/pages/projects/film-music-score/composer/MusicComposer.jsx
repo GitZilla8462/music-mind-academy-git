@@ -2,6 +2,7 @@
 // FIXED: Added compositionKey prop for universal auto-save/load
 // FIXED: Added onDAWReadyCallback with tutorial mode support
 // UPDATED: Added showSoundEffects prop support
+// UPDATED: Added Chromebook swipe protection to prevent accidental back navigation
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -12,6 +13,7 @@ import { useComposerState } from './hooks/useComposerState';
 import { useLoopHandlers } from './hooks/useLoopHandlers';
 import { usePlaybackHandlers } from './hooks/usePlaybackHandlers';
 import { useComposerEffects } from './hooks/useComposerEffects';
+import { usePreventAccidentalNavigation } from '../../../../hooks/usePreventAccidentalNavigation';
 
 // Components
 import ComposerHeader from './components/ComposerHeader';
@@ -95,6 +97,15 @@ const MusicComposer = ({
     setIsResizingTop,
     containerRef
   } = useComposerState(preselectedVideo);
+
+  // 🛡️ CHROMEBOOK SWIPE PROTECTION
+  // Prevents two-finger swipe back gesture and other accidental navigation
+  usePreventAccidentalNavigation({
+    hasUnsavedWork: placedLoops.length > 0 || hasUnsavedChanges,
+    onNavigationAttempt: () => {
+      showToast?.('⚠️ Use the Back button in the app to exit safely!', 'warning');
+    }
+  });
 
   // DEBUG: Log showSoundEffects prop
   React.useEffect(() => {

@@ -104,6 +104,63 @@ const snapGuideStyles = `
   #snap-guide[style*="opacity: 0.9"] {
     animation: snap-guide-pulse 1s ease-in-out infinite;
   }
+
+  /* ============================================================
+     CHROMEBOOK SWIPE PROTECTION
+     Prevents two-finger swipe back gesture on Chromebooks
+     ============================================================ */
+  
+  /* Prevent horizontal overscroll on the entire app */
+  html, body {
+    overscroll-behavior-x: none;
+  }
+
+  /* Specifically target composition/DAW pages (dark background) */
+  .bg-gray-900 {
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: auto;
+    touch-action: pan-y pinch-zoom;
+  }
+
+  /* Prevent overscroll on the main composition container */
+  .min-h-screen.bg-gray-900 {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto;
+  }
+
+  /* Timeline and loop areas - prevent any horizontal swipe interpretation */
+  .timeline-container,
+  .loop-library,
+  .track-container {
+    overscroll-behavior-x: none;
+    touch-action: pan-y pinch-zoom;
+  }
+
+  /* For draggable elements, be more permissive */
+  .draggable-loop,
+  [draggable="true"] {
+    touch-action: none;
+  }
+
+  /* Modal overlays should block all gestures */
+  .fixed.inset-0 {
+    overscroll-behavior: contain;
+  }
+
+  /* Chrome on ChromeOS specific */
+  @supports (-webkit-touch-callout: none) {
+    body {
+      overscroll-behavior-x: none;
+    }
+  }
+
+  /* Prevent elastic scroll on touch devices */
+  @media (hover: none) and (pointer: coarse) {
+    .bg-gray-900 {
+      overflow-x: hidden;
+      overscroll-behavior-x: none;
+    }
+  }
 `;
 
 // Protected Route Component with better error handling
