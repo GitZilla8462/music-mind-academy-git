@@ -1,7 +1,7 @@
-// File: /lessons/film-music-project/lesson3/Lesson3config.jsx
+// File: /src/lessons/film-music-project/lesson3/Lesson3config.jsx
 // Lesson 3: City Soundscapes - Configuration
 // Music concept: Texture and Layering
-// ✅ UPDATED: Added Layer Detective class demo, individual game, and city video selection
+// ✅ UPDATED: Renamed Texture Drawings to Listening Map throughout
 
 export const LESSON_PROGRESS_KEY = 'lesson3-progress';
 export const LESSON_TIMER_KEY = 'lesson3-timer';
@@ -57,42 +57,35 @@ export const lessonSections = [
   },
   {
     id: 'activity1',
-    title: 'Activity 1 - Layer Detective',
-    subtitle: 'Identify Layers Game',
-    icon: '🔍',
-    color: 'orange',
-    estimatedTime: 10,
+    title: 'Activity 1 - Listening Map',
+    subtitle: 'Listen & Draw Layers',
+    icon: '🗺️',
+    color: 'purple',
+    estimatedTime: 12,
     stages: [
       { 
-        id: 'introduce-layer-detective', 
+        id: 'introduce-listening-map', 
         type: 'summary', 
-        label: 'Introduce Layer Detective Game',
-        description: 'Introduce the Layer Detective activity - Slide 6',
+        label: 'Introduce Listening Map',
+        description: 'Introduce the Listening Map activity - Slide 6',
         duration: 1
       },
       { 
-        id: 'layer-detective-class-demo', 
-        type: 'class-demo', 
-        label: 'Layer Detective Class Demo', 
-        duration: 3,
-        description: 'Whole-class demo on projection screen'
+        id: 'listening-map-video', 
+        type: 'video', 
+        label: 'Play ListeningMapExplanation.mp4',
+        description: 'Play explanation video',
+        duration: 2
       },
       { 
-        id: 'layer-detective', 
+        id: 'listening-map', 
         type: 'activity', 
-        label: 'Unlock Layer Detective Game', 
-        duration: 5,
+        label: 'Unlock Listening Map', 
+        duration: 8,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students play layer identification game',
-        bonusDescription: 'Bonus: Replay and improve your score'
-      },
-      { 
-        id: 'layer-detective-results', 
-        type: 'results', 
-        label: 'Show Layer Detective Results', 
-        duration: 1,
-        description: 'Display winner podium and scores'
+        description: 'Students draw while listening to music',
+        bonusDescription: 'Bonus: Compare your drawings!'
       }
     ]
   },
@@ -102,7 +95,7 @@ export const lessonSections = [
     subtitle: 'City Soundscape Music',
     icon: '🎵',
     color: 'green',
-    estimatedTime: 13,
+    estimatedTime: 12,
     stages: [
       { 
         id: 'composition-instructions', 
@@ -126,33 +119,33 @@ export const lessonSections = [
         hasTimer: true,
         trackProgress: true,
         description: 'Students choose city & compose soundscape',
-        bonusDescription: 'Bonus: Play Layer Detective Again'
-      },
-      { 
-        id: 'reflection', 
-        type: 'activity', 
-        label: 'Unlock Reflection Activity', 
-        duration: 1,
-        hasTimer: true,
-        trackProgress: true,
-        description: 'Students complete Two Stars and a Wish',
-        bonusDescription: 'Bonus: Share Your Soundscape'
+        bonusDescription: 'Bonus: Add more layers!'
       }
     ]
   },
   {
-    id: 'conclusion',
-    title: 'Conclusion',
-    subtitle: 'Class Discussion',
-    icon: '💬',
-    color: 'gray',
-    estimatedTime: 2,
+    id: 'reflection',
+    title: 'Reflection',
+    subtitle: 'Two Stars and a Wish',
+    icon: '⭐',
+    color: 'amber',
+    estimatedTime: 5,
     stages: [
+      { 
+        id: 'reflection', 
+        type: 'activity', 
+        label: 'Unlock Reflection Activity', 
+        duration: 3,
+        hasTimer: true,
+        trackProgress: true,
+        description: 'Students complete Two Stars and a Wish',
+        bonusDescription: 'Bonus: Share with a partner!'
+      },
       {
         id: 'conclusion',
         type: 'discussion',
         label: 'Class Discussion',
-        description: 'Review and wrap up - Slide 9',
+        description: 'Wrap up and review - Slide 11',
         duration: 2
       }
     ]
@@ -166,31 +159,26 @@ export const lesson3Config = {
   learningObjectives: [
     "Understand texture as the thickness or thinness of sound",
     "Identify the number of layers in musical compositions",
+    "Describe musical elements using appropriate vocabulary",
     "Create city soundscapes using multiple musical layers"
   ],
   lessonSections,
   activities: [
     {
       id: 1,
-      type: "layer-detective-class-demo",
-      title: "Layer Detective Class Demo",
-      estimatedTime: "3 min"
+      type: "listening-map",
+      title: "Listening Map",
+      estimatedTime: "8 min"
     },
     {
       id: 2,
-      type: "layer-detective",
-      title: "Layer Detective Game",
-      estimatedTime: "5 min"
-    },
-    {
-      id: 3,
       type: "city-composition-activity",
       title: "Compose Your City Soundscape",
       estimatedTime: "10 min",
-      includesVideoSelection: true  // ✅ City selection built into activity
+      includesVideoSelection: true
     },
     {
-      id: 4,
+      id: 3,
       type: "two-stars-wish",
       title: "Reflection Activity",
       estimatedTime: "3 min"
@@ -208,6 +196,7 @@ export const lessonStages = [
     description: 'Students enter session code',
     type: 'waiting'
   },
+  // Introduction
   { 
     id: 'city-soundscapes-intro', 
     label: 'City Soundscapes Introduction', 
@@ -263,10 +252,11 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson3/slides/5.png'
     }
   },
+  // Activity 1: Listening Map
   { 
-    id: 'introduce-layer-detective', 
-    label: 'Layer Detective Game', 
-    description: 'Introduce Layer Detective activity - Slide 6',
+    id: 'introduce-listening-map', 
+    label: 'Introduce Listening Map', 
+    description: 'Introduce Listening Map activity - Slide 6',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -275,38 +265,32 @@ export const lessonStages = [
     }
   },
   { 
-    id: 'layer-detective-class-demo', 
-    label: 'Layer Detective Class Demo', 
-    description: 'Whole-class demo on projection screen',
-    type: 'class-demo',
-    duration: 3,
+    id: 'listening-map-video', 
+    label: 'Play ListeningMapExplanation.mp4', 
+    description: 'Explanation video',
+    type: 'video',
+    duration: 2,
     presentationView: {
-      type: 'layer-detective-class-demo'  // ✅ Full-screen class demo
+      type: 'video',
+      videoPath: '/lessons/film-music-project/lesson3/ListeningMapExplanation.mp4',
+      title: 'Listening Map Explanation'
     }
   },
   { 
-    id: 'layer-detective', 
-    label: 'Unlock Layer Detective Game', 
-    description: 'Students play layer identification game',
-    bonusDescription: 'Bonus: Replay and improve your score',
+    id: 'listening-map', 
+    label: 'Unlock Listening Map', 
+    description: 'Students draw while listening to music',
+    bonusDescription: 'Bonus: Compare your drawings!',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 5,
+    duration: 8,
     presentationView: {
-      type: 'layer-detective-leaderboard'  // ✅ Show live leaderboard
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson3/slides/6.5.png'
     }
   },
-  { 
-    id: 'layer-detective-results', 
-    label: 'Show Layer Detective Results', 
-    description: 'Display winner podium and scores',
-    type: 'results',
-    duration: 1,
-    presentationView: {
-      type: 'layer-detective-results'  // ✅ Show winner celebration
-    }
-  },
+  // Activity 2: Composition
   { 
     id: 'composition-instructions', 
     label: 'Show Composition Instructions', 
@@ -332,8 +316,8 @@ export const lessonStages = [
   { 
     id: 'city-composition', 
     label: 'Unlock Composition Activity', 
-    description: 'Students choose city & compose soundscape - Slide 9', 
-    bonusDescription: 'Bonus: Play Layer Detective Again',
+    description: 'Students choose city & compose soundscape', 
+    bonusDescription: 'Bonus: Add more layers!',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
@@ -343,20 +327,22 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson3/slides/9.png'
     }
   },
+  // Reflection
   { 
     id: 'reflection', 
     label: 'Unlock Reflection Activity', 
-    description: 'Students complete Two Stars and a Wish - Slide 10', 
-    bonusDescription: 'Bonus: Share Your Soundscape',
+    description: 'Students complete Two Stars and a Wish', 
+    bonusDescription: 'Bonus: Share with a partner!',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 1,
+    duration: 3,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson3/slides/10.png'
     }
   },
+  // Conclusion (part of Reflection section)
   {
     id: 'conclusion',
     label: 'Class Discussion',
@@ -378,14 +364,15 @@ export const getActivityForStage = (stage) => {
     'introduce-texture': 'summary',
     'texture-continued': 'summary',
     'layers-and-texture': 'summary',
-    'introduce-layer-detective': 'summary',
-    'layer-detective-class-demo': 'layer-detective-class-demo',  // ✅ Class demo
-    'layer-detective': 'layer-detective',  // ✅ Individual game
-    'layer-detective-results': 'results',  // ✅ Results screen
+    'introduce-listening-map': 'summary',
+    'introduce-texture-drawings': 'summary',  // backward compatibility
+    'listening-map-video': 'video',
+    'listening-map': 'listening-map',
+    'texture-drawings': 'listening-map',  // backward compatibility
     'composition-instructions': 'summary',
     'composition-instructions-continued': 'summary',
-    'city-composition': 'city-composition-activity',  // ✅ Now includes city selection
-    'reflection': 'city-composition-activity',  // ✅ Show composition, modal appears on top (matches Lesson 2 flow)
+    'city-composition': 'city-composition-activity',
+    'reflection': 'two-stars-wish',
     'conclusion': 'discussion'
   };
   return stageMap[stage];

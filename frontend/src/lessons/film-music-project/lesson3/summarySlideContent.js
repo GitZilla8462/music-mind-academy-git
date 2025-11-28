@@ -1,5 +1,6 @@
 // File: /src/lessons/film-music-project/lesson3/summarySlideContent.js
 // All instructional text and content for Lesson 3 - City Soundscapes
+// ✅ UPDATED: Renamed Texture Drawings to Listening Map throughout
 
 // ========================================
 // 1. PRE-ACTIVITY SUMMARY SLIDES
@@ -11,8 +12,8 @@ export const summarySlides = {
     estimatedTime: "3 minutes",
     points: [
       "Learn about texture and layering in music.",
-      "Play the Layer Detective game to identify layers.",
-      "Compose your own city soundscape using multiple layers."
+      "Draw a listening map while hearing instruments play.",
+      "Create your own city soundscape using multiple layers."
     ]
   },
 
@@ -33,22 +34,81 @@ export const summarySlides = {
     icon: "📚",
     estimatedTime: "Discussion",
     points: [
-      "Each loop you add is a new layer of sound.",
+      "Each instrument you hear is a new layer of sound.",
       "More layers = Thicker texture and fuller sound.",
-      "Composers control texture by adding or removing layers.",
+      "Composers control texture by adding or removing instruments.",
       "City soundscapes have thick texture with many overlapping sounds."
     ]
   },
 
-  layerDetective: {
-    title: "Layer Detective Game",
-    icon: "🔍",
-    estimatedTime: "3 minutes",
+  // ✅ RENAMED: Listening Map summary slide content
+  listeningMap: {
+    title: "Listening Map",
+    icon: "🗺️",
+    estimatedTime: "8 minutes",
     points: [
-      "Listen to short musical examples.",
-      "Count how many layers you hear in each one.",
-      "Test your ear training skills!",
-      "Try to get the highest score possible."
+      "Listen to music with different numbers of instruments",
+      "Draw what you hear on a blank canvas",
+      "Create a visual map of the sounds you hear",
+      "Notice how the music gets fuller with more instruments"
+    ],
+    rounds: [
+      {
+        number: 1,
+        title: "Quartet",
+        instruments: ["Violin 1", "Violin 2", "Viola", "Cello"],
+        instruction: "Draw lines representing each instrument",
+        color: "#8B5CF6"
+      }
+    ],
+    reflectionQuestions: [
+      "How did you represent different instruments in your drawing?",
+      "What does 'thick texture' look like vs 'thin texture'?",
+      "Could you hear each instrument separately?"
+    ]
+  },
+
+  // Loop Lab summary slide content
+  loopLab: {
+    title: "Loop Lab Partner Game",
+    icon: "🎧",
+    estimatedTime: "6 minutes",
+    points: [
+      "Work in pairs (2-3 per Chromebook)",
+      "One player listens and describes, one player builds",
+      "Use musical vocabulary to communicate",
+      "Swap roles each round!"
+    ],
+    roles: {
+      listener: {
+        title: "THE LISTENER 🎧",
+        tasks: [
+          "Wears headphones",
+          "Hears the mystery loops",
+          "Describes using musical words",
+          "Can't touch the screen!"
+        ]
+      },
+      builder: {
+        title: "THE BUILDER 🔨",
+        tasks: [
+          "Sees all the loops",
+          "Listens to descriptions",
+          "Builds a matching mix",
+          "Earns points for accuracy!"
+        ]
+      }
+    },
+    scoring: {
+      exact: { points: 20, label: "Exact Match" },
+      category: { points: 5, label: "Right Category" },
+      perfect: { points: 10, label: "Perfect Bonus" }
+    },
+    vocabularyHints: [
+      { icon: "🎵", label: "Pitch", examples: "High / Low / Bright / Dark" },
+      { icon: "🥁", label: "Rhythm", examples: "Fast / Slow / Steady" },
+      { icon: "🎸", label: "Instrument", examples: "Drums, Strings, Synth, Bass" },
+      { icon: "✨", label: "Feel", examples: "Heroic, Scary, Mysterious, Upbeat" }
     ]
   },
 
@@ -80,6 +140,30 @@ export const summarySlides = {
 // 2. ASSIGNMENT PANEL CONTENT
 // ========================================
 export const assignmentPanels = {
+  listeningMap: {
+    title: "Listening Map Activity",
+    requirements: [
+      {
+        id: "listen",
+        label: "Listen",
+        shortText: "Listen carefully to each instrument",
+        fullText: "Pay attention to how many instruments you hear playing."
+      },
+      {
+        id: "draw",
+        label: "Draw",
+        shortText: "Draw while the music plays",
+        fullText: "Create lines, shapes, or patterns that represent what you hear."
+      },
+      {
+        id: "map",
+        label: "Map",
+        shortText: "Create a visual map of sounds",
+        fullText: "Your drawing should show the different layers of music."
+      }
+    ]
+  },
+
   cityComposition: {
     title: "Composition Assignment",
     requirements: [
@@ -142,53 +226,14 @@ export const reflectionActivity = {
     
     listenAndShare: {
       self: {
-        title: "Listen to Your City Soundscape",
-        mainText: "Listen to your entire city soundscape from beginning to end.",
-        payAttentionTo: {
-          title: "Pay attention to:",
-          items: [
-            "How many layers you used and when",
-            "The overall texture (thin vs. thick)",
-            "How the layers work together to create a city atmosphere"
-          ]
-        },
-        voiceText: "Now, listen to your entire city soundscape. Pay attention to: How many layers you used. The overall texture. And how the layers work together."
+        title: "Listen to Your Composition",
+        text: "Take a moment to listen to your city soundscape. Think about your texture and layering choices.",
+        voiceText: "Listen to your composition and think about your texture and layering choices."
       },
       partner: {
-        title: "Share & Listen",
-        shareFirst: {
-          title: "🔊 First: Share your soundscape",
-          text: "Share your composition with [Partner Name] so they can see and hear your work."
-        },
-        mainText: "Now, listen to [Partner Name]'s entire city soundscape from beginning to end.",
-        payAttentionTo: {
-          title: "Pay attention to:",
-          items: [
-            "How many layers they used and when",
-            "The overall texture (thin vs. thick)",
-            "How the layers work together to create a city atmosphere"
-          ]
-        },
-        voiceText: "Now share your work! First, share your soundscape with [Partner Name]. Then, listen to their composition and pay attention to the layers, texture, and overall atmosphere."
-      }
-    },
-    
-    summary: {
-      self: {
-        title: "♪ Your Reflection Summary",
-        readAloud: {
-          title: "📖 Now Read Your Reflection Aloud!",
-          text: "Read your reflection to yourself or share it with a neighbor."
-        },
-        voiceText: "Here's your complete reflection summary! Now read your reflection out loud to yourself or share it with a neighbor."
-      },
-      partner: {
-        title: "♪ Your Reflection Summary",
-        readAloud: {
-          title: "📖 Now Read Your Reflection Aloud!",
-          text: "Read this feedback out loud to [Partner Name]."
-        },
-        voiceText: "Here's your complete reflection summary! Now read your feedback out loud to [Partner Name]."
+        title: "Listen to Your Partner's Composition",
+        text: "Take a moment to listen to your partner's city soundscape. Think about their texture and layering choices.",
+        voiceText: "Listen to your partner's composition and think about their texture and layering choices."
       }
     }
   },
@@ -271,5 +316,142 @@ export const reflectionActivity = {
         "Custom..."
       ]
     }
+  }
+};
+
+// ========================================
+// 4. LISTENING MAP SPECIFIC CONTENT
+// ========================================
+export const listeningMapContent = {
+  instructions: {
+    title: "🗺️ Listening Map",
+    subtitle: "Listen & Draw Layers",
+    overview: "You'll listen to music and draw what you hear on a blank canvas.",
+    mainSteps: [
+      {
+        step: 1,
+        icon: "🎧",
+        title: "Listen to the music",
+        description: "Press play and listen carefully to how many instruments are playing"
+      },
+      {
+        step: 2,
+        icon: "🎨",
+        title: "Draw while listening",
+        description: "Use lines, shapes, and colors to represent each instrument you hear"
+      },
+      {
+        step: 3,
+        icon: "🗺️",
+        title: "Create your map",
+        description: "Your drawing is a visual map of all the sounds in the music"
+      },
+      {
+        step: 4,
+        icon: "💾",
+        title: "Save your work",
+        description: "Click Save to keep your listening map"
+      }
+    ]
+  },
+  
+  rounds: [
+    {
+      id: 1,
+      title: "String Quartet",
+      subtitle: "Four Voices",
+      instrumentCount: 4,
+      instruments: ["Violin 1", "Violin 2", "Viola", "Cello"],
+      description: "Listen for FOUR instruments weaving together",
+      instruction: "Draw lines or shapes to represent each instrument you hear",
+      color: "#8B5CF6",
+      piece: "Eine kleine Nachtmusik"
+    }
+  ],
+
+  drawingTips: [
+    { icon: "📏", tip: "Use different line styles for different instruments (wavy, straight, dotted)" },
+    { icon: "🎨", tip: "Try different colors for each instrument" },
+    { icon: "⬆️", tip: "Higher sounds can go higher on the canvas" },
+    { icon: "📐", tip: "Thicker lines for louder instruments" }
+  ],
+
+  reflectionQuestions: [
+    "How did you represent different instruments in your drawing?",
+    "Could you hear each instrument separately?",
+    "What does 'thick texture' look like in your listening map?"
+  ]
+};
+
+// ========================================
+// 5. LOOP LAB SPECIFIC CONTENT
+// ========================================
+export const loopLabContent = {
+  instructions: {
+    title: "🎧 Loop Lab 🔬",
+    subtitle: "One Hears, One Builds!",
+    setup: "Groups of 2-3 students share ONE Chromebook",
+    mainSteps: [
+      {
+        step: 1,
+        icon: "🎧",
+        title: "Listener puts on headphones",
+        description: "Only the Listener can hear the mystery loops"
+      },
+      {
+        step: 2,
+        icon: "🗣️",
+        title: "Listener describes what they hear",
+        description: "Use musical words: pitch, rhythm, instrument type, mood"
+      },
+      {
+        step: 3,
+        icon: "🔨",
+        title: "Builder selects matching loops",
+        description: "Try to recreate what the Listener describes"
+      },
+      {
+        step: 4,
+        icon: "✅",
+        title: "Check and score!",
+        description: "See how close you got, then swap roles"
+      }
+    ]
+  },
+  
+  vocabularyGuide: {
+    title: "Musical Vocabulary Helper",
+    categories: [
+      {
+        name: "Pitch",
+        icon: "🎵",
+        words: ["High", "Low", "Bright", "Dark", "Squeaky", "Deep", "Boomy"]
+      },
+      {
+        name: "Rhythm",
+        icon: "🥁", 
+        words: ["Fast", "Slow", "Steady beat", "Bouncy", "Driving", "Relaxed"]
+      },
+      {
+        name: "Instruments",
+        icon: "🎸",
+        words: ["Drums", "Strings", "Synth", "Bass", "Brass", "Guitar", "Piano", "Bells"]
+      },
+      {
+        name: "Mood/Feel",
+        icon: "✨",
+        words: ["Heroic", "Scary", "Mysterious", "Upbeat", "Hype", "Intense", "Calm"]
+      }
+    ]
+  },
+
+  scoringExplanation: {
+    title: "How Scoring Works",
+    items: [
+      { label: "Exact Match", points: "+20", description: "You picked the exact same loop!" },
+      { label: "Right Category", points: "+5", description: "Right type of instrument, different loop" },
+      { label: "Perfect Bonus", points: "+10", description: "All loops matched perfectly!" }
+    ],
+    tip: "The Builder earns points, so Listeners: communicate clearly to help your partner score!"
   }
 };

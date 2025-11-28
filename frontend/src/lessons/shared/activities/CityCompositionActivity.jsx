@@ -3,13 +3,14 @@
 // Uses MusicComposer component with city video selection
 // ✅ UPDATED: Added SAVE button to manually save composition to localStorage
 // ✅ FIXED: Changed sessionStorage to useRef to allow reload on refresh
+// ✅ UPDATED: Changed bonus activity from Layer Detective to Loop Lab
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
 import { useAutoSave, AutoSaveIndicator } from '../../../hooks/useAutoSave.jsx';
 import CityReflectionModal from './two-stars-and-a-wish/CityReflectionModal';
-import LayerDetectivePartnerGame from './layer-detective/LayerDetectivePartnerGame';
+import LoopLab from './loop-lab/LoopLabActivity';
 import { useSession } from '../../../context/SessionContext';
 import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson3/lesson3StorageUtils';
 
@@ -686,11 +687,11 @@ const CityCompositionActivity = ({
       
       {/* Bonus game as overlay */}
       {showBonusGame && (
-        <div className="absolute inset-0 z-50 flex flex-col bg-gradient-to-br from-orange-900 via-red-900 to-pink-900">
-          <div className="bg-gradient-to-r from-orange-600 to-red-600 p-4 flex items-center justify-between">
+        <div className="absolute inset-0 z-50 flex flex-col bg-gradient-to-br from-cyan-900 via-blue-900 to-indigo-900">
+          <div className="bg-gradient-to-r from-cyan-600 to-blue-600 p-4 flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-white">Bonus: Layer Detective Partner Game!</h2>
-              <p className="text-orange-100">Play with a partner - take turns and compete!</p>
+              <h2 className="text-2xl font-bold text-white">🎧 Bonus: Loop Lab Partner Game!</h2>
+              <p className="text-cyan-100">Play with a partner - one hears, one builds!</p>
             </div>
             
             <button
@@ -702,9 +703,9 @@ const CityCompositionActivity = ({
           </div>
           
           <div className="flex-1 overflow-hidden">
-            <LayerDetectivePartnerGame 
+            <LoopLab 
               onComplete={() => {
-                console.log('Partner game complete');
+                console.log('Loop Lab complete');
               }}
             />
           </div>

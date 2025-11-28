@@ -1,11 +1,11 @@
-// File: /lessons/film-music-project/lesson3/Lesson3.jsx
+// File: /src/lessons/film-music-project/lesson3/Lesson3.jsx
 // City Soundscapes - Main lesson orchestrator
-// ✅ UPDATED: Added Layer Detective class demo, individual game, results, and city video selection
+// ✅ UPDATED: Introduction → Listening Map → Composition → Reflection → Loop Lab
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from "../../../context/SessionContext";
-import { Monitor, Gamepad2, Trophy } from 'lucide-react';
+import { Monitor, Video, Gamepad2, Trophy } from 'lucide-react';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
 // Config
@@ -36,7 +36,6 @@ const StudentResultsBadge = ({ sessionCode, userId }) => {
   React.useEffect(() => {
     if (!sessionCode || !userId) return;
     
-    // Subscribe to session data to get student's score and ranking
     const db = getDatabase();
     const sessionRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
     
@@ -44,7 +43,6 @@ const StudentResultsBadge = ({ sessionCode, userId }) => {
       const students = snapshot.val();
       if (!students) return;
       
-      // Get my data
       const myStudentData = students[userId];
       if (!myStudentData) return;
       
@@ -55,7 +53,6 @@ const StudentResultsBadge = ({ sessionCode, userId }) => {
         playerEmoji: myStudentData.playerEmoji || '🎵'
       });
       
-      // Calculate my rank
       const allStudents = Object.entries(students)
         .map(([id, data]) => ({ id, score: data.score || 0 }))
         .sort((a, b) => b.score - a.score);
@@ -88,13 +85,8 @@ const StudentResultsBadge = ({ sessionCode, userId }) => {
         } backdrop-blur-lg rounded-2xl p-6 border-2 shadow-2xl max-w-md mx-auto`}
       >
         <div className="text-center mb-4">
-          <div className="text-4xl mb-2">
-            {myData.playerEmoji}
-          </div>
-          <h3 
-            className="text-2xl font-bold mb-1"
-            style={{ color: myData.playerColor }}
-          >
+          <div className="text-4xl mb-2">{myData.playerEmoji}</div>
+          <h3 className="text-2xl font-bold mb-1" style={{ color: myData.playerColor }}>
             {myData.name}
           </h3>
           <div className="text-sm text-gray-300">That's you!</div>
@@ -124,208 +116,80 @@ const StudentResultsBadge = ({ sessionCode, userId }) => {
           </div>
         )}
       </div>
-      
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-fadeIn {
-          animation: fadeIn 0.8s ease-out;
-        }
-      `}</style>
     </div>
   );
 };
 
-// Separate component for Layer Detective to avoid React hooks violations
-const LayerDetectiveLoader = ({ onComplete }) => {
-  const [LayerDetective, setLayerDetective] = React.useState(null);
+// ✅ Listening Map Loader (renamed from Texture Drawings)
+const ListeningMapLoader = ({ onComplete }) => {
+  const [ListeningMap, setListeningMap] = React.useState(null);
   const [loadError, setLoadError] = React.useState(false);
   
   React.useEffect(() => {
-    // Try to dynamically import the component
-    import('../../shared/activities/layer-detective/LayerDetectiveActivity')
+    import('../../shared/activities/texture-drawings/ListeningMapActivity')
       .then(module => {
-        console.log('✅ LayerDetectiveActivity loaded');
-        setLayerDetective(() => module.default);
+        console.log('✅ ListeningMapActivity loaded');
+        setListeningMap(() => module.default);
       })
       .catch(error => {
-        console.error('❌ Failed to load LayerDetectiveActivity:', error);
+        console.error('❌ Failed to load ListeningMapActivity:', error);
         setLoadError(true);
       });
   }, []);
   
   if (loadError) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-500 to-red-600 text-white p-8">
+      <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-500 to-indigo-600 text-white p-8">
         <div className="text-8xl mb-8">⚠️</div>
         <h1 className="text-5xl font-bold mb-4">Component Not Found</h1>
-        <p className="text-2xl mb-8">LayerDetectiveActivity.jsx is missing</p>
+        <p className="text-2xl mb-8">ListeningMapActivity.jsx is missing</p>
         <div className="bg-white/20 rounded-xl p-6 max-w-2xl backdrop-blur-sm text-left">
           <p className="text-lg mb-4">
             <strong>Teacher:</strong> Please add these files to your project:
           </p>
           <ol className="text-base opacity-90 space-y-2 list-decimal list-inside">
-            <li>LayerDetectiveActivity.jsx</li>
-            <li>loopData.js (for layer detective)</li>
+            <li>ListeningMapActivity.jsx</li>
+            <li>index.js</li>
           </ol>
           <p className="text-sm mt-4 opacity-75">
-            Place at: <code className="bg-black/30 px-2 py-1 rounded">src/lessons/shared/activities/layer-detective/</code>
+            Place at: <code className="bg-black/30 px-2 py-1 rounded">src/lessons/shared/activities/texture-drawings/</code>
           </p>
         </div>
       </div>
     );
   }
   
-  if (!LayerDetective) {
+  if (!ListeningMap) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-white text-lg">Loading Layer Detective...</div>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="h-screen flex flex-col">
-      <LayerDetective
-        onComplete={onComplete}
-        viewMode={false}
-      />
-    </div>
-  );
-};
-
-// Separate component for Layer Detective Class Demo
-const LayerDetectiveClassDemoLoader = ({ onComplete }) => {
-  const [LayerDetectiveClassDemo, setLayerDetectiveClassDemo] = React.useState(null);
-  const [loadError, setLoadError] = React.useState(false);
-  
-  React.useEffect(() => {
-    // Try to dynamically import the class demo component
-    import('../../shared/activities/layer-detective/LayerDetectiveClassDemo')
-      .then(module => {
-        console.log('✅ LayerDetectiveClassDemo loaded');
-        setLayerDetectiveClassDemo(() => module.default);
-      })
-      .catch(error => {
-        console.error('❌ Failed to load LayerDetectiveClassDemo:', error);
-        setLoadError(true);
-      });
-  }, []);
-  
-  if (loadError) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-500 to-red-600 text-white p-8">
-        <div className="text-8xl mb-8">⚠️</div>
-        <h1 className="text-5xl font-bold mb-4">Component Not Found</h1>
-        <p className="text-2xl mb-8">LayerDetectiveClassDemo.jsx is missing</p>
-        <div className="bg-white/20 rounded-xl p-6 max-w-2xl backdrop-blur-sm text-left">
-          <p className="text-lg mb-4">
-            <strong>Teacher:</strong> Please add this file to your project:
-          </p>
-          <ol className="text-base opacity-90 space-y-2 list-decimal list-inside">
-            <li>LayerDetectiveClassDemo.jsx</li>
-          </ol>
-          <p className="text-sm mt-4 opacity-75">
-            Place at: <code className="bg-black/30 px-2 py-1 rounded">src/lessons/shared/activities/layer-detective/</code>
-          </p>
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🗺️🎵</div>
+          <div className="text-white text-xl font-bold">Loading Listening Map...</div>
         </div>
       </div>
     );
   }
   
-  if (!LayerDetectiveClassDemo) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-white text-lg">Loading Layer Detective Class Demo...</div>
-      </div>
-    );
-  }
-  
   return (
     <div className="h-screen flex flex-col">
-      <LayerDetectiveClassDemo
-        onComplete={onComplete}
-      />
+      <ListeningMap onComplete={onComplete} />
     </div>
   );
 };
 
-// Separate component for Layer Detective Partner Game
-const LayerDetectivePartnerGameLoader = ({ onComplete }) => {
-  const [LayerDetectivePartnerGame, setLayerDetectivePartnerGame] = React.useState(null);
-  const [loadError, setLoadError] = React.useState(false);
-  
-  React.useEffect(() => {
-    // Try to dynamically import the partner game component
-    import('../../shared/activities/layer-detective/LayerDetectivePartnerGame')
-      .then(module => {
-        console.log('✅ LayerDetectivePartnerGame loaded');
-        setLayerDetectivePartnerGame(() => module.default);
-      })
-      .catch(error => {
-        console.error('❌ Failed to load LayerDetectivePartnerGame:', error);
-        setLoadError(true);
-      });
-  }, []);
-  
-  if (loadError) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-500 to-red-600 text-white p-8">
-        <div className="text-8xl mb-8">⚠️</div>
-        <h1 className="text-5xl font-bold mb-4">Component Not Found</h1>
-        <p className="text-2xl mb-8">LayerDetectivePartnerGame.jsx is missing</p>
-        <div className="bg-white/20 rounded-xl p-6 max-w-2xl backdrop-blur-sm text-left">
-          <p className="text-lg mb-4">
-            <strong>Teacher:</strong> Please add this file to your project:
-          </p>
-          <ol className="text-base opacity-90 space-y-2 list-decimal list-inside">
-            <li>LayerDetectivePartnerGame.jsx</li>
-          </ol>
-          <p className="text-sm mt-4 opacity-75">
-            Place at: <code className="bg-black/30 px-2 py-1 rounded">src/lessons/shared/activities/layer-detective/</code>
-          </p>
-        </div>
-      </div>
-    );
-  }
-  
-  if (!LayerDetectivePartnerGame) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-white text-lg">Loading Layer Detective Partner Game...</div>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="h-screen flex flex-col">
-      <LayerDetectivePartnerGame
-        onComplete={onComplete}
-        viewMode={false}
-      />
-    </div>
-  );
-};
-
+// ========================================
+// MAIN COMPONENT
+// ========================================
 const Lesson3 = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { 
-    sessionCode,
-    userId,
+    sessionCode, 
+    userId, 
     getCurrentStage, 
-    setCurrentStage,
-    getStudents,
-    getProgressStats,
+    setCurrentStage, 
+    getStudents, 
+    getProgressStats, 
     endSession,
     markActivityComplete,
     userRole: sessionRole
@@ -334,37 +198,34 @@ const Lesson3 = () => {
   // Session mode detection and permissions
   const sessionMode = useSessionMode();
   
-  // Get effective role
+  // Get effective role - computed locally like Lesson2
   const effectiveRole = sessionRole || sessionMode.urlRole;
   
-  console.log('🏙️ Lesson3 Render:', {
+  // Check URL for view modes
+  const searchParams = new URLSearchParams(location.search);
+  const viewSavedMode = searchParams.get('view') === 'saved';
+  const viewReflectionMode = searchParams.get('view') === 'reflection';
+  
+  // Custom hooks
+  const lesson = useLesson(lesson3Config, LESSON_PROGRESS_KEY, LESSON_TIMER_KEY);
+  const timers = useActivityTimers(sessionCode, getCurrentStage, lessonStages);
+  
+  // Get current stage for session mode - match Lesson2's pattern
+  const currentStage = sessionMode.isSessionMode && sessionRole === 'student' 
+    ? getCurrentStage() 
+    : null;
+  
+  console.log('🎓 Lesson3 Render State:', {
     isSessionMode: sessionMode.isSessionMode,
     sessionRole,
     effectiveRole,
     sessionCode,
+    currentStage,
     urlRole: sessionMode.urlRole,
-    sessionInitialized: sessionMode.sessionInitialized,
-    location: location.pathname,
-    searchParams: location.search
+    sessionInitialized: sessionMode.sessionInitialized
   });
-  
-  // Main lesson state (only used in non-session mode)
-  const lessonConfig = { 
-    ...lesson3Config, 
-    progressKey: LESSON_PROGRESS_KEY, 
-    timerKey: LESSON_TIMER_KEY 
-  };
-  const lesson = useLesson(lessonConfig);
-  
-  // Activity timers (used in session mode)
-  const timers = useActivityTimers(sessionCode, getCurrentStage, lessonStages);
 
-  // Check for view modes from URL params
-  const searchParams = new URLSearchParams(location.search);
-  const viewSavedMode = searchParams.get('view') === 'saved';
-  const viewReflectionMode = searchParams.get('view') === 'reflection';
-
-  // Open presentation view in new window
+  // Open presentation view in new window - matches Lesson2
   const openPresentationView = React.useCallback(() => {
     if (!sessionCode) {
       console.error('❌ No session code available');
@@ -421,25 +282,21 @@ const Lesson3 = () => {
     
     return popup;
   }, [sessionCode]);
-
-  // Handle session activity completion
+  
+  // Handle activity completion in session mode
   const handleSessionActivityComplete = (activityId) => {
     if (sessionRole === 'student') {
       markActivityComplete(activityId, 'completed');
       console.log('Student marked activity complete:', activityId);
     }
   };
-
-  // Get current stage for students
-  const currentStage = sessionMode.isSessionMode && sessionRole === 'student' 
-    ? getCurrentStage() 
-    : null;
-
-  // Show loading while session is initializing
+  
+  // ========================================
+  // SESSION MODE: LOADING/INITIALIZING
+  // ========================================
   if (sessionMode.isSessionMode && !effectiveRole) {
-    console.log('⏳ Waiting for session role to be set...');
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-900">
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
           <p className="text-white text-lg">Initializing session...</p>
@@ -455,13 +312,14 @@ const Lesson3 = () => {
   if (sessionMode.isSessionMode && effectiveRole === 'student') {
     console.log('👱 Rendering STUDENT view');
     
-    // Student waiting for teacher to start
-    if (!currentStage || currentStage === 'join-code') {
+    // Get current stage for students
+    const studentCurrentStage = getCurrentStage();
+    
+    if (!studentCurrentStage || studentCurrentStage === 'join-code') {
       return <StudentWaitingScreen />;
     }
     
-    // Session has ended
-    if (currentStage === 'ended') {
+    if (studentCurrentStage === 'ended') {
       console.log('📚 Session ended, redirecting to join page');
       setTimeout(() => {
         window.location.href = '/join';
@@ -478,8 +336,9 @@ const Lesson3 = () => {
       );
     }
     
-    // SUMMARY SLIDES: Students see "Watch the Main Screen" message
-    const currentStageData = lessonStages.find(stage => stage.id === currentStage);
+    const currentStageData = lessonStages.find(stage => stage.id === studentCurrentStage);
+    
+    // SUMMARY SLIDES: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'summary') {
       return (
         <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
@@ -490,27 +349,35 @@ const Lesson3 = () => {
       );
     }
     
-    // CLASS DEMO: Students see "Watch the Main Screen" for whole-class activities
+    // CLASS DEMO: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'class-demo') {
       return (
         <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-900 via-red-900 to-pink-900 text-white p-8">
           <Gamepad2 className="w-32 h-32 mb-8 animate-pulse text-white" />
           <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
           <p className="text-2xl text-gray-300">Follow along with the class demo</p>
-          <p className="text-xl text-gray-400 mt-4">You'll play the game individually next!</p>
         </div>
       );
     }
     
-    // RESULTS: Students see "Watch the Main Screen" for game results
+    // VIDEO STAGES: Students see "Watch the Main Screen"
+    if (currentStageData?.type === 'video') {
+      return (
+        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <Video className="w-32 h-32 mb-8 animate-pulse text-white" />
+          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+          <p className="text-2xl text-gray-400">The video is playing on the projection screen</p>
+        </div>
+      );
+    }
+    
+    // RESULTS: Students see results
     if (currentStageData?.type === 'results') {
       return (
         <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 text-white p-8">
           <Trophy className="w-32 h-32 mb-8 animate-pulse text-yellow-400" />
           <h1 className="text-5xl font-bold mb-4">Great Job!</h1>
           <p className="text-2xl text-gray-300">Check the main screen to see final scores!</p>
-          
-          {/* Show student their own data */}
           {sessionCode && userId && (
             <StudentResultsBadge sessionCode={sessionCode} userId={userId} />
           )}
@@ -518,8 +385,8 @@ const Lesson3 = () => {
       );
     }
     
-    // DISCUSSION/CONCLUSION STAGES: Students see "Watch the Main Screen"
-    if (currentStageData?.type === 'discussion' || currentStage === 'conclusion') {
+    // DISCUSSION/CONCLUSION: Students see "Watch the Main Screen"
+    if (currentStageData?.type === 'discussion' || studentCurrentStage === 'conclusion') {
       return (
         <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
           <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
@@ -529,22 +396,18 @@ const Lesson3 = () => {
       );
     }
     
-    // Special case: Layer Detective activity - render separate component
-    if (currentStage === 'layer-detective') {
-      return <LayerDetectiveLoader onComplete={() => handleSessionActivityComplete(currentStage)} />;
+    // ✅ Listening Map activity (renamed from texture-drawings)
+    // Support both old and new stage names for backward compatibility
+    if (studentCurrentStage === 'listening-map' || studentCurrentStage === 'texture-drawings') {
+      return <ListeningMapLoader onComplete={() => handleSessionActivityComplete(studentCurrentStage)} />;
     }
     
-    // Special case: Layer Detective Partner Game - render separate component
-    if (currentStage === 'reflection' && getActivityForStage('reflection') === 'layer-detective-partner-game') {
-      return <LayerDetectivePartnerGameLoader onComplete={() => handleSessionActivityComplete(currentStage)} />;
-    }
-    
-    // Student viewing active activity
-    const displayStage = currentStage === 'reflection' ? 'city-composition' : currentStage;
+    // Standard activity rendering
+    const displayStage = studentCurrentStage === 'reflection' ? 'city-composition' : studentCurrentStage;
     const activityType = getActivityForStage(displayStage);
     
     console.log('🎯 Student Activity Rendering:', {
-      currentStage,
+      studentCurrentStage,
       displayStage,
       activityType,
       currentStageData
@@ -564,7 +427,7 @@ const Lesson3 = () => {
         <div className="flex-1 overflow-hidden">
           <ActivityRenderer
             activity={activity}
-            onComplete={() => handleSessionActivityComplete(currentStage)}
+            onComplete={() => handleSessionActivityComplete(studentCurrentStage)}
             navToolsEnabled={false}
             canAccessNavTools={false}
             lessonStartTime={lesson.lessonStartTime}
@@ -622,10 +485,8 @@ const Lesson3 = () => {
   // ========================================
   // NORMAL MODE: ACTIVE LESSON
   // ========================================
-  
   console.log('🖯 Rendering NORMAL active lesson');
   
-  // Handle view modes
   let activityToRender = lesson.currentActivityData;
   let onCompleteHandler = lesson.handleActivityComplete;
   let viewModeActive = false;

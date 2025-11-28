@@ -1,6 +1,6 @@
 // File: /src/lessons/film-music-project/lesson3/lesson3StorageUtils.js
 // Storage management for Lesson 3 - City Soundscapes
-// ✅ UPDATED: Added city video selection storage
+// ✅ UPDATED: Renamed Texture Drawings to Listening Map
 
 // Storage Keys
 export const STORAGE_KEYS = {
@@ -8,8 +8,9 @@ export const STORAGE_KEYS = {
   REFLECTION: 'city-reflection',
   LESSON_TIMER: 'lesson3-timer',
   LESSON_PROGRESS: 'lesson3-progress',
-  LAYER_DETECTIVE_SCORE: 'lesson3-layer-detective-score',
-  SELECTED_VIDEO: 'city-selected-video'  // ✅ Added
+  LISTENING_MAP: 'listening-map',  // ✅ RENAMED from texture-drawings
+  LOOP_LAB_SCORE: 'lesson3-loop-lab-score',
+  SELECTED_VIDEO: 'city-selected-video'
 };
 
 // Helper to ensure loop has all required properties
@@ -54,50 +55,98 @@ export const getSelectedVideo = () => {
   }
 };
 
-// Layer Detective Score
-export const saveLayerDetectiveScore = (score, totalQuestions, timeSpent) => {
+// ✅ RENAMED: Listening Map Storage (formerly Texture Drawings)
+// Now uses studentId for consistency with other activities
+export const saveListeningMap = (studentId, imageData, roundId, roundTitle, instrumentCount) => {
+  const mapData = {
+    imageData,
+    roundId,
+    roundTitle,
+    instrumentCount,
+    completedAt: new Date().toISOString(),
+    timestamp: Date.now()
+  };
+  const saveKey = `${STORAGE_KEYS.LISTENING_MAP}-${studentId}`;
+  localStorage.setItem(saveKey, JSON.stringify(mapData));
+  console.log('✅ Listening map saved:', saveKey);
+  return mapData;
+};
+
+export const getListeningMap = (studentId) => {
+  try {
+    // Try studentId-based key first
+    if (studentId) {
+      const data = localStorage.getItem(`${STORAGE_KEYS.LISTENING_MAP}-${studentId}`);
+      if (data) return JSON.parse(data);
+    }
+    // Fallback to old key format (no studentId)
+    const data = localStorage.getItem(STORAGE_KEYS.LISTENING_MAP);
+    return data ? JSON.parse(data) : null;
+  } catch (error) {
+    console.error('Error loading listening map:', error);
+    return null;
+  }
+};
+
+// Loop Lab Score
+export const saveLoopLabScore = (playerScores, totalRounds, winner) => {
   const scoreData = {
-    score,
-    totalQuestions,
-    timeSpent,
-    percentage: Math.round((score / totalQuestions) * 100),
+    playerScores, // { player1: 50, player2: 45, player3: 0 }
+    totalRounds,
+    winner, // 1, 2, 3, or null for tie
     completedAt: new Date().toISOString()
   };
-  localStorage.setItem(STORAGE_KEYS.LAYER_DETECTIVE_SCORE, JSON.stringify(scoreData));
-  console.log('✅ Layer Detective score saved:', scoreData);
+  localStorage.setItem(STORAGE_KEYS.LOOP_LAB_SCORE, JSON.stringify(scoreData));
+  console.log('✅ Loop Lab score saved:', scoreData);
   return scoreData;
 };
 
-export const getLayerDetectiveScore = () => {
+export const getLoopLabScore = () => {
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.LAYER_DETECTIVE_SCORE);
+    const data = localStorage.getItem(STORAGE_KEYS.LOOP_LAB_SCORE);
     return data ? JSON.parse(data) : null;
   } catch (error) {
-    console.error('Error loading Layer Detective score:', error);
+    console.error('Error loading Loop Lab score:', error);
     return null;
   }
 };
 
 // City Composition
-export const saveCityComposition = (placedLoops, requirements, compositionDuration, videoId) => {
+// Now uses studentId for consistency with other activities
+export const saveCityComposition = (studentId, placedLoops, requirements, compositionDuration, videoId) => {
   const normalizedLoops = placedLoops.map(normalizeLoop);
   
   const composition = {
     title: 'City Soundscape',
-    videoId: videoId,  // ✅ Now saves which city video was used
+    videoId: videoId,
     placedLoops: normalizedLoops,
     requirements,
     compositionDuration,
     savedAt: new Date().toISOString(),
-    loopCount: normalizedLoops.length
+    loopCount: normalizedLoops.length,
+    timestamp: Date.now()
   };
-  localStorage.setItem(STORAGE_KEYS.CITY_COMPOSITION, JSON.stringify(composition));
-  console.log('✅ City composition saved:', composition);
+  const saveKey = `${STORAGE_KEYS.CITY_COMPOSITION}-${studentId}`;
+  localStorage.setItem(saveKey, JSON.stringify(composition));
+  console.log('✅ City composition saved:', saveKey);
   return composition;
 };
 
-export const getCityComposition = () => {
+export const getCityComposition = (studentId) => {
   try {
+    // Try studentId-based key first
+    if (studentId) {
+      const data = localStorage.getItem(`${STORAGE_KEYS.CITY_COMPOSITION}-${studentId}`);
+      if (data) {
+        const composition = JSON.parse(data);
+        if (composition.placedLoops) {
+          composition.placedLoops = composition.placedLoops.map(normalizeLoop);
+        }
+        console.log('✅ City composition loaded:', composition);
+        return composition;
+      }
+    }
+    // Fallback to old key format (no studentId)
     const data = localStorage.getItem(STORAGE_KEYS.CITY_COMPOSITION);
     if (!data) return null;
     
@@ -149,11 +198,12 @@ export const clearAllLesson3Data = () => {
 };
 
 // Get complete lesson summary
-export const getLesson3Summary = () => {
+export const getLesson3Summary = (studentId) => {
   return {
     selectedVideo: getSelectedVideo(),
-    layerDetectiveScore: getLayerDetectiveScore(),
-    composition: getCityComposition(),
+    listeningMap: getListeningMap(studentId),  // ✅ Pass studentId
+    loopLabScore: getLoopLabScore(),
+    composition: getCityComposition(studentId),  // ✅ Pass studentId
     reflection: getCityReflection()
   };
 };

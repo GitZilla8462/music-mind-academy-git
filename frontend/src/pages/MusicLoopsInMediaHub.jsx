@@ -1,7 +1,6 @@
 // File: /pages/MusicLoopsInMediaHub.jsx
-// Music Loops in Media Project - Hub page for all 5 lessons
-// ✅ FIXED: Lesson IDs now match actual lesson identifiers (lesson2, lesson3, lesson4, etc.)
-// ✅ FIXED: Lesson4 (Cooking Process Video) now available for live sessions
+// Music Loops in Media Project - Hub page for all lessons
+// ✅ UPDATED: Reflects actual lesson content and structure
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +15,6 @@ const MusicLoopsInMediaHub = () => {
   
   useEffect(() => {
     const progress = {
-      lesson1: localStorage.getItem('lesson1-progress'),
       lesson2: localStorage.getItem('lesson2-progress'),
       lesson3: localStorage.getItem('lesson3-progress'),
       lesson4: localStorage.getItem('lesson4-progress'),
@@ -25,7 +23,6 @@ const MusicLoopsInMediaHub = () => {
     setSavedProgress(progress);
   }, []);
 
-  // ✅ FIXED: Now passes lessonRoute as third parameter
   const handleStartSession = async (lessonId, lessonRoute) => {
     console.log('🎬 Starting session for:', { lessonId, lessonRoute });
     setCreatingSession(lessonId);
@@ -45,11 +42,11 @@ const MusicLoopsInMediaHub = () => {
 
   const lessons = [
     {
-      id: 'lesson2',  // ✅ FIXED: Use actual lesson ID
+      id: 'lesson2',
       number: 1,
-      title: 'Sports Highlight Reel Music',
-      concept: 'Texture & Layering',
-      description: 'Create high-energy music for basketball, skateboarding, and football highlights',
+      title: 'Sports Highlight Reel',
+      concept: 'Introduction to the DAW',
+      description: 'Learn how to use the digital audio workstation and create your first composition with loops for exciting sports highlights',
       icon: '🏀',
       color: 'from-orange-500 to-red-500',
       videos: ['Basketball', 'Skateboarding', 'Football'],
@@ -58,55 +55,55 @@ const MusicLoopsInMediaHub = () => {
       available: true
     },
     {
-      id: 'lesson3',  // ✅ FIXED: Use actual lesson ID
+      id: 'lesson3',
       number: 2,
       title: 'City Soundscapes',
       concept: 'Texture & Layering',
-      description: 'Learn about musical texture and create layered city soundscapes',
+      description: 'Understand texture and layers in music. Visualize how layers create texture with a listening map, then build your own city soundscape',
       icon: '🏙️',
-      color: 'from-green-500 to-teal-500',
+      color: 'from-cyan-500 to-blue-500',
       videos: ['City Atmosphere'],
       duration: '35 minutes',
       route: '/lessons/film-music-project/lesson3',
-      available: true  // ✅ Now available for live sessions
+      available: true
     },
     {
-      id: 'lesson4',  // ✅ FIXED: Use actual lesson ID
+      id: 'lesson4',
       number: 3,
       title: "Chef's Soundtrack",
       concept: 'Mood Progression',
-      description: 'Score a cooking video with music that evolves throughout the process',
+      description: 'Score a cooking video with music that evolves throughout the culinary process',
       icon: '🍳',
       color: 'from-yellow-500 to-orange-500',
       videos: ['Recipe Tutorial', 'Food Preparation', 'Plating'],
       duration: '35 minutes',
       route: '/lessons/film-music-project/lesson4',
-      available: true  // ✅ Now available for live sessions
+      available: false
     },
     {
-      id: 'lesson5',  // ✅ FIXED: Use actual lesson ID
+      id: 'lesson5',
       number: 4,
-      title: 'Comedy Advertisement',
-      concept: 'Contrast & Timing',
-      description: 'Create comedic music with perfect timing for funny commercial moments',
-      icon: '😂',
+      title: 'Epic World',
+      concept: 'Musical Storytelling',
+      description: 'Create epic soundtracks for breathtaking nature footage featuring wildlife from around the world',
+      icon: '🌍',
       color: 'from-green-500 to-teal-500',
-      videos: ['Product Ad', 'Skit', 'Infomercial'],
+      videos: ['Underwater Sea Creatures', 'Jungle Animals', 'Wildlife'],
       duration: '35 minutes',
       route: '/lessons/film-music-project/lesson5',
       available: false
     },
     {
-      id: 'lesson6',  // ✅ FIXED: Use actual lesson ID
+      id: 'sandbox',
       number: 5,
-      title: 'Student Choice Composition',
+      title: 'Student Choice Sandbox',
       concept: 'Apply All Skills',
-      description: 'Choose your own video and apply everything you\'ve learned',
-      icon: '⭐',
-      color: 'from-blue-500 to-indigo-500',
-      videos: ['Student Selected'],
-      duration: '35 minutes',
-      route: '/lessons/film-music-project/lesson6',
+      description: 'Access all activities and games as standalone experiences. Choose your own video and apply everything you\'ve learned',
+      icon: '🎮',
+      color: 'from-purple-500 to-indigo-500',
+      videos: ['All Activities', 'All Games', 'Student Selected Videos'],
+      duration: 'Unlimited',
+      route: '/lessons/film-music-project/sandbox',
       available: false
     }
   ];
@@ -150,7 +147,7 @@ const MusicLoopsInMediaHub = () => {
           <div className="flex gap-6 text-sm text-gray-400 mt-4">
             <div className="flex items-center gap-2">
               <span className="text-2xl">📚</span>
-              <span>5 Lessons</span>
+              <span>4 Lessons + Sandbox</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-2xl">⏱️</span>
@@ -175,15 +172,15 @@ const MusicLoopsInMediaHub = () => {
             <div className="flex items-start gap-3">
               <span className="text-2xl">🏀</span>
               <div>
-                <div className="font-semibold text-white">Texture & Layering</div>
-                <div className="text-sm">Building energy through multiple loop layers</div>
+                <div className="font-semibold text-white">Introduction to the DAW</div>
+                <div className="text-sm">Learn the tools for creating music with loops</div>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <span className="text-2xl">🎮</span>
+              <span className="text-2xl">🏙️</span>
               <div>
-                <div className="font-semibold text-white">Repetition & Variation</div>
-                <div className="text-sm">Creating loops that don't get boring</div>
+                <div className="font-semibold text-white">Texture & Layering</div>
+                <div className="text-sm">Visualize and build layered soundscapes</div>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -194,10 +191,10 @@ const MusicLoopsInMediaHub = () => {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <span className="text-2xl">😂</span>
+              <span className="text-2xl">🌍</span>
               <div>
-                <div className="font-semibold text-white">Contrast & Timing</div>
-                <div className="text-sm">Syncing music to comedic moments</div>
+                <div className="font-semibold text-white">Musical Storytelling</div>
+                <div className="text-sm">Create epic soundtracks for nature footage</div>
               </div>
             </div>
           </div>
@@ -225,7 +222,9 @@ const MusicLoopsInMediaHub = () => {
                 <div className={`bg-gradient-to-br ${lesson.color} p-8 flex items-center justify-center md:w-48`}>
                   <div className="text-center text-white">
                     <div className="text-7xl mb-2">{lesson.icon}</div>
-                    <div className="text-2xl font-bold">Lesson {lesson.number}</div>
+                    <div className="text-2xl font-bold">
+                      {lesson.id === 'sandbox' ? 'Sandbox' : `Lesson ${lesson.number}`}
+                    </div>
                   </div>
                 </div>
 
