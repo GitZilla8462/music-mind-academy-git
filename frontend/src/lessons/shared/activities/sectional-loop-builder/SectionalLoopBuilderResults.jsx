@@ -1,11 +1,11 @@
-// Song Recipe Results View - Winner celebration podium
-// Shows top 3 chefs with animations when teacher ends activity
-// src/lessons/shared/activities/song-recipe/SongRecipeResults.jsx
+// Sectional Loop Builder Results View - Shows when teacher advances to results
+// Big celebration for top 3 winners with generated names
+// src/lessons/shared/activities/sectional-loop-builder/SectionalLoopBuilderResults.jsx
 
 import React, { useState, useEffect } from 'react';
-import { Trophy, Star, ChefHat } from 'lucide-react';
+import { Trophy, Star } from 'lucide-react';
 
-const SongRecipeResults = ({ sessionData }) => {
+const SectionalLoopBuilderResults = ({ sessionData }) => {
   const [winners, setWinners] = useState([]);
   const [showAnimation, setShowAnimation] = useState(false);
   
@@ -40,7 +40,7 @@ const SongRecipeResults = ({ sessionData }) => {
   const totalPoints = winners.reduce((sum, w) => sum + w.score, 0);
   
   return (
-    <div className="h-screen bg-gradient-to-br from-orange-600 via-red-600 to-pink-600 text-white flex items-center justify-center overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white flex items-center justify-center overflow-hidden">
       {/* Confetti Animation Background */}
       <div className="absolute inset-0 overflow-hidden">
         {[...Array(50)].map((_, i) => (
@@ -50,7 +50,7 @@ const SongRecipeResults = ({ sessionData }) => {
             style={{
               left: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 3}s`,
-              backgroundColor: ['#FFD700', '#C0C0C0', '#CD7F32', '#FF6B6B', '#4ECDC4'][Math.floor(Math.random() * 5)]
+              backgroundColor: ['#10B981', '#14B8A6', '#22D3EE', '#F59E0B', '#8B5CF6'][Math.floor(Math.random() * 5)]
             }}
           />
         ))}
@@ -61,10 +61,10 @@ const SongRecipeResults = ({ sessionData }) => {
         {/* Title */}
         <div className={`mb-12 ${showAnimation ? 'animate-bounce-in' : 'opacity-0'}`}>
           <h1 className="text-7xl font-bold mb-4 flex items-center justify-center">
-            <ChefHat className="mr-4 text-yellow-400" size={80} />
-            Master Chefs!
+            <Trophy className="mr-4 text-yellow-400" size={80} />
+            Epic Wildlife Champions!
           </h1>
-          <p className="text-3xl opacity-80">Congratulations to our top recipe builders!</p>
+          <p className="text-3xl opacity-80">Congratulations to our winners!</p>
         </div>
         
         {/* Winners Podium */}
@@ -157,11 +157,11 @@ const SongRecipeResults = ({ sessionData }) => {
         <div className={`bg-white/10 backdrop-blur-sm rounded-2xl p-8 inline-block ${showAnimation ? 'animate-fade-in' : 'opacity-0'}`}>
           <div className="flex items-center justify-center space-x-12">
             <div>
-              <div className="text-4xl font-bold text-yellow-400">{totalStudents}</div>
-              <div className="text-lg opacity-80">Chefs</div>
+              <div className="text-4xl font-bold text-green-400">{totalStudents}</div>
+              <div className="text-lg opacity-80">Players</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-green-400">{totalPoints}</div>
+              <div className="text-4xl font-bold text-yellow-400">{totalPoints}</div>
               <div className="text-lg opacity-80">Total Points</div>
             </div>
           </div>
@@ -197,11 +197,11 @@ const SongRecipeResults = ({ sessionData }) => {
         
         @keyframes slide-up-0 {
           0% {
-            transform: translateY(100px);
+            transform: translateY(100px) scale(1.1);
             opacity: 0;
           }
           100% {
-            transform: translateY(0);
+            transform: translateY(0) scale(1.1);
             opacity: 1;
           }
         }
@@ -265,4 +265,4 @@ const SongRecipeResults = ({ sessionData }) => {
   );
 };
 
-export default SongRecipeResults;
+export default SectionalLoopBuilderResults;

@@ -1,7 +1,8 @@
 // File: /src/components/PresentationView.jsx
 // ✅ UPDATED: Now uses presentationView data from lesson configs instead of hardcoded stage mappings
 // ✅ UPDATED: Added Layer Detective Class Demo support with SessionCodeBadge
-// ✅ UPDATED: Added Lesson 4 (Chef's Soundtrack) support
+// ✅ UPDATED: Added Lesson 4 (Epic Wildlife) support with Sectional Loop Builder game
+// ✅ UPDATED: Added Sectional Loop Builder Class Demo, Leaderboard, and Results
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -12,6 +13,15 @@ const LayerDetectiveClassDemo = React.lazy(() =>
   import('../lessons/shared/activities/layer-detective/LayerDetectiveClassDemo')
     .catch(() => {
       console.error('Failed to load LayerDetectiveClassDemo');
+      return { default: () => <div>Component not found</div> };
+    })
+);
+
+// Lazy load Sectional Loop Builder Class Demo
+const SectionalLoopBuilderClassDemo = React.lazy(() => 
+  import('../lessons/shared/activities/sectional-loop-builder/SectionalLoopBuilderClassDemo')
+    .catch(() => {
+      console.error('Failed to load SectionalLoopBuilderClassDemo');
       return { default: () => <div>Component not found</div> };
     })
 );
@@ -50,8 +60,14 @@ const PresentationView = () => {
   const [sessionData, setSessionData] = useState(null);
   const [lessonConfig, setLessonConfig] = useState(null);
   const [lessonBasePath, setLessonBasePath] = useState('');
+  
+  // Layer Detective components
   const [LayerDetectiveLeaderboard, setLayerDetectiveLeaderboard] = useState(null);
   const [LayerDetectiveResults, setLayerDetectiveResults] = useState(null);
+  
+  // ✅ Sectional Loop Builder components
+  const [SectionalLoopBuilderLeaderboard, setSectionalLoopBuilderLeaderboard] = useState(null);
+  const [SectionalLoopBuilderResults, setSectionalLoopBuilderResults] = useState(null);
   
   const lastFirebaseCountdown = useRef(null);
   const lastFirebaseStage = useRef(null);
@@ -76,6 +92,29 @@ const PresentationView = () => {
       })
       .catch(error => {
         console.error('❌ Failed to load Layer Detective results:', error);
+      });
+  }, []);
+
+  // ✅ Load Sectional Loop Builder components on mount
+  useEffect(() => {
+    // Load leaderboard component
+    import('../lessons/shared/activities/sectional-loop-builder/SectionalLoopBuilderPresentationView')
+      .then(module => {
+        setSectionalLoopBuilderLeaderboard(() => module.default);
+        console.log('✅ Loaded Sectional Loop Builder leaderboard');
+      })
+      .catch(error => {
+        console.error('❌ Failed to load Sectional Loop Builder leaderboard:', error);
+      });
+    
+    // Load results component
+    import('../lessons/shared/activities/sectional-loop-builder/SectionalLoopBuilderResults')
+      .then(module => {
+        setSectionalLoopBuilderResults(() => module.default);
+        console.log('✅ Loaded Sectional Loop Builder results');
+      })
+      .catch(error => {
+        console.error('❌ Failed to load Sectional Loop Builder results:', error);
       });
   }, []);
 
@@ -411,6 +450,76 @@ const PresentationView = () => {
           }>
             <LayerDetectiveClassDemo onComplete={handleDemoComplete} sessionData={sessionData} />
           </React.Suspense>
+        </div>
+      );
+    }
+
+    // ✅ RENDER SECTIONAL LOOP BUILDER CLASS DEMO
+    if (type === 'sectional-loop-builder-class-demo') {
+      const handleDemoComplete = () => {
+        console.log('✅ Sectional Loop Builder demo complete - advancing to next stage');
+        
+        // Find current stage index in lessonStages
+        const currentStageIndex = lessonConfig.lessonStages.findIndex(
+          stage => stage.id === currentStage
+        );
+        
+        // Get next stage
+        if (currentStageIndex !== -1 && currentStageIndex < lessonConfig.lessonStages.length - 1) {
+          const nextStage = lessonConfig.lessonStages[currentStageIndex + 1];
+          console.log('📍 Advancing from', currentStage, 'to', nextStage.id);
+          
+          // Update Firebase to advance stage
+          const db = getDatabase();
+          const sessionRef = ref(db, `sessions/${sessionCode}/currentStage`);
+          set(sessionRef, nextStage.id).catch(err => {
+            console.error('❌ Error advancing stage:', err);
+          });
+        }
+      };
+      
+      return (
+        <div className="h-screen w-full relative">
+          <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={false} />
+          
+          <React.Suspense fallback={
+            <div className="h-full flex items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900">
+              <div className="text-white text-2xl">Loading class demo...</div>
+            </div>
+          }>
+            <SectionalLoopBuilderClassDemo onComplete={handleDemoComplete} sessionData={sessionData} />
+          </React.Suspense>
+        </div>
+      );
+    }
+
+    // ✅ RENDER SECTIONAL LOOP BUILDER LEADERBOARD
+    if (type === 'sectional-loop-builder-leaderboard') {
+      if (!SectionalLoopBuilderLeaderboard) {
+        return (
+          <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900">
+            <div className="text-white text-2xl">Loading Epic Wildlife Leaderboard...</div>
+          </div>
+        );
+      }
+      
+      return <SectionalLoopBuilderLeaderboard sessionData={sessionData} />;
+    }
+
+    // ✅ RENDER SECTIONAL LOOP BUILDER RESULTS (Winner Celebration)
+    if (type === 'sectional-loop-builder-results') {
+      if (!SectionalLoopBuilderResults) {
+        return (
+          <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900">
+            <div className="text-white text-2xl">Loading Results...</div>
+          </div>
+        );
+      }
+      
+      return (
+        <div className="h-screen w-full relative">
+          <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={false} />
+          <SectionalLoopBuilderResults sessionData={sessionData} />
         </div>
       );
     }

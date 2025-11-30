@@ -1,6 +1,8 @@
-// File: /lessons/film-music-project/lesson4/Lesson4config.jsx
-// Lesson 4: Chef's Soundtrack - Cooking Process Video
+// File: /src/lessons/film-music-project/lesson4/Lesson4config.jsx
+// Lesson 4: Epic Wildlife - Nature Documentary Video
 // Configuration for sectional loop form and composition
+// ✅ UPDATED: Renamed from "Chef's Soundtrack" to "Epic Wildlife"
+// ✅ UPDATED: Added Sectional Loop Builder game with leaderboard + results
 
 export const LESSON_PROGRESS_KEY = 'lesson4-progress';
 export const LESSON_TIMER_KEY = 'lesson4-timer';
@@ -13,14 +15,14 @@ export const lessonSections = [
     id: 'introduction',
     title: 'Introduction',
     subtitle: 'Song Form & Sectional Loops',
-    icon: '🍳',
-    color: 'yellow',
+    icon: '🌍',
+    color: 'green',
     estimatedTime: 12,
     stages: [
       { 
-        id: 'kitchen-beats-intro', 
+        id: 'epic-wildlife-intro', 
         type: 'summary', 
-        label: "Chef's Soundtrack Introduction",
+        label: "Epic Wildlife Introduction",
         description: 'Display welcome screen - Slide 1',
         duration: 1
       },
@@ -58,13 +60,30 @@ export const lessonSections = [
         label: 'Introduce Sectional Loop Form Example',
         description: 'Example of sectional loops - Slide 6',
         duration: 1
-      },
+      }
+    ]
+  },
+  {
+    id: 'activity1',
+    title: 'Activity 1 - Sectional Loop Builder',
+    subtitle: 'Build the Wildlife Score',
+    icon: '🎮',
+    color: 'teal',
+    estimatedTime: 10,
+    stages: [
       { 
         id: 'introduce-sectional-builder', 
         type: 'summary', 
         label: 'Introduce Sectional Loop Builder Game',
         description: 'Game instructions - Slide 7',
         duration: 1
+      },
+      {
+        id: 'sectional-loop-builder-demo',
+        type: 'class-demo',
+        label: 'Class Demo (on projector)',
+        description: '3-question demo on projector - students watch',
+        duration: 2
       },
       { 
         id: 'sectional-loop-builder', 
@@ -73,17 +92,24 @@ export const lessonSections = [
         duration: 5,
         hasTimer: true,
         trackProgress: true,
-        description: 'Interactive game - Game board coming to presentation.jsx soon',
-        bonusDescription: 'Bonus: Try Advanced Patterns'
+        description: 'Students play individually - leaderboard on projector',
+        bonusDescription: 'Safari: Find your classmates!'
+      },
+      {
+        id: 'sectional-loop-builder-results',
+        type: 'results',
+        label: 'Show Game Results',
+        description: 'Display winner podium on projector',
+        duration: 1
       }
     ]
   },
   {
-    id: 'activity1',
-    title: 'Activity 1 - Composition',
-    subtitle: "Chef's Soundtrack Music",
+    id: 'activity2',
+    title: 'Activity 2 - Composition',
+    subtitle: "Epic Wildlife Soundtrack",
     icon: '🎵',
-    color: 'orange',
+    color: 'blue',
     estimatedTime: 18,
     stages: [
       { 
@@ -101,41 +127,58 @@ export const lessonSections = [
         duration: 1
       },
       { 
-        id: 'kitchen-composition', 
+        id: 'wildlife-composition', 
         type: 'activity', 
         label: 'Unlock Composition Activity', 
         duration: 10,
         hasTimer: true,
         trackProgress: true,
-        description: "Students compose chef's soundtrack music - Slide 10",
+        description: "Students compose wildlife soundtrack music - Slide 10",
         bonusDescription: 'Bonus: Add More Sections'
+      }
+    ]
+  },
+  {
+    id: 'reflection',
+    title: 'Reflection',
+    subtitle: 'Two Stars and a Wish',
+    icon: '⭐',
+    color: 'amber',
+    estimatedTime: 8,
+    stages: [
+      {
+        id: 'reflection-instructions',
+        type: 'summary',
+        label: 'Reflection Instructions',
+        description: 'Display reflection instructions - Slide 11',
+        duration: 1
       },
       { 
         id: 'reflection', 
         type: 'activity', 
-        label: 'Two Stars and a Wish', 
-        duration: 6,
+        label: 'Unlock Reflection Activity', 
+        duration: 5,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students complete reflection',
+        description: 'Students complete Two Stars and a Wish - Slide 12',
         bonusDescription: 'Bonus: Share Your Work'
       }
     ]
   },
   {
-    id: 'conclusion',
-    title: 'Conclusion',
-    subtitle: 'Class Discussion',
-    icon: '💬',
-    color: 'gray',
-    estimatedTime: 2,
+    id: 'bonus',
+    title: 'Bonus',
+    subtitle: 'Early Finishers',
+    icon: '🌟',
+    color: 'purple',
+    estimatedTime: 5,
     stages: [
       {
-        id: 'conclusion',
-        type: 'discussion',
-        label: 'Class Discussion',
-        description: 'Review and wrap up - Slide 11',
-        duration: 2
+        id: 'bonus-challenges',
+        type: 'summary',
+        label: 'Bonus Challenges',
+        description: 'Extra activities for early finishers - Slide 13',
+        duration: 5
       }
     ]
   }
@@ -143,12 +186,12 @@ export const lessonSections = [
 
 export const lesson4Config = {
   id: 'lesson4',
-  title: "Chef's Soundtrack",
-  subtitle: "Cooking Process Video - Sectional Loop Form",
+  title: "Epic Wildlife",
+  subtitle: "Nature Documentary - Sectional Loop Form",
   learningObjectives: [
     "Understand song form and structure",
-    "Master sectional loop building",
-    "Create music that evolves with cooking process"
+    "Master sectional loop building (Intro → A → A' → A → Outro)",
+    "Create music that evolves with nature footage"
   ],
   lessonSections,
   activities: [
@@ -160,8 +203,8 @@ export const lesson4Config = {
     },
     {
       id: 2,
-      type: "kitchen-composition-activity",
-      title: "Compose Your Chef's Soundtrack",
+      type: "wildlife-composition-activity",
+      title: "Compose Your Wildlife Soundtrack",
       estimatedTime: "10 min",
       includesVideoSelection: true
     },
@@ -169,7 +212,7 @@ export const lesson4Config = {
       id: 3,
       type: "two-stars-wish",
       title: "Reflection Activity",
-      estimatedTime: "6 min"
+      estimatedTime: "5 min"
     }
   ]
 };
@@ -184,9 +227,10 @@ export const lessonStages = [
     description: 'Students enter session code',
     type: 'waiting'
   },
+  // Introduction
   { 
-    id: 'kitchen-beats-intro', 
-    label: "Chef's Soundtrack Introduction", 
+    id: 'epic-wildlife-intro', 
+    label: "Epic Wildlife Introduction", 
     description: 'Welcome screen - Slide 1',
     type: 'summary',
     duration: 1,
@@ -250,6 +294,7 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson4/slides/6.png'
     }
   },
+  // Activity 1: Sectional Loop Builder Game
   { 
     id: 'introduce-sectional-builder', 
     label: 'Introduce Sectional Loop Builder Game', 
@@ -261,20 +306,40 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson4/slides/7.png'
     }
   },
+  {
+    id: 'sectional-loop-builder-demo',
+    label: 'Class Demo (on projector)',
+    description: '3-question demo - students watch main screen',
+    type: 'class-demo',
+    duration: 2,
+    presentationView: {
+      type: 'sectional-loop-builder-class-demo'
+    }
+  },
   { 
     id: 'sectional-loop-builder', 
     label: 'Unlock Sectional Loop Builder Game', 
-    description: 'Interactive game - Game board coming soon',
-    bonusDescription: 'Bonus: Try Advanced Patterns',
+    description: 'Students play individually - leaderboard on projector',
+    bonusDescription: 'Safari: Find your classmates!',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
     duration: 5,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/7.png'  // Keep same slide during game
+      type: 'sectional-loop-builder-leaderboard'
     }
   },
+  {
+    id: 'sectional-loop-builder-results',
+    label: 'Show Game Results',
+    description: 'Winner celebration podium',
+    type: 'results',
+    duration: 1,
+    presentationView: {
+      type: 'sectional-loop-builder-results'
+    }
+  },
+  // Activity 2: Composition
   { 
     id: 'composition-instructions', 
     label: 'Show Composition Instructions', 
@@ -298,9 +363,9 @@ export const lessonStages = [
     }
   },
   { 
-    id: 'kitchen-composition', 
+    id: 'wildlife-composition', 
     label: 'Unlock Composition Activity', 
-    description: "Compose chef's soundtrack music - Slide 10", 
+    description: "Compose wildlife soundtrack music - Slide 10", 
     bonusDescription: 'Bonus: Add More Sections',
     hasProgress: true,
     type: 'activity',
@@ -311,29 +376,42 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson4/slides/10.png'
     }
   },
+  // Reflection
+  {
+    id: 'reflection-instructions',
+    label: 'Reflection Instructions',
+    description: 'Display reflection instructions - Slide 11',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson4/slides/11.png'
+    }
+  },
   { 
     id: 'reflection', 
-    label: 'Two Stars and a Wish', 
-    description: 'Students complete reflection', 
+    label: 'Unlock Reflection Activity', 
+    description: 'Students complete Two Stars and a Wish', 
     bonusDescription: 'Bonus: Share Your Work',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 6,
+    duration: 5,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/10.png'  // Keep composition slide during reflection
+      slidePath: '/lessons/film-music-project/lesson4/slides/12.png'
     }
   },
+  // Bonus
   {
-    id: 'conclusion',
-    label: 'Class Discussion',
-    description: 'Wrap up lesson - Slide 11',
-    type: 'discussion',
-    duration: 2,
+    id: 'bonus-challenges',
+    label: 'Bonus Challenges',
+    description: 'Extra activities for early finishers - Slide 13',
+    type: 'summary',
+    duration: 5,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/11.png'
+      slidePath: '/lessons/film-music-project/lesson4/slides/13.png'
     }
   }
 ];
@@ -341,19 +419,24 @@ export const lessonStages = [
 // Helper function to map session stage to activity type
 export const getActivityForStage = (stage) => {
   const stageMap = {
-    'kitchen-beats-intro': 'summary',
+    'epic-wildlife-intro': 'summary',
+    'kitchen-beats-intro': 'summary',  // backward compatibility
     'show-agenda': 'summary',
     'introduce-song-form': 'summary',
     'form-continued': 'summary',
     'introduce-sectional-loop-form': 'summary',
     'sectional-loop-example': 'summary',
     'introduce-sectional-builder': 'summary',
+    'sectional-loop-builder-demo': 'class-demo',
     'sectional-loop-builder': 'sectional-loop-builder',
+    'sectional-loop-builder-results': 'results',
     'composition-instructions': 'summary',
     'composition-instructions-continued': 'summary',
-    'kitchen-composition': 'kitchen-composition-activity',
-    'reflection': 'kitchen-composition-activity',  // Show composition during reflection
-    'conclusion': 'discussion'
+    'wildlife-composition': 'wildlife-composition-activity',
+    'kitchen-composition': 'wildlife-composition-activity',  // backward compatibility
+    'reflection-instructions': 'summary',
+    'reflection': 'two-stars-wish',
+    'bonus-challenges': 'summary'
   };
   return stageMap[stage];
 };

@@ -1,7 +1,8 @@
 // File: /pages/MusicClassroomResources.jsx
-// UPDATED VERSION - Intro to DAW removed, Music Loops in Media card updated
-// ✅ Shows saved city compositions with video thumbnail and composition details
-// ✅ Shows saved Sound Garden artwork
+// UPDATED VERSION - Matches new lesson structure
+// ✅ Epic Wildlife as Lesson 3 (available)
+// ✅ Video Game Montage as Lesson 4 (coming soon)
+// ✅ Shows saved compositions with video thumbnail and composition details
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -19,6 +20,9 @@ function MusicClassroomResources() {
   
   // City composition state
   const [savedCityComposition, setSavedCityComposition] = useState(null);
+  
+  // Epic Wildlife composition state
+  const [savedEpicWildlifeComposition, setSavedEpicWildlifeComposition] = useState(null);
   
   // Sound Garden state
   const [savedSoundGarden, setSavedSoundGarden] = useState(null);
@@ -66,6 +70,7 @@ function MusicClassroomResources() {
     setSavedReflection(null);
     setDawStats(null);
     setSavedCityComposition(null);
+    setSavedEpicWildlifeComposition(null);
     setSavedSoundGarden(null);
     localStorage.removeItem('classroom-logged-in');
     localStorage.removeItem('classroom-user-role');
@@ -167,6 +172,18 @@ function MusicClassroomResources() {
           } catch (error) {
             console.error('Error loading Sound Garden:', error);
           }
+        }
+      }
+      
+      // Load Epic Wildlife composition
+      const savedEpicWildlife = localStorage.getItem('epic-wildlife-composition');
+      if (savedEpicWildlife) {
+        try {
+          const data = JSON.parse(savedEpicWildlife);
+          setSavedEpicWildlifeComposition(data);
+          console.log('✅ Loaded saved Epic Wildlife composition:', data);
+        } catch (error) {
+          console.error('Error loading Epic Wildlife composition:', error);
         }
       }
     }
@@ -469,7 +486,7 @@ function MusicClassroomResources() {
             </div>
           </div>
 
-          {/* Lesson List */}
+          {/* Lesson List - UPDATED */}
           <div style={{
             backgroundColor: 'rgba(255,255,255,0.15)',
             borderRadius: '8px',
@@ -489,23 +506,23 @@ function MusicClassroomResources() {
               <span style={{ color: '#90EE90' }}>✓</span>
               <span>🏙️ City Soundscapes - Texture & Layering</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.6 }}>
-              <span>🔜</span>
-              <span>🍳 Chef's Soundtrack - Coming Soon</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ color: '#90EE90' }}>✓</span>
+              <span>🌍 Epic Wildlife - Sectional Loop Form</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.6 }}>
               <span>🔜</span>
-              <span>🌍 Epic World - Coming Soon</span>
+              <span>🎮 Video Game Montage - Coming Soon</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.6 }}>
               <span>🔜</span>
-              <span>🎮 Student Choice Sandbox - Coming Soon</span>
+              <span>🎨 Student Choice Sandbox - Coming Soon</span>
             </div>
           </div>
         </div>
 
         {/* Saved Work Section */}
-        {userRole === 'student' && (savedCityComposition || savedSoundGarden || savedComposition) && (
+        {userRole === 'student' && (savedCityComposition || savedSoundGarden || savedComposition || savedEpicWildlifeComposition) && (
           <div style={{
             marginTop: '24px',
             backgroundColor: 'white',
@@ -559,6 +576,24 @@ function MusicClassroomResources() {
               </div>
             )}
 
+            {/* Epic Wildlife Composition */}
+            {savedEpicWildlifeComposition && (
+              <div style={{
+                backgroundColor: '#ecfdf5',
+                borderRadius: '8px',
+                padding: '16px',
+                marginBottom: '12px',
+                border: '2px solid #6ee7b7'
+              }}>
+                <div style={{ fontWeight: '600', color: '#065f46', marginBottom: '8px' }}>
+                  🌍 Epic Wildlife Composition
+                </div>
+                <div style={{ fontSize: '13px', color: '#047857' }}>
+                  {savedEpicWildlifeComposition.loopCount || 0} loops • {savedEpicWildlifeComposition.sectionCount || 0} sections • Saved {new Date(savedEpicWildlifeComposition.savedAt).toLocaleDateString()}
+                </div>
+              </div>
+            )}
+
             {/* Sports Composition */}
             {savedComposition && (
               <div style={{
@@ -585,6 +620,9 @@ function MusicClassroomResources() {
                   localStorage.removeItem('school-beneath-bonus');
                   localStorage.removeItem('school-beneath-reflection');
                   localStorage.removeItem('lesson1-daw-stats');
+                  localStorage.removeItem('epic-wildlife-composition');
+                  localStorage.removeItem('epic-wildlife-bonus');
+                  localStorage.removeItem('epic-wildlife-reflection');
                   const studentId = localStorage.getItem('anonymous-student-id');
                   if (studentId) {
                     localStorage.removeItem(`sound-garden-${studentId}`);
@@ -597,6 +635,7 @@ function MusicClassroomResources() {
                   setDawStats(null);
                   setSavedSoundGarden(null);
                   setSavedCityComposition(null);
+                  setSavedEpicWildlifeComposition(null);
                   alert('All saved work deleted');
                 }
               }}

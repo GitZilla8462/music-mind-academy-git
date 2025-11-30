@@ -1,10 +1,12 @@
-// File: /lessons/film-music-project/lesson4/Lesson4.jsx
-// Kitchen Beats - Cooking Process Video - Main lesson orchestrator
+// File: /src/lessons/film-music-project/lesson4/Lesson4.jsx
+// Epic Wildlife - Nature Documentary Video - Main lesson orchestrator
+// ✅ UPDATED: Renamed from "Chef's Soundtrack" to "Epic Wildlife"
+// ✅ UPDATED: Added Sectional Loop Builder game routing
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from "../../../context/SessionContext";
-import { Monitor, Video, Gamepad2, Trophy } from 'lucide-react';
+import { Monitor, Video, Gamepad2, Trophy, Globe } from 'lucide-react';
 
 // Config
 import { lesson4Config, lessonStages, getActivityForStage } from './Lesson4config';
@@ -46,7 +48,7 @@ const Lesson4 = () => {
   // Get effective role
   const effectiveRole = sessionRole || sessionMode.urlRole;
   
-  console.log('🍳 Lesson4 Render:', {
+  console.log('🌍 Lesson4 (Epic Wildlife) Render:', {
     isSessionMode: sessionMode.isSessionMode,
     sessionRole,
     effectiveRole,
@@ -146,9 +148,9 @@ const Lesson4 = () => {
   if (sessionMode.isSessionMode && !effectiveRole) {
     console.log('⏳ Waiting for session role to be set...');
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-900">
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
           <p className="text-white text-lg">Initializing session...</p>
           <p className="text-gray-400 text-sm mt-2">Session Code: {sessionCode || sessionMode.urlSessionCode}</p>
         </div>
@@ -175,7 +177,7 @@ const Lesson4 = () => {
       }, 1000);
       
       return (
-        <div className="h-screen flex items-center justify-center bg-gray-900">
+        <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900">
           <div className="text-center">
             <div className="text-6xl mb-4">✓</div>
             <h1 className="text-white text-3xl font-bold mb-4">Session Has Ended</h1>
@@ -189,10 +191,10 @@ const Lesson4 = () => {
     const currentStageData = lessonStages.find(stage => stage.id === currentStage);
     if (currentStageData?.type === 'summary') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
           <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
           <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>
+          <p className="text-2xl text-gray-300">Your teacher will provide instruction</p>
         </div>
       );
     }
@@ -200,11 +202,11 @@ const Lesson4 = () => {
     // CLASS DEMO: Students see "Watch the Main Screen" for whole-class activities
     if (currentStageData?.type === 'class-demo') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 text-white p-8">
-          <Gamepad2 className="w-32 h-32 mb-8 animate-pulse text-white" />
+        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
+          <Gamepad2 className="w-32 h-32 mb-8 animate-pulse text-green-400" />
           <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
           <p className="text-2xl text-gray-300">Follow along with the class demo</p>
-          <p className="text-xl text-gray-400 mt-4">You'll play the game individually next!</p>
+          <p className="text-xl text-teal-400 mt-4">You'll play the game individually next!</p>
         </div>
       );
     }
@@ -212,10 +214,10 @@ const Lesson4 = () => {
     // RESULTS: Students see "Watch the Main Screen" for game results
     if (currentStageData?.type === 'results') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 text-white p-8">
+        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
           <Trophy className="w-32 h-32 mb-8 animate-pulse text-yellow-400" />
           <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-300">Viewing game results and scores</p>
+          <p className="text-2xl text-gray-300">Viewing game results and winners!</p>
         </div>
       );
     }
@@ -223,10 +225,10 @@ const Lesson4 = () => {
     // VIDEO STAGES: Students see static slide
     if (currentStageData?.type === 'video') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
           <Video className="w-32 h-32 mb-8 animate-pulse text-white" />
           <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-400">The video is playing on the projection screen</p>
+          <p className="text-2xl text-gray-300">The video is playing on the projection screen</p>
         </div>
       );
     }
@@ -234,16 +236,16 @@ const Lesson4 = () => {
     // DISCUSSION/CONCLUSION STAGES: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'discussion' || currentStage === 'conclusion') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
           <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
           <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-400">Your teacher is leading a class discussion</p>
+          <p className="text-2xl text-gray-300">Your teacher is leading a class discussion</p>
         </div>
       );
     }
     
     // Student viewing active activity
-    const displayStage = currentStage === 'reflection' ? 'kitchen-composition' : currentStage;
+    const displayStage = currentStage === 'reflection' ? 'wildlife-composition' : currentStage;
     const activityType = getActivityForStage(displayStage);
     
     const activity = lesson4Config.activities.find(a => a.type === activityType);
@@ -316,7 +318,7 @@ const Lesson4 = () => {
   // NORMAL MODE: ACTIVE LESSON
   // ========================================
   
-  console.log('🖯 Rendering NORMAL active lesson');
+  console.log('🖼️ Rendering NORMAL active lesson');
   
   // Handle view modes
   let activityToRender = lesson.currentActivityData;
@@ -324,7 +326,7 @@ const Lesson4 = () => {
   let viewModeActive = false;
   
   if (viewSavedMode) {
-    activityToRender = lesson4Config.activities.find(a => a.type === 'kitchen-composition-activity');
+    activityToRender = lesson4Config.activities.find(a => a.type === 'wildlife-composition-activity');
     viewModeActive = true;
   } else if (viewReflectionMode) {
     activityToRender = lesson4Config.activities.find(a => a.type === 'two-stars-wish');
@@ -332,7 +334,7 @@ const Lesson4 = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900">
       <div className="h-screen flex flex-col">
         <div className="flex-1 overflow-hidden">
           {activityToRender && (

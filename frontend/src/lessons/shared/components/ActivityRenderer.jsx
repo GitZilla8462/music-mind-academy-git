@@ -1,6 +1,7 @@
 // File: /lessons/shared/components/ActivityRenderer.jsx
 // Renders activities based on type - reusable across all lessons
 // NOTE: NO countdown timers in student view - only in presentation view
+// ✅ UPDATED: Added Sectional Loop Builder activity for Lesson 4 (Epic Wildlife)
 
 import React from 'react';
 import VideoPlayer from './video/VideoPlayer';
@@ -12,6 +13,9 @@ import NameThatLoopActivity from '../activities/layer-detective/NameThatLoopActi
 import LayerDetectiveActivity from '../activities/layer-detective/LayerDetectiveActivity';
 import SportsCompositionActivity from "../activities/SportsCompositionActivity";
 import CityCompositionActivity from "../activities/CityCompositionActivity";
+
+// ✅ ADDED: Sectional Loop Builder for Lesson 4 (Epic Wildlife)
+import SectionalLoopBuilderActivity from '../activities/sectional-loop-builder/SectionalLoopBuilderActivity';
 
 const ActivityRenderer = ({
   activity,
@@ -75,7 +79,7 @@ const ActivityRenderer = ({
         />
       );
 
-    // ✅ ADDED: City Composition Activity
+    // ✅ City Composition Activity (Lesson 3)
     case 'city-composition-activity':
       return (
         <CityCompositionActivity 
@@ -84,6 +88,32 @@ const ActivityRenderer = ({
           viewMode={viewMode}
           lessonStartTime={lessonStartTime}
           isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Sectional Loop Builder Game (Lesson 4 - Epic Wildlife)
+    case 'sectional-loop-builder':
+      return (
+        <SectionalLoopBuilderActivity 
+          key={`sectional-loop-builder-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Wildlife Composition Activity (Lesson 4 - Epic Wildlife)
+    // This uses the same CityCompositionActivity component but with wildlife videos
+    // TODO: Create dedicated WildlifeCompositionActivity if needed
+    case 'wildlife-composition-activity':
+      return (
+        <CityCompositionActivity 
+          key={`wildlife-composition-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          lessonStartTime={lessonStartTime}
+          isSessionMode={isSessionMode}
+          lessonTheme="wildlife"  // Pass theme prop if component supports it
         />
       );
 
@@ -107,7 +137,7 @@ const ActivityRenderer = ({
         />
       );
 
-    // ✅ ADDED: Name That Loop bonus activity
+    // ✅ Name That Loop bonus activity
     case 'name-that-loop':
       return (
         <NameThatLoopActivity 
@@ -117,7 +147,7 @@ const ActivityRenderer = ({
         />
       );
 
-    // ✅ ADDED: Layer Detective warm-up activity
+    // ✅ Layer Detective warm-up activity (Lesson 2)
     case 'layer-detective':
       return (
         <LayerDetectiveActivity 

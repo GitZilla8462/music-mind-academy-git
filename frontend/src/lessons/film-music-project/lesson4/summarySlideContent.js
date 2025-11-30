@@ -1,114 +1,183 @@
-/// File: /src/lessons/film-music-project/lesson4/summarySlideContent.js
-// CENTRALIZED CONTENT for all Lesson 4 instructional text
-// All slides, panels, modals, and activity instructions in ONE place
+// File: /src/lessons/film-music-project/lesson4/summarySlideContent.js
+// All instructional text and content for Lesson 4 - Epic Wildlife
+// ✅ UPDATED: Renamed from "Chef's Soundtrack" to "Epic Wildlife"
 
 // ========================================
 // 1. PRE-ACTIVITY SUMMARY SLIDES
 // ========================================
 export const summarySlides = {
-  intro: {
-    title: "Welcome to Chef's Soundtrack!",
-    icon: "🍳",
-    estimatedTime: "2 minutes",
+  introVideo: {
+    title: "Welcome to Epic Wildlife!",
+    icon: "🌍",
+    estimatedTime: "3 minutes",
     points: [
-      "Learn how music evolves throughout a cooking process.",
-      "Understand song form and sectional loop composition.",
-      "Create music that builds and changes with the recipe."
+      "Learn about song form and sectional loops.",
+      "Build song structures using Intro → A → A' → A → Outro.",
+      "Create your own wildlife soundtrack using multiple sections."
     ]
   },
 
-  songForm: {
-    title: "Understanding Song Form",
+  songFormConcept: {
+    title: "What is Song Form?",
     icon: "🎵",
-    estimatedTime: "3 minutes",
+    estimatedTime: "Discussion",
     points: [
-      "Songs have different sections (verses, choruses, bridges).",
-      "Each section has its own musical character and purpose.",
-      "Sections repeat and contrast to create interesting music."
+      "Form = The structure or organization of music",
+      "Sections = Different parts of a song (A, B, C, etc.)",
+      "Intro = Beginning that sets the mood",
+      "Outro = Ending that wraps up the music"
     ]
   },
 
   sectionalLoopForm: {
-    title: "Sectional Loop Builder",
-    icon: "🎮",
-    estimatedTime: "5 minutes",
+    title: "Sectional Loop Form",
+    icon: "🔄",
+    estimatedTime: "Discussion",
     points: [
-      "Practice building music with different sections.",
-      "Learn how sections work together to create structure.",
-      "Complete the interactive game to master the concept."
+      "Music is built from repeating loops in sections.",
+      "Each section has a different number of layers.",
+      "A' (A-prime) is a variation of A with MORE layers.",
+      "The pattern: Intro → A → A' → A → Outro"
     ]
   },
 
-  composition: {
-    title: "Compose Your Chef's Soundtrack",
-    icon: "👨‍🍳",
+  sectionalLoopBuilder: {
+    title: "Sectional Loop Builder Game",
+    icon: "🎮",
+    estimatedTime: "5 minutes",
+    points: [
+      "Listen to mystery clips and count the layers",
+      "Place each clip in the correct slot",
+      "Build the song structure: Intro → A → A' → A → Outro",
+      "Safari bonus: Find classmates and enter their codes!"
+    ],
+    structure: {
+      title: "Target Structure",
+      sections: [
+        { name: "INTRO", layers: 2, description: "Thin texture to start" },
+        { name: "A", layers: 3, description: "Main theme with medium texture" },
+        { name: "A'", layers: 4, description: "Variation with thicker texture" },
+        { name: "A", layers: 3, description: "Return to main theme" },
+        { name: "OUTRO", layers: 1, description: "Thin texture to end" }
+      ]
+    },
+    scoring: {
+      correct: { points: 25, label: "Correct Placement" },
+      completion: { points: 25, label: "Round Bonus" },
+      safari: { points: 50, label: "Safari Bonus" }
+    }
+  },
+
+  wildlifeComposition: {
+    title: "Compose Your Wildlife Soundtrack",
+    icon: "🦁",
     estimatedTime: "10 minutes",
     points: [
-      "Create at least three distinct sections of music.",
-      "Use different loops for each section to show progression.",
-      "Match your music to the stages of the cooking process."
+      "Choose a wildlife video to score.",
+      "Use sectional loop form: Intro → A → A' → A → Outro.",
+      "Create at least 5 different sections.",
+      "Build thin and thick textures across your composition."
     ]
   },
 
   reflection: {
     title: "Two Stars and a Wish",
     icon: "⭐",
-    estimatedTime: "6 minutes",
+    estimatedTime: "5 minutes",
     points: [
-      "Name two things you did well in your composition today.",
-      "Describe one thing you would improve or change next time.",
-      "Reflect on how your music evolved with the cooking video."
+      "Name two things you did well with song form and sections.",
+      "Describe one thing you would improve or try differently.",
+      "Listen to your composition while completing the reflection."
+    ]
+  },
+
+  bonusChallenges: {
+    title: "Bonus Challenges",
+    icon: "🌟",
+    estimatedTime: "If time permits",
+    points: [
+      "Add more variation between sections",
+      "Create a B section (different from A)",
+      "Experiment with dynamics and volume changes",
+      "Try different loop combinations for each section"
     ]
   }
 };
 
 // ========================================
-// 2. ASSIGNMENT PANEL CONTENT (During Activities)
+// 2. ASSIGNMENT PANEL CONTENT
 // ========================================
 export const assignmentPanels = {
-  composition: {
-    title: "Chef's Soundtrack Assignment",
+  sectionalLoopBuilder: {
+    title: "Sectional Loop Builder Game",
     requirements: [
       {
-        id: "sections",
-        label: "Song Form",
-        shortText: "3+ distinct sections",
-        fullText: "Create at least three distinct musical sections (A, B, C, etc.)"
+        id: "listen",
+        label: "Listen",
+        shortText: "Listen to each mystery clip",
+        fullText: "Count the number of layers in each clip to identify its section."
       },
       {
-        id: "progression",
-        label: "Mood Progression",
-        shortText: "Music evolves with video",
-        fullText: "Your music should change and evolve as the cooking process progresses"
+        id: "identify",
+        label: "Identify",
+        shortText: "Count the layers",
+        fullText: "INTRO=2, A=3, A'=4, OUTRO=1 layers."
       },
       {
-        id: "variety",
-        label: "Loop Variety",
-        shortText: "Different loops per section",
-        fullText: "Use different loop combinations in each section to create contrast"
+        id: "place",
+        label: "Place",
+        shortText: "Put clips in the right slots",
+        fullText: "Build the correct song structure by placing clips in order."
+      },
+      {
+        id: "safari",
+        label: "Safari",
+        shortText: "Find classmates (bonus)",
+        fullText: "When prompted, find the classmate with the matching animal and enter their code for bonus points!"
       }
     ]
   },
 
-  bonusChallenge: {
-    title: "Bonus: Add More Sections",
-    description: "Great job! Use the remaining time to expand your composition.",
+  wildlifeComposition: {
+    title: "Composition Assignment",
+    requirements: [
+      {
+        id: "sections",
+        label: "Sections",
+        shortText: "5+ Different sections",
+        fullText: "Create at least five different sections in your composition."
+      },
+      {
+        id: "form",
+        label: "Form",
+        shortText: "Use sectional loop form",
+        fullText: "Follow the Intro → A → A' → A → Outro structure."
+      },
+      {
+        id: "texture",
+        label: "Texture",
+        shortText: "Vary your texture",
+        fullText: "Create thin and thick textures across different sections."
+      },
+      {
+        id: "progression",
+        label: "Progression",
+        shortText: "Build and release",
+        fullText: "Your music should build up to A' and then return down."
+      }
+    ]
+  },
+
+  bonusActivity: {
+    title: "Bonus: Advanced Composition",
+    description: "Great job! Use remaining time to enhance your soundtrack.",
     instructions: {
-      title: "Ways to enhance your soundtrack:",
+      title: "Ways to enhance your composition:",
       items: [
-        "Add an intro section before cooking begins",
-        "Create a climax section for the final plating",
-        "Add transitions between your main sections",
-        "Experiment with volume changes across sections"
-      ]
-    },
-    howToAdd: {
-      title: "Tips for sectional composition:",
-      steps: [
-        "Think about the emotional arc of cooking",
-        "Start calm, build energy during prep",
-        "Peak excitement during cooking",
-        "Satisfying resolution at the end"
+        "Add a B section that's completely different from A",
+        "Create more dramatic texture changes between sections",
+        "Use different loop categories for different sections",
+        "Add volume automation to create dynamics"
       ]
     }
   }
@@ -118,7 +187,6 @@ export const assignmentPanels = {
 // 3. REFLECTION ACTIVITY CONTENT
 // ========================================
 export const reflectionActivity = {
-  // Step-by-step instructions and voice narration
   steps: {
     teacherInstruction: {
       title: "Time to Reflect!",
@@ -138,53 +206,14 @@ export const reflectionActivity = {
     
     listenAndShare: {
       self: {
-        title: "Listen to Your Chef's Soundtrack",
-        mainText: "Listen to your entire soundtrack from beginning to end.",
-        payAttentionTo: {
-          title: "Pay attention to:",
-          items: [
-            "How your music changes between sections",
-            "How the sections match the cooking process",
-            "The overall progression and flow of your music"
-          ]
-        },
-        voiceText: "Now, listen to your entire Chef's Soundtrack from beginning to end. Pay attention to: How your music changes between sections. How the sections match the cooking process. And the overall progression and flow of your music."
+        title: "Listen to Your Composition",
+        text: "Take a moment to listen to your wildlife soundtrack. Think about your song form and sectional choices.",
+        voiceText: "Listen to your composition and think about your song form and sectional choices."
       },
       partner: {
-        title: "Share & Listen",
-        shareFirst: {
-          title: "🔄 First: Share your soundtrack",
-          text: "Share your soundtrack with [Partner Name] so they can see and hear your work."
-        },
-        mainText: "Now, listen to [Partner Name]'s entire soundtrack from beginning to end.",
-        payAttentionTo: {
-          title: "Pay attention to:",
-          items: [
-            "How the music changes between sections",
-            "How the sections match the cooking process",
-            "The overall progression and flow of the music"
-          ]
-        },
-        voiceText: "Now it's time to share! First, share your soundtrack with [Partner Name] so they can see and hear your work. Then, listen to [Partner Name]'s entire soundtrack from beginning to end. Pay attention to: How the music changes between sections. How the sections match the cooking process. And the overall progression and flow."
-      }
-    },
-    
-    summary: {
-      self: {
-        title: "♪ Your Reflection Summary",
-        readAloud: {
-          title: "📖 Now Read Your Reflection Aloud!",
-          text: "Read your reflection to yourself or share it with a neighbor."
-        },
-        voiceText: "Here's your complete reflection summary! Now read your reflection out loud to yourself or share it with a neighbor."
-      },
-      partner: {
-        title: "♪ Your Reflection Summary",
-        readAloud: {
-          title: "📖 Now Read Your Reflection Aloud!",
-          text: "Read this feedback out loud to [Partner Name]."
-        },
-        voiceText: "Here's your complete reflection summary! Now read your feedback out loud to [Partner Name]."
+        title: "Listen to Your Partner's Composition",
+        text: "Take a moment to listen to your partner's wildlife soundtrack. Think about their song form and sectional choices.",
+        voiceText: "Listen to your partner's composition and think about their song form and sectional choices."
       }
     }
   },
@@ -192,38 +221,38 @@ export const reflectionActivity = {
   // Self-reflection prompts
   selfReflection: {
     star1: {
-      title: "STAR 1: Sectional Composition",
-      question: "What did you do well with creating distinct sections?",
-      voiceText: "Star 1: Think about what went well with creating distinct sections. What did you do well?",
+      title: "STAR 1: Song Form & Sections",
+      question: "What did you do well with song form and sections?",
+      voiceText: "Star 1: Think about what went well with song form and sections.",
       options: [
-        "I created clear differences between my sections",
-        "I chose loops that fit each stage of cooking",
-        "I organized my sections in a logical order",
-        "I used the sectional loop builder concepts effectively",
+        "I used clear Intro, A, A', and Outro sections",
+        "I built up texture effectively through sections",
+        "I created good contrast between sections",
+        "I followed the sectional loop form structure well",
         "Custom..."
       ]
     },
     star2: {
-      title: "STAR 2: Musical Progression",
-      question: "What worked well with how your music evolved?",
-      voiceText: "Star 2: Think about what worked well with how your music evolved over time.",
+      title: "STAR 2: Musical Choices",
+      question: "How well did your musical choices support the wildlife video?",
+      voiceText: "Star 2: Think about how your musical choices supported the wildlife video.",
       options: [
-        "My music built energy throughout the cooking process",
-        "Each section had its own unique character",
-        "The transitions between sections felt smooth",
-        "My music matched the mood of each cooking stage",
+        "My loops matched the mood of the wildlife footage",
+        "I created tension and release that fit the video",
+        "My section changes aligned with video moments",
+        "The texture changes enhanced the visual story",
         "Custom..."
       ]
     },
     wish: {
       title: "WISH: What to try next?",
-      question: "What do you want to try or improve next time?",
+      question: "What do you want to improve or try next time?",
       voiceText: "Now for the Wish: What do you want to try or improve next time?",
       options: [
-        "I want to create more sections with better contrast",
-        "I want to make smoother transitions between sections",
-        "I want to experiment with different section orders",
-        "I want to add an intro or outro section",
+        "I want to create more dramatic section changes",
+        "I want to try adding a B section",
+        "I want to better match music to video moments",
+        "I want to experiment with different loop combinations",
         "Custom..."
       ]
     }
@@ -233,37 +262,37 @@ export const reflectionActivity = {
   partnerReflection: {
     star1: {
       title: "STAR 1: What did [Partner Name] do well?",
-      question: "What did [Partner Name] do well with their sectional composition?",
-      voiceText: "Star 1: Think about what went well with the sectional composition. What did they do well?",
+      question: "What did [Partner Name] do well with song form and sections?",
+      voiceText: "Star 1: What did they do well with song form and sections?",
       options: [
-        "[Partner Name] created clear section differences",
-        "[Partner Name] chose loops that fit the cooking stages",
-        "[Partner Name] organized sections in a good order",
-        "[Partner Name] used sectional concepts effectively",
+        "[Partner Name] used clear sections effectively",
+        "[Partner Name] built up texture well through sections",
+        "[Partner Name] created good contrast between sections",
+        "[Partner Name] followed the sectional loop form well",
         "Custom..."
       ]
     },
     star2: {
       title: "STAR 2: What worked well?",
-      question: "What worked well with [Partner Name]'s musical progression?",
-      voiceText: "Star 2: Think about what worked well with the musical progression.",
+      question: "How well did [Partner Name]'s music support the wildlife video?",
+      voiceText: "Star 2: How well did their music support the wildlife video?",
       options: [
-        "The music built energy throughout",
-        "Each section had unique character",
-        "The transitions felt smooth",
-        "The music matched the cooking mood",
+        "The loops matched the mood of the footage",
+        "The section changes were well-timed",
+        "The texture changes enhanced the visual story",
+        "The music built tension and release effectively",
         "Custom..."
       ]
     },
     wish: {
       title: "WISH: What could they try?",
       question: "What could [Partner Name] try or improve next time?",
-      voiceText: "Now for the Wish: What could they try or improve next time?",
+      voiceText: "Now for the Wish: What could they try or improve?",
       options: [
-        "[Partner Name] could try more section contrast",
-        "[Partner Name] could work on smoother transitions",
-        "[Partner Name] could experiment with section order",
-        "[Partner Name] could add intro/outro sections",
+        "[Partner Name] could create more dramatic section changes",
+        "[Partner Name] could try adding a B section",
+        "[Partner Name] could better match music to video moments",
+        "[Partner Name] could experiment with different loops",
         "Custom..."
       ]
     }
@@ -271,28 +300,124 @@ export const reflectionActivity = {
 };
 
 // ========================================
-// 4. SECTIONAL LOOP BUILDER GAME CONTENT
+// 4. SECTIONAL LOOP BUILDER CONTENT
 // ========================================
-export const sectionalBuilderContent = {
+export const sectionalLoopBuilderContent = {
   instructions: {
-    title: "Build Your Song!",
-    description: "Drag sections to create a complete song form.",
-    rules: [
-      "Each song needs at least 3 sections",
-      "Sections can repeat (A-B-A is valid)",
-      "Try different combinations to see what sounds good!"
+    title: "🎮 Sectional Loop Builder",
+    subtitle: "Build the Wildlife Score",
+    overview: "Listen to mystery clips and place them in the correct order to build the song structure.",
+    mainSteps: [
+      {
+        step: 1,
+        icon: "🎧",
+        title: "Listen to the clip",
+        description: "Count how many layers you hear in each mystery clip"
+      },
+      {
+        step: 2,
+        icon: "🔢",
+        title: "Identify the section",
+        description: "INTRO=2 layers, A=3 layers, A'=4 layers, OUTRO=1 layer"
+      },
+      {
+        step: 3,
+        icon: "📍",
+        title: "Place in the correct slot",
+        description: "Click the slot where this clip belongs in the structure"
+      },
+      {
+        step: 4,
+        icon: "🎯",
+        title: "Complete the round",
+        description: "Fill all 5 slots to complete the round and earn bonus points"
+      }
     ]
   },
   
-  sections: {
-    A: { name: "Section A", color: "#3b82f6", description: "Main theme" },
-    B: { name: "Section B", color: "#10b981", description: "Contrasting idea" },
-    C: { name: "Section C", color: "#f59e0b", description: "Bridge or climax" }
+  structure: [
+    { id: "intro", label: "INTRO", layers: 2, color: "#8B5CF6", description: "Thin texture" },
+    { id: "a1", label: "A", layers: 3, color: "#3B82F6", description: "Medium texture" },
+    { id: "aPrime", label: "A'", layers: 4, color: "#F59E0B", description: "Thick texture" },
+    { id: "a2", label: "A", layers: 3, color: "#3B82F6", description: "Medium texture" },
+    { id: "outro", label: "OUTRO", layers: 1, color: "#8B5CF6", description: "Thin texture" }
+  ],
+
+  safari: {
+    title: "🦁 Safari Bonus",
+    description: "When selected, leave your Chromebook and find the classmate with the matching animal!",
+    rules: [
+      "Look at their screen to find their 4-digit code",
+      "Return to your device and enter the code",
+      "Earn +50 bonus points for success!",
+      "You have 60 seconds to complete the safari"
+    ]
+  }
+};
+
+// ========================================
+// 5. WILDLIFE COMPOSITION CONTENT
+// ========================================
+export const wildlifeCompositionContent = {
+  instructions: {
+    title: "🌍 Epic Wildlife Composition",
+    subtitle: "Create a Nature Documentary Soundtrack",
+    overview: "Use sectional loop form to create music that evolves with wildlife footage.",
+    mainSteps: [
+      {
+        step: 1,
+        icon: "🎬",
+        title: "Choose your video",
+        description: "Select a wildlife video to score"
+      },
+      {
+        step: 2,
+        icon: "📝",
+        title: "Plan your sections",
+        description: "Think about where Intro, A, A', and Outro will go"
+      },
+      {
+        step: 3,
+        icon: "🎵",
+        title: "Build your soundtrack",
+        description: "Drag loops to create each section with different textures"
+      },
+      {
+        step: 4,
+        icon: "💾",
+        title: "Save your work",
+        description: "Click Save to keep your composition"
+      }
+    ]
   },
   
-  exampleForms: {
-    simple: { pattern: "A-B-A", name: "Simple Song Form" },
-    verse: { pattern: "A-B-A-B", name: "Verse-Chorus" },
-    complex: { pattern: "A-B-C-B", name: "With Bridge" }
+  sectionGuide: {
+    title: "Section Guide",
+    sections: [
+      {
+        name: "INTRO",
+        layers: "1-2 layers",
+        purpose: "Set the mood, establish the setting",
+        tip: "Keep it simple - hint at what's to come"
+      },
+      {
+        name: "A Section",
+        layers: "3 layers",
+        purpose: "Main theme - the primary musical idea",
+        tip: "Choose loops that work well together"
+      },
+      {
+        name: "A' Section",
+        layers: "4+ layers",
+        purpose: "Climax - the most intense moment",
+        tip: "Add more layers for thicker texture"
+      },
+      {
+        name: "OUTRO",
+        layers: "1 layer",
+        purpose: "Wind down and conclude",
+        tip: "Gradually remove layers to create closure"
+      }
+    ]
   }
 };

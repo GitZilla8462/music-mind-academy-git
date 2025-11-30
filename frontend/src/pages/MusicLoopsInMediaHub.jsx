@@ -1,6 +1,6 @@
 // File: /pages/MusicLoopsInMediaHub.jsx
 // Music Loops in Media Project - Hub page for all lessons
-// ✅ UPDATED: Reflects actual lesson content and structure
+// ✅ UPDATED: Epic Wildlife as Lesson 3 (available), Video Game Montage as Lesson 4 (coming soon)
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -70,25 +70,25 @@ const MusicLoopsInMediaHub = () => {
     {
       id: 'lesson4',
       number: 3,
-      title: "Chef's Soundtrack",
-      concept: 'Mood Progression',
-      description: 'Score a cooking video with music that evolves throughout the culinary process',
-      icon: '🍳',
-      color: 'from-yellow-500 to-orange-500',
-      videos: ['Recipe Tutorial', 'Food Preparation', 'Plating'],
+      title: 'Epic Wildlife',
+      concept: 'Sectional Loop Form',
+      description: 'Create epic soundtracks for breathtaking nature footage. Learn how to build music with distinct sections that evolve as the wildlife story unfolds',
+      icon: '🌍',
+      color: 'from-green-500 to-teal-500',
+      videos: ['Underwater Sea Creatures', 'Jungle Animals', 'Safari Wildlife'],
       duration: '35 minutes',
       route: '/lessons/film-music-project/lesson4',
-      available: false
+      available: true
     },
     {
       id: 'lesson5',
       number: 4,
-      title: 'Epic World',
+      title: 'Video Game Montage',
       concept: 'Musical Storytelling',
-      description: 'Create epic soundtracks for breathtaking nature footage featuring wildlife from around the world',
-      icon: '🌍',
-      color: 'from-green-500 to-teal-500',
-      videos: ['Underwater Sea Creatures', 'Jungle Animals', 'Wildlife'],
+      description: 'Score exciting video game footage with dynamic music that responds to the action and enhances the gaming experience',
+      icon: '🎮',
+      color: 'from-purple-500 to-pink-500',
+      videos: ['Action Gameplay', 'Adventure Scenes', 'Victory Moments'],
       duration: '35 minutes',
       route: '/lessons/film-music-project/lesson5',
       available: false
@@ -99,8 +99,8 @@ const MusicLoopsInMediaHub = () => {
       title: 'Student Choice Sandbox',
       concept: 'Apply All Skills',
       description: 'Access all activities and games as standalone experiences. Choose your own video and apply everything you\'ve learned',
-      icon: '🎮',
-      color: 'from-purple-500 to-indigo-500',
+      icon: '🎨',
+      color: 'from-indigo-500 to-violet-500',
       videos: ['All Activities', 'All Games', 'Student Selected Videos'],
       duration: 'Unlimited',
       route: '/lessons/film-music-project/sandbox',
@@ -184,17 +184,17 @@ const MusicLoopsInMediaHub = () => {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <span className="text-2xl">🍳</span>
+              <span className="text-2xl">🌍</span>
               <div>
-                <div className="font-semibold text-white">Mood Progression</div>
-                <div className="text-sm">Music that evolves with the action</div>
+                <div className="font-semibold text-white">Sectional Loop Form</div>
+                <div className="text-sm">Build music with distinct evolving sections</div>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <span className="text-2xl">🌍</span>
+              <span className="text-2xl">🎮</span>
               <div>
                 <div className="font-semibold text-white">Musical Storytelling</div>
-                <div className="text-sm">Create epic soundtracks for nature footage</div>
+                <div className="text-sm">Score dynamic video game footage</div>
               </div>
             </div>
           </div>
