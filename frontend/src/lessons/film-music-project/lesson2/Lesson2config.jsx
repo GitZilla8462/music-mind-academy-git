@@ -1,6 +1,6 @@
 // File: /lessons/film-music-project/lesson2/Lesson2config.jsx
 // Lesson 2: Sports Highlight Reel Music - Configuration
-// ✅ UPDATED: New structure matching lesson plan with DAW Challenge
+// ✅ UPDATED: Better teacher descriptions for control panel
 
 export const LESSON_PROGRESS_KEY = 'lesson2-progress';
 export const LESSON_TIMER_KEY = 'lesson2-timer';
@@ -12,7 +12,7 @@ export const lessonSections = [
   {
     id: 'introduction',
     title: 'Introduction',
-    subtitle: 'Welcome & DAW Challenge',
+    subtitle: 'Slides → DAW Tutorial',
     icon: '🎬',
     color: 'blue',
     estimatedTime: 10,
@@ -20,47 +20,47 @@ export const lessonSections = [
       { 
         id: 'sports-highlight-intro', 
         type: 'summary', 
-        label: 'Sports Highlight Reel Introduction',
-        description: 'Display welcome screen - Slide 1',
+        label: 'Sports Highlight Reel',
+        description: 'Ask: "What sport do you like? What music goes with it?"',
         duration: 1
       },
       { 
         id: 'show-agenda', 
         type: 'summary', 
-        label: 'Show Agenda',
-        description: 'Display lesson agenda - Slide 2',
+        label: 'Agenda',
+        description: 'Review: "1) Learn about DAW, 2) Create sports composition"',
         duration: 1
       },
       { 
         id: 'introduce-daw', 
         type: 'summary', 
-        label: 'Introduce Digital Audio Workstation',
-        description: 'Display DAW overview - Slide 3',
+        label: 'Digital Audio Workstation',
+        description: 'Explain: "DAW = software for recording, editing, mixing audio"',
         duration: 1
       },
       { 
         id: 'introduce-daw-challenge', 
         type: 'summary', 
-        label: 'Introduce DAW Challenge',
-        description: 'Display DAW challenge instructions - Slide 4',
+        label: 'DAW Challenge Preview',
+        description: 'Preview: "You\'ll click buttons to learn the DAW"',
         duration: 1
       },
       { 
         id: 'daw-tutorial', 
         type: 'activity', 
-        label: 'Unlock DAW Challenge', 
+        label: '🎮 Unlock DAW Challenge', 
         duration: 6,
         hasTimer: true,
         trackProgress: true,
-        description: 'Interactive DAW basics - Slide 5',
-        bonusDescription: 'Bonus Activity: Explore the DAW'
+        description: 'STUDENTS WORK: Answer questions, click every button to learn DAW',
+        bonusDescription: 'Bonus: Explore & experiment with the DAW'
       }
     ]
   },
   {
     id: 'activity1',
-    title: 'Activity 1 - Composition',
-    subtitle: 'Sports Highlight Music',
+    title: 'Activity 1',
+    subtitle: 'Slides → Compose',
     icon: '🎵',
     color: 'red',
     estimatedTime: 15,
@@ -68,61 +68,61 @@ export const lessonSections = [
       { 
         id: 'introduce-video', 
         type: 'summary', 
-        label: 'Introduce Video',
-        description: 'Display video introduction - Slide 6',
+        label: 'Composition Tutorial',
+        description: 'Announce: "Next we\'ll watch a 2-min video on getting started"',
         duration: 1
       },
       { 
         id: 'sports-video', 
         type: 'video', 
-        label: 'Play SportsHighlightComposition.mp4',
-        description: 'Play composition video',
+        label: '▶️ Play Video',
+        description: 'PLAY VIDEO: Sports composition tutorial (students watch main screen)',
         duration: 3
       },
       { 
         id: 'composition-instructions', 
         type: 'summary', 
-        label: 'Show Composition Instructions',
-        description: 'Display requirements - Slide 7',
+        label: 'Composition Requirements',
+        description: 'Review: "5+ loops, line up edges, same mood. Bonus: sound effects"',
         duration: 1
       },
       { 
         id: 'sports-composition', 
         type: 'activity', 
-        label: 'Unlock Composition Activity', 
+        label: '🎮 Unlock Composition', 
         duration: 10,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students choose video & compose music - Slide 8',
-        bonusDescription: 'Bonus: Add More Layers'
+        description: 'STUDENTS WORK: Pick sport video, think about mood, compose music',
+        bonusDescription: 'Bonus: Add more layers and sound effects'
       }
     ]
   },
   {
     id: 'activity2',
-    title: 'Activity 2 - Reflection',
-    subtitle: 'Two Stars and a Wish',
-    icon: "⭐",
+    title: 'Activity 2',
+    subtitle: 'Reflect',
+    icon: '⭐',
     color: 'yellow',
     estimatedTime: 5,
     stages: [
       { 
         id: 'reflection', 
         type: 'activity', 
-        label: 'Unlock Two Stars and a Wish Activity', 
+        label: '🎮 Unlock Reflection', 
         duration: 5,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students complete reflection',
-        bonusDescription: 'Bonus: Share Your Work'
+        description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form, share',
+        bonusDescription: 'Bonus: Layer Detective with a partner'
       }
     ]
   },
   {
     id: 'conclusion',
     title: 'Conclusion',
-    subtitle: 'Class Discussion',
-    icon: "💬",
+    subtitle: 'Discuss',
+    icon: '💬',
     color: 'gray',
     estimatedTime: 2,
     stages: [
@@ -130,7 +130,7 @@ export const lessonSections = [
         id: 'conclusion',
         type: 'discussion',
         label: 'Class Discussion',
-        description: 'Review and wrap up - Slide 10',
+        description: 'Ask: "What is a DAW? Partner\'s sport? How many layers? 6+?"',
         duration: 2
       }
     ]
@@ -166,7 +166,7 @@ export const lesson2Config = {
       type: "sports-composition-activity",
       title: "Compose Your Sports Music",
       estimatedTime: "10 min",
-      includesVideoSelection: true  // Video selection is BUILT INTO this activity
+      includesVideoSelection: true
     },
     {
       id: 4,
@@ -182,15 +182,15 @@ export const lesson2Config = {
 // ========================================
 export const lessonStages = [
   { 
-    id: 'locked', 
-    label: 'Join with Class Code', 
-    description: 'Students enter session code',
+    id: 'join-code', 
+    label: 'Join Code Screen', 
+    description: 'Students enter session code to join',
     type: 'waiting'
   },
   { 
     id: 'sports-highlight-intro', 
-    label: 'Sports Highlight Reel Introduction', 
-    description: 'Welcome screen - Slide 1',
+    label: 'Sports Highlight Reel', 
+    description: 'Ask: "What sport do you like? What music goes with it?"',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -200,8 +200,8 @@ export const lessonStages = [
   },
   { 
     id: 'show-agenda', 
-    label: 'Show Agenda', 
-    description: 'Lesson agenda - Slide 2',
+    label: 'Agenda', 
+    description: 'Review: "1) Learn about DAW, 2) Create sports composition"',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -211,8 +211,8 @@ export const lessonStages = [
   },
   { 
     id: 'introduce-daw', 
-    label: 'Introduce Digital Audio Workstation', 
-    description: 'DAW overview - Slide 3',
+    label: 'Digital Audio Workstation', 
+    description: 'Explain: "DAW = software for recording, editing, mixing audio"',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -222,8 +222,8 @@ export const lessonStages = [
   },
   { 
     id: 'introduce-daw-challenge', 
-    label: 'Introduce DAW Challenge', 
-    description: 'DAW challenge instructions - Slide 4',
+    label: 'DAW Challenge Preview', 
+    description: 'Preview: "You\'ll click buttons to learn the DAW"',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -233,9 +233,9 @@ export const lessonStages = [
   },
   { 
     id: 'daw-tutorial', 
-    label: 'Unlock DAW Challenge', 
-    description: 'Interactive DAW basics - Slide 5',
-    bonusDescription: 'Bonus Activity: Explore the DAW',
+    label: '🎮 Unlock DAW Challenge', 
+    description: 'STUDENTS WORK: Answer questions, click every button to learn DAW',
+    bonusDescription: 'Bonus: Explore & experiment with the DAW',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
@@ -247,8 +247,8 @@ export const lessonStages = [
   },
   { 
     id: 'introduce-video', 
-    label: 'Introduce Video', 
-    description: 'Video introduction - Slide 6',
+    label: 'Composition Tutorial', 
+    description: 'Announce: "Next we\'ll watch a 2-min video on getting started"',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -258,8 +258,8 @@ export const lessonStages = [
   },
   { 
     id: 'sports-video', 
-    label: 'Play SportsHighlightComposition.mp4', 
-    description: 'Composition video', 
+    label: '▶️ Play Video', 
+    description: 'PLAY VIDEO: Sports composition tutorial (students watch main screen)', 
     type: 'video',
     duration: 3,
     presentationView: {
@@ -270,8 +270,8 @@ export const lessonStages = [
   },
   { 
     id: 'composition-instructions', 
-    label: 'Show Composition Instructions', 
-    description: 'Requirements - Slide 7',
+    label: 'Composition Requirements', 
+    description: 'Review: "5+ loops, line up edges, same mood. Bonus: sound effects"',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -281,9 +281,9 @@ export const lessonStages = [
   },
   { 
     id: 'sports-composition', 
-    label: 'Unlock Composition Activity', 
-    description: 'Choose video & compose music - Slide 8', 
-    bonusDescription: 'Bonus: Add More Layers',
+    label: '🎮 Unlock Composition', 
+    description: 'STUDENTS WORK: Pick sport video, think about mood, compose music', 
+    bonusDescription: 'Bonus: Add more layers and sound effects',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
@@ -295,9 +295,9 @@ export const lessonStages = [
   },
   { 
     id: 'reflection', 
-    label: 'Unlock Two Stars and a Wish Activity', 
-    description: 'Students complete reflection', 
-    bonusDescription: 'Bonus: Share Your Work',
+    label: '🎮 Unlock Reflection', 
+    description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form, share', 
+    bonusDescription: 'Bonus: Layer Detective with a partner',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
@@ -310,7 +310,7 @@ export const lessonStages = [
   {
     id: 'conclusion',
     label: 'Class Discussion',
-    description: 'Wrap up lesson - Slide 10',
+    description: 'Ask: "What is a DAW? Partner\'s sport? How many layers? 6+?"',
     type: 'discussion',
     duration: 2,
     presentationView: {
@@ -332,7 +332,7 @@ export const getActivityForStage = (stage) => {
     'sports-video': 'video',
     'composition-instructions': 'summary',
     'sports-composition': 'sports-composition-activity',
-    'reflection': 'sports-composition-activity',  // Show composition during reflection (modal appears on top)
+    'reflection': 'sports-composition-activity',
     'conclusion': 'discussion'
   };
   return stageMap[stage];
