@@ -36,7 +36,7 @@ import Lesson2 from './lessons/film-music-project/lesson2/Lesson2';
 import Lesson3 from './lessons/film-music-project/lesson3/Lesson3'; // ✅ ADDED
 import Lesson4 from './lessons/film-music-project/lesson4/Lesson4';
 import LessonPlanPDF from './lessons/film-music-project/lesson1/LessonPlanPDF';
-import LessonPlan2PDF from './lessons/film-music-project/lesson2/LessonPlan2pdf.jsx';
+import LessonPlan2PDF from './lessons/film-music-project/lesson2/LessonPlan2PDF';
 import LessonPlan3PDF from './lessons/film-music-project/lesson3/LessonPlan3PDF';
 import MusicLoopsInMediaHub from './pages/MusicLoopsInMediaHub';
 
