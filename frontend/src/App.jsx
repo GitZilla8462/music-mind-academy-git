@@ -36,6 +36,8 @@ import Lesson2 from './lessons/film-music-project/lesson2/Lesson2';
 import Lesson3 from './lessons/film-music-project/lesson3/Lesson3'; // ✅ ADDED
 import Lesson4 from './lessons/film-music-project/lesson4/Lesson4';
 import LessonPlanPDF from './lessons/film-music-project/lesson1/LessonPlanPDF';
+import LessonPlan2PDF from './lessons/film-music-project/lesson2/LessonPlan2PDF';
+import LessonPlan3PDF from './lessons/film-music-project/lesson3/LessonPlan3PDF';
 import MusicLoopsInMediaHub from './pages/MusicLoopsInMediaHub';
 
 // Import presentation view
@@ -237,6 +239,8 @@ const AppContent = () => {
         
         {/* Lesson Plan PDF Viewer */}
         <Route path="/lesson-plan/lesson1" element={<LessonPlanPDF />} />
+        <Route path="/lesson-plan/lesson2" element={<LessonPlan2PDF />} />
+        <Route path="/lesson-plan/lesson3" element={<LessonPlan3PDF />} />
         
         {/* Join Page - NO AUTHENTICATION REQUIRED */}
         <Route path="/join" element={<JoinWithCode />} />
@@ -311,6 +315,8 @@ const AppContent = () => {
         
         {/* Lesson Plan PDF Viewer - Also available in commercial mode */}
         <Route path="/lesson-plan/lesson1" element={<LessonPlanPDF />} />
+        <Route path="/lesson-plan/lesson2" element={<LessonPlan2PDF />} />
+        <Route path="/lesson-plan/lesson3" element={<LessonPlan3PDF />} />
         
         {/* Composition Viewer - Also available in commercial mode */}
         <Route path="/view-composition/:shareCode" element={<CompositionViewer />} />

@@ -1,7 +1,7 @@
 // File: /src/lessons/film-music-project/lesson3/Lesson3config.jsx
 // Lesson 3: City Soundscapes - Configuration
 // Music concept: Texture and Layering
-// ✅ UPDATED: Renamed Texture Drawings to Listening Map throughout
+// ✅ UPDATED: Numbered sections, teacher-friendly descriptions based on actual slides
 
 export const LESSON_PROGRESS_KEY = 'lesson3-progress';
 export const LESSON_TIMER_KEY = 'lesson3-timer';
@@ -12,140 +12,136 @@ export const LESSON_TIMER_KEY = 'lesson3-timer';
 export const lessonSections = [
   {
     id: 'introduction',
-    title: 'Introduction',
-    subtitle: 'City Soundscapes & Texture Concept',
-    icon: '🏙️',
+    title: '1. Introduction',
+    subtitle: 'Slides → Texture Concept',
     color: 'blue',
     estimatedTime: 8,
     stages: [
       { 
         id: 'city-soundscapes-intro', 
         type: 'summary', 
-        label: 'City Soundscapes Introduction',
-        description: 'Display welcome screen - Slide 1',
+        label: 'City Soundscapes',
+        description: 'Ask: "What city have you visited? How would it feel there?"',
         duration: 1
       },
       { 
         id: 'show-agenda', 
         type: 'summary', 
-        label: 'Show Agenda',
-        description: 'Display lesson agenda - Slide 2',
+        label: 'Agenda',
+        description: 'Review: "1) Learn texture & layering, 2) Create City Soundscape"',
         duration: 1
       },
       { 
         id: 'introduce-texture', 
         type: 'summary', 
         label: 'Texture',
-        description: 'Introduce texture concept - Slide 3',
+        description: 'Explain: "Texture = thick/thin sound based on # of layers"',
         duration: 2
       },
       { 
         id: 'texture-continued', 
         type: 'summary', 
-        label: 'Texture Continued',
-        description: 'Continue texture explanation - Slide 4',
+        label: 'Sandwich Analogy',
+        description: 'Analogy: "1 ingredient = thin, many ingredients = full"',
         duration: 2
       },
       { 
         id: 'layers-and-texture', 
         type: 'summary', 
-        label: 'Layers and Texture',
-        description: 'Explain layers and texture relationship - Slide 5',
+        label: 'Making Layers',
+        description: 'Explain: "1 layer = thin, 2-3 = medium, 4+ = full texture"',
         duration: 2
       }
     ]
   },
   {
     id: 'activity1',
-    title: 'Activity 1 - Listening Map',
-    subtitle: 'Listen & Draw Layers',
-    icon: '🗺️',
-    color: 'purple',
-    estimatedTime: 12,
+    title: '2. Listening Map',
+    subtitle: 'Video → Draw',
+    color: 'blue',
+    estimatedTime: 11,
     stages: [
       { 
         id: 'introduce-listening-map', 
         type: 'summary', 
-        label: 'Introduce Listening Map',
-        description: 'Introduce the Listening Map activity - Slide 6',
+        label: 'Listening Map Intro',
+        description: 'Announce: "We\'ll watch a 1-min video then draw while listening"',
         duration: 1
       },
       { 
         id: 'listening-map-video', 
         type: 'video', 
-        label: 'Play ListeningMapExplanation.mp4',
-        description: 'Play explanation video',
+        label: '▶️ Play Video',
+        description: 'PLAY VIDEO: Listening Map explanation (students watch main screen)',
         duration: 2
       },
       { 
         id: 'listening-map', 
         type: 'activity', 
-        label: 'Unlock Listening Map', 
+        label: '🎮 Unlock Listening Map', 
         duration: 8,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students draw while listening to music',
-        bonusDescription: 'Bonus: Compare your drawings!'
+        description: 'STUDENTS WORK: Create 4 rows, unique style per row',
+        bonusDescription: 'Bonus: Add more colors, textures, and pictures'
       }
     ]
   },
   {
     id: 'activity2',
-    title: 'Activity 2 - Composition',
-    subtitle: 'City Soundscape Music',
-    icon: '🎵',
-    color: 'green',
+    title: '3. City Soundscape Composition',
+    subtitle: 'Slides → Compose',
+    color: 'blue',
     estimatedTime: 12,
     stages: [
       { 
         id: 'composition-instructions', 
         type: 'summary', 
-        label: 'Show Composition Instructions',
-        description: 'Display composition requirements - Slide 7',
+        label: 'Composition Instructions',
+        description: 'Instructions: "Select city, watch silent video, think about mood"',
         duration: 1
       },
       { 
         id: 'composition-instructions-continued', 
         type: 'summary', 
-        label: 'Composition Instructions Continued',
-        description: 'Continue composition instructions - Slide 8',
+        label: 'Composition Requirements',
+        description: 'Review: "5+ loops, line up edges, same mood. Bonus: sound effects"',
         duration: 1
       },
       { 
         id: 'city-composition', 
         type: 'activity', 
-        label: 'Unlock Composition Activity', 
+        label: '🎮 Unlock Composition', 
         duration: 10,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students choose city & compose soundscape',
-        bonusDescription: 'Bonus: Add more layers!'
+        description: 'STUDENTS WORK: Pick city video, compose soundscape music',
+        bonusDescription: 'Bonus: Add more layers and sound effects'
       }
     ]
   },
   {
     id: 'reflection',
-    title: 'Reflection',
-    subtitle: 'Two Stars and a Wish',
-    icon: '⭐',
-    color: 'amber',
+    title: '4. Reflection and Discussion',
+    subtitle: 'Reflect → Discuss',
+    color: 'blue',
     estimatedTime: 5,
     stages: [
       { 
         id: 'reflection', 
         type: 'activity', 
-        label: 'Unlock Reflection Activity', 
+        label: '🎮 Unlock Reflection', 
         duration: 3,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students complete Two Stars and a Wish',
-        bonusDescription: 'Bonus: Share with a partner!'
+        description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form',
+        bonusDescription: 'Bonus: Layer Detective with a partner'
       },
       {
         id: 'conclusion',
         type: 'discussion',
         label: 'Class Discussion',
-        description: 'Wrap up and review - Slide 11',
+        description: 'Ask: "What is texture? Partner\'s city? What did you like?"',
         duration: 2
       }
     ]
@@ -154,6 +150,7 @@ export const lessonSections = [
 
 export const lesson3Config = {
   id: 'lesson3',
+  lessonPath: '/lessons/film-music-project/lesson3',
   title: "City Soundscapes",
   subtitle: "Texture and Layering in Music",
   learningObjectives: [
@@ -191,7 +188,7 @@ export const lesson3Config = {
 // ========================================
 export const lessonStages = [
   { 
-    id: 'locked', 
+    id: 'join-code', 
     label: 'Join with Class Code', 
     description: 'Students enter session code',
     type: 'waiting'
@@ -199,8 +196,8 @@ export const lessonStages = [
   // Introduction
   { 
     id: 'city-soundscapes-intro', 
-    label: 'City Soundscapes Introduction', 
-    description: 'Welcome screen - Slide 1',
+    label: 'City Soundscapes', 
+    description: 'Ask: "What city have you visited? How would it feel there?"',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -210,8 +207,8 @@ export const lessonStages = [
   },
   { 
     id: 'show-agenda', 
-    label: 'Show Agenda', 
-    description: 'Lesson agenda - Slide 2',
+    label: 'Agenda', 
+    description: 'Review: "1) Learn texture & layering, 2) Create City Soundscape"',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -222,7 +219,7 @@ export const lessonStages = [
   { 
     id: 'introduce-texture', 
     label: 'Texture', 
-    description: 'Introduce texture concept - Slide 3',
+    description: 'Explain: "Texture = thick/thin sound based on # of layers"',
     type: 'summary',
     duration: 2,
     presentationView: {
@@ -232,8 +229,8 @@ export const lessonStages = [
   },
   { 
     id: 'texture-continued', 
-    label: 'Texture Continued', 
-    description: 'Continue texture explanation - Slide 4',
+    label: 'Sandwich Analogy', 
+    description: 'Analogy: "1 ingredient = thin, many ingredients = full"',
     type: 'summary',
     duration: 2,
     presentationView: {
@@ -243,8 +240,8 @@ export const lessonStages = [
   },
   { 
     id: 'layers-and-texture', 
-    label: 'Layers and Texture', 
-    description: 'Explain layers and texture - Slide 5',
+    label: 'Making Layers', 
+    description: 'Explain: "1 layer = thin, 2-3 = medium, 4+ = full texture"',
     type: 'summary',
     duration: 2,
     presentationView: {
@@ -255,8 +252,8 @@ export const lessonStages = [
   // Activity 1: Listening Map
   { 
     id: 'introduce-listening-map', 
-    label: 'Introduce Listening Map', 
-    description: 'Introduce Listening Map activity - Slide 6',
+    label: 'Listening Map Intro', 
+    description: 'Announce: "We\'ll watch a 1-min video then draw while listening"',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -266,8 +263,8 @@ export const lessonStages = [
   },
   { 
     id: 'listening-map-video', 
-    label: 'Play ListeningMapExplanation.mp4', 
-    description: 'Explanation video',
+    label: '▶️ Play Video', 
+    description: 'PLAY VIDEO: Listening Map explanation (students watch main screen)',
     type: 'video',
     duration: 2,
     presentationView: {
@@ -278,23 +275,23 @@ export const lessonStages = [
   },
   { 
     id: 'listening-map', 
-    label: 'Unlock Listening Map', 
-    description: 'Students draw while listening to music',
-    bonusDescription: 'Bonus: Compare your drawings!',
+    label: '🎮 Unlock Listening Map', 
+    description: 'STUDENTS WORK: Create 4 rows, unique style per row',
+    bonusDescription: 'Bonus: Add more colors, textures, and pictures',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
     duration: 8,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson3/slides/6.5.png'
+      slidePath: '/lessons/film-music-project/lesson3/slides/6_5.png'
     }
   },
   // Activity 2: Composition
   { 
     id: 'composition-instructions', 
-    label: 'Show Composition Instructions', 
-    description: 'Display composition requirements - Slide 7',
+    label: 'Composition Instructions', 
+    description: 'Instructions: "Select city, watch silent video, think about mood"',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -304,8 +301,8 @@ export const lessonStages = [
   },
   { 
     id: 'composition-instructions-continued', 
-    label: 'Composition Instructions Continued', 
-    description: 'Continue composition instructions - Slide 8',
+    label: 'Composition Requirements', 
+    description: 'Review: "5+ loops, line up edges, same mood. Bonus: sound effects"',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -315,9 +312,9 @@ export const lessonStages = [
   },
   { 
     id: 'city-composition', 
-    label: 'Unlock Composition Activity', 
-    description: 'Students choose city & compose soundscape', 
-    bonusDescription: 'Bonus: Add more layers!',
+    label: '🎮 Unlock Composition', 
+    description: 'STUDENTS WORK: Pick city video, compose soundscape music', 
+    bonusDescription: 'Bonus: Add more layers and sound effects',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
@@ -330,9 +327,9 @@ export const lessonStages = [
   // Reflection
   { 
     id: 'reflection', 
-    label: 'Unlock Reflection Activity', 
-    description: 'Students complete Two Stars and a Wish', 
-    bonusDescription: 'Bonus: Share with a partner!',
+    label: '🎮 Unlock Reflection', 
+    description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form', 
+    bonusDescription: 'Bonus: Layer Detective with a partner',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
@@ -342,11 +339,11 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson3/slides/10.png'
     }
   },
-  // Conclusion (part of Reflection section)
+  // Conclusion
   {
     id: 'conclusion',
     label: 'Class Discussion',
-    description: 'Wrap up lesson - Slide 11',
+    description: 'Ask: "What is texture? Partner\'s city? What did you like?"',
     type: 'discussion',
     duration: 2,
     presentationView: {

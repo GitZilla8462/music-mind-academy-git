@@ -11,9 +11,8 @@ export const LESSON_TIMER_KEY = 'lesson2-timer';
 export const lessonSections = [
   {
     id: 'introduction',
-    title: 'Introduction',
+    title: '1. Introduction',
     subtitle: 'Slides → DAW Tutorial',
-    icon: '🎬',
     color: 'blue',
     estimatedTime: 10,
     stages: [
@@ -59,10 +58,9 @@ export const lessonSections = [
   },
   {
     id: 'activity1',
-    title: 'Activity 1',
+    title: '2. Sports Highlight Composition',
     subtitle: 'Slides → Compose',
-    icon: '🎵',
-    color: 'red',
+    color: 'blue',
     estimatedTime: 15,
     stages: [
       { 
@@ -100,10 +98,9 @@ export const lessonSections = [
   },
   {
     id: 'activity2',
-    title: 'Activity 2',
+    title: '3. Reflection and Game',
     subtitle: 'Reflect',
-    icon: '⭐',
-    color: 'yellow',
+    color: 'blue',
     estimatedTime: 5,
     stages: [
       { 
@@ -120,10 +117,9 @@ export const lessonSections = [
   },
   {
     id: 'conclusion',
-    title: 'Conclusion',
+    title: '4. Conclusion',
     subtitle: 'Discuss',
-    icon: '💬',
-    color: 'gray',
+    color: 'blue',
     estimatedTime: 2,
     stages: [
       {
@@ -139,6 +135,7 @@ export const lessonSections = [
 
 export const lesson2Config = {
   id: 'lesson2',
+  lessonPath: '/lessons/film-music-project/lesson2',
   title: "Sports Highlight Reel Music",
   subtitle: "Introduction to the DAW",
   learningObjectives: [

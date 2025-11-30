@@ -1,10 +1,11 @@
 // File: /lessons/film-music-project/lesson2/Lesson2.jsx
 // Sports Highlight Reel Music - Main lesson orchestrator
+// UPDATED: Added renderStudentPreview for teacher control panel
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from "../../../context/SessionContext";
-import { Monitor, Video, Gamepad2, Trophy } from 'lucide-react';
+import { Monitor, Video, Gamepad2, Trophy, Clock } from 'lucide-react';
 
 // Config
 import { lesson2Config, lessonStages, getActivityForStage } from './Lesson2config';
@@ -129,6 +130,63 @@ const Lesson2 = () => {
   const searchParams = new URLSearchParams(location.search);
   const viewSavedMode = searchParams.get('view') === 'saved';
   const viewReflectionMode = searchParams.get('view') === 'reflection';
+  const isPreviewMode = searchParams.get('preview') === 'true';
+  const isMuted = searchParams.get('muted') === 'true';
+
+  // Aggressively mute ALL audio when in preview mode
+  React.useEffect(() => {
+    if (isPreviewMode || isMuted) {
+      // Override AudioContext to prevent any sound
+      const OriginalAudioContext = window.AudioContext || window.webkitAudioContext;
+      if (OriginalAudioContext) {
+        window.AudioContext = function() {
+          const ctx = new OriginalAudioContext();
+          // Immediately suspend to prevent sound
+          ctx.suspend();
+          return ctx;
+        };
+        window.webkitAudioContext = window.AudioContext;
+      }
+
+      // Mute function to silence everything
+      const muteEverything = () => {
+        // Mute all audio and video elements
+        document.querySelectorAll('audio, video').forEach(el => {
+          el.muted = true;
+          el.volume = 0;
+          el.pause();
+        });
+        
+        // Find and suspend any audio contexts
+        if (window.__audioContexts) {
+          window.__audioContexts.forEach(ctx => {
+            try { ctx.suspend(); } catch(e) {}
+          });
+        }
+      };
+      
+      muteEverything();
+      
+      // Keep muting any new audio
+      const interval = setInterval(muteEverything, 100);
+      
+      // Also intercept createElement to catch audio elements as they're created
+      const originalCreateElement = document.createElement.bind(document);
+      document.createElement = function(tagName) {
+        const el = originalCreateElement(tagName);
+        if (tagName.toLowerCase() === 'audio' || tagName.toLowerCase() === 'video') {
+          el.muted = true;
+          el.volume = 0;
+        }
+        return el;
+      };
+      
+      return () => {
+        clearInterval(interval);
+        document.createElement = originalCreateElement;
+      };
+    }
+  }, [isPreviewMode, isMuted]);
 
   // Open presentation view in new window
   const openPresentationView = React.useCallback(() => {
@@ -327,6 +385,7 @@ const Lesson2 = () => {
             lessonStartTime={lesson.lessonStartTime}
             viewMode={false}
             isSessionMode={true}
+            muted={isPreviewMode || isMuted}
           />
         </div>
       </div>
@@ -338,6 +397,11 @@ const Lesson2 = () => {
   // ========================================
   if (sessionMode.isSessionMode && effectiveRole === 'teacher') {
     console.log('👨‍🏫 Rendering TEACHER control panel');
+    
+    // Get current stage data for preview
+    const teacherCurrentStage = getCurrentStage();
+    const teacherCurrentStageData = lessonStages.find(stage => stage.id === teacherCurrentStage);
+    
     return (
       <SessionTeacherPanel
         config={lesson2Config}
