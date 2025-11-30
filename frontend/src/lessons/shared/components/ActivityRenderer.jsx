@@ -2,6 +2,7 @@
 // Renders activities based on type - reusable across all lessons
 // NOTE: NO countdown timers in student view - only in presentation view
 // ✅ UPDATED: Added Sectional Loop Builder activity for Lesson 4 (Epic Wildlife)
+// ✅ UPDATED: Added Monster Melody Maker bonus activity for Lesson 4
 
 import React from 'react';
 import VideoPlayer from './video/VideoPlayer';
@@ -17,6 +18,9 @@ import CityCompositionActivity from "../activities/CityCompositionActivity";
 // ✅ ADDED: Sectional Loop Builder for Lesson 4 (Epic Wildlife)
 import SectionalLoopBuilderActivity from '../activities/sectional-loop-builder/SectionalLoopBuilderActivity';
 
+// ✅ ADDED: Monster Melody Maker bonus activity for Lesson 4
+import MonsterMelodyMaker from '../activities/monster-melody-maker';
+
 const ActivityRenderer = ({
   activity,
   onComplete,
@@ -26,7 +30,9 @@ const ActivityRenderer = ({
   viewMode = false,
   viewBonusMode = false,
   showCountdown = false,  // Only true for presentation view
-  isSessionMode = false
+  isSessionMode = false,
+  studentName = 'Student',
+  assignmentId = null
 }) => {
   if (!activity) return null;
 
@@ -114,6 +120,29 @@ const ActivityRenderer = ({
           lessonStartTime={lessonStartTime}
           isSessionMode={isSessionMode}
           lessonTheme="wildlife"  // Pass theme prop if component supports it
+        />
+      );
+
+    // ✅ ADDED: Monster Melody Maker (Lesson 4 - Epic Wildlife Bonus)
+    case 'monster-melody-maker':
+      return (
+        <MonsterMelodyMaker
+          key={`monster-melody-maker-${activity.id}`}
+          onSave={(data) => {
+            console.log('Monster Melody saved:', data);
+            localStorage.setItem('monster-melody-creation', JSON.stringify(data));
+          }}
+          onSubmit={onComplete ? () => onComplete('monster-melody-maker') : undefined}
+          studentName={studentName}
+          assignmentId={assignmentId}
+          savedData={(() => {
+            try {
+              const saved = localStorage.getItem('monster-melody-creation');
+              return saved ? JSON.parse(saved) : null;
+            } catch {
+              return null;
+            }
+          })()}
         />
       );
 

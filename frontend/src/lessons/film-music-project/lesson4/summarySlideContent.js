@@ -91,15 +91,15 @@ export const summarySlides = {
     ]
   },
 
-  bonusChallenges: {
-    title: "Bonus Challenges",
-    icon: "🌟",
-    estimatedTime: "If time permits",
+  monsterMelodyMaker: {
+    title: "Monster Melody Maker",
+    icon: "👾",
+    estimatedTime: "8 minutes",
     points: [
-      "Add more variation between sections",
-      "Create a B section (different from A)",
-      "Experiment with dynamics and volume changes",
-      "Try different loop combinations for each section"
+      "Create your own loop using the step sequencer.",
+      "Customize your monster's body, eyes, mouth, and accessories.",
+      "Watch your monster dance and sing to your music!",
+      "Save your creation when you're done."
     ]
   }
 };
@@ -168,18 +168,34 @@ export const assignmentPanels = {
     ]
   },
 
-  bonusActivity: {
-    title: "Bonus: Advanced Composition",
-    description: "Great job! Use remaining time to enhance your soundtrack.",
-    instructions: {
-      title: "Ways to enhance your composition:",
-      items: [
-        "Add a B section that's completely different from A",
-        "Create more dramatic texture changes between sections",
-        "Use different loop categories for different sections",
-        "Add volume automation to create dynamics"
-      ]
-    }
+  monsterMelodyMaker: {
+    title: "Monster Melody Maker",
+    requirements: [
+      {
+        id: "sequencer",
+        label: "Sequencer",
+        shortText: "Create a loop",
+        fullText: "Click cells in the grid to create your melody and beat pattern."
+      },
+      {
+        id: "customize",
+        label: "Customize",
+        shortText: "Design your monster",
+        fullText: "Choose body shape, colors, eyes, mouth, and accessories."
+      },
+      {
+        id: "play",
+        label: "Play",
+        shortText: "Watch it perform",
+        fullText: "Press play to see your monster dance and sing to your music!"
+      },
+      {
+        id: "save",
+        label: "Save",
+        shortText: "Save your creation",
+        fullText: "Give your monster melody a name and save it."
+      }
+    ]
   }
 };
 

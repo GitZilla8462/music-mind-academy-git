@@ -1,0 +1,133 @@
+/**
+ * FILE: monster-melody-maker/MonsterMelodyMaker.module.css
+ * Main layout for Monster Melody Maker
+ */
+
+ .container {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
+  color: white;
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
+  overflow: hidden;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  padding: 16px;
+  min-height: 0;
+}
+
+/* Left panel - Monster Customizer */
+.leftPanel {
+  width: 220px;
+  min-width: 200px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Center panel - Monster Stage */
+.centerPanel {
+  flex: 1;
+  min-width: 280px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stageWrapper {
+  flex: 1;
+  min-height: 250px;
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.monsterWrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+/* Right panel - Melody Grid */
+.rightPanel {
+  flex: 1.5;
+  min-width: 400px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .leftPanel {
+    width: 180px;
+    min-width: 180px;
+  }
+  
+  .rightPanel {
+    min-width: 350px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .mainContent {
+    flex-wrap: wrap;
+  }
+  
+  .leftPanel {
+    width: 100%;
+    max-height: 200px;
+    order: 2;
+  }
+  
+  .centerPanel {
+    flex: 1 1 45%;
+    min-width: 250px;
+    max-width: none;
+    order: 1;
+  }
+  
+  .rightPanel {
+    flex: 1 1 45%;
+    min-width: 300px;
+    order: 1;
+  }
+}
+
+@media (max-height: 700px) {
+  .mainContent {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .leftPanel {
+    padding: 8px;
+  }
+  
+  .rightPanel {
+    padding: 8px;
+  }
+  
+  .stageWrapper {
+    min-height: 200px;
+  }
+}

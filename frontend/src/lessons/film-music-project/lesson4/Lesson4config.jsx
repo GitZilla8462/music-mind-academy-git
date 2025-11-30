@@ -168,17 +168,27 @@ export const lessonSections = [
   {
     id: 'bonus',
     title: 'Bonus',
-    subtitle: 'Early Finishers',
-    icon: '🌟',
+    subtitle: 'Monster Melody Maker',
+    icon: '👾',
     color: 'purple',
-    estimatedTime: 5,
+    estimatedTime: 10,
     stages: [
       {
-        id: 'bonus-challenges',
+        id: 'bonus-intro',
         type: 'summary',
-        label: 'Bonus Challenges',
-        description: 'Extra activities for early finishers - Slide 13',
-        duration: 5
+        label: 'Introduce Monster Melody Maker',
+        description: 'Bonus activity introduction - Slide 13',
+        duration: 1
+      },
+      {
+        id: 'monster-melody-maker',
+        type: 'activity',
+        label: 'Unlock Monster Melody Maker',
+        description: 'Students create loops and customize their monster',
+        duration: 8,
+        hasTimer: true,
+        trackProgress: true,
+        bonusDescription: 'Make your monster dance!'
       }
     ]
   }
@@ -213,6 +223,12 @@ export const lesson4Config = {
       type: "two-stars-wish",
       title: "Reflection Activity",
       estimatedTime: "5 min"
+    },
+    {
+      id: 4,
+      type: "monster-melody-maker",
+      title: "Monster Melody Maker",
+      estimatedTime: "8 min"
     }
   ]
 };
@@ -404,14 +420,28 @@ export const lessonStages = [
   },
   // Bonus
   {
-    id: 'bonus-challenges',
-    label: 'Bonus Challenges',
-    description: 'Extra activities for early finishers - Slide 13',
+    id: 'bonus-intro',
+    label: 'Introduce Monster Melody Maker',
+    description: 'Bonus activity introduction - Slide 13',
     type: 'summary',
-    duration: 5,
+    duration: 1,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson4/slides/13.png'
+    }
+  },
+  {
+    id: 'monster-melody-maker',
+    label: 'Unlock Monster Melody Maker',
+    description: 'Students create loops and customize their monster',
+    bonusDescription: 'Make your monster dance!',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: true,
+    duration: 8,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson4/slides/14.png'
     }
   }
 ];
@@ -436,7 +466,9 @@ export const getActivityForStage = (stage) => {
     'kitchen-composition': 'wildlife-composition-activity',  // backward compatibility
     'reflection-instructions': 'summary',
     'reflection': 'two-stars-wish',
-    'bonus-challenges': 'summary'
+    'bonus-intro': 'summary',
+    'bonus-challenges': 'summary',  // backward compatibility
+    'monster-melody-maker': 'monster-melody-maker'
   };
   return stageMap[stage];
 };

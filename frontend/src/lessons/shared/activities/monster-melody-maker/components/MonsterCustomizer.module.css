@@ -1,0 +1,305 @@
+/**
+ * FILE: monster-melody-maker/components/MonsterCustomizer.module.css
+ * Inline dropdown style - expands within sidebar
+ */
+
+ .customizer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 8px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.randomButton {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.randomButton:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.sections {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+/* Custom scrollbar */
+.sections::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sections::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+}
+
+.sections::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.sections::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Section container */
+.section {
+  margin-bottom: 2px;
+}
+
+/* Section header button */
+.sectionHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: white;
+}
+
+.sectionHeader:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sectionHeader.open {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.15);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.sectionValue {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.currentEmoji {
+  font-size: 0.95rem;
+}
+
+.currentLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.colorDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.arrow {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-left: 4px;
+}
+
+/* Dropdown content */
+.dropdown {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: none;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  padding: 8px;
+  animation: slideDown 0.15s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Option grid */
+.optionGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.optionItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 2px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  color: white;
+}
+
+.optionItem:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.optionItem.selected {
+  background: rgba(254, 202, 87, 0.2);
+  border-color: #feca57;
+}
+
+.optionEmoji {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.optionLabel {
+  font-size: 0.6rem;
+  font-weight: 500;
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  line-height: 1.1;
+}
+
+/* Color grid */
+.colorGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.colorOption {
+  aspect-ratio: 1;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.colorOption:hover {
+  transform: scale(1.15);
+}
+
+.colorOption.selected {
+  border-color: white;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+}
+
+/* Responsive - smaller screens */
+@media (max-height: 650px) {
+  .sectionHeader {
+    padding: 6px 8px;
+  }
+  
+  .sectionTitle {
+    font-size: 0.7rem;
+  }
+  
+  .currentEmoji {
+    font-size: 0.85rem;
+  }
+  
+  .currentLabel {
+    font-size: 0.7rem;
+  }
+  
+  .dropdown {
+    padding: 6px;
+  }
+  
+  .optionGrid {
+    gap: 3px;
+  }
+  
+  .optionItem {
+    padding: 4px 2px;
+  }
+  
+  .optionEmoji {
+    font-size: 0.85rem;
+  }
+  
+  .optionLabel {
+    font-size: 0.55rem;
+  }
+  
+  .colorGrid {
+    gap: 4px;
+  }
+}
+
+/* Very small height */
+@media (max-height: 550px) {
+  .header {
+    padding: 0 2px 4px 2px;
+    margin-bottom: 4px;
+  }
+  
+  .title {
+    font-size: 0.85rem;
+  }
+  
+  .randomButton {
+    width: 28px;
+    height: 28px;
+    font-size: 0.95rem;
+  }
+  
+  .optionGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .colorGrid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
