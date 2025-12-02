@@ -284,7 +284,7 @@ export const lessonStages = [
     duration: 8,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson3/slides/6_5.png'
+      slidePath: '/lessons/film-music-project/lesson3/slides/6.5.png'
     }
   },
   // Activity 2: Composition

@@ -35,6 +35,63 @@ const lerp = (current, target, ease = 0.15) => {
 const easeInOutQuad = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 const easeOutBack = (t) => 1 + 2.70158 * Math.pow(t - 1, 3) + 1.70158 * Math.pow(t - 1, 2);
 
+// === SPRING PHYSICS FOR NATURAL ARM MOVEMENT ===
+// Spring simulation: F = -k * displacement - damping * velocity
+const springPhysics = (current, target, velocity, config) => {
+  const { stiffness, damping, mass = 1 } = config;
+  
+  // Calculate spring force (Hooke's law)
+  const displacement = current - target;
+  const springForce = -stiffness * displacement;
+  
+  // Calculate damping force
+  const dampingForce = -damping * velocity;
+  
+  // Total acceleration (F = ma, so a = F/m)
+  const acceleration = (springForce + dampingForce) / mass;
+  
+  // Update velocity and position
+  const newVelocity = velocity + acceleration;
+  const newPosition = current + newVelocity;
+  
+  return { position: newPosition, velocity: newVelocity };
+};
+
+// Spring configurations per dance style
+// Stiff = snappy/robotic, Loose = flowy/organic
+const getSpringConfig = (danceStyle) => {
+  switch (danceStyle) {
+    case 'robot':
+      // Very stiff - minimal follow-through (intentionally mechanical)
+      return { forearm: { stiffness: 0.4, damping: 0.7 }, wrist: { stiffness: 0.5, damping: 0.8 } };
+    case 'disco':
+    case 'hipHop':
+      // Medium-loose - nice snap with overshoot
+      return { forearm: { stiffness: 0.15, damping: 0.4 }, wrist: { stiffness: 0.12, damping: 0.35 } };
+    case 'wave':
+    case 'smooth':
+      // Very loose - maximum flow and delay
+      return { forearm: { stiffness: 0.08, damping: 0.25 }, wrist: { stiffness: 0.06, damping: 0.2 } };
+    case 'silly':
+    case 'hyper':
+      // Bouncy - lots of overshoot
+      return { forearm: { stiffness: 0.2, damping: 0.25 }, wrist: { stiffness: 0.15, damping: 0.2 } };
+    case 'headbang':
+    case 'bounce':
+      // Medium with some bounce
+      return { forearm: { stiffness: 0.18, damping: 0.35 }, wrist: { stiffness: 0.14, damping: 0.3 } };
+    case 'swagger':
+      // Loose and cool
+      return { forearm: { stiffness: 0.1, damping: 0.3 }, wrist: { stiffness: 0.08, damping: 0.25 } };
+    case 'glitch':
+      // Snappy but with weird bounce
+      return { forearm: { stiffness: 0.25, damping: 0.3 }, wrist: { stiffness: 0.2, damping: 0.25 } };
+    default:
+      // Default medium spring
+      return { forearm: { stiffness: 0.15, damping: 0.4 }, wrist: { stiffness: 0.12, damping: 0.35 } };
+  }
+};
+
 const MonsterAvatar = ({ config, animationState, isPlaying, tempo = 120, previewDance = false }) => {
   const containerRef = useRef(null);
   const appRef = useRef(null);
@@ -53,11 +110,25 @@ const MonsterAvatar = ({ config, animationState, isPlaying, tempo = 120, preview
     headTilt: 0,
     headBob: 0,
     
-    // Arms
+    // Arms - upper arm targets
     leftArmAngle: 30,
     rightArmAngle: -30,
     leftArmTarget: 30,
     rightArmTarget: -30,
+    
+    // Forearms - spring physics driven
+    leftForearmAngle: 0.2,    // Current angle (radians, relative offset)
+    rightForearmAngle: -0.2,
+    leftForearmVelocity: 0,   // Angular velocity for spring
+    rightForearmVelocity: 0,
+    leftForearmTarget: 0.2,   // Where forearm "wants" to be
+    rightForearmTarget: -0.2,
+    
+    // Wrists - extra follow-through (whip effect)
+    leftWristAngle: 0,
+    rightWristAngle: 0,
+    leftWristVelocity: 0,
+    rightWristVelocity: 0,
     
     // Legs
     leftLegAngle: 0,
@@ -190,76 +261,93 @@ const MonsterAvatar = ({ config, animationState, isPlaying, tempo = 120, preview
       // Different dance styles!
       switch (danceStyle) {
         case 'disco':
-          // DISCO - big arm movements, pointing, hip sway
+          // DISCO - classic pointing up, Saturday Night Fever style
           d.bounce = Math.abs(Math.sin(halfBeat)) * 20 * intensity;
           d.crouch = 0;
           d.sway = Math.sin(beat) * 15 * intensity;
           d.bodyRotation = Math.sin(beat) * 0.1 * intensity;
           d.headTilt = Math.sin(beat * 2) * 15 * intensity;
           d.headBob = Math.sin(halfBeat) * 5 * intensity;
+          // Alternating arm points UP to the sky!
           if (Math.sin(beat) > 0) {
-            d.leftArmTarget = -80 + pitchFactor * 20;
-            d.rightArmTarget = 40;
+            d.leftArmTarget = -95 + pitchFactor * 15; // Point to sky!
+            d.rightArmTarget = 30;
           } else {
-            d.leftArmTarget = 40;
-            d.rightArmTarget = -80 + pitchFactor * 20;
+            d.leftArmTarget = 30;
+            d.rightArmTarget = -95 + pitchFactor * 15; // Point to sky!
           }
           d.leftLegAngle = Math.sin(beat) * 20 * intensity;
           d.rightLegAngle = Math.sin(beat + Math.PI) * 20 * intensity;
           break;
           
         case 'hiphop':
-          // HIP HOP - bouncy, low stance, arm crosses
+          // HIP HOP - arms cross chest then throw UP
           d.bounce = Math.abs(Math.sin(halfBeat)) * 25 * intensity;
           d.crouch = 15 + (1 - pitchFactor) * 20;
           d.sway = Math.sin(beat * 0.5) * 10 * intensity;
           d.bodyRotation = Math.sin(beat) * 0.05 * intensity;
           d.headTilt = Math.sin(beat) * 8 * intensity;
           d.headBob = Math.abs(Math.sin(halfBeat)) * 10 * intensity;
-          const crossPhase = Math.sin(beat);
-          d.leftArmTarget = crossPhase > 0 ? 20 : -30;
-          d.rightArmTarget = crossPhase > 0 ? 20 : -30;
+          // Cross arms then throw them UP
+          const hipHopPhase = Math.sin(beat);
+          if (hipHopPhase > 0.3) {
+            // Arms crossed in front
+            d.leftArmTarget = 20;
+            d.rightArmTarget = 20;
+          } else if (hipHopPhase < -0.3) {
+            // Arms UP and OUT!
+            d.leftArmTarget = -75;
+            d.rightArmTarget = -75;
+          } else {
+            // Transitioning
+            d.leftArmTarget = -30;
+            d.rightArmTarget = -30;
+          }
           d.leftLegAngle = Math.sin(halfBeat) * 12 * intensity;
           d.rightLegAngle = Math.sin(halfBeat + Math.PI) * 12 * intensity;
           break;
           
         case 'silly':
-          // SILLY/GOOFY - chaotic, wobbly, unpredictable
+          // SILLY/GOOFY - chaotic flailing, arms go everywhere
           d.bounce = (Math.sin(halfBeat) + Math.sin(beat * 3)) * 15 * intensity;
           d.crouch = Math.abs(Math.sin(beat * 1.5)) * 20 * intensity;
           d.sway = (Math.sin(beat) + Math.sin(beat * 2.5) * 0.5) * 20 * intensity;
           d.bodyRotation = Math.sin(beat * 1.7) * 0.15 * intensity;
           d.headTilt = Math.sin(beat * 2.3) * 25 * intensity;
           d.headBob = Math.sin(beat * 3) * 15 * intensity;
-          d.leftArmTarget = Math.sin(beat * 1.3) * 80;
-          d.rightArmTarget = Math.sin(beat * 1.7 + 1) * 80;
+          // Wild arm flailing - full range!
+          d.leftArmTarget = Math.sin(beat * 1.3) * 90; // -90 to +90!
+          d.rightArmTarget = Math.sin(beat * 1.7 + 1) * 90;
           d.leftLegAngle = Math.sin(beat * 1.5) * 25 * intensity;
           d.rightLegAngle = Math.sin(beat * 1.8) * 25 * intensity;
           break;
           
         case 'wave':
-          // WAVE - smooth flowing movements
+          // WAVE - smooth flowing, arms roll like ocean waves
           d.bounce = Math.sin(beat) * 10 * intensity;
           d.crouch = Math.sin(beat * 0.5) * 10 * intensity;
           d.sway = Math.sin(beat * 0.7) * 12 * intensity;
           d.bodyRotation = Math.sin(beat * 0.5) * 0.08 * intensity;
           d.headTilt = Math.sin(beat * 0.8) * 10 * intensity;
           d.headBob = Math.sin(beat * 0.6) * 8 * intensity;
-          d.leftArmTarget = Math.sin(beat) * 60;
-          d.rightArmTarget = Math.sin(beat + 0.5) * 60;
+          // Flowing wave motion - one arm rises as other falls
+          d.leftArmTarget = Math.sin(beat) * 85; // Full wave!
+          d.rightArmTarget = Math.sin(beat + Math.PI * 0.5) * 85; // Offset wave
           d.leftLegAngle = Math.sin(beat * 0.5) * 10 * intensity;
           d.rightLegAngle = Math.sin(beat * 0.5 + Math.PI) * 10 * intensity;
           break;
           
         case 'bounce':
-          // BOUNCE - mostly vertical, energetic jumps
+          // BOUNCE - fist pump! Arms go UP on the beat
           d.bounce = Math.abs(Math.sin(halfBeat)) * (25 + pitchFactor * 20) * intensity;
           d.crouch = Math.max(0, -Math.sin(halfBeat) * 15) * intensity;
           d.sway = Math.sin(beat * 2) * 5 * intensity;
           d.bodyRotation = 0;
           d.headTilt = Math.sin(beat * 2) * 8 * intensity;
           d.headBob = d.bounce * 0.3;
-          const pumpAngle = -40 + Math.sin(halfBeat) * 50;
+          // FIST PUMP! Down then UP UP UP!
+          const pumpPhase = Math.sin(halfBeat);
+          const pumpAngle = pumpPhase > 0 ? -85 : -20; // Arms shoot UP on beat!
           d.leftArmTarget = pumpAngle;
           d.rightArmTarget = pumpAngle;
           d.leftLegAngle = Math.sin(halfBeat) * 8 * intensity;
@@ -267,63 +355,67 @@ const MonsterAvatar = ({ config, animationState, isPlaying, tempo = 120, preview
           break;
           
         case 'headbang':
-          // HEADBANG - rock out, aggressive head movement
+          // HEADBANG - rock horns UP, aggressive
           d.bounce = Math.abs(Math.sin(halfBeat)) * 15 * intensity;
           d.crouch = 10 * intensity;
           d.sway = Math.sin(beat * 0.5) * 5 * intensity;
           d.bodyRotation = Math.sin(beat) * 0.05 * intensity;
           d.headTilt = 0;
-          d.headBob = Math.abs(Math.sin(halfBeat * 2)) * 25 * intensity; // Fast head bob
-          d.leftArmTarget = -60 + Math.sin(beat) * 20;
-          d.rightArmTarget = -60 + Math.sin(beat + Math.PI) * 20;
+          d.headBob = Math.abs(Math.sin(halfBeat * 2)) * 25 * intensity;
+          // Rock horns - arms UP and pumping!
+          d.leftArmTarget = -75 + Math.sin(halfBeat) * 20; // -95 to -55, always UP
+          d.rightArmTarget = -75 + Math.sin(halfBeat + Math.PI) * 20;
           d.leftLegAngle = Math.sin(beat) * 8 * intensity;
           d.rightLegAngle = Math.sin(beat + Math.PI) * 8 * intensity;
           break;
           
         case 'smooth':
-          // SMOOTH - cool, minimal, confident
+          // SMOOTH - cool gliding arms, reaching out
           d.bounce = Math.sin(beat * 0.5) * 8 * intensity;
           d.crouch = 5 * intensity;
           d.sway = Math.sin(beat * 0.5) * 10 * intensity;
           d.bodyRotation = Math.sin(beat * 0.25) * 0.06 * intensity;
           d.headTilt = Math.sin(beat * 0.5) * 8 * intensity;
           d.headBob = Math.sin(beat) * 4 * intensity;
-          d.leftArmTarget = 30 + Math.sin(beat * 0.5) * 20;
-          d.rightArmTarget = 30 + Math.sin(beat * 0.5 + Math.PI) * 20;
+          // Smooth reaching motions - arms glide up and out
+          d.leftArmTarget = -40 + Math.sin(beat * 0.5) * 50; // -90 to +10
+          d.rightArmTarget = -40 + Math.sin(beat * 0.5 + Math.PI) * 50;
           d.leftLegAngle = Math.sin(beat * 0.5) * 8 * intensity;
           d.rightLegAngle = Math.sin(beat * 0.5 + Math.PI) * 8 * intensity;
           break;
           
         case 'hyper':
-          // HYPER - super fast, energetic
+          // HYPER - super fast arm pumps UP and DOWN
           d.bounce = Math.abs(Math.sin(halfBeat * 2)) * 30 * intensity;
           d.crouch = Math.abs(Math.sin(beat * 2)) * 15 * intensity;
           d.sway = Math.sin(beat * 2) * 15 * intensity;
           d.bodyRotation = Math.sin(beat * 2) * 0.1 * intensity;
           d.headTilt = Math.sin(beat * 3) * 15 * intensity;
           d.headBob = Math.sin(halfBeat * 2) * 12 * intensity;
-          d.leftArmTarget = Math.sin(beat * 2) * 70;
-          d.rightArmTarget = Math.sin(beat * 2 + Math.PI) * 70;
+          // SUPER FAST arm pumping!
+          d.leftArmTarget = Math.sin(beat * 2) * 95; // Full range fast!
+          d.rightArmTarget = Math.sin(beat * 2 + Math.PI) * 95;
           d.leftLegAngle = Math.sin(beat * 2) * 20 * intensity;
           d.rightLegAngle = Math.sin(beat * 2 + Math.PI) * 20 * intensity;
           break;
           
         case 'chill':
-          // CHILL - relaxed, slow vibes
+          // CHILL - relaxed but still grooving, gentle arm sways UP
           d.bounce = Math.sin(beat * 0.25) * 5 * intensity;
           d.crouch = 0;
           d.sway = Math.sin(beat * 0.25) * 8 * intensity;
           d.bodyRotation = Math.sin(beat * 0.25) * 0.04 * intensity;
           d.headTilt = Math.sin(beat * 0.3) * 6 * intensity;
           d.headBob = Math.sin(beat * 0.5) * 4 * intensity;
-          d.leftArmTarget = 35 + Math.sin(beat * 0.25) * 15;
-          d.rightArmTarget = 35 + Math.sin(beat * 0.25) * 15;
+          // Gentle arm floats - still reach upward
+          d.leftArmTarget = -25 + Math.sin(beat * 0.25) * 45; // -70 to +20
+          d.rightArmTarget = -25 + Math.sin(beat * 0.25 + Math.PI * 0.5) * 45;
           d.leftLegAngle = Math.sin(beat * 0.25) * 5 * intensity;
           d.rightLegAngle = Math.sin(beat * 0.25 + Math.PI) * 5 * intensity;
           break;
           
         case 'glitch':
-          // GLITCH - robotic, jerky, unpredictable stops
+          // GLITCH - robotic jerks with random arm THROWS
           const glitchPhase = Math.floor(d.beatTime * 4) % 8;
           const glitchFreeze = glitchPhase === 3 || glitchPhase === 7;
           if (!glitchFreeze) {
@@ -332,8 +424,11 @@ const MonsterAvatar = ({ config, animationState, isPlaying, tempo = 120, preview
             d.bodyRotation = Math.sin(beat * 2) * 0.08 * intensity;
             d.headTilt = Math.random() > 0.8 ? (Math.random() * 30 - 15) * intensity : Math.sin(beat) * 10 * intensity;
             d.headBob = Math.sin(halfBeat) * 10 * intensity;
-            d.leftArmTarget = Math.sin(beat) * 50 + (Math.random() > 0.9 ? Math.random() * 40 : 0);
-            d.rightArmTarget = Math.sin(beat + Math.PI) * 50 + (Math.random() > 0.9 ? Math.random() * 40 : 0);
+            // Glitchy arm throws - sudden UP movements
+            const glitchArmL = Math.random() > 0.85 ? -90 : Math.sin(beat) * 60;
+            const glitchArmR = Math.random() > 0.85 ? -90 : Math.sin(beat + Math.PI) * 60;
+            d.leftArmTarget = glitchArmL;
+            d.rightArmTarget = glitchArmR;
           }
           d.crouch = 0;
           d.leftLegAngle = Math.sin(beat) * 10 * intensity;
@@ -341,21 +436,27 @@ const MonsterAvatar = ({ config, animationState, isPlaying, tempo = 120, preview
           break;
           
         case 'swagger':
-          // SWAGGER - confident lean, attitude
+          // SWAGGER - confident, one arm gestures UP while other's relaxed
           d.bounce = Math.abs(Math.sin(beat)) * 12 * intensity;
           d.crouch = 8 * intensity;
           d.sway = Math.sin(beat * 0.5) * 15 * intensity;
           d.bodyRotation = Math.sin(beat * 0.5) * 0.1 * intensity;
-          d.headTilt = -Math.sin(beat * 0.5) * 12 * intensity; // Opposite to body
+          d.headTilt = -Math.sin(beat * 0.5) * 12 * intensity;
           d.headBob = Math.sin(beat) * 6 * intensity;
-          // One arm up, one down
-          d.leftArmTarget = -20 + Math.sin(beat) * 30;
-          d.rightArmTarget = 50 + Math.sin(beat) * 15;
+          // Swagger arm - one reaches UP, one hangs cool
+          const swagPhase = Math.sin(beat * 0.5);
+          if (swagPhase > 0) {
+            d.leftArmTarget = -70 + Math.sin(beat) * 25; // Left UP
+            d.rightArmTarget = 35; // Right relaxed
+          } else {
+            d.leftArmTarget = 35; // Left relaxed
+            d.rightArmTarget = -70 + Math.sin(beat) * 25; // Right UP
+          }
           d.leftLegAngle = Math.sin(beat * 0.5) * 12 * intensity;
           d.rightLegAngle = Math.sin(beat * 0.5 + Math.PI) * 8 * intensity;
           break;
           
-        default: // 'robot' - original dance
+        default: // 'robot' - mechanical but with arm RAISES
           d.bounce = Math.abs(Math.sin(halfBeat)) * (12 + pitchFactor * 18) * intensity;
           d.crouch = (1 - pitchFactor) * 25 * intensity;
           d.sway = Math.sin(beat) * 8 * intensity;
@@ -363,16 +464,20 @@ const MonsterAvatar = ({ config, animationState, isPlaying, tempo = 120, preview
           d.headBob = Math.sin(halfBeat) * 8 * intensity;
           d.headTilt = Math.sin(beat * 0.5) * 12 * intensity;
           
+          // Robot arms - always have some upward motion
           if (pitchFactor > 0.7) {
+            // High pitch = arms pump UP
             const pump = Math.sin(halfBeat);
-            d.leftArmTarget = -70 + pump * 20;
-            d.rightArmTarget = 70 - pump * 20;
+            d.leftArmTarget = -85 + pump * 20; // -105 to -65, way UP
+            d.rightArmTarget = -85 - pump * 20;
           } else if (pitchFactor > 0.4) {
-            d.leftArmTarget = 30 + Math.sin(beat) * 50;
-            d.rightArmTarget = 30 + Math.sin(beat + Math.PI) * 50;
+            // Mid pitch = alternating UP gestures
+            d.leftArmTarget = Math.sin(beat) * 75; // -75 to +75
+            d.rightArmTarget = Math.sin(beat + Math.PI) * 75;
           } else {
-            d.leftArmTarget = 45 + Math.sin(beat * 0.5) * 15;
-            d.rightArmTarget = 45 + Math.sin(beat * 0.5 + Math.PI) * 15;
+            // Low pitch = slower but still reaching UP
+            d.leftArmTarget = -30 + Math.sin(beat * 0.5) * 55; // -85 to +25
+            d.rightArmTarget = -30 + Math.sin(beat * 0.5 + Math.PI) * 55;
           }
           d.leftLegAngle = Math.sin(beat) * 15 * intensity;
           d.rightLegAngle = Math.sin(beat + Math.PI) * 15 * intensity;
@@ -398,6 +503,60 @@ const MonsterAvatar = ({ config, animationState, isPlaying, tempo = 120, preview
     // Smooth arm movement
     d.leftArmAngle = lerp(d.leftArmAngle, d.leftArmTarget, 0.12);
     d.rightArmAngle = lerp(d.rightArmAngle, d.rightArmTarget, 0.12);
+    
+    // === SPRING PHYSICS FOR FOREARMS & WRISTS ===
+    const springConfig = getSpringConfig(danceStyle);
+    
+    // Calculate forearm targets based on upper arm angle
+    // Forearm naturally wants to hang/follow the upper arm with some offset
+    const leftArmRad = d.leftArmAngle * Math.PI / 180;
+    const rightArmRad = d.rightArmAngle * Math.PI / 180;
+    
+    // Target is influenced by upper arm angle - creates the "following" effect
+    d.leftForearmTarget = leftArmRad * 0.6 + 0.2;
+    d.rightForearmTarget = rightArmRad * 0.6 - 0.2;
+    
+    // Apply spring physics to forearms
+    const leftForearmSpring = springPhysics(
+      d.leftForearmAngle, 
+      d.leftForearmTarget, 
+      d.leftForearmVelocity, 
+      springConfig.forearm
+    );
+    d.leftForearmAngle = leftForearmSpring.position;
+    d.leftForearmVelocity = leftForearmSpring.velocity;
+    
+    const rightForearmSpring = springPhysics(
+      d.rightForearmAngle, 
+      d.rightForearmTarget, 
+      d.rightForearmVelocity, 
+      springConfig.forearm
+    );
+    d.rightForearmAngle = rightForearmSpring.position;
+    d.rightForearmVelocity = rightForearmSpring.velocity;
+    
+    // Wrist targets follow forearm with additional delay (whip effect)
+    const leftWristTarget = d.leftForearmAngle * 0.5;
+    const rightWristTarget = d.rightForearmAngle * 0.5;
+    
+    // Apply spring physics to wrists
+    const leftWristSpring = springPhysics(
+      d.leftWristAngle, 
+      leftWristTarget, 
+      d.leftWristVelocity, 
+      springConfig.wrist
+    );
+    d.leftWristAngle = leftWristSpring.position;
+    d.leftWristVelocity = leftWristSpring.velocity;
+    
+    const rightWristSpring = springPhysics(
+      d.rightWristAngle, 
+      rightWristTarget, 
+      d.rightWristVelocity, 
+      springConfig.wrist
+    );
+    d.rightWristAngle = rightWristSpring.position;
+    d.rightWristVelocity = rightWristSpring.velocity;
     
   }, []);
 
@@ -744,16 +903,25 @@ const MonsterAvatar = ({ config, animationState, isPlaying, tempo = 120, preview
       arm.circle(elbowX, elbowY, 6);
       arm.fill({ color: lightColor });
       
-      // Forearm - hangs more naturally
-      const forearmAngle = angleRad * 0.6 + (side === 'left' ? 0.2 : -0.2);
-      const handX = elbowX + Math.sin(forearmAngle) * 24;
-      const handY = elbowY + Math.cos(forearmAngle) * 24;
+      // Forearm - uses spring physics calculated angle from dance state
+      const forearmAngle = side === 'left' ? d.leftForearmAngle : d.rightForearmAngle;
+      const wristX = elbowX + Math.sin(forearmAngle) * 24;
+      const wristY = elbowY + Math.cos(forearmAngle) * 24;
       
       arm.moveTo(elbowX, elbowY);
-      arm.lineTo(handX, handY);
+      arm.lineTo(wristX, wristY);
       arm.stroke({ color: darkColor, width: 10, cap: 'round' });
       
-      // Hand
+      // Wrist joint
+      arm.circle(wristX, wristY, 5);
+      arm.fill({ color: lightColor });
+      
+      // Hand - uses spring physics wrist angle for extra whip effect
+      const wristAngle = side === 'left' ? d.leftWristAngle : d.rightWristAngle;
+      const handAngle = forearmAngle + wristAngle * 0.3; // Wrist adds subtle rotation
+      const handX = wristX + Math.sin(handAngle) * 10;
+      const handY = wristY + Math.cos(handAngle) * 10;
+      
       arm.circle(handX, handY, 8);
       arm.fill({ color: lightColor });
       

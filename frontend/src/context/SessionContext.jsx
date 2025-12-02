@@ -1,5 +1,6 @@
 // Session Context for managing classroom sessions
 // UPDATED: Prioritize URL params over localStorage for session code
+// ✅ FIXED: Export currentStage as direct value to prevent render loops
 // src/context/SessionContext.jsx
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
@@ -70,6 +71,10 @@ export const SessionProvider = ({ children }) => {
   const prevStageRef = useRef(null);
   const isNormalEndRef = useRef(false);
   const hasJoinedRef = useRef(false);
+
+  // ✅ NEW: Derive currentStage as a value (not a function call)
+  // This allows components to use it reactively without calling a function during render
+  const currentStage = sessionData?.currentStage || 'join-code';
 
   // ✅ ADDED: Watch for URL changes (browser back/forward, etc)
   useEffect(() => {
@@ -460,6 +465,7 @@ export const SessionProvider = ({ children }) => {
     }
   };
 
+  // ✅ KEPT for backwards compatibility - but prefer using currentStage directly
   const getCurrentStage = () => {
     return sessionData?.currentStage || 'join-code';
   };
@@ -511,6 +517,7 @@ export const SessionProvider = ({ children }) => {
     sessionCode,
     classId,
     sessionData,
+    currentStage,  // ✅ NEW: Direct value - use this instead of getCurrentStage()
     userRole,
     userId,
     isInSession,
@@ -524,7 +531,7 @@ export const SessionProvider = ({ children }) => {
     markActivityComplete,
     endSession,
     
-    getCurrentStage,
+    getCurrentStage,  // ✅ KEPT for backwards compatibility
     getStudents,
     getStudentProgress,
     getAllProgress,

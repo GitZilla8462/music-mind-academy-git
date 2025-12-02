@@ -57,6 +57,9 @@ const MonsterMelodyMaker = ({
     pitch: null, // 0-7 (row index) or null
   });
 
+  // Dance preview state - triggers 3 second dance at 100 BPM
+  const [previewDance, setPreviewDance] = useState(false);
+
   // Save modal
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [creationName, setCreationName] = useState(() => 
@@ -169,6 +172,7 @@ const MonsterMelodyMaker = ({
             onChange={handleMonsterChange}
             stageTheme={stageTheme}
             onStageThemeChange={setStageTheme}
+            onPreviewDance={setPreviewDance}
           />
         </aside>
 
@@ -181,6 +185,8 @@ const MonsterMelodyMaker = ({
                 config={monsterConfig}
                 animationState={animationState}
                 isPlaying={isPlaying}
+                tempo={previewDance ? 100 : tempo}
+                previewDance={previewDance}
               />
             </div>
           </div>

@@ -1,19 +1,20 @@
 // File: /lessons/shared/hooks/useActivityTimers.js
-// Activity timer management hook - FIXED: Use update() to preserve studentsJoined
+// Activity timer management hook
+// ✅ FIXED: Accept currentStage as VALUE instead of getter function to prevent render-time state updates
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getDatabase, ref, set as firebaseSet, update } from 'firebase/database';
+import { getDatabase, ref, update } from 'firebase/database';
 
-export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) => {
+export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
   // ✅ Initialize ALL stages with timers from lessonStages
   const [activityTimers, setActivityTimers] = useState(() => {
     const initialTimers = {};
     lessonStages?.forEach(stage => {
       if (stage.hasTimer && stage.duration) {
         initialTimers[stage.id] = {
-          presetTime: stage.duration,  // ✅ Changed from 'preset' to 'presetTime'
-          timeRemaining: 0,             // ✅ Changed from 'current' to 'timeRemaining'
-          isActive: false                // ✅ Changed from 'isRunning' to 'isActive'
+          presetTime: stage.duration,
+          timeRemaining: 0,
+          isActive: false
         };
       }
     });
@@ -69,6 +70,20 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
       
       console.log(`   Starting with ${minutes} minutes (${seconds} seconds)`);
       
+      // Update Firebase inside setState callback to get latest values
+      if (sessionCode) {
+        const db = getDatabase();
+        const sessionRef = ref(db, `sessions/${sessionCode}`);
+        
+        update(sessionRef, {
+          countdownTime: seconds,
+          timerActive: true,
+          timestamp: Date.now()
+        }).then(() => {
+          console.log(`📡 Firebase updated: ${seconds}s, active: true`);
+        });
+      }
+      
       return {
         ...prev,
         [activityId]: {
@@ -78,75 +93,67 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
         }
       };
     });
-
-    // Update Firebase - FIXED: use update() instead of set()
-    if (sessionCode) {
-      const minutes = durationMinutes !== null ? durationMinutes : activityTimers[activityId]?.presetTime || 5;
-      const seconds = minutes * 60;
-      
-      const db = getDatabase();
-      const sessionRef = ref(db, `sessions/${sessionCode}`);
-      
-      update(sessionRef, {
-        currentStage: getCurrentStage ? getCurrentStage() : 'locked',
-        countdownTime: seconds,
-        timerActive: true,
-        timestamp: Date.now()
-      });
-      
-      console.log(`📡 Firebase updated: ${seconds}s, active: true`);
-    }
-  }, [activityTimers, sessionCode, getCurrentStage]);
+  }, [sessionCode]);
 
   // Pause timer
   const pauseActivityTimer = useCallback((activityId) => {
     console.log(`⏸️  Pausing timer for ${activityId}`);
-    setActivityTimers(prev => ({
-      ...prev,
-      [activityId]: {
-        ...prev[activityId],
-        isActive: false
-      }
-    }));
     
-    // Update Firebase - FIXED: use update() instead of set()
-    if (sessionCode) {
-      const db = getDatabase();
-      const sessionRef = ref(db, `sessions/${sessionCode}`);
+    setActivityTimers(prev => {
+      const currentTimer = prev[activityId];
+      if (!currentTimer) return prev;
       
-      update(sessionRef, {
-        currentStage: getCurrentStage ? getCurrentStage() : 'locked',
-        countdownTime: activityTimers[activityId]?.timeRemaining || 0,
-        timerActive: false,
-        timestamp: Date.now()
-      });
-    }
-  }, [sessionCode, getCurrentStage, activityTimers]);
+      // Update Firebase
+      if (sessionCode) {
+        const db = getDatabase();
+        const sessionRef = ref(db, `sessions/${sessionCode}`);
+        
+        update(sessionRef, {
+          countdownTime: currentTimer.timeRemaining,
+          timerActive: false,
+          timestamp: Date.now()
+        });
+      }
+      
+      return {
+        ...prev,
+        [activityId]: {
+          ...currentTimer,
+          isActive: false
+        }
+      };
+    });
+  }, [sessionCode]);
 
   // Resume timer
   const resumeActivityTimer = useCallback((activityId) => {
     console.log(`▶️  Resuming timer for ${activityId}`);
-    setActivityTimers(prev => ({
-      ...prev,
-      [activityId]: {
-        ...prev[activityId],
-        isActive: true
-      }
-    }));
     
-    // Update Firebase - FIXED: use update() instead of set()
-    if (sessionCode) {
-      const db = getDatabase();
-      const sessionRef = ref(db, `sessions/${sessionCode}`);
+    setActivityTimers(prev => {
+      const currentTimer = prev[activityId];
+      if (!currentTimer) return prev;
       
-      update(sessionRef, {
-        currentStage: getCurrentStage ? getCurrentStage() : 'locked',
-        countdownTime: activityTimers[activityId]?.timeRemaining || 0,
-        timerActive: true,
-        timestamp: Date.now()
-      });
-    }
-  }, [sessionCode, getCurrentStage, activityTimers]);
+      // Update Firebase
+      if (sessionCode) {
+        const db = getDatabase();
+        const sessionRef = ref(db, `sessions/${sessionCode}`);
+        
+        update(sessionRef, {
+          countdownTime: currentTimer.timeRemaining,
+          timerActive: true,
+          timestamp: Date.now()
+        });
+      }
+      
+      return {
+        ...prev,
+        [activityId]: {
+          ...currentTimer,
+          isActive: true
+        }
+      };
+    });
+  }, [sessionCode]);
 
   // ✅ Reset timer
   const resetActivityTimer = useCallback((activityId) => {
@@ -155,50 +162,48 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
     // Clear auto-started flag so it can be auto-started again
     autoStartedTimers.current.delete(activityId);
     
-    setActivityTimers(prev => ({
-      ...prev,
-      [activityId]: {
-        ...prev[activityId],
-        timeRemaining: 0,
-        isActive: false
+    setActivityTimers(prev => {
+      // Update Firebase
+      if (sessionCode) {
+        const db = getDatabase();
+        const sessionRef = ref(db, `sessions/${sessionCode}`);
+        
+        update(sessionRef, {
+          countdownTime: 0,
+          timerActive: false,
+          timestamp: Date.now()
+        });
       }
-    }));
-
-    // Update Firebase to clear timer - FIXED: use update() instead of set()
-    if (sessionCode) {
-      const db = getDatabase();
-      const sessionRef = ref(db, `sessions/${sessionCode}`);
       
-      update(sessionRef, {
-        currentStage: getCurrentStage ? getCurrentStage() : 'locked',
-        countdownTime: 0,
-        timerActive: false,
-        timestamp: Date.now()
-      });
-    }
-  }, [sessionCode, getCurrentStage]);
+      return {
+        ...prev,
+        [activityId]: {
+          ...prev[activityId],
+          timeRemaining: 0,
+          isActive: false
+        }
+      };
+    });
+  }, [sessionCode]);
 
-  // ✅ NEW: Stop all timers when leaving a timer stage
+  // ✅ Stop all timers when leaving a timer stage
   useEffect(() => {
-    if (!getCurrentStage || !lessonStages) return;
-    
-    const currentStageId = getCurrentStage();
-    if (!currentStageId) return;
+    if (!currentStage || !lessonStages) return;
     
     // If stage changed
-    if (lastStageRef.current && lastStageRef.current !== currentStageId) {
-      const previousStage = lessonStages.find(s => s.id === lastStageRef.current);
-      const currentStage = lessonStages.find(s => s.id === currentStageId);
+    if (lastStageRef.current && lastStageRef.current !== currentStage) {
+      const previousStageData = lessonStages.find(s => s.id === lastStageRef.current);
+      const currentStageData = lessonStages.find(s => s.id === currentStage);
       
       // If leaving a timer stage
-      if (previousStage?.hasTimer) {
+      if (previousStageData?.hasTimer) {
         const previousTimer = activityTimers[lastStageRef.current];
         
         // If timer was running, stop it immediately
         if (previousTimer?.isActive) {
-          console.log(`🛑 Stage changed from ${lastStageRef.current} to ${currentStageId} - stopping timer`);
+          console.log(`🛑 Stage changed from ${lastStageRef.current} to ${currentStage} - stopping timer`);
           
-          // Immediately stop the timer to prevent race conditions
+          // Immediately stop the timer
           setActivityTimers(prev => ({
             ...prev,
             [lastStageRef.current]: {
@@ -208,13 +213,12 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
             }
           }));
           
-          // Immediately clear Firebase to prevent lingering updates - FIXED: use update() instead of set()
+          // Clear Firebase timer data
           if (sessionCode) {
             const db = getDatabase();
             const sessionRef = ref(db, `sessions/${sessionCode}`);
             
             update(sessionRef, {
-              currentStage: currentStageId,
               countdownTime: null,
               timerActive: null,
               timestamp: Date.now()
@@ -222,15 +226,13 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
           }
         }
       } 
-      // If entering a non-timer stage from a non-timer stage, still clear Firebase timer data
-      // FIXED: use update() instead of set() - THIS WAS THE MAIN BUG!
-      else if (!currentStage?.hasTimer && sessionCode) {
-        console.log(`🧹 Entered non-timer stage ${currentStageId} - clearing Firebase timer data`);
+      // If entering a non-timer stage, clear Firebase timer data
+      else if (!currentStageData?.hasTimer && sessionCode) {
+        console.log(`🧹 Entered non-timer stage ${currentStage} - clearing Firebase timer data`);
         const db = getDatabase();
         const sessionRef = ref(db, `sessions/${sessionCode}`);
         
         update(sessionRef, {
-          currentStage: currentStageId,
           countdownTime: null,
           timerActive: null,
           timestamp: Date.now()
@@ -238,8 +240,8 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
       }
     }
     
-    lastStageRef.current = currentStageId;
-  }, [getCurrentStage, lessonStages, activityTimers, sessionCode]);
+    lastStageRef.current = currentStage;
+  }, [currentStage, lessonStages, activityTimers, sessionCode]);
 
   // ✅ Countdown effect
   useEffect(() => {
@@ -253,7 +255,7 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
           setActivityTimers(prev => {
             const currentTimer = prev[activityId];
             
-            // ✅ CRITICAL: Stop immediately if timer is no longer active or doesn't exist
+            // Stop immediately if timer is no longer active or doesn't exist
             if (!currentTimer || !currentTimer.isActive || currentTimer.timeRemaining <= 0) {
               return prev;
             }
@@ -273,13 +275,12 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
                 });
               }
               
-              // Update Firebase when timer finishes - FIXED: use update() instead of set()
+              // Update Firebase when timer finishes
               if (sessionCode) {
                 const db = getDatabase();
                 const sessionRef = ref(db, `sessions/${sessionCode}`);
                 
                 update(sessionRef, {
-                  currentStage: getCurrentStage ? getCurrentStage() : 'locked',
                   countdownTime: 0,
                   timerActive: false,
                   timestamp: Date.now()
@@ -296,7 +297,7 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
               };
             }
             
-            // Update Firebase at strategic intervals - FIXED: use update() instead of set()
+            // Update Firebase at strategic intervals
             const shouldUpdateFirebase = sessionCode && (
               (newTimeRemaining > 60 && newTimeRemaining % 10 === 0) ||
               (newTimeRemaining >= 10 && newTimeRemaining <= 60 && newTimeRemaining % 5 === 0) ||
@@ -308,7 +309,6 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
               const sessionRef = ref(db, `sessions/${sessionCode}`);
               
               update(sessionRef, {
-                currentStage: getCurrentStage ? getCurrentStage() : 'locked',
                 countdownTime: newTimeRemaining,
                 timerActive: true,
                 timestamp: Date.now()
@@ -330,36 +330,33 @@ export const useActivityTimers = (sessionCode, getCurrentStage, lessonStages) =>
     });
     
     return () => intervals.forEach(interval => clearInterval(interval));
-  }, [activityTimers, sessionCode, getCurrentStage]);
+  }, [activityTimers, sessionCode]);
 
   // ✅ Auto-start timer when activity stage is unlocked
   useEffect(() => {
-    if (!getCurrentStage || !lessonStages) return;
+    if (!currentStage || !lessonStages) return;
     
-    const currentStageId = getCurrentStage();
-    if (!currentStageId) return;
-    
-    const currentStageData = lessonStages.find(s => s.id === currentStageId);
+    const currentStageData = lessonStages.find(s => s.id === currentStage);
     
     // If this stage has a timer, auto-start it
-    if (currentStageData?.hasTimer && activityTimers[currentStageId]) {
-      const timer = activityTimers[currentStageId];
+    if (currentStageData?.hasTimer && activityTimers[currentStage]) {
+      const timer = activityTimers[currentStage];
       
       // Only auto-start if:
       // 1. Timer hasn't been started yet (timeRemaining is 0 and not active)
       // 2. Haven't already auto-started this timer
-      if (timer.timeRemaining === 0 && !timer.isActive && !autoStartedTimers.current.has(currentStageId)) {
+      if (timer.timeRemaining === 0 && !timer.isActive && !autoStartedTimers.current.has(currentStage)) {
         // Mark as auto-started
-        autoStartedTimers.current.add(currentStageId);
+        autoStartedTimers.current.add(currentStage);
         
+        // Use setTimeout to ensure this happens after render
         setTimeout(() => {
-          console.log('🚀 Auto-starting timer for', currentStageId, 'with adjusted time:', timer.presetTime, 'min');
-          // ✅ FIXED: Pass the adjusted presetTime to ensure adjusted time is used
-          startActivityTimer(currentStageId, timer.presetTime);
+          console.log('🚀 Auto-starting timer for', currentStage, 'with adjusted time:', timer.presetTime, 'min');
+          startActivityTimer(currentStage, timer.presetTime);
         }, 100);
       }
     }
-  }, [getCurrentStage, lessonStages, activityTimers, startActivityTimer]);
+  }, [currentStage, lessonStages, activityTimers, startActivityTimer]);
 
   return {
     activityTimers,

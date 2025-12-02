@@ -2,8 +2,9 @@
 // Epic Wildlife - Nature Documentary Video - Main lesson orchestrator
 // ✅ UPDATED: Renamed from "Chef's Soundtrack" to "Epic Wildlife"
 // ✅ UPDATED: Added Sectional Loop Builder game routing
+// ✅ FIXED: Uses currentStage directly from context (no render loop)
 
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from "../../../context/SessionContext";
 import { Monitor, Video, Gamepad2, Trophy, Globe } from 'lucide-react';
@@ -33,13 +34,14 @@ const Lesson4 = () => {
   const location = useLocation();
   const { 
     sessionCode,
-    getCurrentStage, 
+    currentStage,  // ✅ Use direct value instead of getCurrentStage()
     setCurrentStage,
     getStudents,
     getProgressStats,
     endSession,
     markActivityComplete,
-    userRole: sessionRole
+    userRole: sessionRole,
+    getCurrentStage  // Keep for hooks that need it
   } = useSession();
   
   // Session mode detection and permissions
@@ -48,33 +50,30 @@ const Lesson4 = () => {
   // Get effective role
   const effectiveRole = sessionRole || sessionMode.urlRole;
   
-  console.log('🌍 Lesson4 (Epic Wildlife) Render:', {
-    isSessionMode: sessionMode.isSessionMode,
-    sessionRole,
-    effectiveRole,
-    sessionCode,
-    urlRole: sessionMode.urlRole,
-    sessionInitialized: sessionMode.sessionInitialized
-  });
-  
-  // Main lesson state (only used in non-session mode)
-  const lessonConfig = { 
+  // ✅ FIXED: Memoize lessonConfig to prevent new object reference each render
+  const lessonConfig = useMemo(() => ({ 
     ...lesson4Config, 
     progressKey: LESSON_PROGRESS_KEY, 
     timerKey: LESSON_TIMER_KEY 
-  };
+  }), []);
+  
   const lesson = useLesson(lessonConfig);
   
-  // Activity timers (used in session mode)
-  const timers = useActivityTimers(sessionCode, getCurrentStage, lessonStages);
+  // Activity timers (used in session mode) - pass currentStage VALUE, not getter function
+  const timers = useActivityTimers(sessionCode, currentStage, lessonStages);
 
   // Check for view modes from URL params
   const searchParams = new URLSearchParams(location.search);
   const viewSavedMode = searchParams.get('view') === 'saved';
   const viewReflectionMode = searchParams.get('view') === 'reflection';
 
+  // ✅ Memoize currentStageData
+  const currentStageData = useMemo(() => {
+    return lessonStages.find(stage => stage.id === currentStage);
+  }, [currentStage]);
+
   // Open presentation view in new window
-  const openPresentationView = React.useCallback(() => {
+  const openPresentationView = useCallback(() => {
     if (!sessionCode) {
       console.error('❌ No session code available');
       return null;
@@ -132,21 +131,15 @@ const Lesson4 = () => {
   }, [sessionCode]);
 
   // Handle session activity completion
-  const handleSessionActivityComplete = (activityId) => {
+  const handleSessionActivityComplete = useCallback((activityId) => {
     if (sessionRole === 'student') {
       markActivityComplete(activityId, 'completed');
       console.log('Student marked activity complete:', activityId);
     }
-  };
-
-  // Get current stage for students
-  const currentStage = sessionMode.isSessionMode && sessionRole === 'student' 
-    ? getCurrentStage() 
-    : null;
+  }, [sessionRole, markActivityComplete]);
 
   // Show loading while session is initializing
   if (sessionMode.isSessionMode && !effectiveRole) {
-    console.log('⏳ Waiting for session role to be set...');
     return (
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900">
         <div className="text-center">
@@ -162,8 +155,6 @@ const Lesson4 = () => {
   // SESSION MODE: STUDENT VIEW
   // ========================================
   if (sessionMode.isSessionMode && effectiveRole === 'student') {
-    console.log('👱 Rendering STUDENT view');
-    
     // Student waiting for teacher to start
     if (!currentStage || currentStage === 'join-code') {
       return <StudentWaitingScreen />;
@@ -188,7 +179,6 @@ const Lesson4 = () => {
     }
     
     // SUMMARY SLIDES: Students see "Watch the Main Screen" message
-    const currentStageData = lessonStages.find(stage => stage.id === currentStage);
     if (currentStageData?.type === 'summary') {
       return (
         <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
@@ -302,7 +292,6 @@ const Lesson4 = () => {
   // NORMAL MODE: LESSON START SCREEN
   // ========================================
   if (!lesson.lessonStarted && !viewSavedMode && !viewReflectionMode) {
-    console.log('🖼️ Rendering NORMAL lesson start screen');
     return (
       <LessonStartScreen
         config={lesson4Config}
@@ -317,8 +306,6 @@ const Lesson4 = () => {
   // ========================================
   // NORMAL MODE: ACTIVE LESSON
   // ========================================
-  
-  console.log('🖼️ Rendering NORMAL active lesson');
   
   // Handle view modes
   let activityToRender = lesson.currentActivityData;

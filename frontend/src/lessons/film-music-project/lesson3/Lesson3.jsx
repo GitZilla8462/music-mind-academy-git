@@ -1,8 +1,9 @@
 // File: /src/lessons/film-music-project/lesson3/Lesson3.jsx
 // City Soundscapes - Main lesson orchestrator
 // ✅ UPDATED: Introduction → Listening Map → Composition → Reflection → Loop Lab
+// ✅ FIXED: Uses currentStage directly from context (no render loop)
 
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from "../../../context/SessionContext";
 import { Monitor, Video, Gamepad2, Trophy } from 'lucide-react';
@@ -186,13 +187,14 @@ const Lesson3 = () => {
   const { 
     sessionCode, 
     userId, 
-    getCurrentStage, 
+    currentStage,  // ✅ Use direct value instead of getCurrentStage()
     setCurrentStage, 
     getStudents, 
     getProgressStats, 
     endSession,
     markActivityComplete,
-    userRole: sessionRole
+    userRole: sessionRole,
+    getCurrentStage  // Keep for hooks/teacher panel that need it
   } = useSession();
   
   // Session mode detection and permissions
@@ -206,27 +208,17 @@ const Lesson3 = () => {
   const viewSavedMode = searchParams.get('view') === 'saved';
   const viewReflectionMode = searchParams.get('view') === 'reflection';
   
-  // Custom hooks
+  // Custom hooks - pass currentStage VALUE, not getter function
   const lesson = useLesson(lesson3Config, LESSON_PROGRESS_KEY, LESSON_TIMER_KEY);
-  const timers = useActivityTimers(sessionCode, getCurrentStage, lessonStages);
-  
-  // Get current stage for session mode - match Lesson2's pattern
-  const currentStage = sessionMode.isSessionMode && sessionRole === 'student' 
-    ? getCurrentStage() 
-    : null;
-  
-  console.log('🎓 Lesson3 Render State:', {
-    isSessionMode: sessionMode.isSessionMode,
-    sessionRole,
-    effectiveRole,
-    sessionCode,
-    currentStage,
-    urlRole: sessionMode.urlRole,
-    sessionInitialized: sessionMode.sessionInitialized
-  });
+  const timers = useActivityTimers(sessionCode, currentStage, lessonStages);
 
-  // Open presentation view in new window - matches Lesson2
-  const openPresentationView = React.useCallback(() => {
+  // ✅ Memoize currentStageData
+  const currentStageData = useMemo(() => {
+    return lessonStages.find(stage => stage.id === currentStage);
+  }, [currentStage]);
+
+  // Open presentation view in new window
+  const openPresentationView = useCallback(() => {
     if (!sessionCode) {
       console.error('❌ No session code available');
       return null;
@@ -282,23 +274,21 @@ const Lesson3 = () => {
     
     return popup;
   }, [sessionCode]);
-  
-  // Handle activity completion in session mode
-  const handleSessionActivityComplete = (activityId) => {
+
+  // Handle session activity completion
+  const handleSessionActivityComplete = useCallback((activityId) => {
     if (sessionRole === 'student') {
       markActivityComplete(activityId, 'completed');
       console.log('Student marked activity complete:', activityId);
     }
-  };
-  
-  // ========================================
-  // SESSION MODE: LOADING/INITIALIZING
-  // ========================================
+  }, [sessionRole, markActivityComplete]);
+
+  // Show loading while session is initializing
   if (sessionMode.isSessionMode && !effectiveRole) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+      <div className="h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
           <p className="text-white text-lg">Initializing session...</p>
           <p className="text-gray-400 text-sm mt-2">Session Code: {sessionCode || sessionMode.urlSessionCode}</p>
         </div>
@@ -310,16 +300,13 @@ const Lesson3 = () => {
   // SESSION MODE: STUDENT VIEW
   // ========================================
   if (sessionMode.isSessionMode && effectiveRole === 'student') {
-    console.log('👱 Rendering STUDENT view');
-    
-    // Get current stage for students
-    const studentCurrentStage = getCurrentStage();
-    
-    if (!studentCurrentStage || studentCurrentStage === 'join-code') {
+    // Student waiting for teacher to start
+    if (!currentStage || currentStage === 'join-code') {
       return <StudentWaitingScreen />;
     }
     
-    if (studentCurrentStage === 'ended') {
+    // Session has ended
+    if (currentStage === 'ended') {
       console.log('📚 Session ended, redirecting to join page');
       setTimeout(() => {
         window.location.href = '/join';
@@ -335,8 +322,6 @@ const Lesson3 = () => {
         </div>
       );
     }
-    
-    const currentStageData = lessonStages.find(stage => stage.id === studentCurrentStage);
     
     // SUMMARY SLIDES: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'summary') {
@@ -386,7 +371,7 @@ const Lesson3 = () => {
     }
     
     // DISCUSSION/CONCLUSION: Students see "Watch the Main Screen"
-    if (currentStageData?.type === 'discussion' || studentCurrentStage === 'conclusion') {
+    if (currentStageData?.type === 'discussion' || currentStage === 'conclusion') {
       return (
         <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
           <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
@@ -398,27 +383,17 @@ const Lesson3 = () => {
     
     // ✅ Listening Map activity (renamed from texture-drawings)
     // Support both old and new stage names for backward compatibility
-    if (studentCurrentStage === 'listening-map' || studentCurrentStage === 'texture-drawings') {
-      return <ListeningMapLoader onComplete={() => handleSessionActivityComplete(studentCurrentStage)} />;
+    if (currentStage === 'listening-map' || currentStage === 'texture-drawings') {
+      return <ListeningMapLoader onComplete={() => handleSessionActivityComplete(currentStage)} />;
     }
     
     // Standard activity rendering
-    const displayStage = studentCurrentStage === 'reflection' ? 'city-composition' : studentCurrentStage;
+    const displayStage = currentStage === 'reflection' ? 'city-composition' : currentStage;
     const activityType = getActivityForStage(displayStage);
-    
-    console.log('🎯 Student Activity Rendering:', {
-      studentCurrentStage,
-      displayStage,
-      activityType,
-      currentStageData
-    });
     
     const activity = lesson3Config.activities.find(a => a.type === activityType);
     
-    console.log('🎯 Found activity:', activity);
-    
     if (!activity) {
-      console.log('❌ No activity found for type:', activityType);
       return <StudentWaitingScreen />;
     }
     
@@ -427,7 +402,7 @@ const Lesson3 = () => {
         <div className="flex-1 overflow-hidden">
           <ActivityRenderer
             activity={activity}
-            onComplete={() => handleSessionActivityComplete(studentCurrentStage)}
+            onComplete={() => handleSessionActivityComplete(currentStage)}
             navToolsEnabled={false}
             canAccessNavTools={false}
             lessonStartTime={lesson.lessonStartTime}
@@ -470,7 +445,6 @@ const Lesson3 = () => {
   // NORMAL MODE: LESSON START SCREEN
   // ========================================
   if (!lesson.lessonStarted && !viewSavedMode && !viewReflectionMode) {
-    console.log('🖼️ Rendering NORMAL lesson start screen');
     return (
       <LessonStartScreen
         config={lesson3Config}
@@ -485,7 +459,6 @@ const Lesson3 = () => {
   // ========================================
   // NORMAL MODE: ACTIVE LESSON
   // ========================================
-  console.log('🖯 Rendering NORMAL active lesson');
   
   let activityToRender = lesson.currentActivityData;
   let onCompleteHandler = lesson.handleActivityComplete;
