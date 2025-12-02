@@ -5,12 +5,11 @@
  * Students draw while listening to music with multiple instruments.
  * 
  * Uses modular components:
- * - DrawingCanvas (with BrushEngine, ShapeEngine, FillEngine)
- * - MainToolbar (with brush/shape/utility tool popups)
+ * - DrawingCanvas (with BrushEngine, ShapeEngine)
+ * - MainToolbar (with brush/utility tool popups)
  * - ColorPanel (color palettes)
  * - StickerPanel (emoji stickers)
- * - MidiPianoRoll (MIDI visualization)
- * - useDAW (Audio/MIDI sync engine)
+ * - useDAW (Audio sync engine)
  * - RoundIntro / SummaryScreen
  * 
  * Props:
@@ -28,7 +27,6 @@ import DrawingCanvas from './components/Canvas/DrawingCanvas';
 import MainToolbar from './components/Toolbar/MainToolbar';
 import ColorPanel from './components/Toolbar/ColorPanel';
 import StickerPanel from './components/Toolbar/StickerPanel';
-import MidiPianoRoll from './components/Canvas/MidiPianoRoll';
 
 // Import DAW engine
 import useDAW from './engine/useDAW';
@@ -85,15 +83,6 @@ const ListeningMapActivity = ({ onComplete }) => {
     return initial;
   });
   
-  // MIDI piano roll visibility per track
-  const [midiVisibleTracks, setMidiVisibleTracks] = useState(() => {
-    const initial = {};
-    ROUNDS[0].instruments.forEach(inst => {
-      initial[inst.id] = true; // Start with MIDI visible
-    });
-    return initial;
-  });
-  
   // Save state
   const [saveMessage, setSaveMessage] = useState(null);
   const [studentId, setStudentId] = useState('');
@@ -105,8 +94,7 @@ const ListeningMapActivity = ({ onComplete }) => {
   // Single round data (Quartet)
   const round = ROUNDS[0];
   
-  // DAW Engine - handles all audio/MIDI sync
-  // Skip MIDI start offset if we're using midiDisplayOffset for manual alignment
+  // DAW Engine - handles all audio sync
   const daw = useDAW(round.instruments, { 
     skipMidiStartOffset: round.midiDisplayOffset !== undefined 
   });
@@ -156,7 +144,7 @@ const ListeningMapActivity = ({ onComplete }) => {
   const canvasHeight = laneHeight * numInstruments;
 
   // ========================================================================
-  // AUDIO/MIDI CONTROLS (via useDAW hook)
+  // AUDIO CONTROLS (via useDAW hook)
   // ========================================================================
 
   // Destructure DAW controls for cleaner usage
@@ -166,7 +154,6 @@ const ListeningMapActivity = ({ onComplete }) => {
     startOffset,
     duration: audioDuration, // Actual audio duration from loaded files
     enabledTracks,
-    midiEngine,
     togglePlay, 
     stop, 
     seekTo, 
@@ -509,20 +496,6 @@ const ListeningMapActivity = ({ onComplete }) => {
                     SOLO
                   </button>
                   <button
-                    onClick={() => setMidiVisibleTracks(prev => ({
-                      ...prev,
-                      [inst.id]: !prev[inst.id]
-                    }))}
-                    className={`px-1 py-0.5 rounded text-[8px] font-bold transition-all text-left ${
-                      midiVisibleTracks[inst.id]
-                        ? 'bg-purple-500 text-white'
-                        : 'bg-gray-200 text-gray-500 hover:bg-purple-100'
-                    }`}
-                    title={midiVisibleTracks[inst.id] ? 'Hide MIDI' : 'Show MIDI'}
-                  >
-                    MIDI
-                  </button>
-                  <button
                     onClick={() => setClearTrackConfirm({ id: inst.id, name: inst.name, index })}
                     className="px-1 py-0.5 rounded text-[8px] font-bold transition-all text-left bg-gray-200 text-gray-500 hover:bg-red-100 hover:text-red-500"
                     title="Clear track"
@@ -566,19 +539,6 @@ const ListeningMapActivity = ({ onComplete }) => {
           className="relative flex-1 overflow-hidden"
           style={{ width: canvasWidth > 0 ? canvasWidth : 'auto' }}
         >
-          {/* MIDI Piano Roll Background */}
-          {canvasWidth > 0 && canvasHeight > 0 && midiEngine && (
-            <MidiPianoRoll
-              midiEngine={midiEngine}
-              instruments={round.instruments}
-              width={canvasWidth}
-              height={canvasHeight}
-              duration={totalDuration}
-              visibleTracks={midiVisibleTracks}
-              midiDisplayOffset={round.midiDisplayOffset || 0}
-            />
-          )}
-          
           <DrawingCanvas
             ref={canvasRef}
             width={canvasWidth}
@@ -603,12 +563,6 @@ const ListeningMapActivity = ({ onComplete }) => {
                 transform: `translateX(${(progress / totalDuration) * canvasWidth}px)`,
                 willChange: 'transform',
                 boxShadow: '0 0 6px rgba(239, 68, 68, 0.6), 0 0 2px rgba(239, 68, 68, 0.8)'
-              }}
-              // Debug: log playhead values periodically
-              ref={el => {
-                if (el && Math.floor(progress) !== Math.floor(progress - 0.1)) {
-                  console.log(`🔴 Playhead: progress=${progress.toFixed(2)}s, duration=${totalDuration}, x=${((progress / totalDuration) * canvasWidth).toFixed(1)}px`);
-                }
               }}
             >
               {/* Playhead handle at top */}
@@ -732,18 +686,6 @@ const ListeningMapActivity = ({ onComplete }) => {
           </span>
           <span className="text-xs text-gray-400">tracks</span>
         </div>
-        
-        {/* MIDI visibility indicator */}
-        {Object.values(midiVisibleTracks).some(v => v) && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 rounded-lg">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className="text-purple-600">
-              <path d="M4 3h16v18H4V3zm2 2v14h12V5H6zm2 2h2v4H8V7zm4 0h2v4h-2V7zm4 0h2v4h-2V7zm-8 6h2v4H8v-4zm4 0h2v4h-2v-4zm4 0h2v4h-2v-4z"/>
-            </svg>
-            <span className="text-xs font-medium text-purple-600">
-              {Object.values(midiVisibleTracks).filter(Boolean).length} MIDI
-            </span>
-          </div>
-        )}
         
         {/* Current tool/color indicator */}
         <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg">

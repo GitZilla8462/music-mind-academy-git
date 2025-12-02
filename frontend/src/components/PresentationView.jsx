@@ -297,7 +297,7 @@ const PresentationView = () => {
         <div style={{ fontSize: '80px', marginBottom: '30px', animation: 'pulse 2s ease-in-out infinite' }}>
           🎵
         </div>
-        <h1 style={{ fontSize: '48px', fontWeight: '700', marginBottom: '20px', color: '#1f2937' }}>
+        <h1 style={{ fontSize: '96px', fontWeight: '700', marginBottom: '20px', color: '#1f2937' }}>
           musicroomtools.org/join
         </h1>
         <div style={{
@@ -311,7 +311,7 @@ const PresentationView = () => {
         }}>
           {sessionCode}
         </div>
-        <p style={{ fontSize: '24px', color: '#6b7280', textAlign: 'center', maxWidth: '600px' }}>
+        <p style={{ fontSize: '48px', color: '#6b7280', textAlign: 'center', maxWidth: '800px' }}>
           Waiting for teacher to start the lesson...
         </p>
         
