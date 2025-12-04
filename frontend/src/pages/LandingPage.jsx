@@ -113,7 +113,7 @@ const LandingPage = () => {
                   onClick={goToSignup}
                   className="btn-primary px-8 py-4 rounded-full font-semibold text-lg text-white"
                 >
-                  Start Free Trial
+                  Get Started Free
                 </button>
                 <button className="px-8 py-4 rounded-full font-semibold text-lg border-2 border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-colors text-slate-700">
                   Watch Demo
@@ -387,7 +387,7 @@ const LandingPage = () => {
           <div className="text-center mb-16">
             <h2 className="font-display text-4xl font-bold mb-4 text-slate-800">Simple Pricing</h2>
             <p className="text-slate-600 text-lg">
-              Try it free. Upgrade when you're ready.
+              Try Lesson 1 free. Pay only when you're ready for more.
             </p>
           </div>
           
@@ -454,7 +454,7 @@ const LandingPage = () => {
                 onClick={goToSignup}
                 className="w-full py-3 rounded-full btn-primary font-semibold text-white"
               >
-                Start Free Trial
+                Buy Now - $49/year
               </button>
             </div>
           </div>
@@ -478,7 +478,7 @@ const LandingPage = () => {
             onClick={goToSignup}
             className="bg-white text-blue-600 px-10 py-4 rounded-full font-semibold text-lg hover:shadow-lg hover:-translate-y-1 transition-all"
           >
-            Start Your Free Trial
+            Get Started Free
           </button>
         </div>
       </section>

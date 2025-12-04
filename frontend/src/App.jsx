@@ -10,6 +10,7 @@ import './App.css';
 // Import authentication-related components
 import AuthPage from './pages/AuthPage';
 import LandingPage from './pages/LandingPage';
+import EduLandingPage from './pages/EduLandingPage';
 import AdminDashboard from './pages/AdminDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
@@ -230,7 +231,11 @@ const AppContent = () => {
     return (
       <SessionProvider>
         <Routes>
-        <Route path="/" element={<MusicClassroomResources />} />
+        {/* Landing page for edu site */}
+        <Route path="/" element={<EduLandingPage />} />
+        
+        {/* Login goes to MusicClassroomResources (has built-in login) */}
+        <Route path="/login" element={<MusicClassroomResources />} />
         
         {/* Admin dashboard for monitoring all problems */}
         <Route path="/admin/all-problems" element={<AdminAllProblems />} />
