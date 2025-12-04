@@ -1,8 +1,9 @@
 // File: /src/lessons/shared/components/SessionTeacherPanel.jsx
 // PROFESSIONAL COLOR SCHEME: White bg, dark text, navy accents
+// Added: How to Run a Lesson tutorial button
 
 import React, { useState, useEffect } from 'react';
-import { Clock, Play, SkipForward, CheckCircle, Users, ChevronDown, ChevronUp, ExternalLink, Plus, Minus, Copy, Check, QrCode, Monitor } from 'lucide-react';
+import { Clock, Play, SkipForward, CheckCircle, Users, ChevronDown, ChevronUp, ExternalLink, Plus, Minus, Copy, Check, QrCode, Monitor, HelpCircle } from 'lucide-react';
 
 const SessionTeacherPanel = ({
   config,
@@ -27,6 +28,27 @@ const SessionTeacherPanel = ({
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [presentationOpened, setPresentationOpened] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [videoKey, setVideoKey] = useState(0);
+  
+  // Handle opening tutorial - suspend Tone.js to prevent audio conflicts
+  const handleOpenTutorial = () => {
+    // Suspend Tone.js if it's running to prevent audio conflicts
+    if (window.Tone && window.Tone.context && window.Tone.context.state === 'running') {
+      window.Tone.context.suspend();
+    }
+    setVideoKey(prev => prev + 1); // Force fresh video element
+    setShowTutorial(true);
+  };
+  
+  // Handle closing tutorial - resume Tone.js
+  const handleCloseTutorial = () => {
+    setShowTutorial(false);
+    // Resume Tone.js context if it was suspended
+    if (window.Tone && window.Tone.context && window.Tone.context.state === 'suspended') {
+      window.Tone.context.resume();
+    }
+  };
   
   const currentStage = getCurrentStage();
   const students = getStudents();
@@ -191,6 +213,86 @@ const SessionTeacherPanel = ({
 
   return (
     <div className="min-h-screen bg-white p-6">
+      {/* Tutorial Video Modal */}
+      {showTutorial && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.85)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+          onClick={handleCloseTutorial}
+        >
+          <div 
+            style={{
+              position: 'relative',
+              width: '100%',
+              maxWidth: '900px',
+              backgroundColor: '#000',
+              borderRadius: '12px',
+              overflow: 'hidden'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={handleCloseTutorial}
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                zIndex: 10,
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '50%',
+                width: '40px',
+                height: '40px',
+                fontSize: '24px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              ×
+            </button>
+            
+            <video
+              key={videoKey}
+              controls
+              autoPlay
+              playsInline
+              preload="auto"
+              onSeeked={(e) => {
+                // Fix audio after seeking - reload if audio breaks
+                const video = e.target;
+                if (video.paused) {
+                  video.play().catch(() => {});
+                }
+              }}
+              onError={(e) => {
+                console.error('Video error:', e);
+              }}
+              style={{
+                width: '100%',
+                display: 'block'
+              }}
+            >
+              <source src="/lessons/film-music-project/Lesson Tutorial.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-4xl mx-auto">
         
         {/* Header */}
@@ -200,6 +302,14 @@ const SessionTeacherPanel = ({
             <p className="text-slate-600">Teacher Control Panel</p>
           </div>
           <div className="flex items-center gap-4">
+            {/* Tutorial Button */}
+            <button
+              onClick={handleOpenTutorial}
+              className="flex items-center gap-2 px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-300 rounded-lg font-medium text-sm transition-colors"
+            >
+              <HelpCircle size={16} />
+              How to Run a Lesson
+            </button>
             <span className="text-slate-700 font-medium"><Users size={16} className="inline mr-1" />{studentCount} students</span>
             <span className="text-slate-700 font-medium"><Clock size={16} className="inline mr-1" />{totalLessonTime} min</span>
             <button

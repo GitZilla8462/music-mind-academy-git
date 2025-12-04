@@ -1,6 +1,7 @@
 // File: /pages/MusicClassroomResources.jsx
 // UPDATED VERSION - Skips built-in login if user is already authenticated via Firebase
-// ✅ Works on both musicroomtools.org (edu) and musicmindacademy.com (commercial)
+// Works on both musicroomtools.org (edu) and musicmindacademy.com (commercial)
+// Added: How to Run a Lesson tutorial button and video modal
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -10,7 +11,7 @@ import { useAuth } from '../context/AuthContext';
 function MusicClassroomResources() {
   const navigate = useNavigate();
   
-  // ✅ NEW: Get Firebase auth state
+  // Get Firebase auth state
   const { isAuthenticated: firebaseAuthenticated, user: firebaseUser, logout: firebaseLogout } = useAuth();
   
   // Check if we're in commercial mode (musicmindacademy.com)
@@ -38,14 +39,34 @@ function MusicClassroomResources() {
   const [isJoiningSession, setIsJoiningSession] = useState(false);
   const [sessionError, setSessionError] = useState('');
   
+  // Tutorial video modal state
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [videoKey, setVideoKey] = useState(0);
+  
   // Get user role - check Firebase first, then localStorage
   const userRole = firebaseUser?.role || localStorage.getItem('classroom-user-role');
 
-  // ✅ NEW: If authenticated via Firebase (commercial mode), skip local login
+  // Handle opening tutorial - suspend Tone.js to prevent audio conflicts
+  const handleOpenTutorial = () => {
+    if (window.Tone && window.Tone.context && window.Tone.context.state === 'running') {
+      window.Tone.context.suspend();
+    }
+    setVideoKey(prev => prev + 1);
+    setShowTutorial(true);
+  };
+  
+  // Handle closing tutorial - resume Tone.js
+  const handleCloseTutorial = () => {
+    setShowTutorial(false);
+    if (window.Tone && window.Tone.context && window.Tone.context.state === 'suspended') {
+      window.Tone.context.resume();
+    }
+  };
+
+  // If authenticated via Firebase (commercial mode), skip local login
   useEffect(() => {
     if (isCommercialMode && firebaseAuthenticated) {
       setLoggedIn(true);
-      // Set localStorage for compatibility with rest of the app
       localStorage.setItem('classroom-logged-in', 'true');
       localStorage.setItem('classroom-user-role', firebaseUser?.role || 'teacher');
       localStorage.setItem('classroom-username', firebaseUser?.name || firebaseUser?.email || 'Teacher');
@@ -82,14 +103,12 @@ function MusicClassroomResources() {
   };
 
   const handleLogout = () => {
-    // ✅ NEW: If in commercial mode, use Firebase logout and redirect to landing
     if (isCommercialMode && firebaseLogout) {
       firebaseLogout();
       navigate('/');
       return;
     }
     
-    // Original logout for edu mode
     setLoggedIn(false);
     setUsername('');
     setPassword('');
@@ -125,11 +144,11 @@ function MusicClassroomResources() {
 
       const lessonRoute = sessionData.lessonRoute || '/lessons/film-music-project/lesson2';
       
-      console.log(`✅ Student joining session ${sessionCodeInput} at route: ${lessonRoute}`);
+      console.log(`Student joining session ${sessionCodeInput} at route: ${lessonRoute}`);
       
       window.location.href = `${lessonRoute}?session=${sessionCodeInput}&role=student`;
     } catch (error) {
-      console.error('❌ Error joining session:', error);
+      console.error('Error joining session:', error);
       setSessionError('Failed to join session. Please try again.');
       setIsJoiningSession(false);
     }
@@ -183,7 +202,7 @@ function MusicClassroomResources() {
           try {
             const data = JSON.parse(savedCity);
             setSavedCityComposition(data);
-            console.log('✅ Loaded saved city composition:', data);
+            console.log('Loaded saved city composition:', data);
           } catch (error) {
             console.error('Error loading city composition:', error);
           }
@@ -196,7 +215,7 @@ function MusicClassroomResources() {
           try {
             const data = JSON.parse(savedGarden);
             setSavedSoundGarden(data);
-            console.log('✅ Loaded saved Sound Garden:', data);
+            console.log('Loaded saved Sound Garden:', data);
           } catch (error) {
             console.error('Error loading Sound Garden:', error);
           }
@@ -209,7 +228,7 @@ function MusicClassroomResources() {
         try {
           const data = JSON.parse(savedEpicWildlife);
           setSavedEpicWildlifeComposition(data);
-          console.log('✅ Loaded saved Epic Wildlife composition:', data);
+          console.log('Loaded saved Epic Wildlife composition:', data);
         } catch (error) {
           console.error('Error loading Epic Wildlife composition:', error);
         }
@@ -317,23 +336,101 @@ function MusicClassroomResources() {
     <div style={{ 
       minHeight: '100vh', 
       backgroundColor: '#f7fafc',
-      padding: '40px 20px'
+      padding: '20px'
     }}>
-      {/* Simple Header */}
+      {/* Tutorial Video Modal */}
+      {showTutorial && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.85)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+          onClick={handleCloseTutorial}
+        >
+          <div 
+            style={{
+              position: 'relative',
+              width: '100%',
+              maxWidth: '900px',
+              backgroundColor: '#000',
+              borderRadius: '12px',
+              overflow: 'hidden'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={handleCloseTutorial}
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                zIndex: 10,
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '50%',
+                width: '40px',
+                height: '40px',
+                fontSize: '24px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              ×
+            </button>
+            
+            <video
+              key={videoKey}
+              controls
+              autoPlay
+              playsInline
+              preload="auto"
+              onSeeked={(e) => {
+                const video = e.target;
+                if (video.paused) {
+                  video.play().catch(() => {});
+                }
+              }}
+              onError={(e) => {
+                console.error('Video error:', e);
+              }}
+              style={{
+                width: '100%',
+                display: 'block'
+              }}
+            >
+              <source src="/lessons/film-music-project/Lesson Tutorial.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
       <div style={{ 
         maxWidth: '800px', 
         margin: '0 auto',
-        marginBottom: '40px',
+        marginBottom: '24px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
         <h1 style={{ 
-          fontSize: '36px', 
+          fontSize: '32px', 
           fontWeight: 'bold',
           color: '#1a202c'
         }}>
-          {/* ✅ Show different title based on mode */}
           {isCommercialMode ? 'Music Mind Academy' : 'Music Room Tools'}
         </h1>
         <button 
@@ -353,11 +450,58 @@ function MusicClassroomResources() {
         </button>
       </div>
 
-      {/* Single centered box */}
+      {/* Content container */}
       <div style={{ 
         maxWidth: '600px', 
         margin: '0 auto'
       }}>
+        
+        {/* Tutorial Button - Only for teachers */}
+        {userRole === 'teacher' && (
+          <button
+            onClick={handleOpenTutorial}
+            style={{
+              width: '100%',
+              padding: '16px 24px',
+              marginBottom: '20px',
+              backgroundColor: '#f0f9ff',
+              border: '2px solid #0ea5e9',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#e0f2fe';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#f0f9ff';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <span style={{ fontSize: '24px' }}>🎬</span>
+            <span style={{ 
+              fontSize: '16px', 
+              fontWeight: '600', 
+              color: '#0369a1'
+            }}>
+              How to Run a Lesson
+            </span>
+            <span style={{ 
+              fontSize: '13px', 
+              color: '#0284c7',
+              backgroundColor: '#bae6fd',
+              padding: '4px 10px',
+              borderRadius: '20px'
+            }}>
+              Watch Tutorial
+            </span>
+          </button>
+        )}
         
         {/* Student Join Session Area - Only for students */}
         {userRole === 'student' && (
@@ -515,7 +659,7 @@ function MusicClassroomResources() {
             </div>
           </div>
 
-          {/* Lesson List - UPDATED */}
+          {/* Lesson List */}
           <div style={{
             backgroundColor: 'rgba(255,255,255,0.15)',
             borderRadius: '8px',
