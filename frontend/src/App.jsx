@@ -9,6 +9,7 @@ import './App.css';
 
 // Import authentication-related components
 import AuthPage from './pages/AuthPage';
+import LandingPage from './pages/LandingPage'; // ✅ NEW: Landing page for commercial site
 import AdminDashboard from './pages/AdminDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
@@ -304,8 +305,20 @@ const AppContent = () => {
       )}
       
       <Routes>
-        {/* PUBLIC ROUTES */}
-        <Route path="/login" element={<AuthPage />} />
+        {/* ✅ NEW: Public landing page at root */}
+        <Route path="/" element={<LandingPage />} />
+        
+        {/* ✅ NEW: Login page is now separate from landing */}
+        <Route path="/login" element={
+          isAuthenticated ? (
+            user.role === 'teacher' ? <Navigate to="/teacher" replace /> :
+            user.role === 'admin' ? <Navigate to="/admin" replace /> :
+            user.role === 'student' ? <Navigate to="/student" replace /> :
+            <Navigate to="/" replace />
+          ) : (
+            <AuthPage />
+          )
+        } />
         
         {/* ✅ NEW: Admin dashboard - Also available in commercial mode */}
         <Route path="/admin/all-problems" element={<AdminAllProblems />} />
@@ -326,20 +339,6 @@ const AppContent = () => {
         
         {/* Presentation View Route - Available in commercial mode too */}
         <Route path="/presentation" element={<PresentationView />} />
-        
-        {/* DYNAMIC ROOT ROUTE */}
-        <Route path="/" element={
-          loading ? (
-            <div className="flex justify-center items-center h-screen"><div className="text-lg">Loading...</div></div>
-          ) : isAuthenticated ? (
-            user.role === 'teacher' ? <Navigate to="/teacher" replace /> :
-            user.role === 'admin' ? <Navigate to="/admin" replace /> :
-            user.role === 'student' ? <Navigate to="/student" replace /> :
-            <Navigate to="/login" replace />
-          ) : (
-            <AuthPage />
-          )
-        } />
 
         {/* LESSON ROUTES - Available to all authenticated users */}
         <Route path="/lessons/film-music-project/lesson1" element={
@@ -506,7 +505,7 @@ const AppContent = () => {
         } />
 
         {/* Fallback route */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </ClassProvider>
     
