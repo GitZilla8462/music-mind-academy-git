@@ -9,7 +9,7 @@ import './App.css';
 
 // Import authentication-related components
 import AuthPage from './pages/AuthPage';
-import LandingPage from './pages/LandingPage'; // ✅ NEW: Landing page for commercial site
+import LandingPage from './pages/LandingPage';
 import AdminDashboard from './pages/AdminDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
@@ -34,7 +34,7 @@ import TeacherSubmissionViewer from './components/dashboard/teacherdashboard/Tea
 import SimpleLessonPlaceholder from "./lessons/shared/components/LessonPlayer";
 import Lesson1 from './lessons/film-music-project/lesson1/Lesson1';
 import Lesson2 from './lessons/film-music-project/lesson2/Lesson2';
-import Lesson3 from './lessons/film-music-project/lesson3/Lesson3'; // ✅ ADDED
+import Lesson3 from './lessons/film-music-project/lesson3/Lesson3';
 import Lesson4 from './lessons/film-music-project/lesson4/Lesson4';
 import LessonPlanPDF from './lessons/film-music-project/lesson1/LessonPlanPDF';
 import LessonPlan2PDF from './lessons/film-music-project/lesson2/LessonPlan2PDF';
@@ -56,7 +56,7 @@ import CompositionViewer from './pages/CompositionViewer';
 // Import debug tool
 import FirebaseSessionInspector from './components/FirebaseSessionInspector';
 
-// ✅ NEW: Import error logger and admin dashboard
+// Import error logger and admin dashboard
 import ErrorLogger from './components/ErrorLogger';
 import AdminAllProblems from './pages/AdminAllProblems';
 
@@ -225,14 +225,14 @@ const AppContent = () => {
     };
   }, []);
 
-  // IF CLASSROOM MODE, SHOW ONLY CLASSROOM ROUTES
+  // IF CLASSROOM MODE (musicroomtools.org), SHOW ONLY CLASSROOM ROUTES
   if (isClassroomMode) {
     return (
       <SessionProvider>
         <Routes>
         <Route path="/" element={<MusicClassroomResources />} />
         
-        {/* ✅ NEW: Admin dashboard for monitoring all problems */}
+        {/* Admin dashboard for monitoring all problems */}
         <Route path="/admin/all-problems" element={<AdminAllProblems />} />
         
         {/* Debug tool for inspecting Firebase sessions */}
@@ -258,7 +258,7 @@ const AppContent = () => {
         {/* Allow access to lessons without authentication in classroom mode */}
         <Route path="/lessons/film-music-project/lesson1" element={<Lesson1 />} />
         <Route path="/lessons/film-music-project/lesson2" element={<Lesson2 />} />
-        <Route path="/lessons/film-music-project/lesson3" element={<Lesson3 />} /> {/* ✅ ADDED */}
+        <Route path="/lessons/film-music-project/lesson3" element={<Lesson3 />} />
         <Route path="/lessons/film-music-project/lesson4" element={<Lesson4 />} />
         <Route path="/lessons/film-music-1" element={<Lesson1 />} />
         <Route path="/lessons/film-music-2" element={<Lesson2 />} />
@@ -276,13 +276,13 @@ const AppContent = () => {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       
-      {/* ✅ NEW: Error logger - red button for students */}
+      {/* Error logger - red button for students */}
       <ErrorLogger />
       </SessionProvider>
     );
   }
 
-  // OTHERWISE, SHOW COMMERCIAL SITE (all your existing routes)
+  // COMMERCIAL SITE (musicmindacademy.com)
   return (
     <SessionProvider>
       <ClassProvider>
@@ -305,10 +305,10 @@ const AppContent = () => {
       )}
       
       <Routes>
-        {/* ✅ NEW: Public landing page at root */}
+        {/* Public landing page at root */}
         <Route path="/" element={<LandingPage />} />
         
-        {/* ✅ NEW: Login page is now separate from landing */}
+        {/* Login page - redirects to /teacher if already authenticated */}
         <Route path="/login" element={
           isAuthenticated ? (
             user.role === 'teacher' ? <Navigate to="/teacher" replace /> :
@@ -320,24 +320,24 @@ const AppContent = () => {
           )
         } />
         
-        {/* ✅ NEW: Admin dashboard - Also available in commercial mode */}
+        {/* Admin dashboard */}
         <Route path="/admin/all-problems" element={<AdminAllProblems />} />
         
         {/* Debug tool for inspecting Firebase sessions */}
         <Route path="/debug-session" element={<FirebaseSessionInspector />} />
         
-        {/* Lesson Plan PDF Viewer - Also available in commercial mode */}
+        {/* Lesson Plan PDF Viewer */}
         <Route path="/lesson-plan/lesson1" element={<LessonPlanPDF />} />
         <Route path="/lesson-plan/lesson2" element={<LessonPlan2PDF />} />
         <Route path="/lesson-plan/lesson3" element={<LessonPlan3PDF />} />
         
-        {/* Composition Viewer - Also available in commercial mode */}
+        {/* Composition Viewer */}
         <Route path="/view-composition/:shareCode" element={<CompositionViewer />} />
         
-        {/* Session Start Page - Available in commercial mode */}
+        {/* Session Start Page */}
         <Route path="/session-start" element={<SessionStartPage />} />
         
-        {/* Presentation View Route - Available in commercial mode too */}
+        {/* Presentation View Route */}
         <Route path="/presentation" element={<PresentationView />} />
 
         {/* LESSON ROUTES - Available to all authenticated users */}
@@ -357,7 +357,7 @@ const AppContent = () => {
           <ProtectedRoute>
             <Lesson3 />
           </ProtectedRoute>
-        } /> {/* ✅ ADDED */}
+        } />
         
         <Route path="/lessons/film-music-project/lesson4" element={
           <ProtectedRoute>
@@ -386,8 +386,22 @@ const AppContent = () => {
           </ProtectedRoute>
         } />
         
-        {/* Teacher Routes */}
+        {/* ✅ UPDATED: Teacher now goes to MusicClassroomResources */}
         <Route path="/teacher" element={
+          <ProtectedRoute requiredRole="teacher">
+            <MusicClassroomResources />
+          </ProtectedRoute>
+        } />
+        
+        {/* Music Loops in Media Hub - for teachers */}
+        <Route path="/music-loops-in-media" element={
+          <ProtectedRoute requiredRole="teacher">
+            <MusicLoopsInMediaHub />
+          </ProtectedRoute>
+        } />
+        
+        {/* Keep old teacher dashboard at /teacher/dashboard for future use */}
+        <Route path="/teacher/dashboard" element={
           <ProtectedRoute requiredRole="teacher">
             <TeacherDashboard showToast={showToast} />
           </ProtectedRoute>
@@ -509,7 +523,7 @@ const AppContent = () => {
       </Routes>
     </ClassProvider>
     
-    {/* ✅ NEW: Error logger - Also in commercial mode */}
+    {/* Error logger */}
     <ErrorLogger />
     </SessionProvider>
   );

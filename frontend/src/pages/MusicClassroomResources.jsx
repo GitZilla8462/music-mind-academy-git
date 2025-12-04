@@ -1,15 +1,21 @@
 // File: /pages/MusicClassroomResources.jsx
-// UPDATED VERSION - Matches new lesson structure
-// ✅ Epic Wildlife as Lesson 3 (available)
-// ✅ Video Game Montage as Lesson 4 (coming soon)
-// ✅ Shows saved compositions with video thumbnail and composition details
+// UPDATED VERSION - Skips built-in login if user is already authenticated via Firebase
+// ✅ Works on both musicroomtools.org (edu) and musicmindacademy.com (commercial)
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession, getSessionData } from '../firebase/config';
+import { useAuth } from '../context/AuthContext';
 
 function MusicClassroomResources() {
   const navigate = useNavigate();
+  
+  // ✅ NEW: Get Firebase auth state
+  const { isAuthenticated: firebaseAuthenticated, user: firebaseUser, logout: firebaseLogout } = useAuth();
+  
+  // Check if we're in commercial mode (musicmindacademy.com)
+  const isCommercialMode = import.meta.env.VITE_SITE_MODE !== 'edu';
+  
   const [loggedIn, setLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -32,16 +38,30 @@ function MusicClassroomResources() {
   const [isJoiningSession, setIsJoiningSession] = useState(false);
   const [sessionError, setSessionError] = useState('');
   
-  // Get user role
-  const userRole = localStorage.getItem('classroom-user-role');
+  // Get user role - check Firebase first, then localStorage
+  const userRole = firebaseUser?.role || localStorage.getItem('classroom-user-role');
 
-  // Check if already logged in on mount
+  // ✅ NEW: If authenticated via Firebase (commercial mode), skip local login
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('classroom-logged-in');
-    if (isLoggedIn === 'true') {
+    if (isCommercialMode && firebaseAuthenticated) {
       setLoggedIn(true);
+      // Set localStorage for compatibility with rest of the app
+      localStorage.setItem('classroom-logged-in', 'true');
+      localStorage.setItem('classroom-user-role', firebaseUser?.role || 'teacher');
+      localStorage.setItem('classroom-username', firebaseUser?.name || firebaseUser?.email || 'Teacher');
+      localStorage.setItem('classroom-user-id', firebaseUser?.uid || 'firebase-user');
     }
-  }, []);
+  }, [isCommercialMode, firebaseAuthenticated, firebaseUser]);
+
+  // Check if already logged in on mount (for edu mode)
+  useEffect(() => {
+    if (!isCommercialMode) {
+      const isLoggedIn = localStorage.getItem('classroom-logged-in');
+      if (isLoggedIn === 'true') {
+        setLoggedIn(true);
+      }
+    }
+  }, [isCommercialMode]);
 
   const handleLogin = () => {
     if (username === 'tuba343' && password === 'music2025') {
@@ -62,6 +82,14 @@ function MusicClassroomResources() {
   };
 
   const handleLogout = () => {
+    // ✅ NEW: If in commercial mode, use Firebase logout and redirect to landing
+    if (isCommercialMode && firebaseLogout) {
+      firebaseLogout();
+      navigate('/');
+      return;
+    }
+    
+    // Original logout for edu mode
     setLoggedIn(false);
     setUsername('');
     setPassword('');
@@ -189,7 +217,7 @@ function MusicClassroomResources() {
     }
   }, [loggedIn]);
 
-  // LOGIN PAGE
+  // LOGIN PAGE - Only shown in edu mode when not logged in
   if (!loggedIn) {
     return (
       <div style={{ 
@@ -305,7 +333,8 @@ function MusicClassroomResources() {
           fontWeight: 'bold',
           color: '#1a202c'
         }}>
-          Music Room Tools
+          {/* ✅ Show different title based on mode */}
+          {isCommercialMode ? 'Music Mind Academy' : 'Music Room Tools'}
         </h1>
         <button 
           onClick={handleLogout}
@@ -330,7 +359,7 @@ function MusicClassroomResources() {
         margin: '0 auto'
       }}>
         
-        {/* Student Join Session Area */}
+        {/* Student Join Session Area - Only for students */}
         {userRole === 'student' && (
           <div style={{
             backgroundColor: 'white',
