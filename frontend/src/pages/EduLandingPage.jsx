@@ -78,7 +78,7 @@ const EduLandingPage = () => {
             onClick={goToLogin}
             className="btn-primary px-8 py-4 rounded-full font-semibold text-lg text-white"
           >
-            Try It Free
+            Get Started
           </button>
           
           <p className="text-slate-500 text-sm mt-4">
@@ -97,9 +97,9 @@ const EduLandingPage = () => {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white rounded-xl p-6 card-shadow text-center">
               <div className="text-4xl mb-4">🎬</div>
-              <h3 className="font-semibold text-lg mb-2 text-slate-800">Score Films</h3>
+              <h3 className="font-semibold text-lg mb-2 text-slate-800">Add Music to Video</h3>
               <p className="text-slate-600 text-sm">
-                Add music to video clips—sports highlights, city scenes, wildlife documentaries.
+                Drag and drop music loops onto video clips—sports highlights, city scenes, and more.
               </p>
             </div>
             
@@ -136,7 +136,7 @@ const EduLandingPage = () => {
             {[
               { emoji: '🏀', title: 'Sports Highlight Reel', desc: 'Intro to the DAW', available: true },
               { emoji: '🏙️', title: 'City Soundscapes', desc: 'Texture & Layering', available: true },
-              { emoji: '🌍', title: 'Epic Wildlife', desc: 'Sectional Form', available: true },
+              { emoji: '🌍', title: 'Epic Wildlife', desc: 'Sectional Form', available: false },
               { emoji: '🎮', title: 'Video Game Montage', desc: 'Coming Soon', available: false },
             ].map((lesson, i) => (
               <div 
