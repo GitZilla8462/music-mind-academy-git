@@ -274,13 +274,13 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
         <p className="text-gray-400 text-sm">Follow the steps below to start your lesson</p>
       </div>
 
-      {/* ==================== STEP 1: START LESSON ==================== */}
+      {/* ==================== STEP 1: OPEN PRESENTATION ==================== */}
       <div className="bg-gradient-to-r from-green-900/50 to-green-800/50 rounded-lg p-5 mb-4 border-2 border-green-600">
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-3 mb-2">
           <div className="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg">
             1
           </div>
-          <h3 className="text-lg font-bold text-green-400">Start Lesson</h3>
+          <h3 className="text-xl font-bold text-white">Open the Slide Presentation</h3>
           {presentationOpened && (
             <span className="ml-auto bg-green-600 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
               <Check size={12} /> Opened
@@ -288,8 +288,8 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
           )}
         </div>
         
-        <p className="text-gray-300 text-sm mb-4 ml-11">
-          Opens the presentation view for your projector or smartboard
+        <p className="text-gray-400 text-sm mb-4 ml-11">
+          Opens the presentation for your whiteboard or projector
         </p>
         
         <button
@@ -297,26 +297,26 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
           className="w-full bg-green-600 hover:bg-green-500 text-white px-6 py-4 rounded-lg font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg hover:shadow-green-500/25"
         >
           <Monitor size={24} />
-          Start Lesson
+          Open Presentation
           <ExternalLink size={18} className="opacity-70" />
         </button>
       </div>
 
       {/* ==================== STEP 2: STUDENTS JOIN ==================== */}
       <div className="bg-gradient-to-r from-blue-900/50 to-blue-800/50 rounded-lg p-5 mb-4 border-2 border-blue-600">
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-3 mb-2">
           <div className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg">
             2
           </div>
-          <h3 className="text-lg font-bold text-blue-400">Students Join</h3>
+          <h3 className="text-xl font-bold text-white">Students Join</h3>
           <span className="ml-auto bg-blue-600/50 text-blue-200 text-sm px-3 py-1 rounded-full flex items-center gap-2">
             <Users size={14} />
             {students.length} joined
           </span>
         </div>
 
-        <p className="text-gray-300 text-sm mb-4 ml-11">
-          Tell students to go to the website and enter the join code
+        <p className="text-gray-400 text-sm mb-4 ml-11">
+          Students look at the board and type the website &amp; code into their Chromebook
         </p>
 
         {/* Join URL */}
@@ -390,17 +390,17 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
         )}
       </div>
 
-      {/* ==================== STEP 3: CONTROL LESSON ==================== */}
+      {/* ==================== STEP 3: START THE LESSON ==================== */}
       <div className="bg-gradient-to-r from-purple-900/50 to-purple-800/50 rounded-lg p-5 mb-4 border-2 border-purple-600">
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-3 mb-2">
           <div className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg">
             3
           </div>
-          <h3 className="text-lg font-bold text-purple-400">Control Lesson</h3>
+          <h3 className="text-xl font-bold text-white">Start the Lesson</h3>
         </div>
 
-        <p className="text-gray-300 text-sm mb-4 ml-11">
-          Use the buttons below to guide students through each activity
+        <p className="text-gray-400 text-sm mb-4 ml-11">
+          Click "Introduction" to begin, then advance through each section
         </p>
 
         {/* Current Stage Display */}

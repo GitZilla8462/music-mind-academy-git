@@ -1,18 +1,24 @@
 // File: /pages/JoinWithCode.jsx
 // ULTRA-COMPACT JOIN PAGE - Optimized for 1366x768 Chromebook
 // ✅ Title, join code, 2 saved items all visible without scrolling
+// ✅ Auto-join for preview mode (when preview=true in URL)
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getSessionData } from '../firebase/config';
 
 function JoinWithCode() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [sessionCode, setSessionCode] = useState('');
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState('');
   const [studentId, setStudentId] = useState('');
   const [savedCompositions, setSavedCompositions] = useState([]);
+
+  // Check for preview mode (used by teacher's presentation view)
+  const isPreviewMode = searchParams.get('preview') === 'true';
+  const urlCode = searchParams.get('code');
 
   useEffect(() => {
     let id = localStorage.getItem('anonymous-student-id');
@@ -23,6 +29,14 @@ function JoinWithCode() {
     setStudentId(id);
     loadSavedCompositions(id);
   }, []);
+
+  // Auto-join for preview mode
+  useEffect(() => {
+    if (isPreviewMode && urlCode && urlCode.length === 4) {
+      console.log('🎬 Preview mode detected, auto-joining session:', urlCode);
+      handleAutoJoin(urlCode);
+    }
+  }, [isPreviewMode, urlCode]);
 
   const loadSavedCompositions = (id) => {
     const compositions = [];
@@ -50,6 +64,26 @@ function JoinWithCode() {
     }
 
     setSavedCompositions(compositions);
+  };
+
+  // Auto-join for preview mode (no user interaction needed)
+  const handleAutoJoin = async (code) => {
+    try {
+      const sessionData = await getSessionData(code);
+      
+      if (!sessionData) {
+        console.error('❌ Preview mode: Session not found');
+        setError('Session not found');
+        return;
+      }
+
+      const lessonRoute = sessionData.lessonRoute || '/lessons/film-music-project/lesson1';
+      // Add preview=true so the lesson page knows this is a preview
+      window.location.href = `${lessonRoute}?session=${code}&role=student&preview=true`;
+    } catch (error) {
+      console.error('❌ Preview mode error:', error);
+      setError('Failed to load preview');
+    }
   };
 
   const handleJoinSession = async () => {
@@ -94,6 +128,47 @@ function JoinWithCode() {
       navigate('/lessons/film-music-project/lesson1?view=saved');
     }
   };
+
+  // Show loading screen during preview auto-join
+  if (isPreviewMode && urlCode) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#1a202c',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white'
+      }}>
+        <div style={{ fontSize: '48px', marginBottom: '20px', animation: 'pulse 1.5s infinite' }}>🎵</div>
+        <div style={{ fontSize: '24px', fontWeight: '600', marginBottom: '10px' }}>
+          Loading Student View...
+        </div>
+        <div style={{ fontSize: '16px', color: '#a0aec0' }}>
+          Session: {urlCode}
+        </div>
+        {error && (
+          <div style={{
+            marginTop: '20px',
+            padding: '12px 24px',
+            backgroundColor: '#fc8181',
+            color: '#742a2a',
+            borderRadius: '8px',
+            fontSize: '14px'
+          }}>
+            {error}
+          </div>
+        )}
+        <style>{`
+          @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
