@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
-import { useAutoSave, AutoSaveIndicator } from '../../../hooks/useAutoSave.jsx';
+import { useAutoSave } from '../../../hooks/useAutoSave.jsx';
 import SportsReflectionModal from './two-stars-and-a-wish/SportsReflectionModal';
 import NameThatLoopActivity from './layer-detective/NameThatLoopActivity';
 import { useSession } from '../../../context/SessionContext';
@@ -114,8 +114,13 @@ const SportsCompositionActivity = ({
   const [videoDuration, setVideoDuration] = useState(null);
   const [isLoadingVideo, setIsLoadingVideo] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [saveMessage, setSaveMessage] = useState(null);
   const timerRef = useRef(null);
   const autoAdvanceCalledRef = useRef(false);
+  const isSavingRef = useRef(false);
+  
+  // ✅ FIXED: Use ref instead of sessionStorage so it resets on page refresh
+  const hasLoadedRef = useRef(false);
   
   // Initialize student ID
   useEffect(() => {
@@ -240,34 +245,83 @@ const SportsCompositionActivity = ({
   };
   
   // Use single key for all videos - composition transfers between videos
-  const { lastSaved, isSaving, hasSavedWork, loadSavedWork } = useAutoSave(
+  const { hasSavedWork, loadSavedWork } = useAutoSave(
     studentId,
     'sports-composition',  // ✅ Single key - same loops for all videos
     compositionData,
     5000
   );
   
-  // Load saved work on mount ONLY (not when video changes)
+  // ✅ SILENT AUTO-SAVE - Saves to same location as manual save every 30 seconds
   useEffect(() => {
-    if (!studentId || viewMode || !selectedVideo) return;
+    if (!studentId || !selectedVideo || viewMode) return;
     
-    // Only load once on initial mount
-    const hasLoaded = sessionStorage.getItem('sports-composition-loaded');
-    if (hasLoaded) return;
+    const autoSaveInterval = setInterval(() => {
+      if (placedLoops.length > 0) {
+        handleManualSave(true); // silent save
+      }
+    }, 30000); // Every 30 seconds
+    
+    return () => clearInterval(autoSaveInterval);
+  }, [studentId, selectedVideo, placedLoops, viewMode]);
+  
+  // Load saved work on mount ONLY - includes manual saves
+  // ✅ FIXED: Use ref instead of sessionStorage so refresh reloads saved work
+  useEffect(() => {
+    if (!studentId || !selectedVideo) return;
+    
+    // Skip if already loaded this session (ref resets on refresh, allowing reload)
+    if (hasLoadedRef.current) {
+      console.log('⏭️ Already loaded this session, skipping');
+      return;
+    }
     
     console.log('🎬 Initial load - checking for saved work');
     
-    if (hasSavedWork) {
-      const saved = loadSavedWork();
-      if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
-        setPlacedLoops(saved.placedLoops || []);
-        setVideoDuration(saved.videoDuration || selectedVideo.duration);
-        console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
+    // First try to load from manual save (has video metadata)
+    const manualSaveKey = `sports-composition-${studentId}`;
+    const manualSave = localStorage.getItem(manualSaveKey);
+    
+    if (manualSave) {
+      try {
+        const data = JSON.parse(manualSave);
+        console.log('📂 Found manual save:', data);
+        
+        if (data.composition && data.composition.placedLoops && data.composition.placedLoops.length > 0) {
+          // Make sure loops match the current video
+          if (data.composition.videoId === selectedVideo.id) {
+            setPlacedLoops(data.composition.placedLoops);
+            setVideoDuration(data.composition.videoDuration || selectedVideo.duration);
+            console.log('✅ Loaded from manual save:', data.composition.placedLoops.length, 'loops for', selectedVideo.title);
+            hasLoadedRef.current = true;
+            return;
+          } else {
+            console.log('⚠️ Saved video mismatch - saved:', data.composition.videoId, 'current:', selectedVideo.id);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading manual save:', error);
       }
     }
     
-    sessionStorage.setItem('sports-composition-loaded', 'true');
-  }, [studentId, hasSavedWork, viewMode, loadSavedWork, selectedVideo]);
+    // Fallback to auto-save
+    if (hasSavedWork) {
+      const saved = loadSavedWork();
+      if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
+        // Check if video matches
+        if (!saved.videoId || saved.videoId === selectedVideo.id) {
+          setPlacedLoops(saved.placedLoops || []);
+          setVideoDuration(saved.videoDuration || selectedVideo.duration);
+          console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
+          hasLoadedRef.current = true;
+          return;
+        }
+      }
+    }
+    
+    console.log('ℹ️ No saved work found for this video');
+    hasLoadedRef.current = true;
+  }, [studentId, hasSavedWork, loadSavedWork, selectedVideo]);
   
   // REFLECTION DETECTION
   useEffect(() => {
@@ -294,6 +348,62 @@ const SportsCompositionActivity = ({
     console.log('👀 Opening sports reflection in view mode');
     setViewingReflection(true);
     setShowReflection(true);
+  };
+  
+  // ✅ MANUAL SAVE HANDLER - Saves to localStorage for viewing on join page
+  const handleManualSave = (silent = false) => {
+    // Prevent duplicate saves
+    if (isSavingRef.current) {
+      console.log('⏸️ Save already in progress, skipping duplicate');
+      return;
+    }
+    
+    if (!studentId || !selectedVideo) {
+      if (!silent) {
+        setSaveMessage({ type: 'error', text: '❌ Cannot save: Missing student ID or video selection' });
+        setTimeout(() => setSaveMessage(null), 3000);
+      }
+      return;
+    }
+    
+    if (placedLoops.length === 0) {
+      if (!silent) {
+        setSaveMessage({ type: 'error', text: '❌ Cannot save: No loops placed yet' });
+        setTimeout(() => setSaveMessage(null), 3000);
+      }
+      return;
+    }
+    
+    // Set saving flag
+    isSavingRef.current = true;
+    
+    const saveKey = `sports-composition-${studentId}`;
+    const saveData = {
+      composition: {
+        placedLoops,
+        videoDuration,
+        videoId: selectedVideo.id,
+        videoTitle: selectedVideo.title,
+        videoPath: selectedVideo.videoPath,
+        videoEmoji: selectedVideo.emoji,
+        timestamp: Date.now()
+      },
+      lastSaved: new Date().toISOString()
+    };
+    
+    localStorage.setItem(saveKey, JSON.stringify(saveData));
+    console.log('💾 Manual save complete:', saveKey, saveData);
+    
+    if (!silent) {
+      console.log('🔔 About to show toast message, silent =', silent);
+      setSaveMessage({ type: 'success', text: '✅ Composition saved! View it anytime from the Join page.' });
+      setTimeout(() => setSaveMessage(null), 4000);
+    }
+    
+    // Reset saving flag after a short delay
+    setTimeout(() => {
+      isSavingRef.current = false;
+    }, 500);
   };
   
   // TIMER (self-guided mode only)
@@ -390,16 +500,43 @@ const SportsCompositionActivity = ({
   };
   
   // COMPOSITION EVENT HANDLERS
-  const handleLoopPlaced = (loop, trackIndex, startTime) => {
-    console.log(`🎵 Loop placed: ${loop.name} on track ${trackIndex} at ${startTime}s`);
+  // COMPOSITION EVENT HANDLERS - ✅ FIXED to update state
+  const handleLoopPlaced = (loopData, trackIndex, startTime) => {
+    console.log(`🎵 Loop placed: ${loopData.name} on track ${trackIndex} at ${startTime}s`);
+    
+    // Create new loop object
+    const newLoop = {
+      id: `${loopData.id}-${Date.now()}`,
+      originalId: loopData.id,
+      name: loopData.name,
+      file: loopData.file,
+      duration: loopData.duration,
+      category: loopData.category,
+      mood: loopData.mood,
+      color: loopData.color,
+      trackIndex: trackIndex,
+      startTime: startTime,
+      endTime: startTime + loopData.duration,
+      volume: 1.0
+    };
+    
+    // Update state
+    setPlacedLoops(prev => [...prev, newLoop]);
+    console.log(`✅ Added "${loopData.name}" to state - new total: ${placedLoops.length + 1}`);
   };
   
   const handleLoopDeleted = (loopId) => {
     console.log(`🗑️ Loop deleted: ${loopId}`);
+    setPlacedLoops(prev => prev.filter(loop => loop.id !== loopId));
+    console.log(`✅ Removed loop from state - new total: ${placedLoops.length - 1}`);
   };
   
   const handleLoopUpdated = (loopId, updates) => {
     console.log(`✏️ Loop updated: ${loopId}`, updates);
+    setPlacedLoops(prev => prev.map(loop =>
+      loop.id === loopId ? { ...loop, ...updates } : loop
+    ));
+    console.log(`✅ Updated loop in state`);
   };
   
   // VIDEO PREVIEW FULLSCREEN
@@ -472,6 +609,28 @@ const SportsCompositionActivity = ({
   // MAIN ACTIVITY
   return (
     <div className="h-full flex flex-col bg-gray-900 relative">{/* Added relative for overlay positioning */}
+      {/* Save Message Toast */}
+      {saveMessage && console.log('🎨 RENDERING TOAST:', saveMessage.text)}
+      {saveMessage && (
+        <div 
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] px-6 py-3 rounded-lg shadow-xl font-bold text-white transition-all duration-300 ${
+            saveMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+          }`}
+          style={{ 
+            animation: 'fadeIn 0.3s ease-in'
+          }}
+        >
+          {saveMessage.text}
+        </div>
+      )}
+      
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translate(-50%, -20px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
+        }
+      `}</style>
+      
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">
         <div className="px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -486,6 +645,16 @@ const SportsCompositionActivity = ({
           </div>
           
           <div className="flex items-center gap-4">
+            {/* ✅ SAVE BUTTON - Top Right */}
+            {studentId && selectedVideo && placedLoops.length > 0 && (
+              <button
+                onClick={() => handleManualSave()}
+                className="px-4 py-1.5 text-sm rounded bg-green-600 hover:bg-green-700 font-bold transition-colors"
+              >
+                💾 Save
+              </button>
+            )}
+            
             {reflectionCompleted && !showReflection && (
               <button
                 onClick={handleViewReflection}
@@ -493,10 +662,6 @@ const SportsCompositionActivity = ({
               >
                 ⭐ View Reflection & Composition
               </button>
-            )}
-            
-            {studentId && !viewMode && (
-              <AutoSaveIndicator lastSaved={lastSaved} isSaving={isSaving} />
             )}
             
             <div className="text-xs text-gray-400">

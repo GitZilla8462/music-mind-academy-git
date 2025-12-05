@@ -3,6 +3,7 @@
 // ============================================================================
 
 import { useCallback, useRef } from 'react';
+import * as Tone from 'tone';
 
 export const usePlaybackHandlers = ({
   lockFeatures,
@@ -41,6 +42,13 @@ export const usePlaybackHandlers = ({
     
     try {
       console.log(`Starting playback with ${placedLoops.length} loops`);
+      
+      // CRITICAL: Resume AudioContext if suspended (browser autoplay policy)
+      if (Tone.context.state !== 'running') {
+        console.log('🔊 AudioContext suspended - resuming...');
+        await Tone.start();
+        console.log('✅ AudioContext resumed');
+      }
       
       // Check if track states are initialized
       const hasTrackStates = Object.keys(trackStates).length > 0;

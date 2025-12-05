@@ -8,7 +8,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
-import { useAutoSave, AutoSaveIndicator } from '../../../hooks/useAutoSave.jsx';
+import { useAutoSave } from '../../../hooks/useAutoSave.jsx';
 import CityReflectionModal from './two-stars-and-a-wish/CityReflectionModal';
 import LoopLab from './loop-lab/LoopLabActivity';
 import { useSession } from '../../../context/SessionContext';
@@ -238,12 +238,25 @@ const CityCompositionActivity = ({
     timestamp: Date.now()
   };
   
-  const { lastSaved, isSaving, hasSavedWork, loadSavedWork } = useAutoSave(
+  const { hasSavedWork, loadSavedWork } = useAutoSave(
     studentId,
     'city-composition',
     compositionData,
     5000
   );
+  
+  // ✅ SILENT AUTO-SAVE - Saves to same location as manual save every 30 seconds
+  useEffect(() => {
+    if (!studentId || !selectedVideo || viewMode) return;
+    
+    const autoSaveInterval = setInterval(() => {
+      if (placedLoops.length > 0) {
+        handleManualSave(true); // silent save
+      }
+    }, 30000); // Every 30 seconds
+    
+    return () => clearInterval(autoSaveInterval);
+  }, [studentId, selectedVideo, placedLoops, viewMode]);
   
   // Load saved work on mount ONLY - includes manual saves
   // ✅ FIXED: Use ref instead of sessionStorage so refresh reloads saved work
@@ -355,8 +368,9 @@ const CityCompositionActivity = ({
     console.log('💾 Manual save complete:', saveKey, saveData);
     
     if (!silent) {
-      setSaveMessage({ type: 'success', text: '✅ Composition saved!' });
-      setTimeout(() => setSaveMessage(null), 3000);
+      console.log('🔔 About to show toast message, silent =', silent);
+      setSaveMessage({ type: 'success', text: '✅ Composition saved! View it anytime from the Join page.' });
+      setTimeout(() => setSaveMessage(null), 4000);
     }
     
     // Reset saving flag after a short delay
@@ -546,9 +560,10 @@ const CityCompositionActivity = ({
   return (
     <div className="h-full flex flex-col bg-gray-900 relative">
       {/* Save Message Toast */}
+      {saveMessage && console.log('🎨 RENDERING TOAST:', saveMessage.text)}
       {saveMessage && (
         <div 
-          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-xl font-bold text-white transition-all duration-300 ${
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] px-6 py-3 rounded-lg shadow-xl font-bold text-white transition-all duration-300 ${
             saveMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'
           }`}
           style={{ 
@@ -583,7 +598,7 @@ const CityCompositionActivity = ({
             {/* ✅ SAVE BUTTON - Top Right - Now works in session mode and view mode */}
             {studentId && selectedVideo && placedLoops.length > 0 && (
               <button
-                onClick={handleManualSave}
+                onClick={() => handleManualSave()}
                 className="px-4 py-1.5 text-sm rounded bg-green-600 hover:bg-green-700 font-bold transition-colors"
               >
                 💾 Save
