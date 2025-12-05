@@ -223,7 +223,10 @@ export const useAudioEngine = (videoDuration = 60) => {
         }
         
         // Calculate repeats based on the PLACED duration (which may be trimmed)
-        const numRepeats = Math.ceil(placedLoopDuration / originalLoopDuration);
+        // FIXED: Add tolerance to prevent floating point precision causing extra repeats
+        // e.g., 17.53 / 17.52815 = 1.000105 → Math.ceil would give 2 (wrong!)
+        const rawRepeats = placedLoopDuration / originalLoopDuration;
+        const numRepeats = (rawRepeats % 1) < 0.02 ? Math.max(1, Math.floor(rawRepeats)) : Math.ceil(rawRepeats);
         
         console.log(`  📍 Scheduling ${loop.name}:`);
         console.log(`     Video times: ${loopStartTime.toFixed(2)}s → ${loopEndTime.toFixed(2)}s`);
