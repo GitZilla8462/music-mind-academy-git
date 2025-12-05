@@ -670,7 +670,7 @@ const DAWTutorialActivity = ({
   }
 
   return (
-    <div className="h-screen w-full flex flex-col bg-gray-900 relative">
+    <div className="h-screen w-full flex flex-col bg-gray-900 relative" style={{ zoom: 0.75 }}>
       {/* Loading Overlay */}
       {!isDAWReady && (
         <div className="absolute inset-0 bg-gray-900 flex items-center justify-center z-50">

@@ -1,6 +1,7 @@
 // File: SportsCompositionActivity.jsx
 // Sports Highlight Reel Composition - Optimized for Chromebook screens (1366x768)
 // FIXED: Removed hard-coded durations - now detects actual video lengths!
+// UPDATED: Uses new studentWorkStorage system for Join page integration
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +11,7 @@ import SportsReflectionModal from './two-stars-and-a-wish/SportsReflectionModal'
 import NameThatLoopActivity from './layer-detective/NameThatLoopActivity';
 import { useSession } from '../../../context/SessionContext';
 import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson2/lesson2StorageUtils';
+import { saveStudentWork, loadStudentWork, getStudentId } from '../../../utils/studentWorkStorage';
 
 const SPORTS_COMPOSITION_DEADLINE = 10 * 60 * 1000; // 10 minutes
 
@@ -21,7 +23,6 @@ const SPORTS_VIDEOS = [
     title: 'Soccer Highlights',
     thumbnail: '/lessons/film-music-project/lesson2/soccer-thumb.png',
     videoPath: '/lessons/film-music-project/lesson2/SoccerHighlightReel.mp4',
-    // REMOVED: duration property - will be detected dynamically
     description: 'Exciting soccer goals, passes, and game action',
     emoji: '⚽'
   },
@@ -30,7 +31,6 @@ const SPORTS_VIDEOS = [
     title: 'Basketball Highlights',
     thumbnail: '/lessons/film-music-project/lesson2/basketball-thumb.png',
     videoPath: '/lessons/film-music-project/lesson2/BasketballHighlightReel.mp4',
-    // REMOVED: duration property - will be detected dynamically
     description: 'High-energy basketball action with dunks and fast breaks',
     emoji: '🏀'
   },
@@ -39,7 +39,6 @@ const SPORTS_VIDEOS = [
     title: 'Skateboarding Tricks',
     thumbnail: '/lessons/film-music-project/lesson2/skateboard-thumb.png',
     videoPath: '/lessons/film-music-project/lesson2/SkateboardHighlighReel.mp4',
-    // REMOVED: duration property - will be detected dynamically
     description: 'Street skateboarding with technical tricks and stunts',
     emoji: '🛹'
   }
@@ -72,6 +71,14 @@ const detectVideoDuration = async (videoPath) => {
     
     video.src = videoPath;
   });
+};
+
+// Helper to format duration for display
+const formatDuration = (seconds) => {
+  if (!seconds) return '0:00';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
 
@@ -122,13 +129,9 @@ const SportsCompositionActivity = ({
   // ✅ FIXED: Use ref instead of sessionStorage so it resets on page refresh
   const hasLoadedRef = useRef(false);
   
-  // Initialize student ID
+  // Initialize student ID using the new utility
   useEffect(() => {
-    let id = localStorage.getItem('anonymous-student-id');
-    if (!id) {
-      id = `Student-${Math.floor(100000 + Math.random() * 900000)}`;
-      localStorage.setItem('anonymous-student-id', id);
-    }
+    const id = getStudentId();
     setStudentId(id);
     console.log('🏀 Student ID:', id);
   }, []);
@@ -147,7 +150,6 @@ const SportsCompositionActivity = ({
           durations[video.id] = duration;
         } catch (error) {
           console.error(`❌ Failed to detect duration for ${video.id}:`, error);
-          // Don't set a fallback - let it stay undefined so we know it failed
         }
       }
       
@@ -188,13 +190,10 @@ const SportsCompositionActivity = ({
       viewingReflection
     });
     
-    // Show reflection when teacher advances to reflection stage
-    // Only show if not already showing (prevents infinite loop)
     if (isReflectionStage && !showReflection && !viewingReflection && studentId) {
       console.log('✅ Showing reflection modal');
       setShowReflection(true);
       
-      // If already completed, set viewing mode
       if (reflectionCompleted) {
         setViewingReflection(true);
       }
@@ -211,7 +210,6 @@ const SportsCompositionActivity = ({
       console.log('🎬 Found video template:', videoTemplate);
       
       if (videoTemplate) {
-        // Wait for duration detection if not available yet
         if (videoDurations[videoTemplate.id]) {
           const video = {
             ...videoTemplate,
@@ -234,7 +232,7 @@ const SportsCompositionActivity = ({
       console.log('ℹ️ No saved video selection found');
       setIsLoadingVideo(false);
     }
-  }, [videoDurations]); // Re-run when durations are detected
+  }, [videoDurations]);
   
   // AUTO-SAVE - Single composition that works with any video
   const compositionData = {
@@ -247,7 +245,7 @@ const SportsCompositionActivity = ({
   // Use single key for all videos - composition transfers between videos
   const { hasSavedWork, loadSavedWork } = useAutoSave(
     studentId,
-    'sports-composition',  // ✅ Single key - same loops for all videos
+    'sports-composition',
     compositionData,
     5000
   );
@@ -260,17 +258,15 @@ const SportsCompositionActivity = ({
       if (placedLoops.length > 0) {
         handleManualSave(true); // silent save
       }
-    }, 30000); // Every 30 seconds
+    }, 30000);
     
     return () => clearInterval(autoSaveInterval);
   }, [studentId, selectedVideo, placedLoops, viewMode]);
   
-  // Load saved work on mount ONLY - includes manual saves
-  // ✅ FIXED: Use ref instead of sessionStorage so refresh reloads saved work
+  // Load saved work on mount - NOW USES NEW SYSTEM
   useEffect(() => {
     if (!studentId || !selectedVideo) return;
     
-    // Skip if already loaded this session (ref resets on refresh, allowing reload)
     if (hasLoadedRef.current) {
       console.log('⏭️ Already loaded this session, skipping');
       return;
@@ -278,29 +274,45 @@ const SportsCompositionActivity = ({
     
     console.log('🎬 Initial load - checking for saved work');
     
-    // First try to load from manual save (has video metadata)
-    const manualSaveKey = `sports-composition-${studentId}`;
-    const manualSave = localStorage.getItem(manualSaveKey);
+    // Try to load from new system first
+    const savedWork = loadStudentWork('sports-composition');
     
-    if (manualSave) {
+    if (savedWork && savedWork.data) {
+      console.log('📂 Found saved work (new system):', savedWork);
+      
+      if (savedWork.data.placedLoops && savedWork.data.placedLoops.length > 0) {
+        if (savedWork.data.videoId === selectedVideo.id) {
+          setPlacedLoops(savedWork.data.placedLoops);
+          setVideoDuration(savedWork.data.videoDuration || selectedVideo.duration);
+          console.log('✅ Loaded from new system:', savedWork.data.placedLoops.length, 'loops for', selectedVideo.title);
+          hasLoadedRef.current = true;
+          return;
+        } else {
+          console.log('⚠️ Saved video mismatch - saved:', savedWork.data.videoId, 'current:', selectedVideo.id);
+        }
+      }
+    }
+    
+    // Fallback: try old format for backwards compatibility
+    const oldSaveKey = `sports-composition-${studentId}`;
+    const oldSave = localStorage.getItem(oldSaveKey);
+    
+    if (oldSave) {
       try {
-        const data = JSON.parse(manualSave);
-        console.log('📂 Found manual save:', data);
+        const data = JSON.parse(oldSave);
+        console.log('📂 Found old format save:', data);
         
         if (data.composition && data.composition.placedLoops && data.composition.placedLoops.length > 0) {
-          // Make sure loops match the current video
           if (data.composition.videoId === selectedVideo.id) {
             setPlacedLoops(data.composition.placedLoops);
             setVideoDuration(data.composition.videoDuration || selectedVideo.duration);
-            console.log('✅ Loaded from manual save:', data.composition.placedLoops.length, 'loops for', selectedVideo.title);
+            console.log('✅ Loaded from old format:', data.composition.placedLoops.length, 'loops');
             hasLoadedRef.current = true;
             return;
-          } else {
-            console.log('⚠️ Saved video mismatch - saved:', data.composition.videoId, 'current:', selectedVideo.id);
           }
         }
       } catch (error) {
-        console.error('Error loading manual save:', error);
+        console.error('Error loading old format save:', error);
       }
     }
     
@@ -308,7 +320,6 @@ const SportsCompositionActivity = ({
     if (hasSavedWork) {
       const saved = loadSavedWork();
       if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
-        // Check if video matches
         if (!saved.videoId || saved.videoId === selectedVideo.id) {
           setPlacedLoops(saved.placedLoops || []);
           setVideoDuration(saved.videoDuration || selectedVideo.duration);
@@ -350,9 +361,8 @@ const SportsCompositionActivity = ({
     setShowReflection(true);
   };
   
-  // ✅ MANUAL SAVE HANDLER - Saves to localStorage for viewing on join page
+  // ✅ MANUAL SAVE HANDLER - NOW USES NEW SYSTEM
   const handleManualSave = (silent = false) => {
-    // Prevent duplicate saves
     if (isSavingRef.current) {
       console.log('⏸️ Save already in progress, skipping duplicate');
       return;
@@ -374,12 +384,16 @@ const SportsCompositionActivity = ({
       return;
     }
     
-    // Set saving flag
     isSavingRef.current = true;
     
-    const saveKey = `sports-composition-${studentId}`;
-    const saveData = {
-      composition: {
+    // ✅ NEW: Use saveStudentWork for automatic Join page integration
+    saveStudentWork('sports-composition', {
+      title: selectedVideo.title,
+      emoji: selectedVideo.emoji,
+      viewRoute: '/lessons/film-music-project/lesson2?view=saved',
+      subtitle: `${placedLoops.length} loops • ${formatDuration(videoDuration)}`,
+      category: 'Film Music Project',
+      data: {
         placedLoops,
         videoDuration,
         videoId: selectedVideo.id,
@@ -387,20 +401,17 @@ const SportsCompositionActivity = ({
         videoPath: selectedVideo.videoPath,
         videoEmoji: selectedVideo.emoji,
         timestamp: Date.now()
-      },
-      lastSaved: new Date().toISOString()
-    };
+      }
+    });
     
-    localStorage.setItem(saveKey, JSON.stringify(saveData));
-    console.log('💾 Manual save complete:', saveKey, saveData);
+    console.log('💾 Saved using new studentWorkStorage system');
     
     if (!silent) {
       console.log('🔔 About to show toast message, silent =', silent);
-      setSaveMessage({ type: 'success', text: '✅ Composition saved! View it anytime from the Join page.' });
+      setSaveMessage({ type: 'success', text: '✅ Saved! View anytime from the Join page.' });
       setTimeout(() => setSaveMessage(null), 4000);
     }
     
-    // Reset saving flag after a short delay
     setTimeout(() => {
       isSavingRef.current = false;
     }, 500);
@@ -448,7 +459,6 @@ const SportsCompositionActivity = ({
   const handleVideoSelect = (video) => {
     console.log('🎬 Video selected:', video.title);
     
-    // Get the detected duration
     const detectedDuration = videoDurations[video.id];
     
     if (!detectedDuration) {
@@ -493,18 +503,14 @@ const SportsCompositionActivity = ({
     
     if (confirmChange) {
       console.log('🔄 Showing video selection (keeping current composition loaded)');
-      // Don't set selectedVideo to null - this would unmount MusicComposer
-      // Just show the video selection overlay
       setShowVideoSelection(true);
     }
   };
   
   // COMPOSITION EVENT HANDLERS
-  // COMPOSITION EVENT HANDLERS - ✅ FIXED to update state
   const handleLoopPlaced = (loopData, trackIndex, startTime) => {
     console.log(`🎵 Loop placed: ${loopData.name} on track ${trackIndex} at ${startTime}s`);
     
-    // Create new loop object
     const newLoop = {
       id: `${loopData.id}-${Date.now()}`,
       originalId: loopData.id,
@@ -520,7 +526,6 @@ const SportsCompositionActivity = ({
       volume: 1.0
     };
     
-    // Update state
     setPlacedLoops(prev => [...prev, newLoop]);
     console.log(`✅ Added "${loopData.name}" to state - new total: ${placedLoops.length + 1}`);
   };
@@ -543,7 +548,6 @@ const SportsCompositionActivity = ({
   if (previewingVideo) {
     return (
       <div className="fixed inset-0 bg-black z-50 flex flex-col">
-        {/* Top bar */}
         <div className="bg-gradient-to-r from-orange-600 to-red-600 p-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-white">
             Preview: {previewingVideo.title}
@@ -556,7 +560,6 @@ const SportsCompositionActivity = ({
           </button>
         </div>
         
-        {/* Video player */}
         <div className="flex-1 flex items-center justify-center">
           <video
             src={previewingVideo.videoPath}
@@ -570,7 +573,6 @@ const SportsCompositionActivity = ({
           </video>
         </div>
         
-        {/* Bottom action bar */}
         <div className="bg-gray-900 p-6 flex items-center justify-center gap-4">
           <button
             onClick={handleClosePreview}
@@ -589,10 +591,7 @@ const SportsCompositionActivity = ({
     );
   }
   
-  // ============================================================================
-  // VIDEO SELECTION SCREEN - Now renders as overlay (moved to bottom of component)
-  
-  // LOADING STATE - Also wait for video to be selected
+  // LOADING STATE
   if ((isLoadingVideo || (!selectedVideo && !showVideoSelection) || detectingDurations) && !viewMode) {
     return (
       <div className="h-full flex items-center justify-center bg-gray-900">
@@ -604,11 +603,9 @@ const SportsCompositionActivity = ({
     );
   }
   
-  // BONUS GAME - Now renders as overlay to prevent composition from unmounting
-  
   // MAIN ACTIVITY
   return (
-    <div className="h-full flex flex-col bg-gray-900 relative">{/* Added relative for overlay positioning */}
+    <div className="h-full flex flex-col bg-gray-900 relative">
       {/* Save Message Toast */}
       {saveMessage && console.log('🎨 RENDERING TOAST:', saveMessage.text)}
       {saveMessage && (
@@ -638,14 +635,13 @@ const SportsCompositionActivity = ({
               {selectedVideo?.title} - Composition
               {selectedVideo?.duration && (
                 <span className="text-xs text-gray-400 ml-2">
-                  ({Math.floor(selectedVideo.duration / 60)}:{Math.floor(selectedVideo.duration % 60).toString().padStart(2, '0')})
+                  ({formatDuration(selectedVideo.duration)})
                 </span>
               )}
             </h2>
           </div>
           
           <div className="flex items-center gap-4">
-            {/* ✅ SAVE BUTTON - Top Right */}
             {studentId && selectedVideo && placedLoops.length > 0 && (
               <button
                 onClick={() => handleManualSave()}
@@ -690,7 +686,7 @@ const SportsCompositionActivity = ({
       <div className="flex-1 min-h-0">
         {selectedVideo ? (
           <MusicComposer
-            key={`sports-composer-${selectedVideo?.id || 'none'}`}  // Key based on video selection only - prevents re-mount when reflection appears
+            key={`sports-composer-${selectedVideo?.id || 'none'}`}
             onLoopDropCallback={handleLoopPlaced}
             onLoopDeleteCallback={handleLoopDeleted}
             onLoopUpdateCallback={handleLoopUpdated}
@@ -698,12 +694,12 @@ const SportsCompositionActivity = ({
             preselectedVideo={{
               id: selectedVideo.id,
               title: selectedVideo.title,
-              duration: selectedVideo.duration,  // ✅ Now uses DETECTED duration!
+              duration: selectedVideo.duration,
               videoPath: selectedVideo.videoPath
             }}
             restrictToCategory={null}
             lockedMood={null}
-            showSoundEffects={true}  // ✅ Show sound effects checkbox
+            showSoundEffects={true}
             hideHeader={true}
             hideSubmitButton={true}
             isLessonMode={true}
@@ -743,7 +739,6 @@ const SportsCompositionActivity = ({
         />
       )}
       
-      {/* Bonus game as overlay - keeps composition mounted underneath */}
       {showBonusGame && (
         <div className="absolute inset-0 z-50 flex flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
           <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex items-center justify-between">
@@ -770,7 +765,6 @@ const SportsCompositionActivity = ({
         </div>
       )}
       
-      {/* Video selection as overlay - keeps composition and loops mounted */}
       {showVideoSelection && !viewMode && (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-gradient-to-br from-orange-900 via-red-900 to-pink-900 p-6 overflow-y-auto">
           <div className="max-w-5xl w-full my-4">
@@ -792,7 +786,7 @@ const SportsCompositionActivity = ({
               {SPORTS_VIDEOS.map((video) => {
                 const duration = videoDurations[video.id];
                 const durationDisplay = duration 
-                  ? `${Math.floor(duration / 60)}:${Math.floor(duration % 60).toString().padStart(2, '0')}`
+                  ? formatDuration(duration)
                   : '...';
                 
                 return (

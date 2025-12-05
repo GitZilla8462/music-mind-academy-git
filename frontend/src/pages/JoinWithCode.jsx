@@ -1,11 +1,13 @@
 // File: /pages/JoinWithCode.jsx
 // ULTRA-COMPACT JOIN PAGE - Optimized for 1366x768 Chromebook
-// ✅ Title, join code, 2 saved items all visible without scrolling
+// ✅ Title, join code, saved items all visible without scrolling
 // ✅ Auto-join for preview mode (when preview=true in URL)
+// ✅ GENERIC: Automatically displays ANY saved student work
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getSessionData } from '../firebase/config';
+import { getStudentId, getAllStudentWork, migrateOldSaves } from '../utils/studentWorkStorage';
 
 function JoinWithCode() {
   const navigate = useNavigate();
@@ -14,20 +16,22 @@ function JoinWithCode() {
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState('');
   const [studentId, setStudentId] = useState('');
-  const [savedCompositions, setSavedCompositions] = useState([]);
+  const [savedWork, setSavedWork] = useState([]);
 
   // Check for preview mode (used by teacher's presentation view)
   const isPreviewMode = searchParams.get('preview') === 'true';
   const urlCode = searchParams.get('code');
 
   useEffect(() => {
-    let id = localStorage.getItem('anonymous-student-id');
-    if (!id) {
-      id = `Student-${Math.floor(100000 + Math.random() * 900000)}`;
-      localStorage.setItem('anonymous-student-id', id);
-    }
+    const id = getStudentId();
     setStudentId(id);
-    loadSavedCompositions(id);
+    
+    // Migrate old saves to new format (runs once, safe to call multiple times)
+    migrateOldSaves(id);
+    
+    // Load all saved work
+    const work = getAllStudentWork(id);
+    setSavedWork(work);
   }, []);
 
   // Auto-join for preview mode
@@ -37,34 +41,6 @@ function JoinWithCode() {
       handleAutoJoin(urlCode);
     }
   }, [isPreviewMode, urlCode]);
-
-  const loadSavedCompositions = (id) => {
-    const compositions = [];
-
-    const cityKey = `city-composition-${id}`;
-    const savedCity = localStorage.getItem(cityKey);
-    if (savedCity) {
-      try {
-        const data = JSON.parse(savedCity);
-        compositions.push({ type: 'city', key: cityKey, ...data });
-      } catch (error) {
-        console.error('Error loading city composition:', error);
-      }
-    }
-
-    const schoolKey = `school-beneath-${id}`;
-    const savedSchool = localStorage.getItem(schoolKey);
-    if (savedSchool) {
-      try {
-        const data = JSON.parse(savedSchool);
-        compositions.push({ type: 'school', key: schoolKey, ...data });
-      } catch (error) {
-        console.error('Error loading school composition:', error);
-      }
-    }
-
-    setSavedCompositions(compositions);
-  };
 
   // Auto-join for preview mode (no user interaction needed)
   const handleAutoJoin = async (code) => {
@@ -78,7 +54,6 @@ function JoinWithCode() {
       }
 
       const lessonRoute = sessionData.lessonRoute || '/lessons/film-music-project/lesson1';
-      // Add preview=true so the lesson page knows this is a preview
       window.location.href = `${lessonRoute}?session=${code}&role=student&preview=true`;
     } catch (error) {
       console.error('❌ Preview mode error:', error);
@@ -113,19 +88,17 @@ function JoinWithCode() {
     }
   };
 
-  const handleViewComposition = (comp) => {
-    // Clear the session storage key to allow fresh load
-    const studentId = localStorage.getItem('anonymous-student-id');
-    if (studentId) {
-      sessionStorage.removeItem(`city-composition-loaded-${studentId}`);
+  const handleViewWork = (work) => {
+    if (work.viewRoute) {
+      navigate(work.viewRoute);
     }
-    
-    if (comp.type === 'city') {
-      // Navigate to lesson 3 with view=saved flag to load composition
-      navigate('/lessons/film-music-project/lesson3?view=saved');
-    } else if (comp.type === 'school') {
-      // Navigate to lesson 1 with view=saved flag
-      navigate('/lessons/film-music-project/lesson1?view=saved');
+  };
+
+  const formatDate = (isoString) => {
+    try {
+      return new Date(isoString).toLocaleString();
+    } catch {
+      return 'Unknown';
     }
   };
 
@@ -190,7 +163,7 @@ function JoinWithCode() {
         Music Room Tools
       </h1>
 
-      {/* Container for join + compositions */}
+      {/* Container for join + saved work */}
       <div style={{ 
         maxWidth: '700px', 
         width: '100%'
@@ -202,7 +175,7 @@ function JoinWithCode() {
           marginBottom: '15px'
         }}></div>
 
-        {/* Join Code Section - ✅ MORE OBVIOUS with better visual design */}
+        {/* Join Code Section */}
         <div style={{ 
           marginBottom: '20px',
           backgroundColor: '#f7fafc',
@@ -210,7 +183,6 @@ function JoinWithCode() {
           borderRadius: '8px',
           border: '1px solid #e2e8f0'
         }}>
-          {/* Clear label with icon */}
           <div style={{
             fontSize: '14px',
             fontWeight: '700',
@@ -287,8 +259,8 @@ function JoinWithCode() {
           marginBottom: '15px'
         }}></div>
 
-        {/* Saved Compositions - Compact */}
-        {savedCompositions.length > 0 ? (
+        {/* Saved Work - Generic Rendering */}
+        {savedWork.length > 0 ? (
           <>
             <div style={{
               fontSize: '13px',
@@ -296,13 +268,13 @@ function JoinWithCode() {
               color: '#2d3748',
               marginBottom: '10px'
             }}>
-              💾 Saved Compositions
+              💾 Your Saved Work
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {savedCompositions.map((comp) => (
+              {savedWork.map((work) => (
                 <div
-                  key={comp.key}
+                  key={work.activityId}
                   style={{
                     backgroundColor: 'white',
                     borderRadius: '8px',
@@ -311,120 +283,72 @@ function JoinWithCode() {
                     boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                   }}
                 >
-                  {comp.type === 'city' && (
-                    <>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    marginBottom: '8px'
+                  }}>
+                    <div style={{ fontSize: '28px' }}>
+                      {work.emoji || '📁'}
+                    </div>
+                    <div style={{ flex: 1 }}>
                       <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        marginBottom: '8px'
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#2d3748'
                       }}>
-                        <div style={{ fontSize: '28px' }}>
-                          {comp.composition?.videoEmoji || '🏙️'}
+                        {work.title || 'Untitled'}
+                      </div>
+                      {work.subtitle && (
+                        <div style={{
+                          fontSize: '12px',
+                          color: '#718096'
+                        }}>
+                          {work.subtitle}
                         </div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            color: '#2d3748'
-                          }}>
-                            {comp.composition?.videoTitle || 'City Soundscape'}
-                          </div>
-                          <div style={{
-                            fontSize: '12px',
-                            color: '#718096'
-                          }}>
-                            {comp.composition?.placedLoops?.length || 0} loops • {' '}
-                            {Math.floor((comp.composition?.videoDuration || 0) / 60)}:{Math.floor((comp.composition?.videoDuration || 0) % 60).toString().padStart(2, '0')}
-                          </div>
+                      )}
+                      {work.category && (
+                        <div style={{
+                          fontSize: '10px',
+                          color: '#a0aec0',
+                          marginTop: '2px'
+                        }}>
+                          {work.category}
                         </div>
-                      </div>
-                      
-                      <div style={{
-                        fontSize: '10px',
-                        color: '#a0aec0',
-                        marginBottom: '8px'
-                      }}>
-                        Saved {new Date(comp.lastSaved).toLocaleString()}
-                      </div>
-                      
-                      <button
-                        onClick={() => handleViewComposition(comp)}
-                        style={{
-                          width: '100%',
-                          padding: '8px',
-                          backgroundColor: '#4299e1',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          fontSize: '13px',
-                          fontWeight: '600',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        👁️ View Composition
-                      </button>
-                    </>
-                  )}
-
-                  {comp.type === 'school' && (
-                    <>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        marginBottom: '8px'
-                      }}>
-                        <div style={{ fontSize: '28px' }}>🏫</div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            color: '#2d3748'
-                          }}>
-                            The School Beneath
-                          </div>
-                          <div style={{
-                            fontSize: '12px',
-                            color: '#718096'
-                          }}>
-                            {comp.composition?.placedLoops?.length || 0} loops
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div style={{
-                        fontSize: '10px',
-                        color: '#a0aec0',
-                        marginBottom: '8px'
-                      }}>
-                        Saved {new Date(comp.lastSaved).toLocaleString()}
-                      </div>
-                      
-                      <button
-                        onClick={() => handleViewComposition(comp)}
-                        style={{
-                          width: '100%',
-                          padding: '8px',
-                          backgroundColor: '#4299e1',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          fontSize: '13px',
-                          fontWeight: '600',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        👁️ View Composition
-                      </button>
-                    </>
-                  )}
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div style={{
+                    fontSize: '10px',
+                    color: '#a0aec0',
+                    marginBottom: '8px'
+                  }}>
+                    Saved {formatDate(work.lastSaved)}
+                  </div>
+                  
+                  <button
+                    onClick={() => handleViewWork(work)}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      backgroundColor: '#4299e1',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    👁️ View
+                  </button>
                 </div>
               ))}
             </div>
           </>
         ) : (
-          // Empty state - show helpful message
           <div style={{
             backgroundColor: 'white',
             borderRadius: '8px',
@@ -440,14 +364,14 @@ function JoinWithCode() {
               color: '#2d3748',
               marginBottom: '8px'
             }}>
-              No Saved Compositions Yet
+              No Saved Work Yet
             </div>
             <div style={{
               fontSize: '12px',
               color: '#718096',
               lineHeight: '1.5'
             }}>
-              When you complete a lesson and click "Save", your compositions will appear here.<br/>
+              When you complete activities and click "Save", your work will appear here.<br/>
               You can return to this page anytime to view your saved work.
             </div>
           </div>
