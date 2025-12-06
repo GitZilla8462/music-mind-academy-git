@@ -1,163 +1,54 @@
 /**
- * tools.js - Tool Configuration
+ * tools.js - Drawing Tool Configuration
  * 
- * Defines all available drawing tools, their icons, and groupings.
- * SIMPLIFIED: Brushes, eraser, and stickers only. No shapes or fill.
+ * HAND tool is DEFAULT - allows selecting, moving, and rotating stickers
  */
-
-// ============================================================================
-// TOOL TYPE CONSTANTS
-// ============================================================================
 
 export const TOOL_TYPES = {
-  // Brush tools
-  BRUSH: 'brush',
-  PENCIL: 'pencil',
-  MARKER: 'marker',
-  ERASER: 'eraser',
-  
-  // Special
-  STICKER: 'sticker'
+  HAND: 'hand',        // Select, move, rotate stickers (DEFAULT)
+  BRUSH: 'brush',      // Freehand drawing with soft edges
+  PENCIL: 'pencil',    // Fine line drawing
+  ERASER: 'eraser',    // Remove drawn content
+  STICKER: 'sticker',  // Place stickers (auto-enabled when sticker selected)
 };
 
-// ============================================================================
-// BRUSH SIZES
-// ============================================================================
-
-export const BRUSH_SIZES = {
-  SMALL: 4,
-  MEDIUM: 8,
-  LARGE: 16,
-  XLARGE: 24
-};
-
-// ============================================================================
-// TOOL DEFINITIONS
-// ============================================================================
-
-export const BRUSH_TOOLS = [
-  {
-    id: TOOL_TYPES.BRUSH,
+export const TOOL_INFO = {
+  [TOOL_TYPES.HAND]: {
+    name: 'Move & Rotate',
+    icon: '✋',
+    cursor: 'default',
+    description: 'Select stickers to move or rotate them'
+  },
+  [TOOL_TYPES.BRUSH]: {
     name: 'Brush',
     icon: '🖌️',
-    description: 'Smooth brush for drawing'
+    cursor: 'crosshair',
+    description: 'Draw with a soft brush'
   },
-  {
-    id: TOOL_TYPES.PENCIL,
+  [TOOL_TYPES.PENCIL]: {
     name: 'Pencil',
     icon: '✏️',
-    description: 'Sharp pencil for fine lines'
+    cursor: 'crosshair',
+    description: 'Draw fine lines'
   },
-  {
-    id: TOOL_TYPES.MARKER,
-    name: 'Marker',
-    icon: '🖍️',
-    description: 'Thick marker for bold strokes'
-  }
-];
-
-// Utility tools
-export const UTILITY_TOOLS = [
-  {
-    id: TOOL_TYPES.ERASER,
+  [TOOL_TYPES.ERASER]: {
     name: 'Eraser',
-    icon: '🧽',
-    description: 'Erase your drawings'
-  }
-];
-
-// ============================================================================
-// TOOL GROUPS
-// ============================================================================
-
-export const TOOL_GROUPS = {
-  draw: {
-    id: 'draw',
-    name: 'Drawing Tools',
-    icon: '🖌️',
-    tools: [TOOL_TYPES.BRUSH, TOOL_TYPES.PENCIL, TOOL_TYPES.MARKER]
+    icon: '⬜',
+    cursor: 'cell',
+    description: 'Erase drawn content'
   },
-  utility: {
-    id: 'utility',
-    name: 'Utility Tools',
-    icon: '🛠️',
-    tools: [TOOL_TYPES.ERASER]
-  }
-};
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
-/**
- * Check if a tool is a shape tool - always false (shapes removed)
- */
-export const isShapeTool = (toolId) => {
-  return false;
-};
-
-/**
- * Check if a tool is a brush-style tool (continuous drawing)
- */
-export const isBrushTool = (toolId) => {
-  return [TOOL_TYPES.BRUSH, TOOL_TYPES.PENCIL, TOOL_TYPES.MARKER].includes(toolId);
-};
-
-/**
- * Get tool info by ID
- */
-export const getToolById = (toolId) => {
-  return [...BRUSH_TOOLS, ...UTILITY_TOOLS].find(t => t.id === toolId);
-};
-
-// ============================================================================
-// STICKER CONFIGURATION
-// ============================================================================
-
-export const STICKER_CATEGORIES = [
-  {
-    id: 'music',
-    name: 'Music',
+  [TOOL_TYPES.STICKER]: {
+    name: 'Sticker',
     icon: '🎵',
-    stickers: ['🎵', '🎶', '🎼', '🎹', '🎸', '🎺', '🎷', '🥁', '🎻', '🪕', '🎤', '🎧', '🔊', '🔉', '🔈', '📯']
-  },
-  {
-    id: 'expression',
-    name: 'Expressions',
-    icon: '😀',
-    stickers: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😋', '😛', '😜', '🤪', '😝', '🤗', '🤭', '🤫', '🤔', '🤨', '😐', '😑', '😶', '😏', '🙄', '😬', '😌', '😔', '😴', '🤠', '🥳', '😎', '🤓', '🧐']
-  },
-  {
-    id: 'shapes',
-    name: 'Shapes',
-    icon: '⭐',
-    stickers: ['⭐', '🌟', '✨', '💫', '⚡', '🔥', '💥', '💨', '🌈', '☀️', '🌙', '⭕', '❌', '❓', '❗', '💯', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '🔶', '🔷', '🔸', '🔹', '▪️', '▫️', '◾', '◽', '◼️', '◻️', '🔲', '🔳']
-  },
-  {
-    id: 'nature',
-    name: 'Nature',
-    icon: '🌿',
-    stickers: ['🌲', '🌳', '🌴', '🌵', '🌾', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃', '🌺', '🌻', '🌼', '🌷', '🌹', '🥀', '💐', '🌸', '💮', '🏵️', '🌱', '🪴', '🎋', '🎍']
-  },
-  {
-    id: 'animals',
-    name: 'Animals',
-    icon: '🐾',
-    stickers: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🎠', '🐖', '🐏', '🐑', '🦙', '🐐', '🦌', '🐕', '🐩', '🐈', '🐓', '🦃', '🦚', '🦜', '🦢', '🦩', '🕊️', '🐇', '🦝', '🦨', '🦡', '🦦', '🦥', '🐁', '🐀', '🐿️', '🦔']
-  },
-  {
-    id: 'hands',
-    name: 'Hands',
-    icon: '👋',
-    stickers: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💪']
-  },
-  {
-    id: 'objects',
-    name: 'Objects',
-    icon: '💡',
-    stickers: ['💡', '🔦', '🕯️', '📱', '💻', '🖥️', '🖨️', '⌨️', '🖱️', '💾', '💿', '📀', '🎥', '📷', '📹', '📼', '🔍', '🔎', '🔬', '🔭', '📡', '🚪', '🛏️', '🛋️', '🪑', '🧴', '🧷', '🧹', '🧺', '🧼', '🪥', '🧽', '🧯', '🛒']
+    cursor: 'copy',
+    description: 'Place stickers on the canvas'
   }
-];
+};
 
-// Flatten all stickers into a single array
-export const ALL_STICKERS = STICKER_CATEGORIES.flatMap(cat => cat.stickers);
+export const DEFAULT_TOOL = TOOL_TYPES.HAND;
+
+export default {
+  TOOL_TYPES,
+  TOOL_INFO,
+  DEFAULT_TOOL
+};

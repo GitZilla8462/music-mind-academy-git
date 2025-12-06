@@ -1,582 +1,882 @@
 /**
- * DrawingCanvas.jsx - Main Canvas Component
+ * DrawingCanvas.jsx - Canvas with Object-Based Stickers
  * 
- * Handles:
- * - Mouse and touch events
- * - Coordinates drawing operations
- * - Integrates with all engines (brush, shape, fill, lane clipping)
- * - Preview overlays for shapes
+ * Supports render types:
+ * - svg: PNG instrument icons
+ * - text: Dynamic markings (pp, ff)
+ * - text-italic: Tempo/expression markings
+ * - crescendo/decrescendo: Hairpin shapes
+ * - symbol: Musical symbols (clefs, accidentals)
+ * - symbol-large: Articulation marks
+ * - form-label: Section labels (A, B, C in circles)
+ * - form-text: Form text (Intro, Coda, etc.)
+ * - emoji: Default
  */
 
-import React, { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
-import { DrawingEngine } from '../../engine/DrawingEngine.js';
-import { BrushEngine } from '../../engine/BrushEngine.js';
-import { ShapeEngine } from '../../engine/ShapeEngine.js';
-import { FillEngine } from '../../engine/FillEngine.js';
-import { LaneManager } from '../../engine/LaneClipping.js';
-import { TOOL_TYPES, isShapeTool, isBrushTool } from '../../config/tools.js';
+import React, { 
+  useRef, 
+  useState, 
+  useEffect, 
+  useCallback, 
+  useImperativeHandle, 
+  forwardRef 
+} from 'react';
+import { INSTRUMENT_ICONS } from '../../config/InstrumentIcons';
 
 // ============================================================================
-// STYLES
+// CONSTANTS
 // ============================================================================
 
-const styles = {
-  container: {
-    position: 'relative',
-    flex: 1,
-    display: 'flex',
-    overflow: 'hidden',
-    backgroundColor: '#ffffff'
-  },
-  canvasWrapper: {
-    flex: 1,
-    display: 'flex',
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
-    overflow: 'auto',
-    padding: '0'
-  },
-  canvas: {
-    display: 'block',
-    maxWidth: '100%',
-    height: 'auto'
-  },
-  previewCanvas: {
-    position: 'absolute',
-    pointerEvents: 'none',
-    top: 0,
-    left: 0
-  },
-  laneLabels: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    width: '100px',
-    height: '100%',
-    pointerEvents: 'none',
-    display: 'flex',
-    flexDirection: 'column'
-  },
-  laneLabel: {
-    flex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '0 8px',
-    fontSize: '11px',
-    fontWeight: '600',
-    color: '#fff',
-    borderLeft: '3px solid',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    backdropFilter: 'blur(4px)'
-  }
+// Tool type helpers - case insensitive matching
+const isHandTool = (t) => t?.toLowerCase() === 'hand';
+const isStickerTool = (t) => t?.toLowerCase() === 'sticker';
+const isDrawingTool = (t) => ['brush', 'pencil', 'eraser'].includes(t?.toLowerCase());
+const isEraserTool = (t) => t?.toLowerCase() === 'eraser';
+const isPencilTool = (t) => t?.toLowerCase() === 'pencil';
+
+// ============================================================================
+// STICKER RENDERER
+// ============================================================================
+
+const StickerRenderer = ({ sticker, isSelected, onInteraction }) => {
+  const { x, y, rotation, scale, data } = sticker;
+  const baseSize = data?.size || 56;
+  const size = baseSize * scale;
+  const stickerColor = data?.color || '#000000';
+  
+  const handleMouseDown = (e, mode = 'move') => {
+    e.preventDefault(); // Prevent native browser drag
+    e.stopPropagation();
+    onInteraction(e, sticker, mode);
+  };
+
+  const renderContent = () => {
+    // SVG instrument icon (actually PNG)
+    if (data?.render === 'svg' && data?.id) {
+      const IconComponent = INSTRUMENT_ICONS[data.id];
+      if (IconComponent) {
+        return <IconComponent size={size} />;
+      }
+    }
+    
+    // Text dynamics (pp, ff, etc.)
+    if (data?.render === 'text') {
+      return (
+        <span style={{
+          fontFamily: 'Times New Roman, Georgia, serif',
+          fontStyle: 'italic',
+          fontWeight: 'bold',
+          fontSize: `${size * 0.6}px`,
+          color: stickerColor,
+          userSelect: 'none'
+        }}>
+          {data.symbol}
+        </span>
+      );
+    }
+    
+    // Tempo/expression markings
+    if (data?.render === 'text-italic') {
+      return (
+        <span style={{
+          fontFamily: 'Times New Roman, Georgia, serif',
+          fontStyle: 'italic',
+          fontWeight: '600',
+          fontSize: `${size * 0.35}px`,
+          color: stickerColor,
+          userSelect: 'none'
+        }}>
+          {data.symbol}
+        </span>
+      );
+    }
+    
+    // Crescendo - hairpin opening to right
+    if (data?.render === 'crescendo') {
+      return (
+        <svg width={size} height={size * 0.5} viewBox="0 0 60 30">
+          <path d="M55 3 L5 15 L55 27" fill="none" stroke={stickerColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      );
+    }
+    
+    // Decrescendo - hairpin opening to left
+    if (data?.render === 'decrescendo') {
+      return (
+        <svg width={size} height={size * 0.5} viewBox="0 0 60 30">
+          <path d="M5 3 L55 15 L5 27" fill="none" stroke={stickerColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      );
+    }
+    
+    // Musical symbols (clefs, accidentals)
+    if (data?.render === 'symbol') {
+      return (
+        <span style={{
+          fontFamily: 'Noto Music, Symbola, serif',
+          fontSize: `${size * 0.7}px`,
+          color: stickerColor,
+          userSelect: 'none'
+        }}>
+          {data.symbol}
+        </span>
+      );
+    }
+    
+    // Large symbols for articulation
+    if (data?.render === 'symbol-large') {
+      return (
+        <span style={{
+          fontFamily: 'Arial, sans-serif',
+          fontSize: `${size * 0.8}px`,
+          fontWeight: 'bold',
+          color: stickerColor,
+          userSelect: 'none'
+        }}>
+          {data.symbol}
+        </span>
+      );
+    }
+    
+    // Form labels (A, B, C in circles)
+    if (data?.render === 'form-label') {
+      return (
+        <div style={{
+          width: size * 0.8,
+          height: size * 0.8,
+          borderRadius: '50%',
+          backgroundColor: '#3b82f6',
+          border: `3px solid #1d4ed8`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+        }}>
+          <span style={{
+            fontFamily: 'Arial, sans-serif',
+            fontSize: `${size * 0.45}px`,
+            fontWeight: 'bold',
+            color: '#ffffff',
+            userSelect: 'none'
+          }}>
+            {data.symbol}
+          </span>
+        </div>
+      );
+    }
+    
+    // Form text (Intro, Coda, etc.)
+    if (data?.render === 'form-text') {
+      return (
+        <div style={{
+          padding: `${size * 0.1}px ${size * 0.2}px`,
+          backgroundColor: '#fef3c7',
+          border: `2px solid #f59e0b`,
+          borderRadius: `${size * 0.15}px`,
+          boxShadow: '0 2px 4px rgba(0,0,0,0.15)'
+        }}>
+          <span style={{
+            fontFamily: 'Arial, sans-serif',
+            fontSize: `${size * 0.3}px`,
+            fontWeight: 'bold',
+            color: '#92400e',
+            userSelect: 'none',
+            whiteSpace: 'nowrap'
+          }}>
+            {data.symbol}
+          </span>
+        </div>
+      );
+    }
+    
+    // Default: emoji
+    return (
+      <span style={{
+        fontSize: `${size * 0.7}px`,
+        userSelect: 'none'
+      }}>
+        {data?.symbol || '🎵'}
+      </span>
+    );
+  };
+
+  return (
+    <div
+      onMouseDown={(e) => handleMouseDown(e, 'move')}
+      onTouchStart={(e) => handleMouseDown(e, 'move')}
+      onDragStart={(e) => e.preventDefault()}
+      draggable={false}
+      style={{
+        position: 'absolute',
+        left: x - size / 2,
+        top: y - size / 2,
+        width: size,
+        height: size,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transform: `rotate(${rotation}deg)`,
+        cursor: 'move',
+        borderRadius: '8px',
+        border: isSelected ? '2px solid #3b82f6' : '2px solid transparent',
+        backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+        boxShadow: isSelected ? '0 0 12px rgba(59, 130, 246, 0.4)' : 'none',
+        transition: 'border 0.1s, background-color 0.1s, box-shadow 0.1s',
+        zIndex: isSelected ? 100 : 10,
+        touchAction: 'none',
+        userSelect: 'none',
+        WebkitUserSelect: 'none'
+      }}
+    >
+      {renderContent()}
+      
+      {/* Control handles - only when selected */}
+      {isSelected && (
+        <>
+          {/* Rotation handle - top */}
+          <div
+            onMouseDown={(e) => handleMouseDown(e, 'rotate')}
+            onTouchStart={(e) => handleMouseDown(e, 'rotate')}
+            style={{
+              position: 'absolute',
+              top: -28,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 24,
+              height: 24,
+              borderRadius: '50%',
+              backgroundColor: '#3b82f6',
+              cursor: 'grab',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ffffff',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+              border: '2px solid white',
+              zIndex: 110,
+              touchAction: 'none'
+            }}
+            title="Drag to rotate"
+          >
+            ↻
+          </div>
+          
+          {/* Resize handle - bottom right */}
+          <div
+            onMouseDown={(e) => handleMouseDown(e, 'resize')}
+            onTouchStart={(e) => handleMouseDown(e, 'resize')}
+            style={{
+              position: 'absolute',
+              bottom: -8,
+              right: -8,
+              width: 20,
+              height: 20,
+              borderRadius: '4px',
+              backgroundColor: '#10b981',
+              cursor: 'nwse-resize',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ffffff',
+              fontSize: '10px',
+              fontWeight: 'bold',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+              border: '2px solid white',
+              zIndex: 110,
+              touchAction: 'none'
+            }}
+            title="Drag to resize"
+          >
+            ⤡
+          </div>
+        </>
+      )}
+    </div>
+  );
 };
 
 // ============================================================================
-// DRAWING CANVAS COMPONENT
+// MAIN CANVAS
 // ============================================================================
 
 const DrawingCanvas = forwardRef(({
-  width = 880,
-  height = 400,
+  width,
+  height,
   instruments = [],
-  tool = TOOL_TYPES.BRUSH,
-  color = '#FFFFFF',
-  brushSize = 8,
+  tool = 'hand',
+  color = '#000000',
+  brushSize = 16,
   opacity = 1,
   selectedSticker = null,
-  stickerSize = 32,
-  shapeOptions = {},
+  stickerSize = 56,
   onHistoryChange,
-  onColorPick
+  onColorPick,
+  onStickerPlaced
 }, ref) => {
-  // Refs
-  const canvasRef = useRef(null);
-  const previewCanvasRef = useRef(null);
+  
+  // Canvas refs
+  const drawingCanvasRef = useRef(null);
+  const drawingCtxRef = useRef(null);
   const containerRef = useRef(null);
   
-  // Engines
-  const drawingEngineRef = useRef(null);
-  const brushEngineRef = useRef(null);
-  const shapeEngineRef = useRef(null);
-  const fillEngineRef = useRef(null);
-  const laneManagerRef = useRef(null);
-  const activeLaneRef = useRef(null); // Track locked lane during stroke
-
-  // State
+  // Sticker state
+  const [stickers, setStickers] = useState([]);
+  const [selectedStickerId, setSelectedStickerId] = useState(null);
+  const [nextStickerId, setNextStickerId] = useState(1);
+  
+  // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
-  const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
-  const [shapeStart, setShapeStart] = useState(null);
-  const [activeLane, setActiveLane] = useState(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  // Use height from props - parent calculates based on container size
-  const canvasHeight = height;
-
+  const lastPointRef = useRef(null);
+  
+  // Drag state
+  const dragRef = useRef(null);
+  const [, forceUpdate] = useState(0);
+  
+  // History
+  const historyRef = useRef([]);
+  const historyIndexRef = useRef(-1);
+  
   // ========================================================================
-  // INITIALIZATION - Only runs once when we have valid, reasonable dimensions
+  // INITIALIZATION
   // ========================================================================
-
-  const hasInitializedRef = useRef(false);
-  const initialDimensionsRef = useRef({ width: 0, height: 0 });
-
+  
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const previewCanvas = previewCanvasRef.current;
+    const canvas = drawingCanvasRef.current;
+    if (!canvas) return;
     
-    // Guard: Don't initialize if canvas isn't ready or no instruments
-    if (!canvas || instruments.length === 0) return;
-    
-    // Guard: Don't initialize with zero/tiny dimensions
-    if (!canvasHeight || !width || canvasHeight < 100 || width < 100) return;
-    
-    // IMPORTANT: Only initialize when dimensions are reasonable
-    // Each lane should be at least 80px tall for good usability
-    const minLaneHeight = 80;
-    const minTotalHeight = instruments.length * minLaneHeight;
-    if (canvasHeight < minTotalHeight) return;
-    
-    // Only initialize ONCE with the first valid dimensions
-    if (hasInitializedRef.current) return;
-    
-    // Store the initial dimensions
-    initialDimensionsRef.current = { width, height: canvasHeight };
-    
-    // Set canvas dimensions
     canvas.width = width;
-    canvas.height = canvasHeight;
+    canvas.height = height;
     
-    if (previewCanvas) {
-      previewCanvas.width = width;
-      previewCanvas.height = canvasHeight;
-    }
-
     const ctx = canvas.getContext('2d');
-    const previewCtx = previewCanvas?.getContext('2d');
-
-    // Initialize engines
-    drawingEngineRef.current = new DrawingEngine(canvas, {
-      backgroundColor: '#ffffff'
-    });
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    drawingCtxRef.current = ctx;
     
-    brushEngineRef.current = new BrushEngine(ctx);
-    shapeEngineRef.current = new ShapeEngine(ctx);
-    fillEngineRef.current = new FillEngine(ctx, canvas);
-    laneManagerRef.current = new LaneManager(canvas, ctx, instruments);
-
-    // Draw initial state with lanes
-    if (laneManagerRef.current) {
-      laneManagerRef.current.drawLaneBackgrounds('#ffffff');
-    }
-    if (drawingEngineRef.current) {
-      drawingEngineRef.current.saveState();
-    }
-
-    hasInitializedRef.current = true;
-    setIsInitialized(true);
-    updateHistoryState();
-
-  }, [width, canvasHeight, instruments]);
-
-  // Update lane manager when instruments change
+    // All white background - no row shading
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+    
+    saveToHistory();
+  }, [width, height, instruments.length]);
+  
+  // Update selected sticker color when color changes
   useEffect(() => {
-    if (laneManagerRef.current && isInitialized && instruments.length > 0) {
-      laneManagerRef.current.setInstruments(instruments);
-    }
-  }, [instruments, isInitialized]);
-
-  // ========================================================================
-  // IMPERATIVE HANDLE (for parent access)
-  // ========================================================================
-
-  useImperativeHandle(ref, () => ({
-    undo: () => {
-      const result = drawingEngineRef.current?.undo();
-      updateHistoryState();
-      return result;
-    },
-    redo: () => {
-      const result = drawingEngineRef.current?.redo();
-      updateHistoryState();
-      return result;
-    },
-    clear: () => {
-      if (laneManagerRef.current) {
-        laneManagerRef.current.drawLaneBackgrounds('#ffffff');
-      }
-      drawingEngineRef.current?.saveState();
-      updateHistoryState();
-    },
-    clearLane: (laneIndex) => {
-      // Clear just one lane by filling it with white
-      if (laneManagerRef.current && canvasRef.current) {
-        const ctx = canvasRef.current.getContext('2d');
-        const lane = laneManagerRef.current.getLaneByIndex(laneIndex);
-        if (lane && ctx) {
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, lane.top, canvasRef.current.width, lane.height);
-          // Redraw the lane divider line below this lane (if not last lane)
-          if (laneIndex < instruments.length - 1) {
-            ctx.strokeStyle = '#e5e7eb';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(0, lane.bottom);
-            ctx.lineTo(canvasRef.current.width, lane.bottom);
-            ctx.stroke();
+    if (selectedStickerId && color) {
+      setStickers(prev => prev.map(s => {
+        if (s.id === selectedStickerId) {
+          const render = s.data?.render;
+          if (render === 'text' || render === 'text-italic' || render === 'symbol' || 
+              render === 'symbol-large' || render === 'crescendo' || render === 'decrescendo') {
+            return { ...s, data: { ...s.data, color } };
           }
-          drawingEngineRef.current?.saveState();
-          updateHistoryState();
         }
-      }
-    },
-    toDataURL: () => drawingEngineRef.current?.toDataURL(),
-    getHistoryInfo: () => drawingEngineRef.current?.getHistoryInfo()
-  }));
-
+        return s;
+      }));
+    }
+  }, [color, selectedStickerId]);
+  
   // ========================================================================
-  // HELPERS
+  // HISTORY
   // ========================================================================
-
-  const updateHistoryState = () => {
-    const info = drawingEngineRef.current?.getHistoryInfo();
-    onHistoryChange?.(info);
+  
+  const saveToHistory = useCallback(() => {
+    const canvas = drawingCanvasRef.current;
+    if (!canvas) return;
+    
+    const state = {
+      imageData: canvas.toDataURL(),
+      stickers: JSON.parse(JSON.stringify(stickers))
+    };
+    
+    const newHistory = historyRef.current.slice(0, historyIndexRef.current + 1);
+    newHistory.push(state);
+    
+    if (newHistory.length > 50) newHistory.shift();
+    
+    historyRef.current = newHistory;
+    historyIndexRef.current = newHistory.length - 1;
+    
+    onHistoryChange?.({
+      canUndo: newHistory.length > 1,
+      canRedo: false
+    });
+  }, [stickers, onHistoryChange]);
+  
+  const restoreState = (state) => {
+    if (!state) return;
+    
+    const canvas = drawingCanvasRef.current;
+    const ctx = drawingCtxRef.current;
+    if (!canvas || !ctx) return;
+    
+    const img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0);
+    };
+    img.src = state.imageData;
+    
+    setStickers(state.stickers || []);
+    setSelectedStickerId(null);
   };
-
-  const getCanvasCoords = useCallback((e) => {
-    const canvas = canvasRef.current;
+  
+  const undo = useCallback(() => {
+    if (historyIndexRef.current <= 0) return;
+    
+    const newIndex = historyIndexRef.current - 1;
+    const state = historyRef.current[newIndex];
+    
+    restoreState(state);
+    historyIndexRef.current = newIndex;
+    
+    onHistoryChange?.({
+      canUndo: newIndex > 0,
+      canRedo: true
+    });
+  }, [onHistoryChange]);
+  
+  const redo = useCallback(() => {
+    if (historyIndexRef.current >= historyRef.current.length - 1) return;
+    
+    const newIndex = historyIndexRef.current + 1;
+    const state = historyRef.current[newIndex];
+    
+    restoreState(state);
+    historyIndexRef.current = newIndex;
+    
+    onHistoryChange?.({
+      canUndo: true,
+      canRedo: newIndex < historyRef.current.length - 1
+    });
+  }, [onHistoryChange]);
+  
+  // ========================================================================
+  // COORDINATE HELPERS
+  // ========================================================================
+  
+  const getEventCoords = (e) => {
+    if (e.touches && e.touches.length > 0) {
+      return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+    }
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      return { clientX: e.changedTouches[0].clientX, clientY: e.changedTouches[0].clientY };
+    }
+    return { clientX: e.clientX, clientY: e.clientY };
+  };
+  
+  const getCanvasPoint = (e) => {
+    const canvas = drawingCanvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
-
+    
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
+    
+    const { clientX, clientY } = getEventCoords(e);
+    
     return {
       x: (clientX - rect.left) * scaleX,
       y: (clientY - rect.top) * scaleY
     };
-  }, []);
-
-  const getCursor = () => {
-    switch (tool) {
-      case TOOL_TYPES.EYEDROPPER:
-        return 'crosshair';
-      case TOOL_TYPES.FILL:
-        return 'cell';
-      case TOOL_TYPES.STICKER:
-        return 'copy';
-      case TOOL_TYPES.ERASER:
-        // Create a custom cursor for eraser - grey circle that's visible on white
-        const size = Math.max(brushSize, 12);
-        const canvas = document.createElement('canvas');
-        canvas.width = size + 4;
-        canvas.height = size + 4;
-        const ctx = canvas.getContext('2d');
-        // Draw grey outline circle
-        ctx.strokeStyle = '#9ca3af';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc((size + 4) / 2, (size + 4) / 2, size / 2, 0, Math.PI * 2);
-        ctx.stroke();
-        // Light fill
-        ctx.fillStyle = 'rgba(229, 231, 235, 0.5)';
-        ctx.fill();
-        return `url(${canvas.toDataURL()}) ${(size + 4) / 2} ${(size + 4) / 2}, crosshair`;
-      default:
-        return 'crosshair';
-    }
   };
-
+  
   // ========================================================================
-  // DRAWING OPERATIONS - Use activeLaneRef to lock drawing to starting lane
+  // DRAWING
   // ========================================================================
-
-  const drawBrushStroke = (fromX, fromY, toX, toY) => {
-    if (!laneManagerRef.current || !brushEngineRef.current) return;
-    
-    // Use the locked activeLaneRef (set on pointer down), not current position
-    // This prevents drawing across lane boundaries
-    const lockedLane = activeLaneRef.current;
-    if (lockedLane === null) return;
-    
-    const lane = laneManagerRef.current.getLaneByIndex(lockedLane);
-    if (!lane) return;
-
-    // Begin lane clipping
-    laneManagerRef.current.beginClip(lockedLane);
-
-    // Draw using brush engine
-    brushEngineRef.current.drawStroke(fromX, fromY, toX, toY, {
-      tool,
-      color,
-      size: brushSize,
-      opacity
-    });
-
-    // End clipping
-    laneManagerRef.current.endClip();
-  };
-
-  const drawEraser = (fromX, fromY, toX, toY) => {
-    if (!laneManagerRef.current || !brushEngineRef.current) return;
-    
-    // Use the locked activeLaneRef (set on pointer down), not current position
-    const lockedLane = activeLaneRef.current;
-    if (lockedLane === null) return;
-    
-    const lane = laneManagerRef.current.getLaneByIndex(lockedLane);
-    if (!lane) return;
-
-    laneManagerRef.current.beginClip(lockedLane);
-
-    // Get lane background color for erasing
-    const bgColor = laneManagerRef.current.getLaneBackgroundForErase(lockedLane, toY);
-    brushEngineRef.current.drawEraser(fromX, fromY, toX, toY, brushSize, bgColor);
-
-    laneManagerRef.current.endClip();
-  };
-
-  const placeSticker = (x, y) => {
-    if (!selectedSticker || !laneManagerRef.current) return;
-
-    const lane = laneManagerRef.current.getLaneAtY(y);
-    if (!lane) return;
-
-    const ctx = canvasRef.current?.getContext('2d');
+  
+  const startDrawing = (point) => {
+    const ctx = drawingCtxRef.current;
     if (!ctx) return;
-
-    laneManagerRef.current.beginClip(lane.index);
-
-    ctx.font = `${stickerSize}px Arial`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.globalAlpha = opacity;
-    ctx.fillText(selectedSticker, x, y);
-    ctx.globalAlpha = 1;
-
-    laneManagerRef.current.endClip();
-  };
-
-  const doFill = (x, y) => {
-    if (!fillEngineRef.current) return;
     
-    const result = fillEngineRef.current.floodFill(x, y, color, {
-      tolerance: 32
-    });
+    ctx.beginPath();
+    ctx.moveTo(point.x, point.y);
     
-    if (result) {
-      drawingEngineRef.current?.saveState();
-      updateHistoryState();
-    }
-  };
-
-  const pickColor = (x, y) => {
-    const colorInfo = drawingEngineRef.current?.getPixelColor(x, y);
-    if (colorInfo) {
-      onColorPick?.(colorInfo.hex);
-    }
-  };
-
-  const finishShape = (startX, startY, endX, endY) => {
-    if (!laneManagerRef.current || !shapeEngineRef.current) return;
-    
-    const lane = laneManagerRef.current.getLaneAtY(startY);
-    if (!lane) return;
-
-    laneManagerRef.current.beginClip(lane.index);
-
-    shapeEngineRef.current.drawShape(tool, startX, startY, endX, endY, {
-      strokeColor: color,
-      fillColor: color + '60', // 40% opacity fill
-      strokeWidth: brushSize / 2,
-      opacity,
-      filled: true,
-      ...shapeOptions
-    });
-
-    laneManagerRef.current.endClip();
-  };
-
-  const updateShapePreview = (startX, startY, endX, endY) => {
-    const previewCtx = previewCanvasRef.current?.getContext('2d');
-    if (!previewCtx) return;
-
-    // Clear preview canvas
-    previewCtx.clearRect(0, 0, previewCanvasRef.current.width, previewCanvasRef.current.height);
-
-    // Draw preview shape
-    const previewEngine = new ShapeEngine(previewCtx);
-    previewEngine.drawPreview(tool, startX, startY, endX, endY, {
-      strokeColor: color,
-      strokeWidth: brushSize / 2,
-      opacity: 0.6
-    });
-  };
-
-  const clearShapePreview = () => {
-    const previewCtx = previewCanvasRef.current?.getContext('2d');
-    if (previewCtx) {
-      previewCtx.clearRect(0, 0, previewCanvasRef.current.width, previewCanvasRef.current.height);
-    }
-  };
-
-  // ========================================================================
-  // EVENT HANDLERS
-  // ========================================================================
-
-  const handlePointerDown = useCallback((e) => {
-    e.preventDefault();
-    
-    // Guard: Don't handle if not initialized
-    if (!isInitialized || !laneManagerRef.current) return;
-    
-    const pos = getCanvasCoords(e);
-
-    // Lock to the lane where stroke starts - this prevents crossing lanes
-    const lane = laneManagerRef.current.getLaneAtY(pos.y);
-    const laneIndex = lane?.index ?? null;
-    setActiveLane(laneIndex);
-    activeLaneRef.current = laneIndex; // Lock the lane in ref for drawing functions
-
-    // Handle different tools
-    if (tool === TOOL_TYPES.EYEDROPPER) {
-      pickColor(pos.x, pos.y);
-      return;
-    }
-
-    if (tool === TOOL_TYPES.FILL) {
-      doFill(pos.x, pos.y);
-      return;
-    }
-
-    if (tool === TOOL_TYPES.STICKER) {
-      placeSticker(pos.x, pos.y);
-      drawingEngineRef.current?.saveState();
-      updateHistoryState();
-      return;
-    }
-
-    if (isShapeTool(tool)) {
-      setShapeStart(pos);
-      setIsDrawing(true);
-      return;
-    }
-
-    // Brush tools
-    setIsDrawing(true);
-    setLastPos(pos);
-    brushEngineRef.current?.beginStroke(pos.x, pos.y);
-
-    // Draw single point
-    if (tool === TOOL_TYPES.ERASER) {
-      drawEraser(pos.x, pos.y, pos.x, pos.y);
+    if (isEraserTool(tool)) {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.strokeStyle = 'rgba(0,0,0,1)';
     } else {
-      drawBrushStroke(pos.x, pos.y, pos.x, pos.y);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = color;
     }
-  }, [tool, color, brushSize, opacity, selectedSticker, stickerSize, getCanvasCoords, isInitialized]);
-
-  const handlePointerMove = useCallback((e) => {
-    if (!isDrawing) return;
-    e.preventDefault();
-
-    const pos = getCanvasCoords(e);
-
-    if (isShapeTool(tool) && shapeStart) {
-      updateShapePreview(shapeStart.x, shapeStart.y, pos.x, pos.y);
-      return;
-    }
-
-    // Brush drawing
-    if (tool === TOOL_TYPES.ERASER) {
-      drawEraser(lastPos.x, lastPos.y, pos.x, pos.y);
-    } else if (isBrushTool(tool)) {
-      drawBrushStroke(lastPos.x, lastPos.y, pos.x, pos.y);
-    }
-
-    setLastPos(pos);
-  }, [isDrawing, tool, shapeStart, lastPos, getCanvasCoords]);
-
-  const handlePointerUp = useCallback((e) => {
-    if (!isDrawing) return;
-
-    const pos = getCanvasCoords(e);
-
-    if (isShapeTool(tool) && shapeStart) {
-      finishShape(shapeStart.x, shapeStart.y, pos.x, pos.y);
-      clearShapePreview();
-      setShapeStart(null);
-    }
-
-    brushEngineRef.current?.endStroke();
-    setIsDrawing(false);
-    setActiveLane(null);
-    activeLaneRef.current = null; // Clear the locked lane
-
-    // Save state after stroke
-    drawingEngineRef.current?.saveState();
-    updateHistoryState();
-  }, [isDrawing, tool, shapeStart, getCanvasCoords]);
-
-  const handlePointerLeave = useCallback(() => {
+    
+    ctx.lineWidth = isPencilTool(tool) ? Math.max(1, brushSize / 4) : brushSize;
+    ctx.globalAlpha = opacity;
+    
+    setIsDrawing(true);
+    lastPointRef.current = point;
+  };
+  
+  const continueDrawing = (point) => {
+    if (!isDrawing || !lastPointRef.current) return;
+    
+    const ctx = drawingCtxRef.current;
+    if (!ctx) return;
+    
+    ctx.lineTo(point.x, point.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(point.x, point.y);
+    
+    lastPointRef.current = point;
+  };
+  
+  const stopDrawing = () => {
     if (isDrawing) {
-      brushEngineRef.current?.endStroke();
+      const ctx = drawingCtxRef.current;
+      if (ctx) {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1;
+      }
       setIsDrawing(false);
-      setActiveLane(null);
-      activeLaneRef.current = null; // Clear the locked lane
-      clearShapePreview();
-      setShapeStart(null);
-
-      drawingEngineRef.current?.saveState();
-      updateHistoryState();
+      lastPointRef.current = null;
+      saveToHistory();
     }
-  }, [isDrawing]);
-
+  };
+  
+  // ========================================================================
+  // STICKER PLACEMENT
+  // ========================================================================
+  
+  const placeSticker = (point) => {
+    if (!selectedSticker) return;
+    
+    const newSticker = {
+      id: nextStickerId,
+      type: 'sticker',
+      x: point.x,
+      y: point.y,
+      rotation: 0,
+      scale: 1,
+      data: {
+        ...selectedSticker,
+        size: stickerSize,
+        color: color
+      }
+    };
+    
+    setStickers(prev => [...prev, newSticker]);
+    setNextStickerId(prev => prev + 1);
+    setSelectedStickerId(newSticker.id);
+    
+    onStickerPlaced?.();
+    
+    setTimeout(saveToHistory, 50);
+  };
+  
+  // ========================================================================
+  // STICKER INTERACTION
+  // ========================================================================
+  
+  const handleStickerInteraction = (e, sticker, mode) => {
+    if (!isHandTool(tool)) return;
+    
+    e.stopPropagation();
+    
+    setSelectedStickerId(sticker.id);
+    
+    const { clientX, clientY } = getEventCoords(e);
+    const canvas = drawingCanvasRef.current;
+    const rect = canvas?.getBoundingClientRect();
+    
+    if (!rect) return;
+    
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const centerX = rect.left + (sticker.x / scaleX);
+    const centerY = rect.top + (sticker.y / scaleY);
+    
+    dragRef.current = {
+      mode,
+      stickerId: sticker.id,
+      startX: clientX,
+      startY: clientY,
+      initialX: sticker.x,
+      initialY: sticker.y,
+      initialRotation: sticker.rotation,
+      initialScale: sticker.scale,
+      scaleX,
+      scaleY,
+      centerX,
+      centerY,
+      startAngle: Math.atan2(clientY - centerY, clientX - centerX) * (180 / Math.PI),
+      startDistance: Math.max(30, Math.sqrt(Math.pow(clientX - centerX, 2) + Math.pow(clientY - centerY, 2)))
+    };
+    
+    forceUpdate(n => n + 1);
+  };
+  
+  // Global mouse/touch move handler
+  useEffect(() => {
+    const handleMove = (e) => {
+      const drag = dragRef.current;
+      
+      if (drag) {
+        const { clientX, clientY } = getEventCoords(e);
+        
+        if (drag.mode === 'move') {
+          const dx = (clientX - drag.startX) * drag.scaleX;
+          const dy = (clientY - drag.startY) * drag.scaleY;
+          const newX = drag.initialX + dx;
+          const newY = drag.initialY + dy;
+          
+          setStickers(prev => prev.map(s => 
+            s.id === drag.stickerId 
+              ? { ...s, x: newX, y: newY }
+              : s
+          ));
+        } 
+        else if (drag.mode === 'rotate') {
+          const currentAngle = Math.atan2(
+            clientY - drag.centerY, 
+            clientX - drag.centerX
+          ) * (180 / Math.PI);
+          const deltaAngle = currentAngle - drag.startAngle;
+          
+          setStickers(prev => prev.map(s => 
+            s.id === drag.stickerId 
+              ? { ...s, rotation: drag.initialRotation + deltaAngle }
+              : s
+          ));
+        }
+        else if (drag.mode === 'resize') {
+          const currentDist = Math.sqrt(
+            Math.pow(clientX - drag.centerX, 2) + 
+            Math.pow(clientY - drag.centerY, 2)
+          );
+          
+          const scaleRatio = currentDist / drag.startDistance;
+          const newScale = drag.initialScale * scaleRatio;
+          const clampedScale = Math.max(0.3, Math.min(3, newScale));
+          
+          setStickers(prev => prev.map(s => 
+            s.id === drag.stickerId 
+              ? { ...s, scale: clampedScale }
+              : s
+          ));
+        }
+        return;
+      }
+      
+      if (isDrawing && isDrawingTool(tool)) {
+        const point = getCanvasPoint(e);
+        continueDrawing(point);
+      }
+    };
+    
+    const handleEnd = () => {
+      if (dragRef.current) {
+        dragRef.current = null;
+        forceUpdate(n => n + 1);
+        saveToHistory();
+      }
+      stopDrawing();
+    };
+    
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleEnd);
+    window.addEventListener('touchmove', handleMove, { passive: false });
+    window.addEventListener('touchend', handleEnd);
+    window.addEventListener('touchcancel', handleEnd);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleEnd);
+      window.removeEventListener('touchmove', handleMove);
+      window.removeEventListener('touchend', handleEnd);
+      window.removeEventListener('touchcancel', handleEnd);
+    };
+  }, [isDrawing, tool, saveToHistory]);
+  
+  // ========================================================================
+  // CANVAS MOUSE EVENTS
+  // ========================================================================
+  
+  const handleCanvasMouseDown = (e) => {
+    const point = getCanvasPoint(e);
+    
+    if (isStickerTool(tool)) {
+      placeSticker(point);
+    } else if (isDrawingTool(tool)) {
+      startDrawing(point);
+    }
+  };
+  
+  const handleStickerLayerClick = (e) => {
+    if (e.target === e.currentTarget && isHandTool(tool)) {
+      setSelectedStickerId(null);
+    }
+  };
+  
+  // ========================================================================
+  // KEYBOARD
+  // ========================================================================
+  
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedStickerId) {
+        setStickers(prev => prev.filter(s => s.id !== selectedStickerId));
+        setSelectedStickerId(null);
+        saveToHistory();
+      }
+      
+      if (e.metaKey || e.ctrlKey) {
+        if (e.key === 'z' && !e.shiftKey) {
+          e.preventDefault();
+          undo();
+        } else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') {
+          e.preventDefault();
+          redo();
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedStickerId, undo, redo, saveToHistory]);
+  
+  // ========================================================================
+  // CLEAR LANE
+  // ========================================================================
+  
+  const clearLane = (laneIndex) => {
+    const rowHeight = height / instruments.length;
+    const yStart = laneIndex * rowHeight;
+    const yEnd = yStart + rowHeight;
+    
+    const ctx = drawingCtxRef.current;
+    if (ctx) {
+      ctx.clearRect(0, yStart, width, rowHeight);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, yStart, width, rowHeight);
+    }
+    
+    setStickers(prev => prev.filter(s => s.y < yStart || s.y > yEnd));
+    saveToHistory();
+  };
+  
+  // ========================================================================
+  // EXPORT
+  // ========================================================================
+  
+  const toDataURL = () => {
+    const composite = document.createElement('canvas');
+    composite.width = width;
+    composite.height = height;
+    const ctx = composite.getContext('2d');
+    ctx.drawImage(drawingCanvasRef.current, 0, 0);
+    return composite.toDataURL();
+  };
+  
+  // ========================================================================
+  // IMPERATIVE HANDLE
+  // ========================================================================
+  
+  useImperativeHandle(ref, () => ({
+    undo,
+    redo,
+    clearLane,
+    toDataURL,
+    getStickers: () => stickers,
+  }));
+  
   // ========================================================================
   // RENDER
   // ========================================================================
-
-  // Show loading state if no instruments
-  if (instruments.length === 0) {
-    return (
-      <div style={styles.container}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#666' }}>
-          Loading canvas...
-        </div>
-      </div>
-    );
-  }
-
+  
   return (
-    <div ref={containerRef} style={styles.container}>
-      {/* Canvas Wrapper - no lane labels, speakers provide that info */}
-      <div style={styles.canvasWrapper}>
-        {/* Main Canvas */}
-        <canvas
-          ref={canvasRef}
-          style={{
-            ...styles.canvas,
-            cursor: getCursor()
-          }}
-          onMouseDown={handlePointerDown}
-          onMouseMove={handlePointerMove}
-          onMouseUp={handlePointerUp}
-          onMouseLeave={handlePointerLeave}
-          onTouchStart={handlePointerDown}
-          onTouchMove={handlePointerMove}
-          onTouchEnd={handlePointerUp}
-        />
-
-        {/* Preview Canvas (for shapes) */}
-        <canvas
-          ref={previewCanvasRef}
-          style={{
-            ...styles.previewCanvas,
-            mixBlendMode: 'screen'
-          }}
-        />
+    <div 
+      ref={containerRef}
+      style={{ 
+        position: 'relative', 
+        width, 
+        height,
+        overflow: 'visible'
+      }}
+    >
+      <canvas
+        ref={drawingCanvasRef}
+        onMouseDown={handleCanvasMouseDown}
+        onTouchStart={handleCanvasMouseDown}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          touchAction: 'none',
+          cursor: isHandTool(tool) ? 'default' 
+            : isStickerTool(tool) ? 'copy'
+            : isEraserTool(tool) ? 'cell'
+            : 'crosshair'
+        }}
+      />
+      
+      {/* Sticker Layer */}
+      <div 
+        onClick={handleStickerLayerClick}
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget && isHandTool(tool)) {
+            setSelectedStickerId(null);
+          }
+        }}
+        style={{ 
+          position: 'absolute', 
+          top: 0, 
+          left: 0, 
+          width: '100%', 
+          height: '100%',
+          overflow: 'visible',
+          pointerEvents: isHandTool(tool) ? 'auto' : 'none'
+        }}
+      >
+        {stickers.map(sticker => {
+          // Convert canvas coordinates to screen coordinates for rendering
+          const canvas = drawingCanvasRef.current;
+          const rect = canvas?.getBoundingClientRect();
+          const scaleX = canvas && rect ? canvas.width / rect.width : 1;
+          const scaleY = canvas && rect ? canvas.height / rect.height : 1;
+          
+          const screenX = sticker.x / scaleX;
+          const screenY = sticker.y / scaleY;
+          
+          const screenSticker = {
+            ...sticker,
+            x: screenX,
+            y: screenY
+          };
+          
+          return (
+            <StickerRenderer
+              key={sticker.id}
+              sticker={screenSticker}
+              isSelected={selectedStickerId === sticker.id}
+              onInteraction={(e, s, mode) => handleStickerInteraction(e, sticker, mode)}
+            />
+          );
+        })}
       </div>
+      
+      {selectedStickerId && isHandTool(tool) && (
+        <div style={{
+          position: 'absolute',
+          bottom: 8,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          color: '#ffffff',
+          padding: '8px 16px',
+          borderRadius: '8px',
+          fontSize: '12px',
+          pointerEvents: 'none',
+          whiteSpace: 'nowrap',
+          zIndex: 200
+        }}>
+          <strong>Delete</strong> to remove • <strong>Drag</strong> to move • <strong style={{color: '#60a5fa'}}>↻</strong> to rotate • <strong style={{color: '#34d399'}}>⤡</strong> to resize
+        </div>
+      )}
     </div>
   );
 });
