@@ -3,6 +3,7 @@
 // ✅ UPDATED: Now uses presentationView data from lesson configs instead of hardcoded stage mappings
 // ✅ UPDATED: Added Layer Detective Class Demo support with SessionCodeBadge
 // ✅ UPDATED: Added Lesson 4 (Epic Wildlife) support with Sectional Loop Builder game
+// ✅ UPDATED: Fixed video sizing to fill full screen
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -758,18 +759,15 @@ const PresentationView = () => {
       );
     }
     
-    // RENDER VIDEO
+    // RENDER VIDEO - Full screen sizing
     if (type === 'video' && videoPath) {
       return (
         <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
+          position: 'relative',
+          width: '100vw',
+          height: '100vh',
           backgroundColor: 'black',
-          padding: '20px',
-          position: 'relative'
+          overflow: 'hidden'
         }}>
           <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={true} />
           <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} isDarkBackground={true} />
@@ -797,14 +795,18 @@ const PresentationView = () => {
             {isFullscreen ? '⊗ Exit Fullscreen' : '⛶ Fullscreen'}
           </button>
           
-          <h2 style={{ color: 'white', fontSize: '32px', marginBottom: '20px' }}>
-            {title || 'Video'}
-          </h2>
           <video
             key={currentStage}
             controls
             autoPlay
-            style={{ width: '90%', maxWidth: '1200px', maxHeight: '80vh' }}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain'
+            }}
           >
             <source src={videoPath} type="video/mp4" />
           </video>
