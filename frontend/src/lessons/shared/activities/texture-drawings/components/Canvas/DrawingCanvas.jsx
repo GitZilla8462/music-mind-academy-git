@@ -1,6 +1,12 @@
 /**
  * DrawingCanvas.jsx - Canvas with Object-Based Stickers
  * 
+ * Features:
+ * - Marquee selection (click & drag to select multiple stickers)
+ * - Multi-select (Shift+click to add/remove from selection)
+ * - Copy/Paste (Ctrl+C / Ctrl+V)
+ * - Group move/delete for selected stickers
+ * 
  * Supports render types:
  * - svg: PNG instrument icons
  * - text: Dynamic markings (pp, ff)
@@ -38,7 +44,7 @@ const isPencilTool = (t) => t?.toLowerCase() === 'pencil';
 // STICKER RENDERER
 // ============================================================================
 
-const StickerRenderer = ({ sticker, isSelected, onInteraction }) => {
+const StickerRenderer = ({ sticker, isSelected, onInteraction, isPartOfMultiSelect }) => {
   const { x, y, rotation, scale, data } = sticker;
   const baseSize = data?.size || 56;
   const size = baseSize * scale;
@@ -200,6 +206,9 @@ const StickerRenderer = ({ sticker, isSelected, onInteraction }) => {
     );
   };
 
+  // Show resize/rotate handles only when single-selected (not part of multi-select)
+  const showHandles = isSelected && !isPartOfMultiSelect;
+
   return (
     <div
       onMouseDown={(e) => handleMouseDown(e, 'move')}
@@ -230,8 +239,8 @@ const StickerRenderer = ({ sticker, isSelected, onInteraction }) => {
     >
       {renderContent()}
       
-      {/* Control handles - only when selected */}
-      {isSelected && (
+      {/* Control handles - only when single-selected */}
+      {showHandles && (
         <>
           {/* Rotation handle - top */}
           <div
@@ -298,6 +307,35 @@ const StickerRenderer = ({ sticker, isSelected, onInteraction }) => {
 };
 
 // ============================================================================
+// MARQUEE SELECTION BOX
+// ============================================================================
+
+const MarqueeBox = ({ start, end }) => {
+  if (!start || !end) return null;
+  
+  const left = Math.min(start.x, end.x);
+  const top = Math.min(start.y, end.y);
+  const width = Math.abs(end.x - start.x);
+  const height = Math.abs(end.y - start.y);
+  
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left,
+        top,
+        width,
+        height,
+        border: '2px dashed #3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        pointerEvents: 'none',
+        zIndex: 1000
+      }}
+    />
+  );
+};
+
+// ============================================================================
 // MAIN CANVAS
 // ============================================================================
 
@@ -321,10 +359,18 @@ const DrawingCanvas = forwardRef(({
   const drawingCtxRef = useRef(null);
   const containerRef = useRef(null);
   
-  // Sticker state
+  // Sticker state - NOW SUPPORTS MULTI-SELECT
   const [stickers, setStickers] = useState([]);
-  const [selectedStickerId, setSelectedStickerId] = useState(null);
+  const [selectedStickerIds, setSelectedStickerIds] = useState(new Set());
   const [nextStickerId, setNextStickerId] = useState(1);
+  
+  // Clipboard for copy/paste
+  const clipboardRef = useRef([]);
+  
+  // Marquee selection state
+  const [isMarqueeSelecting, setIsMarqueeSelecting] = useState(false);
+  const [marqueeStart, setMarqueeStart] = useState(null);
+  const [marqueeEnd, setMarqueeEnd] = useState(null);
   
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
@@ -361,11 +407,11 @@ const DrawingCanvas = forwardRef(({
     saveToHistory();
   }, [width, height, instruments.length]);
   
-  // Update selected sticker color when color changes
+  // Update selected stickers' color when color changes
   useEffect(() => {
-    if (selectedStickerId && color) {
+    if (selectedStickerIds.size > 0 && color) {
       setStickers(prev => prev.map(s => {
-        if (s.id === selectedStickerId) {
+        if (selectedStickerIds.has(s.id)) {
           const render = s.data?.render;
           if (render === 'text' || render === 'text-italic' || render === 'symbol' || 
               render === 'symbol-large' || render === 'crescendo' || render === 'decrescendo') {
@@ -375,7 +421,7 @@ const DrawingCanvas = forwardRef(({
         return s;
       }));
     }
-  }, [color, selectedStickerId]);
+  }, [color, selectedStickerIds]);
   
   // ========================================================================
   // HISTORY
@@ -419,7 +465,7 @@ const DrawingCanvas = forwardRef(({
     img.src = state.imageData;
     
     setStickers(state.stickers || []);
-    setSelectedStickerId(null);
+    setSelectedStickerIds(new Set());
   };
   
   const undo = useCallback(() => {
@@ -479,6 +525,19 @@ const DrawingCanvas = forwardRef(({
     return {
       x: (clientX - rect.left) * scaleX,
       y: (clientY - rect.top) * scaleY
+    };
+  };
+  
+  const getScreenPoint = (e) => {
+    const canvas = drawingCanvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    
+    const rect = canvas.getBoundingClientRect();
+    const { clientX, clientY } = getEventCoords(e);
+    
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
     };
   };
   
@@ -558,11 +617,124 @@ const DrawingCanvas = forwardRef(({
     
     setStickers(prev => [...prev, newSticker]);
     setNextStickerId(prev => prev + 1);
-    setSelectedStickerId(newSticker.id);
+    setSelectedStickerIds(new Set([newSticker.id]));
     
     onStickerPlaced?.();
     
     setTimeout(saveToHistory, 50);
+  };
+  
+  // ========================================================================
+  // COPY / PASTE
+  // ========================================================================
+  
+  const copySelectedStickers = useCallback(() => {
+    if (selectedStickerIds.size === 0) return;
+    
+    const selectedStickers = stickers.filter(s => selectedStickerIds.has(s.id));
+    
+    // Store copies with their original positions
+    clipboardRef.current = selectedStickers.map(s => ({
+      ...JSON.parse(JSON.stringify(s)),
+      originalX: s.x,
+      originalY: s.y
+    }));
+    
+    console.log(`📋 Copied ${selectedStickers.length} sticker(s)`);
+  }, [selectedStickerIds, stickers]);
+  
+  const pasteStickers = useCallback(() => {
+    if (clipboardRef.current.length === 0) return;
+    
+    // Paste offset: 20px down and 20px left from original positions
+    const PASTE_OFFSET = 20;
+    
+    const newIds = new Set();
+    const newStickers = clipboardRef.current.map((s, index) => {
+      const newId = nextStickerId + index;
+      newIds.add(newId);
+      return {
+        ...s,
+        id: newId,
+        x: s.originalX + PASTE_OFFSET,  // Right
+        y: s.originalY + PASTE_OFFSET   // Down (bottom-right offset)
+      };
+    });
+    
+    // Update clipboard positions for next paste (stack effect)
+    // Each subsequent paste will be offset from the previous paste location
+    clipboardRef.current = clipboardRef.current.map(s => ({
+      ...s,
+      originalX: s.originalX + PASTE_OFFSET,
+      originalY: s.originalY + PASTE_OFFSET
+    }));
+    
+    setStickers(prev => [...prev, ...newStickers]);
+    setNextStickerId(prev => prev + newStickers.length);
+    setSelectedStickerIds(newIds);
+    
+    console.log(`📋 Pasted ${newStickers.length} sticker(s)`);
+    
+    setTimeout(saveToHistory, 50);
+  }, [nextStickerId, saveToHistory]);
+  
+  // ========================================================================
+  // MARQUEE SELECTION
+  // ========================================================================
+  
+  const startMarqueeSelection = (screenPoint) => {
+    setIsMarqueeSelecting(true);
+    setMarqueeStart(screenPoint);
+    setMarqueeEnd(screenPoint);
+  };
+  
+  const updateMarqueeSelection = (screenPoint) => {
+    if (!isMarqueeSelecting) return;
+    setMarqueeEnd(screenPoint);
+  };
+  
+  const finishMarqueeSelection = () => {
+    if (!isMarqueeSelecting || !marqueeStart || !marqueeEnd) {
+      setIsMarqueeSelecting(false);
+      setMarqueeStart(null);
+      setMarqueeEnd(null);
+      return;
+    }
+    
+    // Get marquee bounds in screen coordinates
+    const left = Math.min(marqueeStart.x, marqueeEnd.x);
+    const right = Math.max(marqueeStart.x, marqueeEnd.x);
+    const top = Math.min(marqueeStart.y, marqueeEnd.y);
+    const bottom = Math.max(marqueeStart.y, marqueeEnd.y);
+    
+    // Only select if marquee has some size
+    if (right - left > 5 && bottom - top > 5) {
+      const canvas = drawingCanvasRef.current;
+      const rect = canvas?.getBoundingClientRect();
+      const scaleX = canvas && rect ? canvas.width / rect.width : 1;
+      const scaleY = canvas && rect ? canvas.height / rect.height : 1;
+      
+      // Find all stickers within bounds
+      const newSelectedIds = new Set();
+      stickers.forEach(sticker => {
+        const screenX = sticker.x / scaleX;
+        const screenY = sticker.y / scaleY;
+        
+        if (screenX >= left && screenX <= right && screenY >= top && screenY <= bottom) {
+          newSelectedIds.add(sticker.id);
+        }
+      });
+      
+      setSelectedStickerIds(newSelectedIds);
+      
+      if (newSelectedIds.size > 0) {
+        console.log(`✅ Selected ${newSelectedIds.size} sticker(s)`);
+      }
+    }
+    
+    setIsMarqueeSelecting(false);
+    setMarqueeStart(null);
+    setMarqueeEnd(null);
   };
   
   // ========================================================================
@@ -574,7 +746,33 @@ const DrawingCanvas = forwardRef(({
     
     e.stopPropagation();
     
-    setSelectedStickerId(sticker.id);
+    const isShiftKey = e.shiftKey;
+    const isAlreadySelected = selectedStickerIds.has(sticker.id);
+    
+    // Shift+click: toggle selection
+    if (isShiftKey) {
+      setSelectedStickerIds(prev => {
+        const newSet = new Set(prev);
+        if (isAlreadySelected) {
+          newSet.delete(sticker.id);
+        } else {
+          newSet.add(sticker.id);
+        }
+        return newSet;
+      });
+      return;
+    }
+    
+    // If clicking on unselected sticker without shift, select only that one
+    if (!isAlreadySelected) {
+      setSelectedStickerIds(new Set([sticker.id]));
+    }
+    
+    // For rotate/resize, only work on single selection
+    if ((mode === 'rotate' || mode === 'resize') && selectedStickerIds.size > 1) {
+      // If multiple selected, reduce to just this one for rotate/resize
+      setSelectedStickerIds(new Set([sticker.id]));
+    }
     
     const { clientX, clientY } = getEventCoords(e);
     const canvas = drawingCanvasRef.current;
@@ -588,15 +786,26 @@ const DrawingCanvas = forwardRef(({
     const centerX = rect.left + (sticker.x / scaleX);
     const centerY = rect.top + (sticker.y / scaleY);
     
+    // Store initial positions of ALL selected stickers for group move
+    const initialPositions = {};
+    const idsToMove = isAlreadySelected ? selectedStickerIds : new Set([sticker.id]);
+    stickers.forEach(s => {
+      if (idsToMove.has(s.id)) {
+        initialPositions[s.id] = { x: s.x, y: s.y, rotation: s.rotation, scale: s.scale };
+      }
+    });
+    
     dragRef.current = {
       mode,
       stickerId: sticker.id,
+      selectedIds: idsToMove,
       startX: clientX,
       startY: clientY,
       initialX: sticker.x,
       initialY: sticker.y,
       initialRotation: sticker.rotation,
       initialScale: sticker.scale,
+      initialPositions,
       scaleX,
       scaleY,
       centerX,
@@ -613,20 +822,32 @@ const DrawingCanvas = forwardRef(({
     const handleMove = (e) => {
       const drag = dragRef.current;
       
+      // Handle marquee selection drag
+      if (isMarqueeSelecting) {
+        const screenPoint = getScreenPoint(e);
+        updateMarqueeSelection(screenPoint);
+        return;
+      }
+      
       if (drag) {
         const { clientX, clientY } = getEventCoords(e);
         
         if (drag.mode === 'move') {
           const dx = (clientX - drag.startX) * drag.scaleX;
           const dy = (clientY - drag.startY) * drag.scaleY;
-          const newX = drag.initialX + dx;
-          const newY = drag.initialY + dy;
           
-          setStickers(prev => prev.map(s => 
-            s.id === drag.stickerId 
-              ? { ...s, x: newX, y: newY }
-              : s
-          ));
+          // Move ALL selected stickers
+          setStickers(prev => prev.map(s => {
+            if (drag.selectedIds.has(s.id)) {
+              const initial = drag.initialPositions[s.id];
+              return { 
+                ...s, 
+                x: initial.x + dx, 
+                y: initial.y + dy 
+              };
+            }
+            return s;
+          }));
         } 
         else if (drag.mode === 'rotate') {
           const currentAngle = Math.atan2(
@@ -667,6 +888,12 @@ const DrawingCanvas = forwardRef(({
     };
     
     const handleEnd = () => {
+      // Finish marquee selection
+      if (isMarqueeSelecting) {
+        finishMarqueeSelection();
+        return;
+      }
+      
       if (dragRef.current) {
         dragRef.current = null;
         forceUpdate(n => n + 1);
@@ -688,7 +915,7 @@ const DrawingCanvas = forwardRef(({
       window.removeEventListener('touchend', handleEnd);
       window.removeEventListener('touchcancel', handleEnd);
     };
-  }, [isDrawing, tool, saveToHistory]);
+  }, [isDrawing, tool, saveToHistory, isMarqueeSelecting, marqueeStart, marqueeEnd, stickers]);
   
   // ========================================================================
   // CANVAS MOUSE EVENTS
@@ -704,9 +931,17 @@ const DrawingCanvas = forwardRef(({
     }
   };
   
-  const handleStickerLayerClick = (e) => {
+  const handleStickerLayerMouseDown = (e) => {
+    // Only start marquee if clicking on empty space in hand tool mode
     if (e.target === e.currentTarget && isHandTool(tool)) {
-      setSelectedStickerId(null);
+      // Deselect all if not shift-clicking
+      if (!e.shiftKey) {
+        setSelectedStickerIds(new Set());
+      }
+      
+      // Start marquee selection
+      const screenPoint = getScreenPoint(e);
+      startMarqueeSelection(screenPoint);
     }
   };
   
@@ -716,12 +951,32 @@ const DrawingCanvas = forwardRef(({
   
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedStickerId) {
-        setStickers(prev => prev.filter(s => s.id !== selectedStickerId));
-        setSelectedStickerId(null);
+      // Delete selected stickers
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedStickerIds.size > 0) {
+        setStickers(prev => prev.filter(s => !selectedStickerIds.has(s.id)));
+        setSelectedStickerIds(new Set());
         saveToHistory();
       }
       
+      // Select all (Ctrl+A)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'a' && isHandTool(tool)) {
+        e.preventDefault();
+        setSelectedStickerIds(new Set(stickers.map(s => s.id)));
+      }
+      
+      // Copy (Ctrl+C)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'c') {
+        e.preventDefault();
+        copySelectedStickers();
+      }
+      
+      // Paste (Ctrl+V)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
+        e.preventDefault();
+        pasteStickers();
+      }
+      
+      // Undo/Redo
       if (e.metaKey || e.ctrlKey) {
         if (e.key === 'z' && !e.shiftKey) {
           e.preventDefault();
@@ -731,11 +986,16 @@ const DrawingCanvas = forwardRef(({
           redo();
         }
       }
+      
+      // Escape to deselect
+      if (e.key === 'Escape') {
+        setSelectedStickerIds(new Set());
+      }
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedStickerId, undo, redo, saveToHistory]);
+  }, [selectedStickerIds, undo, redo, saveToHistory, copySelectedStickers, pasteStickers, tool, stickers]);
   
   // ========================================================================
   // CLEAR LANE
@@ -780,11 +1040,18 @@ const DrawingCanvas = forwardRef(({
     clearLane,
     toDataURL,
     getStickers: () => stickers,
+    copySelected: copySelectedStickers,
+    pasteStickers: pasteStickers,
+    selectAll: () => setSelectedStickerIds(new Set(stickers.map(s => s.id))),
+    deselectAll: () => setSelectedStickerIds(new Set()),
   }));
   
   // ========================================================================
   // RENDER
   // ========================================================================
+  
+  const selectedCount = selectedStickerIds.size;
+  const isMultiSelect = selectedCount > 1;
   
   return (
     <div 
@@ -816,12 +1083,8 @@ const DrawingCanvas = forwardRef(({
       
       {/* Sticker Layer */}
       <div 
-        onClick={handleStickerLayerClick}
-        onMouseDown={(e) => {
-          if (e.target === e.currentTarget && isHandTool(tool)) {
-            setSelectedStickerId(null);
-          }
-        }}
+        onMouseDown={handleStickerLayerMouseDown}
+        onTouchStart={handleStickerLayerMouseDown}
         style={{ 
           position: 'absolute', 
           top: 0, 
@@ -829,7 +1092,8 @@ const DrawingCanvas = forwardRef(({
           width: '100%', 
           height: '100%',
           overflow: 'visible',
-          pointerEvents: isHandTool(tool) ? 'auto' : 'none'
+          pointerEvents: isHandTool(tool) ? 'auto' : 'none',
+          cursor: isHandTool(tool) ? 'crosshair' : 'default'
         }}
       >
         {stickers.map(sticker => {
@@ -848,18 +1112,27 @@ const DrawingCanvas = forwardRef(({
             y: screenY
           };
           
+          const isSelected = selectedStickerIds.has(sticker.id);
+          
           return (
             <StickerRenderer
               key={sticker.id}
               sticker={screenSticker}
-              isSelected={selectedStickerId === sticker.id}
+              isSelected={isSelected}
+              isPartOfMultiSelect={isSelected && isMultiSelect}
               onInteraction={(e, s, mode) => handleStickerInteraction(e, sticker, mode)}
             />
           );
         })}
+        
+        {/* Marquee Selection Box */}
+        {isMarqueeSelecting && (
+          <MarqueeBox start={marqueeStart} end={marqueeEnd} />
+        )}
       </div>
       
-      {selectedStickerId && isHandTool(tool) && (
+      {/* Help tooltip */}
+      {selectedCount > 0 && isHandTool(tool) && (
         <div style={{
           position: 'absolute',
           bottom: 8,
@@ -874,7 +1147,43 @@ const DrawingCanvas = forwardRef(({
           whiteSpace: 'nowrap',
           zIndex: 200
         }}>
-          <strong>Delete</strong> to remove • <strong>Drag</strong> to move • <strong style={{color: '#60a5fa'}}>↻</strong> to rotate • <strong style={{color: '#34d399'}}>⤡</strong> to resize
+          {isMultiSelect ? (
+            <>
+              <strong>{selectedCount} selected</strong> • 
+              <strong> Delete</strong> to remove • 
+              <strong> Drag</strong> to move all • 
+              <strong> Ctrl+C</strong> copy • 
+              <strong> Ctrl+V</strong> paste
+            </>
+          ) : (
+            <>
+              <strong>Delete</strong> to remove • 
+              <strong>Drag</strong> to move • 
+              <strong style={{color: '#60a5fa'}}>↻</strong> rotate • 
+              <strong style={{color: '#34d399'}}>⤡</strong> resize • 
+              <strong>Shift+click</strong> multi-select
+            </>
+          )}
+        </div>
+      )}
+      
+      {/* Marquee hint when no selection */}
+      {selectedCount === 0 && isHandTool(tool) && !isMarqueeSelecting && (
+        <div style={{
+          position: 'absolute',
+          bottom: 8,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          color: '#ffffff',
+          padding: '6px 12px',
+          borderRadius: '6px',
+          fontSize: '11px',
+          pointerEvents: 'none',
+          whiteSpace: 'nowrap',
+          zIndex: 200
+        }}>
+          Click sticker to select • Drag to marquee select • Shift+click for multi-select
         </div>
       )}
     </div>
