@@ -383,7 +383,7 @@ const StickerPanel = ({
   onSizeChange,
   isOpen = true
 }) => {
-  const [openSection, setOpenSection] = useState('instruments');
+  const [openSection, setOpenSection] = useState(null);
 
   const toggleSection = (sectionId) => {
     setOpenSection(openSection === sectionId ? null : sectionId);

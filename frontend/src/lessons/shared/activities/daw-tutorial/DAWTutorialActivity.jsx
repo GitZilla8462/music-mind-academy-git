@@ -1,6 +1,7 @@
 // File: /src/lessons/shared/activities/daw-tutorial/DAWTutorialActivity.jsx
 // FIXED: Navigation tools dropdown from top right, exploration mode with timer after tutorial complete
 // Session mode support: no auto-advance in exploration mode during class
+// OPTIMIZED: For Chromebook displays (1366x768) - zoom compensation to fill viewport
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Minimize2, Maximize2 } from 'lucide-react';
@@ -669,8 +670,18 @@ const DAWTutorialActivity = ({
     );
   }
 
+  // ✅ CHROMEBOOK OPTIMIZATION: 1366x768
+  // zoom: 0.75 scales content to 75%, so we need 133.33% height to fill viewport
+  // This eliminates the empty space at the bottom while keeping tracks 1-5 visible
   return (
-    <div className="h-screen w-full flex flex-col bg-gray-900 relative" style={{ zoom: 0.75 }}>
+    <div 
+      className="w-full flex flex-col bg-gray-900 relative overflow-hidden" 
+      style={{ 
+        zoom: 0.75, 
+        height: '133.33vh',      // 100 / 0.75 = 133.33 to fill viewport
+        minHeight: '133.33vh'
+      }}
+    >
       {/* Loading Overlay */}
       {!isDAWReady && (
         <div className="absolute inset-0 bg-gray-900 flex items-center justify-center z-50">
@@ -758,7 +769,7 @@ const DAWTutorialActivity = ({
         </div>
       )}
 
-      {/* Main DAW Area */}
+      {/* Main DAW Area - flex-1 ensures it fills remaining space */}
       <div className="flex-1 flex flex-col min-h-0">
         <MusicComposer
           onLoopDropCallback={handlers.handleLoopDrop}
