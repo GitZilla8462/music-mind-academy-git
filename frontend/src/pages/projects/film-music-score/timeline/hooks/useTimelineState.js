@@ -27,25 +27,12 @@ export const useTimelineState = (duration) => {
     setTrackStates(initialStates);
   }, []);
 
-  // FIXED: Timeline width calculation - uses right margin + small left padding
+  // Timeline width calculation - uses right margin + small left padding
   const timelineWidth = useMemo(() => {
-    const pixelsPerSecond = 24; // Base pixels per second
+    const pixelsPerSecond = 24;
     const contentWidth = duration * pixelsPerSecond * localZoom;
-    const minWidth = 800; // Minimum width for usability
-    
-    // Use MARGIN_WIDTH for RIGHT padding + small left padding is added in timeToPixel
+    const minWidth = 800;
     const totalWidth = Math.max(minWidth, contentWidth) + TIMELINE_CONSTANTS.MARGIN_WIDTH;
-    
-    console.log('📏 Timeline Width Calculation:', {
-      duration: duration.toFixed(2),
-      localZoom,
-      pixelsPerSecond,
-      contentWidth: contentWidth.toFixed(2),
-      rightMargin: TIMELINE_CONSTANTS.MARGIN_WIDTH,
-      leftPadding: 16,
-      totalWidth: totalWidth.toFixed(2)
-    });
-    
     return totalWidth;
   }, [duration, localZoom]);
 
@@ -86,7 +73,6 @@ export const useTimelineState = (duration) => {
   };
 
   const handleZoomChange = (newZoom) => {
-    console.log('🔍 Zoom changed to:', newZoom);
     setLocalZoom(newZoom);
   };
 

@@ -19,27 +19,13 @@ export const useSelectionBox = (
 
   // Start selection box on mouse down in empty timeline area
   const handleSelectionStart = useCallback((e) => {
-    console.log('📦 SELECTION START called:', {
-      isPlaying,
-      button: e.button,
-      targetClass: e.target.className,
-      hasTimelineRef: !!timelineRef.current,
-      hasScrollRef: !!timelineScrollRef.current
-    });
-    
-    // Don't start selection if:
-    // 1. Playing
-    // 2. Right-click
-    if (isPlaying || e.button !== 0) {
-      console.log('❌ Selection blocked - playing or wrong button');
-      return;
-    }
+    // Don't start selection if playing or right-click
+    if (isPlaying || e.button !== 0) return;
     
     const target = e.target;
     if (target.closest('.loop-block') || 
         target.closest('[data-playhead]') ||
         target.tagName === 'BUTTON') {
-      console.log('❌ Selection blocked - interactive element');
       return;
     }
 
@@ -50,54 +36,28 @@ export const useSelectionBox = (
     const startX = e.clientX - rect.left + scrollLeft;
     const startY = e.clientY - rect.top + scrollTop;
 
-    console.log('✅ SELECTION BOX STARTED:', {
-      startX,
-      startY,
-      scrollLeft,
-      scrollTop,
-      clientX: e.clientX,
-      clientY: e.clientY,
-      rectLeft: rect.left,
-      rectTop: rect.top
-    });
-
     selectionStartRef.current = { x: startX, y: startY };
     isDraggingSelectionRef.current = true;
-    
-    console.log('🔧 Set isDraggingSelectionRef.current =', isDraggingSelectionRef.current);
     
     // Clear previous selection if not holding Shift/Cmd
     if (!e.shiftKey && !e.metaKey) {
       setSelectedLoopIds(new Set());
     }
 
-    const newSelectionBox = {
+    setSelectionBox({
       startX,
       startY,
       currentX: startX,
       currentY: startY
-    };
-    
-    console.log('📦 Setting selection box state:', newSelectionBox);
-    setSelectionBox(newSelectionBox);
+    });
 
     e.preventDefault();
     e.stopPropagation();
-    
-    console.log('✅ handleSelectionStart COMPLETE - waiting for mousemove events');
   }, [timelineRef, timelineScrollRef, isPlaying]);
 
   // Update selection box during drag
   const handleSelectionMove = useCallback((e) => {
-    console.log('🐭 MOUSEMOVE event!', {
-      isDragging: isDraggingSelectionRef.current,
-      hasStart: !!selectionStartRef.current
-    });
-    
-    if (!isDraggingSelectionRef.current || !selectionStartRef.current) {
-      console.log('❌ Mousemove ignored - not dragging');
-      return;
-    }
+    if (!isDraggingSelectionRef.current || !selectionStartRef.current) return;
 
     const rect = timelineRef.current.getBoundingClientRect();
     const scrollLeft = timelineScrollRef.current?.scrollLeft || 0;
@@ -106,23 +66,12 @@ export const useSelectionBox = (
     const currentX = e.clientX - rect.left + scrollLeft;
     const currentY = e.clientY - rect.top + scrollTop;
 
-    const newBox = {
+    setSelectionBox({
       startX: selectionStartRef.current.x,
       startY: selectionStartRef.current.y,
       currentX,
       currentY
-    };
-    
-    console.log('📦 SELECTION MOVE:', {
-      startX: newBox.startX,
-      startY: newBox.startY,
-      currentX: newBox.currentX,
-      currentY: newBox.currentY,
-      width: Math.abs(currentX - newBox.startX),
-      height: Math.abs(currentY - newBox.startY)
     });
-    
-    setSelectionBox(newBox);
 
     // Find loops within selection box
     const boxLeft = Math.min(selectionStartRef.current.x, currentX);
@@ -138,31 +87,22 @@ export const useSelectionBox = (
 
     const selectedIds = new Set();
     placedLoops.forEach(loop => {
-      // Calculate loop position and dimensions
       const loopTop = TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + 
                       (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT);
       const loopBottom = loopTop + TIMELINE_CONSTANTS.TRACK_HEIGHT;
       
-      // Check if loop's track is within selection box Y range
       if (loopTop < boxBottom && loopBottom > boxTop) {
         selectedIds.add(loop.id);
       }
     });
 
-    if (selectedIds.size > 0) {
-      console.log(`📊 Selected ${selectedIds.size} loops`);
-    }
     setSelectedLoopIds(selectedIds);
   }, [timelineRef, timelineScrollRef, placedLoops]);
 
   // Finish selection
   const handleSelectionEnd = useCallback(() => {
-    console.log('🏁 SELECTION END');
-    
     if (isDraggingSelectionRef.current) {
       isDraggingSelectionRef.current = false;
-      
-      console.log(`✅ Selection finished with ${selectedLoopIds.size} loops selected`);
       
       // Notify parent component of selected loops
       if (onMultiSelect && selectedLoopIds.size > 0) {
@@ -194,7 +134,6 @@ export const useSelectionBox = (
   // Set up mouse event listeners
   useEffect(() => {
     if (isDraggingSelectionRef.current) {
-      console.log('🖱️ Setting up selection drag listeners');
       document.addEventListener('mousemove', handleSelectionMove);
       document.addEventListener('mouseup', handleSelectionEnd);
       
@@ -202,7 +141,6 @@ export const useSelectionBox = (
       document.body.style.userSelect = 'none';
 
       return () => {
-        console.log('🧹 Cleaning up selection drag listeners');
         document.removeEventListener('mousemove', handleSelectionMove);
         document.removeEventListener('mouseup', handleSelectionEnd);
         document.body.style.cursor = '';

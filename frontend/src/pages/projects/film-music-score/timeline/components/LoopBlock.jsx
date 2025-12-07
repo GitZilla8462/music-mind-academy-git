@@ -50,9 +50,8 @@ const LoopBlock = React.memo(({
   useEffect(() => {
     if (originalDurationRef.current === null && loop.duration > 0) {
       originalDurationRef.current = loop.duration;
-      console.log(`Stored original duration for ${loop.name}: ${loop.duration}s`);
     }
-  }, [loop.duration, loop.name]);
+  }, [loop.duration]);
 
   const isSelected = selectedLoop === loop.id;
   const isDragged = draggedLoop?.id === loop.id;
@@ -148,8 +147,6 @@ const LoopBlock = React.memo(({
       waveformCacheRef.current.set(cacheKey, normalizedWaveform);
       setWaveformData(normalizedWaveform);
       setWaveformGenerated(true);
-      
-      console.log(`✅ Waveform: ${loop.name} - ${samples} samples (RMS normalized)`);
       
       audioContext.close();
     } catch (error) {
@@ -429,42 +426,23 @@ const LoopBlock = React.memo(({
   // DELETE KEY HANDLER - Works on all devices (PC, Mac, Chromebook)
   // ============================================================================
   useEffect(() => {
-    console.log('🔍 Loop selection state:', {
-      loopName: loop.name,
-      isSelected,
-      loopId: loop.id
-    });
-
+    // Only set up listener for selected loops
     if (!isSelected) return;
 
-    console.log('✅ Delete key listener ACTIVE for:', loop.name);
-
     const handleKeyDown = (e) => {
-      console.log('⌨️ Key pressed:', {
-        key: e.key,
-        code: e.code,
-        loopName: loop.name,
-        isSelected,
-        target: e.target.tagName
-      });
-
       // Delete or Backspace key when this loop is selected
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        // Prevent default backspace navigation
         e.preventDefault();
-        console.log('🗑️ DELETE TRIGGERED for loop:', loop.name);
         onLoopDelete(loop.id);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    console.log('👂 Keydown listener added for:', loop.name);
     
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      console.log('👋 Keydown listener removed for:', loop.name);
     };
-  }, [isSelected, loop.id, loop.name, onLoopDelete]);
+  }, [isSelected, loop.id, onLoopDelete]);
 
   const handleMouseDown = useCallback((e) => {
     if (e.target.closest('button') || e.target.closest('.resize-handle')) {
@@ -475,10 +453,7 @@ const LoopBlock = React.memo(({
     if (isResizing) return;
 
     if (!isSelected) {
-      console.log('🖱️ SELECTING loop:', loop.name, loop.id);
       onLoopSelect(loop.id);
-    } else {
-      console.log('🖱️ Loop already selected:', loop.name);
     }
 
     const startX = e.clientX;

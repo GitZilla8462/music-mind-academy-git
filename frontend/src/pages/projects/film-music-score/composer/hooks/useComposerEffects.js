@@ -1,5 +1,6 @@
 // ============================================================================
 // FILE: useComposerEffects.js - FIXED auto-save for tutorial/lesson mode
+// PERFORMANCE FIX: Reduced excessive console logging
 // ============================================================================
 
 import { useEffect, useRef } from 'react';
@@ -59,9 +60,8 @@ export const useComposerEffects = ({
   
   // Initialize video with dynamic duration loading
   useEffect(() => {
-    // Skip if we already have a video loaded
+    // Skip if we already have a video loaded - NO LOGGING HERE (causes spam)
     if (selectedVideo) {
-      console.log('📹 Video already loaded, skipping initialization');
       return;
     }
     
@@ -98,7 +98,7 @@ export const useComposerEffects = ({
           setVideoLoading(false);
         }
       } else if (preselectedVideo) {
-        console.log('📹 Preselected video detected:', preselectedVideo);
+        console.log('📹 Preselected video detected:', preselectedVideo.title || preselectedVideo.id);
         
         if (preselectedVideo.duration && preselectedVideo.duration > 0) {
           console.log('✅ Preselected video has duration:', preselectedVideo.duration, 'seconds');
@@ -107,7 +107,7 @@ export const useComposerEffects = ({
         }
         
         setVideoLoading(true);
-        console.log('🔍 Detecting duration for preselected video:', preselectedVideo.videoPath);
+        console.log('🔍 Detecting duration for preselected video...');
         
         const videoElement = document.createElement('video');
         videoElement.src = preselectedVideo.videoPath;
@@ -139,7 +139,6 @@ export const useComposerEffects = ({
             duration: detectedDuration
           };
           
-          console.log('✅ Setting video with detected duration:', videoWithDuration);
           setSelectedVideo(videoWithDuration);
         } catch (error) {
           console.error('❌ Error detecting video duration:', error);
@@ -186,7 +185,8 @@ export const useComposerEffects = ({
         };
         
         localStorage.setItem(`composition-${saveKey}`, JSON.stringify(compositionData));
-        console.log('✅ Auto-saved composition to:', `composition-${saveKey}`, `(${placedLoops.length} loops)`);
+        // Reduced logging - only log count, not full key
+        console.log(`✅ Auto-saved: ${placedLoops.length} loops`);
       }, 2000);
 
       return () => clearTimeout(autoSave);
@@ -215,7 +215,7 @@ export const useComposerEffects = ({
       try {
         const data = JSON.parse(saved);
         if (data.placedLoops && data.placedLoops.length > 0) {
-          console.log('📂 Loading saved composition from:', `composition-${saveKey}`, `(${data.placedLoops.length} loops)`);
+          console.log('📂 Loaded saved composition:', data.placedLoops.length, 'loops');
           setPlacedLoops(data.placedLoops);
           hasLoadedSavedCompositionRef.current = true;
         }
