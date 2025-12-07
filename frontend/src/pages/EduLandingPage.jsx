@@ -62,14 +62,12 @@ const EduLandingPage = () => {
       {/* Hero - Personal Story */}
       <section className="py-16 px-6">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="font-display text-4xl md:text-5xl font-extrabold leading-tight mb-6 text-slate-800">
-            A Music Creation Tool
-            <br />
-            <span className="gradient-text">Built by a Teacher, for Teachers</span>
+          <h1 className="font-display text-4xl md:text-5xl font-extrabold leading-tight mb-6">
+            <span className="gradient-text">Music Room Tools</span>
           </h1>
           
           <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-2xl mx-auto">
-            I'm a middle school music teacher in New York. I built this because I wanted my students 
+            Hello! I'm a middle school music teacher in New York. I built this because I wanted my students 
             to experience the joy of creating music—without needing expensive software or musical training. 
             Now I'm sharing it with you.
           </p>
