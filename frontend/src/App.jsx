@@ -61,6 +61,9 @@ import FirebaseSessionInspector from './components/FirebaseSessionInspector';
 import ErrorLogger from './components/ErrorLogger';
 import AdminAllProblems from './pages/AdminAllProblems';
 
+// ✅ ADDED: Import DemoActivity for teacher activity previews
+import DemoActivity from './pages/DemoActivity';
+
 // Add global styles for snap guide
 const snapGuideStyles = `
   /* Snap guide line (blue line that appears when snapping) */
@@ -260,6 +263,9 @@ const AppContent = () => {
         {/* Presentation View Route - NO AUTHENTICATION REQUIRED */}
         <Route path="/presentation" element={<PresentationView />} />
         
+        {/* ✅ ADDED: Demo Activity Route - Teacher preview of activities */}
+        <Route path="/demo" element={<DemoActivity />} />
+        
         {/* Allow access to lessons without authentication in classroom mode */}
         <Route path="/lessons/film-music-project/lesson1" element={<Lesson1 />} />
         <Route path="/lessons/film-music-project/lesson2" element={<Lesson2 />} />
@@ -344,6 +350,9 @@ const AppContent = () => {
         
         {/* Presentation View Route */}
         <Route path="/presentation" element={<PresentationView />} />
+        
+        {/* ✅ ADDED: Demo Activity Route - Teacher preview of activities */}
+        <Route path="/demo" element={<DemoActivity />} />
 
         {/* LESSON ROUTES - Available to all authenticated users */}
         <Route path="/lessons/film-music-project/lesson1" element={

@@ -137,7 +137,7 @@ const EduLandingPage = () => {
               { emoji: '🏀', title: 'Sports Highlight Reel', desc: 'Intro to the DAW', available: true },
               { emoji: '🏙️', title: 'City Soundscapes', desc: 'Texture & Layering', available: true },
               { emoji: '🌍', title: 'Epic Wildlife', desc: 'Sectional Form', available: false },
-              { emoji: '🎮', title: 'Video Game Montage', desc: 'Coming Soon', available: false },
+              { emoji: '🎮', title: 'Video Game Montage', desc: 'Musical Storytelling', available: false },
             ].map((lesson, i) => (
               <div 
                 key={i} 

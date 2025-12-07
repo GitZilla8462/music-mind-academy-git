@@ -1,15 +1,17 @@
 // File: /pages/MusicLoopsInMediaHub.jsx
 // Music Loops in Media Project - Hub page for all lessons
-// ✅ UPDATED: Epic Wildlife as Lesson 3 (available), Video Game Montage as Lesson 4 (coming soon)
+// ✅ UPDATED: Compact layout with collapsible lesson cards
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../firebase/config';
+import { Play, ChevronDown, ChevronRight } from 'lucide-react';
 
 const MusicLoopsInMediaHub = () => {
   const navigate = useNavigate();
   const [savedProgress, setSavedProgress] = useState({});
   const [creatingSession, setCreatingSession] = useState(null);
+  const [expandedLesson, setExpandedLesson] = useState(null);
   
   const userRole = localStorage.getItem('classroom-user-role');
   
@@ -30,14 +32,21 @@ const MusicLoopsInMediaHub = () => {
     try {
       const code = await createSession('teacher', lessonId, lessonRoute);
       console.log(`✅ Session created: ${code} for ${lessonId} at route ${lessonRoute}`);
-      console.log(`🔗 Redirecting to: ${lessonRoute}?session=${code}&role=teacher`);
-      
       window.location.href = `${lessonRoute}?session=${code}&role=teacher`;
     } catch (error) {
       console.error('❌ Error creating session:', error);
       alert('Failed to create session. Please try again.');
       setCreatingSession(null);
     }
+  };
+
+  const handleDemoActivity = (activityType, activityTitle) => {
+    const demoUrl = `/demo?activity=${activityType}&title=${encodeURIComponent(activityTitle)}`;
+    window.open(demoUrl, '_blank', 'width=1280,height=800,menubar=no,toolbar=no');
+  };
+
+  const toggleLesson = (lessonId) => {
+    setExpandedLesson(expandedLesson === lessonId ? null : lessonId);
   };
 
   const lessons = [
@@ -50,9 +59,15 @@ const MusicLoopsInMediaHub = () => {
       icon: '🏀',
       color: 'from-orange-500 to-red-500',
       videos: ['Basketball', 'Skateboarding', 'Football'],
-      duration: '35 minutes',
+      duration: '35 min',
       route: '/lessons/film-music-project/lesson2',
-      available: true
+      available: true,
+      activities: [
+        { id: 'daw-tutorial', title: 'DAW Challenge', description: 'Learn the DAW interface', activityType: 'daw-tutorial' },
+        { id: 'sports-composition', title: 'Sports Composition', description: 'Compose high-energy music', activityType: 'sports-composition-activity' },
+        { id: 'two-stars-wish', title: 'Two Stars & a Wish', description: 'Reflection activity', activityType: 'two-stars-wish' },
+        { id: 'name-that-loop', title: '🎮 Name That Loop', description: 'Bonus game', activityType: 'name-that-loop' }
+      ]
     },
     {
       id: 'lesson3',
@@ -63,33 +78,44 @@ const MusicLoopsInMediaHub = () => {
       icon: '🏙️',
       color: 'from-cyan-500 to-blue-500',
       videos: ['City Atmosphere'],
-      duration: '35 minutes',
+      duration: '35 min',
       route: '/lessons/film-music-project/lesson3',
-      available: true
+      available: true,
+      activities: [
+        { id: 'listening-map', title: 'Listening Map', description: 'Visualize musical layers', activityType: 'listening-map' },
+        { id: 'city-composition', title: 'City Composition', description: 'Compose a soundscape', activityType: 'city-composition-activity' },
+        { id: 'two-stars-wish', title: 'Two Stars & a Wish', description: 'Reflection activity', activityType: 'two-stars-wish' },
+        { id: 'layer-detective', title: '🎮 Layer Detective', description: 'Bonus game', activityType: 'layer-detective' }
+      ]
     },
     {
       id: 'lesson4',
       number: 3,
       title: 'Epic Wildlife',
       concept: 'Sectional Loop Form',
-      description: 'Create epic soundtracks for breathtaking nature footage. Learn how to build music with distinct sections that evolve as the wildlife story unfolds',
+      description: 'Create epic soundtracks for breathtaking nature footage with distinct sections',
       icon: '🌍',
       color: 'from-green-500 to-teal-500',
-      videos: ['Underwater Sea Creatures', 'Jungle Animals', 'Safari Wildlife'],
-      duration: '35 minutes',
+      videos: ['Underwater', 'Jungle', 'Safari'],
+      duration: '35 min',
       route: '/lessons/film-music-project/lesson4',
-      available: true
+      available: false,
+      activities: [
+        { id: 'sectional-loop-builder', title: 'Sectional Loop Builder', description: 'Build A-B-A sections', activityType: 'sectional-loop-builder' },
+        { id: 'wildlife-composition', title: 'Wildlife Composition', description: 'Score nature footage', activityType: 'wildlife-composition-activity' },
+        { id: 'two-stars-wish', title: 'Two Stars & a Wish', description: 'Reflection activity', activityType: 'two-stars-wish' }
+      ]
     },
     {
       id: 'lesson5',
       number: 4,
       title: 'Video Game Montage',
       concept: 'Musical Storytelling',
-      description: 'Score exciting video game footage with dynamic music that responds to the action and enhances the gaming experience',
+      description: 'Score exciting video game footage with dynamic music',
       icon: '🎮',
       color: 'from-purple-500 to-pink-500',
-      videos: ['Action Gameplay', 'Adventure Scenes', 'Victory Moments'],
-      duration: '35 minutes',
+      videos: ['Action', 'Adventure', 'Victory'],
+      duration: '35 min',
       route: '/lessons/film-music-project/lesson5',
       available: false
     },
@@ -98,10 +124,10 @@ const MusicLoopsInMediaHub = () => {
       number: 5,
       title: 'Student Choice Sandbox',
       concept: 'Apply All Skills',
-      description: 'Access all activities and games as standalone experiences. Choose your own video and apply everything you\'ve learned',
+      description: 'Access all activities and choose your own video',
       icon: '🎨',
       color: 'from-indigo-500 to-violet-500',
-      videos: ['All Activities', 'All Games', 'Student Selected Videos'],
+      videos: ['All Activities', 'Student Choice'],
       duration: 'Unlimited',
       route: '/lessons/film-music-project/sandbox',
       available: false
@@ -111,9 +137,8 @@ const MusicLoopsInMediaHub = () => {
   const getProgressBadge = (lessonId) => {
     if (savedProgress[lessonId]) {
       return (
-        <div className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
-          <span>✓</span>
-          <span>In Progress</span>
+        <div className="absolute -top-1 -left-1 bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-lg z-10">
+          ✓ Started
         </div>
       );
     }
@@ -121,152 +146,192 @@ const MusicLoopsInMediaHub = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <div className="bg-gray-800 border-b border-gray-700 shadow-xl">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <button
-            onClick={() => navigate('/')}
-            className="mb-4 text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors"
-          >
-            <span>←</span>
-            <span>Back to Home</span>
-          </button>
-          
-          <div className="flex items-center gap-4 mb-4">
-            <div className="text-6xl">🎵</div>
-            <div>
-              <h1 className="text-5xl font-bold text-white mb-2">
-                Music Loops in Media
-              </h1>
-              <p className="text-xl text-gray-300">
-                Compose original music for different types of media
-              </p>
+    <div className="min-h-screen bg-slate-900">
+      {/* Header */}
+      <div className="bg-slate-800 py-6 px-6 border-b border-slate-700">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className="text-5xl">🎬</span>
+              <div>
+                <h1 className="text-2xl font-bold text-white">Music Loops in Media</h1>
+                <p className="text-slate-400">Create soundtracks for different types of video</p>
+              </div>
             </div>
-          </div>
-          
-          <div className="flex gap-6 text-sm text-gray-400 mt-4">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">📚</span>
-              <span>4 Lessons + Sandbox</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">⏱️</span>
-              <span>~35 min each</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🎯</span>
-              <span>Grades 6-8</span>
+            <div className="flex items-center gap-6 text-slate-300">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">⏱️</span>
+                <span>~35 min each</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🎯</span>
+                <span>Grades 6-8</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="bg-gray-800 rounded-xl p-6 mb-8 border border-gray-700 shadow-xl">
-          <h2 className="text-2xl font-bold text-white mb-4">Unit Overview</h2>
-          <p className="text-gray-300 text-lg leading-relaxed mb-4">
-            In this unit, you'll learn how music loops are used to enhance different types of media. 
-            Each lesson focuses on a different media context and musical concept:
+      <div className="max-w-6xl mx-auto px-6 py-6">
+        {/* Unit Overview */}
+        <div className="bg-slate-800 rounded-xl p-5 mb-6 border border-slate-700 shadow-xl">
+          <h2 className="text-xl font-bold text-white mb-3">Unit Overview</h2>
+          <p className="text-slate-300 mb-4">
+            Learn how music loops enhance different types of media. Each lesson focuses on a different context and musical concept:
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">🏀</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-slate-300">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🏀</span>
               <div>
-                <div className="font-semibold text-white">Introduction to the DAW</div>
-                <div className="text-sm">Learn the tools for creating music with loops</div>
+                <div className="font-semibold text-white text-sm">DAW Basics</div>
+                <div className="text-xs text-slate-400">Learn the tools</div>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">🏙️</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🏙️</span>
               <div>
-                <div className="font-semibold text-white">Texture & Layering</div>
-                <div className="text-sm">Visualize and build layered soundscapes</div>
+                <div className="font-semibold text-white text-sm">Texture & Layers</div>
+                <div className="text-xs text-slate-400">Build soundscapes</div>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">🌍</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🌍</span>
               <div>
-                <div className="font-semibold text-white">Sectional Loop Form</div>
-                <div className="text-sm">Build music with distinct evolving sections</div>
+                <div className="font-semibold text-white text-sm">Sectional Form</div>
+                <div className="text-xs text-slate-400">Evolving sections</div>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">🎮</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🎮</span>
               <div>
-                <div className="font-semibold text-white">Musical Storytelling</div>
-                <div className="text-sm">Score dynamic video game footage</div>
+                <div className="font-semibold text-white text-sm">Storytelling</div>
+                <div className="text-xs text-slate-400">Dynamic scoring</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="space-y-6">
-          {lessons.map((lesson) => (
-            <div
-              key={lesson.id}
-              className={`relative bg-gray-800 rounded-xl overflow-hidden border border-gray-700 shadow-xl transition-all duration-300 ${
-                lesson.available 
-                  ? 'hover:shadow-2xl hover:scale-[1.01]' 
-                  : 'opacity-60'
-              }`}
-            >
-              {getProgressBadge(lesson.id)}
-              
-              {!lesson.available && (
-                <div className="absolute top-3 right-3 bg-gray-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10">
-                  Coming Soon
-                </div>
-              )}
+        {/* Lesson Cards - Collapsed by default */}
+        <div className="space-y-3">
+          {lessons.map((lesson) => {
+            const isExpanded = expandedLesson === lesson.id;
+            
+            return (
+              <div
+                key={lesson.id}
+                className={`relative bg-slate-800 rounded-xl overflow-hidden border border-slate-700 shadow-xl transition-colors duration-200 ${
+                  lesson.available 
+                    ? 'hover:border-slate-500' 
+                    : 'opacity-60'
+                }`}
+              >
+                {getProgressBadge(lesson.id)}
+                
+                {!lesson.available && (
+                  <div className="absolute top-3 right-3 bg-slate-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10">
+                    Coming Soon
+                  </div>
+                )}
 
-              <div className="flex flex-col md:flex-row">
-                <div className={`bg-gradient-to-br ${lesson.color} p-8 flex items-center justify-center md:w-48`}>
-                  <div className="text-center text-white">
-                    <div className="text-7xl mb-2">{lesson.icon}</div>
-                    <div className="text-2xl font-bold">
-                      {lesson.id === 'sandbox' ? 'Sandbox' : `Lesson ${lesson.number}`}
+                {/* Collapsed Header - Always visible */}
+                <button
+                  onClick={() => lesson.available && toggleLesson(lesson.id)}
+                  disabled={!lesson.available}
+                  className={`w-full flex items-center text-left ${
+                    lesson.available ? 'cursor-pointer' : 'cursor-default'
+                  }`}
+                >
+                  {/* Gradient Icon Area */}
+                  <div className={`bg-gradient-to-br ${lesson.color} p-5 flex items-center justify-center w-28 shrink-0 self-stretch`}>
+                    <div className="text-center text-white">
+                      <div className="text-4xl mb-1">{lesson.icon}</div>
+                      <div className="text-sm font-bold">
+                        {lesson.id === 'sandbox' ? 'Sandbox' : `Lesson ${lesson.number}`}
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="flex-1 p-6">
-                  <h3 className="text-2xl font-bold text-white mb-2">
-                    {lesson.title}
-                  </h3>
                   
-                  <div className="flex items-center gap-4 mb-3">
-                    <span className="px-3 py-1 bg-gray-700 text-blue-300 text-sm rounded-full font-semibold">
-                      {lesson.concept}
-                    </span>
-                    <span className="text-gray-400 text-sm">
-                      ⏱️ {lesson.duration}
-                    </span>
-                  </div>
-
-                  <p className="text-gray-300 mb-4 text-lg">
-                    {lesson.description}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {lesson.videos.map((video, idx) => (
-                      <span
-                        key={idx}
-                        className="px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-lg"
-                      >
-                        {video}
+                  {/* Title & Info */}
+                  <div className="flex-1 p-4 min-w-0">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="text-xl font-bold text-white">{lesson.title}</h3>
+                      <span className="px-3 py-1 bg-slate-700 text-blue-300 text-sm rounded-full font-semibold">
+                        {lesson.concept}
                       </span>
-                    ))}
+                    </div>
+                    <p className="text-slate-300 text-sm">{lesson.description}</p>
                   </div>
 
-                  {lesson.available && (
-                    <div className="flex gap-3 mt-4">
+                  {/* Duration & Chevron */}
+                  <div className="flex items-center gap-4 pr-4 shrink-0">
+                    <span className="text-slate-400">⏱️ {lesson.duration}</span>
+                    {lesson.available && (
+                      isExpanded ? 
+                        <ChevronDown className="w-6 h-6 text-slate-400" /> : 
+                        <ChevronRight className="w-6 h-6 text-slate-400" />
+                    )}
+                  </div>
+                </button>
+
+                {/* Expanded Content */}
+                {isExpanded && lesson.available && (
+                  <div className="border-t border-slate-700 p-5 bg-slate-800/50">
+                    {/* Video Tags */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {lesson.videos.map((video, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-slate-700 text-slate-300 text-sm rounded-lg">
+                          {video}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Activities - For Teachers */}
+                    {userRole === 'teacher' && lesson.activities && (
+                      <div className="mb-4">
+                        <div className="text-slate-400 text-sm font-semibold mb-3">
+                          Main Activities
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 md:grid-flow-col gap-2">
+                          {lesson.activities.map((activity, index) => (
+                            <div 
+                              key={activity.id}
+                              className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg"
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className="w-6 h-6 flex items-center justify-center bg-slate-600 text-white text-sm font-bold rounded-full">
+                                  {index + 1}
+                                </span>
+                                <div>
+                                  <span className="text-white font-medium">{activity.title}</span>
+                                  <span className="text-slate-400 text-sm ml-2">{activity.description}</span>
+                                </div>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDemoActivity(activity.activityType, activity.title);
+                                }}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
+                              >
+                                <Play className="w-4 h-4" />
+                                Demo
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
                       {userRole === 'teacher' && (
                         <button 
                           onClick={() => handleStartSession(lesson.id, lesson.route)}
                           disabled={creatingSession === lesson.id}
                           className={`flex-1 px-6 py-3 ${
                             creatingSession === lesson.id 
-                              ? 'bg-gray-500 cursor-not-allowed' 
-                              : 'bg-blue-500 hover:bg-blue-600'
+                              ? 'bg-slate-500 cursor-not-allowed' 
+                              : 'bg-blue-600 hover:bg-blue-700'
                           } text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2`}
                         >
                           {creatingSession === lesson.id ? (
@@ -286,23 +351,17 @@ const MusicLoopsInMediaHub = () => {
                       {userRole === 'student' && (
                         <button 
                           onClick={() => navigate(lesson.route)}
-                          className="flex-1 px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-colors"
+                          className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors"
                         >
                           Practice Solo →
                         </button>
                       )}
                     </div>
-                  )}
-
-                  {!lesson.available && (
-                    <div className="mt-4 text-gray-500 text-sm italic">
-                      This lesson will be available soon
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

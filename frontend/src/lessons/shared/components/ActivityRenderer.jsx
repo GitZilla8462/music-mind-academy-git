@@ -3,6 +3,7 @@
 // NOTE: NO countdown timers in student view - only in presentation view
 // ✅ UPDATED: Added Sectional Loop Builder activity for Lesson 4 (Epic Wildlife)
 // ✅ UPDATED: Added Monster Melody Maker bonus activity for Lesson 4
+// ✅ UPDATED: Added ListeningMapActivity for Lesson 3 (City Soundscapes)
 
 import React from 'react';
 import VideoPlayer from './video/VideoPlayer';
@@ -14,6 +15,9 @@ import NameThatLoopActivity from '../activities/layer-detective/NameThatLoopActi
 import LayerDetectiveActivity from '../activities/layer-detective/LayerDetectiveActivity';
 import SportsCompositionActivity from "../activities/SportsCompositionActivity";
 import CityCompositionActivity from "../activities/CityCompositionActivity";
+
+// ✅ ADDED: Listening Map Activity for Lesson 3
+import ListeningMapActivity from '../activities/texture-drawings/ListeningMapActivity';
 
 // ✅ ADDED: Sectional Loop Builder for Lesson 4 (Epic Wildlife)
 import SectionalLoopBuilderActivity from '../activities/sectional-loop-builder/SectionalLoopBuilderActivity';
@@ -94,6 +98,15 @@ const ActivityRenderer = ({
           viewMode={viewMode}
           lessonStartTime={lessonStartTime}
           isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Listening Map Activity (Lesson 3 - City Soundscapes)
+    case 'listening-map':
+      return (
+        <ListeningMapActivity 
+          key={`listening-map-${activity.id}`}
+          onComplete={onComplete}
         />
       );
 
