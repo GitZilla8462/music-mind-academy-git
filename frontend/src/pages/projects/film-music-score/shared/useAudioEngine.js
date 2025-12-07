@@ -97,20 +97,41 @@ export const useAudioEngine = (videoDuration = 60) => {
         audio.src = loopData.file;
         
         await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error('Native audio load timeout'));
+          let resolved = false;
+          
+          // Soft warning at 5 seconds - don't reject, just log
+          const softTimeout = setTimeout(() => {
+            if (!resolved) {
+              console.warn(`  ⚠️ Audio load slow for ${loopData.name} - still waiting...`);
+            }
           }, 5000);
           
+          // Hard timeout at 30 seconds
+          const hardTimeout = setTimeout(() => {
+            if (!resolved) {
+              resolved = true;
+              reject(new Error('Native audio load timeout (30s)'));
+            }
+          }, 30000);
+          
           audio.addEventListener('canplaythrough', () => {
-            clearTimeout(timeout);
-            console.log(`  ✅ Native audio loaded: ${loopData.name}, duration: ${audio.duration}s`);
-            resolve();
+            if (!resolved) {
+              resolved = true;
+              clearTimeout(softTimeout);
+              clearTimeout(hardTimeout);
+              console.log(`  ✅ Native audio loaded: ${loopData.name}, duration: ${audio.duration}s`);
+              resolve();
+            }
           }, { once: true });
           
           audio.addEventListener('error', (e) => {
-            clearTimeout(timeout);
-            console.error(`  ❌ Native audio load error for ${loopData.name}:`, e);
-            reject(new Error(`Failed to load: ${e.message || 'Unknown error'}`));
+            if (!resolved) {
+              resolved = true;
+              clearTimeout(softTimeout);
+              clearTimeout(hardTimeout);
+              console.error(`  ❌ Native audio load error for ${loopData.name}:`, e);
+              reject(new Error(`Failed to load: ${e.message || 'Unknown error'}`));
+            }
           }, { once: true });
           
           audio.load();
