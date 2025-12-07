@@ -1,6 +1,7 @@
 // File: /src/pages/projects/film-music-score/shared/VideoPlayer.jsx
 // OPTIMIZED FOR CHROMEBOOK PERFORMANCE - SYNC DISABLED
 // UPDATED: Added tutorial highlight support
+// FIXED: Wrapped in React.memo to prevent cursor flickering during playback
 
 import React, { useRef, useEffect, useState } from 'react';
 import { Play } from 'lucide-react';
@@ -145,4 +146,26 @@ const VideoPlayer = ({
   );
 };
 
-export default VideoPlayer;
+// PERFORMANCE FIX: Prevent re-renders during playback
+// currentTime updates many times per second, but VideoPlayer doesn't need it while playing
+// (the video element handles its own time internally)
+export default React.memo(VideoPlayer, (prevProps, nextProps) => {
+  // If playing, ignore currentTime changes (video handles its own time)
+  if (prevProps.isPlaying && nextProps.isPlaying) {
+    // Compare all props EXCEPT currentTime - return true means "don't re-render"
+    return (
+      prevProps.videoUrl === nextProps.videoUrl &&
+      prevProps.selectedVideo === nextProps.selectedVideo &&
+      prevProps.isPlaying === nextProps.isPlaying &&
+      prevProps.duration === nextProps.duration &&
+      prevProps.highlighted === nextProps.highlighted &&
+      prevProps.onTimeUpdate === nextProps.onTimeUpdate &&
+      prevProps.onPlay === nextProps.onPlay &&
+      prevProps.onPause === nextProps.onPause &&
+      prevProps.onSeek === nextProps.onSeek &&
+      prevProps.onVideoReady === nextProps.onVideoReady
+    );
+  }
+  // When paused or play state changes, do normal comparison (re-render needed)
+  return false; // false means "re-render"
+});
