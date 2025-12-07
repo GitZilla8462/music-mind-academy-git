@@ -2,6 +2,7 @@
 // City Soundscapes - Main lesson orchestrator
 // ✅ UPDATED: Introduction → Listening Map → Composition → Reflection → Loop Lab
 // ✅ FIXED: Uses currentStage directly from context (no render loop)
+// ✅ FIXED: Added view=listening-map support for viewing saved work
 
 import React, { useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -22,6 +23,9 @@ import LessonStartScreen from '../../shared/components/LessonStartScreen';
 import SessionTeacherPanel from '../../shared/components/SessionTeacherPanel';
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
+
+// Storage for viewing saved work
+import { loadStudentWork } from '../../../utils/studentWorkStorage';
 
 const LESSON_PROGRESS_KEY = 'lesson3-progress';
 const LESSON_TIMER_KEY = 'lesson3-timer';
@@ -178,10 +182,87 @@ const ListeningMapLoader = ({ onComplete }) => {
   );
 };
 
+// ✅ NEW: Listening Map Viewer for saved work
+const ListeningMapViewer = ({ onBack }) => {
+  const savedWork = loadStudentWork('listening-map');
+  
+  if (!savedWork || !savedWork.data?.imageData) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white p-8">
+        <div className="text-8xl mb-8">🗺️</div>
+        <h1 className="text-4xl font-bold mb-4">No Saved Listening Map Found</h1>
+        <p className="text-xl text-gray-300 mb-8">You haven't saved a listening map yet.</p>
+        <button
+          onClick={onBack}
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-lg transition-colors"
+        >
+          ← Back to Join Page
+        </button>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="h-screen flex flex-col bg-gray-100">
+      {/* Header */}
+      <div className="h-16 px-6 flex items-center justify-between bg-white border-b border-gray-200 shadow-sm">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onBack}
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors"
+          >
+            ← Back
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-gray-800">🗺️ Your Listening Map</h1>
+            <p className="text-sm text-gray-500">
+              {savedWork.data.songTitle || "Allegro (from Vivaldi's Spring)"} • {savedWork.data.composer || 'Antonio Vivaldi'}
+            </p>
+          </div>
+        </div>
+        <div className="text-sm text-gray-500">
+          Saved {new Date(savedWork.lastSaved).toLocaleString()}
+        </div>
+      </div>
+      
+      {/* Canvas Image */}
+      <div className="flex-1 flex items-center justify-center p-8 bg-gray-200">
+        <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-w-full max-h-full">
+          <img 
+            src={savedWork.data.imageData} 
+            alt="Your Listening Map"
+            className="max-w-full max-h-[calc(100vh-200px)] object-contain"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ========================================
 // MAIN COMPONENT
 // ========================================
+
+// ✅ Wrapper component to handle view mode BEFORE any session hooks run
 const Lesson3 = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Check for view modes FIRST - before any session hooks
+  const searchParams = new URLSearchParams(location.search);
+  const viewListeningMapMode = searchParams.get('view') === 'listening-map';
+  
+  // If viewing saved listening map, render simple viewer (no session hooks needed)
+  if (viewListeningMapMode) {
+    return <ListeningMapViewer onBack={() => navigate('/join')} />;
+  }
+  
+  // Otherwise render the full lesson with all session hooks
+  return <Lesson3Content />;
+};
+
+// ✅ The actual lesson content with all session hooks
+const Lesson3Content = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { 
@@ -203,12 +284,13 @@ const Lesson3 = () => {
   // Get effective role - computed locally like Lesson2
   const effectiveRole = sessionRole || sessionMode.urlRole;
   
-  // Check URL for view modes
+  // Check URL for view modes (listening-map already handled by wrapper)
   const searchParams = new URLSearchParams(location.search);
   const viewSavedMode = searchParams.get('view') === 'saved';
   const viewReflectionMode = searchParams.get('view') === 'reflection';
   
   // Custom hooks - pass currentStage VALUE, not getter function
+  // NOTE: All hooks must be called before any conditional returns (React rules)
   const lesson = useLesson(lesson3Config, LESSON_PROGRESS_KEY, LESSON_TIMER_KEY);
   const timers = useActivityTimers(sessionCode, currentStage, lessonStages);
 

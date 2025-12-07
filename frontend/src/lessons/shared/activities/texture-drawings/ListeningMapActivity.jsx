@@ -8,6 +8,8 @@
  * - Center: Canvas
  * - Right: Tools (HAND default, then Brush/Pencil/Eraser)
  * - Bottom: Transport
+ * 
+ * ✅ UPDATED: Now saves to Join page using saveStudentWork
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
@@ -22,8 +24,8 @@ import ColorPanel from './components/Toolbar/ColorPanel';
 // Config
 import { TOOL_TYPES } from './config/tools';
 
-// Storage
-import { saveListeningMap } from '../../../film-music-project/lesson3/lesson3StorageUtils';
+// Storage - Use generic system so it appears on Join page
+import { saveStudentWork } from '../../../../utils/studentWorkStorage';
 
 // ============================================================================
 // CONFIG
@@ -269,6 +271,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
 
   const stickerData = selectedSticker;
 
+  // ✅ UPDATED: Save using saveStudentWork so it appears on Join page
   const handleManualSave = () => {
     if (isSavingRef.current || !studentId || !canvasRef.current) return;
     isSavingRef.current = true;
@@ -276,14 +279,30 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
     try {
       const imageData = canvasRef.current.toDataURL?.();
       if (imageData) {
-        saveListeningMap(studentId, imageData, 1, 'Listening Map', mapConfig.numRows);
-        setSaveMessage({ type: 'success', text: '✅ Saved!' });
+        // Save using the generic system so it appears on Join page
+        saveStudentWork('listening-map', {
+          title: mapConfig.credits.title,
+          emoji: '🗺️',
+          viewRoute: '/view/listening-map',  // ✅ Standalone viewer route (avoids session interference)
+          subtitle: `${mapConfig.numRows} rows • Vivaldi`,
+          category: 'Film Music Project',
+          data: {
+            imageData,
+            songTitle: mapConfig.credits.title,
+            composer: mapConfig.credits.composer,
+            numRows: mapConfig.numRows,
+            savedAt: new Date().toISOString()
+          }
+        }, studentId);
+        
+        setSaveMessage({ type: 'success', text: '✅ Saved! View it anytime from the Join page.' });
       }
     } catch (error) {
+      console.error('Error saving listening map:', error);
       setSaveMessage({ type: 'error', text: '❌ Save failed' });
     }
 
-    setTimeout(() => setSaveMessage(null), 2000);
+    setTimeout(() => setSaveMessage(null), 3000);
     setTimeout(() => { isSavingRef.current = false; }, 500);
   };
 
