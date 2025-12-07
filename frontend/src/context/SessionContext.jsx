@@ -1,6 +1,7 @@
 // Session Context for managing classroom sessions
 // UPDATED: Prioritize URL params over localStorage for session code
 // ✅ FIXED: Export currentStage as direct value to prevent render loops
+// ✅ IMPROVED: Auto-clear ended sessions, validate before restore, 3-hour expiration
 // src/context/SessionContext.jsx
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
@@ -15,6 +16,12 @@ import { logger } from '../utils/UniversalLogger';
 
 const SessionContext = createContext();
 
+// Session expires after 3 hours (in milliseconds)
+const SESSION_EXPIRY_MS = 3 * 60 * 60 * 1000;
+
+// Pages that don't need session restoration
+const NO_SESSION_PATHS = ['/', '/join', '/view/', '/login', '/demo'];
+
 export const useSession = () => {
   const context = useContext(SessionContext);
   if (!context) {
@@ -23,8 +30,53 @@ export const useSession = () => {
   return context;
 };
 
+// Helper to check if current page needs session
+const shouldRestoreSession = () => {
+  const path = window.location.pathname;
+  const search = window.location.search;
+  
+  // If URL has ?view= parameter, don't restore session (viewing saved work)
+  if (search.includes('view=')) {
+    console.log('🚫 Skipping session restore: viewing saved work');
+    return false;
+  }
+  
+  // Check if path starts with any no-session path
+  for (const noSessionPath of NO_SESSION_PATHS) {
+    if (path === noSessionPath || path.startsWith(noSessionPath)) {
+      console.log('🚫 Skipping session restore: on', path);
+      return false;
+    }
+  }
+  
+  return true;
+};
+
+// Helper to check if saved session is expired
+const isSessionExpired = () => {
+  const savedTime = localStorage.getItem('current-session-time');
+  if (!savedTime) return false;
+  
+  const elapsed = Date.now() - parseInt(savedTime, 10);
+  if (elapsed > SESSION_EXPIRY_MS) {
+    console.log('⏰ Session expired after', Math.round(elapsed / 1000 / 60), 'minutes');
+    return true;
+  }
+  return false;
+};
+
+// Helper to clear all session data from localStorage
+const clearSessionStorage = () => {
+  localStorage.removeItem('current-session-code');
+  localStorage.removeItem('current-session-role');
+  localStorage.removeItem('current-session-userId');
+  localStorage.removeItem('current-session-studentName');
+  localStorage.removeItem('current-session-time');
+  console.log('🧹 Session storage cleared');
+};
+
 export const SessionProvider = ({ children }) => {
-  // ✅ FIXED: Check URL params FIRST, then fall back to localStorage
+  // ✅ IMPROVED: Check URL params FIRST, validate saved session before restoring
   const [sessionCode, setSessionCode] = useState(() => {
     // Priority 1: URL parameter (for new sessions)
     const urlParams = new URLSearchParams(window.location.search);
@@ -33,10 +85,22 @@ export const SessionProvider = ({ children }) => {
     if (urlSessionCode) {
       console.log('🆕 Using session from URL:', urlSessionCode);
       localStorage.setItem('current-session-code', urlSessionCode);
+      localStorage.setItem('current-session-time', Date.now().toString());
       return urlSessionCode;
     }
     
-    // Priority 2: localStorage (for page refreshes)
+    // Priority 2: Check if we should restore session on this page
+    if (!shouldRestoreSession()) {
+      return null;
+    }
+    
+    // Priority 3: Check if session is expired
+    if (isSessionExpired()) {
+      clearSessionStorage();
+      return null;
+    }
+    
+    // Priority 4: localStorage (for page refreshes during active session)
     const saved = localStorage.getItem('current-session-code');
     if (saved) {
       console.log('🔄 Restoring session from localStorage:', saved);
@@ -56,10 +120,18 @@ export const SessionProvider = ({ children }) => {
       return urlRole;
     }
     
+    // Only restore role if we're restoring session
+    if (!shouldRestoreSession() || isSessionExpired()) {
+      return null;
+    }
+    
     return localStorage.getItem('current-session-role') || null;
   });
   
   const [userId, setUserId] = useState(() => {
+    if (!shouldRestoreSession() || isSessionExpired()) {
+      return null;
+    }
     return localStorage.getItem('current-session-userId') || null;
   });
   
@@ -71,6 +143,7 @@ export const SessionProvider = ({ children }) => {
   const prevStageRef = useRef(null);
   const isNormalEndRef = useRef(false);
   const hasJoinedRef = useRef(false);
+  const hasAutoCleanedRef = useRef(false);
 
   // ✅ NEW: Derive currentStage as a value (not a function call)
   // This allows components to use it reactively without calling a function during render
@@ -87,6 +160,7 @@ export const SessionProvider = ({ children }) => {
         console.log('🔄 Session code changed in URL:', urlSessionCode);
         setSessionCode(urlSessionCode);
         localStorage.setItem('current-session-code', urlSessionCode);
+        localStorage.setItem('current-session-time', Date.now().toString());
       }
       
       if (urlRole && urlRole !== userRole) {
@@ -106,8 +180,13 @@ export const SessionProvider = ({ children }) => {
   useEffect(() => {
     if (sessionCode) {
       localStorage.setItem('current-session-code', sessionCode);
+      // Update timestamp when session is active
+      if (!localStorage.getItem('current-session-time')) {
+        localStorage.setItem('current-session-time', Date.now().toString());
+      }
     } else {
       localStorage.removeItem('current-session-code');
+      localStorage.removeItem('current-session-time');
     }
   }, [sessionCode]);
   
@@ -149,31 +228,54 @@ export const SessionProvider = ({ children }) => {
     const unsubscribe = subscribeToSession(sessionCode, (data) => {
       setIsLoadingSession(false);
       
-      // ONLY log if session data becomes null UNEXPECTEDLY (not during normal end)
-      if (data === null && !isNormalEndRef.current && prevStageRef.current) {
-        console.error('🔴 CRITICAL: Session data became NULL unexpectedly!');
-        console.error('   Session code:', sessionCode);
-        console.error('   Last stage:', prevStageRef.current);
-        console.error('   Time:', new Date().toISOString());
-        
-        // Log to Firebase if student role
-        if (userRole === 'student') {
-          logger.kick('Session data lost unexpectedly', { 
-            sessionCode,
-            lastStage: prevStageRef.current,
-            wasNormalEnd: false
-          });
+      // ✅ IMPROVED: If session doesn't exist, clear storage and reset
+      if (data === null && !isNormalEndRef.current) {
+        if (prevStageRef.current) {
+          // Session was active but disappeared unexpectedly
+          console.error('🔴 CRITICAL: Session data became NULL unexpectedly!');
+          console.error('   Session code:', sessionCode);
+          console.error('   Last stage:', prevStageRef.current);
+          
+          if (userRole === 'student') {
+            logger.kick('Session data lost unexpectedly', { 
+              sessionCode,
+              lastStage: prevStageRef.current,
+              wasNormalEnd: false
+            });
+          }
+        } else {
+          // Session never existed or was already ended
+          console.log('📭 Session not found or already ended:', sessionCode);
         }
+        
+        // Auto-cleanup if session doesn't exist
+        if (!hasAutoCleanedRef.current) {
+          hasAutoCleanedRef.current = true;
+          console.log('🧹 Auto-cleaning invalid session from storage');
+          clearSessionStorage();
+          setSessionCode(null);
+          setUserRole(null);
+          setUserId(null);
+          setIsInSession(false);
+        }
+        return;
       }
       
-      // Session ended normally - just log to console, NO red button
+      // ✅ IMPROVED: Session ended normally - auto-cleanup for students
       if (data?.currentStage === 'ended') {
         console.log('📋 Session ended normally by teacher');
-        console.log('   Session code:', sessionCode);
-        console.log('   Time:', new Date().toISOString());
-        
-        // Mark this as a normal end so we don't log errors
         isNormalEndRef.current = true;
+        
+        // Auto-cleanup after a short delay (let UI show "session ended" message first)
+        if (!hasAutoCleanedRef.current && userRole === 'student') {
+          hasAutoCleanedRef.current = true;
+          console.log('🧹 Auto-cleaning ended session (student will be redirected)');
+          
+          setTimeout(() => {
+            clearSessionStorage();
+            // Note: The lesson component handles the redirect to /join
+          }, 2000);
+        }
       }
       
       // Log stage changes (info only)
@@ -262,6 +364,10 @@ export const SessionProvider = ({ children }) => {
     setUserId(teacherId);
     setIsInSession(true);
     isNormalEndRef.current = false;
+    hasAutoCleanedRef.current = false;
+    
+    // Set session start time
+    localStorage.setItem('current-session-time', Date.now().toString());
     
     if (classIdParam) {
       setClassId(classIdParam);
@@ -290,6 +396,13 @@ export const SessionProvider = ({ children }) => {
       }
       
       const sessionData = snapshot.val();
+      
+      // ✅ NEW: Check if session is already ended
+      if (sessionData.currentStage === 'ended') {
+        console.log('⚠️ Cannot join - session has already ended');
+        throw new Error('Session has ended');
+      }
+      
       const lessonRoute = sessionData.lessonRoute || sessionData.lessonId || '/lessons/film-music-project/lesson1';
       
       console.log('📚 Session lesson route:', lessonRoute);
@@ -302,9 +415,11 @@ export const SessionProvider = ({ children }) => {
       setUserId(studentId);
       setIsInSession(true);
       isNormalEndRef.current = false;
+      hasAutoCleanedRef.current = false;
       
-      // Save student name to localStorage
+      // Save student name and session time to localStorage
       localStorage.setItem('current-session-studentName', studentName || 'Student');
+      localStorage.setItem('current-session-time', Date.now().toString());
       
       // Initialize logger with session info
       logger.init({
@@ -357,6 +472,12 @@ export const SessionProvider = ({ children }) => {
       
       const sessionData = snapshot.val();
       
+      // ✅ NEW: Check if session is already ended
+      if (sessionData.currentStage === 'ended') {
+        console.log('⚠️ Cannot join - session has already ended');
+        throw new Error('Session has ended');
+      }
+      
       const { generateUniqueMusicalName } = await import('../utils/musicalNameGenerator');
       const existingNames = sessionData.studentsJoined 
         ? Object.values(sessionData.studentsJoined).map(s => s.name)
@@ -371,8 +492,10 @@ export const SessionProvider = ({ children }) => {
       setUserRole('student');
       setUserId(studentId);
       setIsInSession(true);
+      hasAutoCleanedRef.current = false;
       
       localStorage.setItem('current-session-studentName', musicalName);
+      localStorage.setItem('current-session-time', Date.now().toString());
       
       logger.init({
         studentId,
@@ -397,10 +520,7 @@ export const SessionProvider = ({ children }) => {
       logger.cleanup();
     }
     
-    localStorage.removeItem('current-session-code');
-    localStorage.removeItem('current-session-role');
-    localStorage.removeItem('current-session-userId');
-    localStorage.removeItem('current-session-studentName');
+    clearSessionStorage();
     
     setSessionCode(null);
     setClassId(null);
@@ -410,6 +530,7 @@ export const SessionProvider = ({ children }) => {
     setIsInSession(false);
     isNormalEndRef.current = false;
     hasJoinedRef.current = false;
+    hasAutoCleanedRef.current = false;
   };
 
   const setCurrentStage = async (stage) => {
@@ -517,7 +638,7 @@ export const SessionProvider = ({ children }) => {
     sessionCode,
     classId,
     sessionData,
-    currentStage,  // ✅ NEW: Direct value - use this instead of getCurrentStage()
+    currentStage,  // ✅ Direct value - use this instead of getCurrentStage()
     userRole,
     userId,
     isInSession,

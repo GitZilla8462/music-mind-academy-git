@@ -2,7 +2,7 @@
 // City Soundscapes - Main lesson orchestrator
 // ✅ UPDATED: Introduction → Listening Map → Composition → Reflection → Loop Lab
 // ✅ FIXED: Uses currentStage directly from context (no render loop)
-// ✅ FIXED: Added view=listening-map support for viewing saved work
+// ✅ FIXED: view=listening-map now loads the actual activity with saved editable data
 
 import React, { useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -125,8 +125,8 @@ const StudentResultsBadge = ({ sessionCode, userId }) => {
   );
 };
 
-// ✅ Listening Map Loader (renamed from Texture Drawings)
-const ListeningMapLoader = ({ onComplete }) => {
+// ✅ Listening Map Loader - loads the actual activity component
+const ListeningMapLoader = ({ onComplete, onBack }) => {
   const [ListeningMap, setListeningMap] = React.useState(null);
   const [loadError, setLoadError] = React.useState(false);
   
@@ -160,6 +160,14 @@ const ListeningMapLoader = ({ onComplete }) => {
             Place at: <code className="bg-black/30 px-2 py-1 rounded">src/lessons/shared/activities/texture-drawings/</code>
           </p>
         </div>
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-lg transition-colors"
+          >
+            ← Back to Join Page
+          </button>
+        )}
       </div>
     );
   }
@@ -182,63 +190,6 @@ const ListeningMapLoader = ({ onComplete }) => {
   );
 };
 
-// ✅ NEW: Listening Map Viewer for saved work
-const ListeningMapViewer = ({ onBack }) => {
-  const savedWork = loadStudentWork('listening-map');
-  
-  if (!savedWork || !savedWork.data?.imageData) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white p-8">
-        <div className="text-8xl mb-8">🗺️</div>
-        <h1 className="text-4xl font-bold mb-4">No Saved Listening Map Found</h1>
-        <p className="text-xl text-gray-300 mb-8">You haven't saved a listening map yet.</p>
-        <button
-          onClick={onBack}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-lg transition-colors"
-        >
-          ← Back to Join Page
-        </button>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="h-screen flex flex-col bg-gray-100">
-      {/* Header */}
-      <div className="h-16 px-6 flex items-center justify-between bg-white border-b border-gray-200 shadow-sm">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onBack}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors"
-          >
-            ← Back
-          </button>
-          <div>
-            <h1 className="text-xl font-bold text-gray-800">🗺️ Your Listening Map</h1>
-            <p className="text-sm text-gray-500">
-              {savedWork.data.songTitle || "Allegro (from Vivaldi's Spring)"} • {savedWork.data.composer || 'Antonio Vivaldi'}
-            </p>
-          </div>
-        </div>
-        <div className="text-sm text-gray-500">
-          Saved {new Date(savedWork.lastSaved).toLocaleString()}
-        </div>
-      </div>
-      
-      {/* Canvas Image */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-gray-200">
-        <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-w-full max-h-full">
-          <img 
-            src={savedWork.data.imageData} 
-            alt="Your Listening Map"
-            className="max-w-full max-h-[calc(100vh-200px)] object-contain"
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // ========================================
 // MAIN COMPONENT
 // ========================================
@@ -252,9 +203,15 @@ const Lesson3 = () => {
   const searchParams = new URLSearchParams(location.search);
   const viewListeningMapMode = searchParams.get('view') === 'listening-map';
   
-  // If viewing saved listening map, render simple viewer (no session hooks needed)
+  // ✅ UPDATED: If viewing saved listening map, load the ACTUAL activity (not a simple image viewer)
+  // The ListeningMapActivity will automatically load saved work on mount
   if (viewListeningMapMode) {
-    return <ListeningMapViewer onBack={() => navigate('/join')} />;
+    return (
+      <ListeningMapLoader 
+        onComplete={() => navigate('/join')}
+        onBack={() => navigate('/join')}
+      />
+    );
   }
   
   // Otherwise render the full lesson with all session hooks

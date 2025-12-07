@@ -64,6 +64,9 @@ import AdminAllProblems from './pages/AdminAllProblems';
 // ✅ ADDED: Import DemoActivity for teacher activity previews
 import DemoActivity from './pages/DemoActivity';
 
+// ✅ ADDED: Import ListeningMapViewer for viewing saved listening maps
+import ListeningMapViewer from './pages/ListeningMapViewer';
+
 // Add global styles for snap guide
 const snapGuideStyles = `
   /* Snap guide line (blue line that appears when snapping) */
@@ -254,6 +257,9 @@ const AppContent = () => {
         {/* Join Page - NO AUTHENTICATION REQUIRED */}
         <Route path="/join" element={<JoinWithCode />} />
         
+        {/* ✅ ADDED: View saved listening map */}
+        <Route path="/view/listening-map" element={<ListeningMapViewer />} />
+        
         {/* Composition Viewer - View shared compositions */}
         <Route path="/view-composition/:shareCode" element={<CompositionViewer />} />
         
@@ -341,6 +347,9 @@ const AppContent = () => {
         <Route path="/lesson-plan/lesson1" element={<LessonPlanPDF />} />
         <Route path="/lesson-plan/lesson2" element={<LessonPlan2PDF />} />
         <Route path="/lesson-plan/lesson3" element={<LessonPlan3PDF />} />
+        
+        {/* ✅ ADDED: View saved listening map */}
+        <Route path="/view/listening-map" element={<ListeningMapViewer />} />
         
         {/* Composition Viewer */}
         <Route path="/view-composition/:shareCode" element={<CompositionViewer />} />

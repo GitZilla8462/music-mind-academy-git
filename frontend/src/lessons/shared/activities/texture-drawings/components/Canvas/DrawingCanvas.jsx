@@ -6,6 +6,7 @@
  * - Multi-select (Shift+click to add/remove from selection)
  * - Copy/Paste (Ctrl+C / Ctrl+V)
  * - Group move/delete for selected stickers
+ * - ✅ FIXED: toDataURL now renders stickers onto canvas for proper export
  * 
  * Supports render types:
  * - svg: PNG instrument icons
@@ -1018,17 +1019,202 @@ const DrawingCanvas = forwardRef(({
   };
   
   // ========================================================================
-  // EXPORT
+  // EXPORT - ✅ FIXED: Now renders stickers onto canvas
   // ========================================================================
   
-  const toDataURL = () => {
+  const toDataURL = useCallback(() => {
     const composite = document.createElement('canvas');
     composite.width = width;
     composite.height = height;
     const ctx = composite.getContext('2d');
-    ctx.drawImage(drawingCanvasRef.current, 0, 0);
+    
+    // 1. Draw the base canvas (drawings, background)
+    if (drawingCanvasRef.current) {
+      ctx.drawImage(drawingCanvasRef.current, 0, 0);
+    }
+    
+    // 2. Draw each sticker onto the composite canvas
+    stickers.forEach(sticker => {
+      const { x, y, rotation, scale, data } = sticker;
+      const baseSize = data?.size || 56;
+      const size = baseSize * scale;
+      const stickerColor = data?.color || '#000000';
+      
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate((rotation * Math.PI) / 180);
+      
+      const render = data?.render;
+      const symbol = data?.symbol || '🎵';
+      
+      // Text dynamics (pp, ff, etc.)
+      if (render === 'text') {
+        ctx.font = `italic bold ${size * 0.6}px "Times New Roman", Georgia, serif`;
+        ctx.fillStyle = stickerColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(symbol, 0, 0);
+      }
+      // Tempo/expression markings
+      else if (render === 'text-italic') {
+        ctx.font = `italic 600 ${size * 0.35}px "Times New Roman", Georgia, serif`;
+        ctx.fillStyle = stickerColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(symbol, 0, 0);
+      }
+      // Crescendo - hairpin opening to right
+      else if (render === 'crescendo') {
+        const w = size;
+        const h = size * 0.5;
+        ctx.beginPath();
+        ctx.moveTo(w/2 - 2, -h/2 + 3);    // top right
+        ctx.lineTo(-w/2 + 2, 0);           // left point
+        ctx.lineTo(w/2 - 2, h/2 - 3);      // bottom right
+        ctx.strokeStyle = stickerColor;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+      }
+      // Decrescendo - hairpin opening to left
+      else if (render === 'decrescendo') {
+        const w = size;
+        const h = size * 0.5;
+        ctx.beginPath();
+        ctx.moveTo(-w/2 + 2, -h/2 + 3);   // top left
+        ctx.lineTo(w/2 - 2, 0);            // right point
+        ctx.lineTo(-w/2 + 2, h/2 - 3);     // bottom left
+        ctx.strokeStyle = stickerColor;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+      }
+      // Musical symbols (clefs, accidentals)
+      else if (render === 'symbol') {
+        ctx.font = `${size * 0.7}px "Noto Music", Symbola, serif`;
+        ctx.fillStyle = stickerColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(symbol, 0, 0);
+      }
+      // Large symbols for articulation
+      else if (render === 'symbol-large') {
+        ctx.font = `bold ${size * 0.8}px Arial, sans-serif`;
+        ctx.fillStyle = stickerColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(symbol, 0, 0);
+      }
+      // Form labels (A, B, C in circles)
+      else if (render === 'form-label') {
+        const circleSize = size * 0.4;
+        // Draw circle
+        ctx.beginPath();
+        ctx.arc(0, 0, circleSize, 0, Math.PI * 2);
+        ctx.fillStyle = '#3b82f6';
+        ctx.fill();
+        ctx.strokeStyle = '#1d4ed8';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        // Draw letter
+        ctx.font = `bold ${size * 0.45}px Arial, sans-serif`;
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(symbol, 0, 0);
+      }
+      // Form text (Intro, Coda, etc.)
+      else if (render === 'form-text') {
+        const padding = size * 0.1;
+        ctx.font = `bold ${size * 0.3}px Arial, sans-serif`;
+        const textWidth = ctx.measureText(symbol).width;
+        const boxWidth = textWidth + padding * 4;
+        const boxHeight = size * 0.5;
+        // Draw box
+        ctx.fillStyle = '#fef3c7';
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(-boxWidth/2, -boxHeight/2, boxWidth, boxHeight, size * 0.1);
+        ctx.fill();
+        ctx.stroke();
+        // Draw text
+        ctx.fillStyle = '#92400e';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(symbol, 0, 0);
+      }
+      // SVG instrument icons - these are trickier, draw as placeholder
+      else if (render === 'svg') {
+        // For PNG/SVG icons, we'd need to load the image async
+        // For now, draw a placeholder or the emoji fallback
+        ctx.font = `${size * 0.7}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🎵', 0, 0);
+      }
+      // Default: emoji
+      else {
+        ctx.font = `${size * 0.7}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(symbol, 0, 0);
+      }
+      
+      ctx.restore();
+    });
+    
     return composite.toDataURL();
-  };
+  }, [width, height, stickers]);
+  
+  // ========================================================================
+  // LOAD STATE - For restoring saved work
+  // ========================================================================
+  
+  const loadState = useCallback((savedState) => {
+    if (!savedState) return;
+    
+    console.log('📂 Loading saved state into DrawingCanvas:', savedState);
+    
+    // Restore canvas drawing layer
+    if (savedState.canvasImageData) {
+      const canvas = drawingCanvasRef.current;
+      const ctx = drawingCtxRef.current;
+      if (canvas && ctx) {
+        const img = new Image();
+        img.onload = () => {
+          ctx.clearRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0);
+          console.log('✅ Canvas drawing layer restored');
+        };
+        img.src = savedState.canvasImageData;
+      }
+    }
+    
+    // Restore stickers
+    if (savedState.stickers && Array.isArray(savedState.stickers)) {
+      setStickers(savedState.stickers);
+      // Update nextStickerId to be higher than any existing sticker
+      const maxId = savedState.stickers.reduce((max, s) => Math.max(max, s.id || 0), 0);
+      setNextStickerId(maxId + 1);
+      console.log(`✅ Restored ${savedState.stickers.length} stickers`);
+    }
+    
+    setSelectedStickerIds(new Set());
+  }, [width, height]);
+  
+  // ========================================================================
+  // GET EDITABLE DATA - For saving work that can be loaded later
+  // ========================================================================
+  
+  const getEditableData = useCallback(() => {
+    return {
+      canvasImageData: drawingCanvasRef.current?.toDataURL() || null,
+      stickers: JSON.parse(JSON.stringify(stickers))
+    };
+  }, [stickers]);
   
   // ========================================================================
   // IMPERATIVE HANDLE
@@ -1040,6 +1226,8 @@ const DrawingCanvas = forwardRef(({
     clearLane,
     toDataURL,
     getStickers: () => stickers,
+    getEditableData,
+    loadState,
     copySelected: copySelectedStickers,
     pasteStickers: pasteStickers,
     selectAll: () => setSelectedStickerIds(new Set(stickers.map(s => s.id))),

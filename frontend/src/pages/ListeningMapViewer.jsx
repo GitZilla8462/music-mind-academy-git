@@ -20,6 +20,10 @@ const loadListeningMap = () => {
     if (saved) {
       const data = JSON.parse(saved);
       console.log('📂 Loaded listening map:', data);
+      console.log('📂 Data structure keys:', Object.keys(data));
+      if (data.data) {
+        console.log('📂 Inner data keys:', Object.keys(data.data));
+      }
       return data;
     }
   } catch (error) {
@@ -28,21 +32,49 @@ const loadListeningMap = () => {
   return null;
 };
 
+// Extract imageData from various possible structures
+const getImageData = (savedWork) => {
+  if (!savedWork) return null;
+  
+  // Try different possible locations for imageData
+  if (savedWork.data?.imageData) {
+    console.log('✅ Found imageData at savedWork.data.imageData');
+    return savedWork.data.imageData;
+  }
+  if (savedWork.imageData) {
+    console.log('✅ Found imageData at savedWork.imageData');
+    return savedWork.imageData;
+  }
+  if (typeof savedWork.data === 'string' && savedWork.data.startsWith('data:image')) {
+    console.log('✅ Found imageData as savedWork.data string');
+    return savedWork.data;
+  }
+  
+  console.log('❌ Could not find imageData in structure');
+  return null;
+};
+
 const ListeningMapViewer = () => {
   const navigate = useNavigate();
   const savedWork = loadListeningMap();
+  const imageData = getImageData(savedWork);
   
   const handleBack = () => {
     navigate('/join');
   };
   
   // No saved work found
-  if (!savedWork || !savedWork.data?.imageData) {
+  if (!savedWork || !imageData) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white p-8">
         <div className="text-8xl mb-8">🗺️</div>
         <h1 className="text-4xl font-bold mb-4">No Saved Listening Map Found</h1>
         <p className="text-xl text-gray-300 mb-8">You haven't saved a listening map yet.</p>
+        {savedWork && (
+          <p className="text-sm text-gray-400 mb-4">
+            (Data found but imageData missing - check console)
+          </p>
+        )}
         <button
           onClick={handleBack}
           className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-lg transition-colors"
@@ -52,6 +84,11 @@ const ListeningMapViewer = () => {
       </div>
     );
   }
+  
+  // Get metadata from various possible locations
+  const songTitle = savedWork.data?.songTitle || savedWork.title || "Allegro (from Vivaldi's Spring)";
+  const composer = savedWork.data?.composer || savedWork.composer || 'Antonio Vivaldi';
+  const lastSaved = savedWork.lastSaved || savedWork.data?.savedAt || new Date().toISOString();
   
   // Display saved work
   return (
@@ -68,12 +105,12 @@ const ListeningMapViewer = () => {
           <div>
             <h1 className="text-xl font-bold text-gray-800">🗺️ Your Listening Map</h1>
             <p className="text-sm text-gray-500">
-              {savedWork.data?.songTitle || "Allegro (from Vivaldi's Spring)"} • {savedWork.data?.composer || 'Antonio Vivaldi'}
+              {songTitle} • {composer}
             </p>
           </div>
         </div>
         <div className="text-sm text-gray-500">
-          Saved {new Date(savedWork.lastSaved).toLocaleString()}
+          Saved {new Date(lastSaved).toLocaleString()}
         </div>
       </div>
       
@@ -81,7 +118,7 @@ const ListeningMapViewer = () => {
       <div className="flex-1 flex items-center justify-center p-8 bg-gray-200 overflow-auto">
         <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
           <img 
-            src={savedWork.data.imageData} 
+            src={imageData} 
             alt="Your Listening Map"
             style={{ maxWidth: '100%', maxHeight: 'calc(100vh - 150px)', objectFit: 'contain' }}
           />

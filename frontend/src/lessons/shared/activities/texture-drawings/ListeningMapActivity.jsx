@@ -9,7 +9,8 @@
  * - Right: Tools (HAND default, then Brush/Pencil/Eraser)
  * - Bottom: Transport
  * 
- * ✅ UPDATED: Now saves to Join page using saveStudentWork
+ * ✅ UPDATED: Now saves editable data (stickers + canvas) so you can continue editing
+ * ✅ UPDATED: Loads saved work on mount, just like compositions
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
@@ -25,7 +26,7 @@ import ColorPanel from './components/Toolbar/ColorPanel';
 import { TOOL_TYPES } from './config/tools';
 
 // Storage - Use generic system so it appears on Join page
-import { saveStudentWork } from '../../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork } from '../../../../utils/studentWorkStorage';
 
 // ============================================================================
 // CONFIG
@@ -186,11 +187,13 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
   const [saveMessage, setSaveMessage] = useState(null);
   const [studentId, setStudentId] = useState('');
   const isSavingRef = useRef(false);
+  const hasLoadedRef = useRef(false);
 
   // Refs
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [canvasReady, setCanvasReady] = useState(false);
 
   // Audio
   const audio = useAudioPlayer(mapConfig.audioFile, mapConfig.totalDuration);
@@ -220,6 +223,38 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
     window.addEventListener('resize', updateSize);
     return () => window.removeEventListener('resize', updateSize);
   }, [expanded, showStickerPanel]);
+
+  // Mark canvas as ready when dimensions are set
+  useEffect(() => {
+    if (containerSize.width > 0 && containerSize.height > 0 && canvasRef.current) {
+      // Small delay to ensure canvas is fully initialized
+      setTimeout(() => setCanvasReady(true), 200);
+    }
+  }, [containerSize.width, containerSize.height]);
+
+  // ✅ LOAD SAVED WORK ON MOUNT
+  useEffect(() => {
+    if (!studentId || !canvasReady || hasLoadedRef.current) return;
+    
+    console.log('🎨 Checking for saved listening map...');
+    
+    const savedWork = loadStudentWork('listening-map', studentId);
+    
+    if (savedWork && savedWork.data?.editableData) {
+      console.log('📂 Found saved listening map, restoring...');
+      
+      // Use loadState to restore stickers and canvas
+      if (canvasRef.current?.loadState) {
+        canvasRef.current.loadState(savedWork.data.editableData);
+        console.log('✅ Listening map restored!');
+      }
+      
+      hasLoadedRef.current = true;
+    } else {
+      console.log('ℹ️ No saved listening map found');
+      hasLoadedRef.current = true;
+    }
+  }, [studentId, canvasReady]);
 
   // Dimensions
   const stickerPanelWidth = showStickerPanel ? 240 : 0;
@@ -271,23 +306,28 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
 
   const stickerData = selectedSticker;
 
-  // ✅ UPDATED: Save using saveStudentWork so it appears on Join page
+  // ✅ UPDATED: Save using editable data so it can be loaded and edited later
   const handleManualSave = () => {
     if (isSavingRef.current || !studentId || !canvasRef.current) return;
     isSavingRef.current = true;
 
     try {
+      // Get editable data (stickers + canvas drawing)
+      const editableData = canvasRef.current.getEditableData?.();
+      // Also get flat image for preview/thumbnail
       const imageData = canvasRef.current.toDataURL?.();
-      if (imageData) {
+      
+      if (editableData) {
         // Save using the generic system so it appears on Join page
         saveStudentWork('listening-map', {
           title: mapConfig.credits.title,
           emoji: '🗺️',
-          viewRoute: '/view/listening-map',  // ✅ Standalone viewer route (avoids session interference)
+          viewRoute: '/lessons/film-music-project/lesson3?view=listening-map',  // ✅ Go back into activity
           subtitle: `${mapConfig.numRows} rows • Vivaldi`,
           category: 'Film Music Project',
           data: {
-            imageData,
+            editableData,  // ✅ Stickers + canvas - for loading back into activity
+            imageData,     // Flat image - for thumbnail/preview
             songTitle: mapConfig.credits.title,
             composer: mapConfig.credits.composer,
             numRows: mapConfig.numRows,
