@@ -1,8 +1,6 @@
 // File: /src/lessons/film-music-project/lesson3/Lesson3.jsx
 // City Soundscapes - Main lesson orchestrator
-// ✅ UPDATED: Introduction → Listening Map → Composition → Reflection → Loop Lab
-// ✅ FIXED: Uses currentStage directly from context (no render loop)
-// ✅ FIXED: view=listening-map now loads the actual activity with saved editable data
+// ✅ UPDATED: Uses TeacherLessonView for combined sidebar + presentation
 
 import React, { useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -20,7 +18,7 @@ import { useActivityTimers } from '../../shared/hooks/useActivityTimers';
 
 // Components
 import LessonStartScreen from '../../shared/components/LessonStartScreen';
-import SessionTeacherPanel from '../../shared/components/SessionTeacherPanel';
+import TeacherLessonView from '../../shared/components/TeacherLessonView'; // ✅ NEW
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 
@@ -29,9 +27,6 @@ import { loadStudentWork } from '../../../utils/studentWorkStorage';
 
 const LESSON_PROGRESS_KEY = 'lesson3-progress';
 const LESSON_TIMER_KEY = 'lesson3-timer';
-
-// Store presentation windows by session code
-const presentationWindows = new Map();
 
 // Component to show student their own results
 const StudentResultsBadge = ({ sessionCode, userId }) => {
@@ -125,7 +120,7 @@ const StudentResultsBadge = ({ sessionCode, userId }) => {
   );
 };
 
-// ✅ Listening Map Loader - loads the actual activity component
+// Listening Map Loader
 const ListeningMapLoader = ({ onComplete, onBack }) => {
   const [ListeningMap, setListeningMap] = React.useState(null);
   const [loadError, setLoadError] = React.useState(false);
@@ -148,18 +143,6 @@ const ListeningMapLoader = ({ onComplete, onBack }) => {
         <div className="text-8xl mb-8">⚠️</div>
         <h1 className="text-5xl font-bold mb-4">Component Not Found</h1>
         <p className="text-2xl mb-8">ListeningMapActivity.jsx is missing</p>
-        <div className="bg-white/20 rounded-xl p-6 max-w-2xl backdrop-blur-sm text-left">
-          <p className="text-lg mb-4">
-            <strong>Teacher:</strong> Please add these files to your project:
-          </p>
-          <ol className="text-base opacity-90 space-y-2 list-decimal list-inside">
-            <li>ListeningMapActivity.jsx</li>
-            <li>index.js</li>
-          </ol>
-          <p className="text-sm mt-4 opacity-75">
-            Place at: <code className="bg-black/30 px-2 py-1 rounded">src/lessons/shared/activities/texture-drawings/</code>
-          </p>
-        </div>
         {onBack && (
           <button
             onClick={onBack}
@@ -190,21 +173,14 @@ const ListeningMapLoader = ({ onComplete, onBack }) => {
   );
 };
 
-// ========================================
-// MAIN COMPONENT
-// ========================================
-
-// ✅ Wrapper component to handle view mode BEFORE any session hooks run
+// Wrapper component to handle view mode BEFORE any session hooks run
 const Lesson3 = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Check for view modes FIRST - before any session hooks
   const searchParams = new URLSearchParams(location.search);
   const viewListeningMapMode = searchParams.get('view') === 'listening-map';
   
-  // ✅ UPDATED: If viewing saved listening map, load the ACTUAL activity (not a simple image viewer)
-  // The ListeningMapActivity will automatically load saved work on mount
   if (viewListeningMapMode) {
     return (
       <ListeningMapLoader 
@@ -214,105 +190,45 @@ const Lesson3 = () => {
     );
   }
   
-  // Otherwise render the full lesson with all session hooks
   return <Lesson3Content />;
 };
 
-// ✅ The actual lesson content with all session hooks
+// The actual lesson content with all session hooks
 const Lesson3Content = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { 
     sessionCode, 
     userId, 
-    currentStage,  // ✅ Use direct value instead of getCurrentStage()
+    currentStage,
     setCurrentStage, 
     getStudents, 
     getProgressStats, 
     endSession,
     markActivityComplete,
     userRole: sessionRole,
-    getCurrentStage  // Keep for hooks/teacher panel that need it
+    getCurrentStage
   } = useSession();
   
   // Session mode detection and permissions
   const sessionMode = useSessionMode();
   
-  // Get effective role - computed locally like Lesson2
+  // Get effective role
   const effectiveRole = sessionRole || sessionMode.urlRole;
   
-  // Check URL for view modes (listening-map already handled by wrapper)
+  // Check URL for view modes
   const searchParams = new URLSearchParams(location.search);
   const viewSavedMode = searchParams.get('view') === 'saved';
   const viewReflectionMode = searchParams.get('view') === 'reflection';
   
-  // Custom hooks - pass currentStage VALUE, not getter function
-  // NOTE: All hooks must be called before any conditional returns (React rules)
+  // Custom hooks
   const lesson = useLesson(lesson3Config, LESSON_PROGRESS_KEY, LESSON_TIMER_KEY);
   const timers = useActivityTimers(sessionCode, currentStage, lessonStages);
 
-  // ✅ Memoize currentStageData
+  // Memoize currentStageData
   const currentStageData = useMemo(() => {
     return lessonStages.find(stage => stage.id === currentStage);
   }, [currentStage]);
-
-  // Open presentation view in new window
-  const openPresentationView = useCallback(() => {
-    if (!sessionCode) {
-      console.error('❌ No session code available');
-      return null;
-    }
-
-    const existingWindow = presentationWindows.get(sessionCode);
-    
-    if (existingWindow && !existingWindow.closed) {
-      console.log('🔄 Presentation window already open, focusing...');
-      try {
-        existingWindow.focus();
-        return existingWindow;
-      } catch (e) {
-        console.warn('⚠️ Could not focus window, opening new one:', e);
-        presentationWindows.delete(sessionCode);
-      }
-    }
-
-    const presentationUrl = `/presentation?session=${sessionCode}`;
-    console.log('🖼️ Opening new presentation view:', presentationUrl);
-    
-    const popup = window.open(
-      presentationUrl, 
-      `PresentationView_${sessionCode}`,
-      'width=1920,height=1080,menubar=no,toolbar=no,location=no,scrollbars=yes,resizable=yes'
-    );
-    
-    if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-      alert('Popup blocked! Please allow popups for this site and try again.');
-      console.error('❌ Popup was blocked');
-      return null;
-    }
-    
-    console.log('✅ Presentation view opened successfully');
-    presentationWindows.set(sessionCode, popup);
-    
-    const checkInterval = setInterval(() => {
-      if (popup.closed) {
-        console.log('🔴 Presentation window was closed');
-        presentationWindows.delete(sessionCode);
-        clearInterval(checkInterval);
-      }
-    }, 1000);
-    
-    const handleBeforeUnload = () => {
-      if (popup && !popup.closed) {
-        popup.close();
-      }
-      presentationWindows.delete(sessionCode);
-    };
-    
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    return popup;
-  }, [sessionCode]);
 
   // Handle session activity completion
   const handleSessionActivityComplete = useCallback((activityId) => {
@@ -420,8 +336,7 @@ const Lesson3Content = () => {
       );
     }
     
-    // ✅ Listening Map activity (renamed from texture-drawings)
-    // Support both old and new stage names for backward compatibility
+    // Listening Map activity
     if (currentStage === 'listening-map' || currentStage === 'texture-drawings') {
       return <ListeningMapLoader onComplete={() => handleSessionActivityComplete(currentStage)} />;
     }
@@ -455,11 +370,12 @@ const Lesson3Content = () => {
 
   // ========================================
   // SESSION MODE: TEACHER VIEW
+  // ✅ NOW USES TeacherLessonView
   // ========================================
   if (sessionMode.isSessionMode && effectiveRole === 'teacher') {
-    console.log('👨‍🏫 Rendering TEACHER control panel');
+    console.log('👨‍🏫 Rendering TEACHER lesson view');
     return (
-      <SessionTeacherPanel
+      <TeacherLessonView
         config={lesson3Config}
         sessionCode={sessionCode}
         lessonStages={lessonStages}
@@ -475,7 +391,6 @@ const Lesson3Content = () => {
         pauseActivityTimer={timers.pauseActivityTimer}
         resumeActivityTimer={timers.resumeActivityTimer}
         resetActivityTimer={timers.resetActivityTimer}
-        onOpenPresentation={openPresentationView}
       />
     );
   }

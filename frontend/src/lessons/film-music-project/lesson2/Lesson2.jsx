@@ -1,6 +1,6 @@
 // File: /lessons/film-music-project/lesson2/Lesson2.jsx
 // Sports Highlight Reel Music - Main lesson orchestrator
-// ✅ FIXED: Uses currentStage directly from context (no render loop)
+// ✅ UPDATED: Uses TeacherLessonView for combined sidebar + presentation
 
 import React, { useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -17,15 +17,12 @@ import { useActivityTimers } from '../../shared/hooks/useActivityTimers';
 
 // Components
 import LessonStartScreen from '../../shared/components/LessonStartScreen';
-import SessionTeacherPanel from '../../shared/components/SessionTeacherPanel';
+import TeacherLessonView from '../../shared/components/TeacherLessonView'; // ✅ NEW
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 
 const LESSON_PROGRESS_KEY = 'lesson2-progress';
 const LESSON_TIMER_KEY = 'lesson2-timer';
-
-// Store presentation windows by session code
-const presentationWindows = new Map();
 
 // Separate component for Layer Detective to avoid React hooks violations
 const LayerDetectiveLoader = ({ onComplete }) => {
@@ -33,7 +30,6 @@ const LayerDetectiveLoader = ({ onComplete }) => {
   const [loadError, setLoadError] = React.useState(false);
   
   React.useEffect(() => {
-    // Try to dynamically import the component
     import('../../shared/activities/layer-detective/LayerDetectiveActivity')
       .then(module => {
         console.log('✅ LayerDetectiveActivity loaded');
@@ -51,19 +47,6 @@ const LayerDetectiveLoader = ({ onComplete }) => {
         <div className="text-8xl mb-8">⚠️</div>
         <h1 className="text-5xl font-bold mb-4">Component Not Found</h1>
         <p className="text-2xl mb-8">LayerDetectiveActivity.jsx is missing</p>
-        <div className="bg-white/20 rounded-xl p-6 max-w-2xl backdrop-blur-sm text-left">
-          <p className="text-lg mb-4">
-            <strong>Teacher:</strong> Please add these files to your project:
-          </p>
-          <ol className="text-base opacity-90 space-y-2 list-decimal list-inside">
-            <li>LayerDetectiveActivity.jsx</li>
-            <li>loopData.js (for layer detective)</li>
-            <li>NameThatLoopActivity.jsx</li>
-          </ol>
-          <p className="text-sm mt-4 opacity-75">
-            Place at: <code className="bg-black/30 px-2 py-1 rounded">src/lessons/shared/activities/layer-detective/</code>
-          </p>
-        </div>
       </div>
     );
   }
@@ -91,14 +74,14 @@ const Lesson2 = () => {
   const location = useLocation();
   const { 
     sessionCode,
-    currentStage,  // ✅ Use direct value instead of getCurrentStage()
+    currentStage,
     setCurrentStage,
     getStudents,
     getProgressStats,
     endSession,
     markActivityComplete,
     userRole: sessionRole,
-    getCurrentStage  // Keep for hooks/teacher panel that need it
+    getCurrentStage
   } = useSession();
   
   // Session mode detection and permissions
@@ -107,7 +90,7 @@ const Lesson2 = () => {
   // Get effective role
   const effectiveRole = sessionRole || sessionMode.urlRole;
   
-  // ✅ FIXED: Memoize lessonConfig to prevent new object reference each render
+  // Memoize lessonConfig
   const lessonConfig = useMemo(() => ({ 
     ...lesson2Config, 
     progressKey: LESSON_PROGRESS_KEY, 
@@ -116,7 +99,7 @@ const Lesson2 = () => {
   
   const lesson = useLesson(lessonConfig);
   
-  // Activity timers (used in session mode) - pass currentStage VALUE, not getter function
+  // Activity timers
   const timers = useActivityTimers(sessionCode, currentStage, lessonStages);
 
   // Check for view modes from URL params
@@ -126,123 +109,38 @@ const Lesson2 = () => {
   const isPreviewMode = searchParams.get('preview') === 'true';
   const isMuted = searchParams.get('muted') === 'true';
 
-  // ✅ Memoize currentStageData
+  // Memoize currentStageData
   const currentStageData = useMemo(() => {
     return lessonStages.find(stage => stage.id === currentStage);
   }, [currentStage]);
 
-  // Aggressively mute ALL audio when in preview mode
+  // Mute audio in preview mode
   React.useEffect(() => {
     if (isPreviewMode || isMuted) {
-      // Override AudioContext to prevent any sound
       const OriginalAudioContext = window.AudioContext || window.webkitAudioContext;
       if (OriginalAudioContext) {
         window.AudioContext = function() {
           const ctx = new OriginalAudioContext();
-          // Immediately suspend to prevent sound
           ctx.suspend();
           return ctx;
         };
         window.webkitAudioContext = window.AudioContext;
       }
 
-      // Mute function to silence everything
       const muteEverything = () => {
-        // Mute all audio and video elements
         document.querySelectorAll('audio, video').forEach(el => {
           el.muted = true;
           el.volume = 0;
           el.pause();
         });
-        
-        // Find and suspend any audio contexts
-        if (window.__audioContexts) {
-          window.__audioContexts.forEach(ctx => {
-            try { ctx.suspend(); } catch(e) {}
-          });
-        }
       };
       
       muteEverything();
-      
-      // Keep muting any new audio
       const interval = setInterval(muteEverything, 100);
       
-      // Also intercept createElement to catch audio elements as they're created
-      const originalCreateElement = document.createElement.bind(document);
-      document.createElement = function(tagName) {
-        const el = originalCreateElement(tagName);
-        if (tagName.toLowerCase() === 'audio' || tagName.toLowerCase() === 'video') {
-          el.muted = true;
-          el.volume = 0;
-        }
-        return el;
-      };
-      
-      return () => {
-        clearInterval(interval);
-        document.createElement = originalCreateElement;
-      };
+      return () => clearInterval(interval);
     }
   }, [isPreviewMode, isMuted]);
-
-  // Open presentation view in new window
-  const openPresentationView = useCallback(() => {
-    if (!sessionCode) {
-      console.error('❌ No session code available');
-      return null;
-    }
-
-    const existingWindow = presentationWindows.get(sessionCode);
-    
-    if (existingWindow && !existingWindow.closed) {
-      console.log('🔄 Presentation window already open, focusing...');
-      try {
-        existingWindow.focus();
-        return existingWindow;
-      } catch (e) {
-        console.warn('⚠️ Could not focus window, opening new one:', e);
-        presentationWindows.delete(sessionCode);
-      }
-    }
-
-    const presentationUrl = `/presentation?session=${sessionCode}`;
-    console.log('🖼️ Opening new presentation view:', presentationUrl);
-    
-    const popup = window.open(
-      presentationUrl, 
-      `PresentationView_${sessionCode}`,
-      'width=1920,height=1080,menubar=no,toolbar=no,location=no,scrollbars=yes,resizable=yes'
-    );
-    
-    if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-      alert('Popup blocked! Please allow popups for this site and try again.');
-      console.error('❌ Popup was blocked');
-      return null;
-    }
-    
-    console.log('✅ Presentation view opened successfully');
-    presentationWindows.set(sessionCode, popup);
-    
-    const checkInterval = setInterval(() => {
-      if (popup.closed) {
-        console.log('🔴 Presentation window was closed');
-        presentationWindows.delete(sessionCode);
-        clearInterval(checkInterval);
-      }
-    }, 1000);
-    
-    const handleBeforeUnload = () => {
-      if (popup && !popup.closed) {
-        popup.close();
-      }
-      presentationWindows.delete(sessionCode);
-    };
-    
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    return popup;
-  }, [sessionCode]);
 
   // Handle session activity completion
   const handleSessionActivityComplete = useCallback((activityId) => {
@@ -303,7 +201,7 @@ const Lesson2 = () => {
       );
     }
     
-    // CLASS DEMO: Students see "Watch the Main Screen" for whole-class activities
+    // CLASS DEMO: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'class-demo') {
       return (
         <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-900 via-red-900 to-pink-900 text-white p-8">
@@ -315,7 +213,7 @@ const Lesson2 = () => {
       );
     }
     
-    // RESULTS: Students see "Watch the Main Screen" for game results
+    // RESULTS: Students see game results
     if (currentStageData?.type === 'results') {
       return (
         <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 text-white p-8">
@@ -337,7 +235,7 @@ const Lesson2 = () => {
       );
     }
     
-    // DISCUSSION/CONCLUSION STAGES: Students see "Watch the Main Screen"
+    // DISCUSSION/CONCLUSION STAGES
     if (currentStageData?.type === 'discussion' || currentStage === 'conclusion') {
       return (
         <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
@@ -352,7 +250,7 @@ const Lesson2 = () => {
     const displayStage = currentStage === 'reflection' ? 'sports-composition' : currentStage;
     const activityType = getActivityForStage(displayStage);
     
-    // Special case: Layer Detective activity - render separate component
+    // Special case: Layer Detective activity
     if (currentStage === 'layer-detective') {
       return <LayerDetectiveLoader onComplete={() => handleSessionActivityComplete(currentStage)} />;
     }
@@ -383,12 +281,13 @@ const Lesson2 = () => {
 
   // ========================================
   // SESSION MODE: TEACHER VIEW
+  // ✅ NOW USES TeacherLessonView
   // ========================================
   if (sessionMode.isSessionMode && effectiveRole === 'teacher') {
-    console.log('👨‍🏫 Rendering TEACHER control panel');
+    console.log('👨‍🏫 Rendering TEACHER lesson view');
     
     return (
-      <SessionTeacherPanel
+      <TeacherLessonView
         config={lesson2Config}
         sessionCode={sessionCode}
         lessonStages={lessonStages}
@@ -404,7 +303,6 @@ const Lesson2 = () => {
         pauseActivityTimer={timers.pauseActivityTimer}
         resumeActivityTimer={timers.resumeActivityTimer}
         resetActivityTimer={timers.resetActivityTimer}
-        onOpenPresentation={openPresentationView}
       />
     );
   }
@@ -428,7 +326,6 @@ const Lesson2 = () => {
   // NORMAL MODE: ACTIVE LESSON
   // ========================================
   
-  // Handle view modes
   let activityToRender = lesson.currentActivityData;
   let onCompleteHandler = lesson.handleActivityComplete;
   let viewModeActive = false;

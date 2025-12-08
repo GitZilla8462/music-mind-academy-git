@@ -1,7 +1,7 @@
 // File: /pages/MusicClassroomResources.jsx
 // UPDATED VERSION - Skips built-in login if user is already authenticated via Firebase
 // Works on both musicroomtools.org (edu) and musicmindacademy.com (commercial)
-// Added: How to Run a Lesson tutorial button and video modal
+// TUTORIAL VIDEO COMMENTED OUT - outdated
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -39,29 +39,29 @@ function MusicClassroomResources() {
   const [isJoiningSession, setIsJoiningSession] = useState(false);
   const [sessionError, setSessionError] = useState('');
   
-  // Tutorial video modal state
-  const [showTutorial, setShowTutorial] = useState(false);
-  const [videoKey, setVideoKey] = useState(0);
+  // Tutorial video modal state - COMMENTED OUT (outdated)
+  // const [showTutorial, setShowTutorial] = useState(false);
+  // const [videoKey, setVideoKey] = useState(0);
   
   // Get user role - check Firebase first, then localStorage
   const userRole = firebaseUser?.role || localStorage.getItem('classroom-user-role');
 
-  // Handle opening tutorial - suspend Tone.js to prevent audio conflicts
-  const handleOpenTutorial = () => {
-    if (window.Tone && window.Tone.context && window.Tone.context.state === 'running') {
-      window.Tone.context.suspend();
-    }
-    setVideoKey(prev => prev + 1);
-    setShowTutorial(true);
-  };
+  // Handle opening tutorial - COMMENTED OUT (outdated)
+  // const handleOpenTutorial = () => {
+  //   if (window.Tone && window.Tone.context && window.Tone.context.state === 'running') {
+  //     window.Tone.context.suspend();
+  //   }
+  //   setVideoKey(prev => prev + 1);
+  //   setShowTutorial(true);
+  // };
   
-  // Handle closing tutorial - resume Tone.js
-  const handleCloseTutorial = () => {
-    setShowTutorial(false);
-    if (window.Tone && window.Tone.context && window.Tone.context.state === 'suspended') {
-      window.Tone.context.resume();
-    }
-  };
+  // Handle closing tutorial - COMMENTED OUT (outdated)
+  // const handleCloseTutorial = () => {
+  //   setShowTutorial(false);
+  //   if (window.Tone && window.Tone.context && window.Tone.context.state === 'suspended') {
+  //     window.Tone.context.resume();
+  //   }
+  // };
 
   // If authenticated via Firebase (commercial mode), skip local login
   useEffect(() => {
@@ -338,7 +338,7 @@ function MusicClassroomResources() {
       backgroundColor: '#f7fafc',
       padding: '20px'
     }}>
-      {/* Tutorial Video Modal */}
+      {/* Tutorial Video Modal - COMMENTED OUT (outdated)
       {showTutorial && (
         <div 
           style={{
@@ -416,6 +416,7 @@ function MusicClassroomResources() {
           </div>
         </div>
       )}
+      */}
 
       {/* Header */}
       <div style={{ 
@@ -456,7 +457,7 @@ function MusicClassroomResources() {
         margin: '0 auto'
       }}>
         
-        {/* Tutorial Button - Only for teachers */}
+        {/* Tutorial Button - COMMENTED OUT (outdated)
         {userRole === 'teacher' && (
           <button
             onClick={handleOpenTutorial}
@@ -502,6 +503,7 @@ function MusicClassroomResources() {
             </span>
           </button>
         )}
+        */}
         
         {/* Student Join Session Area - Only for students */}
         {userRole === 'student' && (

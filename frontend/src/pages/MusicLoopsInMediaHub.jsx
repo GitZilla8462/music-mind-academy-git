@@ -1,11 +1,11 @@
 // File: /pages/MusicLoopsInMediaHub.jsx
 // Music Loops in Media Project - Hub page for all lessons
-// ✅ UPDATED: Compact layout with collapsible lesson cards
+// ✅ UPDATED: Added Lesson Plan button per lesson card
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../firebase/config';
-import { Play, ChevronDown, ChevronRight } from 'lucide-react';
+import { Play, ChevronDown, ChevronRight, FileText, ExternalLink } from 'lucide-react';
 
 const MusicLoopsInMediaHub = () => {
   const navigate = useNavigate();
@@ -45,6 +45,21 @@ const MusicLoopsInMediaHub = () => {
     window.open(demoUrl, '_blank', 'width=1280,height=800,menubar=no,toolbar=no');
   };
 
+  const handleOpenLessonPlan = (lessonId) => {
+    // Map lesson ID to lesson plan route
+    const lessonPlanRoutes = {
+      'lesson2': '/lesson-plan/lesson2',
+      'lesson3': '/lesson-plan/lesson3',
+      'lesson4': '/lesson-plan/lesson4',
+      'lesson5': '/lesson-plan/lesson5'
+    };
+    
+    const route = lessonPlanRoutes[lessonId];
+    if (route) {
+      window.open(route, '_blank');
+    }
+  };
+
   const toggleLesson = (lessonId) => {
     setExpandedLesson(expandedLesson === lessonId ? null : lessonId);
   };
@@ -62,11 +77,12 @@ const MusicLoopsInMediaHub = () => {
       duration: '35 min',
       route: '/lessons/film-music-project/lesson2',
       available: true,
+      hasLessonPlan: true,
       activities: [
         { id: 'daw-tutorial', title: 'DAW Challenge', description: 'Learn the DAW interface', activityType: 'daw-tutorial' },
         { id: 'sports-composition', title: 'Sports Composition', description: 'Compose high-energy music', activityType: 'sports-composition-activity' },
         { id: 'two-stars-wish', title: 'Two Stars & a Wish', description: 'Reflection activity', activityType: 'two-stars-wish' },
-        { id: 'name-that-loop', title: '🎮 Name That Loop', description: 'Bonus game', activityType: 'name-that-loop' }
+        { id: 'name-that-loop', title: 'Name That Loop', description: 'Bonus game', activityType: 'name-that-loop' }
       ]
     },
     {
@@ -81,11 +97,12 @@ const MusicLoopsInMediaHub = () => {
       duration: '35 min',
       route: '/lessons/film-music-project/lesson3',
       available: true,
+      hasLessonPlan: true,
       activities: [
         { id: 'listening-map', title: 'Listening Map', description: 'Visualize musical layers', activityType: 'listening-map' },
         { id: 'city-composition', title: 'City Composition', description: 'Compose a soundscape', activityType: 'city-composition-activity' },
         { id: 'two-stars-wish', title: 'Two Stars & a Wish', description: 'Reflection activity', activityType: 'two-stars-wish' },
-        { id: 'layer-detective', title: '🎮 Layer Detective', description: 'Bonus game', activityType: 'layer-detective' }
+        { id: 'layer-detective', title: 'Layer Detective', description: 'Bonus game', activityType: 'layer-detective' }
       ]
     },
     {
@@ -100,6 +117,7 @@ const MusicLoopsInMediaHub = () => {
       duration: '35 min',
       route: '/lessons/film-music-project/lesson4',
       available: false,
+      hasLessonPlan: false,
       activities: [
         { id: 'sectional-loop-builder', title: 'Sectional Loop Builder', description: 'Build A-B-A sections', activityType: 'sectional-loop-builder' },
         { id: 'wildlife-composition', title: 'Wildlife Composition', description: 'Score nature footage', activityType: 'wildlife-composition-activity' },
@@ -117,7 +135,8 @@ const MusicLoopsInMediaHub = () => {
       videos: ['Action', 'Adventure', 'Victory'],
       duration: '35 min',
       route: '/lessons/film-music-project/lesson5',
-      available: false
+      available: false,
+      hasLessonPlan: false
     },
     {
       id: 'sandbox',
@@ -130,7 +149,8 @@ const MusicLoopsInMediaHub = () => {
       videos: ['All Activities', 'Student Choice'],
       duration: 'Unlimited',
       route: '/lessons/film-music-project/sandbox',
-      available: false
+      available: false,
+      hasLessonPlan: false
     }
   ];
 
@@ -211,7 +231,7 @@ const MusicLoopsInMediaHub = () => {
           </div>
         </div>
 
-        {/* Lesson Cards - Collapsed by default */}
+        {/* Lesson Cards */}
         <div className="space-y-3">
           {lessons.map((lesson) => {
             const isExpanded = expandedLesson === lesson.id;
@@ -325,27 +345,45 @@ const MusicLoopsInMediaHub = () => {
                     {/* Action Buttons */}
                     <div className="flex gap-3">
                       {userRole === 'teacher' && (
-                        <button 
-                          onClick={() => handleStartSession(lesson.id, lesson.route)}
-                          disabled={creatingSession === lesson.id}
-                          className={`flex-1 px-6 py-3 ${
-                            creatingSession === lesson.id 
-                              ? 'bg-slate-500 cursor-not-allowed' 
-                              : 'bg-blue-600 hover:bg-blue-700'
-                          } text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2`}
-                        >
-                          {creatingSession === lesson.id ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                              <span>Creating Session...</span>
-                            </>
-                          ) : (
-                            <>
-                              <span>🎬</span>
-                              <span>Start Live Session</span>
-                            </>
+                        <>
+                          {/* Start Live Session Button */}
+                          <button 
+                            onClick={() => handleStartSession(lesson.id, lesson.route)}
+                            disabled={creatingSession === lesson.id}
+                            className={`flex-1 px-6 py-3 ${
+                              creatingSession === lesson.id 
+                                ? 'bg-slate-500 cursor-not-allowed' 
+                                : 'bg-blue-600 hover:bg-blue-700'
+                            } text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2`}
+                          >
+                            {creatingSession === lesson.id ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                <span>Creating Session...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>🎬</span>
+                                <span>Start Live Session</span>
+                              </>
+                            )}
+                          </button>
+
+                          {/* Lesson Plan Button - NEW */}
+                          {lesson.hasLessonPlan && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenLessonPlan(lesson.id);
+                              }}
+                              className="px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-colors flex items-center gap-2 border border-slate-600"
+                            >
+                              <FileText className="w-5 h-5" />
+                              <span>Lesson Plan</span>
+                              <ExternalLink className="w-4 h-4 text-slate-400" />
+                            </button>
                           )}
-                        </button>
+                        </>
                       )}
 
                       {userRole === 'student' && (
