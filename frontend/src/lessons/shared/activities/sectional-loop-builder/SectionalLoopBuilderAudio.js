@@ -54,10 +54,10 @@ export const MOOD_INFO = {
 };
 
 export const SECTION_INFO = {
-  intro: { label: 'INTRO', color: '#8B5CF6', emoji: '🎬' },
-  a: { label: 'A', color: '#3B82F6', emoji: '🎵' },
-  aPrime: { label: "A'", color: '#F59E0B', emoji: '🎶' },
-  outro: { label: 'OUTRO', color: '#10B981', emoji: '🏁' }
+  intro: { label: 'INTRO', layers: 2, color: '#8B5CF6', emoji: '🎬' },
+  a: { label: 'A', layers: 3, color: '#3B82F6', emoji: '🎵' },
+  aPrime: { label: "A'", layers: 4, color: '#F59E0B', emoji: '🎶' },
+  outro: { label: 'OUTRO', layers: 1, color: '#10B981', emoji: '🏁' }
 };
 
 // Song structure (order sections play during listening phase)

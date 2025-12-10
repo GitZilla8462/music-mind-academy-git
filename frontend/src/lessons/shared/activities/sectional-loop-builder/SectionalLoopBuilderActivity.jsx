@@ -30,6 +30,38 @@ const POWER_UPS = {
   speed: { id: 'speed', name: 'SPEED+', emoji: '⚡', desc: '5 sec bonus!', color: 'from-purple-400 to-pink-500' }
 };
 
+// Safari animals
+const SAFARI_ANIMALS = [
+  { id: 'lion', emoji: '🦁', name: 'LION' },
+  { id: 'elephant', emoji: '🐘', name: 'ELEPHANT' },
+  { id: 'giraffe', emoji: '🦒', name: 'GIRAFFE' },
+  { id: 'zebra', emoji: '🦓', name: 'ZEBRA' },
+  { id: 'leopard', emoji: '🐆', name: 'LEOPARD' },
+  { id: 'rhino', emoji: '🦏', name: 'RHINO' },
+  { id: 'crocodile', emoji: '🐊', name: 'CROC' },
+  { id: 'flamingo', emoji: '🦩', name: 'FLAMINGO' },
+  { id: 'parrot', emoji: '🦜', name: 'PARROT' },
+  { id: 'turtle', emoji: '🐢', name: 'TURTLE' },
+  { id: 'dolphin', emoji: '🐬', name: 'DOLPHIN' },
+  { id: 'shark', emoji: '🦈', name: 'SHARK' },
+  { id: 'monkey', emoji: '🐵', name: 'MONKEY' },
+  { id: 'hippo', emoji: '🦛', name: 'HIPPO' },
+  { id: 'kangaroo', emoji: '🦘', name: 'KANGAROO' },
+  { id: 'penguin', emoji: '🐧', name: 'PENGUIN' },
+  { id: 'owl', emoji: '🦉', name: 'OWL' },
+  { id: 'fox', emoji: '🦊', name: 'FOX' },
+  { id: 'bear', emoji: '🐻', name: 'BEAR' },
+  { id: 'wolf', emoji: '🐺', name: 'WOLF' },
+  { id: 'tiger', emoji: '🐅', name: 'TIGER' },
+  { id: 'panda', emoji: '🐼', name: 'PANDA' },
+  { id: 'koala', emoji: '🐨', name: 'KOALA' },
+  { id: 'rabbit', emoji: '🐰', name: 'RABBIT' },
+  { id: 'snake', emoji: '🐍', name: 'SNAKE' },
+  { id: 'eagle', emoji: '🦅', name: 'EAGLE' },
+  { id: 'octopus', emoji: '🐙', name: 'OCTOPUS' },
+  { id: 'bat', emoji: '🦇', name: 'BAT' },
+];
+
 const SECTION_INFO = {
   intro: { label: 'INTRO', layers: 2, color: '#8B5CF6', emoji: '🎬' },
   a: { label: 'A', layers: 3, color: '#3B82F6', emoji: '🎵' },
@@ -113,6 +145,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
   // Power-up
   const [selectedPowerUp, setSelectedPowerUp] = useState(null);
   const [powerUpChoices, setPowerUpChoices] = useState([]);
+  const [powerPickCountdown, setPowerPickCountdown] = useState(5);
   
   // Results for current clip
   const [clipResult, setClipResult] = useState(null);
@@ -128,6 +161,15 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
   const timerRef = useRef(null);
   const initRef = useRef(false);
   const lastStateRef = useRef('');
+
+  // Safari state
+  const [myAnimal, setMyAnimal] = useState(null); // { emoji, name, code }
+  const [onSafari, setOnSafari] = useState(false);
+  const [safariTarget, setSafariTarget] = useState(null); // { emoji, name }
+  const [safariCodeInput, setSafariCodeInput] = useState('');
+  const [safariComplete, setSafariComplete] = useState(false);
+  const [safariBonus, setSafariBonus] = useState(0);
+  const [allSafariAssignments, setAllSafariAssignments] = useState({}); // Store all assignments for code lookup
 
   // CSS keyframes
   const styles = `
@@ -185,16 +227,52 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
     }
   }, [userId, sessionCode, viewMode]);
 
-  // Listen to game state
+  // Listen to game state (from activityData where teacher writes)
   useEffect(() => {
     if (!sessionCode) return;
     
     const db = getDatabase();
-    const gameRef = ref(db, `sessions/${sessionCode}/sectionalGame`);
+    const gameRef = ref(db, `sessions/${sessionCode}/activityData`);
     
     const unsubscribe = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
-      if (!data) return;
+      console.log('📡 Student received activityData:', data?.gamePhase, data?.activity);
+      if (!data || data.activity !== 'sectional-loop-builder') return;
+      
+      // Always update countdown regardless of state change
+      if (data.powerPickCountdown !== undefined) {
+        setPowerPickCountdown(data.powerPickCountdown);
+      }
+      
+      // Update Safari animal assignment for this student
+      if (data.safariAssignments) {
+        console.log('🦁 Safari assignments received:', Object.keys(data.safariAssignments).length, 'students');
+        setAllSafariAssignments(data.safariAssignments); // Store all for code lookup
+        if (userId && data.safariAssignments[userId]) {
+          const myAssignment = data.safariAssignments[userId];
+          console.log('🦁 My animal:', myAssignment.emoji, myAssignment.name, myAssignment.code);
+          setMyAnimal({ emoji: myAssignment.emoji, name: myAssignment.name, code: myAssignment.code });
+        }
+      }
+      
+      // Check if this student is on Safari
+      if (data.safariHunters && data.safariHunters.length > 0) {
+        console.log('🦁 Safari hunters:', data.safariHunters.map(h => h.name).join(', '));
+        if (userId) {
+          const myHunt = data.safariHunters.find(h => h.studentId === userId);
+          if (myHunt) {
+            console.log('🦁 I AM ON SAFARI! Looking for:', myHunt.targetEmoji, myHunt.targetName);
+            setOnSafari(true);
+            setSafariTarget({ emoji: myHunt.targetEmoji, name: myHunt.targetName });
+          } else {
+            setOnSafari(false);
+            setSafariTarget(null);
+          }
+        }
+      } else {
+        setOnSafari(false);
+        setSafariTarget(null);
+      }
       
       const newPhase = data.gamePhase || 'waiting';
       const newRound = data.currentRound || 0;
@@ -233,6 +311,10 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
           setSelectedPowerUp(null);
           setElapsedTime(0);
           answeredRef.current = { answer: null, time: null, powerUp: null };
+          // Reset Safari state
+          setSafariCodeInput('');
+          setSafariComplete(false);
+          setSafariBonus(0);
         }
         
         if (timerRef.current) clearInterval(timerRef.current);
@@ -333,6 +415,41 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
         powerUp: pu.id,
         lastActivity: Date.now()
       }).catch(console.error);
+    }
+  };
+
+  // Submit Safari code
+  const submitSafariCode = () => {
+    console.log('🦁 Safari submit:', { safariTarget, safariComplete, safariCodeInput, allSafariAssignments });
+    
+    if (!safariTarget || safariComplete) return;
+    if (safariCodeInput.length !== 4) return;
+    
+    // Find the student who has the target animal using stored state
+    const targetStudent = Object.entries(allSafariAssignments).find(
+      ([id, assignment]) => assignment.name === safariTarget.name
+    );
+    
+    console.log('🦁 Target found:', targetStudent);
+    
+    if (targetStudent && safariCodeInput === targetStudent[1].code) {
+      // Correct code!
+      console.log('🦁 Correct code! +50 bonus');
+      setSafariComplete(true);
+      setSafariBonus(50);
+      
+      // Update Firebase
+      if (sessionCode && userId) {
+        const db = getDatabase();
+        update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+          safariComplete: true,
+          safariBonus: 50,
+          lastActivity: Date.now()
+        }).catch(console.error);
+      }
+    } else {
+      console.log('🦁 Wrong code, try again');
+      // Could add shake animation or feedback here
     }
   };
 
@@ -521,9 +638,16 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center">
-          <div className="text-5xl mb-4">✨</div>
+          <div className="text-5xl mb-2">✨</div>
           <h2 className="text-2xl font-bold mb-2">Choose Your Power-Up!</h2>
-          <p className="text-white/70 mb-6">Pick one for the next clip</p>
+          
+          {/* Countdown Timer */}
+          <div className="mb-4">
+            <div className={`text-5xl font-black ${powerPickCountdown <= 2 ? 'text-red-400 animate-pulse' : 'text-yellow-400'}`}>
+              {powerPickCountdown}
+            </div>
+            <div className="text-white/60 text-xs">seconds</div>
+          </div>
           
           <div className="grid grid-cols-3 gap-3 w-full max-w-md mb-4">
             {powerUpChoices.map((pu) => (
@@ -549,7 +673,9 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
             </div>
           )}
           
-          <p className="text-white/50 text-sm mt-4">Waiting for teacher to start clip...</p>
+          {!selectedPowerUp && (
+            <p className="text-white/50 text-sm mt-2">Tap a power-up before time runs out!</p>
+          )}
         </div>
       </div>
     );
@@ -557,9 +683,105 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
 
   // Guessing
   if (gamePhase === 'guessing') {
+    // If on Safari, show Safari screen instead
+    if (onSafari && safariTarget) {
+      return (
+        <div className="h-screen bg-gradient-to-br from-amber-900 via-orange-900 to-yellow-900 flex flex-col p-4 text-white relative">
+          <style>{styles}</style>
+          
+          {/* Safari Header */}
+          <div className="bg-white/10 rounded-xl p-3 mb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: `${playerColor}30` }}>
+                  {playerEmoji}
+                </div>
+                <span className="font-bold" style={{ color: playerColor }}>{playerName}</span>
+              </div>
+              <div className="bg-white/10 px-3 py-1 rounded-lg">
+                <span className="text-xl font-bold text-yellow-400">{score}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Safari Content */}
+          <div className="flex-1 flex flex-col items-center justify-center">
+            {!safariComplete ? (
+              <>
+                <div className="text-6xl mb-4">🦁</div>
+                <h1 className="text-4xl font-black mb-2 text-yellow-300">SAFARI TIME!</h1>
+                <p className="text-xl mb-6 text-white/80">Leave your Chromebook and find the...</p>
+                
+                <div className="bg-white/20 rounded-2xl p-6 mb-6 text-center">
+                  <div className="text-8xl mb-2">{safariTarget.emoji}</div>
+                  <div className="text-4xl font-black text-yellow-300">{safariTarget.name}</div>
+                </div>
+                
+                <div className="bg-white/10 rounded-xl p-4 mb-4 max-w-xs">
+                  <p className="text-sm text-white/70 mb-3 text-center">Look for this on a classmate's screen:</p>
+                  <div className="bg-black/30 rounded-lg p-3 flex items-center justify-center gap-3">
+                    <span className="text-4xl">{safariTarget.emoji}</span>
+                    <span className="text-2xl font-mono font-bold text-yellow-300">1234</span>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col items-center gap-3">
+                  <p className="text-white/70">Enter their code:</p>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={4}
+                    value={safariCodeInput}
+                    onChange={(e) => setSafariCodeInput(e.target.value.replace(/\D/g, ''))}
+                    className="w-40 text-center text-4xl font-mono font-bold bg-white/20 border-2 border-yellow-400 rounded-xl px-4 py-3 text-yellow-300 placeholder-white/30"
+                    placeholder="____"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      console.log('🦁 Submit button clicked!');
+                      submitSafariCode();
+                    }}
+                    disabled={safariCodeInput.length !== 4}
+                    className={`px-10 py-4 rounded-xl text-2xl font-bold transition-all active:scale-95 ${
+                      safariCodeInput.length === 4 
+                        ? 'bg-gradient-to-r from-yellow-500 to-orange-500 shadow-lg' 
+                        : 'bg-white/20 text-white/50'
+                    }`}
+                  >
+                    ✓ Submit Code
+                  </button>
+                </div>
+                
+                <p className="text-white/50 text-sm mt-4">⏱️ Check the board for time remaining!</p>
+              </>
+            ) : (
+              <div className="text-center">
+                <div className="text-8xl mb-4">🎉</div>
+                <h1 className="text-4xl font-black text-green-400 mb-2">FOUND IT!</h1>
+                <div className="text-6xl font-black text-yellow-300">+{safariBonus}</div>
+                <p className="text-xl text-white/70 mt-2">Bonus points!</p>
+                <p className="text-white/50 mt-4">Return to your seat and wait for the reveal...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+    
     return (
-      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col p-4 text-white">
+      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col p-4 text-white relative">
         <style>{styles}</style>
+        
+        {/* Animal Badge - Top Right Corner */}
+        {myAnimal && (
+          <div className="absolute top-4 right-4 bg-black/40 rounded-xl p-3 text-center z-10">
+            <div className="text-3xl">{myAnimal.emoji}</div>
+            <div className="text-lg font-mono font-bold text-yellow-300">{myAnimal.code}</div>
+          </div>
+        )}
         
         {/* Header */}
         <div className="bg-white/10 rounded-xl p-3 mb-3">

@@ -118,6 +118,7 @@ const MusicLoopsInMediaHub = () => {
       route: '/lessons/film-music-project/lesson4',
       available: true,
       hasLessonPlan: true,
+      badge: 'Beta',
       activities: [
         { id: 'sectional-loop-builder', title: 'Sectional Loop Builder', description: 'Build A-B-A sections', activityType: 'sectional-loop-builder' },
         { id: 'wildlife-composition', title: 'Wildlife Composition', description: 'Score nature footage', activityType: 'wildlife-composition-activity' },
@@ -278,6 +279,11 @@ const MusicLoopsInMediaHub = () => {
                       <span className="px-3 py-1 bg-slate-700 text-blue-300 text-sm rounded-full font-semibold">
                         {lesson.concept}
                       </span>
+                      {lesson.badge && (
+                        <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-xs rounded-full font-semibold border border-amber-500/30">
+                          {lesson.badge}
+                        </span>
+                      )}
                     </div>
                     <p className="text-slate-300 text-sm">{lesson.description}</p>
                   </div>
