@@ -555,6 +555,19 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
     );
   }
 
+  // Listen Intro screens - students just watch the main screen
+  if (gamePhase === 'listenIntro1' || gamePhase === 'listenIntro2' || gamePhase === 'listenIntro3') {
+    return (
+      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col items-center justify-center p-6 text-white">
+        <style>{styles}</style>
+        <div className="text-6xl mb-4">👀</div>
+        <h1 className="text-3xl font-bold mb-2">Watch the Board!</h1>
+        <p className="text-lg text-white/70 mb-4">Directions are on the main screen</p>
+        <p className="text-white/60 animate-pulse">🎬 Get ready to listen...</p>
+      </div>
+    );
+  }
+
   // Listening
   if (gamePhase === 'listening') {
     return (
