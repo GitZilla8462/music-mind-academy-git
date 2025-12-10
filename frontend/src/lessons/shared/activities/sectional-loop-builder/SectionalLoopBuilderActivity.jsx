@@ -260,7 +260,8 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
         console.log('🦁 Safari hunters:', data.safariHunters.map(h => h.name).join(', '));
         if (userId) {
           const myHunt = data.safariHunters.find(h => h.studentId === userId);
-          if (myHunt) {
+          // Only activate Safari if we have a valid target with emoji and name
+          if (myHunt && myHunt.targetEmoji && myHunt.targetName) {
             console.log('🦁 I AM ON SAFARI! Looking for:', myHunt.targetEmoji, myHunt.targetName);
             setOnSafari(true);
             setSafariTarget({ emoji: myHunt.targetEmoji, name: myHunt.targetName });
@@ -459,11 +460,15 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
     const myTime = answeredRef.current.time ?? answerTime;
     const myPowerUp = answeredRef.current.powerUp || selectedPowerUp;
     const wasAnswered = myAnswer !== null;
-    const isCorrect = myAnswer === correct;
     
-    console.log('📊 Score calc:', { myAnswer, correct, isCorrect, wasAnswered });
+    // Safari students automatically get correct (they were on Safari, not answering)
+    const wasSafari = onSafari;
+    const isCorrect = wasSafari ? true : (myAnswer === correct);
     
-    if (!wasAnswered) {
+    console.log('📊 Score calc:', { myAnswer, correct, isCorrect, wasAnswered, wasSafari, safariBonus });
+    
+    // No answer and not on Safari = no points
+    if (!wasAnswered && !wasSafari) {
       setClipResult({
         isCorrect: false,
         myAnswer: null,
@@ -472,6 +477,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
         speedBonus: 0,
         streakBonus: 0,
         bonusPts: 0,
+        safariPts: 0,
         doubled: false,
         total: 0,
         newStreak: 0,
@@ -481,33 +487,39 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
     }
     
     let correctPts = isCorrect ? SCORING.correct : 0;
-    let wrongPts = !isCorrect ? SCORING.wrong : 0;
+    let wrongPts = (!isCorrect && !wasSafari) ? SCORING.wrong : 0;
     
     if (myPowerUp?.id === 'shield') wrongPts = 0;
     
     const speedThreshold = myPowerUp?.id === 'speed' ? 5000 : 3000;
-    const speedBonus = (isCorrect && myTime !== null && myTime < speedThreshold) ? SCORING.speed : 0;
+    // Safari students don't get speed bonus (they weren't answering)
+    const speedBonus = (!wasSafari && isCorrect && myTime !== null && myTime < speedThreshold) ? SCORING.speed : 0;
     
     const newStreak = isCorrect ? streak + 1 : 0;
     const streakBonus = newStreak >= 2 ? Math.min(newStreak * SCORING.streak, SCORING.maxStreak) : 0;
     
     const bonusPts = myPowerUp?.id === 'bonus' ? 15 : 0;
     
-    let total = Math.max(0, correctPts - wrongPts + speedBonus + streakBonus + bonusPts);
+    // Include Safari bonus if they completed it
+    const safariPts = safariBonus || 0;
+    
+    let total = Math.max(0, correctPts - wrongPts + speedBonus + streakBonus + bonusPts + safariPts);
     
     if (myPowerUp?.id === 'double') total *= 2;
     
     setClipResult({
       isCorrect,
-      myAnswer,
+      myAnswer: wasSafari ? 'SAFARI' : myAnswer,
       correctPts,
       wrongPts,
       speedBonus,
       streakBonus,
       bonusPts,
+      safariPts,
       doubled: myPowerUp?.id === 'double',
       total,
-      newStreak
+      newStreak,
+      wasSafari
     });
     
     const newScore = score + total;
@@ -697,7 +709,8 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
   // Guessing
   if (gamePhase === 'guessing') {
     // If on Safari, show Safari screen instead
-    if (onSafari && safariTarget) {
+    // Only show Safari if we have a valid target (with emoji and name)
+    if (onSafari && safariTarget && safariTarget.emoji && safariTarget.name) {
       return (
         <div className="h-screen bg-gradient-to-br from-amber-900 via-orange-900 to-yellow-900 flex flex-col p-4 text-white relative">
           <style>{styles}</style>
@@ -727,20 +740,19 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
                 <p className="text-xl mb-6 text-white/80">Leave your Chromebook and find the...</p>
                 
                 <div className="bg-white/20 rounded-2xl p-6 mb-6 text-center">
-                  <div className="text-8xl mb-2">{safariTarget.emoji}</div>
-                  <div className="text-4xl font-black text-yellow-300">{safariTarget.name}</div>
+                  <div className="text-9xl">{safariTarget.emoji}</div>
                 </div>
                 
-                <div className="bg-white/10 rounded-xl p-4 mb-4 max-w-xs">
+                <div className="bg-white/10 rounded-xl p-4 mb-4">
                   <p className="text-sm text-white/70 mb-3 text-center">Look for this on a classmate's screen:</p>
-                  <div className="bg-black/30 rounded-lg p-3 flex items-center justify-center gap-3">
-                    <span className="text-4xl">{safariTarget.emoji}</span>
-                    <span className="text-2xl font-mono font-bold text-yellow-300">1234</span>
+                  <div className="bg-black/50 rounded-xl p-4 flex items-center justify-center gap-4 border-2 border-yellow-400/50">
+                    <span className="text-5xl">{safariTarget.emoji}</span>
+                    <span className="text-5xl font-mono font-black text-yellow-300">1234</span>
                   </div>
                 </div>
                 
                 <div className="flex flex-col items-center gap-3">
-                  <p className="text-white/70">Enter their code:</p>
+                  <p className="text-lg text-white/70">Enter their code:</p>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -748,7 +760,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
                     maxLength={4}
                     value={safariCodeInput}
                     onChange={(e) => setSafariCodeInput(e.target.value.replace(/\D/g, ''))}
-                    className="w-40 text-center text-4xl font-mono font-bold bg-white/20 border-2 border-yellow-400 rounded-xl px-4 py-3 text-yellow-300 placeholder-white/30"
+                    className="w-56 text-center text-5xl font-mono font-black bg-white/20 border-4 border-yellow-400 rounded-xl px-4 py-4 text-yellow-300 placeholder-white/30"
                     placeholder="____"
                   />
                   <button
@@ -788,11 +800,11 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
       <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col p-4 text-white relative">
         <style>{styles}</style>
         
-        {/* Animal Badge - Top Right Corner */}
+        {/* Animal Badge - Top Right Corner - BIG for Safari hunters to find */}
         {myAnimal && (
-          <div className="absolute top-4 right-4 bg-black/40 rounded-xl p-3 text-center z-10">
-            <div className="text-3xl">{myAnimal.emoji}</div>
-            <div className="text-lg font-mono font-bold text-yellow-300">{myAnimal.code}</div>
+          <div className="absolute top-4 right-4 bg-black/60 rounded-2xl p-4 text-center z-10 border-2 border-yellow-400/50">
+            <div className="text-5xl mb-1">{myAnimal.emoji}</div>
+            <div className="text-5xl font-mono font-black text-yellow-300">{myAnimal.code}</div>
           </div>
         )}
         
@@ -920,6 +932,59 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
               <div className="text-3xl font-black mb-2 text-white/60">No Answer</div>
               <div className="text-white/50">You didn't lock in!</div>
             </>
+          ) : clipResult.wasSafari ? (
+            <>
+              {/* Safari result */}
+              <div 
+                className="text-7xl mb-4"
+                style={{ animation: 'pop 0.3s ease-out' }}
+              >
+                🦁
+              </div>
+              
+              <div className="text-3xl font-black mb-2 text-yellow-400">
+                SAFARI SUCCESS!
+              </div>
+              
+              {clipResult.safariPts > 0 ? (
+                <div className="text-white/70 mb-4">You found the animal! +{clipResult.safariPts} bonus</div>
+              ) : (
+                <div className="text-white/70 mb-4">Auto-correct for Safari duty!</div>
+              )}
+              
+              {/* Score breakdown */}
+              <div className="bg-black/30 rounded-xl p-4 w-full max-w-sm mb-4">
+                <h3 className="text-sm font-bold text-white/70 mb-3 text-center">Score Breakdown</h3>
+                
+                <div className="flex flex-wrap justify-center gap-2 mb-3">
+                  {clipResult.correctPts > 0 && (
+                    <ScoreItem value={clipResult.correctPts} label="Auto ✓" emoji="🦁" delay={0} />
+                  )}
+                  {clipResult.safariPts > 0 && (
+                    <ScoreItem value={clipResult.safariPts} label="Safari" emoji="🎯" delay={200} />
+                  )}
+                  {clipResult.streakBonus > 0 && (
+                    <ScoreItem value={clipResult.streakBonus} label="Streak" emoji="🔥" delay={300} />
+                  )}
+                  {clipResult.doubled && (
+                    <div 
+                      className="bg-yellow-500/20 rounded-lg px-3 py-2 text-center"
+                      style={{ animation: 'slideUp 0.3s ease-out 400ms both' }}
+                    >
+                      <div className="text-xl font-black text-yellow-400">×2</div>
+                      <div className="text-xs text-yellow-200">Double!</div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="text-center border-t border-white/20 pt-3">
+                  <span className="text-white/60">This clip: </span>
+                  <span className={`text-3xl font-black ${clipResult.total >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {clipResult.total >= 0 ? '+' : ''}<AnimatedNumber value={clipResult.total} duration={600} />
+                  </span>
+                </div>
+              </div>
+            </>
           ) : (
             <>
               {/* Result icon */}
@@ -959,6 +1024,9 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
                   )}
                   {clipResult.bonusPts > 0 && (
                     <ScoreItem value={clipResult.bonusPts} label="Bonus" emoji="🎁" delay={400} />
+                  )}
+                  {clipResult.safariPts > 0 && (
+                    <ScoreItem value={clipResult.safariPts} label="Safari" emoji="🦁" delay={450} />
                   )}
                   {clipResult.doubled && (
                     <div 
