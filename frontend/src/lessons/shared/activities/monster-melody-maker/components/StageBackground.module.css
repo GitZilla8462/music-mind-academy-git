@@ -1468,3 +1468,125 @@
   50% { transform: translate(0, -15px) rotate(180deg); }
   75% { transform: translate(-8px, -8px) rotate(270deg); }
 }
+
+.stage {
+  transform: translateZ(0);
+  contain: layout style paint;
+}
+
+.backdrop {
+  contain: strict;
+  will-change: contents;
+}
+
+.floorSurface {
+  transform: translateZ(0) rotateX(55deg);
+  backface-visibility: hidden;
+}
+
+/* === OPTIMIZE ALL ANIMATED ELEMENTS === */
+.star,
+.firefly,
+.bubble,
+.raindrop,
+.snowflake,
+.confettiPiece,
+.ash,
+.leaf {
+  will-change: transform, opacity;
+  contain: layout style;
+}
+
+.neonShape,
+.stageLight,
+.speaker,
+.floatItem,
+.bat,
+.fish,
+.fish2,
+.parrot,
+.monkey {
+  will-change: transform;
+  contain: layout style;
+}
+
+/* === REDUCE ANIMATION OVERHEAD === */
+/* Reduce particle count on animations */
+.stars .star:nth-child(n+30),
+.bubbles .bubble:nth-child(n+8),
+.snowfall .snowflake:nth-child(n+15),
+.raindrops .raindrop:nth-child(n+20),
+.confettiContainer .confettiPiece:nth-child(n+12) {
+  display: none;
+}
+
+/* === PAUSE ANIMATIONS WHEN NOT VISIBLE === */
+@media (prefers-reduced-motion: reduce) {
+  .star,
+  .firefly,
+  .bubble,
+  .raindrop,
+  .snowflake,
+  .confettiPiece,
+  .ash,
+  .leaf,
+  .neonShape,
+  .stageLight,
+  .floatItem,
+  .bat,
+  .fish,
+  .fish2,
+  .lightning,
+  .earth {
+    animation: none !important;
+  }
+}
+
+/* === CHROMEBOOK/LOW-POWER OPTIMIZATIONS === */
+/* Detect low-end devices via resolution/memory hints */
+@media (max-resolution: 1.5dppx) {
+  /* Simplify gradients */
+  .space .floorSurface,
+  .arcade .floorSurface,
+  .concert .floorSurface,
+  .station .floorSurface {
+    background: linear-gradient(180deg, var(--floor-light, #2a2a5a) 0%, var(--floor-dark, #1a1a3a) 100%);
+  }
+  
+  /* Reduce animation frame rate */
+  .star { animation-duration: 4s; }
+  .firefly { animation-duration: 6s; }
+  .confettiPiece { animation-duration: 4s; }
+  
+  /* Hide secondary decorations */
+  .tree3,
+  .tree4,
+  .planet,
+  .spaceStation {
+    display: none;
+  }
+  
+  /* Reduce glow effects */
+  .neonCircle,
+  .neonTriangle,
+  .neonSquare {
+    box-shadow: none;
+    filter: none;
+  }
+}
+
+/* === HIDE ANIMATIONS WHEN TAB NOT VISIBLE === */
+/* This works with document.visibilityState */
+.stage[data-hidden="true"] * {
+  animation-play-state: paused !important;
+}
+
+/* === BOX-SHADOW OPTIMIZATION === */
+/* Replace expensive box-shadows with pseudo-elements on low-end */
+@media (max-resolution: 1.5dppx) {
+  .arcade .stageEdge,
+  .space .stageEdge,
+  .concert .stageEdge {
+    box-shadow: none;
+  }
+}

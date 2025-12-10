@@ -9,6 +9,8 @@
  * 5. Symbols
  * 6. Form
  * 7. Emojis (at bottom)
+ * 
+ * ✅ NEW: Supports drag-from-panel to canvas
  */
 
 import React, { useState } from 'react';
@@ -19,8 +21,47 @@ import { INSTRUMENT_ICONS } from '../../config/InstrumentIcons.jsx';
 // STICKER ITEM
 // ============================================================================
 
-const StickerItem = ({ item, isSelected, onClick }) => {
+const StickerItem = ({ item, isSelected, onClick, onDragStart }) => {
   const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseDown = (e) => {
+    // Prevent text selection during drag
+    e.preventDefault();
+    
+    // Store start position to detect drag vs click
+    const startX = e.clientX;
+    const startY = e.clientY;
+    let hasDragged = false;
+    
+    const handleMouseMove = (moveEvent) => {
+      const dx = Math.abs(moveEvent.clientX - startX);
+      const dy = Math.abs(moveEvent.clientY - startY);
+      
+      // Start drag if moved more than 5px
+      if (!hasDragged && (dx > 5 || dy > 5)) {
+        hasDragged = true;
+        if (onDragStart) {
+          onDragStart(item, moveEvent);
+        }
+        // Clean up these listeners - parent takes over
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      }
+    };
+    
+    const handleMouseUp = () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      
+      // If didn't drag, treat as click
+      if (!hasDragged) {
+        onClick(item);
+      }
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
 
   const renderSymbol = () => {
     const renderType = item.render || 'emoji';
@@ -151,7 +192,7 @@ const StickerItem = ({ item, isSelected, onClick }) => {
 
   return (
     <button
-      onClick={() => onClick(item)}
+      onMouseDown={handleMouseDown}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
@@ -163,19 +204,21 @@ const StickerItem = ({ item, isSelected, onClick }) => {
         border: isSelected ? '2px solid #3b82f6' : '2px solid #e2e8f0',
         borderRadius: '10px',
         backgroundColor: isSelected ? '#dbeafe' : isHovered ? '#f1f5f9' : '#ffffff',
-        cursor: 'pointer',
+        cursor: 'grab',
         transition: 'all 0.15s ease',
         minHeight: '80px',
-        transform: isHovered ? 'scale(1.03)' : 'scale(1)'
+        transform: isHovered ? 'scale(1.03)' : 'scale(1)',
+        userSelect: 'none'
       }}
-      title={item.meaning || item.name}
+      title={`${item.meaning || item.name} - Click to select or drag to canvas`}
     >
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center', 
         height: '40px', 
-        marginBottom: '6px' 
+        marginBottom: '6px',
+        pointerEvents: 'none'
       }}>
         {renderSymbol()}
       </div>
@@ -185,7 +228,8 @@ const StickerItem = ({ item, isSelected, onClick }) => {
         fontWeight: '700',
         color: '#1e293b',
         textAlign: 'center',
-        lineHeight: '1.2'
+        lineHeight: '1.2',
+        pointerEvents: 'none'
       }}>
         {item.name}
       </span>
@@ -196,7 +240,8 @@ const StickerItem = ({ item, isSelected, onClick }) => {
           color: '#475569',
           textAlign: 'center',
           marginTop: '2px',
-          fontWeight: '500'
+          fontWeight: '500',
+          pointerEvents: 'none'
         }}>
           {item.meaning}
         </span>
@@ -217,7 +262,8 @@ const AccordionSection = ({
   isOpen, 
   onToggle, 
   selectedSticker, 
-  onSelect 
+  onSelect,
+  onDragStart
 }) => {
   const getCurrentSelection = () => {
     for (const category of Object.values(data)) {
@@ -361,6 +407,7 @@ const AccordionSection = ({
                       selectedSticker?.name === item.name
                     }
                     onClick={onSelect}
+                    onDragStart={onDragStart}
                   />
                 ))}
               </div>
@@ -381,7 +428,8 @@ const StickerPanel = ({
   onStickerSelect,
   stickerSize = 56,
   onSizeChange,
-  isOpen = true
+  isOpen = true,
+  onDragStart  // ✅ NEW: callback when drag starts
 }) => {
   const [openSection, setOpenSection] = useState(null);
 
@@ -416,6 +464,13 @@ const StickerPanel = ({
         }}>
           🎵 Stickers
         </span>
+        <div style={{
+          fontSize: '10px',
+          color: '#94a3b8',
+          marginTop: '2px'
+        }}>
+          Click to select • Drag to place
+        </div>
       </div>
 
       {/* Sections - Scrollable */}
@@ -435,6 +490,7 @@ const StickerPanel = ({
             onToggle={() => toggleSection(tab.id)}
             selectedSticker={selectedSticker}
             onSelect={onStickerSelect}
+            onDragStart={onDragStart}
           />
         ))}
       </div>

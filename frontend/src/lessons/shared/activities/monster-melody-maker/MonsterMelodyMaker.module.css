@@ -1,133 +1,577 @@
 /**
  * FILE: monster-melody-maker/MonsterMelodyMaker.module.css
- * Main layout for Monster Melody Maker
+ * 
+ * ROBOT BAND BUILDER STYLES
+ * Optimized for 1366x768 Chromebook displays
  */
 
- .container {
-  width: 100%;
-  height: 100%;
-  min-height: 500px;
+/* ===== CONTAINER ===== */
+.container {
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
-  color: white;
-  font-family: 'Nunito', 'Segoe UI', sans-serif;
+  height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #fff;
   overflow: hidden;
 }
 
+/* ===== MAIN CONTENT - 3 PANEL LAYOUT ===== */
 .mainContent {
-  flex: 1;
   display: flex;
-  flex-direction: row;
-  gap: 16px;
-  padding: 16px;
+  flex: 1;
+  gap: 12px;
+  padding: 12px;
   min-height: 0;
 }
 
-/* Left panel - Monster Customizer */
+/* ===== LEFT PANEL - CUSTOMIZER ===== */
 .leftPanel {
-  width: 220px;
-  min-width: 200px;
+  width: 200px;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 12px;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* Center panel - Monster Stage */
-.centerPanel {
-  flex: 1;
-  min-width: 280px;
-  max-width: 400px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
+/* Robot name input section */
+.robotNameSection {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.nameLabel {
+  display: block;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.robotNameInput {
+  width: 100%;
+  padding: 8px 10px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  transition: border-color 0.2s;
+}
+
+.robotNameInput:focus {
+  outline: none;
+  border-color: #4ecdc4;
+}
+
+.robotNameInput::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ===== CENTER PANEL - STAGE ===== */
+.centerPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Robot selector tabs */
+.robotTabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px 8px 0 0;
+}
+
+.robotTab {
+  padding: 8px 12px;
+  min-width: 70px;
+  height: 36px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.robotTab:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+/* Locked robot tab - greyed out (high specificity to override colors) */
+.robotTabLocked,
+.robotTab.robotTabLocked,
+.robotTab1.robotTabLocked,
+.robotTab2.robotTabLocked,
+.robotTab3.robotTabLocked,
+.robotTab4.robotTabLocked {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: rgba(80, 80, 80, 0.3) !important;
+  border-color: rgba(80, 80, 80, 0.4) !important;
+  color: rgba(255, 255, 255, 0.5);
+  box-shadow: none !important;
+}
+
+.robotTabLocked:hover,
+.robotTab.robotTabLocked:hover {
+  transform: none !important;
+  background: rgba(80, 80, 80, 0.3) !important;
+}
+
+/* Robot 1 - Coral/Red */
+.robotTab1 {
+  border-color: rgba(255, 107, 107, 0.5);
+  background: rgba(255, 107, 107, 0.2);
+}
+.robotTab1:hover:not(:disabled) {
+  background: rgba(255, 107, 107, 0.3);
+  border-color: #ff6b6b;
+}
+.robotTab1.robotTabActive {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+  border-color: #ff6b6b;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+/* Robot 2 - Teal/Cyan */
+.robotTab2 {
+  border-color: rgba(78, 205, 196, 0.5);
+  background: rgba(78, 205, 196, 0.2);
+}
+.robotTab2:hover:not(:disabled) {
+  background: rgba(78, 205, 196, 0.3);
+  border-color: #4ecdc4;
+}
+.robotTab2.robotTabActive {
+  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  border-color: #4ecdc4;
+  box-shadow: 0 4px 12px rgba(78, 205, 196, 0.4);
+}
+
+/* Robot 3 - Purple/Violet */
+.robotTab3 {
+  border-color: rgba(139, 92, 246, 0.5);
+  background: rgba(139, 92, 246, 0.2);
+}
+.robotTab3:hover:not(:disabled) {
+  background: rgba(139, 92, 246, 0.3);
+  border-color: #8b5cf6;
+}
+.robotTab3.robotTabActive {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border-color: #8b5cf6;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+/* Robot 4 - Gold/Yellow */
+.robotTab4 {
+  border-color: rgba(234, 179, 8, 0.5);
+  background: rgba(234, 179, 8, 0.2);
+}
+.robotTab4:hover:not(:disabled) {
+  background: rgba(234, 179, 8, 0.3);
+  border-color: #eab308;
+}
+.robotTab4.robotTabActive {
+  background: linear-gradient(135deg, #eab308, #ca8a04);
+  border-color: #eab308;
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.4);
+}
+
+/* Stage wrapper */
 .stageWrapper {
   flex: 1;
-  min-height: 250px;
   position: relative;
-  border-radius: 16px;
+  border-radius: 0 0 12px 12px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  min-height: 280px;
 }
 
 .monsterWrapper {
   position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
 }
 
-/* Right panel - Melody Grid */
+/* Now playing indicator */
+.nowPlaying {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4ecdc4;
+  z-index: 20;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ===== RIGHT PANEL - MELODY/ARRANGER ===== */
 .rightPanel {
-  flex: 1.5;
-  min-width: 400px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 16px;
+  flex: 1;
   display: flex;
   flex-direction: column;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Panel toggle tabs */
+.rightPanelTabs {
+  display: flex;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.panelTab {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 3px solid transparent;
+}
+
+.panelTab:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.panelTabActive {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom-color: #4ecdc4;
+}
+
+/* Melody view */
+.melodyView {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+/* ===== ARRANGER VIEW ===== */
+.arrangerView {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   overflow: hidden;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1200px) {
+/* 4 mini grids side by side */
+.arrangerGrids {
+  display: flex;
+  gap: 8px;
+}
+
+/* Each mini grid container - compact, not forced tall */
+.miniGridContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 0;
+  border: 2px solid transparent;
+}
+
+.miniGridPlaying {
+  border-color: #4ecdc4;
+  box-shadow: 0 0 15px rgba(78, 205, 196, 0.5);
+}
+
+/* Locked mini grid - greyed out until previous slot filled */
+.miniGridLocked {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.miniGridLocked .robotSelect {
+  cursor: not-allowed;
+  background: rgba(60, 60, 60, 0.5);
+}
+
+/* Robot selector dropdown - compact */
+.robotSelect {
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.robotSelect::after {
+  content: '▼';
+}
+
+.robotSelect:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.robotSelect:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.robotSelect:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Colored dropdowns when robot selected */
+.robotSelect1 {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+  border-bottom-color: #cc5555;
+}
+.robotSelect2 {
+  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  border-bottom-color: #3a8a7a;
+}
+.robotSelect3 {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border-bottom-color: #6930c3;
+}
+.robotSelect4 {
+  background: linear-gradient(135deg, #eab308, #ca8a04);
+  border-bottom-color: #a16207;
+}
+
+/* Mini grid wrapper - constrain to proper aspect ratio */
+.miniGridWrapper {
+  padding: 4px;
+  display: flex;
+  aspect-ratio: 2 / 1;
+}
+
+/* The actual mini grid - 8 rows x 16 cols with SQUARE cells */
+.miniGrid {
+  flex: 1;
+  display: grid;
+  grid-template-rows: repeat(8, 1fr);
+  grid-template-columns: repeat(16, 1fr);
+  gap: 1px;
+}
+
+/* Mini grid cell */
+.miniCell {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 1px;
+  transition: background 0.1s;
+}
+
+.miniCell.active {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.miniCell.currentStep {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.miniCell.active.currentStep {
+  background: #fff;
+  box-shadow: 0 0 4px #fff;
+}
+
+/* Color variants for each robot's active cells */
+.miniGrid1 .miniCell.active {
+  background: rgba(255, 107, 107, 0.7);
+}
+.miniGrid1 .miniCell.active.currentStep {
+  background: #ff6b6b;
+  box-shadow: 0 0 4px #ff6b6b;
+}
+
+.miniGrid2 .miniCell.active {
+  background: rgba(78, 205, 196, 0.7);
+}
+.miniGrid2 .miniCell.active.currentStep {
+  background: #4ecdc4;
+  box-shadow: 0 0 4px #4ecdc4;
+}
+
+.miniGrid3 .miniCell.active {
+  background: rgba(139, 92, 246, 0.7);
+}
+.miniGrid3 .miniCell.active.currentStep {
+  background: #8b5cf6;
+  box-shadow: 0 0 4px #8b5cf6;
+}
+
+.miniGrid4 .miniCell.active {
+  background: rgba(234, 179, 8, 0.7);
+}
+.miniGrid4 .miniCell.active.currentStep {
+  background: #eab308;
+  box-shadow: 0 0 4px #eab308;
+}
+
+/* Empty grid placeholder */
+.emptyGrid {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 12px;
+  font-style: italic;
+  aspect-ratio: 2 / 1;
+}
+
+/* Arranger controls */
+.arrangerControls {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.playSongBtn,
+.stopSongBtn,
+.clearSongBtn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.playSongBtn {
+  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  color: #fff;
+}
+
+.playSongBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(78, 205, 196, 0.4);
+}
+
+.playSongBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.stopSongBtn {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+  color: #fff;
+}
+
+.stopSongBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.clearSongBtn {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  flex: 0.6;
+}
+
+.clearSongBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.clearSongBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== SCROLLBAR STYLING ===== */
+.leftPanel::-webkit-scrollbar,
+.melodyView::-webkit-scrollbar {
+  width: 6px;
+}
+
+.leftPanel::-webkit-scrollbar-track,
+.melodyView::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.leftPanel::-webkit-scrollbar-thumb,
+.melodyView::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.leftPanel::-webkit-scrollbar-thumb:hover,
+.melodyView::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ===== RESPONSIVE - CHROMEBOOK 1366x768 ===== */
+@media (max-height: 768px) {
+  .mainContent {
+    gap: 10px;
+    padding: 10px;
+  }
+
   .leftPanel {
     width: 180px;
-    min-width: 180px;
   }
-  
-  .rightPanel {
-    min-width: 350px;
-  }
-}
 
-@media (max-width: 1000px) {
-  .mainContent {
-    flex-wrap: wrap;
+  .robotTab {
+    min-width: 60px;
+    height: 32px;
+    font-size: 11px;
+    padding: 6px 8px;
   }
-  
-  .leftPanel {
-    width: 100%;
-    max-height: 200px;
-    order: 2;
-  }
-  
-  .centerPanel {
-    flex: 1 1 45%;
-    min-width: 250px;
-    max-width: none;
-    order: 1;
-  }
-  
-  .rightPanel {
-    flex: 1 1 45%;
-    min-width: 300px;
-    order: 1;
-  }
-}
 
-@media (max-height: 700px) {
-  .mainContent {
-    padding: 8px;
-    gap: 8px;
-  }
-  
-  .leftPanel {
-    padding: 8px;
-  }
-  
-  .rightPanel {
-    padding: 8px;
-  }
-  
   .stageWrapper {
-    min-height: 200px;
+    min-height: 240px;
+  }
+
+  .robotSelect {
+    padding: 5px;
+    font-size: 12px;
+  }
+
+  .arrangerGrids {
+    gap: 6px;
+  }
+}
+
+/* ===== SMALLER SCREENS ===== */
+@media (max-width: 1200px) {
+  .leftPanel {
+    width: 160px;
   }
 }

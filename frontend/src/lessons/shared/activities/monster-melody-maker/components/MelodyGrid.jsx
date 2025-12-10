@@ -54,6 +54,29 @@ const PRESETS = {
     });
     return p;
   },
+  random: () => {
+    const p = Array(8).fill(null).map(() => Array(16).fill(false));
+    // Generate 8-12 random notes
+    const noteCount = Math.floor(Math.random() * 5) + 8;
+    const usedCols = new Set();
+    
+    for (let i = 0; i < noteCount; i++) {
+      // Pick a random column (avoid too many on same column)
+      let col;
+      let attempts = 0;
+      do {
+        col = Math.floor(Math.random() * 16);
+        attempts++;
+      } while (usedCols.has(col) && attempts < 20);
+      
+      usedCols.add(col);
+      
+      // Pick a random row (pitch)
+      const row = Math.floor(Math.random() * 8);
+      p[row][col] = true;
+    }
+    return p;
+  },
 };
 
 const MelodyGrid = ({ pattern, onChange, currentStep, isPlaying }) => {
@@ -102,6 +125,9 @@ const MelodyGrid = ({ pattern, onChange, currentStep, isPlaying }) => {
           </button>
           <button onClick={() => applyPreset('mystery')} className={styles.presetBtn} title="Mystery">
             🔮
+          </button>
+          <button onClick={() => applyPreset('random')} className={styles.presetBtn} title="Random">
+            🎲
           </button>
         </div>
       </div>

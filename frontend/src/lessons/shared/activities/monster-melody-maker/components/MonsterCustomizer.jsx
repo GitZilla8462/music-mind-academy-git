@@ -3,12 +3,21 @@
  * 
  * Inline dropdown customizer - menus expand in sidebar
  * 10+ options per category, designed for middle school students
+ * 
+ * UPDATED: Added showRandomize prop to hide dice button for Robot Band Builder
  */
 
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './MonsterCustomizer.module.css';
 
-const MonsterCustomizer = ({ config, onChange, stageTheme, onStageThemeChange, onPreviewDance }) => {
+const MonsterCustomizer = ({ 
+  config, 
+  onChange, 
+  stageTheme, 
+  onStageThemeChange, 
+  onPreviewDance,
+  showRandomize = true  // NEW: Hide dice button when false
+}) => {
   const [openSection, setOpenSection] = useState(null);
   const previewTimeoutRef = useRef(null);
 
@@ -241,9 +250,11 @@ const MonsterCustomizer = ({ config, onChange, stageTheme, onStageThemeChange, o
     <div className={styles.customizer}>
       <div className={styles.header}>
         <h3 className={styles.title}>Customize</h3>
-        <button className={styles.randomButton} onClick={randomize} title="Randomize">
-          🎲
-        </button>
+        {showRandomize && (
+          <button className={styles.randomButton} onClick={randomize} title="Randomize">
+            🎲
+          </button>
+        )}
       </div>
       
       <div className={styles.sections}>

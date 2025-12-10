@@ -55,7 +55,7 @@ const ControlBar = ({
         <input
           type="range"
           min="60"
-          max="180"
+          max="120"
           value={tempo}
           onChange={(e) => onTempoChange(Number(e.target.value))}
           className={styles.tempoSlider}

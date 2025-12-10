@@ -7,6 +7,7 @@
  * - Copy/Paste (Ctrl+C / Ctrl+V)
  * - Group move/delete for selected stickers
  * - ✅ FIXED: toDataURL now renders stickers onto canvas for proper export
+ * - ✅ NEW: placeStickerAt() for drag-from-panel support
  * 
  * Supports render types:
  * - svg: PNG instrument icons
@@ -542,6 +543,28 @@ const DrawingCanvas = forwardRef(({
     };
   };
   
+  // ✅ NEW: Get canvas bounds for drop detection
+  const getCanvasBounds = useCallback(() => {
+    const canvas = drawingCanvasRef.current;
+    if (!canvas) return null;
+    return canvas.getBoundingClientRect();
+  }, []);
+  
+  // ✅ NEW: Convert screen coordinates to canvas coordinates
+  const screenToCanvas = useCallback((screenX, screenY) => {
+    const canvas = drawingCanvasRef.current;
+    if (!canvas) return null;
+    
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    return {
+      x: (screenX - rect.left) * scaleX,
+      y: (screenY - rect.top) * scaleY
+    };
+  }, []);
+  
   // ========================================================================
   // DRAWING
   // ========================================================================
@@ -624,6 +647,31 @@ const DrawingCanvas = forwardRef(({
     
     setTimeout(saveToHistory, 50);
   };
+  
+  // ✅ NEW: Place sticker at specific canvas coordinates (for drag-drop)
+  const placeStickerAt = useCallback((stickerData, canvasX, canvasY, size = 56) => {
+    const newSticker = {
+      id: nextStickerId,
+      type: 'sticker',
+      x: canvasX,
+      y: canvasY,
+      rotation: 0,
+      scale: 1,
+      data: {
+        ...stickerData,
+        size: size,
+        color: color
+      }
+    };
+    
+    setStickers(prev => [...prev, newSticker]);
+    setNextStickerId(prev => prev + 1);
+    setSelectedStickerIds(new Set([newSticker.id]));
+    
+    setTimeout(saveToHistory, 50);
+    
+    return newSticker;
+  }, [nextStickerId, color, saveToHistory]);
   
   // ========================================================================
   // COPY / PASTE
@@ -1232,6 +1280,10 @@ const DrawingCanvas = forwardRef(({
     pasteStickers: pasteStickers,
     selectAll: () => setSelectedStickerIds(new Set(stickers.map(s => s.id))),
     deselectAll: () => setSelectedStickerIds(new Set()),
+    // ✅ NEW: Methods for drag-drop from panel
+    placeStickerAt,
+    getCanvasBounds,
+    screenToCanvas
   }));
   
   // ========================================================================

@@ -1,8 +1,6 @@
 // File: /src/lessons/film-music-project/lesson4/Lesson4.jsx
 // Epic Wildlife - Nature Documentary Video - Main lesson orchestrator
-// ✅ UPDATED: Renamed from "Chef's Soundtrack" to "Epic Wildlife"
-// ✅ UPDATED: Added Sectional Loop Builder game routing
-// ✅ FIXED: Uses currentStage directly from context (no render loop)
+// ✅ UPDATED: Uses TeacherLessonView for combined sidebar + presentation
 
 import React, { useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -19,29 +17,26 @@ import { useActivityTimers } from '../../shared/hooks/useActivityTimers';
 
 // Components
 import LessonStartScreen from '../../shared/components/LessonStartScreen';
-import SessionTeacherPanel from '../../shared/components/SessionTeacherPanel';
+import TeacherLessonView from '../../shared/components/TeacherLessonView';
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 
 const LESSON_PROGRESS_KEY = 'lesson4-progress';
 const LESSON_TIMER_KEY = 'lesson4-timer';
 
-// Store presentation windows by session code
-const presentationWindows = new Map();
-
 const Lesson4 = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { 
     sessionCode,
-    currentStage,  // ✅ Use direct value instead of getCurrentStage()
+    currentStage,
     setCurrentStage,
     getStudents,
     getProgressStats,
     endSession,
     markActivityComplete,
     userRole: sessionRole,
-    getCurrentStage  // Keep for hooks that need it
+    getCurrentStage
   } = useSession();
   
   // Session mode detection and permissions
@@ -50,7 +45,7 @@ const Lesson4 = () => {
   // Get effective role
   const effectiveRole = sessionRole || sessionMode.urlRole;
   
-  // ✅ FIXED: Memoize lessonConfig to prevent new object reference each render
+  // Memoize lessonConfig to prevent new object reference each render
   const lessonConfig = useMemo(() => ({ 
     ...lesson4Config, 
     progressKey: LESSON_PROGRESS_KEY, 
@@ -59,7 +54,7 @@ const Lesson4 = () => {
   
   const lesson = useLesson(lessonConfig);
   
-  // Activity timers (used in session mode) - pass currentStage VALUE, not getter function
+  // Activity timers (used in session mode)
   const timers = useActivityTimers(sessionCode, currentStage, lessonStages);
 
   // Check for view modes from URL params
@@ -67,68 +62,10 @@ const Lesson4 = () => {
   const viewSavedMode = searchParams.get('view') === 'saved';
   const viewReflectionMode = searchParams.get('view') === 'reflection';
 
-  // ✅ Memoize currentStageData
+  // Memoize currentStageData
   const currentStageData = useMemo(() => {
     return lessonStages.find(stage => stage.id === currentStage);
   }, [currentStage]);
-
-  // Open presentation view in new window
-  const openPresentationView = useCallback(() => {
-    if (!sessionCode) {
-      console.error('❌ No session code available');
-      return null;
-    }
-
-    const existingWindow = presentationWindows.get(sessionCode);
-    
-    if (existingWindow && !existingWindow.closed) {
-      console.log('🔄 Presentation window already open, focusing...');
-      try {
-        existingWindow.focus();
-        return existingWindow;
-      } catch (e) {
-        console.warn('⚠️ Could not focus window, opening new one:', e);
-        presentationWindows.delete(sessionCode);
-      }
-    }
-
-    const presentationUrl = `/presentation?session=${sessionCode}`;
-    console.log('🖼️ Opening new presentation view:', presentationUrl);
-    
-    const popup = window.open(
-      presentationUrl, 
-      `PresentationView_${sessionCode}`,
-      'width=1920,height=1080,menubar=no,toolbar=no,location=no,scrollbars=yes,resizable=yes'
-    );
-    
-    if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-      alert('Popup blocked! Please allow popups for this site and try again.');
-      console.error('❌ Popup was blocked');
-      return null;
-    }
-    
-    console.log('✅ Presentation view opened successfully');
-    presentationWindows.set(sessionCode, popup);
-    
-    const checkInterval = setInterval(() => {
-      if (popup.closed) {
-        console.log('🔴 Presentation window was closed');
-        presentationWindows.delete(sessionCode);
-        clearInterval(checkInterval);
-      }
-    }, 1000);
-    
-    const handleBeforeUnload = () => {
-      if (popup && !popup.closed) {
-        popup.close();
-      }
-      presentationWindows.delete(sessionCode);
-    };
-    
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    return popup;
-  }, [sessionCode]);
 
   // Handle session activity completion
   const handleSessionActivityComplete = useCallback((activityId) => {
@@ -267,7 +204,7 @@ const Lesson4 = () => {
   if (sessionMode.isSessionMode && effectiveRole === 'teacher') {
     console.log('👨‍🏫 Rendering TEACHER control panel');
     return (
-      <SessionTeacherPanel
+      <TeacherLessonView
         config={lesson4Config}
         sessionCode={sessionCode}
         lessonStages={lessonStages}
@@ -283,7 +220,6 @@ const Lesson4 = () => {
         pauseActivityTimer={timers.pauseActivityTimer}
         resumeActivityTimer={timers.resumeActivityTimer}
         resetActivityTimer={timers.resetActivityTimer}
-        onOpenPresentation={openPresentationView}
       />
     );
   }

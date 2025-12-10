@@ -11,6 +11,7 @@
  * 
  * ✅ UPDATED: Now saves editable data (stickers + canvas) so you can continue editing
  * ✅ UPDATED: Loads saved work on mount, just like compositions
+ * ✅ NEW: Drag stickers from panel directly onto canvas
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
@@ -24,6 +25,7 @@ import ColorPanel from './components/Toolbar/ColorPanel';
 
 // Config
 import { TOOL_TYPES } from './config/tools';
+import { INSTRUMENT_ICONS } from './config/InstrumentIcons';
 
 // Storage - Use generic system so it appears on Join page
 import { saveStudentWork, loadStudentWork } from '../../../../utils/studentWorkStorage';
@@ -155,6 +157,166 @@ const formatTime = (seconds) => {
 };
 
 // ============================================================================
+// DRAG GHOST COMPONENT - Renders floating sticker while dragging from panel
+// ============================================================================
+
+const DragGhost = ({ sticker, position, size }) => {
+  if (!sticker || !position) return null;
+  
+  const renderSymbol = () => {
+    const renderType = sticker.render || 'emoji';
+
+    switch (renderType) {
+      case 'svg':
+        const IconComponent = INSTRUMENT_ICONS?.[sticker.id];
+        if (IconComponent) {
+          return <IconComponent size={size * 0.7} />;
+        }
+        return <span style={{ fontSize: `${size * 0.7}px` }}>🎵</span>;
+
+      case 'text':
+        return (
+          <span style={{
+            fontFamily: 'Times New Roman, Georgia, serif',
+            fontStyle: 'italic',
+            fontWeight: 'bold',
+            fontSize: `${size * 0.5}px`,
+            color: '#000000'
+          }}>
+            {sticker.symbol}
+          </span>
+        );
+
+      case 'text-italic':
+        return (
+          <span style={{
+            fontFamily: 'Times New Roman, Georgia, serif',
+            fontStyle: 'italic',
+            fontSize: `${size * 0.35}px`,
+            color: '#000000',
+            fontWeight: '600'
+          }}>
+            {sticker.symbol}
+          </span>
+        );
+
+      case 'crescendo':
+        return (
+          <svg width={size * 0.8} height={size * 0.4} viewBox="0 0 40 20">
+            <path d="M36 2 L4 10 L36 18" fill="none" stroke="#000000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+
+      case 'decrescendo':
+        return (
+          <svg width={size * 0.8} height={size * 0.4} viewBox="0 0 40 20">
+            <path d="M4 2 L36 10 L4 18" fill="none" stroke="#000000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+
+      case 'symbol':
+        return (
+          <span style={{
+            fontFamily: 'Noto Music, Symbola, serif',
+            fontSize: `${size * 0.6}px`,
+            color: '#000000'
+          }}>
+            {sticker.symbol}
+          </span>
+        );
+
+      case 'symbol-large':
+        return (
+          <span style={{
+            fontFamily: 'Arial, sans-serif',
+            fontSize: `${size * 0.7}px`,
+            fontWeight: 'bold',
+            color: '#000000'
+          }}>
+            {sticker.symbol}
+          </span>
+        );
+
+      case 'form-label':
+        return (
+          <div style={{
+            width: size * 0.7,
+            height: size * 0.7,
+            borderRadius: '50%',
+            backgroundColor: '#3b82f6',
+            border: '2px solid #1d4ed8',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+          }}>
+            <span style={{
+              fontFamily: 'Arial, sans-serif',
+              fontSize: `${size * 0.35}px`,
+              fontWeight: 'bold',
+              color: '#ffffff'
+            }}>
+              {sticker.symbol}
+            </span>
+          </div>
+        );
+
+      case 'form-text':
+        return (
+          <div style={{
+            padding: '4px 8px',
+            backgroundColor: '#fef3c7',
+            border: '2px solid #f59e0b',
+            borderRadius: '6px',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+          }}>
+            <span style={{
+              fontFamily: 'Arial, sans-serif',
+              fontSize: `${size * 0.25}px`,
+              fontWeight: 'bold',
+              color: '#92400e'
+            }}>
+              {sticker.symbol}
+            </span>
+          </div>
+        );
+
+      default:
+        return (
+          <span style={{ fontSize: `${size * 0.7}px` }}>
+            {sticker.symbol}
+          </span>
+        );
+    }
+  };
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        left: position.x - size / 2,
+        top: position.y - size / 2,
+        width: size,
+        height: size,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        border: '2px solid #3b82f6',
+        borderRadius: '12px',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+        pointerEvents: 'none',
+        zIndex: 10000,
+        transform: 'scale(1.1)',
+        transition: 'transform 0.1s ease'
+      }}
+    >
+      {renderSymbol()}
+    </div>
+  );
+};
+
+// ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
@@ -179,6 +341,11 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
   // Stickers - DEFAULT size 56 (middle of 32-96 range)
   const [selectedSticker, setSelectedSticker] = useState(null);
   const [stickerSize, setStickerSize] = useState(56);
+
+  // ✅ NEW: Drag-from-panel state
+  const [isDraggingFromPanel, setIsDraggingFromPanel] = useState(false);
+  const [draggedSticker, setDraggedSticker] = useState(null);
+  const [dragPosition, setDragPosition] = useState(null);
 
   // UI
   const [expanded, setExpanded] = useState(false);
@@ -306,6 +473,66 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
 
   const stickerData = selectedSticker;
 
+  // ========================================================================
+  // ✅ NEW: DRAG FROM PANEL HANDLERS
+  // ========================================================================
+
+  const handlePanelDragStart = useCallback((sticker, event) => {
+    console.log('🎯 Drag started:', sticker.name);
+    setIsDraggingFromPanel(true);
+    setDraggedSticker(sticker);
+    setDragPosition({ x: event.clientX, y: event.clientY });
+  }, []);
+
+  // Global mouse handlers for drag from panel
+  useEffect(() => {
+    if (!isDraggingFromPanel) return;
+
+    const handleMouseMove = (e) => {
+      setDragPosition({ x: e.clientX, y: e.clientY });
+    };
+
+    const handleMouseUp = (e) => {
+      // Check if dropped over canvas
+      const canvasBounds = canvasRef.current?.getCanvasBounds?.();
+      
+      if (canvasBounds && draggedSticker) {
+        const { clientX, clientY } = e;
+        
+        // Check if cursor is within canvas bounds
+        if (
+          clientX >= canvasBounds.left &&
+          clientX <= canvasBounds.right &&
+          clientY >= canvasBounds.top &&
+          clientY <= canvasBounds.bottom
+        ) {
+          // Convert screen position to canvas coordinates
+          const canvasPoint = canvasRef.current?.screenToCanvas?.(clientX, clientY);
+          
+          if (canvasPoint) {
+            console.log('✅ Dropped on canvas at:', canvasPoint);
+            canvasRef.current?.placeStickerAt?.(draggedSticker, canvasPoint.x, canvasPoint.y, stickerSize);
+          }
+        } else {
+          console.log('❌ Dropped outside canvas');
+        }
+      }
+
+      // Clean up drag state
+      setIsDraggingFromPanel(false);
+      setDraggedSticker(null);
+      setDragPosition(null);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingFromPanel, draggedSticker, stickerSize]);
+
   // ✅ UPDATED: Save using editable data so it can be loaded and edited later
   const handleManualSave = () => {
     if (isSavingRef.current || !studentId || !canvasRef.current) return;
@@ -423,6 +650,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
             stickerSize={stickerSize}
             onSizeChange={setStickerSize}
             isOpen={showStickerPanel}
+            onDragStart={handlePanelDragStart}  // ✅ NEW: Pass drag handler
           />
         )}
 
@@ -472,7 +700,22 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
                 <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 rounded-full" />
                 <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 rounded-full" />
               </div>
-            
+
+              {/* ✅ NEW: Drop zone indicator when dragging */}
+              {isDraggingFromPanel && (
+                <div 
+                  className="absolute inset-0 pointer-events-none z-30"
+                  style={{
+                    border: '3px dashed #3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                    borderRadius: '8px'
+                  }}
+                >
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold shadow-lg">
+                    Drop sticker here!
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -540,6 +783,15 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
           </button>
         )}
       </div>
+
+      {/* ✅ NEW: Floating ghost sticker while dragging from panel */}
+      {isDraggingFromPanel && (
+        <DragGhost 
+          sticker={draggedSticker} 
+          position={dragPosition} 
+          size={stickerSize} 
+        />
+      )}
 
       {saveMessage && (
         <div className={`fixed top-16 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-xl font-bold text-white ${saveMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>

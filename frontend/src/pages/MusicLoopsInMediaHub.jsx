@@ -116,8 +116,8 @@ const MusicLoopsInMediaHub = () => {
       videos: ['Underwater', 'Jungle', 'Safari'],
       duration: '35 min',
       route: '/lessons/film-music-project/lesson4',
-      available: false,
-      hasLessonPlan: false,
+      available: true,
+      hasLessonPlan: true,
       activities: [
         { id: 'sectional-loop-builder', title: 'Sectional Loop Builder', description: 'Build A-B-A sections', activityType: 'sectional-loop-builder' },
         { id: 'wildlife-composition', title: 'Wildlife Composition', description: 'Score nature footage', activityType: 'wildlife-composition-activity' },

@@ -1,6 +1,7 @@
 // File: /lessons/shared/hooks/useActivityTimers.js
 // Activity timer management hook
 // ✅ FIXED: Accept currentStage as VALUE instead of getter function to prevent render-time state updates
+// ✅ OPTIMIZED: Drastically reduced Firebase updates to prevent network flooding
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getDatabase, ref, update } from 'firebase/database';
@@ -25,6 +26,59 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
   // Track which timers have been auto-started to prevent repeated calls
   const autoStartedTimers = useRef(new Set());
   const lastStageRef = useRef(null);
+  
+  // ✅ NEW: Track last Firebase update to prevent flooding
+  const lastFirebaseUpdateRef = useRef(0);
+  const pendingFirebaseUpdateRef = useRef(null);
+
+  // ✅ NEW: Throttled Firebase update function
+  const updateFirebaseThrottled = useCallback((data, forceImmediate = false) => {
+    if (!sessionCode) return;
+    
+    const now = Date.now();
+    const timeSinceLastUpdate = now - lastFirebaseUpdateRef.current;
+    
+    // Force immediate update for important events (start, stop, pause, resume)
+    // Otherwise throttle to max once per 5 seconds
+    const shouldUpdateNow = forceImmediate || timeSinceLastUpdate >= 5000;
+    
+    if (shouldUpdateNow) {
+      // Clear any pending update
+      if (pendingFirebaseUpdateRef.current) {
+        clearTimeout(pendingFirebaseUpdateRef.current);
+        pendingFirebaseUpdateRef.current = null;
+      }
+      
+      lastFirebaseUpdateRef.current = now;
+      const db = getDatabase();
+      const sessionRef = ref(db, `sessions/${sessionCode}`);
+      
+      update(sessionRef, {
+        ...data,
+        timestamp: now
+      }).catch(err => console.error('Firebase update error:', err));
+      
+    } else {
+      // Schedule update for later (debounce)
+      if (pendingFirebaseUpdateRef.current) {
+        clearTimeout(pendingFirebaseUpdateRef.current);
+      }
+      
+      const delay = 5000 - timeSinceLastUpdate;
+      pendingFirebaseUpdateRef.current = setTimeout(() => {
+        lastFirebaseUpdateRef.current = Date.now();
+        const db = getDatabase();
+        const sessionRef = ref(db, `sessions/${sessionCode}`);
+        
+        update(sessionRef, {
+          ...data,
+          timestamp: Date.now()
+        }).catch(err => console.error('Firebase update error:', err));
+        
+        pendingFirebaseUpdateRef.current = null;
+      }, delay);
+    }
+  }, [sessionCode]);
 
   // Format time helper
   const formatTime = useCallback((seconds) => {
@@ -70,19 +124,11 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
       
       console.log(`   Starting with ${minutes} minutes (${seconds} seconds)`);
       
-      // Update Firebase inside setState callback to get latest values
-      if (sessionCode) {
-        const db = getDatabase();
-        const sessionRef = ref(db, `sessions/${sessionCode}`);
-        
-        update(sessionRef, {
-          countdownTime: seconds,
-          timerActive: true,
-          timestamp: Date.now()
-        }).then(() => {
-          console.log(`📡 Firebase updated: ${seconds}s, active: true`);
-        });
-      }
+      // ✅ Force immediate Firebase update for timer start
+      updateFirebaseThrottled({
+        countdownTime: seconds,
+        timerActive: true
+      }, true); // forceImmediate = true
       
       return {
         ...prev,
@@ -93,7 +139,7 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
         }
       };
     });
-  }, [sessionCode]);
+  }, [updateFirebaseThrottled]);
 
   // Pause timer
   const pauseActivityTimer = useCallback((activityId) => {
@@ -103,17 +149,11 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
       const currentTimer = prev[activityId];
       if (!currentTimer) return prev;
       
-      // Update Firebase
-      if (sessionCode) {
-        const db = getDatabase();
-        const sessionRef = ref(db, `sessions/${sessionCode}`);
-        
-        update(sessionRef, {
-          countdownTime: currentTimer.timeRemaining,
-          timerActive: false,
-          timestamp: Date.now()
-        });
-      }
+      // ✅ Force immediate Firebase update for pause
+      updateFirebaseThrottled({
+        countdownTime: currentTimer.timeRemaining,
+        timerActive: false
+      }, true);
       
       return {
         ...prev,
@@ -123,7 +163,7 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
         }
       };
     });
-  }, [sessionCode]);
+  }, [updateFirebaseThrottled]);
 
   // Resume timer
   const resumeActivityTimer = useCallback((activityId) => {
@@ -133,17 +173,11 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
       const currentTimer = prev[activityId];
       if (!currentTimer) return prev;
       
-      // Update Firebase
-      if (sessionCode) {
-        const db = getDatabase();
-        const sessionRef = ref(db, `sessions/${sessionCode}`);
-        
-        update(sessionRef, {
-          countdownTime: currentTimer.timeRemaining,
-          timerActive: true,
-          timestamp: Date.now()
-        });
-      }
+      // ✅ Force immediate Firebase update for resume
+      updateFirebaseThrottled({
+        countdownTime: currentTimer.timeRemaining,
+        timerActive: true
+      }, true);
       
       return {
         ...prev,
@@ -153,7 +187,7 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
         }
       };
     });
-  }, [sessionCode]);
+  }, [updateFirebaseThrottled]);
 
   // ✅ Reset timer
   const resetActivityTimer = useCallback((activityId) => {
@@ -162,29 +196,21 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
     // Clear auto-started flag so it can be auto-started again
     autoStartedTimers.current.delete(activityId);
     
-    setActivityTimers(prev => {
-      // Update Firebase
-      if (sessionCode) {
-        const db = getDatabase();
-        const sessionRef = ref(db, `sessions/${sessionCode}`);
-        
-        update(sessionRef, {
-          countdownTime: 0,
-          timerActive: false,
-          timestamp: Date.now()
-        });
+    // ✅ Force immediate Firebase update for reset
+    updateFirebaseThrottled({
+      countdownTime: 0,
+      timerActive: false
+    }, true);
+    
+    setActivityTimers(prev => ({
+      ...prev,
+      [activityId]: {
+        ...prev[activityId],
+        timeRemaining: 0,
+        isActive: false
       }
-      
-      return {
-        ...prev,
-        [activityId]: {
-          ...prev[activityId],
-          timeRemaining: 0,
-          isActive: false
-        }
-      };
-    });
-  }, [sessionCode]);
+    }));
+  }, [updateFirebaseThrottled]);
 
   // ✅ Stop all timers when leaving a timer stage
   useEffect(() => {
@@ -213,37 +239,27 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
             }
           }));
           
-          // Clear Firebase timer data
-          if (sessionCode) {
-            const db = getDatabase();
-            const sessionRef = ref(db, `sessions/${sessionCode}`);
-            
-            update(sessionRef, {
-              countdownTime: null,
-              timerActive: null,
-              timestamp: Date.now()
-            });
-          }
+          // ✅ Force immediate Firebase update for stage change
+          updateFirebaseThrottled({
+            countdownTime: null,
+            timerActive: null
+          }, true);
         }
       } 
       // If entering a non-timer stage, clear Firebase timer data
       else if (!currentStageData?.hasTimer && sessionCode) {
         console.log(`🧹 Entered non-timer stage ${currentStage} - clearing Firebase timer data`);
-        const db = getDatabase();
-        const sessionRef = ref(db, `sessions/${sessionCode}`);
-        
-        update(sessionRef, {
+        updateFirebaseThrottled({
           countdownTime: null,
-          timerActive: null,
-          timestamp: Date.now()
-        });
+          timerActive: null
+        }, true);
       }
     }
     
     lastStageRef.current = currentStage;
-  }, [currentStage, lessonStages, activityTimers, sessionCode]);
+  }, [currentStage, lessonStages, activityTimers, sessionCode, updateFirebaseThrottled]);
 
-  // ✅ Countdown effect
+  // ✅ Countdown effect - OPTIMIZED to reduce Firebase updates
   useEffect(() => {
     const intervals = [];
     
@@ -275,17 +291,11 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
                 });
               }
               
-              // Update Firebase when timer finishes
-              if (sessionCode) {
-                const db = getDatabase();
-                const sessionRef = ref(db, `sessions/${sessionCode}`);
-                
-                update(sessionRef, {
-                  countdownTime: 0,
-                  timerActive: false,
-                  timestamp: Date.now()
-                });
-              }
+              // ✅ Force immediate Firebase update when timer finishes
+              updateFirebaseThrottled({
+                countdownTime: 0,
+                timerActive: false
+              }, true);
               
               return {
                 ...prev,
@@ -297,22 +307,24 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
               };
             }
             
-            // Update Firebase at strategic intervals
-            const shouldUpdateFirebase = sessionCode && (
-              (newTimeRemaining > 60 && newTimeRemaining % 10 === 0) ||
-              (newTimeRemaining >= 10 && newTimeRemaining <= 60 && newTimeRemaining % 5 === 0) ||
-              (newTimeRemaining < 10)
+            // ✅ OPTIMIZED: Update Firebase much less frequently
+            // - Every 30 seconds when > 2 minutes remaining
+            // - Every 10 seconds when 30s - 2 min remaining
+            // - Every 5 seconds when 10-30 seconds remaining
+            // - Every second only in last 10 seconds (for dramatic countdown)
+            const shouldUpdateFirebase = (
+              (newTimeRemaining > 120 && newTimeRemaining % 30 === 0) ||
+              (newTimeRemaining > 30 && newTimeRemaining <= 120 && newTimeRemaining % 10 === 0) ||
+              (newTimeRemaining > 10 && newTimeRemaining <= 30 && newTimeRemaining % 5 === 0) ||
+              (newTimeRemaining <= 10)
             );
             
             if (shouldUpdateFirebase) {
-              const db = getDatabase();
-              const sessionRef = ref(db, `sessions/${sessionCode}`);
-              
-              update(sessionRef, {
+              // Use throttled update (not forced) so it can batch if needed
+              updateFirebaseThrottled({
                 countdownTime: newTimeRemaining,
-                timerActive: true,
-                timestamp: Date.now()
-              });
+                timerActive: true
+              }, newTimeRemaining <= 10); // Force only for last 10 seconds
             }
             
             return {
@@ -330,7 +342,7 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
     });
     
     return () => intervals.forEach(interval => clearInterval(interval));
-  }, [activityTimers, sessionCode]);
+  }, [activityTimers, updateFirebaseThrottled]);
 
   // ✅ Auto-start timer when activity stage is unlocked
   useEffect(() => {
@@ -357,6 +369,15 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
       }
     }
   }, [currentStage, lessonStages, activityTimers, startActivityTimer]);
+  
+  // ✅ NEW: Cleanup pending updates on unmount
+  useEffect(() => {
+    return () => {
+      if (pendingFirebaseUpdateRef.current) {
+        clearTimeout(pendingFirebaseUpdateRef.current);
+      }
+    };
+  }, []);
 
   return {
     activityTimers,

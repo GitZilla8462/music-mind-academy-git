@@ -2,6 +2,7 @@
 // UPDATED: Prioritize URL params over localStorage for session code
 // ✅ FIXED: Export currentStage as direct value to prevent render loops
 // ✅ IMPROVED: Auto-clear ended sessions, validate before restore, 3-hour expiration
+// ✅ FIXED: Use queueMicrotask to prevent setState during render
 // src/context/SessionContext.jsx
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
@@ -226,81 +227,84 @@ export const SessionProvider = ({ children }) => {
     }
     
     const unsubscribe = subscribeToSession(sessionCode, (data) => {
-      setIsLoadingSession(false);
-      
-      // ✅ IMPROVED: If session doesn't exist, clear storage and reset
-      if (data === null && !isNormalEndRef.current) {
-        if (prevStageRef.current) {
-          // Session was active but disappeared unexpectedly
-          console.error('🔴 CRITICAL: Session data became NULL unexpectedly!');
-          console.error('   Session code:', sessionCode);
-          console.error('   Last stage:', prevStageRef.current);
-          
-          if (userRole === 'student') {
-            logger.kick('Session data lost unexpectedly', { 
-              sessionCode,
-              lastStage: prevStageRef.current,
-              wasNormalEnd: false
-            });
+      // ✅ FIX: Defer all setState calls to avoid "Cannot update component while rendering" error
+      queueMicrotask(() => {
+        setIsLoadingSession(false);
+        
+        // ✅ IMPROVED: If session doesn't exist, clear storage and reset
+        if (data === null && !isNormalEndRef.current) {
+          if (prevStageRef.current) {
+            // Session was active but disappeared unexpectedly
+            console.error('🔴 CRITICAL: Session data became NULL unexpectedly!');
+            console.error('   Session code:', sessionCode);
+            console.error('   Last stage:', prevStageRef.current);
+            
+            if (userRole === 'student') {
+              logger.kick('Session data lost unexpectedly', { 
+                sessionCode,
+                lastStage: prevStageRef.current,
+                wasNormalEnd: false
+              });
+            }
+          } else {
+            // Session never existed or was already ended
+            console.log('📭 Session not found or already ended:', sessionCode);
           }
-        } else {
-          // Session never existed or was already ended
-          console.log('📭 Session not found or already ended:', sessionCode);
-        }
-        
-        // Auto-cleanup if session doesn't exist
-        if (!hasAutoCleanedRef.current) {
-          hasAutoCleanedRef.current = true;
-          console.log('🧹 Auto-cleaning invalid session from storage');
-          clearSessionStorage();
-          setSessionCode(null);
-          setUserRole(null);
-          setUserId(null);
-          setIsInSession(false);
-        }
-        return;
-      }
-      
-      // ✅ IMPROVED: Session ended normally - auto-cleanup for students
-      if (data?.currentStage === 'ended') {
-        console.log('📋 Session ended normally by teacher');
-        isNormalEndRef.current = true;
-        
-        // Auto-cleanup after a short delay (let UI show "session ended" message first)
-        if (!hasAutoCleanedRef.current && userRole === 'student') {
-          hasAutoCleanedRef.current = true;
-          console.log('🧹 Auto-cleaning ended session (student will be redirected)');
           
-          setTimeout(() => {
+          // Auto-cleanup if session doesn't exist
+          if (!hasAutoCleanedRef.current) {
+            hasAutoCleanedRef.current = true;
+            console.log('🧹 Auto-cleaning invalid session from storage');
             clearSessionStorage();
-            // Note: The lesson component handles the redirect to /join
-          }, 2000);
-        }
-      }
-      
-      // Log stage changes (info only)
-      if (data?.currentStage !== prevStageRef.current) {
-        console.log('🎬 Stage changed:', {
-          from: prevStageRef.current,
-          to: data?.currentStage,
-          time: new Date().toLocaleTimeString()
-        });
-        
-        // Log stage transitions for students (info only, not errors)
-        if (userRole === 'student' && data?.currentStage !== 'ended') {
-          logger.stageChange(prevStageRef.current, data?.currentStage);
+            setSessionCode(null);
+            setUserRole(null);
+            setUserId(null);
+            setIsInSession(false);
+          }
+          return;
         }
         
-        prevStageRef.current = data?.currentStage;
-      }
-      
-      setSessionData(data);
-      setIsInSession(!!data);
-      
-      if (data?.classId && !classId) {
-        setClassId(data.classId);
-        console.log('ClassId set from session data:', data.classId);
-      }
+        // ✅ IMPROVED: Session ended normally - auto-cleanup for students
+        if (data?.currentStage === 'ended') {
+          console.log('📋 Session ended normally by teacher');
+          isNormalEndRef.current = true;
+          
+          // Auto-cleanup after a short delay (let UI show "session ended" message first)
+          if (!hasAutoCleanedRef.current && userRole === 'student') {
+            hasAutoCleanedRef.current = true;
+            console.log('🧹 Auto-cleaning ended session (student will be redirected)');
+            
+            setTimeout(() => {
+              clearSessionStorage();
+              // Note: The lesson component handles the redirect to /join
+            }, 2000);
+          }
+        }
+        
+        // Log stage changes (info only)
+        if (data?.currentStage !== prevStageRef.current) {
+          console.log('🎬 Stage changed:', {
+            from: prevStageRef.current,
+            to: data?.currentStage,
+            time: new Date().toLocaleTimeString()
+          });
+          
+          // Log stage transitions for students (info only, not errors)
+          if (userRole === 'student' && data?.currentStage !== 'ended') {
+            logger.stageChange(prevStageRef.current, data?.currentStage);
+          }
+          
+          prevStageRef.current = data?.currentStage;
+        }
+        
+        setSessionData(data);
+        setIsInSession(!!data);
+        
+        if (data?.classId && !classId) {
+          setClassId(data.classId);
+          console.log('ClassId set from session data:', data.classId);
+        }
+      });
     });
 
     return () => {
