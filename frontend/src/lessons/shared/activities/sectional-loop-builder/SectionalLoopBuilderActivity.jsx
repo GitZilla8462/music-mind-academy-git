@@ -170,6 +170,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
   const [safariComplete, setSafariComplete] = useState(false);
   const [safariBonus, setSafariBonus] = useState(0);
   const [allSafariAssignments, setAllSafariAssignments] = useState({}); // Store all assignments for code lookup
+  const safariBonusRef = useRef(0); // Track bonus synchronously for score calculation
 
   // CSS keyframes
   const styles = `
@@ -316,6 +317,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
           setSafariCodeInput('');
           setSafariComplete(false);
           setSafariBonus(0);
+          safariBonusRef.current = 0;
         }
         
         if (timerRef.current) clearInterval(timerRef.current);
@@ -438,6 +440,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
       console.log('🦁 Correct code! +50 bonus');
       setSafariComplete(true);
       setSafariBonus(50);
+      safariBonusRef.current = 50; // Set ref for synchronous access in calculateScore
       
       // Update Firebase
       if (sessionCode && userId) {
@@ -465,7 +468,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
     const wasSafari = onSafari;
     const isCorrect = wasSafari ? true : (myAnswer === correct);
     
-    console.log('📊 Score calc:', { myAnswer, correct, isCorrect, wasAnswered, wasSafari, safariBonus });
+    console.log('📊 Score calc:', { myAnswer, correct, isCorrect, wasAnswered, wasSafari, safariBonus: safariBonusRef.current });
     
     // No answer and not on Safari = no points
     if (!wasAnswered && !wasSafari) {
@@ -500,8 +503,8 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
     
     const bonusPts = myPowerUp?.id === 'bonus' ? 15 : 0;
     
-    // Include Safari bonus if they completed it
-    const safariPts = safariBonus || 0;
+    // Include Safari bonus if they completed it (use ref for synchronous access)
+    const safariPts = safariBonusRef.current || 0;
     
     let total = Math.max(0, correctPts - wrongPts + speedBonus + streakBonus + bonusPts + safariPts);
     
@@ -745,9 +748,9 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
                 
                 <div className="bg-white/10 rounded-xl p-4 mb-4">
                   <p className="text-sm text-white/70 mb-3 text-center">Look for this on a classmate's screen:</p>
-                  <div className="bg-black/50 rounded-xl p-4 flex items-center justify-center gap-4 border-2 border-yellow-400/50">
-                    <span className="text-5xl">{safariTarget.emoji}</span>
-                    <span className="text-5xl font-mono font-black text-yellow-300">1234</span>
+                  <div className="bg-black/70 rounded-2xl p-5 flex items-center justify-center gap-4 border-4 border-yellow-400">
+                    <span className="text-6xl">{safariTarget.emoji}</span>
+                    <span className="text-7xl font-mono font-black text-yellow-300 tracking-wider">1234</span>
                   </div>
                 </div>
                 
@@ -800,11 +803,11 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
       <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col p-4 text-white relative">
         <style>{styles}</style>
         
-        {/* Animal Badge - Top Right Corner - BIG for Safari hunters to find */}
+        {/* Animal Badge - Top Right Corner - HUGE for Safari hunters to find */}
         {myAnimal && (
-          <div className="absolute top-4 right-4 bg-black/60 rounded-2xl p-4 text-center z-10 border-2 border-yellow-400/50">
-            <div className="text-5xl mb-1">{myAnimal.emoji}</div>
-            <div className="text-5xl font-mono font-black text-yellow-300">{myAnimal.code}</div>
+          <div className="absolute top-2 right-2 bg-black/70 rounded-2xl p-5 text-center z-10 border-4 border-yellow-400">
+            <div className="text-6xl mb-2">{myAnimal.emoji}</div>
+            <div className="text-7xl font-mono font-black text-yellow-300 tracking-wider">{myAnimal.code}</div>
           </div>
         )}
         

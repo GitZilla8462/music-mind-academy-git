@@ -99,12 +99,20 @@ export const generateSectionAudio = (mood, layerCount) => {
 // ============ HELPER: Generate full song structure for a mood ============
 export const generateSongStructure = (mood) => {
   // INTRO: 2 layers, A: 3 layers, A': 4 layers, OUTRO: 1 layer
-  return {
+  const structure = {
     intro: generateSectionAudio(mood, 2),
     a: generateSectionAudio(mood, 3),
     aPrime: generateSectionAudio(mood, 4),
     outro: generateSectionAudio(mood, 1)
   };
+  
+  console.log('🎵 Generated song structure for mood:', mood);
+  console.log('🎵 INTRO layers:', structure.intro);
+  console.log('🎵 A layers:', structure.a);
+  console.log('🎵 A\' layers:', structure.aPrime);
+  console.log('🎵 OUTRO layers:', structure.outro);
+  
+  return structure;
 };
 
 // ============ HELPER: Shuffle array ============

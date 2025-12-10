@@ -99,7 +99,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
   const [safariAssignments, setSafariAssignments] = useState({}); // { studentId: { emoji, name, code } }
   const [safariHunters, setSafariHunters] = useState([]); // [{ studentId, name, targetEmoji, targetName }]
   const [studentsWhoWentOnSafari, setStudentsWhoWentOnSafari] = useState(new Set());
-  const [safariTimer, setSafariTimer] = useState(20);
+  const [safariTimer, setSafariTimer] = useState(45);
   const safariTimerRef = useRef(null);
   const safariTimerStartedRef = useRef(false);
 
@@ -343,40 +343,45 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
     });
     setSafariAssignments(newAssignments);
     
-    // Pick 2 students who haven't gone on Safari yet
-    const eligibleStudents = students.filter(s => !studentsWhoWentOnSafari.has(s.id));
-    
-    // If everyone has gone, reset the list
-    let finalEligible = eligibleStudents;
-    if (eligibleStudents.length < 2) {
-      setStudentsWhoWentOnSafari(new Set());
-      finalEligible = students;
+    // Safari requires at least 3 students (2 hunters + 1 target minimum)
+    let hunters = [];
+    if (students.length >= 3) {
+      // Pick 2 students who haven't gone on Safari yet
+      const eligibleStudents = students.filter(s => !studentsWhoWentOnSafari.has(s.id));
+      
+      // If everyone has gone, reset the list
+      let finalEligible = eligibleStudents;
+      if (eligibleStudents.length < 2) {
+        setStudentsWhoWentOnSafari(new Set());
+        finalEligible = students;
+      }
+      
+      // Pick 2 random students
+      const shuffledEligible = [...finalEligible].sort(() => Math.random() - 0.5);
+      hunters = shuffledEligible.slice(0, 2).map(s => {
+        // Find a target animal (not their own)
+        const otherStudents = students.filter(other => other.id !== s.id);
+        const randomTarget = otherStudents[Math.floor(Math.random() * otherStudents.length)];
+        const targetAssignment = newAssignments[randomTarget?.id];
+        return {
+          studentId: s.id,
+          name: s.name,
+          targetEmoji: targetAssignment?.emoji,
+          targetName: targetAssignment?.name
+        };
+      });
+      
+      setStudentsWhoWentOnSafari(prev => {
+        const newSet = new Set(prev);
+        hunters.forEach(h => newSet.add(h.studentId));
+        return newSet;
+      });
     }
     
-    // Pick 2 random students
-    const shuffledEligible = [...finalEligible].sort(() => Math.random() - 0.5);
-    const hunters = shuffledEligible.slice(0, 2).map(s => {
-      // Find a target animal (not their own)
-      const otherStudents = students.filter(other => other.id !== s.id);
-      const randomTarget = otherStudents[Math.floor(Math.random() * otherStudents.length)];
-      const targetAssignment = newAssignments[randomTarget?.id];
-      return {
-        studentId: s.id,
-        name: s.name,
-        targetEmoji: targetAssignment?.emoji || '🦁',
-        targetName: targetAssignment?.name || 'LION'
-      };
-    });
-    
     setSafariHunters(hunters);
-    setStudentsWhoWentOnSafari(prev => {
-      const newSet = new Set(prev);
-      hunters.forEach(h => newSet.add(h.studentId));
-      return newSet;
-    });
     
     // Reset Safari timer
-    setSafariTimer(20);
+    setSafariTimer(45);
     safariTimerStartedRef.current = false;
     
     if (sessionCode) {
@@ -395,7 +400,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
       totalClipsPlayed: clipNum,
       safariAssignments: newAssignments,
       safariHunters: hunters,
-      safariTimer: 20
+      safariTimer: hunters.length > 0 ? 45 : 0
     });
     
     playSectionAudio(section);
@@ -468,7 +473,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
     };
   }, [gamePhase, currentClipIndex, totalClipsPlayed, quizOrder, sessionCode, students, updateGame, playSectionAudio]);
 
-  // Safari timer effect (20 second countdown during guessing)
+  // Safari timer effect (45 second countdown during guessing)
   useEffect(() => {
     if (gamePhase !== 'guessing') {
       if (safariTimerRef.current) {
@@ -482,9 +487,9 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
     if (safariTimerStartedRef.current) return;
     safariTimerStartedRef.current = true;
     
-    setSafariTimer(20);
+    setSafariTimer(45);
     
-    let count = 20;
+    let count = 45;
     safariTimerRef.current = setInterval(() => {
       count -= 1;
       setSafariTimer(count);
