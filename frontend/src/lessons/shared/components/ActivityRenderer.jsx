@@ -4,6 +4,7 @@
 // ✅ UPDATED: Added Sectional Loop Builder activity for Lesson 4 (Epic Wildlife)
 // ✅ UPDATED: Added Monster Melody Maker bonus activity for Lesson 4
 // ✅ UPDATED: Added ListeningMapActivity for Lesson 3 (City Soundscapes)
+// ✅ UPDATED: Added WildlifeCompositionActivity for Lesson 4 (Epic Wildlife)
 
 import React from 'react';
 import VideoPlayer from './video/VideoPlayer';
@@ -15,6 +16,7 @@ import NameThatLoopActivity from '../activities/layer-detective/NameThatLoopActi
 import LayerDetectiveActivity from '../activities/layer-detective/LayerDetectiveActivity';
 import SportsCompositionActivity from "../activities/SportsCompositionActivity";
 import CityCompositionActivity from "../activities/CityCompositionActivity";
+import WildlifeCompositionActivity from "../activities/WildlifeCompositionActivity";
 
 // ✅ ADDED: Listening Map Activity for Lesson 3
 import ListeningMapActivity from '../activities/texture-drawings/ListeningMapActivity';
@@ -121,18 +123,15 @@ const ActivityRenderer = ({
         />
       );
 
-    // ✅ ADDED: Wildlife Composition Activity (Lesson 4 - Epic Wildlife)
-    // This uses the same CityCompositionActivity component but with wildlife videos
-    // TODO: Create dedicated WildlifeCompositionActivity if needed
+    // ✅ Wildlife Composition Activity (Lesson 4 - Epic Wildlife)
     case 'wildlife-composition-activity':
       return (
-        <CityCompositionActivity 
+        <WildlifeCompositionActivity 
           key={`wildlife-composition-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}
           lessonStartTime={lessonStartTime}
           isSessionMode={isSessionMode}
-          lessonTheme="wildlife"  // Pass theme prop if component supports it
         />
       );
 

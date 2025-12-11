@@ -1,6 +1,7 @@
 // File: /pages/DemoActivity.jsx
 // Standalone demo page for teachers to preview activities
 // Opens in new window, shows exactly what students see
+// ✅ UPDATED: Changed overflow-hidden to overflow-auto to prevent bottom cutoff
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -65,6 +66,12 @@ const DemoActivity = () => {
     if (activityType === 'sports-composition-activity') {
       localStorage.removeItem('lesson2-selected-video');
       console.log('✅ Demo: Cleared sports video selection for fresh demo experience');
+    }
+
+    // For wildlife composition, clear any saved video selection
+    if (activityType === 'wildlife-composition-activity') {
+      localStorage.removeItem('epic-wildlife-selected-video');
+      console.log('✅ Demo: Cleared wildlife video selection for fresh demo experience');
     }
     
     // Mark as ready after mock data is set
@@ -136,8 +143,8 @@ const DemoActivity = () => {
         </button>
       </div>
 
-      {/* Activity Content */}
-      <div className="flex-1 overflow-hidden">
+      {/* Activity Content - overflow-auto allows scrolling if needed */}
+      <div className="flex-1 overflow-auto">
         <ActivityRenderer
           activity={activity}
           onComplete={handleComplete}

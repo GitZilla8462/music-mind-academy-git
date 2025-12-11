@@ -1,14 +1,16 @@
 // File: /src/lessons/shared/activities/sectional-loop-builder/SectionalLoopBuilderActivity.jsx
 // Epic Wildlife - Student View
+// ✅ UPDATED: Added demo mode for teacher preview
 // 
 // Features:
 // - Tap to answer (no lock-in button)
 // - Power-up selection (after first clip)
 // - Animated score breakdown
 // - Streak tracking, speed bonus, perfect bonus
+// - Demo mode for standalone teacher preview
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Flame, Clock } from 'lucide-react';
+import { Flame, Clock, Play, RotateCcw } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
 import { generatePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
@@ -77,6 +79,14 @@ const SONG_STRUCTURE = [
   { section: 'outro', label: 'OUTRO' }
 ];
 
+// Demo clips with correct answers
+const DEMO_CLIPS = [
+  { id: 1, correctAnswer: 'intro', audioHint: '2 layers - thin texture' },
+  { id: 2, correctAnswer: 'a', audioHint: '3 layers - medium texture' },
+  { id: 3, correctAnswer: 'aPrime', audioHint: '4 layers - thick texture' },
+  { id: 4, correctAnswer: 'outro', audioHint: '1 layer - very thin' },
+];
+
 // Animated number component
 const AnimatedNumber = ({ value, duration = 600 }) => {
   const [display, setDisplay] = useState(0);
@@ -91,7 +101,7 @@ const AnimatedNumber = ({ value, duration = 600 }) => {
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 2);
+      const eased = 1 - Math.pow(1 - progress, 1);
       setDisplay(Math.round(start + diff * eased));
       
       if (progress < 1) {
@@ -118,8 +128,361 @@ const ScoreItem = ({ value, label, emoji, positive = true, delay = 0 }) => (
   </div>
 );
 
-const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
+// ============ DEMO MODE COMPONENT ============
+const DemoModeGame = () => {
+  const [demoPhase, setDemoPhase] = useState('intro'); // intro, playing, guessing, revealed, complete
+  const [currentClip, setCurrentClip] = useState(0);
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [clipResult, setClipResult] = useState(null);
+  const timerRef = useRef(null);
+
+  const styles = `
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes pop {
+      0% { transform: scale(0.8); opacity: 0; }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+  `;
+
+  const startDemo = () => {
+    setDemoPhase('playing');
+    setCurrentClip(0);
+    setScore(0);
+    setStreak(0);
+    setTimeout(() => {
+      setDemoPhase('guessing');
+      startTimer();
+    }, 2000);
+  };
+
+  const startTimer = () => {
+    setElapsedTime(0);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setElapsedTime(prev => prev + 100);
+    }, 100);
+  };
+
+  const selectAnswer = (section) => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setSelectedAnswer(section);
+    
+    const clip = DEMO_CLIPS[currentClip];
+    const isCorrect = section === clip.correctAnswer;
+    const speedBonus = elapsedTime < 3000 ? SCORING.speed : 0;
+    const newStreak = isCorrect ? streak + 1 : 0;
+    const streakBonus = newStreak >= 2 ? Math.min(newStreak * SCORING.streak, SCORING.maxStreak) : 0;
+    const correctPts = isCorrect ? SCORING.correct : 0;
+    const wrongPts = !isCorrect ? SCORING.wrong : 0;
+    const total = Math.max(0, correctPts - wrongPts + speedBonus + streakBonus);
+
+    setClipResult({
+      isCorrect,
+      myAnswer: section,
+      correctPts,
+      wrongPts,
+      speedBonus,
+      streakBonus,
+      total,
+      newStreak
+    });
+    
+    setScore(prev => prev + total);
+    setStreak(newStreak);
+    setDemoPhase('revealed');
+  };
+
+  const nextClip = () => {
+    if (currentClip >= DEMO_CLIPS.length - 1) {
+      setDemoPhase('complete');
+    } else {
+      setCurrentClip(prev => prev + 1);
+      setSelectedAnswer(null);
+      setClipResult(null);
+      setDemoPhase('playing');
+      setTimeout(() => {
+        setDemoPhase('guessing');
+        startTimer();
+      }, 2000);
+    }
+  };
+
+  const resetDemo = () => {
+    setDemoPhase('intro');
+    setCurrentClip(0);
+    setScore(0);
+    setStreak(0);
+    setSelectedAnswer(null);
+    setClipResult(null);
+  };
+
+  const formatTime = (ms) => `${Math.floor(ms/1000)}.${Math.floor((ms%1000)/100)}s`;
+
+  // Demo Intro
+  if (demoPhase === 'intro') {
+    return (
+      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col items-center justify-center p-6 text-white">
+        <style>{styles}</style>
+        <div className="text-6xl mb-4">🎮</div>
+        <h1 className="text-3xl font-bold mb-2">Sectional Loop Builder</h1>
+        <p className="text-lg text-white/70 mb-2">Teacher Demo Mode</p>
+        
+        <div className="bg-white/10 rounded-xl p-4 mb-6 max-w-md">
+          <p className="text-white/80 mb-3 text-center">
+            In the real game, students hear audio clips and identify which section they belong to based on the number of layers.
+          </p>
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            {Object.entries(SECTION_INFO).map(([key, info]) => (
+              <div key={key} className="px-3 py-2 rounded-lg text-center text-sm"
+                style={{ backgroundColor: `${info.color}30` }}>
+                <span className="mr-1">{info.emoji}</span>
+                <span className="font-bold" style={{ color: info.color }}>{info.label}</span>
+                <span className="text-white/60 ml-1">= {info.layers} layers</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-white/60 text-sm text-center">
+            This demo simulates the student experience. In class, audio plays from the main screen.
+          </p>
+        </div>
+        
+        <button
+          onClick={startDemo}
+          className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-xl text-xl font-bold hover:scale-105 transition-transform"
+        >
+          <Play size={24} />
+          Try Demo
+        </button>
+      </div>
+    );
+  }
+
+  // Playing (simulated listening)
+  if (demoPhase === 'playing') {
+    const clip = DEMO_CLIPS[currentClip];
+    return (
+      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col items-center justify-center p-6 text-white">
+        <style>{styles}</style>
+        <div className="text-6xl mb-4 animate-pulse">🎧</div>
+        <h1 className="text-3xl font-bold mb-2">Listening to Clip {currentClip + 1}...</h1>
+        <p className="text-lg text-white/70 mb-4">Demo hint: {clip.audioHint}</p>
+        <div className="bg-white/10 rounded-xl px-6 py-3">
+          <p className="text-white/60">Get ready to identify the section!</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Guessing
+  if (demoPhase === 'guessing') {
+    return (
+      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col p-4 text-white">
+        <style>{styles}</style>
+        
+        {/* Header */}
+        <div className="bg-white/10 rounded-xl p-3 mb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-purple-500/30">
+                👁️
+              </div>
+              <div className="text-sm">
+                <div className="font-bold text-purple-300">Demo Mode</div>
+                <div className="text-white/60 text-xs">Clip {currentClip + 1} of {DEMO_CLIPS.length}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {streak >= 2 && (
+                <div className="flex items-center gap-1 bg-orange-500/30 px-2 py-1 rounded-full text-sm">
+                  <Flame size={14} className="text-orange-400" />
+                  <span className="text-orange-400 font-bold">{streak}</span>
+                </div>
+              )}
+              <div className="bg-white/10 px-3 py-1 rounded-lg">
+                <span className="text-xl font-bold text-yellow-400">{score}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Hint */}
+        <div className="text-center mb-3">
+          <div className="text-sm text-white/60 mb-1">Demo hint: {DEMO_CLIPS[currentClip].audioHint}</div>
+          <div className="text-2xl font-bold">🎧 Tap your answer!</div>
+        </div>
+
+        {/* Timer */}
+        <div className="text-center mb-3">
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
+            elapsedTime < 3000 ? 'bg-green-500/30 text-green-300' : 'bg-white/20'
+          }`}>
+            <Clock size={18} />
+            <span className="font-mono text-xl font-bold">{formatTime(elapsedTime)}</span>
+            {elapsedTime < 3000 && <span className="text-sm">⚡ Speed Bonus!</span>}
+          </div>
+        </div>
+
+        {/* Answers */}
+        <div className="flex-1 flex flex-col justify-center">
+          <div className="grid grid-cols-2 gap-3">
+            {Object.entries(SECTION_INFO).map(([key, info]) => (
+              <button
+                key={key}
+                onClick={() => selectAnswer(key)}
+                className="py-6 rounded-xl font-bold transition-all active:scale-95 hover:scale-102"
+                style={{ 
+                  backgroundColor: `${info.color}40`,
+                  color: info.color
+                }}
+              >
+                <div className="text-4xl mb-1">{info.emoji}</div>
+                <div className="text-2xl font-black">{info.label}</div>
+                <div className="text-sm opacity-80">{info.layers} layers</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Revealed
+  if (demoPhase === 'revealed' && clipResult) {
+    const correctSection = SECTION_INFO[DEMO_CLIPS[currentClip].correctAnswer];
+    return (
+      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col p-4 text-white">
+        <style>{styles}</style>
+        
+        {/* Header */}
+        <div className="bg-white/10 rounded-xl p-3 mb-4">
+          <div className="flex items-center justify-between">
+            <div>Clip {currentClip + 1} of {DEMO_CLIPS.length}</div>
+            <div className="flex items-center gap-2">
+              {clipResult.newStreak >= 2 && (
+                <div className="flex items-center gap-1 bg-orange-500/30 px-2 py-1 rounded-full">
+                  <Flame size={14} className="text-orange-400" />
+                  <span className="text-orange-400 font-bold">{clipResult.newStreak}</span>
+                </div>
+              )}
+              <div className="bg-white/10 px-3 py-1 rounded-lg">
+                <span className="text-xl font-bold text-yellow-400">
+                  <AnimatedNumber value={score} duration={800} />
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col items-center justify-center">
+          {/* Result icon */}
+          <div 
+            className="text-7xl mb-4"
+            style={{ animation: clipResult.isCorrect ? 'pop 0.3s ease-out' : 'shake 0.4s ease-out' }}
+          >
+            {clipResult.isCorrect ? '✅' : '❌'}
+          </div>
+          
+          <div className={`text-3xl font-black mb-2 ${clipResult.isCorrect ? 'text-green-400' : 'text-red-400'}`}>
+            {clipResult.isCorrect ? 'CORRECT!' : 'WRONG'}
+          </div>
+          
+          {!clipResult.isCorrect && (
+            <div className="text-white/70 mb-2">
+              The answer was: <span style={{ color: correctSection.color }}>{correctSection.emoji} {correctSection.label}</span>
+            </div>
+          )}
+          
+          {/* Score breakdown */}
+          <div className="bg-black/30 rounded-xl p-4 w-full max-w-sm mb-4">
+            <h3 className="text-sm font-bold text-white/70 mb-3 text-center">Score Breakdown</h3>
+            
+            <div className="flex flex-wrap justify-center gap-2 mb-3">
+              {clipResult.correctPts > 0 && (
+                <ScoreItem value={clipResult.correctPts} label="Correct" emoji="✓" delay={0} />
+              )}
+              {clipResult.wrongPts > 0 && (
+                <ScoreItem value={-clipResult.wrongPts} label="Wrong" positive={false} delay={100} />
+              )}
+              {clipResult.speedBonus > 0 && (
+                <ScoreItem value={clipResult.speedBonus} label="Speed" emoji="⚡" delay={200} />
+              )}
+              {clipResult.streakBonus > 0 && (
+                <ScoreItem value={clipResult.streakBonus} label="Streak" emoji="🔥" delay={300} />
+              )}
+            </div>
+            
+            <div className="text-center border-t border-white/20 pt-3">
+              <span className="text-white/60">This clip: </span>
+              <span className={`text-3xl font-black ${clipResult.total >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {clipResult.total >= 0 ? '+' : ''}<AnimatedNumber value={clipResult.total} duration={600} />
+              </span>
+            </div>
+          </div>
+          
+          <button
+            onClick={nextClip}
+            className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl font-bold text-lg hover:scale-105 transition-transform"
+          >
+            {currentClip >= DEMO_CLIPS.length - 1 ? 'See Results' : 'Next Clip →'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Complete
+  if (demoPhase === 'complete') {
+    return (
+      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col items-center justify-center p-6 text-white">
+        <style>{styles}</style>
+        <div className="text-6xl mb-4">🎉</div>
+        <h1 className="text-3xl font-bold mb-2">Demo Complete!</h1>
+        
+        <div className="bg-white/10 rounded-2xl p-6 text-center mb-6">
+          <div className="text-lg text-white/70 mb-2">Final Score</div>
+          <div className="text-5xl font-black text-yellow-400">{score}</div>
+        </div>
+        
+        <div className="bg-white/10 rounded-xl p-4 mb-6 max-w-md text-center">
+          <p className="text-white/70 text-sm">
+            In the real game, students compete on a live leaderboard, earn power-ups between clips, and can go on Safari hunts to find classmates!
+          </p>
+        </div>
+        
+        <button
+          onClick={resetDemo}
+          className="flex items-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 rounded-xl font-bold transition-colors"
+        >
+          <RotateCcw size={20} />
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+// ============ MAIN COMPONENT ============
+const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionMode = false }) => {
   const { sessionCode, userId } = useSession();
+  
+  // Demo mode: no session, let teacher play standalone
+  const isDemoMode = !sessionCode && !isSessionMode;
   
   // Player
   const [playerName, setPlayerName] = useState('');
@@ -191,6 +554,11 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false }) => {
       80% { transform: translateX(4px); }
     }
   `;
+
+  // ============ DEMO MODE ============
+  if (isDemoMode) {
+    return <DemoModeGame />;
+  }
 
   // Generate 3 random power-ups
   const generatePowerUpChoices = () => {

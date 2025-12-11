@@ -3,13 +3,15 @@
  * 
  * ROBOT BAND BUILDER STYLES
  * Optimized for 1366x768 Chromebook displays
+ * ✅ UPDATED: Changed container height from 100vh to 100% to fix demo cutoff
  */
 
 /* ===== CONTAINER ===== */
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
+  min-height: 0;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   color: #fff;
   overflow: hidden;
@@ -78,6 +80,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
 }
 
 /* Robot selector tabs */
@@ -88,6 +91,7 @@
   padding: 8px;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 8px 8px 0 0;
+  flex-shrink: 0;
 }
 
 .robotTab {
@@ -195,7 +199,7 @@
   position: relative;
   border-radius: 0 0 12px 12px;
   overflow: hidden;
-  min-height: 280px;
+  min-height: 200px;
 }
 
 .monsterWrapper {
@@ -236,12 +240,14 @@
   border-radius: 12px;
   overflow: hidden;
   min-width: 0;
+  min-height: 0;
 }
 
 /* Panel toggle tabs */
 .rightPanelTabs {
   display: flex;
   background: rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
 }
 
 .panelTab {
@@ -273,6 +279,7 @@
   flex: 1;
   padding: 12px;
   overflow-y: auto;
+  min-height: 0;
 }
 
 /* ===== ARRANGER VIEW ===== */
@@ -283,12 +290,15 @@
   flex-direction: column;
   gap: 12px;
   overflow: hidden;
+  min-height: 0;
 }
 
 /* 4 mini grids side by side */
 .arrangerGrids {
   display: flex;
   gap: 8px;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Each mini grid container - compact, not forced tall */
@@ -377,7 +387,8 @@
 .miniGridWrapper {
   padding: 4px;
   display: flex;
-  aspect-ratio: 2 / 1;
+  flex: 1;
+  min-height: 0;
 }
 
 /* The actual mini grid - 8 rows x 16 cols with SQUARE cells */
@@ -451,7 +462,6 @@
   color: rgba(255, 255, 255, 0.3);
   font-size: 12px;
   font-style: italic;
-  aspect-ratio: 2 / 1;
 }
 
 /* Arranger controls */
@@ -556,7 +566,7 @@
   }
 
   .stageWrapper {
-    min-height: 240px;
+    min-height: 180px;
   }
 
   .robotSelect {

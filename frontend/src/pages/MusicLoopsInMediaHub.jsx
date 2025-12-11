@@ -1,6 +1,7 @@
 // File: /pages/MusicLoopsInMediaHub.jsx
 // Music Loops in Media Project - Hub page for all lessons
 // ✅ UPDATED: Added Lesson Plan button per lesson card
+// ✅ UPDATED: Lesson 4 - Removed Beta badge, added Monster Melody Maker
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -113,16 +114,16 @@ const MusicLoopsInMediaHub = () => {
       description: 'Create epic soundtracks for breathtaking nature footage with distinct sections',
       icon: '🌍',
       color: 'from-green-500 to-teal-500',
-      videos: ['Underwater', 'Jungle', 'Safari'],
+      videos: ['Forest Creatures', 'Savanna Creatures', 'Underwater Creatures'],
       duration: '35 min',
       route: '/lessons/film-music-project/lesson4',
       available: true,
       hasLessonPlan: true,
-      badge: 'Beta',
       activities: [
         { id: 'sectional-loop-builder', title: 'Sectional Loop Builder', description: 'Build A-B-A sections', activityType: 'sectional-loop-builder' },
         { id: 'wildlife-composition', title: 'Wildlife Composition', description: 'Score nature footage', activityType: 'wildlife-composition-activity' },
-        { id: 'two-stars-wish', title: 'Two Stars & a Wish', description: 'Reflection activity', activityType: 'two-stars-wish' }
+        { id: 'two-stars-wish', title: 'Two Stars & a Wish', description: 'Reflection activity', activityType: 'two-stars-wish' },
+        { id: 'monster-melody-maker', title: 'Monster Melody Maker', description: 'Bonus game', activityType: 'monster-melody-maker' }
       ]
     },
     {

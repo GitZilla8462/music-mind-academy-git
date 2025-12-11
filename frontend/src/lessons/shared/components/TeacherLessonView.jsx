@@ -1,6 +1,7 @@
 // File: /src/lessons/shared/components/TeacherLessonView.jsx
 // Combined Teacher Control Sidebar + Presentation View
 // Professional design: White/slate sidebar, dark presentation area
+// ✅ UPDATED: Added mini live preview box below view toggle
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
@@ -273,6 +274,75 @@ const PresentationContent = ({
 };
 
 // ============================================
+// MINI PREVIEW COMPONENT
+// Shows scaled-down live preview of opposite view
+// ============================================
+const MiniPreview = ({ viewMode, sessionCode, currentStage, currentStageData, sessionData, config, onSwitch }) => {
+  const getStudentUrl = () => {
+    const isProduction = window.location.hostname !== 'localhost';
+    const baseUrl = isProduction 
+      ? 'https://musicroomtools.org' 
+      : 'http://localhost:5173';
+    return `${baseUrl}/join?code=${sessionCode}&preview=true`;
+  };
+
+  return (
+    <div>
+      <div className="text-xs text-slate-500 mb-1 flex items-center gap-1">
+        {viewMode === 'teacher' ? (
+          <>
+            <Smartphone size={12} />
+            <span>Student screen:</span>
+          </>
+        ) : (
+          <>
+            <Monitor size={12} />
+            <span>Teacher screen:</span>
+          </>
+        )}
+      </div>
+      <div 
+        className="relative rounded-lg overflow-hidden border-2 border-slate-200 bg-slate-900 cursor-pointer hover:border-blue-400 transition-colors"
+        style={{ height: '120px' }}
+        onClick={onSwitch}
+        title={`Click to switch to ${viewMode === 'teacher' ? 'Student' : 'Teacher'} View`}
+      >
+        {viewMode === 'teacher' ? (
+          // Show mini student view via iframe
+          <iframe
+            src={getStudentUrl()}
+            className="w-full h-full border-none pointer-events-none"
+            style={{ transform: 'scale(0.15)', transformOrigin: 'top left', width: '666%', height: '666%' }}
+            title="Student View Preview"
+          />
+        ) : (
+          // Show mini teacher view (presentation content)
+          <div 
+            className="absolute inset-0 pointer-events-none overflow-hidden"
+          >
+            <div style={{ transform: 'scale(0.1)', transformOrigin: 'top left', width: '1000%', height: '1000%' }}>
+              <PresentationContent
+                currentStage={currentStage}
+                currentStageData={currentStageData}
+                sessionCode={sessionCode}
+                sessionData={sessionData}
+                lessonConfig={config}
+                lessonBasePath={config?.lessonPath}
+                viewMode="teacher"
+              />
+            </div>
+          </div>
+        )}
+        {/* Hover overlay */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 bg-black/40 transition-opacity">
+          <span className="text-white text-xs font-medium">Click to switch</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================
 // MAIN COMPONENT
 // ============================================
 const TeacherLessonView = ({
@@ -297,9 +367,6 @@ const TeacherLessonView = ({
   const [viewMode, setViewMode] = useState('teacher'); // 'teacher' or 'student'
   const [copied, setCopied] = useState(false);
   const [sessionData, setSessionData] = useState(null);
-  // Tutorial state - COMMENTED OUT (outdated video)
-  // const [showTutorial, setShowTutorial] = useState(false);
-  // const [videoKey, setVideoKey] = useState(0);
   const [timerVisible, setTimerVisible] = useState(false);
   const [classroomTimer, setClassroomTimer] = useState({
     presetMinutes: 5,
@@ -422,22 +489,6 @@ const TeacherLessonView = ({
     return 'upcoming';
   };
 
-  // Handle tutorial open/close - COMMENTED OUT (outdated video)
-  // const handleOpenTutorial = () => {
-  //   if (window.Tone && window.Tone.context && window.Tone.context.state === 'running') {
-  //     window.Tone.context.suspend();
-  //   }
-  //   setVideoKey(prev => prev + 1);
-  //   setShowTutorial(true);
-  // };
-
-  // const handleCloseTutorial = () => {
-  //   setShowTutorial(false);
-  //   if (window.Tone && window.Tone.context && window.Tone.context.state === 'suspended') {
-  //     window.Tone.context.resume();
-  //   }
-  // };
-
   // Classroom Timer Functions
   const formatClassroomTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -489,7 +540,6 @@ const TeacherLessonView = ({
     const interval = setInterval(() => {
       setClassroomTimer(prev => {
         if (prev.timeRemaining <= 1) {
-          // Timer finished - could add sound here
           return {
             ...prev,
             isRunning: false,
@@ -528,7 +578,6 @@ const TeacherLessonView = ({
       console.log('🎬 Starting lesson, navigating to first content stage:', firstStageId);
       setCurrentStage(firstStageId);
       
-      // Also expand the first section
       if (config.lessonSections && config.lessonSections.length > 0) {
         setExpandedSections(new Set([config.lessonSections[0].id]));
       }
@@ -544,41 +593,9 @@ const TeacherLessonView = ({
 
   return (
     <div className="h-screen flex bg-slate-900 overflow-hidden">
-      {/* Tutorial Modal - COMMENTED OUT (outdated video)
-      {showTutorial && (
-        <div 
-          className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-5"
-          onClick={handleCloseTutorial}
-        >
-          <div 
-            className="relative w-full max-w-4xl bg-black rounded-xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={handleCloseTutorial}
-              className="absolute top-3 right-3 z-10 w-10 h-10 bg-black/70 hover:bg-black text-white rounded-full flex items-center justify-center text-2xl"
-            >
-              ×
-            </button>
-            <video
-              key={videoKey}
-              controls
-              autoPlay
-              playsInline
-              preload="auto"
-              className="w-full"
-            >
-              <source src="/lessons/film-music-project/Lesson Tutorial.mp4" type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-          </div>
-        </div>
-      )}
-      */}
-
-      {/* Main Content Area - No header, just sidebar + presentation */}
+      {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar - responsive width that maintains proportion */}
+        {/* Sidebar */}
         <div 
           className={`bg-white border-r border-slate-200 flex flex-col transition-all duration-300 flex-shrink-0 ${
             sidebarCollapsed ? 'w-14' : ''
@@ -631,38 +648,10 @@ const TeacherLessonView = ({
             )}
           </div>
 
-          {/* View Mode Toggle + Navigation Buttons */}
+          {/* Navigation Buttons - AT TOP */}
           {!sidebarCollapsed && (
             <div className="p-3 border-b border-slate-200">
-              {/* Teacher/Student View Toggle */}
-              <div className="flex bg-slate-100 rounded-lg p-1 mb-3">
-                <button
-                  onClick={() => setViewMode('teacher')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'teacher'
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-slate-600 hover:text-slate-800'
-                  }`}
-                >
-                  <Monitor size={16} />
-                  <span>Teacher View</span>
-                </button>
-                <button
-                  onClick={() => setViewMode('student')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'student'
-                      ? 'bg-white text-emerald-600 shadow-sm'
-                      : 'text-slate-600 hover:text-slate-800'
-                  }`}
-                >
-                  <Smartphone size={16} />
-                  <span>Student View</span>
-                </button>
-              </div>
-
-              {/* Navigation Buttons */}
               {isOnJoinCode ? (
-                // Start Lesson button
                 <div>
                   <button
                     onClick={handleStartLesson}
@@ -673,7 +662,6 @@ const TeacherLessonView = ({
                   </button>
                 </div>
               ) : (
-                // Back/Next buttons
                 <div>
                   <div className="flex gap-2">
                     <button
@@ -896,6 +884,48 @@ const TeacherLessonView = ({
             )}
           </div>
 
+          {/* View Mode Toggle + Mini Preview - AT BOTTOM */}
+          {!sidebarCollapsed && (
+            <div className="border-t border-slate-200 p-3">
+              {/* Teacher/Student View Toggle */}
+              <div className="flex bg-slate-100 rounded-lg p-1 mb-3">
+                <button
+                  onClick={() => setViewMode('teacher')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                    viewMode === 'teacher'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-800'
+                  }`}
+                >
+                  <Monitor size={16} />
+                  <span>Teacher</span>
+                </button>
+                <button
+                  onClick={() => setViewMode('student')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                    viewMode === 'student'
+                      ? 'bg-white text-emerald-600 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-800'
+                  }`}
+                >
+                  <Smartphone size={16} />
+                  <span>Student</span>
+                </button>
+              </div>
+
+              {/* Mini Live Preview of Opposite View - TALLER */}
+              <MiniPreview
+                viewMode={viewMode}
+                sessionCode={sessionCode}
+                currentStage={currentStage}
+                currentStageData={currentStageData}
+                sessionData={sessionData}
+                config={config}
+                onSwitch={() => setViewMode(viewMode === 'teacher' ? 'student' : 'teacher')}
+              />
+            </div>
+          )}
+
           {/* Classroom Timer Section */}
           {!sidebarCollapsed && (
             <div className="border-t border-slate-200 p-3">
@@ -1033,15 +1063,6 @@ const TeacherLessonView = ({
           <div className={`border-t border-slate-200 ${sidebarCollapsed ? 'p-2' : 'p-3'}`}>
             {sidebarCollapsed ? (
               <div className="flex flex-col gap-1">
-                {/* Help Button - COMMENTED OUT (outdated video)
-                <button
-                  onClick={handleOpenTutorial}
-                  className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
-                  title="Help"
-                >
-                  <HelpCircle size={18} />
-                </button>
-                */}
                 <button
                   onClick={endSession}
                   className="p-2 hover:bg-red-50 rounded-lg text-red-500 transition-colors"
@@ -1059,15 +1080,6 @@ const TeacherLessonView = ({
               </div>
             ) : (
               <div className="space-y-2">
-                {/* Help Button - COMMENTED OUT (outdated video)
-                <button
-                  onClick={handleOpenTutorial}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                  <HelpCircle size={16} />
-                  Help
-                </button>
-                */}
                 <button
                   onClick={endSession}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition-colors"
@@ -1098,7 +1110,6 @@ const TeacherLessonView = ({
             lessonBasePath={config.lessonPath}
             viewMode={viewMode}
           />
-
         </div>
       </div>
     </div>

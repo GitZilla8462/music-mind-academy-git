@@ -1,15 +1,17 @@
 // File: LoopLibrary.jsx
 // CHROMEBOOK FIX: Proper preview button state management
+// ✅ UPDATED: Added sound effect category dropdown (City, Nature, SFX)
 // 
 // KEY CHANGES:
 // 1. Removed isPlayingAudio state that was disabling buttons
 // 2. Added short debounce (300ms) to prevent double-clicks
 // 3. Button disabled state only during debounce, not during playback
 // 4. This allows Chromebook users to click pause button
+// 5. Added SFX category filter dropdown
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Volume2, Search, Filter, Lock } from 'lucide-react';
-import { soundEffects } from './soundEffectsData';
+import { soundEffects, SFX_CATEGORY_COLORS } from './soundEffectsData';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
@@ -46,7 +48,7 @@ const LoopLibrary = ({
   const [error, setError] = useState(null);
   const [moodFilter, setMoodFilter] = useState(lockedMood || 'All');
   const [instrumentFilter, setInstrumentFilter] = useState('All');
-  const [soundEffectsEnabled, setSoundEffectsEnabled] = useState(false);
+  const [sfxCategoryFilter, setSfxCategoryFilter] = useState('All');
   
   // CHROMEBOOK FIX: Use debounce instead of isPlayingAudio
   const [buttonDebouncing, setButtonDebouncing] = useState(false);
@@ -224,10 +226,17 @@ const LoopLibrary = ({
     }
   };
 
-  // Combine loops and sound effects
-  const allItems = soundEffectsEnabled && showSoundEffects 
-    ? [...soundEffects, ...loops]
-    : loops;
+  // Filter sound effects - only show when a specific category is selected (not 'All')
+  const filteredSoundEffects = showSoundEffects && sfxCategoryFilter !== 'All'
+    ? soundEffects.filter(sfx => sfx.category === sfxCategoryFilter)
+    : [];
+
+  // When SFX category is selected, only show sound effects (no loops)
+  const showingOnlySoundEffects = sfxCategoryFilter !== 'All';
+  
+  // Combine loops and filtered sound effects
+  const allItems = showingOnlySoundEffects ? [] : [...loops];
+  const itemsWithSfx = [...filteredSoundEffects, ...allItems];
 
   const moods = ['All', ...new Set(loops.map(l => l.mood).filter(Boolean))].sort();
   const instruments = ['All', ...new Set(loops.map(l => l.instrument).filter(Boolean))].sort();
@@ -239,16 +248,18 @@ const LoopLibrary = ({
     return false;
   };
 
-  // Filter loops
-  const filteredLoops = allItems.filter(item => {
+  // Filter items
+  const filteredLoops = itemsWithSfx.filter(item => {
     if (searchTerm && !item.name.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
 
+    // Sound effects pass through (already filtered above)
     if (item.type === 'soundEffect') {
       return true;
     }
 
+    // Only one filter active at a time (mutually exclusive)
     if (moodFilter !== 'All' && item.mood !== moodFilter) {
       return false;
     }
@@ -306,7 +317,7 @@ const LoopLibrary = ({
     // Stop previous preview if exists
     if (currentlyPlaying !== null) {
       console.log('🛑 Stopping previous preview');
-      const prevLoop = allItems.find(l => l.id === currentlyPlaying);
+      const prevLoop = [...soundEffects, ...loops].find(l => l.id === currentlyPlaying);
       if (prevLoop && onLoopPreview) {
         onLoopPreview(prevLoop, false);
       }
@@ -414,7 +425,15 @@ const LoopLibrary = ({
           <div className="relative">
             <select
               value={moodFilter}
-              onChange={(e) => !lockedMood && setMoodFilter(e.target.value)}
+              onChange={(e) => {
+                if (!lockedMood) {
+                  setMoodFilter(e.target.value);
+                  if (e.target.value !== 'All') {
+                    setInstrumentFilter('All');
+                    setSfxCategoryFilter('All');
+                  }
+                }
+              }}
               disabled={!!lockedMood}
               className={`w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-blue-500 focus:outline-none px-2 py-1.5 ${
                 lockedMood ? 'opacity-60 cursor-not-allowed' : ''
@@ -433,7 +452,13 @@ const LoopLibrary = ({
           {/* Instrument filter */}
           <select
             value={instrumentFilter}
-            onChange={(e) => setInstrumentFilter(e.target.value)}
+            onChange={(e) => {
+              setInstrumentFilter(e.target.value);
+              if (e.target.value !== 'All') {
+                setMoodFilter('All');
+                setSfxCategoryFilter('All');
+              }
+            }}
             className="w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-blue-500 focus:outline-none px-2 py-1.5"
           >
             <option value="All">All Instruments</option>
@@ -442,25 +467,24 @@ const LoopLibrary = ({
             ))}
           </select>
 
-          {/* Sound effects checkbox */}
+          {/* Sound Effects category dropdown - same as mood/instrument */}
           {showSoundEffects && (
-            <label className={`flex items-center gap-2 rounded px-2 py-1.5 cursor-pointer transition-colors ${
-              soundEffectsEnabled 
-                ? 'bg-purple-900/30 border border-purple-500/50 hover:bg-purple-900/50'
-                : 'bg-gray-700/30 border border-gray-600/50 hover:bg-gray-700/50'
-            }`}>
-              <input
-                type="checkbox"
-                checked={soundEffectsEnabled}
-                onChange={(e) => setSoundEffectsEnabled(e.target.checked)}
-                className="w-3.5 h-3.5 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
-              />
-              <span className={`text-xs font-medium flex items-center gap-1 ${
-                soundEffectsEnabled ? 'text-purple-300' : 'text-gray-400'
-              }`}>
-                Show Sound Effects
-              </span>
-            </label>
+            <select
+              value={sfxCategoryFilter}
+              onChange={(e) => {
+                setSfxCategoryFilter(e.target.value);
+                if (e.target.value !== 'All') {
+                  setMoodFilter('All');
+                  setInstrumentFilter('All');
+                }
+              }}
+              className="w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-purple-500 focus:outline-none px-2 py-1.5"
+            >
+              <option value="All">Sound Effects</option>
+              <option value="City">City</option>
+              <option value="Nature">Nature</option>
+              <option value="SFX">SFX</option>
+            </select>
           )}
         </div>
       </div>
@@ -473,6 +497,11 @@ const LoopLibrary = ({
             const isSoundEffect = loop.type === 'soundEffect';
             const isThisLoopPlaying = currentlyPlaying === loop.id;
             
+            // Get the appropriate background color for sound effects
+            const sfxBgColor = isSoundEffect 
+              ? (SFX_CATEGORY_COLORS[loop.category] || '#8b5cf6')
+              : null;
+            
             return (
               <div
                 key={loop.id}
@@ -480,16 +509,20 @@ const LoopLibrary = ({
                   restricted 
                     ? 'bg-gray-800 border-gray-700 opacity-40 cursor-not-allowed' 
                     : isSoundEffect
-                    ? 'bg-purple-900/30 hover:bg-purple-900/50 cursor-move border-purple-600 hover:border-purple-500'
+                    ? 'hover:brightness-110 cursor-move'
                     : 'bg-gray-700 hover:bg-gray-600 cursor-move border-gray-600 hover:border-gray-500'
                 }`}
+                style={isSoundEffect && !restricted ? {
+                  backgroundColor: `${sfxBgColor}20`,
+                  borderColor: `${sfxBgColor}60`
+                } : {}}
                 draggable={lockFeatures.allowLoopDrag !== false && !restricted}
                 onDragStart={(e) => handleDragStart(e, loop)}
               >
                 <div className="flex items-center justify-between gap-1.5">
                   <div className="flex-1 min-w-0">
                     <h3 className={`text-xs font-medium truncate leading-tight ${
-                      isSoundEffect ? 'text-purple-300' : 'text-white'
+                      isSoundEffect ? 'text-white' : 'text-white'
                     }`}>
                       {loop.name}
                     </h3>
@@ -527,10 +560,13 @@ const LoopLibrary = ({
                         ? 'bg-green-600 hover:bg-green-700 text-white'
                         : loop.loaded && loop.accessible && !buttonDebouncing && !restricted
                         ? isSoundEffect 
-                          ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                          ? 'text-white hover:brightness-125'
                           : 'bg-gray-600 hover:bg-gray-500 text-gray-300'
                         : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                     }`}
+                    style={isSoundEffect && !isThisLoopPlaying && loop.loaded && loop.accessible && !buttonDebouncing && !restricted ? {
+                      backgroundColor: sfxBgColor
+                    } : {}}
                     title={
                       restricted ? "Restricted" : 
                       buttonDebouncing ? "Processing..." : 
@@ -560,7 +596,7 @@ const LoopLibrary = ({
         {filteredLoops.length === 0 && (
           <div className="text-center text-gray-400 mt-6">
             <Volume2 size={32} className="mx-auto mb-2 opacity-50" />
-            <p className="text-xs">No {soundEffectsEnabled && showSoundEffects ? 'items' : 'loops'} found</p>
+            <p className="text-xs">No {showSoundEffects ? 'items' : 'loops'} found</p>
             <p className="text-xs mt-1" style={{ fontSize: '10px' }}>
               {restrictToCategory ? `Only ${restrictToCategory} loops available` : 'Try different filters'}
             </p>
@@ -571,15 +607,12 @@ const LoopLibrary = ({
       {/* Footer */}
       <div className="p-2 border-t border-gray-700 bg-gray-800">
         <div className="flex items-center justify-between text-xs text-gray-400">
-          <span>{filteredLoops.length}/{allItems.length}</span>
+          <span>{filteredLoops.length}/{showingOnlySoundEffects ? filteredSoundEffects.length : loops.length}</span>
           <span className="truncate ml-1">
-            {soundEffectsEnabled && showSoundEffects && 'SFX ON'}
-            {soundEffectsEnabled && showSoundEffects && (restrictToCategory || moodFilter !== 'All' || instrumentFilter !== 'All') && ' • '}
+            {sfxCategoryFilter !== 'All' && <span className="text-purple-400">SFX: {sfxCategoryFilter}</span>}
+            {moodFilter !== 'All' && `Mood: ${moodFilter}`}
+            {instrumentFilter !== 'All' && `Instrument: ${instrumentFilter}`}
             {restrictToCategory && `Locked: ${restrictToCategory}`}
-            {restrictToCategory && (moodFilter !== 'All' || instrumentFilter !== 'All') && ' • '}
-            {moodFilter !== 'All' && !restrictToCategory && `${moodFilter}`}
-            {moodFilter !== 'All' && instrumentFilter !== 'All' && ' • '}
-            {instrumentFilter !== 'All' && `${instrumentFilter}`}
           </span>
         </div>
       </div>
