@@ -5,6 +5,7 @@
  * - 4 robots to customize (tabs 1-4 in stage header)
  * - Right panel toggles between Melody Grid and Song Arranger
  * - Each robot has its own appearance, melody, and stage theme
+ * ✅ UPDATED: Saves to Join page using saveStudentWork
  */
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
@@ -18,6 +19,7 @@ import {
 } from './components';
 import useMelodyEngine from './hooks/useMelodyEngine';
 import { DEFAULT_MONSTER_CONFIG } from './config/defaults';
+import { saveStudentWork } from '../../../../utils/studentWorkStorage';
 import styles from './MonsterMelodyMaker.module.css';
 
 // Create empty 8x16 pattern grid
@@ -297,8 +299,11 @@ const MonsterMelodyMaker = ({
   }, []);
 
   const handleSaveConfirm = useCallback(() => {
+    const robotsWithMelodies = robots.filter(r => robotHasMelody(r)).length;
+    const saveName = creationName || 'My Robot Band';
+    
     const saveData = {
-      name: creationName || 'My Robot Band',
+      name: saveName,
       robots,
       songSlots,
       tempo,
@@ -307,14 +312,25 @@ const MonsterMelodyMaker = ({
       timestamp: new Date().toISOString(),
     };
 
+    // Save to old localStorage key for backward compatibility
     localStorage.setItem('robot-band-creation', JSON.stringify(saveData));
+
+    // ✅ Save to new student work system (appears on Join page)
+    saveStudentWork('robot-melody-maker', {
+      title: saveName,
+      emoji: '🤖',
+      viewRoute: '/lessons/film-music-project/lesson4?view=melody',
+      subtitle: `${robotsWithMelodies} robot${robotsWithMelodies !== 1 ? 's' : ''} with melodies`,
+      category: 'Film Music Project',
+      data: saveData
+    });
 
     if (onSave) {
       onSave(saveData);
     }
 
     setShowSaveModal(false);
-    console.log('💾 Saved:', saveData);
+    console.log('💾 Saved to Join page:', saveData);
   }, [creationName, robots, songSlots, tempo, studentName, assignmentId, onSave]);
 
   // Auto-save on changes

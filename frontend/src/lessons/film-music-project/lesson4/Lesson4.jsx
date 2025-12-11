@@ -1,6 +1,7 @@
 // File: /src/lessons/film-music-project/lesson4/Lesson4.jsx
 // Epic Wildlife - Nature Documentary Video - Main lesson orchestrator
 // ✅ UPDATED: Uses TeacherLessonView for combined sidebar + presentation
+// ✅ UPDATED: Added view=melody support for Robot Melody Maker
 
 import React, { useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -61,6 +62,7 @@ const Lesson4 = () => {
   const searchParams = new URLSearchParams(location.search);
   const viewSavedMode = searchParams.get('view') === 'saved';
   const viewReflectionMode = searchParams.get('view') === 'reflection';
+  const viewMelodyMode = searchParams.get('view') === 'melody'; // ✅ NEW
 
   // Memoize currentStageData
   const currentStageData = useMemo(() => {
@@ -107,7 +109,7 @@ const Lesson4 = () => {
       return (
         <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900">
           <div className="text-center">
-            <div className="text-6xl mb-4">✓</div>
+            <div className="text-6xl mb-4">✔</div>
             <h1 className="text-white text-3xl font-bold mb-4">Session Has Ended</h1>
             <p className="text-gray-400 text-lg">Redirecting to join page...</p>
           </div>
@@ -227,7 +229,7 @@ const Lesson4 = () => {
   // ========================================
   // NORMAL MODE: LESSON START SCREEN
   // ========================================
-  if (!lesson.lessonStarted && !viewSavedMode && !viewReflectionMode) {
+  if (!lesson.lessonStarted && !viewSavedMode && !viewReflectionMode && !viewMelodyMode) {
     return (
       <LessonStartScreen
         config={lesson4Config}
@@ -253,6 +255,10 @@ const Lesson4 = () => {
     viewModeActive = true;
   } else if (viewReflectionMode) {
     activityToRender = lesson4Config.activities.find(a => a.type === 'two-stars-wish');
+    viewModeActive = true;
+  } else if (viewMelodyMode) {
+    // ✅ NEW: View saved Robot Melody Maker
+    activityToRender = lesson4Config.activities.find(a => a.type === 'monster-melody-maker');
     viewModeActive = true;
   }
 
