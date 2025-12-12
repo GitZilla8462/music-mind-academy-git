@@ -1,5 +1,9 @@
 // ============================================================================
-// FILE: usePlaybackHandlers.js - FIXED with track state initialization
+// FILE: usePlaybackHandlers.js - FIXED version
+// Key fixes:
+// 1. Schedule loops BEFORE starting transport (removes 150ms gap)
+// 2. Only reschedule on seek if transport was playing
+// 3. Use requestAnimationFrame for post-seek scheduling
 // ============================================================================
 
 import { useCallback, useRef } from 'react';
@@ -21,9 +25,21 @@ export const usePlaybackHandlers = ({
   scheduleLoops
 }) => {
 
-  // CRITICAL: Prevent rapid-fire reschedules after seek
   const lastScheduleTimeRef = useRef(0);
   const SCHEDULE_DEBOUNCE_MS = 200;
+
+  // Helper to get track states (with fallback defaults)
+  const getTrackStatesForScheduling = useCallback(() => {
+    const hasTrackStates = Object.keys(trackStates).length > 0;
+    if (hasTrackStates) return trackStates;
+    
+    console.log('🔧 Creating default track states for scheduling');
+    const defaults = {};
+    for (let i = 0; i < 8; i++) {
+      defaults[`track-${i}`] = { volume: 0.7, muted: false, solo: false };
+    }
+    return defaults;
+  }, [trackStates]);
 
   const handlePlay = useCallback(async () => {
     if (lockFeatures.allowPlayback === false) {
@@ -41,61 +57,35 @@ export const usePlaybackHandlers = ({
     }
     
     try {
-      console.log(`Starting playback with ${placedLoops.length} loops`);
+      console.log(`🎬 Starting playback with ${placedLoops.length} loops`);
       
-      // CRITICAL: Resume AudioContext if suspended (browser autoplay policy)
+      // Resume AudioContext if suspended (browser autoplay policy)
       if (Tone.context.state !== 'running') {
         console.log('🔊 AudioContext suspended - resuming...');
         await Tone.start();
         console.log('✅ AudioContext resumed');
       }
       
-      // Check if track states are initialized
-      const hasTrackStates = Object.keys(trackStates).length > 0;
-      if (!hasTrackStates) {
-        console.warn('⚠️  Track states not initialized yet!');
-      }
+      const statesForScheduling = getTrackStatesForScheduling();
       
-      // CRITICAL FIX: Start transport FIRST, then schedule immediately after
-      await play();
-      console.log('✅ Transport start called');
-      
-      // Now schedule loops while transport is running
+      // ✅ FIX: Schedule loops BEFORE starting transport
+      // This ensures all events are queued and ready to fire at time 0+
       if (placedLoops.length > 0) {
-        console.log('📅 Scheduling loops after transport start...');
-        
-        // IMPORTANT: Wait longer and verify transport is actually running
-        // Transport.start() is synchronous but state update has a tiny delay
-        await new Promise(resolve => setTimeout(resolve, 150));
-        
-        // Use track states if available, otherwise create default states
-        const statesForScheduling = hasTrackStates 
-          ? trackStates 
-          : (() => {
-              console.log('🔧 Creating default track states for scheduling');
-              const defaults = {};
-              for (let i = 0; i < 8; i++) {
-                defaults[`track-${i}`] = { 
-                  volume: 0.7, 
-                  muted: false, 
-                  solo: false 
-                };
-              }
-              return defaults;
-            })();
-        
-        console.log('🎵 Scheduling with track states:', Object.keys(statesForScheduling));
+        console.log('📅 Pre-scheduling loops before transport start...');
         scheduleLoops(placedLoops, selectedVideo?.duration || 60, statesForScheduling);
       }
       
-      console.log('Playback started successfully');
+      // Now start transport - scheduled events will fire immediately
+      await play();
+      console.log('✅ Transport started - playback begun');
+      
     } catch (error) {
       console.error('Error starting playback:', error);
       showToast?.('Failed to start playback', 'error');
     }
   }, [
     audioReady, placedLoops, scheduleLoops, selectedVideo?.duration, 
-    play, showToast, trackStates, onPlaybackStartCallback, lockFeatures
+    play, showToast, getTrackStatesForScheduling, onPlaybackStartCallback, lockFeatures
   ]);
 
   const handlePause = useCallback(() => {
@@ -109,56 +99,58 @@ export const usePlaybackHandlers = ({
     stop();
   }, [stop, onPlaybackStopCallback]);
 
-  // FIXED: Don't double-seek on restart
-  const handleRestart = useCallback(() => {
+  const handleRestart = useCallback(async () => {
     if (!audioReady) return;
     if (lockFeatures.allowPlayback === false) return;
     
     console.log('🔄 Restarting playback');
     
-    // Stop will trigger Transport stop event, which is fine
+    // Stop and reset
     stop();
-    
-    // CRITICAL: Only seek once, and the debounced seek will handle it
-    // No need to seek again since stop already handles cleanup
     seek(0);
-  }, [stop, seek, audioReady, lockFeatures]);
     
-  // FIXED: Debounced reschedule after seek
+    // Small delay then restart with fresh scheduling
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    // Now play (which will schedule loops)
+    await handlePlay();
+  }, [stop, seek, audioReady, lockFeatures, handlePlay]);
+    
   const handleSeek = useCallback((time) => {
     if (!audioReady) return;
     
-    console.log(`Seeking to ${time}s`);
+    console.log(`⏩ Seeking to ${time}s`);
     
-    // Seek is already debounced in useAudioEngine
+    // ✅ FIX: Capture playing state BEFORE seek
+    const wasPlaying = Tone.Transport.state === 'started';
+    
+    // Perform the seek
     seek(time);
     
-    // FIXED: Debounce the reschedule, not just the seek
+    // ✅ FIX: Only reschedule if transport was playing
+    if (!wasPlaying) {
+      console.log('  Transport paused - skipping reschedule');
+      return;
+    }
+    
+    // Debounce rapid seeks
     const now = Date.now();
     if (now - lastScheduleTimeRef.current < SCHEDULE_DEBOUNCE_MS) {
-      console.log('Skipping reschedule - too soon after last one');
+      console.log('  Skipping reschedule - too soon after last one');
       return;
     }
     
     if (placedLoops.length > 0) {
       lastScheduleTimeRef.current = now;
-      console.log('Rescheduling loops after seek...');
       
-      // Use track states if available, otherwise create defaults
-      const hasTrackStates = Object.keys(trackStates).length > 0;
-      const statesForScheduling = hasTrackStates 
-        ? trackStates 
-        : (() => {
-            const defaults = {};
-            for (let i = 0; i < 8; i++) {
-              defaults[`track-${i}`] = { volume: 0.7, muted: false, solo: false };
-            }
-            return defaults;
-          })();
-      
-      scheduleLoops(placedLoops, selectedVideo?.duration || 60, statesForScheduling);
+      // ✅ FIX: Use requestAnimationFrame to let seek complete first
+      requestAnimationFrame(() => {
+        console.log('  📅 Rescheduling loops after seek...');
+        const statesForScheduling = getTrackStatesForScheduling();
+        scheduleLoops(placedLoops, selectedVideo?.duration || 60, statesForScheduling);
+      });
     }
-  }, [audioReady, seek, placedLoops, scheduleLoops, selectedVideo?.duration, trackStates, SCHEDULE_DEBOUNCE_MS]);
+  }, [audioReady, seek, placedLoops, scheduleLoops, selectedVideo?.duration, getTrackStatesForScheduling]);
 
   return {
     handlePlay,
