@@ -180,10 +180,8 @@ export const useAudioEngine = (videoDuration = 60) => {
     clearScheduledEvents();
     
     const schedulingStartTime = Tone.Transport.seconds;
-    const isTransportPlaying = Tone.Transport.state === 'started';
     
     console.log(`\n=== SCHEDULING LOOPS at time ${schedulingStartTime.toFixed(2)}s ===`);
-    console.log(`Transport playing: ${isTransportPlaying}`);
     console.log(`Total loops to consider: ${placedLoops.length}`);
     
     const groupedLoops = new Map();
@@ -298,13 +296,10 @@ export const useAudioEngine = (videoDuration = 60) => {
           
           console.log(`  ▶️  Scheduling repeat ${i + 1}/${numRepeats} at Transport ${transportTime.toFixed(2)}s (video ${actualStartTime.toFixed(2)}s)`);
           
-          // Only actually schedule if transport is playing
-          if (!isTransportPlaying) {
-            console.log(`  ⏸️ Transport stopped - not scheduling this repeat`);
-            continue;
-          }
+          // FIXED: Removed the isTransportPlaying check that was preventing scheduling
+          // Tone.js handles scheduling relative to transport start with +transportTime syntax
           
-          const actualPlayer = player.isNative ? player.audio : player;
+          const currentPlayer = player.isNative ? player.audio : player;
           
           if (player.isNative) {
             // Native HTML5 Audio - clone the audio element for each repeat
@@ -342,7 +337,7 @@ export const useAudioEngine = (videoDuration = 60) => {
             scheduledCount++;
           } else {
             // ✅ CRITICAL: Tone.js Player - provide loopOffset parameter (includes trim offset!)
-            actualPlayer.start(`+${transportTime}`, loopOffset, actualDuration);
+            currentPlayer.start(`+${transportTime}`, loopOffset, actualDuration);
             scheduledCount++;
           }
         }
