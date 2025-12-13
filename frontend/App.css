@@ -1,0 +1,18 @@
+
+/* CHROMEBOOK CURSOR FIX */
+.interaction-overlay,
+.video-player-container,
+.loop-block {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: cursor;
+}
+
+.loop-block * {
+  cursor: inherit !important;
+  pointer-events: none !important;
+}
+
+.video-player-container video {
+  pointer-events: none !important;
+}
