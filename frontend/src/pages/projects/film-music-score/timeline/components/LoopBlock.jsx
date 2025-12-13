@@ -508,10 +508,10 @@ const LoopBlock = React.memo(({
 
   return (
     <div
-      className={`loop-block absolute cursor-grab transition-all duration-150 ${
+      className={`loop-block absolute transition-all duration-150 ${
         trackState?.muted ? 'opacity-50' : ''
       } ${
-        isDragged ? 'opacity-60 cursor-grabbing' : ''
+        isDragged ? 'opacity-60' : ''
       } ${
         isResizing ? 'z-50' : 'z-10'
       } ${
@@ -525,6 +525,7 @@ const LoopBlock = React.memo(({
         backgroundColor: isMultiSelected ? categoryColor.accent + '40' : categoryColor.bg,
         borderRadius: '4px',
         overflow: 'hidden',
+        cursor: isDragged ? 'grabbing' : 'grab',  // CURSOR FIX: Inline style for higher specificity
         ...dragStyle
       }}
       onMouseDown={handleMouseDown}
@@ -703,7 +704,8 @@ const LoopBlock = React.memo(({
           className="absolute inset-0 pointer-events-none rounded"
           style={{
             border: '2px solid #60a5fa',
-            boxShadow: '0 0 0 1px rgba(96, 165, 250, 0.3)'
+            boxShadow: '0 0 0 1px rgba(96, 165, 250, 0.3)',
+            cursor: 'inherit'
           }}
         />
       )}
@@ -717,12 +719,16 @@ const LoopBlock = React.memo(({
         style={{ 
           opacity: 0.9,
           width: `${width}px`,
-          height: `${TIMELINE_CONSTANTS.TRACK_HEIGHT - 16}px`
+          height: `${TIMELINE_CONSTANTS.TRACK_HEIGHT - 16}px`,
+          cursor: 'inherit'
         }}
       />
 
       {/* Loop Info - Just name and duration, no delete button */}
-      <div className="absolute inset-0 p-2 flex items-center justify-between pointer-events-none">
+      <div 
+        className="absolute inset-0 p-2 flex items-center justify-between pointer-events-none"
+        style={{ cursor: 'inherit' }}
+      >
         <div className="flex flex-col min-w-0">
           <span 
             className="text-xs font-medium truncate"
