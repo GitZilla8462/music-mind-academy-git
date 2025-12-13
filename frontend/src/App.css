@@ -76,3 +76,8 @@ body, html {
 .chromebook-mode .video-player-container {
   cursor: pointer !important;
 }
+/* Video player area - target by Tailwind classes */
+.chromebook-mode .bg-black.relative,
+.chromebook-mode .bg-black.relative * {
+  cursor: pointer !important;
+}
