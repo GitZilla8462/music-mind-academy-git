@@ -124,8 +124,11 @@ const VideoPlayer = ({
   }
 
   return (
-    <div className={`h-full w-full bg-black relative flex items-center justify-center video-player-container ${highlighted ? 'tutorial-highlight' : ''}`}>
-      <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded text-sm font-medium z-10">
+    <div 
+      className={`h-full w-full bg-black relative flex items-center justify-center video-player-container cursor-pointer ${highlighted ? 'tutorial-highlight' : ''}`}
+      onClick={handleVideoClick}
+    >
+      <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded text-sm font-medium z-10 pointer-events-none">
         Video Playback Area
         {selectedVideo?.title && (
           <span className="ml-2 text-gray-300">- {selectedVideo.title}</span>
@@ -133,11 +136,11 @@ const VideoPlayer = ({
       </div>
 
       {/* CHROMEBOOK OPTIMIZATION: preload="auto" and playsInline */}
+      {/* CURSOR FIX: pointer-events-none so container handles all clicks consistently */}
       <video
         ref={videoRef}
         src={actualVideoUrl}
-        className="max-h-full max-w-full object-contain cursor-pointer"
-        onClick={handleVideoClick}
+        className="max-h-full max-w-full object-contain pointer-events-none"
         preload="auto"
         playsInline
         style={{ width: 'auto', height: 'auto' }}

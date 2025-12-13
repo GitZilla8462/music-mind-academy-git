@@ -507,10 +507,10 @@ const LoopBlock = React.memo(({
 
   return (
     <div
-      className={`loop-block absolute cursor-move transition-all duration-150 ${
+      className={`loop-block absolute cursor-grab transition-all duration-150 ${
         trackState?.muted ? 'opacity-50' : ''
       } ${
-        isDragged ? 'opacity-60' : ''
+        isDragged ? 'opacity-60 cursor-grabbing' : ''
       } ${
         isResizing ? 'z-50' : 'z-10'
       } ${
@@ -753,21 +753,27 @@ const LoopBlock = React.memo(({
 
       {/* LEFT EDGE - No resize handle, clicking here will trigger loop drag */}
 
-      {/* RIGHT RESIZE HANDLE */}
+      {/* RIGHT RESIZE HANDLE - Wide hit area, thin visible line */}
       <div
-        className={`resize-handle absolute top-0 bottom-0 right-0 cursor-col-resize transition-all ${
-          isResizing && resizeDirection === 'right'
-            ? 'bg-blue-500 w-2 opacity-100' 
-            : 'bg-blue-400 hover:bg-blue-300 w-1 opacity-60'
-        }`}
+        className="resize-handle absolute top-0 bottom-0 right-0 cursor-ew-resize"
         onMouseDown={(e) => handleResizeStart(e, 'right')}
         title="Drag to resize loop"
         data-resize-handle="right"
         style={{
-          width: isResizing && resizeDirection === 'right' ? '8px' : '4px',
+          width: '16px',  // Wide hit area for easy grabbing
+          marginRight: '-8px',  // Center the hit area on the edge
           zIndex: 1000
         }}
       >
+        {/* Visible resize line - only shows on hover/resize */}
+        <div 
+          className={`absolute top-0 bottom-0 right-2 transition-all ${
+            isResizing && resizeDirection === 'right'
+              ? 'bg-blue-500 w-2 opacity-100' 
+              : 'bg-blue-400 hover:bg-blue-300 w-1 opacity-0 hover:opacity-60'
+          }`}
+          style={{ pointerEvents: 'none' }}
+        />
         {isResizing && resizeDirection === 'right' && (
           <div className="absolute -top-10 right-0 bg-black bg-opacity-90 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 pointer-events-none">
             {Math.round((loop.endTime - loop.startTime) * 10) / 10}s ({numRepeats}x)
