@@ -559,6 +559,15 @@ const App = () => {
     document.title = siteMode === 'edu' ? 'Music Room Tools' : 'Music Mind Academy';
   }, []);
 
+  // Chromebook detection - disable fancy cursors for stability
+  useEffect(() => {
+    const isChromeOS = /\bCrOS\b/.test(navigator.userAgent);
+    if (isChromeOS) {
+      document.body.classList.add('chromebook-mode');
+      console.log('🖥️ Chromebook detected - cursor stabilization enabled');
+    }
+  }, []);
+
   return (
     <Router>
       <AuthProvider>

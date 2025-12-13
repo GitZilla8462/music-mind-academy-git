@@ -321,11 +321,11 @@ const InteractionOverlay = ({
   const handleMouseMove = useCallback((e) => {
     const { x, y } = getMousePosition(e);
     
-    // CHROMEBOOK FIX: Throttle cursor updates to 50ms when not actively dragging
+    // CHROMEBOOK FIX: Throttle cursor updates to 100ms when not actively dragging
     // This prevents visible cursor flicker on slower GPU compositors
     if (!isDraggingLoop && !isResizing && !isDraggingPlayhead && !isSelecting) {
       const now = Date.now();
-      if (now - cursorUpdateRef.current > 50) {
+      if (now - cursorUpdateRef.current > 100) {
         cursorUpdateRef.current = now;
         setCursorStyle(calculateCursor(x, y));
       }

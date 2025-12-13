@@ -128,29 +128,21 @@ const VideoPlayer = ({
     );
   }
 
-  // Debug cursor - throttled
-  const lastVideoLogRef = React.useRef(0);
-  
   return (
     <div 
       className={`h-full w-full bg-black relative flex items-center justify-center video-player-container ${highlighted ? 'tutorial-highlight' : ''}`}
       onClick={handleVideoClick}
       // CHROMEBOOK FIX: Force stable cursor with GPU acceleration
+      // Using !important-equivalent inline style with all cursor-related properties
       style={{ 
         cursor: 'pointer',
         // GPU acceleration to prevent cursor flicker
-        willChange: 'transform',
+        willChange: 'auto',
         transform: 'translateZ(0)',
         WebkitBackfaceVisibility: 'hidden',
-        isolation: 'isolate'
-      }}
-      onMouseMove={(e) => {
-        const now = Date.now();
-        if (now - lastVideoLogRef.current > 500) {
-          lastVideoLogRef.current = now;
-          const target = e.target;
-          console.log(`🎬 VIDEO CURSOR: target=${target.tagName}, class=${target.className?.slice?.(0,40) || 'none'}`);
-        }
+        isolation: 'isolate',
+        // Force compositing layer
+        contain: 'layout style paint'
       }}
     >
       <div 

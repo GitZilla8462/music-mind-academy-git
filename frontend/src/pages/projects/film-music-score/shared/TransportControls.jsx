@@ -66,7 +66,11 @@ const TransportControls = ({
   };
 
   return (
-    <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-gray-700">
+    <div 
+      className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-gray-700"
+      // CHROMEBOOK FIX: Force consistent cursor
+      style={{ cursor: 'default' }}
+    >
       {/* Main Transport Section - Reduced height */}
       <div className="px-6 py-2">
         {/* Single Row Layout */}
