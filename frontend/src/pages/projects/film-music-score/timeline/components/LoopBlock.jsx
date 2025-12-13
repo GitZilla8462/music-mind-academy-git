@@ -755,22 +755,22 @@ const LoopBlock = React.memo(({
 
       {/* RIGHT RESIZE HANDLE - Wide hit area, thin visible line */}
       <div
-        className="resize-handle absolute top-0 bottom-0 right-0 cursor-ew-resize"
+        className="resize-handle absolute top-0 bottom-0 cursor-ew-resize"
         onMouseDown={(e) => handleResizeStart(e, 'right')}
         title="Drag to resize loop"
         data-resize-handle="right"
         style={{
-          width: '16px',  // Wide hit area for easy grabbing
-          marginRight: '-8px',  // Center the hit area on the edge
+          right: 0,
+          width: '12px',  // Wide hit area inside the loop
           zIndex: 1000
         }}
       >
-        {/* Visible resize line - only shows on hover/resize */}
+        {/* Visible resize line - right edge */}
         <div 
-          className={`absolute top-0 bottom-0 right-2 transition-all ${
+          className={`absolute top-0 bottom-0 right-0 transition-all ${
             isResizing && resizeDirection === 'right'
               ? 'bg-blue-500 w-2 opacity-100' 
-              : 'bg-blue-400 hover:bg-blue-300 w-1 opacity-0 hover:opacity-60'
+              : 'bg-blue-400 w-1 opacity-0 hover:opacity-60'
           }`}
           style={{ pointerEvents: 'none' }}
         />
