@@ -123,10 +123,21 @@ const VideoPlayer = ({
     );
   }
 
+  // Debug cursor - throttled
+  const lastVideoLogRef = React.useRef(0);
+  
   return (
     <div 
       className={`h-full w-full bg-black relative flex items-center justify-center video-player-container cursor-pointer ${highlighted ? 'tutorial-highlight' : ''}`}
       onClick={handleVideoClick}
+      onMouseMove={(e) => {
+        const now = Date.now();
+        if (now - lastVideoLogRef.current > 500) {
+          lastVideoLogRef.current = now;
+          const target = e.target;
+          console.log(`🎬 VIDEO CURSOR: target=${target.tagName}, class=${target.className?.slice?.(0,40) || 'none'}`);
+        }
+      }}
     >
       <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded text-sm font-medium z-10 pointer-events-none">
         Video Playback Area

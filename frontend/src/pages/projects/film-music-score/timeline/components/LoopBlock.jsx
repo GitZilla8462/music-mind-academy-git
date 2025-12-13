@@ -36,6 +36,7 @@ const LoopBlock = React.memo(({
   const canvasRef = useRef(null);
   const waveformCacheRef = useRef(new Map());
   const contextMenuRef = useRef(null);
+  const lastCursorLogRef = useRef(0);  // Throttle cursor debug logging
 
   // NEW: Initialize resize snap guide hook
   const { applySnapping, updateSnapGuide, hideSnapGuide } = useLoopResize(
@@ -528,6 +529,16 @@ const LoopBlock = React.memo(({
       }}
       onMouseDown={handleMouseDown}
       onContextMenu={handleContextMenu}
+      onMouseMove={(e) => {
+        const now = Date.now();
+        if (now - lastCursorLogRef.current > 300) {
+          lastCursorLogRef.current = now;
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const isNearRightEdge = x > rect.width - 12;
+          console.log(`🎯 LOOP CURSOR: x=${Math.round(x)}, width=${Math.round(rect.width)}, nearEdge=${isNearRightEdge}, target=${e.target.className?.slice?.(0,30) || e.target.tagName}`);
+        }
+      }}
       data-loop-id={loop.id}
     >
       {/* Logic Pro Style - Rounded Rectangle with Smart-Contrast Notches */}
@@ -757,6 +768,8 @@ const LoopBlock = React.memo(({
       <div
         className="resize-handle absolute top-0 bottom-0 cursor-ew-resize"
         onMouseDown={(e) => handleResizeStart(e, 'right')}
+        onMouseEnter={() => console.log('🎯 CURSOR: Entered resize handle')}
+        onMouseLeave={() => console.log('🎯 CURSOR: Left resize handle')}
         title="Drag to resize loop"
         data-resize-handle="right"
         style={{
