@@ -553,8 +553,8 @@ const LoopBlock = React.memo(({
       `}</style>
       {/* Logic Pro Style - Rounded Rectangle with Smart-Contrast Notches */}
       <svg
-        className="absolute inset-0 pointer-events-none"
-        style={{ width: '100%', height: '100%', overflow: 'visible' }}
+        className="absolute inset-0"
+        style={{ width: '100%', height: '100%', overflow: 'visible', pointerEvents: 'none' }}
       >
         <path
           d={(() => {
@@ -690,7 +690,7 @@ const LoopBlock = React.memo(({
           return (
             <div
               key={i}
-              className="absolute pointer-events-none"
+              className="absolute"
               style={{
                 left: `${x}px`,
                 top: '2px',
@@ -700,7 +700,8 @@ const LoopBlock = React.memo(({
                 backgroundColor: separatorColor,
                 opacity: 0.7,  // MORE VISIBLE: Increased from 0.5 to 0.7
                 boxShadow: `0 0 6px ${separatorColor}, 0 0 2px ${separatorColor}`,  // STRONGER GLOW
-                borderRadius: '1px'
+                borderRadius: '1px',
+                pointerEvents: 'none'
               }}
             />
           );
@@ -710,11 +711,11 @@ const LoopBlock = React.memo(({
       {/* Selection Highlight */}
       {isSelected && (
         <div 
-          className="absolute inset-0 pointer-events-none rounded"
+          className="absolute inset-0 rounded"
           style={{
             border: '2px solid #60a5fa',
             boxShadow: '0 0 0 1px rgba(96, 165, 250, 0.3)',
-            cursor: 'inherit'
+            pointerEvents: 'none'
           }}
         />
       )}
@@ -724,30 +725,30 @@ const LoopBlock = React.memo(({
         ref={canvasRef}
         width={Math.max(1, width)} 
         height={Math.max(1, TIMELINE_CONSTANTS.TRACK_HEIGHT - 16)}
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0"
         style={{ 
           opacity: 0.9,
           width: `${width}px`,
           height: `${TIMELINE_CONSTANTS.TRACK_HEIGHT - 16}px`,
-          cursor: 'inherit'
+          pointerEvents: 'none'
         }}
       />
 
       {/* Loop Info - Just name and duration, no delete button */}
       <div 
-        className="absolute inset-0 p-2 flex items-center justify-between pointer-events-none"
-        style={{ cursor: 'inherit' }}
+        className="absolute inset-0 p-2 flex items-center justify-between"
+        style={{ pointerEvents: 'none', cursor: 'inherit' }}
       >
-        <div className="flex flex-col min-w-0">
+        <div className="flex flex-col min-w-0" style={{ pointerEvents: 'none' }}>
           <span 
             className="text-xs font-medium truncate"
-            style={{ color: categoryColor.text }}
+            style={{ color: categoryColor.text, pointerEvents: 'none' }}
           >
             {loop.name}
           </span>
           <span 
             className="text-xs opacity-75 truncate"
-            style={{ color: categoryColor.text }}
+            style={{ color: categoryColor.text, pointerEvents: 'none' }}
           >
             {Math.round((loop.endTime - loop.startTime) * 10) / 10}s
           </span>
@@ -803,7 +804,7 @@ const LoopBlock = React.memo(({
           style={{ pointerEvents: 'none' }}
         />
         {isResizing && resizeDirection === 'right' && (
-          <div className="absolute -top-10 right-0 bg-black bg-opacity-90 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 pointer-events-none">
+          <div className="absolute -top-10 right-0 bg-black bg-opacity-90 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50" style={{ pointerEvents: 'none' }}>
             {Math.round((loop.endTime - loop.startTime) * 10) / 10}s ({numRepeats}x)
           </div>
         )}
@@ -811,8 +812,8 @@ const LoopBlock = React.memo(({
 
       {/* Loading Indicator */}
       {isGeneratingWaveform && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
-          <div className="text-xs" style={{ color: categoryColor.text }}>
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20" style={{ pointerEvents: 'none' }}>
+          <div className="text-xs" style={{ color: categoryColor.text, pointerEvents: 'none' }}>
             Generating waveform...
           </div>
         </div>
