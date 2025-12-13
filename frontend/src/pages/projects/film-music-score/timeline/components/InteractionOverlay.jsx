@@ -82,6 +82,9 @@ const InteractionOverlay = ({
   const rafRef = useRef(null);
   const isShiftKeyRef = useRef(false);
   
+  // CHROMEBOOK FIX: Throttle cursor updates to prevent flickering
+  const cursorUpdateRef = useRef(0);
+  
   // Snap guide ref
   const snapGuideRef = useRef(null);
 
@@ -318,9 +321,14 @@ const InteractionOverlay = ({
   const handleMouseMove = useCallback((e) => {
     const { x, y } = getMousePosition(e);
     
-    // Update cursor based on position (always, even during drag)
+    // CHROMEBOOK FIX: Throttle cursor updates to 50ms when not actively dragging
+    // This prevents visible cursor flicker on slower GPU compositors
     if (!isDraggingLoop && !isResizing && !isDraggingPlayhead && !isSelecting) {
-      setCursorStyle(calculateCursor(x, y));
+      const now = Date.now();
+      if (now - cursorUpdateRef.current > 50) {
+        cursorUpdateRef.current = now;
+        setCursorStyle(calculateCursor(x, y));
+      }
     }
     
     // Handle active drag operations
@@ -665,7 +673,12 @@ const InteractionOverlay = ({
         cursor: cursorStyle,
         zIndex: 50,
         // Transparent but captures all events
-        backgroundColor: 'transparent'
+        backgroundColor: 'transparent',
+        // CHROMEBOOK FIX: GPU acceleration to prevent cursor flicker
+        willChange: 'cursor',
+        transform: 'translateZ(0)',
+        WebkitBackfaceVisibility: 'hidden',
+        isolation: 'isolate'
       }}
       onMouseMove={handleMouseMove}
       onMouseDown={handleMouseDown}

@@ -2,6 +2,7 @@
 // OPTIMIZED FOR CHROMEBOOK PERFORMANCE - SYNC DISABLED
 // UPDATED: Added tutorial highlight support
 // FIXED: Wrapped in React.memo to prevent cursor flickering during playback
+// CHROMEBOOK FIX: Stable cursor to prevent flickering
 
 import React, { useRef, useEffect, useState } from 'react';
 import { Play } from 'lucide-react';
@@ -109,7 +110,11 @@ const VideoPlayer = ({
   // Check if we have a valid video URL
   if (!actualVideoUrl) {
     return (
-      <div className={`h-full w-full bg-black flex items-center justify-center relative ${highlighted ? 'tutorial-highlight' : ''}`}>
+      <div 
+        className={`h-full w-full bg-black flex items-center justify-center relative ${highlighted ? 'tutorial-highlight' : ''}`}
+        // CHROMEBOOK FIX: Force stable cursor
+        style={{ cursor: 'default' }}
+      >
         <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded text-sm font-medium z-10">
           Video Playback Area
         </div>
@@ -128,8 +133,17 @@ const VideoPlayer = ({
   
   return (
     <div 
-      className={`h-full w-full bg-black relative flex items-center justify-center video-player-container cursor-pointer ${highlighted ? 'tutorial-highlight' : ''}`}
+      className={`h-full w-full bg-black relative flex items-center justify-center video-player-container ${highlighted ? 'tutorial-highlight' : ''}`}
       onClick={handleVideoClick}
+      // CHROMEBOOK FIX: Force stable cursor with GPU acceleration
+      style={{ 
+        cursor: 'pointer',
+        // GPU acceleration to prevent cursor flicker
+        willChange: 'transform',
+        transform: 'translateZ(0)',
+        WebkitBackfaceVisibility: 'hidden',
+        isolation: 'isolate'
+      }}
       onMouseMove={(e) => {
         const now = Date.now();
         if (now - lastVideoLogRef.current > 500) {
@@ -139,7 +153,11 @@ const VideoPlayer = ({
         }
       }}
     >
-      <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded text-sm font-medium z-10 pointer-events-none">
+      <div 
+        className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded text-sm font-medium z-10"
+        // CHROMEBOOK FIX: Prevent label from interfering with cursor
+        style={{ pointerEvents: 'none' }}
+      >
         Video Playback Area
         {selectedVideo?.title && (
           <span className="ml-2 text-gray-300">- {selectedVideo.title}</span>
@@ -151,10 +169,15 @@ const VideoPlayer = ({
       <video
         ref={videoRef}
         src={actualVideoUrl}
-        className="max-h-full max-w-full object-contain pointer-events-none"
+        className="max-h-full max-w-full object-contain"
         preload="auto"
         playsInline
-        style={{ width: 'auto', height: 'auto' }}
+        style={{ 
+          width: 'auto', 
+          height: 'auto',
+          pointerEvents: 'none',
+          cursor: 'inherit'
+        }}
       />
     </div>
   );

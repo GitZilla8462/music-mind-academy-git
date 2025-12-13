@@ -244,7 +244,9 @@ const LoopBlock = React.memo(({
             : '0 2px 4px rgba(0, 0, 0, 0.2)',
         zIndex: isDragged ? 100 : (isSelected ? 30 : 20),
         // CRITICAL: No pointer events - overlay handles everything
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+        // CHROMEBOOK FIX: Prevent cursor inheritance issues
+        cursor: 'inherit'
       }}
     >
       {/* SVG Border with notches */}
@@ -252,7 +254,7 @@ const LoopBlock = React.memo(({
         className="absolute inset-0 w-full h-full"
         viewBox={`0 0 ${width} ${blockHeight}`}
         preserveAspectRatio="none"
-        style={{ pointerEvents: 'none' }}
+        style={{ pointerEvents: 'none', cursor: 'inherit' }}
       >
         <path
           d={(() => {
@@ -358,7 +360,8 @@ const LoopBlock = React.memo(({
                 opacity: 0.7,
                 boxShadow: '0 0 6px #ffffff, 0 0 2px #ffffff',
                 borderRadius: '1px',
-                pointerEvents: 'none'
+                pointerEvents: 'none',
+                cursor: 'inherit'
               }}
             />
           );
@@ -372,7 +375,8 @@ const LoopBlock = React.memo(({
           style={{
             border: '2px solid #60a5fa',
             boxShadow: '0 0 0 1px rgba(96, 165, 250, 0.3)',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            cursor: 'inherit'
           }}
         />
       )}
@@ -383,7 +387,8 @@ const LoopBlock = React.memo(({
           className="absolute inset-0 rounded"
           style={{
             border: '2px dashed #60a5fa',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            cursor: 'inherit'
           }}
         />
       )}
@@ -398,25 +403,26 @@ const LoopBlock = React.memo(({
           opacity: 0.9,
           width: `${width}px`,
           height: `${TIMELINE_CONSTANTS.TRACK_HEIGHT - 16}px`,
-          pointerEvents: 'none'
+          pointerEvents: 'none',
+          cursor: 'inherit'
         }}
       />
 
       {/* Loop info - name and duration */}
       <div 
         className="absolute inset-0 p-2 flex items-center justify-between"
-        style={{ pointerEvents: 'none' }}
+        style={{ pointerEvents: 'none', cursor: 'inherit' }}
       >
-        <div className="flex flex-col min-w-0" style={{ pointerEvents: 'none' }}>
+        <div className="flex flex-col min-w-0" style={{ pointerEvents: 'none', cursor: 'inherit' }}>
           <span 
             className="text-xs font-medium truncate"
-            style={{ color: categoryColor.text, pointerEvents: 'none' }}
+            style={{ color: categoryColor.text, pointerEvents: 'none', cursor: 'inherit' }}
           >
             {loop.name}
           </span>
           <span 
             className="text-xs opacity-75 truncate"
-            style={{ color: categoryColor.text, pointerEvents: 'none' }}
+            style={{ color: categoryColor.text, pointerEvents: 'none', cursor: 'inherit' }}
           >
             {Math.round((loop.endTime - loop.startTime) * 10) / 10}s
           </span>
@@ -426,16 +432,16 @@ const LoopBlock = React.memo(({
       {/* Resize indicator (visual only - no interaction) */}
       <div 
         className="absolute top-0 bottom-0 right-0 w-1 bg-blue-400 opacity-0 hover:opacity-60 transition-opacity"
-        style={{ pointerEvents: 'none' }}
+        style={{ pointerEvents: 'none', cursor: 'inherit' }}
       />
 
       {/* Loading indicator */}
       {isGeneratingWaveform && (
         <div 
           className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20"
-          style={{ pointerEvents: 'none' }}
+          style={{ pointerEvents: 'none', cursor: 'inherit' }}
         >
-          <div className="text-xs" style={{ color: categoryColor.text }}>
+          <div className="text-xs" style={{ color: categoryColor.text, cursor: 'inherit' }}>
             Loading...
           </div>
         </div>
