@@ -64,20 +64,16 @@ body, html {
    CHROMEBOOK MODE - Disable fancy cursors for stability
    ============================================================================= */
 
-.chromebook-mode,
-.chromebook-mode * {
-  cursor: default !important;
+/* =============================================================================
+   CHROMEBOOK MODE - Disable fancy cursors for stability
+   ============================================================================= */
+
+/* Only target the video player area */
+.chromebook-mode .bg-black.relative {
+  cursor: pointer !important;
 }
 
-.chromebook-mode button,
-.chromebook-mode a,
-.chromebook-mode [role="button"],
-.chromebook-mode input[type="range"],
-.chromebook-mode .video-player-container {
+.chromebook-mode .bg-black.relative video {
   cursor: pointer !important;
-}
-/* Video player area - target by Tailwind classes */
-.chromebook-mode .bg-black.relative,
-.chromebook-mode .bg-black.relative * {
-  cursor: pointer !important;
+  pointer-events: none !important;
 }
