@@ -1,5 +1,6 @@
 // File: /src/pages/projects/film-music-score/timeline/components/TimeMarkers.jsx
-// UPDATED: Added TIMELINE label inline with time markers at the left
+// REFACTORED: Pure visual component with pointer-events: none
+// Time markers with labels and hash marks
 
 import React from 'react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
@@ -17,10 +18,19 @@ const TimeMarkers = ({ duration, timeToPixel, showTimelineLabel = false }) => {
       <div
         key={`major-${i}`}
         className="absolute flex flex-col items-center text-white"
-        style={{ left: timeToPixel(i) - 13 }}
+        style={{ 
+          left: timeToPixel(i) - 13,
+          pointerEvents: 'none'
+        }}
       >
-        <div className="w-px h-3 bg-white opacity-80" />
-        <span className="text-xs font-mono leading-none">
+        <div 
+          className="w-px h-3 bg-white opacity-80"
+          style={{ pointerEvents: 'none' }}
+        />
+        <span 
+          className="text-xs font-mono leading-none"
+          style={{ pointerEvents: 'none' }}
+        >
           {minutes}:{seconds.toString().padStart(2, '0')}
         </span>
       </div>
@@ -35,31 +45,47 @@ const TimeMarkers = ({ duration, timeToPixel, showTimelineLabel = false }) => {
         <div
           key={`minor-${i}`}
           className="absolute"
-          style={{ left: timeToPixel(i) }}
+          style={{ 
+            left: timeToPixel(i),
+            pointerEvents: 'none'
+          }}
         >
-          <div className="w-px h-2 bg-white opacity-40" />
+          <div 
+            className="w-px h-2 bg-white opacity-40"
+            style={{ pointerEvents: 'none' }}
+          />
         </div>
       );
     }
   }
 
   return (
-    <>
+    <div style={{ pointerEvents: 'none' }}>
       {/* TIMELINE label - positioned at the very left, inline with time markers */}
       {showTimelineLabel && (
         <div
           className="absolute flex items-end text-white"
-          style={{ left: -60, bottom: 0 }}
+          style={{ 
+            left: -60, 
+            bottom: 0,
+            pointerEvents: 'none'
+          }}
         >
-          <span className="text-xs font-semibold">TIMELINE</span>
+          <span 
+            className="text-xs font-semibold"
+            style={{ pointerEvents: 'none' }}
+          >
+            TIMELINE
+          </span>
         </div>
       )}
       
       {/* Major time markers with labels */}
       {timeMarkers}
+      
       {/* Minor second markers (hash marks) */}
       {secondMarkers}
-    </>
+    </div>
   );
 };
 

@@ -1,4 +1,7 @@
-// Updated Timeline.jsx - Added selection box for multi-select functionality
+// File: /src/pages/projects/film-music-score/timeline/Timeline.jsx
+// REFACTORED: Works with InteractionOverlay for cursor-flicker-free interaction
+// Selection box and playhead dragging handled by overlay
+
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import TimelineHeader from './TimelineHeader';
 import TimelineContent from './TimelineContent';
@@ -6,7 +9,6 @@ import TimelineScrollbar from './TimelineScrollbar';
 import TimelineStatusBar from './TimelineStatusBar';
 import { useTimelineState } from './hooks/useTimelineState';
 import { useTimelineScroll } from './hooks/useTimelineScroll';
-import { usePlayheadDrag } from './hooks/usePlayheadDrag';
 import { useSelectionBox } from './hooks/useSelectionBox';
 
 const Timeline = ({
@@ -42,6 +44,9 @@ const Timeline = ({
 
   // Multi-selection state
   const [multiSelectedLoops, setMultiSelectedLoops] = useState([]);
+  
+  // Playhead dragging state - managed here, used by overlay
+  const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false);
 
   // Custom hooks for state management
   const {
@@ -91,13 +96,6 @@ const Timeline = ({
     handleTimeHeaderScroll
   } = useTimelineScroll(timelineScrollRef, headerScrollRef, timeHeaderRef);
 
-  // Custom hook for playhead dragging
-  const {
-    isDraggingPlayhead,
-    handlePlayheadMouseDown,
-    handleTimelineClick
-  } = usePlayheadDrag(timelineRef, pixelToTime, duration, onSeek);
-
   // Wrap zoom change to notify parent
   const handleZoomChangeWithCallback = (newZoom) => {
     const oldZoom = localZoom;
@@ -110,6 +108,11 @@ const Timeline = ({
   // Handle multi-delete with Delete/Backspace key
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Skip if typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+      
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedLoopIds.size > 0) {
         e.preventDefault();
         
@@ -148,7 +151,7 @@ const Timeline = ({
           onSeek={onSeek}
         />
         
-        {/* Timeline Content */}
+        {/* Timeline Content - Now uses InteractionOverlay internally */}
         <TimelineContent
           ref={{
             timelineRef,
@@ -164,6 +167,7 @@ const Timeline = ({
           timeToPixel={timeToPixel}
           pixelToTime={pixelToTime}
           isDraggingPlayhead={isDraggingPlayhead}
+          setIsDraggingPlayhead={setIsDraggingPlayhead}
           draggedLoop={draggedLoop}
           setDraggedLoop={setDraggedLoop}
           dragOffset={dragOffset}
@@ -176,7 +180,7 @@ const Timeline = ({
           onLoopUpdate={onLoopUpdate}
           onLoopResizeCallback={onLoopResizeCallback}
           onSeek={onSeek}
-          onPlayheadMouseDown={handlePlayheadMouseDown}
+          onPlayheadMouseDown={() => setIsDraggingPlayhead(true)}
           onTimelineScroll={handleTimelineScroll}
           onHeaderScroll={handleHeaderScroll}
           onTimeHeaderScroll={handleTimeHeaderScroll}

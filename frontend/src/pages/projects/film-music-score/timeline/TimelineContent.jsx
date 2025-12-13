@@ -1,17 +1,17 @@
 // File: /src/pages/projects/film-music-score/timeline/TimelineContent.jsx
-// FIXED: Hidden left scrollbar - only right scrollbar is visible
-// FIXED: Video bar now displays the FULL duration without cutting off the ending
-// The video bar width is now calculated correctly to match the actual video duration
+// REFACTORED: Uses InteractionOverlay for all mouse events
+// Visual elements have pointer-events: none
+// This eliminates cursor flickering on Chromebooks
 
-import React, { forwardRef, useCallback } from 'react';
+import React, { forwardRef, useCallback, useState } from 'react';
 import TimeMarkers from './components/TimeMarkers';
 import VideoTrackHeader from './components/VideoTrackHeader';
 import TrackHeader from './components/TrackHeader';
 import LoopBlock from './components/LoopBlock';
 import Playhead from './components/Playhead';
 import TimelineGrid from './components/TimelineGrid';
+import InteractionOverlay from './components/InteractionOverlay';
 import { TIMELINE_CONSTANTS } from './constants/timelineConstants';
-import { useLoopDrag } from './hooks/useLoopDrag';
 
 const TimelineContent = forwardRef(({
   placedLoops,
@@ -22,6 +22,7 @@ const TimelineContent = forwardRef(({
   timeToPixel,
   pixelToTime,
   isDraggingPlayhead,
+  setIsDraggingPlayhead,
   draggedLoop,
   setDraggedLoop,
   dragOffset,
@@ -47,7 +48,7 @@ const TimelineContent = forwardRef(({
   lockFeatures = {},
   highlightSelector,
   showTimelineLabel = false,
-  // NEW: Selection box props
+  // Selection box props
   selectionBox,
   selectedLoopIds,
   setSelectedLoopIds,
@@ -60,105 +61,133 @@ const TimelineContent = forwardRef(({
   timeHeaderRef
 }) => {
 
-  // FIXED: Pass placedLoops and selectedLoopIds for multi-select dragging
-  const { handleLoopMouseDown } = useLoopDrag(
-    timelineRef,
-    timelineScrollRef,
-    draggedLoop,
-    setDraggedLoop,
-    dragOffset,
-    setDragOffset,
-    pixelToTime,
-    timeToPixel,
-    duration,
-    localZoom,
-    onLoopUpdate,
-    onLoopSelect,
-    placedLoops,
-    selectedLoopIds  // NEW: Pass selected loop IDs for multi-select drag
-  );
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState(null);
 
-  // Wrap onLoopSelect to maintain multi-selection when clicking a multi-selected loop
-  const handleLoopSelectWithMulti = useCallback((loopId) => {
-    // If this loop is already in the multi-selection, don't clear it
-    if (selectedLoopIds?.has(loopId) && selectedLoopIds.size > 1) {
-      // Don't call onLoopSelect - keep the multi-selection intact
-      return;
-    }
-    // Otherwise, use normal single selection
-    onLoopSelect(loopId);
-  }, [selectedLoopIds, onLoopSelect]);
-
-  // Wrap onLoopDelete to handle multi-selection
-  const handleLoopDeleteWithMulti = useCallback((loopId) => {
-    // If this loop is part of a multi-selection, delete all selected loops
-    if (selectedLoopIds?.has(loopId) && selectedLoopIds.size > 1) {
-      selectedLoopIds.forEach(id => onLoopDelete(id));
-      // Clear the multi-selection after deleting
-      if (setSelectedLoopIds) {
-        setSelectedLoopIds(new Set());
-      }
-    } else {
-      // Otherwise just delete this one loop
-      onLoopDelete(loopId);
-    }
-  }, [selectedLoopIds, onLoopDelete]);
-
-  // Drag and drop handling
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
-    
-    const rect = timelineRef.current.getBoundingClientRect();
-    const y = e.clientY - rect.top - TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT;
-    const trackIndex = Math.floor(y / TIMELINE_CONSTANTS.TRACK_HEIGHT);
-    setHoveredTrack(trackIndex >= 0 && trackIndex < TIMELINE_CONSTANTS.NUM_TRACKS ? trackIndex : null);
-  };
-
-  const handleDragLeave = () => {
-    setHoveredTrack(null);
-  };
-
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
-    const rect = timelineRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top - TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT;
-    
-    const trackIndex = Math.floor(y / TIMELINE_CONSTANTS.TRACK_HEIGHT);
-    const startTime = pixelToTime(x);
-    
-    if (trackIndex >= 0 && trackIndex < TIMELINE_CONSTANTS.NUM_TRACKS && startTime >= 0) {
-      try {
-        const loopData = JSON.parse(e.dataTransfer.getData('application/json'));
-        onLoopDrop(loopData, trackIndex, startTime);
-      } catch (error) {
-        console.error('Error parsing dropped loop data:', error);
-      }
-    }
-    setHoveredTrack(null);
-  }, [pixelToTime, onLoopDrop, setHoveredTrack]);
-
-  // Timeline mouse down - start selection box
-  const handleTimelineMouseDown = (e) => {
-    // Don't interfere with playhead dragging or loop dragging
-    if (isDraggingPlayhead || draggedLoop) return;
-    
-    // Check if clicking on interactive elements
-    const target = e.target;
-    if (target.closest('.loop-block') || 
-        target.closest('[data-playhead]') ||
-        target.tagName === 'BUTTON') {
-      return;
-    }
-    
-    // Let selection box handle it
+  // ============================================================================
+  // SELECTION BOX HANDLERS (delegated from overlay)
+  // ============================================================================
+  
+  const handleSelectionStartFromOverlay = useCallback((startPos) => {
     if (handleSelectionStart) {
-      handleSelectionStart(e);
+      // Create a synthetic event-like object
+      handleSelectionStart({
+        clientX: startPos.x,
+        clientY: startPos.y,
+        preventDefault: () => {},
+        stopPropagation: () => {}
+      });
     }
-  };
+  }, [handleSelectionStart]);
 
-  // Calculate selection box dimensions for rendering
+  const handleSelectionUpdate = useCallback((box) => {
+    // Calculate which loops are in the selection box
+    if (!box || !placedLoops) return;
+    
+    const selected = new Set();
+    
+    placedLoops.forEach(loop => {
+      const loopLeft = timeToPixel(loop.startTime);
+      const loopRight = timeToPixel(loop.endTime);
+      const loopTop = TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT);
+      const loopBottom = loopTop + TIMELINE_CONSTANTS.TRACK_HEIGHT;
+      
+      const boxLeft = Math.min(box.startX, box.currentX);
+      const boxRight = Math.max(box.startX, box.currentX);
+      const boxTop = Math.min(box.startY, box.currentY);
+      const boxBottom = Math.max(box.startY, box.currentY);
+      
+      // Check intersection
+      if (loopRight >= boxLeft && loopLeft <= boxRight &&
+          loopBottom >= boxTop && loopTop <= boxBottom) {
+        selected.add(loop.id);
+      }
+    });
+    
+    setSelectedLoopIds?.(selected);
+  }, [placedLoops, timeToPixel, setSelectedLoopIds]);
+
+  const handleSelectionEnd = useCallback(() => {
+    // Selection box handled, nothing to do here
+  }, []);
+
+  // ============================================================================
+  // CONTEXT MENU HANDLER
+  // ============================================================================
+  
+  const handleContextMenu = useCallback((e, loop) => {
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      loop
+    });
+  }, []);
+
+  const closeContextMenu = useCallback(() => {
+    setContextMenu(null);
+  }, []);
+
+  const handleDeleteFromContextMenu = useCallback(() => {
+    if (contextMenu?.loop) {
+      // Handle multi-selection delete
+      if (selectedLoopIds?.has(contextMenu.loop.id) && selectedLoopIds.size > 1) {
+        selectedLoopIds.forEach(id => onLoopDelete(id));
+        setSelectedLoopIds?.(new Set());
+      } else {
+        onLoopDelete(contextMenu.loop.id);
+      }
+    }
+    closeContextMenu();
+  }, [contextMenu, selectedLoopIds, onLoopDelete, setSelectedLoopIds, closeContextMenu]);
+
+  // Close context menu on click outside
+  React.useEffect(() => {
+    if (contextMenu) {
+      const handleClick = () => closeContextMenu();
+      document.addEventListener('click', handleClick);
+      return () => document.removeEventListener('click', handleClick);
+    }
+  }, [contextMenu, closeContextMenu]);
+
+  // ============================================================================
+  // LOOP UPDATE HANDLER (with multi-select support)
+  // ============================================================================
+  
+  const handleLoopUpdateWithMulti = useCallback((loopId, updates) => {
+    // If this loop is part of multi-selection, move all selected loops
+    if (selectedLoopIds?.has(loopId) && selectedLoopIds.size > 1 && updates.trackIndex !== undefined) {
+      const targetLoop = placedLoops.find(l => l.id === loopId);
+      if (!targetLoop) {
+        onLoopUpdate(loopId, updates);
+        return;
+      }
+      
+      const trackDelta = updates.trackIndex - targetLoop.trackIndex;
+      const timeDelta = updates.startTime - targetLoop.startTime;
+      
+      selectedLoopIds.forEach(id => {
+        const loop = placedLoops.find(l => l.id === id);
+        if (loop) {
+          const newTrack = Math.max(0, Math.min(TIMELINE_CONSTANTS.NUM_TRACKS - 1, loop.trackIndex + trackDelta));
+          const newStart = Math.max(0, loop.startTime + timeDelta);
+          const loopDuration = loop.endTime - loop.startTime;
+          
+          onLoopUpdate(id, {
+            trackIndex: newTrack,
+            startTime: newStart,
+            endTime: newStart + loopDuration
+          });
+        }
+      });
+    } else {
+      onLoopUpdate(loopId, updates);
+    }
+  }, [selectedLoopIds, placedLoops, onLoopUpdate]);
+
+  // ============================================================================
+  // SELECTION BOX STYLE
+  // ============================================================================
+  
   const getSelectionBoxStyle = () => {
     if (!selectionBox) return null;
 
@@ -182,12 +211,19 @@ const TimelineContent = forwardRef(({
     };
   };
 
+  // ============================================================================
+  // RENDER
+  // ============================================================================
+
   return (
     <div className="flex flex-1 min-h-0 relative">
       {/* Fixed time header */}
       <div className="absolute top-0 left-0 right-0 z-30 flex">
-        {/* Spacer matching track headers width - 154px */}
-        <div className="bg-gray-800 border-r border-gray-600" style={{ width: '154px', height: TIMELINE_CONSTANTS.HEADER_HEIGHT }} />
+        {/* Spacer matching track headers width */}
+        <div 
+          className="bg-gray-800 border-r border-gray-600" 
+          style={{ width: '154px', height: TIMELINE_CONSTANTS.HEADER_HEIGHT }} 
+        />
         
         <div 
           ref={timeHeaderRef}
@@ -205,20 +241,19 @@ const TimelineContent = forwardRef(({
               showTimelineLabel={showTimelineLabel}
             />
             
+            {/* Playhead in header - visual only */}
             <Playhead
               currentTime={currentTime}
               timeToPixel={timeToPixel}
               isDraggingPlayhead={isDraggingPlayhead}
-              onPlayheadMouseDown={onPlayheadMouseDown}
+              onPlayheadMouseDown={() => {}} // No-op, handled by overlay
               isInHeader={true}
             />
           </div>
         </div>
       </div>
 
-      {/* Track headers - FIXED: Hidden scrollbar with overflow-y-scroll and custom CSS */}
-      {/* FIXED: Reduced width from 192px to 154px (80% width) */}
-      {/* FIXED: Added paddingBottom to match timeline scroll container */}
+      {/* Track headers - with hidden scrollbar */}
       <div 
         ref={headerScrollRef}
         className="bg-gray-800 border-r border-gray-600 overflow-y-scroll overflow-x-hidden z-20 scrollbar-hidden"
@@ -228,15 +263,13 @@ const TimelineContent = forwardRef(({
           maxHeight: '576px',
           minHeight: 0,
           paddingTop: TIMELINE_CONSTANTS.HEADER_HEIGHT,
-          paddingBottom: '20px',  // CRITICAL: Must match timeline's paddingBottom
-          // Hide scrollbar for Webkit browsers (Chrome, Safari, Edge)
+          paddingBottom: '20px',
           WebkitOverflowScrolling: 'touch',
-          scrollbarWidth: 'none', // Firefox
-          msOverflowStyle: 'none'  // IE and Edge
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
         }}
       >
-        {/* Inline style to hide webkit scrollbar */}
-        <style jsx>{`
+        <style>{`
           .scrollbar-hidden::-webkit-scrollbar {
             display: none;
           }
@@ -280,42 +313,45 @@ const TimelineContent = forwardRef(({
               minWidth: timelineWidth,
               position: 'relative'
             }}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onMouseDown={handleTimelineMouseDown}
           >
+            {/* ============================================================ */}
+            {/* VISUAL LAYER - All pointer-events: none */}
+            {/* ============================================================ */}
+            
             {/* Timeline Grid Lines */}
             <TimelineGrid 
               duration={duration} 
               timeToPixel={timeToPixel} 
             />
 
-            {/* Video track - FIXED: Now displays the FULL video duration! */}
+            {/* Video track */}
             <div
               className="absolute left-0 right-0 border-b border-gray-700 bg-gray-700"
               style={{
                 top: 0,
-                height: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT
+                height: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT,
+                pointerEvents: 'none'
               }}
             >
-              {/* FIXED: Removed the "- 10" that was cutting off the video */}
-              {/* The video bar now extends the full duration */}
               <div
                 className="absolute bg-blue-600 rounded opacity-80 flex items-center justify-center"
                 style={{
-                  left: '8px',  // Small left margin for visual clarity
+                  left: '8px',
                   top: '4px',
-                  width: Math.max(0, timeToPixel(duration) - 16),  // Full duration minus margins
-                  height: `${TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT - 8}px`
+                  width: Math.max(0, timeToPixel(duration) - 16),
+                  height: `${TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT - 8}px`,
+                  pointerEvents: 'none'
                 }}
               >
-                <span className="text-white text-xs font-medium">
+                <span className="text-white text-xs font-medium pointer-events-none">
                   Video ({Math.floor(duration / 60)}:{String(Math.floor(duration % 60)).padStart(2, '0')})
                 </span>
               </div>
               
-              <div className="absolute left-2 text-xs text-gray-300 font-medium" style={{ top: '2px' }}>
+              <div 
+                className="absolute left-2 text-xs text-gray-300 font-medium pointer-events-none" 
+                style={{ top: '2px' }}
+              >
                 V
               </div>
             </div>
@@ -333,25 +369,26 @@ const TimelineContent = forwardRef(({
                 }`}
                 style={{
                   top: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + i * TIMELINE_CONSTANTS.TRACK_HEIGHT,
-                  height: TIMELINE_CONSTANTS.TRACK_HEIGHT
+                  height: TIMELINE_CONSTANTS.TRACK_HEIGHT,
+                  pointerEvents: 'none'
                 }}
               >
-                <div className="absolute left-2 top-1 text-xs text-gray-500 font-medium">
+                <div className="absolute left-2 top-1 text-xs text-gray-500 font-medium pointer-events-none">
                   {i + 1}
                 </div>
               </div>
             ))}
 
-            {/* Main playhead */}
+            {/* Main playhead - visual only */}
             <Playhead
               currentTime={currentTime}
               timeToPixel={timeToPixel}
               isDraggingPlayhead={isDraggingPlayhead}
-              onPlayheadMouseDown={onPlayheadMouseDown}
+              onPlayheadMouseDown={() => {}} // No-op, handled by overlay
               isInHeader={false}
             />
 
-            {/* Loops - FIXED: Added videoDuration prop + multi-select highlighting + SNAP PROPS */}
+            {/* Loop blocks - visual only, no event handlers */}
             {placedLoops
               .filter(loop => trackStates[`track-${loop.trackIndex}`]?.visible !== false)
               .map((loop) => (
@@ -359,23 +396,14 @@ const TimelineContent = forwardRef(({
                   key={loop.id} 
                   loop={loop}
                   timeToPixel={timeToPixel}
-                  pixelToTime={pixelToTime}  // NEW: Required for snap calculations
                   trackStates={trackStates}
                   selectedLoop={selectedLoop}
                   draggedLoop={draggedLoop}
-                  videoDuration={duration}
-                  onLoopMouseDown={handleLoopMouseDown}
-                  onLoopSelect={handleLoopSelectWithMulti}
-                  onLoopUpdate={onLoopUpdate}
-                  onLoopResize={onLoopResizeCallback}
-                  onLoopDelete={handleLoopDeleteWithMulti}
                   isMultiSelected={selectedLoopIds?.has(loop.id)}
-                  allPlacedLoops={placedLoops}  // NEW: Required for finding snap points
-                  timelineRef={timelineRef}  // NEW: Required for rendering snap guide
                 />
               ))}
 
-            {/* Selection box overlay */}
+            {/* Selection box visual */}
             {selectionBox && (
               <div style={getSelectionBoxStyle()}>
                 {selectedLoopIds?.size > 0 && (
@@ -397,14 +425,93 @@ const TimelineContent = forwardRef(({
                   height: TIMELINE_CONSTANTS.TRACK_HEIGHT
                 }}
               >
-                <div className="flex items-center justify-center h-full text-blue-400 font-medium text-sm">
+                <div className="flex items-center justify-center h-full text-blue-400 font-medium text-sm pointer-events-none">
                   Drop loop here
                 </div>
               </div>
             )}
+
+            {/* ============================================================ */}
+            {/* INTERACTION OVERLAY - Handles ALL mouse events */}
+            {/* ============================================================ */}
+            
+            <InteractionOverlay
+              // Data
+              placedLoops={placedLoops}
+              duration={duration}
+              currentTime={currentTime}
+              trackStates={trackStates}
+              selectedLoop={selectedLoop}
+              selectedLoopIds={selectedLoopIds}
+              
+              // Conversion functions
+              timeToPixel={timeToPixel}
+              pixelToTime={pixelToTime}
+              
+              // Refs
+              timelineRef={timelineRef}
+              timelineScrollRef={timelineScrollRef}
+              
+              // Loop handlers
+              onLoopSelect={onLoopSelect}
+              onLoopUpdate={handleLoopUpdateWithMulti}
+              onLoopDelete={onLoopDelete}
+              onLoopDrop={onLoopDrop}
+              onLoopResize={onLoopResizeCallback}
+              
+              // Playhead handlers
+              onSeek={onSeek}
+              onPlayheadDragStart={() => setIsDraggingPlayhead?.(true)}
+              onPlayheadDragEnd={() => setIsDraggingPlayhead?.(false)}
+              
+              // Selection handlers
+              onSelectionStart={handleSelectionStartFromOverlay}
+              onSelectionUpdate={handleSelectionUpdate}
+              onSelectionEnd={handleSelectionEnd}
+              
+              // State
+              isDraggingPlayhead={isDraggingPlayhead}
+              setIsDraggingPlayhead={setIsDraggingPlayhead}
+              
+              // Context menu
+              onContextMenu={handleContextMenu}
+              
+              // Lock features
+              lockFeatures={lockFeatures}
+              
+              // Drag & drop from library
+              hoveredTrack={hoveredTrack}
+              setHoveredTrack={setHoveredTrack}
+            />
           </div>
         </div>
       </div>
+
+      {/* Context menu */}
+      {contextMenu && (
+        <div
+          className="fixed bg-gray-800 rounded-lg shadow-2xl border border-gray-700 py-1 z-[9999]"
+          style={{
+            left: `${contextMenu.x}px`,
+            top: `${contextMenu.y}px`,
+            minWidth: '140px'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={handleDeleteFromContextMenu}
+            className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 transition-colors flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span>
+              {selectedLoopIds?.size > 1 ? `Delete ${selectedLoopIds.size} loops` : 'Delete Loop'}
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   );
 });

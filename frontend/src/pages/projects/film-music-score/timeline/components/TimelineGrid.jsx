@@ -1,4 +1,7 @@
-// /timeline/components/TimelineGrid.jsx - Vertical grid lines for audio tracks
+// File: /src/pages/projects/film-music-score/timeline/components/TimelineGrid.jsx
+// REFACTORED: Pure visual component with pointer-events: none
+// Vertical grid lines for audio tracks
+
 import React from 'react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
 
@@ -13,7 +16,7 @@ const TimelineGrid = ({ duration, timeToPixel }) => {
     gridLines.push(
       <div
         key={`grid-${i}`}
-        className={`absolute pointer-events-none ${
+        className={`absolute ${
           isMajor 
             ? 'border-l border-gray-600 opacity-60' 
             : 'border-l border-gray-700 opacity-30'
@@ -21,14 +24,18 @@ const TimelineGrid = ({ duration, timeToPixel }) => {
         style={{
           left: x,
           top: 0,
-          height: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + TIMELINE_CONSTANTS.NUM_TRACKS * TIMELINE_CONSTANTS.TRACK_HEIGHT
+          height: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + TIMELINE_CONSTANTS.NUM_TRACKS * TIMELINE_CONSTANTS.TRACK_HEIGHT,
+          pointerEvents: 'none'
         }}
       />
     );
   }
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-10">
+    <div 
+      className="absolute inset-0 z-10"
+      style={{ pointerEvents: 'none' }}
+    >
       {gridLines}
     </div>
   );
