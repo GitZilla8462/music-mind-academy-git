@@ -447,9 +447,8 @@ const WildlifeCompositionActivity = ({
   };
   
   // COMPOSITION EVENT HANDLERS
+  // ✅ CHROMEBOOK OPTIMIZED: Removed verbose logging
   const handleLoopPlaced = (loopData, trackIndex, startTime) => {
-    console.log(`🎵 Loop placed: ${loopData.name} on track ${trackIndex} at ${startTime}s`);
-    
     // Create new loop object
     const newLoop = {
       id: `${loopData.id}-${Date.now()}`,
@@ -468,21 +467,16 @@ const WildlifeCompositionActivity = ({
     
     // Update state
     setPlacedLoops(prev => [...prev, newLoop]);
-    console.log(`✅ Added "${loopData.name}" to state - new total: ${placedLoops.length + 1}`);
   };
   
   const handleLoopDeleted = (loopId) => {
-    console.log(`🗑️ Loop deleted: ${loopId}`);
     setPlacedLoops(prev => prev.filter(loop => loop.id !== loopId));
-    console.log(`✅ Removed loop from state - new total: ${placedLoops.length - 1}`);
   };
   
   const handleLoopUpdated = (loopId, updates) => {
-    console.log(`✏️ Loop updated: ${loopId}`, updates);
     setPlacedLoops(prev => prev.map(loop =>
       loop.id === loopId ? { ...loop, ...updates } : loop
     ));
-    console.log(`✅ Updated loop in state`);
   };
   
   // VIDEO PREVIEW FULLSCREEN

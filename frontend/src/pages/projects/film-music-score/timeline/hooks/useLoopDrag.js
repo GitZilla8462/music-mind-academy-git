@@ -313,8 +313,8 @@ export const useLoopDrag = (
     };
     
     const now = Date.now();
-    // Reduced from 100ms to 50ms for smoother updates
-    if (now - lastUpdateRef.current > 50) {
+    // ✅ CHROMEBOOK OPTIMIZED: Increased from 50ms to 80ms for smoother performance
+    if (now - lastUpdateRef.current > 80) {
       lastUpdateRef.current = now;
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);

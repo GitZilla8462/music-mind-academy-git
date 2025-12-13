@@ -3,6 +3,7 @@
 // FIXED: Added onDAWReadyCallback with tutorial mode support
 // UPDATED: Added showSoundEffects prop support
 // UPDATED: Added Chromebook swipe protection to prevent accidental back navigation
+// FIXED: Player creation now works for localStorage-loaded loops (not just initialPlacedLoops prop)
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -58,9 +59,9 @@ const MusicComposer = ({
 }) => {
   const { videoId, assignmentId } = useParams();
   const navigate = useNavigate();
-  const playersCreatedRef = useRef(false);
   const savedLoopsRef = useRef(null);
   const dawReadyCalledRef = useRef(false);
+  const initialLoopsLoadedRef = useRef(false);
   const [currentlyPlayingPreview, setCurrentlyPlayingPreview] = useState(null);
 
   // Central state management FIRST (so selectedVideo exists)
@@ -154,28 +155,54 @@ const MusicComposer = ({
     }
   }, [selectedVideo, audioReady, tutorialMode, videoLoading, onDAWReadyCallback]);
 
-  // STEP 1: Store initial loops and load into state immediately
+  // STEP 1: Store initial loops from props and load into state immediately
+  // ✅ OPTIMIZED: Only run once on mount, not on every initialPlacedLoops reference change
   useEffect(() => {
-    if (initialPlacedLoops && initialPlacedLoops.length > 0) {
-      console.log('🎵 Initializing with saved loops:', initialPlacedLoops);
-      savedLoopsRef.current = initialPlacedLoops;
-      setPlacedLoops(initialPlacedLoops);
+    // Skip if already loaded or no loops to load
+    if (initialLoopsLoadedRef.current || !initialPlacedLoops || initialPlacedLoops.length === 0) {
+      return;
     }
+    
+    console.log('🎵 Initializing with saved loops from props:', initialPlacedLoops.length, 'loops');
+    savedLoopsRef.current = initialPlacedLoops;
+    setPlacedLoops(initialPlacedLoops);
+    initialLoopsLoadedRef.current = true;
   }, [initialPlacedLoops, setPlacedLoops]);
 
   // STEP 2: Create audio players when audio becomes ready
+  // ✅ FIX: Handle BOTH initialPlacedLoops (via savedLoopsRef) AND localStorage-loaded loops (via placedLoops)
+  // ✅ OPTIMIZED: Reduced logging for better Chromebook performance
   useEffect(() => {
-    console.log('🔊 Player creation check:', {
-      audioReady,
-      hasSavedLoops: savedLoopsRef.current !== null,
-      playersCreated: playersCreatedRef.current,
-      placedLoopsCount: placedLoops.length
+    // Don't proceed if audio isn't ready
+    if (!audioReady) {
+      return;
+    }
+
+    // ✅ FIX: Use savedLoopsRef if available (from props), otherwise use placedLoops directly (from localStorage)
+    const loopsToCheck = savedLoopsRef.current || placedLoops;
+    
+    if (loopsToCheck.length === 0) {
+      return;
+    }
+
+    // ✅ FIX: Find loops that are missing players (check by ID)
+    const loopsWithoutPlayers = loopsToCheck.filter(loop => {
+      const hasPlayer = playersRef.current && (
+        playersRef.current.has(loop.id) || 
+        playersRef.current.get(loop.id)
+      );
+      return !hasPlayer;
     });
 
-    if (audioReady && savedLoopsRef.current && !playersCreatedRef.current) {
-      console.log('🎵 Audio ready! Creating players for', savedLoopsRef.current.length, 'saved loops...');
-      
-      savedLoopsRef.current.forEach(loop => {
+    if (loopsWithoutPlayers.length === 0) {
+      return; // All loops already have players - no need to log every time
+    }
+
+    console.log('🎵 Creating players for', loopsWithoutPlayers.length, 'loops without players...');
+    
+    // ✅ FIX: Use async function to properly await player creation
+    const createMissingPlayers = async () => {
+      for (const loop of loopsWithoutPlayers) {
         const loopData = {
           id: loop.id,
           originalId: loop.originalId || loop.id.split('-')[0] + '-' + loop.id.split('-')[1],
@@ -185,20 +212,18 @@ const MusicComposer = ({
           category: loop.category
         };
         
-        console.log('  → Creating player for:', loopData.name, 'with ID:', loop.id);
-        
         try {
-          createLoopPlayer(loopData, loop.id);
-          console.log('  ✅ Player stored with key:', loop.id);
+          await createLoopPlayer(loopData, loop.id);
         } catch (error) {
-          console.error('  ❌ Failed to create player for:', loopData.name, error);
+          console.error('❌ Failed to create player for:', loopData.name, error);
         }
-      });
+      }
       
-      playersCreatedRef.current = true;
-      console.log('✅ All audio players created for saved loops');
-    }
-  }, [audioReady, createLoopPlayer, placedLoops.length]);
+      console.log('✅ Audio players created');
+    };
+    
+    createMissingPlayers();
+  }, [audioReady, createLoopPlayer, placedLoops, playersRef]);
 
   // Volume control hook
   useVolumeControl({

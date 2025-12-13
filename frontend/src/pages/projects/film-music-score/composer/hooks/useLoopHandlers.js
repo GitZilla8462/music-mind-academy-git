@@ -30,7 +30,6 @@ export const useLoopHandlers = ({
   
   const handleLoopDrop = useCallback(async (loopData, trackIndex, startTime) => {
     if (lockFeatures.allowLoopDrag === false) {
-      console.log('Loop dragging is locked');
       return;
     }
 
@@ -43,8 +42,7 @@ export const useLoopHandlers = ({
       return;
     }
 
-    console.log(`Dropping loop: ${loopData.name} at track ${trackIndex}, time ${startTime}`);
-
+    // ✅ CHROMEBOOK OPTIMIZED: Reduced logging
     const newLoop = {
       id: `${loopData.id}-${Date.now()}`,
       originalId: loopData.id,
@@ -61,7 +59,6 @@ export const useLoopHandlers = ({
     };
 
     try {
-      console.log(`Creating audio player for ${newLoop.name} from ${newLoop.file}`);
       const player = await createLoopPlayer(newLoop);
       
       if (!player) {
@@ -95,13 +92,10 @@ export const useLoopHandlers = ({
         }
       }
       
-      console.log(`Audio player created successfully for ${newLoop.name}`);
-      
       const updatedLoops = [...placedLoops, newLoop];
       setPlacedLoops(updatedLoops);
       setHasUnsavedChanges(true);
       
-      console.log(`Rescheduling all ${updatedLoops.length} loops after drop`);
       scheduleLoops(updatedLoops, selectedVideo?.duration || 60, trackStates);
       
       showToast?.(`Added "${loopData.name}" to track ${trackIndex + 1}`, 'success');
@@ -120,7 +114,6 @@ export const useLoopHandlers = ({
       }
       
       showToast?.(errorMessage, 'error');
-      console.log(`Not adding loop to timeline due to player creation failure`);
     }
   }, [
     createLoopPlayer, showToast, audioReady, placedLoops, scheduleLoops, 
@@ -133,7 +126,6 @@ export const useLoopHandlers = ({
       onLoopDeleteCallback(loopId);
     }
 
-    console.log(`Deleting loop: ${loopId}`);
     const updatedLoops = placedLoops.filter(loop => loop.id !== loopId);
     setPlacedLoops(updatedLoops);
     setHasUnsavedChanges(true);
@@ -157,9 +149,9 @@ export const useLoopHandlers = ({
   }, [selectedLoop, setSelectedLoop]);
 
   // 🔥 FIX: Debounce scheduleLoops to prevent infinite loop during resize
+  // ✅ CHROMEBOOK OPTIMIZED: Increased debounce, reduced logging
   const handleLoopUpdate = useCallback((loopId, updates) => {
     if (lockFeatures.allowLoopMove === false) {
-      console.log('Loop movement is locked');
       return;
     }
 
@@ -167,7 +159,6 @@ export const useLoopHandlers = ({
       onLoopUpdateCallback(loopId, updates);
     }
 
-    console.log(`Updating loop ${loopId}:`, updates);
     const updatedLoops = placedLoops.map(loop => 
       loop.id === loopId 
         ? { ...loop, ...updates }
@@ -177,6 +168,7 @@ export const useLoopHandlers = ({
     setHasUnsavedChanges(true);
     
     // 🔥 FIX: Debounce scheduleLoops to prevent infinite loop during resize
+    // ✅ CHROMEBOOK: Increased to 250ms for smoother performance on low-end devices
     if (scheduleTimeoutRef.current) {
       clearTimeout(scheduleTimeoutRef.current);
     }
@@ -184,7 +176,7 @@ export const useLoopHandlers = ({
     scheduleTimeoutRef.current = setTimeout(() => {
       scheduleLoops(updatedLoops, selectedVideo?.duration || 60, trackStates);
       scheduleTimeoutRef.current = null;
-    }, 150); // Wait 150ms after last update before rescheduling
+    }, 250); // Increased from 150ms for Chromebook performance
   }, [
     placedLoops, scheduleLoops, selectedVideo?.duration, trackStates, 
     onLoopUpdateCallback, lockFeatures, setPlacedLoops, setHasUnsavedChanges
@@ -193,12 +185,10 @@ export const useLoopHandlers = ({
   // 🔥 CHROMEBOOK FIX: Handle stop explicitly, don't rely on toggle behavior
   const handleLoopPreview = useCallback(async (loop, isPlaying) => {
     if (lockFeatures.allowLoopPreview === false) {
-      console.log('Loop preview is locked');
       return;
     }
 
-    console.log('🎧 handleLoopPreview called:', { loopName: loop.name, isPlaying });
-
+    // ✅ CHROMEBOOK OPTIMIZED: Reduced logging
     if (onLoopPreviewCallback) {
       onLoopPreviewCallback(loop, isPlaying);
     }
@@ -223,18 +213,14 @@ export const useLoopHandlers = ({
     try {
       if (isPlaying) {
         // Starting preview
-        console.log('▶️ Calling previewLoop to START:', loop.name);
         await previewLoop(loop, (endedLoop) => {
-          console.log('✅ Preview ended callback for:', endedLoop.name);
           if (onLoopPreviewCallback) {
             onLoopPreviewCallback(endedLoop, false);
           }
         });
       } else {
         // Stopping preview - call previewLoop which should stop it
-        console.log('⏹️ Calling previewLoop to STOP:', loop.name);
         await previewLoop(loop, (endedLoop) => {
-          console.log('✅ Preview stopped callback for:', endedLoop.name);
           if (onLoopPreviewCallback) {
             onLoopPreviewCallback(endedLoop, false);
           }

@@ -43,7 +43,6 @@ export const usePlaybackHandlers = ({
 
   const handlePlay = useCallback(async () => {
     if (lockFeatures.allowPlayback === false) {
-      console.log('Playback is locked');
       return;
     }
 
@@ -119,8 +118,6 @@ export const usePlaybackHandlers = ({
   const handleSeek = useCallback((time) => {
     if (!audioReady) return;
     
-    console.log(`⏩ Seeking to ${time}s`);
-    
     // ✅ FIX: Capture playing state BEFORE seek
     const wasPlaying = Tone.Transport.state === 'started';
     
@@ -129,14 +126,12 @@ export const usePlaybackHandlers = ({
     
     // ✅ FIX: Only reschedule if transport was playing
     if (!wasPlaying) {
-      console.log('  Transport paused - skipping reschedule');
       return;
     }
     
     // Debounce rapid seeks
     const now = Date.now();
     if (now - lastScheduleTimeRef.current < SCHEDULE_DEBOUNCE_MS) {
-      console.log('  Skipping reschedule - too soon after last one');
       return;
     }
     

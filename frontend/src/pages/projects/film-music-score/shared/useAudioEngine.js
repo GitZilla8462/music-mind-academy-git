@@ -1,4 +1,5 @@
 // shared/useAudioEngine.js - FIXED: Proper native audio lifecycle management + LEFT-EDGE TRIMMING + PREVIEW TOGGLE
+// ✅ FIX: Native audio no longer auto-plays when loops are scheduled at time 0
 import { useState, useRef, useCallback, useEffect } from 'react';
 import * as Tone from 'tone';
 
@@ -181,8 +182,13 @@ export const useAudioEngine = (videoDuration = 60) => {
     
     const schedulingStartTime = Tone.Transport.seconds;
     
-    console.log(`\n=== SCHEDULING LOOPS at time ${schedulingStartTime.toFixed(2)}s ===`);
-    console.log(`Total loops to consider: ${placedLoops.length}`);
+    // ✅ OPTIMIZED: Reduced logging for production
+    const isDevMode = process.env.NODE_ENV === 'development';
+    
+    if (isDevMode) {
+      console.log(`\n=== SCHEDULING LOOPS at time ${schedulingStartTime.toFixed(2)}s ===`);
+      console.log(`Total loops to consider: ${placedLoops.length}`);
+    }
     
     const groupedLoops = new Map();
     placedLoops.forEach(loop => {
@@ -197,7 +203,7 @@ export const useAudioEngine = (videoDuration = 60) => {
     
     groupedLoops.forEach((loopGroup, loopId) => {
       loopGroup.forEach(loop => {
-        console.log(`🎵 Loop: ${loop.name}`, loop);
+        if (isDevMode) console.log(`🎵 Loop: ${loop.name}`, loop);
         
         const player = playersRef.current.get(loop.id);
         if (!player) {
@@ -237,7 +243,7 @@ export const useAudioEngine = (videoDuration = 60) => {
         const placedLoopDuration = loopEndTime - loopStartTime; // Actual duration on timeline
         
         if (loopEndTime <= schedulingStartTime) {
-          console.log(`  ⏭️ Loop ends at ${loopEndTime.toFixed(2)}s (before current ${schedulingStartTime.toFixed(2)}s) - skipping entirely`);
+          if (isDevMode) console.log(`  ⏭️ Loop ends at ${loopEndTime.toFixed(2)}s (before current ${schedulingStartTime.toFixed(2)}s) - skipping entirely`);
           return;
         }
         
@@ -247,14 +253,16 @@ export const useAudioEngine = (videoDuration = 60) => {
         const rawRepeats = placedLoopDuration / originalLoopDuration;
         const numRepeats = (rawRepeats % 1) < 0.02 ? Math.max(1, Math.floor(rawRepeats)) : Math.ceil(rawRepeats);
         
-        console.log(`  📍 Scheduling ${loop.name}:`);
-        console.log(`     Video times: ${loopStartTime.toFixed(2)}s → ${loopEndTime.toFixed(2)}s`);
-        console.log(`     Original loop duration: ${originalLoopDuration.toFixed(2)}s`);
-        console.log(`     Placed loop duration: ${placedLoopDuration.toFixed(2)}s`);
-        console.log(`     Repeats needed: ${numRepeats}`);
-        console.log(`     Track ${loop.trackIndex} volume: ${effectiveVolume.toFixed(2)}`);
-        if (loop.startOffset) {
-          console.log(`     ✂️ Left-edge trim offset: ${loop.startOffset.toFixed(2)}s`);
+        if (isDevMode) {
+          console.log(`  📍 Scheduling ${loop.name}:`);
+          console.log(`     Video times: ${loopStartTime.toFixed(2)}s → ${loopEndTime.toFixed(2)}s`);
+          console.log(`     Original loop duration: ${originalLoopDuration.toFixed(2)}s`);
+          console.log(`     Placed loop duration: ${placedLoopDuration.toFixed(2)}s`);
+          console.log(`     Repeats needed: ${numRepeats}`);
+          console.log(`     Track ${loop.trackIndex} volume: ${effectiveVolume.toFixed(2)}`);
+          if (loop.startOffset) {
+            console.log(`     ✂️ Left-edge trim offset: ${loop.startOffset.toFixed(2)}s`);
+          }
         }
         
         // Schedule each repeat with proper offset calculation
@@ -264,7 +272,7 @@ export const useAudioEngine = (videoDuration = 60) => {
           
           // Skip if this repeat is entirely before current time
           if (repeatEndTime <= schedulingStartTime) {
-            console.log(`  ⏭️  Repeat ${i + 1} ends at ${repeatEndTime.toFixed(2)}s (before ${schedulingStartTime.toFixed(2)}s) - skipping`);
+            if (isDevMode) console.log(`  ⏭️  Repeat ${i + 1} ends at ${repeatEndTime.toFixed(2)}s (before ${schedulingStartTime.toFixed(2)}s) - skipping`);
             continue;
           }
           
@@ -281,20 +289,20 @@ export const useAudioEngine = (videoDuration = 60) => {
             loopOffset = trimOffset + midLoopOffset; // Combine trim offset + mid-loop offset
             actualDuration = repeatEndTime - schedulingStartTime;
             actualStartTime = schedulingStartTime;
-            console.log(`  🎯 Starting mid-loop: trim offset ${trimOffset.toFixed(2)}s + mid-loop ${midLoopOffset.toFixed(2)}s = ${loopOffset.toFixed(2)}s, duration ${actualDuration.toFixed(2)}s`);
+            if (isDevMode) console.log(`  🎯 Starting mid-loop: trim offset ${trimOffset.toFixed(2)}s + mid-loop ${midLoopOffset.toFixed(2)}s = ${loopOffset.toFixed(2)}s, duration ${actualDuration.toFixed(2)}s`);
           } else if (repeatEndTime > loopEndTime) {
             // This is a partial repeat at the end
             actualDuration = loopEndTime - repeatStartTime;
-            console.log(`  ✂️ Partial end repeat: offset ${loopOffset.toFixed(2)}s, duration ${actualDuration.toFixed(2)}s`);
+            if (isDevMode) console.log(`  ✂️ Partial end repeat: offset ${loopOffset.toFixed(2)}s, duration ${actualDuration.toFixed(2)}s`);
           } else {
             // Normal repeat from the start (but with trim offset applied)
-            console.log(`  ▶️ Full repeat: starting from trim offset ${loopOffset.toFixed(2)}s, duration ${actualDuration.toFixed(2)}s`);
+            if (isDevMode) console.log(`  ▶️ Full repeat: starting from trim offset ${loopOffset.toFixed(2)}s, duration ${actualDuration.toFixed(2)}s`);
           }
           
           // Calculate Transport time for this repeat
           const transportTime = Math.max(0, actualStartTime - schedulingStartTime);
           
-          console.log(`  ▶️  Scheduling repeat ${i + 1}/${numRepeats} at Transport ${transportTime.toFixed(2)}s (video ${actualStartTime.toFixed(2)}s)`);
+          if (isDevMode) console.log(`  ▶️  Scheduling repeat ${i + 1}/${numRepeats} at Transport ${transportTime.toFixed(2)}s (video ${actualStartTime.toFixed(2)}s)`);
           
           // FIXED: Removed the isTransportPlaying check that was preventing scheduling
           // Tone.js handles scheduling relative to transport start with +transportTime syntax
@@ -311,6 +319,16 @@ export const useAudioEngine = (videoDuration = 60) => {
             audioClone.load(); // Prepare the clone
             
             const timeoutId = setTimeout(() => {
+              // ✅ FIX: Check Transport state when timeout fires, not when scheduling
+              // This allows loops at time 0 to be scheduled during handlePlay(),
+              // but prevents auto-play when just placing/moving loops
+              if (Tone.Transport.state !== 'started') {
+                if (isDevMode) console.log(`  ⏸️ Transport not running, skipping native audio play for ${loop.name}`);
+                // Clean up the clone since we won't use it
+                audioClone.src = '';
+                return;
+              }
+              
               if (!trackState.muted && effectiveVolume > 0.01) {
                 // ✅ CRITICAL: Set currentTime to loopOffset (includes trim offset!)
                 audioClone.currentTime = loopOffset;
@@ -345,7 +363,7 @@ export const useAudioEngine = (videoDuration = 60) => {
     });
     
     scheduledEventsRef.current = scheduledEvents;
-    console.log(`\n=== SUMMARY: ${scheduledCount} scheduled in ${groupedLoops.size} groups ===\n`);
+    if (isDevMode) console.log(`\n=== SUMMARY: ${scheduledCount} scheduled in ${groupedLoops.size} groups ===\n`);
   }, [clearScheduledEvents]);
 
   const play = useCallback(async () => {
