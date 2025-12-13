@@ -525,7 +525,7 @@ const LoopBlock = React.memo(({
         backgroundColor: isMultiSelected ? categoryColor.accent + '40' : categoryColor.bg,
         borderRadius: '4px',
         overflow: 'hidden',
-        cursor: isDragged ? 'grabbing' : 'grab',  // CURSOR FIX: Inline style for higher specificity
+        cursor: isDragged ? 'grabbing' : 'grab',
         ...dragStyle
       }}
       onMouseDown={handleMouseDown}
@@ -542,6 +542,15 @@ const LoopBlock = React.memo(({
       }}
       data-loop-id={loop.id}
     >
+      {/* CURSOR FIX: Force all children to inherit cursor */}
+      <style>{`
+        [data-loop-id="${loop.id}"] * {
+          cursor: inherit !important;
+        }
+        [data-loop-id="${loop.id}"] .resize-handle {
+          cursor: ew-resize !important;
+        }
+      `}</style>
       {/* Logic Pro Style - Rounded Rectangle with Smart-Contrast Notches */}
       <svg
         className="absolute inset-0 pointer-events-none"
