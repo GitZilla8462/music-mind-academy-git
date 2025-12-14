@@ -56,22 +56,8 @@ const InteractionOverlay = ({
   hoveredTrack,
   setHoveredTrack
 }) => {
-  // ============================================================================
-  // CHROMEBOOK FIX: Use ref for cursor instead of state
-  // This bypasses React re-renders entirely for cursor changes
-  // Research shows cursor changes via state cause full layout invalidation
-  // ============================================================================
-  const overlayRef = useRef(null);
-  const lastCursorRef = useRef('default');
-  
-  // Direct DOM cursor update - NO React re-render
-  const setCursor = useCallback((newCursor) => {
-    if (newCursor === lastCursorRef.current) return; // Skip if same
-    lastCursorRef.current = newCursor;
-    if (overlayRef.current) {
-      overlayRef.current.style.cursor = newCursor;
-    }
-  }, []);
+  // Cursor state - this is the ONLY place cursor is determined
+  const [cursorStyle, setCursorStyle] = useState('default');
   
   // Interaction state
   const [isDraggingLoop, setIsDraggingLoop] = useState(false);
@@ -335,29 +321,50 @@ const InteractionOverlay = ({
   const handleMouseMove = useCallback((e) => {
     const { x, y } = getMousePosition(e);
     
-    // CHROMEBOOK FIX: Throttle cursor updates to 150ms when not actively dragging
-    // This prevents visible cursor flicker on slower GPU compositors
-    if (!isDraggingLoop && !isResizing && !isDraggingPlayhead && !isSelecting) {
-      const now = Date.now();
-      if (now - cursorUpdateRef.current > 150) {
-        cursorUpdateRef.current = now;
-        setCursor(calculateCursor(x, y));
+    // CHROMEBOOK FIX: During active drag, FORCE the cursor and skip recalculation
+    if (isDraggingLoop) {
+      // Force grabbing cursor during drag - don't recalculate
+      if (cursorStyle !== 'grabbing') {
+        console.log('🔧 CURSOR FIX: Forcing grabbing during drag');
+        setCursorStyle('grabbing');
       }
+      handleLoopDrag(e, x, y);
+      return; // Skip all other cursor logic
     }
     
-    // Handle active drag operations
-    if (isDraggingLoop && activeLoop) {
-      handleLoopDrag(e, x, y);
-    } else if (isResizing && activeLoop) {
+    if (isResizing) {
+      if (cursorStyle !== 'ew-resize') {
+        console.log('🔧 CURSOR FIX: Forcing ew-resize during resize');
+        setCursorStyle('ew-resize');
+      }
       handleResizeDrag(e, x);
-    } else if (isDraggingPlayhead) {
+      return;
+    }
+    
+    if (isDraggingPlayhead) {
       handlePlayheadDrag(e, x);
-    } else if (isSelecting) {
+      return;
+    }
+    
+    if (isSelecting) {
       handleSelectionDrag(e, x, y);
+      return;
+    }
+    
+    // CHROMEBOOK FIX: Throttle cursor updates to 150ms when not actively dragging
+    // This prevents visible cursor flicker on slower GPU compositors
+    const now = Date.now();
+    if (now - cursorUpdateRef.current > 150) {
+      cursorUpdateRef.current = now;
+      const newCursor = calculateCursor(x, y);
+      if (newCursor !== cursorStyle) {
+        console.log('🖱️ Cursor change:', cursorStyle, '→', newCursor);
+        setCursorStyle(newCursor);
+      }
     }
   }, [
     getMousePosition, calculateCursor, isDraggingLoop, isResizing,
-    isDraggingPlayhead, isSelecting, activeLoop
+    isDraggingPlayhead, isSelecting, activeLoop, cursorStyle
   ]);
 
   const handleMouseDown = useCallback((e) => {
@@ -380,7 +387,7 @@ const InteractionOverlay = ({
         setIsResizing(true);
         setResizeDirection(resizeZone);
         setActiveLoop(loop);
-        setCursor('ew-resize');
+        setCursorStyle('ew-resize');
         
         dragStateRef.current = {
           initialStartTime: loop.startTime,
@@ -399,7 +406,7 @@ const InteractionOverlay = ({
         
         setIsDraggingLoop(true);
         setActiveLoop(loop);
-        setCursor('grabbing');
+        setCursorStyle('grabbing');
         
         const loopLeft = timeToPixel(loop.startTime);
         const loopTop = TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT);
@@ -425,7 +432,7 @@ const InteractionOverlay = ({
       e.stopPropagation();
       
       setIsDraggingPlayhead?.(true);
-      setCursor('col-resize');
+      setCursorStyle('col-resize');
       onPlayheadDragStart?.();
       return;
     }
@@ -435,7 +442,7 @@ const InteractionOverlay = ({
       e.preventDefault();
       
       setIsSelecting(true);
-      setCursor('crosshair');
+      setCursorStyle('crosshair');
       selectionStartRef.current = { x: viewportX, y: viewportY };
       onSelectionStart?.({ x: viewportX, y: viewportY });
     }
@@ -472,7 +479,7 @@ const InteractionOverlay = ({
     
     // Reset cursor based on current position
     const { x, y } = getMousePosition(e);
-    setCursor(calculateCursor(x, y));
+    setCursorStyle(calculateCursor(x, y));
     
     // Reset drag state
     dragStateRef.current = {};
@@ -682,14 +689,14 @@ const InteractionOverlay = ({
 
   return (
     <div
-      ref={overlayRef}
       className="interaction-overlay absolute inset-0"
       style={{
-        cursor: 'default', // Initial cursor - will be updated via ref
+        cursor: cursorStyle,
         zIndex: 50,
         // Transparent but captures all events
         backgroundColor: 'transparent',
         // CHROMEBOOK FIX: GPU acceleration to prevent cursor flicker
+        willChange: 'cursor',
         transform: 'translateZ(0)',
         WebkitBackfaceVisibility: 'hidden',
         isolation: 'isolate'
