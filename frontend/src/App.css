@@ -95,3 +95,14 @@
 .chromebook-mode .loop-block {
   contain: layout style paint;
 }
+/* CHROMEBOOK CURSOR FIX - tested elements */
+video,
+canvas,
+svg,
+button,
+.loop-block,
+.loop-block *,
+.video-player-container,
+.video-player-container * {
+  cursor: inherit !important;
+}
