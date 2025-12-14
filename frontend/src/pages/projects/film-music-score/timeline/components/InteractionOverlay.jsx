@@ -56,8 +56,22 @@ const InteractionOverlay = ({
   hoveredTrack,
   setHoveredTrack
 }) => {
-  // Cursor state - this is the ONLY place cursor is determined
-  const [cursorStyle, setCursorStyle] = useState('default');
+  // ============================================================================
+  // CHROMEBOOK FIX: Use ref for cursor instead of state
+  // This bypasses React re-renders entirely for cursor changes
+  // Research shows cursor changes via state cause full layout invalidation
+  // ============================================================================
+  const overlayRef = useRef(null);
+  const lastCursorRef = useRef('default');
+  
+  // Direct DOM cursor update - NO React re-render
+  const setCursor = useCallback((newCursor) => {
+    if (newCursor === lastCursorRef.current) return; // Skip if same
+    lastCursorRef.current = newCursor;
+    if (overlayRef.current) {
+      overlayRef.current.style.cursor = newCursor;
+    }
+  }, []);
   
   // Interaction state
   const [isDraggingLoop, setIsDraggingLoop] = useState(false);
@@ -327,7 +341,7 @@ const InteractionOverlay = ({
       const now = Date.now();
       if (now - cursorUpdateRef.current > 150) {
         cursorUpdateRef.current = now;
-        setCursorStyle(calculateCursor(x, y));
+        setCursor(calculateCursor(x, y));
       }
     }
     
@@ -366,7 +380,7 @@ const InteractionOverlay = ({
         setIsResizing(true);
         setResizeDirection(resizeZone);
         setActiveLoop(loop);
-        setCursorStyle('ew-resize');
+        setCursor('ew-resize');
         
         dragStateRef.current = {
           initialStartTime: loop.startTime,
@@ -385,7 +399,7 @@ const InteractionOverlay = ({
         
         setIsDraggingLoop(true);
         setActiveLoop(loop);
-        setCursorStyle('grabbing');
+        setCursor('grabbing');
         
         const loopLeft = timeToPixel(loop.startTime);
         const loopTop = TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT);
@@ -411,7 +425,7 @@ const InteractionOverlay = ({
       e.stopPropagation();
       
       setIsDraggingPlayhead?.(true);
-      setCursorStyle('col-resize');
+      setCursor('col-resize');
       onPlayheadDragStart?.();
       return;
     }
@@ -421,7 +435,7 @@ const InteractionOverlay = ({
       e.preventDefault();
       
       setIsSelecting(true);
-      setCursorStyle('crosshair');
+      setCursor('crosshair');
       selectionStartRef.current = { x: viewportX, y: viewportY };
       onSelectionStart?.({ x: viewportX, y: viewportY });
     }
@@ -458,7 +472,7 @@ const InteractionOverlay = ({
     
     // Reset cursor based on current position
     const { x, y } = getMousePosition(e);
-    setCursorStyle(calculateCursor(x, y));
+    setCursor(calculateCursor(x, y));
     
     // Reset drag state
     dragStateRef.current = {};
@@ -520,9 +534,9 @@ const InteractionOverlay = ({
     const constrainedTrack = Math.max(0, Math.min(TIMELINE_CONSTANTS.NUM_TRACKS - 1, newTrackIndex));
     const constrainedStart = Math.max(0, Math.min(duration - loopDuration, newStartTime));
     
-    // Throttle updates for performance (CHROMEBOOK: 100ms minimum)
+    // Throttle updates for performance
     const now = Date.now();
-    if (now - lastUpdateRef.current > 100) {
+    if (now - lastUpdateRef.current > 50) {
       lastUpdateRef.current = now;
       
       onLoopUpdate?.(activeLoop.id, {
@@ -668,14 +682,14 @@ const InteractionOverlay = ({
 
   return (
     <div
+      ref={overlayRef}
       className="interaction-overlay absolute inset-0"
       style={{
-        cursor: cursorStyle,
+        cursor: 'default', // Initial cursor - will be updated via ref
         zIndex: 50,
         // Transparent but captures all events
         backgroundColor: 'transparent',
         // CHROMEBOOK FIX: GPU acceleration to prevent cursor flicker
-        willChange: 'cursor',
         transform: 'translateZ(0)',
         WebkitBackfaceVisibility: 'hidden',
         isolation: 'isolate'
