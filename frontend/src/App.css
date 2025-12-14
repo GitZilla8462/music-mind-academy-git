@@ -1,108 +1,120 @@
 /* ============================================================================
-   CHROMEBOOK CURSOR STABILIZATION - CSS ONLY
+   CHROMEBOOK CURSOR STABILIZATION
    ============================================================================
    
-   Add this to your App.css file.
-   
-   This CSS helps prevent cursor flickering on Chromebooks by:
-   1. Forcing GPU compositing on timeline elements
-   2. Stabilizing cursor inheritance in video player
-   3. Adding isolation to prevent cursor cascade issues
-   
-   This is CSS-only and cannot break your JavaScript.
+   This CSS prevents cursor flickering on Chromebooks by:
+   1. Forcing cursor inheritance on all child elements
+   2. GPU compositing on timeline elements
+   3. Preventing re-render cursor conflicts during playback
    ============================================================================ */
-
-/* Video Player - Stable cursor */
-.video-player-container {
-  cursor: pointer !important;
-}
-
-.video-player-container * {
-  cursor: inherit !important;
-}
-
-.video-player-container video {
-  pointer-events: none !important;
-}
-
-/* Loop Library - Stable cursors */
-.loop-library {
-  cursor: default;
-}
-
-.loop-library [draggable="true"] {
-  cursor: grab;
-}
-
-.loop-library [draggable="true"]:active {
-  cursor: grabbing;
-}
-
-.loop-library button {
-  cursor: pointer;
-}
-
-.loop-library button:disabled {
-  cursor: not-allowed;
-}
-
-.loop-library input {
-  cursor: text;
-}
-
-.loop-library select {
-  cursor: pointer;
-}
-
-/* Timeline Interaction Overlay - GPU acceleration */
-.interaction-overlay {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  isolation: isolate;
-}
-
-/* Loop blocks - No pointer events (overlay handles everything) */
-.loop-block {
-  pointer-events: none !important;
-  cursor: inherit !important;
-}
-
-.loop-block * {
-  pointer-events: none !important;
-  cursor: inherit !important;
-}
-
-/* Transport Controls */
-.transport-controls button {
-  cursor: pointer !important;
-}
 
 /* ============================================================================
-   CHROMEBOOK MODE - Auto-detected by JS, adds extra GPU hints
+   GLOBAL CURSOR INHERITANCE - Fixes flicker on video, loops, controls
    ============================================================================ */
-
-.chromebook-mode .interaction-overlay {
-  will-change: auto;
-  contain: layout style;
-}
-
-.chromebook-mode .video-player-container {
-  will-change: auto;
-  contain: layout style paint;
-}
-
-.chromebook-mode .loop-block {
-  contain: layout style paint;
-}
-/* CHROMEBOOK CURSOR FIX - tested elements */
-video,
-canvas,
-svg,
-button,
-.loop-block,
-.loop-block *,
-.video-player-container,
-.video-player-container * {
-  cursor: inherit !important;
-}
+   video,
+   canvas,
+   svg,
+   button,
+   [draggable="true"] {
+     cursor: inherit !important;
+   }
+   
+   /* Video Player */
+   .video-player-container {
+     cursor: pointer !important;
+   }
+   
+   .video-player-container * {
+     cursor: inherit !important;
+   }
+   
+   .video-player-container video {
+     pointer-events: none !important;
+   }
+   
+   /* Loop Library */
+   .loop-library {
+     cursor: default;
+   }
+   
+   .loop-library [draggable="true"] {
+     cursor: grab;
+   }
+   
+   .loop-library [draggable="true"]:active {
+     cursor: grabbing;
+   }
+   
+   .loop-library button {
+     cursor: pointer;
+   }
+   
+   .loop-library button:disabled {
+     cursor: not-allowed;
+   }
+   
+   .loop-library input {
+     cursor: text;
+   }
+   
+   .loop-library select {
+     cursor: pointer;
+   }
+   
+   /* Loop blocks - overlay handles all events */
+   .loop-block,
+   .loop-block * {
+     pointer-events: none !important;
+     cursor: inherit !important;
+   }
+   
+   /* Transport Controls */
+   .transport-controls button {
+     cursor: pointer !important;
+   }
+   
+   /* Timeline Interaction Overlay - GPU acceleration */
+   .interaction-overlay {
+     transform: translateZ(0);
+     backface-visibility: hidden;
+     -webkit-backface-visibility: hidden;
+     isolation: isolate;
+   }
+   
+   /* ============================================================================
+      CHROMEBOOK MODE - Extra fixes when Chromebook detected
+      ============================================================================ */
+   
+   .chromebook-mode .interaction-overlay {
+     will-change: auto;
+     contain: layout style;
+   }
+   
+   .chromebook-mode .video-player-container {
+     will-change: auto;
+     contain: layout style paint;
+   }
+   
+   .chromebook-mode .loop-block {
+     contain: layout style paint;
+   }
+   
+   /* CHROMEBOOK: Force ALL interactive areas to inherit cursor */
+   .chromebook-mode video,
+   .chromebook-mode canvas,
+   .chromebook-mode svg,
+   .chromebook-mode button,
+   .chromebook-mode [class*="loop"],
+   .chromebook-mode [class*="video"],
+   .chromebook-mode [class*="transport"],
+   .chromebook-mode [class*="playback"],
+   .chromebook-mode [class*="library"],
+   .chromebook-mode [draggable="true"] {
+     cursor: inherit !important;
+   }
+   
+   /* Force stability during playback */
+   .chromebook-mode .loop-library,
+   .chromebook-mode .loop-library * {
+     cursor: inherit !important;
+   }

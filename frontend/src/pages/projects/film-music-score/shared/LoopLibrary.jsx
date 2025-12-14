@@ -620,4 +620,6 @@ const LoopLibrary = ({
   );
 };
 
-export default LoopLibrary;
+// CHROMEBOOK FIX: Prevent re-renders during playback
+// This stops cursor flicker caused by currentTime updates
+export default React.memo(LoopLibrary);
