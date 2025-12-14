@@ -452,4 +452,4 @@ const LoopBlock = React.memo(({
 
 LoopBlock.displayName = 'LoopBlock';
 
-export default LoopBlock;
+export default React.memo(LoopBlock);
