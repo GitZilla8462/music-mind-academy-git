@@ -1,83 +1,97 @@
-/* Remove default constraints on root */
-#root {
-  width: 100%;
-  min-height: 100vh;
-  margin: 0;
-  padding: 0;
-}
+/* ============================================================================
+   CHROMEBOOK CURSOR STABILIZATION - CSS ONLY
+   ============================================================================
+   
+   Add this to your App.css file.
+   
+   This CSS helps prevent cursor flickering on Chromebooks by:
+   1. Forcing GPU compositing on timeline elements
+   2. Stabilizing cursor inheritance in video player
+   3. Adding isolation to prevent cursor cascade issues
+   
+   This is CSS-only and cannot break your JavaScript.
+   ============================================================================ */
 
-/* Reset any default browser spacing */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body, html {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* Keep your logo styles if you need them */
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-/* =============================================================================
-   CHROMEBOOK MODE - Disable fancy cursors for stability
-   ============================================================================= */
-
-/* =============================================================================
-   CHROMEBOOK MODE - Disable fancy cursors for stability
-   ============================================================================= */
-
-/* Only target the video player area */
-.chromebook-mode .bg-black.relative {
+/* Video Player - Stable cursor */
+.video-player-container {
   cursor: pointer !important;
 }
 
-.chromebook-mode .bg-black.relative video {
-  cursor: pointer !important;
+.video-player-container * {
+  cursor: inherit !important;
+}
+
+.video-player-container video {
   pointer-events: none !important;
 }
 
-.chromebook-mode .interaction-overlay {
+/* Loop Library - Stable cursors */
+.loop-library {
+  cursor: default;
+}
+
+.loop-library [draggable="true"] {
+  cursor: grab;
+}
+
+.loop-library [draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.loop-library button {
+  cursor: pointer;
+}
+
+.loop-library button:disabled {
+  cursor: not-allowed;
+}
+
+.loop-library input {
+  cursor: text;
+}
+
+.loop-library select {
+  cursor: pointer;
+}
+
+/* Timeline Interaction Overlay - GPU acceleration */
+.interaction-overlay {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  isolation: isolate;
+}
+
+/* Loop blocks - No pointer events (overlay handles everything) */
+.loop-block {
+  pointer-events: none !important;
   cursor: inherit !important;
+}
+
+.loop-block * {
+  pointer-events: none !important;
+  cursor: inherit !important;
+}
+
+/* Transport Controls */
+.transport-controls button {
+  cursor: pointer !important;
+}
+
+/* ============================================================================
+   CHROMEBOOK MODE - Auto-detected by JS, adds extra GPU hints
+   ============================================================================ */
+
+.chromebook-mode .interaction-overlay {
+  will-change: auto;
+  contain: layout style;
+}
+
+.chromebook-mode .video-player-container {
+  will-change: auto;
+  contain: layout style paint;
+}
+
+.chromebook-mode .loop-block {
+  contain: layout style paint;
 }

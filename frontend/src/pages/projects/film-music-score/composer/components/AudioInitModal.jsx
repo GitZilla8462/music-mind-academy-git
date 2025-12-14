@@ -4,7 +4,7 @@ import { Play } from 'lucide-react';
 
 const AudioInitModal = ({ onInitialize }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+<div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[100]">
       <div className="bg-gray-800 p-8 rounded-lg text-center max-w-md">
         <Play size={48} className="mx-auto mb-4 text-blue-400" />
         <h2 className="text-xl font-semibold mb-4">Initialize Audio Engine</h2>

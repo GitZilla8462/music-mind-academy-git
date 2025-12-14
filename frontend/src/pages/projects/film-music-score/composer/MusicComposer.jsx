@@ -452,10 +452,11 @@ const MusicComposer = ({
 
   return (
     <div className="h-full bg-gray-900 text-white flex flex-col">
-      {/* Audio Init Modal */}
-      {!audioReady && !tutorialMode && (
-        <AudioInitModal onInitialize={handleInitializeAudio} />
-      )}
+    {/* Auto-initialize audio on first render */}
+      {!audioReady && !tutorialMode && (() => {
+        handleInitializeAudio();
+        return null;
+      })()}
 
       {/* Header */}
       {!hideHeader && (
