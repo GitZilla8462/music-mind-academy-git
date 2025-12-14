@@ -158,14 +158,21 @@ const InteractionOverlay = ({
     return null;
   }, [timeToPixel]);
 
+  // Store currentTime in a ref to avoid re-renders
+  const currentTimeRef = useRef(currentTime);
+  useEffect(() => {
+    currentTimeRef.current = currentTime;
+  }, [currentTime]);
+
   /**
    * Check if mouse is near the playhead
+   * CHROMEBOOK FIX: Uses ref instead of direct prop to avoid re-creating callback on every frame
    */
   const isNearPlayhead = useCallback((x) => {
-    const playheadX = timeToPixel(currentTime);
+    const playheadX = timeToPixel(currentTimeRef.current);
     const PLAYHEAD_THRESHOLD = 8;
     return Math.abs(x - playheadX) <= PLAYHEAD_THRESHOLD;
-  }, [timeToPixel, currentTime]);
+  }, [timeToPixel]);
 
   /**
    * Get track index from Y position
@@ -321,50 +328,29 @@ const InteractionOverlay = ({
   const handleMouseMove = useCallback((e) => {
     const { x, y } = getMousePosition(e);
     
-    // CHROMEBOOK FIX: During active drag, FORCE the cursor and skip recalculation
-    if (isDraggingLoop) {
-      // Force grabbing cursor during drag - don't recalculate
-      if (cursorStyle !== 'grabbing') {
-        console.log('🔧 CURSOR FIX: Forcing grabbing during drag');
-        setCursorStyle('grabbing');
-      }
-      handleLoopDrag(e, x, y);
-      return; // Skip all other cursor logic
-    }
-    
-    if (isResizing) {
-      if (cursorStyle !== 'ew-resize') {
-        console.log('🔧 CURSOR FIX: Forcing ew-resize during resize');
-        setCursorStyle('ew-resize');
-      }
-      handleResizeDrag(e, x);
-      return;
-    }
-    
-    if (isDraggingPlayhead) {
-      handlePlayheadDrag(e, x);
-      return;
-    }
-    
-    if (isSelecting) {
-      handleSelectionDrag(e, x, y);
-      return;
-    }
-    
-    // CHROMEBOOK FIX: Throttle cursor updates to 150ms when not actively dragging
+    // CHROMEBOOK FIX: Throttle cursor updates to 100ms when not actively dragging
     // This prevents visible cursor flicker on slower GPU compositors
-    const now = Date.now();
-    if (now - cursorUpdateRef.current > 150) {
-      cursorUpdateRef.current = now;
-      const newCursor = calculateCursor(x, y);
-      if (newCursor !== cursorStyle) {
-        console.log('🖱️ Cursor change:', cursorStyle, '→', newCursor);
-        setCursorStyle(newCursor);
+    if (!isDraggingLoop && !isResizing && !isDraggingPlayhead && !isSelecting) {
+      const now = Date.now();
+      if (now - cursorUpdateRef.current > 100) {
+        cursorUpdateRef.current = now;
+        setCursorStyle(calculateCursor(x, y));
       }
+    }
+    
+    // Handle active drag operations
+    if (isDraggingLoop && activeLoop) {
+      handleLoopDrag(e, x, y);
+    } else if (isResizing && activeLoop) {
+      handleResizeDrag(e, x);
+    } else if (isDraggingPlayhead) {
+      handlePlayheadDrag(e, x);
+    } else if (isSelecting) {
+      handleSelectionDrag(e, x, y);
     }
   }, [
     getMousePosition, calculateCursor, isDraggingLoop, isResizing,
-    isDraggingPlayhead, isSelecting, activeLoop, cursorStyle
+    isDraggingPlayhead, isSelecting, activeLoop
   ]);
 
   const handleMouseDown = useCallback((e) => {
