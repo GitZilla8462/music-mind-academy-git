@@ -90,7 +90,7 @@ const LoopBlock = React.memo(({
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       
       const channelData = audioBuffer.getChannelData(0);
-      const samples = 200;
+      const samples = 100; // CHROMEBOOK: Reduced from 200 for better performance
       const blockSize = Math.floor(channelData.length / samples);
       const waveform = [];
       

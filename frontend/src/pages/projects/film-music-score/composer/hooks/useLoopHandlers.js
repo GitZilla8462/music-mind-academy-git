@@ -58,17 +58,25 @@ export const useLoopHandlers = ({
       muted: false
     };
 
+    // ✅ CHROMEBOOK FIX: Add loop to UI IMMEDIATELY (optimistic update)
+    const updatedLoops = [...placedLoops, newLoop];
+    setPlacedLoops(updatedLoops);
+    setHasUnsavedChanges(true);
+    showToast?.(`Added "${loopData.name}" to track ${trackIndex + 1}`, 'success');
+
+    // Load audio in background - don't block UI
     try {
       const player = await createLoopPlayer(newLoop);
       
       if (!player) {
-        throw new Error('Failed to create audio player - no player returned');
+        console.warn('Failed to create audio player - loop visible but may not play');
+        return;
       }
       
       if (player.isNative) {
         if (!player.loaded && player.audio) {
           await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => reject(new Error('Native audio load timeout')), 3000);
+            const timeout = setTimeout(() => resolve(), 3000); // Don't reject, just continue
             
             if (player.audio.readyState >= 2) {
               clearTimeout(timeout);
@@ -81,39 +89,20 @@ export const useLoopHandlers = ({
               
               player.audio.addEventListener('error', () => {
                 clearTimeout(timeout);
-                reject(new Error('Native audio load error'));
+                resolve(); // Don't reject - loop is already visible
               }, { once: true });
             }
           });
         }
-      } else {
-        if (!player.loaded) {
-          throw new Error('Tone.js player not loaded');
-        }
       }
       
-      const updatedLoops = [...placedLoops, newLoop];
-      setPlacedLoops(updatedLoops);
-      setHasUnsavedChanges(true);
-      
+      // Schedule loops after audio is ready
       scheduleLoops(updatedLoops, selectedVideo?.duration || 60, trackStates);
       
-      showToast?.(`Added "${loopData.name}" to track ${trackIndex + 1}`, 'success');
     } catch (error) {
       console.error('Error creating loop player:', error);
-      
-      let errorMessage = `Failed to load "${loopData.name}"`;
-      if (error.message.includes('timeout')) {
-        errorMessage += ' - File loading timeout (check file exists)';
-      } else if (error.message.includes('CORS')) {
-        errorMessage += ' - File access blocked (CORS issue)';
-      } else if (error.message.includes('decode')) {
-        errorMessage += ' - Invalid audio format';
-      } else {
-        errorMessage += ` - ${error.message}`;
-      }
-      
-      showToast?.(errorMessage, 'error');
+      // Don't remove loop or show error - it's already visible
+      // Audio will just not play for this loop
     }
   }, [
     createLoopPlayer, showToast, audioReady, placedLoops, scheduleLoops, 
