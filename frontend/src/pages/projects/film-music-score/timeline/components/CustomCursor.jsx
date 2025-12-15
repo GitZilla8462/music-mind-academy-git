@@ -4,6 +4,7 @@
 // Only renders over the timeline area when native cursor is hidden
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 
 // Cursor SVG components - inline for no flicker during cursor type changes
 const CursorSVGs = {
@@ -146,7 +147,9 @@ const CustomCursor = ({
   const hotspot = HOTSPOTS[cursorType] || HOTSPOTS.default;
   const CursorSVG = CursorSVGs[cursorType] || CursorSVGs.default;
 
-  return (
+  // Use Portal to render outside any zoomed/transformed parent containers
+  // This ensures position: fixed works correctly with screen coordinates
+  return ReactDOM.createPortal(
     <div
       className="custom-cursor-container"
       style={{
@@ -160,7 +163,8 @@ const CustomCursor = ({
       }}
     >
       {CursorSVG}
-    </div>
+    </div>,
+    document.body
   );
 };
 
