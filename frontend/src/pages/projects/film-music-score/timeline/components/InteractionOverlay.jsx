@@ -698,9 +698,9 @@ const InteractionOverlay = ({
       ref={overlayRef}
       className="interaction-overlay absolute inset-0"
       style={{
-        // CHROMEBOOK FIX: cursor is now set via ref/DOM, not React state
-        // This prevents flicker during re-renders
-        cursor: 'default',  // Initial value, immediately overwritten by ref
+        // CHROMEBOOK FIX: NO cursor property here!
+        // Cursor is controlled entirely via ref/DOM to prevent flicker
+        // See setCursor() function and the useEffect that maintains it
         zIndex: 50,
         // Transparent but captures all events
         backgroundColor: 'transparent',

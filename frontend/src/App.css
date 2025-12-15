@@ -74,7 +74,9 @@
    }
    
    /* Timeline Interaction Overlay - GPU acceleration */
+   /* CHROMEBOOK FIX: Default cursor set here, dynamic cursor set via JS ref */
    .interaction-overlay {
+     cursor: default;
      transform: translateZ(0);
      backface-visibility: hidden;
      -webkit-backface-visibility: hidden;
