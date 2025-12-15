@@ -5,6 +5,13 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
+import CustomCursor from './CustomCursor';
+
+// Detect Chromebook/ChromeOS for custom cursor (fixes GPU compositor flicker)
+const isChromebook = typeof navigator !== 'undefined' && (
+  /CrOS/.test(navigator.userAgent) ||
+  (navigator.userAgentData?.platform === 'Chrome OS')
+);
 
 const InteractionOverlay = ({
   // Data
@@ -59,6 +66,11 @@ const InteractionOverlay = ({
   // Cursor state - this is the ONLY place cursor is determined
   const [cursorStyle, setCursorStyle] = useState('default');
   
+  // CHROMEBOOK FIX: Track cursor type for custom cursor component
+  const [cursorType, setCursorType] = useState('default');
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isMouseOverTimeline, setIsMouseOverTimeline] = useState(false);
+  
   // Interaction state
   const [isDraggingLoop, setIsDraggingLoop] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -87,6 +99,14 @@ const InteractionOverlay = ({
   
   // Snap guide ref
   const snapGuideRef = useRef(null);
+
+  // Helper to set cursor - updates both native and custom cursor on Chromebook
+  const setCursor = useCallback((cursor) => {
+    setCursorStyle(cursor);
+    if (isChromebook) {
+      setCursorType(cursor);
+    }
+  }, []);
 
   // ============================================================================
   // HIT TESTING FUNCTIONS - Mathematical detection, no DOM events
@@ -349,13 +369,20 @@ const InteractionOverlay = ({
   const handleMouseMove = useCallback((e) => {
     const { x, y } = getMousePosition(e);
     
+    // CHROMEBOOK: Track mouse position for custom cursor
+    if (isChromebook) {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+      setIsMouseOverTimeline(true);
+    }
+    
     // CHROMEBOOK FIX: Throttle cursor updates to 100ms when not actively dragging
     // This prevents visible cursor flicker on slower GPU compositors
     if (!isDraggingLoop && !isResizing && !isDraggingPlayhead && !isSelecting) {
       const now = Date.now();
       if (now - cursorUpdateRef.current > 100) {
         cursorUpdateRef.current = now;
-        setCursorStyle(calculateCursor(x, y));
+        const newCursor = calculateCursor(x, y);
+        setCursor(newCursor);
       }
     }
     
@@ -394,7 +421,7 @@ const InteractionOverlay = ({
         setIsResizing(true);
         setResizeDirection(resizeZone);
         setActiveLoop(loop);
-        setCursorStyle('ew-resize');
+        setCursor('ew-resize');
         
         dragStateRef.current = {
           initialStartTime: loop.startTime,
@@ -413,7 +440,7 @@ const InteractionOverlay = ({
         
         setIsDraggingLoop(true);
         setActiveLoop(loop);
-        setCursorStyle('grabbing');
+        setCursor('grabbing');
         
         const loopLeft = timeToPixel(loop.startTime);
         const loopTop = TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT);
@@ -439,7 +466,7 @@ const InteractionOverlay = ({
       e.stopPropagation();
       
       setIsDraggingPlayhead?.(true);
-      setCursorStyle('col-resize');
+      setCursor('col-resize');
       onPlayheadDragStart?.();
       return;
     }
@@ -449,7 +476,7 @@ const InteractionOverlay = ({
       e.preventDefault();
       
       setIsSelecting(true);
-      setCursorStyle('crosshair');
+      setCursor('crosshair');
       selectionStartRef.current = { x: viewportX, y: viewportY };
       onSelectionStart?.({ x: viewportX, y: viewportY });
     }
@@ -486,7 +513,7 @@ const InteractionOverlay = ({
     
     // Reset cursor based on current position
     const { x, y } = getMousePosition(e);
-    setCursorStyle(calculateCursor(x, y));
+    setCursor(calculateCursor(x, y));
     
     // Reset drag state
     dragStateRef.current = {};
@@ -695,29 +722,45 @@ const InteractionOverlay = ({
   // ============================================================================
 
   return (
-    <div
-      className="interaction-overlay absolute inset-0"
-      style={{
-        cursor: cursorStyle,
-        zIndex: 50,
-        // Transparent but captures all events
-        backgroundColor: 'transparent',
-        // CHROMEBOOK FIX: GPU acceleration to prevent cursor flicker
-        willChange: 'cursor',
-        transform: 'translateZ(0)',
-        WebkitBackfaceVisibility: 'hidden',
-        isolation: 'isolate'
-      }}
-      onMouseMove={handleMouseMove}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      onContextMenu={handleContextMenu}
-      onDoubleClick={handleDoubleClick}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    />
+    <>
+      <div
+        className="interaction-overlay absolute inset-0"
+        style={{
+          // CHROMEBOOK: Hide native cursor, use CustomCursor instead
+          cursor: isChromebook ? 'none' : cursorStyle,
+          zIndex: 50,
+          // Transparent but captures all events
+          backgroundColor: 'transparent',
+          // CHROMEBOOK FIX: GPU acceleration to prevent cursor flicker
+          willChange: 'cursor',
+          transform: 'translateZ(0)',
+          WebkitBackfaceVisibility: 'hidden',
+          isolation: 'isolate'
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={(e) => {
+          handleMouseUp(e);
+          setIsMouseOverTimeline(false);
+        }}
+        onMouseEnter={() => setIsMouseOverTimeline(true)}
+        onContextMenu={handleContextMenu}
+        onDoubleClick={handleDoubleClick}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      />
+      
+      {/* CHROMEBOOK: Custom cursor to avoid GPU compositor flicker */}
+      {isChromebook && isMouseOverTimeline && (
+        <CustomCursor
+          cursorType={cursorType}
+          mouseX={mousePosition.x}
+          mouseY={mousePosition.y}
+        />
+      )}
+    </>
   );
 };
 
