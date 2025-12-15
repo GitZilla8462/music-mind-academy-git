@@ -5,6 +5,13 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
+import CustomCursor from './CustomCursor.jsx';
+
+// Detect Chromebook/ChromeOS for custom cursor
+const isChromebook = typeof navigator !== 'undefined' && (
+  /CrOS/.test(navigator.userAgent) ||
+  (navigator.userAgentData?.platform === 'Chrome OS')
+);
 
 const InteractionOverlay = ({
   // Data
@@ -61,6 +68,10 @@ const InteractionOverlay = ({
   const overlayRef = useRef(null);
   const currentCursorRef = useRef('default');
   
+  // CHROMEBOOK FIX: Track cursor type in state for CustomCursor component
+  // This is separate from the DOM cursor style
+  const [cursorType, setCursorType] = useState('default');
+  
   // Interaction state
   const [isDraggingLoop, setIsDraggingLoop] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -92,10 +103,18 @@ const InteractionOverlay = ({
   
   // CHROMEBOOK FIX: Direct DOM cursor update - bypasses React state entirely
   // This prevents cursor flicker during re-renders from auto-save, session updates, etc.
+  // On Chromebook, we also update cursorType state for the CustomCursor component
   const setCursor = useCallback((cursor) => {
-    if (overlayRef.current && currentCursorRef.current !== cursor) {
+    if (currentCursorRef.current !== cursor) {
       currentCursorRef.current = cursor;
-      overlayRef.current.style.cursor = cursor;
+      
+      // Update DOM cursor (for non-Chromebook)
+      if (overlayRef.current) {
+        overlayRef.current.style.cursor = isChromebook ? 'none' : cursor;
+      }
+      
+      // Update state for CustomCursor (Chromebook only, but safe to always update)
+      setCursorType(cursor);
     }
   }, []);
 
@@ -686,31 +705,41 @@ const InteractionOverlay = ({
   // ============================================================================
 
   return (
-    <div
-      ref={overlayRef}
-      className="interaction-overlay absolute inset-0"
-      style={{
-        // CHROMEBOOK FIX: NO cursor property here!
-        // Cursor is controlled entirely via ref/DOM to prevent flicker
-        // See setCursor() function and the useEffect that maintains it
-        zIndex: 50,
-        // Transparent but captures all events
-        backgroundColor: 'transparent',
-        // CHROMEBOOK FIX: GPU acceleration
-        transform: 'translateZ(0)',
-        WebkitBackfaceVisibility: 'hidden',
-        isolation: 'isolate'
-      }}
-      onMouseMove={handleMouseMove}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      onContextMenu={handleContextMenu}
-      onDoubleClick={handleDoubleClick}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    />
+    <>
+      {/* CHROMEBOOK FIX: Custom cursor component to avoid native cursor flicker */}
+      {isChromebook && (
+        <CustomCursor
+          cursorType={cursorType}
+          containerRef={overlayRef}
+          enabled={true}
+        />
+      )}
+      
+      <div
+        ref={overlayRef}
+        className="interaction-overlay absolute inset-0"
+        style={{
+          // CHROMEBOOK FIX: Hide native cursor on Chromebook, use CustomCursor instead
+          cursor: isChromebook ? 'none' : 'default',
+          zIndex: 50,
+          // Transparent but captures all events
+          backgroundColor: 'transparent',
+          // GPU acceleration
+          transform: 'translateZ(0)',
+          WebkitBackfaceVisibility: 'hidden',
+          isolation: 'isolate'
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onContextMenu={handleContextMenu}
+        onDoubleClick={handleDoubleClick}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      />
+    </>
   );
 };
 
