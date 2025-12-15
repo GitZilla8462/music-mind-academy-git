@@ -56,8 +56,10 @@ const InteractionOverlay = ({
   hoveredTrack,
   setHoveredTrack
 }) => {
-  // Cursor state - this is the ONLY place cursor is determined
-  const [cursorStyle, setCursorStyle] = useState('default');
+  // CHROMEBOOK FIX: Use ref instead of state for cursor to prevent flicker on re-renders
+  // State changes cause re-renders which briefly reset cursor to default
+  const overlayRef = useRef(null);
+  const currentCursorRef = useRef('default');
   
   // Interaction state
   const [isDraggingLoop, setIsDraggingLoop] = useState(false);
@@ -87,6 +89,15 @@ const InteractionOverlay = ({
   
   // Snap guide ref
   const snapGuideRef = useRef(null);
+  
+  // CHROMEBOOK FIX: Direct DOM cursor update - bypasses React state entirely
+  // This prevents cursor flicker during re-renders from auto-save, session updates, etc.
+  const setCursor = useCallback((cursor) => {
+    if (overlayRef.current && currentCursorRef.current !== cursor) {
+      currentCursorRef.current = cursor;
+      overlayRef.current.style.cursor = cursor;
+    }
+  }, []);
 
   // ============================================================================
   // HIT TESTING FUNCTIONS - Mathematical detection, no DOM events
@@ -321,6 +332,14 @@ const InteractionOverlay = ({
     };
   }, []);
 
+  // CHROMEBOOK FIX: Restore cursor from ref after any re-render
+  // This ensures the cursor stays correct even when parent components re-render
+  useEffect(() => {
+    if (overlayRef.current && currentCursorRef.current) {
+      overlayRef.current.style.cursor = currentCursorRef.current;
+    }
+  });
+
   // ============================================================================
   // MOUSE EVENT HANDLERS
   // ============================================================================
@@ -328,13 +347,14 @@ const InteractionOverlay = ({
   const handleMouseMove = useCallback((e) => {
     const { x, y } = getMousePosition(e);
     
-    // CHROMEBOOK FIX: Throttle cursor updates to 100ms when not actively dragging
-    // This prevents visible cursor flicker on slower GPU compositors
+    // CHROMEBOOK FIX: Update cursor via direct DOM manipulation (not React state)
+    // This prevents flicker during re-renders from auto-save, session updates, etc.
+    // Throttle to 100ms when not actively dragging for performance
     if (!isDraggingLoop && !isResizing && !isDraggingPlayhead && !isSelecting) {
       const now = Date.now();
       if (now - cursorUpdateRef.current > 100) {
         cursorUpdateRef.current = now;
-        setCursorStyle(calculateCursor(x, y));
+        setCursor(calculateCursor(x, y));
       }
     }
     
@@ -373,7 +393,7 @@ const InteractionOverlay = ({
         setIsResizing(true);
         setResizeDirection(resizeZone);
         setActiveLoop(loop);
-        setCursorStyle('ew-resize');
+        setCursor('ew-resize');
         
         dragStateRef.current = {
           initialStartTime: loop.startTime,
@@ -392,7 +412,7 @@ const InteractionOverlay = ({
         
         setIsDraggingLoop(true);
         setActiveLoop(loop);
-        setCursorStyle('grabbing');
+        setCursor('grabbing');
         
         const loopLeft = timeToPixel(loop.startTime);
         const loopTop = TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT);
@@ -418,7 +438,7 @@ const InteractionOverlay = ({
       e.stopPropagation();
       
       setIsDraggingPlayhead?.(true);
-      setCursorStyle('col-resize');
+      setCursor('col-resize');
       onPlayheadDragStart?.();
       return;
     }
@@ -428,7 +448,7 @@ const InteractionOverlay = ({
       e.preventDefault();
       
       setIsSelecting(true);
-      setCursorStyle('crosshair');
+      setCursor('crosshair');
       selectionStartRef.current = { x: viewportX, y: viewportY };
       onSelectionStart?.({ x: viewportX, y: viewportY });
     }
@@ -465,7 +485,7 @@ const InteractionOverlay = ({
     
     // Reset cursor based on current position
     const { x, y } = getMousePosition(e);
-    setCursorStyle(calculateCursor(x, y));
+    setCursor(calculateCursor(x, y));
     
     // Reset drag state
     dragStateRef.current = {};
@@ -675,14 +695,16 @@ const InteractionOverlay = ({
 
   return (
     <div
+      ref={overlayRef}
       className="interaction-overlay absolute inset-0"
       style={{
-        cursor: cursorStyle,
+        // CHROMEBOOK FIX: cursor is now set via ref/DOM, not React state
+        // This prevents flicker during re-renders
+        cursor: 'default',  // Initial value, immediately overwritten by ref
         zIndex: 50,
         // Transparent but captures all events
         backgroundColor: 'transparent',
-        // CHROMEBOOK FIX: GPU acceleration to prevent cursor flicker
-        willChange: 'cursor',
+        // CHROMEBOOK FIX: GPU acceleration
         transform: 'translateZ(0)',
         WebkitBackfaceVisibility: 'hidden',
         isolation: 'isolate'
