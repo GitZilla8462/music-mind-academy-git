@@ -124,6 +124,7 @@ const InteractionOverlay = ({
   
   /**
    * Get mouse position relative to timeline content area
+   * CHROMEBOOK FIX: Compensates for CSS zoom applied by parent components (DAWTutorialActivity uses zoom: 0.75)
    */
   const getMousePosition = useCallback((e) => {
     if (!timelineRef.current) return { x: 0, y: 0 };
@@ -132,11 +133,30 @@ const InteractionOverlay = ({
     const scrollLeft = timelineScrollRef.current?.scrollLeft || 0;
     const scrollTop = timelineScrollRef.current?.scrollTop || 0;
     
+    // Detect CSS zoom applied to parent elements
+    // When zoom is applied, getBoundingClientRect returns scaled dimensions,
+    // but we need unscaled coordinates for hit testing
+    let zoomFactor = 1;
+    let element = timelineRef.current;
+    while (element) {
+      const style = window.getComputedStyle(element);
+      const zoom = parseFloat(style.zoom);
+      if (zoom && zoom !== 1) {
+        zoomFactor = zoom;
+        break;
+      }
+      element = element.parentElement;
+    }
+    
+    // Scale coordinates by zoom factor
+    const viewportX = (e.clientX - rect.left) / zoomFactor;
+    const viewportY = (e.clientY - rect.top) / zoomFactor;
+    
     return {
-      x: e.clientX - rect.left + scrollLeft,
-      y: e.clientY - rect.top + scrollTop,
-      viewportX: e.clientX - rect.left,
-      viewportY: e.clientY - rect.top
+      x: viewportX + scrollLeft,
+      y: viewportY + scrollTop,
+      viewportX: viewportX,
+      viewportY: viewportY
     };
   }, [timelineRef, timelineScrollRef]);
 
