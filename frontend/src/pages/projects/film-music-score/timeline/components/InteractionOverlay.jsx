@@ -332,14 +332,6 @@ const InteractionOverlay = ({
     };
   }, []);
 
-  // CHROMEBOOK FIX: Restore cursor from ref after any re-render
-  // This ensures the cursor stays correct even when parent components re-render
-  useEffect(() => {
-    if (overlayRef.current && currentCursorRef.current) {
-      overlayRef.current.style.cursor = currentCursorRef.current;
-    }
-  });
-
   // ============================================================================
   // MOUSE EVENT HANDLERS
   // ============================================================================
