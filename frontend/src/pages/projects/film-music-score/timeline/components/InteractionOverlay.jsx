@@ -599,6 +599,7 @@ const InteractionOverlay = ({
 
   const handleLoopDrag = useCallback((e, x, y) => {
     if (!activeLoop) return;
+    if (!timelineRef.current) return;
     
     const targetLoopLeft = x - dragStateRef.current.loopOffsetX;
     const targetLoopTop = y - dragStateRef.current.loopOffsetY;
@@ -609,9 +610,37 @@ const InteractionOverlay = ({
     const snapResult = applySnapping(newStartTime, activeLoop.id);
     newStartTime = snapResult.time;
     
-    // Calculate track
-    const yRelativeToTracks = targetLoopTop - TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT;
-    const newTrackIndex = Math.floor(yRelativeToTracks / TIMELINE_CONSTANTS.TRACK_HEIGHT);
+    // Calculate track index using actual DOM measurements
+    // Find track elements and determine which one we're over
+    let newTrackIndex = 0;
+    const trackElements = timelineRef.current.querySelectorAll('[data-track-row]');
+    
+    if (trackElements.length > 0) {
+      const timelineRect = timelineRef.current.getBoundingClientRect();
+      const scrollTop = timelineScrollRef.current?.scrollTop || 0;
+      
+      // Convert y to be relative to timeline for comparison
+      const yInTimeline = y;
+      
+      for (let i = 0; i < trackElements.length; i++) {
+        const trackRect = trackElements[i].getBoundingClientRect();
+        const trackTop = trackRect.top - timelineRect.top + scrollTop;
+        const trackBottom = trackRect.bottom - timelineRect.top + scrollTop;
+        
+        if (yInTimeline >= trackTop && yInTimeline < trackBottom) {
+          newTrackIndex = i;
+          break;
+        }
+        // If we're below this track, update index (handles being below last track)
+        if (yInTimeline >= trackTop) {
+          newTrackIndex = i;
+        }
+      }
+    } else {
+      // Fallback to calculated position if no track elements found
+      const yRelativeToTracks = targetLoopTop - TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT;
+      newTrackIndex = Math.floor(yRelativeToTracks / TIMELINE_CONSTANTS.TRACK_HEIGHT);
+    }
     
     // Constrain values
     const loopDuration = activeLoop.endTime - activeLoop.startTime;
@@ -629,7 +658,7 @@ const InteractionOverlay = ({
         endTime: constrainedStart + loopDuration
       });
     }
-  }, [activeLoop, pixelToTime, applySnapping, duration, onLoopUpdate]);
+  }, [activeLoop, pixelToTime, applySnapping, duration, onLoopUpdate, timelineRef, timelineScrollRef]);
 
   const handleResizeDrag = useCallback((e, x) => {
     if (!activeLoop || !resizeDirection) return;
