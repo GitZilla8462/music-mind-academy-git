@@ -63,6 +63,7 @@ const MusicComposer = ({
   const dawReadyCalledRef = useRef(false);
   const initialLoopsLoadedRef = useRef(false);
   const [currentlyPlayingPreview, setCurrentlyPlayingPreview] = useState(null);
+  const [playersReady, setPlayersReady] = useState(false);
 
   // Central state management FIRST (so selectedVideo exists)
   const {
@@ -172,16 +173,20 @@ const MusicComposer = ({
   // STEP 2: Create audio players when audio becomes ready
   // ✅ FIX: Handle BOTH initialPlacedLoops (via savedLoopsRef) AND localStorage-loaded loops (via placedLoops)
   // ✅ OPTIMIZED: Reduced logging for better Chromebook performance
+  // ✅ FIX: Track when all players are ready to prevent playback before loading
   useEffect(() => {
     // Don't proceed if audio isn't ready
     if (!audioReady) {
+      setPlayersReady(false);
       return;
     }
 
     // ✅ FIX: Use savedLoopsRef if available (from props), otherwise use placedLoops directly (from localStorage)
     const loopsToCheck = savedLoopsRef.current || placedLoops;
     
+    // If no loops, players are "ready" (nothing to load)
     if (loopsToCheck.length === 0) {
+      setPlayersReady(true);
       return;
     }
 
@@ -195,9 +200,12 @@ const MusicComposer = ({
     });
 
     if (loopsWithoutPlayers.length === 0) {
+      setPlayersReady(true);
       return; // All loops already have players - no need to log every time
     }
 
+    // Players are being created, not ready yet
+    setPlayersReady(false);
     console.log('🎵 Creating players for', loopsWithoutPlayers.length, 'loops without players...');
     
     // ✅ FIX: Use async function to properly await player creation
@@ -220,6 +228,7 @@ const MusicComposer = ({
       }
       
       console.log('✅ Audio players created');
+      setPlayersReady(true);
     };
     
     createMissingPlayers();
@@ -497,6 +506,7 @@ const MusicComposer = ({
         submissionNotes={submissionNotes}
         isDemo={isDemo}
         isPractice={isPractice}
+        playersReady={playersReady}
         onLoopLibraryClick={onLoopLibraryClickCallback}
         onVideoPlayerClick={onVideoPlayerClickCallback}
         onTrackHeaderClick={onTrackHeaderClickCallback}

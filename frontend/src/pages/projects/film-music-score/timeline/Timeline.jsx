@@ -34,7 +34,9 @@ const Timeline = ({
   onPlay,
   onPause,
   onStop,
-  onRestart
+  onRestart,
+  // NEW: Track if audio players are ready
+  playersReady = true
 }) => {
   // Refs for timeline elements
   const timelineRef = useRef(null);
@@ -149,6 +151,7 @@ const Timeline = ({
           onRestart={onRestart}
           currentTime={currentTime}
           onSeek={onSeek}
+          playersReady={playersReady}
         />
         
         {/* Timeline Content - Now uses InteractionOverlay internally */}

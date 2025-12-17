@@ -360,6 +360,7 @@ const TimelineContent = forwardRef(({
             {Array.from({ length: TIMELINE_CONSTANTS.NUM_TRACKS }, (_, i) => (
               <div
                 key={i}
+                data-track-row={i}
                 className={`absolute left-0 right-0 border-b border-gray-700 transition-colors ${
                   i % 2 === 0 ? 'bg-gray-850' : 'bg-gray-900'
                 } ${

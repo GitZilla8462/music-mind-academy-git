@@ -3,6 +3,7 @@
 // UPDATED: Split video area into left (assignment panel) and right (video player)
 // UPDATED: Timeline label moved inline with time markers
 // UPDATED: Added assignment panel support for tutorial mode
+// UPDATED: Added playersReady prop to disable play button while audio loads
 
 import React from 'react';
 import LoopLibrary from '../../shared/LoopLibrary';
@@ -35,6 +36,7 @@ const ComposerLayout = ({
   showSoundEffects,
   currentlyPlayingPreview,
   assignmentPanelContent,  // NEW PROP
+  playersReady,  // NEW: Track if audio players are ready
   
   // Callbacks
   onLoopLibraryClick,
@@ -173,6 +175,7 @@ const ComposerLayout = ({
                   onPause={pause}
                   onStop={handleStop}
                   onRestart={handleRestart}
+                  playersReady={playersReady}
                 />
               </div>
             }
@@ -241,6 +244,7 @@ const ComposerLayout = ({
                   onPause={pause}
                   onStop={handleStop}
                   onRestart={handleRestart}
+                  playersReady={playersReady}
                 />
               </div>
             }
