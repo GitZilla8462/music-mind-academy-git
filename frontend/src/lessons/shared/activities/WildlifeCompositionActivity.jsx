@@ -10,6 +10,7 @@ import { useAutoSave } from '../../../hooks/useAutoSave.jsx';
 import WildlifeReflectionModal from './two-stars-and-a-wish/WildlifeReflectionModal.jsx';
 import { useSession } from '../../../context/SessionContext.jsx';
 import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson4/lesson4StorageUtils.js';
+import { saveStudentWork } from '../../../utils/studentWorkStorage.js';
 
 const WILDLIFE_COMPOSITION_DEADLINE = 10 * 60 * 1000; // 10 minutes
 
@@ -354,6 +355,16 @@ const WildlifeCompositionActivity = ({
     
     localStorage.setItem(saveKey, JSON.stringify(saveData));
     console.log('💾 Manual save complete:', saveKey, saveData);
+    
+    // Also save to the generic student work system so it appears on Join page
+    saveStudentWork('epic-wildlife-composition', {
+      title: selectedVideo.title || 'Epic Wildlife',
+      emoji: selectedVideo.emoji || '🌍',
+      viewRoute: '/lessons/film-music-project/lesson4?view=saved',
+      subtitle: `${placedLoops.length} loops`,
+      category: 'Film Music Project',
+      data: saveData.composition
+    }, studentId);
     
     if (!silent) {
       console.log('🔔 About to show toast message, silent =', silent);

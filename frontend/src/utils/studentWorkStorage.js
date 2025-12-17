@@ -184,6 +184,17 @@ export const migrateOldSaves = (studentId = null) => {
         subtitle: `${data.composition?.placedLoops?.length || 0} loops`,
         category: 'Film Music Project'
       })
+    },
+    {
+      oldKey: `epic-wildlife-composition-${id}`,
+      activityId: 'epic-wildlife-composition',
+      getMetadata: (data) => ({
+        title: data.composition?.videoTitle || 'Epic Wildlife',
+        emoji: data.composition?.videoEmoji || '🌍',
+        viewRoute: '/lessons/film-music-project/lesson4?view=saved',
+        subtitle: `${data.composition?.placedLoops?.length || 0} loops`,
+        category: 'Film Music Project'
+      })
     }
   ];
   
