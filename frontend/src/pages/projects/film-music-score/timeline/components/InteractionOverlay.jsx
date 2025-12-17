@@ -124,7 +124,7 @@ const InteractionOverlay = ({
   
   /**
    * Get mouse position relative to timeline content area
-   * CHROMEBOOK FIX: Compensates for CSS zoom applied by parent components (DAWTutorialActivity uses zoom: 0.75)
+   * Handles: CSS zoom, browser zoom, display scaling, and various Chromebook configurations
    */
   const getMousePosition = useCallback((e) => {
     if (!timelineRef.current) return { x: 0, y: 0 };
@@ -133,24 +133,23 @@ const InteractionOverlay = ({
     const scrollLeft = timelineScrollRef.current?.scrollLeft || 0;
     const scrollTop = timelineScrollRef.current?.scrollTop || 0;
     
-    // Detect CSS zoom applied to parent elements
-    // When zoom is applied, getBoundingClientRect returns scaled dimensions,
-    // but we need unscaled coordinates for hit testing
-    let zoomFactor = 1;
+    // Detect CSS zoom applied to parent elements (e.g., DAWTutorialActivity uses zoom: 0.75)
+    let cssZoom = 1;
     let element = timelineRef.current;
     while (element) {
       const style = window.getComputedStyle(element);
       const zoom = parseFloat(style.zoom);
       if (zoom && zoom !== 1) {
-        zoomFactor = zoom;
-        break;
+        cssZoom *= zoom;
       }
       element = element.parentElement;
     }
     
-    // Scale coordinates by zoom factor
-    const viewportX = (e.clientX - rect.left) / zoomFactor;
-    const viewportY = (e.clientY - rect.top) / zoomFactor;
+    // Calculate position relative to the element
+    // clientX/Y are already in viewport coordinates, rect is also in viewport coordinates
+    // But if CSS zoom is applied, rect is scaled but clientX/Y are not
+    const viewportX = (e.clientX - rect.left) / cssZoom;
+    const viewportY = (e.clientY - rect.top) / cssZoom;
     
     return {
       x: viewportX + scrollLeft,
@@ -165,48 +164,89 @@ const InteractionOverlay = ({
    */
   const getLoopAtPosition = useCallback((x, y) => {
     if (!placedLoops || placedLoops.length === 0) return null;
+    if (!timelineRef.current) return null;
+    
+    // Get timeline's position for coordinate conversion
+    const timelineRect = timelineRef.current.getBoundingClientRect();
+    const scrollLeft = timelineScrollRef.current?.scrollLeft || 0;
+    const scrollTop = timelineScrollRef.current?.scrollTop || 0;
+    
+    // Convert x, y (which are relative to timeline content) back to viewport coordinates
+    // for comparing with getBoundingClientRect results
+    const viewportX = x - scrollLeft;
+    const viewportY = y - scrollTop;
     
     // Check loops in reverse order (top-most first based on render order)
+    // Use actual DOM elements for hit detection to handle different screen sizes/scaling
     for (let i = placedLoops.length - 1; i >= 0; i--) {
       const loop = placedLoops[i];
       
       // Skip if track is hidden
       if (trackStates[`track-${loop.trackIndex}`]?.visible === false) continue;
       
-      const left = timeToPixel(loop.startTime);
-      const right = timeToPixel(loop.endTime);
-      const top = TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT);
-      const bottom = top + TIMELINE_CONSTANTS.TRACK_HEIGHT;
+      // Find the actual DOM element for this loop
+      const loopElement = timelineRef.current.querySelector(`[data-loop-id="${loop.id}"]`);
       
-      if (x >= left && x <= right && y >= top && y <= bottom) {
-        return loop;
+      if (loopElement) {
+        const loopRect = loopElement.getBoundingClientRect();
+        
+        // Convert loop rect to be relative to timeline
+        const left = loopRect.left - timelineRect.left + scrollLeft;
+        const right = loopRect.right - timelineRect.left + scrollLeft;
+        const top = loopRect.top - timelineRect.top + scrollTop;
+        const bottom = loopRect.bottom - timelineRect.top + scrollTop;
+        
+        if (x >= left && x <= right && y >= top && y <= bottom) {
+          return loop;
+        }
+      } else {
+        // Fallback to calculated position if DOM element not found
+        const left = timeToPixel(loop.startTime);
+        const right = timeToPixel(loop.endTime);
+        const top = TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT);
+        const bottom = top + TIMELINE_CONSTANTS.TRACK_HEIGHT;
+        
+        if (x >= left && x <= right && y >= top && y <= bottom) {
+          return loop;
+        }
       }
     }
     return null;
-  }, [placedLoops, trackStates, timeToPixel]);
+  }, [placedLoops, trackStates, timeToPixel, timelineRef, timelineScrollRef]);
 
   /**
    * Determine if mouse is in a resize zone (within threshold of loop edge)
+   * Uses actual DOM position for accurate hit detection
    */
   const getResizeZone = useCallback((x, loop) => {
     if (!loop) return null;
+    if (!timelineRef.current) return null;
     
-    const left = timeToPixel(loop.startTime);
-    const right = timeToPixel(loop.endTime);
     const RESIZE_THRESHOLD = 12; // pixels
     
-    // Only right edge resize for now (matching current behavior)
-    if (x >= right - RESIZE_THRESHOLD && x <= right + 4) {
-      return 'right';
+    // Try to get actual DOM element position
+    const loopElement = timelineRef.current.querySelector(`[data-loop-id="${loop.id}"]`);
+    
+    if (loopElement) {
+      const timelineRect = timelineRef.current.getBoundingClientRect();
+      const loopRect = loopElement.getBoundingClientRect();
+      const scrollLeft = timelineScrollRef.current?.scrollLeft || 0;
+      
+      const right = loopRect.right - timelineRect.left + scrollLeft;
+      
+      if (x >= right - RESIZE_THRESHOLD && x <= right + 4) {
+        return 'right';
+      }
+    } else {
+      // Fallback to calculated position
+      const right = timeToPixel(loop.endTime);
+      if (x >= right - RESIZE_THRESHOLD && x <= right + 4) {
+        return 'right';
+      }
     }
     
-    // Left edge resize (optional - currently disabled in your app)
-    // if (x >= left - 4 && x <= left + RESIZE_THRESHOLD) {
-    //   return 'left';
-    // }
-    
     return null;
-  }, [timeToPixel]);
+  }, [timeToPixel, timelineRef, timelineScrollRef]);
 
   // Store currentTime in a ref to avoid re-renders
   const currentTimeRef = useRef(currentTime);
@@ -578,9 +618,9 @@ const InteractionOverlay = ({
     const constrainedTrack = Math.max(0, Math.min(TIMELINE_CONSTANTS.NUM_TRACKS - 1, newTrackIndex));
     const constrainedStart = Math.max(0, Math.min(duration - loopDuration, newStartTime));
     
-    // Throttle updates for performance
+    // Throttle updates for performance (25ms = ~40fps, balanced for Chromebook)
     const now = Date.now();
-    if (now - lastUpdateRef.current > 50) {
+    if (now - lastUpdateRef.current > 25) {
       lastUpdateRef.current = now;
       
       onLoopUpdate?.(activeLoop.id, {
@@ -611,9 +651,9 @@ const InteractionOverlay = ({
       newStartTime = Math.max(0, Math.min(maxStartTime, snappedTime));
     }
     
-    // Throttle updates
+    // Throttle updates (25ms = ~40fps, balanced for Chromebook)
     const now = Date.now();
-    if (now - lastUpdateRef.current > 50) {
+    if (now - lastUpdateRef.current > 25) {
       lastUpdateRef.current = now;
       
       onLoopResize?.(activeLoop.id, {
