@@ -311,20 +311,18 @@ export const useAudioEngine = (videoDuration = 60) => {
           
           if (player.isNative) {
             // Native HTML5 Audio - clone the audio element for each repeat
-            // ✅ CHROMEBOOK FIX: Use Web Audio API scheduling for precise sync
-            // Instead of setTimeout (which has variable latency), we calculate
-            // the exact audioContext time when each loop should start
-            const audioContext = Tone.context.rawContext;
-            const baseTime = audioContext.currentTime;
-            const scheduledStartTime = baseTime + transportTime + 0.05; // 50ms buffer for sync
+            // ✅ CHROMEBOOK FIX: Use synchronized start for all loops
             
             // Create a NEW audio element clone for this specific repeat
             const audioClone = player.audio.cloneNode(true);
             audioClone.volume = player.audio.volume;
             audioClone.load(); // Prepare the clone
             
-            // Calculate the delay until we should start this audio
-            const checkAndPlay = () => {
+            // For loops starting at time 0, we use a coordinated start
+            // For loops starting later, we use setTimeout but with a common base time
+            const delay = transportTime * 1000;
+            
+            const playAudio = () => {
               // ✅ FIX: Check Transport state when attempting to play
               if (Tone.Transport.state !== 'started') {
                 if (isDevMode) console.log(`  ⏸️ Transport not running, skipping native audio play for ${loop.name}`);
@@ -332,44 +330,35 @@ export const useAudioEngine = (videoDuration = 60) => {
                 return;
               }
               
-              const now = audioContext.currentTime;
-              const timeUntilStart = scheduledStartTime - now;
-              
-              if (timeUntilStart <= 0.01) {
-                // Time to play!
-                if (!trackState.muted && effectiveVolume > 0.01) {
-                  audioClone.currentTime = loopOffset;
-                  activeNativeAudioRef.current.add(audioClone);
-                  
-                  audioClone.play().catch(err => {
-                    console.error(`Failed to play native audio for ${loop.name}:`, err);
-                    activeNativeAudioRef.current.delete(audioClone);
-                  });
-                  
-                  // Stop the audio after actualDuration
-                  const stopTimeoutId = setTimeout(() => {
-                    audioClone.pause();
-                    audioClone.currentTime = 0;
-                    audioClone.src = '';
-                    activeNativeAudioRef.current.delete(audioClone);
-                  }, actualDuration * 1000);
-                  scheduledEvents.push({ type: 'native-timeout', id: stopTimeoutId });
-                }
-              } else {
-                // Not yet time - use precise setTimeout based on audio context time
-                const delayMs = Math.max(1, timeUntilStart * 1000 - 10); // Check 10ms early
-                const timeoutId = setTimeout(checkAndPlay, delayMs);
-                scheduledEvents.push({ type: 'native-timeout', id: timeoutId });
+              if (!trackState.muted && effectiveVolume > 0.01) {
+                audioClone.currentTime = loopOffset;
+                activeNativeAudioRef.current.add(audioClone);
+                
+                audioClone.play().catch(err => {
+                  console.error(`Failed to play native audio for ${loop.name}:`, err);
+                  activeNativeAudioRef.current.delete(audioClone);
+                });
+                
+                // Stop the audio after actualDuration
+                const stopTimeoutId = setTimeout(() => {
+                  audioClone.pause();
+                  audioClone.currentTime = 0;
+                  audioClone.src = '';
+                  activeNativeAudioRef.current.delete(audioClone);
+                }, actualDuration * 1000);
+                scheduledEvents.push({ type: 'native-timeout', id: stopTimeoutId });
               }
             };
             
-            // Start the check loop
-            if (transportTime === 0) {
-              // For loops starting immediately, add a small sync delay
-              const syncTimeoutId = setTimeout(checkAndPlay, 50);
+            if (delay <= 0) {
+              // ✅ CHROMEBOOK FIX: For loops at time 0 (or already in progress), 
+              // collect them to start together after a small sync delay
+              const syncTimeoutId = setTimeout(playAudio, 50);
               scheduledEvents.push({ type: 'native-timeout', id: syncTimeoutId });
             } else {
-              checkAndPlay();
+              // For loops starting later, add the sync buffer to the delay
+              const timeoutId = setTimeout(playAudio, delay + 50);
+              scheduledEvents.push({ type: 'native-timeout', id: timeoutId });
             }
             scheduledCount++;
           } else {
