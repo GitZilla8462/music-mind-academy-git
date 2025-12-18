@@ -2,6 +2,7 @@
 // FIXED: Navigation tools dropdown from top right, exploration mode with timer after tutorial complete
 // Session mode support: no auto-advance in exploration mode during class
 // OPTIMIZED: For Chromebook displays (1366x768) - zoom compensation to fill viewport
+// FIXED: Removed dawContext from useEffect dependencies to prevent infinite re-render loop
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Minimize2, Maximize2 } from 'lucide-react';
@@ -57,6 +58,10 @@ const DAWTutorialActivity = ({
   const hasSpokenFirstChallenge = useRef(false);
   const dawReadyTimeoutRef = useRef(null);
   const explorationTimerRef = useRef(null);
+  
+  // Ref to access current dawContext without adding to dependencies
+  const dawContextRef = useRef(dawContext);
+  dawContextRef.current = dawContext;
 
   // Current challenge
   const currentChallenge = DAW_CHALLENGES[currentChallengeIndex];
@@ -396,6 +401,8 @@ const DAWTutorialActivity = ({
   };
 
   // Validate and advance challenge
+  // FIXED: Removed dawContext from dependencies to prevent infinite re-render loop
+  // Using dawContextRef.current instead to access current state without triggering re-renders
   useEffect(() => {
     if (!currentChallenge || !dawContext.action || isProcessingClick || !isMountedRef.current) return;
     if (currentChallenge.type === 'multiple-choice') return;
@@ -405,7 +412,8 @@ const DAWTutorialActivity = ({
 
     setIsProcessingClick(true);
 
-    const isValid = currentChallenge.validation?.(dawContext);
+    // Use ref to get current dawContext without adding to dependencies
+    const isValid = currentChallenge.validation?.(dawContextRef.current);
     console.log('✅ Validation result:', isValid);
 
     if (isValid) {
@@ -426,7 +434,7 @@ const DAWTutorialActivity = ({
         }
       }, 100);
     }
-  }, [dawContext.action, currentChallenge, feedback, isProcessingClick, nextChallenge, setSafeTimeout, dawContext]);
+  }, [dawContext.action, currentChallenge, feedback, isProcessingClick, nextChallenge, setSafeTimeout]);
 
   // Handle multiple choice answers
   const handleMultipleChoiceAnswer = useCallback((answer, index) => {
