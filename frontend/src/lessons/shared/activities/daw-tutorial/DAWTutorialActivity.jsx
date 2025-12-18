@@ -428,11 +428,10 @@ const DAWTutorialActivity = ({
         }
       }, 1500);
     } else {
-      setSafeTimeout(() => {
-        if (isMountedRef.current) {
-          setIsProcessingClick(false);
-        }
-      }, 100);
+      // FIXED: Clear the action immediately to prevent infinite re-render loop
+      // The action was already processed, just didn't match - no need to keep validating
+      setDawContext(prev => ({ ...prev, action: null }));
+      setIsProcessingClick(false);
     }
   }, [dawContext.action, currentChallenge, feedback, isProcessingClick, nextChallenge, setSafeTimeout]);
 
