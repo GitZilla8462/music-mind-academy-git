@@ -394,6 +394,7 @@ const TeacherLessonView = ({
   const [sessionData, setSessionData] = useState(null);
   const [timerVisible, setTimerVisible] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [pendingStageId, setPendingStageId] = useState(null); // Track stage to navigate to after save
   const [isSavingAll, setIsSavingAll] = useState(false);
   const [classroomTimer, setClassroomTimer] = useState({
     presetMinutes: 5,
@@ -629,13 +630,30 @@ const TeacherLessonView = ({
   const goToNextStage = () => {
     // If leaving a composition activity, show save modal instead
     if (isCompositionStage) {
-      setShowSaveModal(true);
+      const nextStageId = currentContentIndex < contentStages.length - 1
+        ? contentStages[currentContentIndex + 1].id
+        : null;
+      if (nextStageId) {
+        setPendingStageId(nextStageId);
+        setShowSaveModal(true);
+      }
       return;
     }
 
     if (currentContentIndex < contentStages.length - 1) {
       setCurrentStage(contentStages[currentContentIndex + 1].id);
     }
+  };
+
+  // Handle clicking on a stage in the sidebar
+  const handleStageClick = (stageId) => {
+    // If leaving a composition activity, show save modal first
+    if (isCompositionStage && stageId !== currentStage) {
+      setPendingStageId(stageId);
+      setShowSaveModal(true);
+      return;
+    }
+    setCurrentStage(stageId);
   };
 
   // Confirm leaving composition - save all and advance
@@ -648,8 +666,9 @@ const TeacherLessonView = ({
     setTimeout(() => {
       setIsSavingAll(false);
       setShowSaveModal(false);
-      if (currentContentIndex < contentStages.length - 1) {
-        setCurrentStage(contentStages[currentContentIndex + 1].id);
+      if (pendingStageId) {
+        setCurrentStage(pendingStageId);
+        setPendingStageId(null);
       }
     }, 2000);
   };
@@ -931,7 +950,7 @@ const TeacherLessonView = ({
                             return (
                               <div
                                 key={stage.id}
-                                onClick={() => setCurrentStage(stage.id)}
+                                onClick={() => handleStageClick(stage.id)}
                                 className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
                                   isActive
                                     ? 'bg-blue-100 text-blue-700'
@@ -1327,7 +1346,10 @@ const TeacherLessonView = ({
             {!isSavingAll && (
               <div className="px-6 pb-6 flex gap-3">
                 <button
-                  onClick={() => setShowSaveModal(false)}
+                  onClick={() => {
+                    setShowSaveModal(false);
+                    setPendingStageId(null);
+                  }}
                   className="flex-1 px-4 py-3 rounded-lg border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
                 >
                   Cancel

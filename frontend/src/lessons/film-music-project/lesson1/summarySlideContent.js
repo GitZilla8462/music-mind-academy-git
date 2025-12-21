@@ -106,7 +106,8 @@ export const summarySlides = {
     points: [
       "Star 1: What mood did you create? How did you achieve it?",
       "Star 2: What worked well in your composition?",
-      "Wish: What would you try differently next time?"
+      "Wish: What would you try differently next time?",
+      "🎮 When finished, play Name That Loop with 1-2 other students!"
     ]
   },
 

@@ -66,7 +66,9 @@ const Lesson1 = () => {
 
   // Memoize currentStageData
   const currentStageData = useMemo(() => {
-    return lessonStages.find(stage => stage.id === currentStage);
+    const data = lessonStages.find(stage => stage.id === currentStage);
+    console.log('📍 currentStageData:', { currentStage, type: data?.type, data });
+    return data;
   }, [currentStage]);
 
   // Mute audio in preview mode
@@ -147,6 +149,7 @@ const Lesson1 = () => {
 
     // SUMMARY SLIDES: Students see "Watch the Main Screen" message
     if (currentStageData?.type === 'summary') {
+      console.log('📺 Showing Watch the Main Screen for stage:', currentStage);
       return (
         <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
           <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
@@ -195,6 +198,8 @@ const Lesson1 = () => {
     const activityType = getActivityForStage(displayStage);
 
     const activity = lesson1Config.activities.find(a => a.type === activityType);
+
+    console.log('🎮 Rendering activity for stage:', { currentStage, displayStage, activityType, activityFound: !!activity });
 
     if (!activity) {
       return <StudentWaitingScreen />;

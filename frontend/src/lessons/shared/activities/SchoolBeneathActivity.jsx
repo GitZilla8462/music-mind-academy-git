@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
-import { saveCompositionToServer } from '../../film-music-project/lesson1/compositionServerUtils';
+import { saveCompositionToServer, loadAutoSavedComposition } from '../../film-music-project/lesson1/compositionServerUtils';
 import { useAutoSave, AutoSaveIndicator } from '../../../hooks/useAutoSave.jsx';
 import ReflectionModal from './two-stars-and-a-wish/ReflectionModal';
 import NameThatLoopActivity from './layer-detective/NameThatLoopActivity';
@@ -210,9 +210,9 @@ const SchoolBeneathActivity = ({
     return () => unsubscribe();
   }, [sessionCode, isSessionMode, viewMode, placedLoops, studentId]);
 
-  // Load saved work on mount ONLY - includes manual saves
+  // Load saved work on mount ONLY - includes manual saves and view mode (from Join page)
   useEffect(() => {
-    if (!studentId || viewMode) return;
+    if (!studentId) return;
 
     // Skip if already loaded this session
     if (hasLoadedRef.current) {
@@ -220,7 +220,7 @@ const SchoolBeneathActivity = ({
       return;
     }
 
-    console.log('🎬 Initial load - checking for saved work');
+    console.log('🎬 Initial load - checking for saved work', { viewMode, storageKey, studentId });
 
     // First try to load from new mma-saved format (Join page compatible)
     const savedWork = loadStudentWork(storageKey, studentId);
@@ -232,21 +232,20 @@ const SchoolBeneathActivity = ({
       return;
     }
 
-    // Fallback to auto-save (useAutoSave hook)
-    if (hasSavedWork) {
-      const saved = loadSavedWork();
-      if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
-        setPlacedLoops(saved.placedLoops || []);
-        setVideoDuration(saved.videoDuration || 60);
-        console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
-        hasLoadedRef.current = true;
-        return;
-      }
+    // Fallback to auto-save - directly check localStorage instead of relying on hasSavedWork state
+    // (hasSavedWork state may not be set yet when this effect first runs)
+    const autoSaved = loadAutoSavedComposition(storageKey, studentId);
+    if (autoSaved && autoSaved.composition && autoSaved.composition.placedLoops && autoSaved.composition.placedLoops.length > 0) {
+      setPlacedLoops(autoSaved.composition.placedLoops);
+      setVideoDuration(autoSaved.composition.videoDuration || 60);
+      console.log('✅ Auto-loaded previous work:', autoSaved.composition.placedLoops.length, 'loops');
+      hasLoadedRef.current = true;
+      return;
     }
 
     console.log('ℹ️ No saved work found');
     hasLoadedRef.current = true;
-  }, [studentId, hasSavedWork, viewMode, loadSavedWork, storageKey]);
+  }, [studentId, viewMode, storageKey]);
   
   // ============================================================================
   // REFLECTION DETECTION

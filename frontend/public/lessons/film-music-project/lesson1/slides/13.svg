@@ -30,5 +30,8 @@
   <text x="192" y="720" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">Wish: What would you try differently next time?</text>
 
   <!-- Instruction -->
-  <text x="192" y="900" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">Listen to your composition while filling out the reflection.</text>
+  <text x="192" y="860" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">Listen to your composition while filling out the reflection.</text>
+
+  <!-- Bonus game mention -->
+  <text x="192" y="940" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#10b981">When finished, play Name That Loop with 1-2 other students!</text>
 </svg>

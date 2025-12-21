@@ -31,7 +31,7 @@
 
   <text x="192" y="600" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">Listen to your composition while reflecting.</text>
 
-  <text x="192" y="720" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">Share your reflection with a partner.</text>
+  <text x="192" y="720" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#10b981">Finished? Play Name That Loop with a partner!</text>
 
   <!-- Duration -->
   <text x="192" y="900" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">5 minutes—Open your Chromebook.</text>
