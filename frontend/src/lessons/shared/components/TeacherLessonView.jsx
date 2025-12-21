@@ -394,6 +394,7 @@ const TeacherLessonView = ({
   const [sessionData, setSessionData] = useState(null);
   const [timerVisible, setTimerVisible] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [isSavingAll, setIsSavingAll] = useState(false);
   const [classroomTimer, setClassroomTimer] = useState({
     presetMinutes: 5,
     timeRemaining: 5 * 60, // in seconds
@@ -473,29 +474,25 @@ const TeacherLessonView = ({
     }
   }, [currentStageData]);
 
-  // Keyboard navigation
+  // Keyboard navigation - uses goToNextStage to trigger save modal for composition activities
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!lessonStages || lessonStages.length === 0) return;
-      
-      const currentIdx = lessonStages.findIndex(s => s.id === currentStage);
-      
+      // Don't navigate if save modal is showing
+      if (showSaveModal) return;
+
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         e.preventDefault();
-        if (currentIdx < lessonStages.length - 1) {
-          setCurrentStage(lessonStages[currentIdx + 1].id);
-        }
+        goToNextStage(); // Uses goToNextStage to trigger save modal if needed
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
         e.preventDefault();
-        if (currentIdx > 0) {
-          setCurrentStage(lessonStages[currentIdx - 1].id);
-        }
+        goToPrevStage();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentStage, lessonStages, setCurrentStage]);
+  }, [currentStage, lessonStages, showSaveModal]);
 
   // Copy join code
   const copyJoinCode = async () => {
@@ -643,15 +640,18 @@ const TeacherLessonView = ({
 
   // Confirm leaving composition - save all and advance
   const confirmLeaveComposition = async () => {
+    setIsSavingAll(true);
     await sendSaveCommand();
-    setShowSaveModal(false);
 
-    // Small delay to allow save command to propagate
+    // Wait for save command to propagate to all students (2 seconds)
+    // This gives time for Firebase to sync and students to save
     setTimeout(() => {
+      setIsSavingAll(false);
+      setShowSaveModal(false);
       if (currentContentIndex < contentStages.length - 1) {
         setCurrentStage(contentStages[currentContentIndex + 1].id);
       }
-    }, 500);
+    }, 2000);
   };
 
   // Navigate to previous stage (within content stages only)
@@ -1299,34 +1299,47 @@ const TeacherLessonView = ({
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
             {/* Header */}
             <div className="bg-green-600 px-6 py-4">
-              <h3 className="text-xl font-bold text-white">Moving to Reflection</h3>
+              <h3 className="text-xl font-bold text-white">
+                {isSavingAll ? 'Saving All Work...' : 'Moving to Reflection'}
+              </h3>
             </div>
 
             {/* Content */}
             <div className="p-6">
-              <p className="text-gray-700 text-lg mb-2">
-                All student compositions will be saved automatically.
-              </p>
-              <p className="text-gray-500 text-sm">
-                Students will see their work on the Join page.
-              </p>
+              {isSavingAll ? (
+                <div className="flex items-center justify-center gap-3 py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                  <p className="text-gray-700 text-lg">Saving student work...</p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-gray-700 text-lg mb-2">
+                    All student compositions will be saved automatically.
+                  </p>
+                  <p className="text-gray-500 text-sm">
+                    Students will see their work on the Join page.
+                  </p>
+                </>
+              )}
             </div>
 
             {/* Buttons */}
-            <div className="px-6 pb-6 flex gap-3">
-              <button
-                onClick={() => setShowSaveModal(false)}
-                className="flex-1 px-4 py-3 rounded-lg border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmLeaveComposition}
-                className="flex-1 px-4 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors"
-              >
-                Save All & Continue
-              </button>
-            </div>
+            {!isSavingAll && (
+              <div className="px-6 pb-6 flex gap-3">
+                <button
+                  onClick={() => setShowSaveModal(false)}
+                  className="flex-1 px-4 py-3 rounded-lg border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLeaveComposition}
+                  className="flex-1 px-4 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors"
+                >
+                  Save All & Continue
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
