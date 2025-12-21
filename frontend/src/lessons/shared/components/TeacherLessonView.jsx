@@ -40,7 +40,8 @@ const PresentationContent = ({
   sessionData,
   lessonConfig,
   lessonBasePath,
-  viewMode // 'teacher' or 'student'
+  viewMode, // 'teacher' or 'student'
+  onVideoEnded // callback when video finishes playing
 }) => {
   const [LayerDetectiveLeaderboard, setLayerDetectiveLeaderboard] = useState(null);
   const [LayerDetectiveResults, setLayerDetectiveResults] = useState(null);
@@ -276,6 +277,7 @@ const PresentationContent = ({
             controls
             autoPlay
             className="absolute inset-0 w-full h-full object-contain"
+            onEnded={onVideoEnded}
           >
             <source src={videoPath} type="video/mp4" />
           </video>
@@ -1135,6 +1137,7 @@ const TeacherLessonView = ({
             lessonConfig={config}
             lessonBasePath={config.lessonPath}
             viewMode={viewMode}
+            onVideoEnded={goToNextStage}
           />
 
           {/* Floating Timer - Top Right (2x size) */}
