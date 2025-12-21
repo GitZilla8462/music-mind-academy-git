@@ -395,4 +395,161 @@ export const logWarning = async (sessionCode, studentId, message, data = {}) => 
   }
 };
 
+// ==========================================
+// MOOD MATCH VOTING FUNCTIONS
+// ==========================================
+
+/**
+ * Set the current loop index for the Mood Match Game
+ * Teacher controls which loop students are voting on
+ */
+export const setMoodMatchCurrentLoop = async (sessionCode, loopIndex, showResults = false) => {
+  try {
+    const moodMatchRef = ref(database, `sessions/${sessionCode}/moodMatch`);
+
+    await update(moodMatchRef, {
+      currentLoopIndex: loopIndex,
+      showResults: showResults,
+      updatedAt: Date.now()
+    });
+
+    console.log(`✅ Set mood match loop to ${loopIndex}, showResults: ${showResults}`);
+  } catch (error) {
+    console.error('❌ Error setting mood match loop:', error);
+    throw error;
+  }
+};
+
+/**
+ * Toggle showing results for the current loop
+ */
+export const toggleMoodMatchResults = async (sessionCode, showResults) => {
+  try {
+    const moodMatchRef = ref(database, `sessions/${sessionCode}/moodMatch`);
+
+    await update(moodMatchRef, {
+      showResults: showResults,
+      updatedAt: Date.now()
+    });
+
+    console.log(`✅ Set showResults to ${showResults}`);
+  } catch (error) {
+    console.error('❌ Error toggling mood match results:', error);
+    throw error;
+  }
+};
+
+/**
+ * Record a student's vote for a loop
+ */
+export const recordMoodMatchVote = async (sessionCode, loopId, studentId, moodId) => {
+  try {
+    const voteRef = ref(database, `sessions/${sessionCode}/moodMatchVotes/${loopId}/${studentId}`);
+
+    await set(voteRef, {
+      moodId,
+      timestamp: Date.now()
+    });
+
+    console.log(`✅ Recorded vote: ${studentId} voted ${moodId} for loop ${loopId}`);
+  } catch (error) {
+    console.error('❌ Error recording mood match vote:', error);
+    throw error;
+  }
+};
+
+/**
+ * Subscribe to mood match state (current loop, showResults)
+ */
+export const subscribeToMoodMatchState = (sessionCode, callback) => {
+  const moodMatchRef = ref(database, `sessions/${sessionCode}/moodMatch`);
+
+  console.log(`👂 Subscribing to mood match state for session: ${sessionCode}`);
+
+  const unsubscribe = onValue(moodMatchRef, (snapshot) => {
+    const data = snapshot.val() || { currentLoopIndex: 0, showResults: false };
+    callback(data);
+  });
+
+  return unsubscribe;
+};
+
+/**
+ * Subscribe to votes for a specific loop
+ */
+export const subscribeToLoopVotes = (sessionCode, loopId, callback) => {
+  const votesRef = ref(database, `sessions/${sessionCode}/moodMatchVotes/${loopId}`);
+
+  const unsubscribe = onValue(votesRef, (snapshot) => {
+    const votes = snapshot.val() || {};
+    callback(votes);
+  });
+
+  return unsubscribe;
+};
+
+/**
+ * Subscribe to all mood match votes
+ */
+export const subscribeToAllMoodMatchVotes = (sessionCode, callback) => {
+  const votesRef = ref(database, `sessions/${sessionCode}/moodMatchVotes`);
+
+  const unsubscribe = onValue(votesRef, (snapshot) => {
+    const votes = snapshot.val() || {};
+    callback(votes);
+  });
+
+  return unsubscribe;
+};
+
+/**
+ * Get vote tally for a specific loop
+ */
+export const getLoopVoteTally = (votes) => {
+  const tally = {};
+
+  Object.values(votes).forEach(vote => {
+    const moodId = vote.moodId;
+    tally[moodId] = (tally[moodId] || 0) + 1;
+  });
+
+  return tally;
+};
+
+/**
+ * Clear all votes for mood match (reset for new game)
+ */
+export const clearMoodMatchVotes = async (sessionCode) => {
+  try {
+    const votesRef = ref(database, `sessions/${sessionCode}/moodMatchVotes`);
+    await remove(votesRef);
+
+    const stateRef = ref(database, `sessions/${sessionCode}/moodMatch`);
+    await set(stateRef, {
+      currentLoopIndex: 0,
+      showResults: false,
+      updatedAt: Date.now()
+    });
+
+    console.log('🔄 Cleared all mood match votes');
+  } catch (error) {
+    console.error('❌ Error clearing mood match votes:', error);
+    throw error;
+  }
+};
+
+/**
+ * Check if student has already voted for a loop
+ */
+export const hasStudentVoted = async (sessionCode, loopId, studentId) => {
+  try {
+    const voteRef = ref(database, `sessions/${sessionCode}/moodMatchVotes/${loopId}/${studentId}`);
+    const snapshot = await get(voteRef);
+    return snapshot.exists();
+  } catch (error) {
+    console.error('❌ Error checking if student voted:', error);
+    return false;
+  }
+};
+
 export default database;

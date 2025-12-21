@@ -2,12 +2,37 @@
 import { useState, useEffect, useMemo } from 'react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
 
+// Calculate zoom level to show a target duration in the viewport
+const calculateDefaultZoom = (videoDuration) => {
+  // Target: show ~2:15 (135 seconds) of timeline in viewport
+  const TARGET_VISIBLE_SECONDS = 135;
+
+  // Estimate available timeline width (viewport - loop drawer - margins)
+  // Chromebook: 1366px - 280px drawer - 154px track headers - 50px margins ≈ 880px
+  // Desktop: wider, but we'll use Chromebook as baseline
+  const ESTIMATED_TIMELINE_WIDTH = typeof window !== 'undefined'
+    ? Math.max(600, window.innerWidth - 484) // 280 drawer + 154 headers + 50 margins
+    : 880;
+
+  const PIXELS_PER_SECOND = 24;
+
+  // Calculate zoom needed to fit target seconds in viewport
+  // contentWidth = duration * pixelsPerSecond * zoom
+  // We want: ESTIMATED_TIMELINE_WIDTH = TARGET_VISIBLE_SECONDS * PIXELS_PER_SECOND * zoom
+  // So: zoom = ESTIMATED_TIMELINE_WIDTH / (TARGET_VISIBLE_SECONDS * PIXELS_PER_SECOND)
+  const idealZoom = ESTIMATED_TIMELINE_WIDTH / (TARGET_VISIBLE_SECONDS * PIXELS_PER_SECOND);
+
+  // Clamp to slider range (0.25 to 0.75)
+  return Math.max(0.25, Math.min(0.75, idealZoom));
+};
+
 export const useTimelineState = (duration) => {
   const [trackStates, setTrackStates] = useState({});
-  const [localZoom, setLocalZoom] = useState(0.5); // Default to 50%
+  const [localZoom, setLocalZoom] = useState(() => calculateDefaultZoom(duration));
   const [draggedLoop, setDraggedLoop] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [hoveredTrack, setHoveredTrack] = useState(null);
+  const [hasInitializedZoom, setHasInitializedZoom] = useState(false);
 
   // Initialize track states
   useEffect(() => {
@@ -26,6 +51,16 @@ export const useTimelineState = (duration) => {
     }
     setTrackStates(initialStates);
   }, []);
+
+  // Recalculate default zoom when component mounts (has access to window)
+  useEffect(() => {
+    if (!hasInitializedZoom && typeof window !== 'undefined') {
+      const newZoom = calculateDefaultZoom(duration);
+      setLocalZoom(newZoom);
+      setHasInitializedZoom(true);
+      console.log(`🔍 Default zoom calculated: ${Math.round(newZoom * 100)}% for viewport ${window.innerWidth}px`);
+    }
+  }, [duration, hasInitializedZoom]);
 
   // Timeline width calculation - uses right margin + small left padding
   const timelineWidth = useMemo(() => {

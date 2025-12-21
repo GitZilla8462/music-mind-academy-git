@@ -1,5 +1,18 @@
-// File: /lessons/film-music-project/lesson1/lesson1Config.js
-// Lesson 1 configuration - UPDATED with presentationView data for new system
+// File: /lessons/film-music-project/lesson1/lesson1Config.jsx
+// Lesson 1: Score the Adventure - Mood & Expression
+// Students learn how music affects emotion through drone footage scoring
+//
+// ========================================
+// VIDEO CREDITS (CC BY License)
+// ========================================
+// Hook Video: "Intro to Film Scoring: Same Scene 5 Ways" by Midnight Music (midnightmusic.com.au)
+//             Music: Kevin MacLeod (incompetech.com)
+// Nature Drone Footage compilation:
+//   - "Relaxing Ocean Waves & Nature Drone Shots in 4K" by Nara Prime
+//   - "Copyright Free Video" by 4K Drone Footage HD
+//   - "FPV Nature Landscapes" by Scenic World
+//   - "Beautiful Drone Footage of Nature" by AG Stock Footage
+// ========================================
 
 export const LESSON_PROGRESS_KEY = 'lesson1-progress';
 export const LESSON_TIMER_KEY = 'lesson1-timer';
@@ -10,126 +23,159 @@ export const LESSON_TIMER_KEY = 'lesson1-timer';
 export const lessonSections = [
   {
     id: 'introduction',
-    title: 'Introduction',
-    subtitle: 'Welcome & DAW Tutorial',
-    icon: '🎬',
+    title: '1. Introduction',
+    subtitle: 'Slides → Hook Demo',
     color: 'blue',
     estimatedTime: 10,
     stages: [
-      { 
-        id: 'welcome-instructions', 
-        type: 'summary', 
-        label: 'Show Welcome Instructions',
-        description: 'Display welcome screen',
+      {
+        id: 'welcome-intro',
+        type: 'summary',
+        label: 'Score the Adventure',
+        description: 'Introduce the lesson and essential question.',
         duration: 1
       },
-      { 
-        id: 'intro-summary', 
-        type: 'summary', 
-        label: 'Show Agenda',
-        description: 'Display lesson agenda',
+      {
+        id: 'show-agenda',
+        type: 'summary',
+        label: 'Agenda',
+        description: 'Review the three-part agenda.',
         duration: 1
       },
-      { 
-        id: 'intro-video', 
-        type: 'video', 
-        label: 'Play Introduction Video', 
-        duration: 3,
-        description: 'Lesson introduction video'
-      },
-      { 
-        id: 'daw-summary', 
-        type: 'summary', 
-        label: 'Show DAW Instructions',
-        description: 'Display DAW tutorial summary',
+      {
+        id: 'hook-intro',
+        type: 'summary',
+        label: 'Hook Introduction',
+        description: 'Prepare students to watch the same video with different music.',
         duration: 1
       },
-      { 
-        id: 'daw-tutorial', 
-        type: 'activity', 
-        label: 'Unlock DAW Tutorial', 
-        duration: 4,
-        hasTimer: true,
-        trackProgress: true,
-        description: 'Interactive DAW basics',
-        bonusDescription: 'Bonus Activity: Explore the DAW'
+      {
+        id: 'hook-video',
+        type: 'demo',
+        label: 'Hook: Same Video, Different Music',
+        description: 'DEMO: Play same drone video with 2 different scores.',
+        duration: 3
+      },
+      {
+        id: 'mood-discussion',
+        type: 'summary',
+        label: 'Mood Discussion',
+        description: 'Discuss: "How did the music change how you felt?"',
+        duration: 2
+      },
+      {
+        id: 'mood-categories',
+        type: 'summary',
+        label: 'Mood Categories',
+        description: 'Introduce the five mood categories used in the software.',
+        duration: 2
       }
     ]
   },
   {
-    id: 'activity1',
-    title: 'Activity 1 - Composition',
-    subtitle: 'The School Beneath',
-    icon: '🎵',
-    color: 'purple',
-    estimatedTime: 12,
+    id: 'practice',
+    title: '2. Practice',
+    subtitle: 'Slides → Mood Match Game',
+    color: 'blue',
+    estimatedTime: 6,
     stages: [
-      { 
-        id: 'activity-summary', 
-        type: 'summary', 
-        label: 'Show Activity Instructions',
-        description: 'Display summary slide',
+      {
+        id: 'mood-match-intro',
+        type: 'summary',
+        label: 'Mood Match Introduction',
+        description: 'Explain how to play the Mood Match Game.',
         duration: 1
       },
-      { 
-        id: 'activity-intro', 
-        type: 'video', 
-        label: 'Play Activity Intro', 
-        duration: 2,
-        description: 'Introduction video'
-      },
-      { 
-        id: 'school-summary', 
-        type: 'summary', 
-        label: 'Show Composition Instructions',
-        description: 'Display composition requirements',
-        duration: 1
-      },
-      { 
-        id: 'school-beneath', 
-        type: 'activity', 
-        label: 'Unlock School Beneath', 
-        duration: 8,
+      {
+        id: 'mood-match-game',
+        type: 'activity',
+        label: 'Mood Match Game',
+        duration: 5,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students compose music',
-        bonusDescription: 'Bonus Activity: Adding Sound Effects'
+        description: 'STUDENTS WORK: Listen to loops, match to mood categories.',
+        bonusDescription: 'Bonus: Try to get a perfect score!'
       }
     ]
   },
   {
-    id: 'activity2',
-    title: 'Activity 2 - Reflection',
+    id: 'create',
+    title: '3. Create',
+    subtitle: 'Tutorial → Compose',
+    color: 'blue',
+    estimatedTime: 16,
+    stages: [
+      {
+        id: 'composition-instructions',
+        type: 'summary',
+        label: 'Composition Requirements',
+        description: 'Review the three requirements for the composition.',
+        duration: 1
+      },
+      {
+        id: 'composition-tutorial',
+        type: 'video',
+        label: 'DAW Tutorial Video',
+        description: 'PLAY VIDEO: How to use the DAW.',
+        duration: 2
+      },
+      {
+        id: 'composition-reminder',
+        type: 'summary',
+        label: 'Composition Reminder',
+        description: 'Remind students of the three requirements before they begin.',
+        duration: 1
+      },
+      {
+        id: 'adventure-composition',
+        type: 'activity',
+        label: 'Score the Adventure',
+        duration: 12,
+        hasTimer: true,
+        trackProgress: true,
+        description: 'STUDENTS WORK: Pick a mood, score drone footage with 5+ loops.',
+        bonusDescription: 'Bonus: Build intensity—start quiet and get louder!'
+      }
+    ]
+  },
+  {
+    id: 'reflect',
+    title: '4. Reflect',
     subtitle: 'Two Stars and a Wish',
-    icon: "⭐",
-    color: 'yellow',
-    estimatedTime: 10,
+    color: 'blue',
+    estimatedTime: 6,
     stages: [
-      { 
-        id: 'reflection', 
-        type: 'activity', 
-        label: 'Unlock Reflection', 
-        duration: 10,
+      {
+        id: 'reflection-instructions',
+        type: 'summary',
+        label: 'Reflection Instructions',
+        description: 'Explain Two Stars and a Wish.',
+        duration: 1
+      },
+      {
+        id: 'reflection',
+        type: 'activity',
+        label: 'Reflection',
+        duration: 5,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students complete reflection',
-        bonusDescription: 'Bonus Activity: Guess the Loop with a Friend Game'
+        description: 'STUDENTS WORK: Complete Two Stars and a Wish.',
+        bonusDescription: 'Bonus: Share your reflection with a partner.'
       }
     ]
   },
   {
     id: 'conclusion',
-    title: 'Conclusion',
-    subtitle: 'Whole Group Discussion',
-    icon: "💬",
-    color: 'gray',
+    title: '5. Conclusion',
+    subtitle: 'Discuss',
+    color: 'blue',
     estimatedTime: 2,
     stages: [
       {
         id: 'conclusion',
         type: 'discussion',
         label: 'Class Discussion',
-        description: 'Wrap up lesson, review key concepts',
+        description: 'Share moods and discuss how music changed the video.',
         duration: 2
       }
     ]
@@ -138,42 +184,38 @@ export const lessonSections = [
 
 export const lesson1Config = {
   id: 'lesson1',
-  title: "Introduction to the Digital Audio Workstation",
+  lessonPath: '/lessons/film-music-project/lesson1',
+  title: "Score the Adventure",
+  subtitle: "Mood & Expression",
   learningObjectives: [
-    "Master the DAW interface and basic controls",
-    "Practice placing and manipulating music loops",
-    "Create a mysterious film score using layering techniques"
+    "Understand how music affects emotion and mood.",
+    "Identify different mood categories in music.",
+    "Create a composition that conveys a specific mood."
   ],
   lessonSections,
   activities: [
     {
       id: 1,
-      type: "video",
-      title: "Lesson Introduction",
-      estimatedTime: "3 min",
-      src: "/lessons/film-music-project/lesson1/Lesson1intro.mp4"
+      type: "mood-match-game",
+      title: "Mood Match Game",
+      estimatedTime: "5 min"
     },
     {
       id: 2,
-      type: "daw-tutorial",
-      title: "DAW Basics Interactive Tutorial",
-      estimatedTime: "4 min"
+      type: "video",
+      title: "DAW Tutorial Video",
+      estimatedTime: "2 min",
+      src: "/lessons/film-music-project/lesson1/IntrotoDAW122025.mp4"
     },
     {
       id: 3,
-      type: "video",
-      title: "Activity Introduction",
-      estimatedTime: "2 min",
-      src: "/lessons/film-music-project/lesson1/Lesson1activityintro.mp4"
+      type: "adventure-composition",
+      title: "Score the Adventure",
+      estimatedTime: "12 min",
+      videoSrc: "/lessons/film-music-project/lesson1/NatureDroneFootage.mp4"
     },
     {
       id: 4,
-      type: "school-beneath-activity",
-      title: "The School Beneath",
-      estimatedTime: "8 min"
-    },
-    {
-      id: 5,
       type: "two-stars-wish",
       title: "Reflection Activity",
       estimatedTime: "5 min"
@@ -181,150 +223,193 @@ export const lesson1Config = {
   ]
 };
 
+// ========================================
+// LESSON STAGES - With presentationView data for each stage
+// ========================================
 export const lessonStages = [
-  { 
-    id: 'locked', 
-    label: 'Join with Class Code', 
-    description: 'Students enter session code',
+  {
+    id: 'join-code',
+    label: 'Join Code Screen',
+    description: 'Students enter session code to join.',
     type: 'waiting'
   },
-  { 
-    id: 'welcome-instructions', 
-    label: 'Show Welcome Instructions', 
-    description: 'Welcome screen',
+  {
+    id: 'welcome-intro',
+    label: 'Score the Adventure',
+    description: 'Introduce the lesson and essential question.',
     type: 'summary',
-    content: 'introVideo',
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/1.png'
+      slidePath: '/lessons/film-music-project/lesson1/slides/1.svg'
     }
   },
-  { 
-    id: 'intro-summary', 
-    label: 'Show Agenda', 
-    description: 'Lesson agenda',
+  {
+    id: 'show-agenda',
+    label: 'Agenda',
+    description: 'Review the three-part agenda.',
     type: 'summary',
-    content: 'introVideo',
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/2.png'
+      slidePath: '/lessons/film-music-project/lesson1/slides/2.svg'
     }
   },
-  { 
-    id: 'intro-video', 
-    label: 'Play Introduction Video', 
-    description: 'Lesson intro video', 
-    hasProgress: false,
-    type: 'video',
+  {
+    id: 'hook-intro',
+    label: 'Hook Introduction',
+    description: 'Prepare students to watch the same video with different music.',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson1/slides/3.svg'
+    }
+  },
+  {
+    id: 'hook-video',
+    label: 'Hook: Same Video, Different Music',
+    description: 'DEMO: Play same drone video with 2 different scores.',
+    type: 'demo',
     duration: 3,
     presentationView: {
       type: 'video',
-      videoPath: '/lessons/film-music-project/lesson1/Lesson1intro.mp4',
-      title: 'Lesson Introduction'
+      videoPath: '/lessons/film-music-project/lesson1/videos/SameSceneFiveWays.mp4',
+      title: 'Same Scene, Different Music',
+      startTime: 4,
+      slidePath: '/lessons/film-music-project/lesson1/slides/4.svg'
     }
   },
-  { 
-    id: 'daw-summary', 
-    label: 'Show DAW Instructions', 
-    description: 'DAW tutorial summary',
+  {
+    id: 'mood-discussion',
+    label: 'Mood Discussion',
+    description: 'Discuss: "How did the music change how you felt?"',
     type: 'summary',
-    content: 'dawTutorial',
+    duration: 2,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson1/slides/5.svg'
+    }
+  },
+  {
+    id: 'mood-categories',
+    label: 'Mood Categories',
+    description: 'Introduce the five mood categories used in the software.',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson1/slides/6.svg'
+    }
+  },
+  {
+    id: 'mood-match-intro',
+    label: 'Mood Match Introduction',
+    description: 'Explain how to play the Mood Match Game.',
+    type: 'summary',
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/3.png'
+      slidePath: '/lessons/film-music-project/lesson1/slides/7.svg'
     }
   },
-  { 
-    id: 'daw-tutorial', 
-    label: 'Unlock DAW Tutorial', 
-    description: 'Interactive DAW basics',
-    bonusDescription: 'Bonus Activity: Explore the DAW',
+  {
+    id: 'mood-match-game',
+    label: 'Mood Match Game',
+    description: 'STUDENTS WORK: Listen to loops, match to mood categories.',
+    bonusDescription: 'Bonus: Try to get a perfect score!',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 4,
+    duration: 5,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/4.png'
+      type: 'mood-match-teacher',
+      slidePath: '/lessons/film-music-project/lesson1/slides/8.svg'
     }
   },
-  { 
-    id: 'activity-summary', 
-    label: 'Show Activity Instructions', 
-    description: 'Activity intro summary',
+  {
+    id: 'composition-instructions',
+    label: 'Composition Requirements',
+    description: 'Review the three requirements for the composition.',
     type: 'summary',
-    content: 'activityIntro',
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/5.png'
+      slidePath: '/lessons/film-music-project/lesson1/slides/9.svg'
     }
   },
-  { 
-    id: 'activity-intro', 
-    label: 'Play Activity Introduction', 
-    description: 'Activity introduction video', 
-    hasProgress: false,
+  {
+    id: 'composition-tutorial',
+    label: 'DAW Tutorial Video',
+    description: 'PLAY VIDEO: How to use the DAW.',
     type: 'video',
     duration: 2,
     presentationView: {
       type: 'video',
-      videoPath: '/lessons/film-music-project/lesson1/Lesson1activityintro.mp4',
-      title: 'Activity Introduction'
+      videoPath: '/lessons/film-music-project/lesson1/IntrotoDAW122025.mp4',
+      title: 'How to Use the DAW',
+      slidePath: '/lessons/film-music-project/lesson1/slides/10.svg'
     }
   },
-  { 
-    id: 'school-summary', 
-    label: 'Show Composition Instructions', 
-    description: 'School Beneath summary',
+  {
+    id: 'composition-reminder',
+    label: 'Composition Reminder',
+    description: 'Remind students of the three requirements before they begin.',
     type: 'summary',
-    content: 'schoolBeneath',
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/5b.png'
+      slidePath: '/lessons/film-music-project/lesson1/slides/11.svg'
     }
   },
-  { 
-    id: 'school-beneath', 
-    label: 'Unlock School Beneath', 
-    description: 'The School Beneath composition', 
-    bonusDescription: 'Bonus Activity: Adding Sound Effects',
+  {
+    id: 'adventure-composition',
+    label: 'Score the Adventure',
+    description: 'STUDENTS WORK: Pick a mood, score drone footage with 5+ loops.',
+    bonusDescription: 'Bonus: Build intensity—start quiet and get louder!',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 8,
+    duration: 12,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/6.png'
+      slidePath: '/lessons/film-music-project/lesson1/slides/12.svg'
     }
   },
-  { 
-    id: 'reflection', 
-    label: 'Unlock Reflection', 
-    description: 'Two Stars and a Wish', 
-    bonusDescription: 'Bonus Activity: Guess the Loop with a Friend Game',
+  {
+    id: 'reflection-instructions',
+    label: 'Reflection Instructions',
+    description: 'Explain Two Stars and a Wish.',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson1/slides/13.svg'
+    }
+  },
+  {
+    id: 'reflection',
+    label: 'Reflection',
+    description: 'STUDENTS WORK: Complete Two Stars and a Wish.',
+    bonusDescription: 'Bonus: Share your reflection with a partner.',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 10,
+    duration: 5,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/7.png'
+      slidePath: '/lessons/film-music-project/lesson1/slides/14.svg'
     }
   },
   {
     id: 'conclusion',
     label: 'Class Discussion',
-    description: 'Wrap up lesson',
+    description: 'Share moods and discuss how music changed the video.',
     type: 'discussion',
     duration: 2,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/8.png'
+      slidePath: '/lessons/film-music-project/lesson1/slides/15.svg'
     }
   }
 ];
@@ -332,17 +417,60 @@ export const lessonStages = [
 // Helper function to map session stage to activity type
 export const getActivityForStage = (stage) => {
   const stageMap = {
-    'welcome-instructions': 'summary',
-    'intro-summary': 'summary',
-    'intro-video': 'video',
-    'daw-summary': 'summary',
-    'daw-tutorial': 'daw-tutorial',
-    'activity-summary': 'summary',
-    'activity-intro': 'video',
-    'school-summary': 'summary',
-    'school-beneath': 'school-beneath-activity',
-    'reflection-summary': 'summary',
-    'reflection': 'two-stars-wish'
+    'welcome-intro': 'summary',
+    'show-agenda': 'summary',
+    'hook-intro': 'summary',
+    'hook-video': 'demo',
+    'mood-discussion': 'summary',
+    'mood-categories': 'summary',
+    'mood-match-intro': 'summary',
+    'mood-match-game': 'mood-match-game',
+    'composition-instructions': 'summary',
+    'composition-tutorial': 'video',
+    'composition-reminder': 'summary',
+    'adventure-composition': 'adventure-composition',
+    'reflection-instructions': 'summary',
+    'reflection': 'two-stars-wish',
+    'conclusion': 'discussion'
   };
   return stageMap[stage];
 };
+
+// Mood categories for the lesson
+export const MOOD_CATEGORIES = [
+  {
+    id: 'heroic',
+    name: 'Heroic',
+    description: 'Powerful, bold, triumphant',
+    color: '#EF4444', // red
+    characteristics: 'Brass, big drums, major key'
+  },
+  {
+    id: 'hype',
+    name: 'Hype',
+    description: 'Exciting, energetic, pumped up',
+    color: '#F59E0B', // amber
+    characteristics: 'Fast tempo, driving beats, intense'
+  },
+  {
+    id: 'mysterious',
+    name: 'Mysterious',
+    description: 'Intriguing, unknown, curious',
+    color: '#3B82F6', // blue
+    characteristics: 'Minor key, soft, atmospheric'
+  },
+  {
+    id: 'scary',
+    name: 'Scary',
+    description: 'Frightening, tense, horror',
+    color: '#7C3AED', // purple
+    characteristics: 'Low synths, dissonance, sparse'
+  },
+  {
+    id: 'upbeat',
+    name: 'Upbeat',
+    description: 'Happy, positive, cheerful',
+    color: '#10B981', // green
+    characteristics: 'Major key, bright, rhythmic'
+  }
+];

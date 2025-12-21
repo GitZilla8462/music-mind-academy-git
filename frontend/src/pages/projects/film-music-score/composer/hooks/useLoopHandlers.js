@@ -1,6 +1,7 @@
 // hooks/useLoopHandlers.js - All loop-related event handlers
 // 🔥 FIXED: Infinite rerender loop during resize
 // 🔥 CHROMEBOOK FIX: Preview stop functionality now works properly
+// 🔥 FIXED: Removed lockFeatures restrictions to allow free interaction during tutorial
 import { useCallback, useRef, useEffect } from 'react';
 
 export const useLoopHandlers = ({
@@ -29,18 +30,23 @@ export const useLoopHandlers = ({
   const scheduleTimeoutRef = useRef(null);
   
   const handleLoopDrop = useCallback(async (loopData, trackIndex, startTime) => {
-    if (lockFeatures.allowLoopDrag === false) {
-      return;
-    }
+    // 🔥 REMOVED: lockFeatures restriction - allow drops anytime
+    // if (lockFeatures.allowLoopDrag === false) {
+    //   return;
+    // }
+
+    console.log('🎵 handleLoopDrop called:', { loopData: loopData?.name, trackIndex, startTime });
 
     if (onLoopDropCallback) {
       onLoopDropCallback(loopData, trackIndex, startTime);
     }
 
-    if (!audioReady) {
-      showToast?.('Please initialize audio first', 'error');
-      return;
-    }
+    // 🔥 REMOVED: audioReady check - allow loops to be placed before audio initializes
+    // The audio players will be created when audio becomes ready
+    // if (!audioReady) {
+    //   showToast?.('Please initialize audio first', 'error');
+    //   return;
+    // }
 
     // ✅ CHROMEBOOK OPTIMIZED: Reduced logging
     const newLoop = {
@@ -58,11 +64,17 @@ export const useLoopHandlers = ({
       muted: false
     };
 
-    // ✅ CHROMEBOOK FIX: Add loop to UI IMMEDIATELY (optimistic update)
+    // ✅ Add loop to UI IMMEDIATELY (optimistic update)
     const updatedLoops = [...placedLoops, newLoop];
     setPlacedLoops(updatedLoops);
     setHasUnsavedChanges(true);
     showToast?.(`Added "${loopData.name}" to track ${trackIndex + 1}`, 'success');
+
+    // Only create audio players if audio is ready
+    if (!audioReady) {
+      console.log('⏳ Audio not ready yet - loop placed visually, audio will load later');
+      return;
+    }
 
     // Load audio in background - don't block UI
     try {
@@ -106,7 +118,7 @@ export const useLoopHandlers = ({
     }
   }, [
     createLoopPlayer, showToast, audioReady, placedLoops, scheduleLoops, 
-    selectedVideo?.duration, trackStates, onLoopDropCallback, lockFeatures,
+    selectedVideo?.duration, trackStates, onLoopDropCallback,
     setPlacedLoops, setHasUnsavedChanges
   ]);
 
@@ -140,9 +152,10 @@ export const useLoopHandlers = ({
   // 🔥 FIX: Debounce scheduleLoops to prevent infinite loop during resize
   // ✅ CHROMEBOOK OPTIMIZED: Increased debounce, reduced logging
   const handleLoopUpdate = useCallback((loopId, updates) => {
-    if (lockFeatures.allowLoopMove === false) {
-      return;
-    }
+    // 🔥 REMOVED: lockFeatures restriction - allow moves anytime
+    // if (lockFeatures.allowLoopMove === false) {
+    //   return;
+    // }
 
     if (onLoopUpdateCallback) {
       onLoopUpdateCallback(loopId, updates);
@@ -168,14 +181,15 @@ export const useLoopHandlers = ({
     }, 250); // Increased from 150ms for Chromebook performance
   }, [
     placedLoops, scheduleLoops, selectedVideo?.duration, trackStates, 
-    onLoopUpdateCallback, lockFeatures, setPlacedLoops, setHasUnsavedChanges
+    onLoopUpdateCallback, setPlacedLoops, setHasUnsavedChanges
   ]);
 
   // 🔥 CHROMEBOOK FIX: Handle stop explicitly, don't rely on toggle behavior
   const handleLoopPreview = useCallback(async (loop, isPlaying) => {
-    if (lockFeatures.allowLoopPreview === false) {
-      return;
-    }
+    // 🔥 REMOVED: lockFeatures restriction - allow preview anytime
+    // if (lockFeatures.allowLoopPreview === false) {
+    //   return;
+    // }
 
     // ✅ CHROMEBOOK OPTIMIZED: Reduced logging
     if (onLoopPreviewCallback) {
@@ -221,7 +235,7 @@ export const useLoopHandlers = ({
     }
   }, [
     previewLoop, audioReady, showToast, onLoopPreviewCallback, 
-    lockFeatures, tutorialMode
+    tutorialMode
   ]);
 
   // 🔥 FIX: Cleanup timeout on unmount

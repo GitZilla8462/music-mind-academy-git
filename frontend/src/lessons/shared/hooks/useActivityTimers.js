@@ -280,17 +280,8 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
             
             // Time's up!
             if (newTimeRemaining <= 0) {
-              setTimeout(() => {
-                alert(`⏰ Time's Up for ${activityId}! Students can continue working.`);
-              }, 100);
-              
-              // Play notification
-              if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('Time\'s Up!', {
-                  body: `${activityId} timer has finished.`
-                });
-              }
-              
+              console.log(`⏰ Timer finished for ${activityId}`);
+
               // ✅ Force immediate Firebase update when timer finishes
               updateFirebaseThrottled({
                 countdownTime: 0,

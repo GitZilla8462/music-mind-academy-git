@@ -3,6 +3,7 @@
 
 // Storage Keys
 export const STORAGE_KEYS = {
+  DAW_STATS: 'lesson2-daw-stats',
   SPORTS_COMPOSITION: 'sports-composition',
   REFLECTION: 'sports-reflection',
   LESSON_TIMER: 'lesson2-timer',
@@ -28,6 +29,28 @@ const normalizeLoop = (loop) => {
     volume: loop.volume !== undefined ? loop.volume : 1,
     muted: loop.muted !== undefined ? loop.muted : false
   };
+};
+
+// DAW Tutorial Stats
+export const saveDAWStats = (correct, incorrect) => {
+  const stats = {
+    correct,
+    incorrect,
+    completedAt: new Date().toISOString()
+  };
+  localStorage.setItem(STORAGE_KEYS.DAW_STATS, JSON.stringify(stats));
+  console.log('DAW stats saved:', stats);
+  return stats;
+};
+
+export const getDAWStats = () => {
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.DAW_STATS);
+    return data ? JSON.parse(data) : null;
+  } catch (error) {
+    console.error('Error loading DAW stats:', error);
+    return null;
+  }
 };
 
 // Selected Video
@@ -125,6 +148,7 @@ export const clearAllLesson2Data = () => {
 // Get complete lesson summary
 export const getLesson2Summary = () => {
   return {
+    dawStats: getDAWStats(),
     selectedVideo: getSelectedVideo(),
     composition: getSportsComposition(),
     reflection: getSportsReflection()

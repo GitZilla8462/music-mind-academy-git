@@ -11,14 +11,19 @@ import { useAutoSave, AutoSaveIndicator } from '../../../hooks/useAutoSave.jsx';
 import ReflectionModal from './two-stars-and-a-wish/ReflectionModal';
 import NameThatLoopActivity from './layer-detective/NameThatLoopActivity';
 import { useSession } from '../../../context/SessionContext';
+import { saveStudentWork, loadStudentWork } from '../../../utils/studentWorkStorage';
 
 const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes
 
-const SchoolBeneathActivity = ({ 
-  onComplete, 
-  viewMode = false, 
+const SchoolBeneathActivity = ({
+  onComplete,
+  viewMode = false,
   lessonStartTime,
-  isSessionMode = false
+  isSessionMode = false,
+  // Customizable props for different compositions
+  title = 'The School Beneath',
+  videoPath = '/lessons/videos/film-music-loop-project/SchoolMystery.mp4',
+  storageKey = 'school-beneath'
 }) => {
   const navigate = useNavigate();
   
@@ -49,7 +54,7 @@ const SchoolBeneathActivity = ({
   
   // âœ… NEW: Check if reflection is already completed on mount
   useEffect(() => {
-    const savedReflection = localStorage.getItem('school-beneath-reflection');
+    const savedReflection = localStorage.getItem(`${storageKey}-reflection`);
     if (savedReflection) {
       try {
         const data = JSON.parse(savedReflection);
@@ -61,15 +66,18 @@ const SchoolBeneathActivity = ({
         console.error('Error loading reflection:', error);
       }
     }
-  }, []);
+  }, [storageKey]);
   
   // Composition state
   const [placedLoops, setPlacedLoops] = useState([]);
   const [videoDuration, setVideoDuration] = useState(null);
   const [isLoadingVideo, setIsLoadingVideo] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [saveMessage, setSaveMessage] = useState(null);
   const timerRef = useRef(null);
   const autoAdvanceCalledRef = useRef(false);
+  const hasLoadedRef = useRef(false);
+  const isSavingRef = useRef(false);
   
   // ============================================================================
   // AUTO-SAVE
@@ -83,25 +91,119 @@ const SchoolBeneathActivity = ({
   
   const { lastSaved, isSaving, hasSavedWork, loadSavedWork } = useAutoSave(
     studentId,
-    'school-beneath',
+    storageKey,
     compositionData,
     5000
   );
-  
-  // Load saved work on mount
+
+  // ✅ MANUAL SAVE HANDLER - Saves to localStorage for viewing on join page
+  const handleManualSave = (silent = false) => {
+    // Prevent duplicate saves
+    if (isSavingRef.current) {
+      console.log('⏸️ Save already in progress, skipping duplicate');
+      return;
+    }
+
+    if (!studentId) {
+      if (!silent) {
+        setSaveMessage({ type: 'error', text: '❌ Cannot save: Missing student ID' });
+        setTimeout(() => setSaveMessage(null), 3000);
+      }
+      return;
+    }
+
+    if (placedLoops.length === 0) {
+      if (!silent) {
+        setSaveMessage({ type: 'error', text: '❌ Cannot save: No loops placed yet' });
+        setTimeout(() => setSaveMessage(null), 3000);
+      }
+      return;
+    }
+
+    // Set saving flag
+    isSavingRef.current = true;
+
+    // Use saveStudentWork for Join page compatibility
+    saveStudentWork(storageKey, {
+      title: title,
+      emoji: storageKey === 'adventure-composition' ? '🏔️' : '🏫',
+      viewRoute: storageKey === 'adventure-composition'
+        ? '/lessons/film-music-project/lesson1?view=saved&activity=adventure'
+        : '/lessons/film-music-project/lesson1?view=saved',
+      subtitle: `${placedLoops.length} loops`,
+      category: 'Film Music Project',
+      data: {
+        placedLoops,
+        videoDuration,
+        videoTitle: title,
+        videoPath: videoPath,
+        timestamp: Date.now()
+      }
+    }, studentId);
+
+    console.log('💾 Manual save complete:', storageKey);
+
+    if (!silent) {
+      setSaveMessage({ type: 'success', text: '✅ Composition saved! View it anytime from the Join page.' });
+      setTimeout(() => setSaveMessage(null), 4000);
+    }
+
+    // Reset saving flag after a short delay
+    setTimeout(() => {
+      isSavingRef.current = false;
+    }, 500);
+  };
+
+  // ✅ SILENT AUTO-SAVE - Saves to same location as manual save every 30 seconds
   useEffect(() => {
     if (!studentId || viewMode) return;
-    
+
+    const autoSaveInterval = setInterval(() => {
+      if (placedLoops.length > 0) {
+        handleManualSave(true); // silent save
+      }
+    }, 30000); // Every 30 seconds
+
+    return () => clearInterval(autoSaveInterval);
+  }, [studentId, placedLoops, viewMode, title, videoPath, videoDuration]);
+
+  // Load saved work on mount ONLY - includes manual saves
+  useEffect(() => {
+    if (!studentId || viewMode) return;
+
+    // Skip if already loaded this session
+    if (hasLoadedRef.current) {
+      console.log('⏭️ Already loaded this session, skipping');
+      return;
+    }
+
+    console.log('🎬 Initial load - checking for saved work');
+
+    // First try to load from new mma-saved format (Join page compatible)
+    const savedWork = loadStudentWork(storageKey, studentId);
+    if (savedWork && savedWork.data && savedWork.data.placedLoops && savedWork.data.placedLoops.length > 0) {
+      setPlacedLoops(savedWork.data.placedLoops);
+      setVideoDuration(savedWork.data.videoDuration || 60);
+      console.log('✅ Loaded from saved work:', savedWork.data.placedLoops.length, 'loops');
+      hasLoadedRef.current = true;
+      return;
+    }
+
+    // Fallback to auto-save (useAutoSave hook)
     if (hasSavedWork) {
       const saved = loadSavedWork();
       if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
-        // Auto-load saved work (no confirmation needed - they can clear it if they want)
         setPlacedLoops(saved.placedLoops || []);
         setVideoDuration(saved.videoDuration || 60);
-        console.log('âœ… Auto-loaded previous work:', saved.placedLoops.length, 'loops');
+        console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
+        hasLoadedRef.current = true;
+        return;
       }
     }
-  }, [studentId, hasSavedWork, viewMode, loadSavedWork]);
+
+    console.log('ℹ️ No saved work found');
+    hasLoadedRef.current = true;
+  }, [studentId, hasSavedWork, viewMode, loadSavedWork, storageKey]);
   
   // ============================================================================
   // REFLECTION DETECTION
@@ -185,7 +287,6 @@ const SchoolBeneathActivity = ({
   useEffect(() => {
     if (viewMode) return;
 
-    const videoPath = '/lessons/videos/film-music-loop-project/SchoolMystery.mp4';
     const videoElement = document.createElement('video');
     videoElement.src = videoPath;
     videoElement.preload = 'metadata';
@@ -221,7 +322,7 @@ const SchoolBeneathActivity = ({
       videoElement.removeEventListener('error', handleError);
       videoElement.src = '';
     };
-  }, [viewMode]);
+  }, [viewMode, videoPath]);
   
   // ============================================================================
   // LOOP HANDLERS
@@ -294,15 +395,44 @@ const SchoolBeneathActivity = ({
   
   return (
     <div className="h-full flex flex-col bg-gray-900 relative">{/* Added relative for overlay positioning */}
+      {/* Save Message Toast */}
+      {saveMessage && (
+        <div
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] px-6 py-3 rounded-lg shadow-xl font-bold text-white transition-all duration-300 ${
+            saveMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+          }`}
+          style={{ animation: 'fadeIn 0.3s ease-in' }}
+        >
+          {saveMessage.text}
+        </div>
+      )}
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translate(-50%, -20px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
+        }
+      `}</style>
+
       {/* Header */}
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">
         <div className="px-4 py-2 flex items-center justify-between">
           <h2 className="text-sm font-bold">
-            The School Beneath - Composition
+            {title} - Composition
           </h2>
           
           <div className="flex items-center gap-4">
-            {/* âœ… View reflection button (shows reflection modal over current composition) */}
+            {/* ✅ SAVE BUTTON */}
+            {studentId && placedLoops.length > 0 && !viewMode && (
+              <button
+                onClick={() => handleManualSave()}
+                className="px-4 py-1.5 text-sm rounded bg-green-600 hover:bg-green-700 font-bold transition-colors"
+              >
+                💾 Save
+              </button>
+            )}
+
+            {/* View reflection button (shows reflection modal over current composition) */}
             {reflectionCompleted && !showReflection && (
               <button
                 onClick={handleViewReflection}
@@ -352,10 +482,10 @@ const SchoolBeneathActivity = ({
           onLoopUpdateCallback={handleLoopUpdated}
           tutorialMode={false}
           preselectedVideo={{
-            id: 'school-beneath',
-            title: 'The School Beneath',
+            id: storageKey,
+            title: title,
             duration: videoDuration,
-            videoPath: '/lessons/videos/film-music-loop-project/SchoolMystery.mp4'
+            videoPath: videoPath
           }}
           // ALL LOOPS AVAILABLE - Students can filter themselves
           restrictToCategory={null}

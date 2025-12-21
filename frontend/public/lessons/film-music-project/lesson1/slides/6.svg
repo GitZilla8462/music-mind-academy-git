@@ -1,0 +1,55 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="192" y="160" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">THE FIVE MOOD CATEGORIES</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="190" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
+
+  <!-- Subtitle -->
+  <text x="192" y="260" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Used in Today's Software</text>
+
+  <!-- Mood boxes - horizontal layout -->
+  <!-- Heroic -->
+  <rect x="100" y="340" width="330" height="220" rx="12" fill="#ef4444"/>
+  <text x="265" y="440" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="white" text-anchor="middle" font-weight="bold">HEROIC</text>
+  <text x="265" y="500" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white" text-anchor="middle" opacity="0.9">Powerful, bold</text>
+
+  <!-- Hype -->
+  <rect x="460" y="340" width="330" height="220" rx="12" fill="#f59e0b"/>
+  <text x="625" y="440" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="white" text-anchor="middle" font-weight="bold">HYPE</text>
+  <text x="625" y="500" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white" text-anchor="middle" opacity="0.9">Exciting, energetic</text>
+
+  <!-- Mysterious -->
+  <rect x="820" y="340" width="330" height="220" rx="12" fill="#3b82f6"/>
+  <text x="985" y="440" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="white" text-anchor="middle" font-weight="bold">MYSTERIOUS</text>
+  <text x="985" y="500" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white" text-anchor="middle" opacity="0.9">Intriguing, curious</text>
+
+  <!-- Scary -->
+  <rect x="1180" y="340" width="330" height="220" rx="12" fill="#7c3aed"/>
+  <text x="1345" y="440" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="white" text-anchor="middle" font-weight="bold">SCARY</text>
+  <text x="1345" y="500" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white" text-anchor="middle" opacity="0.9">Tense, frightening</text>
+
+  <!-- Upbeat -->
+  <rect x="1540" y="340" width="330" height="220" rx="12" fill="#10b981"/>
+  <text x="1705" y="440" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="white" text-anchor="middle" font-weight="bold">UPBEAT</text>
+  <text x="1705" y="500" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white" text-anchor="middle" opacity="0.9">Happy, positive</text>
+
+  <!-- Bottom instructions -->
+  <text x="192" y="700" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">These are the moods in your loop library.</text>
+
+  <text x="192" y="800" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">Pick one mood for your composition.</text>
+</svg>

@@ -33,10 +33,10 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 // PRESENTATION CONTENT COMPONENT
 // Renders the appropriate content based on stage
 // ============================================
-const PresentationContent = ({ 
-  currentStage, 
-  currentStageData, 
-  sessionCode, 
+const PresentationContent = ({
+  currentStage,
+  currentStageData,
+  sessionCode,
   sessionData,
   lessonConfig,
   lessonBasePath,
@@ -48,6 +48,7 @@ const PresentationContent = ({
   const [SectionalLoopBuilderLeaderboard, setSectionalLoopBuilderLeaderboard] = useState(null);
   const [SectionalLoopBuilderResults, setSectionalLoopBuilderResults] = useState(null);
   const [SectionalLoopBuilderClassDemo, setSectionalLoopBuilderClassDemo] = useState(null);
+  const [MoodMatchTeacherView, setMoodMatchTeacherView] = useState(null);
 
   // Load game components dynamically
   useEffect(() => {
@@ -55,7 +56,7 @@ const PresentationContent = ({
     import('../../shared/activities/layer-detective/LayerDectectivePresentationView')
       .then(module => setLayerDetectiveLeaderboard(() => module.default))
       .catch(() => console.log('Layer Detective leaderboard not available'));
-    
+
     import('../../shared/activities/layer-detective/LayerDetectiveResults')
       .then(module => setLayerDetectiveResults(() => module.default))
       .catch(() => console.log('Layer Detective results not available'));
@@ -68,7 +69,7 @@ const PresentationContent = ({
     import('../../shared/activities/sectional-loop-builder/SectionalLoopBuilderPresentationView')
       .then(module => setSectionalLoopBuilderLeaderboard(() => module.default))
       .catch(() => console.log('Sectional Loop Builder leaderboard not available'));
-    
+
     import('../../shared/activities/sectional-loop-builder/SectionalLoopBuilderResults')
       .then(module => setSectionalLoopBuilderResults(() => module.default))
       .catch(() => console.log('Sectional Loop Builder results not available'));
@@ -76,6 +77,11 @@ const PresentationContent = ({
     import('../../shared/activities/sectional-loop-builder/SectionalLoopBuilderClassDemo')
       .then(module => setSectionalLoopBuilderClassDemo(() => module.default))
       .catch(() => console.log('Sectional Loop Builder class demo not available'));
+
+    // Mood Match Teacher View
+    import('../../shared/activities/mood-match-game/MoodMatchTeacherView')
+      .then(module => setMoodMatchTeacherView(() => module.default))
+      .catch(() => console.log('Mood Match Teacher View not available'));
   }, []);
 
   // Student View Mode - Show iframe of student experience
@@ -223,6 +229,23 @@ const PresentationContent = ({
           }>
             <SectionalLoopBuilderClassDemo sessionData={sessionData} />
           </React.Suspense>
+        </div>
+      );
+    }
+
+    // Mood Match Teacher View
+    if (type === 'mood-match-teacher') {
+      if (!MoodMatchTeacherView) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+            <div className="text-white text-2xl">Loading Mood Match Game...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <MoodMatchTeacherView />
         </div>
       );
     }
@@ -405,7 +428,10 @@ const TeacherLessonView = ({
     const sessionRef = ref(db, `sessions/${sessionCode}`);
 
     const unsubscribe = onValue(sessionRef, (snapshot) => {
-      setSessionData(snapshot.val());
+      // Use queueMicrotask to prevent setState during render
+      queueMicrotask(() => {
+        setSessionData(snapshot.val());
+      });
     });
 
     return () => unsubscribe();
@@ -1110,6 +1136,95 @@ const TeacherLessonView = ({
             lessonBasePath={config.lessonPath}
             viewMode={viewMode}
           />
+
+          {/* Floating Timer - Top Right (2x size) */}
+          {timerVisible && (
+            <div className="absolute top-4 right-4 z-50 bg-gray-900/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-700 p-6 min-w-[320px]">
+              {/* Timer Display */}
+              <div className={`text-6xl font-bold font-mono text-center mb-4 ${
+                classroomTimer.isRunning
+                  ? classroomTimer.timeRemaining <= 60
+                    ? 'text-red-400'
+                    : 'text-white'
+                  : 'text-gray-300'
+              }`}>
+                {formatClassroomTime(classroomTimer.timeRemaining)}
+              </div>
+
+              {/* Controls Row */}
+              <div className="flex items-center justify-center gap-2">
+                {/* Minus 1 min */}
+                <button
+                  onClick={() => adjustClassroomTime(-1)}
+                  disabled={classroomTimer.presetMinutes <= 1 || classroomTimer.isRunning}
+                  className={`p-3 rounded-xl transition-colors ${
+                    classroomTimer.presetMinutes <= 1 || classroomTimer.isRunning
+                      ? 'text-gray-600 cursor-not-allowed'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  }`}
+                  title="-1 min"
+                >
+                  <Minus size={28} />
+                </button>
+
+                {/* Play/Pause */}
+                <button
+                  onClick={classroomTimer.isRunning ? pauseClassroomTimer : startClassroomTimer}
+                  className={`p-4 rounded-xl transition-colors ${
+                    classroomTimer.isRunning
+                      ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                  title={classroomTimer.isRunning ? 'Pause' : 'Start'}
+                >
+                  {classroomTimer.isRunning ? <Pause size={32} /> : <Play size={32} />}
+                </button>
+
+                {/* Plus 1 min */}
+                <button
+                  onClick={() => adjustClassroomTime(1)}
+                  disabled={classroomTimer.presetMinutes >= 60 || classroomTimer.isRunning}
+                  className={`p-3 rounded-xl transition-colors ${
+                    classroomTimer.presetMinutes >= 60 || classroomTimer.isRunning
+                      ? 'text-gray-600 cursor-not-allowed'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  }`}
+                  title="+1 min"
+                >
+                  <Plus size={28} />
+                </button>
+
+                {/* Reset */}
+                <button
+                  onClick={resetClassroomTimer}
+                  className="p-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+                  title="Reset"
+                >
+                  <RotateCcw size={28} />
+                </button>
+
+                {/* Close */}
+                <button
+                  onClick={() => setTimerVisible(false)}
+                  className="p-3 rounded-xl text-gray-500 hover:text-red-400 hover:bg-gray-700 transition-colors text-2xl"
+                  title="Hide timer"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Floating Timer Toggle Button - when timer is hidden */}
+          {!timerVisible && (
+            <button
+              onClick={() => setTimerVisible(true)}
+              className="absolute top-4 right-4 z-50 p-2 bg-gray-800/90 hover:bg-gray-700 text-gray-400 hover:text-white rounded-lg shadow-lg border border-gray-700 transition-colors"
+              title="Show Timer"
+            >
+              <Clock size={20} />
+            </button>
+          )}
         </div>
       </div>
     </div>

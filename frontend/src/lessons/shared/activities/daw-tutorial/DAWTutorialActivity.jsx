@@ -9,7 +9,7 @@ import { Minimize2, Maximize2 } from 'lucide-react';
 import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
 import ChallengeSidebar from './ChallengeSidebar';
 import { DAW_CHALLENGES } from './challengeDefinitions';
-import { saveDAWStats } from "../../../film-music-project/lesson1/lessonStorageUtils";
+import { saveDAWStats } from "../../../film-music-project/lesson2/lesson2StorageUtils";
 import './TutorialHighlight.css';
 
 const DAW_TUTORIAL_DURATION = 13 * 60 * 1000; // 13 minutes in milliseconds
@@ -400,26 +400,40 @@ const DAWTutorialActivity = ({
     }, [])
   };
 
+  // Ref to track last validated action to prevent duplicate validations
+  const lastValidatedActionRef = useRef(null);
+  const lastValidationTimeRef = useRef(0);
+
   // Validate and advance challenge
-  // FIXED: Removed dawContext from dependencies to prevent infinite re-render loop
-  // Using dawContextRef.current instead to access current state without triggering re-renders
+  // FIXED: Added throttling and duplicate prevention to stop infinite re-render loop
   useEffect(() => {
     if (!currentChallenge || !dawContext.action || isProcessingClick || !isMountedRef.current) return;
     if (currentChallenge.type === 'multiple-choice') return;
     if (feedback) return;
 
-    console.log('🔍 Validating action:', dawContext.action, 'for challenge:', currentChallenge.id);
+    // THROTTLE: Don't validate the same action for the same challenge within 100ms
+    const actionKey = `${currentChallenge.id}-${dawContext.action}`;
+    const now = Date.now();
+    if (lastValidatedActionRef.current === actionKey && (now - lastValidationTimeRef.current) < 100) {
+      return; // Skip duplicate validation
+    }
+    lastValidatedActionRef.current = actionKey;
+    lastValidationTimeRef.current = now;
 
-    setIsProcessingClick(true);
+    console.log('🔍 Validating action:', dawContext.action, 'for challenge:', currentChallenge.id);
 
     // Use ref to get current dawContext without adding to dependencies
     const isValid = currentChallenge.validation?.(dawContextRef.current);
     console.log('✅ Validation result:', isValid);
 
     if (isValid) {
+      setIsProcessingClick(true);
       setFeedback({ type: 'success', message: 'Perfect! Great job!' });
       setCompletedChallenges(prev => new Set([...prev, currentChallenge.id]));
       setCorrectAnswers(prev => prev + 1);
+      
+      // Clear the action after successful validation
+      setDawContext(prev => ({ ...prev, action: null }));
       
       setSafeTimeout(() => {
         if (isMountedRef.current) {
@@ -427,12 +441,9 @@ const DAWTutorialActivity = ({
           nextChallenge();
         }
       }, 1500);
-    } else {
-      // FIXED: Clear the action immediately to prevent infinite re-render loop
-      // The action was already processed, just didn't match - no need to keep validating
-      setDawContext(prev => ({ ...prev, action: null }));
-      setIsProcessingClick(false);
     }
+    // NOTE: On validation failure, we do NOT clear the action or set isProcessingClick
+    // This allows the user to keep trying without triggering re-renders
   }, [dawContext.action, currentChallenge, feedback, isProcessingClick, nextChallenge, setSafeTimeout]);
 
   // Handle multiple choice answers

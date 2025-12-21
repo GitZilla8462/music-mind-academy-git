@@ -27,6 +27,12 @@ import SectionalLoopBuilderActivity from '../activities/sectional-loop-builder/S
 // ✅ ADDED: Monster Melody Maker bonus activity for Lesson 4
 import MonsterMelodyMaker from '../activities/monster-melody-maker';
 
+// ✅ ADDED: Melody Escape Room activity for Lesson 2
+import MelodyEscapeRoomActivity from '../activities/melody-escape-room';
+
+// ✅ ADDED: Mood Match Game for Lesson 1 (Score the Adventure)
+import MoodMatchGameActivity from '../activities/mood-match-game';
+
 const ActivityRenderer = ({
   activity,
   onComplete,
@@ -191,10 +197,46 @@ const ActivityRenderer = ({
     // ✅ Layer Detective warm-up activity (Lesson 2)
     case 'layer-detective':
       return (
-        <LayerDetectiveActivity 
+        <LayerDetectiveActivity
           key={`layer-detective-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}
+        />
+      );
+
+    // ✅ ADDED: Melody Escape Room activity (Lesson 2)
+    case 'melody-escape-room':
+      return (
+        <MelodyEscapeRoomActivity
+          key={`melody-escape-room-${activity.id}`}
+          onComplete={onComplete}
+        />
+      );
+
+    // ✅ ADDED: Mood Match Game (Lesson 1 - Score the Adventure)
+    case 'mood-match-game':
+      return (
+        <MoodMatchGameActivity
+          key={`mood-match-game-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Adventure Composition (Lesson 1 - Score the Adventure)
+    // Uses SchoolBeneathActivity with adventure video
+    case 'adventure-composition':
+      return (
+        <SchoolBeneathActivity
+          key={`adventure-composition-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          viewBonusMode={viewBonusMode}
+          lessonStartTime={lessonStartTime}
+          isSessionMode={isSessionMode}
+          title="Score the Adventure"
+          videoPath="/lessons/film-music-project/lesson1/NatureDroneFootage.mp4"
+          storageKey="adventure-composition"
         />
       );
 

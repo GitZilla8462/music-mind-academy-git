@@ -44,10 +44,10 @@ export const lessonSections = [
         description: 'Preview: "You\'ll click buttons to learn the DAW"',
         duration: 1
       },
-      { 
-        id: 'daw-tutorial', 
-        type: 'activity', 
-        label: '🎮 Unlock DAW Challenge', 
+      {
+        id: 'daw-tutorial',
+        type: 'activity',
+        label: '🎮 Unlock DAW Challenge',
         duration: 6,
         hasTimer: true,
         trackProgress: true,
@@ -99,19 +99,30 @@ export const lessonSections = [
   {
     id: 'activity2',
     title: '3. Reflection and Game',
-    subtitle: 'Reflect',
+    subtitle: 'Reflect → Bonus Game',
     color: 'blue',
-    estimatedTime: 5,
+    estimatedTime: 12,
     stages: [
-      { 
-        id: 'reflection', 
-        type: 'activity', 
-        label: '🎮 Unlock Reflection', 
+      {
+        id: 'reflection',
+        type: 'activity',
+        label: '🎮 Unlock Reflection',
         duration: 5,
         hasTimer: true,
         trackProgress: true,
         description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form, share',
         bonusDescription: 'Bonus: Layer Detective with a partner'
+      },
+      {
+        id: 'melody-escape-room',
+        type: 'activity',
+        label: '🔐 Melody Escape Room (Bonus)',
+        duration: 7,
+        hasTimer: true,
+        trackProgress: true,
+        isBonus: true,
+        description: 'BONUS: Partner game - create & solve instrument puzzles',
+        bonusDescription: 'Create multiple rooms and challenge the class!'
       }
     ]
   },
@@ -170,6 +181,13 @@ export const lesson2Config = {
       type: "two-stars-wish",
       title: "Reflection Activity",
       estimatedTime: "5 min"
+    },
+    {
+      id: 5,
+      type: "melody-escape-room",
+      title: "Melody Escape Room (Bonus)",
+      estimatedTime: "7 min",
+      isBonus: true
     }
   ]
 };
@@ -228,9 +246,9 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson2/slides/4.png'
     }
   },
-  { 
-    id: 'daw-tutorial', 
-    label: '🎮 Unlock DAW Challenge', 
+  {
+    id: 'daw-tutorial',
+    label: '🎮 Unlock DAW Challenge',
     description: 'STUDENTS WORK: Answer questions, click every button to learn DAW',
     bonusDescription: 'Bonus: Explore & experiment with the DAW',
     hasProgress: true,
@@ -242,7 +260,7 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson2/slides/5.png'
     }
   },
-  { 
+  {
     id: 'introduce-video', 
     label: 'Composition Tutorial', 
     description: 'Announce: "Next we\'ll watch a 2-min video on getting started"',
@@ -290,15 +308,30 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson2/slides/8.png'
     }
   },
-  { 
-    id: 'reflection', 
-    label: '🎮 Unlock Reflection', 
-    description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form, share', 
+  {
+    id: 'reflection',
+    label: '🎮 Unlock Reflection',
+    description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form, share',
     bonusDescription: 'Bonus: Layer Detective with a partner',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
     duration: 5,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson2/slides/9.png'
+    }
+  },
+  {
+    id: 'melody-escape-room',
+    label: '🔐 Melody Escape Room (Bonus)',
+    description: 'BONUS: Partner game - create & solve instrument puzzles',
+    bonusDescription: 'Create multiple rooms and challenge the class!',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: true,
+    duration: 7,
+    isBonus: true,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson2/slides/9.png'
@@ -330,6 +363,7 @@ export const getActivityForStage = (stage) => {
     'composition-instructions': 'summary',
     'sports-composition': 'sports-composition-activity',
     'reflection': 'sports-composition-activity',
+    'melody-escape-room': 'melody-escape-room',
     'conclusion': 'discussion'
   };
   return stageMap[stage];

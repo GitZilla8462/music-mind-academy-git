@@ -1,123 +1,215 @@
 // File: /src/lessons/film-music-project/lesson1/summarySlideContent.js
-// CENTRALIZED CONTENT for all Lesson 1 instructional text
-// All slides, panels, modals, and activity instructions in ONE place
+// All instructional text and content for Lesson 1 - Score the Adventure (Mood & Expression)
 
 // ========================================
 // 1. PRE-ACTIVITY SUMMARY SLIDES
 // ========================================
 export const summarySlides = {
-  introVideo: {
-    title: "Welcome to Film Music Composition!",
+  welcomeIntro: {
+    title: "Score the Adventure",
     icon: "🎬",
+    estimatedTime: "1 minute",
+    points: [
+      "Today you'll score stunning drone footage with music.",
+      "Learn how music creates different moods and emotions.",
+      "Choose a mood and create music that makes people FEEL it."
+    ]
+  },
+
+  agenda: {
+    title: "Today's Agenda",
+    icon: "📋",
+    estimatedTime: "1 minute",
+    points: [
+      "1. Discover how music creates mood",
+      "2. Practice matching loops to moods",
+      "3. Create your own adventure score"
+    ]
+  },
+
+  hookDemo: {
+    title: "Same Video, Different Music",
+    icon: "🎭",
     estimatedTime: "3 minutes",
     points: [
-      "Learn how film composers create music for movies.",
-      "Complete interactive challenges to learn the DAW interface.",
-      "View the three-minute introduction video to begin your journey."
+      "Watch the same drone footage with two different scores.",
+      "Notice how the music completely changes how you feel.",
+      "Think: Which version feels epic? Which feels mysterious?"
     ]
   },
 
-  dawTutorial: {
-    title: "DAW Basics Challenge",
-    icon: "🎹",
-    estimatedTime: "5 minutes",
-    points: [
-      "Answer all questions about the DAW.",
-      "Click every button, control, and panel to learn how to use the DAW.",
-      "If you finish early, then explore and experiment!"
-    ]
-  },
-
-  activityIntro: {
-    title: "Time to Compose!",
-    icon: "🎼",
+  moodDiscussion: {
+    title: "How Did the Music Make You Feel?",
+    icon: "💭",
     estimatedTime: "2 minutes",
     points: [
-      "Use your skills to place loops, adjust timing, and layer sounds together.",
-      "Discover \"The School Beneath,\" your mysterious underwater trailer project.",
-      "View the two-minute video explaining your composition challenge."
+      "The same video can feel completely different with different music.",
+      "Music has the power to create emotions in the viewer.",
+      "Film composers choose music carefully to shape how audiences feel."
     ]
   },
 
-  schoolBeneath: {
-    title: "Create Your Film Score",
-    icon: "🎵",
-    estimatedTime: "10 minutes",
+  moodCategories: {
+    title: "The Five Mood Categories",
+    icon: "🎨",
+    estimatedTime: "2 minutes",
+    categories: [
+      { name: "Heroic", description: "Powerful, bold, triumphant", color: "#EF4444" },
+      { name: "Hype", description: "Exciting, energetic, pumped up", color: "#F59E0B" },
+      { name: "Mysterious", description: "Intriguing, unknown, curious", color: "#3B82F6" },
+      { name: "Scary", description: "Frightening, tense, horror", color: "#7C3AED" },
+      { name: "Upbeat", description: "Happy, positive, cheerful", color: "#10B981" }
+    ]
+  },
+
+  moodMatchIntro: {
+    title: "Mood Match Game",
+    icon: "🎮",
+    estimatedTime: "1 minute",
     points: [
-      "Use five or more different loops in your composition.",
-      "Create three or more layers by playing loops together.",
-      "Place five or more total loops to complete your musical score."
+      "Listen to different music loops.",
+      "Drag each loop to the mood category it belongs to.",
+      "Think about HOW the music makes you feel, not just the instruments."
     ]
   },
 
-  reflection: {
+  compositionInstructions: {
+    title: "Score the Adventure",
+    icon: "🎵",
+    estimatedTime: "1 minute",
+    points: [
+      "Choose a mood for your adventure (Epic, Scary, Mysterious, Peaceful, or Triumphant).",
+      "Use 5 or more loops that match your chosen mood.",
+      "Create layers to make your music feel full and powerful.",
+      "💾 Hit Save (top right) to keep your work. Find it on the Join page (this device only)."
+    ]
+  },
+
+  compositionTutorial: {
+    title: "How to Use the DAW",
+    icon: "🎹",
+    estimatedTime: "2 minutes",
+    points: [
+      "Watch this video to learn the DAW basics.",
+      "You'll learn how to place loops, adjust timing, and create layers.",
+      "Then you'll create your own adventure score!"
+    ]
+  },
+
+  reflectionInstructions: {
     title: "Two Stars and a Wish",
     icon: "⭐",
-    estimatedTime: "5 minutes",
+    estimatedTime: "1 minute",
     points: [
-      "Name two things you did well in your composition today.",
-      "Describe one thing you would improve or change next time.",
-      "Fill out the reflection form while listening to your musical score."
+      "Star 1: What mood did you create? How did you achieve it?",
+      "Star 2: What worked well in your composition?",
+      "Wish: What would you try differently next time?"
+    ]
+  },
+
+  conclusion: {
+    title: "Share Your Adventure",
+    icon: "🌟",
+    estimatedTime: "2 minutes",
+    points: [
+      "What mood did you choose to create?",
+      "How did you use music to achieve that mood?",
+      "Did anyone try a different mood for the same footage?"
     ]
   }
 };
 
 // ========================================
-// 2. ASSIGNMENT PANEL CONTENT (During Activities)
+// 2. ASSIGNMENT PANEL CONTENT
 // ========================================
 export const assignmentPanels = {
-  schoolBeneath: {
+  adventureComposition: {
     title: "Composition Assignment",
     requirements: [
       {
-        id: "instrumentation",
-        label: "Instrumentation",
-        shortText: "5+ Mysterious loops",
+        id: "mood",
+        label: "Mood",
+        shortText: "Choose 1 mood",
+        fullText: "Pick one mood category for your composition (Epic, Scary, Mysterious, Peaceful, or Triumphant)."
+      },
+      {
+        id: "variety",
+        label: "Variety",
+        shortText: "5+ different loops",
         fullText: "Use five or more different loops in your composition."
       },
       {
         id: "layering",
         label: "Layering",
-        shortText: "3+ different times",
-        fullText: "Create three or more layers by playing loops together."
-      },
-      {
-        id: "structure",
-        label: "Structure",
-        shortText: "5+ loops total",
-        fullText: "Place five or more total loops to complete your musical score."
+        shortText: "3+ layers",
+        fullText: "Create three or more layers by playing loops together at the same time."
       }
     ]
   },
 
-  soundEffects: {
-    title: "Bonus: Add Sound Effects",
-    description: "Great job! Use the remaining time to explore.",
+  bonusActivity: {
+    title: "Bonus: Build Intensity",
+    description: "Great job! Use remaining time to enhance your composition.",
     instructions: {
-      title: "Sound effects you can add:",
+      title: "Ways to build intensity:",
       items: [
-        "Electric shocks & impacts",
-        "Risers to build tension",
-        "Wooshes for movement"
-      ]
-    },
-    howToAdd: {
-      title: "How to add sound effects:",
-      steps: [
-        "Look for Show Sound Effects checkbox",
-        "Check it to see available sound effects",
-        "Drag onto timeline like music loops",
-        "Place at perfect moments in your video!"
+        "Start with fewer layers, add more as the video progresses",
+        "Use quieter loops at the start, louder ones at the climax",
+        "Match loop changes to key moments in the drone footage"
       ]
     }
   }
 };
 
 // ========================================
-// 3. REFLECTION ACTIVITY CONTENT
+// 3. MOOD MATCH GAME CONTENT
+// ========================================
+export const moodMatchGame = {
+  instructions: {
+    title: "Match the Loops to Their Mood",
+    text: "Listen to each loop and drag it to the mood category that best describes how it makes you feel.",
+    tip: "Think about the emotion the music creates, not just what instruments you hear."
+  },
+
+  moodDescriptions: {
+    epic: {
+      name: "Epic",
+      description: "Powerful, heroic, triumphant",
+      hints: ["Big drums", "Brass instruments", "Major key", "Building energy"]
+    },
+    scary: {
+      name: "Scary",
+      description: "Frightening, tense, horror",
+      hints: ["Low synths", "Dissonance", "Sparse sounds", "Tension"]
+    },
+    mysterious: {
+      name: "Mysterious",
+      description: "Intriguing, unknown, curious",
+      hints: ["Minor key", "Soft sounds", "Atmospheric", "Wonder"]
+    },
+    peaceful: {
+      name: "Peaceful",
+      description: "Calm, relaxing, serene",
+      hints: ["Acoustic sounds", "Slow tempo", "Major key", "Gentle"]
+    },
+    triumphant: {
+      name: "Triumphant",
+      description: "Victorious, celebratory",
+      hints: ["Brass fanfares", "Percussion", "Building crescendo", "Joy"]
+    }
+  },
+
+  feedback: {
+    correct: "Great ear! That loop definitely fits the {mood} mood.",
+    incorrect: "Not quite! Think about how this loop makes you FEEL. Try again!",
+    hint: "Listen for: {hints}"
+  }
+};
+
+// ========================================
+// 4. REFLECTION ACTIVITY CONTENT
 // ========================================
 export const reflectionActivity = {
-  // Step-by-step instructions and voice narration
   steps: {
     teacherInstruction: {
       title: "Time to Reflect!",
@@ -125,7 +217,7 @@ export const reflectionActivity = {
       voiceText: "Time to reflect on your work! First, ask your teacher: Are you reviewing your own composition, or will you be reviewing a partner's work?",
       note: "Once your teacher tells you which type of review to do, click Continue below to proceed."
     },
-    
+
     chooseReviewType: {
       title: "Whose composition are you reviewing?",
       options: [
@@ -134,40 +226,40 @@ export const reflectionActivity = {
       ],
       voiceText: "Whose composition are you reviewing? Choose whether you'll reflect on your own work or a friend's composition."
     },
-    
+
     listenAndShare: {
       self: {
-        title: "Listen to Your Composition",
-        mainText: "Listen to your entire film score from beginning to end.",
+        title: "Listen to Your Adventure Score",
+        mainText: "Listen to your entire composition from beginning to end.",
         payAttentionTo: {
           title: "Pay attention to:",
           items: [
-            "How the music tools (timeline, tracks, volume) were used",
-            "How the loops are timed with the video",
-            "The overall sound and mood of the music"
+            "What mood did you create?",
+            "How did your loop choices create that mood?",
+            "Did your layers build intensity?"
           ]
         },
-        voiceText: "Now, listen to your entire film score from beginning to end. Pay attention to: How the music tools, such as timeline, tracks, and volume, were used. How the loops are timed with the video. And the overall sound and mood of the music."
+        voiceText: "Now, listen to your entire adventure score. Pay attention to: What mood did you create? How did your loop choices create that mood? And did your layers build intensity?"
       },
       partner: {
         title: "Share & Listen",
         shareFirst: {
-          title: "🔄 First: Share your score",
+          title: "📤 First: Share your score",
           text: "Share your score with [Partner Name] so they can see and hear your work."
         },
-        mainText: "Now, listen to [Partner Name]'s entire film score from beginning to end.",
+        mainText: "Now, listen to [Partner Name]'s entire adventure score from beginning to end.",
         payAttentionTo: {
           title: "Pay attention to:",
           items: [
-            "How the music tools (timeline, tracks, volume) were used",
-            "How the loops are timed with the video",
-            "The overall sound and mood of the music"
+            "What mood did they create?",
+            "How did their loop choices create that mood?",
+            "Did their layers build intensity?"
           ]
         },
-        voiceText: "Now it's time to share! First, share your score with [Partner Name] so they can see and hear your work. Then, listen to [Partner Name]'s entire film score from beginning to end. Pay attention to: How the music tools were used. How the loops are timed with the video. And the overall sound and mood of the music."
+        voiceText: "Now share your work! First, share your score with [Partner Name]. Then, listen to their composition and pay attention to the mood, loop choices, and layering."
       }
     },
-    
+
     summary: {
       self: {
         title: "♪ Your Reflection Summary",
@@ -191,38 +283,39 @@ export const reflectionActivity = {
   // Self-reflection prompts
   selfReflection: {
     star1: {
-      title: "STAR 1: Using the DAW",
-      question: "What did you do well with using the DAW tools?",
-      voiceText: "Star 1: Think about what went well with using the DAW tools. What did you do well?",
+      title: "STAR 1: Creating Mood",
+      question: "What mood did you create and how?",
+      voiceText: "Star 1: What mood did you create and how did you achieve it?",
       options: [
-        "I placed loops at the right times on the timeline",
-        "I used multiple tracks to organize my music",
-        "I adjusted the volume to balance different loops",
-        "I previewed loops before adding them to my project",
+        "I created an epic mood with powerful drums and brass",
+        "I created a mysterious mood with soft, atmospheric sounds",
+        "I created a peaceful mood with gentle, acoustic loops",
+        "I created a scary mood with tense, dissonant sounds",
+        "I created a triumphant mood with building, celebratory music",
         "Custom..."
       ]
     },
     star2: {
-      title: "STAR 2: Loop Timing & Sound",
-      question: "What worked well with your loop timing and music sound?",
-      voiceText: "Star 2: Think about what worked well with the loop timing and music sound.",
+      title: "STAR 2: What Worked Well?",
+      question: "What worked well in your composition?",
+      voiceText: "Star 2: What worked well in your composition?",
       options: [
-        "My loops matched the mood of the video perfectly",
-        "I timed my loops to important moments in the video",
-        "My layers created an interesting sound together",
-        "The loops I chose worked well together",
+        "My loop choices all fit the same mood",
+        "My layers built intensity throughout the video",
+        "I timed my loops to match key moments in the footage",
+        "My composition made me feel the mood I was going for",
         "Custom..."
       ]
     },
     wish: {
       title: "WISH: What to try next?",
-      question: "What do you want to try or improve next time?",
-      voiceText: "Now for the Wish: What do you want to try or improve next time?",
+      question: "What would you try differently next time?",
+      voiceText: "Now for the Wish: What would you try differently next time?",
       options: [
-        "I want to experiment with more tracks and layers",
-        "I want to try different loop combinations",
-        "I want to time my loops more precisely with the video",
-        "I want to adjust volumes to make certain loops stand out",
+        "I would try a different mood to see how it changes the video",
+        "I would add more layers to make the music fuller",
+        "I would time my loop changes more carefully",
+        "I would experiment with mixing different mood loops",
         "Custom..."
       ]
     }
@@ -231,38 +324,39 @@ export const reflectionActivity = {
   // Partner reflection prompts
   partnerReflection: {
     star1: {
-      title: "STAR 1: What did [Partner Name] do well?",
-      question: "What did [Partner Name] do well with the DAW tools?",
-      voiceText: "Star 1: Think about what went well with using the DAW tools. What did you do well?",
+      title: "STAR 1: What mood did [Partner Name] create?",
+      question: "What mood did [Partner Name] create and how?",
+      voiceText: "Star 1: What mood did they create and how did they achieve it?",
       options: [
-        "[Partner Name] placed loops at good times on the timeline",
-        "[Partner Name] used multiple tracks effectively",
-        "[Partner Name] balanced the volume well between loops",
-        "[Partner Name] chose loops that fit the video well",
+        "[Partner Name] created an epic mood effectively",
+        "[Partner Name] created a mysterious, intriguing atmosphere",
+        "[Partner Name] created a peaceful, calming score",
+        "[Partner Name] created a tense, scary mood",
+        "[Partner Name] created a triumphant, celebratory feel",
         "Custom..."
       ]
     },
     star2: {
       title: "STAR 2: What worked well?",
-      question: "What worked well with [Partner Name]'s loop timing and music?",
-      voiceText: "Star 2: Think about what worked well with the loop timing and music sound.",
+      question: "What worked well in [Partner Name]'s composition?",
+      voiceText: "Star 2: What worked well in their composition?",
       options: [
-        "The loops matched the mood of the video",
-        "The timing matched important video moments",
-        "The layers created an interesting sound",
-        "The loop choices worked well together",
+        "Their loop choices all fit together well",
+        "Their layers created a full, rich sound",
+        "Their timing matched the video perfectly",
+        "Their composition really made me feel the mood",
         "Custom..."
       ]
     },
     wish: {
       title: "WISH: What could they try?",
-      question: "What could [Partner Name] try or improve next time?",
-      voiceText: "Now for the Wish: What do you want to try or improve next time?",
+      question: "What could [Partner Name] try next time?",
+      voiceText: "Now for the Wish: What could they try next time?",
       options: [
-        "[Partner Name] could try using more tracks",
-        "[Partner Name] could experiment with different loops",
+        "[Partner Name] could try a different mood",
+        "[Partner Name] could add more layers",
         "[Partner Name] could adjust timing more precisely",
-        "[Partner Name] could try different volume levels",
+        "[Partner Name] could experiment with different loops",
         "Custom..."
       ]
     }

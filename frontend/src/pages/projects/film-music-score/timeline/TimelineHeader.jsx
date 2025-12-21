@@ -104,32 +104,27 @@ const TimelineHeader = ({
           </div>
         </div>
 
-        {/* Right side - Zoom slider with hash marks */}
+        {/* Right side - Zoom slider (gradual, centered at 100%) */}
         <div className="flex items-center space-x-2 bg-gray-700 rounded-lg px-3 py-1 flex-shrink-0">
-          <span className="text-xs text-gray-400">Zoom:</span>
+          <span className="text-xs text-gray-400">−</span>
           <div className="relative flex items-center">
-            {/* Zoom slider */}
+            {/* Zoom slider - gradual, 0.25 to 0.75 with 0.5 in middle */}
             <input
               type="range"
               min="0.25"
-              max="2.0"
-              step="0.25"
-              value={localZoom > 2.0 ? 2.0 : localZoom}
+              max="0.75"
+              step="0.01"
+              value={Math.max(0.25, Math.min(0.75, localZoom))}
               onChange={(e) => onZoomChange(parseFloat(e.target.value))}
               className="w-32 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer zoom-slider"
-              style={{
-                background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((Math.min(localZoom, 2.0) - 0.25) / (2.0 - 0.25)) * 100}%, #4b5563 ${((Math.min(localZoom, 2.0) - 0.25) / (2.0 - 0.25)) * 100}%, #4b5563 100%)`
-              }}
               title={`Zoom: ${Math.round(localZoom * 100)}%`}
             />
-            {/* Hash marks below slider */}
-            <div className="absolute -bottom-2 left-0 right-0 flex justify-between px-0.5">
-              <div className="w-px h-1 bg-gray-500" title="25%"></div>
-              <div className="w-px h-1 bg-gray-500" title="50%"></div>
-              <div className="w-px h-1 bg-gray-500" title="100%"></div>
-              <div className="w-px h-1 bg-gray-500" title="200%"></div>
+            {/* Center mark at 50% (default) */}
+            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+              <div className="w-px h-1.5 bg-gray-400" title="50%"></div>
             </div>
           </div>
+          <span className="text-xs text-gray-400">+</span>
         </div>
       </div>
     </div>

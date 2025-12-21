@@ -1,0 +1,37 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">MOOD MATCH GAME</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="230" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
+
+  <!-- Subtitle -->
+  <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">How to Play</text>
+
+  <!-- Intro -->
+  <text x="192" y="440" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc" font-style="italic">A loop is a short piece of music that repeats.</text>
+
+  <!-- Numbered Steps -->
+  <text x="192" y="540" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">1. Listen to each loop.</text>
+
+  <text x="192" y="620" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">2. Vote for the mood category that fits.</text>
+
+  <text x="192" y="700" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">3. Be ready to share why you picked that mood.</text>
+
+  <!-- Closing -->
+  <text x="192" y="860" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#10b981">The class will see everyone's votes—there are no wrong answers!</text>
+</svg>

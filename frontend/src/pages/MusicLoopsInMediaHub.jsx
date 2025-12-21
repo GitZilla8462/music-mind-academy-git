@@ -18,6 +18,7 @@ const MusicLoopsInMediaHub = () => {
   
   useEffect(() => {
     const progress = {
+      lesson1: localStorage.getItem('lesson1-progress'),
       lesson2: localStorage.getItem('lesson2-progress'),
       lesson3: localStorage.getItem('lesson3-progress'),
       lesson4: localStorage.getItem('lesson4-progress'),
@@ -49,6 +50,7 @@ const MusicLoopsInMediaHub = () => {
   const handleOpenLessonPlan = (lessonId) => {
     // Map lesson ID to lesson plan route
     const lessonPlanRoutes = {
+      'lesson1': '/lesson-plan/lesson1',
       'lesson2': '/lesson-plan/lesson2',
       'lesson3': '/lesson-plan/lesson3',
       'lesson4': '/lesson-plan/lesson4',
@@ -67,10 +69,29 @@ const MusicLoopsInMediaHub = () => {
 
   const lessons = [
     {
-      id: 'lesson2',
+      id: 'lesson1',
       number: 1,
+      title: 'Score the Adventure',
+      concept: 'Mood & Expression',
+      description: 'Learn how music creates different moods and emotions. Score stunning drone footage by choosing loops that match your chosen mood',
+      icon: '🎬',
+      color: 'from-purple-500 to-indigo-500',
+      videos: ['Drone Footage Montage'],
+      duration: '35 min',
+      route: '/lessons/film-music-project/lesson1',
+      available: true,
+      hasLessonPlan: true,
+      activities: [
+        { id: 'mood-match-game', title: 'Mood Match Game', description: 'Match loops to moods', activityType: 'mood-match-game' },
+        { id: 'adventure-composition', title: 'Score the Adventure', description: 'Create mood-based music', activityType: 'adventure-composition' },
+        { id: 'two-stars-wish', title: 'Two Stars & a Wish', description: 'Reflection activity', activityType: 'two-stars-wish' }
+      ]
+    },
+    {
+      id: 'lesson2',
+      number: 2,
       title: 'Sports Highlight Reel',
-      concept: 'Introduction to the DAW',
+      concept: 'Instrumentation & Timbre',
       description: 'Learn how to use the digital audio workstation and create your first composition with loops for exciting sports highlights',
       icon: '🏀',
       color: 'from-orange-500 to-red-500',
@@ -83,12 +104,12 @@ const MusicLoopsInMediaHub = () => {
         { id: 'daw-tutorial', title: 'DAW Challenge', description: 'Learn the DAW interface', activityType: 'daw-tutorial' },
         { id: 'sports-composition', title: 'Sports Composition', description: 'Compose high-energy music', activityType: 'sports-composition-activity' },
         { id: 'two-stars-wish', title: 'Two Stars & a Wish', description: 'Reflection activity', activityType: 'two-stars-wish' },
-        { id: 'name-that-loop', title: 'Name That Loop', description: 'Bonus game', activityType: 'name-that-loop' }
+        { id: 'melody-escape-room', title: 'Melody Escape Room', description: 'Bonus game', activityType: 'melody-escape-room' }
       ]
     },
     {
       id: 'lesson3',
-      number: 2,
+      number: 3,
       title: 'City Soundscapes',
       concept: 'Texture & Layering',
       description: 'Understand texture and layers in music. Visualize how layers create texture with a listening map, then build your own city soundscape',
@@ -108,9 +129,9 @@ const MusicLoopsInMediaHub = () => {
     },
     {
       id: 'lesson4',
-      number: 3,
+      number: 4,
       title: 'Epic Wildlife',
-      concept: 'Sectional Loop Form',
+      concept: 'Form & Structure',
       description: 'Create epic soundtracks for breathtaking nature footage with distinct sections',
       icon: '🌍',
       color: 'from-green-500 to-teal-500',
@@ -128,29 +149,15 @@ const MusicLoopsInMediaHub = () => {
     },
     {
       id: 'lesson5',
-      number: 4,
-      title: 'Video Game Montage',
-      concept: 'Musical Storytelling',
-      description: 'Score exciting video game footage with dynamic music',
-      icon: '🎮',
+      number: 5,
+      title: 'Capstone Project',
+      concept: 'Apply All Skills',
+      description: 'Apply everything you learned: mood, instrumentation, texture, and form to create your own film score',
+      icon: '🎓',
       color: 'from-purple-500 to-pink-500',
-      videos: ['Action', 'Adventure', 'Victory'],
+      videos: ['Student Choice'],
       duration: '35 min',
       route: '/lessons/film-music-project/lesson5',
-      available: false,
-      hasLessonPlan: false
-    },
-    {
-      id: 'sandbox',
-      number: 5,
-      title: 'Student Choice Sandbox',
-      concept: 'Apply All Skills',
-      description: 'Access all activities and choose your own video',
-      icon: '🎨',
-      color: 'from-indigo-500 to-violet-500',
-      videos: ['All Activities', 'Student Choice'],
-      duration: 'Unlimited',
-      route: '/lessons/film-music-project/sandbox',
       available: false,
       hasLessonPlan: false
     }
@@ -203,10 +210,17 @@ const MusicLoopsInMediaHub = () => {
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-slate-300">
             <div className="flex items-center gap-2">
+              <span className="text-xl">🎬</span>
+              <div>
+                <div className="font-semibold text-white text-sm">Mood & Expression</div>
+                <div className="text-xs text-slate-400">Create emotions</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
               <span className="text-xl">🏀</span>
               <div>
-                <div className="font-semibold text-white text-sm">DAW Basics</div>
-                <div className="text-xs text-slate-400">Learn the tools</div>
+                <div className="font-semibold text-white text-sm">Instrumentation</div>
+                <div className="text-xs text-slate-400">Choose sounds</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -219,15 +233,8 @@ const MusicLoopsInMediaHub = () => {
             <div className="flex items-center gap-2">
               <span className="text-xl">🌍</span>
               <div>
-                <div className="font-semibold text-white text-sm">Sectional Form</div>
+                <div className="font-semibold text-white text-sm">Form & Structure</div>
                 <div className="text-xs text-slate-400">Evolving sections</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🎮</span>
-              <div>
-                <div className="font-semibold text-white text-sm">Storytelling</div>
-                <div className="text-xs text-slate-400">Dynamic scoring</div>
               </div>
             </div>
           </div>

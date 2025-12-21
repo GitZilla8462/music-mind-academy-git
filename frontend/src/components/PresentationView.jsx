@@ -19,10 +19,19 @@ const LayerDetectiveClassDemo = React.lazy(() =>
 );
 
 // Lazy load Sectional Loop Builder Class Demo
-const SectionalLoopBuilderClassDemo = React.lazy(() => 
+const SectionalLoopBuilderClassDemo = React.lazy(() =>
   import('../lessons/shared/activities/sectional-loop-builder/SectionalLoopBuilderClassDemo')
     .catch(() => {
       console.error('Failed to load SectionalLoopBuilderClassDemo');
+      return { default: () => <div>Component not found</div> };
+    })
+);
+
+// Lazy load Mood Match Teacher View
+const MoodMatchTeacherView = React.lazy(() =>
+  import('../lessons/shared/activities/mood-match-game/MoodMatchTeacherView')
+    .catch(() => {
+      console.error('Failed to load MoodMatchTeacherView');
       return { default: () => <div>Component not found</div> };
     })
 );
@@ -519,7 +528,7 @@ const PresentationView = () => {
 
   // Use presentationView from lesson config
   if (currentStageData?.presentationView) {
-    const { type, slidePath, videoPath, title } = currentStageData.presentationView;
+    const { type, slidePath, videoPath, title, startTime } = currentStageData.presentationView;
     
     // RENDER LAYER DETECTIVE LEADERBOARD
     if (type === 'layer-detective-leaderboard') {
@@ -681,7 +690,7 @@ const PresentationView = () => {
           </div>
         );
       }
-      
+
       return (
         <div className="h-screen w-full relative">
           <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={false} />
@@ -690,7 +699,25 @@ const PresentationView = () => {
         </div>
       );
     }
-    
+
+    // RENDER MOOD MATCH TEACHER VIEW
+    if (type === 'mood-match-teacher') {
+      return (
+        <div className="h-screen w-full relative">
+          <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={false} />
+          <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} isDarkBackground={false} />
+
+          <React.Suspense fallback={
+            <div className="h-full flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+              <div className="text-white text-2xl">Loading Mood Match Game...</div>
+            </div>
+          }>
+            <MoodMatchTeacherView />
+          </React.Suspense>
+        </div>
+      );
+    }
+
     // RENDER SLIDE
     if (type === 'slide' && slidePath) {
       return (
@@ -798,7 +825,13 @@ const PresentationView = () => {
           <video
             key={currentStage}
             controls
-            autoPlay
+            onLoadedData={(e) => {
+              const video = e.target;
+              if (startTime && startTime > 0 && video.currentTime < startTime) {
+                video.currentTime = startTime;
+              }
+              video.play().catch(() => {});
+            }}
             style={{
               position: 'absolute',
               top: 0,
