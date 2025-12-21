@@ -196,20 +196,28 @@ export const useComposerEffects = ({
   // ============================================================================
   // LOAD SAVED COMPOSITION ON MOUNT - NOW WORKS IN ALL MODES
   // Uses compositionKey if provided, otherwise falls back to other identifiers
+  // FIXED: Skip if loops were already provided via props (e.g., from SchoolBeneathActivity)
   // ============================================================================
   useEffect(() => {
     // Only load once to prevent overwriting user's work during the session
     if (hasLoadedSavedCompositionRef.current) {
       return;
     }
-    
+
+    // Skip loading from localStorage if loops were already provided via props
+    if (placedLoops && placedLoops.length > 0) {
+      console.log('📂 Skipping localStorage load - loops already provided via props:', placedLoops.length);
+      hasLoadedSavedCompositionRef.current = true;
+      return;
+    }
+
     const saveKey = compositionKey
-      || assignmentId 
-      || videoId 
-      || preselectedVideo?.id 
-      || preselectedVideo?.videoPath 
+      || assignmentId
+      || videoId
+      || preselectedVideo?.id
+      || preselectedVideo?.videoPath
       || 'default-composition';
-    
+
     const saved = localStorage.getItem(`composition-${saveKey}`);
     if (saved) {
       try {
@@ -226,7 +234,7 @@ export const useComposerEffects = ({
         console.error('Error loading saved composition:', error);
       }
     }
-  }, [assignmentId, videoId, preselectedVideo, setPlacedLoops, setSubmissionNotes, compositionKey]);
+  }, [assignmentId, videoId, preselectedVideo, setPlacedLoops, setSubmissionNotes, compositionKey, placedLoops]);
 
   // Auto-initialize audio for all modes
   useEffect(() => {
