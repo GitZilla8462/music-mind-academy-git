@@ -1,42 +1,34 @@
 // File: /pages/MusicLoopsInMediaHub.jsx
-// Music Loops in Media Project - Hub page for all lessons
-// ✅ UPDATED: Added Lesson Plan button per lesson card
-// ✅ UPDATED: Lesson 4 - Removed Beta badge, added Monster Melody Maker
+// Music for Media Unit - Hub page for all lessons
+// Light theme with minimal collapsed cards and expanded lesson overview
+// Updated: Larger sizing and better text contrast
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../firebase/config';
-import { Play, ChevronDown, ChevronRight, FileText, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play } from 'lucide-react';
 
 const MusicLoopsInMediaHub = () => {
   const navigate = useNavigate();
-  const [savedProgress, setSavedProgress] = useState({});
   const [creatingSession, setCreatingSession] = useState(null);
-  const [expandedLesson, setExpandedLesson] = useState(null);
-  
+  const [expandedLessons, setExpandedLessons] = useState({});
+
   const userRole = localStorage.getItem('classroom-user-role');
-  
-  useEffect(() => {
-    const progress = {
-      lesson1: localStorage.getItem('lesson1-progress'),
-      lesson2: localStorage.getItem('lesson2-progress'),
-      lesson3: localStorage.getItem('lesson3-progress'),
-      lesson4: localStorage.getItem('lesson4-progress'),
-      lesson5: localStorage.getItem('lesson5-progress')
-    };
-    setSavedProgress(progress);
-  }, []);
+
+  const toggleExpanded = (lessonId) => {
+    setExpandedLessons(prev => ({
+      ...prev,
+      [lessonId]: !prev[lessonId]
+    }));
+  };
 
   const handleStartSession = async (lessonId, lessonRoute) => {
-    console.log('🎬 Starting session for:', { lessonId, lessonRoute });
     setCreatingSession(lessonId);
-    
     try {
       const code = await createSession('teacher', lessonId, lessonRoute);
-      console.log(`✅ Session created: ${code} for ${lessonId} at route ${lessonRoute}`);
       window.location.href = `${lessonRoute}?session=${code}&role=teacher`;
     } catch (error) {
-      console.error('❌ Error creating session:', error);
+      console.error('Error creating session:', error);
       alert('Failed to create session. Please try again.');
       setCreatingSession(null);
     }
@@ -48,367 +40,429 @@ const MusicLoopsInMediaHub = () => {
   };
 
   const handleOpenLessonPlan = (lessonId) => {
-    // Map lesson ID to lesson plan route
-    const lessonPlanRoutes = {
-      'lesson1': '/lesson-plan/lesson1',
-      'lesson2': '/lesson-plan/lesson2',
-      'lesson3': '/lesson-plan/lesson3',
-      'lesson4': '/lesson-plan/lesson4',
-      'lesson5': '/lesson-plan/lesson5'
-    };
-    
-    const route = lessonPlanRoutes[lessonId];
-    if (route) {
-      window.open(route, '_blank');
-    }
-  };
-
-  const toggleLesson = (lessonId) => {
-    setExpandedLesson(expandedLesson === lessonId ? null : lessonId);
+    const route = `/lesson-plan/${lessonId}`;
+    window.open(route, '_blank');
   };
 
   const lessons = [
     {
       id: 'lesson1',
       number: 1,
+      icon: '🎬',
       title: 'Score the Adventure',
       concept: 'Mood & Expression',
-      description: 'Learn how music creates different moods and emotions. Score stunning drone footage by choosing loops that match your chosen mood',
-      icon: '🎬',
-      color: 'from-purple-500 to-indigo-500',
-      videos: ['Drone Footage Montage'],
-      duration: '35 min',
+      essentialQuestion: 'Why does music affect how we feel?',
+      color: 'from-purple-500 to-indigo-600',
       route: '/lessons/film-music-project/lesson1',
       available: true,
       hasLessonPlan: true,
+      inThisLesson: 'Students discover how music creates emotion by watching the same video with different scores, then compose their own adventure soundtrack.',
+      studentsWill: [
+        'Identify how music creates different moods',
+        'Match loops to mood categories',
+        'Compose a soundtrack for drone footage'
+      ],
       activities: [
-        { id: 'mood-match-game', title: 'Mood Match Game', description: 'Match loops to moods', activityType: 'mood-match-game' },
-        { id: 'adventure-composition', title: 'Score the Adventure', description: 'Create mood-based music', activityType: 'adventure-composition' },
-        { id: 'two-stars-wish', title: 'Two Stars & a Wish', description: 'Reflection activity', activityType: 'two-stars-wish' }
+        { title: 'Hook Video', description: 'Same scene, 5 different scores', time: 3 },
+        { title: 'Discussion', description: 'How did the music change the feeling?', time: 3 },
+        { title: 'Mood Categories', description: 'Introduce the 5 mood types', time: 3 },
+        { title: 'Mood Match Game', description: 'Vote on which mood fits each loop', time: 6, activityType: 'mood-match-game' },
+        { title: 'DAW Tutorial Video', description: 'Learn the basics + Chromebook setup', time: 4 },
+        { title: 'Composition', description: 'Pick a mood, score drone footage', time: 14, activityType: 'adventure-composition' },
+        { title: 'Two Stars and a Wish', description: 'Reflect on your composition', time: 5, activityType: 'two-stars-wish' },
+        { title: 'Share', description: '1-2 students share their work', time: 2 },
+        { title: 'Name That Loop', description: 'Partner listening game', time: 5, activityType: 'name-that-loop', isBonus: true, isPartnerActivity: true }
       ]
     },
     {
       id: 'lesson2',
       number: 2,
+      icon: '🏀',
       title: 'Sports Highlight Reel',
       concept: 'Instrumentation & Timbre',
-      description: 'Learn how to use the digital audio workstation and create your first composition with loops for exciting sports highlights',
-      icon: '🏀',
-      color: 'from-orange-500 to-red-500',
-      videos: ['Basketball', 'Skateboarding', 'Football'],
-      duration: '35 min',
+      essentialQuestion: 'What sounds create the feeling?',
+      color: 'from-orange-500 to-red-600',
       route: '/lessons/film-music-project/lesson2',
       available: true,
       hasLessonPlan: true,
+      inThisLesson: 'Students master the DAW through a guided challenge, then create high-energy music for sports highlights by choosing instruments intentionally.',
+      studentsWill: [
+        'Navigate the DAW interface confidently',
+        'Choose instruments that match the energy',
+        'Create layered compositions for sports video'
+      ],
       activities: [
-        { id: 'daw-tutorial', title: 'DAW Challenge', description: 'Learn the DAW interface', activityType: 'daw-tutorial' },
-        { id: 'sports-composition', title: 'Sports Composition', description: 'Compose high-energy music', activityType: 'sports-composition-activity' },
-        { id: 'two-stars-wish', title: 'Two Stars & a Wish', description: 'Reflection activity', activityType: 'two-stars-wish' },
-        { id: 'melody-escape-room', title: 'Melody Escape Room', description: 'Bonus game', activityType: 'melody-escape-room' }
+        { title: 'Introduction', description: 'What sport do you like? What music fits?', time: 3 },
+        { title: 'DAW Review', description: 'Quick refresher on DAW controls', time: 3 },
+        { title: 'DAW Challenge', description: 'Click every button to master the DAW', time: 7, activityType: 'daw-tutorial' },
+        { title: 'Tutorial Video', description: 'How to compose for sports highlights', time: 4 },
+        { title: 'Composition', description: 'Pick a sport, create hype music', time: 15, activityType: 'sports-composition-activity' },
+        { title: 'Two Stars and a Wish', description: 'Reflect on your work', time: 5, activityType: 'two-stars-wish' },
+        { title: 'Share', description: '1-2 students share their work', time: 3 },
+        { title: 'Melody Escape Room', description: 'Partner puzzle game', time: 7, activityType: 'melody-escape-room', isBonus: true, isPartnerActivity: true }
       ]
     },
     {
       id: 'lesson3',
       number: 3,
+      icon: '🏙️',
       title: 'City Soundscapes',
       concept: 'Texture & Layering',
-      description: 'Understand texture and layers in music. Visualize how layers create texture with a listening map, then build your own city soundscape',
-      icon: '🏙️',
-      color: 'from-cyan-500 to-blue-500',
-      videos: ['City Atmosphere'],
-      duration: '35 min',
+      essentialQuestion: 'How many sounds play together?',
+      color: 'from-cyan-500 to-blue-600',
       route: '/lessons/film-music-project/lesson3',
       available: true,
       hasLessonPlan: true,
+      inThisLesson: 'Students visualize how layers create texture using a listening map, then build their own rich city soundscape.',
+      studentsWill: [
+        'Understand thin vs. thick musical texture',
+        'Create a visual listening map',
+        'Build layered compositions for city footage'
+      ],
       activities: [
-        { id: 'listening-map', title: 'Listening Map', description: 'Visualize musical layers', activityType: 'listening-map' },
-        { id: 'city-composition', title: 'City Composition', description: 'Compose a soundscape', activityType: 'city-composition-activity' },
-        { id: 'two-stars-wish', title: 'Two Stars & a Wish', description: 'Reflection activity', activityType: 'two-stars-wish' },
-        { id: 'layer-detective', title: 'Layer Detective', description: 'Bonus game', activityType: 'layer-detective' }
+        { title: 'Introduction', description: 'What city have you visited?', time: 2 },
+        { title: 'Texture Concept', description: 'How layers create thick or thin sound', time: 5 },
+        { title: 'Listening Map Video', description: 'How to visualize texture', time: 3 },
+        { title: 'Listening Map Activity', description: 'Draw while listening to music', time: 8, activityType: 'listening-map' },
+        { title: 'Composition', description: 'Create a city soundscape with layers', time: 14, activityType: 'city-composition-activity' },
+        { title: 'Two Stars and a Wish', description: 'Reflect on your layers', time: 5, activityType: 'two-stars-wish' },
+        { title: 'Share & Discussion', description: 'Compare textures across compositions', time: 3 }
       ]
     },
     {
       id: 'lesson4',
       number: 4,
+      icon: '🌍',
       title: 'Epic Wildlife',
       concept: 'Form & Structure',
-      description: 'Create epic soundtracks for breathtaking nature footage with distinct sections',
-      icon: '🌍',
-      color: 'from-green-500 to-teal-500',
-      videos: ['Forest Creatures', 'Savanna Creatures', 'Underwater Creatures'],
-      duration: '35 min',
+      essentialQuestion: 'When do sounds enter and exit?',
+      color: 'from-green-500 to-teal-600',
       route: '/lessons/film-music-project/lesson4',
       available: true,
       hasLessonPlan: true,
+      inThisLesson: 'Students learn how film scores follow a story arc with distinct sections, then create an epic nature documentary soundtrack.',
+      studentsWill: [
+        'Understand sectional song form (intro, build, climax)',
+        'Place loops strategically for dramatic effect',
+        'Compose a complete film score with structure'
+      ],
       activities: [
-        { id: 'sectional-loop-builder', title: 'Sectional Loop Builder', description: 'Build A-B-A sections', activityType: 'sectional-loop-builder' },
-        { id: 'wildlife-composition', title: 'Wildlife Composition', description: 'Score nature footage', activityType: 'wildlife-composition-activity' },
-        { id: 'two-stars-wish', title: 'Two Stars & a Wish', description: 'Reflection activity', activityType: 'two-stars-wish' },
-        { id: 'monster-melody-maker', title: 'Monster Melody Maker', description: 'Bonus game', activityType: 'monster-melody-maker' }
+        { title: 'Introduction', description: 'How do movies build tension?', time: 3 },
+        { title: 'Form Concept', description: 'How music tells a story over time', time: 5 },
+        { title: 'Sectional Loop Builder', description: 'Match loops to song sections', time: 8, activityType: 'sectional-loop-builder' },
+        { title: 'Composition', description: 'Score wildlife footage with structure', time: 14, activityType: 'wildlife-composition-activity' },
+        { title: 'Two Stars and a Wish', description: 'Reflect on your form choices', time: 5, activityType: 'two-stars-wish' },
+        { title: 'Share & Discussion', description: 'Compare story arcs in compositions', time: 5 },
+        { title: 'Monster Melody Maker', description: 'Create melodies for creatures', time: 8, activityType: 'monster-melody-maker', isBonus: true }
       ]
     },
     {
       id: 'lesson5',
       number: 5,
-      title: 'Capstone Project',
-      concept: 'Apply All Skills',
-      description: 'Apply everything you learned: mood, instrumentation, texture, and form to create your own film score',
       icon: '🎓',
-      color: 'from-purple-500 to-pink-500',
-      videos: ['Student Choice'],
-      duration: '35 min',
+      title: 'Capstone Project',
+      concept: 'All Concepts Combined',
+      essentialQuestion: 'How do I combine mood, instruments, texture, and form?',
+      color: 'from-purple-500 to-pink-600',
       route: '/lessons/film-music-project/lesson5',
       available: false,
-      hasLessonPlan: false
+      hasLessonPlan: false,
+      inThisLesson: 'Students apply mood, instrumentation, texture, and form to create a complete film score for a video of their choice.',
+      studentsWill: [
+        'Plan a composition using all four concepts',
+        'Create a polished film score independently',
+        'Present and explain their creative choices'
+      ],
+      activities: [
+        { title: 'Review', description: 'Revisit all four music concepts', time: 5 },
+        { title: 'Planning', description: 'Choose video and plan your approach', time: 5 },
+        { title: 'Composition', description: 'Create your capstone score', time: 20 },
+        { title: 'Share & Discuss', description: 'Present to the class', time: 10 }
+      ]
     }
   ];
 
-  const getProgressBadge = (lessonId) => {
-    if (savedProgress[lessonId]) {
-      return (
-        <div className="absolute -top-1 -left-1 bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-lg z-10">
-          ✓ Started
-        </div>
-      );
-    }
-    return null;
+  const getTotalTime = (activities) => {
+    return activities
+      .filter(a => !a.isBonus)
+      .reduce((sum, a) => sum + (a.time || 0), 0);
   };
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      {/* Header */}
-      <div className="bg-slate-800 py-6 px-6 border-b border-slate-700">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <span className="text-5xl">🎬</span>
-              <div>
-                <h1 className="text-2xl font-bold text-white">Music Loops in Media</h1>
-                <p className="text-slate-400">Create soundtracks for different types of video</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-6 text-slate-300">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">⏱️</span>
-                <span>~35 min each</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🎯</span>
-                <span>Grades 6-8</span>
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-slate-50">
+      {/* HEADER */}
+      <div className="bg-white border-b border-slate-200">
+        <div className="max-w-5xl mx-auto px-6 py-10">
+          <h1 className="text-4xl font-bold text-slate-900 mb-3">
+            Music for Media
+          </h1>
+          <p className="text-xl text-slate-700 mb-2">
+            Create soundtracks for video — the way professionals do it.
+          </p>
+          <p className="text-base text-slate-600">
+            5 lessons  •  ~40 min each  •  Grades 6-8
+          </p>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-6">
-        {/* Unit Overview */}
-        <div className="bg-slate-800 rounded-xl p-5 mb-6 border border-slate-700 shadow-xl">
-          <h2 className="text-xl font-bold text-white mb-3">Unit Overview</h2>
-          <p className="text-slate-300 mb-4">
-            Learn how music loops enhance different types of media. Each lesson focuses on a different context and musical concept:
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-slate-300">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🎬</span>
-              <div>
-                <div className="font-semibold text-white text-sm">Mood & Expression</div>
-                <div className="text-xs text-slate-400">Create emotions</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🏀</span>
-              <div>
-                <div className="font-semibold text-white text-sm">Instrumentation</div>
-                <div className="text-xs text-slate-400">Choose sounds</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🏙️</span>
-              <div>
-                <div className="font-semibold text-white text-sm">Texture & Layers</div>
-                <div className="text-xs text-slate-400">Build soundscapes</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🌍</span>
-              <div>
-                <div className="font-semibold text-white text-sm">Form & Structure</div>
-                <div className="text-xs text-slate-400">Evolving sections</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Lesson Cards */}
-        <div className="space-y-3">
+      {/* LESSON CARDS */}
+      <div className="max-w-5xl mx-auto px-6 py-8">
+        <div className="space-y-6">
           {lessons.map((lesson) => {
-            const isExpanded = expandedLesson === lesson.id;
-            
+            const isExpanded = expandedLessons[lesson.id];
+            const totalTime = getTotalTime(lesson.activities);
+
             return (
               <div
                 key={lesson.id}
-                className={`relative bg-slate-800 rounded-xl overflow-hidden border border-slate-700 shadow-xl transition-colors duration-200 ${
-                  lesson.available 
-                    ? 'hover:border-slate-500' 
-                    : 'opacity-60'
+                className={`bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden transition-all ${
+                  lesson.available ? '' : 'opacity-50'
                 }`}
               >
-                {getProgressBadge(lesson.id)}
-                
-                {!lesson.available && (
-                  <div className="absolute top-3 right-3 bg-slate-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10">
-                    Coming Soon
-                  </div>
-                )}
-
-                {/* Collapsed Header - Always visible */}
-                <button
-                  onClick={() => lesson.available && toggleLesson(lesson.id)}
-                  disabled={!lesson.available}
-                  className={`w-full flex items-center text-left ${
-                    lesson.available ? 'cursor-pointer' : 'cursor-default'
-                  }`}
-                >
-                  {/* Gradient Icon Area */}
-                  <div className={`bg-gradient-to-br ${lesson.color} p-5 flex items-center justify-center w-28 shrink-0 self-stretch`}>
-                    <div className="text-center text-white">
-                      <div className="text-4xl mb-1">{lesson.icon}</div>
-                      <div className="text-sm font-bold">
-                        {lesson.id === 'sandbox' ? 'Sandbox' : `Lesson ${lesson.number}`}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Title & Info */}
-                  <div className="flex-1 p-4 min-w-0">
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-xl font-bold text-white">{lesson.title}</h3>
-                      <span className="px-3 py-1 bg-slate-700 text-blue-300 text-sm rounded-full font-semibold">
-                        {lesson.concept}
-                      </span>
-                      {lesson.badge && (
-                        <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-xs rounded-full font-semibold border border-amber-500/30">
-                          {lesson.badge}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-slate-300 text-sm">{lesson.description}</p>
-                  </div>
-
-                  {/* Duration & Chevron */}
-                  <div className="flex items-center gap-4 pr-4 shrink-0">
-                    <span className="text-slate-400">⏱️ {lesson.duration}</span>
-                    {lesson.available && (
-                      isExpanded ? 
-                        <ChevronDown className="w-6 h-6 text-slate-400" /> : 
-                        <ChevronRight className="w-6 h-6 text-slate-400" />
-                    )}
-                  </div>
-                </button>
-
-                {/* Expanded Content */}
-                {isExpanded && lesson.available && (
-                  <div className="border-t border-slate-700 p-5 bg-slate-800/50">
-                    {/* Video Tags */}
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {lesson.videos.map((video, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-slate-700 text-slate-300 text-sm rounded-lg">
-                          {video}
-                        </span>
-                      ))}
+                {/* COLLAPSED CARD HEADER - Always Visible */}
+                <div className="p-6">
+                  <div className="flex items-start gap-5">
+                    {/* Gradient Icon */}
+                    <div className={`w-20 h-20 rounded-xl bg-gradient-to-br ${lesson.color} flex items-center justify-center flex-shrink-0`}>
+                      <span className="text-3xl">{lesson.icon}</span>
                     </div>
 
-                    {/* Activities - For Teachers */}
-                    {userRole === 'teacher' && lesson.activities && (
-                      <div className="mb-4">
-                        <div className="text-slate-400 text-sm font-semibold mb-3">
-                          Main Activities
+                    {/* Lesson Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="text-base font-semibold text-blue-600 uppercase tracking-wide">
+                            Lesson {lesson.number}
+                          </p>
+                          <h3 className="text-2xl font-bold text-slate-900 mt-1">
+                            {lesson.title}
+                          </h3>
+                          <p className="text-base text-slate-600 mt-1">
+                            {lesson.concept}
+                          </p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 md:grid-flow-col gap-2">
-                          {lesson.activities.map((activity, index) => (
-                            <div 
-                              key={activity.id}
-                              className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg"
-                            >
-                              <div className="flex items-center gap-3">
-                                <span className="w-6 h-6 flex items-center justify-center bg-slate-600 text-white text-sm font-bold rounded-full">
-                                  {index + 1}
-                                </span>
-                                <div>
-                                  <span className="text-white font-medium">{activity.title}</span>
-                                  <span className="text-slate-400 text-sm ml-2">{activity.description}</span>
-                                </div>
-                              </div>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDemoActivity(activity.activityType, activity.title);
-                                }}
-                                className="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
-                              >
-                                <Play className="w-4 h-4" />
-                                Demo
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-3">
-                      {userRole === 'teacher' && (
-                        <>
-                          {/* Start Live Session Button */}
-                          <button 
-                            onClick={() => handleStartSession(lesson.id, lesson.route)}
-                            disabled={creatingSession === lesson.id}
-                            className={`flex-1 px-6 py-3 ${
-                              creatingSession === lesson.id 
-                                ? 'bg-slate-500 cursor-not-allowed' 
-                                : 'bg-blue-600 hover:bg-blue-700'
-                            } text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2`}
-                          >
-                            {creatingSession === lesson.id ? (
-                              <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                                <span>Creating Session...</span>
-                              </>
-                            ) : (
-                              <>
-                                <span>🎬</span>
-                                <span>Start Live Session</span>
-                              </>
-                            )}
-                          </button>
-
-                          {/* Lesson Plan Button - NEW */}
-                          {lesson.hasLessonPlan && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenLessonPlan(lesson.id);
-                              }}
-                              className="px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-colors flex items-center gap-2 border border-slate-600"
-                            >
-                              <FileText className="w-5 h-5" />
-                              <span>Lesson Plan</span>
-                              <ExternalLink className="w-4 h-4 text-slate-400" />
-                            </button>
+                        <div className="text-right flex-shrink-0 ml-4">
+                          <span className="text-xl font-semibold text-slate-800">
+                            ~{totalTime} min
+                          </span>
+                          {!lesson.available && (
+                            <p className="text-sm text-slate-500 mt-1">Coming Soon</p>
                           )}
-                        </>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom Row: Expand Button (left) + Start Session (right) */}
+                  {lesson.available && (
+                    <div className="mt-4 flex items-center justify-between">
+                      {/* Expand/Collapse Button - Left */}
+                      <button
+                        onClick={() => toggleExpanded(lesson.id)}
+                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium text-base"
+                      >
+                        {isExpanded ? (
+                          <>
+                            <ChevronUp className="w-5 h-5" />
+                            Hide Overview
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="w-5 h-5" />
+                            Lesson Overview
+                          </>
+                        )}
+                      </button>
+
+                      {/* Start Session Button - Right (Teacher Only) */}
+                      {userRole === 'teacher' && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStartSession(lesson.id, lesson.route);
+                          }}
+                          disabled={creatingSession === lesson.id}
+                          className={`font-semibold py-2.5 px-5 rounded-lg transition-colors flex items-center gap-2 ${
+                            creatingSession === lesson.id
+                              ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                              : 'bg-blue-600 hover:bg-blue-700 text-white'
+                          }`}
+                        >
+                          {creatingSession === lesson.id ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                              Creating...
+                            </>
+                          ) : (
+                            'Start Session'
+                          )}
+                        </button>
                       )}
 
-                      {userRole === 'student' && (
-                        <button 
-                          onClick={() => navigate(lesson.route)}
-                          className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors"
+                      {/* Practice Solo Button - Right (Student Only) */}
+                      {userRole !== 'teacher' && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(lesson.route);
+                          }}
+                          className="font-semibold py-2.5 px-5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
                         >
-                          Practice Solo →
+                          Practice Solo
                         </button>
                       )}
                     </div>
+                  )}
+                </div>
+
+                {/* EXPANDED CONTENT */}
+                {isExpanded && lesson.available && (
+                  <div className="border-t border-slate-200">
+                    {/* Section 1: Lesson Description */}
+                    <div className="px-6 py-6 bg-slate-50 border-b border-slate-200">
+                      {/* In This Lesson */}
+                      <div className="mb-5">
+                        <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">
+                          In This Lesson
+                        </h4>
+                        <p className="text-lg text-slate-800">
+                          {lesson.inThisLesson}
+                        </p>
+                      </div>
+
+                      {/* Students Will */}
+                      <div className="mb-5">
+                        <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">
+                          Students Will
+                        </h4>
+                        <ul className="space-y-2">
+                          {lesson.studentsWill.map((outcome, i) => (
+                            <li key={i} className="flex items-start gap-2 text-base text-slate-800">
+                              <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                              <span>{outcome}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Essential Question */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">
+                          Essential Question
+                        </h4>
+                        <p className="text-lg text-slate-800 italic">
+                          "{lesson.essentialQuestion}"
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Section 2: Activities List */}
+                    {userRole === 'teacher' && (
+                      <div className="px-6 py-6">
+                        <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-4">
+                          Activities
+                        </h4>
+
+                        {/* Activities Header Row */}
+                        <div className="grid grid-cols-[200px_1fr_auto_60px_80px] gap-x-4 items-center py-2 border-b border-slate-200 mb-1">
+                          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Activity
+                          </span>
+                          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Description
+                          </span>
+                          <span></span>
+                          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">
+                            Time
+                          </span>
+                          <span></span>
+                        </div>
+
+                        {/* Activities Table with CSS Grid */}
+                        <div className="space-y-0">
+                          {lesson.activities.map((activity, index) => (
+                            <div
+                              key={index}
+                              className="grid grid-cols-[200px_1fr_auto_60px_80px] gap-x-4 items-center py-3 border-b border-slate-100 last:border-b-0"
+                            >
+                              {/* Column 1: Title */}
+                              <span className={`text-base font-medium truncate ${activity.isBonus ? 'text-amber-700' : 'text-slate-800'}`}>
+                                {activity.title}
+                              </span>
+
+                              {/* Column 2: Description */}
+                              <span className="text-slate-700 text-base truncate">
+                                {activity.description}
+                              </span>
+
+                              {/* Column 3: Badges */}
+                              <div className="flex gap-1">
+                                {activity.isPartnerActivity && (
+                                  <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
+                                    Partner
+                                  </span>
+                                )}
+                                {activity.isBonus && (
+                                  <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
+                                    Bonus
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Column 4: Time */}
+                              <span className="text-slate-600 text-base text-right">
+                                {activity.time} min
+                              </span>
+
+                              {/* Column 5: Preview Button */}
+                              <div className="text-right">
+                                {activity.activityType ? (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDemoActivity(activity.activityType, activity.title);
+                                    }}
+                                    className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                                  >
+                                    <Play className="w-4 h-4" />
+                                    Preview
+                                  </button>
+                                ) : (
+                                  <span className="text-sm text-slate-400">—</span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Total Time */}
+                        <div className="flex justify-end mt-4 pt-3 border-t border-slate-200">
+                          <span className="text-base text-slate-600">
+                            Total (excluding bonus):
+                          </span>
+                          <span className="text-base font-semibold text-slate-800 ml-2">
+                            ~{totalTime} min
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Section 3: Lesson Plan Link (Teacher Only) */}
+                    {lesson.hasLessonPlan && userRole === 'teacher' && (
+                      <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenLessonPlan(lesson.id);
+                          }}
+                          className="flex items-center gap-2 text-slate-600 hover:text-slate-800 font-medium transition-colors"
+                        >
+                          <FileText className="w-5 h-5" />
+                          View Lesson Plan
+                          <ExternalLink className="w-4 h-4 text-slate-400" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

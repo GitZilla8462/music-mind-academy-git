@@ -10,7 +10,7 @@ const LessonPlan3PDF = () => {
       <div className="mb-6 print:hidden flex gap-3">
         <button
           onClick={() => window.print()}
-          className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-lg font-semibold shadow-md transition-colors"
+          className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-3 rounded-lg font-semibold shadow-md transition-colors"
         >
           🖨️ Print Lesson Plan
         </button>
@@ -25,23 +25,38 @@ const LessonPlan3PDF = () => {
       {/* Lesson Plan Content */}
       <div className="prose prose-sm max-w-none">
         {/* Header */}
-        <div className="border-b-4 border-teal-600 pb-4 mb-6">
-          <h1 className="text-3xl font-bold text-teal-900 mb-2">
-            🏙️ City Soundscapes
+        <div className="border-b-4 border-cyan-600 pb-4 mb-6">
+          <h1 className="text-3xl font-bold text-cyan-900 mb-2">
+            🏙️ Lesson 3: City Soundscapes
           </h1>
           <p className="text-lg text-gray-700 font-semibold">
-            MUSIC LESSON PLAN - Understanding by Design Template
+            Texture & Layering — How many sounds play together?
           </p>
           <div className="flex gap-6 mt-3 text-sm">
-            <div><strong>Grade Level:</strong> 5-8</div>
-            <div><strong>Duration:</strong> 36 minutes</div>
-            <div><strong>Concept:</strong> Texture & Layering</div>
+            <div><strong>Grade Level:</strong> 6-8</div>
+            <div><strong>Duration:</strong> 40 minutes</div>
           </div>
         </div>
 
+        {/* LESSON OVERVIEW */}
+        <section className="mb-8 bg-cyan-50 p-4 rounded-lg border border-cyan-200">
+          <h2 className="text-xl font-bold text-cyan-800 mb-3">
+            Lesson Overview
+          </h2>
+          <p className="text-sm mb-4">
+            Students visualize how layers create texture using a listening map, then build their own rich city soundscape.
+          </p>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Students Will:</h3>
+          <ul className="list-disc ml-6 space-y-1">
+            <li className="text-sm">Understand thin vs. thick musical texture</li>
+            <li className="text-sm">Create a visual listening map</li>
+            <li className="text-sm">Build layered compositions for city footage</li>
+          </ul>
+        </section>
+
         {/* STAGE 1: DESIRED RESULTS */}
         <section className="mb-8">
-          <h2 className="text-2xl font-bold text-teal-800 mb-4 border-b-2 border-teal-300 pb-2">
+          <h2 className="text-2xl font-bold text-cyan-800 mb-4 border-b-2 border-cyan-300 pb-2">
             STAGE 1: DESIRED RESULTS
           </h2>
 
@@ -65,10 +80,10 @@ const LessonPlan3PDF = () => {
             </h3>
             <p className="text-sm italic mb-2">Students will understand that...</p>
             <ul className="list-disc ml-6 space-y-1">
-              <li className="text-sm">Texture in music refers to how thick or thin the sound is based on the number of layers</li>
-              <li className="text-sm">Adding more instrumental layers creates a fuller, richer texture</li>
+              <li className="text-sm">Texture refers to how thick or thin music sounds based on the number of layers</li>
+              <li className="text-sm">Adding more layers creates a fuller, richer texture</li>
               <li className="text-sm">Composers use texture intentionally to create mood and atmosphere</li>
-              <li className="text-sm">Visual listening maps can represent musical layers and texture</li>
+              <li className="text-sm">Visual listening maps can represent musical layers</li>
             </ul>
           </div>
 
@@ -78,9 +93,9 @@ const LessonPlan3PDF = () => {
               Essential Questions:
             </h3>
             <ul className="list-disc ml-6 space-y-1">
+              <li className="text-sm">How many sounds play together?</li>
               <li className="text-sm">What is texture in music and how do we describe it?</li>
-              <li className="text-sm">How does the number of layers affect the feel and mood of music?</li>
-              <li className="text-sm">How can we visually represent what we hear in music?</li>
+              <li className="text-sm">How does the number of layers affect the mood of music?</li>
             </ul>
           </div>
 
@@ -93,7 +108,7 @@ const LessonPlan3PDF = () => {
               <li className="text-sm">The definition of texture: how thick or thin music sounds</li>
               <li className="text-sm">Vocabulary: thin texture (1 layer), medium texture (2-3 layers), full texture (4+ layers)</li>
               <li className="text-sm">How layers combine to create different textures</li>
-              <li className="text-sm">The "sandwich" analogy: 1 ingredient = thin, many ingredients = full</li>
+              <li className="text-sm">The "sandwich" analogy for understanding texture</li>
             </ul>
           </div>
 
@@ -105,16 +120,15 @@ const LessonPlan3PDF = () => {
             <ul className="list-disc ml-6 space-y-1">
               <li className="text-sm">Identify and count the number of layers in a musical piece</li>
               <li className="text-sm">Create a visual listening map representing different musical layers</li>
-              <li className="text-sm">Compose a city soundscape with multiple layers to create full texture</li>
+              <li className="text-sm">Compose a city soundscape with multiple layers</li>
               <li className="text-sm">Describe texture using appropriate musical vocabulary</li>
-              <li className="text-sm">Evaluate and reflect on their creative decisions</li>
             </ul>
           </div>
         </section>
 
         {/* STAGE 2: ASSESSMENT EVIDENCE */}
         <section className="mb-8 page-break-before">
-          <h2 className="text-2xl font-bold text-teal-800 mb-4 border-b-2 border-teal-300 pb-2">
+          <h2 className="text-2xl font-bold text-cyan-800 mb-4 border-b-2 border-cyan-300 pb-2">
             STAGE 2: ASSESSMENT EVIDENCE
           </h2>
 
@@ -124,7 +138,7 @@ const LessonPlan3PDF = () => {
               Performance Task:
             </h3>
             <p className="text-sm mb-2">
-              Students compose an original city soundscape for their chosen city (Paris, Tokyo, New York, etc.) that demonstrates:
+              Students compose an original city soundscape that demonstrates:
             </p>
             <ul className="list-disc ml-6 space-y-1">
               <li className="text-sm"><strong>Variety:</strong> Uses 5+ different loops</li>
@@ -139,248 +153,150 @@ const LessonPlan3PDF = () => {
               Other Evidence:
             </h3>
             <ul className="list-disc ml-6 space-y-1">
-              <li className="text-sm">Listening Map drawing (formative assessment - listening comprehension)</li>
-              <li className="text-sm">Real-time progress tracking during composition (formative - skill demonstration)</li>
-              <li className="text-sm">"Two Stars and a Wish" reflection (self-assessment - metacognition)</li>
+              <li className="text-sm">Listening Map drawing (formative - listening comprehension)</li>
+              <li className="text-sm">Real-time progress tracking during composition</li>
+              <li className="text-sm">"Two Stars and a Wish" reflection (self-assessment)</li>
               <li className="text-sm">Class discussion responses about texture</li>
-            </ul>
-          </div>
-
-          {/* Criteria for Success */}
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Criteria for Success:
-            </h3>
-            <ul className="list-disc ml-6 space-y-1">
-              <li className="text-sm">Listening Map shows at least 4 distinct rows with unique visual styles</li>
-              <li className="text-sm">Composition meets technical requirements (5+ loops, aligned edges)</li>
-              <li className="text-sm">Music creates appropriate mood/atmosphere for chosen city</li>
-              <li className="text-sm">Student can articulate how texture affects the feel of their composition</li>
             </ul>
           </div>
         </section>
 
         {/* STAGE 3: LEARNING PLAN */}
         <section className="mb-8 page-break-before">
-          <h2 className="text-2xl font-bold text-teal-800 mb-4 border-b-2 border-teal-300 pb-2">
-            STAGE 3: LEARNING PLAN
+          <h2 className="text-2xl font-bold text-cyan-800 mb-4 border-b-2 border-cyan-300 pb-2">
+            STAGE 3: LEARNING PLAN (40 minutes)
           </h2>
 
-          {/* Section 1: Introduction */}
+          {/* Introduction */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-blue-50 p-2 rounded">
-              1. Introduction <span className="font-normal text-gray-600">— Slides → Texture Concept (8 min)</span>
+              1. Introduction <span className="font-normal text-gray-600">— Texture Concept (7 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="bg-gray-100">
                   <th className="border p-2 text-left w-16">Time</th>
-                  <th className="border p-2 text-left w-48">Stage</th>
+                  <th className="border p-2 text-left w-48">Activity</th>
                   <th className="border p-2 text-left">What to Say/Do</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td className="border p-2">1 min</td>
-                  <td className="border p-2 font-medium">City Soundscapes</td>
-                  <td className="border p-2">Ask: "What city have you visited? How would it feel there?"</td>
-                </tr>
-                <tr>
-                  <td className="border p-2">1 min</td>
-                  <td className="border p-2 font-medium">Agenda</td>
-                  <td className="border p-2">Review: "1) Learn texture & layering, 2) Create City Soundscape"</td>
-                </tr>
-                <tr>
                   <td className="border p-2">2 min</td>
-                  <td className="border p-2 font-medium">Texture</td>
-                  <td className="border p-2">Explain: "Texture = how thick or thin music sounds based on # of layers"</td>
+                  <td className="border p-2 font-medium">Introduction</td>
+                  <td className="border p-2">Ask: "What city have you visited? How would music for that city sound?"</td>
                 </tr>
                 <tr>
-                  <td className="border p-2">2 min</td>
-                  <td className="border p-2 font-medium">Sandwich Analogy</td>
-                  <td className="border p-2">Analogy: "1 ingredient = thin sandwich, many ingredients = full sandwich"</td>
-                </tr>
-                <tr>
-                  <td className="border p-2">2 min</td>
-                  <td className="border p-2 font-medium">Making Layers</td>
-                  <td className="border p-2">Explain: "1 layer = thin, 2-3 layers = medium, 4+ layers = full texture"</td>
+                  <td className="border p-2">5 min</td>
+                  <td className="border p-2 font-medium">Texture Concept</td>
+                  <td className="border p-2">Explain how layers create thick or thin sound. Use sandwich analogy.</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          {/* Section 2: Listening Map */}
+          {/* Listening Map */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-purple-50 p-2 rounded">
-              2. Listening Map <span className="font-normal text-gray-600">— Video → Draw (11 min)</span>
+              2. Practice <span className="font-normal text-gray-600">— Listening Map (11 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="bg-gray-100">
                   <th className="border p-2 text-left w-16">Time</th>
-                  <th className="border p-2 text-left w-48">Stage</th>
+                  <th className="border p-2 text-left w-48">Activity</th>
                   <th className="border p-2 text-left">What to Say/Do</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td className="border p-2">1 min</td>
-                  <td className="border p-2 font-medium">Listening Map Intro</td>
-                  <td className="border p-2">Announce: "We'll watch a 1-min video then draw while listening"</td>
-                </tr>
-                <tr>
-                  <td className="border p-2">2 min</td>
-                  <td className="border p-2 font-medium">▶️ Play Video</td>
-                  <td className="border p-2"><strong>PLAY VIDEO:</strong> Listening Map explanation (students watch main screen)</td>
+                  <td className="border p-2">3 min</td>
+                  <td className="border p-2 font-medium">▶️ Listening Map Video</td>
+                  <td className="border p-2"><strong>PLAY VIDEO:</strong> How to visualize texture</td>
                 </tr>
                 <tr className="bg-green-50">
                   <td className="border p-2">8 min</td>
-                  <td className="border p-2 font-medium">🎮 Listening Map</td>
+                  <td className="border p-2 font-medium">🎮 Listening Map Activity</td>
                   <td className="border p-2">
-                    <strong>STUDENTS WORK:</strong> Create 4 rows, unique style per row<br/>
-                    <em className="text-green-700">Bonus: Add more colors, textures, and pictures</em>
+                    <strong>STUDENTS WORK:</strong> Draw while listening to music<br/>
+                    Create 4 rows, unique style per row<br/>
+                    <em className="text-green-700">Bonus: Add colors, textures, pictures</em>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          {/* Section 3: Composition */}
+          {/* Composition */}
           <div className="mb-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-green-50 p-2 rounded">
-              3. City Soundscape Composition <span className="font-normal text-gray-600">— Slides → Compose (12 min)</span>
+            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-cyan-50 p-2 rounded">
+              3. Create <span className="font-normal text-gray-600">— City Soundscape Composition (14 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="bg-gray-100">
                   <th className="border p-2 text-left w-16">Time</th>
-                  <th className="border p-2 text-left w-48">Stage</th>
+                  <th className="border p-2 text-left w-48">Activity</th>
                   <th className="border p-2 text-left">What to Say/Do</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td className="border p-2">1 min</td>
-                  <td className="border p-2 font-medium">Composition Instructions</td>
-                  <td className="border p-2">Instructions: "Select city, watch silent video, think about mood"</td>
-                </tr>
-                <tr>
-                  <td className="border p-2">1 min</td>
-                  <td className="border p-2 font-medium">Composition Requirements</td>
-                  <td className="border p-2">Review: "5+ loops, line up edges, same mood. Bonus: sound effects"</td>
-                </tr>
                 <tr className="bg-green-50">
-                  <td className="border p-2">10 min</td>
+                  <td className="border p-2">14 min</td>
                   <td className="border p-2 font-medium">🎮 Composition</td>
                   <td className="border p-2">
-                    <strong>STUDENTS WORK:</strong> Pick city video, compose soundscape music<br/>
-                    <em className="text-green-700">Bonus: Add more layers and sound effects</em>
+                    <strong>STUDENTS WORK:</strong> Create a city soundscape with layers<br/>
+                    Focus on building texture through layering<br/>
+                    <em className="text-green-700">Bonus: Add sound effects!</em>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          {/* Section 4: Reflection */}
+          {/* Reflection */}
           <div className="mb-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-amber-50 p-2 rounded">
-              4. Reflection and Discussion <span className="font-normal text-gray-600">— Reflect → Discuss (5 min)</span>
+            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-yellow-50 p-2 rounded">
+              4. Reflect <span className="font-normal text-gray-600">— Two Stars and a Wish + Discussion (8 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="bg-gray-100">
                   <th className="border p-2 text-left w-16">Time</th>
-                  <th className="border p-2 text-left w-48">Stage</th>
+                  <th className="border p-2 text-left w-48">Activity</th>
                   <th className="border p-2 text-left">What to Say/Do</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="bg-green-50">
-                  <td className="border p-2">3 min</td>
-                  <td className="border p-2 font-medium">🎮 Reflection</td>
+                  <td className="border p-2">5 min</td>
+                  <td className="border p-2 font-medium">🎮 Two Stars and a Wish</td>
                   <td className="border p-2">
-                    <strong>STUDENTS WORK:</strong> 2 things well + 1 to improve, fill out form<br/>
-                    <em className="text-green-700">Bonus: Layer Detective with a partner</em>
+                    <strong>STUDENTS WORK:</strong> Reflect on their layers<br/>
+                    How many layers did you use? What texture did you create?
                   </td>
                 </tr>
                 <tr>
-                  <td className="border p-2">2 min</td>
-                  <td className="border p-2 font-medium">Class Discussion</td>
-                  <td className="border p-2">Ask: "What is texture? Partner's city? What did you like?"</td>
+                  <td className="border p-2">3 min</td>
+                  <td className="border p-2 font-medium">Share & Discussion</td>
+                  <td className="border p-2">Compare textures across compositions. Ask: "Who had the thickest texture?"</td>
                 </tr>
               </tbody>
             </table>
-          </div>
-        </section>
-
-        {/* DIFFERENTIATION */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-bold text-teal-800 mb-4 border-b-2 border-teal-300 pb-2">
-            DIFFERENTIATION STRATEGIES
-          </h2>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-blue-50 p-4 rounded">
-              <h3 className="font-semibold text-blue-800 mb-2">For Struggling Learners:</h3>
-              <ul className="list-disc ml-4 text-sm space-y-1">
-                <li>Reduce loop requirement to 3-4 loops</li>
-                <li>Provide pre-selected "starter" loops</li>
-                <li>Pair with a supportive peer</li>
-                <li>Focus on 2 layers instead of 4+</li>
-              </ul>
-            </div>
-            <div className="bg-green-50 p-4 rounded">
-              <h3 className="font-semibold text-green-800 mb-2">For Advanced Learners:</h3>
-              <ul className="list-disc ml-4 text-sm space-y-1">
-                <li>Challenge to use 7+ loops with 5+ layers</li>
-                <li>Add sound effects that match city atmosphere</li>
-                <li>Create multiple sections with different textures</li>
-                <li>Help peers with technical challenges</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* MATERIALS */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-bold text-teal-800 mb-4 border-b-2 border-teal-300 pb-2">
-            MATERIALS & TECHNOLOGY
-          </h2>
-
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <h3 className="font-semibold mb-2">Teacher Materials:</h3>
-              <ul className="list-disc ml-4 space-y-1">
-                <li>Computer with projector/display</li>
-                <li>Teacher Control Panel (session mode)</li>
-                <li>Presentation slides (11 slides)</li>
-                <li>ListeningMapExplanation.mp4 video</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">Student Materials:</h3>
-              <ul className="list-disc ml-4 space-y-1">
-                <li>Chromebook or computer with internet</li>
-                <li>Headphones (recommended)</li>
-                <li>Access to Music Mind Academy platform</li>
-                <li>Session join code</li>
-              </ul>
-            </div>
           </div>
         </section>
 
         {/* KEY VOCABULARY */}
         <section className="mb-8">
-          <h2 className="text-2xl font-bold text-teal-800 mb-4 border-b-2 border-teal-300 pb-2">
-            KEY VOCABULARY
+          <h2 className="text-2xl font-bold text-cyan-800 mb-4 border-b-2 border-cyan-300 pb-2">
+            Key Vocabulary
           </h2>
-
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <ul className="space-y-2">
                 <li><strong>Texture:</strong> How thick or thin music sounds based on layers</li>
                 <li><strong>Layer:</strong> A single musical part or instrument track</li>
-                <li><strong>Thin Texture:</strong> 1 layer playing alone (simple sound)</li>
+                <li><strong>Thin Texture:</strong> 1 layer playing alone</li>
                 <li><strong>Medium Texture:</strong> 2-3 layers playing together</li>
               </ul>
             </div>
@@ -388,16 +304,43 @@ const LessonPlan3PDF = () => {
               <ul className="space-y-2">
                 <li><strong>Full Texture:</strong> 4+ layers playing together (rich sound)</li>
                 <li><strong>Listening Map:</strong> Visual representation of what you hear</li>
-                <li><strong>Soundscape:</strong> Musical representation of a place or environment</li>
-                <li><strong>Mood:</strong> The feeling or atmosphere of the music</li>
+                <li><strong>Soundscape:</strong> Musical representation of a place</li>
               </ul>
             </div>
           </div>
         </section>
 
+        {/* Resources & Materials */}
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold text-cyan-800 mb-4 border-b-2 border-cyan-300 pb-2">
+            Resources & Materials
+          </h2>
+          <ul className="list-disc ml-6 space-y-1">
+            <li className="text-sm">Chromebooks/computers with internet access and headphones</li>
+            <li className="text-sm">City footage videos (Paris, Tokyo, New York, etc.)</li>
+            <li className="text-sm">Listening Map video explanation</li>
+            <li className="text-sm">Loop library organized by mood/atmosphere</li>
+            <li className="text-sm">Session code for teacher-controlled lesson flow</li>
+          </ul>
+        </section>
+
+        {/* Important Notes */}
+        <section className="mb-8 bg-cyan-50 p-4 rounded-lg border-2 border-cyan-300">
+          <h2 className="text-xl font-bold text-cyan-800 mb-3">
+            📋 Important Notes for Teachers
+          </h2>
+          <ul className="list-disc ml-6 space-y-2">
+            <li className="text-sm">The sandwich analogy works well: 1 ingredient = thin, many = full</li>
+            <li className="text-sm">Listening Map helps students visualize what they hear</li>
+            <li className="text-sm">Encourage students to count their layers during composition</li>
+            <li className="text-sm">Green rows (🎮) indicate student activity time - start the timer!</li>
+            <li className="text-sm">Discussion should focus on texture vocabulary</li>
+          </ul>
+        </section>
+
         {/* Footer */}
         <div className="border-t-2 border-gray-300 pt-4 mt-8 text-center text-sm text-gray-500">
-          <p>🏙️ City Soundscapes - Lesson 3 of Film Music Project Unit</p>
+          <p>🏙️ City Soundscapes - Lesson 3 of Music for Media Unit</p>
           <p>Music Mind Academy © 2024</p>
         </div>
       </div>
@@ -405,20 +348,15 @@ const LessonPlan3PDF = () => {
       {/* Print Styles */}
       <style>{`
         @media print {
+          body {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
           .page-break-before {
             page-break-before: always;
           }
-          body {
-            font-size: 11pt;
-          }
-          h1 {
-            font-size: 18pt;
-          }
-          h2 {
-            font-size: 14pt;
-          }
-          h3 {
-            font-size: 12pt;
+          @page {
+            margin: 0.5in;
           }
         }
       `}</style>

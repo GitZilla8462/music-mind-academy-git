@@ -40,6 +40,7 @@ import Lesson4 from './lessons/film-music-project/lesson4/Lesson4';
 import LessonPlanPDF from './lessons/film-music-project/lesson1/LessonPlanPDF';
 import LessonPlan2PDF from './lessons/film-music-project/lesson2/LessonPlan2PDF';
 import LessonPlan3PDF from './lessons/film-music-project/lesson3/LessonPlan3PDF';
+import LessonPlan4PDF from './lessons/film-music-project/lesson4/LessonPlan4PDF';
 import MusicLoopsInMediaHub from './pages/MusicLoopsInMediaHub';
 
 // Import presentation view
@@ -253,7 +254,8 @@ const AppContent = () => {
         <Route path="/lesson-plan/lesson1" element={<LessonPlanPDF />} />
         <Route path="/lesson-plan/lesson2" element={<LessonPlan2PDF />} />
         <Route path="/lesson-plan/lesson3" element={<LessonPlan3PDF />} />
-        
+        <Route path="/lesson-plan/lesson4" element={<LessonPlan4PDF />} />
+
         {/* Join Page - NO AUTHENTICATION REQUIRED */}
         <Route path="/join" element={<JoinWithCode />} />
         
@@ -347,7 +349,8 @@ const AppContent = () => {
         <Route path="/lesson-plan/lesson1" element={<LessonPlanPDF />} />
         <Route path="/lesson-plan/lesson2" element={<LessonPlan2PDF />} />
         <Route path="/lesson-plan/lesson3" element={<LessonPlan3PDF />} />
-        
+        <Route path="/lesson-plan/lesson4" element={<LessonPlan4PDF />} />
+
         {/* ✅ ADDED: View saved listening map */}
         <Route path="/view/listening-map" element={<ListeningMapViewer />} />
         

@@ -12,12 +12,15 @@ import {
 } from '../../../../firebase/config';
 import { MOOD_CATEGORIES, GAME_LOOPS } from './moodMatchConfig';
 
-const MoodMatchGameActivity = ({ onComplete, isSessionMode = false }) => {
+const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = false }) => {
   const { sessionCode, userId } = useSession();
 
-  // Game state from Firebase
+  // Check if we're in demo mode (no session)
+  const isDemo = demoMode || !sessionCode;
+
+  // Game state from Firebase (or local for demo)
   const [moodMatchState, setMoodMatchState] = useState({
-    currentLoopIndex: -1, // -1 means waiting for teacher to start
+    currentLoopIndex: isDemo ? 0 : -1, // Start immediately in demo mode
     showResults: false
   });
 
@@ -26,6 +29,7 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false }) => {
   const [currentLoopVotes, setCurrentLoopVotes] = useState({});
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasVotedThisRound, setHasVotedThisRound] = useState(false);
+  const [demoResults, setDemoResults] = useState({}); // For demo mode results display
   const audioRef = useRef(null);
 
   const currentLoopIndex = moodMatchState.currentLoopIndex;
@@ -33,9 +37,9 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false }) => {
   const showResults = moodMatchState.showResults;
   const isGameComplete = currentLoopIndex >= GAME_LOOPS.length;
 
-  // Subscribe to mood match state from Firebase
+  // Subscribe to mood match state from Firebase (skip in demo mode)
   useEffect(() => {
-    if (!sessionCode) return;
+    if (isDemo || !sessionCode) return;
 
     const unsubscribe = subscribeToMoodMatchState(sessionCode, (state) => {
       setMoodMatchState(state);
@@ -47,11 +51,11 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode]);
+  }, [sessionCode, isDemo]);
 
-  // Subscribe to votes for current loop
+  // Subscribe to votes for current loop (skip in demo mode)
   useEffect(() => {
-    if (!sessionCode || !currentLoop) return;
+    if (isDemo || !sessionCode || !currentLoop) return;
 
     const unsubscribe = subscribeToLoopVotes(sessionCode, currentLoop.id, (votes) => {
       setCurrentLoopVotes(votes);
@@ -64,7 +68,7 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode, currentLoop?.id, userId]);
+  }, [sessionCode, currentLoop?.id, userId, isDemo]);
 
   // Cleanup audio on unmount
   useEffect(() => {
@@ -106,7 +110,23 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false }) => {
   }, []);
 
   const handleVote = async (moodId) => {
-    if (!sessionCode || !currentLoop || hasVotedThisRound) return;
+    if (!currentLoop || hasVotedThisRound) return;
+
+    // Demo mode - just record locally
+    if (isDemo) {
+      setMyVotes(prev => ({ ...prev, [currentLoop.id]: moodId }));
+      setHasVotedThisRound(true);
+      stopLoop();
+
+      // Show mock results after a brief delay
+      setTimeout(() => {
+        setMoodMatchState(prev => ({ ...prev, showResults: true }));
+      }, 500);
+      return;
+    }
+
+    // Session mode - record to Firebase
+    if (!sessionCode) return;
 
     try {
       await recordMoodMatchVote(sessionCode, currentLoop.id, userId, moodId);
@@ -116,6 +136,18 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false }) => {
     } catch (error) {
       console.error('Error recording vote:', error);
     }
+  };
+
+  // Demo mode: advance to next loop
+  const handleNextLoop = () => {
+    if (!isDemo) return;
+
+    const nextIndex = currentLoopIndex + 1;
+    setMoodMatchState({
+      currentLoopIndex: nextIndex,
+      showResults: false
+    });
+    setHasVotedThisRound(false);
   };
 
   // SCREEN 1: Waiting for teacher to start
@@ -186,6 +218,7 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false }) => {
   // SCREEN 3b: Already voted, results showing
   if (hasVotedThisRound && showResults) {
     const votedMood = MOOD_CATEGORIES.find(m => m.id === myVotes[currentLoop?.id]);
+    const isLastLoop = currentLoopIndex >= GAME_LOOPS.length - 1;
 
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8">
@@ -201,8 +234,34 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false }) => {
             </span>
           </div>
           <div className="w-16 h-1 bg-gray-600 mx-auto mb-8"></div>
-          <p className="text-xl text-green-400">Results are on the screen!</p>
-          <p className="text-lg text-gray-400 mt-2">Watch for class discussion.</p>
+
+          {isDemo ? (
+            <>
+              <p className="text-xl text-green-400 mb-6">
+                Loop {currentLoopIndex + 1} of {GAME_LOOPS.length} complete!
+              </p>
+              {!isLastLoop ? (
+                <button
+                  onClick={handleNextLoop}
+                  className="px-8 py-4 bg-purple-600 hover:bg-purple-500 text-white text-xl font-bold rounded-lg transition-colors"
+                >
+                  Next Loop →
+                </button>
+              ) : (
+                <button
+                  onClick={() => onComplete?.()}
+                  className="px-8 py-4 bg-green-600 hover:bg-green-500 text-white text-xl font-bold rounded-lg transition-colors"
+                >
+                  Finish Game
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="text-xl text-green-400">Results are on the screen!</p>
+              <p className="text-lg text-gray-400 mt-2">Watch for class discussion.</p>
+            </>
+          )}
         </div>
       </div>
     );
@@ -250,8 +309,8 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false }) => {
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         <h2 className="text-3xl font-bold text-white mb-8">Which mood fits this loop?</h2>
 
-        {/* Mood Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl w-full">
+        {/* Mood Buttons - 5 categories fit nicely in a row on larger screens */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-5xl w-full">
           {MOOD_CATEGORIES.map((mood) => (
             <button
               key={mood.id}

@@ -579,120 +579,201 @@ function MusicClassroomResources() {
           </div>
         )}
 
-        {/* Music Loops in Media Project Card */}
-        <div 
+        {/* Music for Media Unit Card */}
+        <div
           onClick={() => navigate('/music-loops-in-media')}
           style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            backgroundColor: 'white',
             borderRadius: '12px',
-            padding: '32px',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            padding: '24px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            border: '1px solid #e2e8f0',
             cursor: 'pointer',
-            transition: 'all 0.2s',
-            color: 'white'
+            transition: 'all 0.2s'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-4px)';
-            e.currentTarget.style.boxShadow = '0 12px 20px rgba(102, 126, 234, 0.4)';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+            e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
           }}
         >
-          {/* Icon */}
-          <div style={{ 
-            fontSize: '64px', 
-            marginBottom: '20px',
-            textAlign: 'center'
-          }}>
-            🎵
-          </div>
-          
-          {/* Title */}
-          <h3 style={{ 
-            fontSize: '26px', 
-            fontWeight: '600',
-            marginBottom: '16px',
-            textAlign: 'center',
-            color: 'white'
-          }}>
-            Music Loops in Media Project
-          </h3>
-          
-          {/* Description */}
-          <p style={{ 
-            fontSize: '16px',
-            marginBottom: '24px',
-            lineHeight: '1.6',
-            textAlign: 'center',
-            color: 'rgba(255,255,255,0.95)'
-          }}>
-            Learn to compose music for different types of media using loops and a digital audio workstation.
-          </p>
-
-          {/* Badges */}
-          <div style={{
-            display: 'flex',
-            gap: '12px',
-            justifyContent: 'center',
-            flexWrap: 'wrap',
-            marginBottom: '24px'
-          }}>
+          {/* Header Row */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
+            {/* Icon */}
             <div style={{
-              padding: '8px 16px',
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              borderRadius: '6px',
-              fontSize: '14px',
-              fontWeight: '600',
-              backdropFilter: 'blur(10px)'
+              width: '64px',
+              height: '64px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
             }}>
-              4 Lessons + Sandbox
+              <span style={{ fontSize: '28px' }}>🎬</span>
             </div>
-            <div style={{
-              padding: '8px 16px',
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              borderRadius: '6px',
-              fontSize: '14px',
-              fontWeight: '600',
-              backdropFilter: 'blur(10px)'
-            }}>
-              ⏱️ 35 min each
+
+            {/* Title & Meta */}
+            <div style={{ flex: 1 }}>
+              <h3 style={{
+                fontSize: '22px',
+                fontWeight: '700',
+                color: '#1e293b',
+                marginBottom: '4px'
+              }}>
+                Music for Media
+              </h3>
+              <p style={{
+                fontSize: '15px',
+                color: '#64748b',
+                marginBottom: '8px'
+              }}>
+                Create soundtracks for video — the way professionals do it.
+              </p>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <span style={{
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: '#475569',
+                  backgroundColor: '#f1f5f9',
+                  padding: '4px 10px',
+                  borderRadius: '4px'
+                }}>
+                  5 Lessons
+                </span>
+                <span style={{
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: '#475569',
+                  backgroundColor: '#f1f5f9',
+                  padding: '4px 10px',
+                  borderRadius: '4px'
+                }}>
+                  ~40 min each
+                </span>
+                <span style={{
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: '#475569',
+                  backgroundColor: '#f1f5f9',
+                  padding: '4px 10px',
+                  borderRadius: '4px'
+                }}>
+                  Grades 6-8
+                </span>
+              </div>
             </div>
           </div>
 
           {/* Lesson List */}
           <div style={{
-            backgroundColor: 'rgba(255,255,255,0.15)',
+            backgroundColor: '#f8fafc',
             borderRadius: '8px',
-            padding: '20px',
-            fontSize: '15px',
-            lineHeight: '1.8',
-            backdropFilter: 'blur(10px)'
+            padding: '16px',
+            marginBottom: '16px'
           }}>
-            <div style={{ fontWeight: '600', marginBottom: '12px', textAlign: 'center' }}>
-              Lessons:
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: '#64748b',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              marginBottom: '12px'
+            }}>
+              Unit Overview
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ color: '#90EE90' }}>✓</span>
-              <span>🏀 Sports Highlight Reel - Intro to DAW</span>
+
+            {/* Lesson Items */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{
+                  width: '22px', height: '22px',
+                  borderRadius: '50%',
+                  backgroundColor: '#22c55e',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>1</span>
+                <span style={{ fontSize: '14px', color: '#334155' }}>
+                  <strong>Score the Adventure</strong> — Mood & Expression
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{
+                  width: '22px', height: '22px',
+                  borderRadius: '50%',
+                  backgroundColor: '#22c55e',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>2</span>
+                <span style={{ fontSize: '14px', color: '#334155' }}>
+                  <strong>Sports Highlight Reel</strong> — Instrumentation & Timbre
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{
+                  width: '22px', height: '22px',
+                  borderRadius: '50%',
+                  backgroundColor: '#22c55e',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>3</span>
+                <span style={{ fontSize: '14px', color: '#334155' }}>
+                  <strong>City Soundscapes</strong> — Texture & Layering
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{
+                  width: '22px', height: '22px',
+                  borderRadius: '50%',
+                  backgroundColor: '#22c55e',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>4</span>
+                <span style={{ fontSize: '14px', color: '#334155' }}>
+                  <strong>Epic Wildlife</strong> — Form & Structure
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{
+                  width: '22px', height: '22px',
+                  borderRadius: '50%',
+                  backgroundColor: '#94a3b8',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>5</span>
+                <span style={{ fontSize: '14px', color: '#94a3b8' }}>
+                  <strong>Capstone Project</strong> — Coming Soon
+                </span>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ color: '#90EE90' }}>✓</span>
-              <span>🏙️ City Soundscapes - Texture & Layering</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ color: '#90EE90' }}>✓</span>
-              <span>🌍 Epic Wildlife - Sectional Loop Form</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.6 }}>
-              <span>🔜</span>
-              <span>🎮 Video Game Montage - Coming Soon</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.6 }}>
-              <span>🔜</span>
-              <span>🎨 Student Choice Sandbox - Coming Soon</span>
-            </div>
+          </div>
+
+          {/* CTA */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <span style={{ fontSize: '14px', color: '#3b82f6', fontWeight: '600' }}>
+              View Lessons →
+            </span>
           </div>
         </div>
 
