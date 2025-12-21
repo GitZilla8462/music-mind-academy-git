@@ -12,6 +12,7 @@ import ReflectionModal from './two-stars-and-a-wish/ReflectionModal';
 import NameThatLoopActivity from './layer-detective/NameThatLoopActivity';
 import { useSession } from '../../../context/SessionContext';
 import { saveStudentWork, loadStudentWork } from '../../../utils/studentWorkStorage';
+import { getDatabase, ref, onValue } from 'firebase/database';
 
 const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes
 
@@ -28,9 +29,13 @@ const SchoolBeneathActivity = ({
   const navigate = useNavigate();
   
   // Session mode detection
-  const { getCurrentStage } = useSession();
+  const { getCurrentStage, sessionCode } = useSession();
   const currentStage = isSessionMode ? getCurrentStage() : null;
   const isReflectionStage = currentStage === 'reflection';
+
+  // Track last save command timestamp to detect new commands
+  const lastSaveCommandRef = useRef(null);
+  const [teacherSaveToast, setTeacherSaveToast] = useState(false);
   
   // Reflection flow states
   const [showReflection, setShowReflection] = useState(false);
@@ -166,6 +171,44 @@ const SchoolBeneathActivity = ({
 
     return () => clearInterval(autoSaveInterval);
   }, [studentId, placedLoops, viewMode, title, videoPath, videoDuration]);
+
+  // Listen for teacher's save command from Firebase
+  useEffect(() => {
+    if (!sessionCode || !isSessionMode || viewMode) return;
+
+    const db = getDatabase();
+    const sessionRef = ref(db, `sessions/${sessionCode}/saveCommand`);
+
+    const unsubscribe = onValue(sessionRef, (snapshot) => {
+      const saveCommand = snapshot.val();
+
+      // Skip if no command or same as last
+      if (!saveCommand) return;
+
+      // On first load, just store the value without triggering
+      if (lastSaveCommandRef.current === null) {
+        lastSaveCommandRef.current = saveCommand;
+        return;
+      }
+
+      // Only trigger if this is a new command (timestamp changed)
+      if (saveCommand !== lastSaveCommandRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        console.log('💾 Teacher save command received!');
+
+        // Trigger save
+        if (placedLoops.length > 0 && studentId) {
+          handleManualSave(true); // Silent save
+
+          // Show toast notification
+          setTeacherSaveToast(true);
+          setTimeout(() => setTeacherSaveToast(false), 4000);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [sessionCode, isSessionMode, viewMode, placedLoops, studentId]);
 
   // Load saved work on mount ONLY - includes manual saves
   useEffect(() => {
@@ -412,7 +455,25 @@ const SchoolBeneathActivity = ({
           from { opacity: 0; transform: translate(-50%, -20px); }
           to { opacity: 1; transform: translate(-50%, 0); }
         }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-100%); }
+          to { opacity: 1; transform: translateY(0); }
+        }
       `}</style>
+
+      {/* Teacher Save Toast - shown when teacher saves all */}
+      {teacherSaveToast && (
+        <div
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-green-600 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3"
+          style={{ animation: 'slideDown 0.3s ease-out' }}
+        >
+          <span className="text-2xl">✅</span>
+          <div>
+            <div className="font-bold">Work Saved!</div>
+            <div className="text-sm opacity-90">Find it on your Join page</div>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">

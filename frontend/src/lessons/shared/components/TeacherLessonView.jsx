@@ -27,7 +27,7 @@ import {
   Video,
   SkipForward
 } from 'lucide-react';
-import { getDatabase, ref, onValue } from 'firebase/database';
+import { getDatabase, ref, onValue, update } from 'firebase/database';
 
 // ============================================
 // PRESENTATION CONTENT COMPONENT
@@ -393,6 +393,7 @@ const TeacherLessonView = ({
   const [copied, setCopied] = useState(false);
   const [sessionData, setSessionData] = useState(null);
   const [timerVisible, setTimerVisible] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
   const [classroomTimer, setClassroomTimer] = useState({
     presetMinutes: 5,
     timeRemaining: 5 * 60, // in seconds
@@ -607,11 +608,50 @@ const TeacherLessonView = ({
     return () => clearInterval(interval);
   }, [classroomTimer.isRunning]);
 
+  // Check if current stage is a composition activity
+  const isCompositionStage = currentStageData?.type === 'activity' &&
+    currentStageData?.id?.includes('composition');
+
+  // Send save command to all students via Firebase
+  const sendSaveCommand = async () => {
+    if (!sessionCode) return;
+
+    try {
+      const db = getDatabase();
+      const sessionRef = ref(db, `sessions/${sessionCode}`);
+      await update(sessionRef, {
+        saveCommand: Date.now()
+      });
+      console.log('💾 Save command sent to all students');
+    } catch (error) {
+      console.error('Error sending save command:', error);
+    }
+  };
+
   // Navigate to next stage (within content stages only)
   const goToNextStage = () => {
+    // If leaving a composition activity, show save modal instead
+    if (isCompositionStage) {
+      setShowSaveModal(true);
+      return;
+    }
+
     if (currentContentIndex < contentStages.length - 1) {
       setCurrentStage(contentStages[currentContentIndex + 1].id);
     }
+  };
+
+  // Confirm leaving composition - save all and advance
+  const confirmLeaveComposition = async () => {
+    await sendSaveCommand();
+    setShowSaveModal(false);
+
+    // Small delay to allow save command to propagate
+    setTimeout(() => {
+      if (currentContentIndex < contentStages.length - 1) {
+        setCurrentStage(contentStages[currentContentIndex + 1].id);
+      }
+    }, 500);
   };
 
   // Navigate to previous stage (within content stages only)
@@ -1252,6 +1292,44 @@ const TeacherLessonView = ({
           )}
         </div>
       </div>
+
+      {/* Save Confirmation Modal - shown when leaving composition activity */}
+      {showSaveModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            {/* Header */}
+            <div className="bg-green-600 px-6 py-4">
+              <h3 className="text-xl font-bold text-white">Moving to Reflection</h3>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <p className="text-gray-700 text-lg mb-2">
+                All student compositions will be saved automatically.
+              </p>
+              <p className="text-gray-500 text-sm">
+                Students will see their work on the Join page.
+              </p>
+            </div>
+
+            {/* Buttons */}
+            <div className="px-6 pb-6 flex gap-3">
+              <button
+                onClick={() => setShowSaveModal(false)}
+                className="flex-1 px-4 py-3 rounded-lg border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLeaveComposition}
+                className="flex-1 px-4 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors"
+              >
+                Save All & Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
