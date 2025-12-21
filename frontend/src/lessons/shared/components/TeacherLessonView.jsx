@@ -450,6 +450,28 @@ const TeacherLessonView = ({
     }
   }, [currentStage, config.lessonSections]);
 
+  // Auto-show timer for composition activities
+  useEffect(() => {
+    if (!currentStageData) return;
+
+    // Check if this is a composition activity
+    const isCompositionActivity =
+      currentStageData.type === 'activity' &&
+      currentStageData.id?.includes('composition');
+
+    if (isCompositionActivity && currentStageData.duration) {
+      // Show timer and set it to the activity's duration
+      setTimerVisible(true);
+      setClassroomTimer(prev => ({
+        ...prev,
+        presetMinutes: currentStageData.duration,
+        timeRemaining: currentStageData.duration * 60,
+        isRunning: false,
+        isPaused: false
+      }));
+    }
+  }, [currentStageData]);
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
