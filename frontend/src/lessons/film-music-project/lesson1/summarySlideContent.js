@@ -75,14 +75,15 @@ export const summarySlides = {
   },
 
   compositionInstructions: {
-    title: "Score the Adventure",
+    title: "Composition Requirements",
     icon: "🎵",
     estimatedTime: "1 minute",
     points: [
       "Pick one mood to focus on during your composition.",
       "Use 5 or more loops that match your chosen mood.",
       "Create layers to make your music feel full and powerful.",
-      "💾 Hit Save (top right) to keep your work. Find it on the Join page (this device only)."
+      "💾 Hit Save (top right) to keep your work. Find it on the Join page (this device only).",
+      "Done early? Add more loops and sound effects!"
     ]
   },
 
