@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../firebase/config';
-import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play, ArrowLeft } from 'lucide-react';
 
 const MusicLoopsInMediaHub = () => {
   const navigate = useNavigate();
@@ -193,6 +193,13 @@ const MusicLoopsInMediaHub = () => {
       {/* HEADER */}
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-6 py-10">
+          <button
+            onClick={() => navigate('/music-classroom-resources')}
+            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="font-medium">Back to Resources</span>
+          </button>
           <h1 className="text-4xl font-bold text-slate-900 mb-3">
             Music for Media
           </h1>
