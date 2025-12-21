@@ -14,21 +14,18 @@
   <rect width="1920" height="1080" fill="url(#grid)"/>
 
   <!-- Title -->
-  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">COMPOSITION REQUIREMENTS</text>
+  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">WHAT IS A DAW?</text>
 
   <!-- Accent line -->
   <rect x="192" y="230" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
 
-  <!-- Requirements -->
-  <text x="192" y="380" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#e2e8f0">1. Choose one mood category.</text>
+  <!-- Subtitle -->
+  <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Digital Audio Workstation</text>
 
-  <text x="192" y="480" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#e2e8f0">2. Use five or more different loops.</text>
+  <!-- Points -->
+  <text x="192" y="480" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#e2e8f0">The same software professional composers use to create music for film.</text>
 
-  <text x="192" y="580" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#e2e8f0">3. Create three or more layers.</text>
+  <text x="192" y="580" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#e2e8f0">Drag loops onto a timeline to build layers of sound.</text>
 
-  <text x="192" y="680" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#e2e8f0">4. 💾 Hit Save (top right) to keep your work.</text>
-  <text x="230" y="740" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#94a3b8">Find it on the Join page (this device only).</text>
-
-  <!-- Bonus with em dash -->
-  <text x="192" y="920" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">Bonus: Build intensity—start quiet and get louder.</text>
+  <text x="192" y="680" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#e2e8f0">Watch the video to learn the basics.</text>
 </svg>

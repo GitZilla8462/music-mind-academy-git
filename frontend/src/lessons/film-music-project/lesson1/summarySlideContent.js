@@ -51,6 +51,7 @@ export const summarySlides = {
 
   moodCategories: {
     title: "The Five Mood Categories",
+    subtitle: "These are the mood categories you will be able to compose with later in class.",
     icon: "🎨",
     estimatedTime: "2 minutes",
     categories: [
@@ -78,7 +79,7 @@ export const summarySlides = {
     icon: "🎵",
     estimatedTime: "1 minute",
     points: [
-      "Choose a mood for your adventure (Epic, Scary, Mysterious, Peaceful, or Triumphant).",
+      "Pick one mood to focus on during your composition.",
       "Use 5 or more loops that match your chosen mood.",
       "Create layers to make your music feel full and powerful.",
       "💾 Hit Save (top right) to keep your work. Find it on the Join page (this device only)."
@@ -86,13 +87,14 @@ export const summarySlides = {
   },
 
   compositionTutorial: {
-    title: "How to Use the DAW",
+    title: "What is a DAW?",
+    subtitle: "Digital Audio Workstation",
     icon: "🎹",
     estimatedTime: "2 minutes",
     points: [
-      "Watch this video to learn the DAW basics.",
-      "You'll learn how to place loops, adjust timing, and create layers.",
-      "Then you'll create your own adventure score!"
+      "The same software professional composers use to create music for film.",
+      "Drag loops onto a timeline to build layers of sound.",
+      "Watch the video to learn the basics."
     ]
   },
 

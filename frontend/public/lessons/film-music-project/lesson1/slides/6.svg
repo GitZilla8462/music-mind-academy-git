@@ -20,7 +20,7 @@
   <rect x="192" y="190" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
 
   <!-- Subtitle -->
-  <text x="192" y="260" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Used in Today's Software</text>
+  <text x="192" y="260" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#a5b4fc">These are the mood categories you will be able to compose with later in class.</text>
 
   <!-- Mood boxes - horizontal layout -->
   <!-- Heroic -->
@@ -51,5 +51,5 @@
   <!-- Bottom instructions -->
   <text x="192" y="700" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">These are the moods in your loop library.</text>
 
-  <text x="192" y="800" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">Pick one mood for your composition.</text>
+  <text x="192" y="800" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">You will pick one mood to focus on during your composition.</text>
 </svg>
