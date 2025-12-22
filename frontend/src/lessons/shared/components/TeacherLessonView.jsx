@@ -453,14 +453,14 @@ const TeacherLessonView = ({
     }
   }, [currentStage, config.lessonSections]);
 
-  // Auto-show timer for composition and reflection activities
+  // Auto-show timer for all activities with hasTimer: true
   useEffect(() => {
     if (!currentStageData) return;
 
-    // Check if this is a composition or reflection activity
+    // Check if this is an activity with a timer configured
     const isTimedActivity =
       currentStageData.type === 'activity' &&
-      (currentStageData.id?.includes('composition') || currentStageData.id?.includes('reflection'));
+      currentStageData.hasTimer;
 
     if (isTimedActivity && currentStageData.duration) {
       // Show timer and set it to the activity's duration
