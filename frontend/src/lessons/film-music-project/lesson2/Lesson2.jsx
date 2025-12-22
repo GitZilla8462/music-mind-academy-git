@@ -121,10 +121,10 @@ const StudentResultsBadge = ({ sessionCode, userId }) => {
 };
 
 // Listening Map Loader
-const ListeningMapLoader = ({ onComplete, onBack }) => {
+const ListeningMapLoader = ({ onComplete, onBack, isSessionMode = false }) => {
   const [ListeningMap, setListeningMap] = React.useState(null);
   const [loadError, setLoadError] = React.useState(false);
-  
+
   React.useEffect(() => {
     import('../../shared/activities/texture-drawings/ListeningMapActivity')
       .then(module => {
@@ -136,7 +136,7 @@ const ListeningMapLoader = ({ onComplete, onBack }) => {
         setLoadError(true);
       });
   }, []);
-  
+
   if (loadError) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-500 to-indigo-600 text-white p-8">
@@ -154,7 +154,7 @@ const ListeningMapLoader = ({ onComplete, onBack }) => {
       </div>
     );
   }
-  
+
   if (!ListeningMap) {
     return (
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900">
@@ -165,10 +165,10 @@ const ListeningMapLoader = ({ onComplete, onBack }) => {
       </div>
     );
   }
-  
+
   return (
     <div className="h-screen flex flex-col">
-      <ListeningMap onComplete={onComplete} />
+      <ListeningMap onComplete={onComplete} isSessionMode={isSessionMode} />
     </div>
   );
 };
@@ -338,7 +338,7 @@ const Lesson2Content = () => {
     
     // Listening Map activity
     if (currentStage === 'listening-map' || currentStage === 'texture-drawings') {
-      return <ListeningMapLoader onComplete={() => handleSessionActivityComplete(currentStage)} />;
+      return <ListeningMapLoader onComplete={() => handleSessionActivityComplete(currentStage)} isSessionMode={true} />;
     }
     
     // Standard activity rendering
