@@ -15,6 +15,7 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { getDatabase, ref, onValue } from 'firebase/database';
 
 // Components
 import DrawingCanvas from './components/Canvas/DrawingCanvas';
@@ -26,6 +27,9 @@ import ColorPanel from './components/Toolbar/ColorPanel';
 // Config
 import { TOOL_TYPES } from './config/tools';
 import { INSTRUMENT_ICONS } from './config/InstrumentIcons';
+
+// Context
+import { useSession } from '../../../../context/SessionContext';
 
 // Storage - Use generic system so it appears on Join page
 import { saveStudentWork, loadStudentWork } from '../../../../utils/studentWorkStorage';
@@ -320,9 +324,16 @@ const DragGhost = ({ sticker, position, size }) => {
 // MAIN COMPONENT
 // ============================================================================
 
-const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
+const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMode = false }) => {
   const mapConfig = { ...LISTENING_MAP_CONFIG, ...config };
   if (audioFile) mapConfig.audioFile = audioFile;
+
+  // Session context for saveCommand listener
+  const { sessionCode } = useSession();
+
+  // Teacher save toast
+  const [teacherSaveToast, setTeacherSaveToast] = useState(false);
+  const lastSaveCommandRef = useRef(null);
 
   // DEFAULT: HAND tool
   const [tool, setTool] = useState(TOOL_TYPES.HAND || 'hand');
@@ -422,6 +433,44 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
       hasLoadedRef.current = true;
     }
   }, [studentId, canvasReady]);
+
+  // ✅ Listen for teacher's save command from Firebase
+  useEffect(() => {
+    if (!sessionCode || !isSessionMode) return;
+
+    const db = getDatabase();
+    const sessionRef = ref(db, `sessions/${sessionCode}/saveCommand`);
+
+    const unsubscribe = onValue(sessionRef, (snapshot) => {
+      const saveCommand = snapshot.val();
+
+      // Skip if no command
+      if (!saveCommand) return;
+
+      // On first load, just store the value without triggering
+      if (lastSaveCommandRef.current === null) {
+        lastSaveCommandRef.current = saveCommand;
+        return;
+      }
+
+      // Only trigger if this is a new command (timestamp changed)
+      if (saveCommand !== lastSaveCommandRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        console.log('💾 Teacher save command received for listening map!');
+
+        // Trigger save
+        if (studentId && canvasRef.current) {
+          handleManualSave(true); // Silent save
+
+          // Show toast notification
+          setTeacherSaveToast(true);
+          setTimeout(() => setTeacherSaveToast(false), 3000);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [sessionCode, isSessionMode, studentId, handleManualSave]);
 
   // Dimensions
   const stickerPanelWidth = showStickerPanel ? 240 : 0;
@@ -534,7 +583,8 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
   }, [isDraggingFromPanel, draggedSticker, stickerSize]);
 
   // ✅ UPDATED: Save using editable data so it can be loaded and edited later
-  const handleManualSave = () => {
+  // silent = true means don't show message (used by teacher save command)
+  const handleManualSave = useCallback((silent = false) => {
     if (isSavingRef.current || !studentId || !canvasRef.current) return;
     isSavingRef.current = true;
 
@@ -543,7 +593,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
       const editableData = canvasRef.current.getEditableData?.();
       // Also get flat image for preview/thumbnail
       const imageData = canvasRef.current.toDataURL?.();
-      
+
       if (editableData) {
         // Save using the generic system so it appears on Join page
         saveStudentWork('listening-map', {
@@ -561,17 +611,23 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
             savedAt: new Date().toISOString()
           }
         }, studentId);
-        
-        setSaveMessage({ type: 'success', text: '✅ Saved! View it anytime from the Join page.' });
+
+        if (!silent) {
+          setSaveMessage({ type: 'success', text: '✅ Saved! View it anytime from the Join page.' });
+        }
       }
     } catch (error) {
       console.error('Error saving listening map:', error);
-      setSaveMessage({ type: 'error', text: '❌ Save failed' });
+      if (!silent) {
+        setSaveMessage({ type: 'error', text: '❌ Save failed' });
+      }
     }
 
-    setTimeout(() => setSaveMessage(null), 3000);
+    if (!silent) {
+      setTimeout(() => setSaveMessage(null), 3000);
+    }
     setTimeout(() => { isSavingRef.current = false; }, 500);
-  };
+  }, [studentId, mapConfig]);
 
   const handleProgressClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -796,6 +852,13 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
       {saveMessage && (
         <div className={`fixed top-16 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-xl font-bold text-white ${saveMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
           {saveMessage.text}
+        </div>
+      )}
+
+      {/* Teacher Save Command Toast */}
+      {teacherSaveToast && (
+        <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-xl font-bold text-white bg-blue-600 animate-pulse">
+          💾 Your teacher saved your listening map!
         </div>
       )}
     </div>

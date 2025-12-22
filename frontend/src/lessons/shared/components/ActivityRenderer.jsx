@@ -121,9 +121,10 @@ const ActivityRenderer = ({
     // ✅ ADDED: Listening Map Activity (Lesson 3 - City Soundscapes)
     case 'listening-map':
       return (
-        <ListeningMapActivity 
+        <ListeningMapActivity
           key={`listening-map-${activity.id}`}
           onComplete={onComplete}
+          isSessionMode={isSessionMode}
         />
       );
 
