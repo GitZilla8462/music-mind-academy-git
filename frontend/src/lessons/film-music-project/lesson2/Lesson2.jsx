@@ -239,35 +239,44 @@ const Lesson2Content = () => {
     }
   }, [sessionRole, markActivityComplete]);
 
-  // Transition overlay state for students (when leaving an activity)
+  // Transition overlay state for students (triggered by teacher's Save & Continue)
   const [showTransition, setShowTransition] = React.useState(false);
-  const prevStageRef = React.useRef(null);
+  const lastSaveCommandRef = React.useRef(null);
 
-  // Activity stage IDs that should show the "saved" overlay when leaving
-  const activityStages = ['listening-map', 'texture-drawings', 'city-composition', 'reflection'];
-
-  // Detect when leaving an activity stage and show overlay for students
+  // Listen for teacher's "Save & Continue" command from Firebase
   React.useEffect(() => {
-    // Only trigger for students in session mode
-    if (sessionMode.isSessionMode && effectiveRole === 'student') {
-      // Check if we're LEAVING an activity stage (previous was activity, current is different)
-      if (prevStageRef.current &&
-          currentStage &&
-          prevStageRef.current !== currentStage &&
-          activityStages.includes(prevStageRef.current)) {
-        // Show transition overlay when leaving an activity
-        setShowTransition(true);
+    if (!sessionCode || !sessionMode.isSessionMode || effectiveRole !== 'student') return;
 
-        // Hide after 2 seconds
-        const timer = setTimeout(() => {
-          setShowTransition(false);
-        }, 2000);
+    const db = getDatabase();
+    const saveCommandRef = ref(db, `sessions/${sessionCode}/saveCommand`);
 
-        return () => clearTimeout(timer);
+    const unsubscribe = onValue(saveCommandRef, (snapshot) => {
+      const saveCommand = snapshot.val();
+
+      // Skip if no command
+      if (!saveCommand) return;
+
+      // On first load, just store the value without triggering
+      if (lastSaveCommandRef.current === null) {
+        lastSaveCommandRef.current = saveCommand;
+        return;
       }
-    }
-    prevStageRef.current = currentStage;
-  }, [currentStage, sessionMode.isSessionMode, effectiveRole]);
+
+      // Only trigger if this is a new command (timestamp changed)
+      if (saveCommand !== lastSaveCommandRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        console.log('🟢 Teacher clicked Save & Continue - showing overlay');
+
+        // Show transition overlay for 4 seconds
+        setShowTransition(true);
+        setTimeout(() => {
+          setShowTransition(false);
+        }, 4000);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [sessionCode, sessionMode.isSessionMode, effectiveRole]);
 
   // Show loading while session is initializing
   if (sessionMode.isSessionMode && !effectiveRole) {
