@@ -606,9 +606,9 @@ const TeacherLessonView = ({
     return () => clearInterval(interval);
   }, [classroomTimer.isRunning]);
 
-  // Check if current stage is a composition activity
-  const isCompositionStage = currentStageData?.type === 'activity' &&
-    currentStageData?.id?.includes('composition');
+  // Check if current stage is a saveable activity (composition or listening map)
+  const isSaveableActivity = currentStageData?.type === 'activity' &&
+    (currentStageData?.id?.includes('composition') || currentStageData?.id === 'listening-map');
 
   // Send save command to all students via Firebase
   const sendSaveCommand = async () => {
@@ -628,8 +628,8 @@ const TeacherLessonView = ({
 
   // Navigate to next stage (within content stages only)
   const goToNextStage = () => {
-    // If leaving a composition activity, show save modal instead
-    if (isCompositionStage) {
+    // If leaving a saveable activity, show save modal instead
+    if (isSaveableActivity) {
       const nextStageId = currentContentIndex < contentStages.length - 1
         ? contentStages[currentContentIndex + 1].id
         : null;
@@ -647,8 +647,8 @@ const TeacherLessonView = ({
 
   // Handle clicking on a stage in the sidebar
   const handleStageClick = (stageId) => {
-    // If leaving a composition activity, show save modal first
-    if (isCompositionStage && stageId !== currentStage) {
+    // If leaving a saveable activity, show save modal first
+    if (isSaveableActivity && stageId !== currentStage) {
       setPendingStageId(stageId);
       setShowSaveModal(true);
       return;
@@ -656,7 +656,7 @@ const TeacherLessonView = ({
     setCurrentStage(stageId);
   };
 
-  // Confirm leaving composition - save all and advance
+  // Confirm leaving saveable activity - save all and advance
   const confirmLeaveComposition = async () => {
     setIsSavingAll(true);
     await sendSaveCommand();
