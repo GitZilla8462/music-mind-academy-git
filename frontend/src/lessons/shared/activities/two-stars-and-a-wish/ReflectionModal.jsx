@@ -604,7 +604,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
               className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
             >
               <CheckCircle size={20} />
-              {isSessionMode ? 'Submit Reflection' : 'Submit Reflection'}
+              Submit Reflection and play Name That Loop!
             </button>
           </div>
         )}
