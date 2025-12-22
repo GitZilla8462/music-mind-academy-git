@@ -152,11 +152,6 @@ const Lesson1 = () => {
   // SESSION MODE: STUDENT VIEW
   // ========================================
   if (sessionMode.isSessionMode && effectiveRole === 'student') {
-    // Transition overlay appears on top during stage changes
-    if (showTransition) {
-      return <TransitionOverlay isVisible={true} />;
-    }
-
     // Student waiting for teacher to start
     if (!currentStage || currentStage === 'join-code') {
       return <StudentWaitingScreen />;
@@ -239,20 +234,23 @@ const Lesson1 = () => {
     }
 
     return (
-      <div className="h-screen flex flex-col">
-        <div className="flex-1 overflow-hidden">
-          <ActivityRenderer
-            activity={activity}
-            onComplete={() => handleSessionActivityComplete(currentStage)}
-            navToolsEnabled={false}
-            canAccessNavTools={false}
-            lessonStartTime={lesson.lessonStartTime}
-            viewMode={false}
-            isSessionMode={true}
-            muted={isPreviewMode || isMuted}
-          />
+      <>
+        <div className="h-screen flex flex-col">
+          <div className="flex-1 overflow-hidden">
+            <ActivityRenderer
+              activity={activity}
+              onComplete={() => handleSessionActivityComplete(currentStage)}
+              navToolsEnabled={false}
+              canAccessNavTools={false}
+              lessonStartTime={lesson.lessonStartTime}
+              viewMode={false}
+              isSessionMode={true}
+              muted={isPreviewMode || isMuted}
+            />
+          </div>
         </div>
-      </div>
+        <TransitionOverlay isVisible={showTransition} />
+      </>
     );
   }
 

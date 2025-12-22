@@ -283,11 +283,6 @@ const Lesson2Content = () => {
   // SESSION MODE: STUDENT VIEW
   // ========================================
   if (sessionMode.isSessionMode && effectiveRole === 'student') {
-    // Transition overlay appears on top during stage changes
-    if (showTransition) {
-      return <TransitionOverlay isVisible={true} />;
-    }
-
     // Student waiting for teacher to start
     if (!currentStage || currentStage === 'join-code') {
       return <StudentWaitingScreen />;
@@ -371,33 +366,41 @@ const Lesson2Content = () => {
     
     // Listening Map activity
     if (currentStage === 'listening-map' || currentStage === 'texture-drawings') {
-      return <ListeningMapLoader onComplete={() => handleSessionActivityComplete(currentStage)} isSessionMode={true} />;
+      return (
+        <>
+          <ListeningMapLoader onComplete={() => handleSessionActivityComplete(currentStage)} isSessionMode={true} />
+          <TransitionOverlay isVisible={showTransition} />
+        </>
+      );
     }
-    
+
     // Standard activity rendering
     const displayStage = currentStage === 'reflection' ? 'city-composition' : currentStage;
     const activityType = getActivityForStage(displayStage);
-    
+
     const activity = lesson2Config.activities.find(a => a.type === activityType);
-    
+
     if (!activity) {
       return <StudentWaitingScreen />;
     }
-    
+
     return (
-      <div className="h-screen flex flex-col">
-        <div className="flex-1 overflow-hidden">
-          <ActivityRenderer
-            activity={activity}
-            onComplete={() => handleSessionActivityComplete(currentStage)}
-            navToolsEnabled={false}
-            canAccessNavTools={false}
-            lessonStartTime={lesson.lessonStartTime}
-            viewMode={false}
-            isSessionMode={true}
-          />
+      <>
+        <div className="h-screen flex flex-col">
+          <div className="flex-1 overflow-hidden">
+            <ActivityRenderer
+              activity={activity}
+              onComplete={() => handleSessionActivityComplete(currentStage)}
+              navToolsEnabled={false}
+              canAccessNavTools={false}
+              lessonStartTime={lesson.lessonStartTime}
+              viewMode={false}
+              isSessionMode={true}
+            />
+          </div>
         </div>
-      </div>
+        <TransitionOverlay isVisible={showTransition} />
+      </>
     );
   }
 
