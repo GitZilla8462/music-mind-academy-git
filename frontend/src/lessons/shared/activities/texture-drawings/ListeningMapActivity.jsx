@@ -434,44 +434,6 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
     }
   }, [studentId, canvasReady]);
 
-  // ✅ Listen for teacher's save command from Firebase
-  useEffect(() => {
-    if (!sessionCode || !isSessionMode) return;
-
-    const db = getDatabase();
-    const sessionRef = ref(db, `sessions/${sessionCode}/saveCommand`);
-
-    const unsubscribe = onValue(sessionRef, (snapshot) => {
-      const saveCommand = snapshot.val();
-
-      // Skip if no command
-      if (!saveCommand) return;
-
-      // On first load, just store the value without triggering
-      if (lastSaveCommandRef.current === null) {
-        lastSaveCommandRef.current = saveCommand;
-        return;
-      }
-
-      // Only trigger if this is a new command (timestamp changed)
-      if (saveCommand !== lastSaveCommandRef.current) {
-        lastSaveCommandRef.current = saveCommand;
-        console.log('💾 Teacher save command received for listening map!');
-
-        // Trigger save
-        if (studentId && canvasRef.current) {
-          handleManualSave(true); // Silent save
-
-          // Show toast notification
-          setTeacherSaveToast(true);
-          setTimeout(() => setTeacherSaveToast(false), 3000);
-        }
-      }
-    });
-
-    return () => unsubscribe();
-  }, [sessionCode, isSessionMode, studentId, handleManualSave]);
-
   // Dimensions
   const stickerPanelWidth = showStickerPanel ? 240 : 0;
   const rowControlsWidth = 80;
@@ -628,6 +590,44 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
     }
     setTimeout(() => { isSavingRef.current = false; }, 500);
   }, [studentId, mapConfig]);
+
+  // ✅ Listen for teacher's save command from Firebase
+  useEffect(() => {
+    if (!sessionCode || !isSessionMode) return;
+
+    const db = getDatabase();
+    const sessionRef = ref(db, `sessions/${sessionCode}/saveCommand`);
+
+    const unsubscribe = onValue(sessionRef, (snapshot) => {
+      const saveCommand = snapshot.val();
+
+      // Skip if no command
+      if (!saveCommand) return;
+
+      // On first load, just store the value without triggering
+      if (lastSaveCommandRef.current === null) {
+        lastSaveCommandRef.current = saveCommand;
+        return;
+      }
+
+      // Only trigger if this is a new command (timestamp changed)
+      if (saveCommand !== lastSaveCommandRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        console.log('💾 Teacher save command received for listening map!');
+
+        // Trigger save
+        if (studentId && canvasRef.current) {
+          handleManualSave(true); // Silent save
+
+          // Show toast notification
+          setTeacherSaveToast(true);
+          setTimeout(() => setTeacherSaveToast(false), 3000);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [sessionCode, isSessionMode, studentId, handleManualSave]);
 
   const handleProgressClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
