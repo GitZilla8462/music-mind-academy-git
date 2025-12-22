@@ -19,6 +19,7 @@ export const useSessionMode = () => {
   const urlSessionCode = searchParams.get('session');
   const urlRole = searchParams.get('role');
   const urlClassId = searchParams.get('classId');
+  const isPreviewMode = searchParams.get('preview') === 'true';
   const isSessionMode = !!(urlSessionCode && urlRole);
 
   // Determine user permissions
@@ -31,22 +32,28 @@ export const useSessionMode = () => {
   // Initialize session on mount if session params exist
   useEffect(() => {
     if (isSessionMode && !sessionInitialized) {
-      console.log('Session mode detected:', { urlSessionCode, urlRole, urlClassId });
-      
+      console.log('Session mode detected:', { urlSessionCode, urlRole, urlClassId, isPreviewMode });
+
       if (urlRole === 'teacher') {
         startSession(urlSessionCode, 'teacher', urlClassId);
         console.log('Teacher session started:', { sessionCode: urlSessionCode, classId: urlClassId });
       } else if (urlRole === 'student') {
-        const studentId = localStorage.getItem('classroom-user-id') || 'student-' + Date.now();
-        const studentName = localStorage.getItem('classroom-username') || 'Student';
-        joinSession(urlSessionCode, studentId, studentName);
-        console.log('Student joining session:', { urlSessionCode, studentId, studentName });
+        // Skip joining as a student if this is preview mode (teacher's preview panel)
+        // Preview mode should only observe, not add to student count
+        if (isPreviewMode) {
+          console.log('👀 Preview mode - skipping student join to avoid counting teacher as student');
+        } else {
+          const studentId = localStorage.getItem('classroom-user-id') || 'student-' + Date.now();
+          const studentName = localStorage.getItem('classroom-username') || 'Student';
+          joinSession(urlSessionCode, studentId, studentName);
+          console.log('Student joining session:', { urlSessionCode, studentId, studentName });
+        }
       }
-      
+
       setSessionMode(true);
       setSessionInitialized(true);
     }
-  }, [isSessionMode, sessionInitialized, urlSessionCode, urlRole, urlClassId, startSession, joinSession]);
+  }, [isSessionMode, sessionInitialized, urlSessionCode, urlRole, urlClassId, isPreviewMode, startSession, joinSession]);
 
   return {
     sessionMode,
@@ -55,6 +62,7 @@ export const useSessionMode = () => {
     urlSessionCode,
     urlRole,
     urlClassId,
+    isPreviewMode,
     isTeacher,
     canAccessNavTools,
     isDevelopment,
