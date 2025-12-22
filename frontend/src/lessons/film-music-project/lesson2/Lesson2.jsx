@@ -21,6 +21,7 @@ import LessonStartScreen from '../../shared/components/LessonStartScreen';
 import TeacherLessonView from '../../shared/components/TeacherLessonView'; // ✅ NEW
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
+import TransitionOverlay from '../../shared/components/TransitionOverlay';
 
 // Storage for viewing saved work
 import { loadStudentWork } from '../../../utils/studentWorkStorage';
@@ -238,6 +239,33 @@ const Lesson2Content = () => {
     }
   }, [sessionRole, markActivityComplete]);
 
+  // Transition overlay state for students
+  const [showTransition, setShowTransition] = React.useState(false);
+  const prevStageRef = React.useRef(null);
+
+  // Detect stage changes and show overlay for students
+  React.useEffect(() => {
+    // Only trigger for students in session mode
+    if (sessionMode.isSessionMode && effectiveRole === 'student') {
+      // Check if this is a real stage change (not initial load)
+      if (prevStageRef.current &&
+          currentStage &&
+          prevStageRef.current !== currentStage &&
+          currentStage !== 'ended') {
+        // Show transition overlay
+        setShowTransition(true);
+
+        // Hide after 2 seconds
+        const timer = setTimeout(() => {
+          setShowTransition(false);
+        }, 2000);
+
+        return () => clearTimeout(timer);
+      }
+    }
+    prevStageRef.current = currentStage;
+  }, [currentStage, sessionMode.isSessionMode, effectiveRole]);
+
   // Show loading while session is initializing
   if (sessionMode.isSessionMode && !effectiveRole) {
     return (
@@ -255,6 +283,11 @@ const Lesson2Content = () => {
   // SESSION MODE: STUDENT VIEW
   // ========================================
   if (sessionMode.isSessionMode && effectiveRole === 'student') {
+    // Transition overlay appears on top during stage changes
+    if (showTransition) {
+      return <TransitionOverlay isVisible={true} />;
+    }
+
     // Student waiting for teacher to start
     if (!currentStage || currentStage === 'join-code') {
       return <StudentWaitingScreen />;
