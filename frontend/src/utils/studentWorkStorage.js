@@ -158,7 +158,7 @@ export const migrateOldSaves = (studentId = null) => {
       getMetadata: (data) => ({
         title: data.composition?.videoTitle || 'City Soundscape',
         emoji: data.composition?.videoEmoji || '🏙️',
-        viewRoute: '/lessons/film-music-project/lesson3?view=saved',
+        viewRoute: '/lessons/film-music-project/lesson2?view=saved',
         subtitle: `${data.composition?.placedLoops?.length || 0} loops`,
         category: 'Film Music Project'
       })
@@ -180,7 +180,7 @@ export const migrateOldSaves = (studentId = null) => {
       getMetadata: (data) => ({
         title: data.composition?.videoTitle || 'Sports Highlights',
         emoji: data.composition?.videoEmoji || '🏀',
-        viewRoute: '/lessons/film-music-project/lesson2?view=saved',
+        viewRoute: '/lessons/film-music-project/lesson4?view=saved',
         subtitle: `${data.composition?.placedLoops?.length || 0} loops`,
         category: 'Film Music Project'
       })
@@ -191,7 +191,7 @@ export const migrateOldSaves = (studentId = null) => {
       getMetadata: (data) => ({
         title: data.composition?.videoTitle || 'Epic Wildlife',
         emoji: data.composition?.videoEmoji || '🌍',
-        viewRoute: '/lessons/film-music-project/lesson4?view=saved',
+        viewRoute: '/lessons/film-music-project/lesson3?view=saved',
         subtitle: `${data.composition?.placedLoops?.length || 0} loops`,
         category: 'Film Music Project'
       })

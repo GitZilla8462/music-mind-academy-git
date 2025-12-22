@@ -1,0 +1,49 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Activity Banner -->
+  <rect x="0" y="0" width="1920" height="70" fill="#0d9488"/>
+  <text x="960" y="48" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white" font-weight="bold" text-anchor="middle">STUDENT ACTIVITY TIME</text>
+
+  <!-- Title -->
+  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">REFLECTION</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="230" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
+
+  <!-- Subtitle -->
+  <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Beat Spotlight</text>
+
+  <!-- Main instruction -->
+  <text x="960" y="480" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="white" text-anchor="middle" font-weight="bold">Complete your Beat Spotlight reflection.</text>
+
+  <text x="960" y="580" font-family="Arial, Helvetica, sans-serif" font-size="46" fill="#e2e8f0" text-anchor="middle">Listen to your composition while reflecting.</text>
+
+  <!-- Question boxes -->
+  <rect x="200" y="660" width="500" height="140" rx="12" fill="#1e293b" stroke="#ef4444" stroke-width="3"/>
+  <text x="450" y="720" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#ef4444" text-anchor="middle" font-weight="bold">YOUR BEAT</text>
+  <text x="450" y="770" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#e2e8f0" text-anchor="middle">Describe the pattern</text>
+
+  <rect x="710" y="660" width="500" height="140" rx="12" fill="#1e293b" stroke="#f59e0b" stroke-width="3"/>
+  <text x="960" y="720" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#f59e0b" text-anchor="middle" font-weight="bold">THE MATCH</text>
+  <text x="960" y="770" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#e2e8f0" text-anchor="middle">How does it fit the video?</text>
+
+  <rect x="1220" y="660" width="500" height="140" rx="12" fill="#1e293b" stroke="#10b981" stroke-width="3"/>
+  <text x="1470" y="720" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#10b981" text-anchor="middle" font-weight="bold">NEXT TIME</text>
+  <text x="1470" y="770" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#e2e8f0" text-anchor="middle">What would you change?</text>
+
+  <!-- Duration -->
+  <text x="192" y="950" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">3 minutes - Complete your reflection on your Chromebook.</text>
+</svg>

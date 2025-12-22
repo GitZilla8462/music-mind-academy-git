@@ -1,0 +1,28 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">TODAY'S AGENDA</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="230" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
+
+  <!-- Bullet Points -->
+  <text x="192" y="420" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">1. Learn how beats create energy.</text>
+
+  <text x="192" y="560" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">2. Build your own beat pattern.</text>
+
+  <text x="192" y="700" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">3. Score a sports video with your beat.</text>
+</svg>

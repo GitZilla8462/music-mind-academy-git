@@ -1,0 +1,35 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">TODAY'S KEY INSIGHT</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="230" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
+
+  <!-- Main insight - big and centered -->
+  <text x="960" y="480" font-family="Arial, Helvetica, sans-serif" font-size="72" fill="white" text-anchor="middle" font-weight="bold">Rhythm is the heartbeat of your music.</text>
+
+  <text x="960" y="580" font-family="Arial, Helvetica, sans-serif" font-size="72" fill="white" text-anchor="middle" font-weight="bold">You control the energy.</text>
+
+  <!-- Supporting points -->
+  <text x="960" y="720" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#e2e8f0" text-anchor="middle">Kick creates the foundation. Snare creates the backbeat.</text>
+
+  <text x="960" y="790" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#e2e8f0" text-anchor="middle">Hi-hat creates momentum. Together they drive the action.</text>
+
+  <!-- Key insight box -->
+  <rect x="300" y="880" width="1320" height="100" rx="12" fill="#1e293b" stroke="#10b981" stroke-width="3"/>
+  <text x="960" y="945" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#10b981" text-anchor="middle" font-weight="bold">Your rhythmic choices shape how your audience feels.</text>
+</svg>

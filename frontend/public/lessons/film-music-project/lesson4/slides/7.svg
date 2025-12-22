@@ -1,0 +1,48 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">THE THREE CORE DRUM SOUNDS</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="230" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
+
+  <!-- Subtitle -->
+  <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Building Blocks of a Beat</text>
+
+  <!-- Three drum boxes -->
+  <rect x="150" y="400" width="520" height="320" rx="16" fill="#1e293b" stroke="#ef4444" stroke-width="4"/>
+  <text x="410" y="480" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#ef4444" text-anchor="middle" font-weight="bold">KICK DRUM</text>
+  <text x="410" y="550" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#e2e8f0" text-anchor="middle">Low, deep foundation.</text>
+  <text x="410" y="600" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#e2e8f0" text-anchor="middle">Usually on beats 1 and 3.</text>
+  <text x="410" y="680" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#94a3b8" text-anchor="middle">The heartbeat of the music.</text>
+
+  <rect x="700" y="400" width="520" height="320" rx="16" fill="#1e293b" stroke="#f59e0b" stroke-width="4"/>
+  <text x="960" y="480" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#f59e0b" text-anchor="middle" font-weight="bold">SNARE DRUM</text>
+  <text x="960" y="550" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#e2e8f0" text-anchor="middle">Sharp, cracking sound.</text>
+  <text x="960" y="600" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#e2e8f0" text-anchor="middle">Usually on beats 2 and 4.</text>
+  <text x="960" y="680" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#94a3b8" text-anchor="middle">Creates the backbeat.</text>
+
+  <rect x="1250" y="400" width="520" height="320" rx="16" fill="#1e293b" stroke="#10b981" stroke-width="4"/>
+  <text x="1510" y="480" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#10b981" text-anchor="middle" font-weight="bold">HI-HAT</text>
+  <text x="1510" y="550" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#e2e8f0" text-anchor="middle">Metallic, ticking sound.</text>
+  <text x="1510" y="600" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#e2e8f0" text-anchor="middle">Plays on every beat or faster.</text>
+  <text x="1510" y="680" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#94a3b8" text-anchor="middle">Creates momentum.</text>
+
+  <!-- Beat pattern visual -->
+  <text x="960" y="850" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#a5b4fc" text-anchor="middle">Basic Beat Pattern:</text>
+  <text x="960" y="940" font-family="Courier New, monospace" font-size="36" fill="white" text-anchor="middle">KICK  SNARE  KICK  SNARE</text>
+  <text x="960" y="1000" font-family="Courier New, monospace" font-size="36" fill="#94a3b8" text-anchor="middle">  1     2      3     4</text>
+</svg>

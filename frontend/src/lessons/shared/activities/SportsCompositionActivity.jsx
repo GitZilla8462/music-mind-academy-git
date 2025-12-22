@@ -10,7 +10,7 @@ import { useAutoSave } from '../../../hooks/useAutoSave.jsx';
 import SportsReflectionModal from './two-stars-and-a-wish/SportsReflectionModal';
 import NameThatLoopActivity from './layer-detective/NameThatLoopActivity';
 import { useSession } from '../../../context/SessionContext';
-import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson2/lesson2StorageUtils';
+import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson4/lesson4StorageUtils';
 import { saveStudentWork, loadStudentWork, getStudentId } from '../../../utils/studentWorkStorage';
 
 const SPORTS_COMPOSITION_DEADLINE = 10 * 60 * 1000; // 10 minutes
@@ -21,24 +21,24 @@ const SPORTS_VIDEOS = [
   {
     id: 'soccer',
     title: 'Soccer Highlights',
-    thumbnail: '/lessons/film-music-project/lesson2/soccer-thumb.png',
-    videoPath: '/lessons/film-music-project/lesson2/SoccerHighlightReel.mp4',
+    thumbnail: '/lessons/film-music-project/lesson4/soccer-thumb.png',
+    videoPath: '/lessons/film-music-project/lesson4/SoccerHighlightReel.mp4',
     description: 'Exciting soccer goals, passes, and game action',
     emoji: '⚽'
   },
   {
     id: 'basketball',
     title: 'Basketball Highlights',
-    thumbnail: '/lessons/film-music-project/lesson2/basketball-thumb.png',
-    videoPath: '/lessons/film-music-project/lesson2/BasketballHighlightReel.mp4',
+    thumbnail: '/lessons/film-music-project/lesson4/basketball-thumb.png',
+    videoPath: '/lessons/film-music-project/lesson4/BasketballHighlightReel.mp4',
     description: 'High-energy basketball action with dunks and fast breaks',
     emoji: '🏀'
   },
   {
     id: 'skateboarding',
     title: 'Skateboarding Tricks',
-    thumbnail: '/lessons/film-music-project/lesson2/skateboard-thumb.png',
-    videoPath: '/lessons/film-music-project/lesson2/SkateboardHighlighReel.mp4',
+    thumbnail: '/lessons/film-music-project/lesson4/skateboard-thumb.png',
+    videoPath: '/lessons/film-music-project/lesson4/SkateboardHighlighReel.mp4',
     description: 'Street skateboarding with technical tricks and stunts',
     emoji: '🛹'
   }

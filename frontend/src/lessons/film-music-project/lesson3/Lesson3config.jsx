@@ -1,7 +1,8 @@
 // File: /src/lessons/film-music-project/lesson3/Lesson3config.jsx
-// Lesson 3: City Soundscapes - Configuration
-// Music concept: Texture and Layering
-// ✅ UPDATED: Numbered sections, teacher-friendly descriptions based on actual slides
+// Lesson 3: Epic Wildlife - Nature Documentary Video
+// Configuration for sectional loop form and composition
+// ✅ UPDATED: Renamed from "Chef's Soundtrack" to "Epic Wildlife"
+// ✅ UPDATED: Added Sectional Loop Builder game with leaderboard + results
 
 export const LESSON_PROGRESS_KEY = 'lesson3-progress';
 export const LESSON_TIMER_KEY = 'lesson3-timer';
@@ -12,165 +13,208 @@ export const LESSON_TIMER_KEY = 'lesson3-timer';
 export const lessonSections = [
   {
     id: 'introduction',
-    title: '1. Introduction',
-    subtitle: 'Slides → Texture Concept',
-    color: 'blue',
-    estimatedTime: 8,
+    title: 'Introduction',
+    subtitle: 'Song Form & Sectional Loops',
+    icon: '🌍',
+    color: 'green',
+    estimatedTime: 12,
     stages: [
       { 
-        id: 'city-soundscapes-intro', 
+        id: 'epic-wildlife-intro', 
         type: 'summary', 
-        label: 'City Soundscapes',
-        description: 'Ask: "What city have you visited? How would it feel there?"',
+        label: "Epic Wildlife Introduction",
+        description: 'Display welcome screen - Slide 1',
         duration: 1
       },
       { 
         id: 'show-agenda', 
         type: 'summary', 
-        label: 'Agenda',
-        description: 'Review: "1) Learn texture & layering, 2) Create City Soundscape"',
+        label: 'Show Agenda',
+        description: 'Display lesson agenda - Slide 2',
         duration: 1
       },
       { 
-        id: 'introduce-texture', 
+        id: 'introduce-song-form', 
         type: 'summary', 
-        label: 'Texture',
-        description: 'Explain: "Texture = thick/thin sound based on # of layers"',
-        duration: 2
+        label: 'Introduce Song Form',
+        description: 'Introduction to song structure - Slide 3',
+        duration: 1
       },
       { 
-        id: 'texture-continued', 
+        id: 'form-continued', 
         type: 'summary', 
-        label: 'Sandwich Analogy',
-        description: 'Analogy: "1 ingredient = thin, many ingredients = full"',
-        duration: 2
+        label: 'Form Continued',
+        description: 'More about song form - Slide 4',
+        duration: 1
       },
       { 
-        id: 'layers-and-texture', 
+        id: 'introduce-sectional-loop-form', 
         type: 'summary', 
-        label: 'Making Layers',
-        description: 'Explain: "1 layer = thin, 2-3 = medium, 4+ = full texture"',
-        duration: 2
+        label: 'Introduce Sectional Loop Form',
+        description: 'What is sectional loop form - Slide 5',
+        duration: 1
+      },
+      { 
+        id: 'sectional-loop-example', 
+        type: 'summary', 
+        label: 'Introduce Sectional Loop Form Example',
+        description: 'Example of sectional loops - Slide 6',
+        duration: 1
       }
     ]
   },
   {
     id: 'activity1',
-    title: '2. Listening Map',
-    subtitle: 'Video → Draw',
-    color: 'blue',
-    estimatedTime: 11,
+    title: 'Activity 1 - Sectional Loop Builder',
+    subtitle: 'Build the Wildlife Score',
+    icon: '🎮',
+    color: 'teal',
+    estimatedTime: 10,
     stages: [
       { 
-        id: 'introduce-listening-map', 
+        id: 'introduce-sectional-builder', 
         type: 'summary', 
-        label: 'Listening Map Intro',
-        description: 'Announce: "We\'ll watch a 1-min video then draw while listening"',
+        label: 'Introduce Sectional Loop Builder Game',
+        description: 'Game instructions - Slide 7',
         duration: 1
       },
-      { 
-        id: 'listening-map-video', 
-        type: 'video', 
-        label: '▶️ Play Video',
-        description: 'PLAY VIDEO: Listening Map explanation (students watch main screen)',
+      {
+        id: 'sectional-loop-builder-demo',
+        type: 'class-demo',
+        label: 'Class Demo (on projector)',
+        description: '3-question demo on projector - students watch',
         duration: 2
       },
       { 
-        id: 'listening-map', 
+        id: 'sectional-loop-builder', 
         type: 'activity', 
-        label: '🎮 Unlock Listening Map', 
-        duration: 8,
+        label: 'Unlock Sectional Loop Builder Game', 
+        duration: 5,
         hasTimer: true,
         trackProgress: true,
-        description: 'STUDENTS WORK: Create 4 rows, unique style per row',
-        bonusDescription: 'Bonus: Add more colors, textures, and pictures'
+        description: 'Students play individually - leaderboard on projector',
+        bonusDescription: 'Safari: Find your classmates!'
+      },
+      {
+        id: 'sectional-loop-builder-results',
+        type: 'results',
+        label: 'Show Game Results',
+        description: 'Display winner podium on projector',
+        duration: 1
       }
     ]
   },
   {
     id: 'activity2',
-    title: '3. City Soundscape Composition',
-    subtitle: 'Slides → Compose',
+    title: 'Activity 2 - Composition',
+    subtitle: "Epic Wildlife Soundtrack",
+    icon: '🎵',
     color: 'blue',
-    estimatedTime: 12,
+    estimatedTime: 18,
     stages: [
       { 
         id: 'composition-instructions', 
         type: 'summary', 
-        label: 'Composition Instructions',
-        description: 'Instructions: "Select city, watch silent video, think about mood"',
+        label: 'Show Composition Instructions',
+        description: 'Display requirements - Slide 8',
         duration: 1
       },
       { 
         id: 'composition-instructions-continued', 
         type: 'summary', 
-        label: 'Composition Requirements',
-        description: 'Review: "5+ loops, line up edges, same mood. Bonus: sound effects"',
+        label: 'Composition Instructions Continued',
+        description: 'More composition details - Slide 9',
         duration: 1
       },
       { 
-        id: 'city-composition', 
+        id: 'wildlife-composition', 
         type: 'activity', 
-        label: '🎮 Unlock Composition', 
+        label: 'Unlock Composition Activity', 
         duration: 10,
         hasTimer: true,
         trackProgress: true,
-        description: 'STUDENTS WORK: Pick city video, compose soundscape music',
-        bonusDescription: 'Bonus: Add more layers and sound effects'
+        description: "Students compose wildlife soundtrack music - Slide 10",
+        bonusDescription: 'Bonus: Add More Sections'
       }
     ]
   },
   {
     id: 'reflection',
-    title: '4. Reflection and Discussion',
-    subtitle: 'Reflect → Discuss',
-    color: 'blue',
-    estimatedTime: 5,
+    title: 'Reflection',
+    subtitle: 'Two Stars and a Wish',
+    icon: '⭐',
+    color: 'amber',
+    estimatedTime: 8,
     stages: [
+      {
+        id: 'reflection-instructions',
+        type: 'summary',
+        label: 'Reflection Instructions',
+        description: 'Display reflection instructions - Slide 11',
+        duration: 1
+      },
       { 
         id: 'reflection', 
         type: 'activity', 
-        label: '🎮 Unlock Reflection', 
-        duration: 3,
+        label: 'Unlock Reflection Activity', 
+        duration: 5,
         hasTimer: true,
         trackProgress: true,
-        description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form',
-        bonusDescription: 'Bonus: Layer Detective with a partner'
+        description: 'Students complete Two Stars and a Wish - Slide 12',
+        bonusDescription: 'Bonus: Share Your Work'
+      }
+    ]
+  },
+  {
+    id: 'bonus',
+    title: 'Bonus',
+    subtitle: 'Monster Melody Maker',
+    icon: '👾',
+    color: 'purple',
+    estimatedTime: 10,
+    stages: [
+      {
+        id: 'bonus-intro',
+        type: 'summary',
+        label: 'Introduce Monster Melody Maker',
+        description: 'Bonus activity introduction - Slide 13',
+        duration: 1
       },
       {
-        id: 'conclusion',
-        type: 'discussion',
-        label: 'Class Discussion',
-        description: 'Ask: "What is texture? Partner\'s city? What did you like?"',
-        duration: 2
+        id: 'monster-melody-maker',
+        type: 'activity',
+        label: 'Unlock Monster Melody Maker',
+        description: 'Students create loops and customize their monster',
+        duration: 8,
+        hasTimer: true,
+        trackProgress: true,
+        bonusDescription: 'Make your monster dance!'
       }
     ]
   }
 ];
 
 export const lesson3Config = {
-  id: 'lesson3',
-  lessonPath: '/lessons/film-music-project/lesson3',
-  title: "City Soundscapes",
-  subtitle: "Texture and Layering in Music",
+  id: 'lesson4',
+  title: "Epic Wildlife",
+  subtitle: "Nature Documentary - Sectional Loop Form",
   learningObjectives: [
-    "Understand texture as the thickness or thinness of sound",
-    "Identify the number of layers in musical compositions",
-    "Describe musical elements using appropriate vocabulary",
-    "Create city soundscapes using multiple musical layers"
+    "Understand song form and structure",
+    "Master sectional loop building (Intro → A → A' → A → Outro)",
+    "Create music that evolves with nature footage"
   ],
   lessonSections,
   activities: [
     {
       id: 1,
-      type: "listening-map",
-      title: "Listening Map",
-      estimatedTime: "8 min"
+      type: "sectional-loop-builder",
+      title: "Sectional Loop Builder Game",
+      estimatedTime: "5 min"
     },
     {
       id: 2,
-      type: "city-composition-activity",
-      title: "Compose Your City Soundscape",
+      type: "wildlife-composition-activity",
+      title: "Compose Your Wildlife Soundtrack",
       estimatedTime: "10 min",
       includesVideoSelection: true
     },
@@ -178,7 +222,13 @@ export const lesson3Config = {
       id: 3,
       type: "two-stars-wish",
       title: "Reflection Activity",
-      estimatedTime: "3 min"
+      estimatedTime: "5 min"
+    },
+    {
+      id: 4,
+      type: "monster-melody-maker",
+      title: "Monster Melody Maker",
+      estimatedTime: "8 min"
     }
   ]
 };
@@ -188,16 +238,16 @@ export const lesson3Config = {
 // ========================================
 export const lessonStages = [
   { 
-    id: 'join-code', 
+    id: 'locked', 
     label: 'Join with Class Code', 
     description: 'Students enter session code',
     type: 'waiting'
   },
   // Introduction
   { 
-    id: 'city-soundscapes-intro', 
-    label: 'City Soundscapes', 
-    description: 'Ask: "What city have you visited? How would it feel there?"',
+    id: 'epic-wildlife-intro', 
+    label: "Epic Wildlife Introduction", 
+    description: 'Welcome screen - Slide 1',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -207,8 +257,8 @@ export const lessonStages = [
   },
   { 
     id: 'show-agenda', 
-    label: 'Agenda', 
-    description: 'Review: "1) Learn texture & layering, 2) Create City Soundscape"',
+    label: 'Show Agenda', 
+    description: 'Lesson agenda - Slide 2',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -217,43 +267,42 @@ export const lessonStages = [
     }
   },
   { 
-    id: 'introduce-texture', 
-    label: 'Texture', 
-    description: 'Explain: "Texture = thick/thin sound based on # of layers"',
+    id: 'introduce-song-form', 
+    label: 'Introduce Song Form', 
+    description: 'Introduction to song structure - Slide 3',
     type: 'summary',
-    duration: 2,
+    duration: 1,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson3/slides/3.png'
     }
   },
   { 
-    id: 'texture-continued', 
-    label: 'Sandwich Analogy', 
-    description: 'Analogy: "1 ingredient = thin, many ingredients = full"',
+    id: 'form-continued', 
+    label: 'Form Continued', 
+    description: 'More about song form - Slide 4',
     type: 'summary',
-    duration: 2,
+    duration: 1,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson3/slides/4.png'
     }
   },
   { 
-    id: 'layers-and-texture', 
-    label: 'Making Layers', 
-    description: 'Explain: "1 layer = thin, 2-3 = medium, 4+ = full texture"',
+    id: 'introduce-sectional-loop-form', 
+    label: 'Introduce Sectional Loop Form', 
+    description: 'What is sectional loop form - Slide 5',
     type: 'summary',
-    duration: 2,
+    duration: 1,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson3/slides/5.png'
     }
   },
-  // Activity 1: Listening Map
   { 
-    id: 'introduce-listening-map', 
-    label: 'Listening Map Intro', 
-    description: 'Announce: "We\'ll watch a 1-min video then draw while listening"',
+    id: 'sectional-loop-example', 
+    label: 'Introduce Sectional Loop Form Example', 
+    description: 'Example of sectional loops - Slide 6',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -261,37 +310,11 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson3/slides/6.png'
     }
   },
+  // Activity 1: Sectional Loop Builder Game
   { 
-    id: 'listening-map-video', 
-    label: '▶️ Play Video', 
-    description: 'PLAY VIDEO: Listening Map explanation (students watch main screen)',
-    type: 'video',
-    duration: 2,
-    presentationView: {
-      type: 'video',
-      videoPath: '/lessons/film-music-project/lesson3/ListeningMapExplanation.mp4',
-      title: 'Listening Map Explanation'
-    }
-  },
-  { 
-    id: 'listening-map', 
-    label: '🎮 Unlock Listening Map', 
-    description: 'STUDENTS WORK: Create 4 rows, unique style per row',
-    bonusDescription: 'Bonus: Add more colors, textures, and pictures',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 8,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson3/slides/6.5.png'
-    }
-  },
-  // Activity 2: Composition
-  { 
-    id: 'composition-instructions', 
-    label: 'Composition Instructions', 
-    description: 'Instructions: "Select city, watch silent video, think about mood"',
+    id: 'introduce-sectional-builder', 
+    label: 'Introduce Sectional Loop Builder Game', 
+    description: 'Game instructions - Slide 7',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -299,10 +322,44 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson3/slides/7.png'
     }
   },
+  {
+    id: 'sectional-loop-builder-demo',
+    label: 'Class Demo (on projector)',
+    description: '3-question demo - students watch main screen',
+    type: 'class-demo',
+    duration: 2,
+    presentationView: {
+      type: 'sectional-loop-builder-class-demo'
+    }
+  },
   { 
-    id: 'composition-instructions-continued', 
-    label: 'Composition Requirements', 
-    description: 'Review: "5+ loops, line up edges, same mood. Bonus: sound effects"',
+    id: 'sectional-loop-builder', 
+    label: 'Unlock Sectional Loop Builder Game', 
+    description: 'Students play individually - leaderboard on projector',
+    bonusDescription: 'Safari: Find your classmates!',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: true,
+    duration: 5,
+    presentationView: {
+      type: 'sectional-loop-builder-leaderboard'
+    }
+  },
+  {
+    id: 'sectional-loop-builder-results',
+    label: 'Show Game Results',
+    description: 'Winner celebration podium',
+    type: 'results',
+    duration: 1,
+    presentationView: {
+      type: 'sectional-loop-builder-results'
+    }
+  },
+  // Activity 2: Composition
+  { 
+    id: 'composition-instructions', 
+    label: 'Show Composition Instructions', 
+    description: 'Display requirements - Slide 8',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -311,44 +368,80 @@ export const lessonStages = [
     }
   },
   { 
-    id: 'city-composition', 
-    label: '🎮 Unlock Composition', 
-    description: 'STUDENTS WORK: Pick city video, compose soundscape music', 
-    bonusDescription: 'Bonus: Add more layers and sound effects',
+    id: 'composition-instructions-continued', 
+    label: 'Composition Instructions Continued', 
+    description: 'More composition details - Slide 9',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson3/slides/9.png'
+    }
+  },
+  { 
+    id: 'wildlife-composition', 
+    label: 'Unlock Composition Activity', 
+    description: "Compose wildlife soundtrack music - Slide 10", 
+    bonusDescription: 'Bonus: Add More Sections',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
     duration: 10,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson3/slides/9.png'
-    }
-  },
-  // Reflection
-  { 
-    id: 'reflection', 
-    label: '🎮 Unlock Reflection', 
-    description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form', 
-    bonusDescription: 'Bonus: Layer Detective with a partner',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 3,
-    presentationView: {
-      type: 'slide',
       slidePath: '/lessons/film-music-project/lesson3/slides/10.png'
     }
   },
-  // Conclusion
+  // Reflection
   {
-    id: 'conclusion',
-    label: 'Class Discussion',
-    description: 'Ask: "What is texture? Partner\'s city? What did you like?"',
-    type: 'discussion',
-    duration: 2,
+    id: 'reflection-instructions',
+    label: 'Reflection Instructions',
+    description: 'Display reflection instructions - Slide 11',
+    type: 'summary',
+    duration: 1,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson3/slides/11.png'
+    }
+  },
+  { 
+    id: 'reflection', 
+    label: 'Unlock Reflection Activity', 
+    description: 'Students complete Two Stars and a Wish', 
+    bonusDescription: 'Bonus: Share Your Work',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: true,
+    duration: 5,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson3/slides/12.png'
+    }
+  },
+  // Bonus
+  {
+    id: 'bonus-intro',
+    label: 'Introduce Monster Melody Maker',
+    description: 'Bonus activity introduction - Slide 13',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson3/slides/13.png'
+    }
+  },
+  {
+    id: 'monster-melody-maker',
+    label: 'Unlock Monster Melody Maker',
+    description: 'Students create loops and customize their monster',
+    bonusDescription: 'Make your monster dance!',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: true,
+    duration: 8,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson3/slides/14.png'
     }
   }
 ];
@@ -356,21 +449,26 @@ export const lessonStages = [
 // Helper function to map session stage to activity type
 export const getActivityForStage = (stage) => {
   const stageMap = {
-    'city-soundscapes-intro': 'summary',
+    'epic-wildlife-intro': 'summary',
+    'kitchen-beats-intro': 'summary',  // backward compatibility
     'show-agenda': 'summary',
-    'introduce-texture': 'summary',
-    'texture-continued': 'summary',
-    'layers-and-texture': 'summary',
-    'introduce-listening-map': 'summary',
-    'introduce-texture-drawings': 'summary',  // backward compatibility
-    'listening-map-video': 'video',
-    'listening-map': 'listening-map',
-    'texture-drawings': 'listening-map',  // backward compatibility
+    'introduce-song-form': 'summary',
+    'form-continued': 'summary',
+    'introduce-sectional-loop-form': 'summary',
+    'sectional-loop-example': 'summary',
+    'introduce-sectional-builder': 'summary',
+    'sectional-loop-builder-demo': 'class-demo',
+    'sectional-loop-builder': 'sectional-loop-builder',
+    'sectional-loop-builder-results': 'results',
     'composition-instructions': 'summary',
     'composition-instructions-continued': 'summary',
-    'city-composition': 'city-composition-activity',
+    'wildlife-composition': 'wildlife-composition-activity',
+    'kitchen-composition': 'wildlife-composition-activity',  // backward compatibility
+    'reflection-instructions': 'summary',
     'reflection': 'two-stars-wish',
-    'conclusion': 'discussion'
+    'bonus-intro': 'summary',
+    'bonus-challenges': 'summary',  // backward compatibility
+    'monster-melody-maker': 'monster-melody-maker'
   };
   return stageMap[stage];
 };

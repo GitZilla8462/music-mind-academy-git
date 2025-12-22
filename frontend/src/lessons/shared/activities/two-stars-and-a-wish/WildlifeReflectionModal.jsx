@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Star, ChevronRight, ChevronLeft, Check, Sparkles, Volume2, VolumeX, Minimize2, Maximize2, CheckCircle, Smile } from 'lucide-react';
-import { saveReflection, getReflection } from '../../../film-music-project/lesson4/lesson4StorageUtils';
+import { saveReflection, getReflection } from '../../../film-music-project/lesson3/lesson3StorageUtils';
 
 const WildlifeReflectionModal = ({
   compositionData,

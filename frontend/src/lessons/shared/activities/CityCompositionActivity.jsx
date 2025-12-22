@@ -12,7 +12,7 @@ import { useAutoSave } from '../../../hooks/useAutoSave.jsx';
 import CityReflectionModal from './two-stars-and-a-wish/CityReflectionModal';
 import LoopLab from './loop-lab/LoopLabActivity';
 import { useSession } from '../../../context/SessionContext';
-import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson3/lesson3StorageUtils';
+import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson2/lesson2StorageUtils';
 
 const CITY_COMPOSITION_DEADLINE = 10 * 60 * 1000; // 10 minutes
 
@@ -22,28 +22,28 @@ const CITY_VIDEOS = [
     id: 'nyc',
     title: 'New York City',
     subtitle: 'The City That Never Sleeps',
-    videoPath: '/lessons/film-music-project/lesson3/NYCMontage.mp4',
+    videoPath: '/lessons/film-music-project/lesson2/NYCMontage.mp4',
     emoji: '🗽'
   },
   {
     id: 'paris',
     title: 'Paris',
     subtitle: 'The City of Light',
-    videoPath: '/lessons/film-music-project/lesson3/ParisMontage.mp4',
+    videoPath: '/lessons/film-music-project/lesson2/ParisMontage.mp4',
     emoji: '🗼'
   },
   {
     id: 'madrid',
     title: 'Madrid',
     subtitle: 'The Heart of Spain',
-    videoPath: '/lessons/film-music-project/lesson3/MadridMontage.mp4',
+    videoPath: '/lessons/film-music-project/lesson2/MadridMontage.mp4',
     emoji: '🏛️'
   },
   {
     id: 'tokyo',
     title: 'Tokyo',
     subtitle: 'The City of the Future',
-    videoPath: '/lessons/film-music-project/lesson3/TokyoMontage.mp4',
+    videoPath: '/lessons/film-music-project/lesson2/TokyoMontage.mp4',
     emoji: '🏯'
   }
 ];

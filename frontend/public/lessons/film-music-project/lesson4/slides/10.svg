@@ -1,0 +1,37 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">BEAT MAKER</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="230" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
+
+  <!-- Subtitle -->
+  <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">How to Use the Drum Grid</text>
+
+  <!-- Instructions -->
+  <text x="192" y="460" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#e2e8f0">Click squares to toggle kick, snare, and hi-hat on each step.</text>
+
+  <text x="192" y="560" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#e2e8f0">Press Play to hear your pattern loop.</text>
+
+  <text x="192" y="660" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#e2e8f0">Experiment with different combinations.</text>
+
+  <text x="192" y="760" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#e2e8f0">Clear to start over anytime.</text>
+
+  <!-- Key insight box -->
+  <rect x="192" y="850" width="1536" height="100" rx="12" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+  <text x="960" y="915" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#10b981" text-anchor="middle" font-weight="bold">Goal: Create a 4-bar beat that feels like sports music.</text>
+</svg>

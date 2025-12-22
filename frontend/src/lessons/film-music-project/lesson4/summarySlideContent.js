@@ -1,105 +1,166 @@
-// File: /src/lessons/film-music-project/lesson4/summarySlideContent.js
-// All instructional text and content for Lesson 4 - Epic Wildlife
-// ✅ UPDATED: Renamed from "Chef's Soundtrack" to "Epic Wildlife"
+// File: /src/lessons/film-music-project/lesson2/summarySlideContent.js
+// All instructional text and content for Lesson 2 - Sports Highlights (Rhythm & Beat Creation)
 
 // ========================================
 // 1. PRE-ACTIVITY SUMMARY SLIDES
 // ========================================
 export const summarySlides = {
-  introVideo: {
-    title: "Welcome to Epic Wildlife!",
-    icon: "🌍",
+  welcomeIntro: {
+    title: "Sports Highlight Reel",
+    estimatedTime: "1 minute",
+    points: [
+      "Today you'll score a sports highlight video with music.",
+      "Learn how rhythm and beats create energy.",
+      "Create your own beat and combine it with loops."
+    ]
+  },
+
+  agenda: {
+    title: "Today's Agenda",
+    estimatedTime: "1 minute",
+    points: [
+      "1. LEARN - What makes a beat work",
+      "2. BUILD - Create your own beat pattern",
+      "3. CREATE - Score a sports video"
+    ]
+  },
+
+  hookIntro: {
+    title: "What Makes Sports Music Intense?",
+    estimatedTime: "1 minute",
+    points: [
+      "We're going to watch the same sports clip twice.",
+      "First WITHOUT music, then WITH music.",
+      "Pay attention to how you feel during each."
+    ]
+  },
+
+  hookVideo: {
+    title: "Sports Clip Comparison",
     estimatedTime: "3 minutes",
     points: [
-      "Learn about song form and sectional loops.",
-      "Build song structures using Intro → A → A' → A → Outro.",
-      "Create your own wildlife soundtrack using multiple sections."
+      "Watch the video WITHOUT music first.",
+      "Then watch WITH sports music.",
+      "Notice the difference rhythm makes!"
     ]
   },
 
-  songFormConcept: {
-    title: "What is Song Form?",
-    icon: "🎵",
-    estimatedTime: "Discussion",
+  beatDiscussion: {
+    title: "Beat Discussion",
+    estimatedTime: "2 minutes",
     points: [
-      "Form = The structure or organization of music",
-      "Sections = Different parts of a song (A, B, C, etc.)",
-      "Intro = Beginning that sets the mood",
-      "Outro = Ending that wraps up the music"
+      "How did the music change how you felt?",
+      "What did you notice about the rhythm?",
+      "How did the beat match the action?"
     ]
   },
 
-  sectionalLoopForm: {
-    title: "Sectional Loop Form",
-    icon: "🔄",
-    estimatedTime: "Discussion",
+  beatBasics: {
+    title: "What is a Beat?",
+    estimatedTime: "2 minutes",
     points: [
-      "Music is built from repeating loops in sections.",
-      "Each section has a different number of layers.",
-      "A' (A-prime) is a variation of A with MORE layers.",
-      "The pattern: Intro → A → A' → A → Outro"
+      "BEAT: The steady pulse you can clap to.",
+      "MEASURE: A group of 4 beats (1-2-3-4).",
+      "4/4 TIME: Four beats per measure - most common in music.",
+      "The beat is the heartbeat of your music."
     ]
   },
 
-  sectionalLoopBuilder: {
-    title: "Sectional Loop Builder Game",
-    icon: "🎮",
-    estimatedTime: "5 minutes",
-    points: [
-      "Listen to mystery clips and count the layers",
-      "Place each clip in the correct slot",
-      "Build the song structure: Intro → A → A' → A → Outro",
-      "Safari bonus: Find classmates and enter their codes!"
-    ],
-    structure: {
-      title: "Target Structure",
-      sections: [
-        { name: "INTRO", layers: 2, description: "Thin texture to start" },
-        { name: "A", layers: 3, description: "Main theme with medium texture" },
-        { name: "A'", layers: 4, description: "Variation with thicker texture" },
-        { name: "A", layers: 3, description: "Return to main theme" },
-        { name: "OUTRO", layers: 1, description: "Thin texture to end" }
-      ]
-    },
-    scoring: {
-      correct: { points: 25, label: "Correct Placement" },
-      completion: { points: 25, label: "Round Bonus" },
-      safari: { points: 50, label: "Safari Bonus" }
-    }
-  },
-
-  wildlifeComposition: {
-    title: "Compose Your Wildlife Soundtrack",
-    icon: "🦁",
-    estimatedTime: "10 minutes",
-    points: [
-      "Choose a wildlife video to score.",
-      "Use sectional loop form: Intro → A → A' → A → Outro.",
-      "Create at least 5 different sections.",
-      "Build thin and thick textures across your composition."
+  drumKit: {
+    title: "Three Core Drum Sounds",
+    estimatedTime: "2 minutes",
+    drumSounds: [
+      { name: "Kick Drum", description: "Low, deep foundation - the heartbeat", color: "#ef4444" },
+      { name: "Snare Drum", description: "Sharp, cracking sound - creates the backbeat", color: "#f59e0b" },
+      { name: "Hi-Hat", description: "Metallic, ticking sound - creates momentum", color: "#10b981" }
     ]
   },
 
-  reflection: {
-    title: "Two Stars and a Wish",
-    icon: "⭐",
-    estimatedTime: "5 minutes",
+  beatDemo: {
+    title: "Building a Beat",
+    estimatedTime: "2 minutes",
     points: [
-      "Name two things you did well with song form and sections.",
-      "Describe one thing you would improve or try differently.",
-      "Listen to your composition while completing the reflection."
+      "Step 1: Start with KICK on beats 1 and 3.",
+      "Step 2: Add SNARE on beats 2 and 4.",
+      "Step 3: Layer HI-HAT throughout for momentum.",
+      "Together: You have a basic beat!"
     ]
   },
 
-  monsterMelodyMaker: {
-    title: "Monster Melody Maker",
-    icon: "👾",
-    estimatedTime: "8 minutes",
+  energyLevels: {
+    title: "How Rhythm Creates Energy",
+    estimatedTime: "2 minutes",
     points: [
-      "Create your own loop using the step sequencer.",
-      "Customize your monster's body, eyes, mouth, and accessories.",
-      "Watch your monster dance and sing to your music!",
-      "Save your creation when you're done."
+      "MORE notes = MORE energy.",
+      "FEWER notes = Less energy, more space.",
+      "SYNCOPATION (off-beat notes) = Excitement!",
+      "You control the intensity with your choices."
+    ]
+  },
+
+  beatMakerIntro: {
+    title: "Beat Maker Introduction",
+    estimatedTime: "2 minutes",
+    points: [
+      "You'll use a drum grid to create beats.",
+      "Click squares to add sounds to each step.",
+      "16 steps = 4 measures of music.",
+      "Start simple, then add complexity!"
+    ]
+  },
+
+  compositionInstructions: {
+    title: "Composition Requirements",
+    estimatedTime: "1 minute",
+    points: [
+      "Create an original beat using the Beat Maker.",
+      "Add 3+ loops from the library to your beat.",
+      "Match the energy of the sports video.",
+      "Build intensity as the action builds!"
+    ]
+  },
+
+  compositionReminder: {
+    title: "Remember",
+    estimatedTime: "1 minute",
+    points: [
+      "Your BEAT is the foundation.",
+      "Your LOOPS add color and texture.",
+      "The rhythm drives the energy.",
+      "Save your work!"
+    ]
+  },
+
+  reflectionInstructions: {
+    title: "Beat Spotlight",
+    estimatedTime: "1 minute",
+    points: [
+      "Describe your beat pattern.",
+      "Explain how it matches the video action.",
+      "What would you change next time?",
+      "Be specific about your rhythmic choices!"
+    ]
+  },
+
+  quickShare: {
+    title: "Quick Share",
+    estimatedTime: "2 minutes",
+    points: [
+      "2-3 students will play 15 seconds of their work.",
+      "Listen for how their beat matches the action.",
+      "Notice different rhythmic choices.",
+      "Celebrate creative decisions!"
+    ]
+  },
+
+  conclusion: {
+    title: "Today's Key Insight",
+    estimatedTime: "1 minute",
+    points: [
+      "Rhythm is the heartbeat of your music.",
+      "You control the energy.",
+      "Kick creates the foundation. Snare creates the backbeat.",
+      "Hi-hat creates momentum. Together they drive the action."
     ]
   }
 };
@@ -108,109 +169,122 @@ export const summarySlides = {
 // 2. ASSIGNMENT PANEL CONTENT
 // ========================================
 export const assignmentPanels = {
-  sectionalLoopBuilder: {
-    title: "Sectional Loop Builder Game",
+  beatMaker: {
+    title: "Beat Maker Activity",
     requirements: [
       {
-        id: "listen",
-        label: "Listen",
-        shortText: "Listen to each mystery clip",
-        fullText: "Count the number of layers in each clip to identify its section."
+        id: "kick",
+        label: "Kick Pattern",
+        shortText: "Add kick drum",
+        fullText: "Create a kick drum pattern as your rhythmic foundation."
       },
       {
-        id: "identify",
-        label: "Identify",
-        shortText: "Count the layers",
-        fullText: "INTRO=2, A=3, A'=4, OUTRO=1 layers."
+        id: "snare",
+        label: "Snare Pattern",
+        shortText: "Add snare",
+        fullText: "Add snare hits to create the backbeat."
       },
       {
-        id: "place",
-        label: "Place",
-        shortText: "Put clips in the right slots",
-        fullText: "Build the correct song structure by placing clips in order."
-      },
-      {
-        id: "safari",
-        label: "Safari",
-        shortText: "Find classmates (bonus)",
-        fullText: "When prompted, find the classmate with the matching animal and enter their code for bonus points!"
+        id: "hihat",
+        label: "Hi-Hat Pattern",
+        shortText: "Add hi-hat",
+        fullText: "Layer in hi-hat to create momentum and drive."
       }
     ]
   },
 
-  wildlifeComposition: {
+  sportsComposition: {
     title: "Composition Assignment",
     requirements: [
       {
-        id: "sections",
-        label: "Sections",
-        shortText: "5+ Different sections",
-        fullText: "Create at least five different sections in your composition."
+        id: "beat",
+        label: "Original Beat",
+        shortText: "Create a beat",
+        fullText: "Use your original beat pattern from the Beat Maker."
       },
       {
-        id: "form",
-        label: "Form",
-        shortText: "Use sectional loop form",
-        fullText: "Follow the Intro → A → A' → A → Outro structure."
+        id: "loops",
+        label: "Loops",
+        shortText: "3+ loops",
+        fullText: "Add at least three loops from the library to complement your beat."
       },
       {
-        id: "texture",
-        label: "Texture",
-        shortText: "Vary your texture",
-        fullText: "Create thin and thick textures across different sections."
+        id: "energy",
+        label: "Energy Match",
+        shortText: "Match the action",
+        fullText: "Your rhythm should match the energy of the sports video."
       },
       {
-        id: "progression",
-        label: "Progression",
-        shortText: "Build and release",
-        fullText: "Your music should build up to A' and then return down."
+        id: "intensity",
+        label: "Build Intensity",
+        shortText: "Build up",
+        fullText: "Increase intensity as the action builds in the video."
       }
     ]
   },
 
-  monsterMelodyMaker: {
-    title: "Monster Melody Maker",
-    requirements: [
-      {
-        id: "sequencer",
-        label: "Sequencer",
-        shortText: "Create a loop",
-        fullText: "Click cells in the grid to create your melody and beat pattern."
-      },
-      {
-        id: "customize",
-        label: "Customize",
-        shortText: "Design your monster",
-        fullText: "Choose body shape, colors, eyes, mouth, and accessories."
-      },
-      {
-        id: "play",
-        label: "Play",
-        shortText: "Watch it perform",
-        fullText: "Press play to see your monster dance and sing to your music!"
-      },
-      {
-        id: "save",
-        label: "Save",
-        shortText: "Save your creation",
-        fullText: "Give your monster melody a name and save it."
-      }
-    ]
+  bonusActivity: {
+    title: "Bonus: Rhythm Variations",
+    description: "Great job! Use remaining time to enhance your beat.",
+    instructions: {
+      title: "Ways to enhance your rhythm:",
+      items: [
+        "Try different kick and snare patterns",
+        "Experiment with hi-hat variations",
+        "Add syncopation for more excitement"
+      ]
+    }
   }
 };
 
 // ========================================
-// 3. REFLECTION ACTIVITY CONTENT
+// 3. BEAT MAKER CONTENT
+// ========================================
+export const beatMakerContent = {
+  instructions: {
+    title: "Build Your Beat",
+    text: "Click squares on the grid to add sounds. Start with kick on beats 1 and 3, then add snare and hi-hat.",
+    tip: "Listen to how each layer changes the feel of your beat."
+  },
+
+  drumDescriptions: {
+    kick: {
+      name: "Kick Drum",
+      description: "Low, deep foundation",
+      hints: ["The heartbeat", "Usually on 1 and 3", "Creates the pulse"]
+    },
+    snare: {
+      name: "Snare Drum",
+      description: "Sharp, cracking sound",
+      hints: ["Creates the backbeat", "Usually on 2 and 4", "Adds punch"]
+    },
+    hihat: {
+      name: "Hi-Hat",
+      description: "Metallic, ticking sound",
+      hints: ["Creates momentum", "Can play every beat", "Drives the groove"]
+    }
+  },
+
+  feedback: {
+    tryKick: "Try adding kick drum on beats 1 and 3 first.",
+    addSnare: "Nice! Now add snare on beats 2 and 4.",
+    layerHiHat: "Great! Layer in hi-hat to add momentum.",
+    complete: "You've built a solid beat! Ready to compose!"
+  }
+};
+
+// ========================================
+// 4. REFLECTION ACTIVITY CONTENT (Beat Spotlight)
 // ========================================
 export const reflectionActivity = {
   steps: {
     teacherInstruction: {
       title: "Time to Reflect!",
-      text: "Before you begin your reflection, ask your teacher whether you will be reviewing your own composition (self-reflection) or reviewing a partner's composition (peer feedback).",
-      voiceText: "Time to reflect on your work! First, ask your teacher: Are you reviewing your own composition, or will you be reviewing a partner's work?",
-      note: "Once your teacher tells you which type of review to do, click Continue below to proceed."
+      text: "Think about the rhythmic choices you made in your composition. How did your beat match the sports action?",
+      voiceText: "Time to reflect on your beat choices! Think about why you created the rhythm you did.",
+      note: "Click Continue to begin your Beat Spotlight reflection."
     },
-    
+
     chooseReviewType: {
       title: "Whose composition are you reviewing?",
       options: [
@@ -219,56 +293,95 @@ export const reflectionActivity = {
       ],
       voiceText: "Whose composition are you reviewing? Choose whether you'll reflect on your own work or a friend's composition."
     },
-    
+
     listenAndShare: {
       self: {
-        title: "Listen to Your Composition",
-        text: "Take a moment to listen to your wildlife soundtrack. Think about your song form and sectional choices.",
-        voiceText: "Listen to your composition and think about your song form and sectional choices."
+        title: "Listen to Your Sports Music",
+        mainText: "Listen to your entire sports composition from beginning to end.",
+        payAttentionTo: {
+          title: "Pay attention to:",
+          items: [
+            "What beat pattern did you create?",
+            "How does your rhythm match the action?",
+            "Where does the energy build?"
+          ]
+        },
+        voiceText: "Now, listen to your entire sports composition. Pay attention to: Your beat pattern. How the rhythm matches the action. And where the energy builds."
       },
       partner: {
-        title: "Listen to Your Partner's Composition",
-        text: "Take a moment to listen to your partner's wildlife soundtrack. Think about their song form and sectional choices.",
-        voiceText: "Listen to your partner's composition and think about their song form and sectional choices."
+        title: "Share & Listen",
+        shareFirst: {
+          title: "First: Share your score",
+          text: "Share your score with [Partner Name] so they can see and hear your work."
+        },
+        mainText: "Now, listen to [Partner Name]'s entire sports composition from beginning to end.",
+        payAttentionTo: {
+          title: "Pay attention to:",
+          items: [
+            "What beat pattern did they create?",
+            "How does their rhythm match the action?",
+            "Where does the energy build?"
+          ]
+        },
+        voiceText: "Now share your work! First, share your score with [Partner Name]. Then, listen to their composition and pay attention to their rhythm choices."
+      }
+    },
+
+    summary: {
+      self: {
+        title: "Your Beat Spotlight",
+        readAloud: {
+          title: "Now Read Your Reflection Aloud!",
+          text: "Read your reflection to yourself or share it with a neighbor."
+        },
+        voiceText: "Here's your complete Beat Spotlight! Now read your reflection out loud to yourself or share it with a neighbor."
+      },
+      partner: {
+        title: "Your Beat Spotlight",
+        readAloud: {
+          title: "Now Read Your Reflection Aloud!",
+          text: "Read this feedback out loud to [Partner Name]."
+        },
+        voiceText: "Here's your complete Beat Spotlight! Now read your feedback out loud to [Partner Name]."
       }
     }
   },
 
-  // Self-reflection prompts
+  // Self-reflection prompts (Beat Spotlight format)
   selfReflection: {
-    star1: {
-      title: "STAR 1: Song Form & Sections",
-      question: "What did you do well with song form and sections?",
-      voiceText: "Star 1: Think about what went well with song form and sections.",
+    beatPattern: {
+      title: "YOUR BEAT",
+      question: "Describe your beat pattern.",
+      voiceText: "Describe your beat: What pattern did you create?",
       options: [
-        "I used clear Intro, A, A', and Outro sections",
-        "I built up texture effectively through sections",
-        "I created good contrast between sections",
-        "I followed the sectional loop form structure well",
+        "I used a strong kick on 1 and 3 with snare on 2 and 4",
+        "I created a driving beat with hi-hat throughout",
+        "I used syncopated rhythms for more excitement",
+        "I kept the beat simple to support the loops",
         "Custom..."
       ]
     },
-    star2: {
-      title: "STAR 2: Musical Choices",
-      question: "How well did your musical choices support the wildlife video?",
-      voiceText: "Star 2: Think about how your musical choices supported the wildlife video.",
+    energyMatch: {
+      title: "THE MATCH",
+      question: "How does your beat match the video action?",
+      voiceText: "How does your beat match the sports action?",
       options: [
-        "My loops matched the mood of the wildlife footage",
-        "I created tension and release that fit the video",
-        "My section changes aligned with video moments",
-        "The texture changes enhanced the visual story",
+        "The beat builds energy when the action gets intense",
+        "My rhythm matches the speed of the sports movements",
+        "The kick hits match big moments in the video",
+        "The overall feel matches the sports energy",
         "Custom..."
       ]
     },
     wish: {
-      title: "WISH: What to try next?",
-      question: "What do you want to improve or try next time?",
-      voiceText: "Now for the Wish: What do you want to try or improve next time?",
+      title: "NEXT TIME",
+      question: "What would you change next time?",
+      voiceText: "What would you try next time?",
       options: [
-        "I want to create more dramatic section changes",
-        "I want to try adding a B section",
-        "I want to better match music to video moments",
-        "I want to experiment with different loop combinations",
+        "I would try more complex hi-hat patterns",
+        "I would add more variation in my beat",
+        "I would build more intensity throughout",
+        "I would try different tempo settings",
         "Custom..."
       ]
     }
@@ -276,39 +389,39 @@ export const reflectionActivity = {
 
   // Partner reflection prompts
   partnerReflection: {
-    star1: {
-      title: "STAR 1: What did [Partner Name] do well?",
-      question: "What did [Partner Name] do well with song form and sections?",
-      voiceText: "Star 1: What did they do well with song form and sections?",
+    beatPattern: {
+      title: "THEIR BEAT",
+      question: "Describe [Partner Name]'s beat pattern.",
+      voiceText: "What beat pattern did they create?",
       options: [
-        "[Partner Name] used clear sections effectively",
-        "[Partner Name] built up texture well through sections",
-        "[Partner Name] created good contrast between sections",
-        "[Partner Name] followed the sectional loop form well",
+        "[Partner Name] used a strong, steady beat pattern",
+        "[Partner Name] created interesting rhythmic variations",
+        "[Partner Name] kept the beat simple and effective",
+        "[Partner Name] used complex layered rhythms",
         "Custom..."
       ]
     },
-    star2: {
-      title: "STAR 2: What worked well?",
-      question: "How well did [Partner Name]'s music support the wildlife video?",
-      voiceText: "Star 2: How well did their music support the wildlife video?",
+    energyMatch: {
+      title: "THE MATCH",
+      question: "How well did their beat match the action?",
+      voiceText: "How does their beat match the sports action?",
       options: [
-        "The loops matched the mood of the footage",
-        "The section changes were well-timed",
-        "The texture changes enhanced the visual story",
-        "The music built tension and release effectively",
+        "Their beat matched the energy of the video well",
+        "The rhythm built at the right moments",
+        "The beat supported the sports action nicely",
+        "The intensity matched the video's intensity",
         "Custom..."
       ]
     },
     wish: {
-      title: "WISH: What could they try?",
-      question: "What could [Partner Name] try or improve next time?",
-      voiceText: "Now for the Wish: What could they try or improve?",
+      title: "SUGGESTION",
+      question: "What could [Partner Name] try next time?",
+      voiceText: "What could they try next time?",
       options: [
-        "[Partner Name] could create more dramatic section changes",
-        "[Partner Name] could try adding a B section",
-        "[Partner Name] could better match music to video moments",
-        "[Partner Name] could experiment with different loops",
+        "[Partner Name] could try more hi-hat variation",
+        "[Partner Name] could build more intensity",
+        "[Partner Name] could try different beat patterns",
+        "[Partner Name] could experiment with syncopation",
         "Custom..."
       ]
     }
@@ -316,124 +429,31 @@ export const reflectionActivity = {
 };
 
 // ========================================
-// 4. SECTIONAL LOOP BUILDER CONTENT
+// 5. DRUM KIT DEFINITIONS
 // ========================================
-export const sectionalLoopBuilderContent = {
-  instructions: {
-    title: "🎮 Sectional Loop Builder",
-    subtitle: "Build the Wildlife Score",
-    overview: "Listen to mystery clips and place them in the correct order to build the song structure.",
-    mainSteps: [
-      {
-        step: 1,
-        icon: "🎧",
-        title: "Listen to the clip",
-        description: "Count how many layers you hear in each mystery clip"
-      },
-      {
-        step: 2,
-        icon: "🔢",
-        title: "Identify the section",
-        description: "INTRO=2 layers, A=3 layers, A'=4 layers, OUTRO=1 layer"
-      },
-      {
-        step: 3,
-        icon: "📍",
-        title: "Place in the correct slot",
-        description: "Click the slot where this clip belongs in the structure"
-      },
-      {
-        step: 4,
-        icon: "🎯",
-        title: "Complete the round",
-        description: "Fill all 5 slots to complete the round and earn bonus points"
-      }
-    ]
+export const DRUM_KIT = [
+  {
+    id: 'kick',
+    name: 'Kick Drum',
+    description: 'Low, deep foundation',
+    color: '#ef4444',
+    beats: [1, 3],
+    role: 'The heartbeat of the music'
   },
-  
-  structure: [
-    { id: "intro", label: "INTRO", layers: 2, color: "#8B5CF6", description: "Thin texture" },
-    { id: "a1", label: "A", layers: 3, color: "#3B82F6", description: "Medium texture" },
-    { id: "aPrime", label: "A'", layers: 4, color: "#F59E0B", description: "Thick texture" },
-    { id: "a2", label: "A", layers: 3, color: "#3B82F6", description: "Medium texture" },
-    { id: "outro", label: "OUTRO", layers: 1, color: "#8B5CF6", description: "Thin texture" }
-  ],
-
-  safari: {
-    title: "🦁 Safari Bonus",
-    description: "When selected, leave your Chromebook and find the classmate with the matching animal!",
-    rules: [
-      "Look at their screen to find their 4-digit code",
-      "Return to your device and enter the code",
-      "Earn +50 bonus points for success!",
-      "You have 60 seconds to complete the safari"
-    ]
-  }
-};
-
-// ========================================
-// 5. WILDLIFE COMPOSITION CONTENT
-// ========================================
-export const wildlifeCompositionContent = {
-  instructions: {
-    title: "🌍 Epic Wildlife Composition",
-    subtitle: "Create a Nature Documentary Soundtrack",
-    overview: "Use sectional loop form to create music that evolves with wildlife footage.",
-    mainSteps: [
-      {
-        step: 1,
-        icon: "🎬",
-        title: "Choose your video",
-        description: "Select a wildlife video to score"
-      },
-      {
-        step: 2,
-        icon: "📝",
-        title: "Plan your sections",
-        description: "Think about where Intro, A, A', and Outro will go"
-      },
-      {
-        step: 3,
-        icon: "🎵",
-        title: "Build your soundtrack",
-        description: "Drag loops to create each section with different textures"
-      },
-      {
-        step: 4,
-        icon: "💾",
-        title: "Save your work",
-        description: "Click Save to keep your composition"
-      }
-    ]
+  {
+    id: 'snare',
+    name: 'Snare Drum',
+    description: 'Sharp, cracking sound',
+    color: '#f59e0b',
+    beats: [2, 4],
+    role: 'Creates the backbeat'
   },
-  
-  sectionGuide: {
-    title: "Section Guide",
-    sections: [
-      {
-        name: "INTRO",
-        layers: "1-2 layers",
-        purpose: "Set the mood, establish the setting",
-        tip: "Keep it simple - hint at what's to come"
-      },
-      {
-        name: "A Section",
-        layers: "3 layers",
-        purpose: "Main theme - the primary musical idea",
-        tip: "Choose loops that work well together"
-      },
-      {
-        name: "A' Section",
-        layers: "4+ layers",
-        purpose: "Climax - the most intense moment",
-        tip: "Add more layers for thicker texture"
-      },
-      {
-        name: "OUTRO",
-        layers: "1 layer",
-        purpose: "Wind down and conclude",
-        tip: "Gradually remove layers to create closure"
-      }
-    ]
+  {
+    id: 'hihat',
+    name: 'Hi-Hat',
+    description: 'Metallic, ticking sound',
+    color: '#10b981',
+    beats: [1, 2, 3, 4],
+    role: 'Creates momentum'
   }
-};
+];

@@ -1,0 +1,41 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Demo Banner -->
+  <rect x="0" y="0" width="1920" height="70" fill="#7c3aed"/>
+  <text x="960" y="48" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white" font-weight="bold" text-anchor="middle">VIDEO DEMONSTRATION</text>
+
+  <!-- Title -->
+  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">SPORTS CLIP COMPARISON</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="230" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
+
+  <!-- Two boxes side by side -->
+  <rect x="200" y="350" width="720" height="400" rx="16" fill="#1e293b" stroke="#10b981" stroke-width="3"/>
+  <text x="560" y="450" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#10b981" text-anchor="middle" font-weight="bold">WITH MUSIC</text>
+  <text x="560" y="540" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#e2e8f0" text-anchor="middle">Feel the energy of the beat.</text>
+  <text x="560" y="600" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#e2e8f0" text-anchor="middle">Notice how the rhythm</text>
+  <text x="560" y="650" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#e2e8f0" text-anchor="middle">drives the action.</text>
+
+  <rect x="1000" y="350" width="720" height="400" rx="16" fill="#1e293b" stroke="#94a3b8" stroke-width="3"/>
+  <text x="1360" y="450" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#94a3b8" text-anchor="middle" font-weight="bold">WITHOUT MUSIC</text>
+  <text x="1360" y="540" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#e2e8f0" text-anchor="middle">Same video, no sound.</text>
+  <text x="1360" y="600" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#e2e8f0" text-anchor="middle">How does it feel</text>
+  <text x="1360" y="650" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#e2e8f0" text-anchor="middle">without the beat?</text>
+
+  <!-- Bottom question -->
+  <text x="960" y="900" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#a5b4fc" text-anchor="middle">What difference does the beat make?</text>
+</svg>

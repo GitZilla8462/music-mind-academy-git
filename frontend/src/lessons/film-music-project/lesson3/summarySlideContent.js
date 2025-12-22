@@ -1,137 +1,105 @@
-// File: /src/lessons/film-music-project/lesson3/summarySlideContent.js
-// All instructional text and content for Lesson 3 - City Soundscapes
-// ✅ UPDATED: Renamed Texture Drawings to Listening Map throughout
+// File: /src/lessons/film-music-project/lesson4/summarySlideContent.js
+// All instructional text and content for Lesson 4 - Epic Wildlife
+// ✅ UPDATED: Renamed from "Chef's Soundtrack" to "Epic Wildlife"
 
 // ========================================
 // 1. PRE-ACTIVITY SUMMARY SLIDES
 // ========================================
 export const summarySlides = {
   introVideo: {
-    title: "Welcome to City Soundscapes!",
-    icon: "🏙️",
+    title: "Welcome to Epic Wildlife!",
+    icon: "🌍",
     estimatedTime: "3 minutes",
     points: [
-      "Learn about texture and layering in music.",
-      "Draw a listening map while hearing instruments play.",
-      "Create your own city soundscape using multiple layers."
+      "Learn about song form and sectional loops.",
+      "Build song structures using Intro → A → A' → A → Outro.",
+      "Create your own wildlife soundtrack using multiple sections."
     ]
   },
 
-  textureConcept: {
-    title: "What is Texture in Music?",
-    icon: "🎹",
+  songFormConcept: {
+    title: "What is Song Form?",
+    icon: "🎵",
     estimatedTime: "Discussion",
     points: [
-      "Texture = The thickness or thinness of sound",
-      "Thin texture = Few layers (1-2 sounds)",
-      "Thick texture = Many layers (3+ sounds)",
-      "Layers create fullness and complexity in music"
+      "Form = The structure or organization of music",
+      "Sections = Different parts of a song (A, B, C, etc.)",
+      "Intro = Beginning that sets the mood",
+      "Outro = Ending that wraps up the music"
     ]
   },
 
-  layersAndTexture: {
-    title: "Layers and Texture",
-    icon: "📚",
+  sectionalLoopForm: {
+    title: "Sectional Loop Form",
+    icon: "🔄",
     estimatedTime: "Discussion",
     points: [
-      "Each instrument you hear is a new layer of sound.",
-      "More layers = Thicker texture and fuller sound.",
-      "Composers control texture by adding or removing instruments.",
-      "City soundscapes have thick texture with many overlapping sounds."
+      "Music is built from repeating loops in sections.",
+      "Each section has a different number of layers.",
+      "A' (A-prime) is a variation of A with MORE layers.",
+      "The pattern: Intro → A → A' → A → Outro"
     ]
   },
 
-  // ✅ RENAMED: Listening Map summary slide content
-  listeningMap: {
-    title: "Listening Map",
-    icon: "🗺️",
-    estimatedTime: "8 minutes",
+  sectionalLoopBuilder: {
+    title: "Sectional Loop Builder Game",
+    icon: "🎮",
+    estimatedTime: "5 minutes",
     points: [
-      "Listen to music with different numbers of instruments",
-      "Draw what you hear on a blank canvas",
-      "Create a visual map of the sounds you hear",
-      "Notice how the music gets fuller with more instruments"
+      "Listen to mystery clips and count the layers",
+      "Place each clip in the correct slot",
+      "Build the song structure: Intro → A → A' → A → Outro",
+      "Safari bonus: Find classmates and enter their codes!"
     ],
-    rounds: [
-      {
-        number: 1,
-        title: "Quartet",
-        instruments: ["Violin 1", "Violin 2", "Viola", "Cello"],
-        instruction: "Draw lines representing each instrument",
-        color: "#8B5CF6"
-      }
-    ],
-    reflectionQuestions: [
-      "How did you represent different instruments in your drawing?",
-      "What does 'thick texture' look like vs 'thin texture'?",
-      "Could you hear each instrument separately?"
-    ]
-  },
-
-  // Loop Lab summary slide content
-  loopLab: {
-    title: "Loop Lab Partner Game",
-    icon: "🎧",
-    estimatedTime: "6 minutes",
-    points: [
-      "Work in pairs (2-3 per Chromebook)",
-      "One player listens and describes, one player builds",
-      "Use musical vocabulary to communicate",
-      "Swap roles each round!"
-    ],
-    roles: {
-      listener: {
-        title: "THE LISTENER 🎧",
-        tasks: [
-          "Wears headphones",
-          "Hears the mystery loops",
-          "Describes using musical words",
-          "Can't touch the screen!"
-        ]
-      },
-      builder: {
-        title: "THE BUILDER 🔨",
-        tasks: [
-          "Sees all the loops",
-          "Listens to descriptions",
-          "Builds a matching mix",
-          "Earns points for accuracy!"
-        ]
-      }
+    structure: {
+      title: "Target Structure",
+      sections: [
+        { name: "INTRO", layers: 2, description: "Thin texture to start" },
+        { name: "A", layers: 3, description: "Main theme with medium texture" },
+        { name: "A'", layers: 4, description: "Variation with thicker texture" },
+        { name: "A", layers: 3, description: "Return to main theme" },
+        { name: "OUTRO", layers: 1, description: "Thin texture to end" }
+      ]
     },
     scoring: {
-      exact: { points: 20, label: "Exact Match" },
-      category: { points: 5, label: "Right Category" },
-      perfect: { points: 10, label: "Perfect Bonus" }
-    },
-    vocabularyHints: [
-      { icon: "🎵", label: "Pitch", examples: "High / Low / Bright / Dark" },
-      { icon: "🥁", label: "Rhythm", examples: "Fast / Slow / Steady" },
-      { icon: "🎸", label: "Instrument", examples: "Drums, Strings, Synth, Bass" },
-      { icon: "✨", label: "Feel", examples: "Heroic, Scary, Mysterious, Upbeat" }
-    ]
+      correct: { points: 25, label: "Correct Placement" },
+      completion: { points: 25, label: "Round Bonus" },
+      safari: { points: 50, label: "Safari Bonus" }
+    }
   },
 
-  cityComposition: {
-    title: "Compose Your City Soundscape",
-    icon: "🎵",
+  wildlifeComposition: {
+    title: "Compose Your Wildlife Soundtrack",
+    icon: "🦁",
     estimatedTime: "10 minutes",
     points: [
-      "Use 5 or more different loops to create variety.",
-      "Create 3 or more layers by playing loops together.",
-      "Build a thick texture that sounds like a busy city!",
-      "Be creative with your loop combinations."
+      "Choose a wildlife video to score.",
+      "Use sectional loop form: Intro → A → A' → A → Outro.",
+      "Create at least 5 different sections.",
+      "Build thin and thick textures across your composition."
     ]
   },
 
   reflection: {
     title: "Two Stars and a Wish",
     icon: "⭐",
-    estimatedTime: "3 minutes",
+    estimatedTime: "5 minutes",
     points: [
-      "Name two things you did well with texture and layering.",
+      "Name two things you did well with song form and sections.",
       "Describe one thing you would improve or try differently.",
       "Listen to your composition while completing the reflection."
+    ]
+  },
+
+  monsterMelodyMaker: {
+    title: "Monster Melody Maker",
+    icon: "👾",
+    estimatedTime: "8 minutes",
+    points: [
+      "Create your own loop using the step sequencer.",
+      "Customize your monster's body, eyes, mouth, and accessories.",
+      "Watch your monster dance and sing to your music!",
+      "Save your creation when you're done."
     ]
   }
 };
@@ -140,66 +108,94 @@ export const summarySlides = {
 // 2. ASSIGNMENT PANEL CONTENT
 // ========================================
 export const assignmentPanels = {
-  listeningMap: {
-    title: "Listening Map Activity",
+  sectionalLoopBuilder: {
+    title: "Sectional Loop Builder Game",
     requirements: [
       {
         id: "listen",
         label: "Listen",
-        shortText: "Listen carefully to each instrument",
-        fullText: "Pay attention to how many instruments you hear playing."
+        shortText: "Listen to each mystery clip",
+        fullText: "Count the number of layers in each clip to identify its section."
       },
       {
-        id: "draw",
-        label: "Draw",
-        shortText: "Draw while the music plays",
-        fullText: "Create lines, shapes, or patterns that represent what you hear."
+        id: "identify",
+        label: "Identify",
+        shortText: "Count the layers",
+        fullText: "INTRO=2, A=3, A'=4, OUTRO=1 layers."
       },
       {
-        id: "map",
-        label: "Map",
-        shortText: "Create a visual map of sounds",
-        fullText: "Your drawing should show the different layers of music."
+        id: "place",
+        label: "Place",
+        shortText: "Put clips in the right slots",
+        fullText: "Build the correct song structure by placing clips in order."
+      },
+      {
+        id: "safari",
+        label: "Safari",
+        shortText: "Find classmates (bonus)",
+        fullText: "When prompted, find the classmate with the matching animal and enter their code for bonus points!"
       }
     ]
   },
 
-  cityComposition: {
+  wildlifeComposition: {
     title: "Composition Assignment",
     requirements: [
       {
-        id: "variety",
-        label: "Variety",
-        shortText: "5+ Different loops",
-        fullText: "Use five or more different loops in your composition."
+        id: "sections",
+        label: "Sections",
+        shortText: "5+ Different sections",
+        fullText: "Create at least five different sections in your composition."
       },
       {
-        id: "layering",
-        label: "Layering",
-        shortText: "3+ Layers",
-        fullText: "Create three or more layers by playing loops together at the same time."
+        id: "form",
+        label: "Form",
+        shortText: "Use sectional loop form",
+        fullText: "Follow the Intro → A → A' → A → Outro structure."
       },
       {
         id: "texture",
-        label: "Thick Texture",
-        shortText: "Create thick texture",
-        fullText: "Your city soundscape should have a thick, full texture with many overlapping sounds."
+        label: "Texture",
+        shortText: "Vary your texture",
+        fullText: "Create thin and thick textures across different sections."
+      },
+      {
+        id: "progression",
+        label: "Progression",
+        shortText: "Build and release",
+        fullText: "Your music should build up to A' and then return down."
       }
     ]
   },
 
-  bonusActivity: {
-    title: "Bonus: Add More Layers & Variation",
-    description: "Great job! Use remaining time to enhance your soundscape.",
-    instructions: {
-      title: "Ways to enhance your composition:",
-      items: [
-        "Add 4, 5, or even 6 layers of sound for ultra-thick texture",
-        "Try different volume levels for each loop",
-        "Create sections with different textures (thin vs. thick)",
-        "Experiment with when loops start and stop"
-      ]
-    }
+  monsterMelodyMaker: {
+    title: "Monster Melody Maker",
+    requirements: [
+      {
+        id: "sequencer",
+        label: "Sequencer",
+        shortText: "Create a loop",
+        fullText: "Click cells in the grid to create your melody and beat pattern."
+      },
+      {
+        id: "customize",
+        label: "Customize",
+        shortText: "Design your monster",
+        fullText: "Choose body shape, colors, eyes, mouth, and accessories."
+      },
+      {
+        id: "play",
+        label: "Play",
+        shortText: "Watch it perform",
+        fullText: "Press play to see your monster dance and sing to your music!"
+      },
+      {
+        id: "save",
+        label: "Save",
+        shortText: "Save your creation",
+        fullText: "Give your monster melody a name and save it."
+      }
+    ]
   }
 };
 
@@ -227,13 +223,13 @@ export const reflectionActivity = {
     listenAndShare: {
       self: {
         title: "Listen to Your Composition",
-        text: "Take a moment to listen to your city soundscape. Think about your texture and layering choices.",
-        voiceText: "Listen to your composition and think about your texture and layering choices."
+        text: "Take a moment to listen to your wildlife soundtrack. Think about your song form and sectional choices.",
+        voiceText: "Listen to your composition and think about your song form and sectional choices."
       },
       partner: {
         title: "Listen to Your Partner's Composition",
-        text: "Take a moment to listen to your partner's city soundscape. Think about their texture and layering choices.",
-        voiceText: "Listen to your partner's composition and think about their texture and layering choices."
+        text: "Take a moment to listen to your partner's wildlife soundtrack. Think about their song form and sectional choices.",
+        voiceText: "Listen to your partner's composition and think about their song form and sectional choices."
       }
     }
   },
@@ -241,26 +237,26 @@ export const reflectionActivity = {
   // Self-reflection prompts
   selfReflection: {
     star1: {
-      title: "STAR 1: Texture & Layering",
-      question: "What did you do well with texture and layering?",
-      voiceText: "Star 1: Think about what went well with texture and layering.",
+      title: "STAR 1: Song Form & Sections",
+      question: "What did you do well with song form and sections?",
+      voiceText: "Star 1: Think about what went well with song form and sections.",
       options: [
-        "I used multiple layers to create thick texture",
-        "I layered loops effectively to build a city atmosphere",
-        "I created interesting texture by combining different loops",
-        "I varied the texture throughout my composition",
+        "I used clear Intro, A, A', and Outro sections",
+        "I built up texture effectively through sections",
+        "I created good contrast between sections",
+        "I followed the sectional loop form structure well",
         "Custom..."
       ]
     },
     star2: {
-      title: "STAR 2: Loop Choices",
-      question: "How well did your loop choices work together?",
-      voiceText: "Star 2: Think about how your loop choices worked together.",
+      title: "STAR 2: Musical Choices",
+      question: "How well did your musical choices support the wildlife video?",
+      voiceText: "Star 2: Think about how your musical choices supported the wildlife video.",
       options: [
-        "My loops blended together nicely",
-        "I chose loops that created a good city vibe",
-        "My loop combinations were creative and interesting",
-        "The different layers complemented each other well",
+        "My loops matched the mood of the wildlife footage",
+        "I created tension and release that fit the video",
+        "My section changes aligned with video moments",
+        "The texture changes enhanced the visual story",
         "Custom..."
       ]
     },
@@ -269,10 +265,10 @@ export const reflectionActivity = {
       question: "What do you want to improve or try next time?",
       voiceText: "Now for the Wish: What do you want to try or improve next time?",
       options: [
-        "I want to add even more layers for thicker texture",
-        "I want to try different loop combinations",
-        "I want to vary the texture more (thin and thick sections)",
-        "I want to experiment with different volumes and timing",
+        "I want to create more dramatic section changes",
+        "I want to try adding a B section",
+        "I want to better match music to video moments",
+        "I want to experiment with different loop combinations",
         "Custom..."
       ]
     }
@@ -282,25 +278,25 @@ export const reflectionActivity = {
   partnerReflection: {
     star1: {
       title: "STAR 1: What did [Partner Name] do well?",
-      question: "What did [Partner Name] do well with texture and layering?",
-      voiceText: "Star 1: What did they do well with texture and layering?",
+      question: "What did [Partner Name] do well with song form and sections?",
+      voiceText: "Star 1: What did they do well with song form and sections?",
       options: [
-        "[Partner Name] used multiple layers effectively",
-        "[Partner Name] created thick texture that sounded full",
-        "[Partner Name] made interesting layer combinations",
-        "[Partner Name] varied the texture throughout",
+        "[Partner Name] used clear sections effectively",
+        "[Partner Name] built up texture well through sections",
+        "[Partner Name] created good contrast between sections",
+        "[Partner Name] followed the sectional loop form well",
         "Custom..."
       ]
     },
     star2: {
       title: "STAR 2: What worked well?",
-      question: "How well did [Partner Name]'s loops work together?",
-      voiceText: "Star 2: How well did their loops work together?",
+      question: "How well did [Partner Name]'s music support the wildlife video?",
+      voiceText: "Star 2: How well did their music support the wildlife video?",
       options: [
-        "The loops blended together nicely",
-        "The loops created a good city atmosphere",
-        "The loop combinations were creative",
-        "The layers complemented each other well",
+        "The loops matched the mood of the footage",
+        "The section changes were well-timed",
+        "The texture changes enhanced the visual story",
+        "The music built tension and release effectively",
         "Custom..."
       ]
     },
@@ -309,10 +305,10 @@ export const reflectionActivity = {
       question: "What could [Partner Name] try or improve next time?",
       voiceText: "Now for the Wish: What could they try or improve?",
       options: [
-        "[Partner Name] could add more layers",
-        "[Partner Name] could try different loop combinations",
-        "[Partner Name] could vary the texture more",
-        "[Partner Name] could experiment with volumes and timing",
+        "[Partner Name] could create more dramatic section changes",
+        "[Partner Name] could try adding a B section",
+        "[Partner Name] could better match music to video moments",
+        "[Partner Name] could experiment with different loops",
         "Custom..."
       ]
     }
@@ -320,138 +316,124 @@ export const reflectionActivity = {
 };
 
 // ========================================
-// 4. LISTENING MAP SPECIFIC CONTENT
+// 4. SECTIONAL LOOP BUILDER CONTENT
 // ========================================
-export const listeningMapContent = {
+export const sectionalLoopBuilderContent = {
   instructions: {
-    title: "🗺️ Listening Map",
-    subtitle: "Listen & Draw Layers",
-    overview: "You'll listen to music and draw what you hear on a blank canvas.",
+    title: "🎮 Sectional Loop Builder",
+    subtitle: "Build the Wildlife Score",
+    overview: "Listen to mystery clips and place them in the correct order to build the song structure.",
     mainSteps: [
       {
         step: 1,
         icon: "🎧",
-        title: "Listen to the music",
-        description: "Press play and listen carefully to how many instruments are playing"
+        title: "Listen to the clip",
+        description: "Count how many layers you hear in each mystery clip"
       },
       {
         step: 2,
-        icon: "🎨",
-        title: "Draw while listening",
-        description: "Use lines, shapes, and colors to represent each instrument you hear"
+        icon: "🔢",
+        title: "Identify the section",
+        description: "INTRO=2 layers, A=3 layers, A'=4 layers, OUTRO=1 layer"
       },
       {
         step: 3,
-        icon: "🗺️",
-        title: "Create your map",
-        description: "Your drawing is a visual map of all the sounds in the music"
+        icon: "📍",
+        title: "Place in the correct slot",
+        description: "Click the slot where this clip belongs in the structure"
+      },
+      {
+        step: 4,
+        icon: "🎯",
+        title: "Complete the round",
+        description: "Fill all 5 slots to complete the round and earn bonus points"
+      }
+    ]
+  },
+  
+  structure: [
+    { id: "intro", label: "INTRO", layers: 2, color: "#8B5CF6", description: "Thin texture" },
+    { id: "a1", label: "A", layers: 3, color: "#3B82F6", description: "Medium texture" },
+    { id: "aPrime", label: "A'", layers: 4, color: "#F59E0B", description: "Thick texture" },
+    { id: "a2", label: "A", layers: 3, color: "#3B82F6", description: "Medium texture" },
+    { id: "outro", label: "OUTRO", layers: 1, color: "#8B5CF6", description: "Thin texture" }
+  ],
+
+  safari: {
+    title: "🦁 Safari Bonus",
+    description: "When selected, leave your Chromebook and find the classmate with the matching animal!",
+    rules: [
+      "Look at their screen to find their 4-digit code",
+      "Return to your device and enter the code",
+      "Earn +50 bonus points for success!",
+      "You have 60 seconds to complete the safari"
+    ]
+  }
+};
+
+// ========================================
+// 5. WILDLIFE COMPOSITION CONTENT
+// ========================================
+export const wildlifeCompositionContent = {
+  instructions: {
+    title: "🌍 Epic Wildlife Composition",
+    subtitle: "Create a Nature Documentary Soundtrack",
+    overview: "Use sectional loop form to create music that evolves with wildlife footage.",
+    mainSteps: [
+      {
+        step: 1,
+        icon: "🎬",
+        title: "Choose your video",
+        description: "Select a wildlife video to score"
+      },
+      {
+        step: 2,
+        icon: "📝",
+        title: "Plan your sections",
+        description: "Think about where Intro, A, A', and Outro will go"
+      },
+      {
+        step: 3,
+        icon: "🎵",
+        title: "Build your soundtrack",
+        description: "Drag loops to create each section with different textures"
       },
       {
         step: 4,
         icon: "💾",
         title: "Save your work",
-        description: "Click Save to keep your listening map"
+        description: "Click Save to keep your composition"
       }
     ]
   },
   
-  rounds: [
-    {
-      id: 1,
-      title: "String Quartet",
-      subtitle: "Four Voices",
-      instrumentCount: 4,
-      instruments: ["Violin 1", "Violin 2", "Viola", "Cello"],
-      description: "Listen for FOUR instruments weaving together",
-      instruction: "Draw lines or shapes to represent each instrument you hear",
-      color: "#8B5CF6",
-      piece: "Eine kleine Nachtmusik"
-    }
-  ],
-
-  drawingTips: [
-    { icon: "📏", tip: "Use different line styles for different instruments (wavy, straight, dotted)" },
-    { icon: "🎨", tip: "Try different colors for each instrument" },
-    { icon: "⬆️", tip: "Higher sounds can go higher on the canvas" },
-    { icon: "📐", tip: "Thicker lines for louder instruments" }
-  ],
-
-  reflectionQuestions: [
-    "How did you represent different instruments in your drawing?",
-    "Could you hear each instrument separately?",
-    "What does 'thick texture' look like in your listening map?"
-  ]
-};
-
-// ========================================
-// 5. LOOP LAB SPECIFIC CONTENT
-// ========================================
-export const loopLabContent = {
-  instructions: {
-    title: "🎧 Loop Lab 🔬",
-    subtitle: "One Hears, One Builds!",
-    setup: "Groups of 2-3 students share ONE Chromebook",
-    mainSteps: [
+  sectionGuide: {
+    title: "Section Guide",
+    sections: [
       {
-        step: 1,
-        icon: "🎧",
-        title: "Listener puts on headphones",
-        description: "Only the Listener can hear the mystery loops"
+        name: "INTRO",
+        layers: "1-2 layers",
+        purpose: "Set the mood, establish the setting",
+        tip: "Keep it simple - hint at what's to come"
       },
       {
-        step: 2,
-        icon: "🗣️",
-        title: "Listener describes what they hear",
-        description: "Use musical words: pitch, rhythm, instrument type, mood"
+        name: "A Section",
+        layers: "3 layers",
+        purpose: "Main theme - the primary musical idea",
+        tip: "Choose loops that work well together"
       },
       {
-        step: 3,
-        icon: "🔨",
-        title: "Builder selects matching loops",
-        description: "Try to recreate what the Listener describes"
+        name: "A' Section",
+        layers: "4+ layers",
+        purpose: "Climax - the most intense moment",
+        tip: "Add more layers for thicker texture"
       },
       {
-        step: 4,
-        icon: "✅",
-        title: "Check and score!",
-        description: "See how close you got, then swap roles"
+        name: "OUTRO",
+        layers: "1 layer",
+        purpose: "Wind down and conclude",
+        tip: "Gradually remove layers to create closure"
       }
     ]
-  },
-  
-  vocabularyGuide: {
-    title: "Musical Vocabulary Helper",
-    categories: [
-      {
-        name: "Pitch",
-        icon: "🎵",
-        words: ["High", "Low", "Bright", "Dark", "Squeaky", "Deep", "Boomy"]
-      },
-      {
-        name: "Rhythm",
-        icon: "🥁", 
-        words: ["Fast", "Slow", "Steady beat", "Bouncy", "Driving", "Relaxed"]
-      },
-      {
-        name: "Instruments",
-        icon: "🎸",
-        words: ["Drums", "Strings", "Synth", "Bass", "Brass", "Guitar", "Piano", "Bells"]
-      },
-      {
-        name: "Mood/Feel",
-        icon: "✨",
-        words: ["Heroic", "Scary", "Mysterious", "Upbeat", "Hype", "Intense", "Calm"]
-      }
-    ]
-  },
-
-  scoringExplanation: {
-    title: "How Scoring Works",
-    items: [
-      { label: "Exact Match", points: "+20", description: "You picked the exact same loop!" },
-      { label: "Right Category", points: "+5", description: "Right type of instrument, different loop" },
-      { label: "Perfect Bonus", points: "+10", description: "All loops matched perfectly!" }
-    ],
-    tip: "The Builder earns points, so Listeners: communicate clearly to help your partner score!"
   }
 };

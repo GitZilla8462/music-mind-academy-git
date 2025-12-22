@@ -9,7 +9,7 @@ import { Minimize2, Maximize2 } from 'lucide-react';
 import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
 import ChallengeSidebar from './ChallengeSidebar';
 import { DAW_CHALLENGES } from './challengeDefinitions';
-import { saveDAWStats } from "../../../film-music-project/lesson2/lesson2StorageUtils";
+import { saveDAWStats } from "../../../film-music-project/lesson4/lesson4StorageUtils";
 import './TutorialHighlight.css';
 
 const DAW_TUTORIAL_DURATION = 13 * 60 * 1000; // 13 minutes in milliseconds

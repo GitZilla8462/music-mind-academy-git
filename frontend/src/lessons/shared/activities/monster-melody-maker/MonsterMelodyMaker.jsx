@@ -319,7 +319,7 @@ const MonsterMelodyMaker = ({
     saveStudentWork('robot-melody-maker', {
       title: saveName,
       emoji: '🤖',
-      viewRoute: '/lessons/film-music-project/lesson4?view=melody',
+      viewRoute: '/lessons/film-music-project/lesson3?view=melody',
       subtitle: `${robotsWithMelodies} robot${robotsWithMelodies !== 1 ? 's' : ''} with melodies`,
       category: 'Film Music Project',
       data: saveData

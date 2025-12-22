@@ -33,6 +33,15 @@ import MelodyEscapeRoomActivity from '../activities/melody-escape-room';
 // ✅ ADDED: Mood Match Game for Lesson 1 (Score the Adventure)
 import MoodMatchGameActivity from '../activities/mood-match-game';
 
+// ✅ ADDED: Layer Lab for Lesson 2 (Sports Highlights - Instrumentation)
+import LayerLabActivity from '../activities/layer-lab';
+
+// ✅ ADDED: Loop Lab partner game for Lesson 2 (Instrumentation & Timbre)
+import LoopLabActivity from '../activities/loop-lab/LoopLabActivity';
+
+// ✅ ADDED: Beat Maker drum grid for Lesson 2 (Rhythm & Beat Creation)
+import BeatMakerActivity from '../activities/beat-maker';
+
 const ActivityRenderer = ({
   activity,
   onComplete,
@@ -237,6 +246,57 @@ const ActivityRenderer = ({
           title="Score the Adventure"
           videoPath="/lessons/film-music-project/lesson1/NatureDroneFootage.mp4"
           storageKey="adventure-composition"
+        />
+      );
+
+    // ✅ ADDED: Layer Lab (Lesson 2 - Sports Highlights - Instrumentation)
+    case 'layer-lab':
+      return (
+        <LayerLabActivity
+          key={`layer-lab-${activity.id}`}
+          onComplete={onComplete}
+        />
+      );
+
+    // ✅ ADDED: Loop Lab partner game (Lesson 2 - Instrumentation & Timbre)
+    case 'loop-lab':
+      return (
+        <LoopLabActivity
+          key={`loop-lab-${activity.id}`}
+          onComplete={onComplete}
+        />
+      );
+
+    // ✅ ADDED: Instrument Spotlight Reflection (Lesson 2)
+    // Reuses SportsCompositionActivity which handles reflection display
+    case 'instrument-spotlight':
+      return (
+        <SportsCompositionActivity
+          key={`instrument-spotlight-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          lessonStartTime={lessonStartTime}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Beat Maker drum grid (Lesson 2 - Rhythm & Beat Creation)
+    case 'beat-maker':
+      return (
+        <BeatMakerActivity
+          key={`beat-maker-${activity.id}`}
+          onComplete={onComplete}
+        />
+      );
+
+    // ✅ ADDED: Beat Spotlight Reflection (Lesson 2 - Rhythm & Beat Creation)
+    case 'beat-spotlight':
+      return (
+        <TwoStarsAndAWishActivity
+          key={`beat-spotlight-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
         />
       );
 

@@ -1,0 +1,45 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">WHAT IS A BEAT?</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="230" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
+
+  <!-- Subtitle -->
+  <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">The Foundation of All Music</text>
+
+  <!-- Definition boxes -->
+  <rect x="150" y="380" width="780" height="140" rx="12" fill="#1e293b" stroke="#f59e0b" stroke-width="3"/>
+  <text x="540" y="440" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#f59e0b" text-anchor="middle" font-weight="bold">RHYTHM</text>
+  <text x="540" y="490" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#e2e8f0" text-anchor="middle">Pattern of sounds and silences in time.</text>
+
+  <rect x="990" y="380" width="780" height="140" rx="12" fill="#1e293b" stroke="#10b981" stroke-width="3"/>
+  <text x="1380" y="440" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#10b981" text-anchor="middle" font-weight="bold">BEAT</text>
+  <text x="1380" y="490" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#e2e8f0" text-anchor="middle">The steady pulse that holds music together.</text>
+
+  <rect x="150" y="560" width="780" height="140" rx="12" fill="#1e293b" stroke="#3b82f6" stroke-width="3"/>
+  <text x="540" y="620" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#3b82f6" text-anchor="middle" font-weight="bold">MEASURE</text>
+  <text x="540" y="670" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#e2e8f0" text-anchor="middle">A group of beats, usually 4 in popular music.</text>
+
+  <rect x="990" y="560" width="780" height="140" rx="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="3"/>
+  <text x="1380" y="620" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#8b5cf6" text-anchor="middle" font-weight="bold">4/4 TIME</text>
+  <text x="1380" y="670" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#e2e8f0" text-anchor="middle">4 beats per measure, the most common time.</text>
+
+  <!-- Visual beat representation -->
+  <text x="960" y="820" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#a5b4fc" text-anchor="middle">One Measure in 4/4 Time:</text>
+  <text x="960" y="920" font-family="Courier New, monospace" font-size="64" fill="white" text-anchor="middle" font-weight="bold">1    2    3    4</text>
+</svg>

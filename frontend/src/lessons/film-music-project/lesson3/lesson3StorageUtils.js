@@ -1,20 +1,23 @@
 // File: /src/lessons/film-music-project/lesson3/lesson3StorageUtils.js
-// Storage management for Lesson 3 - City Soundscapes
-// ✅ UPDATED: Renamed Texture Drawings to Listening Map
+// Centralized localStorage management for Lesson 3 data
+// ✅ UPDATED: Renamed from "Chef's Soundtrack" to "Epic Wildlife"
+// Handles saving/loading compositions with sectional loop form
 
 // Storage Keys
 export const STORAGE_KEYS = {
-  CITY_COMPOSITION: 'city-composition',
-  REFLECTION: 'city-reflection',
+  SECTIONAL_BUILDER_STATS: 'epic-wildlife-sectional-builder-stats',
+  SECTIONAL_BUILDER_SCORE: 'epic-wildlife-sectional-builder-score',
+  COMPOSITION: 'epic-wildlife-composition',
+  BONUS_COMPOSITION: 'epic-wildlife-bonus',
+  REFLECTION: 'epic-wildlife-reflection',
   LESSON_TIMER: 'lesson3-timer',
   LESSON_PROGRESS: 'lesson3-progress',
-  LISTENING_MAP: 'listening-map',  // ✅ RENAMED from texture-drawings
-  LOOP_LAB_SCORE: 'lesson3-loop-lab-score',
-  SELECTED_VIDEO: 'city-selected-video'
+  SELECTED_VIDEO: 'epic-wildlife-selected-video'
 };
 
-// Helper to ensure loop has all required properties
+// ✅ Helper to ensure loop has all required properties
 const normalizeLoop = (loop) => {
+  // Calculate endTime if missing
   const endTime = loop.endTime || (loop.startTime + loop.duration);
   
   return {
@@ -24,6 +27,7 @@ const normalizeLoop = (loop) => {
     file: loop.file,
     duration: loop.duration,
     category: loop.category,
+    section: loop.section || 'A',  // ✅ Track which section this loop belongs to
     color: loop.color,
     trackIndex: loop.trackIndex,
     startTime: loop.startTime,
@@ -33,7 +37,7 @@ const normalizeLoop = (loop) => {
   };
 };
 
-// ✅ Selected City Video
+// ✅ Selected Wildlife Video
 export const saveSelectedVideo = (videoId, videoTitle) => {
   const selection = {
     videoId,
@@ -41,7 +45,7 @@ export const saveSelectedVideo = (videoId, videoTitle) => {
     selectedAt: new Date().toISOString()
   };
   localStorage.setItem(STORAGE_KEYS.SELECTED_VIDEO, JSON.stringify(selection));
-  console.log('✅ City video selection saved:', selection);
+  console.log('✅ Wildlife video selection saved:', selection);
   return selection;
 };
 
@@ -55,117 +59,165 @@ export const getSelectedVideo = () => {
   }
 };
 
-// ✅ RENAMED: Listening Map Storage (formerly Texture Drawings)
-// Now uses studentId for consistency with other activities
-export const saveListeningMap = (studentId, imageData, roundId, roundTitle, instrumentCount) => {
-  const mapData = {
-    imageData,
-    roundId,
-    roundTitle,
-    instrumentCount,
-    completedAt: new Date().toISOString(),
-    timestamp: Date.now()
+// Sectional Loop Builder Stats
+export const saveSectionalBuilderStats = (correct, incorrect, patternsCompleted) => {
+  const stats = {
+    correct,
+    incorrect,
+    patternsCompleted,
+    completedAt: new Date().toISOString()
   };
-  const saveKey = `${STORAGE_KEYS.LISTENING_MAP}-${studentId}`;
-  localStorage.setItem(saveKey, JSON.stringify(mapData));
-  console.log('✅ Listening map saved:', saveKey);
-  return mapData;
+  localStorage.setItem(STORAGE_KEYS.SECTIONAL_BUILDER_STATS, JSON.stringify(stats));
+  console.log('Sectional builder stats saved:', stats);
+  return stats;
 };
 
-export const getListeningMap = (studentId) => {
+export const getSectionalBuilderStats = () => {
   try {
-    // Try studentId-based key first
-    if (studentId) {
-      const data = localStorage.getItem(`${STORAGE_KEYS.LISTENING_MAP}-${studentId}`);
-      if (data) return JSON.parse(data);
-    }
-    // Fallback to old key format (no studentId)
-    const data = localStorage.getItem(STORAGE_KEYS.LISTENING_MAP);
+    const data = localStorage.getItem(STORAGE_KEYS.SECTIONAL_BUILDER_STATS);
     return data ? JSON.parse(data) : null;
   } catch (error) {
-    console.error('Error loading listening map:', error);
+    console.error('Error loading sectional builder stats:', error);
     return null;
   }
 };
 
-// Loop Lab Score
-export const saveLoopLabScore = (playerScores, totalRounds, winner) => {
+// Sectional Loop Builder Score (for session mode)
+export const saveSectionalBuilderScore = (studentId, score, rounds, safariBonus) => {
   const scoreData = {
-    playerScores, // { player1: 50, player2: 45, player3: 0 }
-    totalRounds,
-    winner, // 1, 2, 3, or null for tie
+    score,
+    rounds,
+    safariBonus: safariBonus || 0,
     completedAt: new Date().toISOString()
   };
-  localStorage.setItem(STORAGE_KEYS.LOOP_LAB_SCORE, JSON.stringify(scoreData));
-  console.log('✅ Loop Lab score saved:', scoreData);
+  const saveKey = `${STORAGE_KEYS.SECTIONAL_BUILDER_SCORE}-${studentId}`;
+  localStorage.setItem(saveKey, JSON.stringify(scoreData));
+  console.log('✅ Sectional builder score saved:', saveKey, scoreData);
   return scoreData;
 };
 
-export const getLoopLabScore = () => {
+export const getSectionalBuilderScore = (studentId) => {
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.LOOP_LAB_SCORE);
+    if (studentId) {
+      const data = localStorage.getItem(`${STORAGE_KEYS.SECTIONAL_BUILDER_SCORE}-${studentId}`);
+      if (data) return JSON.parse(data);
+    }
+    const data = localStorage.getItem(STORAGE_KEYS.SECTIONAL_BUILDER_SCORE);
     return data ? JSON.parse(data) : null;
   } catch (error) {
-    console.error('Error loading Loop Lab score:', error);
+    console.error('Error loading sectional builder score:', error);
     return null;
   }
 };
 
-// City Composition
-// Now uses studentId for consistency with other activities
-export const saveCityComposition = (studentId, placedLoops, requirements, compositionDuration, videoId) => {
+// Epic Wildlife Composition
+export const saveComposition = (studentId, placedLoops, sections, requirements, videoDuration, videoId) => {
+  // ✅ Normalize all loops to ensure they have complete properties
   const normalizedLoops = placedLoops.map(normalizeLoop);
   
   const composition = {
-    title: 'City Soundscape',
+    title: "Epic Wildlife Soundtrack",
     videoId: videoId,
     placedLoops: normalizedLoops,
+    sections: sections || [],  // Array of section markers {id, startTime, endTime, name}
     requirements,
-    compositionDuration,
+    videoDuration,
     savedAt: new Date().toISOString(),
     loopCount: normalizedLoops.length,
+    sectionCount: sections ? sections.length : 0,
     timestamp: Date.now()
   };
-  const saveKey = `${STORAGE_KEYS.CITY_COMPOSITION}-${studentId}`;
+  const saveKey = studentId ? `${STORAGE_KEYS.COMPOSITION}-${studentId}` : STORAGE_KEYS.COMPOSITION;
   localStorage.setItem(saveKey, JSON.stringify(composition));
-  console.log('✅ City composition saved:', saveKey);
+  console.log('✅ Epic Wildlife composition saved with normalized loops:', composition);
   return composition;
 };
 
-export const getCityComposition = (studentId) => {
+export const getComposition = (studentId) => {
   try {
     // Try studentId-based key first
     if (studentId) {
-      const data = localStorage.getItem(`${STORAGE_KEYS.CITY_COMPOSITION}-${studentId}`);
+      const data = localStorage.getItem(`${STORAGE_KEYS.COMPOSITION}-${studentId}`);
       if (data) {
         const composition = JSON.parse(data);
         if (composition.placedLoops) {
           composition.placedLoops = composition.placedLoops.map(normalizeLoop);
         }
-        console.log('✅ City composition loaded:', composition);
         return composition;
       }
     }
     // Fallback to old key format (no studentId)
-    const data = localStorage.getItem(STORAGE_KEYS.CITY_COMPOSITION);
+    const data = localStorage.getItem(STORAGE_KEYS.COMPOSITION);
     if (!data) return null;
     
     const composition = JSON.parse(data);
     
+    // ✅ Normalize loops on load to ensure backward compatibility
     if (composition.placedLoops) {
       composition.placedLoops = composition.placedLoops.map(normalizeLoop);
     }
     
-    console.log('✅ City composition loaded:', composition);
+    console.log('✅ Epic Wildlife composition loaded with normalized loops:', composition);
     return composition;
   } catch (error) {
-    console.error('Error loading city composition:', error);
+    console.error('Error loading composition:', error);
+    return null;
+  }
+};
+
+// Bonus Composition (Extended version with more sections)
+export const saveBonusComposition = (studentId, placedLoops, sections, videoDuration) => {
+  // ✅ Normalize all loops
+  const normalizedLoops = placedLoops.map(normalizeLoop);
+  
+  const bonus = {
+    title: "Epic Wildlife - Extended",
+    placedLoops: normalizedLoops,
+    sections: sections || [],
+    videoDuration,
+    savedAt: new Date().toISOString(),
+    loopCount: normalizedLoops.length,
+    sectionCount: sections ? sections.length : 0,
+    timestamp: Date.now()
+  };
+  const saveKey = studentId ? `${STORAGE_KEYS.BONUS_COMPOSITION}-${studentId}` : STORAGE_KEYS.BONUS_COMPOSITION;
+  localStorage.setItem(saveKey, JSON.stringify(bonus));
+  console.log('✅ Bonus composition saved with normalized loops:', bonus);
+  return bonus;
+};
+
+export const getBonusComposition = (studentId) => {
+  try {
+    if (studentId) {
+      const data = localStorage.getItem(`${STORAGE_KEYS.BONUS_COMPOSITION}-${studentId}`);
+      if (data) {
+        const bonus = JSON.parse(data);
+        if (bonus.placedLoops) {
+          bonus.placedLoops = bonus.placedLoops.map(normalizeLoop);
+        }
+        return bonus;
+      }
+    }
+    const data = localStorage.getItem(STORAGE_KEYS.BONUS_COMPOSITION);
+    if (!data) return null;
+    
+    const bonus = JSON.parse(data);
+    
+    // ✅ Normalize loops on load
+    if (bonus.placedLoops) {
+      bonus.placedLoops = bonus.placedLoops.map(normalizeLoop);
+    }
+    
+    console.log('✅ Bonus composition loaded with normalized loops:', bonus);
+    return bonus;
+  } catch (error) {
+    console.error('Error loading bonus composition:', error);
     return null;
   }
 };
 
 // Reflection Data
-export const saveCityReflection = (reviewType, partnerName, star1, star2, wish) => {
+export const saveReflection = (reviewType, partnerName, star1, star2, wish) => {
   const reflection = {
     reviewType,
     partnerName,
@@ -179,7 +231,7 @@ export const saveCityReflection = (reviewType, partnerName, star1, star2, wish) 
   return reflection;
 };
 
-export const getCityReflection = () => {
+export const getReflection = () => {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.REFLECTION);
     return data ? JSON.parse(data) : null;
@@ -190,20 +242,43 @@ export const getCityReflection = () => {
 };
 
 // Clear all lesson data
-export const clearAllLesson3Data = () => {
+export const clearAllLessonData = () => {
   Object.values(STORAGE_KEYS).forEach(key => {
     localStorage.removeItem(key);
   });
-  console.log('All Lesson 3 data cleared');
+  console.log('All Lesson 4 data cleared');
 };
 
 // Get complete lesson summary
-export const getLesson3Summary = (studentId) => {
+export const getLessonSummary = (studentId) => {
   return {
     selectedVideo: getSelectedVideo(),
-    listeningMap: getListeningMap(studentId),  // ✅ Pass studentId
-    loopLabScore: getLoopLabScore(),
-    composition: getCityComposition(studentId),  // ✅ Pass studentId
-    reflection: getCityReflection()
+    sectionalBuilderStats: getSectionalBuilderStats(),
+    sectionalBuilderScore: getSectionalBuilderScore(studentId),
+    composition: getComposition(studentId),
+    bonusComposition: getBonusComposition(studentId),
+    reflection: getReflection()
   };
+};
+
+// ✅ Helper: Check if composition meets requirements
+export const checkCompositionRequirements = (placedLoops, sections) => {
+  const requirements = {
+    sections: {
+      met: sections && sections.length >= 3,
+      count: sections ? sections.length : 0,
+      required: 3
+    },
+    progression: {
+      met: sections && sections.length >= 2,  // At least 2 sections = some progression
+      message: sections && sections.length >= 2 ? 'Music evolves across sections' : 'Add more sections'
+    },
+    variety: {
+      met: placedLoops.length >= 6,  // At least 6 loops to show variety
+      count: placedLoops.length,
+      required: 6
+    }
+  };
+  
+  return requirements;
 };

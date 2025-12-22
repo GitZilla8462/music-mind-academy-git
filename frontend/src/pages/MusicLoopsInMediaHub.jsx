@@ -45,13 +45,14 @@ const MusicLoopsInMediaHub = () => {
   };
 
   const lessons = [
+    // Lesson 1: Mood (Drone Footage)
     {
       id: 'lesson1',
       number: 1,
       icon: '🎬',
       title: 'Score the Adventure',
       concept: 'Mood & Expression',
-      essentialQuestion: 'Why does music affect how we feel?',
+      essentialQuestion: 'How does music create an emotional atmosphere?',
       color: 'from-purple-500 to-indigo-600',
       route: '/lessons/film-music-project/lesson1',
       available: true,
@@ -74,43 +75,16 @@ const MusicLoopsInMediaHub = () => {
         { title: 'Name That Loop', description: 'Partner listening game', time: 5, activityType: 'name-that-loop', isBonus: true, isPartnerActivity: true }
       ]
     },
+    // Lesson 2: Layers/Texture (City Soundscape)
     {
       id: 'lesson2',
       number: 2,
-      icon: '🏀',
-      title: 'Sports Highlight Reel',
-      concept: 'Instrumentation & Timbre',
-      essentialQuestion: 'What sounds create the feeling?',
-      color: 'from-orange-500 to-red-600',
-      route: '/lessons/film-music-project/lesson2',
-      available: true,
-      hasLessonPlan: true,
-      inThisLesson: 'Students master the DAW through a guided challenge, then create high-energy music for sports highlights by choosing instruments intentionally.',
-      studentsWill: [
-        'Navigate the DAW interface confidently',
-        'Choose instruments that match the energy',
-        'Create layered compositions for sports video'
-      ],
-      activities: [
-        { title: 'Introduction', description: 'What sport do you like? What music fits?', time: 3 },
-        { title: 'DAW Review', description: 'Quick refresher on DAW controls', time: 3 },
-        { title: 'DAW Challenge', description: 'Click every button to master the DAW', time: 7, activityType: 'daw-tutorial' },
-        { title: 'Tutorial Video', description: 'How to compose for sports highlights', time: 4 },
-        { title: 'Composition', description: 'Pick a sport, create hype music', time: 15, activityType: 'sports-composition-activity' },
-        { title: 'Two Stars and a Wish', description: 'Reflect on your work', time: 5, activityType: 'two-stars-wish' },
-        { title: 'Share', description: '1-2 students share their work', time: 3 },
-        { title: 'Melody Escape Room', description: 'Partner puzzle game', time: 7, activityType: 'melody-escape-room', isBonus: true, isPartnerActivity: true }
-      ]
-    },
-    {
-      id: 'lesson3',
-      number: 3,
       icon: '🏙️',
       title: 'City Soundscapes',
       concept: 'Texture & Layering',
-      essentialQuestion: 'How many sounds play together?',
+      essentialQuestion: 'How do layers of sound create texture?',
       color: 'from-cyan-500 to-blue-600',
-      route: '/lessons/film-music-project/lesson3',
+      route: '/lessons/film-music-project/lesson2',
       available: true,
       hasLessonPlan: true,
       inThisLesson: 'Students visualize how layers create texture using a listening map, then build their own rich city soundscape.',
@@ -129,15 +103,16 @@ const MusicLoopsInMediaHub = () => {
         { title: 'Share & Discussion', description: 'Compare textures across compositions', time: 3 }
       ]
     },
+    // Lesson 3: Form/Structure (Epic Wildlife)
     {
-      id: 'lesson4',
-      number: 4,
+      id: 'lesson3',
+      number: 3,
       icon: '🌍',
       title: 'Epic Wildlife',
       concept: 'Form & Structure',
-      essentialQuestion: 'When do sounds enter and exit?',
+      essentialQuestion: 'How do sections organize to tell a musical story?',
       color: 'from-green-500 to-teal-600',
-      route: '/lessons/film-music-project/lesson4',
+      route: '/lessons/film-music-project/lesson3',
       available: true,
       hasLessonPlan: true,
       inThisLesson: 'Students learn how film scores follow a story arc with distinct sections, then create an epic nature documentary soundtrack.',
@@ -156,28 +131,85 @@ const MusicLoopsInMediaHub = () => {
         { title: 'Monster Melody Maker', description: 'Create melodies for creatures', time: 8, activityType: 'monster-melody-maker', isBonus: true }
       ]
     },
+    // Lesson 4: Beat/Rhythm (Sports Highlight)
+    {
+      id: 'lesson4',
+      number: 4,
+      icon: '🏀',
+      title: 'Sports Highlight Reel',
+      concept: 'Rhythm & Beat',
+      essentialQuestion: 'How do rhythmic phrases convey energy?',
+      color: 'from-orange-500 to-red-600',
+      route: '/lessons/film-music-project/lesson4',
+      available: true,
+      hasLessonPlan: true,
+      inThisLesson: 'Students learn how rhythm and beat create energy, then compose high-energy music for sports highlights.',
+      studentsWill: [
+        'Understand how rhythm creates energy',
+        'Create rhythmic patterns using drum sounds',
+        'Compose a dynamic sports soundtrack'
+      ],
+      activities: [
+        { title: 'Introduction', description: 'What sport do you like? What music fits?', time: 3 },
+        { title: 'Beat Basics', description: 'Rhythm, beat, and energy', time: 5 },
+        { title: 'Beat Maker', description: 'Create a 4-bar drum pattern', time: 8, activityType: 'beat-maker' },
+        { title: 'Composition', description: 'Pick a sport, create hype music', time: 15, activityType: 'sports-composition-activity' },
+        { title: 'Two Stars and a Wish', description: 'Reflect on your work', time: 5, activityType: 'two-stars-wish' },
+        { title: 'Share', description: '1-2 students share their work', time: 3 },
+        { title: 'Melody Escape Room', description: 'Partner puzzle game', time: 7, activityType: 'melody-escape-room', isBonus: true, isPartnerActivity: true }
+      ]
+    },
+    // Lesson 5: Melody (Game Montage) - new
     {
       id: 'lesson5',
       number: 5,
-      icon: '🎓',
-      title: 'Capstone Project',
-      concept: 'All Concepts Combined',
-      essentialQuestion: 'How do I combine mood, instruments, texture, and form?',
-      color: 'from-purple-500 to-pink-600',
+      icon: '🎮',
+      title: 'Game Montage',
+      concept: 'Melody & Themes',
+      essentialQuestion: 'How do melodic phrases create memorable themes?',
+      color: 'from-pink-500 to-purple-600',
       route: '/lessons/film-music-project/lesson5',
       available: false,
       hasLessonPlan: false,
-      inThisLesson: 'Students apply mood, instrumentation, texture, and form to create a complete film score for a video of their choice.',
+      inThisLesson: 'Students explore how melody creates memorable themes in video games, then compose their own game soundtrack.',
       studentsWill: [
-        'Plan a composition using all four concepts',
+        'Understand how melody creates memorable themes',
+        'Create simple melodic phrases',
+        'Compose a themed game soundtrack'
+      ],
+      activities: [
+        { title: 'Hook Video', description: 'Famous game themes medley', time: 3 },
+        { title: 'Melody Intro', description: 'What makes a melody memorable?', time: 5 },
+        { title: 'Pixel Melody Maker', description: 'Create an 8-bit melody', time: 8, activityType: 'melody-maker' },
+        { title: 'Composition', description: 'Score a game montage', time: 12, activityType: 'game-composition-activity' },
+        { title: 'Two Stars and a Wish', description: 'Reflect on your theme', time: 5, activityType: 'two-stars-wish' },
+        { title: 'Share', description: '1-2 students share their work', time: 3 }
+      ]
+    },
+    // Lesson 6: Capstone (Student Choice) - was lesson5
+    {
+      id: 'lesson6',
+      number: 6,
+      icon: '🎓',
+      title: 'Director\'s Cut',
+      concept: 'All Concepts Combined',
+      essentialQuestion: 'How do all musical elements combine to effectively score media?',
+      color: 'from-amber-500 to-orange-600',
+      route: '/lessons/film-music-project/lesson6',
+      available: false,
+      hasLessonPlan: false,
+      inThisLesson: 'Students apply mood, texture, form, rhythm, and melody to create a complete film score for a video of their choice.',
+      studentsWill: [
+        'Plan a composition using all five concepts',
         'Create a polished film score independently',
         'Present and explain their creative choices'
       ],
       activities: [
-        { title: 'Review', description: 'Revisit all four music concepts', time: 5 },
+        { title: 'Review', description: 'Revisit all five music concepts', time: 5 },
         { title: 'Planning', description: 'Choose video and plan your approach', time: 5 },
-        { title: 'Composition', description: 'Create your capstone score', time: 20 },
-        { title: 'Share & Discuss', description: 'Present to the class', time: 10 }
+        { title: 'Composition', description: 'Create your capstone score', time: 23 },
+        { title: 'Peer Review', description: 'Gallery walk and feedback', time: 7 },
+        { title: 'Share & Celebrate', description: 'Present highlights to class', time: 4 }
       ]
     }
   ];
@@ -207,7 +239,7 @@ const MusicLoopsInMediaHub = () => {
             Create soundtracks for video — the way professionals do it.
           </p>
           <p className="text-base text-slate-600">
-            5 lessons  •  ~40 min each  •  Grades 6-8
+            6 lessons  •  ~40 min each  •  Grades 6-8
           </p>
         </div>
       </div>

@@ -1,0 +1,48 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Demo Banner -->
+  <rect x="0" y="0" width="1920" height="70" fill="#7c3aed"/>
+  <text x="960" y="48" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white" font-weight="bold" text-anchor="middle">TEACHER DEMONSTRATION</text>
+
+  <!-- Title -->
+  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">BUILDING A BEAT</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="230" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
+
+  <!-- Subtitle -->
+  <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Watch How Layers Build Energy</text>
+
+  <!-- Steps -->
+  <rect x="200" y="380" width="1520" height="120" rx="12" fill="#1e293b" stroke="#ef4444" stroke-width="3"/>
+  <text x="260" y="455" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#ef4444" font-weight="bold">Step 1:</text>
+  <text x="450" y="455" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#e2e8f0">Start with kick drum only.</text>
+
+  <rect x="200" y="520" width="1520" height="120" rx="12" fill="#1e293b" stroke="#f59e0b" stroke-width="3"/>
+  <text x="260" y="595" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#f59e0b" font-weight="bold">Step 2:</text>
+  <text x="450" y="595" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#e2e8f0">Add snare on beats 2 and 4.</text>
+
+  <rect x="200" y="660" width="1520" height="120" rx="12" fill="#1e293b" stroke="#10b981" stroke-width="3"/>
+  <text x="260" y="735" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#10b981" font-weight="bold">Step 3:</text>
+  <text x="450" y="735" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#e2e8f0">Add hi-hat on every beat.</text>
+
+  <rect x="200" y="800" width="1520" height="120" rx="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="3"/>
+  <text x="260" y="875" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#8b5cf6" font-weight="bold">Step 4:</text>
+  <text x="450" y="875" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#e2e8f0">Listen to how layers build energy.</text>
+
+  <!-- Bottom text -->
+  <text x="960" y="1000" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#a5b4fc" text-anchor="middle">Each layer adds more drive and momentum.</text>
+</svg>

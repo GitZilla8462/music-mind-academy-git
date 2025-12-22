@@ -1,0 +1,49 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">HOW RHYTHM CREATES ENERGY</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="230" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
+
+  <!-- Subtitle -->
+  <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Control the Intensity of Your Music</text>
+
+  <!-- Energy comparison boxes -->
+  <rect x="150" y="380" width="780" height="280" rx="16" fill="#1e293b" stroke="#ef4444" stroke-width="3"/>
+  <text x="540" y="450" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#ef4444" text-anchor="middle" font-weight="bold">MORE ENERGY</text>
+  <text x="540" y="520" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#e2e8f0" text-anchor="middle">More notes and subdivisions.</text>
+  <text x="540" y="580" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#e2e8f0" text-anchor="middle">Faster tempo.</text>
+  <text x="540" y="640" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#e2e8f0" text-anchor="middle">Complex patterns.</text>
+
+  <rect x="990" y="380" width="780" height="280" rx="16" fill="#1e293b" stroke="#3b82f6" stroke-width="3"/>
+  <text x="1380" y="450" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#3b82f6" text-anchor="middle" font-weight="bold">LESS ENERGY</text>
+  <text x="1380" y="520" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#e2e8f0" text-anchor="middle">Fewer notes, more space.</text>
+  <text x="1380" y="580" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#e2e8f0" text-anchor="middle">Slower tempo.</text>
+  <text x="1380" y="640" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#e2e8f0" text-anchor="middle">Simple patterns.</text>
+
+  <!-- Additional concepts -->
+  <rect x="150" y="700" width="780" height="140" rx="12" fill="#1e293b" stroke="#f59e0b" stroke-width="3"/>
+  <text x="540" y="760" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#f59e0b" text-anchor="middle" font-weight="bold">STRONG DOWNBEAT</text>
+  <text x="540" y="810" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#e2e8f0" text-anchor="middle">Emphasize beat 1 for power.</text>
+
+  <rect x="990" y="700" width="780" height="140" rx="12" fill="#1e293b" stroke="#10b981" stroke-width="3"/>
+  <text x="1380" y="760" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#10b981" text-anchor="middle" font-weight="bold">SYNCOPATION</text>
+  <text x="1380" y="810" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#e2e8f0" text-anchor="middle">Accents on unexpected beats for excitement.</text>
+
+  <!-- Footer -->
+  <text x="960" y="950" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#a5b4fc" text-anchor="middle">You control the energy with your rhythmic choices.</text>
+</svg>

@@ -1,6 +1,7 @@
-// File: /lessons/film-music-project/lesson2/Lesson2config.jsx
-// Lesson 2: Sports Highlight Reel Music - Configuration
-// ✅ UPDATED: Better teacher descriptions for control panel
+// File: /src/lessons/film-music-project/lesson2/Lesson2config.jsx
+// Lesson 2: City Soundscapes - Configuration
+// Music concept: Texture and Layering
+// ✅ UPDATED: Numbered sections, teacher-friendly descriptions based on actual slides
 
 export const LESSON_PROGRESS_KEY = 'lesson2-progress';
 export const LESSON_TIMER_KEY = 'lesson2-timer';
@@ -12,132 +13,135 @@ export const lessonSections = [
   {
     id: 'introduction',
     title: '1. Introduction',
-    subtitle: 'Slides → DAW Tutorial',
+    subtitle: 'Slides → Texture Concept',
     color: 'blue',
-    estimatedTime: 10,
+    estimatedTime: 8,
     stages: [
       { 
-        id: 'sports-highlight-intro', 
+        id: 'city-soundscapes-intro', 
         type: 'summary', 
-        label: 'Sports Highlight Reel',
-        description: 'Ask: "What sport do you like? What music goes with it?"',
+        label: 'City Soundscapes',
+        description: 'Ask: "What city have you visited? How would it feel there?"',
         duration: 1
       },
       { 
         id: 'show-agenda', 
         type: 'summary', 
         label: 'Agenda',
-        description: 'Review: "1) Learn about DAW, 2) Create sports composition"',
+        description: 'Review: "1) Learn texture & layering, 2) Create City Soundscape"',
         duration: 1
       },
       { 
-        id: 'introduce-daw', 
+        id: 'introduce-texture', 
         type: 'summary', 
-        label: 'Digital Audio Workstation',
-        description: 'Explain: "DAW = software for recording, editing, mixing audio"',
-        duration: 1
+        label: 'Texture',
+        description: 'Explain: "Texture = thick/thin sound based on # of layers"',
+        duration: 2
       },
       { 
-        id: 'introduce-daw-challenge', 
+        id: 'texture-continued', 
         type: 'summary', 
-        label: 'DAW Challenge Preview',
-        description: 'Preview: "You\'ll click buttons to learn the DAW"',
-        duration: 1
+        label: 'Sandwich Analogy',
+        description: 'Analogy: "1 ingredient = thin, many ingredients = full"',
+        duration: 2
       },
-      {
-        id: 'daw-tutorial',
-        type: 'activity',
-        label: '🎮 Unlock DAW Challenge',
-        duration: 6,
-        hasTimer: true,
-        trackProgress: true,
-        description: 'STUDENTS WORK: Answer questions, click every button to learn DAW',
-        bonusDescription: 'Bonus: Explore & experiment with the DAW'
+      { 
+        id: 'layers-and-texture', 
+        type: 'summary', 
+        label: 'Making Layers',
+        description: 'Explain: "1 layer = thin, 2-3 = medium, 4+ = full texture"',
+        duration: 2
       }
     ]
   },
   {
     id: 'activity1',
-    title: '2. Sports Highlight Composition',
-    subtitle: 'Slides → Compose',
+    title: '2. Listening Map',
+    subtitle: 'Video → Draw',
     color: 'blue',
-    estimatedTime: 15,
+    estimatedTime: 11,
     stages: [
       { 
-        id: 'introduce-video', 
+        id: 'introduce-listening-map', 
         type: 'summary', 
-        label: 'Composition Tutorial',
-        description: 'Announce: "Next we\'ll watch a 2-min video on getting started"',
+        label: 'Listening Map Intro',
+        description: 'Announce: "We\'ll watch a 1-min video then draw while listening"',
         duration: 1
       },
       { 
-        id: 'sports-video', 
+        id: 'listening-map-video', 
         type: 'video', 
         label: '▶️ Play Video',
-        description: 'PLAY VIDEO: Sports composition tutorial (students watch main screen)',
-        duration: 3
+        description: 'PLAY VIDEO: Listening Map explanation (students watch main screen)',
+        duration: 2
       },
       { 
+        id: 'listening-map', 
+        type: 'activity', 
+        label: '🎮 Unlock Listening Map', 
+        duration: 8,
+        hasTimer: true,
+        trackProgress: true,
+        description: 'STUDENTS WORK: Create 4 rows, unique style per row',
+        bonusDescription: 'Bonus: Add more colors, textures, and pictures'
+      }
+    ]
+  },
+  {
+    id: 'activity2',
+    title: '3. City Soundscape Composition',
+    subtitle: 'Slides → Compose',
+    color: 'blue',
+    estimatedTime: 12,
+    stages: [
+      { 
         id: 'composition-instructions', 
+        type: 'summary', 
+        label: 'Composition Instructions',
+        description: 'Instructions: "Select city, watch silent video, think about mood"',
+        duration: 1
+      },
+      { 
+        id: 'composition-instructions-continued', 
         type: 'summary', 
         label: 'Composition Requirements',
         description: 'Review: "5+ loops, line up edges, same mood. Bonus: sound effects"',
         duration: 1
       },
       { 
-        id: 'sports-composition', 
+        id: 'city-composition', 
         type: 'activity', 
         label: '🎮 Unlock Composition', 
         duration: 10,
         hasTimer: true,
         trackProgress: true,
-        description: 'STUDENTS WORK: Pick sport video, think about mood, compose music',
+        description: 'STUDENTS WORK: Pick city video, compose soundscape music',
         bonusDescription: 'Bonus: Add more layers and sound effects'
       }
     ]
   },
   {
-    id: 'activity2',
-    title: '3. Reflection and Game',
-    subtitle: 'Reflect → Bonus Game',
+    id: 'reflection',
+    title: '4. Reflection and Discussion',
+    subtitle: 'Reflect → Discuss',
     color: 'blue',
-    estimatedTime: 12,
+    estimatedTime: 5,
     stages: [
-      {
-        id: 'reflection',
-        type: 'activity',
-        label: '🎮 Unlock Reflection',
-        duration: 5,
+      { 
+        id: 'reflection', 
+        type: 'activity', 
+        label: '🎮 Unlock Reflection', 
+        duration: 3,
         hasTimer: true,
         trackProgress: true,
-        description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form, share',
+        description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form',
         bonusDescription: 'Bonus: Layer Detective with a partner'
       },
-      {
-        id: 'melody-escape-room',
-        type: 'activity',
-        label: '🔐 Melody Escape Room (Bonus)',
-        duration: 7,
-        hasTimer: true,
-        trackProgress: true,
-        isBonus: true,
-        description: 'BONUS: Partner game - create & solve instrument puzzles',
-        bonusDescription: 'Create multiple rooms and challenge the class!'
-      }
-    ]
-  },
-  {
-    id: 'conclusion',
-    title: '4. Conclusion',
-    subtitle: 'Discuss',
-    color: 'blue',
-    estimatedTime: 2,
-    stages: [
       {
         id: 'conclusion',
         type: 'discussion',
         label: 'Class Discussion',
-        description: 'Ask: "What is a DAW? Partner\'s sport? How many layers? 6+?"',
+        description: 'Ask: "What is texture? Partner\'s city? What did you like?"',
         duration: 2
       }
     ]
@@ -145,49 +149,36 @@ export const lessonSections = [
 ];
 
 export const lesson2Config = {
-  id: 'lesson2',
-  lessonPath: '/lessons/film-music-project/lesson2',
-  title: "Sports Highlight Reel Music",
-  subtitle: "Introduction to the DAW",
+  id: 'lesson3',
+  lessonPath: '/lessons/film-music-project/lesson3',
+  title: "City Soundscapes",
+  subtitle: "Texture and Layering in Music",
   learningObjectives: [
-    "Master the DAW interface and basic controls",
-    "Create high-energy music for sports highlights",
-    "Practice placing and manipulating music loops"
+    "Understand texture as the thickness or thinness of sound",
+    "Identify the number of layers in musical compositions",
+    "Describe musical elements using appropriate vocabulary",
+    "Create city soundscapes using multiple musical layers"
   ],
   lessonSections,
   activities: [
     {
       id: 1,
-      type: "daw-tutorial",
-      title: "DAW Challenge",
-      estimatedTime: "6 min"
+      type: "listening-map",
+      title: "Listening Map",
+      estimatedTime: "8 min"
     },
     {
       id: 2,
-      type: "video",
-      title: "Sports Composition Video",
-      estimatedTime: "3 min",
-      src: "/lessons/film-music-project/lesson2/SportsHighlightComposition.mp4"
-    },
-    {
-      id: 3,
-      type: "sports-composition-activity",
-      title: "Compose Your Sports Music",
+      type: "city-composition-activity",
+      title: "Compose Your City Soundscape",
       estimatedTime: "10 min",
       includesVideoSelection: true
     },
     {
-      id: 4,
+      id: 3,
       type: "two-stars-wish",
       title: "Reflection Activity",
-      estimatedTime: "5 min"
-    },
-    {
-      id: 5,
-      type: "melody-escape-room",
-      title: "Melody Escape Room (Bonus)",
-      estimatedTime: "7 min",
-      isBonus: true
+      estimatedTime: "3 min"
     }
   ]
 };
@@ -198,14 +189,15 @@ export const lesson2Config = {
 export const lessonStages = [
   { 
     id: 'join-code', 
-    label: 'Join Code Screen', 
-    description: 'Students enter session code to join',
+    label: 'Join with Class Code', 
+    description: 'Students enter session code',
     type: 'waiting'
   },
+  // Introduction
   { 
-    id: 'sports-highlight-intro', 
-    label: 'Sports Highlight Reel', 
-    description: 'Ask: "What sport do you like? What music goes with it?"',
+    id: 'city-soundscapes-intro', 
+    label: 'City Soundscapes', 
+    description: 'Ask: "What city have you visited? How would it feel there?"',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -216,7 +208,7 @@ export const lessonStages = [
   { 
     id: 'show-agenda', 
     label: 'Agenda', 
-    description: 'Review: "1) Learn about DAW, 2) Create sports composition"',
+    description: 'Review: "1) Learn texture & layering, 2) Create City Soundscape"',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -225,45 +217,43 @@ export const lessonStages = [
     }
   },
   { 
-    id: 'introduce-daw', 
-    label: 'Digital Audio Workstation', 
-    description: 'Explain: "DAW = software for recording, editing, mixing audio"',
+    id: 'introduce-texture', 
+    label: 'Texture', 
+    description: 'Explain: "Texture = thick/thin sound based on # of layers"',
     type: 'summary',
-    duration: 1,
+    duration: 2,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson2/slides/3.png'
     }
   },
   { 
-    id: 'introduce-daw-challenge', 
-    label: 'DAW Challenge Preview', 
-    description: 'Preview: "You\'ll click buttons to learn the DAW"',
+    id: 'texture-continued', 
+    label: 'Sandwich Analogy', 
+    description: 'Analogy: "1 ingredient = thin, many ingredients = full"',
     type: 'summary',
-    duration: 1,
+    duration: 2,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson2/slides/4.png'
     }
   },
-  {
-    id: 'daw-tutorial',
-    label: '🎮 Unlock DAW Challenge',
-    description: 'STUDENTS WORK: Answer questions, click every button to learn DAW',
-    bonusDescription: 'Bonus: Explore & experiment with the DAW',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 6,
+  { 
+    id: 'layers-and-texture', 
+    label: 'Making Layers', 
+    description: 'Explain: "1 layer = thin, 2-3 = medium, 4+ = full texture"',
+    type: 'summary',
+    duration: 2,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson2/slides/5.png'
     }
   },
-  {
-    id: 'introduce-video', 
-    label: 'Composition Tutorial', 
-    description: 'Announce: "Next we\'ll watch a 2-min video on getting started"',
+  // Activity 1: Listening Map
+  { 
+    id: 'introduce-listening-map', 
+    label: 'Listening Map Intro', 
+    description: 'Announce: "We\'ll watch a 1-min video then draw while listening"',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -272,21 +262,36 @@ export const lessonStages = [
     }
   },
   { 
-    id: 'sports-video', 
+    id: 'listening-map-video', 
     label: '▶️ Play Video', 
-    description: 'PLAY VIDEO: Sports composition tutorial (students watch main screen)', 
+    description: 'PLAY VIDEO: Listening Map explanation (students watch main screen)',
     type: 'video',
-    duration: 3,
+    duration: 2,
     presentationView: {
       type: 'video',
-      videoPath: '/lessons/film-music-project/lesson2/SportsHighlightComposition.mp4',
-      title: 'Sports Composition Introduction'
+      videoPath: '/lessons/film-music-project/lesson2/ListeningMapExplanation.mp4',
+      title: 'Listening Map Explanation'
     }
   },
   { 
+    id: 'listening-map', 
+    label: '🎮 Unlock Listening Map', 
+    description: 'STUDENTS WORK: Create 4 rows, unique style per row',
+    bonusDescription: 'Bonus: Add more colors, textures, and pictures',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: true,
+    duration: 8,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson2/slides/6.5.png'
+    }
+  },
+  // Activity 2: Composition
+  { 
     id: 'composition-instructions', 
-    label: 'Composition Requirements', 
-    description: 'Review: "5+ loops, line up edges, same mood. Bonus: sound effects"',
+    label: 'Composition Instructions', 
+    description: 'Instructions: "Select city, watch silent video, think about mood"',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -295,9 +300,20 @@ export const lessonStages = [
     }
   },
   { 
-    id: 'sports-composition', 
+    id: 'composition-instructions-continued', 
+    label: 'Composition Requirements', 
+    description: 'Review: "5+ loops, line up edges, same mood. Bonus: sound effects"',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson2/slides/8.png'
+    }
+  },
+  { 
+    id: 'city-composition', 
     label: '🎮 Unlock Composition', 
-    description: 'STUDENTS WORK: Pick sport video, think about mood, compose music', 
+    description: 'STUDENTS WORK: Pick city video, compose soundscape music', 
     bonusDescription: 'Bonus: Add more layers and sound effects',
     hasProgress: true,
     type: 'activity',
@@ -305,47 +321,34 @@ export const lessonStages = [
     duration: 10,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/8.png'
+      slidePath: '/lessons/film-music-project/lesson2/slides/9.png'
     }
   },
-  {
-    id: 'reflection',
-    label: '🎮 Unlock Reflection',
-    description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form, share',
+  // Reflection
+  { 
+    id: 'reflection', 
+    label: '🎮 Unlock Reflection', 
+    description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form', 
     bonusDescription: 'Bonus: Layer Detective with a partner',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 5,
+    duration: 3,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/9.png'
+      slidePath: '/lessons/film-music-project/lesson2/slides/10.png'
     }
   },
-  {
-    id: 'melody-escape-room',
-    label: '🔐 Melody Escape Room (Bonus)',
-    description: 'BONUS: Partner game - create & solve instrument puzzles',
-    bonusDescription: 'Create multiple rooms and challenge the class!',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 7,
-    isBonus: true,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/9.png'
-    }
-  },
+  // Conclusion
   {
     id: 'conclusion',
     label: 'Class Discussion',
-    description: 'Ask: "What is a DAW? Partner\'s sport? How many layers? 6+?"',
+    description: 'Ask: "What is texture? Partner\'s city? What did you like?"',
     type: 'discussion',
     duration: 2,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/10.png'
+      slidePath: '/lessons/film-music-project/lesson2/slides/11.png'
     }
   }
 ];
@@ -353,17 +356,20 @@ export const lessonStages = [
 // Helper function to map session stage to activity type
 export const getActivityForStage = (stage) => {
   const stageMap = {
-    'sports-highlight-intro': 'summary',
+    'city-soundscapes-intro': 'summary',
     'show-agenda': 'summary',
-    'introduce-daw': 'summary',
-    'introduce-daw-challenge': 'summary',
-    'daw-tutorial': 'daw-tutorial',
-    'introduce-video': 'summary',
-    'sports-video': 'video',
+    'introduce-texture': 'summary',
+    'texture-continued': 'summary',
+    'layers-and-texture': 'summary',
+    'introduce-listening-map': 'summary',
+    'introduce-texture-drawings': 'summary',  // backward compatibility
+    'listening-map-video': 'video',
+    'listening-map': 'listening-map',
+    'texture-drawings': 'listening-map',  // backward compatibility
     'composition-instructions': 'summary',
-    'sports-composition': 'sports-composition-activity',
-    'reflection': 'sports-composition-activity',
-    'melody-escape-room': 'melody-escape-room',
+    'composition-instructions-continued': 'summary',
+    'city-composition': 'city-composition-activity',
+    'reflection': 'two-stars-wish',
     'conclusion': 'discussion'
   };
   return stageMap[stage];

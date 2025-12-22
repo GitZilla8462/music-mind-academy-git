@@ -1,12 +1,11 @@
-// File: /src/lessons/film-music-project/lesson4/Lesson4.jsx
-// Epic Wildlife - Nature Documentary Video - Main lesson orchestrator
+// File: /lessons/film-music-project/lesson4/Lesson4.jsx
+// Sports Highlight Reel Music - Main lesson orchestrator
 // ✅ UPDATED: Uses TeacherLessonView for combined sidebar + presentation
-// ✅ UPDATED: Added view=melody support for Robot Melody Maker
 
 import React, { useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from "../../../context/SessionContext";
-import { Monitor, Video, Gamepad2, Trophy, Globe } from 'lucide-react';
+import { Monitor, Video, Gamepad2, Trophy, Clock } from 'lucide-react';
 
 // Config
 import { lesson4Config, lessonStages, getActivityForStage } from './Lesson4config';
@@ -18,12 +17,57 @@ import { useActivityTimers } from '../../shared/hooks/useActivityTimers';
 
 // Components
 import LessonStartScreen from '../../shared/components/LessonStartScreen';
-import TeacherLessonView from '../../shared/components/TeacherLessonView';
+import TeacherLessonView from '../../shared/components/TeacherLessonView'; // ✅ NEW
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 
 const LESSON_PROGRESS_KEY = 'lesson4-progress';
 const LESSON_TIMER_KEY = 'lesson4-timer';
+
+// Separate component for Layer Detective to avoid React hooks violations
+const LayerDetectiveLoader = ({ onComplete }) => {
+  const [LayerDetective, setLayerDetective] = React.useState(null);
+  const [loadError, setLoadError] = React.useState(false);
+  
+  React.useEffect(() => {
+    import('../../shared/activities/layer-detective/LayerDetectiveActivity')
+      .then(module => {
+        console.log('✅ LayerDetectiveActivity loaded');
+        setLayerDetective(() => module.default);
+      })
+      .catch(error => {
+        console.error('❌ Failed to load LayerDetectiveActivity:', error);
+        setLoadError(true);
+      });
+  }, []);
+  
+  if (loadError) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-500 to-red-600 text-white p-8">
+        <div className="text-8xl mb-8">⚠️</div>
+        <h1 className="text-5xl font-bold mb-4">Component Not Found</h1>
+        <p className="text-2xl mb-8">LayerDetectiveActivity.jsx is missing</p>
+      </div>
+    );
+  }
+  
+  if (!LayerDetective) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-white text-lg">Loading Layer Detective...</div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="h-screen flex flex-col">
+      <LayerDetective
+        onComplete={onComplete}
+        viewMode={false}
+      />
+    </div>
+  );
+};
 
 const Lesson4 = () => {
   const navigate = useNavigate();
@@ -46,7 +90,7 @@ const Lesson4 = () => {
   // Get effective role
   const effectiveRole = sessionRole || sessionMode.urlRole;
   
-  // Memoize lessonConfig to prevent new object reference each render
+  // Memoize lessonConfig
   const lessonConfig = useMemo(() => ({ 
     ...lesson4Config, 
     progressKey: LESSON_PROGRESS_KEY, 
@@ -55,19 +99,48 @@ const Lesson4 = () => {
   
   const lesson = useLesson(lessonConfig);
   
-  // Activity timers (used in session mode)
+  // Activity timers
   const timers = useActivityTimers(sessionCode, currentStage, lessonStages);
 
   // Check for view modes from URL params
   const searchParams = new URLSearchParams(location.search);
   const viewSavedMode = searchParams.get('view') === 'saved';
   const viewReflectionMode = searchParams.get('view') === 'reflection';
-  const viewMelodyMode = searchParams.get('view') === 'melody'; // ✅ NEW
+  const isPreviewMode = searchParams.get('preview') === 'true';
+  const isMuted = searchParams.get('muted') === 'true';
 
   // Memoize currentStageData
   const currentStageData = useMemo(() => {
     return lessonStages.find(stage => stage.id === currentStage);
   }, [currentStage]);
+
+  // Mute audio in preview mode
+  React.useEffect(() => {
+    if (isPreviewMode || isMuted) {
+      const OriginalAudioContext = window.AudioContext || window.webkitAudioContext;
+      if (OriginalAudioContext) {
+        window.AudioContext = function() {
+          const ctx = new OriginalAudioContext();
+          ctx.suspend();
+          return ctx;
+        };
+        window.webkitAudioContext = window.AudioContext;
+      }
+
+      const muteEverything = () => {
+        document.querySelectorAll('audio, video').forEach(el => {
+          el.muted = true;
+          el.volume = 0;
+          el.pause();
+        });
+      };
+      
+      muteEverything();
+      const interval = setInterval(muteEverything, 100);
+      
+      return () => clearInterval(interval);
+    }
+  }, [isPreviewMode, isMuted]);
 
   // Handle session activity completion
   const handleSessionActivityComplete = useCallback((activityId) => {
@@ -80,9 +153,9 @@ const Lesson4 = () => {
   // Show loading while session is initializing
   if (sessionMode.isSessionMode && !effectiveRole) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900">
+      <div className="h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
           <p className="text-white text-lg">Initializing session...</p>
           <p className="text-gray-400 text-sm mt-2">Session Code: {sessionCode || sessionMode.urlSessionCode}</p>
         </div>
@@ -107,9 +180,9 @@ const Lesson4 = () => {
       }, 1000);
       
       return (
-        <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900">
+        <div className="h-screen flex items-center justify-center bg-gray-900">
           <div className="text-center">
-            <div className="text-6xl mb-4">✔</div>
+            <div className="text-6xl mb-4">✓</div>
             <h1 className="text-white text-3xl font-bold mb-4">Session Has Ended</h1>
             <p className="text-gray-400 text-lg">Redirecting to join page...</p>
           </div>
@@ -120,33 +193,33 @@ const Lesson4 = () => {
     // SUMMARY SLIDES: Students see "Watch the Main Screen" message
     if (currentStageData?.type === 'summary') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
+        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
           <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
           <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-300">Your teacher will provide instruction</p>
+          <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>
         </div>
       );
     }
     
-    // CLASS DEMO: Students see "Watch the Main Screen" for whole-class activities
+    // CLASS DEMO: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'class-demo') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
-          <Gamepad2 className="w-32 h-32 mb-8 animate-pulse text-green-400" />
+        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-900 via-red-900 to-pink-900 text-white p-8">
+          <Gamepad2 className="w-32 h-32 mb-8 animate-pulse text-white" />
           <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
           <p className="text-2xl text-gray-300">Follow along with the class demo</p>
-          <p className="text-xl text-teal-400 mt-4">You'll play the game individually next!</p>
+          <p className="text-xl text-gray-400 mt-4">You'll play the game individually next!</p>
         </div>
       );
     }
     
-    // RESULTS: Students see "Watch the Main Screen" for game results
+    // RESULTS: Students see game results
     if (currentStageData?.type === 'results') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
+        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 text-white p-8">
           <Trophy className="w-32 h-32 mb-8 animate-pulse text-yellow-400" />
           <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-300">Viewing game results and winners!</p>
+          <p className="text-2xl text-gray-300">Viewing game results and scores</p>
         </div>
       );
     }
@@ -154,28 +227,33 @@ const Lesson4 = () => {
     // VIDEO STAGES: Students see static slide
     if (currentStageData?.type === 'video') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
+        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
           <Video className="w-32 h-32 mb-8 animate-pulse text-white" />
           <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-300">The video is playing on the projection screen</p>
+          <p className="text-2xl text-gray-400">The video is playing on the projection screen</p>
         </div>
       );
     }
     
-    // DISCUSSION/CONCLUSION STAGES: Students see "Watch the Main Screen"
+    // DISCUSSION/CONCLUSION STAGES
     if (currentStageData?.type === 'discussion' || currentStage === 'conclusion') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
+        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
           <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
           <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-300">Your teacher is leading a class discussion</p>
+          <p className="text-2xl text-gray-400">Your teacher is leading a class discussion</p>
         </div>
       );
     }
     
     // Student viewing active activity
-    const displayStage = currentStage === 'reflection' ? 'wildlife-composition' : currentStage;
+    const displayStage = currentStage === 'reflection' ? 'sports-composition' : currentStage;
     const activityType = getActivityForStage(displayStage);
+    
+    // Special case: Layer Detective activity
+    if (currentStage === 'layer-detective') {
+      return <LayerDetectiveLoader onComplete={() => handleSessionActivityComplete(currentStage)} />;
+    }
     
     const activity = lesson4Config.activities.find(a => a.type === activityType);
     
@@ -194,6 +272,7 @@ const Lesson4 = () => {
             lessonStartTime={lesson.lessonStartTime}
             viewMode={false}
             isSessionMode={true}
+            muted={isPreviewMode || isMuted}
           />
         </div>
       </div>
@@ -202,9 +281,11 @@ const Lesson4 = () => {
 
   // ========================================
   // SESSION MODE: TEACHER VIEW
+  // ✅ NOW USES TeacherLessonView
   // ========================================
   if (sessionMode.isSessionMode && effectiveRole === 'teacher') {
-    console.log('👨‍🏫 Rendering TEACHER control panel');
+    console.log('👨‍🏫 Rendering TEACHER lesson view');
+    
     return (
       <TeacherLessonView
         config={lesson4Config}
@@ -229,7 +310,7 @@ const Lesson4 = () => {
   // ========================================
   // NORMAL MODE: LESSON START SCREEN
   // ========================================
-  if (!lesson.lessonStarted && !viewSavedMode && !viewReflectionMode && !viewMelodyMode) {
+  if (!lesson.lessonStarted && !viewSavedMode && !viewReflectionMode) {
     return (
       <LessonStartScreen
         config={lesson4Config}
@@ -245,25 +326,20 @@ const Lesson4 = () => {
   // NORMAL MODE: ACTIVE LESSON
   // ========================================
   
-  // Handle view modes
   let activityToRender = lesson.currentActivityData;
   let onCompleteHandler = lesson.handleActivityComplete;
   let viewModeActive = false;
   
   if (viewSavedMode) {
-    activityToRender = lesson4Config.activities.find(a => a.type === 'wildlife-composition-activity');
+    activityToRender = lesson4Config.activities.find(a => a.type === 'sports-composition-activity');
     viewModeActive = true;
   } else if (viewReflectionMode) {
     activityToRender = lesson4Config.activities.find(a => a.type === 'two-stars-wish');
     viewModeActive = true;
-  } else if (viewMelodyMode) {
-    // ✅ NEW: View saved Robot Melody Maker
-    activityToRender = lesson4Config.activities.find(a => a.type === 'monster-melody-maker');
-    viewModeActive = true;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900">
+    <div className="min-h-screen bg-gray-900">
       <div className="h-screen flex flex-col">
         <div className="flex-1 overflow-hidden">
           {activityToRender && (
