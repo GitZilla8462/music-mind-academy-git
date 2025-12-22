@@ -7,6 +7,7 @@ import React, { useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from "../../../context/SessionContext";
 import { Monitor, Video, Gamepad2, Trophy, Globe } from 'lucide-react';
+import { getDatabase, ref, onValue } from 'firebase/database';
 
 // Config
 import { lesson3Config, lessonStages, getActivityForStage } from './Lesson3config';
@@ -21,6 +22,7 @@ import LessonStartScreen from '../../shared/components/LessonStartScreen';
 import TeacherLessonView from '../../shared/components/TeacherLessonView';
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
+import TransitionOverlay from '../../shared/components/TransitionOverlay';
 
 const LESSON_PROGRESS_KEY = 'lesson3-progress';
 const LESSON_TIMER_KEY = 'lesson3-timer';
@@ -77,6 +79,45 @@ const Lesson3 = () => {
     }
   }, [sessionRole, markActivityComplete]);
 
+  // Transition overlay state for students (triggered by teacher's Save & Continue)
+  const [showTransition, setShowTransition] = React.useState(false);
+  const lastSaveCommandRef = React.useRef(null);
+
+  // Listen for teacher's "Save & Continue" command from Firebase
+  React.useEffect(() => {
+    if (!sessionCode || !sessionMode.isSessionMode || effectiveRole !== 'student') return;
+
+    const db = getDatabase();
+    const saveCommandRef = ref(db, `sessions/${sessionCode}/saveCommand`);
+
+    const unsubscribe = onValue(saveCommandRef, (snapshot) => {
+      const saveCommand = snapshot.val();
+
+      // Skip if no command
+      if (!saveCommand) return;
+
+      // On first load, just store the value without triggering
+      if (lastSaveCommandRef.current === null) {
+        lastSaveCommandRef.current = saveCommand;
+        return;
+      }
+
+      // Only trigger if this is a new command (timestamp changed)
+      if (saveCommand !== lastSaveCommandRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        console.log('🟢 Teacher clicked Save & Continue - showing overlay');
+
+        // Show transition overlay for 7 seconds
+        setShowTransition(true);
+        setTimeout(() => {
+          setShowTransition(false);
+        }, 7000);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [sessionCode, sessionMode.isSessionMode, effectiveRole]);
+
   // Show loading while session is initializing
   if (sessionMode.isSessionMode && !effectiveRole) {
     return (
@@ -120,56 +161,71 @@ const Lesson3 = () => {
     // SUMMARY SLIDES: Students see "Watch the Main Screen" message
     if (currentStageData?.type === 'summary') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
-          <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
-          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-300">Your teacher will provide instruction</p>
-        </div>
+        <>
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
+            <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
+            <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+            <p className="text-2xl text-gray-300">Your teacher will provide instruction</p>
+          </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
       );
     }
     
     // CLASS DEMO: Students see "Watch the Main Screen" for whole-class activities
     if (currentStageData?.type === 'class-demo') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
-          <Gamepad2 className="w-32 h-32 mb-8 animate-pulse text-green-400" />
-          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-300">Follow along with the class demo</p>
-          <p className="text-xl text-teal-400 mt-4">You'll play the game individually next!</p>
-        </div>
+        <>
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
+            <Gamepad2 className="w-32 h-32 mb-8 animate-pulse text-green-400" />
+            <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+            <p className="text-2xl text-gray-300">Follow along with the class demo</p>
+            <p className="text-xl text-teal-400 mt-4">You'll play the game individually next!</p>
+          </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
       );
     }
     
     // RESULTS: Students see "Watch the Main Screen" for game results
     if (currentStageData?.type === 'results') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
-          <Trophy className="w-32 h-32 mb-8 animate-pulse text-yellow-400" />
-          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-300">Viewing game results and winners!</p>
-        </div>
+        <>
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
+            <Trophy className="w-32 h-32 mb-8 animate-pulse text-yellow-400" />
+            <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+            <p className="text-2xl text-gray-300">Viewing game results and winners!</p>
+          </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
       );
     }
     
     // VIDEO STAGES: Students see static slide
     if (currentStageData?.type === 'video') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
-          <Video className="w-32 h-32 mb-8 animate-pulse text-white" />
-          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-300">The video is playing on the projection screen</p>
-        </div>
+        <>
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
+            <Video className="w-32 h-32 mb-8 animate-pulse text-white" />
+            <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+            <p className="text-2xl text-gray-300">The video is playing on the projection screen</p>
+          </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
       );
     }
     
     // DISCUSSION/CONCLUSION STAGES: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'discussion' || currentStage === 'conclusion') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
-          <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
-          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-300">Your teacher is leading a class discussion</p>
-        </div>
+        <>
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
+            <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
+            <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+            <p className="text-2xl text-gray-300">Your teacher is leading a class discussion</p>
+          </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
       );
     }
     
@@ -182,21 +238,24 @@ const Lesson3 = () => {
     if (!activity) {
       return <StudentWaitingScreen />;
     }
-    
+
     return (
-      <div className="h-screen flex flex-col">
-        <div className="flex-1 overflow-hidden">
-          <ActivityRenderer
-            activity={activity}
-            onComplete={() => handleSessionActivityComplete(currentStage)}
-            navToolsEnabled={false}
-            canAccessNavTools={false}
-            lessonStartTime={lesson.lessonStartTime}
-            viewMode={false}
-            isSessionMode={true}
-          />
+      <>
+        <div className="h-screen flex flex-col">
+          <div className="flex-1 overflow-hidden">
+            <ActivityRenderer
+              activity={activity}
+              onComplete={() => handleSessionActivityComplete(currentStage)}
+              navToolsEnabled={false}
+              canAccessNavTools={false}
+              lessonStartTime={lesson.lessonStartTime}
+              viewMode={false}
+              isSessionMode={true}
+            />
+          </div>
         </div>
-      </div>
+        <TransitionOverlay isVisible={showTransition} />
+      </>
     );
   }
 

@@ -321,58 +321,73 @@ const Lesson2Content = () => {
     // SUMMARY SLIDES: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'summary') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
-          <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
-          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>
-        </div>
+        <>
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+            <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
+            <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+            <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>
+          </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
       );
     }
     
     // CLASS DEMO: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'class-demo') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-900 via-red-900 to-pink-900 text-white p-8">
-          <Gamepad2 className="w-32 h-32 mb-8 animate-pulse text-white" />
-          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-300">Follow along with the class demo</p>
-        </div>
+        <>
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-900 via-red-900 to-pink-900 text-white p-8">
+            <Gamepad2 className="w-32 h-32 mb-8 animate-pulse text-white" />
+            <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+            <p className="text-2xl text-gray-300">Follow along with the class demo</p>
+          </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
       );
     }
     
     // VIDEO STAGES: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'video') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
-          <Video className="w-32 h-32 mb-8 animate-pulse text-white" />
-          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-400">The video is playing on the projection screen</p>
-        </div>
+        <>
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+            <Video className="w-32 h-32 mb-8 animate-pulse text-white" />
+            <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+            <p className="text-2xl text-gray-400">The video is playing on the projection screen</p>
+          </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
       );
     }
     
     // RESULTS: Students see results
     if (currentStageData?.type === 'results') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 text-white p-8">
-          <Trophy className="w-32 h-32 mb-8 animate-pulse text-yellow-400" />
-          <h1 className="text-5xl font-bold mb-4">Great Job!</h1>
-          <p className="text-2xl text-gray-300">Check the main screen to see final scores!</p>
-          {sessionCode && userId && (
-            <StudentResultsBadge sessionCode={sessionCode} userId={userId} />
-          )}
-        </div>
+        <>
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 text-white p-8">
+            <Trophy className="w-32 h-32 mb-8 animate-pulse text-yellow-400" />
+            <h1 className="text-5xl font-bold mb-4">Great Job!</h1>
+            <p className="text-2xl text-gray-300">Check the main screen to see final scores!</p>
+            {sessionCode && userId && (
+              <StudentResultsBadge sessionCode={sessionCode} userId={userId} />
+            )}
+          </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
       );
     }
     
     // DISCUSSION/CONCLUSION: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'discussion' || currentStage === 'conclusion') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
-          <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
-          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-400">Your teacher is leading a class discussion</p>
-        </div>
+        <>
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+            <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
+            <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+            <p className="text-2xl text-gray-400">Your teacher is leading a class discussion</p>
+          </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
       );
     }
     

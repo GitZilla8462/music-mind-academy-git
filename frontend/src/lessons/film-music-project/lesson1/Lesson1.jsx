@@ -192,45 +192,57 @@ const Lesson1 = () => {
     if (currentStageData?.type === 'summary') {
       console.log('📺 Showing Watch the Main Screen for stage:', currentStage);
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
-          <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
-          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>
-        </div>
+        <>
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+            <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
+            <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+            <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>
+          </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
       );
     }
 
     // DEMO STAGES: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'demo') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white p-8">
-          <Gamepad2 className="w-32 h-32 mb-8 animate-pulse text-white" />
-          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-300">Follow along with the demo</p>
-          <p className="text-xl text-gray-400 mt-4">Notice how the music changes the mood!</p>
-        </div>
+        <>
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white p-8">
+            <Gamepad2 className="w-32 h-32 mb-8 animate-pulse text-white" />
+            <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+            <p className="text-2xl text-gray-300">Follow along with the demo</p>
+            <p className="text-xl text-gray-400 mt-4">Notice how the music changes the mood!</p>
+          </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
       );
     }
 
     // VIDEO STAGES: Students see static slide
     if (currentStageData?.type === 'video') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
-          <Video className="w-32 h-32 mb-8 animate-pulse text-white" />
-          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-400">The video is playing on the projection screen</p>
-        </div>
+        <>
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+            <Video className="w-32 h-32 mb-8 animate-pulse text-white" />
+            <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+            <p className="text-2xl text-gray-400">The video is playing on the projection screen</p>
+          </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
       );
     }
 
     // DISCUSSION/CONCLUSION STAGES
     if (currentStageData?.type === 'discussion' || currentStage === 'conclusion') {
       return (
-        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
-          <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
-          <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
-          <p className="text-2xl text-gray-400">Your teacher is leading a class discussion</p>
-        </div>
+        <>
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+            <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
+            <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+            <p className="text-2xl text-gray-400">Your teacher is leading a class discussion</p>
+          </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
       );
     }
 
