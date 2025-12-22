@@ -549,7 +549,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {} }) => {
         saveStudentWork('listening-map', {
           title: mapConfig.credits.title,
           emoji: '🗺️',
-          viewRoute: '/lessons/film-music-project/lesson3?view=listening-map',  // ✅ Go back into activity
+          viewRoute: '/lessons/film-music-project/lesson2?view=listening-map',  // ✅ Go back into activity
           subtitle: `${mapConfig.numRows} rows • Vivaldi`,
           category: 'Film Music Project',
           data: {
