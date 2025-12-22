@@ -125,17 +125,24 @@ export const lessonSections = [
     title: '4. Reflection and Discussion',
     subtitle: 'Reflect → Discuss',
     color: 'blue',
-    estimatedTime: 5,
+    estimatedTime: 6,
     stages: [
-      { 
-        id: 'reflection', 
-        type: 'activity', 
-        label: '🎮 Unlock Reflection', 
+      {
+        id: 'reflection-instructions',
+        type: 'summary',
+        label: 'Reflection Instructions',
+        description: 'Explain Two Stars and a Wish.',
+        duration: 1
+      },
+      {
+        id: 'reflection',
+        type: 'activity',
+        label: '🎮 Unlock Reflection',
         duration: 3,
         hasTimer: true,
         trackProgress: true,
         description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form',
-        bonusDescription: 'Bonus: Layer Detective with a partner'
+        bonusDescription: 'Bonus: Loop Lab Partner Game with a partner'
       },
       {
         id: 'conclusion',
@@ -273,9 +280,9 @@ export const lessonStages = [
       title: 'Listening Map Explanation'
     }
   },
-  { 
-    id: 'listening-map', 
-    label: '🎮 Unlock Listening Map', 
+  {
+    id: 'listening-map',
+    label: '🎮 Unlock Listening Map',
     description: 'STUDENTS WORK: Create 4 rows, unique style per row',
     bonusDescription: 'Bonus: Add more colors, textures, and pictures',
     hasProgress: true,
@@ -284,7 +291,7 @@ export const lessonStages = [
     duration: 8,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/6.5.png'
+      slidePath: '/lessons/film-music-project/lesson2/slides/6.5.svg'
     }
   },
   // Activity 2: Composition
@@ -310,10 +317,10 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson2/slides/8.png'
     }
   },
-  { 
-    id: 'city-composition', 
-    label: '🎮 Unlock Composition', 
-    description: 'STUDENTS WORK: Pick city video, compose soundscape music', 
+  {
+    id: 'city-composition',
+    label: '🎮 Unlock Composition',
+    description: 'STUDENTS WORK: Pick city video, compose soundscape music',
     bonusDescription: 'Bonus: Add more layers and sound effects',
     hasProgress: true,
     type: 'activity',
@@ -321,22 +328,33 @@ export const lessonStages = [
     duration: 10,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/9.png'
+      slidePath: '/lessons/film-music-project/lesson2/slides/9.svg'
     }
   },
   // Reflection
-  { 
-    id: 'reflection', 
-    label: '🎮 Unlock Reflection', 
-    description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form', 
-    bonusDescription: 'Bonus: Layer Detective with a partner',
+  {
+    id: 'reflection-instructions',
+    label: 'Reflection Instructions',
+    description: 'Explain Two Stars and a Wish.',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson2/slides/10.svg'
+    }
+  },
+  {
+    id: 'reflection',
+    label: '🎮 Unlock Reflection',
+    description: 'STUDENTS WORK: 2 things well + 1 to improve, fill out form',
+    bonusDescription: 'Bonus: Loop Lab Partner Game with a partner',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
     duration: 3,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/10.png'
+      slidePath: '/lessons/film-music-project/lesson2/slides/11.svg'
     }
   },
   // Conclusion
@@ -369,6 +387,7 @@ export const getActivityForStage = (stage) => {
     'composition-instructions': 'summary',
     'composition-instructions-continued': 'summary',
     'city-composition': 'city-composition-activity',
+    'reflection-instructions': 'summary',
     'reflection': 'two-stars-wish',
     'conclusion': 'discussion'
   };
