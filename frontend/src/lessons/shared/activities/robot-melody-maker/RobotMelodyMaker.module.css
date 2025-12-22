@@ -347,6 +347,13 @@
   flex-shrink: 0;
 }
 
+/* Fix option text color for native dropdown (light background) */
+.robotSelect option {
+  color: #1a1a1a;
+  background: #fff;
+  font-weight: 600;
+}
+
 .robotSelect::after {
   content: '▼';
 }

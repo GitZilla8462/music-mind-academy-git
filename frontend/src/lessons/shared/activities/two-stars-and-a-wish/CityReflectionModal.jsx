@@ -169,7 +169,7 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
   // If minimized, show small button
   if (isMinimized) {
     return (
-      <div className="fixed top-4 left-4 z-40">
+      <div className="fixed top-4 left-4 z-[100]">
         <button
           onClick={toggleMinimize}
           className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:from-purple-700 hover:to-blue-700 transition-all flex items-center gap-2"
@@ -182,7 +182,7 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
   }
 
   return (
-    <div className="fixed top-4 left-4 z-40 w-96 max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-purple-200">
+    <div className="fixed top-4 left-4 z-[100] w-96 max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-purple-200">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-3 rounded-t-xl flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">

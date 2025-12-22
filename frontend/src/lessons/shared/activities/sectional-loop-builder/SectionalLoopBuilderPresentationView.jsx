@@ -704,10 +704,10 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
       <ActivityBanner />
 
       {/* Main content area */}
-      <div className="flex-1 p-4 overflow-hidden">
+      <div className="flex-1 p-4 overflow-hidden flex flex-col">
         {/* Header - hidden during listening phases */}
         {!hideHeader && (
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3 flex-shrink-0">
             <div className="flex items-center gap-4">
               <span className="text-5xl">🌍</span>
               <h1 className="text-4xl font-bold">Epic Wildlife</h1>
@@ -724,8 +724,8 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
         )}
 
       {/* Main content */}
-      <div className={`grid ${showLeaderboard ? 'grid-cols-3' : 'grid-cols-1'} gap-3 flex-1`}>
-        <div className={`${showLeaderboard ? 'col-span-2' : ''} ${hideHeader ? '' : 'bg-black/20'} rounded-2xl p-6 flex items-center justify-center`}>
+      <div className={`grid ${showLeaderboard ? 'grid-cols-3' : 'grid-cols-1'} gap-3 flex-1 min-h-0`}>
+        <div className={`${showLeaderboard ? 'col-span-2' : ''} ${hideHeader ? '' : 'bg-black/20'} rounded-2xl p-6 flex items-center justify-center min-h-0`}>
           
           {/* Setup - choose rounds */}
           {gamePhase === 'setup' && !totalRounds && (
@@ -1053,7 +1053,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
 
         {/* Leaderboard */}
         {showLeaderboard && (
-          <div className="bg-black/20 rounded-2xl p-4 flex flex-col">
+          <div className="bg-black/20 rounded-2xl p-4 flex flex-col min-h-0">
             <style>{animationStyles}</style>
             <div className="flex items-center gap-3 mb-3">
               <Trophy className="text-yellow-400" size={32} />

@@ -169,7 +169,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
   // If minimized, show small button
   if (isMinimized) {
     return (
-      <div className="fixed top-4 left-4 z-40">
+      <div className="fixed top-4 left-4 z-[100]">
         <button
           onClick={toggleMinimize}
           className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-4 py-2 rounded-lg shadow-lg hover:from-orange-700 hover:to-red-700 transition-all flex items-center gap-2"
@@ -182,7 +182,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
   }
 
   return (
-    <div className="fixed top-4 left-4 z-40 w-96 max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-orange-200">
+    <div className="fixed top-4 left-4 z-[100] w-96 max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-orange-200">
       {/* Header */}
       <div className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-4 py-3 rounded-t-xl flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
