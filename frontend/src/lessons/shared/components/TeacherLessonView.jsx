@@ -433,7 +433,8 @@ const TeacherLessonView = ({
     }
   }, [currentStage, config.lessonSections]);
 
-  // Auto-show timer for all activities with hasTimer: true
+  // Auto-show/hide timer based on stage type
+  // Timer is shown for activities with hasTimer: true, hidden otherwise
   useEffect(() => {
     if (!currentStageData) return;
 
@@ -452,6 +453,9 @@ const TeacherLessonView = ({
         isRunning: false,
         isPaused: false
       }));
+    } else {
+      // Auto-minimize timer when navigating to non-timed stages
+      setTimerVisible(false);
     }
   }, [currentStageData]);
 

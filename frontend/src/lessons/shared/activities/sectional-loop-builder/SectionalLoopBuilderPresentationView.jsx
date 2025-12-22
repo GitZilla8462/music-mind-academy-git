@@ -492,6 +492,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
   }, [gamePhase, currentClipIndex, totalClipsPlayed, quizOrder, sessionCode, students, updateGame, playSectionAudio]);
 
   // Safari timer effect (45 second countdown during guessing)
+  // OPTIMIZED: Send start timestamp once, students calculate locally
   useEffect(() => {
     if (gamePhase !== 'guessing') {
       if (safariTimerRef.current) {
@@ -501,39 +502,39 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
       safariTimerStartedRef.current = false;
       return;
     }
-    
+
     if (safariTimerStartedRef.current) return;
     safariTimerStartedRef.current = true;
-    
+
     setSafariTimer(45);
-    
+
+    // Send start timestamp ONCE to Firebase - students calculate remaining time locally
+    if (sessionCode && safariHunters.length > 0) {
+      const db = getDatabase();
+      update(ref(db, `sessions/${sessionCode}`), {
+        'activityData/safariTimerStart': Date.now()
+      });
+    }
+
+    // Local countdown for teacher display only (no Firebase updates)
     let count = 45;
     safariTimerRef.current = setInterval(() => {
       count -= 1;
       setSafariTimer(count);
-
-      // Only update timer in Firebase - DO NOT overwrite gamePhase
-      // (overwriting gamePhase caused the double-click reveal bug)
-      if (sessionCode) {
-        const db = getDatabase();
-        update(ref(db, `sessions/${sessionCode}`), {
-          'activityData/safariTimer': count
-        });
-      }
 
       if (count <= 0) {
         clearInterval(safariTimerRef.current);
         safariTimerRef.current = null;
       }
     }, 1000);
-    
+
     return () => {
       if (safariTimerRef.current) {
         clearInterval(safariTimerRef.current);
         safariTimerRef.current = null;
       }
     };
-  }, [gamePhase, currentClipIndex, updateGame, safariAssignments, safariHunters]);
+  }, [gamePhase, currentClipIndex, sessionCode, safariHunters]);
 
   // ============ REVEAL SEQUENCE ============
   const reveal = useCallback(() => {
