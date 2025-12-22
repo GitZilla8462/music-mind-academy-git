@@ -71,26 +71,18 @@ export const lessonSections = [
     color: 'teal',
     estimatedTime: 10,
     stages: [
-      { 
-        id: 'introduce-sectional-builder', 
-        type: 'summary', 
+      {
+        id: 'introduce-sectional-builder',
+        type: 'summary',
         label: 'Introduce Sectional Loop Builder Game',
         description: 'Game instructions - Slide 7',
         duration: 1
       },
       {
-        id: 'sectional-loop-builder-demo',
-        type: 'class-demo',
-        label: 'Class Demo (on projector)',
-        description: '3-question demo on projector - students watch',
-        duration: 2
-      },
-      { 
-        id: 'sectional-loop-builder', 
-        type: 'activity', 
-        label: 'Unlock Sectional Loop Builder Game', 
+        id: 'sectional-loop-builder',
+        type: 'activity',
+        label: 'Unlock Sectional Loop Builder Game',
         duration: 5,
-        hasTimer: true,
         trackProgress: true,
         description: 'Students play individually - leaderboard on projector',
         bonusDescription: 'Safari: Find your classmates!'
@@ -149,14 +141,14 @@ export const lessonSections = [
       {
         id: 'reflection-instructions',
         type: 'summary',
-        label: 'Reflection Instructions',
-        description: 'Display reflection instructions - Slide 11',
+        label: 'Two Stars and a Wish',
+        description: 'Explain the reflection prompts - Slide 11',
         duration: 1
       },
-      { 
-        id: 'reflection', 
-        type: 'activity', 
-        label: 'Unlock Reflection Activity', 
+      {
+        id: 'reflection',
+        type: 'activity',
+        label: 'Reflection',
         duration: 5,
         hasTimer: true,
         trackProgress: true,
@@ -168,27 +160,27 @@ export const lessonSections = [
   {
     id: 'bonus',
     title: 'Bonus',
-    subtitle: 'Monster Melody Maker',
-    icon: '👾',
+    subtitle: 'Robot Melody Maker',
+    icon: '🤖',
     color: 'purple',
     estimatedTime: 10,
     stages: [
       {
         id: 'bonus-intro',
         type: 'summary',
-        label: 'Introduce Monster Melody Maker',
+        label: 'Introduce Robot Melody Maker',
         description: 'Bonus activity introduction - Slide 13',
         duration: 1
       },
       {
-        id: 'monster-melody-maker',
+        id: 'robot-melody-maker',
         type: 'activity',
-        label: 'Unlock Monster Melody Maker',
-        description: 'Students create loops and customize their monster',
+        label: 'Unlock Robot Melody Maker',
+        description: 'Students create loops and customize their robot',
         duration: 8,
         hasTimer: true,
         trackProgress: true,
-        bonusDescription: 'Make your monster dance!'
+        bonusDescription: 'Make your robot dance!'
       }
     ]
   }
@@ -226,8 +218,8 @@ export const lesson3Config = {
     },
     {
       id: 4,
-      type: "monster-melody-maker",
-      title: "Monster Melody Maker",
+      type: "robot-melody-maker",
+      title: "Robot Melody Maker",
       estimatedTime: "8 min"
     }
   ]
@@ -323,23 +315,12 @@ export const lessonStages = [
     }
   },
   {
-    id: 'sectional-loop-builder-demo',
-    label: 'Class Demo (on projector)',
-    description: '3-question demo - students watch main screen',
-    type: 'class-demo',
-    duration: 2,
-    presentationView: {
-      type: 'sectional-loop-builder-class-demo'
-    }
-  },
-  { 
-    id: 'sectional-loop-builder', 
-    label: 'Unlock Sectional Loop Builder Game', 
+    id: 'sectional-loop-builder',
+    label: 'Unlock Sectional Loop Builder Game',
     description: 'Students play individually - leaderboard on projector',
     bonusDescription: 'Safari: Find your classmates!',
     hasProgress: true,
     type: 'activity',
-    hasTimer: true,
     duration: 5,
     presentationView: {
       type: 'sectional-loop-builder-leaderboard'
@@ -378,10 +359,10 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson3/slides/9.png'
     }
   },
-  { 
-    id: 'wildlife-composition', 
-    label: 'Unlock Composition Activity', 
-    description: "Compose wildlife soundtrack music - Slide 10", 
+  {
+    id: 'wildlife-composition',
+    label: 'Unlock Composition Activity',
+    description: "Compose wildlife soundtrack music - Slide 10",
     bonusDescription: 'Bonus: Add More Sections',
     hasProgress: true,
     type: 'activity',
@@ -389,25 +370,25 @@ export const lessonStages = [
     duration: 10,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson3/slides/10.png'
+      slidePath: '/lessons/film-music-project/lesson3/slides/10.svg'
     }
   },
   // Reflection
   {
     id: 'reflection-instructions',
-    label: 'Reflection Instructions',
-    description: 'Display reflection instructions - Slide 11',
+    label: 'Two Stars and a Wish',
+    description: 'Explain the reflection prompts - Slide 11',
     type: 'summary',
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson3/slides/11.png'
+      slidePath: '/lessons/film-music-project/lesson3/slides/11.svg'
     }
   },
-  { 
-    id: 'reflection', 
-    label: 'Unlock Reflection Activity', 
-    description: 'Students complete Two Stars and a Wish', 
+  {
+    id: 'reflection',
+    label: 'Reflection',
+    description: 'Students complete Two Stars and a Wish',
     bonusDescription: 'Bonus: Share Your Work',
     hasProgress: true,
     type: 'activity',
@@ -415,33 +396,33 @@ export const lessonStages = [
     duration: 5,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson3/slides/12.png'
+      slidePath: '/lessons/film-music-project/lesson3/slides/12.svg'
     }
   },
   // Bonus
   {
     id: 'bonus-intro',
-    label: 'Introduce Monster Melody Maker',
+    label: 'Robot Melody Maker',
     description: 'Bonus activity introduction - Slide 13',
     type: 'summary',
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson3/slides/13.png'
+      slidePath: '/lessons/film-music-project/lesson3/slides/13.svg'
     }
   },
   {
-    id: 'monster-melody-maker',
-    label: 'Unlock Monster Melody Maker',
-    description: 'Students create loops and customize their monster',
-    bonusDescription: 'Make your monster dance!',
+    id: 'robot-melody-maker',
+    label: 'Unlock Robot Melody Maker',
+    description: 'Students create loops and customize their robot',
+    bonusDescription: 'Make your robot dance!',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
     duration: 8,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson3/slides/14.png'
+      slidePath: '/lessons/film-music-project/lesson3/slides/14.svg'
     }
   }
 ];
@@ -457,7 +438,6 @@ export const getActivityForStage = (stage) => {
     'introduce-sectional-loop-form': 'summary',
     'sectional-loop-example': 'summary',
     'introduce-sectional-builder': 'summary',
-    'sectional-loop-builder-demo': 'class-demo',
     'sectional-loop-builder': 'sectional-loop-builder',
     'sectional-loop-builder-results': 'results',
     'composition-instructions': 'summary',
@@ -468,7 +448,8 @@ export const getActivityForStage = (stage) => {
     'reflection': 'two-stars-wish',
     'bonus-intro': 'summary',
     'bonus-challenges': 'summary',  // backward compatibility
-    'monster-melody-maker': 'monster-melody-maker'
+    'robot-melody-maker': 'robot-melody-maker',
+    'monster-melody-maker': 'robot-melody-maker'  // backward compatibility
   };
   return stageMap[stage];
 };

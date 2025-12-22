@@ -3,7 +3,6 @@
 // ✅ Copy this file as "index.js" to the sectional-loop-builder folder
 
 export { default as SectionalLoopBuilderActivity } from './SectionalLoopBuilderActivity';
-export { default as SectionalLoopBuilderClassDemo } from './SectionalLoopBuilderClassDemo';
 export { default as SectionalLoopBuilderPresentationView } from './SectionalLoopBuilderPresentationView';
 export { default as SectionalLoopBuilderResults } from './SectionalLoopBuilderResults';
 export * from './safariData';

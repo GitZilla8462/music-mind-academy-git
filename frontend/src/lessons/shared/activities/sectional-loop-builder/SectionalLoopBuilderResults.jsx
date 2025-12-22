@@ -37,7 +37,6 @@ const SectionalLoopBuilderResults = ({ sessionData }) => {
   };
   
   const totalStudents = sessionData?.studentsJoined ? Object.keys(sessionData.studentsJoined).length : 0;
-  const totalPoints = winners.reduce((sum, w) => sum + w.score, 0);
   
   return (
     <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white flex items-center justify-center overflow-hidden">
@@ -71,82 +70,64 @@ const SectionalLoopBuilderResults = ({ sessionData }) => {
         <div className="flex items-end justify-center space-x-8 mb-12">
           {/* 2nd Place */}
           {winners[1] && (
-            <div className={`${showAnimation ? 'animate-slide-up-1' : 'opacity-0'}`}>
+            <div className={`podium-item ${showAnimation ? 'animate-slide-up-1' : ''}`}>
               <div className="bg-gradient-to-br from-gray-300 to-gray-400 rounded-t-2xl p-8 shadow-2xl">
                 {/* Player Emoji */}
-                <div 
-                  className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl"
-                  style={{ backgroundColor: `${winners[1].playerColor}20` }}
-                >
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl bg-white shadow-lg border-4 border-gray-200">
                   {winners[1].playerEmoji}
                 </div>
-                
+
                 <div className="text-6xl mb-4">{getMedal(2).icon}</div>
-                <h3 
-                  className="text-2xl font-bold mb-2"
-                  style={{ color: winners[1].playerColor }}
-                >
+                <h3 className="text-2xl font-bold mb-2 text-gray-800">
                   {winners[1].name}
                 </h3>
-                <div className="text-4xl font-bold">{winners[1].score}</div>
-                <div className="text-lg opacity-80">points</div>
+                <div className="text-4xl font-bold text-gray-900">{winners[1].score}</div>
+                <div className="text-lg text-gray-700">points</div>
               </div>
               <div className="bg-gray-500 h-32 w-full"></div>
             </div>
           )}
-          
+
           {/* 1st Place */}
           {winners[0] && (
-            <div className={`${showAnimation ? 'animate-slide-up-0' : 'opacity-0'} transform scale-110`}>
+            <div className={`podium-item podium-first ${showAnimation ? 'animate-slide-up-0' : ''}`}>
               <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-t-2xl p-10 shadow-2xl">
                 {/* Player Emoji */}
-                <div 
-                  className="w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center text-5xl animate-pulse"
-                  style={{ backgroundColor: `${winners[0].playerColor}20` }}
-                >
+                <div className="w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center text-5xl bg-white shadow-lg border-4 border-yellow-300 animate-pulse">
                   {winners[0].playerEmoji}
                 </div>
-                
+
                 <div className="text-7xl mb-4 animate-pulse">{getMedal(1).icon}</div>
-                <h3 
-                  className="text-3xl font-bold mb-2"
-                  style={{ color: winners[0].playerColor }}
-                >
+                <h3 className="text-3xl font-bold mb-2 text-yellow-900">
                   {winners[0].name}
                 </h3>
-                <div className="text-5xl font-bold">{winners[0].score}</div>
-                <div className="text-xl opacity-90">points</div>
+                <div className="text-5xl font-bold text-yellow-900">{winners[0].score}</div>
+                <div className="text-xl text-yellow-800">points</div>
                 <div className="flex justify-center mt-2">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={24} className="text-white fill-current" />
+                    <Star key={i} size={24} className="text-yellow-900 fill-current" />
                   ))}
                 </div>
               </div>
               <div className="bg-yellow-700 h-40 w-full"></div>
             </div>
           )}
-          
+
           {/* 3rd Place */}
           {winners[2] && (
-            <div className={`${showAnimation ? 'animate-slide-up-2' : 'opacity-0'}`}>
+            <div className={`podium-item ${showAnimation ? 'animate-slide-up-2' : ''}`}>
               <div className="bg-gradient-to-br from-orange-400 to-orange-600 rounded-t-2xl p-8 shadow-2xl">
                 {/* Player Emoji */}
-                <div 
-                  className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl"
-                  style={{ backgroundColor: `${winners[2].playerColor}20` }}
-                >
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl bg-white shadow-lg border-4 border-orange-300">
                   {winners[2].playerEmoji}
                 </div>
-                
+
                 <div className="text-6xl mb-4">{getMedal(3).icon}</div>
-                <h3 
-                  className="text-2xl font-bold mb-2"
-                  style={{ color: winners[2].playerColor }}
-                >
+                <h3 className="text-2xl font-bold mb-2 text-orange-900">
                   {winners[2].name}
                 </h3>
-                <div className="text-4xl font-bold">{winners[2].score}</div>
-                <div className="text-lg opacity-80">points</div>
+                <div className="text-4xl font-bold text-orange-900">{winners[2].score}</div>
+                <div className="text-lg text-orange-800">points</div>
               </div>
               <div className="bg-orange-700 h-24 w-full"></div>
             </div>
@@ -155,14 +136,10 @@ const SectionalLoopBuilderResults = ({ sessionData }) => {
         
         {/* Stats */}
         <div className={`bg-white/10 backdrop-blur-sm rounded-2xl p-8 inline-block ${showAnimation ? 'animate-fade-in' : 'opacity-0'}`}>
-          <div className="flex items-center justify-center space-x-12">
+          <div className="flex items-center justify-center">
             <div>
               <div className="text-4xl font-bold text-green-400">{totalStudents}</div>
               <div className="text-lg opacity-80">Players</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-yellow-400">{totalPoints}</div>
-              <div className="text-lg opacity-80">Total Points</div>
             </div>
           </div>
         </div>
@@ -180,7 +157,7 @@ const SectionalLoopBuilderResults = ({ sessionData }) => {
             opacity: 0;
           }
         }
-        
+
         @keyframes bounce-in {
           0% {
             transform: scale(0) translateY(-50px);
@@ -194,10 +171,10 @@ const SectionalLoopBuilderResults = ({ sessionData }) => {
             opacity: 1;
           }
         }
-        
+
         @keyframes slide-up-0 {
           0% {
-            transform: translateY(100px) scale(1.1);
+            transform: translateY(200px) scale(1.1);
             opacity: 0;
           }
           100% {
@@ -205,10 +182,10 @@ const SectionalLoopBuilderResults = ({ sessionData }) => {
             opacity: 1;
           }
         }
-        
+
         @keyframes slide-up-1 {
           0% {
-            transform: translateY(100px);
+            transform: translateY(200px);
             opacity: 0;
           }
           100% {
@@ -216,10 +193,10 @@ const SectionalLoopBuilderResults = ({ sessionData }) => {
             opacity: 1;
           }
         }
-        
+
         @keyframes slide-up-2 {
           0% {
-            transform: translateY(100px);
+            transform: translateY(200px);
             opacity: 0;
           }
           100% {
@@ -227,7 +204,7 @@ const SectionalLoopBuilderResults = ({ sessionData }) => {
             opacity: 1;
           }
         }
-        
+
         @keyframes fade-in {
           0% {
             opacity: 0;
@@ -236,29 +213,39 @@ const SectionalLoopBuilderResults = ({ sessionData }) => {
             opacity: 1;
           }
         }
-        
+
         .animate-confetti {
           animation: confetti 4s linear infinite;
         }
-        
+
         .animate-bounce-in {
           animation: bounce-in 1s ease-out forwards;
         }
-        
+
+        /* Podium items start hidden below viewport */
+        .podium-item {
+          opacity: 0;
+          transform: translateY(200px);
+        }
+
+        .podium-first {
+          transform: translateY(200px) scale(1.1);
+        }
+
         .animate-slide-up-0 {
-          animation: slide-up-0 0.8s ease-out 0.5s forwards;
+          animation: slide-up-0 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s forwards;
         }
-        
+
         .animate-slide-up-1 {
-          animation: slide-up-1 0.8s ease-out 0.7s forwards;
+          animation: slide-up-1 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s forwards;
         }
-        
+
         .animate-slide-up-2 {
-          animation: slide-up-2 0.8s ease-out 0.9s forwards;
+          animation: slide-up-2 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.9s forwards;
         }
-        
+
         .animate-fade-in {
-          animation: fade-in 1s ease-out 1.2s forwards;
+          animation: fade-in 1s ease-out 1.4s forwards;
         }
       `}</style>
     </div>

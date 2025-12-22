@@ -283,7 +283,7 @@ const LessonPlan4PDF = () => {
           {/* Bonus Activity */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-pink-50 p-2 rounded">
-              ⭐ Bonus Activity <span className="font-normal text-gray-600">— Monster Melody Maker (8 min)</span>
+              ⭐ Bonus Activity <span className="font-normal text-gray-600">— Robot Melody Maker (8 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -296,9 +296,9 @@ const LessonPlan4PDF = () => {
               <tbody>
                 <tr className="bg-pink-50">
                   <td className="border p-2">8 min</td>
-                  <td className="border p-2 font-medium">🎮 Monster Melody Maker</td>
+                  <td className="border p-2 font-medium">🤖 Robot Melody Maker</td>
                   <td className="border p-2">
-                    <strong>BONUS:</strong> Creative melody game<br/>
+                    <strong>BONUS:</strong> Create loops and watch your robot dance!<br/>
                     <em className="text-pink-700">Use if time allows or for fast finishers</em>
                   </td>
                 </tr>

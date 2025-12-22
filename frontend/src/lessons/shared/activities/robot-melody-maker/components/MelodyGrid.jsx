@@ -1,13 +1,15 @@
 /**
- * FILE: monster-melody-maker/components/MelodyGrid.jsx
- * 
+ * FILE: robot-melody-maker/components/MelodyGrid.jsx
+ *
  * Simple 8x16 melody grid for composing
  * - 8 rows = 8 pitches (pentatonic scale)
  * - 16 columns = 16 steps
  * - Click to toggle notes on/off
+ *
+ * ✅ OPTIMIZED: Uses GPU-accelerated transforms for smooth playhead
  */
 
-import React from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import styles from './MelodyGrid.module.css';
 
 // Note labels for each row (high to low)
@@ -79,28 +81,51 @@ const PRESETS = {
   },
 };
 
-const MelodyGrid = ({ pattern, onChange, currentStep, isPlaying }) => {
-  // Toggle a cell on/off
-  const toggleCell = (row, col) => {
-    const newPattern = pattern.map((r, ri) =>
-      r.map((cell, ci) => (ri === row && ci === col ? !cell : cell))
-    );
-    onChange(newPattern);
-  };
+// Memoized cell component to prevent re-renders
+const GridCell = memo(({ rowIndex, colIndex, isActive, isBeat, hue, onToggle }) => (
+  <button
+    className={`
+      ${styles.cell}
+      ${isActive ? styles.active : ''}
+      ${isBeat ? styles.beat : ''}
+    `}
+    style={{
+      '--cell-hue': hue,
+      '--cell-color': `hsl(${hue}, 70%, 55%)`,
+      '--cell-glow': `hsl(${hue}, 80%, 60%)`,
+    }}
+    onClick={() => onToggle(rowIndex, colIndex)}
+  />
+));
+
+GridCell.displayName = 'GridCell';
+
+const MelodyGrid = memo(({ pattern, onChange }) => {
+  // Toggle a cell on/off - memoized to prevent child re-renders
+  const toggleCell = useCallback((row, col) => {
+    onChange(prev => {
+      // Handle both function and direct pattern updates
+      const currentPattern = typeof prev === 'function' ? prev : pattern;
+      return currentPattern.map((r, ri) =>
+        r.map((cell, ci) => (ri === row && ci === col ? !cell : cell))
+      );
+    });
+  }, [onChange, pattern]);
 
   // Apply a preset
-  const applyPreset = (presetName) => {
+  const applyPreset = useCallback((presetName) => {
     const presetFn = PRESETS[presetName];
     if (presetFn) {
       onChange(presetFn());
     }
-  };
+  }, [onChange]);
 
-  // Get cell color based on row (high = warm, low = cool)
-  const getCellHue = (row) => {
-    // Row 0 (high) = 280 (purple), Row 7 (low) = 120 (green)
-    return 280 - (row / 7) * 160;
-  };
+  // Pre-calculate cell hues (never changes)
+  const cellHues = useMemo(() =>
+    Array.from({ length: 8 }, (_, row) => 280 - (row / 7) * 160),
+    []
+  );
+
 
   return (
     <div className={styles.container}>
@@ -145,41 +170,20 @@ const MelodyGrid = ({ pattern, onChange, currentStep, isPlaying }) => {
 
         {/* Main grid */}
         <div className={styles.grid}>
-          {/* Playhead */}
-          {isPlaying && currentStep >= 0 && (
-            <div 
-              className={styles.playhead}
-              style={{ left: `${(currentStep / 16) * 100}%` }}
-            />
-          )}
-
-          {/* Cells */}
+          {/* Cells - using memoized GridCell for performance */}
           {pattern.map((row, rowIndex) => (
             <div key={rowIndex} className={styles.row}>
-              {row.map((cell, colIndex) => {
-                const hue = getCellHue(rowIndex);
-                const isActive = cell;
-                const isCurrent = isPlaying && colIndex === currentStep;
-                const isBeat = colIndex % 4 === 0;
-
-                return (
-                  <button
-                    key={colIndex}
-                    className={`
-                      ${styles.cell}
-                      ${isActive ? styles.active : ''}
-                      ${isCurrent ? styles.current : ''}
-                      ${isBeat ? styles.beat : ''}
-                    `}
-                    style={{
-                      '--cell-hue': hue,
-                      '--cell-color': `hsl(${hue}, 70%, 55%)`,
-                      '--cell-glow': `hsl(${hue}, 80%, 60%)`,
-                    }}
-                    onClick={() => toggleCell(rowIndex, colIndex)}
-                  />
-                );
-              })}
+              {row.map((cell, colIndex) => (
+                <GridCell
+                  key={colIndex}
+                  rowIndex={rowIndex}
+                  colIndex={colIndex}
+                  isActive={cell}
+                  isBeat={colIndex % 4 === 0}
+                  hue={cellHues[rowIndex]}
+                  onToggle={toggleCell}
+                />
+              ))}
             </div>
           ))}
 
@@ -199,6 +203,8 @@ const MelodyGrid = ({ pattern, onChange, currentStep, isPlaying }) => {
       </div>
     </div>
   );
-};
+});
+
+MelodyGrid.displayName = 'MelodyGrid';
 
 export default MelodyGrid;

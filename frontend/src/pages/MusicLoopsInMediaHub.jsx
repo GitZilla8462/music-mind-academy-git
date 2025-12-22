@@ -128,7 +128,7 @@ const MusicLoopsInMediaHub = () => {
         { title: 'Composition', description: 'Score wildlife footage with structure', time: 14, activityType: 'wildlife-composition-activity' },
         { title: 'Two Stars and a Wish', description: 'Reflect on your form choices', time: 5, activityType: 'two-stars-wish' },
         { title: 'Share & Discussion', description: 'Compare story arcs in compositions', time: 5 },
-        { title: 'Monster Melody Maker', description: 'Create melodies for creatures', time: 8, activityType: 'monster-melody-maker', isBonus: true }
+        { title: 'Robot Melody Maker', description: 'Create loops and watch your robot dance', time: 8, activityType: 'robot-melody-maker', isBonus: true }
       ]
     },
     // Lesson 4: Beat/Rhythm (Sports Highlight)

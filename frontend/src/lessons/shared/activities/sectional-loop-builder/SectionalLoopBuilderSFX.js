@@ -156,7 +156,7 @@ export const animationStyles = `
     0%, 100% { transform: rotate(-3deg); }
     50% { transform: rotate(3deg); }
   }
-  .anim-pop { animation: popIn 0.4s ease-out forwards; }
+  .anim-pop { animation: popIn 0.15s ease-out forwards; }
   .anim-score { animation: slideScore 0.3s ease-out forwards; }
   .anim-shake { animation: shake 0.4s ease-out; }
   .anim-glow { animation: glow 1s ease-in-out infinite; }

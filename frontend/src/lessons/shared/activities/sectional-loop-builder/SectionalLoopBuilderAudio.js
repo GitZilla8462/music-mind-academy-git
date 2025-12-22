@@ -27,13 +27,13 @@ export const LOOPS_BY_MOOD = {
     Synth: ['/projects/film-music-score/loops/Mysterious Synth 1.mp3', '/projects/film-music-score/loops/Mysterious Synth 2.mp3', '/projects/film-music-score/loops/Mysterious  Synth 3.mp3']
   },
   Upbeat: {
-    Bells: ['/projects/film-music-score/loops/Upbeat Bells 1.mp3'],
-    Brass: ['/projects/film-music-score/loops/Upbeat Brass 1.mp3', '/projects/film-music-score/loops/Upbeat Brass 2.mp3'],
+    Bells: ['/projects/film-music-score/loops/Upbeat Bells.mp3'],
+    Clarinet: ['/projects/film-music-score/loops/Upbeat Clarinet.mp3'],
     Drums: ['/projects/film-music-score/loops/Upbeat Drums 1.mp3', '/projects/film-music-score/loops/Upbeat Drums 2.mp3'],
-    Guitar: ['/projects/film-music-score/loops/Upbeat Guitar 1.mp3'],
-    Keys: ['/projects/film-music-score/loops/Upbeat Keys 1.mp3', '/projects/film-music-score/loops/Upbeat Keys 2.mp3'],
-    Strings: ['/projects/film-music-score/loops/Upbeat Strings 1.mp3', '/projects/film-music-score/loops/Upbeat Strings 2.mp3'],
-    Synth: ['/projects/film-music-score/loops/Upbeat Synth 1.mp3']
+    Guitar: ['/projects/film-music-score/loops/Upbeat Electric Guitar.mp3'],
+    Bass: ['/projects/film-music-score/loops/Upbeat Electric Bass.mp3', '/projects/film-music-score/loops/Upbeat String Bass.mp3'],
+    Piano: ['/projects/film-music-score/loops/Upbeat Piano.mp3'],
+    Strings: ['/projects/film-music-score/loops/Upbeat Strings.mp3']
   },
   Hype: {
     Bass: ['/projects/film-music-score/loops/Hype Bass 1.wav', '/projects/film-music-score/loops/Hype Bass 2.wav'],
@@ -126,7 +126,8 @@ export const shuffleArray = (arr) => {
 };
 
 // ============ HELPER: Pick random mood ============
+// Limited to Upbeat and Heroic for clearer audio distinction
 export const getRandomMood = () => {
-  const moods = Object.keys(LOOPS_BY_MOOD);
+  const moods = ['Upbeat', 'Heroic'];
   return moods[Math.floor(Math.random() * moods.length)];
 };

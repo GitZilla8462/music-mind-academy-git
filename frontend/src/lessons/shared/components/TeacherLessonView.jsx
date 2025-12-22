@@ -48,7 +48,6 @@ const PresentationContent = ({
   const [LayerDetectiveClassDemo, setLayerDetectiveClassDemo] = useState(null);
   const [SectionalLoopBuilderLeaderboard, setSectionalLoopBuilderLeaderboard] = useState(null);
   const [SectionalLoopBuilderResults, setSectionalLoopBuilderResults] = useState(null);
-  const [SectionalLoopBuilderClassDemo, setSectionalLoopBuilderClassDemo] = useState(null);
   const [MoodMatchTeacherView, setMoodMatchTeacherView] = useState(null);
 
   // Load game components dynamically
@@ -74,10 +73,6 @@ const PresentationContent = ({
     import('../../shared/activities/sectional-loop-builder/SectionalLoopBuilderResults')
       .then(module => setSectionalLoopBuilderResults(() => module.default))
       .catch(() => console.log('Sectional Loop Builder results not available'));
-
-    import('../../shared/activities/sectional-loop-builder/SectionalLoopBuilderClassDemo')
-      .then(module => setSectionalLoopBuilderClassDemo(() => module.default))
-      .catch(() => console.log('Sectional Loop Builder class demo not available'));
 
     // Mood Match Teacher View
     import('../../shared/activities/mood-match-game/MoodMatchTeacherView')
@@ -215,21 +210,6 @@ const PresentationContent = ({
       return (
         <div className="absolute inset-0">
           <SectionalLoopBuilderResults sessionData={sessionData} />
-        </div>
-      );
-    }
-
-    // Sectional Loop Builder Class Demo
-    if (type === 'sectional-loop-builder-class-demo' && SectionalLoopBuilderClassDemo) {
-      return (
-        <div className="absolute inset-0">
-          <React.Suspense fallback={
-            <div className="h-full flex items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900">
-              <div className="text-white text-2xl">Loading class demo...</div>
-            </div>
-          }>
-            <SectionalLoopBuilderClassDemo sessionData={sessionData} />
-          </React.Suspense>
         </div>
       );
     }

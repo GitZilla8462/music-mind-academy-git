@@ -20,21 +20,21 @@ const WILDLIFE_VIDEOS = [
     id: 'forest',
     title: 'Forest Creatures',
     subtitle: 'Life Among the Trees',
-    videoPath: '/lessons/film-music-project/lesson4/slides/ForestCreatures.mp4',
+    videoPath: '/lessons/film-music-project/lesson3/slides/ForestCreatures.mp4',
     emoji: '🌲'
   },
   {
     id: 'savanna',
     title: 'Savanna Creatures',
     subtitle: 'The African Plains',
-    videoPath: '/lessons/film-music-project/lesson4/slides/SavannaCreatures.mp4',
+    videoPath: '/lessons/film-music-project/lesson3/slides/SavannaCreatures.mp4',
     emoji: '🦁'
   },
   {
     id: 'underwater',
     title: 'Underwater Creatures',
     subtitle: 'Beneath the Waves',
-    videoPath: '/lessons/film-music-project/lesson4/slides/UnderwaterCreatures.mp4',
+    videoPath: '/lessons/film-music-project/lesson3/slides/UnderwaterCreatures.mp4',
     emoji: '🐠'
   }
 ];

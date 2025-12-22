@@ -2,7 +2,7 @@
 // Renders activities based on type - reusable across all lessons
 // NOTE: NO countdown timers in student view - only in presentation view
 // ✅ UPDATED: Added Sectional Loop Builder activity for Lesson 4 (Epic Wildlife)
-// ✅ UPDATED: Added Monster Melody Maker bonus activity for Lesson 4
+// ✅ UPDATED: Added Robot Melody Maker bonus activity for Lesson 3
 // ✅ UPDATED: Added ListeningMapActivity for Lesson 3 (City Soundscapes)
 // ✅ UPDATED: Added WildlifeCompositionActivity for Lesson 4 (Epic Wildlife)
 
@@ -24,8 +24,8 @@ import ListeningMapActivity from '../activities/texture-drawings/ListeningMapAct
 // ✅ ADDED: Sectional Loop Builder for Lesson 4 (Epic Wildlife)
 import SectionalLoopBuilderActivity from '../activities/sectional-loop-builder/SectionalLoopBuilderActivity';
 
-// ✅ ADDED: Monster Melody Maker bonus activity for Lesson 4
-import MonsterMelodyMaker from '../activities/monster-melody-maker';
+// ✅ ADDED: Robot Melody Maker bonus activity for Lesson 3
+import RobotMelodyMaker from '../activities/robot-melody-maker';
 
 // ✅ ADDED: Melody Escape Room activity for Lesson 2
 import MelodyEscapeRoomActivity from '../activities/melody-escape-room';
@@ -151,21 +151,22 @@ const ActivityRenderer = ({
         />
       );
 
-    // ✅ ADDED: Monster Melody Maker (Lesson 4 - Epic Wildlife Bonus)
-    case 'monster-melody-maker':
+    // ✅ ADDED: Robot Melody Maker (Lesson 3 - Epic Wildlife Bonus)
+    case 'robot-melody-maker':
+    case 'monster-melody-maker':  // backward compatibility
       return (
-        <MonsterMelodyMaker
-          key={`monster-melody-maker-${activity.id}`}
+        <RobotMelodyMaker
+          key={`robot-melody-maker-${activity.id}`}
           onSave={(data) => {
-            console.log('Monster Melody saved:', data);
-            localStorage.setItem('monster-melody-creation', JSON.stringify(data));
+            console.log('Robot Melody saved:', data);
+            localStorage.setItem('robot-melody-creation', JSON.stringify(data));
           }}
-          onSubmit={onComplete ? () => onComplete('monster-melody-maker') : undefined}
+          onSubmit={onComplete ? () => onComplete('robot-melody-maker') : undefined}
           studentName={studentName}
           assignmentId={assignmentId}
           savedData={(() => {
             try {
-              const saved = localStorage.getItem('monster-melody-creation');
+              const saved = localStorage.getItem('robot-melody-creation');
               return saved ? JSON.parse(saved) : null;
             } catch {
               return null;
@@ -175,8 +176,9 @@ const ActivityRenderer = ({
       );
 
     case 'two-stars-wish':
+    case 'two-stars-and-a-wish':
       return (
-        <TwoStarsAndAWishActivity 
+        <TwoStarsAndAWishActivity
           key={`reflection-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}

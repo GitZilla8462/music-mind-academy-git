@@ -10,10 +10,20 @@
 // - Demo mode for standalone teacher preview
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Flame, Clock, Play, RotateCcw } from 'lucide-react';
+import { Flame, Clock, Play, RotateCcw, Globe } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
 import { generatePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
+import TransitionOverlay from '../../components/TransitionOverlay';
+
+// ============ ACTIVITY BANNER ============
+const ActivityBanner = () => (
+  <div className="bg-gradient-to-r from-green-800 to-teal-800 px-4 py-2 flex items-center justify-center gap-2 border-b border-green-600/50">
+    <Globe size={18} className="text-green-300" />
+    <span className="text-green-100 font-semibold text-sm">Epic Wildlife</span>
+    <span className="text-green-300/70 text-xs">• Sectional Loop Builder</span>
+  </div>
+);
 
 // ============ SCORING ============
 const SCORING = {
@@ -504,6 +514,9 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
   
   // Store answer in ref for reveal phase
   const answeredRef = useRef({ answer: null, time: null, powerUp: null });
+
+  // Track Safari status for this clip (in case Firebase clears it before reveal)
+  const wasSafariThisClipRef = useRef(false);
   
   // Power-up
   const [selectedPowerUp, setSelectedPowerUp] = useState(null);
@@ -532,8 +545,51 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
   const [safariCodeInput, setSafariCodeInput] = useState('');
   const [safariComplete, setSafariComplete] = useState(false);
   const [safariBonus, setSafariBonus] = useState(0);
+  const [safariWrongCode, setSafariWrongCode] = useState(false); // Track wrong code attempts
   const [allSafariAssignments, setAllSafariAssignments] = useState({}); // Store all assignments for code lookup
   const safariBonusRef = useRef(0); // Track bonus synchronously for score calculation
+
+  // Tutorial mode - active for round 1 only
+  const tutorialMode = currentRound === 1;
+
+  // Transition overlay state (when teacher saves/advances)
+  const [showTransition, setShowTransition] = useState(false);
+  const lastSaveCommandRef = useRef(null);
+
+  // Listen for teacher's "Save & Continue" command
+  useEffect(() => {
+    if (!sessionCode || isDemoMode) return;
+
+    const db = getDatabase();
+    const saveCommandRef = ref(db, `sessions/${sessionCode}/saveCommand`);
+
+    const unsubscribe = onValue(saveCommandRef, (snapshot) => {
+      const saveCommand = snapshot.val();
+
+      // Skip if no command
+      if (!saveCommand) return;
+
+      // On first load, just store the value without triggering
+      if (lastSaveCommandRef.current === null) {
+        lastSaveCommandRef.current = saveCommand;
+        return;
+      }
+
+      // Only trigger if this is a new command (timestamp changed)
+      if (saveCommand !== lastSaveCommandRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        console.log('🟢 Teacher clicked Save & Continue - showing overlay');
+
+        // Show transition overlay for 7 seconds
+        setShowTransition(true);
+        setTimeout(() => {
+          setShowTransition(false);
+        }, 7000);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [sessionCode, isDemoMode]);
 
   // CSS keyframes
   const styles = `
@@ -553,6 +609,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
       60% { transform: translateX(-4px); }
       80% { transform: translateX(4px); }
     }
+    .animate-shake { animation: shake 0.4s ease-out; }
   `;
 
   // ============ DEMO MODE ============
@@ -634,6 +691,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
             console.log('🦁 I AM ON SAFARI! Looking for:', myHunt.targetEmoji, myHunt.targetName);
             setOnSafari(true);
             setSafariTarget({ emoji: myHunt.targetEmoji, name: myHunt.targetName });
+            wasSafariThisClipRef.current = true; // Track that we were on Safari this clip
           } else {
             setOnSafari(false);
             setSafariTarget(null);
@@ -685,7 +743,9 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
           setSafariCodeInput('');
           setSafariComplete(false);
           setSafariBonus(0);
+          setSafariWrongCode(false);
           safariBonusRef.current = 0;
+          wasSafariThisClipRef.current = false; // Reset Safari tracking for new clip
         }
         
         if (timerRef.current) clearInterval(timerRef.current);
@@ -723,27 +783,35 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
   // Listen to leaderboard
   useEffect(() => {
     if (!sessionCode || !userId) return;
-    
+
     const db = getDatabase();
     const unsubscribe = onValue(ref(db, `sessions/${sessionCode}/studentsJoined`), (snap) => {
       const students = snap.val();
       if (!students) return;
-      
+
       const sorted = Object.entries(students)
         .map(([id, data]) => ({ id, score: data.score || 0 }))
         .sort((a, b) => b.score - a.score);
-      
+
       setTotalStudents(sorted.length);
       setRank(sorted.findIndex(s => s.id === userId) + 1);
-      
+
       if (students[userId]) {
         setScore(students[userId].score || 0);
         setStreak(students[userId].streak || 0);
       }
     });
-    
+
     return () => unsubscribe();
   }, [sessionCode, userId]);
+
+  // Ensure clipResult is calculated if we're in revealed phase but don't have it
+  useEffect(() => {
+    if (gamePhase === 'revealed' && !clipResult && correctAnswer) {
+      console.log('🔄 Calculating score for revealed phase (late calculation)');
+      calculateScore(correctAnswer);
+    }
+  }, [gamePhase, clipResult, correctAnswer]);
 
   // Select answer - immediate, no lock-in needed
   const selectAnswer = (section) => {
@@ -792,24 +860,25 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
   // Submit Safari code
   const submitSafariCode = () => {
     console.log('🦁 Safari submit:', { safariTarget, safariComplete, safariCodeInput, allSafariAssignments });
-    
+
     if (!safariTarget || safariComplete) return;
     if (safariCodeInput.length !== 4) return;
-    
+
     // Find the student who has the target animal using stored state
     const targetStudent = Object.entries(allSafariAssignments).find(
       ([id, assignment]) => assignment.name === safariTarget.name
     );
-    
+
     console.log('🦁 Target found:', targetStudent);
-    
+
     if (targetStudent && safariCodeInput === targetStudent[1].code) {
       // Correct code!
       console.log('🦁 Correct code! +50 bonus');
       setSafariComplete(true);
       setSafariBonus(50);
+      setSafariWrongCode(false);
       safariBonusRef.current = 50; // Set ref for synchronous access in calculateScore
-      
+
       // Update Firebase
       if (sessionCode && userId) {
         const db = getDatabase();
@@ -820,8 +889,15 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
         }).catch(console.error);
       }
     } else {
-      console.log('🦁 Wrong code, try again');
-      // Could add shake animation or feedback here
+      // Wrong code - show feedback and clear input
+      console.log('🦁 Wrong code! No bonus.');
+      setSafariWrongCode(true);
+      setSafariCodeInput(''); // Clear input so they can try again
+
+      // Reset wrong code indicator after animation
+      setTimeout(() => {
+        setSafariWrongCode(false);
+      }, 1500);
     }
   };
 
@@ -831,12 +907,13 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     const myTime = answeredRef.current.time ?? answerTime;
     const myPowerUp = answeredRef.current.powerUp || selectedPowerUp;
     const wasAnswered = myAnswer !== null;
-    
+
     // Safari students automatically get correct (they were on Safari, not answering)
-    const wasSafari = onSafari;
+    // Use ref to track if we were on Safari this clip (in case Firebase cleared it before reveal)
+    const wasSafari = wasSafariThisClipRef.current || onSafari;
     const isCorrect = wasSafari ? true : (myAnswer === correct);
-    
-    console.log('📊 Score calc:', { myAnswer, correct, isCorrect, wasAnswered, wasSafari, safariBonus: safariBonusRef.current });
+
+    console.log('📊 Score calc:', { myAnswer, correct, isCorrect, wasAnswered, wasSafari, wasSafariRef: wasSafariThisClipRef.current, safariBonus: safariBonusRef.current });
     
     // No answer and not on Safari = no points
     if (!wasAnswered && !wasSafari) {
@@ -916,164 +993,194 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
   // Waiting
   if (gamePhase === 'waiting') {
     return (
-      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col items-center justify-center p-6 text-white">
-        <style>{styles}</style>
-        <div className="text-6xl mb-4 animate-bounce">🌍</div>
-        <h1 className="text-3xl font-bold mb-2">Epic Wildlife</h1>
-        <p className="text-lg text-white/70 mb-6">Waiting for teacher...</p>
-        
-        <div className="bg-white/10 rounded-2xl p-5 mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl"
-              style={{ backgroundColor: `${playerColor}30` }}>
-              {playerEmoji}
-            </div>
-            <div>
-              <div className="text-sm text-white/60">Playing as</div>
-              <div className="text-xl font-bold" style={{ color: playerColor }}>{playerName}</div>
+      <>
+        <div className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white">
+          <style>{styles}</style>
+          <ActivityBanner />
+          <div className="flex-1 flex flex-col items-center justify-center p-6">
+            <div className="text-6xl mb-4 animate-bounce">🌍</div>
+            <h1 className="text-3xl font-bold mb-2">Epic Wildlife</h1>
+            <p className="text-lg text-white/70 mb-6">Waiting for teacher...</p>
+
+            <div className="bg-white/10 rounded-2xl p-5 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl"
+                  style={{ backgroundColor: `${playerColor}30` }}>
+                  {playerEmoji}
+                </div>
+                <div>
+                  <div className="text-sm text-white/60">Playing as</div>
+                  <div className="text-xl font-bold" style={{ color: playerColor }}>{playerName}</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+        <TransitionOverlay isVisible={showTransition} />
+      </>
     );
   }
 
   // Listen Intro screens - students just watch the main screen
   if (gamePhase === 'listenIntro1' || gamePhase === 'listenIntro2' || gamePhase === 'listenIntro3') {
     return (
-      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col items-center justify-center p-6 text-white">
-        <style>{styles}</style>
-        <div className="text-6xl mb-4">👀</div>
-        <h1 className="text-3xl font-bold mb-2">Watch the Board!</h1>
-        <p className="text-lg text-white/70 mb-4">Directions are on the main screen</p>
-        <p className="text-white/60 animate-pulse">🎬 Get ready to listen...</p>
-      </div>
+      <>
+        <div className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white">
+          <style>{styles}</style>
+          <ActivityBanner />
+          <div className="flex-1 flex flex-col items-center justify-center p-6">
+            <div className="text-6xl mb-4">👀</div>
+            <h1 className="text-3xl font-bold mb-2">Watch the Board!</h1>
+            <p className="text-lg text-white/70 mb-4">Directions are on the main screen</p>
+            <p className="text-white/60 animate-pulse">🎬 Get ready to listen...</p>
+          </div>
+        </div>
+        <TransitionOverlay isVisible={showTransition} />
+      </>
     );
   }
 
   // Listening
   if (gamePhase === 'listening') {
     return (
-      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col items-center justify-center p-6 text-white">
-        <style>{styles}</style>
-        <div className="text-6xl mb-4 animate-pulse">🎧</div>
-        <h1 className="text-3xl font-bold mb-2">Listening...</h1>
-        <p className="text-lg text-white/70 mb-4">Watch the main screen!</p>
-        
-        <div className="bg-white/10 rounded-xl p-4">
-          <div className="flex items-center gap-2">
-            {SONG_STRUCTURE.map((item, idx) => {
-              const info = SECTION_INFO[item.section];
-              return (
-                <React.Fragment key={idx}>
-                  <div className="px-3 py-2 rounded-lg text-center"
-                    style={{ backgroundColor: `${info.color}40` }}>
-                    <div className="text-lg">{info.emoji}</div>
-                    <div className="font-bold text-sm">{item.label}</div>
-                    <div className="text-xs text-white/70">{info.layers}</div>
-                  </div>
-                  {idx < 4 && <span className="text-white/50">→</span>}
-                </React.Fragment>
-              );
-            })}
+      <>
+        <div className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white">
+          <style>{styles}</style>
+          <ActivityBanner />
+          <div className="flex-1 flex flex-col items-center justify-center p-6">
+            <div className="text-6xl mb-4 animate-pulse">🎧</div>
+            <h1 className="text-3xl font-bold mb-2">Listening...</h1>
+            <p className="text-lg text-white/70 mb-4">Watch the main screen!</p>
+
+            <div className="bg-white/10 rounded-xl p-4">
+              <div className="flex items-center gap-2">
+                {SONG_STRUCTURE.map((item, idx) => {
+                  const info = SECTION_INFO[item.section];
+                  return (
+                    <React.Fragment key={idx}>
+                      <div className="px-3 py-2 rounded-lg text-center"
+                        style={{ backgroundColor: `${info.color}40` }}>
+                        <div className="text-lg">{info.emoji}</div>
+                        <div className="font-bold text-sm">{item.label}</div>
+                        <div className="text-xs text-white/70">{info.layers}</div>
+                      </div>
+                      {idx < 4 && <span className="text-white/50">→</span>}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </div>
+
+            <p className="text-white/60 mt-4 animate-pulse">🔊 Playing on main screen...</p>
           </div>
         </div>
-        
-        <p className="text-white/60 mt-4 animate-pulse">🔊 Playing on main screen...</p>
-      </div>
+        <TransitionOverlay isVisible={showTransition} />
+      </>
     );
   }
 
   // Pre-Quiz - Get Ready
   if (gamePhase === 'preQuiz') {
     return (
-      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col items-center justify-center p-6 text-white">
-        <style>{styles}</style>
-        <div className="text-7xl mb-4">🎯</div>
-        <h1 className="text-3xl font-bold mb-2">Get Ready!</h1>
-        <p className="text-xl text-yellow-300 font-bold mb-4">Question 1 coming up...</p>
-        
-        <div className="bg-white/10 rounded-xl p-4 mb-4">
-          <p className="text-white/70 mb-3 text-center">Listen and tap your answer!</p>
-          <div className="grid grid-cols-2 gap-3">
-            {Object.entries(SECTION_INFO).map(([key, info]) => (
-              <div key={key} className="px-4 py-3 rounded-lg text-center"
-                style={{ backgroundColor: `${info.color}30` }}>
-                <div className="text-2xl">{info.emoji}</div>
-                <div className="font-bold" style={{ color: info.color }}>{info.label}</div>
+      <>
+        <div className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white">
+          <style>{styles}</style>
+          <ActivityBanner />
+          <div className="flex-1 flex flex-col items-center justify-center p-6">
+            <div className="text-7xl mb-4">🎯</div>
+            <h1 className="text-3xl font-bold mb-2">Get Ready!</h1>
+            <p className="text-xl text-yellow-300 font-bold mb-4">Question 1 coming up...</p>
+
+            <div className="bg-white/10 rounded-xl p-4 mb-4">
+              <p className="text-white/70 mb-3 text-center">Listen and tap your answer!</p>
+              <div className="grid grid-cols-2 gap-3">
+                {Object.entries(SECTION_INFO).map(([key, info]) => (
+                  <div key={key} className="px-4 py-3 rounded-lg text-center"
+                    style={{ backgroundColor: `${info.color}30` }}>
+                    <div className="text-2xl">{info.emoji}</div>
+                    <div className="font-bold" style={{ color: info.color }}>{info.label}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            <p className="text-white/60 animate-pulse">Waiting for teacher to start...</p>
           </div>
         </div>
-        
-        <p className="text-white/60 animate-pulse">Waiting for teacher to start...</p>
-      </div>
+        <TransitionOverlay isVisible={showTransition} />
+      </>
     );
   }
 
   // Power Pick
   if (gamePhase === 'powerPick') {
     return (
-      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col p-4 text-white">
-        <style>{styles}</style>
-        
-        {/* Header */}
-        <div className="bg-white/10 rounded-xl p-3 mb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: `${playerColor}30` }}>
-                {playerEmoji}
-              </div>
-              <span className="font-bold" style={{ color: playerColor }}>{playerName}</span>
-            </div>
-            <div className="bg-white/10 px-3 py-1 rounded-lg">
-              <span className="text-xl font-bold text-yellow-400">{score}</span>
-            </div>
-          </div>
-        </div>
+      <>
+        <div className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white">
+          <style>{styles}</style>
+          <ActivityBanner />
 
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <div className="text-5xl mb-2">✨</div>
-          <h2 className="text-2xl font-bold mb-2">Choose Your Power-Up!</h2>
-          
-          {/* Countdown Timer */}
-          <div className="mb-4">
-            <div className={`text-5xl font-black ${powerPickCountdown <= 2 ? 'text-red-400 animate-pulse' : 'text-yellow-400'}`}>
-              {powerPickCountdown}
+          <div className="flex-1 flex flex-col p-4">
+            {/* Header */}
+            <div className="bg-white/10 rounded-xl p-3 mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: `${playerColor}30` }}>
+                    {playerEmoji}
+                  </div>
+                  <span className="font-bold" style={{ color: playerColor }}>{playerName}</span>
+                </div>
+                <div className="bg-white/10 px-3 py-1 rounded-lg">
+                  <span className="text-xl font-bold text-yellow-400">{score}</span>
+                </div>
+              </div>
             </div>
-            <div className="text-white/60 text-xs">seconds</div>
-          </div>
-          
-          <div className="grid grid-cols-3 gap-3 w-full max-w-md mb-4">
-            {powerUpChoices.map((pu) => (
-              <button
-                key={pu.id}
-                onClick={() => selectPowerUp(pu)}
-                className={`p-4 rounded-xl text-center transition-all ${
-                  selectedPowerUp?.id === pu.id
-                    ? `bg-gradient-to-br ${pu.color} ring-4 ring-white scale-105`
-                    : 'bg-white/20 hover:bg-white/30'
-                }`}
-              >
-                <div className="text-4xl mb-2">{pu.emoji}</div>
-                <div className="font-bold">{pu.name}</div>
-                <div className="text-xs text-white/70">{pu.desc}</div>
-              </button>
-            ))}
-          </div>
-          
-          {selectedPowerUp && (
-            <div className="text-green-400 font-bold text-lg">
-              ✓ {selectedPowerUp.name} selected!
+
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <div className="text-5xl mb-2">✨</div>
+              <h2 className="text-2xl font-bold mb-2">Choose Your Power-Up!</h2>
+
+              {/* Countdown Timer */}
+              <div className="mb-4">
+                <div className={`text-5xl font-black ${powerPickCountdown <= 2 ? 'text-red-400 animate-pulse' : 'text-yellow-400'}`}>
+                  {powerPickCountdown}
+                </div>
+                <div className="text-white/60 text-xs">seconds</div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 w-full max-w-md mb-4">
+                {powerUpChoices.map((pu) => (
+                  <button
+                    key={pu.id}
+                    onClick={() => selectPowerUp(pu)}
+                    className={`p-4 rounded-xl text-center transition-all ${
+                      selectedPowerUp?.id === pu.id
+                        ? `bg-gradient-to-br ${pu.color} ring-4 ring-white scale-105`
+                        : 'bg-white/20 hover:bg-white/30'
+                    }`}
+                  >
+                    <div className="text-4xl mb-2">{pu.emoji}</div>
+                    <div className="font-bold">{pu.name}</div>
+                    <div className="text-xs text-white/70">{pu.desc}</div>
+                  </button>
+                ))}
+              </div>
+
+              {selectedPowerUp && (
+                <div className="text-green-400 font-bold text-lg">
+                  ✓ {selectedPowerUp.name} selected!
+                </div>
+              )}
+
+              {!selectedPowerUp && (
+                <p className="text-white/50 text-sm mt-2">Tap a power-up before time runs out!</p>
+              )}
             </div>
-          )}
-          
-          {!selectedPowerUp && (
-            <p className="text-white/50 text-sm mt-2">Tap a power-up before time runs out!</p>
-          )}
+          </div>
         </div>
-      </div>
+        <TransitionOverlay isVisible={showTransition} />
+      </>
     );
   }
 
@@ -1083,217 +1190,267 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     // Only show Safari if we have a valid target (with emoji and name)
     if (onSafari && safariTarget && safariTarget.emoji && safariTarget.name) {
       return (
-        <div className="h-screen bg-gradient-to-br from-amber-900 via-orange-900 to-yellow-900 flex flex-col p-4 text-white relative">
-          <style>{styles}</style>
-          
-          {/* Safari Header */}
-          <div className="bg-white/10 rounded-xl p-3 mb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: `${playerColor}30` }}>
-                  {playerEmoji}
-                </div>
-                <span className="font-bold" style={{ color: playerColor }}>{playerName}</span>
-              </div>
-              <div className="bg-white/10 px-3 py-1 rounded-lg">
-                <span className="text-xl font-bold text-yellow-400">{score}</span>
-              </div>
-            </div>
-          </div>
+        <>
+          <div className="h-screen flex flex-col bg-gradient-to-br from-amber-900 via-orange-900 to-yellow-900 text-white relative">
+            <style>{styles}</style>
+            <ActivityBanner />
 
-          {/* Safari Content */}
-          <div className="flex-1 flex flex-col items-center justify-center">
-            {!safariComplete ? (
-              <>
-                <div className="text-6xl mb-4">🦁</div>
-                <h1 className="text-4xl font-black mb-2 text-yellow-300">SAFARI TIME!</h1>
-                <p className="text-xl mb-6 text-white/80">Leave your Chromebook and find the...</p>
-                
-                <div className="bg-white/20 rounded-2xl p-6 mb-6 text-center">
-                  <div className="text-9xl">{safariTarget.emoji}</div>
-                </div>
-                
-                <div className="bg-white/10 rounded-xl p-4 mb-4">
-                  <p className="text-sm text-white/70 mb-3 text-center">Look for this on a classmate's screen:</p>
-                  <div className="bg-black/70 rounded-2xl p-5 flex items-center justify-center gap-4 border-4 border-yellow-400">
-                    <span className="text-6xl">{safariTarget.emoji}</span>
-                    <span className="text-7xl font-mono font-black text-yellow-300 tracking-wider">1234</span>
+            <div className="flex-1 flex flex-col p-4">
+              {/* Safari Header */}
+              <div className="bg-white/10 rounded-xl p-3 mb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: `${playerColor}30` }}>
+                      {playerEmoji}
+                    </div>
+                    <span className="font-bold" style={{ color: playerColor }}>{playerName}</span>
+                  </div>
+                  <div className="bg-white/10 px-3 py-1 rounded-lg">
+                    <span className="text-xl font-bold text-yellow-400">{score}</span>
                   </div>
                 </div>
-                
-                <div className="flex flex-col items-center gap-3">
-                  <p className="text-lg text-white/70">Enter their code:</p>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength={4}
-                    value={safariCodeInput}
-                    onChange={(e) => setSafariCodeInput(e.target.value.replace(/\D/g, ''))}
-                    className="w-56 text-center text-5xl font-mono font-black bg-white/20 border-4 border-yellow-400 rounded-xl px-4 py-4 text-yellow-300 placeholder-white/30"
-                    placeholder="____"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      console.log('🦁 Submit button clicked!');
-                      submitSafariCode();
-                    }}
-                    disabled={safariCodeInput.length !== 4}
-                    className={`px-10 py-4 rounded-xl text-2xl font-bold transition-all active:scale-95 ${
-                      safariCodeInput.length === 4 
-                        ? 'bg-gradient-to-r from-yellow-500 to-orange-500 shadow-lg' 
-                        : 'bg-white/20 text-white/50'
-                    }`}
-                  >
-                    ✓ Submit Code
-                  </button>
-                </div>
-                
-                <p className="text-white/50 text-sm mt-4">⏱️ Check the board for time remaining!</p>
-              </>
-            ) : (
-              <div className="text-center">
-                <div className="text-8xl mb-4">🎉</div>
-                <h1 className="text-4xl font-black text-green-400 mb-2">FOUND IT!</h1>
-                <div className="text-6xl font-black text-yellow-300">+{safariBonus}</div>
-                <p className="text-xl text-white/70 mt-2">Bonus points!</p>
-                <p className="text-white/50 mt-4">Return to your seat and wait for the reveal...</p>
               </div>
-            )}
+
+              {/* Safari Content */}
+              <div className="flex-1 flex flex-col items-center justify-center">
+                {!safariComplete ? (
+                  <>
+                    <div className="text-6xl mb-4">🦁</div>
+                    <h1 className="text-4xl font-black mb-2 text-yellow-300">SAFARI TIME!</h1>
+                    <p className="text-xl mb-6 text-white/80">Leave your Chromebook and find the...</p>
+
+                    <div className="bg-white/20 rounded-2xl p-6 mb-6 text-center">
+                      <div className="text-9xl">{safariTarget.emoji}</div>
+                    </div>
+
+                    <div className="bg-white/10 rounded-xl p-4 mb-4">
+                      <p className="text-sm text-white/70 mb-3 text-center">Look for this on a classmate's screen:</p>
+                      <div className="bg-black/70 rounded-2xl p-5 flex items-center justify-center gap-4 border-4 border-yellow-400">
+                        <span className="text-6xl">{safariTarget.emoji}</span>
+                        <span className="text-7xl font-mono font-black text-yellow-300 tracking-wider">1234</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-center gap-3">
+                      <p className="text-lg text-white/70">Enter their code:</p>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={4}
+                        value={safariCodeInput}
+                        onChange={(e) => setSafariCodeInput(e.target.value.replace(/\D/g, ''))}
+                        className={`w-56 text-center text-5xl font-mono font-black bg-white/20 rounded-xl px-4 py-4 placeholder-white/30 transition-all ${
+                          safariWrongCode
+                            ? 'border-4 border-red-500 text-red-400 animate-shake'
+                            : 'border-4 border-yellow-400 text-yellow-300'
+                        }`}
+                        placeholder="____"
+                      />
+                      {safariWrongCode && (
+                        <div className="text-red-400 font-bold text-lg animate-pulse">
+                          ❌ Wrong code! Try again
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          console.log('🦁 Submit button clicked!');
+                          submitSafariCode();
+                        }}
+                        disabled={safariCodeInput.length !== 4}
+                        className={`px-10 py-4 rounded-xl text-2xl font-bold transition-all active:scale-95 ${
+                          safariCodeInput.length === 4
+                            ? 'bg-gradient-to-r from-yellow-500 to-orange-500 shadow-lg'
+                            : 'bg-white/20 text-white/50'
+                        }`}
+                      >
+                        ✓ Submit Code
+                      </button>
+                    </div>
+
+                    <p className="text-white/50 text-sm mt-4">⏱️ Check the board for time remaining!</p>
+                  </>
+                ) : (
+                  <div className="text-center">
+                    <div className="text-8xl mb-4">🎉</div>
+                    <h1 className="text-4xl font-black text-green-400 mb-2">FOUND IT!</h1>
+                    <div className="text-6xl font-black text-yellow-300">+{safariBonus}</div>
+                    <p className="text-xl text-white/70 mt-2">Bonus points!</p>
+                    <p className="text-white/50 mt-4">Return to your seat and wait for the reveal...</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
       );
     }
-    
+
     return (
-      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col p-4 text-white relative">
-        <style>{styles}</style>
-        
-        {/* Animal Badge - Top Right Corner - HUGE for Safari hunters to find */}
-        {myAnimal && (
-          <div className="absolute top-2 right-2 bg-black/70 rounded-2xl p-5 text-center z-10 border-4 border-yellow-400">
-            <div className="text-6xl mb-2">{myAnimal.emoji}</div>
-            <div className="text-7xl font-mono font-black text-yellow-300 tracking-wider">{myAnimal.code}</div>
-          </div>
-        )}
-        
-        {/* Header */}
-        <div className="bg-white/10 rounded-xl p-3 mb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: `${playerColor}30` }}>
-                {playerEmoji}
-              </div>
-              <div className="text-sm">
-                <div className="font-bold" style={{ color: playerColor }}>{playerName}</div>
-                <div className="text-white/60 text-xs">#{rank} of {totalStudents}</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {streak >= 2 && (
-                <div className="flex items-center gap-1 bg-orange-500/30 px-2 py-1 rounded-full text-sm">
-                  <Flame size={14} className="text-orange-400" />
-                  <span className="text-orange-400 font-bold">{streak}</span>
-                </div>
-              )}
-              {selectedPowerUp && (
-                <div className={`px-2 py-1 rounded-full text-sm bg-gradient-to-r ${selectedPowerUp.color}`}>
-                  {selectedPowerUp.emoji}
-                </div>
-              )}
-              <div className="bg-white/10 px-3 py-1 rounded-lg">
-                <span className="text-xl font-bold text-yellow-400">{score}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      <>
+        <div className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white relative">
+          <style>{styles}</style>
+          <ActivityBanner />
 
-        {/* Round/Clip info */}
-        <div className="text-center mb-3">
-          <div className="text-sm text-white/60">Round {currentRound} • Clip {currentClipIndex + 1}/4</div>
-          <div className="text-2xl font-bold">🎧 Tap your answer!</div>
-        </div>
-
-        {/* Timer - only show if not answered */}
-        {!hasAnswered && (
-          <div className="text-center mb-3">
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
-              elapsedTime < (selectedPowerUp?.id === 'speed' ? 5000 : 3000) ? 'bg-green-500/30 text-green-300' : 'bg-white/20'
-            }`}>
-              <Clock size={18} />
-              <span className="font-mono text-xl font-bold">{formatTime(elapsedTime)}</span>
-              {elapsedTime < (selectedPowerUp?.id === 'speed' ? 5000 : 3000) && <span className="text-sm">⚡ Speed Bonus!</span>}
-            </div>
-          </div>
-        )}
-
-        {/* Answers */}
-        <div className="flex-1 flex flex-col justify-center">
-          {!hasAnswered ? (
-            <div className="grid grid-cols-2 gap-3">
-              {Object.entries(SECTION_INFO).map(([key, info]) => (
-                <button
-                  key={key}
-                  onClick={() => selectAnswer(key)}
-                  className="py-6 rounded-xl font-bold transition-all active:scale-95"
-                  style={{ 
-                    backgroundColor: `${info.color}40`,
-                    color: info.color
-                  }}
-                >
-                  <div className="text-4xl mb-1">{info.emoji}</div>
-                  <div className="text-2xl font-black">{info.label}</div>
-                  <div className="text-sm opacity-80">{info.layers} layers</div>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center">
-              <div className="text-5xl mb-3">✅</div>
-              <div className="text-2xl font-bold text-green-400 mb-2">Answered!</div>
-              <div className="text-4xl font-black mb-1"
-                style={{ color: SECTION_INFO[selectedAnswer]?.color }}>
-                {SECTION_INFO[selectedAnswer]?.emoji} {SECTION_INFO[selectedAnswer]?.label}
-              </div>
-              {answerTime < (selectedPowerUp?.id === 'speed' ? 5000 : 3000) && (
-                <div className="text-yellow-400 mt-2">⚡ Speed Bonus!</div>
-              )}
-              <div className="text-white/60 mt-4">Waiting for reveal...</div>
+          {/* Animal Badge - Top Right Corner - HUGE for Safari hunters to find */}
+          {myAnimal && (
+            <div className="absolute top-12 right-2 bg-black/70 rounded-2xl p-5 text-center z-10 border-4 border-yellow-400">
+              <div className="text-6xl mb-2">{myAnimal.emoji}</div>
+              <div className="text-7xl font-mono font-black text-yellow-300 tracking-wider">{myAnimal.code}</div>
             </div>
           )}
+
+          <div className="flex-1 flex flex-col p-4">
+            {/* Header */}
+            <div className="bg-white/10 rounded-xl p-3 mb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: `${playerColor}30` }}>
+                    {playerEmoji}
+                  </div>
+                  <div className="text-sm">
+                    <div className="font-bold" style={{ color: playerColor }}>{playerName}</div>
+                    <div className="text-white/60 text-xs">#{rank} of {totalStudents}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {streak >= 2 && (
+                    <div className="flex items-center gap-1 bg-orange-500/30 px-2 py-1 rounded-full text-sm">
+                      <Flame size={14} className="text-orange-400" />
+                      <span className="text-orange-400 font-bold">{streak}</span>
+                    </div>
+                  )}
+                  {selectedPowerUp && (
+                    <div className={`px-2 py-1 rounded-full text-sm bg-gradient-to-r ${selectedPowerUp.color}`}>
+                      {selectedPowerUp.emoji}
+                    </div>
+                  )}
+                  <div className="bg-white/10 px-3 py-1 rounded-lg">
+                    <span className="text-xl font-bold text-yellow-400">{score}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Round/Clip info */}
+            <div className="text-center mb-3">
+              <div className="text-sm text-white/60">Round {currentRound} • Clip {currentClipIndex + 1}/4</div>
+              <div className="text-2xl font-bold">🎧 Tap your answer!</div>
+            </div>
+
+            {/* Tutorial hint - only show in round 1 */}
+            {tutorialMode && !hasAnswered && (
+              <div className="bg-yellow-500/20 border border-yellow-400/50 rounded-xl p-3 mb-3 text-center">
+                <div className="text-yellow-300 font-bold text-sm mb-1">💡 Listen & Count!</div>
+                <div className="text-white/80 text-xs">
+                  Count the different instruments: <span className="text-purple-300">2 layers = INTRO</span> • <span className="text-blue-300">3 layers = A</span> • <span className="text-yellow-300">4 layers = A'</span> • <span className="text-green-300">1 layer = OUTRO</span>
+                </div>
+              </div>
+            )}
+
+            {/* Speed bonus indicator - only show if not answered and in bonus window */}
+            {!hasAnswered && elapsedTime < (selectedPowerUp?.id === 'speed' ? 5000 : 3000) && (
+              <div className="text-center mb-3">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/30 text-green-300 animate-pulse">
+                  <span className="text-lg font-bold">⚡ Speed Bonus!</span>
+                </div>
+              </div>
+            )}
+
+            {/* Answers */}
+            <div className="flex-1 flex flex-col justify-center">
+              {!hasAnswered ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.entries(SECTION_INFO).map(([key, info]) => (
+                    <button
+                      key={key}
+                      onClick={() => selectAnswer(key)}
+                      className="py-6 rounded-xl font-bold transition-all active:scale-95"
+                      style={{
+                        backgroundColor: `${info.color}40`,
+                        color: info.color
+                      }}
+                    >
+                      <div className="text-4xl mb-1">{info.emoji}</div>
+                      <div className="text-2xl font-black">{info.label}</div>
+                      <div className="text-sm opacity-80">{info.layers} layers</div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center">
+                  <div className="text-5xl mb-3">✅</div>
+                  <div className="text-2xl font-bold text-green-400 mb-2">Answered!</div>
+                  <div className="text-4xl font-black mb-1"
+                    style={{ color: SECTION_INFO[selectedAnswer]?.color }}>
+                    {SECTION_INFO[selectedAnswer]?.emoji} {SECTION_INFO[selectedAnswer]?.label}
+                  </div>
+                  {answerTime < (selectedPowerUp?.id === 'speed' ? 5000 : 3000) && (
+                    <div className="text-yellow-400 mt-2">⚡ Speed Bonus!</div>
+                  )}
+                  <div className="text-white/60 mt-4">Waiting for reveal...</div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+        <TransitionOverlay isVisible={showTransition} />
+      </>
     );
   }
 
   // Revealed - Show result + animated score breakdown (NOT "the answer was")
-  if (gamePhase === 'revealed' && clipResult) {
-    return (
-      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col p-4 text-white">
-        <style>{styles}</style>
-        
-        {/* Header */}
-        <div className="bg-white/10 rounded-xl p-3 mb-4">
-          <div className="flex items-center justify-between">
-            <div>Round {currentRound} • Clip {currentClipIndex + 1}/4</div>
-            <div className="flex items-center gap-2">
-              {clipResult.newStreak >= 2 && (
-                <div className="flex items-center gap-1 bg-orange-500/30 px-2 py-1 rounded-full">
-                  <Flame size={14} className="text-orange-400" />
-                  <span className="text-orange-400 font-bold">{clipResult.newStreak}</span>
-                </div>
-              )}
-              <div className="bg-white/10 px-3 py-1 rounded-lg">
-                <span className="text-xl font-bold text-yellow-400">
-                  <AnimatedNumber value={score} duration={800} />
-                </span>
-              </div>
+  // Also show if phase is revealed but clipResult is still being calculated
+  if (gamePhase === 'revealed') {
+    // If clipResult hasn't been calculated yet, show waiting state
+    if (!clipResult) {
+      return (
+        <>
+          <div className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white">
+            <style>{styles}</style>
+            <ActivityBanner />
+            <div className="flex-1 flex flex-col items-center justify-center p-6">
+              <div className="text-6xl mb-4 animate-pulse">⏳</div>
+              <h1 className="text-3xl font-bold mb-2">Calculating Result...</h1>
+              <p className="text-white/60">Wait for the reveal!</p>
             </div>
           </div>
-        </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
+      );
+    }
+
+    // Normal revealed state with clipResult
+    return (
+      <>
+        <div className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white">
+          <style>{styles}</style>
+          <ActivityBanner />
+
+          <div className="flex-1 flex flex-col p-4">
+            {/* Header */}
+            <div className="bg-white/10 rounded-xl p-3 mb-4">
+              <div className="flex items-center justify-between">
+                <div>Round {currentRound} • Clip {currentClipIndex + 1}/4</div>
+                <div className="flex items-center gap-2">
+                  {clipResult.newStreak >= 2 && (
+                    <div className="flex items-center gap-1 bg-orange-500/30 px-2 py-1 rounded-full">
+                      <Flame size={14} className="text-orange-400" />
+                      <span className="text-orange-400 font-bold">{clipResult.newStreak}</span>
+                    </div>
+                  )}
+                  <div className="bg-white/10 px-3 py-1 rounded-lg">
+                    <span className="text-xl font-bold text-yellow-400">
+                      <AnimatedNumber value={score} duration={800} />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
         <div className="flex-1 flex flex-col items-center justify-center">
           {/* No answer case */}
@@ -1306,39 +1463,52 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
           ) : clipResult.wasSafari ? (
             <>
               {/* Safari result */}
-              <div 
+              <div
                 className="text-7xl mb-4"
                 style={{ animation: 'pop 0.3s ease-out' }}
               >
-                🦁
+                {clipResult.safariPts > 0 ? '🎯' : '🦁'}
               </div>
-              
-              <div className="text-3xl font-black mb-2 text-yellow-400">
-                SAFARI SUCCESS!
+
+              <div className={`text-3xl font-black mb-2 ${clipResult.safariPts > 0 ? 'text-green-400' : 'text-yellow-400'}`}>
+                {clipResult.safariPts > 0 ? 'ANIMAL FOUND!' : 'SAFARI HUNTER'}
               </div>
-              
+
               {clipResult.safariPts > 0 ? (
-                <div className="text-white/70 mb-4">You found the animal! +{clipResult.safariPts} bonus</div>
+                <div className="text-green-300 mb-4 text-center">
+                  <div className="text-lg">You found the animal! <span className="font-bold">+50 bonus!</span></div>
+                </div>
               ) : (
-                <div className="text-white/70 mb-4">Auto-correct for Safari duty!</div>
+                <div className="text-white/70 mb-4 text-center">
+                  <div className="text-lg mb-1">Auto-correct for Safari duty</div>
+                  <div className="text-yellow-400/80 text-sm">Finding the animal would have been <span className="font-bold">+50 pts</span></div>
+                </div>
               )}
-              
+
               {/* Score breakdown */}
               <div className="bg-black/30 rounded-xl p-4 w-full max-w-sm mb-4">
                 <h3 className="text-sm font-bold text-white/70 mb-3 text-center">Score Breakdown</h3>
-                
+
                 <div className="flex flex-wrap justify-center gap-2 mb-3">
                   {clipResult.correctPts > 0 && (
                     <ScoreItem value={clipResult.correctPts} label="Auto ✓" emoji="🦁" delay={0} />
                   )}
-                  {clipResult.safariPts > 0 && (
-                    <ScoreItem value={clipResult.safariPts} label="Safari" emoji="🎯" delay={200} />
+                  {clipResult.safariPts > 0 ? (
+                    <ScoreItem value={clipResult.safariPts} label="Found!" emoji="🎯" delay={200} />
+                  ) : (
+                    <div
+                      className="bg-gray-500/20 rounded-lg px-3 py-2 text-center"
+                      style={{ animation: 'slideUp 0.3s ease-out 200ms both' }}
+                    >
+                      <div className="text-xl font-black text-gray-400">+0</div>
+                      <div className="text-xs text-gray-300">Missed 🎯</div>
+                    </div>
                   )}
                   {clipResult.streakBonus > 0 && (
                     <ScoreItem value={clipResult.streakBonus} label="Streak" emoji="🔥" delay={300} />
                   )}
                   {clipResult.doubled && (
-                    <div 
+                    <div
                       className="bg-yellow-500/20 rounded-lg px-3 py-2 text-center"
                       style={{ animation: 'slideUp 0.3s ease-out 400ms both' }}
                     >
@@ -1347,7 +1517,14 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
                     </div>
                   )}
                 </div>
-                
+
+                {/* Show what they could have earned */}
+                {clipResult.safariPts === 0 && (
+                  <div className="text-center text-xs text-white/50 mb-2 border-t border-white/10 pt-2">
+                    Could have earned: <span className="text-yellow-400">{clipResult.correctPts + 50} pts</span>
+                  </div>
+                )}
+
                 <div className="text-center border-t border-white/20 pt-3">
                   <span className="text-white/60">This clip: </span>
                   <span className={`text-3xl font-black ${clipResult.total >= 0 ? 'text-green-400' : 'text-red-400'}`}>
@@ -1420,63 +1597,78 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
             </>
           )}
           
-          <div className="text-white/60 text-sm">
-            {currentClipIndex < 3 ? 'Next clip coming...' : 'Round summary coming...'}
+            <div className="text-white/60 text-sm">
+              {currentClipIndex < 3 ? 'Next clip coming...' : 'Round summary coming...'}
+            </div>
+          </div>
           </div>
         </div>
-      </div>
+        <TransitionOverlay isVisible={showTransition} />
+      </>
     );
   }
 
   // Round Summary
   if (gamePhase === 'roundSummary') {
     return (
-      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col items-center justify-center p-6 text-white">
-        <style>{styles}</style>
-        <div className="text-5xl mb-4">📊</div>
-        <h1 className="text-3xl font-bold mb-2">Round {currentRound} Complete!</h1>
-        
-        <div className="bg-white/10 rounded-2xl p-6 text-center mb-4">
-          <div className="text-lg text-white/70 mb-2">Your Score</div>
-          <div className="text-5xl font-black text-yellow-400">
-            <AnimatedNumber value={score} duration={1000} />
-          </div>
-          <div className="text-white/60 mt-2">Rank: #{rank} of {totalStudents}</div>
-          {streak >= 2 && (
-            <div className="flex justify-center mt-2">
-              <div className="flex items-center gap-1 bg-orange-500/30 px-3 py-1 rounded-full">
-                <Flame size={16} className="text-orange-400" />
-                <span className="text-orange-400 font-bold">{streak} streak!</span>
+      <>
+        <div className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white">
+          <style>{styles}</style>
+          <ActivityBanner />
+          <div className="flex-1 flex flex-col items-center justify-center p-6">
+            <div className="text-5xl mb-4">📊</div>
+            <h1 className="text-3xl font-bold mb-2">Round {currentRound} Complete!</h1>
+
+            <div className="bg-white/10 rounded-2xl p-6 text-center mb-4">
+              <div className="text-lg text-white/70 mb-2">Your Score</div>
+              <div className="text-5xl font-black text-yellow-400">
+                <AnimatedNumber value={score} duration={1000} />
               </div>
+              <div className="text-white/60 mt-2">Rank: #{rank} of {totalStudents}</div>
+              {streak >= 2 && (
+                <div className="flex justify-center mt-2">
+                  <div className="flex items-center gap-1 bg-orange-500/30 px-3 py-1 rounded-full">
+                    <Flame size={16} className="text-orange-400" />
+                    <span className="text-orange-400 font-bold">{streak} streak!</span>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+
+            <div className="text-white/60">
+              {currentRound < totalRounds ? 'Next round starting soon...' : 'Final results coming...'}
+            </div>
+          </div>
         </div>
-        
-        <div className="text-white/60">
-          {currentRound < totalRounds ? 'Next round starting soon...' : 'Final results coming...'}
-        </div>
-      </div>
+        <TransitionOverlay isVisible={showTransition} />
+      </>
     );
   }
 
   // Finished
   if (gamePhase === 'finished') {
     return (
-      <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col items-center justify-center p-6 text-white">
-        <style>{styles}</style>
-        <div className="text-6xl mb-4">🎉</div>
-        <h1 className="text-3xl font-bold mb-2">Game Complete!</h1>
-        
-        <div className="bg-white/10 rounded-2xl p-6 text-center">
-          <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl mb-2"
-            style={{ backgroundColor: `${playerColor}30` }}>
-            {playerEmoji}
+      <>
+        <div className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white">
+          <style>{styles}</style>
+          <ActivityBanner />
+          <div className="flex-1 flex flex-col items-center justify-center p-6">
+            <div className="text-6xl mb-4">🎉</div>
+            <h1 className="text-3xl font-bold mb-2">Game Complete!</h1>
+
+            <div className="bg-white/10 rounded-2xl p-6 text-center">
+              <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl mb-2"
+                style={{ backgroundColor: `${playerColor}30` }}>
+                {playerEmoji}
+              </div>
+              <div className="text-lg" style={{ color: playerColor }}>{playerName}</div>
+              <div className="text-4xl font-black text-yellow-400 mt-2">{score} pts</div>
+              <div className="text-white/60">Final Rank: #{rank} of {totalStudents}</div>
+            </div>
           </div>
-          <div className="text-lg" style={{ color: playerColor }}>{playerName}</div>
-          <div className="text-4xl font-black text-yellow-400 mt-2">{score} pts</div>
-          <div className="text-white/60">Final Rank: #{rank} of {totalStudents}</div>
         </div>
-      </div>
+        <TransitionOverlay isVisible={showTransition} />
+      </>
     );
   }
 

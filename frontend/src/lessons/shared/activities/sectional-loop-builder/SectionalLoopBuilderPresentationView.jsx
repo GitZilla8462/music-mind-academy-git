@@ -18,6 +18,22 @@ import {
 
 import { sfx, animationStyles } from './SectionalLoopBuilderSFX';
 
+// Student Activity Time Banner (matches Lesson 1/2 composition slides)
+const ActivityBanner = () => (
+  <div
+    className="w-full flex items-center justify-center"
+    style={{
+      height: '64px',
+      backgroundColor: '#0d9488',
+      flexShrink: 0
+    }}
+  >
+    <span className="text-white font-bold" style={{ fontSize: '28px' }}>
+      STUDENT ACTIVITY
+    </span>
+  </div>
+);
+
 // Safari animals
 const SAFARI_ANIMALS = [
   { id: 'lion', emoji: '🦁', name: 'LION' },
@@ -131,7 +147,9 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
         powerUp: s.powerUp,
         lastClipScore: s.lastClipScore || 0,
         playerColor: s.playerColor || '#3B82F6',
-        playerEmoji: s.playerEmoji || '🎵'
+        playerEmoji: s.playerEmoji || '🎵',
+        safariComplete: s.safariComplete || false,
+        safariBonus: s.safariBonus || 0
       }));
       
       setStudents(list);
@@ -493,16 +511,16 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
     safariTimerRef.current = setInterval(() => {
       count -= 1;
       setSafariTimer(count);
-      
-      // Update Firebase with timer
-      updateGame({ 
-        gamePhase: 'guessing', 
-        currentClipIndex, 
-        safariTimer: count,
-        safariAssignments,
-        safariHunters 
-      });
-      
+
+      // Only update timer in Firebase - DO NOT overwrite gamePhase
+      // (overwriting gamePhase caused the double-click reveal bug)
+      if (sessionCode) {
+        const db = getDatabase();
+        update(ref(db, `sessions/${sessionCode}`), {
+          'activityData/safariTimer': count
+        });
+      }
+
       if (count <= 0) {
         clearInterval(safariTimerRef.current);
         safariTimerRef.current = null;
@@ -519,24 +537,27 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
 
   // ============ REVEAL SEQUENCE ============
   const reveal = useCallback(() => {
+    console.log('🎯 REVEAL CALLED - timestamp:', Date.now());
+    console.log('🎯 Current gamePhase:', gamePhase, 'currentSection:', currentSection);
+
     stopAudio();
-    
+
     const prevRanks = {};
     leaderboard.forEach((s, idx) => { prevRanks[s.id] = idx + 1; });
     setPreviousRanks(prevRanks);
-    
+
     const changes = {};
     let correct = 0;
     let highestStreak = { name: null, streak: 0 };
-    
+
     // Check which students are on Safari
     const safariStudentIds = new Set(safariHunters.map(h => h.studentId));
-    
+
     students.forEach(s => {
       const isOnSafari = safariStudentIds.has(s.id);
       const isCorrect = isOnSafari ? true : (s.currentAnswer === currentSection); // Safari students auto-correct
       const wasLocked = isOnSafari ? true : s.lockedIn; // Safari students count as locked
-      
+
       if (wasLocked) {
         if (isCorrect) {
           correct++;
@@ -544,17 +565,17 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
           const newStreak = (s.streak || 0) + 1;
           const streakBonus = newStreak >= 2 ? Math.min(newStreak * 5, 20) : 0;
           let delta = 15 + speedBonus + streakBonus;
-          
+
           // Add Safari bonus if they completed it
           if (isOnSafari && s.safariComplete) {
             delta += (s.safariBonus || 50);
           }
-          
+
           if (s.powerUp === 'bonus') delta += 15;
           if (s.powerUp === 'double') delta *= 2;
-          
+
           changes[s.id] = { delta, isCorrect: true, safari: isOnSafari, safariComplete: s.safariComplete };
-          
+
           if (newStreak > highestStreak.streak) {
             highestStreak = { name: s.name, streak: newStreak };
           }
@@ -566,25 +587,29 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
         changes[s.id] = { delta: 0, isCorrect: false, noAnswer: true };
       }
     });
-    
+
     setScoreChanges(changes);
     setCorrectCount(correct);
-    
+
+    console.log('🎯 About to update Firebase with revealed phase - timestamp:', Date.now());
     // Send to students IMMEDIATELY so they see their result right away
     updateGame({ gamePhase: 'revealed', correctAnswer: currentSection });
-    
-    // Fast reveal sequence for teacher (1.2s total instead of 3.5s)
-    setRevealStep(1);
-    sfx.drumroll();
-    
-    setTimeout(() => {
-      setRevealStep(2);
-      sfx.reveal();
-    }, 300);
-    
+
+    // Set LOCAL gamePhase IMMEDIATELY so teacher UI updates right away
+    // (Firebase update propagates to students, but teacher sees it instantly)
+    console.log('🎯 Setting LOCAL gamePhase to revealed - timestamp:', Date.now());
+    setGamePhase('revealed');
+
+    console.log('🎯 Setting revealStep to 2 IMMEDIATELY - timestamp:', Date.now());
+    // Reveal sequence - show answer IMMEDIATELY, but delay button so students have time to see results
+    setRevealStep(2); // Skip drumroll, show answer immediately
+    console.log('🎯 revealStep set to 2, gamePhase set to revealed - timestamp:', Date.now());
+    sfx.reveal();
+
+    // Update scores (500ms)
     setTimeout(() => {
       setRevealStep(3);
-      
+
       if (sessionCode) {
         const db = getDatabase();
         students.forEach(s => {
@@ -600,7 +625,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
           }
         });
       }
-      
+
       let popDelay = 0;
       students.forEach(s => {
         if (changes[s.id]?.delta > 0) {
@@ -608,29 +633,31 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
           popDelay += 50;
         }
       });
-    }, 600);
-    
+    }, 500);
+
+    // Streak callouts (1s)
     setTimeout(() => {
       setRevealStep(4);
       if (highestStreak.streak >= 3) {
         setStreakCallout(highestStreak);
         sfx.streak();
       }
-    }, 900);
-    
+    }, 1000);
+
+    // Button appears after 4 seconds - gives students time to see their result
     setTimeout(() => {
       const newLeaderboard = [...students]
         .map(s => ({ ...s, score: (s.score || 0) + (changes[s.id]?.delta || 0) }))
         .sort((a, b) => b.score - a.score);
-      
+
       if (newLeaderboard[0] && prevRanks[newLeaderboard[0].id] !== 1) {
         setNewLeader(newLeaderboard[0].name);
         sfx.newLeader();
       }
-      
+
       setRevealStep(5);
       setGamePhase('revealed');
-    }, 1200);
+    }, 4000);
   }, [stopAudio, leaderboard, students, currentSection, sessionCode, updateGame]);
 
   const nextRoundOrFinish = useCallback(() => {
@@ -672,27 +699,32 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
 
   // ============ RENDER ============
   return (
-    <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-4 overflow-hidden">
-      {/* Header - hidden during listening phases */}
-      {!hideHeader && (
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-4">
-            <span className="text-5xl">🌍</span>
-            <h1 className="text-4xl font-bold">Epic Wildlife</h1>
-            {currentMood && (
-              <span className="bg-white/10 px-4 py-2 rounded-full text-xl flex items-center gap-2">
-                {MOOD_INFO[currentMood]?.emoji} {currentMood}
-              </span>
-            )}
+    <div className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white overflow-hidden">
+      {/* Student Activity Banner */}
+      <ActivityBanner />
+
+      {/* Main content area */}
+      <div className="flex-1 p-4 overflow-hidden">
+        {/* Header - hidden during listening phases */}
+        {!hideHeader && (
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-4">
+              <span className="text-5xl">🌍</span>
+              <h1 className="text-4xl font-bold">Epic Wildlife</h1>
+              {currentMood && (
+                <span className="bg-white/10 px-4 py-2 rounded-full text-xl flex items-center gap-2">
+                  {MOOD_INFO[currentMood]?.emoji} {currentMood}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2 text-2xl"><Users size={28} /><span>{students.length}</span></div>
+            </div>
           </div>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 text-2xl"><Users size={28} /><span>{students.length}</span></div>
-          </div>
-        </div>
-      )}
+        )}
 
       {/* Main content */}
-      <div className={`grid ${showLeaderboard ? 'grid-cols-3' : 'grid-cols-1'} gap-3`} style={{ height: hideHeader ? 'calc(100vh - 32px)' : 'calc(100vh - 80px)' }}>
+      <div className={`grid ${showLeaderboard ? 'grid-cols-3' : 'grid-cols-1'} gap-3 flex-1`}>
         <div className={`${showLeaderboard ? 'col-span-2' : ''} ${hideHeader ? '' : 'bg-black/20'} rounded-2xl p-6 flex items-center justify-center`}>
           
           {/* Setup - choose rounds */}
@@ -1050,6 +1082,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

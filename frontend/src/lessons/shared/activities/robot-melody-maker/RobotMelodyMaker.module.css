@@ -585,3 +585,97 @@
     width: 160px;
   }
 }
+
+/* ===== 4-ROBOT SPLIT VIEW (Arranger Mode) ===== */
+.splitStageWrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 8px;
+  flex: 1;
+  min-height: 200px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 0 0 12px 12px;
+}
+
+.miniStage {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.miniStage:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.02);
+}
+
+/* Active robot stage - currently playing */
+.miniStageActive {
+  border-color: #4ecdc4 !important;
+  box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+}
+
+/* Empty robot stage - no melody programmed */
+.miniStageEmpty {
+  opacity: 0.5;
+}
+
+.miniStageEmpty:hover {
+  opacity: 0.7;
+}
+
+/* Wrapper for RobotAvatar in split view */
+.miniMonsterWrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+/* Robot name label at bottom */
+.miniRobotLabel {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Playing indicator */
+.playingIndicator {
+  animation: bounce 0.5s ease infinite alternate;
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-2px); }
+}
+
+/* Responsive for Chromebook */
+@media (max-height: 768px) {
+  .splitStageWrapper {
+    gap: 6px;
+    padding: 6px;
+    min-height: 180px;
+  }
+
+  .miniRobotLabel {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+}

@@ -317,7 +317,7 @@ const Lesson3 = () => {
     viewModeActive = true;
   } else if (viewMelodyMode) {
     // ✅ NEW: View saved Robot Melody Maker
-    activityToRender = lesson3Config.activities.find(a => a.type === 'monster-melody-maker');
+    activityToRender = lesson3Config.activities.find(a => a.type === 'robot-melody-maker');
     viewModeActive = true;
   }
 

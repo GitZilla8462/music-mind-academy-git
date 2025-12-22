@@ -1,6 +1,6 @@
 /**
- * FILE: monster-melody-maker/MonsterMelodyMaker.jsx
- * 
+ * FILE: robot-melody-maker/RobotMelodyMaker.jsx
+ *
  * ROBOT BAND BUILDER
  * - 4 robots to customize (tabs 1-4 in stage header)
  * - Right panel toggles between Melody Grid and Song Arranger
@@ -10,8 +10,8 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
-  MonsterAvatar,
-  MonsterCustomizer,
+  RobotAvatar,
+  RobotCustomizer,
   MelodyGrid,
   StageBackground,
   ControlBar,
@@ -20,7 +20,7 @@ import {
 import useMelodyEngine from './hooks/useMelodyEngine';
 import { DEFAULT_MONSTER_CONFIG } from './config/defaults';
 import { saveStudentWork } from '../../../../utils/studentWorkStorage';
-import styles from './MonsterMelodyMaker.module.css';
+import styles from './RobotMelodyMaker.module.css';
 
 // Create empty 8x16 pattern grid
 const createEmptyPattern = () => 
@@ -44,8 +44,8 @@ const createDefaultRobot = (id) => ({
 
 // Check if a robot has any notes in its melody
 const robotHasMelody = (robot) => {
-  if (!robot?.melody) return false;
-  return robot.melody.some(row => row.some(cell => cell === true));
+  if (!robot?.melody || !Array.isArray(robot.melody)) return false;
+  return robot.melody.some(row => Array.isArray(row) && row.some(cell => cell === true));
 };
 
 const MonsterMelodyMaker = ({ 
@@ -56,11 +56,25 @@ const MonsterMelodyMaker = ({
   assignmentId 
 }) => {
   // ===== ROBOT BAND STATE =====
-  
+
+  // Validate and repair robot data to ensure melodies are valid arrays
+  const validateRobot = (robot, id) => {
+    if (!robot) return createDefaultRobot(id);
+    return {
+      ...robot,
+      id: robot.id || id,
+      name: robot.name || `Robot ${id}`,
+      config: robot.config || createDefaultRobotConfig(),
+      melody: Array.isArray(robot.melody) ? robot.melody : createEmptyPattern(),
+      stageTheme: robot.stageTheme || 'space',
+    };
+  };
+
   // 4 robots with their own config, melody, and stage
   const [robots, setRobots] = useState(() => {
-    if (savedData?.robots) {
-      return savedData.robots;
+    if (savedData?.robots && Array.isArray(savedData.robots)) {
+      // Validate each robot to ensure melodies are valid arrays
+      return savedData.robots.map((robot, idx) => validateRobot(robot, idx + 1));
     }
     return [
       createDefaultRobot(1),
@@ -373,7 +387,7 @@ const MonsterMelodyMaker = ({
             />
           </div>
           
-          <MonsterCustomizer 
+          <RobotCustomizer
             config={selectedRobot.config}
             onChange={handleMonsterChange}
             stageTheme={selectedRobot.stageTheme}
@@ -384,47 +398,87 @@ const MonsterMelodyMaker = ({
 
         {/* Center panel - Monster stage */}
         <section className={styles.centerPanel}>
-          {/* Robot selector tabs */}
-          <div className={styles.robotTabs}>
-            {[1, 2, 3, 4].map((id) => {
-              const robot = robots.find(r => r.id === id);
-              // Robot is unlocked if: it's robot 1, OR the previous robot has a melody
-              const prevRobot = robots.find(r => r.id === id - 1);
-              const isUnlocked = id === 1 || robotHasMelody(prevRobot);
-              return (
-                <button
-                  key={id}
-                  className={`${styles.robotTab} ${styles[`robotTab${id}`]} ${selectedRobotId === id ? styles.robotTabActive : ''} ${!isUnlocked ? styles.robotTabLocked : ''}`}
-                  onClick={() => isUnlocked && handleSelectRobot(id)}
-                  disabled={!isUnlocked}
-                  title={isUnlocked ? robot?.name : `Add notes to Robot ${id - 1} first`}
-                >
-                  Robot {id}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className={styles.stageWrapper}>
-            <StageBackground theme={displayedRobot.stageTheme} />
-            <div className={styles.monsterWrapper}>
-              <MonsterAvatar 
-                config={displayedRobot.config}
-                animationState={animationState}
-                isPlaying={isPlaying || isPlayingSong}
-                tempo={previewDance ? 100 : tempo}
-                previewDance={previewDance}
-              />
+          {/* Robot selector tabs - only show in melody view */}
+          {rightPanelView === 'melody' && (
+            <div className={styles.robotTabs}>
+              {[1, 2, 3, 4].map((id) => {
+                const robot = robots.find(r => r.id === id);
+                // Robot is unlocked if: it's robot 1, OR the previous robot has a melody
+                const prevRobot = robots.find(r => r.id === id - 1);
+                const isUnlocked = id === 1 || robotHasMelody(prevRobot);
+                return (
+                  <button
+                    key={id}
+                    className={`${styles.robotTab} ${styles[`robotTab${id}`]} ${selectedRobotId === id ? styles.robotTabActive : ''} ${!isUnlocked ? styles.robotTabLocked : ''}`}
+                    onClick={() => isUnlocked && handleSelectRobot(id)}
+                    disabled={!isUnlocked}
+                    title={isUnlocked ? robot?.name : `Add notes to Robot ${id - 1} first`}
+                  >
+                    Robot {id}
+                  </button>
+                );
+              })}
             </div>
-            
-            {/* Show which robot is playing during song */}
-            {isPlayingSong && (
-              <div className={styles.nowPlaying}>
-                🎵 {displayedRobot.name}
+          )}
+
+          {/* Single robot view (Melody mode) */}
+          {rightPanelView === 'melody' && (
+            <div className={styles.stageWrapper}>
+              <StageBackground theme={displayedRobot.stageTheme} />
+              <div className={styles.monsterWrapper}>
+                <RobotAvatar
+                  config={displayedRobot.config}
+                  animationState={animationState}
+                  isPlaying={isPlaying || isPlayingSong}
+                  tempo={previewDance ? 100 : tempo}
+                  previewDance={previewDance}
+                />
               </div>
-            )}
-          </div>
-          
+
+              {/* Show which robot is playing during song */}
+              {isPlayingSong && (
+                <div className={styles.nowPlaying}>
+                  🎵 {displayedRobot.name}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 4-robot split view (Arranger mode) */}
+          {rightPanelView === 'arranger' && (
+            <div className={styles.splitStageWrapper}>
+              {robots.map((robot) => {
+                // Check if this robot is currently playing in the song
+                const isCurrentlyPlaying = isPlayingSong && getSongRobot()?.id === robot.id;
+                const hasMelody = robotHasMelody(robot);
+
+                return (
+                  <div
+                    key={robot.id}
+                    className={`${styles.miniStage} ${isCurrentlyPlaying ? styles.miniStageActive : ''} ${!hasMelody ? styles.miniStageEmpty : ''}`}
+                    onClick={() => handleSelectRobot(robot.id)}
+                  >
+                    <StageBackground theme={robot.stageTheme} />
+                    <div className={styles.miniMonsterWrapper}>
+                      <RobotAvatar
+                        config={robot.config}
+                        animationState={isCurrentlyPlaying ? animationState : { singing: false, pitch: null }}
+                        isPlaying={isCurrentlyPlaying}
+                        tempo={tempo}
+                        size="small"
+                        isActive={isCurrentlyPlaying}
+                      />
+                    </div>
+                    <div className={styles.miniRobotLabel}>
+                      {robot.name}
+                      {isCurrentlyPlaying && <span className={styles.playingIndicator}>🎵</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {/* Control bar below stage */}
           <ControlBar
             isPlaying={isPlaying}
@@ -463,8 +517,6 @@ const MonsterMelodyMaker = ({
               <MelodyGrid
                 pattern={selectedRobot.melody}
                 onChange={handlePatternChange}
-                currentStep={!isPlayingSong ? currentStep : -1}
-                isPlaying={isPlaying && !isPlayingSong}
               />
             </div>
           )}

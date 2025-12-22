@@ -1,11 +1,11 @@
 /**
- * FILE: monster-melody-maker/components/MonsterAvatar.jsx
- * 
+ * FILE: robot-melody-maker/components/RobotAvatar.jsx
+ *
  * Dancing Robot with multiple dance styles!
  * - Dance moves sync to tempo
  * - Pitch controls move height/intensity
  * - Multiple dance styles to choose from
- * 
+ *
  * ✅ FIXED: Arms now bend INWARD correctly (not outward)
  * ✅ FIXED: Tighter spring physics so arms feel connected
  * ✅ FIXED: Better elbow tracking - forearm follows upper arm naturally
@@ -13,7 +13,7 @@
 
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import * as PIXI from 'pixi.js';
-import styles from './MonsterAvatar.module.css';
+import styles from './RobotAvatar.module.css';
 
 // Convert hex color to number for PIXI
 const hexToNumber = (hex) => {
@@ -88,7 +88,19 @@ const getSpringConfig = (danceStyle) => {
   }
 };
 
-const MonsterAvatar = ({ config, animationState, isPlaying, tempo = 120, previewDance = false }) => {
+const RobotAvatar = ({
+  config,
+  animationState,
+  isPlaying,
+  tempo = 120,
+  previewDance = false,
+  size = 'normal', // 'normal' (280x350) or 'small' (140x175)
+  isActive = true, // For split view - highlights active robot
+}) => {
+  // Size configurations
+  const sizeConfig = size === 'small'
+    ? { width: 140, height: 175, robotX: 70, robotY: 95, scale: 0.5 }
+    : { width: 280, height: 350, robotX: 140, robotY: 190, scale: 1 };
   const containerRef = useRef(null);
   const appRef = useRef(null);
   const robotRef = useRef(null);
@@ -168,28 +180,53 @@ const MonsterAvatar = ({ config, animationState, isPlaying, tempo = 120, preview
   useEffect(() => { animStateRef.current = animationState; }, [animationState]);
   useEffect(() => { previewRef.current = previewDance; }, [previewDance]);
 
-  // Initialize PIXI
+  // Initialize PIXI with Chromebook optimizations
   useEffect(() => {
     if (!containerRef.current || isInitializedRef.current) return;
 
     const initPixi = async () => {
       const app = new PIXI.Application();
-      
+
+      // Detect if we're on a Chromebook or low-end device
+      const isChromebook = /CrOS/.test(navigator.userAgent);
+      const isLowEnd = navigator.hardwareConcurrency <= 4 || isChromebook;
+
+      // Use lower resolution and disable antialias for Chromebooks
+      const resolution = isLowEnd ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+
       await app.init({
-        width: 280,
-        height: 350,
+        width: sizeConfig.width,
+        height: sizeConfig.height,
         backgroundAlpha: 0,
-        antialias: true,
-        resolution: window.devicePixelRatio || 1,
+        antialias: !isLowEnd && size !== 'small', // Disable antialias on Chromebooks and small views
+        resolution: resolution,
         autoDensity: true,
+        powerPreference: isLowEnd ? 'low-power' : 'high-performance',
       });
 
       containerRef.current.appendChild(app.canvas);
       appRef.current = app;
 
+      // Store performance mode for animation throttling
+      appRef.current.isLowEnd = isLowEnd;
+      appRef.current.isSmall = size === 'small';
+
+      // Dev logging for performance mode detection (only for normal size to reduce spam)
+      if (import.meta.env.DEV && size === 'normal') {
+        console.log(`🤖 Robot Avatar Init:`, {
+          isChromebook,
+          isLowEnd,
+          resolution,
+          antialias: !isLowEnd,
+          cores: navigator.hardwareConcurrency,
+          userAgent: navigator.userAgent.substring(0, 50) + '...',
+        });
+      }
+
       const robot = new PIXI.Container();
-      robot.x = 140;
-      robot.y = 190;
+      robot.x = sizeConfig.robotX;
+      robot.y = sizeConfig.robotY;
+      robot.scale.set(sizeConfig.scale);
       app.stage.addChild(robot);
       robotRef.current = robot;
 
@@ -1373,12 +1410,52 @@ const MonsterAvatar = ({ config, animationState, isPlaying, tempo = 120, preview
   }, []);
 
   const startAnimationLoop = useCallback(() => {
-    const animate = () => {
+    let lastTime = 0;
+    const isLowEnd = appRef.current?.isLowEnd;
+    const isSmall = appRef.current?.isSmall;
+
+    // FPS targets - 30fps across the board for Chromebooks
+    let targetFPS;
+    if (isSmall) {
+      targetFPS = 30; // 30fps for split view (both Chromebook and normal)
+    } else {
+      targetFPS = isLowEnd ? 30 : 60; // Normal rates for single robot
+    }
+    const frameInterval = 1000 / targetFPS;
+
+    // Dev-only FPS tracking
+    let frameCount = 0;
+    let fpsLastTime = performance.now();
+    const isDev = import.meta.env.DEV;
+
+    if (isDev && !isSmall) {
+      console.log(`🤖 Robot Animation: ${isLowEnd ? 'LOW-END MODE (30fps)' : 'NORMAL MODE (60fps)'}`);
+    }
+
+    const animate = (currentTime) => {
+      animationFrameRef.current = requestAnimationFrame(animate);
+
+      // Throttle frame rate for Chromebooks
+      const elapsed = currentTime - lastTime;
+      if (elapsed < frameInterval) return;
+      lastTime = currentTime - (elapsed % frameInterval);
+
       updateDance();
       drawRobot();
-      animationFrameRef.current = requestAnimationFrame(animate);
+
+      // Dev-only: Log FPS every 2 seconds (skip for small robots to reduce spam)
+      if (isDev && !isSmall) {
+        frameCount++;
+        const fpsDelta = currentTime - fpsLastTime;
+        if (fpsDelta >= 2000) {
+          const fps = Math.round((frameCount * 1000) / fpsDelta);
+          console.log(`🎯 Robot FPS: ${fps} (target: ${targetFPS})`);
+          frameCount = 0;
+          fpsLastTime = currentTime;
+        }
+      }
     };
-    
+
     animationFrameRef.current = requestAnimationFrame(animate);
   }, [updateDance, drawRobot]);
 
@@ -1416,4 +1493,4 @@ const MonsterAvatar = ({ config, animationState, isPlaying, tempo = 120, preview
   );
 };
 
-export default MonsterAvatar;
+export default RobotAvatar;

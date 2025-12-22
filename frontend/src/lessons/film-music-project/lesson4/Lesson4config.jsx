@@ -152,26 +152,26 @@ export const lessonSections = [
   {
     id: 'reflect',
     title: '5. Reflect',
-    subtitle: 'Beat Spotlight',
+    subtitle: 'Two Stars and a Wish',
     color: 'blue',
     estimatedTime: 4,
     stages: [
       {
         id: 'reflection-instructions',
         type: 'summary',
-        label: 'Beat Spotlight Instructions',
-        description: 'Describe your beat and how it matches the action.',
+        label: 'Two Stars and a Wish',
+        description: 'Explain the reflection prompts.',
         duration: 1
       },
       {
         id: 'reflection-activity',
         type: 'activity',
-        label: 'Beat Spotlight Reflection',
+        label: 'Reflection',
         duration: 3,
         hasTimer: true,
         trackProgress: true,
-        description: 'STUDENTS WORK: Written reflection on beat choices.',
-        bonusDescription: 'Bonus: Share with a partner.'
+        description: 'STUDENTS WORK: Complete Two Stars and a Wish reflection.',
+        bonusDescription: 'Bonus: Play Name That Loop with a partner.'
       }
     ]
   },
@@ -228,8 +228,8 @@ export const lesson4Config = {
     },
     {
       id: 3,
-      type: "beat-spotlight",
-      title: "Beat Spotlight Reflection",
+      type: "two-stars-and-a-wish",
+      title: "Two Stars and a Wish",
       estimatedTime: "3 min"
     }
   ]
@@ -407,8 +407,8 @@ export const lessonStages = [
   },
   {
     id: 'reflection-instructions',
-    label: 'Beat Spotlight Instructions',
-    description: 'Describe your beat and how it matches the action.',
+    label: 'Two Stars and a Wish',
+    description: 'Explain the reflection prompts.',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -418,9 +418,9 @@ export const lessonStages = [
   },
   {
     id: 'reflection-activity',
-    label: 'Beat Spotlight Reflection',
-    description: 'STUDENTS WORK: Written reflection on beat choices.',
-    bonusDescription: 'Bonus: Share with a partner.',
+    label: 'Reflection',
+    description: 'STUDENTS WORK: Complete Two Stars and a Wish reflection.',
+    bonusDescription: 'Bonus: Play Name That Loop with a partner.',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
@@ -472,7 +472,7 @@ export const getActivityForStage = (stage) => {
     'composition-reminder': 'summary',
     'sports-composition': 'sports-composition-activity',
     'reflection-instructions': 'summary',
-    'reflection-activity': 'beat-spotlight',
+    'reflection-activity': 'two-stars-and-a-wish',
     'quick-share': 'discussion',
     'conclusion': 'discussion'
   };

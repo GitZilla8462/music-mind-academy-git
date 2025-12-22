@@ -91,14 +91,14 @@ export const summarySlides = {
     ]
   },
 
-  monsterMelodyMaker: {
-    title: "Monster Melody Maker",
-    icon: "👾",
+  robotMelodyMaker: {
+    title: "Robot Melody Maker",
+    icon: "🤖",
     estimatedTime: "8 minutes",
     points: [
       "Create your own loop using the step sequencer.",
-      "Customize your monster's body, eyes, mouth, and accessories.",
-      "Watch your monster dance and sing to your music!",
+      "Customize your robot's body, eyes, mouth, and accessories.",
+      "Watch your robot dance and sing to your music!",
       "Save your creation when you're done."
     ]
   }
@@ -168,8 +168,8 @@ export const assignmentPanels = {
     ]
   },
 
-  monsterMelodyMaker: {
-    title: "Monster Melody Maker",
+  robotMelodyMaker: {
+    title: "Robot Melody Maker",
     requirements: [
       {
         id: "sequencer",
@@ -180,20 +180,20 @@ export const assignmentPanels = {
       {
         id: "customize",
         label: "Customize",
-        shortText: "Design your monster",
+        shortText: "Design your robot",
         fullText: "Choose body shape, colors, eyes, mouth, and accessories."
       },
       {
         id: "play",
         label: "Play",
         shortText: "Watch it perform",
-        fullText: "Press play to see your monster dance and sing to your music!"
+        fullText: "Press play to see your robot dance and sing to your music!"
       },
       {
         id: "save",
         label: "Save",
         shortText: "Save your creation",
-        fullText: "Give your monster melody a name and save it."
+        fullText: "Give your robot melody a name and save it."
       }
     ]
   }

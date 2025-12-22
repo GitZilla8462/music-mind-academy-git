@@ -18,15 +18,6 @@ const LayerDetectiveClassDemo = React.lazy(() =>
     })
 );
 
-// Lazy load Sectional Loop Builder Class Demo
-const SectionalLoopBuilderClassDemo = React.lazy(() =>
-  import('../lessons/shared/activities/sectional-loop-builder/SectionalLoopBuilderClassDemo')
-    .catch(() => {
-      console.error('Failed to load SectionalLoopBuilderClassDemo');
-      return { default: () => <div>Component not found</div> };
-    })
-);
-
 // Lazy load Mood Match Teacher View
 const MoodMatchTeacherView = React.lazy(() =>
   import('../lessons/shared/activities/mood-match-game/MoodMatchTeacherView')
@@ -619,43 +610,6 @@ const PresentationView = () => {
             </div>
           }>
             <LayerDetectiveClassDemo onComplete={handleDemoComplete} sessionData={sessionData} />
-          </React.Suspense>
-        </div>
-      );
-    }
-
-    // RENDER SECTIONAL LOOP BUILDER CLASS DEMO
-    if (type === 'sectional-loop-builder-class-demo') {
-      const handleDemoComplete = () => {
-        console.log('✅ Sectional Loop Builder demo complete - advancing to next stage');
-        
-        const currentStageIndex = lessonConfig.lessonStages.findIndex(
-          stage => stage.id === currentStage
-        );
-        
-        if (currentStageIndex !== -1 && currentStageIndex < lessonConfig.lessonStages.length - 1) {
-          const nextStage = lessonConfig.lessonStages[currentStageIndex + 1];
-          console.log('📍 Advancing from', currentStage, 'to', nextStage.id);
-          
-          const db = getDatabase();
-          const sessionRef = ref(db, `sessions/${sessionCode}/currentStage`);
-          set(sessionRef, nextStage.id).catch(err => {
-            console.error('❌ Error advancing stage:', err);
-          });
-        }
-      };
-      
-      return (
-        <div className="h-screen w-full relative">
-          <SessionCodeBadge sessionCode={sessionCode} isDarkBackground={false} />
-          <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} isDarkBackground={false} />
-          
-          <React.Suspense fallback={
-            <div className="h-full flex items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900">
-              <div className="text-white text-2xl">Loading class demo...</div>
-            </div>
-          }>
-            <SectionalLoopBuilderClassDemo onComplete={handleDemoComplete} sessionData={sessionData} />
           </React.Suspense>
         </div>
       );

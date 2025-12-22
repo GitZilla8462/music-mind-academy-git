@@ -1,16 +1,16 @@
 /**
- * FILE: monster-melody-maker/components/MonsterCustomizer.jsx
- * 
+ * FILE: robot-melody-maker/components/RobotCustomizer.jsx
+ *
  * Inline dropdown customizer - menus expand in sidebar
  * 10+ options per category, designed for middle school students
- * 
+ *
  * UPDATED: Added showRandomize prop to hide dice button for Robot Band Builder
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import styles from './MonsterCustomizer.module.css';
+import styles from './RobotCustomizer.module.css';
 
-const MonsterCustomizer = ({ 
+const RobotCustomizer = ({ 
   config, 
   onChange, 
   stageTheme, 
@@ -316,4 +316,4 @@ const MonsterCustomizer = ({
   );
 };
 
-export default MonsterCustomizer;
+export default RobotCustomizer;
