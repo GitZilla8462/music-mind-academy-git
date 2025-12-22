@@ -149,8 +149,8 @@ export const lessonSections = [
 ];
 
 export const lesson2Config = {
-  id: 'lesson3',
-  lessonPath: '/lessons/film-music-project/lesson3',
+  id: 'lesson2',
+  lessonPath: '/lessons/film-music-project/lesson2',
   title: "City Soundscapes",
   subtitle: "Texture and Layering in Music",
   learningObjectives: [
