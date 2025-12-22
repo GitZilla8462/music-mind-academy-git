@@ -226,12 +226,22 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
     return () => audio.removeEventListener('ended', handleEnded);
   }, [currentLoop]);
 
-  // Auto-play loop when new round starts
+  // Track if we've auto-played for this round
+  const hasAutoPlayedRef = useRef(false);
+
+  // Reset auto-play flag when new round starts
+  useEffect(() => {
+    hasAutoPlayedRef.current = false;
+  }, [currentRound]);
+
+  // Auto-play loop when new round starts (only once per round)
   useEffect(() => {
     if (!currentLoop || !audioRef.current || guessResult) return;
-    
+    if (hasAutoPlayedRef.current) return; // Don't auto-play again if already played
+
     const timer = setTimeout(() => {
-      if (audioRef.current && currentLoop && !isPlaying) {
+      if (audioRef.current && currentLoop && !hasAutoPlayedRef.current) {
+        hasAutoPlayedRef.current = true;
         audioRef.current.currentTime = 0;
         audioRef.current.play()
           .then(() => {
@@ -244,7 +254,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
     }, 600);
 
     return () => clearTimeout(timer);
-  }, [currentLoop, guessResult, isPlaying]);
+  }, [currentLoop, guessResult]);
 
   // Handle guess
   const handleGuess = (guessedName) => {
