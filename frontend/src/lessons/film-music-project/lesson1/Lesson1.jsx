@@ -137,11 +137,11 @@ const Lesson1 = () => {
         lastSaveCommandRef.current = saveCommand;
         console.log('🟢 Teacher clicked Save & Continue - showing overlay');
 
-        // Show transition overlay for 4 seconds
+        // Show transition overlay for 7 seconds
         setShowTransition(true);
         setTimeout(() => {
           setShowTransition(false);
-        }, 4000);
+        }, 7000);
       }
     });
 
