@@ -108,20 +108,23 @@ const Lesson1 = () => {
     }
   }, [sessionRole, markActivityComplete]);
 
-  // Transition overlay state for students
+  // Transition overlay state for students (when leaving an activity)
   const [showTransition, setShowTransition] = React.useState(false);
   const prevStageRef = React.useRef(null);
 
-  // Detect stage changes and show overlay for students
+  // Activity stage IDs that should show the "saved" overlay when leaving
+  const activityStages = ['mood-match-game', 'adventure-composition', 'reflection'];
+
+  // Detect when leaving an activity stage and show overlay for students
   React.useEffect(() => {
     // Only trigger for students in session mode
     if (sessionMode.isSessionMode && effectiveRole === 'student') {
-      // Check if this is a real stage change (not initial load)
+      // Check if we're LEAVING an activity stage (previous was activity, current is different)
       if (prevStageRef.current &&
           currentStage &&
           prevStageRef.current !== currentStage &&
-          currentStage !== 'ended') {
-        // Show transition overlay
+          activityStages.includes(prevStageRef.current)) {
+        // Show transition overlay when leaving an activity
         setShowTransition(true);
 
         // Hide after 2 seconds
