@@ -20,6 +20,7 @@ const assignmentRoutes = require('./routes/assignmentRoutes');
 const loopsRoutes = require('./routes/loopsRoutes');
 const lessonRoutes = require('./routes/lessonRoutes');
 const musicresourcesRoutes = require('./routes/musicresourcesRoutes'); // 🆕 NEW IMPORT
+const roomRoutes = require('./routes/roomRoutes'); // Beat Escape Room sharing
 
 // Create the Express application
 const app = express();
@@ -58,6 +59,7 @@ app.use('/api/assignments', assignmentRoutes);
 app.use('/api/loops', loopsRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/musicresources', musicresourcesRoutes); // 🆕 NEW ROUTE
+app.use('/api/rooms', roomRoutes); // Beat Escape Room sharing
 
 // A simple test route to check if the server is working
 app.get('/', (req, res) => {

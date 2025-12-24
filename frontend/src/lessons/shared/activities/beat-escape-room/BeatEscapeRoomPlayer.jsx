@@ -28,8 +28,13 @@ const BeatEscapeRoomPlayer = ({ roomData, onComplete, onBack }) => {
   const assets = getThemeAssets(themeId);
 
   // Get locks sorted by number
+  // Handle both old format (direct pattern) and new format (pattern with grid property)
   const locks = Object.entries(roomData.patterns)
-    .map(([num, pattern]) => ({ number: parseInt(num), pattern }))
+    .map(([num, patternData]) => {
+      // New format has { grid, createdBy, completedAt }, old format is direct pattern
+      const pattern = patternData.grid || patternData;
+      return { number: parseInt(num), pattern };
+    })
     .sort((a, b) => a.number - b.number);
 
   const [currentLockIndex, setCurrentLockIndex] = useState(0);
@@ -91,16 +96,12 @@ const BeatEscapeRoomPlayer = ({ roomData, onComplete, onBack }) => {
     if (isPlaying) return;
     setIsPlaying(true);
     setHasPlayedOnce(true);
-    sounds.click();
 
-    // Play pattern with beat callback for animation
+    // Animate column highlight from left to right
     const interval = 600; // ms per beat at ~100 BPM
     for (let beat = 0; beat < 4; beat++) {
       setTimeout(() => {
         setCurrentBeat(beat);
-        if (targetPattern.kick[beat]) sounds.click();
-        if (targetPattern.snare[beat]) sounds.click();
-        if (targetPattern.hihat[beat]) sounds.click();
       }, beat * interval);
     }
 
@@ -190,7 +191,7 @@ const BeatEscapeRoomPlayer = ({ roomData, onComplete, onBack }) => {
                   ? 'bg-cyan-600 border-cyan-400 text-white scale-110 ring-2 ring-cyan-300'
                   : 'bg-gray-700 border-gray-500 text-gray-400'
             }`}
-            style={{ fontFamily: "'Orbitron', sans-serif" }}
+            style={{ fontFamily: theme.font?.family || "'Orbitron', sans-serif" }}
           >
             {isComplete ? '✓' : idx + 1}
           </div>
@@ -222,7 +223,7 @@ const BeatEscapeRoomPlayer = ({ roomData, onComplete, onBack }) => {
       <div className="fixed inset-0 bg-black/40 pointer-events-none" />
 
       {/* Fixed top left: EXIT, Attempts, PTS stacked */}
-      <div className="fixed top-4 left-4 z-20 flex flex-col gap-2" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+      <div className="fixed top-4 left-4 z-20 flex flex-col gap-2" style={{ fontFamily: theme.font?.family || "'Orbitron', sans-serif", letterSpacing: '0.1em' }}>
         <button
           onClick={onBack}
           className="text-cyan-300 hover:text-white transition-colors bg-gray-900/90 rounded-lg border-2 border-cyan-500/60 px-4 py-2 text-lg font-bold"
@@ -251,7 +252,7 @@ const BeatEscapeRoomPlayer = ({ roomData, onComplete, onBack }) => {
       {/* Fixed top right: ROOM */}
       <div
         className="fixed top-4 right-4 z-20 bg-gray-900/90 rounded-lg border-2 border-cyan-400/60 px-4 py-2 text-center"
-        style={{ fontFamily: "'Orbitron', sans-serif" }}
+        style={{ fontFamily: theme.font?.family || "'Orbitron', sans-serif", letterSpacing: '0.1em' }}
       >
         <div className="text-gray-400 text-sm">ROOM</div>
         <div className="text-cyan-300 text-2xl font-bold tracking-widest" style={{ textShadow: '0 0 8px rgba(6, 182, 212, 0.6)' }}>
@@ -264,8 +265,8 @@ const BeatEscapeRoomPlayer = ({ roomData, onComplete, onBack }) => {
         {/* Lock title at top center */}
         <div className="w-full pt-4 mb-2">
           <h1
-            className="text-3xl font-bold text-white text-center tracking-wide"
-            style={{ fontFamily: "'Orbitron', sans-serif", textShadow: '0 0 10px rgba(6, 182, 212, 0.5)' }}
+            className="text-3xl font-bold text-white text-center"
+            style={{ fontFamily: theme.font?.family || "'Orbitron', sans-serif", textShadow: `0 0 10px ${theme.colors.primary}80`, letterSpacing: '0.15em' }}
           >
             {escaped ? '🎉 ESCAPED!' : showSuccess ? '🔓 UNLOCKED!' : `LOCK ${currentLockIndex + 1} OF ${totalLocks}`}
           </h1>
@@ -283,22 +284,22 @@ const BeatEscapeRoomPlayer = ({ roomData, onComplete, onBack }) => {
               <div className="text-center py-6">
                 <div className="text-5xl mb-3 animate-bounce">🏆</div>
                 <h2
-                  className="text-2xl font-bold text-cyan-300 mb-2 tracking-wide"
-                  style={{ fontFamily: "'Orbitron', sans-serif", textShadow: '0 0 10px rgba(6, 182, 212, 0.5)' }}
+                  className="text-2xl font-bold mb-2"
+                  style={{ fontFamily: theme.font?.family || "'Orbitron', sans-serif", textShadow: `0 0 10px ${theme.colors.primary}80`, color: theme.colors.primary, letterSpacing: '0.15em' }}
                 >
                   ESCAPED!
                 </h2>
-                <p className="text-4xl font-bold text-white mb-2" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                <p className="text-4xl font-bold text-white mb-2" style={{ fontFamily: theme.font?.family || "'Orbitron', sans-serif", letterSpacing: '0.1em' }}>
                   {averageScore}%
                 </p>
-                <p className="text-gray-400 text-sm mb-4" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                <p className="text-gray-400 text-sm mb-4" style={{ fontFamily: theme.font?.family || "'Orbitron', sans-serif", letterSpacing: '0.15em' }}>
                   ACCURACY
                 </p>
                 <div className="flex gap-3 justify-center">
                   <button
                     onClick={onBack}
-                    className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 rounded-xl text-white font-bold transition-all flex items-center gap-2 border-2 border-cyan-400"
-                    style={{ fontFamily: "'Orbitron', sans-serif" }}
+                    className="px-6 py-3 rounded-xl text-white font-bold transition-all flex items-center gap-2 border-2"
+                    style={{ fontFamily: theme.font?.family || "'Orbitron', sans-serif", backgroundColor: theme.colors.primary, borderColor: theme.colors.primary, letterSpacing: '0.1em' }}
                   >
                     ← EXIT
                   </button>
@@ -309,9 +310,9 @@ const BeatEscapeRoomPlayer = ({ roomData, onComplete, onBack }) => {
                       setLockScores([]);
                     }}
                     className="px-6 py-3 bg-green-600 hover:bg-green-500 rounded-xl text-white font-bold transition-all flex items-center gap-2 border-2 border-green-400"
-                    style={{ fontFamily: "'Orbitron', sans-serif" }}
+                    style={{ fontFamily: theme.font?.family || "'Orbitron', sans-serif", letterSpacing: '0.1em' }}
                   >
-                    🔄 PLAY AGAIN
+                    PLAY AGAIN
                   </button>
                 </div>
               </div>
@@ -330,7 +331,7 @@ const BeatEscapeRoomPlayer = ({ roomData, onComplete, onBack }) => {
                         ? 'bg-cyan-900/50 text-cyan-200 border-cyan-500/50'
                         : 'bg-cyan-600 hover:bg-cyan-500 text-white border-cyan-400 hover:scale-105 animate-pulse-subtle'
                     }`}
-                    style={{ fontFamily: "'Orbitron', sans-serif" }}
+                    style={{ fontFamily: theme.font?.family || "'Orbitron', sans-serif", letterSpacing: '0.1em' }}
                   >
                     <Volume2 size={22} className={isPlaying ? 'animate-pulse' : ''} />
                     {isPlaying ? 'PLAYING...' : 'PLAY BEAT'}
@@ -420,7 +421,7 @@ const BeatEscapeRoomPlayer = ({ roomData, onComplete, onBack }) => {
 
       {/* Font import and animations with fluid scaling */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        @import url('${theme.font?.import || "https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap"}');
 
         /* Fluid scaling variables */
         :root {

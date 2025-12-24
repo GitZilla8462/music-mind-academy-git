@@ -26,6 +26,7 @@ const BeatEscapeRoomCreator = ({
   mode,
   themeId = 'space-station',
   playerIndex = 0,
+  shareCode,
   onComplete,
   onBack
 }) => {
@@ -104,7 +105,7 @@ const BeatEscapeRoomCreator = ({
                 ? 'bg-cyan-600 border-cyan-400 text-white scale-110 ring-2 ring-cyan-300'
                 : 'bg-gray-700 border-gray-500 text-gray-400'
           }`}
-          style={{ fontFamily: "'Orbitron', sans-serif" }}
+          style={{ fontFamily: theme.font?.family || "'Orbitron', sans-serif" }}
         >
           {idx < currentLockIndex ? '✓' : idx + 1}
         </div>
@@ -139,22 +140,32 @@ const BeatEscapeRoomCreator = ({
       <div className="fixed inset-0 bg-black/40 pointer-events-none" />
 
       {/* Fixed top left: EXIT */}
-      <div className="fixed top-4 left-4 z-20" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+      <div className="fixed top-4 left-4 z-20" style={{ fontFamily: theme.font?.family || "'Orbitron', sans-serif", letterSpacing: '0.1em' }}>
         <button
           onClick={onBack}
-          className="text-cyan-300 hover:text-white transition-colors bg-gray-900/90 rounded-lg border-2 border-cyan-500/60 px-4 py-2 text-lg font-bold"
+          className="hover:text-white transition-colors bg-gray-900/90 rounded-lg border-2 px-4 py-2 text-lg font-bold"
+          style={{ color: theme.colors.primary, borderColor: `${theme.colors.primary}99` }}
         >
           ← EXIT
         </button>
       </div>
 
-      {/* Fixed top right: Mode */}
+      {/* Fixed top right: Room Code (partner/trio) or Mode (solo) */}
       <div
-        className="fixed top-4 right-4 z-20 bg-gray-900/90 rounded-lg border-2 border-cyan-400/60 px-4 py-2 text-center"
-        style={{ fontFamily: "'Orbitron', sans-serif" }}
+        className="fixed top-4 right-4 z-20 bg-gray-900/90 rounded-lg border-2 px-4 py-2 text-center"
+        style={{ fontFamily: theme.font?.family || "'Orbitron', sans-serif", borderColor: `${theme.colors.primary}99`, letterSpacing: '0.1em' }}
       >
-        <div className="text-gray-400 text-sm">MODE</div>
-        <div className="text-cyan-300 text-xl font-bold">{modeConfig?.label}</div>
+        {shareCode && mode !== 'solo' ? (
+          <>
+            <div className="text-gray-400 text-sm">ROOM</div>
+            <div className="text-2xl font-bold tracking-widest" style={{ color: theme.colors.primary }}>{shareCode}</div>
+          </>
+        ) : (
+          <>
+            <div className="text-gray-400 text-sm">MODE</div>
+            <div className="text-xl font-bold" style={{ color: theme.colors.primary }}>{modeConfig?.label}</div>
+          </>
+        )}
       </div>
 
       {/* Content container */}
@@ -162,8 +173,8 @@ const BeatEscapeRoomCreator = ({
         {/* Title at top center */}
         <div className="w-full pt-4 mb-2">
           <h1
-            className="text-2xl font-bold text-white text-center tracking-wide"
-            style={{ fontFamily: "'Orbitron', sans-serif", textShadow: '0 0 10px rgba(6, 182, 212, 0.5)' }}
+            className="text-2xl font-bold text-white text-center"
+            style={{ fontFamily: theme.font?.family || "'Orbitron', sans-serif", textShadow: `0 0 10px ${theme.colors.primary}80`, letterSpacing: '0.15em' }}
           >
             CREATE LOCK {currentLockIndex + 1} OF {myLocks.length}
           </h1>
@@ -248,7 +259,7 @@ const BeatEscapeRoomCreator = ({
 
       {/* Font import */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        @import url('${theme.font?.import || "https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap"}');
       `}</style>
     </div>
   );

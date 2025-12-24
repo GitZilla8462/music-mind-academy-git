@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getSessionData } from '../firebase/config';
 import { getStudentId, getAllStudentWork, migrateOldSaves } from '../utils/studentWorkStorage';
+import BeatEscapeRoomActivity from '../lessons/shared/activities/beat-escape-room/BeatEscapeRoomActivity';
 
 function JoinWithCode() {
   const navigate = useNavigate();
@@ -21,6 +22,18 @@ function JoinWithCode() {
   // Check for preview mode (used by teacher's presentation view)
   const isPreviewMode = searchParams.get('preview') === 'true';
   const urlCode = searchParams.get('code');
+  const loadRoomCode = searchParams.get('loadRoom');
+
+  // If loadRoom parameter is present, show Beat Escape Room
+  if (loadRoomCode) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#1a202c' }}>
+        <BeatEscapeRoomActivity
+          onComplete={() => navigate('/join')}
+        />
+      </div>
+    );
+  }
 
   useEffect(() => {
     const id = getStudentId();

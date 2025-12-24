@@ -1,11 +1,10 @@
 // Beat Escape Room Theme Configuration
-// Currently only Space Station is fully available
+// All themes now available with optimized JPG backgrounds
 
 export const THEMES = {
   'space-station': {
     id: 'space-station',
     name: 'Space Station',
-    emoji: '🚀',
     description: 'Escape the spaceship!',
     colors: {
       primary: '#06b6d4',
@@ -16,12 +15,15 @@ export const THEMES = {
       hihat: '#3b82f6',
       background: '#0f172a',
     },
+    font: {
+      family: "'Orbitron', sans-serif",
+      import: "https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap",
+    },
     available: true,
   },
   'studio-vault': {
     id: 'studio-vault',
     name: 'Studio Vault',
-    emoji: '🎵',
     description: 'Break into the music vault!',
     colors: {
       primary: '#a855f7',
@@ -32,13 +34,16 @@ export const THEMES = {
       hihat: '#22c55e',
       background: '#1e1b4b',
     },
-    available: false, // Coming soon
+    font: {
+      family: "'Bebas Neue', sans-serif",
+      import: "https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap",
+    },
+    available: true,
   },
   'neon-arcade': {
     id: 'neon-arcade',
     name: 'Neon Arcade',
-    emoji: '🎮',
-    description: 'Win the jackpot!',
+    description: 'Escape the Upside Down!',
     colors: {
       primary: '#ec4899',
       secondary: '#06b6d4',
@@ -48,13 +53,16 @@ export const THEMES = {
       hihat: '#06b6d4',
       background: '#1a0a2e',
     },
-    available: false, // Coming soon
+    font: {
+      family: "'VT323', monospace",
+      import: "https://fonts.googleapis.com/css2?family=VT323&display=swap",
+    },
+    available: true,
   },
   'dungeon': {
     id: 'dungeon',
     name: 'Dungeon',
-    emoji: '🏰',
-    description: 'Find the treasure!',
+    description: 'Escape the castle!',
     colors: {
       primary: '#f59e0b',
       secondary: '#78716c',
@@ -64,15 +72,33 @@ export const THEMES = {
       hihat: '#ea580c',
       background: '#1c1917',
     },
-    available: false, // Coming soon
+    font: {
+      family: "'Cinzel', serif",
+      import: "https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap",
+    },
+    available: true,
   },
 };
 
-const ASSET_BASE_PATH = '/lessons/film-music-project/lesson4/themes';
+const ASSET_BASE_PATH = '/lessons/film-music-project/lesson4';
+const THEME_PATH = `${ASSET_BASE_PATH}/themes`;
+
+// ========================================
+// SHARED BACKGROUNDS (pre-theme selection)
+// ========================================
+
+export const getSharedAssets = () => ({
+  bgTitle: `${ASSET_BASE_PATH}/bg-title.jpg`,
+  bgSelect: `${ASSET_BASE_PATH}/bg-select.jpg`,
+});
+
+// ========================================
+// THEME-SPECIFIC ASSETS
+// ========================================
 
 // Get background for current room (progressive backgrounds)
 export const getRoomBackground = (themeId, lockNumber, totalLocks) => {
-  const basePath = `${ASSET_BASE_PATH}/${themeId}`;
+  const basePath = `${THEME_PATH}/${themeId}`;
 
   // Determine which room based on lock progress
   let room;
@@ -84,22 +110,31 @@ export const getRoomBackground = (themeId, lockNumber, totalLocks) => {
     room = 'room3';
   }
 
-  return `${basePath}/bg-${room}.png`;
+  return `${basePath}/bg-${room}.jpg`;
 };
 
 // Get escaped/celebration background
 export const getEscapedBackground = (themeId) => {
-  return `${ASSET_BASE_PATH}/${themeId}/bg-escaped.png`;
+  return `${THEME_PATH}/${themeId}/bg-escaped.jpg`;
+};
+
+// Get share/room created background
+export const getShareBackground = (themeId) => {
+  return `${THEME_PATH}/${themeId}/bg-share.jpg`;
 };
 
 // Get all theme assets
 export const getThemeAssets = (themeId) => {
-  const basePath = `${ASSET_BASE_PATH}/${themeId}`;
+  const basePath = `${THEME_PATH}/${themeId}`;
   return {
-    bgRoom1: `${basePath}/bg-room1.png`,
-    bgRoom2: `${basePath}/bg-room2.png`,
-    bgRoom3: `${basePath}/bg-room3.png`,
-    bgEscaped: `${basePath}/bg-escaped.png`,
+    // Backgrounds (JPG for performance)
+    bgRoom1: `${basePath}/bg-room1.jpg`,
+    bgRoom2: `${basePath}/bg-room2.jpg`,
+    bgRoom3: `${basePath}/bg-room3.jpg`,
+    bgEscaped: `${basePath}/bg-escaped.jpg`,
+    bgShare: `${basePath}/bg-share.jpg`,
+
+    // UI elements (PNG for transparency)
     lockClosed: `${basePath}/lock-closed.png`,
     lockOpen: `${basePath}/lock-open.png`,
     cellKick: `${basePath}/cell-kick.png`,

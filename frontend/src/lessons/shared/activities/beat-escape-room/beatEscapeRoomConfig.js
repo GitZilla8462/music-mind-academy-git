@@ -120,37 +120,117 @@ export const validatePattern = (pattern, minNotes = 3) => {
 };
 
 // ========================================
-// STORAGE & SHARE CODES
+// STORAGE & SHARE CODES (Server-based for cross-device sharing)
 // ========================================
 
-const STORAGE_KEY = 'beat-escape-rooms';
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? ''
+  : 'http://localhost:5000';
+
+const STORAGE_KEY = 'beat-escape-rooms'; // localStorage fallback
 
 export const generateShareCode = () => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  for (let i = 0; i < 4; i++) {
+    code += Math.floor(Math.random() * 10);
   }
   return code;
 };
 
-export const saveRoom = (roomData, existingCode = null) => {
-  const rooms = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-  const shareCode = existingCode || generateShareCode();
+// Create a new room on the server
+export const createRoom = async (roomData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/rooms`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(roomData)
+    });
 
-  rooms[shareCode] = {
-    ...roomData,
-    shareCode,
-    createdAt: rooms[shareCode]?.createdAt || Date.now()
-  };
+    if (!response.ok) {
+      throw new Error('Failed to create room');
+    }
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(rooms));
-  return shareCode;
+    const room = await response.json();
+    console.log('🎮 Room created on server:', room.code);
+    return room;
+  } catch (error) {
+    console.error('Failed to create room on server:', error);
+    // Fallback to localStorage
+    const code = generateShareCode();
+    const rooms = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    rooms[code] = { ...roomData, code, createdAt: Date.now() };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(rooms));
+    return { ...roomData, code };
+  }
 };
 
-export const loadRoom = (shareCode) => {
+// Save/update room (for backwards compatibility)
+export const saveRoom = async (roomData, existingCode = null) => {
+  if (existingCode) {
+    // Update existing room
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/rooms/${existingCode}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(roomData)
+      });
+
+      if (response.ok) {
+        console.log('🎮 Room updated on server:', existingCode);
+        return existingCode;
+      }
+    } catch (error) {
+      console.error('Failed to update room on server:', error);
+    }
+  }
+
+  // Create new room
+  const room = await createRoom(roomData);
+  return room.code;
+};
+
+// Load room from server
+export const loadRoom = async (shareCode) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/rooms/${shareCode}`);
+
+    if (response.ok) {
+      const room = await response.json();
+      console.log('🎮 Room loaded from server:', shareCode);
+      return room;
+    }
+
+    if (response.status === 404) {
+      console.log('🎮 Room not found on server:', shareCode);
+      return null;
+    }
+  } catch (error) {
+    console.error('Failed to load room from server:', error);
+  }
+
+  // Fallback to localStorage
   const rooms = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
   return rooms[shareCode.toUpperCase()] || null;
+};
+
+// Add patterns to existing room
+export const addPatternsToRoom = async (code, patterns) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/rooms/${code}/patterns`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ patterns })
+    });
+
+    if (response.ok) {
+      const room = await response.json();
+      console.log('🎮 Patterns added to room:', code);
+      return room;
+    }
+  } catch (error) {
+    console.error('Failed to add patterns:', error);
+  }
+  return null;
 };
 
 export const getAllRooms = () => {

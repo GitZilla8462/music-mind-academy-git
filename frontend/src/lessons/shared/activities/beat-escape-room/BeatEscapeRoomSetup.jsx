@@ -3,8 +3,8 @@
 
 import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
-import { MODES, generateShareCode } from './beatEscapeRoomConfig';
-import { getAllThemes, getThemeAssets } from './beatEscapeRoomThemes';
+import { MODES, createRoom } from './beatEscapeRoomConfig';
+import { getAllThemes, getThemeAssets, getSharedAssets } from './beatEscapeRoomThemes';
 
 const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
   const [step, setStep] = useState('mode'); // 'mode' | 'partner-role' | 'show-code' | 'join-to-create' | 'theme'
@@ -17,6 +17,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
 
   const modes = Object.values(MODES);
   const themes = getAllThemes();
+  const sharedAssets = getSharedAssets();
 
   const handleModeSelect = (modeId) => {
     setSelectedMode(modeId);
@@ -29,12 +30,30 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
     }
   };
 
-  const handleGenerateCode = () => {
-    // Generate a new room code
-    const code = generateShareCode();
-    setGeneratedCode(code);
-    setPlayerIndex(0);
-    setStep('show-code');
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleGenerateCode = async () => {
+    if (isCreating) return;
+    setIsCreating(true);
+
+    try {
+      // Create room on server immediately so partner can join right away
+      const room = await createRoom({
+        mode: selectedMode,
+        patterns: {},  // Empty - will be filled as players create locks
+        theme: null,   // Will be set when creator picks theme
+        status: 'creating'
+      });
+
+      setGeneratedCode(room.code);
+      setPlayerIndex(0);
+      setStep('show-code');
+    } catch (error) {
+      console.error('Failed to create room:', error);
+      setJoinError('Failed to create room. Please try again.');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleCopyCode = async () => {
@@ -85,7 +104,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
       return;
     }
     setJoinError('');
-    onJoinRoom(joinCode.toUpperCase());
+    onJoinRoom(joinCode);
   };
 
   const handleJoinToCreate = () => {
@@ -96,18 +115,30 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
     setJoinError('');
     // Join existing room to add locks
     if (onJoinToCreate) {
-      onJoinToCreate(joinCode.toUpperCase(), selectedMode);
+      onJoinToCreate(joinCode, selectedMode);
     }
   };
 
   // Step 1: Mode Selection
   if (step === 'mode') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900 flex flex-col items-center justify-center p-6">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+        style={{
+          backgroundImage: `url(${sharedAssets.bgTitle})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+
         {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-5xl font-black text-white mb-3 flex items-center justify-center gap-3">
-            <span className="text-4xl">🥁</span>
+        <div className="text-center mb-10 relative z-10">
+          <h1
+            className="text-5xl font-black text-white mb-3 uppercase tracking-wider"
+            style={{ textShadow: '0 0 20px rgba(139, 92, 246, 0.8), 0 4px 8px rgba(0,0,0,0.5)' }}
+          >
             Beat Escape Room
           </h1>
           <p className="text-xl text-purple-200">
@@ -116,7 +147,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
         </div>
 
         {/* Mode Selection */}
-        <div className="mb-10">
+        <div className="mb-10 relative z-10">
           <p className="text-center text-lg text-gray-300 mb-6">
             How are you working today?
           </p>
@@ -126,9 +157,8 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
               <button
                 key={mode.id}
                 onClick={() => handleModeSelect(mode.id)}
-                className="group bg-gray-800 hover:bg-gray-700 border-2 border-gray-600 hover:border-purple-500 rounded-2xl p-6 w-40 transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20"
+                className="group bg-gray-800/90 hover:bg-gray-700/90 border-2 border-gray-600 hover:border-purple-500 rounded-2xl p-6 w-40 transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20"
               >
-                <div className="text-4xl mb-2">{mode.icon}</div>
                 <div className="text-xl font-bold text-white mb-1">{mode.label}</div>
                 <div className="text-purple-400 font-semibold">
                   {mode.totalLocks} locks
@@ -144,14 +174,14 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
         </div>
 
         {/* Divider */}
-        <div className="flex items-center gap-4 mb-8 w-full max-w-md">
+        <div className="flex items-center gap-4 mb-8 w-full max-w-md relative z-10">
           <div className="flex-1 h-px bg-gray-600" />
           <span className="text-gray-400 font-semibold">OR PLAY EXISTING</span>
           <div className="flex-1 h-px bg-gray-600" />
         </div>
 
         {/* Join Section */}
-        <div className="bg-gray-800 rounded-2xl p-6 w-full max-w-md">
+        <div className="bg-gray-800/90 rounded-2xl p-6 w-full max-w-md relative z-10">
           <p className="text-center text-gray-300 mb-4">
             Have a code? Join a room created by someone else!
           </p>
@@ -161,7 +191,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
               type="text"
               value={joinCode}
               onChange={(e) => {
-                setJoinCode(e.target.value.toUpperCase());
+                setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''));
                 setJoinError('');
               }}
               onKeyPress={(e) => e.key === 'Enter' && handleJoin()}
@@ -174,7 +204,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
               disabled={!joinCode}
               className="px-6 py-3 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl text-white font-bold transition-colors flex items-center gap-2"
             >
-              🔓 Play
+              Play
             </button>
           </div>
 
@@ -190,34 +220,45 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
   if (step === 'partner-role') {
     const modeConfig = MODES[selectedMode];
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900 flex flex-col items-center justify-center p-6">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+        style={{
+          backgroundImage: `url(${sharedAssets.bgTitle})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+
         {/* Back button */}
         <button
           onClick={handleBack}
-          className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+          className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2 z-10"
         >
           ← Back
         </button>
 
         {/* Header */}
-        <div className="text-center mb-10">
-          <div className="text-6xl mb-4">{modeConfig?.icon}</div>
+        <div className="text-center mb-10 relative z-10">
           <h1 className="text-4xl font-black text-white mb-3">
             {modeConfig?.label} Mode
           </h1>
           <p className="text-lg text-purple-200">
-            {modeConfig?.totalLocks} locks total • {modeConfig?.perPerson} locks each
+            {modeConfig?.totalLocks} locks total - {modeConfig?.perPerson} locks each
           </p>
         </div>
 
         {/* Role Selection */}
-        <div className="w-full max-w-md space-y-4">
+        <div className="w-full max-w-md space-y-4 relative z-10">
           <button
             onClick={handleGenerateCode}
-            className="w-full bg-gray-800 hover:bg-gray-700 border-2 border-gray-600 hover:border-purple-500 rounded-2xl p-6 transition-all duration-200 hover:scale-105"
+            disabled={isCreating}
+            className="w-full bg-gray-800/90 hover:bg-gray-700/90 disabled:opacity-50 border-2 border-gray-600 hover:border-purple-500 rounded-2xl p-6 transition-all duration-200 hover:scale-105 disabled:hover:scale-100"
           >
-            <div className="text-3xl mb-2">🆕</div>
-            <div className="text-xl font-bold text-white mb-1">Generate New Room</div>
+            <div className="text-xl font-bold text-white mb-1">
+              {isCreating ? 'Creating...' : 'Generate New Room'}
+            </div>
             <div className="text-gray-400 text-sm">
               Get a code to share with your partner
             </div>
@@ -225,9 +266,8 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
 
           <button
             onClick={() => setStep('join-to-create')}
-            className="w-full bg-gray-800 hover:bg-gray-700 border-2 border-gray-600 hover:border-green-500 rounded-2xl p-6 transition-all duration-200 hover:scale-105"
+            className="w-full bg-gray-800/90 hover:bg-gray-700/90 border-2 border-gray-600 hover:border-green-500 rounded-2xl p-6 transition-all duration-200 hover:scale-105"
           >
-            <div className="text-3xl mb-2">🔗</div>
             <div className="text-xl font-bold text-white mb-1">Join Partner's Room</div>
             <div className="text-gray-400 text-sm">
               Enter your partner's code
@@ -242,18 +282,27 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
   if (step === 'show-code') {
     const modeConfig = MODES[selectedMode];
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900 flex flex-col items-center justify-center p-6">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+        style={{
+          backgroundImage: `url(${sharedAssets.bgTitle})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+
         {/* Back button */}
         <button
           onClick={handleBack}
-          className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+          className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2 z-10"
         >
           ← Back
         </button>
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="text-5xl mb-4">🎉</div>
+        <div className="text-center mb-8 relative z-10">
           <h1 className="text-3xl font-black text-white mb-2">
             Your Room Code
           </h1>
@@ -263,7 +312,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
         </div>
 
         {/* Code Display */}
-        <div className="bg-gray-800 rounded-2xl p-8 w-full max-w-md mb-6">
+        <div className="bg-gray-800/90 rounded-2xl p-8 w-full max-w-md mb-6 relative z-10">
           <div className="flex items-center justify-center gap-4 mb-4">
             <div className="bg-gray-900 px-8 py-4 rounded-xl text-5xl font-mono font-bold text-white tracking-widest">
               {generatedCode}
@@ -286,7 +335,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
 
           <div className="bg-purple-900/50 rounded-lg p-4 mt-4">
             <p className="text-purple-200 text-sm text-center">
-              📱 Your partner enters this code to join and add their {modeConfig?.perPerson} locks
+              Your partner enters this code to join and add their {modeConfig?.perPerson} locks
             </p>
           </div>
         </div>
@@ -294,9 +343,9 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
         {/* Continue Button */}
         <button
           onClick={() => setStep('theme')}
-          className="px-8 py-4 bg-green-600 hover:bg-green-500 rounded-xl text-white text-xl font-bold transition-all hover:scale-105"
+          className="px-8 py-4 bg-green-600 hover:bg-green-500 rounded-xl text-white text-xl font-bold transition-all hover:scale-105 relative z-10"
         >
-          Continue to Create →
+          Continue to Create
         </button>
       </div>
     );
@@ -306,18 +355,27 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
   if (step === 'join-to-create') {
     const modeConfig = MODES[selectedMode];
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900 flex flex-col items-center justify-center p-6">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+        style={{
+          backgroundImage: `url(${sharedAssets.bgTitle})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+
         {/* Back button */}
         <button
           onClick={handleBack}
-          className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+          className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2 z-10"
         >
           ← Back
         </button>
 
         {/* Header */}
-        <div className="text-center mb-10">
-          <div className="text-6xl mb-4">🔗</div>
+        <div className="text-center mb-10 relative z-10">
           <h1 className="text-4xl font-black text-white mb-3">
             Join Partner's Room
           </h1>
@@ -327,13 +385,13 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
         </div>
 
         {/* Join Form */}
-        <div className="bg-gray-800 rounded-2xl p-8 w-full max-w-md">
+        <div className="bg-gray-800/90 rounded-2xl p-8 w-full max-w-md relative z-10">
           <div className="flex flex-col gap-4">
             <input
               type="text"
               value={joinCode}
               onChange={(e) => {
-                setJoinCode(e.target.value.toUpperCase());
+                setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''));
                 setJoinError('');
               }}
               onKeyPress={(e) => e.key === 'Enter' && handleJoinToCreate()}
@@ -347,7 +405,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
               disabled={!joinCode}
               className="w-full px-6 py-4 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl text-white text-xl font-bold transition-colors flex items-center justify-center gap-2"
             >
-              🔓 Join & Add My Locks
+              Join & Add My Locks
             </button>
           </div>
 
@@ -365,27 +423,45 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
 
   // Step 3: Theme Selection
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900 flex flex-col items-center justify-center p-6">
+    <div
+      className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+      style={{
+        backgroundImage: `url(${sharedAssets.bgSelect})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+
       {/* Back button */}
       <button
         onClick={handleBack}
-        className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+        className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2 z-10"
       >
         ← Back
       </button>
 
+      {/* Room code for partner mode */}
+      {generatedCode && (selectedMode === 'partner' || selectedMode === 'trio') && (
+        <div className="absolute top-6 right-6 z-10 bg-gray-800/90 rounded-lg px-4 py-2 text-center">
+          <div className="text-gray-400 text-xs">ROOM</div>
+          <div className="text-purple-300 text-2xl font-bold tracking-widest">{generatedCode}</div>
+        </div>
+      )}
+
       {/* Header */}
-      <div className="text-center mb-10">
+      <div className="text-center mb-10 relative z-10">
         <h1 className="text-4xl font-black text-white mb-3">
           Choose Your Theme
         </h1>
         <p className="text-lg text-purple-200">
-          {MODES[selectedMode]?.label} Mode • {MODES[selectedMode]?.totalLocks} Locks
+          {MODES[selectedMode]?.label} Mode - {MODES[selectedMode]?.totalLocks} Locks
         </p>
       </div>
 
       {/* Theme Grid */}
-      <div className="grid grid-cols-2 gap-6 max-w-2xl">
+      <div className="grid grid-cols-2 gap-6 max-w-2xl relative z-10">
         {themes.map(theme => {
           const assets = getThemeAssets(theme.id);
           return (
@@ -414,18 +490,14 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
 
               {/* Theme info overlay */}
               <div className="bg-black bg-opacity-80 p-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-4xl">{theme.emoji}</span>
-                  <div className="text-left">
-                    <div className="text-xl font-bold text-white">{theme.name}</div>
-                    <div className="text-sm text-gray-400">{theme.description}</div>
-                  </div>
+                <div className="text-left">
+                  <div className="text-xl font-bold text-white">{theme.name}</div>
+                  <div className="text-sm text-gray-400">{theme.description}</div>
                 </div>
 
                 {!theme.available && (
-                  <div className="mt-3 flex items-center gap-2 text-yellow-400 text-sm font-bold">
-                    <span>🔒</span>
-                    <span>COMING SOON</span>
+                  <div className="mt-3 text-yellow-400 text-sm font-bold">
+                    COMING SOON
                   </div>
                 )}
               </div>
@@ -435,7 +507,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
       </div>
 
       {/* Only Space Station available notice */}
-      <p className="mt-8 text-gray-500 text-sm">
+      <p className="mt-8 text-gray-500 text-sm relative z-10">
         More themes coming soon!
       </p>
     </div>

@@ -2,9 +2,10 @@
 // Manages flow between Setup → Create → Share → Play → Results
 // Supports saving to Join page for Chromebook compatibility
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import BeatEscapeRoomSetup from './BeatEscapeRoomSetup';
 import BeatEscapeRoomCreator from './BeatEscapeRoomCreator';
+import BeatEscapeRoomCollabCreator from './BeatEscapeRoomCollabCreator';
 import BeatEscapeRoomPlayer from './BeatEscapeRoomPlayer';
 import BeatEscapeRoomResults from './BeatEscapeRoomResults';
 import {
@@ -41,7 +42,8 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
   const [isSaved, setIsSaved] = useState(false);
 
   // Get session context for auto-save on session end
-  const { sessionData } = useSession() || {};
+  const { sessionData, currentStage } = useSession() || {};
+  const prevStageRef = useRef(currentStage);
 
   // Initialize audio on mount
   useEffect(() => {
@@ -62,7 +64,7 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
 
     saveStudentWork('beat-escape-room', {
       title: `Beat Escape Room`,
-      emoji: '🔓',
+      emoji: '',
       viewRoute: `/join?loadRoom=${shareCode}`,
       subtitle: `${lockCount} locks | ${modeLabel} | ${finalScore > 0 ? `Score: ${finalScore}` : 'Ready to play'}`,
       category: 'Film Music Project',
@@ -82,33 +84,42 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
     return true;
   }, [shareCode, roomData, finalScore, phase]);
 
-  // Auto-save when session ends
+  // Auto-save when session ends or teacher moves to next stage
   useEffect(() => {
-    if (sessionData?.stage === 'ended' && shareCode && roomData) {
+    const isEnded = currentStage === 'ended';
+    const stageChanged = currentStage && prevStageRef.current && currentStage !== prevStageRef.current;
+
+    if ((isEnded || stageChanged) && shareCode && roomData) {
+      console.log('🎮 Auto-saving Beat Escape Room (stage change or end)');
       saveToJoinPage();
     }
-  }, [sessionData?.stage, shareCode, roomData, saveToJoinPage]);
+
+    prevStageRef.current = currentStage;
+  }, [currentStage, shareCode, roomData, saveToJoinPage]);
 
   // Load saved progress on mount
   useEffect(() => {
-    const savedWork = loadStudentWork('beat-escape-room');
-    if (savedWork?.data?.shareCode) {
-      const room = loadRoom(savedWork.data.shareCode);
-      if (room) {
-        setShareCode(savedWork.data.shareCode);
-        setRoomData(room);
-        setMode(room.mode);
-        setThemeId(room.theme || 'space-station');
-        setFinalScore(savedWork.data.score || 0);
-        // Go to share phase if they created it, or play if they want to continue
-        if (savedWork.data.phase === 'results') {
-          setPhase(PHASES.RESULTS);
-        } else {
-          setPhase(PHASES.SHARE);
+    const loadSavedProgress = async () => {
+      const savedWork = loadStudentWork('beat-escape-room');
+      if (savedWork?.data?.shareCode) {
+        const room = await loadRoom(savedWork.data.shareCode);
+        if (room) {
+          setShareCode(savedWork.data.shareCode);
+          setRoomData(room);
+          setMode(room.mode);
+          setThemeId(room.theme || 'space-station');
+          setFinalScore(savedWork.data.score || 0);
+          // Go to share phase if they created it, or play if they want to continue
+          if (savedWork.data.phase === 'results') {
+            setPhase(PHASES.RESULTS);
+          } else {
+            setPhase(PHASES.SHARE);
+          }
+          setIsSaved(true);
         }
-        setIsSaved(true);
       }
-    }
+    };
+    loadSavedProgress();
   }, []);
 
   // Handle starting CREATE mode
@@ -124,8 +135,8 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
   };
 
   // Handle joining existing room to PLAY
-  const handleJoinRoom = (code) => {
-    const room = loadRoom(code);
+  const handleJoinRoom = async (code) => {
+    const room = await loadRoom(code);
     if (room) {
       setRoomData(room);
       setShareCode(code);
@@ -137,14 +148,31 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
   };
 
   // Handle joining existing room to ADD LOCKS (partner mode)
-  const handleJoinToCreate = (code, selectedMode) => {
-    const room = loadRoom(code);
+  const handleJoinToCreate = async (code, selectedMode) => {
+    const room = await loadRoom(code);
     if (room) {
-      // Determine which player index based on how many locks already exist
-      const existingLocks = Object.keys(room.patterns || {}).length;
+      // Joiner is always Player 1 (or higher for trio)
+      // The creator is Player 0, so anyone joining is at least Player 1
       const modeConfig = MODES[room.mode || selectedMode];
       const locksPerPerson = modeConfig?.perPerson || 3;
-      const pIndex = Math.floor(existingLocks / locksPerPerson);
+
+      // Count how many players have contributed locks
+      const playersThatHaveContributed = new Set();
+      Object.values(room.patterns || {}).forEach(p => {
+        if (p.createdBy !== undefined) {
+          playersThatHaveContributed.add(p.createdBy);
+        }
+      });
+
+      // If no one has contributed yet, joiner is Player 1
+      // If Player 0 has contributed, joiner is Player 1
+      // If Players 0 and 1 have contributed, joiner is Player 2 (trio mode)
+      let pIndex = 1; // Default: joiner is Player 1
+      if (room.mode === 'trio') {
+        if (playersThatHaveContributed.has(1)) {
+          pIndex = 2; // Player 1 already joined, so this is Player 2
+        }
+      }
 
       setRoomData(room);
       setShareCode(code);
@@ -158,7 +186,7 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
   };
 
   // Handle completing CREATE phase
-  const handleCreateComplete = (newPatterns) => {
+  const handleCreateComplete = async (newPatterns) => {
     // If we have existing room data, merge the patterns
     const mergedPatterns = roomData?.patterns
       ? { ...roomData.patterns, ...newPatterns }
@@ -173,35 +201,33 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
     };
 
     // Save room - pass existing shareCode if we have one
-    const code = saveRoom(roomInfo, shareCode);
+    const code = await saveRoom(roomInfo, shareCode);
     setShareCode(code);
 
     // Load the saved room data for playing
-    const savedRoom = loadRoom(code);
+    const savedRoom = await loadRoom(code);
     setRoomData(savedRoom);
 
     // Auto-save to Join page
-    setTimeout(() => {
-      const lockCount = mergedPatterns ? Object.keys(mergedPatterns).length : 0;
-      const modeLabel = MODES[mode]?.label || 'Solo';
+    const lockCount = mergedPatterns ? Object.keys(mergedPatterns).length : 0;
+    const modeLabel = MODES[mode]?.label || 'Solo';
 
-      saveStudentWork('beat-escape-room', {
-        title: `Beat Escape Room`,
-        emoji: '🔓',
-        viewRoute: `/join?loadRoom=${code}`,
-        subtitle: `${lockCount} locks | ${modeLabel} | Ready to play`,
-        category: 'Film Music Project',
-        data: {
-          shareCode: code,
-          mode,
-          patterns: mergedPatterns,
-          score: 0,
-          phase: 'share',
-          createdAt: Date.now()
-        }
-      });
-      setIsSaved(true);
-    }, 100);
+    saveStudentWork('beat-escape-room', {
+      title: `Beat Escape Room`,
+      emoji: '',
+      viewRoute: `/join?loadRoom=${code}`,
+      subtitle: `${lockCount} locks | ${modeLabel} | Ready to play`,
+      category: 'Film Music Project',
+      data: {
+        shareCode: code,
+        mode,
+        patterns: mergedPatterns,
+        score: 0,
+        phase: 'share',
+        createdAt: Date.now()
+      }
+    });
+    setIsSaved(true);
 
     // Go to share screen
     setPhase(PHASES.SHARE);
@@ -224,7 +250,7 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
 
       saveStudentWork('beat-escape-room', {
         title: `Beat Escape Room`,
-        emoji: '🔓',
+        emoji: '',
         viewRoute: `/join?loadRoom=${shareCode}`,
         subtitle: `${lockCount} locks | ${modeLabel} | Score: ${score}`,
         category: 'Film Music Project',
@@ -314,30 +340,59 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
         );
 
       case PHASES.CREATE:
+        // Use collaborative creator for partner/trio modes
+        if (mode === 'partner' || mode === 'trio') {
+          return (
+            <BeatEscapeRoomCollabCreator
+              roomCode={shareCode}
+              mode={mode}
+              themeId={themeId}
+              playerIndex={playerIndex}
+              onComplete={(completedRoom) => {
+                setRoomData(completedRoom);
+                setPhase(PHASES.SHARE);
+              }}
+              onBack={handleBack}
+            />
+          );
+        }
+
+        // Solo mode uses the original creator
         return (
           <BeatEscapeRoomCreator
             mode={mode}
             themeId={themeId}
             playerIndex={playerIndex}
+            shareCode={shareCode}
             onComplete={handleCreateComplete}
             onBack={handleBack}
           />
         );
 
       case PHASES.SHARE:
+        const shareAssets = getThemeAssets(themeId);
         return (
-          <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900 flex flex-col items-center justify-center p-6">
-            <div className="text-center mb-8">
-              <div className="text-6xl mb-4">🎉</div>
+          <div
+            className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+            style={{
+              backgroundImage: `url(${shareAssets.bgShare})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            {/* Dark overlay for readability */}
+            <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+
+            <div className="text-center mb-8 relative z-10">
               <h1 className="text-3xl font-bold text-white mb-2">
-                Room Created!
+                Your Escape Room is Ready!
               </h1>
-              <p className="text-purple-200">
-                Share this code with your partner to play
+              <p className="text-purple-200 text-lg">
+                Have players join with this code:
               </p>
             </div>
 
-            <div className="bg-gray-800 rounded-2xl p-8 w-full max-w-md mb-8">
+            <div className="bg-gray-800/90 rounded-2xl p-8 w-full max-w-md mb-8 relative z-10">
               {/* Share Code Display */}
               <div className="text-center mb-6">
                 <p className="text-gray-400 text-sm mb-2">Your Room Code:</p>
@@ -368,8 +423,7 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
               <div className="bg-gray-700 rounded-lg p-4 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Theme:</span>
-                  <span className="text-white font-semibold flex items-center gap-2">
-                    <span>{THEMES[themeId]?.emoji}</span>
+                  <span className="text-white font-semibold">
                     {THEMES[themeId]?.name}
                   </span>
                 </div>
@@ -423,7 +477,7 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
 
             <button
               onClick={handleBack}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="px-4 py-2 bg-gray-700/80 hover:bg-gray-600 rounded-lg text-white transition-colors relative z-10"
             >
               ← Start Over
             </button>
@@ -446,6 +500,7 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
             totalLocks={roomData ? Object.keys(roomData.patterns).length : 0}
             roomCode={shareCode}
             mode={mode}
+            themeId={themeId}
             onPlayAgain={handlePlayAgain}
             onCreateNew={handleCreateNew}
             onExit={handleExit}
