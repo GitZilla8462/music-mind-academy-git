@@ -40,11 +40,11 @@ export const lessonSections = [
     ]
   },
   {
-    id: 'learn',
-    title: '2. Learn',
-    subtitle: 'Beat Basics',
+    id: 'learn-create',
+    title: '2. Learn & Create Beat',
+    subtitle: 'Beat Basics + Activity',
     color: 'green',
-    estimatedTime: 5,
+    estimatedTime: 14,
     stages: [
       {
         id: 'beat-basics',
@@ -59,16 +59,7 @@ export const lessonSections = [
         label: 'Building a Beat',
         description: 'Teacher demo: Layer kick → snare → hi-hat',
         duration: 2
-      }
-    ]
-  },
-  {
-    id: 'explore',
-    title: '3. Create Beat',
-    subtitle: 'Beat Maker Activity',
-    color: 'purple',
-    estimatedTime: 9,
-    stages: [
+      },
       {
         id: 'beat-maker-instructions',
         type: 'summary',
@@ -90,7 +81,7 @@ export const lessonSections = [
   },
   {
     id: 'create',
-    title: '4. Compose',
+    title: '3. Compose',
     subtitle: 'Score the Video',
     color: 'orange',
     estimatedTime: 13,
@@ -115,11 +106,11 @@ export const lessonSections = [
     ]
   },
   {
-    id: 'reflect',
-    title: '5. Reflect',
-    subtitle: 'Beat Spotlight',
+    id: 'reflect-wrapup',
+    title: '4. Reflect & Wrap Up',
+    subtitle: 'Beat Spotlight + Conclusion',
     color: 'teal',
-    estimatedTime: 4,
+    estimatedTime: 5,
     stages: [
       {
         id: 'reflection-instructions',
@@ -136,16 +127,7 @@ export const lessonSections = [
         duration: 3,
         hasTimer: true,
         trackProgress: true
-      }
-    ]
-  },
-  {
-    id: 'conclusion',
-    title: '6. Wrap Up',
-    subtitle: 'Conclude',
-    color: 'blue',
-    estimatedTime: 1,
-    stages: [
+      },
       {
         id: 'conclusion',
         type: 'summary',
@@ -157,8 +139,8 @@ export const lessonSections = [
   },
   {
     id: 'bonus',
-    title: '7. Bonus',
-    subtitle: 'Beat Escape Room',
+    title: 'Bonus-Beat Escape Room',
+    subtitle: 'Solo or Partner Activity',
     color: 'pink',
     estimatedTime: 10,
     isBonus: true,

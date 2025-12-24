@@ -76,17 +76,22 @@ const BeatGrid = ({
           disabled={disabled || !isAllowed || isRevealed}
           onClick={() => handleCellClick(instrument.id, beatIndex)}
           className={`
-            ${cellSize} rounded-lg transition-all duration-150 relative overflow-hidden
+            ${cellSize} rounded-lg transition-all duration-100 relative overflow-hidden
             ${!isAllowed ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
             ${isRevealed ? 'ring-2 ring-yellow-400' : ''}
-            ${isCurrentBeat ? 'ring-2 ring-white ring-opacity-75' : ''}
+            ${isCurrentBeat && isAllowed ? 'ring-4 ring-cyan-400 scale-110 z-10' : ''}
           `}
           style={{
             backgroundImage: `url(${showAsActive ? getCellImage(instrument.id, true) : assets.cellEmpty})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
+            boxShadow: isCurrentBeat && isAllowed ? '0 0 30px rgba(6, 182, 212, 1), 0 0 50px rgba(6, 182, 212, 0.6)' : 'none',
           }}
         >
+          {/* Current beat glow overlay */}
+          {isCurrentBeat && isAllowed && (
+            <div className="absolute inset-0 rounded-lg bg-cyan-400/40 pointer-events-none animate-pulse" />
+          )}
           {/* Disabled overlay */}
           {!isAllowed && (
             <div
@@ -108,17 +113,26 @@ const BeatGrid = ({
         disabled={disabled || !isAllowed || isRevealed}
         onClick={() => handleCellClick(instrument.id, beatIndex)}
         className={`
-          ${cellSize} rounded-lg transition-all duration-150
+          ${cellSize} rounded-lg transition-all duration-100 relative
           ${!isAllowed ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
           ${isRevealed ? 'ring-2 ring-cyan-400' : ''}
           ${showAsActive ? 'shadow-lg' : ''}
+          ${isCurrentBeat && isAllowed ? 'ring-4 ring-cyan-400 scale-110 z-10' : ''}
         `}
         style={{
-          backgroundColor: showAsActive ? instrumentColor : '#374151',
+          backgroundColor: isCurrentBeat && isAllowed
+            ? (showAsActive ? instrumentColor : '#06B6D4')  // Cyan background when current beat (empty cell)
+            : (showAsActive ? instrumentColor : '#374151'),
           opacity: !isAllowed ? 0.2 : 1,
-          boxShadow: showAsActive ? `0 0 20px ${instrumentColor}50` : 'none',
+          boxShadow: isCurrentBeat && isAllowed
+            ? `0 0 30px rgba(6, 182, 212, 1), 0 0 50px rgba(6, 182, 212, 0.6)`
+            : (showAsActive ? `0 0 20px ${instrumentColor}50` : 'none'),
         }}
       >
+        {/* Pulsing overlay for current beat */}
+        {isCurrentBeat && isAllowed && (
+          <div className="absolute inset-0 rounded-lg bg-white/30 animate-pulse pointer-events-none" />
+        )}
         {/* X mark for disabled cells */}
         {!isAllowed && showConstraints && (
           <span className="text-gray-600 text-lg font-bold">×</span>
@@ -156,13 +170,20 @@ const BeatGrid = ({
 
         {/* Grid content */}
         <div className="relative z-10">
-          {/* Beat labels */}
+          {/* Beat labels with column highlight */}
           <div className="flex items-center gap-2 mb-2">
             <div className={size === 'large' ? 'w-24' : 'w-20'} /> {/* Spacer for instrument labels */}
             {['Beat 1', 'Beat 2', 'Beat 3', 'Beat 4'].map((label, i) => (
               <div
                 key={label}
-                className={`${size === 'large' ? 'w-16' : 'w-12'} text-center text-sm font-semibold text-gray-300`}
+                className={`${size === 'large' ? 'w-16' : 'w-12'} text-center text-sm font-bold transition-all duration-100 rounded-lg py-1 ${
+                  currentBeat === i
+                    ? 'text-white bg-cyan-500 scale-125 shadow-lg'
+                    : 'text-gray-300'
+                }`}
+                style={{
+                  boxShadow: currentBeat === i ? '0 0 30px rgba(6, 182, 212, 1), 0 0 60px rgba(6, 182, 212, 0.5)' : 'none'
+                }}
               >
                 {label}
               </div>

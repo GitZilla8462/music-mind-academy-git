@@ -28,7 +28,7 @@
   <rect x="192" y="370" width="1536" height="100" rx="12" fill="#1e293b" stroke="#10b981" stroke-width="3"/>
   <text x="232" y="415" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#10b981" font-weight="bold">✓</text>
   <text x="280" y="415" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="white" font-weight="bold">Use YOUR beat</text>
-  <text x="280" y="455" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#94a3b8">from the Beat Maker</text>
+  <text x="280" y="455" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#94a3b8">Create additional custom beats by clicking on Beat Maker</text>
 
   <rect x="192" y="490" width="1536" height="100" rx="12" fill="#1e293b" stroke="#3b82f6" stroke-width="3"/>
   <text x="232" y="535" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#3b82f6" font-weight="bold">✓</text>

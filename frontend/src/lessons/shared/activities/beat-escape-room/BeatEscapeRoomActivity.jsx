@@ -237,6 +237,8 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
       }
     });
     setIsSaved(true);
+    setSaveMessage({ type: 'success', text: '✅ Saved to Join page!' });
+    setTimeout(() => setSaveMessage(null), 4000);
 
     // Go to share screen
     setPhase(PHASES.SHARE);
@@ -361,6 +363,30 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
               playerIndex={playerIndex}
               onComplete={(completedRoom) => {
                 setRoomData(completedRoom);
+
+                // Auto-save to Join page for partner/trio modes
+                const lockCount = completedRoom.patterns ? Object.keys(completedRoom.patterns).length : 0;
+                const modeLabel = MODES[mode]?.label || 'Partner';
+
+                saveStudentWork('beat-escape-room', {
+                  title: `Beat Escape Room`,
+                  emoji: '',
+                  viewRoute: `/join?loadRoom=${shareCode}`,
+                  subtitle: `${lockCount} locks | ${modeLabel} | Ready to play`,
+                  category: 'Film Music Project',
+                  data: {
+                    shareCode,
+                    mode,
+                    patterns: completedRoom.patterns,
+                    score: 0,
+                    phase: 'share',
+                    createdAt: Date.now()
+                  }
+                });
+                setIsSaved(true);
+                setSaveMessage({ type: 'success', text: '✅ Saved to Join page!' });
+                setTimeout(() => setSaveMessage(null), 4000);
+
                 setPhase(PHASES.SHARE);
               }}
               onBack={handleBack}
@@ -450,10 +476,12 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
                 </div>
               </div>
 
-              {/* Save Message */}
+              {/* Save Message - Prominent notification */}
               {saveMessage && (
-                <div className={`text-center mb-4 px-4 py-2 rounded-lg ${
-                  saveMessage.type === 'success' ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'
+                <div className={`text-center mb-4 px-6 py-4 rounded-xl text-lg font-bold animate-pulse ${
+                  saveMessage.type === 'success'
+                    ? 'bg-green-600 text-white shadow-lg shadow-green-500/50'
+                    : 'bg-red-600 text-white shadow-lg shadow-red-500/50'
                 }`}>
                   {saveMessage.text}
                 </div>

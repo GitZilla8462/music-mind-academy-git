@@ -12,6 +12,7 @@ import NameThatLoopActivity from './layer-detective/NameThatLoopActivity';
 import { useSession } from '../../../context/SessionContext';
 import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson4/lesson4StorageUtils';
 import { saveStudentWork, loadStudentWork, getStudentId } from '../../../utils/studentWorkStorage';
+import { getDatabase, ref, onValue } from 'firebase/database';
 
 // Load saved beats from StudentBeatMakerActivity
 const SAVED_BEATS_KEY = 'lesson4-student-beats';
@@ -102,8 +103,11 @@ const SportsCompositionActivity = ({
   const navigate = useNavigate();
   
   // Session mode detection
-  const { getCurrentStage } = useSession();
+  const { getCurrentStage, sessionCode } = useSession();
   const currentStage = isSessionMode ? getCurrentStage() : null;
+
+  // Track save command from teacher
+  const lastSaveCommandRef = useRef(null);
   const isReflectionStage = currentStage === 'reflection' || currentStage === 'reflection-activity';
   
   // Video selection state
@@ -278,7 +282,87 @@ const SportsCompositionActivity = ({
     
     return () => clearInterval(autoSaveInterval);
   }, [studentId, selectedVideo, placedLoops, viewMode]);
-  
+
+  // ✅ Listen for teacher's save command from Firebase
+  useEffect(() => {
+    if (!sessionCode || !isSessionMode || viewMode) return;
+
+    const db = getDatabase();
+    const saveCommandRef = ref(db, `sessions/${sessionCode}/saveCommand`);
+
+    const unsubscribe = onValue(saveCommandRef, (snapshot) => {
+      const saveCommand = snapshot.val();
+
+      // Skip if no command
+      if (!saveCommand) return;
+
+      // On first load, just store the value without triggering
+      if (lastSaveCommandRef.current === null) {
+        lastSaveCommandRef.current = saveCommand;
+        return;
+      }
+
+      // Only trigger if this is a new command (timestamp changed)
+      if (saveCommand !== lastSaveCommandRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        console.log('💾 Teacher save command received for sports composition!');
+
+        // Trigger immediate save
+        if (placedLoops.length > 0 && studentId) {
+          handleManualSave(true); // Silent save
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [sessionCode, isSessionMode, viewMode, placedLoops, studentId]);
+
+  // ✅ SAFETY NET: Save on unmount when leaving activity in session mode
+  // This ensures data is saved even if Firebase saveCommand doesn't arrive in time
+  const placedLoopsRef = useRef(placedLoops);
+  const studentIdRef = useRef(studentId);
+  const selectedVideoRef = useRef(selectedVideo);
+
+  useEffect(() => {
+    placedLoopsRef.current = placedLoops;
+    studentIdRef.current = studentId;
+    selectedVideoRef.current = selectedVideo;
+  }, [placedLoops, studentId, selectedVideo]);
+
+  useEffect(() => {
+    if (!isSessionMode || viewMode) return;
+
+    return () => {
+      // Save on unmount if we have loops
+      if (placedLoopsRef.current.length > 0 && studentIdRef.current && selectedVideoRef.current) {
+        console.log('💾 Saving on unmount (safety net)...');
+        const videoToSave = selectedVideoRef.current;
+        const loopsToSave = placedLoopsRef.current;
+        const studentToSave = studentIdRef.current;
+
+        // Create composition data for save
+        const compositionToSave = {
+          videoId: videoToSave.id,
+          videoTitle: videoToSave.title,
+          videoDuration: videoToSave.duration,
+          placedLoops: loopsToSave,
+          savedAt: new Date().toISOString()
+        };
+
+        // Save using the studentWorkStorage system
+        // Signature: saveStudentWork(activityId, { title, emoji, viewRoute, subtitle, data })
+        saveStudentWork('sports-composition', {
+          title: videoToSave.title,
+          emoji: videoToSave.emoji || '🏀',
+          viewRoute: '/lessons/film-music-project/lesson4?view=saved',
+          subtitle: `${loopsToSave.length} loops • ${Math.floor((videoToSave.duration || 90) / 60)}:${String(Math.floor((videoToSave.duration || 90) % 60)).padStart(2, '0')}`,
+          data: compositionToSave
+        });
+        console.log('💾 Unmount save complete');
+      }
+    };
+  }, [isSessionMode, viewMode]);
+
   // Load saved work on mount - NOW USES NEW SYSTEM
   useEffect(() => {
     if (!studentId || !selectedVideo) return;
@@ -406,7 +490,7 @@ const SportsCompositionActivity = ({
     saveStudentWork('sports-composition', {
       title: selectedVideo.title,
       emoji: selectedVideo.emoji,
-      viewRoute: '/lessons/film-music-project/lesson2?view=saved',
+      viewRoute: '/lessons/film-music-project/lesson4?view=saved',
       subtitle: `${placedLoops.length} loops • ${formatDuration(videoDuration)}`,
       category: 'Film Music Project',
       data: {

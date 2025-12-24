@@ -6,6 +6,7 @@
 // FIXED: Player creation now works for localStorage-loaded loops (not just initialPlacedLoops prop)
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import * as Tone from 'tone';
 
 // Hooks
 import { useAudioEngine } from '../shared/useAudioEngine';
@@ -347,10 +348,22 @@ const MusicComposer = ({
       }
 
       console.log('✅ Audio players created');
+
+      // ✅ FIX: If playback is already running, re-schedule loops so newly created players get included
+      if (Tone.Transport.state === 'started') {
+        console.log('🔄 Playback running - re-scheduling loops to include newly created players');
+        // Build track states for scheduling
+        const statesForScheduling = {};
+        for (let i = 0; i < 6; i++) {
+          const trackKey = `track-${i}`;
+          statesForScheduling[trackKey] = trackStates[trackKey] || { volume: 0.7, solo: false, mute: false };
+        }
+        scheduleLoops(placedLoops, selectedVideo?.duration || 60, statesForScheduling);
+      }
     };
 
     createMissingPlayers();
-  }, [audioReady, createLoopPlayer, placedLoops, playersRef, customBeatsRendering]);
+  }, [audioReady, createLoopPlayer, placedLoops, playersRef, customBeatsRendering, scheduleLoops, selectedVideo?.duration, trackStates]);
 
   // Volume control hook
   useVolumeControl({
