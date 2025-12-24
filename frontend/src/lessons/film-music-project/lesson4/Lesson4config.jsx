@@ -312,22 +312,6 @@ export const lessonStages = [
     }
   },
   {
-    id: 'beat-escape-room',
-    label: 'Beat Escape Room',
-    description: 'Partner activity: Create and solve beat puzzles',
-    bonusDescription: 'Challenge a partner to recreate your beat!',
-    type: 'activity',
-    hasTimer: true,
-    hasProgress: true,
-    trackProgress: true,
-    isBonus: true,
-    duration: 10,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/4-activity-beat.svg'
-    }
-  },
-  {
     id: 'composition-instructions',
     label: 'Composition Requirements',
     description: 'Your beat + 3 loops, match the energy',
@@ -387,6 +371,23 @@ export const lessonStages = [
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson4/slides/8-conclusion.svg'
+    }
+  },
+  // BONUS: Beat Escape Room (at end so it doesn't interrupt main flow)
+  {
+    id: 'beat-escape-room',
+    label: 'Beat Escape Room',
+    description: 'Partner activity: Create and solve beat puzzles',
+    bonusDescription: 'Challenge a partner to recreate your beat!',
+    type: 'activity',
+    hasTimer: true,
+    hasProgress: true,
+    trackProgress: true,
+    isBonus: true,
+    duration: 10,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson4/slides/4-activity-beat.svg'
     }
   }
 ];
