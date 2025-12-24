@@ -18,7 +18,7 @@
   <text x="960" y="48" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white" font-weight="bold" text-anchor="middle">STUDENT ACTIVITY TIME</text>
 
   <!-- Title -->
-  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">BUILD YOUR BEAT</text>
+  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">BEAT SPOTLIGHT</text>
 
   <!-- Accent line -->
   <rect x="192" y="230" width="500" height="3" fill="#a5b4fc" opacity="0.5"/>
@@ -27,12 +27,12 @@
   <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Student Activity</text>
 
   <!-- Instructions -->
-  <text x="192" y="480" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">Add a kick, snare, hi-hat, and open hi-hat to make a drum pattern.</text>
+  <text x="192" y="480" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">1. What beat pattern did you create?</text>
 
-  <text x="192" y="560" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">This pattern can be used in your composition for today.</text>
+  <text x="192" y="580" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">2. How does your rhythm match the action?</text>
 
-  <text x="192" y="680" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#10b981">Bonus: Try different patterns and kits!</text>
+  <text x="192" y="680" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">3. What would you change next time?</text>
 
   <!-- Duration -->
-  <text x="192" y="900" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">8 minutes—Open your Chromebook.</text>
+  <text x="192" y="900" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">3 minutes—Open your Chromebook.</text>
 </svg>

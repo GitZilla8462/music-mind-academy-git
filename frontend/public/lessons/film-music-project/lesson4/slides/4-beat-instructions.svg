@@ -1,0 +1,32 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="192" y="150" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">BUILD YOUR BEAT</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="180" width="500" height="3" fill="#a5b4fc" opacity="0.5"/>
+
+  <!-- Subtitle -->
+  <text x="192" y="260" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Directions</text>
+
+  <!-- Main instruction -->
+  <text x="192" y="400" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">Add a kick, snare, hi-hat, and open hi-hat to make a drum pattern.</text>
+
+  <text x="192" y="500" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">This pattern can be used in your composition for today.</text>
+
+  <!-- Duration -->
+  <text x="192" y="700" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">8 minutes</text>
+</svg>

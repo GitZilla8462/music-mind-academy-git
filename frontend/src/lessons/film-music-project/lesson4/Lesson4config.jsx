@@ -67,12 +67,19 @@ export const lessonSections = [
     title: '3. Create Beat',
     subtitle: 'Beat Maker Activity',
     color: 'purple',
-    estimatedTime: 8,
+    estimatedTime: 9,
     stages: [
+      {
+        id: 'beat-maker-instructions',
+        type: 'summary',
+        label: 'Build Your Beat Instructions',
+        description: 'Explain how to use the beat maker',
+        duration: 1
+      },
       {
         id: 'beat-maker-activity',
         type: 'activity',
-        label: 'Build Your Beat',
+        label: '🎮 Unlock Build Your Beat',
         description: 'Create a beat using the drum grid',
         duration: 8,
         hasTimer: true,
@@ -98,7 +105,7 @@ export const lessonSections = [
       {
         id: 'sports-composition',
         type: 'activity',
-        label: 'Score the Sports Highlight',
+        label: '🎮 Unlock Score the Sports Highlight',
         description: 'Combine your beat with loops',
         duration: 12,
         hasTimer: true,
@@ -112,12 +119,19 @@ export const lessonSections = [
     title: '5. Reflect',
     subtitle: 'Beat Spotlight',
     color: 'teal',
-    estimatedTime: 3,
+    estimatedTime: 4,
     stages: [
+      {
+        id: 'reflection-instructions',
+        type: 'summary',
+        label: 'Beat Spotlight Instructions',
+        description: 'Explain Beat Spotlight reflection activity',
+        duration: 1
+      },
       {
         id: 'reflection-activity',
         type: 'activity',
-        label: 'Beat Spotlight',
+        label: '🎮 Unlock Beat Spotlight',
         description: 'Reflect on your rhythmic choices',
         duration: 3,
         hasTimer: true,
@@ -128,17 +142,10 @@ export const lessonSections = [
   {
     id: 'conclusion',
     title: '6. Wrap Up',
-    subtitle: 'Share & Conclude',
+    subtitle: 'Conclude',
     color: 'blue',
-    estimatedTime: 3,
+    estimatedTime: 1,
     stages: [
-      {
-        id: 'quick-share',
-        type: 'discussion',
-        label: 'Quick Share',
-        description: '2-3 students play 15 seconds',
-        duration: 2
-      },
       {
         id: 'conclusion',
         type: 'summary',
@@ -270,7 +277,7 @@ export const lessonStages = [
   {
     id: 'beat-demo',
     label: 'Building a Beat',
-    description: 'Teacher demo: Layer kick → snare → hi-hat',
+    description: 'Teacher demo: Layer kick → snare → hi-hat → open hi-hat',
     type: 'demo',
     duration: 2,
     presentationView: {
@@ -279,8 +286,19 @@ export const lessonStages = [
     }
   },
   {
+    id: 'beat-maker-instructions',
+    label: 'Build Your Beat Instructions',
+    description: 'Explain how to use the beat maker',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson4/slides/4-beat-instructions.svg'
+    }
+  },
+  {
     id: 'beat-maker-activity',
-    label: 'Build Your Beat',
+    label: '🎮 Unlock Build Your Beat',
     description: 'Students create a beat using the drum grid',
     bonusDescription: 'Try different patterns and kits!',
     type: 'activity',
@@ -322,7 +340,7 @@ export const lessonStages = [
   },
   {
     id: 'sports-composition',
-    label: 'Score the Sports Highlight',
+    label: '🎮 Unlock Score the Sports Highlight',
     description: 'Combine your beat with loops to score the video',
     bonusDescription: 'Build intensity as the action builds!',
     type: 'activity',
@@ -336,8 +354,19 @@ export const lessonStages = [
     }
   },
   {
+    id: 'reflection-instructions',
+    label: 'Beat Spotlight Instructions',
+    description: 'Explain Beat Spotlight reflection activity',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson4/slides/7-reflection-instructions.svg'
+    }
+  },
+  {
     id: 'reflection-activity',
-    label: 'Beat Spotlight',
+    label: '🎮 Unlock Beat Spotlight',
     description: 'Reflect on your rhythmic choices',
     type: 'activity',
     hasTimer: true,
@@ -346,18 +375,7 @@ export const lessonStages = [
     duration: 3,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/7-reflection.svg'
-    }
-  },
-  {
-    id: 'quick-share',
-    label: 'Quick Share',
-    description: '2-3 students play 15 seconds for the class',
-    type: 'discussion',
-    duration: 2,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/8-share.svg'
+      slidePath: '/lessons/film-music-project/lesson4/slides/7-activity-reflection.svg'
     }
   },
   {
@@ -368,7 +386,7 @@ export const lessonStages = [
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/9-conclusion.svg'
+      slidePath: '/lessons/film-music-project/lesson4/slides/8-conclusion.svg'
     }
   }
 ];
@@ -381,12 +399,13 @@ export const getActivityForStage = (stage) => {
     'hook-discussion': 'discussion',
     'beat-basics': 'summary',
     'beat-demo': 'beat-maker-demo',  // Teacher demo of beat maker
+    'beat-maker-instructions': 'summary',
     'beat-maker-activity': 'student-beat-maker',  // Student beat creation
     'beat-escape-room': 'beat-escape-room',  // Partner beat puzzle activity
     'composition-instructions': 'summary',
     'sports-composition': 'sports-composition-activity',
-    'reflection-activity': 'sports-composition-activity',  // Uses same reflection component
-    'quick-share': 'discussion',
+    'reflection-instructions': 'summary',
+    'reflection-activity': 'beat-spotlight',  // Beat Spotlight reflection
     'conclusion': 'summary'
   };
   return stageMap[stage];
@@ -397,7 +416,8 @@ export const DRUM_KIT = [
   {
     id: 'kick',
     name: 'Kick Drum',
-    description: 'Low, deep foundation',
+    emoji: '🔴',
+    description: 'The big bass drum on the floor',
     color: '#ef4444',
     beats: [1, 3],
     role: 'The heartbeat of the music'
@@ -405,17 +425,28 @@ export const DRUM_KIT = [
   {
     id: 'snare',
     name: 'Snare Drum',
-    description: 'Sharp, cracking sound',
+    emoji: '🟠',
+    description: 'The cracking drum in the middle',
     color: '#f59e0b',
     beats: [2, 4],
     role: 'Creates the backbeat'
   },
   {
     id: 'hihat',
-    name: 'Hi-Hat',
-    description: 'Metallic, ticking sound',
+    name: 'Hi-Hat (closed)',
+    emoji: '🟢',
+    description: 'Two cymbals tapping together',
     color: '#10b981',
     beats: [1, 2, 3, 4],
     role: 'Creates momentum'
+  },
+  {
+    id: 'openhat',
+    name: 'Hi-Hat (open)',
+    emoji: '🔵',
+    description: 'Two cymbals ringing out',
+    color: '#3b82f6',
+    beats: [],
+    role: 'Adds variety and accents'
   }
 ];
