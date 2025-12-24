@@ -190,6 +190,8 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
 
   const synthsRef = useRef(null);
   const sequenceRef = useRef(null);
+  const playerRef = useRef(null);  // For pre-rendered playback
+  const stepIntervalRef = useRef(null);  // For visual step tracking
   const gridRef = useRef(grid);
   const drumSamplesRef = useRef(null); // Pre-rendered drum samples for fast export
 
@@ -219,9 +221,19 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      // Clean up pre-rendered player
+      if (playerRef.current) {
+        try { playerRef.current.stop(); playerRef.current.dispose(); } catch (e) { /* ignore */ }
+      }
+      // Clean up step interval
+      if (stepIntervalRef.current) {
+        clearInterval(stepIntervalRef.current);
+      }
+      // Clean up sequence
       if (sequenceRef.current) {
         try { sequenceRef.current.dispose(); } catch (e) { /* ignore */ }
       }
+      // Clean up synths
       if (synthsRef.current) {
         Object.values(synthsRef.current).forEach(synth => {
           try { synth.dispose(); } catch (e) { /* ignore */ }
@@ -287,6 +299,17 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
 
   // Initialize audio
   const initializeAudio = useCallback(async () => {
+    // Set up optimized audio context for Chromebook
+    if (isChromebook && Tone.context.state !== 'running') {
+      try {
+        // Use "playback" latencyHint for sustained playback on low-powered devices
+        Tone.setContext(new Tone.Context({ latencyHint: 'playback' }));
+        console.log('🖥️ Chromebook: Using playback latency mode');
+      } catch (e) {
+        console.warn('Could not set playback context:', e);
+      }
+    }
+
     // Always ensure synths exist (they can be lost after HMR)
     if (!synthsRef.current) {
       try {
@@ -348,6 +371,22 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
 
   // Stop playback
   const stopPlayback = useCallback(() => {
+    // Stop the pre-rendered player
+    if (playerRef.current) {
+      try {
+        playerRef.current.stop();
+        playerRef.current.dispose();
+      } catch (e) { /* ignore */ }
+      playerRef.current = null;
+    }
+
+    // Clear the step tracking interval
+    if (stepIntervalRef.current) {
+      clearInterval(stepIntervalRef.current);
+      stepIntervalRef.current = null;
+    }
+
+    // Also stop any legacy sequence-based playback
     try {
       Tone.Transport.stop();
       Tone.Transport.cancel();
@@ -357,63 +396,124 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
       try { sequenceRef.current.dispose(); } catch (e) { /* ignore */ }
       sequenceRef.current = null;
     }
+
     setIsPlaying(false);
     setCurrentStep(-1);
   }, []);
 
-  // Play/stop
+  // Pre-render the current pattern to an audio buffer
+  const renderPatternToBuffer = useCallback(async () => {
+    const samples = drumSamplesRef.current;
+    if (!samples) {
+      console.error('Drum samples not ready for playback');
+      return null;
+    }
+
+    // Calculate duration for one bar
+    const secondsPerBeat = 60 / bpm;
+    const bars = steps === 16 ? 1 : 2;
+    const duration = secondsPerBeat * 4 * bars;
+
+    // Create output buffer
+    const sampleRate = samples.kick.sampleRate;
+    const outputLength = Math.ceil(duration * sampleRate);
+    const outputBuffer = Tone.context.createBuffer(2, outputLength, sampleRate);
+    const leftChannel = outputBuffer.getChannelData(0);
+    const rightChannel = outputBuffer.getChannelData(1);
+
+    const stepDuration = (60 / bpm) / 4;
+    const baseOffset = 0.005;
+
+    // Mix samples into output buffer
+    for (let stepIndex = 0; stepIndex < steps; stepIndex++) {
+      const stepTime = baseOffset + (stepIndex * stepDuration);
+      const startSample = Math.floor(stepTime * sampleRate);
+
+      INSTRUMENTS.forEach((inst, instIndex) => {
+        if (grid[instIndex][stepIndex]) {
+          const sampleBuffer = samples[inst.id];
+          if (!sampleBuffer) return;
+
+          const sampleLeft = sampleBuffer.getChannelData(0);
+          const sampleRight = sampleBuffer.numberOfChannels > 1
+            ? sampleBuffer.getChannelData(1)
+            : sampleLeft;
+
+          // Mix sample into output
+          for (let i = 0; i < sampleLeft.length && startSample + i < outputLength; i++) {
+            leftChannel[startSample + i] += sampleLeft[i];
+            rightChannel[startSample + i] += sampleRight[i];
+          }
+        }
+      });
+    }
+
+    // Normalize to prevent clipping
+    let maxSample = 0;
+    for (let i = 0; i < outputLength; i++) {
+      maxSample = Math.max(maxSample, Math.abs(leftChannel[i]), Math.abs(rightChannel[i]));
+    }
+    if (maxSample > 1) {
+      const scale = 0.95 / maxSample;
+      for (let i = 0; i < outputLength; i++) {
+        leftChannel[i] *= scale;
+        rightChannel[i] *= scale;
+      }
+    }
+
+    return { buffer: outputBuffer, duration };
+  }, [bpm, steps, grid]);
+
+  // Play/stop using pre-rendered audio (Chromebook-friendly)
   const togglePlay = async () => {
     if (isPlaying) {
       stopPlayback();
       return;
     }
 
+    // Initialize audio if needed
     const ready = await initializeAudio();
     if (!ready) return;
 
-    if (sequenceRef.current) {
-      try { sequenceRef.current.dispose(); } catch (e) { /* ignore */ }
+    // Wait a moment for samples to be ready
+    if (!drumSamplesRef.current) {
+      console.log('⏳ Waiting for drum samples...');
+      await new Promise(resolve => setTimeout(resolve, 100));
+      if (!drumSamplesRef.current) {
+        console.error('Drum samples still not ready');
+        return;
+      }
     }
 
-    try {
-      Tone.Transport.stop();
-      Tone.Transport.cancel();
-      Tone.Transport.position = 0;
-    } catch (e) { /* ignore */ }
+    console.log('🎵 Pre-rendering pattern for playback...');
+    const result = await renderPatternToBuffer();
+    if (!result) return;
 
-    const stepIndices = Array.from({ length: steps }, (_, i) => i);
+    const { buffer, duration } = result;
+    console.log(`✅ Pattern rendered: ${duration.toFixed(2)}s`);
 
-    sequenceRef.current = new Tone.Sequence(
-      (time, step) => {
-        const currentGrid = gridRef.current;
+    // Create a Tone.Player with the buffer
+    const toneBuffer = new Tone.ToneAudioBuffer(buffer);
+    playerRef.current = new Tone.Player(toneBuffer).toDestination();
+    playerRef.current.loop = true;
 
-        INSTRUMENTS.forEach((inst, index) => {
-          if (currentGrid[index][step]) {
-            if (inst.id === 'kick') {
-              synthsRef.current.kick.triggerAttackRelease('C1', '8n', time);
-            } else if (inst.id === 'snare') {
-              synthsRef.current.snare.triggerAttackRelease('16n', time);
-            } else if (inst.id === 'clap') {
-              synthsRef.current.clap.triggerAttackRelease('16n', time);
-            } else if (inst.id === 'hihat') {
-              synthsRef.current.hihat.triggerAttackRelease('32n', time);
-            } else if (inst.id === 'openhat') {
-              synthsRef.current.openhat.triggerAttackRelease('16n', time);
-            }
-          }
-        });
-
-        Tone.Draw.schedule(() => {
-          setCurrentStep(step);
-        }, time);
-      },
-      stepIndices,
-      '16n'
-    );
-
-    sequenceRef.current.start(0);
-    Tone.Transport.start('+0.05');
+    // Start playback
+    await Tone.start();
+    playerRef.current.start();
     setIsPlaying(true);
+    console.log('▶️ Playback started (pre-rendered)');
+
+    // Set up visual step tracking with a simple interval
+    const stepDurationMs = (60 / bpm / 4) * 1000; // Duration of each 16th note in ms
+    let stepCounter = 0;
+    const startTime = performance.now();
+
+    stepIntervalRef.current = setInterval(() => {
+      // Calculate current step based on elapsed time for better accuracy
+      const elapsed = performance.now() - startTime;
+      const currentStepCalc = Math.floor((elapsed / stepDurationMs) % steps);
+      setCurrentStep(currentStepCalc);
+    }, stepDurationMs / 2); // Update twice per step for smoother tracking
   };
 
   // Clear grid
