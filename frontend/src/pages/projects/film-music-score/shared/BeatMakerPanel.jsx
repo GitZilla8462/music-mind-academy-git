@@ -857,13 +857,13 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
                 className={`flex-1 text-center border-r border-slate-600 last:border-r-0 px-1`}
               >
                 <div className="text-base font-bold text-white mb-1">Beat {beatIndex + 1}</div>
-                <div className="flex">
+                <div className="flex gap-1">
                   {[1, 2, 3, 4].map(n => {
                     const isCurrent = currentStep === beatIndex * 4 + n - 1 && isPlaying;
                     return (
                       <span
                         key={n}
-                        className={`flex-1 text-center text-sm font-semibold ${
+                        className={`flex-1 text-center text-sm font-semibold min-w-[40px] max-w-[56px] ${
                           isCurrent ? 'text-green-400 font-bold' : 'text-slate-500'
                         }`}
                         style={isCurrent && !isChromebook ? { textShadow: '0 0 8px #4ade80' } : undefined}
