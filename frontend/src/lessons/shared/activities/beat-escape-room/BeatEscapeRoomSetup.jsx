@@ -1,12 +1,13 @@
 // BeatEscapeRoomSetup.jsx - Mode and theme selection screen
 // Step 1: Mode → Step 2: Partner Role (if partner/trio) → Step 3: Theme → Start Creating
 
-import React, { useState } from 'react';
-import { Copy, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Copy, Check, Play, Share2 } from 'lucide-react';
 import { MODES, createRoom } from './beatEscapeRoomConfig';
-import { getAllThemes, getThemeAssets, getSharedAssets } from './beatEscapeRoomThemes';
+import { getAllThemes, getThemeAssets, getSharedAssets, THEMES } from './beatEscapeRoomThemes';
+import { getAllStudentWork, getStudentId } from '../../../../utils/studentWorkStorage';
 
-const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
+const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlaySavedRoom, onShareSavedRoom }) => {
   const [step, setStep] = useState('mode'); // 'mode' | 'partner-role' | 'theme' | 'show-code' | 'join-to-create'
   const [selectedMode, setSelectedMode] = useState(null);
   const [selectedTheme, setSelectedTheme] = useState(null);
@@ -16,10 +17,20 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
   const [joinError, setJoinError] = useState('');
   const [copied, setCopied] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [savedRooms, setSavedRooms] = useState([]);
 
   const modes = Object.values(MODES);
   const themes = getAllThemes();
   const sharedAssets = getSharedAssets();
+
+  // Load saved rooms on mount
+  useEffect(() => {
+    const studentId = getStudentId();
+    const allWork = getAllStudentWork(studentId);
+    // Filter for beat-escape-room saves
+    const escapeRooms = allWork.filter(w => w.activityType === 'beat-escape-room');
+    setSavedRooms(escapeRooms);
+  }, []);
 
   const handleModeSelect = (modeId) => {
     setSelectedMode(modeId);
@@ -144,7 +155,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
   if (step === 'mode') {
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+        className="min-h-screen flex flex-col p-6 relative"
         style={{
           backgroundImage: `url(${sharedAssets.bgTitle})`,
           backgroundSize: 'cover',
@@ -155,7 +166,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
         <div className="absolute inset-0 bg-black/40 pointer-events-none" />
 
         {/* Header */}
-        <div className="text-center mb-10 relative z-10">
+        <div className="text-center pt-6 pb-8 relative z-10">
           <h1
             className="text-5xl font-black text-white mb-3 uppercase tracking-wider"
             style={{ textShadow: '0 0 20px rgba(139, 92, 246, 0.8), 0 4px 8px rgba(0,0,0,0.5)' }}
@@ -167,71 +178,133 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
           </p>
         </div>
 
-        {/* Mode Selection */}
-        <div className="mb-10 relative z-10">
-          <p className="text-center text-lg text-gray-300 mb-6">
-            How are you working today?
-          </p>
+        {/* Two Column Layout */}
+        <div className="flex-1 flex gap-6 relative z-10 max-w-6xl mx-auto w-full">
+          {/* Left Column - Create New */}
+          <div className="flex-1 flex flex-col">
+            {/* Mode Selection */}
+            <div className="mb-8">
+              <p className="text-center text-lg text-gray-300 mb-6">
+                How are you working today?
+              </p>
 
-          <div className="flex gap-4 flex-wrap justify-center">
-            {modes.map(mode => (
-              <button
-                key={mode.id}
-                onClick={() => handleModeSelect(mode.id)}
-                className="group bg-gray-800/90 hover:bg-gray-700/90 border-2 border-gray-600 hover:border-purple-500 rounded-2xl p-6 w-40 transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20"
-              >
-                <div className="text-xl font-bold text-white mb-1">{mode.label}</div>
-                <div className="text-purple-400 font-semibold">
-                  {mode.totalLocks} locks
+              <div className="flex gap-4 flex-wrap justify-center">
+                {modes.map(mode => (
+                  <button
+                    key={mode.id}
+                    onClick={() => handleModeSelect(mode.id)}
+                    className="group bg-gray-800/90 hover:bg-gray-700/90 border-2 border-gray-600 hover:border-purple-500 rounded-2xl p-6 w-40 transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20"
+                  >
+                    <div className="text-xl font-bold text-white mb-1">{mode.label}</div>
+                    <div className="text-purple-400 font-semibold">
+                      {mode.totalLocks} locks
+                    </div>
+                    {mode.perPerson < mode.totalLocks && (
+                      <div className="text-gray-400 text-sm">
+                        ({mode.perPerson} each)
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center gap-4 mb-6 w-full max-w-md mx-auto">
+              <div className="flex-1 h-px bg-gray-600" />
+              <span className="text-gray-400 font-semibold text-sm">OR PLAY EXISTING</span>
+              <div className="flex-1 h-px bg-gray-600" />
+            </div>
+
+            {/* Join Section */}
+            <div className="bg-gray-800/90 rounded-2xl p-5 w-full max-w-md mx-auto">
+              <p className="text-center text-gray-300 mb-4 text-sm">
+                Have a code? Join a room created by someone else!
+              </p>
+
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={joinCode}
+                  onChange={(e) => {
+                    setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''));
+                    setJoinError('');
+                  }}
+                  onKeyPress={(e) => e.key === 'Enter' && handleJoin()}
+                  placeholder="Enter Code"
+                  maxLength={6}
+                  className="flex-1 px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white text-center text-xl font-bold tracking-widest placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
+                />
+                <button
+                  onClick={handleJoin}
+                  disabled={!joinCode}
+                  className="px-6 py-3 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl text-white font-bold transition-colors flex items-center gap-2"
+                >
+                  Play
+                </button>
+              </div>
+
+              {joinError && (
+                <p className="text-red-400 text-sm text-center mt-2">{joinError}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Saved Rooms */}
+          <div className="w-80 flex flex-col">
+            <div className="bg-gray-800/90 rounded-2xl p-5 flex-1 overflow-hidden flex flex-col">
+              <h2 className="text-xl font-bold text-white mb-4 text-center">
+                Your Saved Rooms
+              </h2>
+
+              {savedRooms.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center">
+                  <p className="text-gray-500 text-center text-sm">
+                    No saved rooms yet.<br />Create one to get started!
+                  </p>
                 </div>
-                {mode.perPerson < mode.totalLocks && (
-                  <div className="text-gray-400 text-sm">
-                    ({mode.perPerson} each)
-                  </div>
-                )}
-              </button>
-            ))}
+              ) : (
+                <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+                  {savedRooms.map((room, index) => {
+                    const themeName = THEMES[room.data?.theme]?.name || room.data?.theme || 'Unknown';
+                    const lockCount = room.data?.patterns ? Object.keys(room.data.patterns).length : 0;
+                    const modeLabel = MODES[room.data?.mode]?.label || 'Solo';
+
+                    return (
+                      <div
+                        key={index}
+                        className="bg-gray-700/80 rounded-xl p-4 border border-gray-600"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-white font-semibold">{themeName}</div>
+                          <div className="text-gray-400 text-xs">{room.data?.shareCode}</div>
+                        </div>
+                        <div className="text-gray-400 text-sm mb-3">
+                          {lockCount} locks • {modeLabel}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => onPlaySavedRoom?.(room)}
+                            className="flex-1 px-3 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-white text-sm font-semibold transition-colors flex items-center justify-center gap-1"
+                          >
+                            <Play size={14} />
+                            Play
+                          </button>
+                          <button
+                            onClick={() => onShareSavedRoom?.(room)}
+                            className="flex-1 px-3 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg text-white text-sm font-semibold transition-colors flex items-center justify-center gap-1"
+                          >
+                            <Share2 size={14} />
+                            Share
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-
-        {/* Divider */}
-        <div className="flex items-center gap-4 mb-8 w-full max-w-md relative z-10">
-          <div className="flex-1 h-px bg-gray-600" />
-          <span className="text-gray-400 font-semibold">OR PLAY EXISTING</span>
-          <div className="flex-1 h-px bg-gray-600" />
-        </div>
-
-        {/* Join Section */}
-        <div className="bg-gray-800/90 rounded-2xl p-6 w-full max-w-md relative z-10">
-          <p className="text-center text-gray-300 mb-4">
-            Have a code? Join a room created by someone else!
-          </p>
-
-          <div className="flex gap-3">
-            <input
-              type="text"
-              value={joinCode}
-              onChange={(e) => {
-                setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''));
-                setJoinError('');
-              }}
-              onKeyPress={(e) => e.key === 'Enter' && handleJoin()}
-              placeholder="Enter Code"
-              maxLength={6}
-              className="flex-1 px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white text-center text-xl font-bold tracking-widest placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
-            />
-            <button
-              onClick={handleJoin}
-              disabled={!joinCode}
-              className="px-6 py-3 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl text-white font-bold transition-colors flex items-center gap-2"
-            >
-              Play
-            </button>
-          </div>
-
-          {joinError && (
-            <p className="text-red-400 text-sm text-center mt-2">{joinError}</p>
-          )}
         </div>
       </div>
     );

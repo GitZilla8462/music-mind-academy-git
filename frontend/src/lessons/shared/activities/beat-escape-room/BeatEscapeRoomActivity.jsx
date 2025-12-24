@@ -97,30 +97,8 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
     prevStageRef.current = currentStage;
   }, [currentStage, shareCode, roomData, saveToJoinPage]);
 
-  // Load saved progress on mount
-  useEffect(() => {
-    const loadSavedProgress = async () => {
-      const savedWork = loadStudentWork('beat-escape-room');
-      if (savedWork?.data?.shareCode) {
-        const room = await loadRoom(savedWork.data.shareCode);
-        if (room) {
-          setShareCode(savedWork.data.shareCode);
-          setRoomData(room);
-          setMode(room.mode);
-          setThemeId(room.theme || 'space-station');
-          setFinalScore(savedWork.data.score || 0);
-          // Go to share phase if they created it, or play if they want to continue
-          if (savedWork.data.phase === 'results') {
-            setPhase(PHASES.RESULTS);
-          } else {
-            setPhase(PHASES.SHARE);
-          }
-          setIsSaved(true);
-        }
-      }
-    };
-    loadSavedProgress();
-  }, []);
+  // Don't auto-load saved progress - let user choose from saved rooms on landing page
+  // Saved rooms are now shown in BeatEscapeRoomSetup
 
   // Handle starting CREATE mode
   const handleStartCreate = ({ mode: selectedMode, themeId: selectedTheme, playerIndex: pIndex = 0, shareCode: preGeneratedCode = null }) => {
@@ -182,6 +160,37 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
       setPhase(PHASES.CREATE);
     } else {
       alert('Room not found! Check the code and try again.');
+    }
+  };
+
+  // Handle playing a saved room directly
+  const handlePlaySavedRoom = async (savedRoom) => {
+    const room = await loadRoom(savedRoom.data.shareCode);
+    if (room) {
+      setRoomData(room);
+      setShareCode(savedRoom.data.shareCode);
+      setMode(room.mode);
+      setThemeId(room.theme || 'space-station');
+      setFinalScore(savedRoom.data.score || 0);
+      setPhase(PHASES.PLAY);
+    } else {
+      alert('Room not found on server. It may have expired.');
+    }
+  };
+
+  // Handle sharing a saved room (go to share screen)
+  const handleShareSavedRoom = async (savedRoom) => {
+    const room = await loadRoom(savedRoom.data.shareCode);
+    if (room) {
+      setRoomData(room);
+      setShareCode(savedRoom.data.shareCode);
+      setMode(room.mode);
+      setThemeId(room.theme || 'space-station');
+      setFinalScore(savedRoom.data.score || 0);
+      setIsSaved(true);
+      setPhase(PHASES.SHARE);
+    } else {
+      alert('Room not found on server. It may have expired.');
     }
   };
 
@@ -336,6 +345,8 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
             onStartCreate={handleStartCreate}
             onJoinRoom={handleJoinRoom}
             onJoinToCreate={handleJoinToCreate}
+            onPlaySavedRoom={handlePlaySavedRoom}
+            onShareSavedRoom={handleShareSavedRoom}
           />
         );
 
