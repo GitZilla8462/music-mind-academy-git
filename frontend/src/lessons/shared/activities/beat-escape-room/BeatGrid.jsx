@@ -79,6 +79,7 @@ const BeatGrid = ({
             ${cellSize} rounded-lg transition-all duration-150 relative overflow-hidden
             ${!isAllowed ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
             ${isRevealed ? 'ring-2 ring-yellow-400' : ''}
+            ${isCurrentBeat ? 'ring-2 ring-white/50' : ''}
           `}
           style={{
             backgroundImage: `url(${showAsActive ? getCellImage(instrument.id, true) : assets.cellEmpty})`,
@@ -86,6 +87,10 @@ const BeatGrid = ({
             backgroundPosition: 'center',
           }}
         >
+          {/* Current beat overlay */}
+          {isCurrentBeat && (
+            <div className="absolute inset-0 rounded-lg bg-white/20 pointer-events-none" />
+          )}
           {/* Disabled overlay */}
           {!isAllowed && (
             <div
@@ -107,13 +112,14 @@ const BeatGrid = ({
         disabled={disabled || !isAllowed || isRevealed}
         onClick={() => handleCellClick(instrument.id, beatIndex)}
         className={`
-          ${cellSize} rounded-lg transition-all duration-150
+          ${cellSize} rounded-lg transition-all duration-150 relative
           ${!isAllowed ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
           ${isRevealed ? 'ring-2 ring-cyan-400' : ''}
           ${showAsActive ? 'shadow-lg' : ''}
+          ${isCurrentBeat ? 'ring-2 ring-white/50' : ''}
         `}
         style={{
-          backgroundColor: showAsActive ? instrumentColor : '#374151',
+          backgroundColor: showAsActive ? instrumentColor : (isCurrentBeat ? '#4B5563' : '#374151'),
           opacity: !isAllowed ? 0.2 : 1,
           boxShadow: showAsActive ? `0 0 20px ${instrumentColor}50` : 'none',
         }}
