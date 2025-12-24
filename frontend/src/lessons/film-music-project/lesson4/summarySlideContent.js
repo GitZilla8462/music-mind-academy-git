@@ -71,10 +71,11 @@ export const summarySlides = {
   },
 
   compositionInstructions: {
-    title: "Score the Sports Video",
+    title: "Score the Sports Highlight",
+    subtitle: "Student Activity",
     estimatedTime: "1 minute",
     requirements: [
-      "Use your beat from the Beat Maker",
+      "Use YOUR beat from Beat Maker or create additional custom beats by clicking on Beat Maker",
       "Add 3+ loops from the library",
       "Match the energy of the action",
       "Build intensity as the video builds"
@@ -183,8 +184,7 @@ export const assignmentPanels = {
 export const beatMakerContent = {
   instructions: {
     title: "Build Your Beat",
-    text: "Click squares on the grid to add sounds. Start with kick on beats 1 and 3, then add snare and hi-hat.",
-    tip: "Listen to how each layer changes the feel of your beat."
+    text: "Add a kick, snare, hi-hat, and open hi-hat to make a drum pattern. This pattern can be used in your composition for today."
   },
 
   drumDescriptions: {
