@@ -899,10 +899,9 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
                   {Array(steps / 4).fill(0).map((_, beatIndex) => (
                     <div
                       key={beatIndex}
-                      className={`flex-1 flex gap-1 px-1.5 border-r border-slate-700 last:border-r-0 h-full ${
-                        beatIndex % 2 === 0 ? 'bg-slate-800/30' : ''
+                      className={`flex-1 flex gap-1 px-1.5 border-r border-slate-600 last:border-r-0 ${
+                        beatIndex % 2 === 0 ? 'bg-slate-800/20' : ''
                       }`}
-                      style={{ borderRadius: '6px' }}
                     >
                       {[0, 1, 2, 3].map(stepInBeat => {
                         const stepIndex = beatIndex * 4 + stepInBeat;
