@@ -13,7 +13,8 @@ const MusicLoopsInMediaHub = () => {
   const [creatingSession, setCreatingSession] = useState(null);
   const [expandedLessons, setExpandedLessons] = useState({});
 
-  const userRole = localStorage.getItem('classroom-user-role');
+  // Default to teacher role - hub is for teachers
+  const userRole = localStorage.getItem('classroom-user-role') || 'teacher';
 
   const toggleExpanded = (lessonId) => {
     setExpandedLessons(prev => ({
@@ -338,18 +339,6 @@ const MusicLoopsInMediaHub = () => {
                         </button>
                       )}
 
-                      {/* Practice Solo Button - Right (Student Only) */}
-                      {userRole !== 'teacher' && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(lesson.route);
-                          }}
-                          className="font-semibold py-2.5 px-5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
-                        >
-                          Practice Solo
-                        </button>
-                      )}
                     </div>
                   )}
                 </div>
