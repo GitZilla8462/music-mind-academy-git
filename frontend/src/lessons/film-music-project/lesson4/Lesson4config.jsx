@@ -377,8 +377,8 @@ export const lessonStages = [
   {
     id: 'beat-escape-room',
     label: 'Beat Escape Room',
-    description: 'Partner activity: Create and solve beat puzzles',
-    bonusDescription: 'Challenge a partner to recreate your beat!',
+    description: 'Solo or partner activity: Create beat puzzles for others to solve',
+    bonusDescription: 'Create a beat puzzle, then give your device to a friend to play!',
     type: 'activity',
     hasTimer: true,
     hasProgress: true,
@@ -387,7 +387,7 @@ export const lessonStages = [
     duration: 10,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/4-activity-beat.svg'
+      slidePath: '/lessons/film-music-project/lesson4/slides/9-beat-escape-room-intro.svg'
     }
   }
 ];
