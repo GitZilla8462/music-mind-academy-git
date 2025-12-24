@@ -24,12 +24,12 @@ export const summarySlides = {
     questions: [
       "How did the music change how you felt?",
       "What did you notice about the rhythm?",
-      "Which version made the action feel more exciting?"
+      "What feeling did you have when you heard the rhythm being added?"
     ]
   },
 
   beatBasics: {
-    title: "What is a Beat?",
+    title: "WHAT IS A BEAT?",
     estimatedTime: "3 minutes",
     concepts: [
       {
@@ -41,21 +41,31 @@ export const summarySlides = {
         definition: "A group of 4 beats (1-2-3-4)"
       }
     ],
+    intro: "Next, you'll hear the 4 sounds that make up almost every pop, hip-hop, rock, and EDM song:",
     drumSounds: [
       {
-        name: "Kick Drum",
-        role: "The heartbeat (beats 1 & 3)",
+        name: "KICK DRUM",
+        emoji: "🔴",
+        description: "The big bass drum on the floor",
         color: "#ef4444"
       },
       {
-        name: "Snare Drum",
-        role: "The backbeat (beats 2 & 4)",
+        name: "SNARE DRUM",
+        emoji: "🟠",
+        description: "The cracking drum in the middle",
         color: "#f59e0b"
       },
       {
-        name: "Hi-Hat",
-        role: "The momentum (all beats)",
+        name: "HI-HAT (closed)",
+        emoji: "🟢",
+        description: "Two cymbals tapping together",
         color: "#10b981"
+      },
+      {
+        name: "HI-HAT (open)",
+        emoji: "🔵",
+        description: "Two cymbals ringing out",
+        color: "#3b82f6"
       }
     ]
   },

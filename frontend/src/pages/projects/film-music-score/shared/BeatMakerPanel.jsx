@@ -741,6 +741,7 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
                         const stepIndex = beatIndex * 4 + stepInBeat;
                         const isActive = grid[instIndex][stepIndex];
                         const isCurrent = currentStep === stepIndex && isPlaying;
+                        const isCurrentColumn = currentStep === stepIndex && isPlaying;
 
                         return (
                           <button
@@ -750,13 +751,19 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
                             style={{
                               backgroundColor: isActive
                                 ? (isCurrent ? '#22c55e' : instrument.color)
-                                : 'rgba(255, 255, 255, 0.08)',
+                                : isCurrentColumn
+                                  ? 'rgba(34, 197, 94, 0.3)'
+                                  : 'rgba(255, 255, 255, 0.08)',
                               border: isActive
                                 ? `3px solid ${instrument.color}`
-                                : '2px solid rgba(255, 255, 255, 0.1)',
+                                : isCurrentColumn
+                                  ? '2px solid rgba(34, 197, 94, 0.6)'
+                                  : '2px solid rgba(255, 255, 255, 0.1)',
                               boxShadow: isActive
                                 ? `0 0 15px ${instrument.color}50`
-                                : 'none',
+                                : isCurrentColumn
+                                  ? '0 0 10px rgba(34, 197, 94, 0.4)'
+                                  : 'none',
                               transform: isCurrent && isActive ? 'scale(1.05)' : 'scale(1)',
                             }}
                           />

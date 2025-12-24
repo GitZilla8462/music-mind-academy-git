@@ -328,6 +328,7 @@ const TeacherBeatTutorial = () => {
                   {Array(16).fill(0).map((_, stepIndex) => {
                     const isFilled = pattern.includes(stepIndex);
                     const isCurrent = currentBeat === stepIndex && isPlaying;
+                    const isCurrentColumn = currentBeat === stepIndex && isPlaying;
 
                     return (
                       <div
@@ -338,10 +339,17 @@ const TeacherBeatTutorial = () => {
                         style={{
                           backgroundColor: isFilled
                             ? (isCurrent ? '#22c55e' : instrument.color)
-                            : (isActive ? '#374151' : '#1f2937'),
+                            : isCurrentColumn
+                              ? 'rgba(34, 197, 94, 0.3)'
+                              : (isActive ? '#374151' : '#1f2937'),
                           opacity: isActive ? 1 : 0.3,
                           transform: isCurrent && isFilled ? 'scale(1.1)' : 'scale(1)',
-                          boxShadow: isCurrent && isFilled ? `0 0 12px ${instrument.color}` : 'none'
+                          boxShadow: isCurrent && isFilled
+                            ? `0 0 12px ${instrument.color}`
+                            : isCurrentColumn
+                              ? '0 0 10px rgba(34, 197, 94, 0.4)'
+                              : 'none',
+                          border: isCurrentColumn ? '2px solid rgba(34, 197, 94, 0.6)' : 'none'
                         }}
                       />
                     );

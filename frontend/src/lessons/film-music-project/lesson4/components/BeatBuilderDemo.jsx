@@ -360,30 +360,37 @@ const BeatBuilderDemo = () => {
                           const isActive = isCellActive(track.id, stepIndex);
                           const isTarget = isTargetCell(track.id, stepIndex);
                           const isCurrent = currentBeat === stepIndex && isPlaying;
+                          const isCurrentColumn = currentBeat === stepIndex;
 
                           return (
                             <div
                               key={stepIndex}
                               className={`
-                                flex-1 rounded-xl transition-all cursor-pointer
+                                flex-1 rounded-xl transition-all cursor-pointer relative
                                 ${isTarget && !isActive ? 'animate-pulse' : ''}
                               `}
                               style={{
                                 backgroundColor: isActive
                                   ? (isCurrent ? '#22c55e' : track.color)
-                                  : isTarget
-                                    ? `${track.color}25`
-                                    : 'rgba(255, 255, 255, 0.08)',
+                                  : isCurrentColumn && isPlaying
+                                    ? 'rgba(34, 197, 94, 0.3)'
+                                    : isTarget
+                                      ? `${track.color}25`
+                                      : 'rgba(255, 255, 255, 0.08)',
                                 border: isTarget && !isActive
                                   ? `3px solid ${track.color}60`
                                   : isActive
                                     ? `3px solid ${track.color}`
-                                    : '2px solid rgba(255, 255, 255, 0.1)',
+                                    : isCurrentColumn && isPlaying
+                                      ? '2px solid rgba(34, 197, 94, 0.6)'
+                                      : '2px solid rgba(255, 255, 255, 0.1)',
                                 boxShadow: isActive
                                   ? `0 0 20px ${track.color}50`
-                                  : isTarget && !isActive
-                                    ? `0 0 15px ${track.color}30`
-                                    : 'none',
+                                  : isCurrentColumn && isPlaying
+                                    ? '0 0 15px rgba(34, 197, 94, 0.4)'
+                                    : isTarget && !isActive
+                                      ? `0 0 15px ${track.color}30`
+                                      : 'none',
                                 transform: isCurrent && isActive ? 'scale(1.05)' : 'scale(1)',
                               }}
                             />
