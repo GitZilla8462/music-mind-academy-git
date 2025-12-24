@@ -27,8 +27,8 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
   useEffect(() => {
     const studentId = getStudentId();
     const allWork = getAllStudentWork(studentId);
-    // Filter for beat-escape-room saves
-    const escapeRooms = allWork.filter(w => w.activityType === 'beat-escape-room');
+    // Filter for beat-escape-room saves (activityId is the key)
+    const escapeRooms = allWork.filter(w => w.activityId === 'beat-escape-room');
     setSavedRooms(escapeRooms);
   }, []);
 

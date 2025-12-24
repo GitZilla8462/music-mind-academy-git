@@ -24,24 +24,13 @@ function JoinWithCode() {
   const urlCode = searchParams.get('code');
   const loadRoomCode = searchParams.get('loadRoom');
 
-  // If loadRoom parameter is present, show Beat Escape Room
-  if (loadRoomCode) {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#1a202c' }}>
-        <BeatEscapeRoomActivity
-          onComplete={() => navigate('/join')}
-        />
-      </div>
-    );
-  }
-
   useEffect(() => {
     const id = getStudentId();
     setStudentId(id);
-    
+
     // Migrate old saves to new format (runs once, safe to call multiple times)
     migrateOldSaves(id);
-    
+
     // Load all saved work
     const work = getAllStudentWork(id);
     setSavedWork(work);
@@ -54,6 +43,18 @@ function JoinWithCode() {
       handleAutoJoin(urlCode);
     }
   }, [isPreviewMode, urlCode]);
+
+  // If loadRoom parameter is present, show Beat Escape Room
+  // This must be AFTER all hooks are called
+  if (loadRoomCode) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#1a202c' }}>
+        <BeatEscapeRoomActivity
+          onComplete={() => navigate('/join')}
+        />
+      </div>
+    );
+  }
 
   // Auto-join for preview mode (no user interaction needed)
   const handleAutoJoin = async (code) => {
