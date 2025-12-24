@@ -162,7 +162,7 @@ const audioBufferToWav = (buffer) => {
   return new Blob([arrayBuffer], { type: 'audio/wav' });
 };
 
-const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap = false }) => {
+const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap = false, hideCloseButton = false }) => {
   // Filter instruments based on hideClap prop
   const visibleInstruments = hideClap
     ? INSTRUMENTS.filter(inst => inst.id !== 'clap')
@@ -719,38 +719,74 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
 
   return (
     <div className="h-full flex flex-col bg-gray-900 text-white overflow-hidden">
-      {/* Compact Header with Controls */}
-      <div className="flex-shrink-0 bg-gray-800 border-b border-gray-700 px-4 py-2">
-        <div className="flex items-center justify-between gap-4">
-          {/* Left: Title and Close */}
+      {/* Mood Selector - TOP ROW - Most prominent */}
+      <div className="flex-shrink-0 px-4 py-3 bg-gradient-to-r from-purple-900/30 to-gray-800 border-b border-gray-700">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-bold">Build Your Beat</h2>
+            <span className="text-sm font-semibold text-purple-300">SELECT MOOD:</span>
+            <div className="flex items-center gap-2">
+              {MOODS.map((mood) => {
+                const isSelected = selectedMood === mood.id;
+                return (
+                  <button
+                    key={mood.id}
+                    onClick={() => handleMoodSelect(mood)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                      isSelected
+                        ? 'ring-2 ring-offset-2 ring-offset-gray-900 scale-105'
+                        : 'bg-gray-700/50 hover:bg-gray-700 hover:scale-102'
+                    }`}
+                    style={{
+                      backgroundColor: isSelected ? mood.color : undefined,
+                      ringColor: isSelected ? mood.color : undefined
+                    }}
+                  >
+                    <span className="text-xl leading-none">{mood.emoji}</span>
+                    <span className={`text-sm font-bold ${isSelected ? 'text-white' : 'text-gray-300'}`}>
+                      {mood.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {/* Close button - only if not hidden */}
+          {!hideCloseButton && (
             <button
               onClick={onClose}
-              className="p-1.5 hover:bg-gray-700 rounded transition-colors"
+              className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
             >
-              <X size={18} />
+              <X size={20} />
             </button>
-          </div>
+          )}
+        </div>
+      </div>
+
+      {/* Controls Row - Kit, Presets, Steps, BPM */}
+      <div className="flex-shrink-0 bg-gray-800 border-b border-gray-700 px-4 py-2">
+        <div className="flex items-center justify-between gap-4">
+          {/* Left: Title */}
+          <h2 className="text-lg font-bold text-gray-300">Build Your Beat</h2>
 
           {/* Right: Kit, Preset, Steps, BPM */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {/* Kit Dropdown */}
             <div className="relative">
+              <span className="text-xs text-gray-500 absolute -top-3 left-0">Style</span>
               <button
                 onClick={() => setShowKitDropdown(!showKitDropdown)}
-                className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded text-sm transition-colors"
+                className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               >
                 <span>{KITS[kit].name}</span>
                 <ChevronDown size={14} />
               </button>
               {showKitDropdown && (
-                <div className="absolute top-full right-0 mt-1 bg-gray-700 rounded shadow-lg z-20 min-w-28">
+                <div className="absolute top-full right-0 mt-1 bg-gray-700 rounded-lg shadow-lg z-20 min-w-32">
                   {Object.entries(KITS).map(([key, value]) => (
                     <button
                       key={key}
                       onClick={() => { setKit(key); setShowKitDropdown(false); }}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-600 ${kit === key ? 'bg-gray-600' : ''}`}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-600 first:rounded-t-lg last:rounded-b-lg ${kit === key ? 'bg-gray-600' : ''}`}
                     >
                       {value.name}
                     </button>
@@ -761,20 +797,21 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
 
             {/* Preset Dropdown */}
             <div className="relative">
+              <span className="text-xs text-gray-500 absolute -top-3 left-0">Preset</span>
               <button
                 onClick={() => setShowPresetDropdown(!showPresetDropdown)}
-                className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded text-sm transition-colors"
+                className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               >
                 <span>Presets</span>
                 <ChevronDown size={14} />
               </button>
               {showPresetDropdown && (
-                <div className="absolute top-full right-0 mt-1 bg-gray-700 rounded shadow-lg z-20 min-w-28">
+                <div className="absolute top-full right-0 mt-1 bg-gray-700 rounded-lg shadow-lg z-20 min-w-32">
                   {Object.entries(PRESETS).map(([key, value]) => (
                     <button
                       key={key}
                       onClick={() => loadPreset(key)}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-600"
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-600 first:rounded-t-lg last:rounded-b-lg"
                     >
                       {value.name}
                     </button>
@@ -784,68 +821,45 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
             </div>
 
             {/* Steps Toggle */}
-            <div className="flex bg-gray-700 rounded overflow-hidden">
-              <button
-                onClick={() => setSteps(16)}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors ${steps === 16 ? 'bg-blue-600' : 'hover:bg-gray-600'}`}
-              >
-                16
-              </button>
-              <button
-                onClick={() => setSteps(32)}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors ${steps === 32 ? 'bg-blue-600' : 'hover:bg-gray-600'}`}
-              >
-                32
-              </button>
+            <div className="relative">
+              <span className="text-xs text-gray-500 absolute -top-3 left-0">Steps</span>
+              <div className="flex bg-gray-700 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setSteps(16)}
+                  className={`px-4 py-2 text-sm font-bold transition-colors ${steps === 16 ? 'bg-blue-600' : 'hover:bg-gray-600'}`}
+                >
+                  16
+                </button>
+                <button
+                  onClick={() => setSteps(32)}
+                  className={`px-4 py-2 text-sm font-bold transition-colors ${steps === 32 ? 'bg-blue-600' : 'hover:bg-gray-600'}`}
+                >
+                  32
+                </button>
+              </div>
             </div>
 
             {/* BPM Display */}
-            <div className="flex items-center gap-1 bg-gray-700 rounded px-3 py-1.5">
-              <span className="text-sm font-mono font-bold text-white">{bpm}</span>
-              <span className="text-sm text-gray-400">BPM</span>
+            <div className="relative">
+              <span className="text-xs text-gray-500 absolute -top-3 left-0">Tempo</span>
+              <div className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg px-4 py-2">
+                <span className="text-lg font-mono font-bold text-white">{bpm}</span>
+                <span className="text-sm text-purple-200">BPM</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Mood Selector - Compact horizontal */}
-      <div className="flex-shrink-0 px-4 py-2 bg-gray-800/50 border-b border-gray-700">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-400 mr-2">Mood:</span>
-          {MOODS.map((mood) => {
-            const isSelected = selectedMood === mood.id;
-            return (
-              <button
-                key={mood.id}
-                onClick={() => handleMoodSelect(mood)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${
-                  isSelected
-                    ? 'ring-2 ring-offset-1 ring-offset-gray-900'
-                    : 'bg-gray-700/50 hover:bg-gray-700'
-                }`}
-                style={{
-                  backgroundColor: isSelected ? mood.color : undefined,
-                  ringColor: isSelected ? mood.color : undefined
-                }}
-              >
-                <span className="text-lg leading-none">{mood.emoji}</span>
-                <span className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-gray-300'}`}>
-                  {mood.name}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Grid Area - Matches teacher demo style */}
-      <div className="flex-1 flex flex-col px-6 py-2 justify-center">
+      <div className="flex-1 flex flex-col px-6 py-4 justify-center overflow-auto">
         {/* Beat Headers - directly above grid */}
-        <div className="flex mb-1" style={{ marginLeft: '120px' }}>
+        <div className="flex mb-2" style={{ marginLeft: '130px' }}>
           {Array(steps / 4).fill(0).map((_, beatIndex) => (
             <div
               key={beatIndex}
-              className="flex-1 text-center border-r border-slate-700 last:border-r-0 px-2"
+              className="text-center border-r border-slate-700 last:border-r-0 px-2"
+              style={{ width: `${(steps === 16 ? 100 : 50) / (steps / 4)}%` }}
             >
               <div className="text-lg font-bold text-white">Beat {beatIndex + 1}</div>
               <div className="flex justify-around">
@@ -868,30 +882,29 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
           ))}
         </div>
 
-        {/* Grid rows - fills available space */}
-        <div className="flex flex-col gap-2">
+        {/* Grid rows - square cells */}
+        <div className="flex flex-col gap-3">
           {visibleInstruments.map((instrument) => {
             const instIndex = INSTRUMENTS.findIndex(i => i.id === instrument.id);
-            const hasNotes = grid[instIndex]?.some(cell => cell);
+            const rowHasNotes = grid[instIndex]?.some(cell => cell);
             const IconComponent = INSTRUMENT_ICONS[instrument.id];
 
             return (
               <div
                 key={instrument.id}
-                className={`flex items-center transition-opacity ${hasNotes ? 'opacity-100' : 'opacity-70'}`}
-                style={{ height: '56px' }}
+                className={`flex items-center transition-opacity ${rowHasNotes ? 'opacity-100' : 'opacity-70'}`}
               >
                 {/* Track label with DAW icon and full name */}
                 <div
-                  className="w-28 flex-shrink-0 flex items-center gap-2 pr-3 justify-end"
+                  className="w-32 flex-shrink-0 flex items-center gap-2 pr-4 justify-end"
                   style={{ color: instrument.color }}
                 >
-                  {IconComponent && <IconComponent size={20} strokeWidth={2.5} />}
+                  {IconComponent && <IconComponent size={22} strokeWidth={2.5} />}
                   <span className="text-lg font-bold">{instrument.name}</span>
                 </div>
 
-                {/* Beat groups with separators */}
-                <div className="flex flex-1 h-full">
+                {/* Beat groups with separators - square cells */}
+                <div className="flex flex-1 gap-1">
                   {Array(steps / 4).fill(0).map((_, beatIndex) => (
                     <div
                       key={beatIndex}
@@ -911,7 +924,7 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
                             <button
                               key={stepIndex}
                               onClick={() => toggleCell(instIndex, stepIndex)}
-                              className="flex-1 rounded-xl"
+                              className="flex-1 aspect-square rounded-xl min-w-[40px] max-w-[56px]"
                               style={{
                                 backgroundColor: isActive
                                   ? (isCurrent ? '#22c55e' : instrument.color)
@@ -928,12 +941,12 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
                           );
                         }
 
-                        // Desktop: full visual effects
+                        // Desktop: full visual effects with square cells
                         return (
                           <button
                             key={stepIndex}
                             onClick={() => toggleCell(instIndex, stepIndex)}
-                            className="flex-1 rounded-xl transition-colors"
+                            className="flex-1 aspect-square rounded-xl transition-colors min-w-[40px] max-w-[56px]"
                             style={{
                               backgroundColor: isActive
                                 ? (isCurrent ? '#22c55e' : instrument.color)

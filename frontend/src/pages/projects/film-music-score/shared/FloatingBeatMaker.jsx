@@ -13,17 +13,17 @@ const FloatingBeatMaker = ({
   onAddToProject,
   customLoopCount = 0
 }) => {
-  // Default size and position
-  const [size, setSize] = useState({ width: 520, height: 500 });
-  const [position, setPosition] = useState({ x: 250, y: 80 });
+  // Default size - larger to show all controls
+  const [size, setSize] = useState({ width: 900, height: 650 });
+  const [position, setPosition] = useState({ x: 100, y: 40 });
   const [isMinimized, setIsMinimized] = useState(false);
   const [prevSize, setPrevSize] = useState(null);
 
-  // Minimum and maximum constraints
-  const minWidth = 420;
-  const minHeight = 380;
-  const maxWidth = 800;
-  const maxHeight = 700;
+  // Minimum and maximum constraints - larger for full grid visibility
+  const minWidth = 700;
+  const minHeight = 500;
+  const maxWidth = 1200;
+  const maxHeight = 850;
 
   // Reset position when opening
   useEffect(() => {
@@ -135,19 +135,15 @@ const FloatingBeatMaker = ({
   );
 };
 
-// Content component that hides the BeatMakerPanel's built-in header
+// Content component - shows full BeatMakerPanel with all controls
 const BeatMakerPanelContent = ({ onClose, onAddToProject, customLoopCount }) => {
   return (
-    <div className="h-full beat-maker-floating-content">
-      <style>{`
-        .beat-maker-floating-content > div > div:first-child {
-          display: none !important;
-        }
-      `}</style>
+    <div className="h-full">
       <BeatMakerPanel
         onClose={onClose}
         onAddToProject={onAddToProject}
         customLoopCount={customLoopCount}
+        hideCloseButton  // We have our own close button in the floating header
       />
     </div>
   );
