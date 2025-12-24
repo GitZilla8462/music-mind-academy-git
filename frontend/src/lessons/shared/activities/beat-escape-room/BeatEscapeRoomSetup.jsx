@@ -2,15 +2,18 @@
 // Step 1: Mode → Step 2: Partner Role (if partner/trio) → Step 3: Theme → Start Creating
 
 import React, { useState } from 'react';
-import { MODES } from './beatEscapeRoomConfig';
+import { Copy, Check } from 'lucide-react';
+import { MODES, generateShareCode } from './beatEscapeRoomConfig';
 import { getAllThemes, getThemeAssets } from './beatEscapeRoomThemes';
 
 const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
-  const [step, setStep] = useState('mode'); // 'mode' | 'partner-role' | 'theme'
+  const [step, setStep] = useState('mode'); // 'mode' | 'partner-role' | 'show-code' | 'join-to-create' | 'theme'
   const [selectedMode, setSelectedMode] = useState(null);
   const [playerIndex, setPlayerIndex] = useState(0);
   const [joinCode, setJoinCode] = useState('');
+  const [generatedCode, setGeneratedCode] = useState('');
   const [joinError, setJoinError] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const modes = Object.values(MODES);
   const themes = getAllThemes();
@@ -26,13 +29,23 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
     }
   };
 
-  const handlePartnerRole = (isFirstPartner) => {
-    if (isFirstPartner) {
-      setPlayerIndex(0);
-      setStep('theme');
-    } else {
-      // Not first partner - need to join existing room
-      setStep('join-to-create');
+  const handleGenerateCode = () => {
+    // Generate a new room code
+    const code = generateShareCode();
+    setGeneratedCode(code);
+    setPlayerIndex(0);
+    setStep('show-code');
+  };
+
+  const handleCopyCode = async () => {
+    if (generatedCode) {
+      try {
+        await navigator.clipboard.writeText(generatedCode);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
     }
   };
 
@@ -42,17 +55,21 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
       mode: selectedMode,
       themeId: theme.id,
       playerIndex: playerIndex,
+      shareCode: generatedCode, // Pass the pre-generated code
     });
   };
 
   const handleBack = () => {
     if (step === 'theme') {
       if (selectedMode === 'partner' || selectedMode === 'trio') {
-        setStep('partner-role');
+        setStep('show-code');
       } else {
         setStep('mode');
         setSelectedMode(null);
       }
+    } else if (step === 'show-code') {
+      setStep('partner-role');
+      setGeneratedCode('');
     } else if (step === 'partner-role' || step === 'join-to-create') {
       setStep('mode');
       setSelectedMode(null);
@@ -196,27 +213,91 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
         {/* Role Selection */}
         <div className="w-full max-w-md space-y-4">
           <button
-            onClick={() => handlePartnerRole(true)}
+            onClick={handleGenerateCode}
             className="w-full bg-gray-800 hover:bg-gray-700 border-2 border-gray-600 hover:border-purple-500 rounded-2xl p-6 transition-all duration-200 hover:scale-105"
           >
-            <div className="text-3xl mb-2">🎯</div>
-            <div className="text-xl font-bold text-white mb-1">I'm Starting First</div>
+            <div className="text-3xl mb-2">🆕</div>
+            <div className="text-xl font-bold text-white mb-1">Generate New Room</div>
             <div className="text-gray-400 text-sm">
-              Create your {modeConfig?.perPerson} locks, then share the code
+              Get a code to share with your partner
             </div>
           </button>
 
           <button
-            onClick={() => handlePartnerRole(false)}
+            onClick={() => setStep('join-to-create')}
             className="w-full bg-gray-800 hover:bg-gray-700 border-2 border-gray-600 hover:border-green-500 rounded-2xl p-6 transition-all duration-200 hover:scale-105"
           >
             <div className="text-3xl mb-2">🔗</div>
-            <div className="text-xl font-bold text-white mb-1">I Have a Code</div>
+            <div className="text-xl font-bold text-white mb-1">Join Partner's Room</div>
             <div className="text-gray-400 text-sm">
-              Join your partner's room to add your locks
+              Enter your partner's code
             </div>
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // Step: Show generated code (partner 1)
+  if (step === 'show-code') {
+    const modeConfig = MODES[selectedMode];
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900 flex flex-col items-center justify-center p-6">
+        {/* Back button */}
+        <button
+          onClick={handleBack}
+          className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+        >
+          ← Back
+        </button>
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="text-5xl mb-4">🎉</div>
+          <h1 className="text-3xl font-black text-white mb-2">
+            Your Room Code
+          </h1>
+          <p className="text-lg text-purple-200">
+            Share this code with your partner
+          </p>
+        </div>
+
+        {/* Code Display */}
+        <div className="bg-gray-800 rounded-2xl p-8 w-full max-w-md mb-6">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="bg-gray-900 px-8 py-4 rounded-xl text-5xl font-mono font-bold text-white tracking-widest">
+              {generatedCode}
+            </div>
+            <button
+              onClick={handleCopyCode}
+              className="p-4 bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors"
+              title="Copy code"
+            >
+              {copied ? (
+                <Check className="text-green-400" size={28} />
+              ) : (
+                <Copy className="text-gray-300" size={28} />
+              )}
+            </button>
+          </div>
+          {copied && (
+            <p className="text-green-400 text-center">Copied!</p>
+          )}
+
+          <div className="bg-purple-900/50 rounded-lg p-4 mt-4">
+            <p className="text-purple-200 text-sm text-center">
+              📱 Your partner enters this code to join and add their {modeConfig?.perPerson} locks
+            </p>
+          </div>
+        </div>
+
+        {/* Continue Button */}
+        <button
+          onClick={() => setStep('theme')}
+          className="px-8 py-4 bg-green-600 hover:bg-green-500 rounded-xl text-white text-xl font-bold transition-all hover:scale-105"
+        >
+          Continue to Create →
+        </button>
       </div>
     );
   }

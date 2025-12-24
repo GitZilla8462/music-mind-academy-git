@@ -112,10 +112,14 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
   }, []);
 
   // Handle starting CREATE mode
-  const handleStartCreate = ({ mode: selectedMode, themeId: selectedTheme, playerIndex: pIndex = 0 }) => {
+  const handleStartCreate = ({ mode: selectedMode, themeId: selectedTheme, playerIndex: pIndex = 0, shareCode: preGeneratedCode = null }) => {
     setMode(selectedMode);
     setThemeId(selectedTheme || 'space-station');
     setPlayerIndex(pIndex);
+    // Use pre-generated code for partner mode
+    if (preGeneratedCode) {
+      setShareCode(preGeneratedCode);
+    }
     setPhase(PHASES.CREATE);
   };
 
@@ -160,7 +164,7 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
       ? { ...roomData.patterns, ...newPatterns }
       : newPatterns;
 
-    // Save room and get share code
+    // Save room with the share code (uses existing code if available)
     const roomInfo = {
       mode,
       patterns: mergedPatterns,
@@ -168,16 +172,8 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
       theme: themeId
     };
 
-    // Use existing share code if we have one (partner joining)
-    const code = shareCode || saveRoom(roomInfo);
-
-    // If we already have a code, update the existing room
-    if (shareCode && roomData) {
-      // Update the existing room with merged patterns
-      const updatedRoom = { ...roomData, patterns: mergedPatterns };
-      localStorage.setItem(`beat-escape-room-${shareCode}`, JSON.stringify(updatedRoom));
-    }
-
+    // Save room - pass existing shareCode if we have one
+    const code = saveRoom(roomInfo, shareCode);
     setShareCode(code);
 
     // Load the saved room data for playing

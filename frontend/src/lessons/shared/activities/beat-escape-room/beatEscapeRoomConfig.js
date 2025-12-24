@@ -134,14 +134,14 @@ export const generateShareCode = () => {
   return code;
 };
 
-export const saveRoom = (roomData) => {
+export const saveRoom = (roomData, existingCode = null) => {
   const rooms = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-  const shareCode = generateShareCode();
+  const shareCode = existingCode || generateShareCode();
 
   rooms[shareCode] = {
     ...roomData,
     shareCode,
-    createdAt: Date.now()
+    createdAt: rooms[shareCode]?.createdAt || Date.now()
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(rooms));
