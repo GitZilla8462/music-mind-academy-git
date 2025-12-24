@@ -116,10 +116,10 @@ const BeatGrid = ({
           ${!isAllowed ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
           ${isRevealed ? 'ring-2 ring-cyan-400' : ''}
           ${showAsActive ? 'shadow-lg' : ''}
-          ${isCurrentBeat ? 'ring-2 ring-white/50' : ''}
+          ${isCurrentBeat ? 'ring-2 ring-cyan-400/60' : ''}
         `}
         style={{
-          backgroundColor: showAsActive ? instrumentColor : (isCurrentBeat ? '#4B5563' : '#374151'),
+          backgroundColor: showAsActive ? instrumentColor : (isCurrentBeat ? '#52525b' : '#374151'),
           opacity: !isAllowed ? 0.2 : 1,
           boxShadow: showAsActive ? `0 0 20px ${instrumentColor}50` : 'none',
         }}
@@ -167,10 +167,10 @@ const BeatGrid = ({
             {['Beat 1', 'Beat 2', 'Beat 3', 'Beat 4'].map((label, i) => (
               <div
                 key={label}
-                className={`${size === 'large' ? 'w-16' : 'w-12'} text-center text-sm font-semibold transition-colors duration-150 ${
+                className={`${size === 'large' ? 'w-16' : 'w-12'} text-center text-sm transition-all duration-150 ${
                   currentBeat === i
-                    ? 'text-cyan-400'
-                    : 'text-gray-400'
+                    ? 'text-cyan-300 font-bold scale-110'
+                    : 'text-gray-400 font-semibold'
                 }`}
               >
                 {label}
