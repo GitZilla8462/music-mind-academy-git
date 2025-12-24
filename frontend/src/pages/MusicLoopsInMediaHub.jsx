@@ -61,19 +61,19 @@ const MusicLoopsInMediaHub = () => {
       inThisLesson: 'Students discover how music creates emotion by watching the same video with different scores, then compose their own adventure soundtrack.',
       studentsWill: [
         'Identify how music creates different moods',
-        'Match loops to mood categories',
+        'Match loops to mood categories (Heroic, Hype, Mysterious, Scary, Upbeat)',
         'Compose a soundtrack for drone footage'
       ],
       activities: [
-        { title: 'Hook Video', description: 'Same scene, 5 different scores', time: 3 },
-        { title: 'Discussion', description: 'How did the music change the feeling?', time: 3 },
-        { title: 'Mood Categories', description: 'Introduce the 5 mood types', time: 3 },
-        { title: 'Mood Match Game', description: 'Vote on which mood fits each loop', time: 6, activityType: 'mood-match-game' },
-        { title: 'DAW Tutorial Video', description: 'Learn the basics + Chromebook setup', time: 4 },
-        { title: 'Composition', description: 'Pick a mood, score drone footage', time: 14, activityType: 'adventure-composition' },
+        { title: 'Introduction', description: 'Welcome, agenda, and hook setup', time: 3 },
+        { title: 'Hook Video', description: 'Same scene with different scores', time: 3 },
+        { title: 'Mood Discussion', description: 'How did the music change the feeling?', time: 2 },
+        { title: 'Mood Categories', description: 'Introduce the 5 mood types', time: 2 },
+        { title: 'Mood Match Game', description: 'Listen to loops, match to moods', time: 5, activityType: 'mood-match-game' },
+        { title: 'DAW Tutorial Video', description: 'Learn to use the composition tool', time: 2 },
+        { title: 'Composition', description: 'Pick a mood, score drone footage with 5+ loops', time: 12, activityType: 'adventure-composition' },
         { title: 'Two Stars and a Wish', description: 'Reflect on your composition', time: 5, activityType: 'two-stars-wish' },
-        { title: 'Share', description: '1-2 students share their work', time: 2 },
-        { title: 'Name That Loop', description: 'Partner listening game', time: 5, activityType: 'name-that-loop', isBonus: true, isPartnerActivity: true }
+        { title: 'Conclusion', description: 'Share moods and discuss', time: 2 }
       ]
     },
     // Lesson 2: Layers/Texture (City Soundscape)
@@ -91,17 +91,17 @@ const MusicLoopsInMediaHub = () => {
       inThisLesson: 'Students visualize how layers create texture using a listening map, then build their own rich city soundscape.',
       studentsWill: [
         'Understand thin vs. thick musical texture',
-        'Create a visual listening map',
+        'Create a visual listening map while listening',
         'Build layered compositions for city footage'
       ],
       activities: [
         { title: 'Introduction', description: 'What city have you visited?', time: 2 },
-        { title: 'Texture Concept', description: 'How layers create thick or thin sound', time: 5 },
-        { title: 'Listening Map Video', description: 'How to visualize texture', time: 3 },
+        { title: 'Texture Concept', description: 'Layers create thick/thin sound (sandwich analogy)', time: 6 },
+        { title: 'Listening Map Video', description: 'How to visualize texture', time: 2 },
         { title: 'Listening Map Activity', description: 'Draw while listening to music', time: 8, activityType: 'listening-map' },
-        { title: 'Composition', description: 'Create a city soundscape with layers', time: 14, activityType: 'city-composition-activity' },
-        { title: 'Two Stars and a Wish', description: 'Reflect on your layers', time: 5, activityType: 'two-stars-wish' },
-        { title: 'Share & Discussion', description: 'Compare textures across compositions', time: 3 }
+        { title: 'Composition', description: 'Create a city soundscape with 5+ layers', time: 10, activityType: 'city-composition-activity' },
+        { title: 'Two Stars and a Wish', description: 'Reflect on your layers', time: 3, activityType: 'two-stars-wish' },
+        { title: 'Discussion', description: 'What is texture? Compare compositions', time: 2 }
       ]
     },
     // Lesson 3: Form/Structure (Epic Wildlife)
@@ -116,19 +116,17 @@ const MusicLoopsInMediaHub = () => {
       route: '/lessons/film-music-project/lesson3',
       available: true,
       hasLessonPlan: true,
-      inThisLesson: 'Students learn how film scores follow a story arc with distinct sections, then create an epic nature documentary soundtrack.',
+      inThisLesson: 'Students learn how film scores follow a story arc with distinct sections (Intro → A → A\' → Outro), then create an epic nature documentary soundtrack.',
       studentsWill: [
-        'Understand sectional song form (intro, build, climax)',
-        'Place loops strategically for dramatic effect',
+        'Understand sectional loop form (Intro, A, A\', Outro)',
+        'Match loops to song sections in a game',
         'Compose a complete film score with structure'
       ],
       activities: [
-        { title: 'Introduction', description: 'How do movies build tension?', time: 3 },
-        { title: 'Form Concept', description: 'How music tells a story over time', time: 5 },
-        { title: 'Sectional Loop Builder', description: 'Match loops to song sections', time: 8, activityType: 'sectional-loop-builder' },
-        { title: 'Composition', description: 'Score wildlife footage with structure', time: 14, activityType: 'wildlife-composition-activity' },
-        { title: 'Two Stars and a Wish', description: 'Reflect on your form choices', time: 5, activityType: 'two-stars-wish' },
-        { title: 'Share & Discussion', description: 'Compare story arcs in compositions', time: 5 },
+        { title: 'Introduction', description: 'Song form and structure concepts', time: 6 },
+        { title: 'Sectional Loop Builder', description: 'Game: Match loops to sections (leaderboard)', time: 6, activityType: 'sectional-loop-builder' },
+        { title: 'Composition', description: 'Score wildlife footage with sections', time: 12, activityType: 'wildlife-composition-activity' },
+        { title: 'Two Stars and a Wish', description: 'Reflect on your form choices', time: 6, activityType: 'two-stars-wish' },
         { title: 'Robot Melody Maker', description: 'Create loops and watch your robot dance', time: 8, activityType: 'robot-melody-maker', isBonus: true }
       ]
     },
@@ -144,20 +142,20 @@ const MusicLoopsInMediaHub = () => {
       route: '/lessons/film-music-project/lesson4',
       available: true,
       hasLessonPlan: true,
-      inThisLesson: 'Students learn how rhythm and beat create energy, then compose high-energy music for sports highlights.',
+      inThisLesson: 'Students learn how rhythm and beat create energy by comparing video with/without music, learn drum sounds, create their own beat, then score a sports highlight.',
       studentsWill: [
-        'Understand how rhythm creates energy',
-        'Create rhythmic patterns using drum sounds',
-        'Compose a dynamic sports soundtrack'
+        'Explain the role of kick, snare, and hi-hat in a beat',
+        'Create an original 4-bar rhythmic pattern',
+        'Combine beats with loops to score a sports video'
       ],
       activities: [
-        { title: 'Introduction', description: 'What sport do you like? What music fits?', time: 3 },
-        { title: 'Beat Basics', description: 'Rhythm, beat, and energy', time: 5 },
-        { title: 'Beat Maker', description: 'Create a 4-bar drum pattern', time: 8, activityType: 'beat-maker' },
-        { title: 'Composition', description: 'Pick a sport, create hype music', time: 15, activityType: 'sports-composition-activity' },
-        { title: 'Two Stars and a Wish', description: 'Reflect on your work', time: 5, activityType: 'two-stars-wish' },
-        { title: 'Share', description: '1-2 students share their work', time: 3 },
-        { title: 'Melody Escape Room', description: 'Partner puzzle game', time: 7, activityType: 'melody-escape-room', isBonus: true, isPartnerActivity: true }
+        { title: 'Hook', description: 'Compare video with and without music', time: 6 },
+        { title: 'Beat Basics', description: 'Beat, measure, kick, snare, hi-hat', time: 5 },
+        { title: 'Build Your Beat', description: 'Create a drum pattern using the grid', time: 8, activityType: 'student-beat-maker' },
+        { title: 'Composition', description: 'Use your beat + 3 loops to score sports video', time: 13, activityType: 'sports-composition-activity' },
+        { title: 'Beat Spotlight', description: 'Reflect on your rhythmic choices', time: 4, activityType: 'beat-spotlight' },
+        { title: 'Conclusion', description: 'Rhythm is the heartbeat of your music', time: 1 },
+        { title: 'Beat Escape Room', description: 'Create beat puzzles for a partner to solve', time: 10, activityType: 'beat-escape-room', isBonus: true, isPartnerActivity: true }
       ]
     },
     // Lesson 5: Melody (Game Montage) - new
