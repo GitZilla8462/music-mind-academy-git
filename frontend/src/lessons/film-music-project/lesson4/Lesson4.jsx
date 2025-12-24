@@ -26,51 +26,6 @@ import TransitionOverlay from '../../shared/components/TransitionOverlay';
 const LESSON_PROGRESS_KEY = 'lesson4-progress';
 const LESSON_TIMER_KEY = 'lesson4-timer';
 
-// Separate component for Layer Detective to avoid React hooks violations
-const LayerDetectiveLoader = ({ onComplete }) => {
-  const [LayerDetective, setLayerDetective] = React.useState(null);
-  const [loadError, setLoadError] = React.useState(false);
-  
-  React.useEffect(() => {
-    import('../../shared/activities/layer-detective/LayerDetectiveActivity')
-      .then(module => {
-        console.log('✅ LayerDetectiveActivity loaded');
-        setLayerDetective(() => module.default);
-      })
-      .catch(error => {
-        console.error('❌ Failed to load LayerDetectiveActivity:', error);
-        setLoadError(true);
-      });
-  }, []);
-  
-  if (loadError) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-500 to-red-600 text-white p-8">
-        <div className="text-8xl mb-8">⚠️</div>
-        <h1 className="text-5xl font-bold mb-4">Component Not Found</h1>
-        <p className="text-2xl mb-8">LayerDetectiveActivity.jsx is missing</p>
-      </div>
-    );
-  }
-  
-  if (!LayerDetective) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-white text-lg">Loading Layer Detective...</div>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="h-screen flex flex-col">
-      <LayerDetective
-        onComplete={onComplete}
-        viewMode={false}
-      />
-    </div>
-  );
-};
-
 const Lesson4 = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -259,6 +214,21 @@ const Lesson4 = () => {
         </>
       );
     }
+
+    // DEMO STAGES: Students see "Watch the Main Screen"
+    if (currentStageData?.type === 'demo') {
+      return (
+        <>
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-900 via-red-900 to-pink-900 text-white p-8">
+            <Gamepad2 className="w-32 h-32 mb-8 animate-pulse text-white" />
+            <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
+            <p className="text-2xl text-gray-300">Follow along with the demo</p>
+            <p className="text-xl text-gray-400 mt-4">Notice how rhythm creates energy!</p>
+          </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
+      );
+    }
     
     // RESULTS: Students see game results
     if (currentStageData?.type === 'results') {
@@ -303,19 +273,10 @@ const Lesson4 = () => {
     }
     
     // Student viewing active activity
-    const displayStage = currentStage === 'reflection' ? 'sports-composition' : currentStage;
+    // For reflection-activity, use the same activity type mapping (sports-composition-activity)
+    const displayStage = currentStage === 'reflection-activity' ? 'sports-composition' : currentStage;
     const activityType = getActivityForStage(displayStage);
-    
-    // Special case: Layer Detective activity
-    if (currentStage === 'layer-detective') {
-      return (
-        <>
-          <LayerDetectiveLoader onComplete={() => handleSessionActivityComplete(currentStage)} />
-          <TransitionOverlay isVisible={showTransition} />
-        </>
-      );
-    }
-    
+
     const activity = lesson4Config.activities.find(a => a.type === activityType);
     
     if (!activity) {
@@ -398,7 +359,7 @@ const Lesson4 = () => {
     activityToRender = lesson4Config.activities.find(a => a.type === 'sports-composition-activity');
     viewModeActive = true;
   } else if (viewReflectionMode) {
-    activityToRender = lesson4Config.activities.find(a => a.type === 'two-stars-wish');
+    activityToRender = lesson4Config.activities.find(a => a.type === 'two-stars-and-a-wish');
     viewModeActive = true;
   }
 

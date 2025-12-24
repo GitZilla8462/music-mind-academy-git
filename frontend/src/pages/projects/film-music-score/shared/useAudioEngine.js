@@ -55,7 +55,7 @@ export const useAudioEngine = (videoDuration = 60) => {
       }
     });
     scheduledEventsRef.current = [];
-    
+
     // Stop all active native audio elements
     activeNativeAudioRef.current.forEach(audio => {
       try {
@@ -66,7 +66,7 @@ export const useAudioEngine = (videoDuration = 60) => {
       }
     });
     activeNativeAudioRef.current.clear();
-    
+
     // Stop Tone.js players (they handle their own scheduling)
     playersRef.current.forEach((player) => {
       try {
@@ -77,6 +77,52 @@ export const useAudioEngine = (videoDuration = 60) => {
         console.error('Error stopping Tone.js player:', err);
       }
     });
+  }, []);
+
+  // 🛑 CLEANUP: Stop all audio when hook unmounts
+  useEffect(() => {
+    return () => {
+      console.log('🛑 useAudioEngine unmounting - cleaning up all audio');
+
+      // Clear all scheduled events and native audio
+      scheduledEventsRef.current.forEach(event => {
+        if (event.type === 'transport') {
+          try {
+            Tone.Transport.clear(event.id);
+          } catch (err) { /* ignore */ }
+        } else if (event.type === 'native-timeout') {
+          clearTimeout(event.id);
+        }
+      });
+
+      // Stop all active native audio elements
+      activeNativeAudioRef.current.forEach(audio => {
+        try {
+          audio.pause();
+          audio.src = '';
+        } catch (err) { /* ignore */ }
+      });
+      activeNativeAudioRef.current.clear();
+
+      // Stop Transport
+      try {
+        Tone.Transport.stop();
+        Tone.Transport.cancel();
+      } catch (err) { /* ignore */ }
+
+      // Stop all players
+      playersRef.current.forEach((player) => {
+        try {
+          if (player.isNative && player.audio) {
+            player.audio.pause();
+            player.audio.src = '';
+          } else if (!player.isNative) {
+            player.stop();
+          }
+        } catch (err) { /* ignore */ }
+      });
+      playersRef.current.clear();
+    };
   }, []);
 
   const createLoopPlayer = useCallback(async (loopData, placedLoopId) => {
@@ -309,36 +355,43 @@ export const useAudioEngine = (videoDuration = 60) => {
           
           const currentPlayer = player.isNative ? player.audio : player;
           
+          // ✅ FIX: Only schedule audio if Transport is running
+          // This prevents auto-play when loops are moved/resized
+          if (Tone.Transport.state !== 'started') {
+            if (isDevMode) console.log(`  ⏸️ Transport not running - skipping scheduling for ${loop.name}`);
+            continue;
+          }
+
           if (player.isNative) {
             // Native HTML5 Audio - clone the audio element for each repeat
             // ✅ CHROMEBOOK FIX: Use synchronized start for all loops
-            
+
             // Create a NEW audio element clone for this specific repeat
             const audioClone = player.audio.cloneNode(true);
             audioClone.volume = player.audio.volume;
             audioClone.load(); // Prepare the clone
-            
+
             // For loops starting at time 0, we use a coordinated start
             // For loops starting later, we use setTimeout but with a common base time
             const delay = transportTime * 1000;
-            
+
             const playAudio = () => {
-              // ✅ FIX: Check Transport state when attempting to play
+              // ✅ FIX: Double-check Transport state when attempting to play
               if (Tone.Transport.state !== 'started') {
                 if (isDevMode) console.log(`  ⏸️ Transport not running, skipping native audio play for ${loop.name}`);
                 audioClone.src = '';
                 return;
               }
-              
+
               if (!trackState.muted && effectiveVolume > 0.01) {
                 audioClone.currentTime = loopOffset;
                 activeNativeAudioRef.current.add(audioClone);
-                
+
                 audioClone.play().catch(err => {
                   console.error(`Failed to play native audio for ${loop.name}:`, err);
                   activeNativeAudioRef.current.delete(audioClone);
                 });
-                
+
                 // Stop the audio after actualDuration
                 const stopTimeoutId = setTimeout(() => {
                   audioClone.pause();
@@ -349,9 +402,9 @@ export const useAudioEngine = (videoDuration = 60) => {
                 scheduledEvents.push({ type: 'native-timeout', id: stopTimeoutId });
               }
             };
-            
+
             if (delay <= 0) {
-              // ✅ CHROMEBOOK FIX: For loops at time 0 (or already in progress), 
+              // ✅ CHROMEBOOK FIX: For loops at time 0 (or already in progress),
               // collect them to start together after a small sync delay
               const syncTimeoutId = setTimeout(playAudio, 50);
               scheduledEvents.push({ type: 'native-timeout', id: syncTimeoutId });
@@ -362,7 +415,7 @@ export const useAudioEngine = (videoDuration = 60) => {
             }
             scheduledCount++;
           } else {
-            // ✅ CRITICAL: Tone.js Player - provide loopOffset parameter (includes trim offset!)
+            // ✅ Tone.js Player - only schedule if Transport is running
             currentPlayer.start(`+${transportTime}`, loopOffset, actualDuration);
             scheduledCount++;
           }

@@ -1,0 +1,63 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Music icon -->
+  <text x="192" y="150" font-size="64">🎵</text>
+
+  <!-- Title -->
+  <text x="280" y="150" font-family="Arial, Helvetica, sans-serif" font-size="64" fill="white" font-weight="bold">WHAT IS A BEAT?</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="175" width="450" height="3" fill="#10b981" opacity="0.7"/>
+
+  <!-- Concepts row -->
+  <rect x="192" y="230" width="760" height="100" rx="12" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+  <text x="232" y="275" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#93c5fd" font-weight="bold">BEAT</text>
+  <text x="350" y="275" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white">= The steady pulse you can clap to</text>
+
+  <rect x="972" y="230" width="756" height="100" rx="12" fill="#1e293b" stroke="#a855f7" stroke-width="2"/>
+  <text x="1012" y="275" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#c4b5fd" font-weight="bold">MEASURE</text>
+  <text x="1180" y="275" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white">= A group of 4 beats (1-2-3-4)</text>
+
+  <!-- Divider -->
+  <rect x="192" y="370" width="1536" height="2" fill="#334155"/>
+
+  <!-- Section title -->
+  <text x="192" y="430" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#e2e8f0" font-weight="bold">THREE CORE DRUM SOUNDS:</text>
+
+  <!-- Kick drum -->
+  <rect x="192" y="480" width="1536" height="130" rx="12" fill="#1e293b" stroke="#ef4444" stroke-width="3"/>
+  <circle cx="270" cy="545" r="40" fill="#ef4444"/>
+  <text x="270" y="555" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="white" text-anchor="middle" font-weight="bold">1</text>
+  <text x="340" y="525" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#ef4444" font-weight="bold">KICK DRUM</text>
+  <text x="340" y="575" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white">The heartbeat of the music (beats 1 &amp; 3)</text>
+
+  <!-- Snare drum -->
+  <rect x="192" y="630" width="1536" height="130" rx="12" fill="#1e293b" stroke="#f59e0b" stroke-width="3"/>
+  <circle cx="270" cy="695" r="40" fill="#f59e0b"/>
+  <text x="270" y="705" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="white" text-anchor="middle" font-weight="bold">2</text>
+  <text x="340" y="675" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#f59e0b" font-weight="bold">SNARE DRUM</text>
+  <text x="340" y="725" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white">Creates the backbeat (beats 2 &amp; 4)</text>
+
+  <!-- Hi-hat -->
+  <rect x="192" y="780" width="1536" height="130" rx="12" fill="#1e293b" stroke="#10b981" stroke-width="3"/>
+  <circle cx="270" cy="845" r="40" fill="#10b981"/>
+  <text x="270" y="855" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="white" text-anchor="middle" font-weight="bold">3</text>
+  <text x="340" y="825" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#10b981" font-weight="bold">HI-HAT</text>
+  <text x="340" y="875" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white">Creates momentum (all beats)</text>
+
+  <!-- Key insight -->
+  <text x="960" y="1000" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#94a3b8" text-anchor="middle">Together, these three sounds create a complete beat!</text>
+</svg>

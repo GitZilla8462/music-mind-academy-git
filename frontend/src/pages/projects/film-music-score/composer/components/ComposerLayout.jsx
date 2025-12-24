@@ -4,6 +4,7 @@
 // UPDATED: Timeline label moved inline with time markers
 // UPDATED: Added assignment panel support for tutorial mode
 // UPDATED: Added playersReady prop to disable play button while audio loads
+// UPDATED: Added Beat Maker panel support with creator menu
 
 import React from 'react';
 import LoopLibrary from '../../shared/LoopLibrary';
@@ -12,6 +13,8 @@ import Timeline from '../../timeline/Timeline';
 import TransportControls from '../../shared/TransportControls';
 import NotesPanel from './NotesPanel';
 import ResizableSplitPane from '../../shared/ResizableSplitPane';
+import CreatorPanel from '../../shared/CreatorPanel';
+import FloatingBeatMaker from '../../shared/FloatingBeatMaker';
 
 const ComposerLayout = ({
   // State
@@ -68,7 +71,17 @@ const ComposerLayout = ({
   
   // Tutorial/Lock features
   lockFeatures,
-  highlightSelector
+  highlightSelector,
+
+  // Creator tools (Beat Maker)
+  showCreatorTools = false,
+  creatorMenuOpen = false,
+  setCreatorMenuOpen,
+  beatMakerOpen = false,
+  setBeatMakerOpen,
+  customLoops = [],
+  onAddCustomLoop,
+  onDeleteCustomLoop
 }) => {
   return (
     <div 
@@ -97,6 +110,8 @@ const ComposerLayout = ({
           showSoundEffects={showSoundEffects}
           currentlyPlayingLoopId={currentlyPlayingPreview}
           highlighted={highlightSelector === '.loop-library'}
+          customLoops={customLoops}
+          onDeleteCustomLoop={onDeleteCustomLoop}
         />
       </div>
 
@@ -181,13 +196,13 @@ const ComposerLayout = ({
             }
           />
         ) : (
-          // Normal Mode - ResizableSplitPane with split video area
+          // Normal Mode - ResizableSplitPane with video area
           <ResizableSplitPane
             initialTopHeight={280}
             minTopHeight={100}
             minBottomHeight={300}
             topContent={
-              // Split: Assignment Panel (left) + Video Player (right)
+              // Creator Panel (left) + Video Player (right)
               <div className="h-full flex">
                 {/* Assignment Panel - Only show if content provided */}
                 {assignmentPanelContent && (
@@ -195,10 +210,20 @@ const ComposerLayout = ({
                     {assignmentPanelContent}
                   </div>
                 )}
-                
+
+                {/* Creator Panel - Fixed on left of video area */}
+                {showCreatorTools && (
+                  <CreatorPanel
+                    onOpenBeatMaker={() => setBeatMakerOpen(true)}
+                    onOpenMelodyMaker={() => {}}
+                    onOpenRecordAudio={() => {}}
+                    activeTool={beatMakerOpen ? 'beat-maker' : null}
+                  />
+                )}
+
                 {/* Video Player Section - Takes remaining space */}
-                <div 
-                  className="flex-1 p-4"
+                <div
+                  className="flex-1 p-4 relative"
                   onClick={() => {
                     if (onVideoPlayerClick) {
                       onVideoPlayerClick();
@@ -213,7 +238,8 @@ const ComposerLayout = ({
                       onSeek={handleSeek}
                       onPlay={handlePlay}
                       onPause={pause}
-                    highlighted={highlightSelector === '.video-player-container'} />
+                      highlighted={highlightSelector === '.video-player-container'}
+                    />
                   </div>
                 </div>
               </div>
@@ -260,6 +286,14 @@ const ComposerLayout = ({
           setHasUnsavedChanges={setHasUnsavedChanges}
         />
       )}
+
+      {/* Floating Beat Maker Modal */}
+      <FloatingBeatMaker
+        isOpen={beatMakerOpen}
+        onClose={() => setBeatMakerOpen(false)}
+        onAddToProject={onAddCustomLoop}
+        customLoopCount={customLoops.length}
+      />
     </div>
   );
 };

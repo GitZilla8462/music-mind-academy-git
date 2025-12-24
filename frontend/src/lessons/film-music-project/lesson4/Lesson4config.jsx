@@ -1,6 +1,6 @@
 // File: /lessons/film-music-project/lesson4/Lesson4config.jsx
 // Lesson 4: Sports Highlight Reel Music - Rhythm & Beat Creation
-// Students learn how to create rhythmic phrases that convey energy and intent
+// STREAMLINED: Reduced from 18 stages to 11 stages for tighter flow
 
 export const LESSON_PROGRESS_KEY = 'lesson4-progress';
 export const LESSON_TIMER_KEY = 'lesson4-timer';
@@ -11,44 +11,30 @@ export const LESSON_TIMER_KEY = 'lesson4-timer';
 export const lessonSections = [
   {
     id: 'introduction',
-    title: '1. Introduction',
-    subtitle: 'Hook → Discussion',
+    title: '1. Hook',
+    subtitle: 'Video Comparison',
     color: 'blue',
-    estimatedTime: 8,
+    estimatedTime: 6,
     stages: [
       {
-        id: 'welcome-intro',
+        id: 'welcome-agenda',
         type: 'summary',
         label: 'Sports Highlight Reel',
-        description: 'Essential question: How do musicians create rhythmic phrases?',
+        description: 'Welcome + Today\'s agenda',
         duration: 1
       },
       {
-        id: 'show-agenda',
-        type: 'summary',
-        label: 'Agenda',
-        description: 'Today: Learn, Build, Create.',
-        duration: 1
-      },
-      {
-        id: 'hook-intro',
-        type: 'summary',
-        label: 'What Makes Sports Music Intense?',
-        description: 'Set up the comparison video.',
-        duration: 1
-      },
-      {
-        id: 'hook-video',
+        id: 'video-hook',
         type: 'demo',
-        label: 'Sports Clip Comparison',
-        description: 'VIDEO: Same clip with/without music.',
+        label: 'No Music vs With Music',
+        description: 'Compare the same video with and without music',
         duration: 3
       },
       {
-        id: 'beat-discussion',
-        type: 'summary',
-        label: 'Beat Discussion',
-        description: 'Discussion: How did the music create energy?',
+        id: 'hook-discussion',
+        type: 'discussion',
+        label: 'What Did You Notice?',
+        description: 'How did the music change how you felt?',
         duration: 2
       }
     ]
@@ -56,129 +42,93 @@ export const lessonSections = [
   {
     id: 'learn',
     title: '2. Learn',
-    subtitle: 'Beat Basics → Demo',
-    color: 'blue',
-    estimatedTime: 8,
+    subtitle: 'Beat Basics',
+    color: 'green',
+    estimatedTime: 5,
     stages: [
       {
         id: 'beat-basics',
         type: 'summary',
         label: 'What is a Beat?',
-        description: 'Rhythm, beat, measure, 4/4 time.',
-        duration: 2
-      },
-      {
-        id: 'drum-kit',
-        type: 'summary',
-        label: 'Three Core Drum Sounds',
-        description: 'Kick, snare, hi-hat and their roles.',
-        duration: 2
+        description: 'Beat, measure, kick, snare, hi-hat',
+        duration: 3
       },
       {
         id: 'beat-demo',
         type: 'demo',
         label: 'Building a Beat',
-        description: 'DEMO: Layer kick → snare → hi-hat.',
-        duration: 2
-      },
-      {
-        id: 'energy-levels',
-        type: 'summary',
-        label: 'How Rhythm Creates Energy',
-        description: 'More notes = more energy. Syncopation = excitement.',
+        description: 'Teacher demo: Layer kick → snare → hi-hat',
         duration: 2
       }
     ]
   },
   {
     id: 'explore',
-    title: '3. Explore',
+    title: '3. Create Beat',
     subtitle: 'Beat Maker Activity',
-    color: 'blue',
-    estimatedTime: 10,
+    color: 'purple',
+    estimatedTime: 8,
     stages: [
-      {
-        id: 'beat-maker-intro',
-        type: 'summary',
-        label: 'Beat Maker Introduction',
-        description: 'How to use the drum grid tool.',
-        duration: 2
-      },
       {
         id: 'beat-maker-activity',
         type: 'activity',
         label: 'Build Your Beat',
+        description: 'Create a beat using the drum grid',
         duration: 8,
         hasTimer: true,
         trackProgress: true,
-        description: 'STUDENTS WORK: Create a 4-bar beat pattern.',
-        bonusDescription: 'Bonus: Try different patterns and tempos!'
+        bonusDescription: 'Try different patterns and kits!'
       }
     ]
   },
   {
     id: 'create',
-    title: '4. Create',
-    subtitle: 'Sports Composition',
-    color: 'blue',
-    estimatedTime: 14,
+    title: '4. Compose',
+    subtitle: 'Score the Video',
+    color: 'orange',
+    estimatedTime: 13,
     stages: [
       {
         id: 'composition-instructions',
         type: 'summary',
         label: 'Composition Requirements',
-        description: 'Original beat + 3 loops, match sports energy.',
-        duration: 1
-      },
-      {
-        id: 'composition-reminder',
-        type: 'summary',
-        label: 'Remember',
-        description: 'Beat = foundation. Loops = color.',
+        description: 'Beat + 3 loops, match the energy',
         duration: 1
       },
       {
         id: 'sports-composition',
         type: 'activity',
         label: 'Score the Sports Highlight',
+        description: 'Combine your beat with loops',
         duration: 12,
         hasTimer: true,
         trackProgress: true,
-        description: 'STUDENTS WORK: Score sports video with beat + loops.',
-        bonusDescription: 'Bonus: Build intensity as the action builds!'
+        bonusDescription: 'Build intensity as the action builds!'
       }
     ]
   },
   {
     id: 'reflect',
     title: '5. Reflect',
-    subtitle: 'Two Stars and a Wish',
-    color: 'blue',
-    estimatedTime: 4,
+    subtitle: 'Beat Spotlight',
+    color: 'teal',
+    estimatedTime: 3,
     stages: [
-      {
-        id: 'reflection-instructions',
-        type: 'summary',
-        label: 'Two Stars and a Wish',
-        description: 'Explain the reflection prompts.',
-        duration: 1
-      },
       {
         id: 'reflection-activity',
         type: 'activity',
-        label: 'Reflection',
+        label: 'Beat Spotlight',
+        description: 'Reflect on your rhythmic choices',
         duration: 3,
         hasTimer: true,
-        trackProgress: true,
-        description: 'STUDENTS WORK: Complete Two Stars and a Wish reflection.',
-        bonusDescription: 'Bonus: Play Name That Loop with a partner.'
+        trackProgress: true
       }
     ]
   },
   {
     id: 'conclusion',
-    title: '6. Conclusion',
-    subtitle: 'Share → Key Insight',
+    title: '6. Wrap Up',
+    subtitle: 'Share & Conclude',
     color: 'blue',
     estimatedTime: 3,
     stages: [
@@ -186,23 +136,42 @@ export const lessonSections = [
         id: 'quick-share',
         type: 'discussion',
         label: 'Quick Share',
-        description: '2-3 students play 15 seconds for class.',
+        description: '2-3 students play 15 seconds',
         duration: 2
       },
       {
         id: 'conclusion',
-        type: 'discussion',
+        type: 'summary',
         label: 'Key Insight',
-        description: 'Rhythm is the heartbeat of your music.',
+        description: 'Rhythm is the heartbeat of your music',
         duration: 1
+      }
+    ]
+  },
+  {
+    id: 'bonus',
+    title: '7. Bonus',
+    subtitle: 'Beat Escape Room',
+    color: 'pink',
+    estimatedTime: 10,
+    isBonus: true,
+    stages: [
+      {
+        id: 'beat-escape-room',
+        type: 'activity',
+        label: 'Beat Escape Room',
+        description: 'Partner activity: Create and solve beat puzzles',
+        duration: 10,
+        hasTimer: true,
+        trackProgress: true
       }
     ]
   }
 ];
 
 export const lesson4Config = {
-  id: 'lesson2',
-  lessonPath: '/lessons/film-music-project/lesson2',
+  id: 'lesson4',
+  lessonPath: '/lessons/film-music-project/lesson4',
   title: "Sports Highlight Reel",
   subtitle: "Rhythm & Beat Creation",
   learningObjectives: [
@@ -215,21 +184,29 @@ export const lesson4Config = {
   activities: [
     {
       id: 1,
-      type: "beat-maker",
-      title: "Beat Maker",
+      type: "student-beat-maker",
+      title: "Build Your Beat",
       estimatedTime: "8 min"
     },
     {
       id: 2,
+      type: "beat-escape-room",
+      title: "Beat Escape Room",
+      estimatedTime: "10 min",
+      isBonus: true,
+      description: "Partner activity: Create and solve beat puzzles"
+    },
+    {
+      id: 3,
       type: "sports-composition-activity",
       title: "Sports Composition",
       estimatedTime: "12 min",
       includesVideoSelection: true
     },
     {
-      id: 3,
+      id: 4,
       type: "two-stars-and-a-wish",
-      title: "Two Stars and a Wish",
+      title: "Beat Spotlight",
       estimatedTime: "3 min"
     }
   ]
@@ -237,6 +214,7 @@ export const lesson4Config = {
 
 // ========================================
 // LESSON STAGES - With presentationView data for each stage
+// STREAMLINED: 11 stages total (down from 18)
 // ========================================
 export const lessonStages = [
   {
@@ -246,210 +224,151 @@ export const lessonStages = [
     type: 'waiting'
   },
   {
-    id: 'welcome-intro',
+    id: 'welcome-agenda',
     label: 'Sports Highlight Reel',
-    description: 'Essential question: How do musicians create rhythmic phrases?',
+    description: 'Welcome + Agenda',
     type: 'summary',
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/1.svg'
+      slidePath: '/lessons/film-music-project/lesson4/slides/1-welcome.svg'
     }
   },
   {
-    id: 'show-agenda',
-    label: 'Agenda',
-    description: 'Today: Learn, Build, Create.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/2.svg'
-    }
-  },
-  {
-    id: 'hook-intro',
-    label: 'What Makes Sports Music Intense?',
-    description: 'Set up the comparison video.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/3.svg'
-    }
-  },
-  {
-    id: 'hook-video',
-    label: 'Sports Clip Comparison',
-    description: 'VIDEO: Same clip with/without music.',
+    id: 'video-hook',
+    label: 'No Music vs With Music',
+    description: 'Compare the same video with and without music',
     type: 'demo',
     duration: 3,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/4.svg'
+      type: 'video-comparison'
+      // This tells the component to show the video with toggle buttons
     }
   },
   {
-    id: 'beat-discussion',
-    label: 'Beat Discussion',
-    description: 'Discussion: How did the music create energy?',
-    type: 'summary',
+    id: 'hook-discussion',
+    label: 'What Did You Notice?',
+    description: 'Discussion: How did the music change how you felt?',
+    type: 'discussion',
     duration: 2,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/5.svg'
+      slidePath: '/lessons/film-music-project/lesson4/slides/2-discussion.svg'
     }
   },
   {
     id: 'beat-basics',
     label: 'What is a Beat?',
-    description: 'Rhythm, beat, measure, 4/4 time.',
+    description: 'Beat, measure, and the three core drum sounds',
     type: 'summary',
-    duration: 2,
+    duration: 3,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/6.svg'
-    }
-  },
-  {
-    id: 'drum-kit',
-    label: 'Three Core Drum Sounds',
-    description: 'Kick, snare, hi-hat and their roles.',
-    type: 'summary',
-    duration: 2,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/7.svg'
+      slidePath: '/lessons/film-music-project/lesson4/slides/3-beat-basics.svg'
     }
   },
   {
     id: 'beat-demo',
     label: 'Building a Beat',
-    description: 'DEMO: Layer kick → snare → hi-hat.',
+    description: 'Teacher demo: Layer kick → snare → hi-hat',
     type: 'demo',
     duration: 2,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/8.svg'
-    }
-  },
-  {
-    id: 'energy-levels',
-    label: 'How Rhythm Creates Energy',
-    description: 'More notes = more energy. Syncopation = excitement.',
-    type: 'summary',
-    duration: 2,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/9.svg'
-    }
-  },
-  {
-    id: 'beat-maker-intro',
-    label: 'Beat Maker Introduction',
-    description: 'How to use the drum grid tool.',
-    type: 'summary',
-    duration: 2,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/10.svg'
+      type: 'beat-maker-demo'
+      // Teacher uses live beat maker tool
     }
   },
   {
     id: 'beat-maker-activity',
     label: 'Build Your Beat',
-    description: 'STUDENTS WORK: Create a 4-bar beat pattern.',
-    bonusDescription: 'Bonus: Try different patterns and tempos!',
-    hasProgress: true,
+    description: 'Students create a beat using the drum grid',
+    bonusDescription: 'Try different patterns and kits!',
     type: 'activity',
     hasTimer: true,
+    hasProgress: true,
+    trackProgress: true,
     duration: 8,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/11.svg'
+      slidePath: '/lessons/film-music-project/lesson4/slides/4-activity-beat.svg'
+    }
+  },
+  {
+    id: 'beat-escape-room',
+    label: 'Beat Escape Room',
+    description: 'Partner activity: Create and solve beat puzzles',
+    bonusDescription: 'Challenge a partner to recreate your beat!',
+    type: 'activity',
+    hasTimer: true,
+    hasProgress: true,
+    trackProgress: true,
+    isBonus: true,
+    duration: 10,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson4/slides/4-activity-beat.svg'
     }
   },
   {
     id: 'composition-instructions',
     label: 'Composition Requirements',
-    description: 'Original beat + 3 loops, match sports energy.',
+    description: 'Your beat + 3 loops, match the energy',
     type: 'summary',
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/12.svg'
-    }
-  },
-  {
-    id: 'composition-reminder',
-    label: 'Remember',
-    description: 'Beat = foundation. Loops = color.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/13.svg'
+      slidePath: '/lessons/film-music-project/lesson4/slides/5-composition-instructions.svg'
     }
   },
   {
     id: 'sports-composition',
     label: 'Score the Sports Highlight',
-    description: 'STUDENTS WORK: Score sports video with beat + loops.',
-    bonusDescription: 'Bonus: Build intensity as the action builds!',
-    hasProgress: true,
+    description: 'Combine your beat with loops to score the video',
+    bonusDescription: 'Build intensity as the action builds!',
     type: 'activity',
     hasTimer: true,
+    hasProgress: true,
+    trackProgress: true,
     duration: 12,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/14.svg'
-    }
-  },
-  {
-    id: 'reflection-instructions',
-    label: 'Two Stars and a Wish',
-    description: 'Explain the reflection prompts.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/15.svg'
+      slidePath: '/lessons/film-music-project/lesson4/slides/6-activity-compose.svg'
     }
   },
   {
     id: 'reflection-activity',
-    label: 'Reflection',
-    description: 'STUDENTS WORK: Complete Two Stars and a Wish reflection.',
-    bonusDescription: 'Bonus: Play Name That Loop with a partner.',
-    hasProgress: true,
+    label: 'Beat Spotlight',
+    description: 'Reflect on your rhythmic choices',
     type: 'activity',
     hasTimer: true,
+    hasProgress: true,
+    trackProgress: true,
     duration: 3,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/16.svg'
+      slidePath: '/lessons/film-music-project/lesson4/slides/7-reflection.svg'
     }
   },
   {
     id: 'quick-share',
     label: 'Quick Share',
-    description: '2-3 students play 15 seconds for class.',
+    description: '2-3 students play 15 seconds for the class',
     type: 'discussion',
     duration: 2,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/17.svg'
+      slidePath: '/lessons/film-music-project/lesson4/slides/8-share.svg'
     }
   },
   {
     id: 'conclusion',
     label: 'Key Insight',
-    description: 'Rhythm is the heartbeat of your music.',
-    type: 'discussion',
+    description: 'Rhythm is the heartbeat of your music',
+    type: 'summary',
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/17.svg'
+      slidePath: '/lessons/film-music-project/lesson4/slides/9-conclusion.svg'
     }
   }
 ];
@@ -457,24 +376,18 @@ export const lessonStages = [
 // Helper function to map session stage to activity type
 export const getActivityForStage = (stage) => {
   const stageMap = {
-    'welcome-intro': 'summary',
-    'show-agenda': 'summary',
-    'hook-intro': 'summary',
-    'hook-video': 'demo',
-    'beat-discussion': 'summary',
+    'welcome-agenda': 'summary',
+    'video-hook': 'demo',
+    'hook-discussion': 'discussion',
     'beat-basics': 'summary',
-    'drum-kit': 'summary',
-    'beat-demo': 'demo',
-    'energy-levels': 'summary',
-    'beat-maker-intro': 'summary',
-    'beat-maker-activity': 'beat-maker',
+    'beat-demo': 'beat-maker-demo',  // Teacher demo of beat maker
+    'beat-maker-activity': 'student-beat-maker',  // Student beat creation
+    'beat-escape-room': 'beat-escape-room',  // Partner beat puzzle activity
     'composition-instructions': 'summary',
-    'composition-reminder': 'summary',
     'sports-composition': 'sports-composition-activity',
-    'reflection-instructions': 'summary',
-    'reflection-activity': 'two-stars-and-a-wish',
+    'reflection-activity': 'sports-composition-activity',  // Uses same reflection component
     'quick-share': 'discussion',
-    'conclusion': 'discussion'
+    'conclusion': 'summary'
   };
   return stageMap[stage];
 };

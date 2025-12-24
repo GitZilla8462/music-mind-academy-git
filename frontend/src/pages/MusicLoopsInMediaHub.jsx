@@ -239,7 +239,7 @@ const MusicLoopsInMediaHub = () => {
             Create soundtracks for video — the way professionals do it.
           </p>
           <p className="text-base text-slate-600">
-            6 lessons  •  ~40 min each  •  Grades 6-8
+            4 lessons  •  ~40 min each  •  Grades 6-8
           </p>
         </div>
       </div>

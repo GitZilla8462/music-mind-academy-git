@@ -79,7 +79,7 @@ const WildlifeCompositionActivity = ({
   // Session mode detection
   const { getCurrentStage } = useSession();
   const currentStage = isSessionMode ? getCurrentStage() : null;
-  const isReflectionStage = currentStage === 'reflection';
+  const isReflectionStage = currentStage === 'reflection' || currentStage === 'reflection-activity';
   
   // Video selection state
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -537,8 +537,8 @@ const WildlifeCompositionActivity = ({
     );
   }
   
-  // LOADING STATE
-  if ((isLoadingVideo || (!selectedVideo && !showVideoSelection) || detectingDurations) && !viewMode) {
+  // LOADING STATE - Skip if in reflection mode (modal can show while loading)
+  if ((isLoadingVideo || (!selectedVideo && !showVideoSelection) || detectingDurations) && !viewMode && !isReflectionStage) {
     return (
       <div className="h-full flex items-center justify-center bg-gray-900">
         <div className="text-white text-center">

@@ -42,6 +42,12 @@ import LoopLabActivity from '../activities/loop-lab/LoopLabActivity';
 // ✅ ADDED: Beat Maker drum grid for Lesson 2 (Rhythm & Beat Creation)
 import BeatMakerActivity from '../activities/beat-maker';
 
+// ✅ ADDED: Student Beat Maker for Lesson 4 (Form & Structure)
+import { StudentBeatMakerActivity } from '../activities/beat-maker';
+
+// ✅ ADDED: Beat Escape Room partner activity for Lesson 4 (Form & Structure)
+import { BeatEscapeRoomActivity } from '../activities/beat-escape-room';
+
 const ActivityRenderer = ({
   activity,
   onComplete,
@@ -292,11 +298,47 @@ const ActivityRenderer = ({
         />
       );
 
+    // ✅ ADDED: Student Beat Maker (Lesson 4 - Form & Structure)
+    // Uses the new BeatMakerPanel for students to create custom beats
+    case 'student-beat-maker':
+      return (
+        <StudentBeatMakerActivity
+          key={`student-beat-maker-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Teacher Beat Maker Demo (Lesson 4 - Form & Structure)
+    // Same as student but in teacher demo mode
+    case 'beat-maker-demo':
+      return (
+        <StudentBeatMakerActivity
+          key={`beat-maker-demo-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+          isTeacherDemo={true}
+        />
+      );
+
     // ✅ ADDED: Beat Spotlight Reflection (Lesson 2 - Rhythm & Beat Creation)
     case 'beat-spotlight':
       return (
         <TwoStarsAndAWishActivity
           key={`beat-spotlight-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Beat Escape Room partner activity (Lesson 4 - Form & Structure)
+    case 'beat-escape-room':
+      return (
+        <BeatEscapeRoomActivity
+          key={`beat-escape-room-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}

@@ -1,0 +1,49 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Activity badge -->
+  <rect x="1500" y="80" width="320" height="60" rx="30" fill="#a855f7"/>
+  <text x="1660" y="122" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white" text-anchor="middle" font-weight="bold">ACTIVITY TIME</text>
+
+  <!-- Drum icon -->
+  <text x="192" y="200" font-size="80">🥁</text>
+
+  <!-- Title -->
+  <text x="300" y="200" font-family="Arial, Helvetica, sans-serif" font-size="72" fill="white" font-weight="bold">BUILD YOUR BEAT</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="230" width="500" height="3" fill="#a855f7" opacity="0.7"/>
+
+  <!-- Checklist -->
+  <text x="192" y="460" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#e2e8f0" font-weight="bold">YOUR MISSION:</text>
+
+  <rect x="192" y="500" width="1536" height="80" rx="12" fill="#1e293b" stroke="#ef4444" stroke-width="2"/>
+  <rect x="230" y="525" width="30" height="30" rx="4" fill="none" stroke="#ef4444" stroke-width="2"/>
+  <text x="290" y="552" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white">Add a KICK drum pattern on beats 1 and 3</text>
+
+  <rect x="192" y="600" width="1536" height="80" rx="12" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+  <rect x="230" y="625" width="30" height="30" rx="4" fill="none" stroke="#f59e0b" stroke-width="2"/>
+  <text x="290" y="652" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white">Add a SNARE pattern on beats 2 and 4</text>
+
+  <rect x="192" y="700" width="1536" height="80" rx="12" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+  <rect x="230" y="725" width="30" height="30" rx="4" fill="none" stroke="#10b981" stroke-width="2"/>
+  <text x="290" y="752" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white">Layer in HI-HAT for momentum</text>
+
+  <!-- Tip box -->
+  <rect x="192" y="850" width="1536" height="100" rx="12" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
+  <text x="232" y="890" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#fbbf24" font-weight="bold">💡 TIP:</text>
+  <text x="330" y="890" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="white">Start simple, then experiment!</text>
+  <text x="232" y="930" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#94a3b8">Try different patterns and tempos to find your style.</text>
+</svg>

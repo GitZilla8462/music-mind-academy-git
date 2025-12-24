@@ -14,7 +14,7 @@ export const useComposerEffects = ({
   tutorialMode,
   isDemo,
   isPractice,
-  
+
   // State
   selectedVideo,
   setSelectedVideo,
@@ -37,7 +37,7 @@ export const useComposerEffects = ({
   containerRef,
   currentTime,
   lockFeatures,
-  
+
   // Functions
   showToast,
   navigate,
@@ -47,9 +47,13 @@ export const useComposerEffects = ({
   handlePlay,
   handleRestart,
   isPlaying,
-  
+
   // NEW: Universal composition key for save/load
-  compositionKey = null
+  compositionKey = null,
+
+  // NEW: Custom loops (Beat Maker)
+  customLoops = [],
+  setCustomLoops = null
 }) => {
   
   // Track if we've already loaded a video to prevent re-initialization
@@ -163,40 +167,60 @@ export const useComposerEffects = ({
   // ============================================================================
   // AUTO-SAVE - NOW WORKS IN ALL MODES (including tutorial/lesson mode)
   // Uses compositionKey if provided, otherwise falls back to other identifiers
+  // Now includes customLoops (Beat Maker beats) - saves pattern data for re-rendering
   // ============================================================================
   useEffect(() => {
     // Create a save key - use compositionKey first, then fallback chain
     const saveKey = compositionKey
-      || assignmentId 
-      || videoId 
-      || preselectedVideo?.id 
-      || preselectedVideo?.videoPath 
+      || assignmentId
+      || videoId
+      || preselectedVideo?.id
+      || preselectedVideo?.videoPath
       || 'default-composition';
-    
-    // Only save if there are changes AND we have loops to save
-    if (hasUnsavedChanges && placedLoops.length > 0) {
+
+    // Only save if there are changes AND we have content to save
+    const hasContent = placedLoops.length > 0 || customLoops.length > 0;
+    if (hasUnsavedChanges && hasContent) {
       const autoSave = setTimeout(() => {
+        // Save custom loops with pattern data (exclude blob URLs which don't persist)
+        const customLoopsToSave = customLoops.map(loop => ({
+          id: loop.id,
+          name: loop.name,
+          instrument: loop.instrument,
+          mood: loop.mood,
+          color: loop.color,
+          category: loop.category,
+          duration: loop.duration,
+          type: loop.type,
+          bpm: loop.bpm,
+          kit: loop.kit,
+          steps: loop.steps,
+          pattern: loop.pattern // The grid data for re-rendering
+        }));
+
         const compositionData = {
           selectedVideo,
           placedLoops,
           submissionNotes,
           videoId,
+          customLoops: customLoopsToSave,
           lastModified: new Date().toISOString()
         };
-        
+
         localStorage.setItem(`composition-${saveKey}`, JSON.stringify(compositionData));
         // Reduced logging - only log count, not full key
-        console.log(`✅ Auto-saved: ${placedLoops.length} loops`);
+        console.log(`✅ Auto-saved: ${placedLoops.length} loops, ${customLoops.length} custom beats`);
       }, 2000);
 
       return () => clearTimeout(autoSave);
     }
-  }, [placedLoops, submissionNotes, hasUnsavedChanges, assignmentId, selectedVideo, videoId, preselectedVideo, compositionKey]);
+  }, [placedLoops, submissionNotes, hasUnsavedChanges, assignmentId, selectedVideo, videoId, preselectedVideo, compositionKey, customLoops]);
 
   // ============================================================================
   // LOAD SAVED COMPOSITION ON MOUNT - NOW WORKS IN ALL MODES
   // Uses compositionKey if provided, otherwise falls back to other identifiers
   // FIXED: Skip if loops were already provided via props (e.g., from SchoolBeneathActivity)
+  // Now includes customLoops (Beat Maker beats) - marks them for re-rendering
   // ============================================================================
   useEffect(() => {
     // Only load once to prevent overwriting user's work during the session
@@ -224,17 +248,40 @@ export const useComposerEffects = ({
         const data = JSON.parse(saved);
         if (data.placedLoops && data.placedLoops.length > 0) {
           console.log('📂 Loaded saved composition:', data.placedLoops.length, 'loops');
-          setPlacedLoops(data.placedLoops);
+          // Mark custom beats as needing re-render (blob URLs don't persist)
+          const restoredLoops = data.placedLoops.map(loop => {
+            if (loop.type === 'custom-beat' && loop.pattern) {
+              return {
+                ...loop,
+                needsRender: true  // Flag for re-rendering
+              };
+            }
+            return loop;
+          });
+          setPlacedLoops(restoredLoops);
           hasLoadedSavedCompositionRef.current = true;
         }
         if (data.submissionNotes) {
           setSubmissionNotes(data.submissionNotes);
         }
+        // Load custom loops (Beat Maker beats) - mark as needing re-rendering
+        if (data.customLoops && data.customLoops.length > 0 && setCustomLoops) {
+          console.log('📂 Loaded saved custom beats:', data.customLoops.length);
+          // Mark loops as needing audio re-render (no blob URL)
+          const restoredCustomLoops = data.customLoops.map(loop => ({
+            ...loop,
+            file: null, // Blob URL doesn't persist - needs re-rendering
+            needsRender: true, // Flag for re-rendering
+            loaded: false,
+            accessible: false
+          }));
+          setCustomLoops(restoredCustomLoops);
+        }
       } catch (error) {
         console.error('Error loading saved composition:', error);
       }
     }
-  }, [assignmentId, videoId, preselectedVideo, setPlacedLoops, setSubmissionNotes, compositionKey, placedLoops]);
+  }, [assignmentId, videoId, preselectedVideo, setPlacedLoops, setSubmissionNotes, compositionKey, placedLoops, setCustomLoops]);
 
   // Auto-initialize audio for all modes
   useEffect(() => {

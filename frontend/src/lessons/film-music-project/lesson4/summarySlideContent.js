@@ -1,144 +1,73 @@
-// File: /src/lessons/film-music-project/lesson2/summarySlideContent.js
-// All instructional text and content for Lesson 2 - Sports Highlights (Rhythm & Beat Creation)
+// File: /src/lessons/film-music-project/lesson4/summarySlideContent.js
+// All instructional text and content for Lesson 4 - Sports Highlights (Rhythm & Beat Creation)
+// STREAMLINED: Updated for 11-stage lesson flow
 
 // ========================================
-// 1. PRE-ACTIVITY SUMMARY SLIDES
+// 1. SUMMARY SLIDES (Streamlined)
 // ========================================
 export const summarySlides = {
-  welcomeIntro: {
+  welcomeAgenda: {
     title: "Sports Highlight Reel",
+    subtitle: "Rhythm & Beat Creation",
     estimatedTime: "1 minute",
-    points: [
-      "Today you'll score a sports highlight video with music.",
-      "Learn how rhythm and beats create energy.",
-      "Create your own beat and combine it with loops."
-    ]
+    agenda: [
+      "1. WATCH - Compare video with/without music",
+      "2. LEARN - How beats create energy",
+      "3. CREATE - Build your own beat + score a video"
+    ],
+    essentialQuestion: "How does rhythm create energy in music?"
   },
 
-  agenda: {
-    title: "Today's Agenda",
-    estimatedTime: "1 minute",
-    points: [
-      "1. LEARN - What makes a beat work",
-      "2. BUILD - Create your own beat pattern",
-      "3. CREATE - Score a sports video"
-    ]
-  },
-
-  hookIntro: {
-    title: "What Makes Sports Music Intense?",
-    estimatedTime: "1 minute",
-    points: [
-      "We're going to watch the same sports clip twice.",
-      "First WITHOUT music, then WITH music.",
-      "Pay attention to how you feel during each."
-    ]
-  },
-
-  hookVideo: {
-    title: "Sports Clip Comparison",
-    estimatedTime: "3 minutes",
-    points: [
-      "Watch the video WITHOUT music first.",
-      "Then watch WITH sports music.",
-      "Notice the difference rhythm makes!"
-    ]
-  },
-
-  beatDiscussion: {
-    title: "Beat Discussion",
+  hookDiscussion: {
+    title: "What Did You Notice?",
     estimatedTime: "2 minutes",
-    points: [
+    questions: [
       "How did the music change how you felt?",
       "What did you notice about the rhythm?",
-      "How did the beat match the action?"
+      "Which version made the action feel more exciting?"
     ]
   },
 
   beatBasics: {
     title: "What is a Beat?",
-    estimatedTime: "2 minutes",
-    points: [
-      "BEAT: The steady pulse you can clap to.",
-      "MEASURE: A group of 4 beats (1-2-3-4).",
-      "4/4 TIME: Four beats per measure - most common in music.",
-      "The beat is the heartbeat of your music."
-    ]
-  },
-
-  drumKit: {
-    title: "Three Core Drum Sounds",
-    estimatedTime: "2 minutes",
+    estimatedTime: "3 minutes",
+    concepts: [
+      {
+        term: "BEAT",
+        definition: "The steady pulse you can clap to"
+      },
+      {
+        term: "MEASURE",
+        definition: "A group of 4 beats (1-2-3-4)"
+      }
+    ],
     drumSounds: [
-      { name: "Kick Drum", description: "Low, deep foundation - the heartbeat", color: "#ef4444" },
-      { name: "Snare Drum", description: "Sharp, cracking sound - creates the backbeat", color: "#f59e0b" },
-      { name: "Hi-Hat", description: "Metallic, ticking sound - creates momentum", color: "#10b981" }
-    ]
-  },
-
-  beatDemo: {
-    title: "Building a Beat",
-    estimatedTime: "2 minutes",
-    points: [
-      "Step 1: Start with KICK on beats 1 and 3.",
-      "Step 2: Add SNARE on beats 2 and 4.",
-      "Step 3: Layer HI-HAT throughout for momentum.",
-      "Together: You have a basic beat!"
-    ]
-  },
-
-  energyLevels: {
-    title: "How Rhythm Creates Energy",
-    estimatedTime: "2 minutes",
-    points: [
-      "MORE notes = MORE energy.",
-      "FEWER notes = Less energy, more space.",
-      "SYNCOPATION (off-beat notes) = Excitement!",
-      "You control the intensity with your choices."
-    ]
-  },
-
-  beatMakerIntro: {
-    title: "Beat Maker Introduction",
-    estimatedTime: "2 minutes",
-    points: [
-      "You'll use a drum grid to create beats.",
-      "Click squares to add sounds to each step.",
-      "16 steps = 4 measures of music.",
-      "Start simple, then add complexity!"
+      {
+        name: "Kick Drum",
+        role: "The heartbeat (beats 1 & 3)",
+        color: "#ef4444"
+      },
+      {
+        name: "Snare Drum",
+        role: "The backbeat (beats 2 & 4)",
+        color: "#f59e0b"
+      },
+      {
+        name: "Hi-Hat",
+        role: "The momentum (all beats)",
+        color: "#10b981"
+      }
     ]
   },
 
   compositionInstructions: {
-    title: "Composition Requirements",
+    title: "Score the Sports Video",
     estimatedTime: "1 minute",
-    points: [
-      "Create an original beat using the Beat Maker.",
-      "Add 3+ loops from the library to your beat.",
-      "Match the energy of the sports video.",
-      "Build intensity as the action builds!"
-    ]
-  },
-
-  compositionReminder: {
-    title: "Remember",
-    estimatedTime: "1 minute",
-    points: [
-      "Your BEAT is the foundation.",
-      "Your LOOPS add color and texture.",
-      "The rhythm drives the energy.",
-      "Save your work!"
-    ]
-  },
-
-  reflectionInstructions: {
-    title: "Beat Spotlight",
-    estimatedTime: "1 minute",
-    points: [
-      "Describe your beat pattern.",
-      "Explain how it matches the video action.",
-      "What would you change next time?",
-      "Be specific about your rhythmic choices!"
+    requirements: [
+      "Use your beat from the Beat Maker",
+      "Add 3+ loops from the library",
+      "Match the energy of the action",
+      "Build intensity as the video builds"
     ]
   },
 
@@ -156,11 +85,12 @@ export const summarySlides = {
   conclusion: {
     title: "Today's Key Insight",
     estimatedTime: "1 minute",
-    points: [
-      "Rhythm is the heartbeat of your music.",
-      "You control the energy.",
-      "Kick creates the foundation. Snare creates the backbeat.",
-      "Hi-hat creates momentum. Together they drive the action."
+    mainPoint: "Rhythm is the heartbeat of your music",
+    takeaways: [
+      "KICK = Foundation",
+      "SNARE = Backbeat",
+      "HI-HAT = Momentum",
+      "Together they DRIVE the action!"
     ]
   }
 };

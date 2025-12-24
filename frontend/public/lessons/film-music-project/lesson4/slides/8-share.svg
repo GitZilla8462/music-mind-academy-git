@@ -1,0 +1,47 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Speaker icon -->
+  <text x="192" y="200" font-size="80">🔊</text>
+
+  <!-- Title -->
+  <text x="300" y="200" font-family="Arial, Helvetica, sans-serif" font-size="72" fill="white" font-weight="bold">QUICK SHARE</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="230" width="400" height="3" fill="#fbbf24" opacity="0.7"/>
+
+  <!-- Main content -->
+  <rect x="192" y="320" width="1536" height="150" rx="16" fill="#1e293b" stroke="#fbbf24" stroke-width="3"/>
+  <text x="960" y="385" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="white" text-anchor="middle" font-weight="bold">2-3 students will play</text>
+  <text x="960" y="440" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#fbbf24" text-anchor="middle" font-weight="bold">15 seconds of their work</text>
+
+  <!-- Listen for section -->
+  <text x="192" y="560" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#e2e8f0" font-weight="bold">LISTEN FOR:</text>
+
+  <rect x="192" y="600" width="1536" height="80" rx="12" fill="#1e293b" stroke="#ef4444" stroke-width="2"/>
+  <text x="232" y="652" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#ef4444" font-weight="bold">🥁</text>
+  <text x="290" y="652" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white">Their beat pattern - What sounds did they choose?</text>
+
+  <rect x="192" y="700" width="1536" height="80" rx="12" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+  <text x="232" y="752" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#3b82f6" font-weight="bold">🎯</text>
+  <text x="290" y="752" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white">How it matches the action - Does the energy fit?</text>
+
+  <rect x="192" y="800" width="1536" height="80" rx="12" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+  <text x="232" y="852" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#10b981" font-weight="bold">✨</text>
+  <text x="290" y="852" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white">Creative rhythmic choices - What makes it unique?</text>
+
+  <!-- Encouragement -->
+  <text x="960" y="980" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#94a3b8" text-anchor="middle">Celebrate each other's creative decisions!</text>
+</svg>

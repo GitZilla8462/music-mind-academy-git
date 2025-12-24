@@ -15,13 +15,14 @@ import { useLoopHandlers } from './hooks/useLoopHandlers';
 import { usePlaybackHandlers } from './hooks/usePlaybackHandlers';
 import { useComposerEffects } from './hooks/useComposerEffects';
 import { usePreventAccidentalNavigation } from '../../../../hooks/usePreventAccidentalNavigation';
+import { renderBeatToBlob } from '../shared/beatRenderUtils';
 
 // Components
 import ComposerHeader from './components/ComposerHeader';
 import ComposerLayout from './components/ComposerLayout';
 import AudioInitModal from './components/AudioInitModal';
 
-const MusicComposer = ({ 
+const MusicComposer = ({
   showToast,
   isDemo = false,
   isPractice = false,
@@ -55,7 +56,11 @@ const MusicComposer = ({
   // NEW: Universal composition key for auto-save/load
   // Examples: "city-composition", "sports-composition", "lesson1-activity"
   // If not provided, falls back to videoPath or assignmentId
-  compositionKey = null
+  compositionKey = null,
+  // NEW: Enable creator tools (Beat Maker panel)
+  showCreatorTools = false,
+  // NEW: Initial custom loops (e.g., beats from StudentBeatMakerActivity)
+  initialCustomLoops = null
 }) => {
   const { videoId, assignmentId } = useParams();
   const navigate = useNavigate();
@@ -63,6 +68,26 @@ const MusicComposer = ({
   const dawReadyCalledRef = useRef(false);
   const initialLoopsLoadedRef = useRef(false);
   const [currentlyPlayingPreview, setCurrentlyPlayingPreview] = useState(null);
+
+  // Creator tools state (Beat Maker panel)
+  const [creatorMenuOpen, setCreatorMenuOpen] = useState(false);
+  const [beatMakerOpen, setBeatMakerOpen] = useState(false);
+  // Initialize with initialCustomLoops if provided, otherwise empty array
+  // initialCustomLoops may come from StudentBeatMakerActivity saved beats
+  const [customLoops, setCustomLoops] = useState(() => {
+    if (initialCustomLoops && Array.isArray(initialCustomLoops) && initialCustomLoops.length > 0) {
+      console.log('📂 Initializing with', initialCustomLoops.length, 'custom loops from props');
+      // Mark them as needing re-rendering (blob URLs don't persist)
+      return initialCustomLoops.map(loop => ({
+        ...loop,
+        file: null,
+        needsRender: true,
+        loaded: false,
+        accessible: false
+      }));
+    }
+    return [];
+  });
 
   // Central state management FIRST (so selectedVideo exists)
   const {
@@ -132,14 +157,30 @@ const MusicComposer = ({
     playersRef
   } = useAudioEngine(selectedVideo?.duration);
 
+  // 🛑 CLEANUP: Stop audio on component unmount
+  // This prevents music from playing in the background after navigating away
+  useEffect(() => {
+    return () => {
+      console.log('🛑 MusicComposer unmounting - stopping audio');
+      try {
+        if (window.Tone && window.Tone.Transport) {
+          window.Tone.Transport.stop();
+          window.Tone.Transport.cancel();
+        }
+      } catch (e) {
+        console.warn('Audio cleanup error:', e);
+      }
+    };
+  }, []);
+
   // Notify when DAW is ready for tutorial mode
   useEffect(() => {
     // For tutorial mode: DAW is ready once audio initializes (no video needed)
     // For normal mode: DAW is ready when we have video AND audio
-    const isDawReady = tutorialMode 
+    const isDawReady = tutorialMode
       ? audioReady && !videoLoading  // Tutorial just needs audio
       : selectedVideo && audioReady && !videoLoading;  // Normal needs video + audio
-    
+
     if (isDawReady && !dawReadyCalledRef.current && onDAWReadyCallback) {
       console.log('✅ DAW is fully initialized - calling onDAWReadyCallback');
       console.log('   - tutorialMode:', tutorialMode);
@@ -147,7 +188,7 @@ const MusicComposer = ({
       console.log('   - audioReady:', audioReady);
       console.log('   - videoLoading:', videoLoading);
       dawReadyCalledRef.current = true;
-      
+
       // Use setTimeout to ensure state updates have propagated
       setTimeout(() => {
         onDAWReadyCallback();
@@ -169,29 +210,115 @@ const MusicComposer = ({
     initialLoopsLoadedRef.current = true;
   }, [initialPlacedLoops, setPlacedLoops]);
 
-  // STEP 2: Create audio players when audio becomes ready
+  // STEP 2: Re-render custom beats on timeline that have invalid blob URLs
+  // Custom beats saved with blob URLs lose those URLs on page reload
+  // We detect them by: type === 'custom-beat' && has pattern data && needs re-rendering
+  // We track which beats have been re-rendered using a ref to prevent infinite loops
+  const [customBeatsRendering, setCustomBeatsRendering] = useState(false);
+  const reRenderedBeatsRef = useRef(new Set());
+
+  useEffect(() => {
+    // Find custom beats in placedLoops that need re-rendering
+    // Only re-render beats that have needsRender: true (loaded from localStorage)
+    // Freshly placed beats already have valid blob URLs and don't need re-rendering
+    // Skip beats that have already been re-rendered in this session
+    const customBeatsNeedingRender = placedLoops.filter(loop =>
+      loop.type === 'custom-beat' &&
+      loop.pattern &&
+      loop.needsRender === true &&  // Only re-render beats marked from localStorage load
+      !reRenderedBeatsRef.current.has(loop.id)
+    );
+
+    if (customBeatsNeedingRender.length === 0 || customBeatsRendering) {
+      return;
+    }
+
+    console.log(`🔄 Re-rendering ${customBeatsNeedingRender.length} custom beats on timeline...`);
+    setCustomBeatsRendering(true);
+
+    const renderTimelineBeats = async () => {
+      const updatedPlacedLoops = [...placedLoops];
+      let anyUpdated = false;
+
+      for (const beat of customBeatsNeedingRender) {
+        try {
+          // Mark as re-rendered BEFORE starting to prevent re-triggering
+          reRenderedBeatsRef.current.add(beat.id);
+
+          const { blobURL, duration } = await renderBeatToBlob({
+            pattern: beat.pattern,
+            bpm: beat.bpm,
+            kit: beat.kit,
+            steps: beat.steps
+          });
+
+          // Find and update the beat in placedLoops
+          const index = updatedPlacedLoops.findIndex(l => l.id === beat.id);
+          if (index !== -1) {
+            updatedPlacedLoops[index] = {
+              ...updatedPlacedLoops[index],
+              file: blobURL,
+              duration: duration || updatedPlacedLoops[index].duration,
+              needsRender: false  // Mark as rendered
+            };
+            anyUpdated = true;
+            console.log(`✅ Re-rendered timeline beat: ${beat.name}`);
+          }
+        } catch (error) {
+          console.error(`❌ Failed to re-render timeline beat ${beat.name}:`, error);
+          // Remove from set so it can retry later if needed
+          reRenderedBeatsRef.current.delete(beat.id);
+        }
+      }
+
+      if (anyUpdated) {
+        setPlacedLoops(updatedPlacedLoops);
+      }
+      setCustomBeatsRendering(false);
+    };
+
+    renderTimelineBeats();
+  }, [placedLoops, customBeatsRendering, setPlacedLoops]);
+
+  // STEP 3: Create audio players when audio becomes ready
   // ✅ FIX: Handle BOTH initialPlacedLoops (via savedLoopsRef) AND localStorage-loaded loops (via placedLoops)
   // ✅ OPTIMIZED: Reduced logging for better Chromebook performance
+  // ✅ FIX: Skip custom beats that are still being re-rendered
   useEffect(() => {
-    // Don't proceed if audio isn't ready
-    if (!audioReady) {
+    // Don't proceed if audio isn't ready or custom beats are still rendering
+    if (!audioReady || customBeatsRendering) {
       return;
     }
 
     // ✅ FIX: Use savedLoopsRef if available (from props), otherwise use placedLoops directly (from localStorage)
     const loopsToCheck = savedLoopsRef.current || placedLoops;
-    
+
     if (loopsToCheck.length === 0) {
       return;
     }
 
     // ✅ FIX: Find loops that are missing players (check by ID)
+    // Also skip custom beats with stale blob URLs (they need re-rendering first)
     const loopsWithoutPlayers = loopsToCheck.filter(loop => {
       const hasPlayer = playersRef.current && (
-        playersRef.current.has(loop.id) || 
+        playersRef.current.has(loop.id) ||
         playersRef.current.get(loop.id)
       );
-      return !hasPlayer;
+
+      // Skip loops that already have players
+      if (hasPlayer) return false;
+
+      // Skip custom beats with blob URLs that might be stale (they need re-rendering first)
+      if (loop.type === 'custom-beat' && loop.file && loop.file.startsWith('blob:') && loop.pattern) {
+        // Check if this is a potentially stale blob URL by looking for re-rendered ones in placedLoops
+        const currentLoop = placedLoops.find(l => l.id === loop.id);
+        if (currentLoop && currentLoop.file !== loop.file) {
+          // The loop was updated with a new blob URL, use the new one
+          loop.file = currentLoop.file;
+        }
+      }
+
+      return true;
     });
 
     if (loopsWithoutPlayers.length === 0) {
@@ -199,7 +326,7 @@ const MusicComposer = ({
     }
 
     console.log('🎵 Creating players for', loopsWithoutPlayers.length, 'loops without players...');
-    
+
     // ✅ FIX: Use async function to properly await player creation
     const createMissingPlayers = async () => {
       for (const loop of loopsWithoutPlayers) {
@@ -211,19 +338,19 @@ const MusicComposer = ({
           duration: loop.duration,
           category: loop.category
         };
-        
+
         try {
           await createLoopPlayer(loopData, loop.id);
         } catch (error) {
           console.error('❌ Failed to create player for:', loopData.name, error);
         }
       }
-      
+
       console.log('✅ Audio players created');
     };
-    
+
     createMissingPlayers();
-  }, [audioReady, createLoopPlayer, placedLoops, playersRef]);
+  }, [audioReady, createLoopPlayer, placedLoops, playersRef, customBeatsRendering]);
 
   // Volume control hook
   useVolumeControl({
@@ -294,7 +421,7 @@ const MusicComposer = ({
     tutorialMode
   });
 
-  // All useEffect logic - NOW WITH compositionKey
+  // All useEffect logic - NOW WITH compositionKey and customLoops
   useComposerEffects({
     videoId,
     preselectedVideo,
@@ -332,8 +459,56 @@ const MusicComposer = ({
     handleRestart,
     isPlaying,
     // NEW: Pass compositionKey for universal save/load
-    compositionKey
+    compositionKey,
+    // NEW: Custom loops (Beat Maker) for save/load
+    customLoops,
+    setCustomLoops
   });
+
+  // Re-render custom beats that were loaded from localStorage
+  // These have needsRender: true because blob URLs don't persist
+  useEffect(() => {
+    const beatsNeedingRender = customLoops.filter(loop => loop.needsRender && loop.pattern);
+
+    if (beatsNeedingRender.length === 0) return;
+
+    console.log(`🔄 Re-rendering ${beatsNeedingRender.length} saved custom beats...`);
+
+    const renderBeats = async () => {
+      const updatedLoops = [...customLoops];
+
+      for (const beat of beatsNeedingRender) {
+        try {
+          const { blobURL, duration } = await renderBeatToBlob({
+            pattern: beat.pattern,
+            bpm: beat.bpm,
+            kit: beat.kit,
+            steps: beat.steps
+          });
+
+          // Find and update the beat in the array
+          const index = updatedLoops.findIndex(l => l.id === beat.id);
+          if (index !== -1) {
+            updatedLoops[index] = {
+              ...updatedLoops[index],
+              file: blobURL,
+              duration: duration,
+              needsRender: false,
+              loaded: true,
+              accessible: true
+            };
+          }
+        } catch (error) {
+          console.error(`Failed to re-render beat ${beat.name}:`, error);
+        }
+      }
+
+      setCustomLoops(updatedLoops);
+      console.log('✅ Custom beats re-rendered successfully');
+    };
+
+    renderBeats();
+  }, [customLoops, setCustomLoops]);
 
   // Track state change handler with callback
   const handleTrackStateChange = useCallback((newTrackStates) => {
@@ -366,6 +541,24 @@ const MusicComposer = ({
       navigate(-1);
     }
   };
+
+  // Handle adding custom loops from Beat Maker
+  const handleAddCustomLoop = useCallback((beatLoop) => {
+    setCustomLoops(prev => [...prev, beatLoop]);
+    setBeatMakerOpen(false);
+    showToast?.('Beat added to Loop Library!', 'success');
+  }, [showToast]);
+
+  // Handle deleting custom loops
+  const handleDeleteCustomLoop = useCallback((loopId) => {
+    setCustomLoops(prev => {
+      const loop = prev.find(l => l.id === loopId);
+      if (loop?.file?.startsWith('blob:')) {
+        URL.revokeObjectURL(loop.file);
+      }
+      return prev.filter(l => l.id !== loopId);
+    });
+  }, []);
 
   const handleInitializeAudio = async () => {
     try {
@@ -528,6 +721,15 @@ const MusicComposer = ({
         highlightSelector={highlightSelector}
         currentlyPlayingPreview={currentlyPlayingPreview}
         assignmentPanelContent={assignmentPanelContent}
+        // Creator tools (Beat Maker)
+        showCreatorTools={showCreatorTools}
+        creatorMenuOpen={creatorMenuOpen}
+        setCreatorMenuOpen={setCreatorMenuOpen}
+        beatMakerOpen={beatMakerOpen}
+        setBeatMakerOpen={setBeatMakerOpen}
+        customLoops={customLoops}
+        onAddCustomLoop={handleAddCustomLoop}
+        onDeleteCustomLoop={handleDeleteCustomLoop}
       />
     </div>
   );

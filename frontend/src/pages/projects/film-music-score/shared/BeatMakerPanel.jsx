@@ -1,0 +1,824 @@
+// File: BeatMakerPanel.jsx
+// Compact beat maker panel for the Film Music Score DAW
+// Features: 5 drum tracks, 3 kits, 16/32 steps, WAV export
+// Chromebook optimized: 44px touch targets, efficient rendering
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Play, Square, Trash2, Plus, X, ChevronDown, Circle, Disc, Waves, Hand, CircleDot } from 'lucide-react';
+import * as Tone from 'tone';
+
+// DAW-style icons for each instrument
+const INSTRUMENT_ICONS = {
+  kick: Circle,      // Solid circle for bass drum
+  snare: Disc,       // Disc for snare
+  hihat: Waves,      // Waves for hi-hat
+  clap: Hand,        // Hand for clap
+  openhat: CircleDot // Circle with dot for open hat
+};
+
+// Drum track configuration (KK on top, OH on bottom)
+const INSTRUMENTS = [
+  { id: 'kick', name: 'Kick', color: '#a855f7', shortName: 'KK' },
+  { id: 'snare', name: 'Snare', color: '#f97316', shortName: 'SN' },
+  { id: 'hihat', name: 'Hi-Hat', color: '#06b6d4', shortName: 'HH' },
+  { id: 'clap', name: 'Clap', color: '#ec4899', shortName: 'CP' },
+  { id: 'openhat', name: 'Open Hat', color: '#22c55e', shortName: 'OH' }
+];
+
+// Kit presets with synth parameters
+const KITS = {
+  electronic: {
+    name: 'Electronic',
+    synths: {
+      kick: { pitchDecay: 0.05, octaves: 4, envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 } },
+      snare: { noise: { type: 'white' }, envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.2 } },
+      clap: { noise: { type: 'white' }, envelope: { attack: 0.001, decay: 0.15, sustain: 0, release: 0.15 } },
+      hihat: { frequency: 200, envelope: { attack: 0.001, decay: 0.1, release: 0.01 }, harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5, volume: -10 },
+      openhat: { frequency: 180, envelope: { attack: 0.001, decay: 0.3, release: 0.1 }, harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5, volume: -8 }
+    }
+  },
+  acoustic: {
+    name: 'Acoustic',
+    synths: {
+      kick: { pitchDecay: 0.08, octaves: 3, envelope: { attack: 0.002, decay: 0.3, sustain: 0.02, release: 0.8 } },
+      snare: { noise: { type: 'pink' }, envelope: { attack: 0.002, decay: 0.25, sustain: 0.02, release: 0.25 } },
+      clap: { noise: { type: 'brown' }, envelope: { attack: 0.005, decay: 0.2, sustain: 0.01, release: 0.2 } },
+      hihat: { frequency: 300, envelope: { attack: 0.002, decay: 0.08, release: 0.02 }, harmonicity: 4, modulationIndex: 20, resonance: 3000, octaves: 1.2, volume: -12 },
+      openhat: { frequency: 280, envelope: { attack: 0.002, decay: 0.4, release: 0.15 }, harmonicity: 4, modulationIndex: 20, resonance: 3000, octaves: 1.2, volume: -10 }
+    }
+  },
+  '808': {
+    name: '808',
+    synths: {
+      kick: { pitchDecay: 0.15, octaves: 6, envelope: { attack: 0.001, decay: 0.8, sustain: 0.01, release: 2 } },
+      snare: { noise: { type: 'white' }, envelope: { attack: 0.001, decay: 0.3, sustain: 0, release: 0.3 } },
+      clap: { noise: { type: 'white' }, envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.2 } },
+      hihat: { frequency: 250, envelope: { attack: 0.001, decay: 0.05, release: 0.01 }, harmonicity: 6, modulationIndex: 40, resonance: 5000, octaves: 2, volume: -8 },
+      openhat: { frequency: 220, envelope: { attack: 0.001, decay: 0.25, release: 0.08 }, harmonicity: 6, modulationIndex: 40, resonance: 5000, octaves: 2, volume: -6 }
+    }
+  }
+};
+
+// Mood presets with BPM (matched to loop library)
+// BPM calculated from loop durations: BPM = (beats / duration) × 60
+// Upbeat loops: 7.5755s for 16 beats = 127 BPM
+// Heroic loops: 17.53s for 32 beats = 110 BPM
+// Scary/Mysterious/Hype loops: ~13.7s for 16 beats = 70 BPM
+const MOODS = [
+  { id: 'heroic', name: 'Heroic', emoji: '🦸', bpm: 110, color: '#f59e0b' },
+  { id: 'upbeat', name: 'Upbeat', emoji: '🎉', bpm: 127, color: '#22c55e' },
+  { id: 'hype', name: 'Hype', emoji: '🔥', bpm: 70, color: '#ef4444' },
+  { id: 'mysterious', name: 'Mysterious', emoji: '🔮', bpm: 70, color: '#8b5cf6' },
+  { id: 'scary', name: 'Scary', emoji: '👻', bpm: 70, color: '#6b7280' }
+];
+
+// Preset patterns (order: kick, snare, hihat, clap, openhat)
+const PRESETS = {
+  basic: {
+    name: 'Basic',
+    pattern: [
+      [true, false, false, false, false, false, true, false, true, false, false, false, false, false, true, false], // kick
+      [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false], // snare
+      [true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false], // hihat
+      [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], // clap
+      [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false] // openhat
+    ]
+  },
+  hiphop: {
+    name: 'Hip-Hop',
+    pattern: [
+      [true, false, false, true, false, false, true, false, false, false, true, false, false, false, true, false], // kick
+      [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, true], // snare
+      [true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false], // hihat
+      [false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false], // clap
+      [false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false] // openhat
+    ]
+  },
+  house: {
+    name: 'House',
+    pattern: [
+      [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false], // kick
+      [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false], // snare
+      [true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false], // hihat
+      [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false], // clap
+      [false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false] // openhat
+    ]
+  }
+};
+
+// Convert AudioBuffer to WAV blob
+const audioBufferToWav = (buffer) => {
+  const numChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const format = 1; // PCM
+  const bitDepth = 16;
+
+  const bytesPerSample = bitDepth / 8;
+  const blockAlign = numChannels * bytesPerSample;
+
+  const dataLength = buffer.length * blockAlign;
+  const bufferLength = 44 + dataLength;
+
+  const arrayBuffer = new ArrayBuffer(bufferLength);
+  const view = new DataView(arrayBuffer);
+
+  // RIFF header
+  const writeString = (offset, string) => {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  };
+
+  writeString(0, 'RIFF');
+  view.setUint32(4, bufferLength - 8, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true); // fmt chunk size
+  view.setUint16(20, format, true);
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * blockAlign, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, bitDepth, true);
+  writeString(36, 'data');
+  view.setUint32(40, dataLength, true);
+
+  // Interleave channels and write samples
+  const channels = [];
+  for (let i = 0; i < numChannels; i++) {
+    channels.push(buffer.getChannelData(i));
+  }
+
+  let offset = 44;
+  for (let i = 0; i < buffer.length; i++) {
+    for (let channel = 0; channel < numChannels; channel++) {
+      const sample = Math.max(-1, Math.min(1, channels[channel][i]));
+      const intSample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+      view.setInt16(offset, intSample, true);
+      offset += 2;
+    }
+  }
+
+  return new Blob([arrayBuffer], { type: 'audio/wav' });
+};
+
+const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap = false }) => {
+  // Filter instruments based on hideClap prop
+  const visibleInstruments = hideClap
+    ? INSTRUMENTS.filter(inst => inst.id !== 'clap')
+    : INSTRUMENTS;
+  const [steps, setSteps] = useState(16);
+  const [grid, setGrid] = useState(() => INSTRUMENTS.map(() => Array(16).fill(false)));
+  const [kit, setKit] = useState('electronic');
+  const [bpm, setBpm] = useState(120);
+  const [selectedMood, setSelectedMood] = useState('heroic'); // Default to Heroic
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentStep, setCurrentStep] = useState(-1);
+  const [audioReady, setAudioReady] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [showKitDropdown, setShowKitDropdown] = useState(false);
+  const [showPresetDropdown, setShowPresetDropdown] = useState(false);
+
+  // Handle mood selection - sets BPM automatically
+  const handleMoodSelect = (mood) => {
+    setSelectedMood(mood.id);
+    setBpm(mood.bpm);
+  };
+
+  const synthsRef = useRef(null);
+  const sequenceRef = useRef(null);
+  const gridRef = useRef(grid);
+  const drumSamplesRef = useRef(null); // Pre-rendered drum samples for fast export
+
+  // Keep gridRef in sync
+  useEffect(() => {
+    gridRef.current = grid;
+  }, [grid]);
+
+  // Update steps in grid when step count changes
+  useEffect(() => {
+    setGrid(prev => prev.map(row => {
+      if (row.length === steps) return row;
+      if (steps > row.length) {
+        return [...row, ...Array(steps - row.length).fill(false)];
+      }
+      return row.slice(0, steps);
+    }));
+  }, [steps]);
+
+  // Update BPM when it changes
+  useEffect(() => {
+    if (audioReady) {
+      Tone.Transport.bpm.value = bpm;
+    }
+  }, [bpm, audioReady]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (sequenceRef.current) {
+        try { sequenceRef.current.dispose(); } catch (e) { /* ignore */ }
+      }
+      if (synthsRef.current) {
+        Object.values(synthsRef.current).forEach(synth => {
+          try { synth.dispose(); } catch (e) { /* ignore */ }
+        });
+      }
+      try {
+        Tone.Transport.stop();
+        Tone.Transport.cancel();
+      } catch (e) { /* ignore */ }
+    };
+  }, []);
+
+  // Create synths based on kit
+  const createSynths = useCallback((kitName) => {
+    const kitConfig = KITS[kitName];
+    return {
+      kick: new Tone.MembraneSynth(kitConfig.synths.kick).toDestination(),
+      snare: new Tone.NoiseSynth(kitConfig.synths.snare).toDestination(),
+      clap: new Tone.NoiseSynth(kitConfig.synths.clap).toDestination(),
+      hihat: new Tone.MetalSynth(kitConfig.synths.hihat).toDestination(),
+      openhat: new Tone.MetalSynth(kitConfig.synths.openhat).toDestination()
+    };
+  }, []);
+
+  // Pre-render drum samples for fast export (Chromebook-friendly)
+  const preRenderDrumSamples = useCallback(async (kitName) => {
+    const kitConfig = KITS[kitName];
+    const sampleDuration = 0.5; // 500ms per sample is plenty
+
+    const renderSample = async (createSynth, triggerFn) => {
+      return await Tone.Offline(({ transport }) => {
+        const synth = createSynth();
+        triggerFn(synth);
+        transport.start(0);
+      }, sampleDuration);
+    };
+
+    const samples = {
+      kick: await renderSample(
+        () => new Tone.MembraneSynth(kitConfig.synths.kick).toDestination(),
+        (s) => s.triggerAttackRelease('C1', '8n', 0.01)
+      ),
+      snare: await renderSample(
+        () => new Tone.NoiseSynth(kitConfig.synths.snare).toDestination(),
+        (s) => s.triggerAttackRelease('16n', 0.01)
+      ),
+      clap: await renderSample(
+        () => new Tone.NoiseSynth(kitConfig.synths.clap).toDestination(),
+        (s) => s.triggerAttackRelease('16n', 0.01)
+      ),
+      hihat: await renderSample(
+        () => new Tone.MetalSynth(kitConfig.synths.hihat).toDestination(),
+        (s) => s.triggerAttackRelease('32n', 0.01)
+      ),
+      openhat: await renderSample(
+        () => new Tone.MetalSynth(kitConfig.synths.openhat).toDestination(),
+        (s) => s.triggerAttackRelease('16n', 0.01)
+      )
+    };
+
+    return samples;
+  }, []);
+
+  // Initialize audio
+  const initializeAudio = useCallback(async () => {
+    // Always ensure synths exist (they can be lost after HMR)
+    if (!synthsRef.current) {
+      try {
+        await Tone.start();
+        Tone.Transport.bpm.value = bpm;
+        synthsRef.current = createSynths(kit);
+        console.log('🎵 Created playback synths');
+      } catch (error) {
+        console.error('Failed to create synths:', error);
+        return false;
+      }
+    }
+
+    // Pre-render samples for export if not already done
+    if (!drumSamplesRef.current) {
+      try {
+        console.log('🥁 Pre-rendering drum samples...');
+        drumSamplesRef.current = await preRenderDrumSamples(kit);
+        console.log('✅ Drum samples ready');
+      } catch (error) {
+        console.error('Failed to pre-render samples:', error);
+        // Non-fatal - export just won't work
+      }
+    }
+
+    if (!audioReady) {
+      setAudioReady(true);
+    }
+    return true;
+  }, [audioReady, bpm, kit, createSynths, preRenderDrumSamples]);
+
+  // Update synths when kit changes
+  useEffect(() => {
+    if (!audioReady || !synthsRef.current) return;
+
+    // Dispose old synths
+    Object.values(synthsRef.current).forEach(synth => {
+      try { synth.dispose(); } catch (e) { /* ignore */ }
+    });
+
+    // Create new synths with new kit
+    synthsRef.current = createSynths(kit);
+
+    // Re-render drum samples for new kit
+    preRenderDrumSamples(kit).then(samples => {
+      drumSamplesRef.current = samples;
+      console.log('✅ Drum samples updated for kit:', kit);
+    });
+  }, [kit, audioReady, createSynths, preRenderDrumSamples]);
+
+  // Toggle cell
+  const toggleCell = (instrumentIndex, stepIndex) => {
+    setGrid(prev => {
+      const newGrid = prev.map(row => [...row]);
+      newGrid[instrumentIndex][stepIndex] = !newGrid[instrumentIndex][stepIndex];
+      return newGrid;
+    });
+  };
+
+  // Stop playback
+  const stopPlayback = useCallback(() => {
+    try {
+      Tone.Transport.stop();
+      Tone.Transport.cancel();
+    } catch (e) { /* ignore */ }
+
+    if (sequenceRef.current) {
+      try { sequenceRef.current.dispose(); } catch (e) { /* ignore */ }
+      sequenceRef.current = null;
+    }
+    setIsPlaying(false);
+    setCurrentStep(-1);
+  }, []);
+
+  // Play/stop
+  const togglePlay = async () => {
+    if (isPlaying) {
+      stopPlayback();
+      return;
+    }
+
+    const ready = await initializeAudio();
+    if (!ready) return;
+
+    if (sequenceRef.current) {
+      try { sequenceRef.current.dispose(); } catch (e) { /* ignore */ }
+    }
+
+    try {
+      Tone.Transport.stop();
+      Tone.Transport.cancel();
+      Tone.Transport.position = 0;
+    } catch (e) { /* ignore */ }
+
+    const stepIndices = Array.from({ length: steps }, (_, i) => i);
+
+    sequenceRef.current = new Tone.Sequence(
+      (time, step) => {
+        const currentGrid = gridRef.current;
+
+        INSTRUMENTS.forEach((inst, index) => {
+          if (currentGrid[index][step]) {
+            if (inst.id === 'kick') {
+              synthsRef.current.kick.triggerAttackRelease('C1', '8n', time);
+            } else if (inst.id === 'snare') {
+              synthsRef.current.snare.triggerAttackRelease('16n', time);
+            } else if (inst.id === 'clap') {
+              synthsRef.current.clap.triggerAttackRelease('16n', time);
+            } else if (inst.id === 'hihat') {
+              synthsRef.current.hihat.triggerAttackRelease('32n', time);
+            } else if (inst.id === 'openhat') {
+              synthsRef.current.openhat.triggerAttackRelease('16n', time);
+            }
+          }
+        });
+
+        Tone.Draw.schedule(() => {
+          setCurrentStep(step);
+        }, time);
+      },
+      stepIndices,
+      '16n'
+    );
+
+    sequenceRef.current.start(0);
+    Tone.Transport.start('+0.05');
+    setIsPlaying(true);
+  };
+
+  // Clear grid
+  const clearGrid = () => {
+    if (isPlaying) stopPlayback();
+    setGrid(INSTRUMENTS.map(() => Array(steps).fill(false)));
+  };
+
+  // Load preset
+  const loadPreset = (presetKey) => {
+    if (isPlaying) stopPlayback();
+    const pattern = PRESETS[presetKey].pattern.map(row => {
+      if (steps === 16) return [...row];
+      if (steps === 32) return [...row, ...row]; // Duplicate for 32 steps
+      return row.slice(0, steps);
+    });
+    setGrid(pattern);
+    setShowPresetDropdown(false);
+  };
+
+  // Export to WAV
+  const exportBeat = async () => {
+    setIsExporting(true);
+
+    try {
+      // Calculate duration: 16 steps = 1 bar, 32 steps = 2 bars
+      // Then multiply by 4 to create a longer loop (4 repetitions)
+      const bars = steps === 16 ? 1 : 2;
+      const secondsPerBeat = 60 / bpm;
+      const singlePatternDuration = secondsPerBeat * 4 * bars; // 4 beats per bar
+      const LOOP_REPEATS = 4; // Repeat the pattern 4 times
+      const duration = singlePatternDuration * LOOP_REPEATS;
+
+      console.log(`🥁 Exporting beat: ${steps} steps, ${bpm} BPM, ${bars} bars`);
+      console.log(`   Single pattern: ${singlePatternDuration.toFixed(2)}s, Total: ${duration.toFixed(2)}s`);
+
+      // Use pre-rendered samples for fast, Chromebook-friendly export
+      const samples = drumSamplesRef.current;
+      if (!samples) {
+        console.error('Drum samples not ready');
+        return;
+      }
+
+      // Create output buffer manually by mixing samples
+      const sampleRate = samples.kick.sampleRate;
+      const outputLength = Math.ceil(duration * sampleRate);
+      const outputBuffer = Tone.context.createBuffer(2, outputLength, sampleRate);
+      const leftChannel = outputBuffer.getChannelData(0);
+      const rightChannel = outputBuffer.getChannelData(1);
+
+      const stepDuration = (60 / bpm) / 4;
+      const baseOffset = 0.005;
+
+      // Count and log notes
+      let noteCount = 0;
+      grid.forEach(row => row.forEach(cell => { if (cell) noteCount++; }));
+      console.log(`   📝 Mixing ${noteCount * LOOP_REPEATS} samples...`);
+
+      // Mix samples into output buffer
+      for (let repeat = 0; repeat < LOOP_REPEATS; repeat++) {
+        const repeatOffset = repeat * singlePatternDuration;
+
+        for (let stepIndex = 0; stepIndex < steps; stepIndex++) {
+          const stepTime = baseOffset + repeatOffset + (stepIndex * stepDuration);
+          const startSample = Math.floor(stepTime * sampleRate);
+
+          INSTRUMENTS.forEach((inst, instIndex) => {
+            if (grid[instIndex][stepIndex]) {
+              const sampleBuffer = samples[inst.id];
+              const sampleLeft = sampleBuffer.getChannelData(0);
+              const sampleRight = sampleBuffer.numberOfChannels > 1
+                ? sampleBuffer.getChannelData(1)
+                : sampleLeft;
+
+              // Mix sample into output
+              for (let i = 0; i < sampleLeft.length && startSample + i < outputLength; i++) {
+                leftChannel[startSample + i] += sampleLeft[i];
+                rightChannel[startSample + i] += sampleRight[i];
+              }
+            }
+          });
+        }
+      }
+
+      // Normalize to prevent clipping
+      let maxSample = 0;
+      for (let i = 0; i < outputLength; i++) {
+        maxSample = Math.max(maxSample, Math.abs(leftChannel[i]), Math.abs(rightChannel[i]));
+      }
+      if (maxSample > 1) {
+        const scale = 0.95 / maxSample;
+        for (let i = 0; i < outputLength; i++) {
+          leftChannel[i] *= scale;
+          rightChannel[i] *= scale;
+        }
+      }
+
+      const buffer = outputBuffer;
+
+      console.log(`   ✅ Rendered buffer: ${buffer.duration.toFixed(2)}s`);
+
+      // Convert to WAV
+      const wavBlob = audioBufferToWav(buffer);
+      const blobURL = URL.createObjectURL(wavBlob);
+      console.log(`   ✅ WAV blob created: ${(wavBlob.size / 1024).toFixed(1)}KB`);
+      console.log(`   ✅ Blob URL: ${blobURL}`);
+
+      // Get the mood name for the beat
+      const moodInfo = selectedMood ? MOODS.find(m => m.id === selectedMood) : null;
+      const moodName = moodInfo ? moodInfo.name : 'Custom';
+
+      // Create loop object
+      const beatLoop = {
+        id: `custom-beat-${Date.now()}`,
+        name: `${moodName} Beat ${customLoopCount + 1}`,
+        file: blobURL,
+        instrument: 'Drums',
+        mood: moodName,
+        color: moodInfo?.color || '#dc2626',
+        category: 'Drums',
+        duration: duration,
+        loaded: true,
+        accessible: true,
+        type: 'custom-beat',
+        bpm: bpm,
+        kit: kit,
+        steps: steps,
+        pattern: grid.map(row => [...row])
+      };
+
+      console.log(`   ✅ Beat loop object created:`, beatLoop);
+      console.log(`   📤 Calling onAddToProject...`);
+      onAddToProject(beatLoop);
+      console.log(`   ✅ onAddToProject called successfully`);
+
+    } catch (error) {
+      console.error('Failed to export beat:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Check if grid has any notes
+  const hasNotes = grid.some(row => row.some(cell => cell));
+
+  return (
+    <div className="h-full flex flex-col bg-gray-900 text-white overflow-hidden">
+      {/* Compact Header with Controls */}
+      <div className="flex-shrink-0 bg-gray-800 border-b border-gray-700 px-4 py-2">
+        <div className="flex items-center justify-between gap-4">
+          {/* Left: Title and Close */}
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-bold">Build Your Beat</h2>
+            <button
+              onClick={onClose}
+              className="p-1.5 hover:bg-gray-700 rounded transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Right: Kit, Preset, Steps, BPM */}
+          <div className="flex items-center gap-2">
+            {/* Kit Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowKitDropdown(!showKitDropdown)}
+                className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded text-sm transition-colors"
+              >
+                <span>{KITS[kit].name}</span>
+                <ChevronDown size={14} />
+              </button>
+              {showKitDropdown && (
+                <div className="absolute top-full right-0 mt-1 bg-gray-700 rounded shadow-lg z-20 min-w-28">
+                  {Object.entries(KITS).map(([key, value]) => (
+                    <button
+                      key={key}
+                      onClick={() => { setKit(key); setShowKitDropdown(false); }}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-600 ${kit === key ? 'bg-gray-600' : ''}`}
+                    >
+                      {value.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Preset Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowPresetDropdown(!showPresetDropdown)}
+                className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded text-sm transition-colors"
+              >
+                <span>Presets</span>
+                <ChevronDown size={14} />
+              </button>
+              {showPresetDropdown && (
+                <div className="absolute top-full right-0 mt-1 bg-gray-700 rounded shadow-lg z-20 min-w-28">
+                  {Object.entries(PRESETS).map(([key, value]) => (
+                    <button
+                      key={key}
+                      onClick={() => loadPreset(key)}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-600"
+                    >
+                      {value.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Steps Toggle */}
+            <div className="flex bg-gray-700 rounded overflow-hidden">
+              <button
+                onClick={() => setSteps(16)}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors ${steps === 16 ? 'bg-blue-600' : 'hover:bg-gray-600'}`}
+              >
+                16
+              </button>
+              <button
+                onClick={() => setSteps(32)}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors ${steps === 32 ? 'bg-blue-600' : 'hover:bg-gray-600'}`}
+              >
+                32
+              </button>
+            </div>
+
+            {/* BPM Display */}
+            <div className="flex items-center gap-1 bg-gray-700 rounded px-3 py-1.5">
+              <span className="text-sm font-mono font-bold text-white">{bpm}</span>
+              <span className="text-sm text-gray-400">BPM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mood Selector - Compact horizontal */}
+      <div className="flex-shrink-0 px-4 py-2 bg-gray-800/50 border-b border-gray-700">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-400 mr-2">Mood:</span>
+          {MOODS.map((mood) => {
+            const isSelected = selectedMood === mood.id;
+            return (
+              <button
+                key={mood.id}
+                onClick={() => handleMoodSelect(mood)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${
+                  isSelected
+                    ? 'ring-2 ring-offset-1 ring-offset-gray-900'
+                    : 'bg-gray-700/50 hover:bg-gray-700'
+                }`}
+                style={{
+                  backgroundColor: isSelected ? mood.color : undefined,
+                  ringColor: isSelected ? mood.color : undefined
+                }}
+              >
+                <span className="text-lg leading-none">{mood.emoji}</span>
+                <span className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-gray-300'}`}>
+                  {mood.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Grid Area - Matches teacher demo style */}
+      <div className="flex-1 flex flex-col px-6 py-2 justify-center">
+        {/* Beat Headers - directly above grid */}
+        <div className="flex mb-1" style={{ marginLeft: '120px' }}>
+          {Array(steps / 4).fill(0).map((_, beatIndex) => (
+            <div
+              key={beatIndex}
+              className="flex-1 text-center border-r border-slate-700 last:border-r-0 px-2"
+            >
+              <div className="text-lg font-bold text-white">Beat {beatIndex + 1}</div>
+              <div className="flex justify-around">
+                {[1, 2, 3, 4].map(n => (
+                  <span
+                    key={n}
+                    className={`text-sm font-semibold flex-1 text-center ${
+                      currentStep === beatIndex * 4 + n - 1 && isPlaying
+                        ? 'text-green-400'
+                        : 'text-slate-400'
+                    }`}
+                  >
+                    {n}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Grid rows - fills available space */}
+        <div className="flex flex-col gap-2">
+          {visibleInstruments.map((instrument) => {
+            const instIndex = INSTRUMENTS.findIndex(i => i.id === instrument.id);
+            const hasNotes = grid[instIndex]?.some(cell => cell);
+            const IconComponent = INSTRUMENT_ICONS[instrument.id];
+
+            return (
+              <div
+                key={instrument.id}
+                className={`flex items-center transition-opacity ${hasNotes ? 'opacity-100' : 'opacity-70'}`}
+                style={{ height: '56px' }}
+              >
+                {/* Track label with DAW icon and full name */}
+                <div
+                  className="w-28 flex-shrink-0 flex items-center gap-2 pr-3 justify-end"
+                  style={{ color: instrument.color }}
+                >
+                  {IconComponent && <IconComponent size={20} strokeWidth={2.5} />}
+                  <span className="text-lg font-bold">{instrument.name}</span>
+                </div>
+
+                {/* Beat groups with separators */}
+                <div className="flex flex-1 h-full">
+                  {Array(steps / 4).fill(0).map((_, beatIndex) => (
+                    <div
+                      key={beatIndex}
+                      className={`flex-1 flex gap-1 px-1.5 border-r border-slate-700 last:border-r-0 h-full ${
+                        beatIndex % 2 === 0 ? 'bg-slate-800/30' : ''
+                      }`}
+                      style={{ borderRadius: '6px' }}
+                    >
+                      {[0, 1, 2, 3].map(stepInBeat => {
+                        const stepIndex = beatIndex * 4 + stepInBeat;
+                        const isActive = grid[instIndex][stepIndex];
+                        const isCurrent = currentStep === stepIndex && isPlaying;
+
+                        return (
+                          <button
+                            key={stepIndex}
+                            onClick={() => toggleCell(instIndex, stepIndex)}
+                            className="flex-1 rounded-xl transition-all"
+                            style={{
+                              backgroundColor: isActive
+                                ? (isCurrent ? '#22c55e' : instrument.color)
+                                : 'rgba(255, 255, 255, 0.08)',
+                              border: isActive
+                                ? `3px solid ${instrument.color}`
+                                : '2px solid rgba(255, 255, 255, 0.1)',
+                              boxShadow: isActive
+                                ? `0 0 15px ${instrument.color}50`
+                                : 'none',
+                              transform: isCurrent && isActive ? 'scale(1.05)' : 'scale(1)',
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Bottom Controls - Larger buttons */}
+      <div className="flex-shrink-0 bg-gray-800 border-t border-gray-700 px-4 py-3">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
+          {/* Play/Stop */}
+          <button
+            onClick={togglePlay}
+            className={`flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold text-lg transition-all ${
+              isPlaying
+                ? 'bg-red-600 hover:bg-red-700'
+                : 'bg-green-600 hover:bg-green-700'
+            }`}
+            style={{
+              boxShadow: isPlaying ? '0 0 20px #dc262640' : '0 0 20px #16a34a40'
+            }}
+          >
+            {isPlaying ? <Square size={20} /> : <Play size={20} />}
+            {isPlaying ? 'Stop' : 'Play'}
+          </button>
+
+          {/* Clear */}
+          <button
+            onClick={clearGrid}
+            className="flex items-center gap-2 px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm font-medium transition-colors"
+          >
+            <Trash2 size={18} />
+            Clear
+          </button>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Add to Project */}
+          <button
+            onClick={exportBeat}
+            disabled={!hasNotes || isExporting}
+            className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-lg transition-all ${
+              hasNotes && !isExporting
+                ? 'bg-blue-600 hover:bg-blue-700'
+                : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            <Plus size={20} />
+            {isExporting ? 'Saving...' : 'Save Beat'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default BeatMakerPanel;

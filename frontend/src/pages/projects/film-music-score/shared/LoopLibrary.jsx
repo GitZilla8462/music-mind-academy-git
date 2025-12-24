@@ -10,7 +10,7 @@
 // 5. Added SFX category filter dropdown
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Volume2, Search, Filter, Lock } from 'lucide-react';
+import { Play, Pause, Volume2, Search, Filter, Lock, Trash2, Disc3 } from 'lucide-react';
 import { soundEffects, SFX_CATEGORY_COLORS } from './soundEffectsData';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
@@ -28,10 +28,10 @@ const INSTRUMENT_COLORS = {
   'Other': '#6b7280'
 };
 
-const LoopLibrary = ({ 
-  selectedCategory, 
-  onCategoryChange, 
-  onLoopPreview, 
+const LoopLibrary = ({
+  selectedCategory,
+  onCategoryChange,
+  onLoopPreview,
   onLoopDragStart,
   tutorialMode = false,
   lockFeatures = {},
@@ -39,7 +39,9 @@ const LoopLibrary = ({
   lockedMood = null,
   showSoundEffects = false,
   currentlyPlayingLoopId = null,
-  highlighted = false
+  highlighted = false,
+  customLoops = [],
+  onDeleteCustomLoop
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
@@ -491,6 +493,111 @@ const LoopLibrary = ({
 
       {/* Loop List - CHROMEBOOK FIX APPLIED HERE */}
       <div className="flex-1 overflow-y-auto p-1.5">
+        {/* My Beats Section - Custom loops from Beat Maker */}
+        {customLoops.length > 0 && (
+          <div className="mb-3">
+            <div className="flex items-center gap-1.5 mb-1.5 px-1">
+              <Disc3 size={12} className="text-red-400" />
+              <span className="text-xs font-medium text-gray-300">My Beats</span>
+              <span className="text-xs text-gray-500">({customLoops.length})</span>
+            </div>
+            <div className="space-y-1">
+              {customLoops.map((loop) => {
+                const isThisLoopPlaying = currentlyPlaying === loop.id;
+                const isLoading = loop.needsRender || !loop.file;
+
+                return (
+                  <div
+                    key={loop.id}
+                    className={`group relative rounded p-1.5 transition-colors border ${
+                      isLoading
+                        ? 'bg-gray-800/50 border-gray-700 cursor-wait'
+                        : 'bg-red-900/20 hover:bg-red-900/30 cursor-move border-red-800/50 hover:border-red-700/50'
+                    }`}
+                    draggable={!isLoading && lockFeatures.allowLoopDrag !== false}
+                    onDragStart={(e) => !isLoading && handleDragStart(e, loop)}
+                  >
+                    <div className="flex items-center justify-between gap-1.5">
+                      <div className="flex-1 min-w-0">
+                        <h3 className={`text-xs font-medium truncate leading-tight ${isLoading ? 'text-gray-400' : 'text-white'}`}>
+                          {loop.name}
+                        </h3>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          {isLoading ? (
+                            <span className="text-yellow-400 text-xs animate-pulse" style={{ fontSize: '10px' }}>
+                              Loading...
+                            </span>
+                          ) : (
+                            <>
+                              <span
+                                className="px-1 py-0.5 rounded text-white font-semibold text-xs leading-none"
+                                style={{ backgroundColor: loop.color, fontSize: '10px' }}
+                              >
+                                Beat
+                              </span>
+                              <span className="text-gray-400 text-xs" style={{ fontSize: '10px' }}>
+                                {Math.round(loop.duration)}s
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Play/Stop button - disabled while loading */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          if (!buttonDebouncing && !isLoading) {
+                            handlePlayLoop(loop);
+                          }
+                        }}
+                        disabled={buttonDebouncing || isLoading}
+                        className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+                          isLoading
+                            ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                            : isThisLoopPlaying
+                              ? 'bg-green-600 hover:bg-green-700 text-white'
+                              : 'bg-red-700 hover:bg-red-600 text-white'
+                        }`}
+                        title={isLoading ? "Loading..." : isThisLoopPlaying ? "Stop Preview" : "Play Preview"}
+                      >
+                        {isThisLoopPlaying ? <Pause size={12} /> : <Play size={12} />}
+                      </button>
+
+                      {/* Delete button */}
+                      {onDeleteCustomLoop && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            onDeleteCustomLoop(loop.id);
+                          }}
+                          className="flex-shrink-0 p-1 rounded-full bg-gray-700 hover:bg-red-600 text-gray-400 hover:text-white transition-colors"
+                          title="Delete beat"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
+                    </div>
+
+                    {!isLoading && lockFeatures.allowLoopDrag !== false && (
+                      <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="text-gray-400 text-xs" style={{ fontSize: '9px' }}>Drag</div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Separator if we have both custom loops and regular loops */}
+        {customLoops.length > 0 && filteredLoops.length > 0 && (
+          <div className="border-t border-gray-700 my-2" />
+        )}
+
         <div className="space-y-1">
           {filteredLoops.map((loop) => {
             const restricted = isLoopRestricted(loop);

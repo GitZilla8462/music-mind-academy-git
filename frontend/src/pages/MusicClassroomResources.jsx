@@ -17,7 +17,13 @@ function MusicClassroomResources() {
   // Check if we're in commercial mode (musicmindacademy.com)
   const isCommercialMode = import.meta.env.VITE_SITE_MODE !== 'edu';
   
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(() => {
+    // Initialize from localStorage synchronously to avoid flash of login page
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('classroom-logged-in') === 'true';
+    }
+    return false;
+  });
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [savedComposition, setSavedComposition] = useState(null);
@@ -642,7 +648,7 @@ function MusicClassroomResources() {
                   padding: '4px 10px',
                   borderRadius: '4px'
                 }}>
-                  5 Lessons
+                  4 Lessons
                 </span>
                 <span style={{
                   fontSize: '13px',
@@ -714,7 +720,7 @@ function MusicClassroomResources() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}>2</span>
                 <span style={{ fontSize: '14px', color: '#334155' }}>
-                  <strong>Sports Highlight Reel</strong> — Instrumentation & Timbre
+                  <strong>City Soundscapes</strong> — Texture & Layering
                 </span>
               </div>
 
@@ -729,7 +735,7 @@ function MusicClassroomResources() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}>3</span>
                 <span style={{ fontSize: '14px', color: '#334155' }}>
-                  <strong>City Soundscapes</strong> — Texture & Layering
+                  <strong>Epic Wildlife</strong> — Form & Structure
                 </span>
               </div>
 
@@ -744,7 +750,7 @@ function MusicClassroomResources() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}>4</span>
                 <span style={{ fontSize: '14px', color: '#334155' }}>
-                  <strong>Epic Wildlife</strong> — Form & Structure
+                  <strong>Sports Highlight Reel</strong> — Rhythm & Beat
                 </span>
               </div>
 

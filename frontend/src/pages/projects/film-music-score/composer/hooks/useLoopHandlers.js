@@ -49,6 +49,8 @@ export const useLoopHandlers = ({
     // }
 
     // ✅ CHROMEBOOK OPTIMIZED: Reduced logging
+    // ✅ FIX: Preserve all custom beat properties (pattern, bpm, kit, steps, type)
+    //    These are needed for re-rendering custom beats after page reload
     const newLoop = {
       id: `${loopData.id}-${Date.now()}`,
       originalId: loopData.id,
@@ -61,7 +63,16 @@ export const useLoopHandlers = ({
       startTime,
       endTime: startTime + loopData.duration,
       volume: 1,
-      muted: false
+      muted: false,
+      // Custom beat properties (for re-rendering after page reload)
+      ...(loopData.type === 'custom-beat' && {
+        type: loopData.type,
+        pattern: loopData.pattern,
+        bpm: loopData.bpm,
+        kit: loopData.kit,
+        steps: loopData.steps,
+        mood: loopData.mood
+      })
     };
 
     // ✅ Add loop to UI IMMEDIATELY (optimistic update)

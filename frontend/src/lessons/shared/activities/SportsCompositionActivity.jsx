@@ -13,6 +13,17 @@ import { useSession } from '../../../context/SessionContext';
 import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson4/lesson4StorageUtils';
 import { saveStudentWork, loadStudentWork, getStudentId } from '../../../utils/studentWorkStorage';
 
+// Load saved beats from StudentBeatMakerActivity
+const SAVED_BEATS_KEY = 'lesson4-student-beats';
+const loadSavedBeats = () => {
+  try {
+    const saved = localStorage.getItem(SAVED_BEATS_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+};
+
 const SPORTS_COMPOSITION_DEADLINE = 10 * 60 * 1000; // 10 minutes
 
 // FIXED: Video options WITHOUT hard-coded durations
@@ -93,7 +104,7 @@ const SportsCompositionActivity = ({
   // Session mode detection
   const { getCurrentStage } = useSession();
   const currentStage = isSessionMode ? getCurrentStage() : null;
-  const isReflectionStage = currentStage === 'reflection';
+  const isReflectionStage = currentStage === 'reflection' || currentStage === 'reflection-activity';
   
   // Video selection state
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -125,6 +136,9 @@ const SportsCompositionActivity = ({
   const timerRef = useRef(null);
   const autoAdvanceCalledRef = useRef(false);
   const isSavingRef = useRef(false);
+
+  // Custom beats from StudentBeatMakerActivity
+  const [savedStudentBeats, setSavedStudentBeats] = useState(() => loadSavedBeats());
   
   // ✅ FIXED: Use ref instead of sessionStorage so it resets on page refresh
   const hasLoadedRef = useRef(false);
@@ -225,7 +239,9 @@ const SportsCompositionActivity = ({
           setIsLoadingVideo(true);
         }
       } else {
-        console.error('❌ Video not found for ID:', savedVideoSelection.videoId);
+        // Video ID not found (probably from a different lesson) - show selection screen
+        console.warn('⚠️ Saved video not found for ID:', savedVideoSelection.videoId, '- showing selection screen');
+        setShowVideoSelection(true);
         setIsLoadingVideo(false);
       }
     } else {
@@ -538,8 +554,22 @@ const SportsCompositionActivity = ({
     ));
   };
   
+  // DEBUG: Log render path
+  console.log('🎨 RENDER CHECK:', {
+    previewingVideo: !!previewingVideo,
+    isLoadingVideo,
+    selectedVideo: !!selectedVideo,
+    showVideoSelection,
+    detectingDurations,
+    viewMode,
+    isReflectionStage,
+    showReflection,
+    willShowLoadingScreen: (isLoadingVideo || (!selectedVideo && !showVideoSelection) || detectingDurations) && !viewMode && !isReflectionStage
+  });
+
   // VIDEO PREVIEW FULLSCREEN
   if (previewingVideo) {
+    console.log('🎨 EARLY RETURN: Video preview fullscreen');
     return (
       <div className="fixed inset-0 bg-black z-50 flex flex-col">
         <div className="bg-gradient-to-r from-orange-600 to-red-600 p-4 flex items-center justify-between">
@@ -585,8 +615,9 @@ const SportsCompositionActivity = ({
     );
   }
   
-  // LOADING STATE
-  if ((isLoadingVideo || (!selectedVideo && !showVideoSelection) || detectingDurations) && !viewMode) {
+  // LOADING STATE - Skip if in reflection mode (modal can show while loading)
+  if ((isLoadingVideo || (!selectedVideo && !showVideoSelection) || detectingDurations) && !viewMode && !isReflectionStage) {
+    console.log('🎨 EARLY RETURN: Loading state');
     return (
       <div className="h-full flex items-center justify-center bg-gray-900">
         <div className="text-white text-center">
@@ -596,8 +627,9 @@ const SportsCompositionActivity = ({
       </div>
     );
   }
-  
+
   // MAIN ACTIVITY
+  console.log('🎨 RENDERING MAIN ACTIVITY - showReflection:', showReflection);
   return (
     <div className="h-full flex flex-col bg-gray-900 relative">
       {/* Save Message Toast */}
@@ -694,11 +726,13 @@ const SportsCompositionActivity = ({
             restrictToCategory={null}
             lockedMood={null}
             showSoundEffects={true}
+            showCreatorTools={true}
             hideHeader={true}
             hideSubmitButton={true}
             isLessonMode={true}
             showToast={(msg, type) => console.log(msg, type)}
             initialPlacedLoops={placedLoops}
+            initialCustomLoops={savedStudentBeats}
             readOnly={viewMode || showReflection}
             assignmentPanelContent={null}
           />
@@ -712,6 +746,7 @@ const SportsCompositionActivity = ({
         )}
       </div>
 
+      {showReflection && console.log('🎨 RENDERING SportsReflectionModal')}
       {showReflection && (
         <SportsReflectionModal
           compositionData={{

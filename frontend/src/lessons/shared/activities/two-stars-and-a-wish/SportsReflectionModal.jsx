@@ -7,6 +7,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, Star, Sparkles, Volume2, VolumeX, Minimize2, Maximize2, Smile } from 'lucide-react';
 
 const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, isSessionMode = false }) => {
+  console.log('🎭 SportsReflectionModal MOUNTED', { viewMode, isSessionMode, compositionData: !!compositionData });
+
   // Steps: 1=choose type, 2=listen & share, 3=star1, 4=star2, 5=wish, 6=meme, 7=summary
   const [currentStep, setCurrentStep] = useState(viewMode ? 7 : 1);
   const [reflectionData, setReflectionData] = useState({

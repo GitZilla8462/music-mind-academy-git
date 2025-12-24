@@ -1,0 +1,44 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Activity badge -->
+  <rect x="1500" y="80" width="320" height="60" rx="30" fill="#14b8a6"/>
+  <text x="1660" y="122" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white" text-anchor="middle" font-weight="bold">REFLECTION</text>
+
+  <!-- Sparkle icon -->
+  <text x="192" y="200" font-size="80">✨</text>
+
+  <!-- Title -->
+  <text x="300" y="200" font-family="Arial, Helvetica, sans-serif" font-size="72" fill="white" font-weight="bold">BEAT SPOTLIGHT</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="230" width="450" height="3" fill="#14b8a6" opacity="0.7"/>
+
+  <!-- Reflection prompts -->
+  <rect x="192" y="400" width="1536" height="170" rx="12" fill="#1e293b" stroke="#ef4444" stroke-width="3"/>
+  <text x="232" y="455" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#ef4444" font-weight="bold">YOUR BEAT</text>
+  <text x="232" y="510" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white">Describe your beat pattern.</text>
+  <text x="232" y="550" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#94a3b8">What sounds did you use? What pattern did you create?</text>
+
+  <rect x="192" y="590" width="1536" height="170" rx="12" fill="#1e293b" stroke="#3b82f6" stroke-width="3"/>
+  <text x="232" y="645" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#3b82f6" font-weight="bold">THE MATCH</text>
+  <text x="232" y="700" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white">How does your rhythm match the action?</text>
+  <text x="232" y="740" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#94a3b8">Does the energy build? Do big moments align?</text>
+
+  <rect x="192" y="780" width="1536" height="170" rx="12" fill="#1e293b" stroke="#10b981" stroke-width="3"/>
+  <text x="232" y="835" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#10b981" font-weight="bold">NEXT TIME</text>
+  <text x="232" y="890" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white">What would you try differently?</text>
+  <text x="232" y="930" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#94a3b8">More variation? Different patterns? More intensity?</text>
+</svg>

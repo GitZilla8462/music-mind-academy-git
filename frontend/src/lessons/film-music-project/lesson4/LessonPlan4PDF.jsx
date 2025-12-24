@@ -1,9 +1,10 @@
-// File: /src/lessons/film-music-project/lesson2/LessonPlan2PDF.jsx
+// File: /src/lessons/film-music-project/lesson4/LessonPlan4PDF.jsx
 // Printable lesson plan view for teachers - Sports Highlight Reel
+// Updated to match actual lesson structure
 
 import React from 'react';
 
-const LessonPlan2PDF = () => {
+const LessonPlan4PDF = () => {
   return (
     <div className="min-h-screen bg-white p-8 max-w-5xl mx-auto print:p-4">
       {/* Print Button - Hidden when printing */}
@@ -12,7 +13,7 @@ const LessonPlan2PDF = () => {
           onClick={() => window.print()}
           className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-semibold shadow-md transition-colors"
         >
-          🖨️ Print Lesson Plan
+          Print Lesson Plan
         </button>
         <button
           onClick={() => window.close()}
@@ -27,14 +28,14 @@ const LessonPlan2PDF = () => {
         {/* Header */}
         <div className="border-b-4 border-orange-600 pb-4 mb-6">
           <h1 className="text-3xl font-bold text-orange-900 mb-2">
-            🏀 Lesson 2: Sports Highlight Reel
+            Lesson 4: Sports Highlight Reel
           </h1>
           <p className="text-lg text-gray-700 font-semibold">
-            Instrumentation & Timbre — What sounds create the feeling?
+            Rhythm & Beat — How do rhythmic phrases convey energy?
           </p>
           <div className="flex gap-6 mt-3 text-sm">
             <div><strong>Grade Level:</strong> 6-8</div>
-            <div><strong>Duration:</strong> 40 minutes</div>
+            <div><strong>Duration:</strong> 38 minutes</div>
           </div>
         </div>
 
@@ -44,13 +45,14 @@ const LessonPlan2PDF = () => {
             Lesson Overview
           </h2>
           <p className="text-sm mb-4">
-            Students master the DAW through a guided challenge, then create high-energy music for sports highlights by choosing instruments intentionally.
+            Students discover how rhythm creates energy by comparing video with and without music, learn the core drum sounds (kick, snare, hi-hat), create their own beat, then combine it with loops to score a sports highlight video.
           </p>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">Students Will:</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Learning Objectives:</h3>
           <ul className="list-disc ml-6 space-y-1">
-            <li className="text-sm">Navigate the DAW interface confidently</li>
-            <li className="text-sm">Choose instruments that match the energy</li>
-            <li className="text-sm">Create layered compositions for sports video</li>
+            <li className="text-sm">Explain the role of kick, snare, and hi-hat in creating a beat</li>
+            <li className="text-sm">Create an original 4-bar rhythmic pattern using a drum grid</li>
+            <li className="text-sm">Combine original beats with loops to score a sports video</li>
+            <li className="text-sm">Describe how rhythm creates energy and matches visual action</li>
           </ul>
         </section>
 
@@ -79,10 +81,10 @@ const LessonPlan2PDF = () => {
             </h3>
             <p className="text-sm italic mb-2">Students will understand that...</p>
             <ul className="list-disc ml-6 space-y-1">
-              <li className="text-sm">Different instruments create different timbres (tone colors)</li>
-              <li className="text-sm">Instrumentation choices affect the energy and mood of music</li>
-              <li className="text-sm">Sports music uses specific instruments to create excitement and hype</li>
-              <li className="text-sm">DAW proficiency enables creative expression</li>
+              <li className="text-sm">Rhythm is the foundation that drives energy in music</li>
+              <li className="text-sm">Different drum sounds (kick, snare, hi-hat) serve specific roles in a beat</li>
+              <li className="text-sm">Music transforms how we experience visual media</li>
+              <li className="text-sm">Layering rhythmic elements creates more complex and engaging beats</li>
             </ul>
           </div>
 
@@ -92,35 +94,23 @@ const LessonPlan2PDF = () => {
               Essential Questions:
             </h3>
             <ul className="list-disc ml-6 space-y-1">
-              <li className="text-sm">What sounds create the feeling?</li>
-              <li className="text-sm">How do instrument choices affect the energy of music?</li>
-              <li className="text-sm">What makes sports music sound exciting?</li>
+              <li className="text-sm">How does rhythm create energy in music?</li>
+              <li className="text-sm">What role does each drum sound play in a beat?</li>
+              <li className="text-sm">How can we match musical energy to visual action?</li>
             </ul>
           </div>
 
-          {/* Students will know */}
+          {/* Key Vocabulary */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Students will know...
+              Key Vocabulary:
             </h3>
             <ul className="list-disc ml-6 space-y-1">
-              <li className="text-sm">All DAW controls and their functions</li>
-              <li className="text-sm">How different instruments create different timbres</li>
-              <li className="text-sm">Which instrument families work well for high-energy music</li>
-              <li className="text-sm">How to layer instruments effectively</li>
-            </ul>
-          </div>
-
-          {/* Students will be able to */}
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Students will be able to...
-            </h3>
-            <ul className="list-disc ml-6 space-y-1">
-              <li className="text-sm">Navigate all DAW controls confidently</li>
-              <li className="text-sm">Select instruments intentionally to match energy</li>
-              <li className="text-sm">Create layered compositions with multiple instrument types</li>
-              <li className="text-sm">Reflect on their instrumentation choices</li>
+              <li className="text-sm"><strong>Beat:</strong> The steady pulse that drives the music forward</li>
+              <li className="text-sm"><strong>Measure:</strong> A group of beats (typically 4 beats = 1 measure)</li>
+              <li className="text-sm"><strong>Kick Drum:</strong> Low, deep foundation sound (beats 1 and 3)</li>
+              <li className="text-sm"><strong>Snare Drum:</strong> Sharp, cracking sound that creates the backbeat (beats 2 and 4)</li>
+              <li className="text-sm"><strong>Hi-Hat:</strong> Metallic, ticking sound that creates momentum</li>
             </ul>
           </div>
         </section>
@@ -140,9 +130,9 @@ const LessonPlan2PDF = () => {
               Students compose an original sports highlight soundtrack that demonstrates:
             </p>
             <ul className="list-disc ml-6 space-y-1">
-              <li className="text-sm"><strong>DAW Mastery:</strong> Completes DAW Challenge successfully</li>
-              <li className="text-sm"><strong>Variety:</strong> Uses 5+ different loops with intentional instrument choices</li>
-              <li className="text-sm"><strong>Energy:</strong> Music matches the high-energy feel of sports</li>
+              <li className="text-sm"><strong>Original Beat:</strong> Creates a 4-bar beat using kick, snare, and hi-hat</li>
+              <li className="text-sm"><strong>Layering:</strong> Combines their beat with 3+ loops</li>
+              <li className="text-sm"><strong>Energy Match:</strong> Music matches the energy of the sports video</li>
             </ul>
           </div>
 
@@ -152,10 +142,9 @@ const LessonPlan2PDF = () => {
               Other Evidence:
             </h3>
             <ul className="list-disc ml-6 space-y-1">
-              <li className="text-sm">DAW Challenge completion (formative - DAW proficiency)</li>
-              <li className="text-sm">Real-time progress tracking during composition</li>
-              <li className="text-sm">"Two Stars and a Wish" reflection (self-assessment)</li>
-              <li className="text-sm">Peer sharing and discussion</li>
+              <li className="text-sm">Beat Maker activity completion (formative)</li>
+              <li className="text-sm">Beat Spotlight reflection (self-assessment)</li>
+              <li className="text-sm">Quick Share discussion participation</li>
             </ul>
           </div>
         </section>
@@ -163,13 +152,49 @@ const LessonPlan2PDF = () => {
         {/* STAGE 3: LEARNING PLAN */}
         <section className="mb-8 page-break-before">
           <h2 className="text-2xl font-bold text-orange-800 mb-4 border-b-2 border-orange-300 pb-2">
-            STAGE 3: LEARNING PLAN (40 minutes)
+            STAGE 3: LEARNING PLAN (38 minutes)
           </h2>
 
-          {/* Introduction */}
+          {/* Section 1: Hook */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-blue-50 p-2 rounded">
-              1. Introduction <span className="font-normal text-gray-600">— Discussion & DAW Review (6 min)</span>
+              1. Hook <span className="font-normal text-gray-600">— Video Comparison (6 min)</span>
+            </h3>
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border p-2 text-left w-16">Time</th>
+                  <th className="border p-2 text-left w-48">Activity</th>
+                  <th className="border p-2 text-left">What to Say/Do</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="border p-2">1 min</td>
+                  <td className="border p-2 font-medium">Welcome & Agenda</td>
+                  <td className="border p-2">"Today we're creating music for a sports highlight reel!"</td>
+                </tr>
+                <tr>
+                  <td className="border p-2">3 min</td>
+                  <td className="border p-2 font-medium">No Music vs With Music</td>
+                  <td className="border p-2">
+                    <strong>PLAY VIDEOS:</strong> Show the same sports clip without music, then with music.<br/>
+                    Let students experience the dramatic difference.
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border p-2">2 min</td>
+                  <td className="border p-2 font-medium">Discussion</td>
+                  <td className="border p-2">Ask: "What did you notice? How did the music change how you felt?"</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Section 2: Learn */}
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-green-50 p-2 rounded">
+              2. Learn <span className="font-normal text-gray-600">— Beat Basics (5 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -182,22 +207,33 @@ const LessonPlan2PDF = () => {
               <tbody>
                 <tr>
                   <td className="border p-2">3 min</td>
-                  <td className="border p-2 font-medium">Introduction</td>
-                  <td className="border p-2">Ask: "What sport do you like? What music or feeling goes with it?"</td>
+                  <td className="border p-2 font-medium">What is a Beat?</td>
+                  <td className="border p-2">
+                    Explain: Beat, measure, and the three core drum sounds:<br/>
+                    • <strong>Kick:</strong> Low foundation (beats 1 & 3)<br/>
+                    • <strong>Snare:</strong> Sharp backbeat (beats 2 & 4)<br/>
+                    • <strong>Hi-Hat:</strong> Momentum keeper
+                  </td>
                 </tr>
                 <tr>
-                  <td className="border p-2">3 min</td>
-                  <td className="border p-2 font-medium">DAW Review</td>
-                  <td className="border p-2">Quick refresher on DAW controls from Lesson 1</td>
+                  <td className="border p-2">2 min</td>
+                  <td className="border p-2 font-medium">Building a Beat Demo</td>
+                  <td className="border p-2">
+                    <strong>TEACHER DEMO:</strong> Use the beat builder to show layering:<br/>
+                    Step 1: Add kick on beats 1 & 3<br/>
+                    Step 2: Add snare on beats 2 & 4<br/>
+                    Step 3: Add hi-hat pattern<br/>
+                    Step 4: Listen to the complete beat
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          {/* DAW Challenge */}
+          {/* Section 3: Create Beat */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-purple-50 p-2 rounded">
-              2. Practice <span className="font-normal text-gray-600">— DAW Challenge (7 min)</span>
+              3. Create Beat <span className="font-normal text-gray-600">— Beat Maker Activity (8 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -209,22 +245,24 @@ const LessonPlan2PDF = () => {
               </thead>
               <tbody>
                 <tr className="bg-green-50">
-                  <td className="border p-2">7 min</td>
-                  <td className="border p-2 font-medium">🎮 DAW Challenge</td>
+                  <td className="border p-2">8 min</td>
+                  <td className="border p-2 font-medium">Build Your Beat</td>
                   <td className="border p-2">
-                    <strong>STUDENTS WORK:</strong> Click every button to master the DAW<br/>
-                    Complete all challenges to unlock composition mode<br/>
-                    <em className="text-green-700">Bonus: Explore and experiment freely</em>
+                    <strong>STUDENTS WORK:</strong> Create a beat using the drum grid.<br/>
+                    • Start with kick and snare<br/>
+                    • Add hi-hat pattern<br/>
+                    • Try different patterns and kits!<br/>
+                    • Save your beat when ready
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          {/* Composition */}
+          {/* Section 4: Compose */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-orange-50 p-2 rounded">
-              3. Create <span className="font-normal text-gray-600">— Tutorial & Composition (19 min)</span>
+              4. Compose <span className="font-normal text-gray-600">— Score the Video (13 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -236,27 +274,31 @@ const LessonPlan2PDF = () => {
               </thead>
               <tbody>
                 <tr>
-                  <td className="border p-2">4 min</td>
-                  <td className="border p-2 font-medium">▶️ Tutorial Video</td>
-                  <td className="border p-2"><strong>PLAY VIDEO:</strong> How to compose for sports highlights</td>
+                  <td className="border p-2">1 min</td>
+                  <td className="border p-2 font-medium">Requirements</td>
+                  <td className="border p-2">
+                    Explain: "Use your beat + at least 3 loops. Match the energy of the video!"
+                  </td>
                 </tr>
                 <tr className="bg-green-50">
-                  <td className="border p-2">15 min</td>
-                  <td className="border p-2 font-medium">🎮 Composition</td>
+                  <td className="border p-2">12 min</td>
+                  <td className="border p-2 font-medium">Score the Sports Highlight</td>
                   <td className="border p-2">
-                    <strong>STUDENTS WORK:</strong> Pick a sport, create hype music<br/>
-                    Focus on instrument choices that match energy<br/>
-                    <em className="text-green-700">Bonus: Add sound effects and more layers!</em>
+                    <strong>STUDENTS WORK:</strong> Combine their beat with loops to score the video.<br/>
+                    • Pick a sport video (basketball, soccer, skateboarding)<br/>
+                    • Add their custom beat<br/>
+                    • Layer in loops that match the energy<br/>
+                    • Build intensity as the action builds!
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          {/* Reflection */}
+          {/* Section 5: Reflect */}
           <div className="mb-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-yellow-50 p-2 rounded">
-              4. Reflect <span className="font-normal text-gray-600">— Two Stars and a Wish + Share (8 min)</span>
+            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-teal-50 p-2 rounded">
+              5. Reflect <span className="font-normal text-gray-600">— Beat Spotlight (3 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -268,26 +310,22 @@ const LessonPlan2PDF = () => {
               </thead>
               <tbody>
                 <tr className="bg-green-50">
-                  <td className="border p-2">5 min</td>
-                  <td className="border p-2 font-medium">🎮 Two Stars and a Wish</td>
-                  <td className="border p-2">
-                    <strong>STUDENTS WORK:</strong> Reflect on their work<br/>
-                    Focus on instrument choices and energy level
-                  </td>
-                </tr>
-                <tr>
                   <td className="border p-2">3 min</td>
-                  <td className="border p-2 font-medium">Share</td>
-                  <td className="border p-2">1-2 students share their work. Ask: "What instruments? What energy?"</td>
+                  <td className="border p-2 font-medium">Beat Spotlight</td>
+                  <td className="border p-2">
+                    <strong>STUDENTS WORK:</strong> Reflect on their rhythmic choices.<br/>
+                    • What beat pattern did you create?<br/>
+                    • How does your music match the energy?
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          {/* Bonus */}
+          {/* Section 6: Wrap Up */}
           <div className="mb-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-amber-50 p-2 rounded">
-              ⭐ Bonus Activity <span className="font-normal text-gray-600">— Melody Escape Room (7 min)</span>
+            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-blue-50 p-2 rounded">
+              6. Wrap Up <span className="font-normal text-gray-600">— Share & Conclude (3 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -298,40 +336,33 @@ const LessonPlan2PDF = () => {
                 </tr>
               </thead>
               <tbody>
-                <tr className="bg-amber-50">
-                  <td className="border p-2">7 min</td>
-                  <td className="border p-2 font-medium">🎮 Melody Escape Room</td>
-                  <td className="border p-2">
-                    <strong>PARTNER ACTIVITY:</strong> Solve melody puzzles together<br/>
-                    <em className="text-amber-700">Great for early finishers!</em>
-                  </td>
+                <tr>
+                  <td className="border p-2">2 min</td>
+                  <td className="border p-2 font-medium">Quick Share</td>
+                  <td className="border p-2">2-3 students play 15 seconds of their composition for the class.</td>
+                </tr>
+                <tr>
+                  <td className="border p-2">1 min</td>
+                  <td className="border p-2 font-medium">Key Insight</td>
+                  <td className="border p-2">"Rhythm is the heartbeat of your music. It's what makes people feel the energy!"</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </section>
 
-        {/* KEY VOCABULARY */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-bold text-orange-800 mb-4 border-b-2 border-orange-300 pb-2">
-            Key Vocabulary
+        {/* Important Notes */}
+        <section className="mb-8 bg-orange-50 p-4 rounded-lg border-2 border-orange-300">
+          <h2 className="text-xl font-bold text-orange-800 mb-3">
+            Important Notes for Teachers
           </h2>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <ul className="list-disc ml-6 space-y-1">
-                <li><strong>Timbre:</strong> The unique tone color of an instrument</li>
-                <li><strong>Instrumentation:</strong> Choice of instruments in a composition</li>
-                <li><strong>DAW:</strong> Digital Audio Workstation</li>
-              </ul>
-            </div>
-            <div>
-              <ul className="list-disc ml-6 space-y-1">
-                <li><strong>Loop:</strong> A repeating musical phrase</li>
-                <li><strong>Layer:</strong> Multiple sounds playing together</li>
-                <li><strong>Energy:</strong> The intensity and excitement level of music</li>
-              </ul>
-            </div>
-          </div>
+          <ul className="list-disc ml-6 space-y-2">
+            <li className="text-sm">Students should have completed Lessons 1-3 first (mood, texture, form)</li>
+            <li className="text-sm">The video comparison hook is powerful - let students feel the difference!</li>
+            <li className="text-sm">During the teacher demo, build the beat step by step so students can follow</li>
+            <li className="text-sm">Green rows indicate student activity time - start the timer!</li>
+            <li className="text-sm">Encourage students to match the energy of their chosen sport</li>
+          </ul>
         </section>
 
         {/* Resources & Materials */}
@@ -341,30 +372,17 @@ const LessonPlan2PDF = () => {
           </h2>
           <ul className="list-disc ml-6 space-y-1">
             <li className="text-sm">Chromebooks/computers with internet access and headphones</li>
-            <li className="text-sm">Sports highlight videos (basketball, football, skateboarding, etc.)</li>
+            <li className="text-sm">Sports highlight videos (basketball, soccer, skateboarding)</li>
+            <li className="text-sm">Beat Maker tool with drum grid</li>
             <li className="text-sm">Loop library with various instrument categories</li>
             <li className="text-sm">Session code for teacher-controlled lesson flow</li>
           </ul>
         </section>
 
-        {/* Important Notes */}
-        <section className="mb-8 bg-orange-50 p-4 rounded-lg border-2 border-orange-300">
-          <h2 className="text-xl font-bold text-orange-800 mb-3">
-            📋 Important Notes for Teachers
-          </h2>
-          <ul className="list-disc ml-6 space-y-2">
-            <li className="text-sm">Students should have completed Lesson 1 first (basic DAW skills)</li>
-            <li className="text-sm">DAW Challenge reinforces and tests skills from Lesson 1</li>
-            <li className="text-sm">Focus discussion on WHY certain instruments create energy</li>
-            <li className="text-sm">Green rows (🎮) indicate student activity time - start the timer!</li>
-            <li className="text-sm">Encourage students to think about instrument choices, not just random selection</li>
-          </ul>
-        </section>
-
         {/* Footer */}
         <div className="border-t-2 border-gray-300 pt-4 mt-8 text-center text-sm text-gray-500">
-          <p>🏀 Sports Highlight Reel - Lesson 2 of Music for Media Unit</p>
-          <p>Music Mind Academy © 2024</p>
+          <p>Sports Highlight Reel - Lesson 4 of Music for Media Unit</p>
+          <p>Music Mind Academy</p>
         </div>
       </div>
 
@@ -387,4 +405,4 @@ const LessonPlan2PDF = () => {
   );
 };
 
-export default LessonPlan2PDF;
+export default LessonPlan4PDF;

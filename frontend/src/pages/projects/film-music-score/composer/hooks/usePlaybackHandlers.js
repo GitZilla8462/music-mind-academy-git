@@ -57,27 +57,28 @@ export const usePlaybackHandlers = ({
     
     try {
       console.log(`🎬 Starting playback with ${placedLoops.length} loops`);
-      
+
       // Resume AudioContext if suspended (browser autoplay policy)
       if (Tone.context.state !== 'running') {
         console.log('🔊 AudioContext suspended - resuming...');
         await Tone.start();
         console.log('✅ AudioContext resumed');
       }
-      
+
+      // ✅ FIX: Start transport FIRST, then schedule loops
+      // This prevents scheduleLoops from being skipped due to Transport state check
+      await play();
+      console.log('✅ Transport started');
+
+      // Now schedule loops (Transport is running, so scheduling will work)
       const statesForScheduling = getTrackStatesForScheduling();
-      
-      // ✅ FIX: Schedule loops BEFORE starting transport
-      // This ensures all events are queued and ready to fire at time 0+
       if (placedLoops.length > 0) {
-        console.log('📅 Pre-scheduling loops before transport start...');
+        console.log('📅 Scheduling loops after transport start...');
         scheduleLoops(placedLoops, selectedVideo?.duration || 60, statesForScheduling);
       }
-      
-      // Now start transport - scheduled events will fire immediately
-      await play();
-      console.log('✅ Transport started - playback begun');
-      
+
+      console.log('✅ Playback begun');
+
     } catch (error) {
       console.error('Error starting playback:', error);
       showToast?.('Failed to start playback', 'error');

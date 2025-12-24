@@ -49,6 +49,8 @@ const PresentationContent = ({
   const [SectionalLoopBuilderLeaderboard, setSectionalLoopBuilderLeaderboard] = useState(null);
   const [SectionalLoopBuilderResults, setSectionalLoopBuilderResults] = useState(null);
   const [MoodMatchTeacherView, setMoodMatchTeacherView] = useState(null);
+  const [VideoHookComparison, setVideoHookComparison] = useState(null);
+  const [BeatBuilderDemo, setBeatBuilderDemo] = useState(null);
 
   // Load game components dynamically
   useEffect(() => {
@@ -78,6 +80,16 @@ const PresentationContent = ({
     import('../../shared/activities/mood-match-game/MoodMatchTeacherView')
       .then(module => setMoodMatchTeacherView(() => module.default))
       .catch(() => console.log('Mood Match Teacher View not available'));
+
+    // Lesson 4: Video Hook Comparison (No Music vs With Music)
+    import('../../film-music-project/lesson4/components/VideoHookComparison')
+      .then(module => setVideoHookComparison(() => module.default))
+      .catch(() => console.log('Video Hook Comparison not available'));
+
+    // Lesson 4: Beat Builder Demo (Building a Beat)
+    import('../../film-music-project/lesson4/components/BeatBuilderDemo')
+      .then(module => setBeatBuilderDemo(() => module.default))
+      .catch(() => console.log('Beat Builder Demo not available'));
   }, []);
 
   // Student View Mode - Show iframe of student experience
@@ -227,6 +239,40 @@ const PresentationContent = ({
       return (
         <div className="absolute inset-0">
           <MoodMatchTeacherView />
+        </div>
+      );
+    }
+
+    // Video Hook Comparison (Lesson 4) - No Music vs With Music
+    if (type === 'video-comparison') {
+      if (!VideoHookComparison) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+            <div className="text-white text-2xl">Loading Video Comparison...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <VideoHookComparison />
+        </div>
+      );
+    }
+
+    // Beat Builder Demo (Lesson 4) - Teacher demonstrates building a beat
+    if (type === 'beat-maker-demo') {
+      if (!BeatBuilderDemo) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900">
+            <div className="text-white text-2xl">Loading Beat Builder Demo...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <BeatBuilderDemo />
         </div>
       );
     }

@@ -31,7 +31,7 @@ const SchoolBeneathActivity = ({
   // Session mode detection
   const { getCurrentStage, sessionCode } = useSession();
   const currentStage = isSessionMode ? getCurrentStage() : null;
-  const isReflectionStage = currentStage === 'reflection';
+  const isReflectionStage = currentStage === 'reflection' || currentStage === 'reflection-activity';
 
   // Track last save command timestamp to detect new commands
   const lastSaveCommandRef = useRef(null);
@@ -407,10 +407,10 @@ const SchoolBeneathActivity = ({
   };
   
   // ============================================================================
-  // LOADING STATE
+  // LOADING STATE - Skip if in reflection mode (modal can show while loading)
   // ============================================================================
-  
-  if (isLoadingVideo && !viewMode) {
+
+  if (isLoadingVideo && !viewMode && !isReflectionStage) {
     return (
       <div className="h-full flex items-center justify-center bg-gray-900">
         <div className="text-white text-center">
