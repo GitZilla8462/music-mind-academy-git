@@ -719,63 +719,19 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
 
   return (
     <div className="h-full flex flex-col bg-gray-900 text-white overflow-hidden">
-      {/* Mood Selector - TOP ROW - Most prominent */}
-      <div className="flex-shrink-0 px-4 py-3 bg-gradient-to-r from-purple-900/30 to-gray-800 border-b border-gray-700">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-purple-300">SELECT MOOD:</span>
-            <div className="flex items-center gap-2">
-              {MOODS.map((mood) => {
-                const isSelected = selectedMood === mood.id;
-                return (
-                  <button
-                    key={mood.id}
-                    onClick={() => handleMoodSelect(mood)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                      isSelected
-                        ? 'ring-2 ring-offset-2 ring-offset-gray-900 scale-105'
-                        : 'bg-gray-700/50 hover:bg-gray-700 hover:scale-102'
-                    }`}
-                    style={{
-                      backgroundColor: isSelected ? mood.color : undefined,
-                      ringColor: isSelected ? mood.color : undefined
-                    }}
-                  >
-                    <span className="text-xl leading-none">{mood.emoji}</span>
-                    <span className={`text-sm font-bold ${isSelected ? 'text-white' : 'text-gray-300'}`}>
-                      {mood.name}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          {/* Close button - only if not hidden */}
-          {!hideCloseButton && (
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              <X size={20} />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Controls Row - Kit, Presets, Steps, BPM */}
-      <div className="flex-shrink-0 bg-gray-800 border-b border-gray-700 px-4 py-2">
+      {/* Header Row - Title and Controls */}
+      <div className="flex-shrink-0 bg-gray-800 border-b border-gray-700 px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           {/* Left: Title */}
-          <h2 className="text-lg font-bold text-gray-300">Build Your Beat</h2>
+          <h2 className="text-xl font-bold text-white">Build Your Beat</h2>
 
           {/* Right: Kit, Preset, Steps, BPM */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {/* Kit Dropdown */}
             <div className="relative">
-              <span className="text-xs text-gray-500 absolute -top-3 left-0">Style</span>
               <button
                 onClick={() => setShowKitDropdown(!showKitDropdown)}
-                className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
               >
                 <span>{KITS[kit].name}</span>
                 <ChevronDown size={14} />
@@ -797,10 +753,9 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
 
             {/* Preset Dropdown */}
             <div className="relative">
-              <span className="text-xs text-gray-500 absolute -top-3 left-0">Preset</span>
               <button
                 onClick={() => setShowPresetDropdown(!showPresetDropdown)}
-                className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
               >
                 <span>Presets</span>
                 <ChevronDown size={14} />
@@ -821,32 +776,68 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
             </div>
 
             {/* Steps Toggle */}
-            <div className="relative">
-              <span className="text-xs text-gray-500 absolute -top-3 left-0">Steps</span>
-              <div className="flex bg-gray-700 rounded-lg overflow-hidden">
-                <button
-                  onClick={() => setSteps(16)}
-                  className={`px-4 py-2 text-sm font-bold transition-colors ${steps === 16 ? 'bg-blue-600' : 'hover:bg-gray-600'}`}
-                >
-                  16
-                </button>
-                <button
-                  onClick={() => setSteps(32)}
-                  className={`px-4 py-2 text-sm font-bold transition-colors ${steps === 32 ? 'bg-blue-600' : 'hover:bg-gray-600'}`}
-                >
-                  32
-                </button>
-              </div>
+            <div className="flex bg-gray-700 rounded-lg overflow-hidden">
+              <button
+                onClick={() => setSteps(16)}
+                className={`px-3 py-2 text-sm font-bold transition-colors ${steps === 16 ? 'bg-blue-600' : 'hover:bg-gray-600'}`}
+              >
+                16
+              </button>
+              <button
+                onClick={() => setSteps(32)}
+                className={`px-3 py-2 text-sm font-bold transition-colors ${steps === 32 ? 'bg-blue-600' : 'hover:bg-gray-600'}`}
+              >
+                32
+              </button>
             </div>
 
             {/* BPM Display */}
-            <div className="relative">
-              <span className="text-xs text-gray-500 absolute -top-3 left-0">Tempo</span>
-              <div className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg px-4 py-2">
-                <span className="text-lg font-mono font-bold text-white">{bpm}</span>
-                <span className="text-sm text-purple-200">BPM</span>
-              </div>
+            <div className="flex items-center gap-1 bg-purple-600 rounded-lg px-3 py-2">
+              <span className="text-lg font-mono font-bold text-white">{bpm}</span>
+              <span className="text-sm text-purple-200">BPM</span>
             </div>
+
+            {/* Close button - only if not hidden */}
+            {!hideCloseButton && (
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-700 rounded-lg transition-colors ml-2"
+              >
+                <X size={20} />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Mood Selector Row */}
+      <div className="flex-shrink-0 px-4 py-2 bg-gray-800/50 border-b border-gray-700">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-semibold text-gray-400">Select Mood:</span>
+          <div className="flex items-center gap-2">
+            {MOODS.map((mood) => {
+              const isSelected = selectedMood === mood.id;
+              return (
+                <button
+                  key={mood.id}
+                  onClick={() => handleMoodSelect(mood)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${
+                    isSelected
+                      ? 'ring-2 ring-offset-1 ring-offset-gray-900'
+                      : 'bg-gray-700/50 hover:bg-gray-700'
+                  }`}
+                  style={{
+                    backgroundColor: isSelected ? mood.color : undefined,
+                    ringColor: isSelected ? mood.color : undefined
+                  }}
+                >
+                  <span className="text-lg leading-none">{mood.emoji}</span>
+                  <span className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-gray-300'}`}>
+                    {mood.name}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
