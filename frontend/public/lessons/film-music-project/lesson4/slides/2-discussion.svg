@@ -13,33 +13,20 @@
   <rect width="1920" height="1080" fill="url(#bg)"/>
   <rect width="1920" height="1080" fill="url(#grid)"/>
 
-  <!-- Discussion icon -->
-  <text x="192" y="180" font-size="72">💬</text>
-
   <!-- Title -->
-  <text x="280" y="180" font-family="Arial, Helvetica, sans-serif" font-size="72" fill="white" font-weight="bold">WHAT DID YOU NOTICE?</text>
+  <text x="192" y="150" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">WHAT DID YOU NOTICE?</text>
 
   <!-- Accent line -->
-  <rect x="192" y="210" width="600" height="3" fill="#a855f7" opacity="0.7"/>
+  <rect x="192" y="180" width="700" height="3" fill="#a5b4fc" opacity="0.5"/>
 
-  <!-- Question 1 -->
-  <rect x="192" y="320" width="1536" height="140" rx="12" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
-  <text x="232" y="380" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#93c5fd">Q1:</text>
-  <text x="320" y="380" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="white">How did the music change</text>
-  <text x="320" y="430" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="white">how you felt?</text>
+  <!-- Questions - simple left-aligned list -->
+  <text x="192" y="350" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">1. How did the music change how you felt?</text>
 
-  <!-- Question 2 -->
-  <rect x="192" y="490" width="1536" height="140" rx="12" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
-  <text x="232" y="550" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#6ee7b7">Q2:</text>
-  <text x="320" y="550" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="white">What did you notice about</text>
-  <text x="320" y="600" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="white">the rhythm?</text>
+  <text x="192" y="480" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">2. What did you notice about the rhythm?</text>
 
-  <!-- Question 3 -->
-  <rect x="192" y="660" width="1536" height="140" rx="12" fill="#1e293b" stroke="#f97316" stroke-width="2"/>
-  <text x="232" y="720" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#fdba74">Q3:</text>
-  <text x="320" y="720" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="white">Which version made the action</text>
-  <text x="320" y="770" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="white">feel more exciting?</text>
+  <text x="192" y="610" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">3. What feeling did you have when you heard</text>
+  <text x="230" y="680" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">the rhythm being added?</text>
 
   <!-- Instruction -->
-  <text x="960" y="920" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#94a3b8" text-anchor="middle">Share your thoughts with the class!</text>
+  <text x="192" y="900" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#94a3b8">Share your thoughts with the class!</text>
 </svg>
