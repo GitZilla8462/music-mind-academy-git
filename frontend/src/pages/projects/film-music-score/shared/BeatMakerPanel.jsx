@@ -842,12 +842,13 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
         </div>
       </div>
 
-      {/* Grid Area */}
-      <div className="flex-1 flex flex-col px-6 py-4 justify-center overflow-auto">
-        {/* Beat Headers - uses same flex structure as grid for alignment */}
-        <div className="flex items-end mb-2">
-          {/* Spacer matching instrument label width */}
-          <div className="w-28 flex-shrink-0" />
+      {/* Grid Area - fixed minimum width to prevent uneven shrinking */}
+      <div className="flex-1 flex flex-col px-6 py-4 justify-center overflow-x-auto overflow-y-auto">
+        <div style={{ minWidth: steps === 16 ? '600px' : '900px' }}>
+          {/* Beat Headers - uses same flex structure as grid for alignment */}
+          <div className="flex items-end mb-2">
+            {/* Spacer matching instrument label width */}
+            <div className="w-28 flex-shrink-0" />
           {/* Beat header groups - matches grid structure */}
           <div className="flex flex-1 gap-1">
             {Array(steps / 4).fill(0).map((_, beatIndex) => (
@@ -968,6 +969,7 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
               </div>
             );
           })}
+        </div>
         </div>
       </div>
 
