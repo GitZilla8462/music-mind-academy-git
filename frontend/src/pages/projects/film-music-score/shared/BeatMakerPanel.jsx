@@ -842,39 +842,43 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
         </div>
       </div>
 
-      {/* Grid Area - Matches teacher demo style */}
+      {/* Grid Area */}
       <div className="flex-1 flex flex-col px-6 py-4 justify-center overflow-auto">
-        {/* Beat Headers - directly above grid */}
-        <div className="flex mb-2" style={{ marginLeft: '130px' }}>
-          {Array(steps / 4).fill(0).map((_, beatIndex) => (
-            <div
-              key={beatIndex}
-              className="text-center border-r border-slate-700 last:border-r-0 px-2"
-              style={{ width: `${(steps === 16 ? 100 : 50) / (steps / 4)}%` }}
-            >
-              <div className="text-lg font-bold text-white">Beat {beatIndex + 1}</div>
-              <div className="flex justify-around">
-                {[1, 2, 3, 4].map(n => {
-                  const isCurrent = currentStep === beatIndex * 4 + n - 1 && isPlaying;
-                  return (
-                    <span
-                      key={n}
-                      className={`text-sm font-semibold flex-1 text-center ${
-                        isCurrent ? 'text-green-400 font-bold' : 'text-slate-400'
-                      }`}
-                      style={isCurrent && !isChromebook ? { textShadow: '0 0 8px #4ade80' } : undefined}
-                    >
-                      {n}
-                    </span>
-                  );
-                })}
+        {/* Beat Headers - uses same flex structure as grid for alignment */}
+        <div className="flex items-end mb-2">
+          {/* Spacer matching instrument label width */}
+          <div className="w-28 flex-shrink-0" />
+          {/* Beat header groups - matches grid structure */}
+          <div className="flex flex-1 gap-1">
+            {Array(steps / 4).fill(0).map((_, beatIndex) => (
+              <div
+                key={beatIndex}
+                className={`flex-1 text-center border-r border-slate-600 last:border-r-0 px-1`}
+              >
+                <div className="text-base font-bold text-white mb-1">Beat {beatIndex + 1}</div>
+                <div className="flex">
+                  {[1, 2, 3, 4].map(n => {
+                    const isCurrent = currentStep === beatIndex * 4 + n - 1 && isPlaying;
+                    return (
+                      <span
+                        key={n}
+                        className={`flex-1 text-center text-sm font-semibold ${
+                          isCurrent ? 'text-green-400 font-bold' : 'text-slate-500'
+                        }`}
+                        style={isCurrent && !isChromebook ? { textShadow: '0 0 8px #4ade80' } : undefined}
+                      >
+                        {n}
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Grid rows - square cells */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           {visibleInstruments.map((instrument) => {
             const instIndex = INSTRUMENTS.findIndex(i => i.id === instrument.id);
             const rowHasNotes = grid[instIndex]?.some(cell => cell);
@@ -887,11 +891,11 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
               >
                 {/* Track label with DAW icon and full name */}
                 <div
-                  className="w-32 flex-shrink-0 flex items-center gap-2 pr-4 justify-end"
+                  className="w-28 flex-shrink-0 flex items-center gap-2 pr-3 justify-end"
                   style={{ color: instrument.color }}
                 >
-                  {IconComponent && <IconComponent size={22} strokeWidth={2.5} />}
-                  <span className="text-lg font-bold">{instrument.name}</span>
+                  {IconComponent && <IconComponent size={20} strokeWidth={2.5} />}
+                  <span className="text-base font-bold">{instrument.name}</span>
                 </div>
 
                 {/* Beat groups with separators - square cells */}
@@ -899,7 +903,7 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
                   {Array(steps / 4).fill(0).map((_, beatIndex) => (
                     <div
                       key={beatIndex}
-                      className={`flex-1 flex gap-1 px-1.5 border-r border-slate-600 last:border-r-0 ${
+                      className={`flex-1 flex gap-1 px-1 border-r border-slate-600 last:border-r-0 ${
                         beatIndex % 2 === 0 ? 'bg-slate-800/20' : ''
                       }`}
                     >
