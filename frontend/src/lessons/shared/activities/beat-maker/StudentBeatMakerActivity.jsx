@@ -109,6 +109,9 @@ const TeacherBeatTutorial = () => {
   const sequenceRef = useRef(null);
   const bpm = 110;
 
+  // Detect Chromebook for performance optimizations
+  const isChromebook = navigator.userAgent.includes('CrOS');
+
   // Create synths
   const createSynths = useCallback(() => {
     return {
@@ -333,20 +336,20 @@ const TeacherBeatTutorial = () => {
                     return (
                       <div
                         key={stepIndex}
-                        className={`flex-1 aspect-square rounded transition-all ${
+                        className={`flex-1 aspect-square rounded ${
                           stepIndex % 4 === 0 ? 'ring-1 ring-gray-600' : ''
-                        }`}
+                        } ${!isChromebook ? 'transition-colors' : ''}`}
                         style={{
                           backgroundColor: isFilled
                             ? (isCurrent ? '#22c55e' : instrument.color)
                             : isCurrentColumn
-                              ? 'rgba(34, 197, 94, 0.3)'
+                              ? (isChromebook ? '#4ade80' : 'rgba(34, 197, 94, 0.3)')
                               : (isActive ? '#374151' : '#1f2937'),
                           opacity: isActive ? 1 : 0.3,
-                          transform: isCurrent && isFilled ? 'scale(1.1)' : 'scale(1)',
-                          boxShadow: isCurrent && isFilled
+                          transform: !isChromebook && isCurrent && isFilled ? 'scale(1.1)' : 'scale(1)',
+                          boxShadow: !isChromebook && isCurrent && isFilled
                             ? `0 0 12px ${instrument.color}`
-                            : isCurrentColumn
+                            : !isChromebook && isCurrentColumn
                               ? '0 0 10px rgba(34, 197, 94, 0.4)'
                               : 'none',
                           border: isCurrentColumn ? '2px solid rgba(34, 197, 94, 0.6)' : 'none'

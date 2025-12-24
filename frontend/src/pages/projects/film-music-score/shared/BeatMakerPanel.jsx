@@ -179,6 +179,9 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
   const [showKitDropdown, setShowKitDropdown] = useState(false);
   const [showPresetDropdown, setShowPresetDropdown] = useState(false);
 
+  // Detect Chromebook for performance optimizations
+  const isChromebook = navigator.userAgent.includes('CrOS');
+
   // Handle mood selection - sets BPM automatically
   const handleMoodSelect = (mood) => {
     setSelectedMood(mood.id);
@@ -688,18 +691,20 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
             >
               <div className="text-lg font-bold text-white">Beat {beatIndex + 1}</div>
               <div className="flex justify-around">
-                {[1, 2, 3, 4].map(n => (
-                  <span
-                    key={n}
-                    className={`text-sm font-semibold flex-1 text-center ${
-                      currentStep === beatIndex * 4 + n - 1 && isPlaying
-                        ? 'text-green-400'
-                        : 'text-slate-400'
-                    }`}
-                  >
-                    {n}
-                  </span>
-                ))}
+                {[1, 2, 3, 4].map(n => {
+                  const isCurrent = currentStep === beatIndex * 4 + n - 1 && isPlaying;
+                  return (
+                    <span
+                      key={n}
+                      className={`text-sm font-semibold flex-1 text-center ${
+                        isCurrent ? 'text-green-400 font-bold' : 'text-slate-400'
+                      }`}
+                      style={isCurrent && !isChromebook ? { textShadow: '0 0 8px #4ade80' } : undefined}
+                    >
+                      {n}
+                    </span>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -741,27 +746,50 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
                         const stepIndex = beatIndex * 4 + stepInBeat;
                         const isActive = grid[instIndex][stepIndex];
                         const isCurrent = currentStep === stepIndex && isPlaying;
-                        const isCurrentColumn = currentStep === stepIndex && isPlaying;
 
+                        // Chromebook: simpler styles for better performance
+                        if (isChromebook) {
+                          return (
+                            <button
+                              key={stepIndex}
+                              onClick={() => toggleCell(instIndex, stepIndex)}
+                              className="flex-1 rounded-xl"
+                              style={{
+                                backgroundColor: isActive
+                                  ? (isCurrent ? '#22c55e' : instrument.color)
+                                  : isCurrent
+                                    ? '#4ade80'
+                                    : 'rgba(255, 255, 255, 0.08)',
+                                border: isActive
+                                  ? `3px solid ${instrument.color}`
+                                  : isCurrent
+                                    ? '3px solid #22c55e'
+                                    : '2px solid rgba(255, 255, 255, 0.1)',
+                              }}
+                            />
+                          );
+                        }
+
+                        // Desktop: full visual effects
                         return (
                           <button
                             key={stepIndex}
                             onClick={() => toggleCell(instIndex, stepIndex)}
-                            className="flex-1 rounded-xl transition-all"
+                            className="flex-1 rounded-xl transition-colors"
                             style={{
                               backgroundColor: isActive
                                 ? (isCurrent ? '#22c55e' : instrument.color)
-                                : isCurrentColumn
+                                : isCurrent
                                   ? 'rgba(34, 197, 94, 0.3)'
                                   : 'rgba(255, 255, 255, 0.08)',
                               border: isActive
                                 ? `3px solid ${instrument.color}`
-                                : isCurrentColumn
+                                : isCurrent
                                   ? '2px solid rgba(34, 197, 94, 0.6)'
                                   : '2px solid rgba(255, 255, 255, 0.1)',
                               boxShadow: isActive
                                 ? `0 0 15px ${instrument.color}50`
-                                : isCurrentColumn
+                                : isCurrent
                                   ? '0 0 10px rgba(34, 197, 94, 0.4)'
                                   : 'none',
                               transform: isCurrent && isActive ? 'scale(1.05)' : 'scale(1)',

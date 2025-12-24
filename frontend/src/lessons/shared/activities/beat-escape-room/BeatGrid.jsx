@@ -22,6 +22,9 @@ const BeatGrid = ({
 }) => {
   const theme = THEMES[themeId] || THEMES['space-station'];
   const assets = getThemeAssets(themeId);
+
+  // Detect Chromebook for performance optimizations
+  const isChromebook = typeof navigator !== 'undefined' && navigator.userAgent.includes('CrOS');
   const handleCellClick = async (instrumentId, beatIndex) => {
     if (disabled) return;
 
@@ -105,23 +108,25 @@ const BeatGrid = ({
       );
     }
 
-    // Default color-based rendering
+    // Default color-based rendering (with Chromebook optimization)
     return (
       <button
         key={beatIndex}
         disabled={disabled || !isAllowed || isRevealed}
         onClick={() => handleCellClick(instrument.id, beatIndex)}
         className={`
-          ${cellSize} rounded-lg transition-all duration-150 relative
-          ${!isAllowed ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
+          ${cellSize} rounded-lg relative
+          ${!isChromebook ? 'transition-colors duration-150' : ''}
+          ${!isAllowed ? 'cursor-not-allowed' : 'cursor-pointer'}
+          ${!isChromebook && isAllowed ? 'hover:scale-105' : ''}
           ${isRevealed ? 'ring-2 ring-cyan-400' : ''}
-          ${showAsActive ? 'shadow-lg' : ''}
+          ${!isChromebook && showAsActive ? 'shadow-lg' : ''}
           ${isCurrentBeat ? 'ring-2 ring-cyan-400/60' : ''}
         `}
         style={{
           backgroundColor: showAsActive ? instrumentColor : (isCurrentBeat ? '#52525b' : '#374151'),
           opacity: !isAllowed ? 0.2 : 1,
-          boxShadow: showAsActive ? `0 0 20px ${instrumentColor}50` : 'none',
+          boxShadow: !isChromebook && showAsActive ? `0 0 20px ${instrumentColor}50` : 'none',
         }}
       >
         {/* X mark for disabled cells */}
