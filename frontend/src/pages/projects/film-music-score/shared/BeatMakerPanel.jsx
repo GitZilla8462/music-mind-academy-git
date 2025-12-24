@@ -842,9 +842,9 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
         </div>
       </div>
 
-      {/* Grid Area - fixed minimum width to prevent uneven shrinking */}
-      <div className="flex-1 flex flex-col px-6 py-4 justify-center overflow-x-auto overflow-y-auto">
-        <div style={{ minWidth: steps === 16 ? '600px' : '900px' }}>
+      {/* Grid Area - fixed width range to prevent uneven shrinking and gaps */}
+      <div className="flex-1 flex flex-col px-6 py-4 justify-center items-center overflow-x-auto overflow-y-auto">
+        <div style={{ minWidth: steps === 16 ? '600px' : '900px', maxWidth: steps === 16 ? '800px' : '1100px', width: '100%' }}>
           {/* Beat Headers - uses same flex structure as grid for alignment */}
           <div className="flex items-end mb-2">
             {/* Spacer matching instrument label width */}
