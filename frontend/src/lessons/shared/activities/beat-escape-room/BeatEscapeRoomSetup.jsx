@@ -7,13 +7,15 @@ import { MODES, createRoom } from './beatEscapeRoomConfig';
 import { getAllThemes, getThemeAssets, getSharedAssets } from './beatEscapeRoomThemes';
 
 const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
-  const [step, setStep] = useState('mode'); // 'mode' | 'partner-role' | 'show-code' | 'join-to-create' | 'theme'
+  const [step, setStep] = useState('mode'); // 'mode' | 'partner-role' | 'theme' | 'show-code' | 'join-to-create'
   const [selectedMode, setSelectedMode] = useState(null);
+  const [selectedTheme, setSelectedTheme] = useState(null);
   const [playerIndex, setPlayerIndex] = useState(0);
   const [joinCode, setJoinCode] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
   const [joinError, setJoinError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   const modes = Object.values(MODES);
   const themes = getAllThemes();
@@ -30,18 +32,18 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
     }
   };
 
-  const [isCreating, setIsCreating] = useState(false);
-
-  const handleGenerateCode = async () => {
-    if (isCreating) return;
+  // For partner mode: select theme first, THEN create room with theme
+  const handlePartnerThemeSelect = async (theme) => {
+    if (!theme.available || isCreating) return;
     setIsCreating(true);
+    setSelectedTheme(theme.id);
 
     try {
-      // Create room on server immediately so partner can join right away
+      // Create room on server WITH the theme already set
       const room = await createRoom({
         mode: selectedMode,
-        patterns: {},  // Empty - will be filled as players create locks
-        theme: null,   // Will be set when creator picks theme
+        patterns: {},
+        theme: theme.id,  // Theme is set when room is created
         status: 'creating'
       });
 
@@ -56,6 +58,11 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
     }
   };
 
+  const handleGenerateNewRoom = () => {
+    // Go to theme selection - room will be created after theme is chosen
+    setStep('theme');
+  };
+
   const handleCopyCode = async () => {
     if (generatedCode) {
       try {
@@ -68,27 +75,41 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
     }
   };
 
-  const handleThemeSelect = (theme) => {
+  // Solo mode: theme select goes directly to creating
+  const handleSoloThemeSelect = (theme) => {
     if (!theme.available) return;
     onStartCreate({
       mode: selectedMode,
       themeId: theme.id,
-      playerIndex: playerIndex,
-      shareCode: generatedCode, // Pass the pre-generated code
+      playerIndex: 0,
+      shareCode: null,
+    });
+  };
+
+  // After partner room is created and code shown, continue to collab creator
+  const handleContinueToCreate = () => {
+    onStartCreate({
+      mode: selectedMode,
+      themeId: selectedTheme,
+      playerIndex: 0,
+      shareCode: generatedCode,
     });
   };
 
   const handleBack = () => {
     if (step === 'theme') {
       if (selectedMode === 'partner' || selectedMode === 'trio') {
-        setStep('show-code');
+        setStep('partner-role');
       } else {
         setStep('mode');
         setSelectedMode(null);
       }
     } else if (step === 'show-code') {
+      // Can't go back from show-code - room is already created
+      // Just go back to partner-role and clear the code
       setStep('partner-role');
       setGeneratedCode('');
+      setSelectedTheme(null);
     } else if (step === 'partner-role' || step === 'join-to-create') {
       setStep('mode');
       setSelectedMode(null);
@@ -252,15 +273,14 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
         {/* Role Selection */}
         <div className="w-full max-w-md space-y-4 relative z-10">
           <button
-            onClick={handleGenerateCode}
-            disabled={isCreating}
-            className="w-full bg-gray-800/90 hover:bg-gray-700/90 disabled:opacity-50 border-2 border-gray-600 hover:border-purple-500 rounded-2xl p-6 transition-all duration-200 hover:scale-105 disabled:hover:scale-100"
+            onClick={handleGenerateNewRoom}
+            className="w-full bg-gray-800/90 hover:bg-gray-700/90 border-2 border-gray-600 hover:border-purple-500 rounded-2xl p-6 transition-all duration-200 hover:scale-105"
           >
             <div className="text-xl font-bold text-white mb-1">
-              {isCreating ? 'Creating...' : 'Generate New Room'}
+              Generate New Room
             </div>
             <div className="text-gray-400 text-sm">
-              Get a code to share with your partner
+              Pick a theme and get a code for your partner
             </div>
           </button>
 
@@ -281,17 +301,20 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
   // Step: Show generated code (partner 1)
   if (step === 'show-code') {
     const modeConfig = MODES[selectedMode];
+    const themeConfig = themes.find(t => t.id === selectedTheme);
+    const themeAssets = getThemeAssets(selectedTheme);
+
     return (
       <div
         className="min-h-screen flex flex-col items-center justify-center p-6 relative"
         style={{
-          backgroundImage: `url(${sharedAssets.bgTitle})`,
+          backgroundImage: `url(${themeAssets?.bgRoom1 || sharedAssets.bgTitle})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       >
         {/* Dark overlay for readability */}
-        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+        <div className="absolute inset-0 bg-black/50 pointer-events-none" />
 
         {/* Back button */}
         <button
@@ -304,7 +327,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
         {/* Header */}
         <div className="text-center mb-8 relative z-10">
           <h1 className="text-3xl font-black text-white mb-2">
-            Your Room Code
+            Room Created!
           </h1>
           <p className="text-lg text-purple-200">
             Share this code with your partner
@@ -333,7 +356,13 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
             <p className="text-green-400 text-center">Copied!</p>
           )}
 
-          <div className="bg-purple-900/50 rounded-lg p-4 mt-4">
+          {/* Theme info */}
+          <div className="bg-gray-700/50 rounded-lg p-3 mt-4 flex items-center justify-between">
+            <span className="text-gray-400 text-sm">Theme:</span>
+            <span className="text-white font-semibold">{themeConfig?.name || 'Unknown'}</span>
+          </div>
+
+          <div className="bg-purple-900/50 rounded-lg p-4 mt-3">
             <p className="text-purple-200 text-sm text-center">
               Your partner enters this code to join and add their {modeConfig?.perPerson} locks
             </p>
@@ -342,10 +371,10 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
 
         {/* Continue Button */}
         <button
-          onClick={() => setStep('theme')}
+          onClick={handleContinueToCreate}
           className="px-8 py-4 bg-green-600 hover:bg-green-500 rounded-xl text-white text-xl font-bold transition-all hover:scale-105 relative z-10"
         >
-          Continue to Create
+          Start Creating Locks
         </button>
       </div>
     );
@@ -442,14 +471,6 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
         ← Back
       </button>
 
-      {/* Room code for partner mode */}
-      {generatedCode && (selectedMode === 'partner' || selectedMode === 'trio') && (
-        <div className="absolute top-6 right-6 z-10 bg-gray-800/90 rounded-lg px-4 py-2 text-center">
-          <div className="text-gray-400 text-xs">ROOM</div>
-          <div className="text-purple-300 text-2xl font-bold tracking-widest">{generatedCode}</div>
-        </div>
-      )}
-
       {/* Header */}
       <div className="text-center mb-10 relative z-10">
         <h1 className="text-4xl font-black text-white mb-3">
@@ -458,20 +479,38 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate }) => {
         <p className="text-lg text-purple-200">
           {MODES[selectedMode]?.label} Mode - {MODES[selectedMode]?.totalLocks} Locks
         </p>
+        {(selectedMode === 'partner' || selectedMode === 'trio') && (
+          <p className="text-sm text-gray-400 mt-2">
+            Your partner will use the same theme
+          </p>
+        )}
       </div>
+
+      {/* Loading indicator for partner mode */}
+      {isCreating && (
+        <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-30">
+          <div className="bg-gray-800 rounded-xl p-6 text-center">
+            <div className="text-2xl mb-2">Creating Room...</div>
+            <div className="text-gray-400">Please wait</div>
+          </div>
+        </div>
+      )}
 
       {/* Theme Grid */}
       <div className="grid grid-cols-2 gap-6 max-w-2xl relative z-10">
         {themes.map(theme => {
           const assets = getThemeAssets(theme.id);
+          const isPartnerMode = selectedMode === 'partner' || selectedMode === 'trio';
+          const handleClick = isPartnerMode ? handlePartnerThemeSelect : handleSoloThemeSelect;
+
           return (
             <button
               key={theme.id}
-              onClick={() => handleThemeSelect(theme)}
-              disabled={!theme.available}
+              onClick={() => handleClick(theme)}
+              disabled={!theme.available || isCreating}
               className={`
                 relative rounded-2xl overflow-hidden transition-all duration-200
-                ${theme.available
+                ${theme.available && !isCreating
                   ? 'hover:scale-105 hover:shadow-xl cursor-pointer border-2 border-transparent hover:border-purple-500'
                   : 'opacity-60 cursor-not-allowed grayscale'
                 }
