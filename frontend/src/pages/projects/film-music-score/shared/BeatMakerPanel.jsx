@@ -464,17 +464,56 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
     return { buffer: outputBuffer, duration };
   }, [bpm, steps, grid]);
 
-  // Play/stop using pre-rendered audio (Chromebook-friendly)
-  const togglePlay = async () => {
-    if (isPlaying) {
-      stopPlayback();
-      return;
+  // Real-time playback for desktop (supports live editing)
+  const startRealtimePlayback = async () => {
+    if (sequenceRef.current) {
+      try { sequenceRef.current.dispose(); } catch (e) { /* ignore */ }
     }
 
-    // Initialize audio if needed
-    const ready = await initializeAudio();
-    if (!ready) return;
+    try {
+      Tone.Transport.stop();
+      Tone.Transport.cancel();
+      Tone.Transport.position = 0;
+    } catch (e) { /* ignore */ }
 
+    const stepIndices = Array.from({ length: steps }, (_, i) => i);
+
+    sequenceRef.current = new Tone.Sequence(
+      (time, step) => {
+        const currentGrid = gridRef.current;
+
+        INSTRUMENTS.forEach((inst, index) => {
+          if (currentGrid[index][step]) {
+            if (inst.id === 'kick') {
+              synthsRef.current.kick.triggerAttackRelease('C1', '8n', time);
+            } else if (inst.id === 'snare') {
+              synthsRef.current.snare.triggerAttackRelease('16n', time);
+            } else if (inst.id === 'clap') {
+              synthsRef.current.clap.triggerAttackRelease('16n', time);
+            } else if (inst.id === 'hihat') {
+              synthsRef.current.hihat.triggerAttackRelease('32n', time);
+            } else if (inst.id === 'openhat') {
+              synthsRef.current.openhat.triggerAttackRelease('16n', time);
+            }
+          }
+        });
+
+        Tone.Draw.schedule(() => {
+          setCurrentStep(step);
+        }, time);
+      },
+      stepIndices,
+      '16n'
+    );
+
+    sequenceRef.current.start(0);
+    Tone.Transport.start('+0.05');
+    setIsPlaying(true);
+    console.log('▶️ Playback started (real-time synthesis)');
+  };
+
+  // Pre-rendered playback for Chromebook (stable but no live editing)
+  const startPrerenderedPlayback = async () => {
     // Wait a moment for samples to be ready
     if (!drumSamplesRef.current) {
       console.log('⏳ Waiting for drum samples...');
@@ -504,16 +543,35 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
     console.log('▶️ Playback started (pre-rendered)');
 
     // Set up visual step tracking with a simple interval
-    const stepDurationMs = (60 / bpm / 4) * 1000; // Duration of each 16th note in ms
-    let stepCounter = 0;
+    const stepDurationMs = (60 / bpm / 4) * 1000;
     const startTime = performance.now();
 
     stepIntervalRef.current = setInterval(() => {
-      // Calculate current step based on elapsed time for better accuracy
       const elapsed = performance.now() - startTime;
       const currentStepCalc = Math.floor((elapsed / stepDurationMs) % steps);
       setCurrentStep(currentStepCalc);
-    }, stepDurationMs / 2); // Update twice per step for smoother tracking
+    }, stepDurationMs / 2);
+  };
+
+  // Play/stop - uses hybrid approach based on device
+  const togglePlay = async () => {
+    if (isPlaying) {
+      stopPlayback();
+      return;
+    }
+
+    // Initialize audio if needed
+    const ready = await initializeAudio();
+    if (!ready) return;
+
+    // Choose playback mode based on device
+    // - Chromebook: pre-rendered (stable, no live editing)
+    // - Desktop: real-time synthesis (supports live editing)
+    if (isChromebook) {
+      await startPrerenderedPlayback();
+    } else {
+      await startRealtimePlayback();
+    }
   };
 
   // Clear grid
