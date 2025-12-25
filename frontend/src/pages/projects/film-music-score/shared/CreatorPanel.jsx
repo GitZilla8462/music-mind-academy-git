@@ -27,12 +27,12 @@ const CreatorPanel = ({
       id: 'melody-maker',
       icon: Piano,
       label: 'Melody Maker',
-      description: 'Piano roll sequencer',
-      color: 'blue',
-      bgColor: 'bg-blue-600',
-      hoverBg: 'hover:bg-blue-700',
+      description: 'Create melodies',
+      color: 'purple',
+      bgColor: 'bg-purple-600',
+      hoverBg: 'hover:bg-purple-700',
       onClick: onOpenMelodyMaker,
-      enabled: false // Coming soon
+      enabled: true
     },
     {
       id: 'record-audio',

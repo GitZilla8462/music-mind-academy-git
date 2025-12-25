@@ -51,6 +51,8 @@ const PresentationContent = ({
   const [MoodMatchTeacherView, setMoodMatchTeacherView] = useState(null);
   const [VideoHookComparison, setVideoHookComparison] = useState(null);
   const [BeatBuilderDemo, setBeatBuilderDemo] = useState(null);
+  const [NameThatGameActivity, setNameThatGameActivity] = useState(null);
+  const [MelodyBuilderTeacherDemo, setMelodyBuilderTeacherDemo] = useState(null);
 
   // Load game components dynamically
   useEffect(() => {
@@ -90,6 +92,16 @@ const PresentationContent = ({
     import('../../film-music-project/lesson4/components/BeatBuilderDemo')
       .then(module => setBeatBuilderDemo(() => module.default))
       .catch(() => console.log('Beat Builder Demo not available'));
+
+    // Lesson 5: Name That Game Activity
+    import('../../shared/activities/name-that-game/NameThatGameActivity')
+      .then(module => setNameThatGameActivity(() => module.default))
+      .catch(() => console.log('Name That Game Activity not available'));
+
+    // Lesson 5: Melody Builder Teacher Demo
+    import('../../shared/activities/melody-maker/MelodyBuilderTeacherDemo')
+      .then(module => setMelodyBuilderTeacherDemo(() => module.default))
+      .catch(() => console.log('Melody Builder Teacher Demo not available'));
   }, []);
 
   // Student View Mode - Show iframe of student experience
@@ -273,6 +285,40 @@ const PresentationContent = ({
       return (
         <div className="absolute inset-0">
           <BeatBuilderDemo />
+        </div>
+      );
+    }
+
+    // Name That Game (Lesson 5) - Teacher plays game theme songs for class to guess
+    if (type === 'name-that-game') {
+      if (!NameThatGameActivity) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-950 to-slate-900">
+            <div className="text-white text-2xl">Loading Name That Game...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <NameThatGameActivity />
+        </div>
+      );
+    }
+
+    // Melody Builder Demo (Lesson 5) - Teacher demonstrates building a melody
+    if (type === 'melody-builder-demo') {
+      if (!MelodyBuilderTeacherDemo) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900">
+            <div className="text-white text-2xl">Loading Melody Builder Demo...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <MelodyBuilderTeacherDemo />
         </div>
       );
     }

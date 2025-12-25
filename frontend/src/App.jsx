@@ -37,6 +37,7 @@ import Lesson1 from './lessons/film-music-project/lesson1/Lesson1';
 import Lesson2 from './lessons/film-music-project/lesson2/Lesson2';
 import Lesson3 from './lessons/film-music-project/lesson3/Lesson3';
 import Lesson4 from './lessons/film-music-project/lesson4/Lesson4';
+import Lesson5 from './lessons/film-music-project/lesson5/Lesson5';
 import LessonPlanPDF from './lessons/film-music-project/lesson1/LessonPlanPDF';
 import LessonPlan2PDF from './lessons/film-music-project/lesson2/LessonPlan2PDF';
 import LessonPlan3PDF from './lessons/film-music-project/lesson3/LessonPlan3PDF';
@@ -279,6 +280,7 @@ const AppContent = () => {
         <Route path="/lessons/film-music-project/lesson2" element={<Lesson2 />} />
         <Route path="/lessons/film-music-project/lesson3" element={<Lesson3 />} />
         <Route path="/lessons/film-music-project/lesson4" element={<Lesson4 />} />
+        <Route path="/lessons/film-music-project/lesson5" element={<Lesson5 />} />
         <Route path="/lessons/film-music-1" element={<Lesson1 />} />
         <Route path="/lessons/film-music-2" element={<Lesson2 />} />
         <Route path="/lessons/:lessonId" element={<SimpleLessonPlaceholder />} />
@@ -390,7 +392,13 @@ const AppContent = () => {
             <Lesson4 />
           </ProtectedRoute>
         } />
-        
+
+        <Route path="/lessons/film-music-project/lesson5" element={
+          <ProtectedRoute>
+            <Lesson5 />
+          </ProtectedRoute>
+        } />
+
         <Route path="/lessons/film-music-1" element={
           <ProtectedRoute>
             <Lesson1 />

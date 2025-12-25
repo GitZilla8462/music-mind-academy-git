@@ -15,6 +15,7 @@ import NotesPanel from './NotesPanel';
 import ResizableSplitPane from '../../shared/ResizableSplitPane';
 import CreatorPanel from '../../shared/CreatorPanel';
 import FloatingBeatMaker from '../../shared/FloatingBeatMaker';
+import FloatingMelodyMaker from '../../shared/FloatingMelodyMaker';
 
 const ComposerLayout = ({
   // State
@@ -73,14 +74,17 @@ const ComposerLayout = ({
   lockFeatures,
   highlightSelector,
 
-  // Creator tools (Beat Maker)
+  // Creator tools (Beat Maker, Melody Maker)
   showCreatorTools = false,
   creatorMenuOpen = false,
   setCreatorMenuOpen,
   beatMakerOpen = false,
   setBeatMakerOpen,
+  melodyMakerOpen = false,
+  setMelodyMakerOpen,
   customLoops = [],
   onAddCustomLoop,
+  onAddMelodyLoop,
   onDeleteCustomLoop
 }) => {
   return (
@@ -215,9 +219,9 @@ const ComposerLayout = ({
                 {showCreatorTools && (
                   <CreatorPanel
                     onOpenBeatMaker={() => setBeatMakerOpen(true)}
-                    onOpenMelodyMaker={() => {}}
+                    onOpenMelodyMaker={() => setMelodyMakerOpen(true)}
                     onOpenRecordAudio={() => {}}
-                    activeTool={beatMakerOpen ? 'beat-maker' : null}
+                    activeTool={beatMakerOpen ? 'beat-maker' : melodyMakerOpen ? 'melody-maker' : null}
                   />
                 )}
 
@@ -292,7 +296,15 @@ const ComposerLayout = ({
         isOpen={beatMakerOpen}
         onClose={() => setBeatMakerOpen(false)}
         onAddToProject={onAddCustomLoop}
-        customLoopCount={customLoops.length}
+        customLoopCount={customLoops.filter(l => l.type === 'custom-beat').length}
+      />
+
+      {/* Floating Melody Maker Modal */}
+      <FloatingMelodyMaker
+        isOpen={melodyMakerOpen}
+        onClose={() => setMelodyMakerOpen(false)}
+        onAddToProject={onAddMelodyLoop}
+        customLoopCount={customLoops.filter(l => l.type === 'custom-melody').length}
       />
     </div>
   );

@@ -219,4 +219,107 @@ export const renderBeatToBlob = async (beatData) => {
   return { blobURL, duration };
 };
 
-export { INSTRUMENTS, KITS };
+// Melody synth configurations (matching MelodyMakerPanel)
+const MELODY_INSTRUMENTS = {
+  piano: {
+    name: 'Piano',
+    synth: { oscillator: { type: 'triangle' }, envelope: { attack: 0.02, decay: 0.3, sustain: 0.3, release: 0.8 } }
+  },
+  synth: {
+    name: 'Synth',
+    synth: { oscillator: { type: 'sawtooth' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.5, release: 0.4 } }
+  },
+  marimba: {
+    name: 'Marimba',
+    synth: { oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: 0.5, sustain: 0.1, release: 1.0 } }
+  },
+  '8bit': {
+    name: '8-Bit',
+    synth: { oscillator: { type: 'square' }, envelope: { attack: 0.001, decay: 0.1, sustain: 0.3, release: 0.1 } }
+  },
+  bells: {
+    name: 'Bells',
+    synth: { oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: 0.8, sustain: 0.2, release: 1.5 } }
+  }
+};
+
+// Mood-based note configurations (matching MelodyMakerActivity)
+const MOOD_NOTES = {
+  'Heroic': ['A4', 'G4', 'E4', 'D4', 'C4'],
+  'Upbeat': ['A4', 'G4', 'E4', 'D4', 'C4'],
+  'Hype': ['Eb5', 'C5', 'Bb4', 'Ab4', 'F4'],
+  'Mysterious': ['A4', 'G4', 'E4', 'D4', 'C4'],
+  'Scary': ['Bb4', 'G4', 'F4', 'Eb4', 'C4']
+};
+
+/**
+ * Render a melody pattern to a WAV blob URL
+ * @param {Object} melodyData - The melody data containing pattern, bpm, synthType, notes, beats
+ * @returns {Promise<{blobURL: string, duration: number}>} - Blob URL and duration of the rendered audio
+ */
+export const renderMelodyToBlob = async (melodyData) => {
+  const { pattern, bpm, synthType = 'piano', notes, beats = 8, mood = 'Heroic' } = melodyData;
+
+  if (!pattern || !Array.isArray(pattern)) {
+    throw new Error('Invalid melody pattern');
+  }
+
+  console.log(`🎵 Re-rendering melody: ${beats} beats, ${bpm} BPM, ${synthType} synth`);
+
+  // Get note IDs either from melody data or from mood
+  const noteIds = notes || MOOD_NOTES[mood] || MOOD_NOTES['Heroic'];
+
+  // Calculate duration
+  const secondsPerBeat = 60 / bpm;
+  const singlePatternDuration = secondsPerBeat * beats / 2; // 8th notes
+  const LOOP_REPEATS = 4;
+  const duration = singlePatternDuration * LOOP_REPEATS;
+
+  // Get synth config
+  const synthConfig = MELODY_INSTRUMENTS[synthType]?.synth || MELODY_INSTRUMENTS.piano.synth;
+
+  // Render using Tone.Offline
+  const buffer = await Tone.Offline(({ transport }) => {
+    const synth = new Tone.Synth(synthConfig).toDestination();
+
+    // Adjust volume for certain instruments
+    if (synthType === 'bells') {
+      synth.volume.value = -6;
+    }
+
+    const noteDuration = secondsPerBeat / 2; // 8th notes
+
+    for (let repeat = 0; repeat < LOOP_REPEATS; repeat++) {
+      const repeatOffset = repeat * singlePatternDuration;
+
+      for (let beatIndex = 0; beatIndex < beats; beatIndex++) {
+        for (let noteIndex = 0; noteIndex < pattern.length; noteIndex++) {
+          if (pattern[noteIndex] && pattern[noteIndex][beatIndex]) {
+            const noteId = noteIds[noteIndex];
+            const time = repeatOffset + (beatIndex * noteDuration);
+
+            // Constrain envelope to fit within note duration
+            const envelope = synthConfig.envelope;
+            const attack = Math.min(envelope.attack, noteDuration * 0.2);
+            const decay = Math.min(envelope.decay, noteDuration * 0.2);
+            const release = Math.min(envelope.release, noteDuration * 0.3);
+
+            synth.triggerAttackRelease(noteId, noteDuration * 0.8, time);
+          }
+        }
+      }
+    }
+
+    transport.start(0);
+  }, duration);
+
+  // Convert to WAV
+  const wavBlob = audioBufferToWav(buffer);
+  const blobURL = URL.createObjectURL(wavBlob);
+
+  console.log(`✅ Melody re-rendered: ${duration.toFixed(2)}s, ${(wavBlob.size / 1024).toFixed(1)}KB`);
+
+  return { blobURL, duration };
+};
+
+export { INSTRUMENTS, KITS, MELODY_INSTRUMENTS };

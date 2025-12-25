@@ -648,7 +648,7 @@ function MusicClassroomResources() {
                   padding: '4px 10px',
                   borderRadius: '4px'
                 }}>
-                  4 Lessons
+                  5 Lessons
                 </span>
                 <span style={{
                   fontSize: '13px',
@@ -758,14 +758,29 @@ function MusicClassroomResources() {
                 <span style={{
                   width: '22px', height: '22px',
                   borderRadius: '50%',
-                  backgroundColor: '#94a3b8',
+                  backgroundColor: '#22c55e',
                   color: 'white',
                   fontSize: '12px',
                   fontWeight: '600',
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}>5</span>
+                <span style={{ fontSize: '14px', color: '#334155' }}>
+                  <strong>Game On!</strong> — Melody & Contour
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{
+                  width: '22px', height: '22px',
+                  borderRadius: '50%',
+                  backgroundColor: '#94a3b8',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>6</span>
                 <span style={{ fontSize: '14px', color: '#94a3b8' }}>
-                  <strong>Capstone Project</strong> — Coming Soon
+                  <strong>Director's Cut</strong> — Capstone (Coming Soon)
                 </span>
               </div>
             </div>

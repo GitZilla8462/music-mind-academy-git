@@ -17,6 +17,7 @@ import LayerDetectiveActivity from '../activities/layer-detective/LayerDetective
 import SportsCompositionActivity from "../activities/SportsCompositionActivity";
 import CityCompositionActivity from "../activities/CityCompositionActivity";
 import WildlifeCompositionActivity from "../activities/WildlifeCompositionActivity";
+import GameCompositionActivity from "../activities/GameCompositionActivity";
 
 // ✅ ADDED: Listening Map Activity for Lesson 3
 import ListeningMapActivity from '../activities/texture-drawings/ListeningMapActivity';
@@ -47,6 +48,16 @@ import { StudentBeatMakerActivity } from '../activities/beat-maker';
 
 // ✅ ADDED: Beat Escape Room partner activity for Lesson 4 (Form & Structure)
 import { BeatEscapeRoomActivity } from '../activities/beat-escape-room';
+
+// ✅ ADDED: Melody Maker for Lesson 5 (Game On - Melody & Contour)
+import MelodyMakerActivity, { StudentMelodyMakerActivity } from '../activities/melody-maker';
+import MelodyBuilderTeacherDemo from '../activities/melody-maker/MelodyBuilderTeacherDemo';
+
+// ✅ ADDED: Melody Mystery for Lesson 5 (Game On - Bonus Activity)
+import MelodyMysteryActivity from '../activities/melody-mystery';
+
+// ✅ ADDED: Name That Game for Lesson 5 (Game On - Intro Demo)
+import NameThatGameActivity from '../activities/name-that-game';
 
 const ActivityRenderer = ({
   activity,
@@ -342,6 +353,77 @@ const ActivityRenderer = ({
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Melody Maker (Lesson 5 - Game On)
+    case 'melody-maker':
+      return (
+        <MelodyMakerActivity
+          key={`melody-maker-${activity.id}`}
+          onComplete={onComplete}
+        />
+      );
+
+    // ✅ ADDED: Student Melody Maker (Lesson 5 - Game On)
+    case 'student-melody-maker':
+      return (
+        <StudentMelodyMakerActivity
+          key={`student-melody-maker-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Melody Builder Teacher Demo (Lesson 5 - Game On)
+    case 'melody-builder-demo':
+      return (
+        <MelodyBuilderTeacherDemo
+          key={`melody-builder-demo-${activity.id}`}
+          onComplete={onComplete}
+        />
+      );
+
+    // ✅ ADDED: Melody Spotlight Reflection (Lesson 5 - Game On)
+    case 'melody-spotlight':
+      return (
+        <TwoStarsAndAWishActivity
+          key={`melody-spotlight-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Melody Mystery partner activity (Lesson 5 - Game On Bonus)
+    case 'melody-mystery':
+      return (
+        <MelodyMysteryActivity
+          key={`melody-mystery-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Game Composition Activity (Lesson 5 - video game montage with DAW)
+    case 'game-composition-activity':
+      return (
+        <GameCompositionActivity
+          key={`game-composition-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Name That Game demo activity (Lesson 5 - Game On)
+    case 'name-that-game':
+      return (
+        <NameThatGameActivity
+          key={`name-that-game-${activity.id}`}
+          onComplete={onComplete}
         />
       );
 

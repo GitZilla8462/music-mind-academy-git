@@ -158,31 +158,33 @@ const MusicLoopsInMediaHub = () => {
         { title: 'Beat Escape Room', description: 'Create beat puzzles for a partner to solve', time: 10, activityType: 'beat-escape-room', isBonus: true, isPartnerActivity: true }
       ]
     },
-    // Lesson 5: Melody (Game Montage) - new
+    // Lesson 5: Melody & Contour (Game On!)
     {
       id: 'lesson5',
       number: 5,
       icon: '🎮',
-      title: 'Game Montage',
-      concept: 'Melody & Themes',
+      title: 'Game On!',
+      concept: 'Melody & Contour',
       essentialQuestion: 'How do melodic phrases create memorable themes?',
       color: 'from-pink-500 to-purple-600',
       route: '/lessons/film-music-project/lesson5',
-      available: false,
-      hasLessonPlan: false,
-      inThisLesson: 'Students explore how melody creates memorable themes in video games, then compose their own game soundtrack.',
+      available: true,
+      hasLessonPlan: true,
+      inThisLesson: 'Students discover how melody creates memorable themes by analyzing famous game music, learning about contour patterns (ascending, descending, arch), and composing their own video game soundtrack.',
       studentsWill: [
-        'Understand how melody creates memorable themes',
-        'Create simple melodic phrases',
-        'Compose a themed game soundtrack'
+        'Identify and describe contour patterns in melodies',
+        'Create an 8-beat melody using pentatonic scale',
+        'Compose a video game soundtrack with layered melodies'
       ],
       activities: [
-        { title: 'Hook Video', description: 'Famous game themes medley', time: 3 },
-        { title: 'Melody Intro', description: 'What makes a melody memorable?', time: 5 },
-        { title: 'Pixel Melody Maker', description: 'Create an 8-bit melody', time: 8, activityType: 'melody-maker' },
-        { title: 'Composition', description: 'Score a game montage', time: 12, activityType: 'game-composition-activity' },
-        { title: 'Two Stars and a Wish', description: 'Reflect on your theme', time: 5, activityType: 'two-stars-wish' },
-        { title: 'Share', description: '1-2 students share their work', time: 3 }
+        { title: 'Hook', description: 'Guess the game from the melody', time: 4 },
+        { title: 'Vocabulary', description: 'Melody, contour, phrase, ascending/descending', time: 4 },
+        { title: 'Building a Melody Demo', description: 'Teacher demonstrates contour patterns', time: 3, activityType: 'melody-builder-demo' },
+        { title: 'Make Your Melody', description: 'Create an 8-beat melody with contour', time: 8, activityType: 'student-melody-maker' },
+        { title: 'Composition', description: 'Layer melodies to score game footage', time: 12, activityType: 'game-composition-activity' },
+        { title: 'Melody Spotlight', description: 'Reflect on your melodic choices', time: 5, activityType: 'melody-spotlight' },
+        { title: 'Discussion', description: 'What contour did you use? Why?', time: 2 },
+        { title: 'Melody Mystery', description: 'Create melody puzzles for a partner to solve', time: 10, activityType: 'melody-mystery', isBonus: true, isPartnerActivity: true }
       ]
     },
     // Lesson 6: Capstone (Student Choice) - was lesson5
@@ -238,7 +240,7 @@ const MusicLoopsInMediaHub = () => {
             Create soundtracks for video — the way professionals do it.
           </p>
           <p className="text-base text-slate-600">
-            4 lessons  •  ~40 min each  •  Grades 6-8
+            5 lessons  •  ~40 min each  •  Grades 6-8
           </p>
         </div>
       </div>

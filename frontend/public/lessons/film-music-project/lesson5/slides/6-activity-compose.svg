@@ -1,0 +1,41 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Activity Banner -->
+  <rect x="0" y="0" width="1920" height="70" fill="#0d9488"/>
+  <text x="960" y="48" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white" font-weight="bold" text-anchor="middle">STUDENT ACTIVITY TIME</text>
+
+  <!-- Title -->
+  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">SCORE THE GAME</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="230" width="550" height="3" fill="#a5b4fc" opacity="0.5"/>
+
+  <!-- Subtitle -->
+  <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Student Activity</text>
+
+  <!-- Requirements -->
+  <text x="192" y="450" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">1. Use YOUR melody from Melody Maker or create additional</text>
+  <text x="230" y="510" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">melodies by clicking on Melody Maker</text>
+
+  <text x="192" y="590" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">2. Add 3+ loops from the library</text>
+
+  <text x="192" y="670" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">3. Match the mood of the game</text>
+
+  <text x="192" y="780" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#10b981">Bonus: Use intentional contour to build excitement!</text>
+
+  <!-- Duration -->
+  <text x="192" y="950" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">12 minutes—Open your Chromebook.</text>
+</svg>

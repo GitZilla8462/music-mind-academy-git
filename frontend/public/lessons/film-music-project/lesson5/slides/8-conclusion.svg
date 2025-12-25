@@ -1,0 +1,59 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Lightbulb icon -->
+  <text x="192" y="180" font-size="72">💡</text>
+
+  <!-- Title -->
+  <text x="290" y="180" font-family="Arial, Helvetica, sans-serif" font-size="72" fill="white" font-weight="bold">KEY INSIGHT</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="210" width="350" height="3" fill="#fbbf24" opacity="0.7"/>
+
+  <!-- Main quote -->
+  <rect x="192" y="300" width="1536" height="180" rx="20" fill="#1e293b" stroke="#fbbf24" stroke-width="4"/>
+  <text x="960" y="400" font-family="Arial, Helvetica, sans-serif" font-size="52" fill="white" text-anchor="middle" font-weight="bold">"Melody is the memorable part</text>
+  <text x="960" y="465" font-family="Arial, Helvetica, sans-serif" font-size="52" fill="#fbbf24" text-anchor="middle" font-weight="bold">of your music"</text>
+
+  <!-- Divider -->
+  <rect x="700" y="540" width="520" height="2" fill="#334155"/>
+
+  <!-- Four melody concepts summary -->
+  <text x="192" y="620" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#e2e8f0" font-weight="bold">REMEMBER:</text>
+
+  <rect x="192" y="670" width="360" height="120" rx="12" fill="#1e293b" stroke="#10b981" stroke-width="3"/>
+  <text x="250" y="720" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#10b981">↗️</text>
+  <text x="290" y="720" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#10b981" font-weight="bold">ASCENDING</text>
+  <text x="290" y="755" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="white">= Excitement</text>
+
+  <rect x="572" y="670" width="360" height="120" rx="12" fill="#1e293b" stroke="#ef4444" stroke-width="3"/>
+  <text x="630" y="720" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#ef4444">↘️</text>
+  <text x="670" y="720" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#ef4444" font-weight="bold">DESCENDING</text>
+  <text x="670" y="755" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="white">= Calming</text>
+
+  <rect x="952" y="670" width="360" height="120" rx="12" fill="#1e293b" stroke="#3b82f6" stroke-width="3"/>
+  <text x="1010" y="720" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#3b82f6">🚶</text>
+  <text x="1050" y="720" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#3b82f6" font-weight="bold">STEPS</text>
+  <text x="1050" y="755" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="white">= Smooth</text>
+
+  <rect x="1332" y="670" width="396" height="120" rx="12" fill="#1e293b" stroke="#f59e0b" stroke-width="3"/>
+  <text x="1390" y="720" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#f59e0b">🦘</text>
+  <text x="1430" y="720" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#f59e0b" font-weight="bold">SKIPS</text>
+  <text x="1430" y="755" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="white">= Energetic</text>
+
+  <!-- Final message -->
+  <rect x="192" y="850" width="1536" height="100" rx="12" fill="#374151" stroke="#a855f7" stroke-width="3"/>
+  <text x="960" y="915" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="white" text-anchor="middle" font-weight="bold">Together they CREATE the theme!</text>
+</svg>

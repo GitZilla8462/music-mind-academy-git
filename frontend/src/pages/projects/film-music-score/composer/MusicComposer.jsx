@@ -16,7 +16,7 @@ import { useLoopHandlers } from './hooks/useLoopHandlers';
 import { usePlaybackHandlers } from './hooks/usePlaybackHandlers';
 import { useComposerEffects } from './hooks/useComposerEffects';
 import { usePreventAccidentalNavigation } from '../../../../hooks/usePreventAccidentalNavigation';
-import { renderBeatToBlob } from '../shared/beatRenderUtils';
+import { renderBeatToBlob, renderMelodyToBlob } from '../shared/beatRenderUtils';
 
 // Components
 import ComposerHeader from './components/ComposerHeader';
@@ -70,9 +70,10 @@ const MusicComposer = ({
   const initialLoopsLoadedRef = useRef(false);
   const [currentlyPlayingPreview, setCurrentlyPlayingPreview] = useState(null);
 
-  // Creator tools state (Beat Maker panel)
+  // Creator tools state (Beat Maker and Melody Maker panels)
   const [creatorMenuOpen, setCreatorMenuOpen] = useState(false);
   const [beatMakerOpen, setBeatMakerOpen] = useState(false);
+  const [melodyMakerOpen, setMelodyMakerOpen] = useState(false);
   // Initialize with initialCustomLoops if provided, otherwise empty array
   // initialCustomLoops may come from StudentBeatMakerActivity saved beats
   const [customLoops, setCustomLoops] = useState(() => {
@@ -478,29 +479,50 @@ const MusicComposer = ({
     setCustomLoops
   });
 
-  // Re-render custom beats that were loaded from localStorage
+  // Re-render custom beats AND melodies that were loaded from localStorage
   // These have needsRender: true because blob URLs don't persist
   useEffect(() => {
-    const beatsNeedingRender = customLoops.filter(loop => loop.needsRender && loop.pattern);
+    const loopsNeedingRender = customLoops.filter(loop => loop.needsRender && loop.pattern);
 
-    if (beatsNeedingRender.length === 0) return;
+    if (loopsNeedingRender.length === 0) return;
 
-    console.log(`🔄 Re-rendering ${beatsNeedingRender.length} saved custom beats...`);
+    const beatsCount = loopsNeedingRender.filter(l => l.type === 'custom-beat').length;
+    const melodiesCount = loopsNeedingRender.filter(l => l.type === 'custom-melody').length;
+    console.log(`🔄 Re-rendering ${beatsCount} beats and ${melodiesCount} melodies...`);
 
-    const renderBeats = async () => {
+    const renderLoops = async () => {
       const updatedLoops = [...customLoops];
 
-      for (const beat of beatsNeedingRender) {
+      for (const loop of loopsNeedingRender) {
         try {
-          const { blobURL, duration } = await renderBeatToBlob({
-            pattern: beat.pattern,
-            bpm: beat.bpm,
-            kit: beat.kit,
-            steps: beat.steps
-          });
+          let blobURL, duration;
 
-          // Find and update the beat in the array
-          const index = updatedLoops.findIndex(l => l.id === beat.id);
+          if (loop.type === 'custom-melody') {
+            // Render melody
+            const result = await renderMelodyToBlob({
+              pattern: loop.pattern,
+              bpm: loop.bpm,
+              synthType: loop.synthType,
+              notes: loop.notes,
+              beats: loop.beats,
+              mood: loop.mood
+            });
+            blobURL = result.blobURL;
+            duration = result.duration;
+          } else {
+            // Render beat (default)
+            const result = await renderBeatToBlob({
+              pattern: loop.pattern,
+              bpm: loop.bpm,
+              kit: loop.kit,
+              steps: loop.steps
+            });
+            blobURL = result.blobURL;
+            duration = result.duration;
+          }
+
+          // Find and update the loop in the array
+          const index = updatedLoops.findIndex(l => l.id === loop.id);
           if (index !== -1) {
             updatedLoops[index] = {
               ...updatedLoops[index],
@@ -512,15 +534,15 @@ const MusicComposer = ({
             };
           }
         } catch (error) {
-          console.error(`Failed to re-render beat ${beat.name}:`, error);
+          console.error(`Failed to re-render ${loop.type || 'loop'} ${loop.name}:`, error);
         }
       }
 
       setCustomLoops(updatedLoops);
-      console.log('✅ Custom beats re-rendered successfully');
+      console.log('✅ Custom loops re-rendered successfully');
     };
 
-    renderBeats();
+    renderLoops();
   }, [customLoops, setCustomLoops]);
 
   // Track state change handler with callback
@@ -560,6 +582,13 @@ const MusicComposer = ({
     setCustomLoops(prev => [...prev, beatLoop]);
     setBeatMakerOpen(false);
     showToast?.('Beat added to Loop Library!', 'success');
+  }, [showToast]);
+
+  // Handle adding custom loops from Melody Maker
+  const handleAddMelodyLoop = useCallback((melodyLoop) => {
+    setCustomLoops(prev => [...prev, melodyLoop]);
+    setMelodyMakerOpen(false);
+    showToast?.('Melody added to Loop Library!', 'success');
   }, [showToast]);
 
   // Handle deleting custom loops
@@ -734,14 +763,17 @@ const MusicComposer = ({
         highlightSelector={highlightSelector}
         currentlyPlayingPreview={currentlyPlayingPreview}
         assignmentPanelContent={assignmentPanelContent}
-        // Creator tools (Beat Maker)
+        // Creator tools (Beat Maker, Melody Maker)
         showCreatorTools={showCreatorTools}
         creatorMenuOpen={creatorMenuOpen}
         setCreatorMenuOpen={setCreatorMenuOpen}
         beatMakerOpen={beatMakerOpen}
         setBeatMakerOpen={setBeatMakerOpen}
+        melodyMakerOpen={melodyMakerOpen}
+        setMelodyMakerOpen={setMelodyMakerOpen}
         customLoops={customLoops}
         onAddCustomLoop={handleAddCustomLoop}
+        onAddMelodyLoop={handleAddMelodyLoop}
         onDeleteCustomLoop={handleDeleteCustomLoop}
       />
     </div>
