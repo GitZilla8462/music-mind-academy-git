@@ -24,7 +24,6 @@ import SimpleMelodyGrid, {
   playSimpleGrid,
   disposeSimpleSynth,
   simpleGridsMatch,
-  calculateSimpleScore,
   GRID_COLS,
   GRID_ROWS
 } from './SimpleMelodyGrid';
@@ -122,6 +121,9 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
     locations.map(() => 3)
   );
   const [hintsUsed, setHintsUsed] = useState(
+    locations.map(() => 0)
+  );
+  const [wrongAttempts, setWrongAttempts] = useState(
     locations.map(() => 0)
   );
   const [revealedCols, setRevealedCols] = useState(
@@ -235,8 +237,8 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
     setIsPlayingPlayer(false);
   };
 
-  // Use hint - reveal one column
-  const useHint = () => {
+  // Reveal hint - reveal one column
+  const revealHint = () => {
     if (hintsUsed[currentLocationIndex] >= 2) return;
 
     const targetGrid = targetMelody.grid;
@@ -372,36 +374,57 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
     setGameState(STATES.SOLVING);
   };
 
-  // Handle decode attempt
+  // Handle decode attempt - require EXACT match like Beat Escape Room
   const handleDecode = () => {
     const targetGrid = targetMelody.grid;
-    const score = calculateSimpleScore(playerGrid, targetGrid);
-    const listensUsed = 3 - listensRemaining[currentLocationIndex];
     const hintsUsedCount = hintsUsed[currentLocationIndex];
+    const currentWrongAttempts = wrongAttempts[currentLocationIndex];
 
-    // Adjust score based on hints and listens
-    let adjustedPoints = score.points;
-    if (hintsUsedCount > 0) adjustedPoints = Math.max(25, adjustedPoints - (hintsUsedCount * 10));
-    if (listensUsed > 1) adjustedPoints = Math.max(25, adjustedPoints - ((listensUsed - 1) * 5));
+    // Check for EXACT match only
+    if (simpleGridsMatch(playerGrid, targetGrid)) {
+      // Calculate percentage score: 100% - 15% per wrong attempt - 20% per hint
+      let percentage = 100;
+      percentage -= currentWrongAttempts * 15;
+      percentage -= hintsUsedCount * 20;
+      percentage = Math.max(25, percentage); // Minimum 25%
 
-    const finalScore = { ...score, points: adjustedPoints };
+      // Convert percentage to points/stars
+      const points = percentage;
+      const stars = percentage >= 90 ? 3 : percentage >= 70 ? 2 : 1;
 
-    // Need at least 50 points or exact match to pass
-    if (finalScore.points >= 50 || simpleGridsMatch(playerGrid, targetGrid)) {
+      const finalScore = { points, stars, percentage };
+
       sounds.unlock();
       setSolvedLocations(prev => [...prev, currentLocationIndex]);
       setLocationScores(prev => [...prev, {
         location: currentLocationIndex,
         score: finalScore,
-        listensUsed,
+        wrongAttempts: currentWrongAttempts,
         hintsUsed: hintsUsedCount
       }]);
       // Switch decoder to show decoded message
       setDecoderMode('decoded');
     } else {
+      // Wrong attempt
       sounds.wrongGuess();
-      setInputError('SIGNAL MISMATCH - TRY AGAIN');
-      setTimeout(() => setInputError(null), 3000);
+      const newAttempts = currentWrongAttempts + 1;
+      setWrongAttempts(prev => {
+        const updated = [...prev];
+        updated[currentLocationIndex] = newAttempts;
+        return updated;
+      });
+
+      if (newAttempts >= 3 && hintsUsedCount < 2) {
+        // Auto-reveal a hint after 3 wrong attempts (like Beat Escape Room)
+        setInputError('SIGNAL MISMATCH - HINT REVEALED');
+        setTimeout(() => {
+          setInputError(null);
+          revealHint();
+        }, 1500);
+      } else {
+        setInputError('SIGNAL MISMATCH - TRY AGAIN');
+        setTimeout(() => setInputError(null), 3000);
+      }
     }
   };
 
@@ -770,6 +793,14 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
       }
 
       // Default: puzzle mode - show melody grid
+      const currentWrongAttempts = wrongAttempts[currentLocationIndex];
+      const currentHintsUsed = hintsUsed[currentLocationIndex];
+      // Calculate current score percentage
+      let currentPercentage = 100;
+      currentPercentage -= currentWrongAttempts * 15;
+      currentPercentage -= currentHintsUsed * 20;
+      currentPercentage = Math.max(25, currentPercentage);
+
       return (
         <>
           <SimpleMelodyGrid
@@ -782,6 +813,35 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
           {inputError && (
             <div className="text-red-400 text-xs mt-2 text-center font-mono tracking-wider">{inputError}</div>
           )}
+
+          {/* Attempt dots and score - like Beat Escape Room */}
+          <div className="mt-3 pt-2 border-t border-amber-900/30 flex items-center justify-between">
+            {/* Attempt dots */}
+            <div className="flex items-center gap-1">
+              <span className="text-amber-600/50 text-[10px] font-mono mr-1">ATTEMPTS:</span>
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className={`w-2.5 h-2.5 rounded-full border ${
+                    i < currentWrongAttempts
+                      ? 'bg-red-500 border-red-400'
+                      : 'bg-transparent border-amber-600/40'
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Percentage score */}
+            <div className="flex items-center gap-1">
+              <span className="text-amber-600/50 text-[10px] font-mono">SCORE:</span>
+              <span className={`font-mono text-sm font-bold ${
+                currentPercentage >= 80 ? 'text-green-400' :
+                currentPercentage >= 60 ? 'text-amber-400' : 'text-red-400'
+              }`}>
+                {currentPercentage}%
+              </span>
+            </div>
+          </div>
         </>
       );
     };
@@ -809,7 +869,7 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
                   LISTENS: <span className="text-amber-400">{listensRemaining[currentLocationIndex]}</span>
                 </span>
                 <button
-                  onClick={useHint}
+                  onClick={revealHint}
                   disabled={hintsUsed[currentLocationIndex] >= 2}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-mono tracking-wide ${
                     hintsUsed[currentLocationIndex] < 2
