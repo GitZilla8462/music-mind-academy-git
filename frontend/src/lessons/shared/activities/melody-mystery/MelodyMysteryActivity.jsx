@@ -43,6 +43,7 @@ const MelodyMysteryActivity = ({ onComplete, viewMode, isSessionMode }) => {
   const [copied, setCopied] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
+  const [resetKey, setResetKey] = useState(0); // Forces component remount on reset
 
   const { sessionData, currentStage } = useSession() || {};
   const prevStageRef = useRef(currentStage);
@@ -261,24 +262,22 @@ const MelodyMysteryActivity = ({ onComplete, viewMode, isSessionMode }) => {
     setShareCode(null);
     setSolveResults(null);
     setIsSaved(false);
+    setResetKey(prev => prev + 1); // Force component remount
     setPhase(PHASES.SETUP);
   };
 
-  // Handle going back
+  // Handle going back - reset all state to start fresh
   const handleBack = () => {
-    switch (phase) {
-      case PHASES.CREATE:
-        setPhase(PHASES.SETUP);
-        break;
-      case PHASES.SHARE:
-        setPhase(PHASES.SETUP);
-        break;
-      case PHASES.SOLVE:
-        setPhase(PHASES.SETUP);
-        break;
-      default:
-        setPhase(PHASES.SETUP);
-    }
+    setSelectedConcept('vanishing-composer');
+    setSelectedMode(null);
+    setSelectedEnding(null);
+    setPlayerIndex(0);
+    setMysteryData(null);
+    setShareCode(null);
+    setSolveResults(null);
+    setIsSaved(false);
+    setResetKey(prev => prev + 1); // Force component remount
+    setPhase(PHASES.SETUP);
   };
 
   // Copy share code
@@ -300,6 +299,7 @@ const MelodyMysteryActivity = ({ onComplete, viewMode, isSessionMode }) => {
       case PHASES.SETUP:
         return (
           <MelodyMysterySetup
+            key={`setup-${resetKey}`}
             onStartCreate={handleStartCreate}
             onJoinMystery={handleJoinMystery}
             onJoinToCreate={handleJoinToCreate}
@@ -310,6 +310,7 @@ const MelodyMysteryActivity = ({ onComplete, viewMode, isSessionMode }) => {
       case PHASES.CREATE:
         return (
           <MelodyMysteryCreator
+            key={`${resetKey}-${shareCode || 'new'}`}
             conceptId={selectedConcept}
             ending={selectedEnding}
             mode={selectedMode}

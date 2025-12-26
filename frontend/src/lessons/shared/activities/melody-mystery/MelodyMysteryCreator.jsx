@@ -4,23 +4,23 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Square, Trash2, ChevronRight, ChevronLeft, MapPin, Music, Volume2 } from 'lucide-react';
-import MelodyGrid from './MelodyGrid';
+import SimpleMelodyGrid, {
+  createEmptySimpleGrid,
+  countSimpleNotes,
+  playSimpleGrid,
+  disposeSimpleSynth,
+  getSimpleContour,
+  GRID_COLS
+} from './SimpleMelodyGrid';
 import {
-  MELODY_NOTES,
-  GRID_ROWS,
-  GRID_COLS,
-  createEmptyGrid,
-  countActiveNotes,
-  getContour,
   getMelodyAssignments,
-  playGrid,
-  initMelodySynth,
-  disposeSynth
+  initMelodySynth
 } from './melodyMysteryConfig';
 import {
   getConcept,
   getEnding,
-  getLocationBackground
+  getLocationBackground,
+  getDeviceImage
 } from './melodyMysteryConcepts';
 
 const MelodyMysteryCreator = ({
@@ -51,10 +51,22 @@ const MelodyMysteryCreator = ({
     if (existingMelodies && existingMelodies.length > 0) {
       return locations.map((_, i) => {
         const existing = existingMelodies.find(m => m.locationId === locations[i].id);
-        return existing?.grid || createEmptyGrid();
+        return existing?.grid || createEmptySimpleGrid();
       });
     }
-    return locations.map(() => createEmptyGrid());
+    return locations.map(() => createEmptySimpleGrid());
+  });
+  // Track selected device for each location (default to first device)
+  const [selectedDevices, setSelectedDevices] = useState(() => {
+    // Initialize with existing melodies if available, or default to first device
+    return locations.map((loc, i) => {
+      if (existingMelodies && existingMelodies.length > 0) {
+        const existing = existingMelodies.find(m => m.locationId === loc.id);
+        if (existing?.selectedDevice) return existing.selectedDevice;
+      }
+      // Default to first selectable device
+      return loc.selectableDevices?.[0] || null;
+    });
   });
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentBeat, setCurrentBeat] = useState(-1);
@@ -64,14 +76,26 @@ const MelodyMysteryCreator = ({
   const location = locations[currentLocation];
   const currentGrid = grids[currentLocation];
   const canEditCurrentLocation = myMelodyAssignments.includes(currentLocation);
+  const currentSelectedDevice = selectedDevices[currentLocation];
+  const selectableDevices = location?.selectableDevices || [];
 
   // Get background image based on current location
   const backgroundImage = getLocationBackground(conceptId, currentLocation + 1);
 
+  // Handle device selection
+  const handleSelectDevice = (device) => {
+    if (!canEditCurrentLocation) return;
+    setSelectedDevices(prev => {
+      const newDevices = [...prev];
+      newDevices[currentLocation] = device;
+      return newDevices;
+    });
+  };
+
   // Initialize audio on mount
   useEffect(() => {
     initMelodySynth();
-    return () => disposeSynth();
+    return () => disposeSimpleSynth();
   }, []);
 
   // Handle grid toggle from MelodyGrid component
@@ -85,7 +109,7 @@ const MelodyMysteryCreator = ({
     });
   };
 
-  // Play current melody
+  // Play current melody (synced audio + visual)
   const handlePlay = async () => {
     if (isPlaying) {
       playingRef.current = false;
@@ -97,17 +121,12 @@ const MelodyMysteryCreator = ({
     setIsPlaying(true);
     playingRef.current = true;
 
-    // Animate beats during playback
-    const interval = (60 / 120) * 1000 / 2; // 8th notes at 120 BPM
-
-    for (let col = 0; col < GRID_COLS; col++) {
-      if (!playingRef.current) break;
-      setCurrentBeat(col);
-      await new Promise(resolve => setTimeout(resolve, interval));
-    }
-
-    // Play the actual audio
-    await playGrid(currentGrid);
+    // Play with synced visual callback
+    await playSimpleGrid(currentGrid, 120, (beat) => {
+      if (playingRef.current) {
+        setCurrentBeat(beat);
+      }
+    });
 
     setIsPlaying(false);
     setCurrentBeat(-1);
@@ -119,7 +138,7 @@ const MelodyMysteryCreator = ({
     if (!canEditCurrentLocation) return;
     setGrids(prev => {
       const newGrids = [...prev];
-      newGrids[currentLocation] = createEmptyGrid();
+      newGrids[currentLocation] = createEmptySimpleGrid();
       return newGrids;
     });
   };
@@ -133,16 +152,16 @@ const MelodyMysteryCreator = ({
   };
 
   // Check if current melody is valid (3+ notes)
-  const isCurrentValid = countActiveNotes(currentGrid) >= 3;
+  const isCurrentValid = countSimpleNotes(currentGrid) >= 3;
 
   // Check if all assigned melodies are complete (only check this player's locations)
   const myLocationsComplete = myMelodyAssignments.every(locIndex =>
-    countActiveNotes(grids[locIndex]) >= 3
+    countSimpleNotes(grids[locIndex]) >= 3
   );
 
   // Count progress for display
   const myCompletedCount = myMelodyAssignments.filter(locIndex =>
-    countActiveNotes(grids[locIndex]) >= 3
+    countSimpleNotes(grids[locIndex]) >= 3
   ).length;
 
   // Handle completion
@@ -152,7 +171,8 @@ const MelodyMysteryCreator = ({
         locationId: loc.id,
         locationName: loc.name,
         grid: grids[i],
-        contour: getContour(grids[i])
+        contour: getSimpleContour(grids[i]),
+        selectedDevice: selectedDevices[i] || loc.selectableDevices?.[0] || null
       }));
       onComplete(melodies);
     }
@@ -161,7 +181,7 @@ const MelodyMysteryCreator = ({
   // Find next incomplete location for this player
   const findNextIncomplete = () => {
     return myMelodyAssignments.find(locIndex =>
-      countActiveNotes(grids[locIndex]) < 3
+      countSimpleNotes(grids[locIndex]) < 3
     );
   };
 
@@ -204,7 +224,7 @@ const MelodyMysteryCreator = ({
         <div className="flex items-center justify-center gap-2 mt-3">
           {locations.map((loc, i) => {
             const isMyLocation = myMelodyAssignments.includes(i);
-            const isComplete = countActiveNotes(grids[i]) >= 3;
+            const isComplete = countSimpleNotes(grids[i]) >= 3;
             return (
               <button
                 key={i}
@@ -231,51 +251,100 @@ const MelodyMysteryCreator = ({
         </div>
       </div>
 
-      {/* Clue Preview / Partner Lock Notice */}
-      <div className="bg-black/30 px-6 py-3 border-b border-white/10">
-        {canEditCurrentLocation ? (
-          <p className="text-gray-300 text-sm text-center">
-            When solved, this melody reveals:{' '}
-            <span className="font-semibold" style={{ color: concept.colors.accent }}>
-              "{location?.clue}"
-            </span>
-          </p>
-        ) : (
-          <p className="text-orange-400 text-sm text-center font-medium">
-            This location is assigned to your partner. You can view but not edit.
-          </p>
-        )}
-      </div>
+      {/* Main Content - Side by Side Layout */}
+      <div className="flex-1 flex overflow-hidden">
 
-      {/* Grid */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 overflow-hidden">
-        <div className="w-full max-w-2xl">
-          <MelodyGrid
-            grid={currentGrid}
-            onToggle={handleGridToggle}
-            mode="create"
-            disabled={!canEditCurrentLocation}
-            conceptId={conceptId}
-            currentBeat={isPlaying ? currentBeat : null}
-            size="normal"
-          />
+        {/* LEFT SIDE: Device Picker */}
+        <div className="w-1/2 flex flex-col border-r border-white/10 bg-black/20">
+          {/* Header */}
+          <div className="px-4 py-4 border-b border-white/10">
+            <h2 className="text-2xl font-bold text-center text-white">
+              Hide Signal In:
+            </h2>
+          </div>
+
+          {/* Device Grid with Labels - Large tiles to fill space */}
+          <div className="flex-1 flex items-center justify-center p-6">
+            <div className="grid grid-cols-3 gap-5 w-full max-w-lg">
+              {selectableDevices.map((device) => {
+                const deviceImagePath = getDeviceImage(conceptId, location.id, device.letter, device.id);
+                return (
+                  <div key={device.id} className="flex flex-col items-center gap-2">
+                    <button
+                      onClick={() => handleSelectDevice(device)}
+                      disabled={!canEditCurrentLocation}
+                      className={`w-full aspect-square rounded-xl overflow-hidden border-4 transition-all ${
+                        currentSelectedDevice?.id === device.id
+                          ? 'border-amber-400 ring-2 ring-amber-400 scale-105 shadow-lg shadow-amber-500/30'
+                          : 'border-slate-600 hover:border-slate-400'
+                      } ${!canEditCurrentLocation ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      <img
+                        src={deviceImagePath}
+                        alt={device.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                    <span className={`text-sm text-center font-medium ${
+                      currentSelectedDevice?.id === device.id
+                        ? 'text-amber-400'
+                        : 'text-gray-400'
+                    }`}>
+                      {device.name}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Partner Lock Notice (if applicable) */}
+          {!canEditCurrentLocation && (
+            <div className="px-4 py-2 bg-orange-900/30 border-t border-orange-500/30">
+              <p className="text-orange-400 text-xs text-center">
+                This location is assigned to your partner.
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Status */}
-        <div className="mt-4 flex items-center gap-4">
-          <span className="text-gray-400">
-            Notes: {countActiveNotes(currentGrid)}/8
-          </span>
-          <span className="text-gray-600">|</span>
-          {canEditCurrentLocation ? (
-            <span className={isCurrentValid ? 'text-green-400' : 'text-yellow-400'}>
-              {isCurrentValid ? 'Ready!' : 'Add 3+ notes'}
-            </span>
-          ) : (
-            <span className="text-orange-400">
-              Partner's location
-            </span>
-          )}
+        {/* RIGHT SIDE: Melody Puzzle */}
+        <div className="w-1/2 flex flex-col bg-black/30">
+          {/* Header */}
+          <div className="px-4 py-4 border-b border-white/10">
+            <h2 className="text-2xl font-bold text-center text-white">
+              Make Signal Melody
+            </h2>
+          </div>
+
+          {/* Grid */}
+          <div className="flex-1 flex flex-col items-center justify-center p-4 overflow-hidden">
+            <div className="w-full max-w-sm">
+              <SimpleMelodyGrid
+                grid={currentGrid}
+                onToggle={handleGridToggle}
+                disabled={!canEditCurrentLocation}
+                currentBeat={isPlaying ? currentBeat : -1}
+              />
+            </div>
+
+            {/* Status */}
+            <div className="mt-4 flex items-center gap-4">
+              <span className="text-gray-400">
+                Notes: {countSimpleNotes(currentGrid)}/4
+              </span>
+              <span className="text-gray-600">|</span>
+              {canEditCurrentLocation ? (
+                <span className={isCurrentValid ? 'text-green-400' : 'text-yellow-400'}>
+                  {isCurrentValid ? 'Ready!' : 'Add 3+ notes'}
+                </span>
+              ) : (
+                <span className="text-orange-400">
+                  Partner's location
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

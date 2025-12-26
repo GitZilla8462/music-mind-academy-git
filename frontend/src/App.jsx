@@ -69,6 +69,9 @@ import DemoActivity from './pages/DemoActivity';
 // ✅ ADDED: Import ListeningMapViewer for viewing saved listening maps
 import ListeningMapViewer from './pages/ListeningMapViewer';
 
+// Dev-only Hotspot Editor for Melody Mystery
+import HotspotEditor from './pages/dev/HotspotEditor';
+
 // Add global styles for snap guide
 const snapGuideStyles = `
   /* Snap guide line (blue line that appears when snapping) */
@@ -247,10 +250,13 @@ const AppContent = () => {
         
         {/* Admin dashboard for monitoring all problems */}
         <Route path="/admin/all-problems" element={<AdminAllProblems />} />
-        
+
         {/* Debug tool for inspecting Firebase sessions */}
         <Route path="/debug-session" element={<FirebaseSessionInspector />} />
-        
+
+        {/* Dev-only Hotspot Editor for Melody Mystery */}
+        <Route path="/dev/hotspot-editor" element={<HotspotEditor />} />
+
         {/* Lesson Plan PDF Viewer */}
         <Route path="/lesson-plan/lesson1" element={<LessonPlanPDF />} />
         <Route path="/lesson-plan/lesson2" element={<LessonPlan2PDF />} />
@@ -343,10 +349,13 @@ const AppContent = () => {
         
         {/* Admin dashboard */}
         <Route path="/admin/all-problems" element={<AdminAllProblems />} />
-        
+
         {/* Debug tool for inspecting Firebase sessions */}
         <Route path="/debug-session" element={<FirebaseSessionInspector />} />
-        
+
+        {/* Dev-only Hotspot Editor for Melody Mystery */}
+        <Route path="/dev/hotspot-editor" element={<HotspotEditor />} />
+
         {/* Lesson Plan PDF Viewer */}
         <Route path="/lesson-plan/lesson1" element={<LessonPlanPDF />} />
         <Route path="/lesson-plan/lesson2" element={<LessonPlan2PDF />} />

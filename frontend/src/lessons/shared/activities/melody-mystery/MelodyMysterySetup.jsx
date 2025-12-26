@@ -3,7 +3,7 @@
 // Follows Beat Escape Room pattern exactly
 
 import React, { useState, useEffect } from 'react';
-import { Copy, Check, Play, Pencil, Lock } from 'lucide-react';
+import { Copy, Check, Play, Pencil, Lock, Trash2 } from 'lucide-react';
 import { MODES, createRoom } from './melodyMysteryConfig';
 import {
   getAllConcepts,
@@ -63,6 +63,40 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
     setEditingRoomIndex(null);
     setEditingTitle('');
     loadSavedRooms();
+  };
+
+  // Handle deleting a saved room
+  const handleDeleteRoom = (room) => {
+    if (!confirm('Delete this mystery? This cannot be undone.')) return;
+
+    const studentId = getStudentId();
+    const storageKey = `mma-saved-${studentId}-melody-mystery`;
+
+    try {
+      const existing = localStorage.getItem(storageKey);
+      if (existing) {
+        const allSaved = JSON.parse(existing);
+
+        // Check if it's an array or single object
+        if (Array.isArray(allSaved)) {
+          // Filter out the room to delete (match by savedAt timestamp or viewRoute)
+          const filtered = allSaved.filter(saved =>
+            saved.savedAt !== room.savedAt && saved.viewRoute !== room.viewRoute
+          );
+          if (filtered.length > 0) {
+            localStorage.setItem(storageKey, JSON.stringify(filtered));
+          } else {
+            localStorage.removeItem(storageKey);
+          }
+        } else {
+          // Single object - just remove the whole key
+          localStorage.removeItem(storageKey);
+        }
+      }
+      loadSavedRooms();
+    } catch (error) {
+      console.error('Failed to delete room:', error);
+    }
   };
 
   const handleModeSelect = (modeId) => {
@@ -283,16 +317,25 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
                           <div className="text-white font-semibold text-sm leading-tight pr-2">
                             {displayTitle}
                           </div>
-                          <button
-                            onClick={() => {
-                              setEditingRoomIndex(index);
-                              setEditingTitle(room.title || '');
-                            }}
-                            className="text-gray-400 hover:text-purple-400 transition-colors p-1"
-                            title="Edit title"
-                          >
-                            <Pencil size={14} />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => {
+                                setEditingRoomIndex(index);
+                                setEditingTitle(room.title || '');
+                              }}
+                              className="text-gray-400 hover:text-purple-400 transition-colors p-1"
+                              title="Edit title"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteRoom(room)}
+                              className="text-gray-400 hover:text-red-400 transition-colors p-1"
+                              title="Delete mystery"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                       )}
                       <div className="text-gray-400 text-xs mb-3">
@@ -493,21 +536,38 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
           backgroundPosition: 'center',
         }}
       >
-        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+        <div className="absolute inset-0 bg-black/70 pointer-events-none" />
 
         <button
           onClick={handleBack}
-          className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2 z-10"
+          className="absolute top-6 left-6 text-gray-300 hover:text-white transition-colors flex items-center gap-2 z-10"
+          style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}
         >
           ← Back
         </button>
 
-        <div className="text-center mb-10 relative z-10">
-          <h1 className="text-4xl font-black text-white mb-3">
-            Choose Your Story
+        {/* Story Title & Intro */}
+        <div className="text-center mb-8 relative z-10 max-w-2xl bg-black/50 rounded-2xl p-6">
+          <div className="text-5xl mb-3">{conceptData?.icon}</div>
+          <h1 className="text-4xl font-black text-white mb-4"
+              style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(139, 92, 246, 0.6)' }}>
+            {conceptData?.name}
           </h1>
-          <p className="text-lg text-purple-200">
-            {conceptData?.name} - {MODES[selectedMode]?.label} Mode
+          <p className="text-lg text-gray-200 leading-relaxed"
+             style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
+            {storyline?.intro}
+          </p>
+        </div>
+
+        {/* Choose Your Ending Section */}
+        <div className="text-center mb-6 relative z-10">
+          <h2 className="text-2xl font-bold text-white"
+              style={{ textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}>
+            Choose Your Ending
+          </h2>
+          <p className="text-sm text-gray-200 mt-1"
+             style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
+            Pick how the mystery ends — you'll create clues for this story
           </p>
         </div>
 
@@ -520,6 +580,7 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
           </div>
         )}
 
+        {/* Ending Cards */}
         <div className="grid grid-cols-3 gap-6 max-w-3xl relative z-10">
           {Object.entries(endings).map(([endingId, ending]) => (
             <button
