@@ -26,6 +26,11 @@ const MelodyMysteryResults = ({
   const assets = getConceptAssets(conceptId);
   const { solvedLocations, locationScores, totalScore, finalAnswer } = results || {};
 
+  // Calculate average percentage from location scores
+  const averagePercentage = locationScores?.length > 0
+    ? Math.round(locationScores.reduce((sum, s) => sum + (s.score?.percentage || 0), 0) / locationScores.length)
+    : 0;
+
   // Detect Chromebook for performance optimizations
   const isChromebook = typeof navigator !== 'undefined' && navigator.userAgent.includes('CrOS');
 
@@ -89,9 +94,15 @@ const MelodyMysteryResults = ({
           <div className="w-64 bg-slate-800/90 rounded-2xl p-6 border border-white/10">
             <h3 className="text-gray-400 text-sm mb-4 text-center">Your Score</h3>
             <div className="space-y-3">
-              <div className="bg-slate-700/80 rounded-lg p-3 text-center">
-                <p className="text-3xl font-bold" style={{ color: concept.colors.accent }}>{totalScore || 0}</p>
-                <p className="text-gray-400 text-xs">Total Points</p>
+              {/* Big percentage display */}
+              <div className="bg-slate-700/80 rounded-lg p-4 text-center">
+                <p className={`text-4xl font-bold ${
+                  averagePercentage >= 80 ? 'text-green-400' :
+                  averagePercentage >= 60 ? 'text-yellow-400' : 'text-orange-400'
+                }`}>
+                  {averagePercentage}%
+                </p>
+                <p className="text-gray-400 text-xs mt-1">Average Accuracy</p>
               </div>
               <div className="flex gap-3">
                 <div className="flex-1 bg-slate-700/80 rounded-lg p-2 text-center">
@@ -99,10 +110,10 @@ const MelodyMysteryResults = ({
                   <p className="text-gray-400 text-[10px]">Locations</p>
                 </div>
                 <div className="flex-1 bg-slate-700/80 rounded-lg p-2 text-center">
-                  <p className="text-xl font-bold text-yellow-400">
-                    {locationScores?.filter(s => s.score?.stars === 3).length || 0}
+                  <p className="text-xl font-bold" style={{ color: concept.colors.accent }}>
+                    {totalScore || 0}
                   </p>
-                  <p className="text-gray-400 text-[10px]">Perfect</p>
+                  <p className="text-gray-400 text-[10px]">Points</p>
                 </div>
               </div>
             </div>

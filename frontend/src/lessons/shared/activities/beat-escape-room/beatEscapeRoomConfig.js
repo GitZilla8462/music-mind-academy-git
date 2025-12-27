@@ -64,15 +64,6 @@ export const MODES = {
     perPerson: 3,
     description: '3 locks each',
     players: 2
-  },
-  trio: {
-    id: 'trio',
-    label: 'Trio',
-    icon: '👥',
-    totalLocks: 9,
-    perPerson: 3,
-    description: '3 locks each',
-    players: 3
   }
 };
 
@@ -84,12 +75,6 @@ export const getLockAssignments = (mode, playerIndex = 0) => {
       return playerIndex === 0
         ? [1, 3, 5]  // Player A: odd locks
         : [2, 4, 6]; // Player B: even locks
-    case 'trio':
-      return playerIndex === 0
-        ? [1, 4, 7]
-        : playerIndex === 1
-          ? [2, 5, 8]
-          : [3, 6, 9];
     default:
       return [1, 2, 3, 4, 5, 6];
   }

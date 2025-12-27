@@ -9,6 +9,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getSessionData } from '../firebase/config';
 import { getStudentId, getAllStudentWork, migrateOldSaves } from '../utils/studentWorkStorage';
 import BeatEscapeRoomActivity from '../lessons/shared/activities/beat-escape-room/BeatEscapeRoomActivity';
+import MelodyMysteryActivity from '../lessons/shared/activities/melody-mystery/MelodyMysteryActivity';
 
 function JoinWithCode() {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ function JoinWithCode() {
   const isPreviewMode = searchParams.get('preview') === 'true';
   const urlCode = searchParams.get('code');
   const loadRoomCode = searchParams.get('loadRoom');
+  const loadMelodyMysteryCode = searchParams.get('loadMelodyMystery');
 
   useEffect(() => {
     const id = getStudentId();
@@ -51,6 +53,18 @@ function JoinWithCode() {
       <div style={{ minHeight: '100vh', backgroundColor: '#1a202c' }}>
         <BeatEscapeRoomActivity
           onComplete={() => navigate('/join')}
+        />
+      </div>
+    );
+  }
+
+  // If loadMelodyMystery parameter is present, show Melody Mystery
+  if (loadMelodyMysteryCode) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#1a202c' }}>
+        <MelodyMysteryActivity
+          onComplete={() => navigate('/join')}
+          initialLoadCode={loadMelodyMysteryCode}
         />
       </div>
     );

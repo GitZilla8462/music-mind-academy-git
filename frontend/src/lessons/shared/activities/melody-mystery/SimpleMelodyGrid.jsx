@@ -133,31 +133,572 @@ export const calculateSimpleScore = (userGrid, targetGrid) => {
   }
 };
 
-// Audio synth singleton
-let synth = null;
+// ========================================
+// DEVICE-SPECIFIC SOUND CONFIGURATIONS
+// ========================================
+
+// Each device has dramatically different audio character
+// - octaveShift: moves notes up/down for pitch character
+// - synthType: 'basic', 'fm', 'am', 'duo', 'membrane', 'metal', 'pluck'
+// - oscType: sine, square, triangle, sawtooth, pulse, pwm
+// - Envelope: attack, decay, sustain, release
+// - Effects: filter, distortion, tremolo, chorus, delay, reverb, bitcrusher, phaser
+
+const DEVICE_SOUNDS = {
+  // === MUSIC BOX === Delicate, crystalline, high-pitched celesta-like
+  musicbox: {
+    octaveShift: 2,
+    synthType: 'fm',
+    harmonicity: 12,
+    modulationIndex: 4,
+    envelope: { attack: 0.001, decay: 0.8, sustain: 0, release: 2 },
+    effects: { reverb: 0.5, highpass: 800 }
+  },
+
+  // === GRAMOPHONE === Scratchy, wobbly, vintage crackle
+  gramophone: {
+    octaveShift: -1,
+    synthType: 'basic',
+    oscType: 'sawtooth',
+    envelope: { attack: 0.05, decay: 0.4, sustain: 0.2, release: 0.6 },
+    effects: { bandpass: 1200, bandpassQ: 2, distortion: 0.4, wobble: 0.15, reverb: 0.2 }
+  },
+
+  // === RECORD PLAYER === Warm vinyl, slight wow/flutter
+  recordplayer: {
+    octaveShift: 0,
+    synthType: 'basic',
+    oscType: 'triangle',
+    envelope: { attack: 0.03, decay: 0.3, sustain: 0.4, release: 0.8 },
+    effects: { lowpass: 4000, distortion: 0.1, wobble: 0.08, reverb: 0.15 }
+  },
+
+  // === RADIO === AM radio crackle, narrow band
+  radio: {
+    octaveShift: 0,
+    synthType: 'am',
+    harmonicity: 2.5,
+    envelope: { attack: 0.02, decay: 0.2, sustain: 0.4, release: 0.5 },
+    effects: { bandpass: 1800, bandpassQ: 3, distortion: 0.15, tremolo: 8 }
+  },
+
+  // === TUBE RADIO === Warmer, richer radio sound
+  tuberadio: {
+    octaveShift: 0,
+    synthType: 'am',
+    harmonicity: 1.5,
+    envelope: { attack: 0.04, decay: 0.3, sustain: 0.5, release: 0.7 },
+    effects: { bandpass: 1400, bandpassQ: 2, distortion: 0.2, reverb: 0.1 }
+  },
+
+  // === PORTABLE RADIO === Tiny speaker, tinny
+  portableradio: {
+    octaveShift: 1,
+    synthType: 'basic',
+    oscType: 'square',
+    envelope: { attack: 0.01, decay: 0.15, sustain: 0.2, release: 0.3 },
+    effects: { bandpass: 2500, bandpassQ: 4, distortion: 0.1 }
+  },
+
+  // === RADIO CABINET === Rich, room-filling
+  radiocabinet: {
+    octaveShift: -1,
+    synthType: 'am',
+    harmonicity: 2,
+    envelope: { attack: 0.03, decay: 0.4, sustain: 0.5, release: 1 },
+    effects: { lowpass: 3000, reverb: 0.3 }
+  },
+
+  // === CUBE RADIO === Digital, modern small speaker
+  cuberadio: {
+    octaveShift: 0,
+    synthType: 'basic',
+    oscType: 'pulse',
+    envelope: { attack: 0.01, decay: 0.2, sustain: 0.3, release: 0.4 },
+    effects: { bandpass: 2200, bandpassQ: 2 }
+  },
+
+  // === PAYPHONE === DTMF-like, telephone quality
+  payphone: {
+    octaveShift: 1,
+    synthType: 'duo',
+    envelope: { attack: 0.001, decay: 0.15, sustain: 0, release: 0.1 },
+    effects: { bandpass: 1200, bandpassQ: 6 }
+  },
+
+  // === WALKIE TALKIE === Harsh, compressed, static
+  walkietalkie: {
+    octaveShift: 0,
+    synthType: 'basic',
+    oscType: 'square',
+    envelope: { attack: 0.001, decay: 0.1, sustain: 0.6, release: 0.1 },
+    effects: { bandpass: 1600, bandpassQ: 5, distortion: 0.5, bitcrush: 6 }
+  },
+
+  // === MEGAPHONE === Distorted, honky, mid-range
+  megaphone: {
+    octaveShift: 0,
+    synthType: 'basic',
+    oscType: 'square',
+    envelope: { attack: 0.01, decay: 0.2, sustain: 0.5, release: 0.3 },
+    effects: { bandpass: 1000, bandpassQ: 4, distortion: 0.6 }
+  },
+
+  // === BOOMBOX === Punchy bass, 80s character
+  boombox: {
+    octaveShift: -1,
+    synthType: 'basic',
+    oscType: 'sawtooth',
+    envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.5 },
+    effects: { lowpass: 6000, bassBoost: 8, distortion: 0.15 }
+  },
+
+  // === JUKEBOX === Warm, nostalgic, full sound
+  jukebox: {
+    octaveShift: 0,
+    synthType: 'basic',
+    oscType: 'triangle',
+    envelope: { attack: 0.02, decay: 0.4, sustain: 0.5, release: 1 },
+    effects: { lowpass: 5000, reverb: 0.35, chorus: true }
+  },
+
+  // === REEL TO REEL === Tape warmth, slight saturation
+  reeltoreel: {
+    octaveShift: 0,
+    synthType: 'basic',
+    oscType: 'triangle',
+    envelope: { attack: 0.03, decay: 0.35, sustain: 0.45, release: 0.9 },
+    effects: { lowpass: 6000, distortion: 0.12, wobble: 0.04, reverb: 0.1 }
+  },
+
+  // === TAPE RECORDER === Warmer, more saturated
+  taperecorder: {
+    octaveShift: 0,
+    synthType: 'basic',
+    oscType: 'triangle',
+    envelope: { attack: 0.04, decay: 0.3, sustain: 0.4, release: 0.7 },
+    effects: { lowpass: 4000, distortion: 0.2, wobble: 0.06 }
+  },
+
+  // === CASSETTE PLAYER === Lo-fi, hissy, wobbly
+  cassetteplayer: {
+    octaveShift: 0,
+    synthType: 'basic',
+    oscType: 'triangle',
+    envelope: { attack: 0.03, decay: 0.25, sustain: 0.35, release: 0.5 },
+    effects: { lowpass: 3500, distortion: 0.25, wobble: 0.1 }
+  },
+
+  // === WALKMAN === Intimate, personal, slight flutter
+  walkman: {
+    octaveShift: 0,
+    synthType: 'basic',
+    oscType: 'triangle',
+    envelope: { attack: 0.02, decay: 0.2, sustain: 0.4, release: 0.6 },
+    effects: { lowpass: 4500, wobble: 0.05 }
+  },
+
+  // === AMPLIFIER === Overdriven tube amp
+  amplifier: {
+    octaveShift: -1,
+    synthType: 'basic',
+    oscType: 'sawtooth',
+    envelope: { attack: 0.01, decay: 0.3, sustain: 0.5, release: 0.8 },
+    effects: { lowpass: 4000, distortion: 0.4, reverb: 0.2 }
+  },
+
+  // === SPEAKER === Clean, neutral reference
+  speaker: {
+    octaveShift: 0,
+    synthType: 'basic',
+    oscType: 'triangle',
+    envelope: { attack: 0.02, decay: 0.25, sustain: 0.4, release: 0.6 },
+    effects: { reverb: 0.15 }
+  },
+
+  // === METRONOME === Sharp, percussive click
+  metronome: {
+    octaveShift: 2,
+    synthType: 'metal',
+    envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.05 },
+    effects: {}
+  },
+
+  // === HEADPHONES === Clean, detailed, intimate
+  headphones: {
+    octaveShift: 0,
+    synthType: 'basic',
+    oscType: 'sine',
+    envelope: { attack: 0.01, decay: 0.3, sustain: 0.5, release: 1 },
+    effects: { reverb: 0.05 }
+  },
+
+  // === MICROPHONE === Clean with room ambience
+  microphone: {
+    octaveShift: 0,
+    synthType: 'basic',
+    oscType: 'sine',
+    envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.8 },
+    effects: { reverb: 0.25 }
+  },
+
+  // === LANTERN === Morse code beeps, mysterious
+  lantern: {
+    octaveShift: 1,
+    synthType: 'basic',
+    oscType: 'sine',
+    envelope: { attack: 0.001, decay: 0.08, sustain: 0, release: 0.1 },
+    effects: { reverb: 0.4, delay: 0.3 }
+  },
+
+  // === ARCADE === 8-bit chiptune, retro game
+  arcade: {
+    octaveShift: 1,
+    synthType: 'basic',
+    oscType: 'square',
+    envelope: { attack: 0.001, decay: 0.1, sustain: 0.3, release: 0.1 },
+    effects: { bitcrush: 4, delay: 0.15 }
+  },
+
+  // === SYNTHESIZER === Fat analog synth
+  synthesizer: {
+    octaveShift: -1,
+    synthType: 'duo',
+    envelope: { attack: 0.05, decay: 0.4, sustain: 0.6, release: 1.2 },
+    effects: { lowpass: 3000, phaser: true, reverb: 0.2 }
+  },
+
+  // === COMPUTER === Digital beeps
+  computer: {
+    octaveShift: 1,
+    synthType: 'basic',
+    oscType: 'square',
+    envelope: { attack: 0.001, decay: 0.15, sustain: 0.2, release: 0.1 },
+    effects: { bitcrush: 8 }
+  },
+
+  // === INTERCOM === Compressed, speaker-like
+  intercom: {
+    octaveShift: 0,
+    synthType: 'basic',
+    oscType: 'square',
+    envelope: { attack: 0.01, decay: 0.15, sustain: 0.4, release: 0.2 },
+    effects: { bandpass: 1400, bandpassQ: 3, distortion: 0.2 }
+  },
+
+  // === TELEGRAPH === Morse code dots/dashes
+  telegraph: {
+    octaveShift: 2,
+    synthType: 'basic',
+    oscType: 'sine',
+    envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.02 },
+    effects: { bandpass: 800, bandpassQ: 8 }
+  },
+
+  // === ALARM CLOCK === Harsh wake-up beep
+  alarmclock: {
+    octaveShift: 2,
+    synthType: 'basic',
+    oscType: 'square',
+    envelope: { attack: 0.001, decay: 0.02, sustain: 0.8, release: 0.02 },
+    effects: { distortion: 0.1 }
+  },
+
+  // === BELL === Church/school bell
+  bell: {
+    octaveShift: 1,
+    synthType: 'metal',
+    envelope: { attack: 0.001, decay: 1.5, sustain: 0, release: 2 },
+    effects: { reverb: 0.5 }
+  },
+
+  // === SHIP RADIO === Maritime radio, static-filled
+  shipradio: {
+    octaveShift: 0,
+    synthType: 'am',
+    harmonicity: 3,
+    envelope: { attack: 0.02, decay: 0.25, sustain: 0.4, release: 0.4 },
+    effects: { bandpass: 1600, bandpassQ: 4, distortion: 0.25, tremolo: 6 }
+  },
+
+  // === PHONE === Generic telephone
+  phone: {
+    octaveShift: 1,
+    synthType: 'duo',
+    envelope: { attack: 0.001, decay: 0.12, sustain: 0, release: 0.1 },
+    effects: { bandpass: 1400, bandpassQ: 5 }
+  },
+
+  // === KEYBOARD === Electronic keyboard
+  keyboard: {
+    octaveShift: 0,
+    synthType: 'fm',
+    harmonicity: 2,
+    modulationIndex: 1.5,
+    envelope: { attack: 0.01, decay: 0.4, sustain: 0.4, release: 1 },
+    effects: { chorus: true, reverb: 0.15 }
+  },
+
+  // === TERMINAL === Computer terminal beeps
+  terminal: {
+    octaveShift: 1,
+    synthType: 'basic',
+    oscType: 'square',
+    envelope: { attack: 0.001, decay: 0.1, sustain: 0.2, release: 0.1 },
+    effects: { bitcrush: 6, bandpass: 2000, bandpassQ: 2 }
+  },
+
+  // === DEFAULT === Clean triangle wave
+  default: {
+    octaveShift: 0,
+    synthType: 'basic',
+    oscType: 'triangle',
+    envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.8 },
+    effects: { reverb: 0.1 }
+  }
+};
+
+// Get device config (with fallback to default)
+const getDeviceConfig = (deviceId) => {
+  if (!deviceId) return DEVICE_SOUNDS.default;
+  // Normalize device ID (remove numbers, lowercase, remove spaces/dashes)
+  const normalizedId = deviceId.toLowerCase().replace(/[\s\-_0-9]/g, '');
+  return DEVICE_SOUNDS[normalizedId] || DEVICE_SOUNDS.default;
+};
+
+// ========================================
+// AUDIO ENGINE
+// ========================================
+
+let currentSynth = null;
+let currentEffects = [];
+let currentDeviceId = null;
 let audioInitialized = false;
 
-const initAudio = async () => {
-  if (audioInitialized) return;
+// Create synth chain for a specific device
+const createDeviceSynth = async (deviceId) => {
+  const config = getDeviceConfig(deviceId);
 
   await Tone.start();
-  synth = new Tone.Synth({
-    oscillator: { type: 'triangle' },
-    envelope: { attack: 0.02, decay: 0.3, sustain: 0.3, release: 0.8 }
-  }).toDestination();
 
+  // Dispose previous synth if exists
+  disposeCurrentSynth();
+
+  // Create base synth based on type
+  let synth;
+  const env = config.envelope;
+
+  switch (config.synthType) {
+    case 'fm':
+      // FM synth for bell-like/music box sounds
+      synth = new Tone.FMSynth({
+        harmonicity: config.harmonicity || 8,
+        modulationIndex: config.modulationIndex || 2,
+        envelope: env,
+        modulation: { type: 'sine' },
+        modulationEnvelope: { attack: 0.001, decay: 0.3, sustain: 0.1, release: 0.5 }
+      });
+      break;
+
+    case 'am':
+      // AM synth for radio-like sounds
+      synth = new Tone.AMSynth({
+        harmonicity: config.harmonicity || 2,
+        envelope: env,
+        modulation: { type: 'square' },
+        modulationEnvelope: { attack: 0.2, decay: 0.1, sustain: 0.5, release: 0.3 }
+      });
+      break;
+
+    case 'duo':
+      // DuoSynth for thick, detuned sounds (telephone, synth)
+      synth = new Tone.DuoSynth({
+        vibratoAmount: 0.2,
+        vibratoRate: 5,
+        voice0: { oscillator: { type: 'sine' }, envelope: env },
+        voice1: { oscillator: { type: 'sine' }, envelope: env }
+      });
+      break;
+
+    case 'membrane':
+      // Membrane synth for drum-like sounds
+      synth = new Tone.MembraneSynth({
+        pitchDecay: 0.05,
+        octaves: 4,
+        envelope: env
+      });
+      break;
+
+    case 'metal':
+      // MetalSynth for bell/metallic sounds
+      synth = new Tone.MetalSynth({
+        frequency: 200,
+        envelope: { ...env, sustain: 0 },
+        harmonicity: 5.1,
+        modulationIndex: 32,
+        resonance: 4000,
+        octaves: 1.5
+      });
+      break;
+
+    case 'pluck':
+      // PluckSynth for string-like sounds
+      synth = new Tone.PluckSynth({
+        attackNoise: 1,
+        dampening: 4000,
+        resonance: 0.9
+      });
+      break;
+
+    case 'basic':
+    default:
+      // Standard synth with oscillator type
+      synth = new Tone.Synth({
+        oscillator: { type: config.oscType || 'triangle' },
+        envelope: env
+      });
+      break;
+  }
+
+  // Build effects chain
+  const effects = [];
+  const fx = config.effects || {};
+
+  // Bitcrusher (for digital/retro sounds) - apply early
+  if (fx.bitcrush) {
+    const crusher = new Tone.BitCrusher(fx.bitcrush);
+    effects.push(crusher);
+  }
+
+  // Filters
+  if (fx.highpass) {
+    const hp = new Tone.Filter({ type: 'highpass', frequency: fx.highpass, Q: 0.5 });
+    effects.push(hp);
+  }
+  if (fx.lowpass) {
+    const lp = new Tone.Filter({ type: 'lowpass', frequency: fx.lowpass, Q: 0.5 });
+    effects.push(lp);
+  }
+  if (fx.bandpass) {
+    const bp = new Tone.Filter({ type: 'bandpass', frequency: fx.bandpass, Q: fx.bandpassQ || 2 });
+    effects.push(bp);
+  }
+
+  // Distortion
+  if (fx.distortion) {
+    const dist = new Tone.Distortion({ distortion: fx.distortion, wet: 0.6 });
+    effects.push(dist);
+  }
+
+  // Bass boost EQ
+  if (fx.bassBoost) {
+    const eq = new Tone.EQ3({ low: fx.bassBoost, mid: 0, high: -2 });
+    effects.push(eq);
+  }
+
+  // Wobble/flutter (for vinyl/tape)
+  if (fx.wobble) {
+    const vib = new Tone.Vibrato({ frequency: 3 + Math.random() * 2, depth: fx.wobble });
+    effects.push(vib);
+  }
+
+  // Tremolo (for AM radio effect)
+  if (fx.tremolo) {
+    const trem = new Tone.Tremolo({ frequency: fx.tremolo, depth: 0.3 }).start();
+    effects.push(trem);
+  }
+
+  // Phaser (for synth sounds)
+  if (fx.phaser) {
+    const phase = new Tone.Phaser({ frequency: 0.5, octaves: 3, baseFrequency: 350 });
+    effects.push(phase);
+  }
+
+  // Chorus (for jukebox warmth)
+  if (fx.chorus) {
+    const chor = new Tone.Chorus({ frequency: 2, delayTime: 3.5, depth: 0.5 }).start();
+    effects.push(chor);
+  }
+
+  // Delay
+  if (fx.delay) {
+    const del = new Tone.FeedbackDelay({ delayTime: '8n', feedback: fx.delay, wet: 0.3 });
+    effects.push(del);
+  }
+
+  // Reverb (apply last)
+  if (fx.reverb) {
+    const rev = new Tone.Reverb({ decay: 2, wet: fx.reverb });
+    await rev.generate();
+    effects.push(rev);
+  }
+
+  // Connect chain: synth -> effects -> destination
+  if (effects.length > 0) {
+    synth.chain(...effects, Tone.Destination);
+  } else {
+    synth.toDestination();
+  }
+
+  currentSynth = synth;
+  currentEffects = effects;
+  currentDeviceId = deviceId;
   audioInitialized = true;
+
+  console.log(`🔊 Device sound: ${deviceId || 'default'} (${config.synthType}, octave ${config.octaveShift > 0 ? '+' : ''}${config.octaveShift})`);
 };
 
-const playNote = async (noteId) => {
-  if (!audioInitialized) await initAudio();
-  synth?.triggerAttackRelease(noteId, '8n');
+// Dispose current synth and effects
+const disposeCurrentSynth = () => {
+  try {
+    currentSynth?.dispose();
+    currentEffects?.forEach(effect => effect.dispose());
+  } catch (e) { /* ignore */ }
+  currentSynth = null;
+  currentEffects = null;
 };
 
-// Play entire grid
-export const playSimpleGrid = async (grid, bpm = 120, onBeatChange) => {
-  if (!audioInitialized) await initAudio();
+// Shift a note by octaves (e.g., "C4" + 2 = "C6")
+const shiftNoteOctave = (noteId, octaveShift) => {
+  if (!octaveShift || octaveShift === 0) return noteId;
+  const match = noteId.match(/^([A-G]#?)(\d+)$/);
+  if (!match) return noteId;
+  const [, noteName, octave] = match;
+  const newOctave = Math.max(1, Math.min(8, parseInt(octave) + octaveShift));
+  return `${noteName}${newOctave}`;
+};
 
+// Initialize audio with optional device
+const initAudio = async (deviceId = null) => {
+  // If same device already initialized, skip
+  if (audioInitialized && deviceId === currentDeviceId) return;
+
+  await createDeviceSynth(deviceId);
+};
+
+// Play a single note with current device
+const playNote = async (noteId, deviceId = null) => {
+  await initAudio(deviceId);
+
+  // Apply octave shift from device config
+  const config = getDeviceConfig(deviceId);
+  const shiftedNote = shiftNoteOctave(noteId, config.octaveShift);
+
+  // MetalSynth uses frequency, not note names
+  if (config.synthType === 'metal') {
+    // Convert note to frequency for MetalSynth
+    const freq = Tone.Frequency(shiftedNote).toFrequency();
+    currentSynth?.triggerAttackRelease(freq, '8n');
+  } else {
+    currentSynth?.triggerAttackRelease(shiftedNote, '8n');
+  }
+};
+
+// Play entire grid with optional device sound
+export const playSimpleGrid = async (grid, bpm = 120, onBeatChange, deviceId = null) => {
+  await initAudio(deviceId);
+
+  const config = getDeviceConfig(deviceId);
   const interval = (60 / bpm) * 1000 / 2; // 8th notes
 
   for (let col = 0; col < GRID_COLS; col++) {
@@ -165,7 +706,15 @@ export const playSimpleGrid = async (grid, bpm = 120, onBeatChange) => {
 
     for (let row = 0; row < GRID_ROWS; row++) {
       if (grid[row][col]) {
-        synth?.triggerAttackRelease(NOTES[row].id, '8n');
+        const shiftedNote = shiftNoteOctave(NOTES[row].id, config.octaveShift);
+
+        // MetalSynth uses frequency
+        if (config.synthType === 'metal') {
+          const freq = Tone.Frequency(shiftedNote).toFrequency();
+          currentSynth?.triggerAttackRelease(freq, '8n');
+        } else {
+          currentSynth?.triggerAttackRelease(shiftedNote, '8n');
+        }
         break; // One note per column
       }
     }
@@ -178,12 +727,14 @@ export const playSimpleGrid = async (grid, bpm = 120, onBeatChange) => {
 
 // Cleanup synth
 export const disposeSimpleSynth = () => {
-  try {
-    synth?.dispose();
-  } catch (e) { /* ignore */ }
-  synth = null;
+  disposeCurrentSynth();
+  currentDeviceId = null;
   audioInitialized = false;
 };
+
+// Export for external use
+export const initDeviceSound = initAudio;
+export const getAvailableDeviceSounds = () => Object.keys(DEVICE_SOUNDS);
 
 const SimpleMelodyGrid = ({
   grid,

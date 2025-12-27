@@ -41,15 +41,6 @@ export const MODES = {
     perPerson: 3,
     description: '3 melodies each',
     players: 2
-  },
-  trio: {
-    id: 'trio',
-    label: 'Trio',
-    icon: '👥',
-    totalMelodies: 6,
-    perPerson: 2,
-    description: '2 melodies each',
-    players: 3
   }
 };
 
@@ -61,12 +52,6 @@ export const getMelodyAssignments = (mode, playerIndex = 0) => {
       return playerIndex === 0
         ? [1, 3, 5]  // Player A: odd melodies
         : [2, 4, 6]; // Player B: even melodies
-    case 'trio':
-      return playerIndex === 0
-        ? [1, 4]
-        : playerIndex === 1
-          ? [2, 5]
-          : [3, 6];
     default:
       return [1, 2, 3, 4, 5, 6];
   }

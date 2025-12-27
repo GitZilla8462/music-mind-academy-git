@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import MelodyMysterySetup from './MelodyMysterySetup';
 import MelodyMysteryCreator from './MelodyMysteryCreator';
+import MelodyMysteryCollabCreator from './MelodyMysteryCollabCreator';
 import MelodyMysterySolver from './MelodyMysterySolver';
 import MelodyMysteryResults from './MelodyMysteryResults';
 import {
@@ -31,7 +32,7 @@ const PHASES = {
   RESULTS: 'results'
 };
 
-const MelodyMysteryActivity = ({ onComplete, viewMode, isSessionMode }) => {
+const MelodyMysteryActivity = ({ onComplete, viewMode, isSessionMode, initialLoadCode }) => {
   const [phase, setPhase] = useState(PHASES.SETUP);
   const [selectedConcept, setSelectedConcept] = useState('vanishing-composer');
   const [selectedMode, setSelectedMode] = useState(null);
@@ -44,6 +45,7 @@ const MelodyMysteryActivity = ({ onComplete, viewMode, isSessionMode }) => {
   const [saveMessage, setSaveMessage] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
   const [resetKey, setResetKey] = useState(0); // Forces component remount on reset
+  const [autoLoadAttempted, setAutoLoadAttempted] = useState(false);
 
   const { sessionData, currentStage } = useSession() || {};
   const prevStageRef = useRef(currentStage);
@@ -53,6 +55,26 @@ const MelodyMysteryActivity = ({ onComplete, viewMode, isSessionMode }) => {
     initMelodySynth();
     return () => disposeSynth();
   }, []);
+
+  // Auto-load from prop (passed from JoinWithCode)
+  useEffect(() => {
+    if (initialLoadCode && !autoLoadAttempted) {
+      setAutoLoadAttempted(true);
+      (async () => {
+        const mystery = await loadRoom(initialLoadCode);
+        if (mystery) {
+          setMysteryData(mystery);
+          setShareCode(initialLoadCode);
+          setSelectedConcept(mystery.concept || 'vanishing-composer');
+          setSelectedMode(mystery.mode || 'solo');
+          setSelectedEnding(mystery.ending);
+          setPhase(PHASES.SOLVE);
+        } else {
+          console.error('Failed to load mystery room:', initialLoadCode);
+        }
+      })();
+    }
+  }, [initialLoadCode, autoLoadAttempted]);
 
   // Save to Join page function
   const saveToJoinPage = useCallback(() => {
@@ -210,6 +232,55 @@ const MelodyMysteryActivity = ({ onComplete, viewMode, isSessionMode }) => {
     }
   };
 
+  // Handle completing collaborative CREATE phase (partner/trio modes)
+  // CollabCreator handles saving to server, this just transitions to solve
+  const handleCollabComplete = async (melodies) => {
+    // Convert melodies array to object format for mysteryData
+    const melodiesObj = {};
+    melodies.forEach((melody, i) => {
+      melodiesObj[i] = {
+        grid: melody.grid,
+        device: melody.selectedDevice,
+        contour: melody.contour
+      };
+    });
+
+    const data = {
+      concept: selectedConcept,
+      ending: selectedEnding,
+      mode: selectedMode,
+      melodies: melodiesObj,
+      createdAt: mysteryData?.createdAt || Date.now()
+    };
+
+    setMysteryData(data);
+
+    // Auto-save to Join page
+    const melodyCount = Object.keys(melodiesObj).length;
+    const modeLabel = MODES[selectedMode]?.label || 'Partner';
+
+    saveStudentWork('melody-mystery', {
+      title: 'Mystery Melody',
+      emoji: '',
+      viewRoute: `/join?loadMelodyMystery=${shareCode}`,
+      subtitle: `${melodyCount} melodies | ${modeLabel} | Ready to play`,
+      category: 'Lesson 5 - Game On',
+      data: {
+        shareCode,
+        concept: selectedConcept,
+        ending: selectedEnding,
+        mode: selectedMode,
+        melodies: melodiesObj,
+        phase: 'solve',
+        createdAt: data.createdAt
+      }
+    });
+    setIsSaved(true);
+
+    // Go directly to solve (skip share phase for collab mode)
+    setPhase(PHASES.SOLVE);
+  };
+
   // Handle starting solve after sharing
   const handleStartSolve = () => {
     setPhase(PHASES.SOLVE);
@@ -308,6 +379,24 @@ const MelodyMysteryActivity = ({ onComplete, viewMode, isSessionMode }) => {
         );
 
       case PHASES.CREATE:
+        // Use CollabCreator for partner/trio modes, Creator for solo
+        const isCollabMode = selectedMode === 'partner' || selectedMode === 'trio';
+
+        if (isCollabMode && shareCode) {
+          return (
+            <MelodyMysteryCollabCreator
+              key={`collab-${resetKey}-${shareCode}`}
+              roomCode={shareCode}
+              mode={selectedMode}
+              conceptId={selectedConcept}
+              ending={selectedEnding}
+              playerIndex={playerIndex}
+              onComplete={handleCollabComplete}
+              onBack={handleBack}
+            />
+          );
+        }
+
         return (
           <MelodyMysteryCreator
             key={`${resetKey}-${shareCode || 'new'}`}

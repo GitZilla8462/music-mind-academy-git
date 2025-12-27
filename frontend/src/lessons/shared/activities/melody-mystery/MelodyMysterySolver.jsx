@@ -199,16 +199,19 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
     });
   };
 
-  // Play a grid with beat animation
-  const playGridWithAnimation = async (grid) => {
+  // Play a grid with beat animation (uses device-specific sound)
+  const playGridWithAnimation = async (grid, useDeviceSound = true) => {
     if (playingRef.current) return;
     playingRef.current = true;
+
+    // Pass the device ID for unique sound per device
+    const deviceId = useDeviceSound ? selectedDeviceId : null;
 
     await playSimpleGrid(grid, 120, (beat) => {
       if (playingRef.current) {
         setCurrentBeat(beat);
       }
-    });
+    }, deviceId);
 
     setCurrentBeat(-1);
     playingRef.current = false;
@@ -229,11 +232,11 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
     setIsPlayingTarget(false);
   };
 
-  // Play player melody
+  // Play player melody (uses same device sound for comparison)
   const playPlayerMelody = async () => {
     if (isPlayingPlayer) return;
     setIsPlayingPlayer(true);
-    await playGridWithAnimation(playerGrid);
+    await playGridWithAnimation(playerGrid, true);
     setIsPlayingPlayer(false);
   };
 
@@ -414,18 +417,59 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
         return updated;
       });
 
-      if (newAttempts >= 3 && hintsUsedCount < 2) {
-        // Auto-reveal a hint after 3 wrong attempts (like Beat Escape Room)
-        setInputError('SIGNAL MISMATCH - HINT REVEALED');
-        setTimeout(() => {
-          setInputError(null);
-          revealHint();
-        }, 1500);
+      // Progressive hints: 3rd error = 1st note, 4th = 2nd note, 5th = 3rd note
+      const currentRevealed = revealedCols[currentLocationIndex] || [];
+      if (newAttempts >= 3 && currentRevealed.length < 3) {
+        // Find next note to reveal
+        const colToReveal = findNextNoteToReveal(targetGrid, currentRevealed);
+        if (colToReveal >= 0) {
+          setInputError('SIGNAL MISMATCH - NOTE REVEALED');
+          setTimeout(() => {
+            setInputError(null);
+            // Reveal the column
+            setRevealedCols(prev => {
+              const newRevealed = [...prev];
+              newRevealed[currentLocationIndex] = [...(newRevealed[currentLocationIndex] || []), colToReveal];
+              return newRevealed;
+            });
+            // Update player grid to show the hint
+            setPlayerGrids(prev => {
+              const newGrids = [...prev];
+              const newGrid = newGrids[currentLocationIndex].map(row => [...row]);
+              for (let row = 0; row < GRID_ROWS; row++) {
+                newGrid[row][colToReveal] = targetGrid[row][colToReveal];
+              }
+              newGrids[currentLocationIndex] = newGrid;
+              return newGrids;
+            });
+            // Track hint usage for scoring
+            setHintsUsed(prev => {
+              const updated = [...prev];
+              updated[currentLocationIndex] = (updated[currentLocationIndex] || 0) + 1;
+              return updated;
+            });
+            sounds.hint();
+          }, 1000);
+        }
       } else {
         setInputError('SIGNAL MISMATCH - TRY AGAIN');
-        setTimeout(() => setInputError(null), 3000);
+        setTimeout(() => setInputError(null), 2000);
       }
     }
+  };
+
+  // Find next note column to reveal (leftmost unrevealed note)
+  const findNextNoteToReveal = (targetGrid, revealedCols) => {
+    for (let col = 0; col < GRID_COLS; col++) {
+      if (!revealedCols.includes(col)) {
+        for (let row = 0; row < GRID_ROWS; row++) {
+          if (targetGrid[row][col]) {
+            return col;
+          }
+        }
+      }
+    }
+    return -1;
   };
 
   // Handle continue after clue revealed - show input below decoded message
@@ -810,23 +854,21 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
             currentBeat={isPlayingTarget || isPlayingPlayer ? currentBeat : -1}
           />
           <p className="text-amber-600/70 mt-2 text-center text-xs font-mono">NOTES: {noteCount}/4</p>
-          {inputError && (
-            <div className="text-red-400 text-xs mt-2 text-center font-mono tracking-wider">{inputError}</div>
-          )}
 
           {/* Attempt dots and score - like Beat Escape Room */}
           <div className="mt-3 pt-2 border-t border-amber-900/30 flex items-center justify-between">
-            {/* Attempt dots */}
+            {/* Attempt dots - 5 dots for progressive hints at 3, 4, 5 */}
             <div className="flex items-center gap-1">
               <span className="text-amber-600/50 text-[10px] font-mono mr-1">ATTEMPTS:</span>
-              {[0, 1, 2].map((i) => (
+              {[0, 1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className={`w-2.5 h-2.5 rounded-full border ${
+                  className={`w-2 h-2 rounded-full border ${
                     i < currentWrongAttempts
-                      ? 'bg-red-500 border-red-400'
+                      ? i >= 2 ? 'bg-orange-500 border-orange-400' : 'bg-red-500 border-red-400'
                       : 'bg-transparent border-amber-600/40'
                   }`}
+                  title={i >= 2 ? `Hint ${i - 1} revealed at attempt ${i + 1}` : ''}
                 />
               ))}
             </div>
@@ -868,18 +910,13 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
                 <span className="text-amber-500/70 text-xs font-mono">
                   LISTENS: <span className="text-amber-400">{listensRemaining[currentLocationIndex]}</span>
                 </span>
-                <button
-                  onClick={revealHint}
-                  disabled={hintsUsed[currentLocationIndex] >= 2}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-mono tracking-wide ${
-                    hintsUsed[currentLocationIndex] < 2
-                      ? 'bg-amber-600/20 border border-amber-600/50 text-amber-400 hover:bg-amber-600/30'
-                      : 'bg-slate-800/50 text-slate-600 cursor-not-allowed'
-                  }`}
-                >
-                  <Lightbulb className="w-3 h-3" />
-                  HINT ({2 - hintsUsed[currentLocationIndex]})
-                </button>
+                {/* Hints revealed indicator */}
+                {hintsUsed[currentLocationIndex] > 0 && (
+                  <span className="text-orange-400/70 text-xs font-mono flex items-center gap-1">
+                    <Lightbulb className="w-3 h-3" />
+                    HINTS: {hintsUsed[currentLocationIndex]}/3
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -922,16 +959,20 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
             <div className="decoder-frame bg-gradient-to-b from-stone-800 via-stone-900 to-black rounded-xl border-2 border-amber-800/60 shadow-2xl p-4 w-full"
                  style={{ boxShadow: '0 0 40px rgba(245, 158, 11, 0.1), inset 0 0 30px rgba(0,0,0,0.5)' }}>
 
-              {/* Top bar with indicator light, label, and antenna */}
+              {/* Top bar with indicator light, label/error, and antenna */}
               <div className="flex items-center justify-between mb-3 px-2">
                 <div
                   className={`w-3 h-3 rounded-full ${!isChromebook ? 'animate-pulse' : ''}`}
                   style={{
-                    backgroundColor: decoderMode === 'puzzle' ? '#fbbf24' : '#22c55e',
-                    boxShadow: `0 0 10px ${decoderMode === 'puzzle' ? '#fbbf24' : '#22c55e'}`
+                    backgroundColor: inputError ? '#ef4444' : decoderMode === 'puzzle' ? '#fbbf24' : '#22c55e',
+                    boxShadow: `0 0 10px ${inputError ? '#ef4444' : decoderMode === 'puzzle' ? '#fbbf24' : '#22c55e'}`
                   }}
                 />
-                <span className="text-amber-600/60 text-xs font-mono tracking-[0.2em]">DECODER-7X</span>
+                {inputError ? (
+                  <span className="text-red-400 text-xs font-mono tracking-[0.15em] animate-pulse">{inputError}</span>
+                ) : (
+                  <span className="text-amber-600/60 text-xs font-mono tracking-[0.2em]">DECODER-7X</span>
+                )}
                 <div className="flex flex-col items-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-amber-600" />
                   <div className="w-0.5 h-3 bg-amber-700 rounded-full" />
