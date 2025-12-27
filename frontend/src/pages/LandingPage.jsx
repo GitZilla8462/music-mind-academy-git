@@ -1,379 +1,752 @@
 // /src/pages/LandingPage.jsx
+// Marketing landing page for Music Mind Academy (musicmindacademy.com)
+// Teachers apply via Google Form, then sign in at /login after approval
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+
+// Google Form URL for pilot program applications
+const PILOT_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfgcfEfVoPGYCRmpgyNO0FNPnR9Jc3O-BOhpMTodQhKAHSaSQ/viewform?usp=header';
+
+// Activity data
+const activities = [
+  {
+    title: 'Beat Escape Room',
+    description: 'Build beats to unlock puzzles',
+    image: '/landingpage/BeatEscapeRoom.png',
+    concept: 'Rhythm & Pattern',
+    color: '#8b5cf6'
+  },
+  {
+    title: 'Loop Builder',
+    description: 'Layer tracks to create music',
+    image: '/landingpage/BuildYourBeat.png',
+    concept: 'Texture & Layering',
+    color: '#06b6d4'
+  },
+  {
+    title: 'Film Scoring DAW',
+    description: 'Add music to video clips',
+    image: '/landingpage/DigitalAudioWorkstation.png',
+    concept: 'Mood & Expression',
+    color: '#f59e0b'
+  },
+  {
+    title: 'Listening Map',
+    description: 'Draw while listening to music',
+    image: '/landingpage/InteractiveListeningMap.png',
+    concept: 'Active Listening',
+    color: '#10b981'
+  },
+  {
+    title: 'Sports Montage',
+    description: 'Score highlight reels with loops',
+    image: '/landingpage/SportsMontageComposition.png',
+    concept: 'Song Form',
+    color: '#ef4444'
+  }
+];
 
 const LandingPage = () => {
-  const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
-
-  // If already logged in, redirect to dashboard
-  React.useEffect(() => {
-    if (isAuthenticated && user) {
-      if (user.role === 'teacher') navigate('/teacher');
-      else if (user.role === 'admin') navigate('/admin');
-      else if (user.role === 'student') navigate('/student');
-    }
-  }, [isAuthenticated, user, navigate]);
-
-  const goToLogin = () => navigate('/login');
-  const goToSignup = () => navigate('/login?signup=true');
+  const handleJoinPilot = () => {
+    window.open(PILOT_FORM_URL, '_blank');
+  };
 
   return (
-    <div className="min-h-screen bg-white text-slate-800" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-      {/* Google Fonts */}
+    <div className="landing-page" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        
-        .font-display { font-family: 'Plus Jakarta Sans', sans-serif; }
-        
-        .gradient-text {
-          background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
         }
-        
+
+        .landing-page {
+          min-height: 100vh;
+          background: #fafafa;
+          color: #1e293b;
+        }
+
+        .font-display {
+          font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* Navigation */
+        .nav {
+          background: white;
+          border-bottom: 1px solid #e2e8f0;
+          position: sticky;
+          top: 0;
+          z-index: 100;
+        }
+
+        .nav-inner {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 1rem 1.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .nav-brand {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .nav-logo {
+          width: 40px;
+          height: 40px;
+          background: linear-gradient(135deg, #0ea5e9, #0284c7);
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 20px;
+        }
+
+        .nav-brand-text {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 1.25rem;
+          font-weight: 700;
+        }
+
+        .btn {
+          padding: 0.625rem 1.25rem;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 0.875rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border: none;
+        }
+
         .btn-primary {
-          background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
-          transition: all 0.3s ease;
+          background: #0ea5e9;
+          color: white;
         }
+
         .btn-primary:hover {
+          background: #0284c7;
+          transform: translateY(-1px);
+        }
+
+        /* Hero */
+        .hero {
+          background: linear-gradient(135deg, #0c4a6e 0%, #1e3a5f 100%);
+          padding: 3rem 1.5rem 4rem;
+          color: white;
+        }
+
+        .hero-inner {
+          max-width: 1200px;
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 3rem;
+          align-items: center;
+        }
+
+        .hero-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: rgba(255,255,255,0.15);
+          padding: 0.5rem 1rem;
+          border-radius: 100px;
+          font-size: 0.875rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .hero-badge-dot {
+          width: 8px;
+          height: 8px;
+          background: #4ade80;
+          border-radius: 50%;
+          animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+
+        .hero h1 {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 2.75rem;
+          font-weight: 700;
+          line-height: 1.1;
+          margin-bottom: 1rem;
+        }
+
+        .hero-highlight {
+          color: #f59e0b;
+        }
+
+        .hero-subtitle {
+          font-size: 1.25rem;
+          opacity: 0.9;
+          margin-bottom: 0.5rem;
+        }
+
+        .hero-bullets {
+          list-style: none;
+          margin: 1.5rem 0;
+        }
+
+        .hero-bullets li {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          margin-bottom: 0.75rem;
+          font-size: 1rem;
+          opacity: 0.95;
+        }
+
+        .hero-bullets .check {
+          color: #4ade80;
+          font-weight: bold;
+        }
+
+        .hero-cta {
+          display: flex;
+          gap: 1rem;
+          align-items: center;
+          margin-top: 2rem;
+        }
+
+        .btn-hero {
+          background: #f59e0b;
+          color: #1e293b;
+          padding: 1rem 2rem;
+          font-size: 1rem;
+          font-weight: 700;
+          border-radius: 10px;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .btn-hero:hover {
           transform: translateY(-2px);
-          box-shadow: 0 10px 40px rgba(37, 99, 235, 0.3);
+          box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
         }
-        
-        .card-shadow {
-          box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+
+        .hero-note {
+          font-size: 0.875rem;
+          opacity: 0.7;
         }
-        
-        .card-hover:hover {
-          box-shadow: 0 8px 32px rgba(37, 99, 235, 0.12);
-          transform: translateY(-2px);
+
+        .hero-image {
+          background: #1e293b;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         }
-        
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
+
+        .hero-image img {
+          width: 100%;
+          display: block;
         }
-        
-        .animate-float { animation: float 5s ease-in-out infinite; }
+
+        /* Stats */
+        .stats {
+          background: white;
+          border-bottom: 1px solid #e2e8f0;
+          padding: 1.5rem;
+        }
+
+        .stats-inner {
+          max-width: 1200px;
+          margin: 0 auto;
+          display: flex;
+          justify-content: center;
+          gap: 4rem;
+        }
+
+        .stat {
+          text-align: center;
+        }
+
+        .stat-number {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 2rem;
+          font-weight: 700;
+          color: #0ea5e9;
+        }
+
+        .stat-label {
+          font-size: 0.875rem;
+          color: #64748b;
+        }
+
+        /* Activities */
+        .activities {
+          padding: 4rem 1.5rem;
+          background: #f8fafc;
+        }
+
+        .activities-inner {
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+
+        .section-header {
+          text-align: center;
+          margin-bottom: 2.5rem;
+        }
+
+        .section-header h2 {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 2rem;
+          font-weight: 700;
+          margin-bottom: 0.5rem;
+        }
+
+        .section-header p {
+          color: #64748b;
+          font-size: 1.125rem;
+        }
+
+        .activities-grid {
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 1.25rem;
+        }
+
+        .activity-card {
+          background: white;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+          transition: all 0.2s ease;
+        }
+
+        .activity-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        }
+
+        .activity-image {
+          width: 100%;
+          height: 120px;
+          object-fit: cover;
+        }
+
+        .activity-content {
+          padding: 1rem;
+        }
+
+        .activity-concept {
+          font-size: 0.7rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 0.25rem;
+        }
+
+        .activity-title {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.95rem;
+          font-weight: 600;
+          margin-bottom: 0.25rem;
+        }
+
+        .activity-desc {
+          font-size: 0.75rem;
+          color: #64748b;
+          line-height: 1.4;
+        }
+
+        /* How It Works */
+        .how-it-works {
+          padding: 4rem 1.5rem;
+          background: white;
+        }
+
+        .how-inner {
+          max-width: 1000px;
+          margin: 0 auto;
+        }
+
+        .how-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 3rem;
+          align-items: center;
+          margin-top: 2rem;
+        }
+
+        .how-image {
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        }
+
+        .how-image img {
+          width: 100%;
+          display: block;
+        }
+
+        .how-steps {
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+        }
+
+        .how-step {
+          display: flex;
+          gap: 1rem;
+        }
+
+        .step-number {
+          width: 36px;
+          height: 36px;
+          background: #0ea5e9;
+          color: white;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 700;
+          flex-shrink: 0;
+        }
+
+        .step-content h3 {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 1rem;
+          font-weight: 600;
+          margin-bottom: 0.25rem;
+        }
+
+        .step-content p {
+          color: #64748b;
+          font-size: 0.875rem;
+        }
+
+        /* Privacy */
+        .privacy {
+          padding: 4rem 1.5rem;
+          background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        }
+
+        .privacy-inner {
+          max-width: 800px;
+          margin: 0 auto;
+        }
+
+        .privacy-card {
+          background: white;
+          border-radius: 16px;
+          padding: 2rem;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+
+        .privacy-header {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .privacy-header .shield {
+          color: #10b981;
+          font-size: 1.5rem;
+        }
+
+        .privacy-header h2 {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 1.5rem;
+          font-weight: 700;
+        }
+
+        .privacy-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+        }
+
+        .privacy-item {
+          display: flex;
+          gap: 0.75rem;
+        }
+
+        .privacy-check {
+          width: 24px;
+          height: 24px;
+          background: #d1fae5;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #10b981;
+          flex-shrink: 0;
+          font-size: 0.875rem;
+        }
+
+        .privacy-item-text h4 {
+          font-weight: 600;
+          font-size: 0.9375rem;
+          margin-bottom: 0.125rem;
+        }
+
+        .privacy-item-text p {
+          color: #64748b;
+          font-size: 0.8125rem;
+        }
+
+        .privacy-badges {
+          display: flex;
+          justify-content: center;
+          gap: 2rem;
+          margin-top: 1.5rem;
+          padding-top: 1.5rem;
+          border-top: 1px solid #e2e8f0;
+        }
+
+        .privacy-badge {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.8125rem;
+          color: #64748b;
+        }
+
+        .privacy-badge .shield {
+          color: #10b981;
+        }
+
+        /* Final CTA */
+        .final-cta {
+          padding: 5rem 1.5rem;
+          background: linear-gradient(135deg, #0c4a6e 0%, #1e3a5f 100%);
+          color: white;
+          text-align: center;
+        }
+
+        .final-cta h2 {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 2rem;
+          margin-bottom: 1rem;
+        }
+
+        .final-cta p {
+          font-size: 1.125rem;
+          opacity: 0.9;
+          margin-bottom: 2rem;
+        }
+
+        /* Footer */
+        .footer {
+          background: #1e293b;
+          color: white;
+          padding: 2rem 1.5rem;
+        }
+
+        .footer-inner {
+          max-width: 1200px;
+          margin: 0 auto;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .footer-brand {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .footer-text {
+          color: #94a3b8;
+          font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+          .hero-inner {
+            grid-template-columns: 1fr;
+          }
+          .hero-image {
+            display: none;
+          }
+          .activities-grid {
+            grid-template-columns: repeat(3, 1fr);
+          }
+        }
+
+        @media (max-width: 768px) {
+          .hero h1 {
+            font-size: 2rem;
+          }
+          .activities-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          .how-grid {
+            grid-template-columns: 1fr;
+          }
+          .privacy-grid {
+            grid-template-columns: 1fr;
+          }
+          .stats-inner {
+            gap: 2rem;
+            flex-wrap: wrap;
+          }
+          .footer-inner {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+          }
+        }
       `}</style>
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-sky-500 flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+      <nav className="nav">
+        <div className="nav-inner">
+          <div className="nav-brand">
+            <div className="nav-logo">
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
               </svg>
             </div>
-            <span className="font-display text-xl font-bold text-slate-800">Music Mind Academy</span>
+            <span className="nav-brand-text">Music Mind Academy</span>
           </div>
-          
-          <div className="hidden md:flex items-center gap-8 text-sm text-slate-600">
-            <a href="#features" className="hover:text-blue-600 transition-colors">Features</a>
-            <a href="#how-it-works" className="hover:text-blue-600 transition-colors">How It Works</a>
-            <a href="#privacy" className="hover:text-blue-600 transition-colors">Privacy</a>
-            <a href="#pricing" className="hover:text-blue-600 transition-colors">Pricing</a>
-          </div>
-          
-          <button 
-            onClick={goToLogin}
-            className="btn-primary px-6 py-2.5 rounded-full text-sm font-semibold text-white"
-          >
-            Teacher Login
+          <button onClick={handleJoinPilot} className="btn btn-primary">
+            Join the Free Pilot
           </button>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-blue-50/50 to-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h1 className="font-display text-5xl lg:text-6xl font-extrabold leading-tight mb-6 text-slate-800">
-                Music Creation
-                <br />
-                <span className="gradient-text">Made Simple</span>
-                <br />
-                for Every Student
-              </h1>
-              
-              <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                A browser-based music studio designed for middle school classrooms. 
-                Film scoring, loop-based composition, and interactive lessons—students 
-                start creating in seconds.
-              </p>
-              
-              <div className="flex flex-wrap gap-4">
-                <button 
-                  onClick={goToSignup}
-                  className="btn-primary px-8 py-4 rounded-full font-semibold text-lg text-white"
-                >
-                  Get Started Free
-                </button>
-                <button className="px-8 py-4 rounded-full font-semibold text-lg border-2 border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-colors text-slate-700">
-                  Watch Demo
-                </button>
-              </div>
-              
-              <div className="flex items-center gap-8 mt-10 pt-8 border-t border-slate-200">
-                <div>
-                  <div className="text-2xl font-bold text-blue-600">30 sec</div>
-                  <div className="text-sm text-slate-500">Students start creating</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-blue-600">Zero</div>
-                  <div className="text-sm text-slate-500">Student data collected</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-blue-600">100%</div>
-                  <div className="text-sm text-slate-500">Browser-based</div>
-                </div>
-              </div>
+      <section className="hero">
+        <div className="hero-inner">
+          <div className="hero-content">
+            <div className="hero-badge">
+              <span className="hero-badge-dot"></span>
+              Now accepting pilot teachers for January
             </div>
-            
-            {/* Hero Visual - DAW Preview */}
-            <div className="relative animate-float">
-              <div className="bg-white rounded-2xl card-shadow p-4 border border-slate-200">
-                {/* Mock DAW Interface */}
-                <div className="bg-slate-50 rounded-xl overflow-hidden border border-slate-200">
-                  {/* DAW Header */}
-                  <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                      <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                      <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                    </div>
-                    <span className="text-xs text-slate-500 font-medium">🎬 Film Score Project</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M8 5v14l11-7z"/>
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Tracks */}
-                  <div className="p-4 space-y-2">
-                    {[
-                      { name: 'Drums', color: 'bg-blue-500', width: '75%' },
-                      { name: 'Bass', color: 'bg-sky-500', width: '60%' },
-                      { name: 'Synth', color: 'bg-indigo-500', width: '85%' },
-                      { name: 'Strings', color: 'bg-violet-500', width: '50%' }
-                    ].map((track, i) => (
-                      <div key={track.name} className="flex items-center gap-3">
-                        <div className="w-16 text-xs text-slate-500 font-medium truncate">{track.name}</div>
-                        <div className="flex-1 h-10 bg-white rounded-lg overflow-hidden relative border border-slate-200">
-                          <div 
-                            className={`absolute inset-y-0 left-0 ${track.color} rounded-lg opacity-80`}
-                            style={{ width: track.width }}
-                          >
-                            <div className="h-full flex items-center gap-0.5 px-2">
-                              {[...Array(20)].map((_, j) => (
-                                <div 
-                                  key={j} 
-                                  className="w-1 bg-white/40 rounded-full"
-                                  style={{ height: `${20 + Math.random() * 60}%` }}
-                                ></div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Loop Library Preview */}
-                  <div className="px-4 pb-4">
-                    <div className="text-xs text-slate-500 mb-2 font-medium">Loop Library</div>
-                    <div className="grid grid-cols-4 gap-2">
-                      {['🥁', '🎸', '🎹', '🎻'].map((emoji, i) => (
-                        <div key={i} className="aspect-square bg-white rounded-lg flex items-center justify-center text-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all">
-                          {emoji}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <h1>
+              No-Prep Music Lessons That <span className="hero-highlight">Actually Engage</span> Middle Schoolers
+            </h1>
+            <p className="hero-subtitle">
+              Interactive composition projects. Click through slides. Students create music.
+            </p>
+
+            <ul className="hero-bullets">
+              <li><span className="check">✓</span> Works on Chromebooks - no downloads</li>
+              <li><span className="check">✓</span> Students login with class code - no accounts</li>
+              <li><span className="check">✓</span> Ready to teach tomorrow - no planning</li>
+            </ul>
+
+            <div className="hero-cta">
+              <button onClick={handleJoinPilot} className="btn-hero">
+                Join the Free Pilot
+              </button>
+              <span className="hero-note">Free for pilot teachers</span>
             </div>
+          </div>
+
+          <div className="hero-image">
+            <img src="/landingpage/TeacherSlides.png" alt="Teacher lesson view" />
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section id="how-it-works" className="py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-4xl font-bold mb-4 text-slate-800">How It Works</h2>
-            <p className="text-slate-600 text-lg max-w-2xl mx-auto">
-              Get your classroom creating music in minutes—no downloads, no student accounts
-            </p>
+      {/* Stats Bar */}
+      <section className="stats">
+        <div className="stats-inner">
+          <div className="stat">
+            <div className="stat-number">5</div>
+            <div className="stat-label">Complete Lessons</div>
           </div>
-          
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Teacher Flow */}
-            <div className="bg-blue-50 rounded-2xl p-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-600 text-white text-sm font-medium mb-6">
-                👨‍🏫 Teacher Setup
-              </div>
-              <div className="space-y-6">
-                {[
-                  { step: '1', text: 'Create your free teacher account' },
-                  { step: '2', text: 'Choose a lesson to assign' },
-                  { step: '3', text: 'Share the class code with students' }
-                ].map((item) => (
-                  <div key={item.step} className="flex items-start gap-4">
-                    <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
-                      {item.step}
-                    </div>
-                    <p className="text-slate-700 pt-1">{item.text}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Student Flow */}
-            <div className="bg-green-50 rounded-2xl p-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-600 text-white text-sm font-medium mb-6">
-                🎓 Student Experience
-              </div>
-              <div className="space-y-6">
-                {[
-                  { step: '1', text: 'Go to the class link' },
-                  { step: '2', text: 'Enter class code & pick a nickname' },
-                  { step: '3', text: 'Start creating music immediately' }
-                ].map((item) => (
-                  <div key={item.step} className="flex items-start gap-4">
-                    <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
-                      {item.step}
-                    </div>
-                    <p className="text-slate-700 pt-1">{item.text}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6 pt-6 border-t border-green-200">
-                <p className="text-sm text-green-700 flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  No student accounts. No sign-ups. No data collected.
-                </p>
-              </div>
-            </div>
+          <div className="stat">
+            <div className="stat-number">150+</div>
+            <div className="stat-label">Audio Loops</div>
+          </div>
+          <div className="stat">
+            <div className="stat-number">35</div>
+            <div className="stat-label">Minutes Each</div>
+          </div>
+          <div className="stat">
+            <div className="stat-number">0</div>
+            <div className="stat-label">Prep Required</div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section id="features" className="py-24 px-6 bg-slate-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-4xl font-bold mb-4 text-slate-800">Built for the Music Classroom</h2>
-            <p className="text-slate-600 text-lg max-w-2xl mx-auto">
-              Everything you need to teach music creation—without the tech headaches
-            </p>
+      {/* Activities Section */}
+      <section className="activities">
+        <div className="activities-inner">
+          <div className="section-header">
+            <h2>What Students Will Create</h2>
+            <p>Each lesson teaches a music concept through hands-on composition</p>
           </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                icon: '🎬',
-                title: 'Film Scoring Studio',
-                description: 'Students compose soundtracks to video clips. Drag loops to the timeline and watch music sync to visuals.'
-              },
-              {
-                icon: '🎛️',
-                title: 'Loop-Based DAW',
-                description: 'Professional-quality loops across genres. No music theory required—just drag, drop, and create.'
-              },
-              {
-                icon: '📚',
-                title: 'Ready-Made Lessons',
-                description: 'Curriculum-aligned activities with videos, instructions, and hands-on projects. Just assign and go.'
-              },
-              {
-                icon: '🎮',
-                title: 'Interactive Activities',
-                description: 'Engaging games and exercises that teach rhythm, melody, and composition concepts through play.'
-              },
-              {
-                icon: '💻',
-                title: 'Chromebook Ready',
-                description: 'Runs entirely in the browser. No downloads, installations, or IT approvals needed.'
-              },
-              {
-                icon: '🔒',
-                title: 'Privacy First',
-                description: 'No student accounts or data collected. Fully compliant with FERPA, COPPA, and state privacy laws.'
-              }
-            ].map((feature, i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 card-shadow border border-slate-100 card-hover transition-all">
-                <div className="text-4xl mb-4">{feature.icon}</div>
-                <h3 className="font-semibold text-lg mb-2 text-slate-800">{feature.title}</h3>
-                <p className="text-slate-600 text-sm leading-relaxed">{feature.description}</p>
+
+          <div className="activities-grid">
+            {activities.map((activity, index) => (
+              <div key={index} className="activity-card">
+                <img
+                  src={activity.image}
+                  alt={activity.title}
+                  className="activity-image"
+                />
+                <div className="activity-content">
+                  <div className="activity-concept" style={{ color: activity.color }}>
+                    {activity.concept}
+                  </div>
+                  <div className="activity-title">{activity.title}</div>
+                  <div className="activity-desc">{activity.description}</div>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Privacy & Compliance */}
-      <section id="privacy" className="py-24 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl p-8 md:p-12 border border-green-100">
-            <div className="flex flex-col md:flex-row gap-8 items-start">
-              <div className="flex-shrink-0">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
+      {/* How It Works */}
+      <section className="how-it-works">
+        <div className="how-inner">
+          <div className="section-header">
+            <h2>Built for Busy Teachers</h2>
+            <p>Interactive slides, timers, and class management built in</p>
+          </div>
+
+          <div className="how-grid">
+            <div className="how-image">
+              <img src="/landingpage/TeacherSlides.png" alt="Teacher control panel" />
+            </div>
+
+            <div className="how-steps">
+              <div className="how-step">
+                <div className="step-number">1</div>
+                <div className="step-content">
+                  <h3>Start a Session</h3>
+                  <p>One click generates a class code. Share it and students join.</p>
                 </div>
               </div>
-              
-              <div className="flex-1">
-                <h2 className="font-display text-3xl font-bold mb-4 text-slate-800">Student Privacy is Non-Negotiable</h2>
-                <p className="text-slate-600 text-lg mb-6">
-                  Music Mind Academy collects zero student data. Not anonymized data. Not metadata. 
-                  <strong className="text-slate-800"> Nothing.</strong>
-                </p>
-                
-                {/* Compliance Badges */}
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {['FERPA', 'COPPA', 'NY Ed Law 2-D'].map((badge) => (
-                    <div key={badge} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 text-green-700 text-sm font-medium">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                      {badge} Compliant
-                    </div>
-                  ))}
+              <div className="how-step">
+                <div className="step-number">2</div>
+                <div className="step-content">
+                  <h3>Click Through Slides</h3>
+                  <p>Interactive presentation with videos and demos built in.</p>
                 </div>
-                
-                <div className="bg-white rounded-xl p-6 border border-green-200">
-                  <h3 className="font-semibold mb-3 text-slate-800">How students access lessons:</h3>
-                  <ol className="space-y-2 text-slate-600 text-sm">
-                    <li className="flex items-start gap-2">
-                      <span className="font-semibold text-green-600">1.</span>
-                      Teacher shares class code (like "MUSIC-7B")
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="font-semibold text-green-600">2.</span>
-                      Student enters code and picks any nickname they want
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="font-semibold text-green-600">3.</span>
-                      Work saves to their device only—nothing goes to our servers
-                    </li>
-                  </ol>
-                  <p className="mt-4 text-sm text-green-700 font-medium">
-                    No emails. No accounts. No Google sign-in. No data to protect because there's no data to collect.
-                  </p>
+              </div>
+              <div className="how-step">
+                <div className="step-number">3</div>
+                <div className="step-content">
+                  <h3>Students Create</h3>
+                  <p>Unlock activities and see student progress in real-time.</p>
+                </div>
+              </div>
+              <div className="how-step">
+                <div className="step-number">4</div>
+                <div className="step-content">
+                  <h3>Built-in Reflection</h3>
+                  <p>Each lesson ends with guided reflection. No accounts needed.</p>
                 </div>
               </div>
             </div>
@@ -381,165 +754,81 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Pricing */}
-      <section id="pricing" className="py-24 px-6 bg-slate-50">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-4xl font-bold mb-4 text-slate-800">Simple Pricing</h2>
-            <p className="text-slate-600 text-lg">
-              Try Lesson 1 free. Pay only when you're ready for more.
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            {/* Free Tier */}
-            <div className="bg-white rounded-2xl p-8 card-shadow border border-slate-200">
-              <div className="text-sm text-slate-500 font-semibold mb-2">Free</div>
-              <div className="flex items-baseline gap-1 mb-2">
-                <span className="text-5xl font-bold text-slate-800">$0</span>
-              </div>
-              <p className="text-slate-500 mb-6">Try it with your class</p>
-              <ul className="space-y-3 mb-8">
-                {[
-                  '1 demo lesson',
-                  'Full DAW experience',
-                  'Unlimited students',
-                  'No credit card required'
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-sm text-slate-600">
-                    <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <button 
-                onClick={goToSignup}
-                className="w-full py-3 rounded-full border-2 border-slate-200 font-semibold hover:border-blue-300 hover:bg-blue-50 transition-colors text-slate-700"
-              >
-                Get Started Free
-              </button>
+      {/* Privacy Section */}
+      <section className="privacy">
+        <div className="privacy-inner">
+          <div className="privacy-card">
+            <div className="privacy-header">
+              <span className="shield">🛡️</span>
+              <h2>Student Privacy First</h2>
             </div>
-            
-            {/* Pro Tier */}
-            <div className="relative bg-white rounded-2xl p-8 card-shadow border-2 border-blue-500">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-blue-600 text-white text-xs font-semibold">
-                Best Value
+
+            <div className="privacy-grid">
+              <div className="privacy-item">
+                <div className="privacy-check">✓</div>
+                <div className="privacy-item-text">
+                  <h4>No student accounts</h4>
+                  <p>Join with class code and nickname</p>
+                </div>
               </div>
-              <div className="text-sm text-blue-600 font-semibold mb-2">Pro</div>
-              <div className="flex items-baseline gap-1 mb-2">
-                <span className="text-5xl font-bold text-slate-800">$49</span>
-                <span className="text-slate-500">/year</span>
+              <div className="privacy-item">
+                <div className="privacy-check">✓</div>
+                <div className="privacy-item-text">
+                  <h4>No emails collected</h4>
+                  <p>We never ask for personal info</p>
+                </div>
               </div>
-              <p className="text-slate-500 mb-6">Full curriculum access</p>
-              <ul className="space-y-3 mb-8">
-                {[
-                  '5 complete lessons',
-                  'All activities & games',
-                  'Full DAW & loop library',
-                  'Film scoring studio',
-                  'Unlimited classes',
-                  'Priority support'
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-sm text-slate-600">
-                    <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <button 
-                onClick={goToSignup}
-                className="w-full py-3 rounded-full btn-primary font-semibold text-white"
-              >
-                Buy Now - $49/year
-              </button>
+              <div className="privacy-item">
+                <div className="privacy-check">✓</div>
+                <div className="privacy-item-text">
+                  <h4>Work saves locally</h4>
+                  <p>Compositions stay on their device</p>
+                </div>
+              </div>
+              <div className="privacy-item">
+                <div className="privacy-check">✓</div>
+                <div className="privacy-item-text">
+                  <h4>Zero PII</h4>
+                  <p>Nothing to report, nothing to breach</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="privacy-badges">
+              <div className="privacy-badge"><span className="shield">🛡️</span> FERPA</div>
+              <div className="privacy-badge"><span className="shield">🛡️</span> COPPA</div>
+              <div className="privacy-badge"><span className="shield">🛡️</span> NY Ed Law 2-D</div>
             </div>
           </div>
-          
-          <p className="text-center text-slate-500 text-sm mt-8">
-            Need school/district pricing? <a href="mailto:support@musicmindacademy.com" className="text-blue-600 hover:underline">Contact us</a>
-          </p>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-24 px-6 bg-gradient-to-br from-blue-600 to-sky-500">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 text-white">
-            Ready to Transform Your Music Classroom?
-          </h2>
-          <p className="text-blue-100 text-xl mb-8 max-w-2xl mx-auto">
-            Your students could be creating music in the next 5 minutes.
-          </p>
-          <button 
-            onClick={goToSignup}
-            className="bg-white text-blue-600 px-10 py-4 rounded-full font-semibold text-lg hover:shadow-lg hover:-translate-y-1 transition-all"
-          >
-            Get Started Free
-          </button>
-        </div>
+      {/* Final CTA */}
+      <section className="final-cta">
+        <h2>Ready to Try It?</h2>
+        <p>
+          Join 10-15 teachers piloting these lessons in January.
+          <br />
+          Free access in exchange for honest feedback.
+        </p>
+        <button onClick={handleJoinPilot} className="btn-hero">
+          Join the Free Pilot
+        </button>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 py-12 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-sky-500 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-                  </svg>
-                </div>
-                <span className="font-display font-bold text-slate-800">Music Mind Academy</span>
-              </div>
-              <p className="text-slate-500 text-sm">
-                Empowering music teachers to inspire creativity in every student.
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4 text-slate-800">Product</h4>
-              <ul className="space-y-2 text-sm text-slate-500">
-                <li><a href="#features" className="hover:text-blue-600 transition-colors">Features</a></li>
-                <li><a href="#pricing" className="hover:text-blue-600 transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">Demo</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4 text-slate-800">Resources</h4>
-              <ul className="space-y-2 text-sm text-slate-500">
-                <li><a href="#" className="hover:text-blue-600 transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">Tutorials</a></li>
-                <li><a href="mailto:support@musicmindacademy.com" className="hover:text-blue-600 transition-colors">Contact</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4 text-slate-800">Legal</h4>
-              <ul className="space-y-2 text-sm text-slate-500">
-                <li><a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">Terms of Service</a></li>
-                <li><a href="#privacy" className="hover:text-blue-600 transition-colors">Compliance</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="pt-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-slate-500 text-sm">
-              © {new Date().getFullYear()} Music Mind Academy. All rights reserved.
-            </p>
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+      <footer className="footer">
+        <div className="footer-inner">
+          <div className="footer-brand">
+            <div className="nav-logo" style={{ width: 32, height: 32, fontSize: 14 }}>
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
               </svg>
-              FERPA · COPPA · Ed Law 2-D Compliant
             </div>
+            <span>Music Mind Academy</span>
           </div>
+          <div className="footer-text">Made by a fellow music teacher in Central New York</div>
+          <div className="footer-text">🛡️ Student Privacy First</div>
         </div>
       </footer>
     </div>

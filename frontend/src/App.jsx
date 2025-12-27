@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import { ClassProvider } from './context/ClassContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SessionProvider } from './context/SessionContext';
+import { FirebaseAuthProvider } from './context/FirebaseAuthContext';
 
 // Import styles - including snap guide styles
 import './App.css';
@@ -17,6 +18,12 @@ import StudentDashboard from './pages/StudentDashboard';
 
 // Import classroom component
 import MusicClassroomResources from './pages/MusicClassroomResources';
+
+// Import Firebase auth components
+import FirebaseProtectedRoute from './components/FirebaseProtectedRoute';
+import FirebaseTeacherDashboard from './pages/FirebaseTeacherDashboard';
+import PilotAdminPage from './pages/PilotAdminPage';
+import TeacherLoginPage from './pages/TeacherLoginPage';
 
 // Import all necessary pages and components
 import CreateAssignmentPage from './pages/CreateAssignmentPage';
@@ -245,9 +252,23 @@ const AppContent = () => {
         {/* Landing page for edu site */}
         <Route path="/" element={<EduLandingPage />} />
         
-        {/* Login goes to MusicClassroomResources (has built-in login) */}
-        <Route path="/login" element={<MusicClassroomResources />} />
-        
+        {/* Teacher login page for approved pilot teachers */}
+        <Route path="/login" element={<TeacherLoginPage />} />
+
+        {/* Firebase-authenticated teacher dashboard */}
+        <Route path="/teacher/dashboard" element={
+          <FirebaseProtectedRoute>
+            <FirebaseTeacherDashboard />
+          </FirebaseProtectedRoute>
+        } />
+
+        {/* Pilot program admin page */}
+        <Route path="/admin/pilot" element={
+          <FirebaseProtectedRoute>
+            <PilotAdminPage />
+          </FirebaseProtectedRoute>
+        } />
+
         {/* Admin dashboard for monitoring all problems */}
         <Route path="/admin/all-problems" element={<AdminAllProblems />} />
 
@@ -291,6 +312,9 @@ const AppContent = () => {
         <Route path="/lessons/film-music-2" element={<Lesson2 />} />
         <Route path="/lessons/:lessonId" element={<SimpleLessonPlaceholder />} />
         
+        {/* Music Classroom Resources - Unit selection page */}
+        <Route path="/music-classroom-resources" element={<MusicClassroomResources />} />
+
         {/* Music Loops in Media Hub */}
         <Route path="/music-loops-in-media" element={<MusicLoopsInMediaHub />} />
         
@@ -335,17 +359,8 @@ const AppContent = () => {
         {/* Public landing page at root */}
         <Route path="/" element={<LandingPage />} />
         
-        {/* Login page - redirects to /teacher if already authenticated */}
-        <Route path="/login" element={
-          isAuthenticated ? (
-            user.role === 'teacher' ? <Navigate to="/teacher" replace /> :
-            user.role === 'admin' ? <Navigate to="/admin" replace /> :
-            user.role === 'student' ? <Navigate to="/student" replace /> :
-            <Navigate to="/" replace />
-          ) : (
-            <AuthPage />
-          )
-        } />
+        {/* Teacher login page for approved pilot teachers */}
+        <Route path="/login" element={<TeacherLoginPage />} />
         
         {/* Admin dashboard */}
         <Route path="/admin/all-problems" element={<AdminAllProblems />} />
@@ -443,8 +458,22 @@ const AppContent = () => {
           </ProtectedRoute>
         } />
         
-        {/* Keep old teacher dashboard at /teacher/dashboard for future use */}
+        {/* Firebase-authenticated teacher dashboard */}
         <Route path="/teacher/dashboard" element={
+          <FirebaseProtectedRoute>
+            <FirebaseTeacherDashboard />
+          </FirebaseProtectedRoute>
+        } />
+
+        {/* Pilot program admin page */}
+        <Route path="/admin/pilot" element={
+          <FirebaseProtectedRoute>
+            <PilotAdminPage />
+          </FirebaseProtectedRoute>
+        } />
+
+        {/* Legacy teacher dashboard (backend auth) */}
+        <Route path="/teacher/legacy-dashboard" element={
           <ProtectedRoute requiredRole="teacher">
             <TeacherDashboard showToast={showToast} />
           </ProtectedRoute>
@@ -591,7 +620,9 @@ const App = () => {
   return (
     <Router>
       <AuthProvider>
-        <AppContent />
+        <FirebaseAuthProvider>
+          <AppContent />
+        </FirebaseAuthProvider>
       </AuthProvider>
     </Router>
   );

@@ -2,16 +2,22 @@
 // Music for Media Unit - Hub page for all lessons
 // Light theme with minimal collapsed cards and expanded lesson overview
 // Updated: Larger sizing and better text contrast
+// Updated: Added analytics tracking for pilot program
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../firebase/config';
 import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play, ArrowLeft } from 'lucide-react';
+import { useFirebaseAuth } from '../context/FirebaseAuthContext';
+import { logSessionCreated, logLessonVisit } from '../firebase/analytics';
 
 const MusicLoopsInMediaHub = () => {
   const navigate = useNavigate();
   const [creatingSession, setCreatingSession] = useState(null);
   const [expandedLessons, setExpandedLessons] = useState({});
+
+  // Get authenticated teacher info
+  const { user } = useFirebaseAuth();
 
   // Default to teacher role - hub is for teachers
   const userRole = localStorage.getItem('classroom-user-role') || 'teacher';
@@ -26,7 +32,26 @@ const MusicLoopsInMediaHub = () => {
   const handleStartSession = async (lessonId, lessonRoute) => {
     setCreatingSession(lessonId);
     try {
-      const code = await createSession('teacher', lessonId, lessonRoute);
+      // Use authenticated teacher's UID if available, fallback to 'teacher'
+      const teacherId = user?.uid || 'teacher';
+      const teacherEmail = user?.email || 'anonymous';
+
+      const code = await createSession(teacherId, lessonId, lessonRoute);
+
+      // Log analytics for pilot tracking
+      if (user?.uid) {
+        try {
+          await logSessionCreated(user.uid, user.email, {
+            sessionCode: code,
+            lessonId,
+            lessonRoute
+          });
+          await logLessonVisit(user.uid, user.email, lessonId);
+        } catch (analyticsError) {
+          console.warn('Analytics logging failed (non-critical):', analyticsError);
+        }
+      }
+
       window.location.href = `${lessonRoute}?session=${code}&role=teacher`;
     } catch (error) {
       console.error('Error creating session:', error);
@@ -231,7 +256,7 @@ const MusicLoopsInMediaHub = () => {
             className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">Back to Resources</span>
+            <span className="font-medium">Back to Units</span>
           </button>
           <h1 className="text-4xl font-bold text-slate-900 mb-3">
             Music for Media

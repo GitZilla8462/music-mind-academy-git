@@ -7,15 +7,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession, getSessionData } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
+import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 
 function MusicClassroomResources() {
   const navigate = useNavigate();
-  
-  // Get Firebase auth state
-  const { isAuthenticated: firebaseAuthenticated, user: firebaseUser, logout: firebaseLogout } = useAuth();
-  
-  // Check if we're in commercial mode (musicmindacademy.com)
-  const isCommercialMode = import.meta.env.VITE_SITE_MODE !== 'edu';
+
+  // Get legacy auth state (for commercial mode)
+  const { isAuthenticated: legacyAuthenticated, user: legacyUser, logout: legacyLogout } = useAuth();
+
+  // Get Firebase auth state (for edu mode)
+  const { isAuthenticated: firebaseAuthenticated, user: firebaseUser, signOut: firebaseSignOut } = useFirebaseAuth();
+
+  // Check if we're in edu mode (musicroomtools.org)
+  const isEduMode = import.meta.env.VITE_SITE_MODE === 'edu';
+  const isCommercialMode = !isEduMode;
   
   const [loggedIn, setLoggedIn] = useState(() => {
     // Initialize from localStorage synchronously to avoid flash of login page
@@ -69,26 +74,38 @@ function MusicClassroomResources() {
   //   }
   // };
 
-  // If authenticated via Firebase (commercial mode), skip local login
+  // For edu mode: use Firebase auth state
   useEffect(() => {
-    if (isCommercialMode && firebaseAuthenticated) {
-      setLoggedIn(true);
-      localStorage.setItem('classroom-logged-in', 'true');
-      localStorage.setItem('classroom-user-role', firebaseUser?.role || 'teacher');
-      localStorage.setItem('classroom-username', firebaseUser?.name || firebaseUser?.email || 'Teacher');
-      localStorage.setItem('classroom-user-id', firebaseUser?.uid || 'firebase-user');
-    }
-  }, [isCommercialMode, firebaseAuthenticated, firebaseUser]);
-
-  // Check if already logged in on mount (for edu mode)
-  useEffect(() => {
-    if (!isCommercialMode) {
-      const isLoggedIn = localStorage.getItem('classroom-logged-in');
-      if (isLoggedIn === 'true') {
+    if (isEduMode) {
+      if (firebaseAuthenticated) {
         setLoggedIn(true);
+        localStorage.setItem('classroom-logged-in', 'true');
+        localStorage.setItem('classroom-user-role', 'teacher');
+        localStorage.setItem('classroom-username', firebaseUser?.displayName || firebaseUser?.email || 'Teacher');
+        localStorage.setItem('classroom-user-id', firebaseUser?.uid || 'firebase-user');
+      } else {
+        setLoggedIn(false);
       }
     }
-  }, [isCommercialMode]);
+  }, [isEduMode, firebaseAuthenticated, firebaseUser]);
+
+  // For commercial mode: check legacy auth or localStorage
+  useEffect(() => {
+    if (isCommercialMode) {
+      if (legacyAuthenticated) {
+        setLoggedIn(true);
+        localStorage.setItem('classroom-logged-in', 'true');
+        localStorage.setItem('classroom-user-role', legacyUser?.role || 'teacher');
+        localStorage.setItem('classroom-username', legacyUser?.name || legacyUser?.email || 'Teacher');
+        localStorage.setItem('classroom-user-id', legacyUser?.uid || 'legacy-user');
+      } else {
+        const isLoggedIn = localStorage.getItem('classroom-logged-in');
+        if (isLoggedIn === 'true') {
+          setLoggedIn(true);
+        }
+      }
+    }
+  }, [isCommercialMode, legacyAuthenticated, legacyUser]);
 
   const handleLogin = () => {
     if (username === 'tuba343' && password === 'music2025') {
@@ -108,13 +125,22 @@ function MusicClassroomResources() {
     }
   };
 
-  const handleLogout = () => {
-    if (isCommercialMode && firebaseLogout) {
-      firebaseLogout();
+  const handleLogout = async () => {
+    // For edu mode, use Firebase sign out
+    if (isEduMode && firebaseSignOut) {
+      await firebaseSignOut();
       navigate('/');
       return;
     }
-    
+
+    // For commercial mode, use legacy logout
+    if (isCommercialMode && legacyLogout) {
+      legacyLogout();
+      navigate('/');
+      return;
+    }
+
+    // Fallback: clear localStorage and redirect
     setLoggedIn(false);
     setUsername('');
     setPassword('');
@@ -127,6 +153,7 @@ function MusicClassroomResources() {
     setSavedSoundGarden(null);
     localStorage.removeItem('classroom-logged-in');
     localStorage.removeItem('classroom-user-role');
+    navigate('/');
   };
 
   // STUDENT - Join a session and go to correct lesson
@@ -242,48 +269,56 @@ function MusicClassroomResources() {
     }
   }, [loggedIn]);
 
-  // LOGIN PAGE - Only shown in edu mode when not logged in
+  // For edu mode: if not authenticated via Firebase, redirect to landing page
+  // For commercial mode: show the old login form as fallback
   if (!loggedIn) {
+    if (isEduMode) {
+      // Edu mode requires Firebase auth - redirect to landing page
+      navigate('/');
+      return null;
+    }
+
+    // Commercial mode fallback - show old login form
     return (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
         backgroundColor: '#f0f4f8'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <h1 style={{ 
-            fontSize: '48px', 
+          <h1 style={{
+            fontSize: '48px',
             fontWeight: 'bold',
             color: '#1a202c',
             marginBottom: '10px'
           }}>
-            Music Room Tools
+            Music Mind Academy
           </h1>
         </div>
-        
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '40px', 
+
+        <div style={{
+          backgroundColor: 'white',
+          padding: '40px',
           borderRadius: '12px',
           boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
           width: '100%',
           maxWidth: '400px'
         }}>
-          <h2 style={{ 
-            fontSize: '24px', 
+          <h2 style={{
+            fontSize: '24px',
             fontWeight: '600',
             marginBottom: '24px',
             color: '#2d3748'
           }}>
             Classroom Login
           </h2>
-          
-          <input 
-            type="text" 
-            placeholder="Username" 
+
+          <input
+            type="text"
+            placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
@@ -296,10 +331,10 @@ function MusicClassroomResources() {
               fontSize: '16px'
             }}
           />
-          
-          <input 
-            type="password" 
-            placeholder="Password" 
+
+          <input
+            type="password"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
@@ -312,8 +347,8 @@ function MusicClassroomResources() {
               fontSize: '16px'
             }}
           />
-          
-          <button 
+
+          <button
             onClick={handleLogin}
             style={{
               width: '100%',

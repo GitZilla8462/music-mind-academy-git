@@ -1,9 +1,11 @@
 // Firebase configuration for Music Mind Academy
 // UPDATED: Added debug logging to createSession
+// UPDATED: Added Auth for teacher accounts (uses Realtime DB for data)
 // src/firebase/config.js
 
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, set, onValue, update, remove, push, get } from 'firebase/database';
+import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAv0tH8VmKizydKhdHfFFgKES9Ir-PfXtA",
@@ -18,6 +20,10 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
+
+// Initialize Firebase Auth with Google Provider
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
 
 // ==========================================
 // SESSION FUNCTIONS

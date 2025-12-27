@@ -14,6 +14,7 @@ import {
   endSession as firebaseEndSession
 } from '../firebase/config';
 import { logger } from '../utils/UniversalLogger';
+import { logSessionEnded, logStageChange, logStudentJoined } from '../firebase/analytics';
 
 const SessionContext = createContext();
 
@@ -542,10 +543,13 @@ export const SessionProvider = ({ children }) => {
       console.warn('⚠️ Only teachers can update stage');
       return;
     }
-    
+
     try {
       console.log('➡️ Teacher advancing stage to:', stage);
       await updateSessionStage(sessionCode, stage);
+
+      // Log stage change for analytics (non-blocking)
+      logStageChange(sessionCode, stage).catch(() => {});
     } catch (error) {
       console.error('❌ Error updating stage:', error);
     }
@@ -578,13 +582,25 @@ export const SessionProvider = ({ children }) => {
     try {
       console.log('🛑 Teacher ending session normally:', sessionCode);
       isNormalEndRef.current = true;
+
+      // Log session analytics before ending
+      const lastStage = sessionData?.currentStage || 'unknown';
+      const students = sessionData?.studentsJoined ? Object.keys(sessionData.studentsJoined).length : 0;
+
+      try {
+        await logSessionEnded(sessionCode, lastStage, students);
+        console.log('📊 Logged session end analytics');
+      } catch (analyticsError) {
+        console.warn('Analytics logging failed (non-critical):', analyticsError);
+      }
+
       await firebaseEndSession(sessionCode);
       leaveSession();
-      
+
       setTimeout(() => {
         window.location.href = '/';
       }, 500);
-      
+
     } catch (error) {
       console.error('❌ Error ending session:', error);
     }
