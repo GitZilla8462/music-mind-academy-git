@@ -828,6 +828,7 @@ const LandingPage = () => {
             <span>Music Mind Academy</span>
           </div>
           <div className="footer-text">Made by a fellow music teacher in Central New York</div>
+          <div className="footer-text">Questions? Email <a href="mailto:rob@musicmindacademy.com" style={{ color: '#60a5fa', textDecoration: 'none' }}>rob@musicmindacademy.com</a></div>
           <div className="footer-text">🛡️ Student Privacy First</div>
         </div>
       </footer>
