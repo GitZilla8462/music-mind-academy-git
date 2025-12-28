@@ -3,6 +3,7 @@
 // Teachers apply via Google Form, then sign in at /login after approval
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Google Form URL for pilot program applications
 const PILOT_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfgcfEfVoPGYCRmpgyNO0FNPnR9Jc3O-BOhpMTodQhKAHSaSQ/viewform?usp=header';
@@ -47,8 +48,14 @@ const activities = [
 ];
 
 const LandingPage = () => {
+  const navigate = useNavigate();
+
   const handleJoinPilot = () => {
     window.open(PILOT_FORM_URL, '_blank');
+  };
+
+  const handleTeacherLogin = () => {
+    navigate('/login');
   };
 
   return (
@@ -132,6 +139,17 @@ const LandingPage = () => {
         .btn-primary:hover {
           background: #0284c7;
           transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+          background: transparent;
+          color: #64748b;
+          border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+          background: #f8fafc;
+          color: #1e293b;
         }
 
         /* Hero */
@@ -615,9 +633,14 @@ const LandingPage = () => {
             </div>
             <span className="nav-brand-text">Music Mind Academy</span>
           </div>
-          <button onClick={handleJoinPilot} className="btn btn-primary">
-            Join the Free Pilot
-          </button>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <button onClick={handleTeacherLogin} className="btn btn-secondary">
+              Teacher Login
+            </button>
+            <button onClick={handleJoinPilot} className="btn btn-primary">
+              Join the Free Pilot
+            </button>
+          </div>
         </div>
       </nav>
 
