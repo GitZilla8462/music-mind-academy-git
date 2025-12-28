@@ -10,7 +10,7 @@ import { getTeacherAnalytics, getPilotSessions, getPilotSummaryStats, subscribeT
 import { SITE_TYPES } from '../firebase/approvedEmails';
 
 // Your admin email(s) - only these can access this page
-const ADMIN_EMAILS = ['robtaube90@gmail.com'];
+const ADMIN_EMAILS = ['robtaube90@gmail.com', 'robtaube92@gmail.com'];
 
 const PilotAdminPage = () => {
   const navigate = useNavigate();
