@@ -1,13 +1,12 @@
 // File: /pages/MusicLoopsInMediaHub.jsx
 // Music for Media Unit - Hub page for all lessons
-// Light theme with minimal collapsed cards and expanded lesson overview
-// Updated: Larger sizing and better text contrast
+// Updated: Added Getting Started banner and unit cards grid
 // Updated: Added analytics tracking for pilot program
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../firebase/config';
-import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play, ArrowLeft } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play, ArrowLeft, X } from 'lucide-react';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { logSessionCreated, logLessonVisit } from '../firebase/analytics';
 
@@ -15,12 +14,27 @@ const MusicLoopsInMediaHub = () => {
   const navigate = useNavigate();
   const [creatingSession, setCreatingSession] = useState(null);
   const [expandedLessons, setExpandedLessons] = useState({});
+  const [showGettingStarted, setShowGettingStarted] = useState(true);
+  const [selectedUnit, setSelectedUnit] = useState('music-for-media');
 
   // Get authenticated teacher info
   const { user } = useFirebaseAuth();
 
   // Default to teacher role - hub is for teachers
   const userRole = localStorage.getItem('classroom-user-role') || 'teacher';
+
+  // Check localStorage for banner dismissal
+  useEffect(() => {
+    const hidden = localStorage.getItem('hideGettingStarted');
+    if (hidden === 'true') {
+      setShowGettingStarted(false);
+    }
+  }, []);
+
+  const dismissGettingStarted = () => {
+    setShowGettingStarted(false);
+    localStorage.setItem('hideGettingStarted', 'true');
+  };
 
   const toggleExpanded = (lessonId) => {
     setExpandedLessons(prev => ({
@@ -69,6 +83,42 @@ const MusicLoopsInMediaHub = () => {
     const route = `/lesson-plan/${lessonId}`;
     window.open(route, '_blank');
   };
+
+  // Unit cards data
+  const units = [
+    {
+      id: 'music-for-media',
+      title: 'Music for Media',
+      icon: '🎬',
+      status: 'active',
+      details: '5 Lessons • Grades 6-8',
+      color: 'from-sky-500 to-blue-600'
+    },
+    {
+      id: 'film-music-project',
+      title: 'Film Music Project',
+      icon: '🎬',
+      status: 'coming',
+      details: 'Coming April 2026',
+      color: 'from-slate-400 to-slate-500'
+    },
+    {
+      id: 'world-music-project',
+      title: 'World Music Project',
+      icon: '🌍',
+      status: 'coming',
+      details: 'Coming June 2026',
+      color: 'from-slate-400 to-slate-500'
+    },
+    {
+      id: 'foley-artist',
+      title: 'Foley Artist',
+      icon: '🎤',
+      status: 'coming',
+      details: 'Coming August 2026',
+      color: 'from-slate-400 to-slate-500'
+    }
+  ];
 
   const lessons = [
     // Lesson 1: Mood (Drone Footage)
@@ -250,277 +300,408 @@ const MusicLoopsInMediaHub = () => {
     <div className="min-h-screen bg-slate-50">
       {/* HEADER */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-6 py-10">
-          <button
-            onClick={() => navigate('/music-classroom-resources')}
-            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">Back to Units</span>
-          </button>
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">
-            Music for Media
-          </h1>
-          <p className="text-xl text-slate-700 mb-2">
-            Create soundtracks for video — the way professionals do it.
-          </p>
-          <p className="text-base text-slate-600">
-            5 lessons  •  ~40 min each  •  Grades 6-8
-          </p>
+        <div className="max-w-5xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-slate-900">
+              Music Mind Academy
+            </h1>
+            {user && (
+              <button
+                onClick={() => {
+                  localStorage.removeItem('classroom-logged-in');
+                  navigate('/');
+                }}
+                className="text-slate-600 hover:text-slate-900 font-medium"
+              >
+                Logout
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* LESSON CARDS */}
+      {/* GETTING STARTED BANNER */}
+      {showGettingStarted && (
+        <div className="bg-gradient-to-r from-sky-500 to-blue-600 text-white">
+          <div className="max-w-5xl mx-auto px-6 py-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-6">
+                <div>
+                  <h2 className="text-lg font-bold flex items-center gap-2">
+                    🚀 NEW HERE?
+                  </h2>
+                  <p className="text-sky-100 text-sm mt-1">
+                    Get started in minutes with our quick guides
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => window.open('#', '_blank')}
+                    className="bg-white text-sky-600 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-sky-50 transition-colors flex items-center gap-2"
+                  >
+                    <Play className="w-4 h-4" />
+                    2-Min Tutorial
+                  </button>
+                  <button
+                    onClick={() => window.open('#', '_blank')}
+                    className="bg-sky-400/30 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-sky-400/40 transition-colors flex items-center gap-2"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Quick Start
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={dismissGettingStarted}
+                className="text-white/70 hover:text-white p-1"
+                aria-label="Dismiss"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* UNIT CARDS */}
       <div className="max-w-5xl mx-auto px-6 py-8">
-        <div className="space-y-6">
-          {lessons.map((lesson) => {
-            const isExpanded = expandedLessons[lesson.id];
-            const totalTime = getTotalTime(lesson.activities);
+        <h2 className="text-lg font-semibold text-slate-700 mb-4">Choose a Unit</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {units.map((unit) => {
+            const isActive = unit.status === 'active';
+            const isSelected = selectedUnit === unit.id;
 
             return (
-              <div
-                key={lesson.id}
-                className={`bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden transition-all ${
-                  lesson.available ? '' : 'opacity-50'
+              <button
+                key={unit.id}
+                onClick={() => isActive && setSelectedUnit(unit.id)}
+                disabled={!isActive}
+                className={`text-left p-5 rounded-xl border-2 transition-all ${
+                  isActive
+                    ? isSelected
+                      ? 'border-sky-500 bg-sky-50 shadow-md'
+                      : 'border-slate-200 bg-white hover:border-sky-300 hover:shadow-sm cursor-pointer'
+                    : 'border-slate-200 bg-slate-100 opacity-60 cursor-not-allowed'
                 }`}
               >
-                {/* COLLAPSED CARD HEADER - Always Visible */}
-                <div className="p-6">
-                  <div className="flex items-start gap-5">
-                    {/* Gradient Icon */}
-                    <div className={`w-20 h-20 rounded-xl bg-gradient-to-br ${lesson.color} flex items-center justify-center flex-shrink-0`}>
-                      <span className="text-3xl">{lesson.icon}</span>
-                    </div>
-
-                    {/* Lesson Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="text-base font-semibold text-blue-600 uppercase tracking-wide">
-                            Lesson {lesson.number}
-                          </p>
-                          <h3 className="text-2xl font-bold text-slate-900 mt-1">
-                            {lesson.title}
-                          </h3>
-                          <p className="text-base text-slate-600 mt-1">
-                            {lesson.concept}
-                          </p>
-                        </div>
-                        <div className="text-right flex-shrink-0 ml-4">
-                          <span className="text-xl font-semibold text-slate-800">
-                            ~40 min
-                          </span>
-                          {!lesson.available && (
-                            <p className="text-sm text-slate-500 mt-1">Coming Soon</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                <div className="flex items-center gap-4">
+                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${unit.color} flex items-center justify-center flex-shrink-0`}>
+                    <span className="text-2xl">{unit.icon}</span>
                   </div>
-
-                  {/* Bottom Row: Expand Button (left) + Start Session (right) */}
-                  {lesson.available && (
-                    <div className="mt-4 flex items-center justify-between">
-                      {/* Expand/Collapse Button - Left */}
-                      <button
-                        onClick={() => toggleExpanded(lesson.id)}
-                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium text-base"
-                      >
-                        {isExpanded ? (
-                          <>
-                            <ChevronUp className="w-5 h-5" />
-                            Hide Overview
-                          </>
-                        ) : (
-                          <>
-                            <ChevronDown className="w-5 h-5" />
-                            Lesson Overview
-                          </>
-                        )}
-                      </button>
-
-                      {/* Start Session Button - Right (Teacher Only) */}
-                      {userRole === 'teacher' && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStartSession(lesson.id, lesson.route);
-                          }}
-                          disabled={creatingSession === lesson.id}
-                          className={`font-semibold py-2.5 px-5 rounded-lg transition-colors flex items-center gap-2 ${
-                            creatingSession === lesson.id
-                              ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                              : 'bg-blue-600 hover:bg-blue-700 text-white'
-                          }`}
-                        >
-                          {creatingSession === lesson.id ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                              Creating...
-                            </>
-                          ) : (
-                            'Start Session'
-                          )}
-                        </button>
-                      )}
-
-                    </div>
+                  <div className="flex-1">
+                    <h3 className={`text-lg font-bold ${isActive ? 'text-slate-900' : 'text-slate-500'}`}>
+                      {unit.title}
+                    </h3>
+                    <p className={`text-sm ${isActive ? 'text-slate-600' : 'text-slate-400'}`}>
+                      {unit.details}
+                    </p>
+                  </div>
+                  {isActive && (
+                    <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded">
+                      Active
+                    </span>
                   )}
                 </div>
+              </button>
+            );
+          })}
+        </div>
 
-                {/* EXPANDED CONTENT */}
-                {isExpanded && lesson.available && (
-                  <div className="border-t border-slate-200">
-                    {/* Section 1: Lesson Description */}
-                    <div className="px-6 py-6 bg-slate-50 border-b border-slate-200">
-                      {/* In This Lesson */}
-                      <div className="mb-5">
-                        <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">
-                          In This Lesson
-                        </h4>
-                        <p className="text-lg text-slate-800">
-                          {lesson.inThisLesson}
-                        </p>
+        {/* SELECTED UNIT HEADER */}
+        {selectedUnit === 'music-for-media' && (
+          <>
+            <div className="bg-white border border-slate-200 rounded-xl p-6 mb-6">
+              <div className="flex items-start gap-5">
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">🎬</span>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900">Music for Media</h2>
+                  <p className="text-lg text-slate-600 mt-1">
+                    Create soundtracks for video — the way professionals do it.
+                  </p>
+                  <p className="text-sm text-slate-500 mt-2">
+                    5 Lessons  •  ~40 min each  •  Grades 6-8
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* LESSON CARDS */}
+            <div className="space-y-6">
+              {lessons.map((lesson) => {
+                const isExpanded = expandedLessons[lesson.id];
+                const totalTime = getTotalTime(lesson.activities);
+
+                return (
+                  <div
+                    key={lesson.id}
+                    className={`bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden transition-all ${
+                      lesson.available ? '' : 'opacity-50'
+                    }`}
+                  >
+                    {/* COLLAPSED CARD HEADER - Always Visible */}
+                    <div className="p-6">
+                      <div className="flex items-start gap-5">
+                        {/* Gradient Icon */}
+                        <div className={`w-20 h-20 rounded-xl bg-gradient-to-br ${lesson.color} flex items-center justify-center flex-shrink-0`}>
+                          <span className="text-3xl">{lesson.icon}</span>
+                        </div>
+
+                        {/* Lesson Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <p className="text-base font-semibold text-sky-600 uppercase tracking-wide">
+                                Lesson {lesson.number}
+                              </p>
+                              <h3 className="text-2xl font-bold text-slate-900 mt-1">
+                                {lesson.title}
+                              </h3>
+                              <p className="text-base text-slate-600 mt-1">
+                                {lesson.concept}
+                              </p>
+                            </div>
+                            <div className="text-right flex-shrink-0 ml-4">
+                              <span className="text-xl font-semibold text-slate-800">
+                                ~40 min
+                              </span>
+                              {!lesson.available && (
+                                <p className="text-sm text-slate-500 mt-1">Coming Soon</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Students Will */}
-                      <div className="mb-5">
-                        <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">
-                          Students Will
-                        </h4>
-                        <ul className="space-y-2">
-                          {lesson.studentsWill.map((outcome, i) => (
-                            <li key={i} className="flex items-start gap-2 text-base text-slate-800">
-                              <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                              <span>{outcome}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                      {/* Bottom Row: Expand Button (left) + Start Session (right) */}
+                      {lesson.available && (
+                        <div className="mt-4 flex items-center justify-between">
+                          {/* Expand/Collapse Button - Left */}
+                          <button
+                            onClick={() => toggleExpanded(lesson.id)}
+                            className="flex items-center gap-2 text-sky-600 hover:text-sky-700 font-medium text-base"
+                          >
+                            {isExpanded ? (
+                              <>
+                                <ChevronUp className="w-5 h-5" />
+                                Hide Overview
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown className="w-5 h-5" />
+                                Lesson Overview
+                              </>
+                            )}
+                          </button>
 
-                      {/* Essential Question */}
-                      <div>
-                        <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">
-                          Essential Question
-                        </h4>
-                        <p className="text-lg text-slate-800 italic">
-                          "{lesson.essentialQuestion}"
-                        </p>
-                      </div>
+                          {/* Start Session Button - Right (Teacher Only) */}
+                          {userRole === 'teacher' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStartSession(lesson.id, lesson.route);
+                              }}
+                              disabled={creatingSession === lesson.id}
+                              className={`font-semibold py-2.5 px-5 rounded-lg transition-colors flex items-center gap-2 ${
+                                creatingSession === lesson.id
+                                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                                  : 'bg-sky-500 hover:bg-sky-600 text-white'
+                              }`}
+                            >
+                              {creatingSession === lesson.id ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                  Creating...
+                                </>
+                              ) : (
+                                'Start Session'
+                              )}
+                            </button>
+                          )}
+
+                        </div>
+                      )}
                     </div>
 
-                    {/* Section 2: Activities List */}
-                    {userRole === 'teacher' && (
-                      <div className="px-6 py-6">
-                        <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-4">
-                          Activities
-                        </h4>
+                    {/* EXPANDED CONTENT */}
+                    {isExpanded && lesson.available && (
+                      <div className="border-t border-slate-200">
+                        {/* Section 1: Lesson Description */}
+                        <div className="px-6 py-6 bg-slate-50 border-b border-slate-200">
+                          {/* In This Lesson */}
+                          <div className="mb-5">
+                            <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">
+                              In This Lesson
+                            </h4>
+                            <p className="text-lg text-slate-800">
+                              {lesson.inThisLesson}
+                            </p>
+                          </div>
 
-                        {/* Activities Header Row */}
-                        <div className="grid grid-cols-[200px_1fr_auto_60px_80px] gap-x-4 items-center py-2 border-b border-slate-200 mb-1">
-                          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                            Activity
-                          </span>
-                          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                            Description
-                          </span>
-                          <span></span>
-                          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">
-                            Time
-                          </span>
-                          <span></span>
+                          {/* Students Will */}
+                          <div className="mb-5">
+                            <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">
+                              Students Will
+                            </h4>
+                            <ul className="space-y-2">
+                              {lesson.studentsWill.map((outcome, i) => (
+                                <li key={i} className="flex items-start gap-2 text-base text-slate-800">
+                                  <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                                  <span>{outcome}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* Essential Question */}
+                          <div>
+                            <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">
+                              Essential Question
+                            </h4>
+                            <p className="text-lg text-slate-800 italic">
+                              "{lesson.essentialQuestion}"
+                            </p>
+                          </div>
                         </div>
 
-                        {/* Activities Table with CSS Grid */}
-                        <div className="space-y-0">
-                          {lesson.activities.map((activity, index) => (
-                            <div
-                              key={index}
-                              className="grid grid-cols-[200px_1fr_auto_60px_80px] gap-x-4 items-center py-3 border-b border-slate-100 last:border-b-0"
-                            >
-                              {/* Column 1: Title */}
-                              <span className={`text-base font-medium truncate ${activity.isBonus ? 'text-amber-700' : 'text-slate-800'}`}>
-                                {activity.title}
+                        {/* Section 2: Activities List */}
+                        {userRole === 'teacher' && (
+                          <div className="px-6 py-6">
+                            <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-4">
+                              Activities
+                            </h4>
+
+                            {/* Activities Header Row */}
+                            <div className="grid grid-cols-[200px_1fr_auto_60px_80px] gap-x-4 items-center py-2 border-b border-slate-200 mb-1">
+                              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Activity
                               </span>
-
-                              {/* Column 2: Description */}
-                              <span className="text-slate-700 text-base truncate">
-                                {activity.description}
+                              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Description
                               </span>
-
-                              {/* Column 3: Badges */}
-                              <div className="flex gap-1">
-                                {activity.isPartnerActivity && (
-                                  <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
-                                    Partner
-                                  </span>
-                                )}
-                                {activity.isBonus && (
-                                  <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
-                                    Bonus
-                                  </span>
-                                )}
-                              </div>
-
-                              {/* Column 4: Time */}
-                              <span className="text-slate-600 text-base text-right">
-                                {activity.time} min
+                              <span></span>
+                              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">
+                                Time
                               </span>
-
-                              {/* Column 5: Preview Button */}
-                              <div className="text-right">
-                                {activity.activityType ? (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDemoActivity(activity.activityType, activity.title);
-                                    }}
-                                    className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                                  >
-                                    <Play className="w-4 h-4" />
-                                    Preview
-                                  </button>
-                                ) : (
-                                  <span className="text-sm text-slate-400">—</span>
-                                )}
-                              </div>
+                              <span></span>
                             </div>
-                          ))}
-                        </div>
 
-                        {/* Total Time */}
-                        <div className="flex justify-end mt-4 pt-3 border-t border-slate-200">
-                          <span className="text-base text-slate-600">
-                            Total (excluding bonus):
-                          </span>
-                          <span className="text-base font-semibold text-slate-800 ml-2">
-                            ~40 min
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                            {/* Activities Table with CSS Grid */}
+                            <div className="space-y-0">
+                              {lesson.activities.map((activity, index) => (
+                                <div
+                                  key={index}
+                                  className="grid grid-cols-[200px_1fr_auto_60px_80px] gap-x-4 items-center py-3 border-b border-slate-100 last:border-b-0"
+                                >
+                                  {/* Column 1: Title */}
+                                  <span className={`text-base font-medium truncate ${activity.isBonus ? 'text-amber-700' : 'text-slate-800'}`}>
+                                    {activity.title}
+                                  </span>
 
-                    {/* Section 3: Lesson Plan Link (Teacher Only) */}
-                    {lesson.hasLessonPlan && userRole === 'teacher' && (
-                      <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenLessonPlan(lesson.id);
-                          }}
-                          className="flex items-center gap-2 text-slate-600 hover:text-slate-800 font-medium transition-colors"
-                        >
-                          <FileText className="w-5 h-5" />
-                          View Lesson Plan
-                          <ExternalLink className="w-4 h-4 text-slate-400" />
-                        </button>
+                                  {/* Column 2: Description */}
+                                  <span className="text-slate-700 text-base truncate">
+                                    {activity.description}
+                                  </span>
+
+                                  {/* Column 3: Badges */}
+                                  <div className="flex gap-1">
+                                    {activity.isPartnerActivity && (
+                                      <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
+                                        Partner
+                                      </span>
+                                    )}
+                                    {activity.isBonus && (
+                                      <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
+                                        Bonus
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Column 4: Time */}
+                                  <span className="text-slate-600 text-base text-right">
+                                    {activity.time} min
+                                  </span>
+
+                                  {/* Column 5: Preview Button */}
+                                  <div className="text-right">
+                                    {activity.activityType ? (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDemoActivity(activity.activityType, activity.title);
+                                        }}
+                                        className="inline-flex items-center gap-1 text-sm text-sky-600 hover:text-sky-700 font-medium"
+                                      >
+                                        <Play className="w-4 h-4" />
+                                        Preview
+                                      </button>
+                                    ) : (
+                                      <span className="text-sm text-slate-400">—</span>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Total Time */}
+                            <div className="flex justify-end mt-4 pt-3 border-t border-slate-200">
+                              <span className="text-base text-slate-600">
+                                Total (excluding bonus):
+                              </span>
+                              <span className="text-base font-semibold text-slate-800 ml-2">
+                                ~40 min
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Section 3: Lesson Plan Link (Teacher Only) */}
+                        {lesson.hasLessonPlan && userRole === 'teacher' && (
+                          <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenLessonPlan(lesson.id);
+                              }}
+                              className="flex items-center gap-2 text-slate-600 hover:text-slate-800 font-medium transition-colors"
+                            >
+                              <FileText className="w-5 h-5" />
+                              View Lesson Plan
+                              <ExternalLink className="w-4 h-4 text-slate-400" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* FOOTER HELP LINKS */}
+      <div className="border-t border-slate-200 bg-white mt-8">
+        <div className="max-w-5xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-center gap-6 text-sm text-slate-600">
+            <span>Need help?</span>
+            <a
+              href="#"
+              className="flex items-center gap-1.5 text-sky-600 hover:text-sky-700 font-medium"
+            >
+              <Play className="w-4 h-4" />
+              Tutorial
+            </a>
+            <a
+              href="#"
+              className="flex items-center gap-1.5 text-sky-600 hover:text-sky-700 font-medium"
+            >
+              <FileText className="w-4 h-4" />
+              Quick Start
+            </a>
+          </div>
         </div>
       </div>
     </div>
