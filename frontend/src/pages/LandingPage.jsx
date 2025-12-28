@@ -379,6 +379,49 @@ const LandingPage = () => {
           line-height: 1.4;
         }
 
+        /* What Each Lesson Includes */
+        .includes {
+          padding: 3rem 1.5rem;
+          background: white;
+        }
+
+        .includes-inner {
+          max-width: 900px;
+          margin: 0 auto;
+        }
+
+        .includes-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1.25rem;
+        }
+
+        .include-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 1rem;
+          padding: 1rem;
+          background: #f8fafc;
+          border-radius: 12px;
+        }
+
+        .include-icon {
+          font-size: 1.5rem;
+        }
+
+        .include-item strong {
+          display: block;
+          font-size: 0.95rem;
+          color: #1e293b;
+          margin-bottom: 0.25rem;
+        }
+
+        .include-item p {
+          font-size: 0.85rem;
+          color: #64748b;
+          margin: 0;
+        }
+
         /* How It Works */
         .how-it-works {
           padding: 4rem 1.5rem;
@@ -604,6 +647,9 @@ const LandingPage = () => {
           .activities-grid {
             grid-template-columns: repeat(2, 1fr);
           }
+          .includes-grid {
+            grid-template-columns: 1fr;
+          }
           .how-grid {
             grid-template-columns: 1fr;
           }
@@ -725,6 +771,49 @@ const LandingPage = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* What Each Lesson Includes */}
+      <section className="includes">
+        <div className="includes-inner">
+          <div className="section-header">
+            <h2>What Each Lesson Includes</h2>
+          </div>
+
+          <div className="includes-grid">
+            <div className="include-item">
+              <span className="include-icon">📋</span>
+              <div>
+                <strong>Standards-Aligned Curriculum</strong>
+                <p>Mapped to National Core Arts Standards</p>
+              </div>
+            </div>
+
+            <div className="include-item">
+              <span className="include-icon">🖥️</span>
+              <div>
+                <strong>Interactive Teacher Slides</strong>
+                <p>Click-through presentation with built-in videos</p>
+              </div>
+            </div>
+
+            <div className="include-item">
+              <span className="include-icon">🎵</span>
+              <div>
+                <strong>DAW Composition Project</strong>
+                <p>150+ loops and 15+ unique videos to score</p>
+              </div>
+            </div>
+
+            <div className="include-item">
+              <span className="include-icon">🎮</span>
+              <div>
+                <strong>Bonus Activities & Games</strong>
+                <p>Escape rooms, mysteries, and listening maps</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
