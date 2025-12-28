@@ -673,7 +673,7 @@ const LandingPage = () => {
           </div>
 
           <div className="hero-image">
-            <img src="/landingpage/TeacherSlides.png" alt="Teacher lesson view" />
+            <img src="/landingpage/LandingPageTopPicture.png" alt="Music Mind Academy platform" />
           </div>
         </div>
       </section>
