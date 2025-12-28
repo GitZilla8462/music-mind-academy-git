@@ -14,7 +14,7 @@ import {
   endSession as firebaseEndSession
 } from '../firebase/config';
 import { logger } from '../utils/UniversalLogger';
-import { logSessionEnded, logStageChange, logStudentJoined } from '../firebase/analytics';
+import { logSessionEnded, logStageChange, logStudentJoined, updateSessionHeartbeat } from '../firebase/analytics';
 
 const SessionContext = createContext();
 
@@ -207,6 +207,30 @@ export const SessionProvider = ({ children }) => {
       localStorage.removeItem('current-session-userId');
     }
   }, [userId]);
+
+  // Heartbeat for tracking session duration (every 60 seconds)
+  useEffect(() => {
+    // Only run heartbeat for teachers with active sessions
+    if (!sessionCode || userRole !== 'teacher') return;
+
+    // Get teacher UID from sessionData or localStorage
+    const teacherUid = sessionData?.teacherId || localStorage.getItem('classroom-user-id');
+
+    // Initial heartbeat
+    updateSessionHeartbeat(sessionCode, teacherUid).catch(() => {});
+
+    // Set up interval for every 60 seconds
+    const heartbeatInterval = setInterval(() => {
+      updateSessionHeartbeat(sessionCode, teacherUid).catch(() => {});
+    }, 60000); // 60 seconds
+
+    console.log('💓 Started session heartbeat for:', sessionCode);
+
+    return () => {
+      clearInterval(heartbeatInterval);
+      console.log('💔 Stopped session heartbeat');
+    };
+  }, [sessionCode, userRole, sessionData?.teacherId]);
 
   // Firebase subscription with logging
   useEffect(() => {

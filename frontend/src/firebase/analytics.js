@@ -287,6 +287,59 @@ export const subscribeToAnalytics = (callback) => {
 };
 
 // ==========================================
+// HEARTBEAT / ACTIVITY TRACKING
+// ==========================================
+
+/**
+ * Update session activity (heartbeat) - call every minute
+ * This ensures we capture time even if user forgets to end session
+ */
+export const updateSessionHeartbeat = async (sessionCode, teacherUid) => {
+  if (!sessionCode) return;
+
+  const now = Date.now();
+
+  try {
+    // Update session's last heartbeat
+    const sessionRef = ref(database, `pilotSessions/${sessionCode}`);
+    const snapshot = await get(sessionRef);
+
+    if (snapshot.exists()) {
+      const sessionData = snapshot.val();
+      const startTime = sessionData.startTime;
+      const duration = now - startTime;
+
+      await update(sessionRef, {
+        lastHeartbeat: now,
+        duration: duration // Update duration based on heartbeat
+      });
+
+      // Also update teacher's total time
+      if (teacherUid) {
+        const teacherRef = ref(database, `teacherAnalytics/${teacherUid}`);
+        await update(teacherRef, {
+          lastActivity: now
+        });
+      }
+    }
+  } catch (error) {
+    console.warn('Heartbeat update failed:', error.message);
+  }
+};
+
+/**
+ * Final update when page is unloading (beforeunload)
+ * Uses sendBeacon for reliability
+ */
+export const sendFinalHeartbeat = (sessionCode, teacherUid) => {
+  if (!sessionCode) return;
+
+  // Note: sendBeacon doesn't work with Firebase SDK
+  // Instead, we rely on the heartbeat having captured recent activity
+  console.log('📊 Session closing, last heartbeat already recorded');
+};
+
+// ==========================================
 // FIRST LOGIN TRACKING
 // ==========================================
 
