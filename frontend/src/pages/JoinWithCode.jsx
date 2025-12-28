@@ -26,6 +26,10 @@ function JoinWithCode() {
   const loadRoomCode = searchParams.get('loadRoom');
   const loadMelodyMysteryCode = searchParams.get('loadMelodyMystery');
 
+  // Check which site we're on
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+  const siteName = isEduSite ? 'Music Room Tools' : 'Music Mind Academy';
+
   useEffect(() => {
     const id = getStudentId();
     setStudentId(id);
@@ -181,14 +185,14 @@ function JoinWithCode() {
       alignItems: 'center'
     }}>
       {/* Title - Compact */}
-      <h1 style={{ 
-        fontSize: '32px', 
+      <h1 style={{
+        fontSize: '32px',
         fontWeight: 'bold',
         color: '#1a202c',
         marginBottom: '20px',
         marginTop: '10px'
       }}>
-        Music Room Tools
+        {siteName}
       </h1>
 
       {/* Container for join + saved work */}
