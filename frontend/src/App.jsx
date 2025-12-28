@@ -358,10 +358,13 @@ const AppContent = () => {
       <Routes>
         {/* Public landing page at root */}
         <Route path="/" element={<LandingPage />} />
-        
+
         {/* Teacher login page for approved pilot teachers */}
         <Route path="/login" element={<TeacherLoginPage />} />
-        
+
+        {/* Student join page */}
+        <Route path="/join" element={<JoinWithCode />} />
+
         {/* Admin dashboard */}
         <Route path="/admin/all-problems" element={<AdminAllProblems />} />
 
