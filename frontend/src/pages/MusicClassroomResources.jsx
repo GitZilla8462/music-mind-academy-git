@@ -636,7 +636,7 @@ function MusicClassroomResources() {
 
         {/* Music for Media Unit Card */}
         <div
-          onClick={() => navigate('/music-loops-in-media')}
+          onClick={() => navigate('/music-loops-in-media-hub')}
           style={{
             backgroundColor: 'white',
             borderRadius: '12px',
