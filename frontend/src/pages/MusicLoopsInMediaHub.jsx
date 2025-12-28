@@ -365,7 +365,6 @@ const MusicLoopsInMediaHub = () => {
 
       {/* UNIT CARDS */}
       <div className="max-w-5xl mx-auto px-6 py-8">
-        <h2 className="text-lg font-semibold text-slate-700 mb-4">Choose a Unit</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {units.map((unit) => {
             const isActive = unit.status === 'active';
