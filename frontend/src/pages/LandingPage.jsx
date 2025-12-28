@@ -141,15 +141,15 @@ const LandingPage = () => {
           transform: translateY(-1px);
         }
 
-        .btn-secondary {
-          background: transparent;
-          color: #64748b;
-          border: 1px solid #e2e8f0;
+        .btn-login {
+          background: #1e293b;
+          color: white;
+          border: none;
         }
 
-        .btn-secondary:hover {
-          background: #f8fafc;
-          color: #1e293b;
+        .btn-login:hover {
+          background: #0f172a;
+          transform: translateY(-1px);
         }
 
         /* Hero */
@@ -634,7 +634,7 @@ const LandingPage = () => {
             <span className="nav-brand-text">Music Mind Academy</span>
           </div>
           <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <button onClick={handleTeacherLogin} className="btn btn-secondary">
+            <button onClick={handleTeacherLogin} className="btn btn-login">
               Teacher Login
             </button>
             <button onClick={handleJoinPilot} className="btn btn-primary">

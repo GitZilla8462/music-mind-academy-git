@@ -451,17 +451,29 @@ const AppContent = () => {
           </ProtectedRoute>
         } />
         
-        {/* Music Loops in Media Hub - for teachers */}
+        {/* Music Loops in Media Hub - for teachers (legacy backend auth) */}
         <Route path="/music-loops-in-media" element={
           <ProtectedRoute requiredRole="teacher">
             <MusicLoopsInMediaHub />
           </ProtectedRoute>
         } />
-        
+
         {/* Firebase-authenticated teacher dashboard */}
         <Route path="/teacher/dashboard" element={
           <FirebaseProtectedRoute>
             <FirebaseTeacherDashboard />
+          </FirebaseProtectedRoute>
+        } />
+
+        {/* Firebase-authenticated routes for pilot teachers */}
+        <Route path="/music-classroom-resources" element={
+          <FirebaseProtectedRoute>
+            <MusicClassroomResources />
+          </FirebaseProtectedRoute>
+        } />
+        <Route path="/music-loops-in-media-hub" element={
+          <FirebaseProtectedRoute>
+            <MusicLoopsInMediaHub />
           </FirebaseProtectedRoute>
         } />
 
