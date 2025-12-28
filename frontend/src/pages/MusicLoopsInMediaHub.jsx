@@ -308,7 +308,7 @@ const MusicLoopsInMediaHub = () => {
                         </div>
                         <div className="text-right flex-shrink-0 ml-4">
                           <span className="text-xl font-semibold text-slate-800">
-                            ~{totalTime} min
+                            ~40 min
                           </span>
                           {!lesson.available && (
                             <p className="text-sm text-slate-500 mt-1">Coming Soon</p>
@@ -494,7 +494,7 @@ const MusicLoopsInMediaHub = () => {
                             Total (excluding bonus):
                           </span>
                           <span className="text-base font-semibold text-slate-800 ml-2">
-                            ~{totalTime} min
+                            ~40 min
                           </span>
                         </div>
                       </div>

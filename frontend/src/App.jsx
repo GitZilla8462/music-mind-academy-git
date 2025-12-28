@@ -392,47 +392,47 @@ const AppContent = () => {
         {/* ✅ ADDED: Demo Activity Route - Teacher preview of activities */}
         <Route path="/demo" element={<DemoActivity />} />
 
-        {/* LESSON ROUTES - Available to all authenticated users */}
+        {/* LESSON ROUTES - Available to Firebase authenticated users */}
         <Route path="/lessons/film-music-project/lesson1" element={
-          <ProtectedRoute>
+          <FirebaseProtectedRoute>
             <Lesson1 />
-          </ProtectedRoute>
+          </FirebaseProtectedRoute>
         } />
-        
+
         <Route path="/lessons/film-music-project/lesson2" element={
-          <ProtectedRoute>
+          <FirebaseProtectedRoute>
             <Lesson2 />
-          </ProtectedRoute>
+          </FirebaseProtectedRoute>
         } />
-        
+
         <Route path="/lessons/film-music-project/lesson3" element={
-          <ProtectedRoute>
+          <FirebaseProtectedRoute>
             <Lesson3 />
-          </ProtectedRoute>
+          </FirebaseProtectedRoute>
         } />
-        
+
         <Route path="/lessons/film-music-project/lesson4" element={
-          <ProtectedRoute>
+          <FirebaseProtectedRoute>
             <Lesson4 />
-          </ProtectedRoute>
+          </FirebaseProtectedRoute>
         } />
 
         <Route path="/lessons/film-music-project/lesson5" element={
-          <ProtectedRoute>
+          <FirebaseProtectedRoute>
             <Lesson5 />
-          </ProtectedRoute>
+          </FirebaseProtectedRoute>
         } />
 
         <Route path="/lessons/film-music-1" element={
-          <ProtectedRoute>
+          <FirebaseProtectedRoute>
             <Lesson1 />
-          </ProtectedRoute>
+          </FirebaseProtectedRoute>
         } />
-        
+
         <Route path="/lessons/:lessonId" element={
-          <ProtectedRoute>
+          <FirebaseProtectedRoute>
             <SimpleLessonPlaceholder />
-          </ProtectedRoute>
+          </FirebaseProtectedRoute>
         } />
 
         {/* PROTECTED ROUTES */}
