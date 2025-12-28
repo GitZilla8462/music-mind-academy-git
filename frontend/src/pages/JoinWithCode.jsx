@@ -85,7 +85,7 @@ function JoinWithCode() {
         return;
       }
 
-      const lessonRoute = sessionData.lessonRoute || '/lessons/film-music-project/lesson1';
+      const lessonRoute = sessionData.lessonRoute || sessionData.lessonId || '/lessons/film-music-project/lesson1';
       window.location.href = `${lessonRoute}?session=${code}&role=student&preview=true`;
     } catch (error) {
       console.error('❌ Preview mode error:', error);
@@ -111,7 +111,7 @@ function JoinWithCode() {
         return;
       }
 
-      const lessonRoute = sessionData.lessonRoute || '/lessons/film-music-project/lesson1';
+      const lessonRoute = sessionData.lessonRoute || sessionData.lessonId || '/lessons/film-music-project/lesson1';
       window.location.href = `${lessonRoute}?session=${sessionCode}&role=student`;
     } catch (error) {
       console.error('❌ Error joining session:', error);
