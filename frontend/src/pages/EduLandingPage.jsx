@@ -11,10 +11,10 @@ const EduLandingPage = () => {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [signInError, setSignInError] = useState(null);
 
-  // If logged in via Firebase, redirect to classroom resources
+  // If logged in via Firebase, redirect directly to lessons hub
   useEffect(() => {
     if (isAuthenticated && !firebaseLoading) {
-      navigate('/music-classroom-resources');
+      navigate('/music-loops-in-media');
     }
   }, [isAuthenticated, firebaseLoading, navigate]);
 
@@ -23,7 +23,7 @@ const EduLandingPage = () => {
     setSignInError(null);
     try {
       await signInWithGoogle();
-      navigate('/music-classroom-resources');
+      navigate('/music-loops-in-media');
     } catch (err) {
       console.error('Sign-in failed:', err);
       setSignInError('Sign-in failed. Please try again.');

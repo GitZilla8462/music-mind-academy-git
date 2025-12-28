@@ -148,7 +148,7 @@ export const lessonSections = [
       {
         id: 'beat-escape-room',
         type: 'activity',
-        label: 'Beat Escape Room',
+        label: '🎮 Unlock Beat Escape Room',
         description: 'Partner activity: Create and solve beat puzzles',
         duration: 10,
         hasTimer: true,
@@ -358,7 +358,7 @@ export const lessonStages = [
   // BONUS: Beat Escape Room (at end so it doesn't interrupt main flow)
   {
     id: 'beat-escape-room',
-    label: 'Beat Escape Room',
+    label: '🎮 Unlock Beat Escape Room',
     description: 'Solo or partner activity: Create beat puzzles for others to solve',
     bonusDescription: 'Create a beat puzzle, then give your device to a friend to play!',
     type: 'activity',

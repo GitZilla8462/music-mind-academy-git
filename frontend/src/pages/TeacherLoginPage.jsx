@@ -14,7 +14,8 @@ const TeacherLoginPage = () => {
 
   // Check if we're on the edu site
   const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
-  const dashboardRoute = '/music-classroom-resources'; // Same flow for both sites
+  // Skip intermediate page, go directly to lessons hub
+  const dashboardRoute = isEduSite ? '/music-loops-in-media' : '/music-loops-in-media-hub';
   const siteName = isEduSite ? 'Music Room Tools' : 'Music Mind Academy';
   const gradientColors = isEduSite ? 'from-violet-600 to-purple-500' : 'from-blue-600 to-sky-500';
   const accentColor = isEduSite ? 'text-violet-600' : 'text-blue-600';

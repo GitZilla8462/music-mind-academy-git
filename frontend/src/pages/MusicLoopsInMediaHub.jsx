@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../firebase/config';
-import { ChevronDown, ChevronUp, ChevronRight, Check, FileText, ExternalLink, Play, ArrowLeft } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play } from 'lucide-react';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { logSessionCreated, logLessonVisit } from '../firebase/analytics';
 
@@ -21,6 +21,10 @@ const MusicLoopsInMediaHub = () => {
 
   // Default to teacher role - hub is for teachers
   const userRole = localStorage.getItem('classroom-user-role') || 'teacher';
+
+  // Check site mode for correct join URL
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+  const joinUrl = isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join';
 
   // Check localStorage for Getting Started section state
   // Open by default on first visit, collapsed for returning users
@@ -268,10 +272,10 @@ const MusicLoopsInMediaHub = () => {
     <div className="min-h-screen bg-slate-50">
       {/* HEADER */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-6 py-6">
+        <div className="max-w-5xl mx-auto px-8 py-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-slate-900">
-              Music Mind Academy
+            <h1 className="text-3xl font-bold text-slate-900">
+              {isEduSite ? 'Music Room Tools' : 'Music Mind Academy'}
             </h1>
             {user && (
               <button
@@ -279,7 +283,7 @@ const MusicLoopsInMediaHub = () => {
                   localStorage.removeItem('classroom-logged-in');
                   navigate('/');
                 }}
-                className="text-slate-600 hover:text-slate-900 font-medium"
+                className="text-lg text-slate-600 hover:text-slate-900 font-medium"
               >
                 Logout
               </button>
@@ -288,91 +292,81 @@ const MusicLoopsInMediaHub = () => {
         </div>
       </div>
 
+      {/* UNIT HEADER */}
+      <div className="max-w-5xl mx-auto px-8 pt-8 pb-6">
+        <div className="flex items-center gap-5">
+          <div className="w-18 h-18 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center flex-shrink-0" style={{ width: '72px', height: '72px' }}>
+            <span className="text-4xl">🎬</span>
+          </div>
+          <div>
+            <h2 className="text-4xl font-bold text-slate-900">Music for Media</h2>
+            <p className="text-xl text-slate-600 mt-1">
+              Create soundtracks for video — the way professionals do it.
+            </p>
+          </div>
+        </div>
+        <p className="text-base text-slate-500 mt-4 ml-[92px]">
+          5 Lessons  •  ~40 min each  •  Grades 6-8
+        </p>
+      </div>
+
       {/* GETTING STARTED - Collapsible */}
-      <div className="max-w-5xl mx-auto px-6 pt-6">
+      <div className="max-w-5xl mx-auto px-8 pb-6">
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
           {/* Header - Always visible, clickable */}
           <button
             onClick={toggleGettingStarted}
-            className="w-full px-5 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
+            className="w-full px-6 py-5 flex items-center justify-between hover:bg-slate-50 transition-colors"
           >
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              🚀 Getting Started / Tutorial Video
+            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+              🚀 Getting Started
             </h2>
             {gettingStartedOpen ? (
-              <ChevronDown className="w-5 h-5 text-slate-500" />
+              <ChevronUp className="w-6 h-6 text-slate-500" />
             ) : (
-              <ChevronRight className="w-5 h-5 text-slate-500" />
+              <ChevronDown className="w-6 h-6 text-slate-500" />
             )}
           </button>
 
           {/* Content - Collapsible */}
           {gettingStartedOpen && (
-            <div className="px-5 pb-5 border-t border-slate-100">
-              <ol className="mt-4 space-y-3 text-slate-700">
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-sky-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">1</span>
-                  <span>Click <strong className="text-slate-900">"Start Session"</strong> on any lesson</span>
+            <div className="px-6 pb-6 border-t border-slate-100">
+              <ol className="mt-5 space-y-4 text-lg text-slate-700">
+                <li className="flex items-start gap-4">
+                  <span className="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center text-base font-semibold">1</span>
+                  <span className="pt-0.5">Click <strong className="text-slate-900">"Start Session"</strong> on any lesson</span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-sky-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">2</span>
-                  <span>Students go to <strong className="text-sky-600">musicmindacademy.com/join</strong> and enter the code</span>
+                <li className="flex items-start gap-4">
+                  <span className="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center text-base font-semibold">2</span>
+                  <span className="pt-0.5">Students go to <strong className="text-sky-600">{joinUrl}</strong> and enter the code</span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-sky-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">3</span>
-                  <span>Click through slides (or use arrow keys)</span>
+                <li className="flex items-start gap-4">
+                  <span className="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center text-base font-semibold">3</span>
+                  <span className="pt-0.5">Click through slides (or use arrow keys)</span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-sky-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">4</span>
-                  <span>Click <strong className="text-slate-900">"Unlock"</strong> to start activities</span>
+                <li className="flex items-start gap-4">
+                  <span className="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center text-base font-semibold">4</span>
+                  <span className="pt-0.5">Click <strong className="text-slate-900">"Unlock"</strong> to start activities</span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-sky-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">5</span>
-                  <span>Click <strong className="text-slate-900">"End Session"</strong> when done</span>
+                <li className="flex items-start gap-4">
+                  <span className="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center text-base font-semibold">5</span>
+                  <span className="pt-0.5">Click <strong className="text-slate-900">"End Session"</strong> when done</span>
                 </li>
               </ol>
 
-              <div className="mt-5 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-amber-800 text-sm">
+              <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-amber-800 text-base">
                   <strong>💡 Tip:</strong> Use the toggle button to preview student view
                 </p>
-              </div>
-
-              <div className="mt-5">
-                <button
-                  onClick={() => window.open('#', '_blank')}
-                  className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors flex items-center gap-2"
-                >
-                  <Play className="w-4 h-4" />
-                  Watch Tutorial
-                </button>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* UNIT HEADER */}
-      <div className="max-w-5xl mx-auto px-6 pt-6 pb-4">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-            <span className="text-2xl">🎬</span>
-          </div>
-          <div>
-            <h2 className="text-3xl font-bold text-slate-900">Music for Media</h2>
-            <p className="text-lg text-slate-600">
-              Create soundtracks for video — the way professionals do it.
-            </p>
-          </div>
-        </div>
-        <p className="text-sm text-slate-500 mt-3 ml-[4.5rem]">
-          5 Lessons  •  ~40 min each  •  Grades 6-8
-        </p>
-      </div>
-
       {/* LESSON CARDS */}
-      <div className="max-w-5xl mx-auto px-6 pb-8">
-        <div className="space-y-3">
+      <div className="max-w-5xl mx-auto px-8 pb-10">
+        <div className="space-y-4">
               {lessons.map((lesson) => {
                 const isExpanded = expandedLessons[lesson.id];
                 const totalTime = getTotalTime(lesson.activities);
@@ -384,57 +378,50 @@ const MusicLoopsInMediaHub = () => {
                       lesson.available ? '' : 'opacity-50'
                     }`}
                   >
-                    {/* COLLAPSED CARD HEADER - Always Visible */}
-                    <div className="px-4 py-3">
-                      <div className="flex items-center gap-4">
+                    {/* COLLAPSED CARD HEADER - Clickable to expand/collapse */}
+                    <div
+                      className={`px-5 py-4 ${lesson.available ? 'cursor-pointer hover:bg-slate-50' : ''}`}
+                      onClick={() => lesson.available && toggleExpanded(lesson.id)}
+                    >
+                      <div className="flex items-center gap-5">
                         {/* Gradient Icon */}
-                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${lesson.color} flex items-center justify-center flex-shrink-0`}>
-                          <span className="text-xl">{lesson.icon}</span>
+                        <div className={`w-14 h-14 rounded-lg bg-gradient-to-br ${lesson.color} flex items-center justify-center flex-shrink-0`}>
+                          <span className="text-2xl">{lesson.icon}</span>
                         </div>
 
                         {/* Lesson Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-sky-600">
+                          <div className="flex items-center gap-3">
+                            <span className="text-base font-semibold text-sky-600">
                               Lesson {lesson.number}
                             </span>
                             <span className="text-slate-300">•</span>
-                            <h3 className="text-lg font-bold text-slate-900">
+                            <h3 className="text-xl font-bold text-slate-900">
                               {lesson.title}
                             </h3>
                             <span className="text-slate-300">•</span>
-                            <span className="text-sm text-slate-600">
+                            <span className="text-base text-slate-600">
                               {lesson.concept}
                             </span>
                           </div>
                         </div>
 
                         {/* Right side: Time + Actions */}
-                        <div className="flex items-center gap-4 flex-shrink-0">
-                          <span className="text-sm text-slate-500">
+                        <div className="flex items-center gap-5 flex-shrink-0">
+                          <span className="text-base text-slate-500">
                             ~40 min
                           </span>
                           {!lesson.available && (
-                            <span className="text-sm text-slate-400">Coming Soon</span>
+                            <span className="text-base text-slate-400">Coming Soon</span>
                           )}
                           {lesson.available && (
                             <>
-                              <button
-                                onClick={() => toggleExpanded(lesson.id)}
-                                className="flex items-center gap-1 text-sky-600 hover:text-sky-700 font-medium text-sm"
-                              >
-                                {isExpanded ? (
-                                  <>
-                                    <ChevronUp className="w-4 h-4" />
-                                    Hide
-                                  </>
-                                ) : (
-                                  <>
-                                    <ChevronDown className="w-4 h-4" />
-                                    Overview
-                                  </>
-                                )}
-                              </button>
+                              {/* Expand/Collapse indicator */}
+                              {isExpanded ? (
+                                <ChevronUp className="w-6 h-6 text-slate-400" />
+                              ) : (
+                                <ChevronDown className="w-6 h-6 text-slate-400" />
+                              )}
 
                               {/* Start Session Button */}
                               {userRole === 'teacher' && (
@@ -444,7 +431,7 @@ const MusicLoopsInMediaHub = () => {
                                     handleStartSession(lesson.id, lesson.route);
                                   }}
                                   disabled={creatingSession === lesson.id}
-                                  className={`font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm ${
+                                  className={`font-semibold py-2.5 px-5 rounded-lg transition-colors flex items-center gap-2 text-base ${
                                     creatingSession === lesson.id
                                       ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
                                       : 'bg-sky-500 hover:bg-sky-600 text-white'
@@ -452,7 +439,7 @@ const MusicLoopsInMediaHub = () => {
                                 >
                                   {creatingSession === lesson.id ? (
                                     <>
-                                      <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
+                                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
                                       Creating...
                                     </>
                                   ) : (
@@ -624,22 +611,14 @@ const MusicLoopsInMediaHub = () => {
 
       {/* FOOTER HELP LINKS */}
       <div className="border-t border-slate-200 bg-white mt-8">
-        <div className="max-w-5xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-center gap-6 text-sm text-slate-600">
+        <div className="max-w-5xl mx-auto px-8 py-8">
+          <div className="flex items-center justify-center text-base text-slate-600">
             <span>Need help?</span>
             <a
-              href="#"
-              className="flex items-center gap-1.5 text-sky-600 hover:text-sky-700 font-medium"
+              href="mailto:rob@musicmindacademy.com"
+              className="ml-2 text-sky-600 hover:text-sky-700 font-medium"
             >
-              <Play className="w-4 h-4" />
-              Tutorial
-            </a>
-            <a
-              href="#"
-              className="flex items-center gap-1.5 text-sky-600 hover:text-sky-700 font-medium"
-            >
-              <FileText className="w-4 h-4" />
-              Quick Start
+              rob@musicmindacademy.com
             </a>
           </div>
         </div>

@@ -89,7 +89,7 @@ export const lessonSections = [
       {
         id: 'mood-match-game',
         type: 'activity',
-        label: 'Mood Match Game',
+        label: '🎮 Unlock Mood Match Game',
         duration: 5,
         hasTimer: true,
         trackProgress: true,
@@ -129,7 +129,7 @@ export const lessonSections = [
       {
         id: 'adventure-composition',
         type: 'activity',
-        label: 'Score the Adventure',
+        label: '🎮 Unlock Score the Adventure',
         duration: 12,
         hasTimer: true,
         trackProgress: true,
@@ -155,7 +155,7 @@ export const lessonSections = [
       {
         id: 'reflection',
         type: 'activity',
-        label: 'Reflection',
+        label: '🎮 Unlock Reflection',
         duration: 5,
         hasTimer: true,
         trackProgress: true,
@@ -315,7 +315,7 @@ export const lessonStages = [
   },
   {
     id: 'mood-match-game',
-    label: 'Mood Match Game',
+    label: '🎮 Unlock Mood Match Game',
     description: 'STUDENTS WORK: Listen to loops, match to mood categories.',
     bonusDescription: 'Bonus: Try to get a perfect score!',
     hasProgress: true,
@@ -364,7 +364,7 @@ export const lessonStages = [
   },
   {
     id: 'adventure-composition',
-    label: 'Score the Adventure',
+    label: '🎮 Unlock Score the Adventure',
     description: 'STUDENTS WORK: Pick a mood, score drone footage with 5+ loops.',
     bonusDescription: 'Bonus: Build intensity—start quiet and get louder!',
     hasProgress: true,
@@ -389,7 +389,7 @@ export const lessonStages = [
   },
   {
     id: 'reflection',
-    label: 'Reflection',
+    label: '🎮 Unlock Reflection',
     description: 'STUDENTS WORK: Complete Two Stars and a Wish.',
     bonusDescription: 'Bonus: Share your reflection with a partner.',
     hasProgress: true,

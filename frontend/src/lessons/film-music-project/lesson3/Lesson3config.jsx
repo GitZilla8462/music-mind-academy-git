@@ -81,7 +81,7 @@ export const lessonSections = [
       {
         id: 'sectional-loop-builder',
         type: 'activity',
-        label: 'Unlock Sectional Loop Builder Game',
+        label: '🎮 Unlock Sectional Loop Builder Game',
         duration: 5,
         trackProgress: true,
         description: 'Students play individually - leaderboard on projector',
@@ -121,7 +121,7 @@ export const lessonSections = [
       { 
         id: 'wildlife-composition', 
         type: 'activity', 
-        label: 'Unlock Composition Activity', 
+        label: '🎮 Unlock Composition', 
         duration: 10,
         hasTimer: true,
         trackProgress: true,
@@ -148,7 +148,7 @@ export const lessonSections = [
       {
         id: 'reflection',
         type: 'activity',
-        label: 'Reflection',
+        label: '🎮 Unlock Reflection',
         duration: 5,
         hasTimer: true,
         trackProgress: true,
@@ -175,7 +175,7 @@ export const lessonSections = [
       {
         id: 'robot-melody-maker',
         type: 'activity',
-        label: 'Unlock Robot Melody Maker',
+        label: '🎮 Unlock Robot Melody Maker',
         description: 'Students create loops and customize their robot',
         duration: 8,
         hasTimer: true,
@@ -316,7 +316,7 @@ export const lessonStages = [
   },
   {
     id: 'sectional-loop-builder',
-    label: 'Unlock Sectional Loop Builder Game',
+    label: '🎮 Unlock Sectional Loop Builder Game',
     description: 'Students play individually - leaderboard on projector',
     bonusDescription: 'Safari: Find your classmates!',
     hasProgress: true,
@@ -361,7 +361,7 @@ export const lessonStages = [
   },
   {
     id: 'wildlife-composition',
-    label: 'Unlock Composition Activity',
+    label: '🎮 Unlock Composition',
     description: "Compose wildlife soundtrack music - Slide 10",
     bonusDescription: 'Bonus: Add More Sections',
     hasProgress: true,
@@ -387,7 +387,7 @@ export const lessonStages = [
   },
   {
     id: 'reflection',
-    label: 'Reflection',
+    label: '🎮 Unlock Reflection',
     description: 'Students complete Two Stars and a Wish',
     bonusDescription: 'Bonus: Share Your Work',
     hasProgress: true,
@@ -413,7 +413,7 @@ export const lessonStages = [
   },
   {
     id: 'robot-melody-maker',
-    label: 'Unlock Robot Melody Maker',
+    label: '🎮 Unlock Robot Melody Maker',
     description: 'Students create loops and customize their robot',
     bonusDescription: 'Make your robot dance!',
     hasProgress: true,

@@ -70,7 +70,7 @@ export const lessonSections = [
       {
         id: 'melody-maker-activity',
         type: 'activity',
-        label: 'Unlock Build Your Melody',
+        label: '🎮 Unlock Build Your Melody',
         description: 'Create a melody using the note grid',
         duration: 8,
         hasTimer: true,
@@ -96,7 +96,7 @@ export const lessonSections = [
       {
         id: 'game-composition',
         type: 'activity',
-        label: 'Unlock Score the Game',
+        label: '🎮 Unlock Score the Game',
         description: 'Combine your melody with loops',
         duration: 12,
         hasTimer: true,
@@ -122,7 +122,7 @@ export const lessonSections = [
       {
         id: 'reflection-activity',
         type: 'activity',
-        label: 'Unlock Melody Spotlight',
+        label: '🎮 Unlock Melody Spotlight',
         description: 'Reflect on your melodic choices',
         duration: 3,
         hasTimer: true,
@@ -148,7 +148,7 @@ export const lessonSections = [
       {
         id: 'melody-mystery',
         type: 'activity',
-        label: 'Melody Mystery',
+        label: '🎮 Unlock Melody Mystery',
         description: 'Partner activity: Create and solve melody puzzles',
         duration: 10,
         hasTimer: true,
@@ -282,7 +282,7 @@ export const lessonStages = [
   },
   {
     id: 'melody-maker-activity',
-    label: 'Unlock Build Your Melody',
+    label: '🎮 Unlock Build Your Melody',
     description: 'Students create a melody using the note grid',
     bonusDescription: 'Try different contours!',
     type: 'activity',
@@ -308,7 +308,7 @@ export const lessonStages = [
   },
   {
     id: 'game-composition',
-    label: 'Unlock Score the Game',
+    label: '🎮 Unlock Score the Game',
     description: 'Combine your melody with loops to score the game',
     bonusDescription: 'Make your melody match the action!',
     type: 'activity',
@@ -334,7 +334,7 @@ export const lessonStages = [
   },
   {
     id: 'reflection-activity',
-    label: 'Unlock Melody Spotlight',
+    label: '🎮 Unlock Melody Spotlight',
     description: 'Reflect on your melodic choices',
     type: 'activity',
     hasTimer: true,
@@ -360,7 +360,7 @@ export const lessonStages = [
   // BONUS: Melody Mystery (at end so it doesn't interrupt main flow)
   {
     id: 'melody-mystery',
-    label: 'Melody Mystery',
+    label: '🎮 Unlock Melody Mystery',
     description: 'Solo or partner activity: Create melody puzzles for others to solve',
     bonusDescription: 'Create a melody puzzle, then give your device to a friend to play!',
     type: 'activity',
