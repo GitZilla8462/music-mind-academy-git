@@ -297,7 +297,7 @@ const MusicLoopsInMediaHub = () => {
             className="w-full px-5 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
           >
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              🚀 Getting Started
+              🚀 Getting Started / Tutorial Video
             </h2>
             {gettingStartedOpen ? (
               <ChevronDown className="w-5 h-5 text-slate-500" />
