@@ -15,7 +15,6 @@ const MusicLoopsInMediaHub = () => {
   const [creatingSession, setCreatingSession] = useState(null);
   const [expandedLessons, setExpandedLessons] = useState({});
   const [gettingStartedOpen, setGettingStartedOpen] = useState(true);
-  const [selectedUnit, setSelectedUnit] = useState('music-for-media');
 
   // Get authenticated teacher info
   const { user } = useFirebaseAuth();
@@ -88,42 +87,6 @@ const MusicLoopsInMediaHub = () => {
     const route = `/lesson-plan/${lessonId}`;
     window.open(route, '_blank');
   };
-
-  // Unit cards data
-  const units = [
-    {
-      id: 'music-for-media',
-      title: 'Music for Media',
-      icon: '🎬',
-      status: 'active',
-      details: '5 Lessons • Grades 6-8',
-      color: 'from-sky-500 to-blue-600'
-    },
-    {
-      id: 'film-music-project',
-      title: 'Film Music Project',
-      icon: '🎬',
-      status: 'coming',
-      details: 'Coming April 2026',
-      color: 'from-slate-400 to-slate-500'
-    },
-    {
-      id: 'world-music-project',
-      title: 'World Music Project',
-      icon: '🌍',
-      status: 'coming',
-      details: 'Coming June 2026',
-      color: 'from-slate-400 to-slate-500'
-    },
-    {
-      id: 'foley-artist',
-      title: 'Foley Artist',
-      icon: '🎤',
-      status: 'coming',
-      details: 'Coming August 2026',
-      color: 'from-slate-400 to-slate-500'
-    }
-  ];
 
   const lessons = [
     // Lesson 1: Mood (Drone Footage)
@@ -389,71 +352,27 @@ const MusicLoopsInMediaHub = () => {
         </div>
       </div>
 
-      {/* UNIT CARDS */}
-      <div className="max-w-5xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {units.map((unit) => {
-            const isActive = unit.status === 'active';
-            const isSelected = selectedUnit === unit.id;
-
-            return (
-              <button
-                key={unit.id}
-                onClick={() => isActive && setSelectedUnit(unit.id)}
-                disabled={!isActive}
-                className={`text-left p-5 rounded-xl border-2 transition-all ${
-                  isActive
-                    ? isSelected
-                      ? 'border-sky-500 bg-sky-50 shadow-md'
-                      : 'border-slate-200 bg-white hover:border-sky-300 hover:shadow-sm cursor-pointer'
-                    : 'border-slate-200 bg-slate-100 opacity-60 cursor-not-allowed'
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${unit.color} flex items-center justify-center flex-shrink-0`}>
-                    <span className="text-2xl">{unit.icon}</span>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className={`text-lg font-bold ${isActive ? 'text-slate-900' : 'text-slate-500'}`}>
-                      {unit.title}
-                    </h3>
-                    <p className={`text-sm ${isActive ? 'text-slate-600' : 'text-slate-400'}`}>
-                      {unit.details}
-                    </p>
-                  </div>
-                  {isActive && (
-                    <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded">
-                      Active
-                    </span>
-                  )}
-                </div>
-              </button>
-            );
-          })}
+      {/* UNIT HEADER */}
+      <div className="max-w-5xl mx-auto px-6 pt-6 pb-4">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+            <span className="text-2xl">🎬</span>
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold text-slate-900">Music for Media</h2>
+            <p className="text-lg text-slate-600">
+              Create soundtracks for video — the way professionals do it.
+            </p>
+          </div>
         </div>
+        <p className="text-sm text-slate-500 mt-3 ml-[4.5rem]">
+          5 Lessons  •  ~40 min each  •  Grades 6-8
+        </p>
+      </div>
 
-        {/* SELECTED UNIT HEADER */}
-        {selectedUnit === 'music-for-media' && (
-          <>
-            <div className="bg-white border border-slate-200 rounded-xl p-6 mb-6">
-              <div className="flex items-start gap-5">
-                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-                  <span className="text-3xl">🎬</span>
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">Music for Media</h2>
-                  <p className="text-lg text-slate-600 mt-1">
-                    Create soundtracks for video — the way professionals do it.
-                  </p>
-                  <p className="text-sm text-slate-500 mt-2">
-                    5 Lessons  •  ~40 min each  •  Grades 6-8
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* LESSON CARDS */}
-            <div className="space-y-6">
+      {/* LESSON CARDS */}
+      <div className="max-w-5xl mx-auto px-6 pb-8">
+        <div className="space-y-3">
               {lessons.map((lesson) => {
                 const isExpanded = expandedLessons[lesson.id];
                 const totalTime = getTotalTime(lesson.activities);
@@ -466,87 +385,85 @@ const MusicLoopsInMediaHub = () => {
                     }`}
                   >
                     {/* COLLAPSED CARD HEADER - Always Visible */}
-                    <div className="p-6">
-                      <div className="flex items-start gap-5">
+                    <div className="px-4 py-3">
+                      <div className="flex items-center gap-4">
                         {/* Gradient Icon */}
-                        <div className={`w-20 h-20 rounded-xl bg-gradient-to-br ${lesson.color} flex items-center justify-center flex-shrink-0`}>
-                          <span className="text-3xl">{lesson.icon}</span>
+                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${lesson.color} flex items-center justify-center flex-shrink-0`}>
+                          <span className="text-xl">{lesson.icon}</span>
                         </div>
 
                         {/* Lesson Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="text-base font-semibold text-sky-600 uppercase tracking-wide">
-                                Lesson {lesson.number}
-                              </p>
-                              <h3 className="text-2xl font-bold text-slate-900 mt-1">
-                                {lesson.title}
-                              </h3>
-                              <p className="text-base text-slate-600 mt-1">
-                                {lesson.concept}
-                              </p>
-                            </div>
-                            <div className="text-right flex-shrink-0 ml-4">
-                              <span className="text-xl font-semibold text-slate-800">
-                                ~40 min
-                              </span>
-                              {!lesson.available && (
-                                <p className="text-sm text-slate-500 mt-1">Coming Soon</p>
-                              )}
-                            </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-sky-600">
+                              Lesson {lesson.number}
+                            </span>
+                            <span className="text-slate-300">•</span>
+                            <h3 className="text-lg font-bold text-slate-900">
+                              {lesson.title}
+                            </h3>
+                            <span className="text-slate-300">•</span>
+                            <span className="text-sm text-slate-600">
+                              {lesson.concept}
+                            </span>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Bottom Row: Expand Button (left) + Start Session (right) */}
-                      {lesson.available && (
-                        <div className="mt-4 flex items-center justify-between">
-                          {/* Expand/Collapse Button - Left */}
-                          <button
-                            onClick={() => toggleExpanded(lesson.id)}
-                            className="flex items-center gap-2 text-sky-600 hover:text-sky-700 font-medium text-base"
-                          >
-                            {isExpanded ? (
-                              <>
-                                <ChevronUp className="w-5 h-5" />
-                                Hide Overview
-                              </>
-                            ) : (
-                              <>
-                                <ChevronDown className="w-5 h-5" />
-                                Lesson Overview
-                              </>
-                            )}
-                          </button>
-
-                          {/* Start Session Button - Right (Teacher Only) */}
-                          {userRole === 'teacher' && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleStartSession(lesson.id, lesson.route);
-                              }}
-                              disabled={creatingSession === lesson.id}
-                              className={`font-semibold py-2.5 px-5 rounded-lg transition-colors flex items-center gap-2 ${
-                                creatingSession === lesson.id
-                                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                                  : 'bg-sky-500 hover:bg-sky-600 text-white'
-                              }`}
-                            >
-                              {creatingSession === lesson.id ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                                  Creating...
-                                </>
-                              ) : (
-                                'Start Session'
-                              )}
-                            </button>
+                        {/* Right side: Time + Actions */}
+                        <div className="flex items-center gap-4 flex-shrink-0">
+                          <span className="text-sm text-slate-500">
+                            ~40 min
+                          </span>
+                          {!lesson.available && (
+                            <span className="text-sm text-slate-400">Coming Soon</span>
                           )}
+                          {lesson.available && (
+                            <>
+                              <button
+                                onClick={() => toggleExpanded(lesson.id)}
+                                className="flex items-center gap-1 text-sky-600 hover:text-sky-700 font-medium text-sm"
+                              >
+                                {isExpanded ? (
+                                  <>
+                                    <ChevronUp className="w-4 h-4" />
+                                    Hide
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDown className="w-4 h-4" />
+                                    Overview
+                                  </>
+                                )}
+                              </button>
 
+                              {/* Start Session Button */}
+                              {userRole === 'teacher' && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleStartSession(lesson.id, lesson.route);
+                                  }}
+                                  disabled={creatingSession === lesson.id}
+                                  className={`font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm ${
+                                    creatingSession === lesson.id
+                                      ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                                      : 'bg-sky-500 hover:bg-sky-600 text-white'
+                                  }`}
+                                >
+                                  {creatingSession === lesson.id ? (
+                                    <>
+                                      <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
+                                      Creating...
+                                    </>
+                                  ) : (
+                                    'Start Session'
+                                  )}
+                                </button>
+                              )}
+                            </>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </div>
 
                     {/* EXPANDED CONTENT */}
@@ -702,9 +619,7 @@ const MusicLoopsInMediaHub = () => {
                   </div>
                 );
               })}
-            </div>
-          </>
-        )}
+        </div>
       </div>
 
       {/* FOOTER HELP LINKS */}
