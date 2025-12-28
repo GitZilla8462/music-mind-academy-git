@@ -14,11 +14,13 @@ const StudentWaitingScreen = ({
     if (currentStage === 'ended') {
       // Check if we're in production or development
       const isProduction = window.location.hostname !== 'localhost';
-      
+      const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+
       // Redirect to appropriate join page
-      const redirectUrl = isProduction 
-        ? 'https://musicroomtools.org/join'
-        : 'http://localhost:5173/join';
+      let redirectUrl = 'http://localhost:5173/join';
+      if (isProduction) {
+        redirectUrl = isEduSite ? 'https://musicroomtools.org/join' : 'https://musicmindacademy.com/join';
+      }
       
       // Wait 2 seconds before redirecting so user can see the message
       const timer = setTimeout(() => {

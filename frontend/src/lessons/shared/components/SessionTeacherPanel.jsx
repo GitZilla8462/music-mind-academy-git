@@ -56,7 +56,9 @@ const SessionTeacherPanel = ({
 
   const getJoinUrl = () => {
     const isProduction = window.location.hostname !== 'localhost';
-    return isProduction ? 'musicroomtools.org/join' : 'localhost:5173/join';
+    const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+    if (!isProduction) return 'localhost:5173/join';
+    return isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join';
   };
 
   const getQRCodeUrl = () => {

@@ -187,7 +187,11 @@ const PresentationView = () => {
   const [lessonConfig, setLessonConfig] = useState(null);
   const [lessonBasePath, setLessonBasePath] = useState('');
   const [viewMode, setViewMode] = useState('teacher'); // 'teacher' or 'student'
-  
+
+  // Get join URL based on site
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+  const joinUrl = isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join';
+
   // Layer Detective components
   const [LayerDetectiveLeaderboard, setLayerDetectiveLeaderboard] = useState(null);
   const [LayerDetectiveResults, setLayerDetectiveResults] = useState(null);
@@ -449,7 +453,7 @@ const PresentationView = () => {
           🎵
         </div>
         <h1 style={{ fontSize: '96px', fontWeight: '700', marginBottom: '20px', color: '#1f2937' }}>
-          musicroomtools.org/join
+          {joinUrl}
         </h1>
         <div style={{
           fontSize: '120px',

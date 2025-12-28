@@ -143,7 +143,7 @@ const PresentationContent = ({
         <div className="text-center mb-8">
           <div className="text-slate-400 text-xl mb-2">Join at</div>
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            musicroomtools.org/join
+            {getJoinUrl()}
           </h1>
         </div>
         
@@ -773,7 +773,9 @@ const TeacherLessonView = ({
 
   const getJoinUrl = () => {
     const isProduction = window.location.hostname !== 'localhost';
-    return isProduction ? 'musicroomtools.org/join' : 'localhost:5173/join';
+    const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+    if (!isProduction) return 'localhost:5173/join';
+    return isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join';
   };
 
   return (

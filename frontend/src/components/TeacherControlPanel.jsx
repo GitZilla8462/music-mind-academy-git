@@ -16,12 +16,12 @@ const TeacherControlPanel = ({ sessionCode, lessonStages, currentStageId }) => {
   const lastFirebaseUpdateRef = useRef(0);
   const FIREBASE_UPDATE_INTERVAL = 5000;
 
-  // Get the join URL based on environment
+  // Get the join URL based on environment and site
   const getJoinUrl = () => {
     const isProduction = window.location.hostname !== 'localhost';
-    return isProduction 
-      ? 'musicroomtools.org/join' 
-      : 'localhost:5173/join';
+    const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+    if (!isProduction) return 'localhost:5173/join';
+    return isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join';
   };
 
   // Generate QR code URL using a free API
