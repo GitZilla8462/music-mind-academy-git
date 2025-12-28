@@ -626,12 +626,11 @@ const LandingPage = () => {
       <nav className="nav">
         <div className="nav-inner">
           <div className="nav-brand">
-            <div className="nav-logo">
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-              </svg>
-            </div>
-            <span className="nav-brand-text">Music Mind Academy</span>
+            <img
+              src="/MusicMindAcademyLogo.png"
+              alt="Music Mind Academy"
+              style={{ height: '40px', width: 'auto' }}
+            />
           </div>
           <div style={{ display: 'flex', gap: '0.75rem' }}>
             <button onClick={handleTeacherLogin} className="btn btn-login">
