@@ -176,7 +176,18 @@ export const getTeacherAnalytics = async () => {
   const teachers = [];
   snapshot.forEach((child) => {
     const data = child.val();
-    const lessonsVisited = data.lessonsVisited ? Object.keys(data.lessonsVisited) : [];
+    // Get lessons with visit counts
+    const lessonsVisited = [];
+    if (data.lessonsVisited) {
+      Object.entries(data.lessonsVisited).forEach(([lessonId, lessonData]) => {
+        lessonsVisited.push({
+          lessonId,
+          visitCount: lessonData.visitCount || 1,
+          firstVisited: lessonData.firstVisited,
+          lastVisited: lessonData.lastVisited
+        });
+      });
+    }
 
     teachers.push({
       uid: child.key,

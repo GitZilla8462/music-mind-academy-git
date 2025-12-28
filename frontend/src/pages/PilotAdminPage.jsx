@@ -602,7 +602,10 @@ const PilotAdminPage = () => {
                             {teacher.lessonsVisited.length > 0 ? (
                               teacher.lessonsVisited.map((lesson, i) => (
                                 <span key={i} className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                                  {lesson.replace('lesson', 'L').replace('-mood', '')}
+                                  {lesson.lessonId.replace('lesson', 'L').replace('-mood', '')}
+                                  {lesson.visitCount > 1 && (
+                                    <span className="ml-1 font-bold">×{lesson.visitCount}</span>
+                                  )}
                                 </span>
                               ))
                             ) : (
