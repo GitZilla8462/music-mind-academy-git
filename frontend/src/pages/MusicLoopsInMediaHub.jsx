@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../firebase/config';
-import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play, ArrowLeft, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronRight, Check, FileText, ExternalLink, Play, ArrowLeft } from 'lucide-react';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { logSessionCreated, logLessonVisit } from '../firebase/analytics';
 
@@ -14,7 +14,7 @@ const MusicLoopsInMediaHub = () => {
   const navigate = useNavigate();
   const [creatingSession, setCreatingSession] = useState(null);
   const [expandedLessons, setExpandedLessons] = useState({});
-  const [showGettingStarted, setShowGettingStarted] = useState(true);
+  const [gettingStartedOpen, setGettingStartedOpen] = useState(true);
   const [selectedUnit, setSelectedUnit] = useState('music-for-media');
 
   // Get authenticated teacher info
@@ -23,17 +23,22 @@ const MusicLoopsInMediaHub = () => {
   // Default to teacher role - hub is for teachers
   const userRole = localStorage.getItem('classroom-user-role') || 'teacher';
 
-  // Check localStorage for banner dismissal
+  // Check localStorage for Getting Started section state
+  // Open by default on first visit, collapsed for returning users
   useEffect(() => {
-    const hidden = localStorage.getItem('hideGettingStarted');
-    if (hidden === 'true') {
-      setShowGettingStarted(false);
+    const savedState = localStorage.getItem('gettingStartedOpen');
+    if (savedState !== null) {
+      setGettingStartedOpen(savedState === 'true');
+    } else {
+      // First visit - keep open and save state
+      localStorage.setItem('gettingStartedOpen', 'false');
     }
   }, []);
 
-  const dismissGettingStarted = () => {
-    setShowGettingStarted(false);
-    localStorage.setItem('hideGettingStarted', 'true');
+  const toggleGettingStarted = () => {
+    const newState = !gettingStartedOpen;
+    setGettingStartedOpen(newState);
+    localStorage.setItem('gettingStartedOpen', String(newState));
   };
 
   const toggleExpanded = (lessonId) => {
@@ -320,48 +325,69 @@ const MusicLoopsInMediaHub = () => {
         </div>
       </div>
 
-      {/* GETTING STARTED BANNER */}
-      {showGettingStarted && (
-        <div className="bg-gradient-to-r from-sky-500 to-blue-600 text-white">
-          <div className="max-w-5xl mx-auto px-6 py-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-6">
-                <div>
-                  <h2 className="text-lg font-bold flex items-center gap-2">
-                    🚀 NEW HERE?
-                  </h2>
-                  <p className="text-sky-100 text-sm mt-1">
-                    Get started in minutes with our quick guides
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => window.open('#', '_blank')}
-                    className="bg-white text-sky-600 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-sky-50 transition-colors flex items-center gap-2"
-                  >
-                    <Play className="w-4 h-4" />
-                    2-Min Tutorial
-                  </button>
-                  <button
-                    onClick={() => window.open('#', '_blank')}
-                    className="bg-sky-400/30 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-sky-400/40 transition-colors flex items-center gap-2"
-                  >
-                    <FileText className="w-4 h-4" />
-                    Quick Start
-                  </button>
-                </div>
+      {/* GETTING STARTED - Collapsible */}
+      <div className="max-w-5xl mx-auto px-6 pt-6">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          {/* Header - Always visible, clickable */}
+          <button
+            onClick={toggleGettingStarted}
+            className="w-full px-5 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
+          >
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              🚀 Getting Started
+            </h2>
+            {gettingStartedOpen ? (
+              <ChevronDown className="w-5 h-5 text-slate-500" />
+            ) : (
+              <ChevronRight className="w-5 h-5 text-slate-500" />
+            )}
+          </button>
+
+          {/* Content - Collapsible */}
+          {gettingStartedOpen && (
+            <div className="px-5 pb-5 border-t border-slate-100">
+              <ol className="mt-4 space-y-3 text-slate-700">
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-sky-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">1</span>
+                  <span>Click <strong className="text-slate-900">"Start Session"</strong> on any lesson</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-sky-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">2</span>
+                  <span>Students go to <strong className="text-sky-600">musicmindacademy.com/join</strong> and enter the code</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-sky-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">3</span>
+                  <span>Click through slides (or use arrow keys)</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-sky-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">4</span>
+                  <span>Click <strong className="text-slate-900">"Unlock"</strong> to start activities</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-sky-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">5</span>
+                  <span>Click <strong className="text-slate-900">"End Session"</strong> when done</span>
+                </li>
+              </ol>
+
+              <div className="mt-5 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-amber-800 text-sm">
+                  <strong>💡 Tip:</strong> Use the toggle button to preview student view
+                </p>
               </div>
-              <button
-                onClick={dismissGettingStarted}
-                className="text-white/70 hover:text-white p-1"
-                aria-label="Dismiss"
-              >
-                <X className="w-5 h-5" />
-              </button>
+
+              <div className="mt-5">
+                <button
+                  onClick={() => window.open('#', '_blank')}
+                  className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors flex items-center gap-2"
+                >
+                  <Play className="w-4 h-4" />
+                  Watch Tutorial
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* UNIT CARDS */}
       <div className="max-w-5xl mx-auto px-6 py-8">
