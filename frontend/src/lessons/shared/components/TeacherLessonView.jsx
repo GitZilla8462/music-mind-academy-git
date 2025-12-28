@@ -57,7 +57,7 @@ const PresentationContent = ({
   // Get join URL based on site (defined early for use in join-code screen)
   const isProduction = window.location.hostname !== 'localhost';
   const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
-  const joinUrl = !isProduction ? 'localhost:5173/join' : (isEduSite ? 'musicroomtools.org/join' : 'mmajoin.com');
+  const joinUrl = !isProduction ? 'localhost:5173/join' : (isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join');
 
   // Load game components dynamically
   useEffect(() => {
@@ -780,7 +780,7 @@ const TeacherLessonView = ({
     const isProduction = window.location.hostname !== 'localhost';
     const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
     if (!isProduction) return 'localhost:5173/join';
-    return isEduSite ? 'musicroomtools.org/join' : 'mmajoin.com';
+    return isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join';
   };
 
   return (

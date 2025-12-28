@@ -190,7 +190,7 @@ const PresentationView = () => {
 
   // Get join URL based on site
   const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
-  const joinUrl = isEduSite ? 'musicroomtools.org/join' : 'mmajoin.com';
+  const joinUrl = isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join';
 
   // Layer Detective components
   const [LayerDetectiveLeaderboard, setLayerDetectiveLeaderboard] = useState(null);
