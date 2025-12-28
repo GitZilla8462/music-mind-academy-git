@@ -136,16 +136,50 @@ export const logSessionEnded = async (sessionCode, lastStage, studentsJoined) =>
 };
 
 /**
- * Update session stage (for tracking progress)
+ * Update session stage (for tracking progress) and log time spent on previous stage
  */
 export const logStageChange = async (sessionCode, newStage) => {
   if (!sessionCode) return;
 
+  const now = Date.now();
   const sessionRef = ref(database, `pilotSessions/${sessionCode}`);
-  await update(sessionRef, {
-    lastStage: newStage,
-    lastStageAt: Date.now()
-  });
+
+  try {
+    // Get current session data to calculate time on previous stage
+    const snapshot = await get(sessionRef);
+
+    if (snapshot.exists()) {
+      const sessionData = snapshot.val();
+      const previousStage = sessionData.lastStage;
+      const previousStageAt = sessionData.lastStageAt || sessionData.startTime;
+
+      // Calculate time spent on previous stage
+      if (previousStage && previousStageAt) {
+        const timeOnStage = now - previousStageAt;
+
+        // Store time per stage
+        const stageTimesRef = ref(database, `pilotSessions/${sessionCode}/stageTimes/${previousStage}`);
+        const stageSnapshot = await get(stageTimesRef);
+        const existingTime = stageSnapshot.exists() ? stageSnapshot.val() : 0;
+
+        await set(stageTimesRef, existingTime + timeOnStage);
+
+        console.log(`📊 Time on ${previousStage}: ${Math.round(timeOnStage / 1000)}s`);
+      }
+    }
+
+    // Update to new stage
+    await update(sessionRef, {
+      lastStage: newStage,
+      lastStageAt: now
+    });
+  } catch (error) {
+    // Fallback: just update the stage
+    await update(sessionRef, {
+      lastStage: newStage,
+      lastStageAt: now
+    });
+  }
 };
 
 /**
@@ -218,9 +252,12 @@ export const getPilotSessions = async () => {
 
   const sessions = [];
   snapshot.forEach((child) => {
+    const data = child.val();
     sessions.push({
       sessionCode: child.key,
-      ...child.val()
+      ...data,
+      // Include stage times if available
+      stageTimes: data.stageTimes || {}
     });
   });
 

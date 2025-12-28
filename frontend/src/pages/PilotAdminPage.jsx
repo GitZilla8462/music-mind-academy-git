@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { getDatabase, ref, get, set, remove, onValue } from 'firebase/database';
-import { Users, UserPlus, Trash2, Mail, Calendar, Shield, ArrowLeft, RefreshCw, BarChart3, Clock, BookOpen, Play, Building2, GraduationCap } from 'lucide-react';
+import { Users, UserPlus, Trash2, Mail, Calendar, Shield, ArrowLeft, RefreshCw, BarChart3, Clock, BookOpen, Play, Building2, GraduationCap, ChevronDown, ChevronUp } from 'lucide-react';
 import { getTeacherAnalytics, getPilotSessions, getPilotSummaryStats, subscribeToAnalytics } from '../firebase/analytics';
 import { SITE_TYPES } from '../firebase/approvedEmails';
 
@@ -39,6 +39,7 @@ const PilotAdminPage = () => {
   const [teacherAnalytics, setTeacherAnalytics] = useState([]);
   const [pilotSessions, setPilotSessions] = useState([]);
   const [summaryStats, setSummaryStats] = useState(null);
+  const [expandedSessions, setExpandedSessions] = useState({});
 
   const database = getDatabase();
 
@@ -654,45 +655,87 @@ const PilotAdminPage = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {pilotSessions.map((session) => (
-                      <tr key={session.sessionCode} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="font-mono font-bold text-blue-600">{session.sessionCode}</span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {session.teacherEmail?.split('@')[0] || 'Unknown'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
-                            {getLessonName(session.lessonId, session.lessonRoute).split(':')[0]}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(session.startTime)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {session.duration ? formatDuration(session.duration) : (
-                            <span className="text-green-500 flex items-center gap-1">
-                              <Clock size={14} /> Active
-                            </span>
+                    {pilotSessions.map((session) => {
+                      const isExpanded = expandedSessions[session.sessionCode];
+                      const hasStageData = session.stageTimes && Object.keys(session.stageTimes).length > 0;
+
+                      return (
+                        <React.Fragment key={session.sessionCode}>
+                          <tr
+                            className={`hover:bg-gray-50 ${hasStageData ? 'cursor-pointer' : ''}`}
+                            onClick={() => hasStageData && setExpandedSessions(prev => ({
+                              ...prev,
+                              [session.sessionCode]: !prev[session.sessionCode]
+                            }))}
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-2">
+                                {hasStageData && (
+                                  isExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />
+                                )}
+                                <span className="font-mono font-bold text-blue-600">{session.sessionCode}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {session.teacherEmail?.split('@')[0] || 'Unknown'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
+                                {getLessonName(session.lessonId, session.lessonRoute).split(':')[0]}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {formatDate(session.startTime)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {session.duration ? formatDuration(session.duration) : (
+                                <span className="text-green-500 flex items-center gap-1">
+                                  <Clock size={14} /> Active
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="px-2 py-1 bg-orange-100 text-orange-700 text-sm rounded-full">
+                                {session.studentsJoined || 0}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              {session.completed ? (
+                                <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full">
+                                  Completed
+                                </span>
+                              ) : (
+                                <span className="text-gray-500">{session.lastStage}</span>
+                              )}
+                            </td>
+                          </tr>
+
+                          {/* Expanded stage times row */}
+                          {isExpanded && hasStageData && (
+                            <tr className="bg-gray-50">
+                              <td colSpan={7} className="px-6 py-4">
+                                <div className="text-sm">
+                                  <div className="font-medium text-gray-700 mb-2">Time per Stage:</div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {Object.entries(session.stageTimes)
+                                      .sort((a, b) => b[1] - a[1]) // Sort by time descending
+                                      .map(([stage, time]) => (
+                                        <span
+                                          key={stage}
+                                          className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs"
+                                        >
+                                          <span className="font-medium text-gray-700">{stage}:</span>{' '}
+                                          <span className="text-blue-600">{formatDuration(time)}</span>
+                                        </span>
+                                      ))}
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
                           )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 py-1 bg-orange-100 text-orange-700 text-sm rounded-full">
-                            {session.studentsJoined || 0}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {session.completed ? (
-                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full">
-                              Completed
-                            </span>
-                          ) : (
-                            <span className="text-gray-500">{session.lastStage}</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                        </React.Fragment>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
