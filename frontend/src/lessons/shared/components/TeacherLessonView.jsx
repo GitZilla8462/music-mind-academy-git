@@ -54,6 +54,11 @@ const PresentationContent = ({
   const [NameThatGameActivity, setNameThatGameActivity] = useState(null);
   const [MelodyBuilderTeacherDemo, setMelodyBuilderTeacherDemo] = useState(null);
 
+  // Get join URL based on site (defined early for use in join-code screen)
+  const isProduction = window.location.hostname !== 'localhost';
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+  const joinUrl = !isProduction ? 'localhost:5173/join' : (isEduSite ? 'musicroomtools.org/join' : 'mmajoin.com');
+
   // Load game components dynamically
   useEffect(() => {
     // Layer Detective components
@@ -143,7 +148,7 @@ const PresentationContent = ({
         <div className="text-center mb-8">
           <div className="text-slate-400 text-xl mb-2">Join at</div>
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            {getJoinUrl()}
+            {joinUrl}
           </h1>
         </div>
         
