@@ -775,7 +775,7 @@ const TeacherLessonView = ({
     const isProduction = window.location.hostname !== 'localhost';
     const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
     if (!isProduction) return 'localhost:5173/join';
-    return isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join';
+    return isEduSite ? 'musicroomtools.org/join' : 'mmajoin.com';
   };
 
   return (

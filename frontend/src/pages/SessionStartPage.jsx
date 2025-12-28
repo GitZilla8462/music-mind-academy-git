@@ -21,7 +21,7 @@ const SessionStartPage = () => {
 
   // Get the join URL based on site
   const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
-  const joinUrl = isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join';
+  const joinUrl = isEduSite ? 'musicroomtools.org/join' : 'mmajoin.com';
 
   const copySessionCode = () => {
     navigator.clipboard.writeText(sessionCode);

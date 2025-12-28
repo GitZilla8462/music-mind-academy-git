@@ -19,7 +19,7 @@ const StudentWaitingScreen = ({
       // Redirect to appropriate join page
       let redirectUrl = 'http://localhost:5173/join';
       if (isProduction) {
-        redirectUrl = isEduSite ? 'https://musicroomtools.org/join' : 'https://musicmindacademy.com/join';
+        redirectUrl = isEduSite ? 'https://musicroomtools.org/join' : 'https://mmajoin.com';
       }
       
       // Wait 2 seconds before redirecting so user can see the message
