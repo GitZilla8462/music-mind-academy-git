@@ -89,10 +89,17 @@ function MusicClassroomResources() {
     }
   }, [isEduMode, firebaseAuthenticated, firebaseUser]);
 
-  // For commercial mode: check legacy auth or localStorage
+  // For commercial mode: check Firebase auth first, then legacy auth or localStorage
   useEffect(() => {
     if (isCommercialMode) {
-      if (legacyAuthenticated) {
+      // First check Firebase auth (pilot teachers)
+      if (firebaseAuthenticated) {
+        setLoggedIn(true);
+        localStorage.setItem('classroom-logged-in', 'true');
+        localStorage.setItem('classroom-user-role', 'teacher');
+        localStorage.setItem('classroom-username', firebaseUser?.displayName || firebaseUser?.email || 'Teacher');
+        localStorage.setItem('classroom-user-id', firebaseUser?.uid || 'firebase-user');
+      } else if (legacyAuthenticated) {
         setLoggedIn(true);
         localStorage.setItem('classroom-logged-in', 'true');
         localStorage.setItem('classroom-user-role', legacyUser?.role || 'teacher');
@@ -105,7 +112,7 @@ function MusicClassroomResources() {
         }
       }
     }
-  }, [isCommercialMode, legacyAuthenticated, legacyUser]);
+  }, [isCommercialMode, firebaseAuthenticated, firebaseUser, legacyAuthenticated, legacyUser]);
 
   const handleLogin = () => {
     if (username === 'tuba343' && password === 'music2025') {
@@ -133,11 +140,18 @@ function MusicClassroomResources() {
       return;
     }
 
-    // For commercial mode, use legacy logout
-    if (isCommercialMode && legacyLogout) {
-      legacyLogout();
-      navigate('/');
-      return;
+    // For commercial mode, check Firebase auth first, then legacy
+    if (isCommercialMode) {
+      if (firebaseAuthenticated && firebaseSignOut) {
+        await firebaseSignOut();
+        navigate('/');
+        return;
+      }
+      if (legacyLogout) {
+        legacyLogout();
+        navigate('/');
+        return;
+      }
     }
 
     // Fallback: clear localStorage and redirect
