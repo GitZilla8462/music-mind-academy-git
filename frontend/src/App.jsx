@@ -411,48 +411,14 @@ const AppContent = () => {
         {/* ✅ ADDED: Demo Activity Route - Teacher preview of activities */}
         <Route path="/demo" element={<DemoActivity />} />
 
-        {/* LESSON ROUTES - Available to Firebase authenticated users */}
-        <Route path="/lessons/film-music-project/lesson1" element={
-          <FirebaseProtectedRoute>
-            <Lesson1 />
-          </FirebaseProtectedRoute>
-        } />
-
-        <Route path="/lessons/film-music-project/lesson2" element={
-          <FirebaseProtectedRoute>
-            <Lesson2 />
-          </FirebaseProtectedRoute>
-        } />
-
-        <Route path="/lessons/film-music-project/lesson3" element={
-          <FirebaseProtectedRoute>
-            <Lesson3 />
-          </FirebaseProtectedRoute>
-        } />
-
-        <Route path="/lessons/film-music-project/lesson4" element={
-          <FirebaseProtectedRoute>
-            <Lesson4 />
-          </FirebaseProtectedRoute>
-        } />
-
-        <Route path="/lessons/film-music-project/lesson5" element={
-          <FirebaseProtectedRoute>
-            <Lesson5 />
-          </FirebaseProtectedRoute>
-        } />
-
-        <Route path="/lessons/film-music-1" element={
-          <FirebaseProtectedRoute>
-            <Lesson1 />
-          </FirebaseProtectedRoute>
-        } />
-
-        <Route path="/lessons/:lessonId" element={
-          <FirebaseProtectedRoute>
-            <SimpleLessonPlaceholder />
-          </FirebaseProtectedRoute>
-        } />
+        {/* LESSON ROUTES - Open access for students joining via session codes */}
+        <Route path="/lessons/film-music-project/lesson1" element={<Lesson1 />} />
+        <Route path="/lessons/film-music-project/lesson2" element={<Lesson2 />} />
+        <Route path="/lessons/film-music-project/lesson3" element={<Lesson3 />} />
+        <Route path="/lessons/film-music-project/lesson4" element={<Lesson4 />} />
+        <Route path="/lessons/film-music-project/lesson5" element={<Lesson5 />} />
+        <Route path="/lessons/film-music-1" element={<Lesson1 />} />
+        <Route path="/lessons/:lessonId" element={<SimpleLessonPlaceholder />} />
 
         {/* PROTECTED ROUTES */}
 
