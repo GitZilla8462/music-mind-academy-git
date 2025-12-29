@@ -207,7 +207,7 @@ const Lesson1 = () => {
     if (currentStageData?.type === 'demo') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
             <Gamepad2 className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-300">Follow along with the demo</p>

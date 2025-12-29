@@ -1749,7 +1749,7 @@ const TeacherLessonView = ({
 
                       {/* Section Stages */}
                       {isExpanded && (
-                        <div className="ml-4 mt-1 space-y-0.5">
+                        <div className="ml-4 mt-1 space-y-0.5 overflow-x-auto">
                           {section.stages.map((stage) => {
                             const stageStatus = getStageStatus(stage.id);
                             const isActive = stage.id === currentStage;
@@ -1758,7 +1758,7 @@ const TeacherLessonView = ({
                               <div
                                 key={stage.id}
                                 onClick={() => handleStageClick(stage.id)}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors min-w-max ${
                                   isActive
                                     ? 'bg-blue-100 text-blue-700'
                                     : stageStatus === 'completed'
@@ -1778,7 +1778,7 @@ const TeacherLessonView = ({
                                 </div>
 
                                 {/* Stage label */}
-                                <span className="flex-1 text-sm truncate">
+                                <span className="flex-1 text-sm whitespace-nowrap">
                                   {stage.label}
                                 </span>
 
