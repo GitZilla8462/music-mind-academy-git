@@ -1,5 +1,5 @@
-// shared/useAudioEngine.js - FIXED: Proper native audio lifecycle management + LEFT-EDGE TRIMMING + PREVIEW TOGGLE
-// ✅ FIX: Native audio no longer auto-plays when loops are scheduled at time 0
+// shared/useAudioEngine.js - Web Audio API AudioBuffer approach for sample-accurate sync
+// ✅ FIX: Uses AudioBufferSourceNode.start() for precise timing on Chromebooks
 import { useState, useRef, useCallback, useEffect } from 'react';
 import * as Tone from 'tone';
 
@@ -8,41 +8,51 @@ export const useAudioEngine = (videoDuration = 60) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(0.7);
   const [isMuted, setIsMuted] = useState(false);
-  
-  const playersRef = useRef(new Map());
+
+  const audioBuffersRef = useRef(new Map()); // Stores decoded AudioBuffers
+  const activeSourcesRef = useRef(new Set()); // Track active AudioBufferSourceNodes
+  const playersRef = useRef(new Map()); // Keep for Tone.js players (non-MP3)
   const scheduledEventsRef = useRef([]);
-  const activeNativeAudioRef = useRef(new Set()); // Track active native audio elements
   const rafRef = useRef(null);
   const lastSeekTimeRef = useRef(0);
   const SEEK_DEBOUNCE_MS = 100;
   const previewPlayerRef = useRef(null);
-  const currentPreviewLoopIdRef = useRef(null); // 🔥 NEW: Track which loop is currently previewing
+  const currentPreviewLoopIdRef = useRef(null);
   const transportStoppedByStopRef = useRef(false);
+  const gainNodeRef = useRef(null); // Master gain node for volume control
 
   const initializeAudio = useCallback(async () => {
     if (Tone.context.state !== 'running') {
       await Tone.start();
       console.log('Audio context initialized');
     }
-    
+
+    // Create master gain node if not exists (connects to Tone.js destination)
+    if (!gainNodeRef.current) {
+      gainNodeRef.current = Tone.context.createGain();
+      gainNodeRef.current.connect(Tone.context.destination);
+      gainNodeRef.current.gain.value = volume;
+      console.log('✅ Master gain node created');
+    }
+
     Tone.Transport.loop = false;
     Tone.Transport.position = 0;
-    
+
     Tone.Transport.on('stop', () => {
       console.log('🛑 Transport stopped event');
-      
+
       if (transportStoppedByStopRef.current) {
         console.log('  ⏳ Stop was called by user - cleaning up');
         transportStoppedByStopRef.current = false;
         return;
       }
-      
+
       console.log('  ⏳ Natural end of Transport - not seeking to 0');
     });
-  }, []);
+  }, [volume]);
 
   const clearScheduledEvents = useCallback(() => {
-    // Clear all scheduled events (timeouts and Tone.js events)
+    // Clear all scheduled Tone.js transport events
     scheduledEventsRef.current.forEach(event => {
       if (event.type === 'transport') {
         try {
@@ -50,27 +60,25 @@ export const useAudioEngine = (videoDuration = 60) => {
         } catch (err) {
           console.error('Error clearing transport event:', err);
         }
-      } else if (event.type === 'native-timeout') {
-        clearTimeout(event.id);
       }
     });
     scheduledEventsRef.current = [];
 
-    // Stop all active native audio elements
-    activeNativeAudioRef.current.forEach(audio => {
+    // Stop all active AudioBufferSourceNodes
+    activeSourcesRef.current.forEach(source => {
       try {
-        audio.pause();
-        audio.currentTime = 0;
+        source.stop();
+        source.disconnect();
       } catch (err) {
-        console.error('Error stopping active native audio:', err);
+        // Source may already be stopped - ignore
       }
     });
-    activeNativeAudioRef.current.clear();
+    activeSourcesRef.current.clear();
 
-    // Stop Tone.js players (they handle their own scheduling)
+    // Stop Tone.js players (non-MP3 files)
     playersRef.current.forEach((player) => {
       try {
-        if (!player.isNative) {
+        if (!player.isBuffer) {
           player.stop();
         }
       } catch (err) {
@@ -84,25 +92,23 @@ export const useAudioEngine = (videoDuration = 60) => {
     return () => {
       console.log('🛑 useAudioEngine unmounting - cleaning up all audio');
 
-      // Clear all scheduled events and native audio
+      // Clear all scheduled transport events
       scheduledEventsRef.current.forEach(event => {
         if (event.type === 'transport') {
           try {
             Tone.Transport.clear(event.id);
           } catch (err) { /* ignore */ }
-        } else if (event.type === 'native-timeout') {
-          clearTimeout(event.id);
         }
       });
 
-      // Stop all active native audio elements
-      activeNativeAudioRef.current.forEach(audio => {
+      // Stop all active AudioBufferSourceNodes
+      activeSourcesRef.current.forEach(source => {
         try {
-          audio.pause();
-          audio.src = '';
+          source.stop();
+          source.disconnect();
         } catch (err) { /* ignore */ }
       });
-      activeNativeAudioRef.current.clear();
+      activeSourcesRef.current.clear();
 
       // Stop Transport
       try {
@@ -110,18 +116,18 @@ export const useAudioEngine = (videoDuration = 60) => {
         Tone.Transport.cancel();
       } catch (err) { /* ignore */ }
 
-      // Stop all players
+      // Stop all Tone.js players
       playersRef.current.forEach((player) => {
         try {
-          if (player.isNative && player.audio) {
-            player.audio.pause();
-            player.audio.src = '';
-          } else if (!player.isNative) {
+          if (!player.isBuffer) {
             player.stop();
           }
         } catch (err) { /* ignore */ }
       });
       playersRef.current.clear();
+
+      // Clear audio buffers
+      audioBuffersRef.current.clear();
     };
   }, []);
 
@@ -129,75 +135,53 @@ export const useAudioEngine = (videoDuration = 60) => {
     try {
       const playerKey = placedLoopId || loopData.id;
       console.log(`Creating player for: ${loopData.name} with key: ${playerKey}`);
-      
-      if (playersRef.current.has(playerKey)) {
-        console.log(`  ✓ Player already exists for ${playerKey}`);
-        return playersRef.current.get(playerKey);
+
+      // Check if we already have the AudioBuffer cached (use loopData.id for buffer cache)
+      const bufferKey = loopData.id;
+      if (audioBuffersRef.current.has(bufferKey)) {
+        console.log(`  ✓ AudioBuffer already cached for ${loopData.name}`);
+        const cachedBuffer = audioBuffersRef.current.get(bufferKey);
+        // Return a wrapper that references the cached buffer
+        const wrappedPlayer = {
+          buffer: cachedBuffer,
+          isBuffer: true,
+          loaded: true,
+          duration: cachedBuffer.duration
+        };
+        playersRef.current.set(playerKey, wrappedPlayer);
+        return wrappedPlayer;
       }
 
       const isMp3 = loopData.file.toLowerCase().endsWith('.mp3');
-      
+
       if (isMp3) {
-        console.log(`  🎵 Using native HTML5 Audio for MP3: ${loopData.name}`);
-        const audio = new Audio();
-        audio.preload = 'auto';
-        audio.src = loopData.file;
-        
-        await new Promise((resolve, reject) => {
-          let resolved = false;
-          
-          // Soft warning at 5 seconds - don't reject, just log
-          const softTimeout = setTimeout(() => {
-            if (!resolved) {
-              console.warn(`  ⚠️ Audio load slow for ${loopData.name} - still waiting...`);
-            }
-          }, 5000);
-          
-          // Hard timeout at 30 seconds
-          const hardTimeout = setTimeout(() => {
-            if (!resolved) {
-              resolved = true;
-              reject(new Error('Native audio load timeout (30s)'));
-            }
-          }, 30000);
-          
-          audio.addEventListener('canplaythrough', () => {
-            if (!resolved) {
-              resolved = true;
-              clearTimeout(softTimeout);
-              clearTimeout(hardTimeout);
-              console.log(`  ✅ Native audio loaded: ${loopData.name}, duration: ${audio.duration}s`);
-              resolve();
-            }
-          }, { once: true });
-          
-          audio.addEventListener('error', (e) => {
-            if (!resolved) {
-              resolved = true;
-              clearTimeout(softTimeout);
-              clearTimeout(hardTimeout);
-              console.error(`  ❌ Native audio load error for ${loopData.name}:`, e);
-              reject(new Error(`Failed to load: ${e.message || 'Unknown error'}`));
-            }
-          }, { once: true });
-          
-          audio.load();
-        });
-        
+        console.log(`  🎵 Decoding MP3 into AudioBuffer: ${loopData.name}`);
+
+        // Fetch the audio file as ArrayBuffer
+        const response = await fetch(loopData.file);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ${loopData.file}: ${response.status}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+
+        // Decode into AudioBuffer using Web Audio API
+        const audioBuffer = await Tone.context.decodeAudioData(arrayBuffer);
+        console.log(`  ✅ AudioBuffer decoded: ${loopData.name}, duration: ${audioBuffer.duration.toFixed(2)}s`);
+
+        // Cache the buffer for reuse
+        audioBuffersRef.current.set(bufferKey, audioBuffer);
+
         const wrappedPlayer = {
-          audio,
-          isNative: true,
+          buffer: audioBuffer,
+          isBuffer: true,
           loaded: true,
-          stop: () => {
-            audio.pause();
-            audio.currentTime = 0;
-          }
+          duration: audioBuffer.duration
         };
-        
+
         playersRef.current.set(playerKey, wrappedPlayer);
-        console.log(`  ✅ Stored native player with key: ${playerKey}`);
+        console.log(`  ✅ Stored AudioBuffer player with key: ${playerKey}`);
         return wrappedPlayer;
-        
+
       } else {
         console.log(`  🎹 Using Tone.js Player for: ${loopData.name}`);
         const player = new Tone.Player({
@@ -209,14 +193,14 @@ export const useAudioEngine = (videoDuration = 60) => {
             console.log(`  ✅ Tone.js player loaded: ${loopData.name}, duration: ${player.buffer.duration}s`);
           }
         }).toDestination();
-        
+
         await Tone.loaded();
-        
+
         playersRef.current.set(playerKey, player);
         console.log(`  ✅ Stored Tone.js player with key: ${playerKey}`);
         return player;
       }
-      
+
     } catch (error) {
       console.error(`❌ Failed to create player for ${loopData.name}:`, error);
       throw error;
@@ -225,17 +209,19 @@ export const useAudioEngine = (videoDuration = 60) => {
 
   const scheduleLoops = useCallback((placedLoops, duration, trackStates) => {
     clearScheduledEvents();
-    
+
     const schedulingStartTime = Tone.Transport.seconds;
-    
+    const audioContext = Tone.context;
+    const contextTime = audioContext.currentTime;
+
     // ✅ OPTIMIZED: Reduced logging for production
     const isDevMode = process.env.NODE_ENV === 'development';
-    
+
     if (isDevMode) {
-      console.log(`\n=== SCHEDULING LOOPS at time ${schedulingStartTime.toFixed(2)}s ===`);
+      console.log(`\n=== SCHEDULING LOOPS at Transport ${schedulingStartTime.toFixed(2)}s, Context ${contextTime.toFixed(2)}s ===`);
       console.log(`Total loops to consider: ${placedLoops.length}`);
     }
-    
+
     const groupedLoops = new Map();
     placedLoops.forEach(loop => {
       if (!groupedLoops.has(loop.id)) {
@@ -243,62 +229,52 @@ export const useAudioEngine = (videoDuration = 60) => {
       }
       groupedLoops.get(loop.id).push(loop);
     });
-    
+
     let scheduledCount = 0;
     const scheduledEvents = [];
-    
+
     groupedLoops.forEach((loopGroup, loopId) => {
       loopGroup.forEach(loop => {
         if (isDevMode) console.log(`🎵 Loop: ${loop.name}`, loop);
-        
+
         const player = playersRef.current.get(loop.id);
         if (!player) {
           console.warn(`  ⚠️ No player found for ${loop.name} (key: ${loop.id})`);
           return;
         }
-        
+
         const trackId = `track-${loop.trackIndex}`;
         const trackState = trackStates[trackId];
-        
+
         if (!trackState) {
           console.warn(`  ⚠️ No track state for ${trackId}`);
           return;
         }
-        
+
         const trackVolume = trackState.volume ?? 0.7;
         const loopVolume = loop.volume ?? 1.0;
         const effectiveVolume = trackVolume * loopVolume;
-        
+
         if (trackState.muted || effectiveVolume < 0.01) {
           console.log(`  🔇 ${loop.name} is muted (track: ${trackState.muted}, volume: ${effectiveVolume.toFixed(2)})`);
           return;
         }
-        
-        const actualPlayer = player.isNative ? player.audio : player;
-        if (actualPlayer) {
-          if (player.isNative) {
-            actualPlayer.volume = effectiveVolume;
-          } else {
-            actualPlayer.volume.value = Tone.gainToDb(effectiveVolume);
-          }
-        }
-        
+
         const loopStartTime = loop.startTime;
         const loopEndTime = loop.endTime;
         const originalLoopDuration = loop.duration; // Original audio file duration
         const placedLoopDuration = loopEndTime - loopStartTime; // Actual duration on timeline
-        
+
         if (loopEndTime <= schedulingStartTime) {
           if (isDevMode) console.log(`  ⏭️ Loop ends at ${loopEndTime.toFixed(2)}s (before current ${schedulingStartTime.toFixed(2)}s) - skipping entirely`);
           return;
         }
-        
+
         // Calculate repeats based on the PLACED duration (which may be trimmed)
         // FIXED: Add tolerance to prevent floating point precision causing extra repeats
-        // e.g., 17.53 / 17.52815 = 1.000105 → Math.ceil would give 2 (wrong!)
         const rawRepeats = placedLoopDuration / originalLoopDuration;
         const numRepeats = (rawRepeats % 1) < 0.02 ? Math.max(1, Math.floor(rawRepeats)) : Math.ceil(rawRepeats);
-        
+
         if (isDevMode) {
           console.log(`  📍 Scheduling ${loop.name}:`);
           console.log(`     Video times: ${loopStartTime.toFixed(2)}s → ${loopEndTime.toFixed(2)}s`);
@@ -310,25 +286,25 @@ export const useAudioEngine = (videoDuration = 60) => {
             console.log(`     ✂️ Left-edge trim offset: ${loop.startOffset.toFixed(2)}s`);
           }
         }
-        
+
         // Schedule each repeat with proper offset calculation
         for (let i = 0; i < numRepeats; i++) {
           const repeatStartTime = loopStartTime + (i * originalLoopDuration);
           const repeatEndTime = Math.min(repeatStartTime + originalLoopDuration, loopEndTime);
-          
+
           // Skip if this repeat is entirely before current time
           if (repeatEndTime <= schedulingStartTime) {
             if (isDevMode) console.log(`  ⏭️  Repeat ${i + 1} ends at ${repeatEndTime.toFixed(2)}s (before ${schedulingStartTime.toFixed(2)}s) - skipping`);
             continue;
           }
-          
+
           // ✅ CRITICAL FIX: Calculate offset within the loop if starting mid-loop
           // ALWAYS include the loop.startOffset (from left-edge trimming)
           const trimOffset = loop.startOffset || 0; // Offset from left-edge trimming
           let loopOffset = trimOffset; // Start with trim offset
           let actualDuration = originalLoopDuration; // Use original duration
           let actualStartTime = repeatStartTime;
-          
+
           if (repeatStartTime < schedulingStartTime && repeatEndTime > schedulingStartTime) {
             // We're starting playback in the middle of this repeat
             const midLoopOffset = schedulingStartTime - repeatStartTime;
@@ -344,17 +320,12 @@ export const useAudioEngine = (videoDuration = 60) => {
             // Normal repeat from the start (but with trim offset applied)
             if (isDevMode) console.log(`  ▶️ Full repeat: starting from trim offset ${loopOffset.toFixed(2)}s, duration ${actualDuration.toFixed(2)}s`);
           }
-          
+
           // Calculate Transport time for this repeat
           const transportTime = Math.max(0, actualStartTime - schedulingStartTime);
-          
+
           if (isDevMode) console.log(`  ▶️  Scheduling repeat ${i + 1}/${numRepeats} at Transport ${transportTime.toFixed(2)}s (video ${actualStartTime.toFixed(2)}s)`);
-          
-          // FIXED: Removed the isTransportPlaying check that was preventing scheduling
-          // Tone.js handles scheduling relative to transport start with +transportTime syntax
-          
-          const currentPlayer = player.isNative ? player.audio : player;
-          
+
           // ✅ FIX: Only schedule audio if Transport is running
           // This prevents auto-play when loops are moved/resized
           if (Tone.Transport.state !== 'started') {
@@ -362,67 +333,52 @@ export const useAudioEngine = (videoDuration = 60) => {
             continue;
           }
 
-          if (player.isNative) {
-            // Native HTML5 Audio - clone the audio element for each repeat
-            // ✅ CHROMEBOOK FIX: Use synchronized start for all loops
+          if (player.isBuffer) {
+            // ✅ WEB AUDIO API: Sample-accurate scheduling with AudioBufferSourceNode
+            const source = audioContext.createBufferSource();
+            source.buffer = player.buffer;
 
-            // Create a NEW audio element clone for this specific repeat
-            const audioClone = player.audio.cloneNode(true);
-            audioClone.volume = player.audio.volume;
-            audioClone.load(); // Prepare the clone
+            // Create individual gain node for volume control
+            const gainNode = audioContext.createGain();
+            gainNode.gain.value = effectiveVolume;
 
-            // For loops starting at time 0, we use a coordinated start
-            // For loops starting later, we use setTimeout but with a common base time
-            const delay = transportTime * 1000;
+            // Connect: source -> gain -> master gain -> destination
+            source.connect(gainNode);
+            if (gainNodeRef.current) {
+              gainNode.connect(gainNodeRef.current);
+            } else {
+              gainNode.connect(audioContext.destination);
+            }
 
-            const playAudio = () => {
-              // ✅ FIX: Double-check Transport state when attempting to play
-              if (Tone.Transport.state !== 'started') {
-                if (isDevMode) console.log(`  ⏸️ Transport not running, skipping native audio play for ${loop.name}`);
-                audioClone.src = '';
-                return;
-              }
+            // Calculate absolute AudioContext time for this loop
+            // contextTime is "now", transportTime is how far in the future to start
+            const startWhen = contextTime + transportTime;
 
-              if (!trackState.muted && effectiveVolume > 0.01) {
-                audioClone.currentTime = loopOffset;
-                activeNativeAudioRef.current.add(audioClone);
+            // ✅ SAMPLE-ACCURATE: Use source.start(when, offset, duration)
+            source.start(startWhen, loopOffset, actualDuration);
 
-                audioClone.play().catch(err => {
-                  console.error(`Failed to play native audio for ${loop.name}:`, err);
-                  activeNativeAudioRef.current.delete(audioClone);
-                });
+            // Track this source for cleanup
+            activeSourcesRef.current.add(source);
 
-                // Stop the audio after actualDuration
-                const stopTimeoutId = setTimeout(() => {
-                  audioClone.pause();
-                  audioClone.currentTime = 0;
-                  audioClone.src = '';
-                  activeNativeAudioRef.current.delete(audioClone);
-                }, actualDuration * 1000);
-                scheduledEvents.push({ type: 'native-timeout', id: stopTimeoutId });
-              }
+            // Remove from tracking when done
+            source.onended = () => {
+              activeSourcesRef.current.delete(source);
+              source.disconnect();
+              gainNode.disconnect();
             };
 
-            if (delay <= 0) {
-              // ✅ CHROMEBOOK FIX: For loops at time 0 (or already in progress),
-              // collect them to start together after a small sync delay
-              const syncTimeoutId = setTimeout(playAudio, 50);
-              scheduledEvents.push({ type: 'native-timeout', id: syncTimeoutId });
-            } else {
-              // For loops starting later, add the sync buffer to the delay
-              const timeoutId = setTimeout(playAudio, delay + 50);
-              scheduledEvents.push({ type: 'native-timeout', id: timeoutId });
-            }
+            if (isDevMode) console.log(`  🎵 AudioBuffer scheduled at context time ${startWhen.toFixed(3)}s`);
             scheduledCount++;
           } else {
-            // ✅ Tone.js Player - only schedule if Transport is running
-            currentPlayer.start(`+${transportTime}`, loopOffset, actualDuration);
+            // ✅ Tone.js Player (for non-MP3 files)
+            player.volume.value = Tone.gainToDb(effectiveVolume);
+            player.start(`+${transportTime}`, loopOffset, actualDuration);
             scheduledCount++;
           }
         }
       });
     });
-    
+
     scheduledEventsRef.current = scheduledEvents;
     if (isDevMode) console.log(`\n=== SUMMARY: ${scheduledCount} scheduled in ${groupedLoops.size} groups ===\n`);
   }, [clearScheduledEvents]);
@@ -486,28 +442,41 @@ export const useAudioEngine = (videoDuration = 60) => {
   const setMasterVolume = useCallback((vol) => {
     setVolume(vol);
     Tone.Destination.volume.value = Tone.gainToDb(vol);
+    // Also update our master gain node for AudioBuffer playback
+    if (gainNodeRef.current) {
+      gainNodeRef.current.gain.value = vol;
+    }
   }, []);
 
   const toggleMute = useCallback(() => {
     setIsMuted(prev => {
       const newMuted = !prev;
       Tone.Destination.mute = newMuted;
+      // Also mute our master gain node for AudioBuffer playback
+      if (gainNodeRef.current) {
+        gainNodeRef.current.gain.value = newMuted ? 0 : volume;
+      }
       return newMuted;
     });
-  }, []);
+  }, [volume]);
 
   // 🔥 FIXED: Preview loop now properly toggles on/off for the same loop
   const previewLoop = useCallback(async (loopData, onEnded = null) => {
     // 🔥 FIX: Check if we're trying to preview the same loop that's already playing
     const isSameLoop = currentPreviewLoopIdRef.current === loopData.id;
-    
+
     if (previewPlayerRef.current) {
       console.log(`🛑 Stopping previous preview: ${currentPreviewLoopIdRef.current}`);
       try {
-        if (previewPlayerRef.current.isNative) {
-          previewPlayerRef.current.audio.pause();
-          previewPlayerRef.current.audio.currentTime = 0;
-        } else {
+        if (previewPlayerRef.current.source) {
+          // AudioBuffer preview - stop the source node
+          previewPlayerRef.current.source.stop();
+          previewPlayerRef.current.source.disconnect();
+          if (previewPlayerRef.current.gainNode) {
+            previewPlayerRef.current.gainNode.disconnect();
+          }
+        } else if (!previewPlayerRef.current.isBuffer) {
+          // Tone.js player
           previewPlayerRef.current.stop();
         }
       } catch (err) {
@@ -515,7 +484,7 @@ export const useAudioEngine = (videoDuration = 60) => {
       }
       previewPlayerRef.current = null;
       currentPreviewLoopIdRef.current = null;
-      
+
       // 🔥 FIX: If clicking same loop, just stop and return (don't restart)
       if (isSameLoop) {
         console.log(`⏹️ Same loop clicked - stopping preview only`);
@@ -530,29 +499,45 @@ export const useAudioEngine = (videoDuration = 60) => {
     try {
       console.log(`▶️ Starting new preview: ${loopData.name}`);
       const player = await createLoopPlayer(loopData, `preview-${Date.now()}`);
-      previewPlayerRef.current = player;
       currentPreviewLoopIdRef.current = loopData.id; // Track which loop is playing
-      
-      if (player.isNative) {
-        player.audio.volume = volume;
-        player.audio.loop = false;
-        
-        player.audio.addEventListener('ended', () => {
+
+      if (player.isBuffer) {
+        // ✅ WEB AUDIO API: Use AudioBufferSourceNode for preview
+        const audioContext = Tone.context;
+        const source = audioContext.createBufferSource();
+        source.buffer = player.buffer;
+
+        // Create gain node for volume
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = volume;
+
+        // Connect source -> gain -> destination
+        source.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        // Track the source for stopping
+        previewPlayerRef.current = { source, gainNode, isBuffer: true };
+
+        // Handle end of playback
+        source.onended = () => {
           console.log(`✅ Preview ended: ${loopData.name}`);
           previewPlayerRef.current = null;
           currentPreviewLoopIdRef.current = null;
-          
+
           if (onEnded) {
             onEnded(loopData);
           }
-        }, { once: true });
-        
-        await player.audio.play();
+        };
+
+        // Start playback immediately
+        source.start(0);
       } else {
+        // Tone.js player (non-MP3)
+        previewPlayerRef.current = player;
         player.volume.value = Tone.gainToDb(volume);
         player.start();
       }
-      
+
       console.log(`🎧 Previewing: ${loopData.name}`);
     } catch (error) {
       console.error('Preview error:', error);
