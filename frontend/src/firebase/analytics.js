@@ -195,6 +195,40 @@ export const logStudentJoined = async (sessionCode, studentCount) => {
 };
 
 // ==========================================
+// POST-SESSION SURVEY
+// ==========================================
+
+/**
+ * Save survey response from teacher after session
+ */
+export const saveSurveyResponse = async (surveyData) => {
+  if (!surveyData.sessionCode) return;
+
+  try {
+    // Save to dedicated surveys collection
+    const surveyRef = ref(database, `surveys/${surveyData.sessionCode}`);
+    await set(surveyRef, {
+      ...surveyData,
+      savedAt: Date.now()
+    });
+
+    // Also update the session record with survey data
+    const sessionRef = ref(database, `pilotSessions/${surveyData.sessionCode}`);
+    await update(sessionRef, {
+      hasSurvey: true,
+      surveyRating: surveyData.rating || null,
+      usedWithStudents: surveyData.usedWithStudents,
+      surveySubmittedAt: Date.now()
+    });
+
+    console.log(`📊 Saved survey for session ${surveyData.sessionCode}`);
+  } catch (error) {
+    console.error('Failed to save survey:', error);
+    throw error;
+  }
+};
+
+// ==========================================
 // ANALYTICS RETRIEVAL FOR ADMIN
 // ==========================================
 

@@ -4,15 +4,15 @@
 // ✅ UPDATED: Added mini live preview box below view toggle
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-  ChevronDown, 
-  ChevronRight, 
+import {
+  ChevronDown,
+  ChevronRight,
   ChevronLeft,
-  Check, 
+  Check,
   Circle,
-  Clock, 
-  Users, 
-  Copy, 
+  Clock,
+  Users,
+  Copy,
   Monitor,
   Smartphone,
   Play,
@@ -25,8 +25,12 @@ import {
   PanelLeftClose,
   PanelLeft,
   Video,
-  SkipForward
+  SkipForward,
+  Star,
+  X,
+  MessageSquare
 } from 'lucide-react';
+import { saveSurveyResponse } from '../../../firebase/analytics';
 import { getDatabase, ref, onValue, update } from 'firebase/database';
 
 // ============================================
@@ -445,6 +449,166 @@ const MiniPreview = ({ viewMode, sessionCode, currentStage, currentStageData, se
 };
 
 // ============================================
+// POST-SESSION SURVEY MODAL
+// Only shown when 5+ students joined (real classroom use)
+// ============================================
+const PostSessionSurvey = ({
+  onSubmit,
+  onSkip,
+  studentCount,
+  lessonId,
+  sessionCode
+}) => {
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [feedback, setFeedback] = useState('');
+  const [usedWithStudents, setUsedWithStudents] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    try {
+      await saveSurveyResponse({
+        sessionCode,
+        lessonId,
+        studentCount,
+        usedWithStudents,
+        rating,
+        feedback: feedback.trim(),
+        submittedAt: Date.now()
+      });
+    } catch (err) {
+      console.error('Failed to save survey:', err);
+    }
+    setSubmitting(false);
+    onSubmit();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <MessageSquare size={24} />
+            Quick Feedback
+          </h2>
+          <p className="text-blue-100 text-sm mt-1">
+            Help us improve! (30 seconds)
+          </p>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Question 1: Used with students? */}
+          <div>
+            <p className="font-medium text-gray-800 mb-3">
+              Did you use this lesson with students today?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setUsedWithStudents(true)}
+                className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
+                  usedWithStudents === true
+                    ? 'bg-green-100 border-2 border-green-500 text-green-700'
+                    : 'bg-gray-100 border-2 border-transparent text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Yes, with students
+              </button>
+              <button
+                onClick={() => setUsedWithStudents(false)}
+                className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
+                  usedWithStudents === false
+                    ? 'bg-blue-100 border-2 border-blue-500 text-blue-700'
+                    : 'bg-gray-100 border-2 border-transparent text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Just testing
+              </button>
+            </div>
+          </div>
+
+          {/* Question 2: Rating (only show if used with students) */}
+          {usedWithStudents === true && (
+            <div>
+              <p className="font-medium text-gray-800 mb-3">
+                How did the lesson go?
+              </p>
+              <div className="flex justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    className="p-1 transition-transform hover:scale-110"
+                  >
+                    <Star
+                      size={36}
+                      className={`transition-colors ${
+                        star <= (hoverRating || rating)
+                          ? 'fill-yellow-400 text-yellow-400'
+                          : 'text-gray-300'
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+              <div className="text-center text-sm text-gray-500 mt-1">
+                {rating === 1 && 'Needs work'}
+                {rating === 2 && 'It was okay'}
+                {rating === 3 && 'Good'}
+                {rating === 4 && 'Great!'}
+                {rating === 5 && 'Amazing!'}
+              </div>
+            </div>
+          )}
+
+          {/* Question 3: Feedback (optional) */}
+          {usedWithStudents !== null && (
+            <div>
+              <p className="font-medium text-gray-800 mb-2">
+                Any feedback? <span className="text-gray-400 font-normal">(optional)</span>
+              </p>
+              <textarea
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                placeholder={usedWithStudents
+                  ? "What worked well? What could be better?"
+                  : "Any issues or suggestions?"
+                }
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none h-24"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex gap-3">
+          <button
+            onClick={onSkip}
+            className="flex-1 py-2.5 px-4 text-gray-600 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+          >
+            Skip
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={usedWithStudents === null || submitting}
+            className={`flex-1 py-2.5 px-4 rounded-lg font-medium transition-colors ${
+              usedWithStudents === null || submitting
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
+          >
+            {submitting ? 'Saving...' : 'Submit & End'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================
 // MAIN COMPONENT
 // ============================================
 const TeacherLessonView = ({
@@ -480,9 +644,34 @@ const TeacherLessonView = ({
     isPaused: false
   });
 
+  // Survey state - shown when 5+ students (real classroom use)
+  const [showSurveyModal, setShowSurveyModal] = useState(false);
+  const MIN_STUDENTS_FOR_SURVEY = 5;
+
   const currentStage = getCurrentStage();
   const students = getStudents();
   const studentCount = students?.length || 0;
+
+  // Handle end session with survey for classroom use
+  const handleEndSession = () => {
+    if (studentCount >= MIN_STUDENTS_FOR_SURVEY) {
+      // Show survey for real classroom use
+      setShowSurveyModal(true);
+    } else {
+      // Skip survey for testing (< 5 students)
+      endSession();
+    }
+  };
+
+  const handleSurveyComplete = () => {
+    setShowSurveyModal(false);
+    endSession();
+  };
+
+  const handleSurveySkip = () => {
+    setShowSurveyModal(false);
+    endSession();
+  };
 
   // Check if we're on join-code (not started yet)
   const isOnJoinCode = currentStage === 'locked' || currentStage === 'join-code' || !currentStage;
@@ -1256,7 +1445,7 @@ const TeacherLessonView = ({
             {sidebarCollapsed ? (
               <div className="flex flex-col gap-1">
                 <button
-                  onClick={endSession}
+                  onClick={handleEndSession}
                   className="p-2 hover:bg-red-50 rounded-lg text-red-500 transition-colors"
                   title="End Session"
                 >
@@ -1273,7 +1462,7 @@ const TeacherLessonView = ({
             ) : (
               <div className="space-y-2">
                 <button
-                  onClick={endSession}
+                  onClick={handleEndSession}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition-colors"
                 >
                   <LogOut size={16} />
@@ -1447,6 +1636,17 @@ const TeacherLessonView = ({
             )}
           </div>
         </div>
+      )}
+
+      {/* Post-Session Survey Modal */}
+      {showSurveyModal && (
+        <PostSessionSurvey
+          onSubmit={handleSurveyComplete}
+          onSkip={handleSurveySkip}
+          studentCount={studentCount}
+          lessonId={config.lessonId || 'unknown'}
+          sessionCode={sessionCode}
+        />
       )}
     </div>
   );
