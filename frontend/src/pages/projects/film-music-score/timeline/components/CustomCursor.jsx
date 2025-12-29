@@ -47,6 +47,17 @@ const CursorSVGs = {
       <path d="M12 5L15 10L12 15" stroke="white" strokeWidth="1" fill="none"/>
     </svg>
   ),
+
+  'row-resize': (
+    <svg width="20" height="16" viewBox="0 0 20 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M1 8H19" stroke="black" strokeWidth="2"/>
+      <path d="M1 8H19" stroke="white" strokeWidth="1"/>
+      <path d="M5 4L10 1L15 4" stroke="black" strokeWidth="2" fill="none"/>
+      <path d="M5 4L10 1L15 4" stroke="white" strokeWidth="1" fill="none"/>
+      <path d="M5 12L10 15L15 12" stroke="black" strokeWidth="2" fill="none"/>
+      <path d="M5 12L10 15L15 12" stroke="white" strokeWidth="1" fill="none"/>
+    </svg>
+  ),
   
   crosshair: (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -69,6 +80,7 @@ const HOTSPOTS = {
   grabbing: { x: 10, y: 10 },
   'ew-resize': { x: 10, y: 8 },
   'col-resize': { x: 8, y: 10 },
+  'row-resize': { x: 10, y: 8 },
   crosshair: { x: 10, y: 10 },
   pointer: { x: 4, y: 1 },
 };

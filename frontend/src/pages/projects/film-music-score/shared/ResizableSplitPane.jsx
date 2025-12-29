@@ -1,7 +1,15 @@
 // File: /src/pages/projects/film-music-score/shared/ResizableSplitPane.jsx
+// CHROMEBOOK FIX: Custom cursor integration to prevent flicker on grab bar
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { GripHorizontal } from 'lucide-react';
+import CustomCursor from '../timeline/components/CustomCursor.jsx';
+
+// Detect Chromebook/ChromeOS for custom cursor
+const isChromebook = typeof navigator !== 'undefined' && (
+  /CrOS/.test(navigator.userAgent) ||
+  (navigator.userAgentData?.platform === 'Chrome OS')
+);
 
 const ResizableSplitPane = ({
   topContent,
@@ -14,8 +22,12 @@ const ResizableSplitPane = ({
   const [isDragging, setIsDragging] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const containerRef = useRef(null);
+  const overlayRef = useRef(null);
   const dragStartY = useRef(0);
   const dragStartHeight = useRef(0);
+
+  // CHROMEBOOK FIX: Track cursor type for CustomCursor
+  const [cursorType, setCursorType] = useState('default');
 
   const handleMouseDown = useCallback((e) => {
     e.preventDefault();
@@ -52,17 +64,29 @@ const ResizableSplitPane = ({
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = 'row-resize';
+      // CHROMEBOOK FIX: Only set body cursor on non-Chromebook (Chromebook uses CustomCursor)
+      if (!isChromebook) {
+        document.body.style.cursor = 'row-resize';
+      }
       document.body.style.userSelect = 'none';
-      
+      setCursorType('row-resize');
+
       return () => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
+        setCursorType('default');
       };
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  // Update cursor type when hovering
+  useEffect(() => {
+    if (!isDragging) {
+      setCursorType(isHovering ? 'row-resize' : 'default');
+    }
+  }, [isHovering, isDragging]);
 
   return (
     <div ref={containerRef} className="flex flex-col h-full w-full relative">
@@ -88,15 +112,26 @@ const ResizableSplitPane = ({
         />
       </div>
 
+      {/* CHROMEBOOK FIX: CustomCursor for Chromebook to prevent flicker */}
+      {isChromebook && (isHovering || isDragging) && (
+        <CustomCursor
+          cursorType={cursorType}
+          containerRef={overlayRef}
+          enabled={true}
+        />
+      )}
+
       {/* Invisible overlay for mouse events - prevents cursor flicker on Chromebook */}
       <div
+        ref={overlayRef}
         className="absolute left-0 right-0"
         style={{
           top: `${topHeight}px`,
           height: '16px', // Larger hit area for easier grabbing
           marginTop: '-4px', // Center over the visual divider
           zIndex: 41,
-          cursor: 'row-resize',
+          // CHROMEBOOK FIX: Hide native cursor on Chromebook, use CustomCursor instead
+          cursor: isChromebook ? 'none' : 'row-resize',
           pointerEvents: 'auto'
         }}
         onMouseDown={handleMouseDown}
