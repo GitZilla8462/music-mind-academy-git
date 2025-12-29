@@ -257,11 +257,14 @@ const PilotAdminPage = () => {
     return lessonId || 'Unknown';
   };
 
-  // Loading state
-  if (authLoading || loading) {
+  // Auth loading - show minimal spinner
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-600 mx-auto mb-3"></div>
+          <p className="text-gray-500 text-sm">Checking authentication...</p>
+        </div>
       </div>
     );
   }
@@ -330,6 +333,16 @@ const PilotAdminPage = () => {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8">
+        {/* Data loading */}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-600 mx-auto mb-3"></div>
+              <p className="text-gray-500 text-sm">Loading admin data...</p>
+            </div>
+          </div>
+        ) : (
+        <>
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
           <div className="bg-white rounded-xl p-4 border border-blue-200 bg-blue-50">
@@ -1021,6 +1034,8 @@ const PilotAdminPage = () => {
               </div>
             )}
           </div>
+        )}
+        </>
         )}
       </main>
     </div>
