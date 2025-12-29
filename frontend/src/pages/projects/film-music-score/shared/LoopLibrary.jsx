@@ -170,7 +170,7 @@ const LoopLibrary = ({
       mood: mood,
       color: INSTRUMENT_COLORS[instrument],
       category: instrument,
-      duration: 4,
+      duration: 17.5, // Default to standard loop duration (all loops are ~17.5s)
       loaded: false,
       accessible: true,
       originalFilename: `${name}.${extension}`,
