@@ -359,6 +359,24 @@ const MusicLoopsInMediaHub = () => {
                   <strong>💡 Tip:</strong> Use the toggle button to preview student view
                 </p>
               </div>
+
+              {/* Tutorial Video */}
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <Play className="w-5 h-5 text-sky-600" />
+                  Watch Tutorial Video
+                </h3>
+                <div className="rounded-lg overflow-hidden border border-slate-200 bg-black">
+                  <video
+                    controls
+                    className="w-full"
+                    poster="/lessons/TutorialVideo-poster.jpg"
+                  >
+                    <source src="/lessons/TutorialVideo.mp4" type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              </div>
             </div>
           )}
         </div>
