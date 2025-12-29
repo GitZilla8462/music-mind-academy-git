@@ -32,6 +32,12 @@ const PilotAdminPage = () => {
   const [success, setSuccess] = useState(null);
   const [activeTab, setActiveTab] = useState('approved');
 
+  // Batch add state
+  const [showBatchAdd, setShowBatchAdd] = useState(false);
+  const [batchEmails, setBatchEmails] = useState('');
+  const [batchNotes, setBatchNotes] = useState('');
+  const [batchAdding, setBatchAdding] = useState(false);
+
   // Get current approved emails based on selected site
   const approvedEmails = selectedSite === SITE_TYPES.ACADEMY ? academyEmails : eduEmails;
 
@@ -141,6 +147,67 @@ const PilotAdminPage = () => {
       setError(err.message);
     } finally {
       setAdding(false);
+    }
+  };
+
+  // Batch add emails
+  const handleBatchAdd = async (e) => {
+    e.preventDefault();
+    if (!batchEmails.trim()) return;
+
+    setBatchAdding(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      // Parse emails - split by commas, newlines, spaces, or semicolons
+      const emailList = batchEmails
+        .split(/[\s,;\n]+/)
+        .map(email => email.toLowerCase().trim())
+        .filter(email => email && email.includes('@'));
+
+      if (emailList.length === 0) {
+        setError('No valid emails found. Make sure each email contains @');
+        setBatchAdding(false);
+        return;
+      }
+
+      // Remove duplicates
+      const uniqueEmails = [...new Set(emailList)];
+
+      let added = 0;
+      let skipped = 0;
+
+      for (const email of uniqueEmails) {
+        const emailKey = email.replace(/\./g, ',');
+        const emailRef = ref(database, `approvedEmails/${selectedSite}/${emailKey}`);
+
+        // Check if already exists
+        const snapshot = await get(emailRef);
+        if (snapshot.exists()) {
+          skipped++;
+          continue;
+        }
+
+        await set(emailRef, {
+          email: email,
+          approvedAt: Date.now(),
+          notes: batchNotes.trim(),
+          approvedBy: user.email,
+          siteType: selectedSite
+        });
+        added++;
+      }
+
+      const siteName = selectedSite === SITE_TYPES.ACADEMY ? 'Music Mind Academy' : 'Music Room Tools';
+      setSuccess(`Added ${added} email${added !== 1 ? 's' : ''} to ${siteName}${skipped > 0 ? ` (${skipped} already existed)` : ''}`);
+      setBatchEmails('');
+      setBatchNotes('');
+      setShowBatchAdd(false);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBatchAdding(false);
     }
   };
 
@@ -361,43 +428,101 @@ const PilotAdminPage = () => {
             ? 'bg-blue-50 border-blue-200'
             : 'bg-violet-50 border-violet-200'
         }`}>
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <UserPlus size={20} />
-            Add Email to {selectedSite === SITE_TYPES.ACADEMY ? 'Music Mind Academy' : 'Music Room Tools'}
-          </h2>
-          <form onSubmit={handleAddEmail} className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <input
-                type="email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                placeholder="teacher@school.edu"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                required
-              />
-            </div>
-            <div className="flex-1">
-              <input
-                type="text"
-                value={newNotes}
-                onChange={(e) => setNewNotes(e.target.value)}
-                placeholder="Notes (optional) - e.g., School name, grade level"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-              />
-            </div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <UserPlus size={20} />
+              Add Email to {selectedSite === SITE_TYPES.ACADEMY ? 'Music Mind Academy' : 'Music Room Tools'}
+            </h2>
             <button
-              type="submit"
-              disabled={adding}
-              className={`px-6 py-2 text-white rounded-lg disabled:opacity-50 flex items-center gap-2 ${
-                selectedSite === SITE_TYPES.ACADEMY
-                  ? 'bg-blue-600 hover:bg-blue-700'
-                  : 'bg-violet-600 hover:bg-violet-700'
+              onClick={() => setShowBatchAdd(!showBatchAdd)}
+              className={`text-sm font-medium px-3 py-1 rounded-lg transition-colors ${
+                showBatchAdd
+                  ? 'bg-gray-200 text-gray-700'
+                  : selectedSite === SITE_TYPES.ACADEMY
+                    ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                    : 'bg-violet-100 text-violet-700 hover:bg-violet-200'
               }`}
             >
-              {adding ? <RefreshCw size={18} className="animate-spin" /> : <UserPlus size={18} />}
-              Add Email
+              {showBatchAdd ? 'Single Email' : 'Batch Add'}
             </button>
-          </form>
+          </div>
+
+          {!showBatchAdd ? (
+            <form onSubmit={handleAddEmail} className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="teacher@school.edu"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  required
+                />
+              </div>
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={newNotes}
+                  onChange={(e) => setNewNotes(e.target.value)}
+                  placeholder="Notes (optional) - e.g., School name, grade level"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={adding}
+                className={`px-6 py-2 text-white rounded-lg disabled:opacity-50 flex items-center gap-2 ${
+                  selectedSite === SITE_TYPES.ACADEMY
+                    ? 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-violet-600 hover:bg-violet-700'
+                }`}
+              >
+                {adding ? <RefreshCw size={18} className="animate-spin" /> : <UserPlus size={18} />}
+                Add Email
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleBatchAdd} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Paste multiple emails (separated by commas, spaces, or new lines)
+                </label>
+                <textarea
+                  value={batchEmails}
+                  onChange={(e) => setBatchEmails(e.target.value)}
+                  placeholder="teacher1@school.edu, teacher2@school.edu&#10;teacher3@school.edu&#10;teacher4@school.edu"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white h-32 font-mono text-sm"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {batchEmails.split(/[\s,;\n]+/).filter(e => e && e.includes('@')).length} email(s) detected
+                </p>
+              </div>
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={batchNotes}
+                    onChange={(e) => setBatchNotes(e.target.value)}
+                    placeholder="Notes for all emails (optional) - e.g., Winter 2025 cohort"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={batchAdding}
+                  className={`px-6 py-2 text-white rounded-lg disabled:opacity-50 flex items-center gap-2 ${
+                    selectedSite === SITE_TYPES.ACADEMY
+                      ? 'bg-blue-600 hover:bg-blue-700'
+                      : 'bg-violet-600 hover:bg-violet-700'
+                  }`}
+                >
+                  {batchAdding ? <RefreshCw size={18} className="animate-spin" /> : <UserPlus size={18} />}
+                  Add All Emails
+                </button>
+              </div>
+            </form>
+          )}
         </div>
 
         {/* Tabs */}
