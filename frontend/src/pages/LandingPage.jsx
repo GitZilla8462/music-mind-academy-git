@@ -2,7 +2,7 @@
 // Marketing landing page for Music Mind Academy (musicmindacademy.com)
 // Teachers apply via Google Form, then sign in at /login after approval
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Google Form URL for pilot program applications
@@ -49,9 +49,15 @@ const activities = [
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
 
   const handleJoinPilot = () => {
+    setShowWaitlistModal(true);
+  };
+
+  const handleContinueToForm = () => {
     window.open(PILOT_FORM_URL, '_blank');
+    setShowWaitlistModal(false);
   };
 
   const handleTeacherLogin = () => {
@@ -945,6 +951,113 @@ const LandingPage = () => {
           <div className="footer-text">🛡️ Student Privacy First</div>
         </div>
       </footer>
+
+      {/* Waitlist Modal */}
+      {showWaitlistModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem'
+          }}
+          onClick={() => setShowWaitlistModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '1rem',
+              padding: '2rem',
+              maxWidth: '500px',
+              width: '100%',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📋</div>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.5rem' }}>
+                Join the Waitlist
+              </h2>
+              <p style={{ color: '#64748b', fontSize: '1rem' }}>
+                The January pilot is full, but you can join the waitlist for our next round.
+              </p>
+            </div>
+
+            <div style={{
+              backgroundColor: '#f8fafc',
+              borderRadius: '0.75rem',
+              padding: '1.25rem',
+              marginBottom: '1.5rem'
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                  <span style={{ fontSize: '1.25rem' }}>📅</span>
+                  <div>
+                    <div style={{ fontWeight: 600, color: '#1e293b' }}>Next pilot window</div>
+                    <div style={{ color: '#64748b', fontSize: '0.9rem' }}>March – June 2025</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                  <span style={{ fontSize: '1.25rem' }}>📧</span>
+                  <div>
+                    <div style={{ fontWeight: 600, color: '#1e293b' }}>What happens next</div>
+                    <div style={{ color: '#64748b', fontSize: '0.9rem' }}>I'll email you when spots open up</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                  <span style={{ fontSize: '1.25rem' }}>⭐</span>
+                  <div>
+                    <div style={{ fontWeight: 600, color: '#1e293b' }}>Priority access</div>
+                    <div style={{ color: '#64748b', fontSize: '0.9rem' }}>Waitlist applicants get first access before new applications open</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button
+                onClick={handleContinueToForm}
+                style={{
+                  width: '100%',
+                  padding: '0.875rem 1.5rem',
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#2563eb'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#3b82f6'}
+              >
+                Continue to Waitlist Form →
+              </button>
+              <button
+                onClick={() => setShowWaitlistModal(false)}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: 'transparent',
+                  color: '#64748b',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  fontSize: '0.9rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
