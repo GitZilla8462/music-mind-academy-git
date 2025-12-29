@@ -2,13 +2,28 @@
 // Activity timer management hook
 // ✅ FIXED: Accept currentStage as VALUE instead of getter function to prevent render-time state updates
 // ✅ OPTIMIZED: Drastically reduced Firebase updates to prevent network flooding
+// ✅ OPTIMIZED: Added isTeacher flag - students don't need local timer management
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getDatabase, ref, update } from 'firebase/database';
 
-export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
-  // ✅ Initialize ALL stages with timers from lessonStages
+// Empty timer functions for students (no-ops)
+const EMPTY_TIMERS = {
+  activityTimers: {},
+  formatTime: () => '0:00',
+  adjustPresetTime: () => {},
+  startActivityTimer: () => {},
+  pauseActivityTimer: () => {},
+  resumeActivityTimer: () => {},
+  resetActivityTimer: () => {}
+};
+
+export const useActivityTimers = (sessionCode, currentStage, lessonStages, isTeacher = true) => {
+  // ✅ Students don't need timer management - return empty immediately
+  // This prevents unnecessary state updates and re-renders for students
   const [activityTimers, setActivityTimers] = useState(() => {
+    if (!isTeacher) return {};
+
     const initialTimers = {};
     lessonStages?.forEach(stage => {
       if (stage.hasTimer && stage.duration) {
@@ -19,7 +34,6 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
         };
       }
     });
-    console.log('📊 Initialized timers:', initialTimers);
     return initialTimers;
   });
   
@@ -33,7 +47,7 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
 
   // ✅ NEW: Throttled Firebase update function
   const updateFirebaseThrottled = useCallback((data, forceImmediate = false) => {
-    if (!sessionCode) return;
+    if (!sessionCode || !isTeacher) return;
     
     const now = Date.now();
     const timeSinceLastUpdate = now - lastFirebaseUpdateRef.current;
@@ -78,7 +92,7 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
         pendingFirebaseUpdateRef.current = null;
       }, delay);
     }
-  }, [sessionCode]);
+  }, [sessionCode, isTeacher]);
 
   // Format time helper
   const formatTime = useCallback((seconds) => {
@@ -214,7 +228,7 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
 
   // ✅ Stop all timers when leaving a timer stage
   useEffect(() => {
-    if (!currentStage || !lessonStages) return;
+    if (!isTeacher || !currentStage || !lessonStages) return;
     
     // If stage changed
     if (lastStageRef.current && lastStageRef.current !== currentStage) {
@@ -260,9 +274,12 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
   }, [currentStage, lessonStages, activityTimers, sessionCode, updateFirebaseThrottled]);
 
   // ✅ Countdown effect - OPTIMIZED to reduce Firebase updates
+  // Only runs for teachers
   useEffect(() => {
+    if (!isTeacher) return;
+
     const intervals = [];
-    
+
     Object.keys(activityTimers).forEach(activityId => {
       const timer = activityTimers[activityId];
       
@@ -333,11 +350,12 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
     });
     
     return () => intervals.forEach(interval => clearInterval(interval));
-  }, [activityTimers, updateFirebaseThrottled]);
+  }, [activityTimers, updateFirebaseThrottled, isTeacher]);
 
   // ✅ Auto-start timer when activity stage is unlocked
+  // Only runs for teachers
   useEffect(() => {
-    if (!currentStage || !lessonStages) return;
+    if (!isTeacher || !currentStage || !lessonStages) return;
     
     const currentStageData = lessonStages.find(s => s.id === currentStage);
     
@@ -359,7 +377,7 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages) => {
         }, 100);
       }
     }
-  }, [currentStage, lessonStages, activityTimers, startActivityTimer]);
+  }, [currentStage, lessonStages, activityTimers, startActivityTimer, isTeacher]);
   
   // ✅ NEW: Cleanup pending updates on unmount
   useEffect(() => {

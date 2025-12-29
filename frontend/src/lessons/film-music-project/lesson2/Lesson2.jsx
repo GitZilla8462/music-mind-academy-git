@@ -224,7 +224,8 @@ const Lesson2Content = () => {
   
   // Custom hooks
   const lesson = useLesson(lesson2Config, LESSON_PROGRESS_KEY, LESSON_TIMER_KEY);
-  const timers = useActivityTimers(sessionCode, currentStage, lessonStages);
+  const isTeacher = effectiveRole === 'teacher';
+  const timers = useActivityTimers(sessionCode, currentStage, lessonStages, isTeacher);
 
   // Memoize currentStageData
   const currentStageData = useMemo(() => {

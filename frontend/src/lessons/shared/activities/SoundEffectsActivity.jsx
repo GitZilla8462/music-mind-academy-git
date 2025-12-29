@@ -48,7 +48,7 @@ const SoundEffectsActivity = ({
     studentId,
     'school-beneath',  // Same key as original composition
     compositionData,
-    5000
+    10000  // 10 seconds
   );
 
   // Load School Beneath composition on mount

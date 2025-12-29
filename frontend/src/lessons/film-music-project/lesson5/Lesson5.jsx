@@ -56,8 +56,9 @@ const Lesson5 = () => {
 
   const lesson = useLesson(lessonConfig);
 
-  // Activity timers
-  const timers = useActivityTimers(sessionCode, currentStage, lessonStages);
+  // Activity timers - ONLY for teachers (students don't need local timer management)
+  const isTeacher = effectiveRole === 'teacher';
+  const timers = useActivityTimers(sessionCode, currentStage, lessonStages, isTeacher);
 
   // Check for view modes from URL params
   const searchParams = new URLSearchParams(location.search);

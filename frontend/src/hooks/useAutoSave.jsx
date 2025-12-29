@@ -10,10 +10,10 @@ import { autoSaveComposition, loadAutoSavedComposition } from '../lessons/film-m
  * @param {string} studentName - Student's name
  * @param {string} activityType - Activity type (e.g., 'school-beneath', 'sound-effects')
  * @param {Object} compositionData - Current composition data
- * @param {number} saveInterval - How often to auto-save in milliseconds (default: 5000 = 5 seconds)
+ * @param {number} saveInterval - How often to auto-save in milliseconds (default: 10000 = 10 seconds)
  * @returns {Object} { lastSaved, isSaving, loadSavedWork, hasSavedWork }
  */
-export const useAutoSave = (studentName, activityType, compositionData, saveInterval = 5000) => {
+export const useAutoSave = (studentName, activityType, compositionData, saveInterval = 10000) => {
   const [lastSaved, setLastSaved] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [hasSavedWork, setHasSavedWork] = useState(false);
@@ -32,10 +32,7 @@ export const useAutoSave = (studentName, activityType, compositionData, saveInte
     if (studentName && activityType) {
       const saved = loadAutoSavedComposition(activityType, studentName);
       setHasSavedWork(!!saved);
-      if (saved) {
-        console.log('📂 Found saved work on mount for', studentName, '-', activityType);
       }
-    }
   }, [studentName, activityType]);
 
   // Auto-save function - stable, doesn't change
@@ -59,7 +56,6 @@ export const useAutoSave = (studentName, activityType, compositionData, saveInte
       setLastSaved(new Date(result.lastSaved));
       lastDataRef.current = currentDataStr;
       setHasSavedWork(true);
-      console.log(`✅ Auto-saved locally for ${studentName} - ${activityType}`);
     }
     
     // Show "Saving..." for at least 500ms for visual feedback
@@ -79,18 +75,15 @@ export const useAutoSave = (studentName, activityType, compositionData, saveInte
       clearInterval(saveTimeoutRef.current);
     }
 
-    // Set up new auto-save with setInterval (runs repeatedly every 5 seconds)
+    // Set up new auto-save with setInterval (runs repeatedly every 10 seconds)
     saveTimeoutRef.current = setInterval(() => {
       performSave();
     }, saveInterval);
-
-    console.log(`🔄 Auto-save started for ${studentName} - ${activityType} (every ${saveInterval/1000}s)`);
 
     // Cleanup on unmount or when dependencies change
     return () => {
       if (saveTimeoutRef.current) {
         clearInterval(saveTimeoutRef.current);
-        console.log(`🛑 Auto-save stopped for ${studentName} - ${activityType}`);
       }
     };
   }, [performSave, saveInterval, studentName, activityType]);

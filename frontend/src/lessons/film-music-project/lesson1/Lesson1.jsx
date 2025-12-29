@@ -56,8 +56,9 @@ const Lesson1 = () => {
 
   const lesson = useLesson(lessonConfig);
 
-  // Activity timers
-  const timers = useActivityTimers(sessionCode, currentStage, lessonStages);
+  // Activity timers - ONLY for teachers (students don't need local timer management)
+  const isTeacher = effectiveRole === 'teacher';
+  const timers = useActivityTimers(sessionCode, currentStage, lessonStages, isTeacher);
 
   // Check for view modes from URL params
   const searchParams = new URLSearchParams(location.search);
@@ -68,9 +69,7 @@ const Lesson1 = () => {
 
   // Memoize currentStageData
   const currentStageData = useMemo(() => {
-    const data = lessonStages.find(stage => stage.id === currentStage);
-    console.log('📍 currentStageData:', { currentStage, type: data?.type, data });
-    return data;
+    return lessonStages.find(stage => stage.id === currentStage);
   }, [currentStage]);
 
   // Mute audio in preview mode
@@ -252,8 +251,6 @@ const Lesson1 = () => {
 
     const activity = lesson1Config.activities.find(a => a.type === activityType);
 
-    console.log('🎮 Rendering activity for stage:', { currentStage, displayStage, activityType, activityFound: !!activity });
-
     if (!activity) {
       return <StudentWaitingScreen />;
     }
@@ -284,8 +281,6 @@ const Lesson1 = () => {
   // Uses TeacherLessonView for combined sidebar + presentation
   // ========================================
   if (sessionMode.isSessionMode && effectiveRole === 'teacher') {
-    console.log('👨‍🏫 Rendering TEACHER lesson view');
-
     return (
       <TeacherLessonView
         config={lesson1Config}

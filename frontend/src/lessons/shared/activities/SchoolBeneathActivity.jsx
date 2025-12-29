@@ -325,46 +325,64 @@ const SchoolBeneathActivity = ({
   // ============================================================================
   // VIDEO DURATION DETECTION
   // ============================================================================
-  
+
   useEffect(() => {
     if (viewMode) return;
+
+    // Skip if we already have a valid duration (greater than fallback)
+    if (videoDuration && videoDuration > 60) {
+      console.log('Video duration already set:', videoDuration);
+      setIsLoadingVideo(false);
+      return;
+    }
 
     const videoElement = document.createElement('video');
     videoElement.src = videoPath;
     videoElement.preload = 'metadata';
-    
+
     const handleMetadata = () => {
-      setVideoDuration(videoElement.duration);
+      const duration = videoElement.duration;
+      if (duration && duration > 0) {
+        console.log('[OK] Video duration loaded:', duration);
+        setVideoDuration(duration);
+      }
       setIsLoadingVideo(false);
-      console.log('Video duration:', videoElement.duration);
       videoElement.removeEventListener('loadedmetadata', handleMetadata);
       videoElement.src = '';
     };
-    
+
     const handleError = () => {
-      setVideoDuration(60);
+      // Use functional update to NEVER overwrite a valid duration
+      setVideoDuration(prev => {
+        if (prev && prev > 60) {
+          console.log('Video error ignored - keeping valid duration:', prev);
+          return prev;
+        }
+        console.warn('Video error, using fallback 60s');
+        return 60;
+      });
       setIsLoadingVideo(false);
-      console.warn('Video error, using fallback 60s');
       videoElement.removeEventListener('error', handleError);
     };
-    
+
     videoElement.addEventListener('loadedmetadata', handleMetadata);
     videoElement.addEventListener('error', handleError);
-    
+
     const timeout = setTimeout(() => {
-      if (videoDuration === null) {
-        setVideoDuration(60);
-        setIsLoadingVideo(false);
-      }
+      setVideoDuration(prev => {
+        if (prev && prev > 0) return prev;
+        return 60;
+      });
+      setIsLoadingVideo(false);
     }, 5000);
-    
+
     return () => {
       clearTimeout(timeout);
       videoElement.removeEventListener('loadedmetadata', handleMetadata);
       videoElement.removeEventListener('error', handleError);
       videoElement.src = '';
     };
-  }, [viewMode, videoPath]);
+  }, [viewMode, videoPath, videoDuration]);
   
   // ============================================================================
   // LOOP HANDLERS

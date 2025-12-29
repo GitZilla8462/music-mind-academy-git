@@ -393,16 +393,19 @@ const LoopBlock = React.memo(({
         />
       )}
 
-      {/* Waveform canvas */}
+      {/* Waveform canvas - centered vertically */}
       <canvas
         ref={canvasRef}
-        width={Math.max(1, width)} 
+        width={Math.max(1, width)}
         height={Math.max(1, TIMELINE_CONSTANTS.TRACK_HEIGHT - 16)}
-        className="absolute inset-0"
-        style={{ 
+        className="absolute"
+        style={{
           opacity: 0.9,
           width: `${width}px`,
           height: `${TIMELINE_CONSTANTS.TRACK_HEIGHT - 16}px`,
+          top: '50%',
+          left: 0,
+          transform: 'translateY(-50%)',
           pointerEvents: 'none',
           cursor: 'inherit'
         }}
