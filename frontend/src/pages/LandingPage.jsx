@@ -683,7 +683,7 @@ const LandingPage = () => {
               Teacher Login
             </button>
             <button onClick={handleJoinPilot} className="btn btn-primary">
-              Join the Free Pilot
+              Join the Waitlist
             </button>
           </div>
         </div>
@@ -695,7 +695,7 @@ const LandingPage = () => {
           <div className="hero-content">
             <div className="hero-badge">
               <span className="hero-badge-dot"></span>
-              Now accepting pilot teachers for January
+              January pilot full — Join the waitlist
             </div>
             <h1>
               No-Prep Music Lessons That <span className="hero-highlight">Actually Engage</span> Middle Schoolers
@@ -712,9 +712,9 @@ const LandingPage = () => {
 
             <div className="hero-cta">
               <button onClick={handleJoinPilot} className="btn-hero">
-                Join the Free Pilot
+                Join the Waitlist
               </button>
-              <span className="hero-note">Free for pilot teachers</span>
+              <span className="hero-note">Next pilot: March – June 2025</span>
             </div>
           </div>
 
@@ -916,14 +916,16 @@ const LandingPage = () => {
 
       {/* Final CTA */}
       <section className="final-cta">
-        <h2>Ready to Try It?</h2>
+        <h2>January Pilot is Full!</h2>
         <p>
-          Join 10-15 teachers piloting these lessons in January.
+          Join the waitlist for March – June 2025.
           <br />
-          Free access in exchange for honest feedback.
+          Waitlist applicants get priority access before new applications open.
+          <br />
+          <span style={{ opacity: 0.8, fontSize: '0.9em' }}>I'll email you when spots open up.</span>
         </p>
         <button onClick={handleJoinPilot} className="btn-hero">
-          Join the Free Pilot
+          Join the Waitlist
         </button>
       </section>
 
