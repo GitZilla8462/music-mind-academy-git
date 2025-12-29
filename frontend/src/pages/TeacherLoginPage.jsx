@@ -6,6 +6,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 
+// Preload the hub page in the background so it's ready after sign-in
+const preloadHubPage = () => {
+  import('../pages/MusicLoopsInMediaHub');
+};
+
 const TeacherLoginPage = () => {
   const navigate = useNavigate();
   const {
@@ -33,6 +38,11 @@ const TeacherLoginPage = () => {
   const gradientColors = isEduSite ? 'from-violet-600 to-purple-500' : 'from-blue-600 to-sky-500';
   const accentColor = isEduSite ? 'text-violet-600' : 'text-blue-600';
   const buttonBgColor = isEduSite ? 'bg-violet-600 hover:bg-violet-700' : 'bg-blue-600 hover:bg-blue-700';
+
+  // Preload the hub page as soon as login page loads
+  useEffect(() => {
+    preloadHubPage();
+  }, []);
 
   // Handle magic link return (when user clicks link in email)
   useEffect(() => {

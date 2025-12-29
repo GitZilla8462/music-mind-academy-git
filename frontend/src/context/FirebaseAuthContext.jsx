@@ -79,8 +79,11 @@ export const FirebaseAuthProvider = ({ children }) => {
       const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
 
-      // Check if email is approved for pilot program
-      const approved = await isEmailApproved(firebaseUser.email);
+      // Run approval check and user creation in PARALLEL for faster sign-in
+      const [approved, data] = await Promise.all([
+        isEmailApproved(firebaseUser.email),
+        getOrCreateUser(firebaseUser)
+      ]);
 
       if (!approved) {
         // Sign them out immediately
@@ -94,8 +97,6 @@ export const FirebaseAuthProvider = ({ children }) => {
         throw notApprovedError;
       }
 
-      // Get or create user document in Firestore
-      const data = await getOrCreateUser(firebaseUser);
       setUserData(data);
 
       // Track login for analytics (non-blocking - don't fail sign-in if analytics fails)
@@ -119,8 +120,11 @@ export const FirebaseAuthProvider = ({ children }) => {
       const result = await signInWithPopup(auth, microsoftProvider);
       const firebaseUser = result.user;
 
-      // Check if email is approved for pilot program
-      const approved = await isEmailApproved(firebaseUser.email);
+      // Run approval check and user creation in PARALLEL for faster sign-in
+      const [approved, data] = await Promise.all([
+        isEmailApproved(firebaseUser.email),
+        getOrCreateUser(firebaseUser)
+      ]);
 
       if (!approved) {
         // Sign them out immediately
@@ -134,11 +138,9 @@ export const FirebaseAuthProvider = ({ children }) => {
         throw notApprovedError;
       }
 
-      // Get or create user document in Firestore
-      const data = await getOrCreateUser(firebaseUser);
       setUserData(data);
 
-      // Track login for analytics
+      // Track login for analytics (non-blocking)
       trackFirstLogin(firebaseUser.uid, firebaseUser.email).catch(err => {
         console.warn('Analytics tracking failed (non-critical):', err.message);
       });
