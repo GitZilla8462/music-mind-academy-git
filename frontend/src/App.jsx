@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { ClassProvider } from './context/ClassContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -8,76 +8,89 @@ import { FirebaseAuthProvider } from './context/FirebaseAuthContext';
 // Import styles - including snap guide styles
 import './App.css';
 
-// Import authentication-related components
-import AuthPage from './pages/AuthPage';
-import LandingPage from './pages/LandingPage';
-import EduLandingPage from './pages/EduLandingPage';
-import AdminDashboard from './pages/AdminDashboard';
-import TeacherDashboard from './pages/TeacherDashboard';
-import StudentDashboard from './pages/StudentDashboard';
+// ===========================================
+// LOADING COMPONENT - Shows while lazy components load
+// ===========================================
+const PageLoader = () => (
+  <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+      <p className="text-gray-400">Loading...</p>
+    </div>
+  </div>
+);
 
-// Import classroom component
-import MusicClassroomResources from './pages/MusicClassroomResources';
-
-// Import Firebase auth components
+// ===========================================
+// LIGHTWEIGHT IMPORTS - Load immediately (small components)
+// ===========================================
 import FirebaseProtectedRoute from './components/FirebaseProtectedRoute';
-import FirebaseTeacherDashboard from './pages/FirebaseTeacherDashboard';
-import PilotAdminPage from './pages/PilotAdminPage';
-import TeacherLoginPage from './pages/TeacherLoginPage';
-
-// Import all necessary pages and components
-import CreateAssignmentPage from './pages/CreateAssignmentPage';
-import ClassManagementPage from './pages/ClassManagementPage';
-import EditClassPage from './pages/EditClassPage';
-import StudentProfilePage from './pages/StudentProfilePage';
-import AssignmentGradingPage from './components/dashboard/teacherdashboard/AssignmentGradingPage';
-import StudentSubmissionView from './components/dashboard/teacherdashboard/StudentSubmissionView';
-import VideoSelection from './pages/projects/film-music-score/shared/VideoSelection.jsx';
-import MusicComposer from './pages/projects/film-music-score/composer/MusicComposer';
-import FilmMusicScoreMain from './pages/projects/film-music-score/FilmMusicScoreMain.jsx';
-import EditAssignmentPage from './components/dashboard/teacherdashboard/EditAssignmentPage';
-import TeacherSubmissionViewer from './components/dashboard/teacherdashboard/TeacherSubmissionViewer.jsx';
-
-// Import lesson components
-import SimpleLessonPlaceholder from "./lessons/shared/components/LessonPlayer";
-import Lesson1 from './lessons/film-music-project/lesson1/Lesson1';
-import Lesson2 from './lessons/film-music-project/lesson2/Lesson2';
-import Lesson3 from './lessons/film-music-project/lesson3/Lesson3';
-import Lesson4 from './lessons/film-music-project/lesson4/Lesson4';
-import Lesson5 from './lessons/film-music-project/lesson5/Lesson5';
-import LessonPlanPDF from './lessons/film-music-project/lesson1/LessonPlanPDF';
-import LessonPlan2PDF from './lessons/film-music-project/lesson2/LessonPlan2PDF';
-import LessonPlan3PDF from './lessons/film-music-project/lesson3/LessonPlan3PDF';
-import LessonPlan4PDF from './lessons/film-music-project/lesson4/LessonPlan4PDF';
-import MusicLoopsInMediaHub from './pages/MusicLoopsInMediaHub';
-
-// Import presentation view
-import PresentationView from './components/PresentationView';
-
-// Import session start page
-import SessionStartPage from './pages/SessionStartPage';
-
-// Import join with code page
-import JoinWithCode from './pages/JoinWithCode';
-
-// Import composition viewer
-import CompositionViewer from './pages/CompositionViewer';
-
-// Import debug tool
-import FirebaseSessionInspector from './components/FirebaseSessionInspector';
-
-// Import error logger and admin dashboard
 import ErrorLogger from './components/ErrorLogger';
-import AdminAllProblems from './pages/AdminAllProblems';
 
-// ✅ ADDED: Import DemoActivity for teacher activity previews
-import DemoActivity from './pages/DemoActivity';
+// ===========================================
+// LAZY IMPORTS - Load on demand (heavy components)
+// ===========================================
 
-// ✅ ADDED: Import ListeningMapViewer for viewing saved listening maps
-import ListeningMapViewer from './pages/ListeningMapViewer';
+// Landing pages (light, but lazy load for code splitting)
+const LandingPage = React.lazy(() => import('./pages/LandingPage'));
+const EduLandingPage = React.lazy(() => import('./pages/EduLandingPage'));
+const TeacherLoginPage = React.lazy(() => import('./pages/TeacherLoginPage'));
 
-// Dev-only Hotspot Editor for Melody Mystery
-import HotspotEditor from './pages/dev/HotspotEditor';
+// Dashboard pages
+const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
+const TeacherDashboard = React.lazy(() => import('./pages/TeacherDashboard'));
+const StudentDashboard = React.lazy(() => import('./pages/StudentDashboard'));
+const FirebaseTeacherDashboard = React.lazy(() => import('./pages/FirebaseTeacherDashboard'));
+const PilotAdminPage = React.lazy(() => import('./pages/PilotAdminPage'));
+
+// Classroom and hub pages
+const MusicClassroomResources = React.lazy(() => import('./pages/MusicClassroomResources'));
+const MusicLoopsInMediaHub = React.lazy(() => import('./pages/MusicLoopsInMediaHub'));
+
+// Assignment/class management pages
+const CreateAssignmentPage = React.lazy(() => import('./pages/CreateAssignmentPage'));
+const ClassManagementPage = React.lazy(() => import('./pages/ClassManagementPage'));
+const EditClassPage = React.lazy(() => import('./pages/EditClassPage'));
+const StudentProfilePage = React.lazy(() => import('./pages/StudentProfilePage'));
+const AssignmentGradingPage = React.lazy(() => import('./components/dashboard/teacherdashboard/AssignmentGradingPage'));
+const StudentSubmissionView = React.lazy(() => import('./components/dashboard/teacherdashboard/StudentSubmissionView'));
+const EditAssignmentPage = React.lazy(() => import('./components/dashboard/teacherdashboard/EditAssignmentPage'));
+const TeacherSubmissionViewer = React.lazy(() => import('./components/dashboard/teacherdashboard/TeacherSubmissionViewer'));
+
+// Film music score project (HEAVY - uses Pixi.js, Tone.js)
+const VideoSelection = React.lazy(() => import('./pages/projects/film-music-score/shared/VideoSelection'));
+const MusicComposer = React.lazy(() => import('./pages/projects/film-music-score/composer/MusicComposer'));
+const FilmMusicScoreMain = React.lazy(() => import('./pages/projects/film-music-score/FilmMusicScoreMain'));
+
+// Lesson components (HEAVY - use Tone.js, etc.)
+const SimpleLessonPlaceholder = React.lazy(() => import('./lessons/shared/components/LessonPlayer'));
+const Lesson1 = React.lazy(() => import('./lessons/film-music-project/lesson1/Lesson1'));
+const Lesson2 = React.lazy(() => import('./lessons/film-music-project/lesson2/Lesson2'));
+const Lesson3 = React.lazy(() => import('./lessons/film-music-project/lesson3/Lesson3'));
+const Lesson4 = React.lazy(() => import('./lessons/film-music-project/lesson4/Lesson4'));
+const Lesson5 = React.lazy(() => import('./lessons/film-music-project/lesson5/Lesson5'));
+
+// Lesson plan PDFs
+const LessonPlanPDF = React.lazy(() => import('./lessons/film-music-project/lesson1/LessonPlanPDF'));
+const LessonPlan2PDF = React.lazy(() => import('./lessons/film-music-project/lesson2/LessonPlan2PDF'));
+const LessonPlan3PDF = React.lazy(() => import('./lessons/film-music-project/lesson3/LessonPlan3PDF'));
+const LessonPlan4PDF = React.lazy(() => import('./lessons/film-music-project/lesson4/LessonPlan4PDF'));
+
+// Presentation and session pages
+const PresentationView = React.lazy(() => import('./components/PresentationView'));
+const SessionStartPage = React.lazy(() => import('./pages/SessionStartPage'));
+const JoinWithCode = React.lazy(() => import('./pages/JoinWithCode'));
+const CompositionViewer = React.lazy(() => import('./pages/CompositionViewer'));
+
+// Debug and admin tools
+const FirebaseSessionInspector = React.lazy(() => import('./components/FirebaseSessionInspector'));
+const AdminAllProblems = React.lazy(() => import('./pages/AdminAllProblems'));
+
+// Activity pages
+const DemoActivity = React.lazy(() => import('./pages/DemoActivity'));
+const ListeningMapViewer = React.lazy(() => import('./pages/ListeningMapViewer'));
+
+// Dev tools
+const HotspotEditor = React.lazy(() => import('./pages/dev/HotspotEditor'));
 
 // Add global styles for snap guide
 const snapGuideStyles = `
@@ -248,6 +261,7 @@ const AppContent = () => {
   if (isClassroomMode) {
     return (
       <SessionProvider>
+        <Suspense fallback={<PageLoader />}>
         <Routes>
         {/* Landing page for edu site */}
         <Route path="/" element={<EduLandingPage />} />
@@ -326,7 +340,8 @@ const AppContent = () => {
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      
+      </Suspense>
+
       {/* Error logger - red button for students */}
       <ErrorLogger />
       </SessionProvider>
@@ -337,6 +352,7 @@ const AppContent = () => {
   return (
     <SessionProvider>
       <ClassProvider>
+      <Suspense fallback={<PageLoader />}>
       {toast && (
         <div 
           className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${
@@ -608,8 +624,9 @@ const AppContent = () => {
         {/* Fallback route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </ClassProvider>
-    
+
     {/* Error logger */}
     <ErrorLogger />
     </SessionProvider>
