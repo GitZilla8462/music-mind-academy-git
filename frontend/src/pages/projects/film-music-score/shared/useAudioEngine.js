@@ -21,6 +21,8 @@ export const useAudioEngine = (videoDuration = 60) => {
   const rafRef = useRef(null);
   const lastSeekTimeRef = useRef(0);
   const SEEK_DEBOUNCE_MS = 100;
+  const lastScheduleTimeRef = useRef(0);
+  const SCHEDULE_DEBOUNCE_MS = 50;
   const previewSourceRef = useRef(null);
   const currentPreviewLoopIdRef = useRef(null);
   const transportStoppedByStopRef = useRef(false);
@@ -174,6 +176,9 @@ export const useAudioEngine = (videoDuration = 60) => {
   }, [decodeAudioFile]);
 
   const scheduleLoops = useCallback((placedLoops, duration, trackStates) => {
+    const now = Date.now();
+    const timeSinceLastSchedule = now - lastScheduleTimeRef.current;
+
     console.log('\n========================================');
     console.log('🎬 SCHEDULE LOOPS CALLED');
     console.log('========================================');
@@ -182,13 +187,21 @@ export const useAudioEngine = (videoDuration = 60) => {
     console.log(`   Transport time: ${Tone.Transport.seconds.toFixed(3)}s`);
     console.log(`   AudioContext time: ${Tone.context.currentTime.toFixed(3)}s`);
     console.log(`   AudioContext state: ${Tone.context.state}`);
-
-    clearScheduledEvents();
+    console.log(`   Time since last schedule: ${timeSinceLastSchedule}ms`);
 
     if (Tone.Transport.state !== 'started') {
       console.log('⏸️ Transport not started - skipping scheduling');
       return;
     }
+
+    // Debounce rapid re-scheduling (within 50ms) to prevent double-triggers
+    if (timeSinceLastSchedule < SCHEDULE_DEBOUNCE_MS && activeSourcesRef.current.size > 0) {
+      console.log(`⏳ Debouncing schedule - ${activeSourcesRef.current.size} sources already active`);
+      return;
+    }
+    lastScheduleTimeRef.current = now;
+
+    clearScheduledEvents();
 
     const schedulingStartTime = Tone.Transport.seconds;
     const audioContext = getRawContext();
@@ -262,13 +275,43 @@ export const useAudioEngine = (videoDuration = 60) => {
       // Calculate timing
       const loopOffset = loop.startOffset || 0;
       const transportTime = Math.max(0, loop.startTime - schedulingStartTime);
-      const actualDuration = loop.endTime - Math.max(loop.startTime, schedulingStartTime);
+      const bufferDuration = player.buffer.duration;
 
-      console.log(`   Timing: transportTime=${transportTime.toFixed(3)}s, offset=${loopOffset.toFixed(3)}s, duration=${actualDuration.toFixed(3)}s`);
+      // How far into the timeline are we relative to this loop's start?
+      const timelineProgress = Math.max(0, schedulingStartTime - loop.startTime);
+
+      // Calculate timeline duration of this loop placement
+      const timelineDuration = loop.endTime - loop.startTime;
+
+      // Determine if loop should repeat (stretched beyond audio duration)
+      const shouldLoop = timelineDuration > bufferDuration * 1.05; // 5% tolerance
+
+      // Calculate audio offset - if looping, use modulo to find position within loop cycle
+      let audioOffset;
+      if (shouldLoop && timelineProgress > 0) {
+        // Find position within the current loop iteration
+        audioOffset = loopOffset + (timelineProgress % bufferDuration);
+        console.log(`   🔁 LOOPING: timeline=${timelineDuration.toFixed(1)}s, buffer=${bufferDuration.toFixed(1)}s, iteration=${Math.floor(timelineProgress / bufferDuration)}`);
+      } else {
+        // Normal - direct 1:1 mapping
+        audioOffset = loopOffset + timelineProgress;
+      }
+
+      // How much timeline remains for this loop
+      const remainingTimeline = loop.endTime - Math.max(loop.startTime, schedulingStartTime);
+
+      console.log(`   Timing: transportTime=${transportTime.toFixed(3)}s, audioOffset=${audioOffset.toFixed(3)}s, remainingTimeline=${remainingTimeline.toFixed(3)}s, bufferDur=${bufferDuration.toFixed(3)}s, shouldLoop=${shouldLoop}`);
 
       // Create AudioBufferSourceNode
       const source = audioContext.createBufferSource();
       source.buffer = player.buffer;
+
+      // Enable looping if the loop is stretched beyond audio duration
+      if (shouldLoop) {
+        source.loop = true;
+        source.loopStart = loopOffset;
+        source.loopEnd = bufferDuration;
+      }
 
       // Create gain node for volume
       const gainNode = audioContext.createGain();
@@ -278,27 +321,34 @@ export const useAudioEngine = (videoDuration = 60) => {
       source.connect(gainNode);
       gainNode.connect(audioContext.destination);
 
+      // Validate offset is within buffer bounds
+      if (audioOffset >= bufferDuration) {
+        console.log(`   ⏭️ Audio offset ${audioOffset.toFixed(3)}s >= buffer ${bufferDuration.toFixed(3)}s - skipping`);
+        return;
+      }
+
+      if (remainingTimeline <= 0) {
+        console.log(`   ⏭️ No timeline remaining - skipping`);
+        return;
+      }
+
       // Calculate when to start
       const now = audioContext.currentTime;
       let startWhen;
-      let startOffset = loopOffset;
 
       if (transportTime <= 0.01) {
         // Start immediately
         startWhen = 0;
-        // If we're starting mid-timeline, adjust offset
-        if (schedulingStartTime > loop.startTime) {
-          startOffset = loopOffset + (schedulingStartTime - loop.startTime);
-        }
-        console.log(`   🎵 START NOW (offset=${startOffset.toFixed(3)}s)`);
+        console.log(`   🎵 START NOW (audioOffset=${audioOffset.toFixed(3)}s, duration=${remainingTimeline.toFixed(3)}s, looping=${shouldLoop})`);
       } else {
         // Start in the future
         startWhen = now + transportTime;
-        console.log(`   🎵 START at ${startWhen.toFixed(3)}s (${transportTime.toFixed(3)}s from now)`);
+        console.log(`   🎵 START at ${startWhen.toFixed(3)}s (${transportTime.toFixed(3)}s from now), audioOffset=${audioOffset.toFixed(3)}s, looping=${shouldLoop}`);
       }
 
       try {
-        source.start(startWhen, startOffset, actualDuration);
+        // Duration parameter stops the source after remainingTimeline seconds
+        source.start(startWhen, audioOffset, remainingTimeline);
         activeSourcesRef.current.add(source);
 
         source.onended = () => {
