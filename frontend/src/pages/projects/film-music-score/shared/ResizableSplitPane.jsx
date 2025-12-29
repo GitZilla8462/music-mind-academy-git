@@ -3,15 +3,16 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { GripHorizontal } from 'lucide-react';
 
-const ResizableSplitPane = ({ 
-  topContent, 
-  bottomContent, 
+const ResizableSplitPane = ({
+  topContent,
+  bottomContent,
   initialTopHeight = 250, // Smaller initial height
   minTopHeight = 150,
   minBottomHeight = 300
 }) => {
   const [topHeight, setTopHeight] = useState(initialTopHeight);
   const [isDragging, setIsDragging] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   const containerRef = useRef(null);
   const dragStartY = useRef(0);
   const dragStartHeight = useRef(0);
@@ -73,19 +74,35 @@ const ResizableSplitPane = ({
         {topContent}
       </div>
 
-      {/* Resizable Divider */}
+      {/* Resizable Divider - Visual element with pointer-events: none */}
       <div
-        className={`flex-shrink-0 bg-gray-700 border-y border-gray-600 flex items-center justify-center cursor-row-resize transition-colors ${
-          isDragging ? 'bg-blue-600' : 'hover:bg-gray-600'
+        className={`flex-shrink-0 bg-gray-700 border-y border-gray-600 flex items-center justify-center transition-colors ${
+          isDragging ? 'bg-blue-600' : isHovering ? 'bg-gray-600' : ''
         }`}
-        style={{ height: '8px', zIndex: 40 }}
-        onMouseDown={handleMouseDown}
+        style={{ height: '8px', zIndex: 40, pointerEvents: 'none' }}
       >
-        <GripHorizontal 
-          size={16} 
+        <GripHorizontal
+          size={16}
           className={`text-gray-400 ${isDragging ? 'text-white' : ''}`}
+          style={{ pointerEvents: 'none' }}
         />
       </div>
+
+      {/* Invisible overlay for mouse events - prevents cursor flicker on Chromebook */}
+      <div
+        className="absolute left-0 right-0"
+        style={{
+          top: `${topHeight}px`,
+          height: '16px', // Larger hit area for easier grabbing
+          marginTop: '-4px', // Center over the visual divider
+          zIndex: 41,
+          cursor: 'row-resize',
+          pointerEvents: 'auto'
+        }}
+        onMouseDown={handleMouseDown}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+      />
 
       {/* Bottom Pane - Timeline */}
       <div className="flex-1 overflow-hidden relative" style={{ minHeight: `${minBottomHeight}px` }}>
