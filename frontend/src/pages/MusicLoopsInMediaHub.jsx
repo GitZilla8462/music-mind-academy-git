@@ -74,7 +74,8 @@ const MusicLoopsInMediaHub = () => {
         }
       }
 
-      window.location.href = `${lessonRoute}?session=${code}&role=teacher`;
+      // Use React Router navigate for instant client-side navigation (no page reload)
+      navigate(`${lessonRoute}?session=${code}&role=teacher`);
     } catch (error) {
       console.error('Error creating session:', error);
       alert('Failed to create session. Please try again.');
