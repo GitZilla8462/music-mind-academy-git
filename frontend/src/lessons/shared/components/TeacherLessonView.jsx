@@ -451,6 +451,7 @@ const MiniPreview = ({ viewMode, sessionCode, currentStage, currentStageData, se
 // ============================================
 // POST-SESSION SURVEY MODAL
 // Only shown when 5+ students joined (real classroom use)
+// Quick rating + any issues - takes 10 seconds
 // ============================================
 const PostSessionSurvey = ({
   onSubmit,
@@ -462,7 +463,6 @@ const PostSessionSurvey = ({
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [feedback, setFeedback] = useState('');
-  const [usedWithStudents, setUsedWithStudents] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -472,7 +472,7 @@ const PostSessionSurvey = ({
         sessionCode,
         lessonId,
         studentCount,
-        usedWithStudents,
+        usedWithStudents: true, // We know it's classroom use (5+ students)
         rating,
         feedback: feedback.trim(),
         submittedAt: Date.now()
@@ -491,96 +491,60 @@ const PostSessionSurvey = ({
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <MessageSquare size={24} />
-            Quick Feedback
+            How did it go?
           </h2>
           <p className="text-blue-100 text-sm mt-1">
-            Help us improve! (30 seconds)
+            Quick feedback (10 seconds)
           </p>
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Question 1: Used with students? */}
+          {/* Star Rating */}
           <div>
-            <p className="font-medium text-gray-800 mb-3">
-              Did you use this lesson with students today?
+            <p className="font-medium text-gray-800 mb-3 text-center">
+              Rate this lesson
             </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setUsedWithStudents(true)}
-                className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-                  usedWithStudents === true
-                    ? 'bg-green-100 border-2 border-green-500 text-green-700'
-                    : 'bg-gray-100 border-2 border-transparent text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                Yes, with students
-              </button>
-              <button
-                onClick={() => setUsedWithStudents(false)}
-                className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-                  usedWithStudents === false
-                    ? 'bg-blue-100 border-2 border-blue-500 text-blue-700'
-                    : 'bg-gray-100 border-2 border-transparent text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                Just testing
-              </button>
+            <div className="flex justify-center gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  className="p-1 transition-transform hover:scale-110"
+                >
+                  <Star
+                    size={40}
+                    className={`transition-colors ${
+                      star <= (hoverRating || rating)
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-gray-300'
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            <div className="text-center text-sm text-gray-500 mt-2 h-5">
+              {rating === 1 && 'Needs work'}
+              {rating === 2 && 'It was okay'}
+              {rating === 3 && 'Good'}
+              {rating === 4 && 'Great!'}
+              {rating === 5 && 'Amazing!'}
             </div>
           </div>
 
-          {/* Question 2: Rating (only show if used with students) */}
-          {usedWithStudents === true && (
-            <div>
-              <p className="font-medium text-gray-800 mb-3">
-                How did the lesson go?
-              </p>
-              <div className="flex justify-center gap-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => setRating(star)}
-                    onMouseEnter={() => setHoverRating(star)}
-                    onMouseLeave={() => setHoverRating(0)}
-                    className="p-1 transition-transform hover:scale-110"
-                  >
-                    <Star
-                      size={36}
-                      className={`transition-colors ${
-                        star <= (hoverRating || rating)
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'text-gray-300'
-                      }`}
-                    />
-                  </button>
-                ))}
-              </div>
-              <div className="text-center text-sm text-gray-500 mt-1">
-                {rating === 1 && 'Needs work'}
-                {rating === 2 && 'It was okay'}
-                {rating === 3 && 'Good'}
-                {rating === 4 && 'Great!'}
-                {rating === 5 && 'Amazing!'}
-              </div>
-            </div>
-          )}
-
-          {/* Question 3: Feedback (optional) */}
-          {usedWithStudents !== null && (
-            <div>
-              <p className="font-medium text-gray-800 mb-2">
-                Any feedback? <span className="text-gray-400 font-normal">(optional)</span>
-              </p>
-              <textarea
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
-                placeholder={usedWithStudents
-                  ? "What worked well? What could be better?"
-                  : "Any issues or suggestions?"
-                }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none h-24"
-              />
-            </div>
-          )}
+          {/* Quick Feedback */}
+          <div>
+            <p className="font-medium text-gray-800 mb-2">
+              Any issues or suggestions? <span className="text-gray-400 font-normal">(optional)</span>
+            </p>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="What worked? What didn't? Any bugs?"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none h-20"
+            />
+          </div>
         </div>
 
         {/* Footer */}
@@ -593,9 +557,9 @@ const PostSessionSurvey = ({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={usedWithStudents === null || submitting}
+            disabled={rating === 0 || submitting}
             className={`flex-1 py-2.5 px-4 rounded-lg font-medium transition-colors ${
-              usedWithStudents === null || submitting
+              rating === 0 || submitting
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-blue-600 hover:bg-blue-700 text-white'
             }`}
