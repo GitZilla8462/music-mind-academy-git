@@ -199,7 +199,7 @@ export const logStudentJoined = async (sessionCode, studentCount) => {
 // ==========================================
 
 /**
- * Save survey response from teacher after session
+ * Save survey response from teacher after session (quick rating)
  */
 export const saveSurveyResponse = async (surveyData) => {
   if (!surveyData.sessionCode) return;
@@ -209,6 +209,7 @@ export const saveSurveyResponse = async (surveyData) => {
     const surveyRef = ref(database, `surveys/${surveyData.sessionCode}`);
     await set(surveyRef, {
       ...surveyData,
+      surveyType: 'quick',
       savedAt: Date.now()
     });
 
@@ -216,14 +217,77 @@ export const saveSurveyResponse = async (surveyData) => {
     const sessionRef = ref(database, `pilotSessions/${surveyData.sessionCode}`);
     await update(sessionRef, {
       hasSurvey: true,
+      surveyType: 'quick',
       surveyRating: surveyData.rating || null,
       usedWithStudents: surveyData.usedWithStudents,
       surveySubmittedAt: Date.now()
     });
 
-    console.log(`📊 Saved survey for session ${surveyData.sessionCode}`);
+    console.log(`📊 Saved quick survey for session ${surveyData.sessionCode}`);
   } catch (error) {
     console.error('Failed to save survey:', error);
+    throw error;
+  }
+};
+
+/**
+ * Save mid-pilot survey response (after Lesson 3)
+ */
+export const saveMidPilotSurvey = async (surveyData) => {
+  if (!surveyData.sessionCode) return;
+
+  try {
+    // Save to midPilot surveys collection
+    const surveyRef = ref(database, `surveys/midPilot/${surveyData.sessionCode}`);
+    await set(surveyRef, {
+      ...surveyData,
+      surveyType: 'midPilot',
+      savedAt: Date.now()
+    });
+
+    // Also update the session record
+    const sessionRef = ref(database, `pilotSessions/${surveyData.sessionCode}`);
+    await update(sessionRef, {
+      hasSurvey: true,
+      surveyType: 'midPilot',
+      surveySubmittedAt: Date.now()
+    });
+
+    console.log(`📊 Saved mid-pilot survey for session ${surveyData.sessionCode}`);
+  } catch (error) {
+    console.error('Failed to save mid-pilot survey:', error);
+    throw error;
+  }
+};
+
+/**
+ * Save final PMF survey response (after Lesson 5)
+ */
+export const saveFinalPilotSurvey = async (surveyData) => {
+  if (!surveyData.sessionCode) return;
+
+  try {
+    // Save to finalPilot surveys collection
+    const surveyRef = ref(database, `surveys/finalPilot/${surveyData.sessionCode}`);
+    await set(surveyRef, {
+      ...surveyData,
+      surveyType: 'finalPilot',
+      savedAt: Date.now()
+    });
+
+    // Also update the session record
+    const sessionRef = ref(database, `pilotSessions/${surveyData.sessionCode}`);
+    await update(sessionRef, {
+      hasSurvey: true,
+      surveyType: 'finalPilot',
+      pmfScore: surveyData.disappointment,
+      npsScore: surveyData.npsScore,
+      surveySubmittedAt: Date.now()
+    });
+
+    console.log(`📊 Saved final pilot survey for session ${surveyData.sessionCode}`);
+  } catch (error) {
+    console.error('Failed to save final pilot survey:', error);
     throw error;
   }
 };
