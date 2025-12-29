@@ -502,11 +502,6 @@ const SchoolBeneathActivity = ({
               </button>
             )}
             
-            {/* Auto-save indicator */}
-            {studentId && !viewMode && (
-              <AutoSaveIndicator lastSaved={lastSaved} isSaving={isSaving} />
-            )}
-            
             {/* Loop count */}
             <div className="text-xs text-gray-400">
               {placedLoops.length} loops
