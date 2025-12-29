@@ -342,17 +342,15 @@ export const useAudioEngine = (videoDuration = 60) => {
             const gainNode = audioContext.createGain();
             gainNode.gain.value = effectiveVolume;
 
-            // Connect: source -> gain -> master gain -> destination
+            // Connect: source -> gain -> destination (direct connection for reliability)
             source.connect(gainNode);
-            if (gainNodeRef.current) {
-              gainNode.connect(gainNodeRef.current);
-            } else {
-              gainNode.connect(audioContext.destination);
-            }
+            gainNode.connect(audioContext.destination);
 
-            // Calculate absolute AudioContext time for this loop
-            // contextTime is "now", transportTime is how far in the future to start
-            const startWhen = contextTime + transportTime;
+            // Calculate when to start:
+            // - For immediate playback (transportTime = 0), use 0 which means "start now"
+            // - For scheduled playback, use current time + transport time + small buffer
+            const now = audioContext.currentTime;
+            const startWhen = transportTime <= 0.01 ? 0 : now + transportTime + 0.01;
 
             // ✅ SAMPLE-ACCURATE: Use source.start(when, offset, duration)
             source.start(startWhen, loopOffset, actualDuration);
@@ -367,7 +365,7 @@ export const useAudioEngine = (videoDuration = 60) => {
               gainNode.disconnect();
             };
 
-            if (isDevMode) console.log(`  🎵 AudioBuffer scheduled at context time ${startWhen.toFixed(3)}s`);
+            console.log(`  🎵 AudioBuffer scheduled: ${loop.name} at ${startWhen === 0 ? 'NOW' : startWhen.toFixed(3) + 's'}, offset: ${loopOffset.toFixed(2)}s, duration: ${actualDuration.toFixed(2)}s`);
             scheduledCount++;
           } else {
             // ✅ Tone.js Player (for non-MP3 files)
