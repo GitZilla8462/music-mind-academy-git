@@ -2,14 +2,24 @@
 // src/context/FirebaseAuthContext.jsx
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { signInWithPopup, signOut as firebaseSignOut, onAuthStateChanged } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase/config';
+import {
+  signInWithPopup,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink
+} from 'firebase/auth';
+import { auth, googleProvider, microsoftProvider } from '../firebase/config';
 import { getOrCreateUser, getUserById } from '../firebase/users';
 import { isEmailApproved } from '../firebase/approvedEmails';
 import { trackFirstLogin } from '../firebase/analytics';
 
 // Import to expose console helpers (addApprovedEmail, etc.)
 import '../firebase/approvedEmails';
+
+// Key for storing email for magic link sign-in
+const EMAIL_FOR_SIGN_IN_KEY = 'emailForSignIn';
 
 const FirebaseAuthContext = createContext(null);
 
@@ -102,6 +112,151 @@ export const FirebaseAuthProvider = ({ children }) => {
     }
   };
 
+  // Sign in with Microsoft
+  const signInWithMicrosoft = async () => {
+    setError(null);
+    try {
+      const result = await signInWithPopup(auth, microsoftProvider);
+      const firebaseUser = result.user;
+
+      // Check if email is approved for pilot program
+      const approved = await isEmailApproved(firebaseUser.email);
+
+      if (!approved) {
+        // Sign them out immediately
+        await firebaseSignOut(auth);
+        setUser(null);
+        setUserData(null);
+
+        const notApprovedError = new Error("Your email is not registered for access. Contact support@musicmindacademy.com");
+        notApprovedError.code = 'auth/not-approved';
+        console.log('⚠️ Email not approved:', firebaseUser.email);
+        throw notApprovedError;
+      }
+
+      // Get or create user document in Firestore
+      const data = await getOrCreateUser(firebaseUser);
+      setUserData(data);
+
+      // Track login for analytics
+      trackFirstLogin(firebaseUser.uid, firebaseUser.email).catch(err => {
+        console.warn('Analytics tracking failed (non-critical):', err.message);
+      });
+
+      console.log('✅ Microsoft Sign-In successful:', firebaseUser.email);
+      return { user: firebaseUser, userData: data };
+    } catch (err) {
+      console.error('❌ Microsoft Sign-In error:', err);
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  // Send magic link email
+  const sendMagicLink = async (email) => {
+    setError(null);
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // First check if email is approved
+    const approved = await isEmailApproved(normalizedEmail);
+
+    if (!approved) {
+      const notApprovedError = new Error("This email is not registered. Contact support@musicmindacademy.com");
+      notApprovedError.code = 'auth/not-approved';
+      console.log('⚠️ Email not approved for magic link:', normalizedEmail);
+      throw notApprovedError;
+    }
+
+    // Configure the action code settings
+    const actionCodeSettings = {
+      url: window.location.origin + '/login',
+      handleCodeInApp: true
+    };
+
+    try {
+      await sendSignInLinkToEmail(auth, normalizedEmail, actionCodeSettings);
+      // Store the email locally for when user returns
+      localStorage.setItem(EMAIL_FOR_SIGN_IN_KEY, normalizedEmail);
+      console.log('✅ Magic link sent to:', normalizedEmail);
+      return true;
+    } catch (err) {
+      console.error('❌ Failed to send magic link:', err);
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  // Complete magic link sign-in (called when user returns from email link)
+  const completeMagicLinkSignIn = async (emailFromPrompt = null) => {
+    setError(null);
+
+    // Check if current URL is a sign-in link
+    if (!isSignInWithEmailLink(auth, window.location.href)) {
+      return null; // Not a magic link URL
+    }
+
+    // Get email from localStorage or prompt
+    let email = localStorage.getItem(EMAIL_FOR_SIGN_IN_KEY);
+    if (!email && emailFromPrompt) {
+      email = emailFromPrompt;
+    }
+
+    if (!email) {
+      // User needs to provide email
+      const needsEmailError = new Error('Please enter your email to complete sign-in');
+      needsEmailError.code = 'auth/needs-email';
+      throw needsEmailError;
+    }
+
+    try {
+      const result = await signInWithEmailLink(auth, email, window.location.href);
+      const firebaseUser = result.user;
+
+      // Clear the stored email
+      localStorage.removeItem(EMAIL_FOR_SIGN_IN_KEY);
+
+      // Check if email is approved (double check)
+      const approved = await isEmailApproved(firebaseUser.email);
+
+      if (!approved) {
+        await firebaseSignOut(auth);
+        setUser(null);
+        setUserData(null);
+
+        const notApprovedError = new Error("Your email is not registered for access. Contact support@musicmindacademy.com");
+        notApprovedError.code = 'auth/not-approved';
+        throw notApprovedError;
+      }
+
+      // Get or create user document
+      const data = await getOrCreateUser(firebaseUser);
+      setUserData(data);
+
+      // Track login
+      trackFirstLogin(firebaseUser.uid, firebaseUser.email).catch(err => {
+        console.warn('Analytics tracking failed (non-critical):', err.message);
+      });
+
+      console.log('✅ Magic link Sign-In successful:', firebaseUser.email);
+      return { user: firebaseUser, userData: data };
+    } catch (err) {
+      console.error('❌ Magic link Sign-In error:', err);
+      localStorage.removeItem(EMAIL_FOR_SIGN_IN_KEY);
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  // Check if current URL is a magic link
+  const isMagicLinkUrl = () => {
+    return isSignInWithEmailLink(auth, window.location.href);
+  };
+
+  // Get stored email for magic link (if any)
+  const getStoredEmailForMagicLink = () => {
+    return localStorage.getItem(EMAIL_FOR_SIGN_IN_KEY);
+  };
+
   // Sign out
   const signOut = async () => {
     try {
@@ -123,6 +278,11 @@ export const FirebaseAuthProvider = ({ children }) => {
     error,
     isAuthenticated: !!user,
     signInWithGoogle,
+    signInWithMicrosoft,
+    sendMagicLink,
+    completeMagicLinkSignIn,
+    isMagicLinkUrl,
+    getStoredEmailForMagicLink,
     signOut
   };
 

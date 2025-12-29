@@ -5,7 +5,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, set, onValue, update, remove, push, get } from 'firebase/database';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAv0tH8VmKizydKhdHfFFgKES9Ir-PfXtA",
@@ -21,9 +21,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-// Initialize Firebase Auth with Google Provider
+// Initialize Firebase Auth with Google and Microsoft Providers
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+export const microsoftProvider = new OAuthProvider('microsoft.com');
 
 // ==========================================
 // SESSION FUNCTIONS
