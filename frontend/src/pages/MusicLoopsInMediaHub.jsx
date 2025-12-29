@@ -360,22 +360,15 @@ const MusicLoopsInMediaHub = () => {
                 </p>
               </div>
 
-              {/* Tutorial Video */}
+              {/* Tutorial Video Button */}
               <div className="mt-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                  <Play className="w-5 h-5 text-sky-600" />
+                <button
+                  onClick={() => window.open('/lessons/TutorialVideo.mp4', '_blank', 'width=1280,height=720,menubar=no,toolbar=no')}
+                  className="bg-sky-500 hover:bg-sky-600 text-white px-5 py-3 rounded-lg font-semibold text-base transition-colors flex items-center gap-2"
+                >
+                  <Play className="w-5 h-5" />
                   Watch Tutorial Video
-                </h3>
-                <div className="rounded-lg overflow-hidden border border-slate-200 bg-black">
-                  <video
-                    controls
-                    className="w-full"
-                    poster="/lessons/TutorialVideo-poster.jpg"
-                  >
-                    <source src="/lessons/TutorialVideo.mp4" type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
+                </button>
               </div>
             </div>
           )}
