@@ -96,7 +96,8 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = f
     }
 
     audioRef.current = new Audio(currentLoop.file);
-    audioRef.current.loop = true;
+    audioRef.current.loop = false; // Play only once
+    audioRef.current.onended = () => setIsPlaying(false); // Stop when done
     audioRef.current.play()
       .then(() => setIsPlaying(true))
       .catch(err => console.error('Error playing audio:', err));
@@ -170,17 +171,63 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = f
 
   // SCREEN: Game Complete
   if (isGameComplete) {
+    // Play the last loop again if needed
+    const playLastLoop = () => {
+      const lastLoop = GAME_LOOPS[GAME_LOOPS.length - 1];
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      audioRef.current = new Audio(lastLoop.file);
+      audioRef.current.loop = false;
+      audioRef.current.onended = () => setIsPlaying(false);
+      audioRef.current.play()
+        .then(() => setIsPlaying(true))
+        .catch(err => console.error('Error playing audio:', err));
+    };
+
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8">
-        <div className="text-center max-w-lg">
-          <h1 className="text-4xl font-bold text-white mb-4">GAME COMPLETE</h1>
-          <div className="w-16 h-1 bg-green-500 mx-auto mb-8"></div>
-          <p className="text-2xl text-gray-300 mb-4">
-            You voted on {Object.keys(myVotes).length} of {GAME_LOOPS.length} loops.
-          </p>
-          <p className="text-lg text-gray-400">
-            Watch the screen for class discussion.
-          </p>
+      <div className="h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8">
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="text-center max-w-lg">
+            <h1 className="text-4xl font-bold text-white mb-4">GAME COMPLETE</h1>
+            <div className="w-16 h-1 bg-green-500 mx-auto mb-8"></div>
+            <p className="text-2xl text-gray-300 mb-4">
+              You voted on {Object.keys(myVotes).length} of {GAME_LOOPS.length} loops.
+            </p>
+            <p className="text-lg text-gray-400">
+              Watch the screen for class discussion.
+            </p>
+          </div>
+        </div>
+
+        {/* Bottom bar with Play and Advance buttons */}
+        <div className="flex justify-end gap-4 pb-4">
+          <button
+            onClick={isPlaying ? stopLoop : playLastLoop}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg text-lg font-bold transition-all ${
+              isPlaying
+                ? 'bg-red-600 hover:bg-red-500 text-white'
+                : 'bg-gray-600 hover:bg-gray-500 text-white'
+            }`}
+          >
+            {isPlaying ? (
+              <>
+                <Pause className="w-6 h-6" />
+                STOP
+              </>
+            ) : (
+              <>
+                <Play className="w-6 h-6" />
+                PLAY
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => onComplete?.()}
+            className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-500 text-white text-lg font-bold rounded-lg transition-all"
+          >
+            Advance Lesson →
+          </button>
         </div>
       </div>
     );

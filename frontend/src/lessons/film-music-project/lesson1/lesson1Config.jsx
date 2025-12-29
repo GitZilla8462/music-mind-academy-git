@@ -91,7 +91,7 @@ export const lessonSections = [
         type: 'activity',
         label: '🎮 Unlock Mood Match Game',
         duration: 5,
-        hasTimer: true,
+        hasTimer: false,
         trackProgress: true,
         description: 'STUDENTS WORK: Listen to loops, match to mood categories.',
         bonusDescription: 'Bonus: Try to get a perfect score!'
@@ -320,7 +320,7 @@ export const lessonStages = [
     bonusDescription: 'Bonus: Try to get a perfect score!',
     hasProgress: true,
     type: 'activity',
-    hasTimer: true,
+    hasTimer: false,
     duration: 5,
     presentationView: {
       type: 'mood-match-teacher',
