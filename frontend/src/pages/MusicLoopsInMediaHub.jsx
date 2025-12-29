@@ -360,14 +360,32 @@ const MusicLoopsInMediaHub = () => {
                 </p>
               </div>
 
-              {/* Tutorial Video Button */}
+              {/* Tutorial Video Thumbnail */}
               <div className="mt-6">
                 <button
                   onClick={() => window.open('/lessons/TutorialVideo.mp4', '_blank', 'width=1280,height=720,menubar=no,toolbar=no')}
-                  className="bg-sky-500 hover:bg-sky-600 text-white px-5 py-3 rounded-lg font-semibold text-base transition-colors flex items-center gap-2"
+                  className="group relative w-full max-w-md rounded-xl overflow-hidden border-2 border-slate-200 hover:border-sky-400 transition-all shadow-sm hover:shadow-lg"
                 >
-                  <Play className="w-5 h-5" />
-                  Watch Tutorial Video
+                  {/* Video Thumbnail Background */}
+                  <div className="aspect-video bg-gradient-to-br from-sky-600 via-blue-700 to-indigo-800 flex items-center justify-center relative">
+                    {/* Decorative elements */}
+                    <div className="absolute inset-0 opacity-20">
+                      <div className="absolute top-4 left-4 w-16 h-16 border-2 border-white rounded-lg"></div>
+                      <div className="absolute bottom-4 right-4 w-24 h-3 bg-white rounded"></div>
+                      <div className="absolute bottom-10 right-4 w-16 h-3 bg-white rounded"></div>
+                    </div>
+
+                    {/* Play Button */}
+                    <div className="w-20 h-20 bg-white/90 group-hover:bg-white rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                      <Play className="w-10 h-10 text-sky-600 ml-1" fill="currentColor" />
+                    </div>
+                  </div>
+
+                  {/* Label */}
+                  <div className="bg-white px-4 py-3 text-left">
+                    <p className="font-semibold text-slate-900 text-base">Watch: How to Run a Lesson</p>
+                    <p className="text-sm text-slate-500">2 min tutorial</p>
+                  </div>
                 </button>
               </div>
             </div>
