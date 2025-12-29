@@ -17,7 +17,7 @@ const MusicLoopsInMediaHub = () => {
   const [gettingStartedOpen, setGettingStartedOpen] = useState(true);
 
   // Get authenticated teacher info
-  const { user } = useFirebaseAuth();
+  const { user, signOut } = useFirebaseAuth();
 
   // Default to teacher role - hub is for teachers
   const userRole = localStorage.getItem('classroom-user-role') || 'teacher';
@@ -280,9 +280,14 @@ const MusicLoopsInMediaHub = () => {
             </h1>
             {user && (
               <button
-                onClick={() => {
-                  localStorage.removeItem('classroom-logged-in');
-                  navigate('/');
+                onClick={async () => {
+                  try {
+                    await signOut();
+                    localStorage.removeItem('classroom-logged-in');
+                    navigate('/login');
+                  } catch (err) {
+                    console.error('Logout failed:', err);
+                  }
                 }}
                 className="text-lg text-slate-600 hover:text-slate-900 font-medium"
               >
