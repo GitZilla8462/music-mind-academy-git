@@ -167,10 +167,15 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
       ...reflectionData,
       submittedAt: new Date().toISOString()
     };
-    
+
     localStorage.setItem('sports-reflection', JSON.stringify(fullData));
     console.log('✅ Sports reflection saved:', fullData);
-    
+
+    // Clear stickers before transitioning
+    setReflectionData(prev => ({ ...prev, stickers: [] }));
+    setSelectedSticker(null);
+    setIsPlacingSticker(false);
+
     if (onComplete) {
       onComplete();
     }

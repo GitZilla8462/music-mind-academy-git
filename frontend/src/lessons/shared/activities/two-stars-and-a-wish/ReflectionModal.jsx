@@ -247,7 +247,12 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
   };
 
   const handleSubmitReflection = () => {
-    // This is called from the summary step (step 6)
+    // Clear stickers before transitioning
+    setReflectionData(prev => ({ ...prev, stickers: [] }));
+    setSelectedSticker(null);
+    setIsPlacingSticker(false);
+
+    // This is called from the summary step (step 9)
     // Reflection is already saved from handleFinalSubmit
     // Now we call onComplete to transition to the game
     console.log('Submit Reflection clicked - transitioning to game');

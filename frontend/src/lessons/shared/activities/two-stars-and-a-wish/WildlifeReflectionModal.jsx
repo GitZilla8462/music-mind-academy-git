@@ -165,7 +165,7 @@ const WildlifeReflectionModal = ({
       ...reflectionData,
       submittedAt: new Date().toISOString()
     };
-    
+
     // Save using the lesson4 storage utility
     saveReflection(
       fullData.reviewType,
@@ -174,11 +174,16 @@ const WildlifeReflectionModal = ({
       fullData.star2,
       fullData.wish
     );
-    
+
     // Also save to localStorage for consistency
     localStorage.setItem('epic-wildlife-reflection', JSON.stringify(fullData));
     console.log('✅ Wildlife reflection saved:', fullData);
-    
+
+    // Clear stickers before transitioning
+    setReflectionData(prev => ({ ...prev, stickers: [] }));
+    setSelectedSticker(null);
+    setIsPlacingSticker(false);
+
     if (onComplete) {
       onComplete();
     }

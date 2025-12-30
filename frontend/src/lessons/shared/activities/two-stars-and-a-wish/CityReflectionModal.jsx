@@ -164,10 +164,15 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
       ...reflectionData,
       submittedAt: new Date().toISOString()
     };
-    
+
     localStorage.setItem('city-reflection', JSON.stringify(fullData));
     console.log('✅ City reflection saved:', fullData);
-    
+
+    // Clear stickers before transitioning
+    setReflectionData(prev => ({ ...prev, stickers: [] }));
+    setSelectedSticker(null);
+    setIsPlacingSticker(false);
+
     if (onComplete) {
       onComplete();
     }
