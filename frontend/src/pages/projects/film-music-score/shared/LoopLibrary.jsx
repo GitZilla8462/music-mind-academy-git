@@ -15,6 +15,12 @@ import { soundEffects, SFX_CATEGORY_COLORS } from './soundEffectsData';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
+// CHROMEBOOK FIX: Detect Chromebook for custom drag image
+const isChromebook = typeof navigator !== 'undefined' && (
+  /CrOS/.test(navigator.userAgent) ||
+  (navigator.userAgentData?.platform === 'Chrome OS')
+);
+
 const INSTRUMENT_COLORS = {
   'Guitar': '#f97316',
   'Bass': '#2563eb',
@@ -346,7 +352,27 @@ const LoopLibrary = ({
 
     e.dataTransfer.effectAllowed = 'copy';
     e.dataTransfer.setData('application/json', JSON.stringify(loop));
-    
+
+    // CHROMEBOOK FIX: Use custom drag image to avoid cursor being captured in preview
+    if (isChromebook) {
+      const dragPreview = e.target.cloneNode(true);
+      dragPreview.style.position = 'absolute';
+      dragPreview.style.top = '-1000px';
+      dragPreview.style.left = '-1000px';
+      dragPreview.style.cursor = 'none';
+      dragPreview.style.pointerEvents = 'none';
+      dragPreview.style.width = `${e.target.offsetWidth}px`;
+      document.body.appendChild(dragPreview);
+
+      // Set drag image offset to center of element
+      e.dataTransfer.setDragImage(dragPreview, e.target.offsetWidth / 2, 15);
+
+      // Clean up after drag starts
+      setTimeout(() => {
+        document.body.removeChild(dragPreview);
+      }, 0);
+    }
+
     if (onLoopDragStart) {
       onLoopDragStart(loop);
     }
