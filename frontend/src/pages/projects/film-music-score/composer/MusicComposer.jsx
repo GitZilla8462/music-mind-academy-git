@@ -700,11 +700,13 @@ const MusicComposer = ({
       await initializeAudio();
       setAudioReady(true);
       needsUserGestureRef.current = false;
+      console.log('🎵 Audio initialized successfully!');
       showToast?.('Audio engine ready!', 'success');
     } catch (error) {
-      console.error('Failed to initialize audio:', error);
+      console.error('❌ Failed to auto-initialize audio:', error);
       // Mark that we need a user gesture to retry
       needsUserGestureRef.current = true;
+      console.log('🎵 Set needsUserGesture = true, waiting for click');
       // Don't spam toast on autoplay failure - this is expected
       if (!error.message?.includes('user gesture')) {
         showToast?.('Failed to initialize audio engine', 'error');
@@ -722,9 +724,15 @@ const MusicComposer = ({
 
   // Retry audio initialization on user click if it failed on mount
   useEffect(() => {
-    if (audioReady) return; // Already initialized
+    if (audioReady) {
+      console.log('🎵 Audio already ready, no click listener needed');
+      return;
+    }
 
-    const handleClick = () => {
+    console.log('🎵 Adding click listener for audio retry, needsUserGesture:', needsUserGestureRef.current);
+
+    const handleClick = (e) => {
+      console.log('🎵 Click detected, needsUserGesture:', needsUserGestureRef.current, 'audioReady:', audioReady);
       // Only retry if we know we need a user gesture
       if (needsUserGestureRef.current) {
         console.log('🎵 Retrying audio init on user click');
@@ -734,7 +742,10 @@ const MusicComposer = ({
     };
 
     document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
+    return () => {
+      console.log('🎵 Removing click listener');
+      document.removeEventListener('click', handleClick);
+    };
   }, [audioReady, handleInitializeAudio]);
 
   const handleSubmit = async () => {
