@@ -7,27 +7,45 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 
 // Cursor SVG components - inline for no flicker during cursor type changes
+// Designed to match standard OS cursors as closely as possible
 const CursorSVGs = {
+  // Standard arrow pointer - matches Windows/Mac default cursor
   default: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M1 1L11 5.5L7 7L5.5 11L1 1Z" fill="black" stroke="white" strokeWidth="1"/>
+    <svg width="20" height="24" viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M2 1L2 18L6 14L9 21L12 20L9 13L15 13L2 1Z"
+        fill="black"
+        stroke="white"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
     </svg>
   ),
-  
+
+  // Open hand for grab - thumb on LEFT (back of right hand view)
   grab: (
-    <svg width="20" height="22" viewBox="0 0 20 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M6.5 8V4.5C6.5 3.67 7.17 3 8 3C8.83 3 9.5 3.67 9.5 4.5V8" stroke="black" strokeWidth="1.5" fill="white"/>
-      <path d="M9.5 7V3C9.5 2.17 10.17 1.5 11 1.5C11.83 1.5 12.5 2.17 12.5 3V7" stroke="black" strokeWidth="1.5" fill="white"/>
-      <path d="M12.5 7.5V4C12.5 3.17 13.17 2.5 14 2.5C14.83 2.5 15.5 3.17 15.5 4V12C15.5 16 13 19 10 19C7 19 4.5 16 4.5 12V9C4.5 8.17 5.17 7.5 6 7.5C6.83 7.5 7.5 8.17 7.5 9" stroke="black" strokeWidth="1.5" fill="white"/>
-      <path d="M6.5 8V4.5C6.5 3.67 7.17 3 8 3C8.83 3 9.5 3.67 9.5 4.5V8" stroke="black" strokeWidth="1" fill="white"/>
+    <svg width="22" height="24" viewBox="0 0 22 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Thumb on left */}
+      <path d="M4 11V8C4 6.9 4.9 6 6 6C7.1 6 8 6.9 8 8V11" fill="white" stroke="black" strokeWidth="1.5"/>
+      {/* Index finger */}
+      <path d="M8 10V4C8 2.9 8.9 2 10 2C11.1 2 12 2.9 12 4V10" fill="white" stroke="black" strokeWidth="1.5"/>
+      {/* Middle finger */}
+      <path d="M12 10V3C12 1.9 12.9 1 14 1C15.1 1 16 1.9 16 3V10" fill="white" stroke="black" strokeWidth="1.5"/>
+      {/* Ring finger */}
+      <path d="M16 10V4C16 2.9 16.9 2 18 2C19.1 2 20 2.9 20 4V14C20 19 16.5 22 12 22C7.5 22 4 19 4 14V11" fill="white" stroke="black" strokeWidth="1.5"/>
     </svg>
   ),
-  
+
+  // Closed hand for grabbing/dragging
   grabbing: (
-    <svg width="20" height="22" viewBox="0 0 20 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M6.5 10V9C6.5 8.17 7.17 7.5 8 7.5C8.83 7.5 9.5 8.17 9.5 9V10" stroke="black" strokeWidth="1.5" fill="white"/>
-      <path d="M9.5 10V8.5C9.5 7.67 10.17 7 11 7C11.83 7 12.5 7.67 12.5 8.5V10" stroke="black" strokeWidth="1.5" fill="white"/>
-      <path d="M12.5 10V9C12.5 8.17 13.17 7.5 14 7.5C14.83 7.5 15.5 8.17 15.5 9V12C15.5 16 13 19 10 19C7 19 4.5 16 4.5 12V11C4.5 10.17 5.17 9.5 6 9.5C6.83 9.5 7.5 10.17 7.5 11" stroke="black" strokeWidth="1.5" fill="white"/>
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Thumb on left - curled */}
+      <path d="M4 12V10C4 9.4 4.6 9 5.2 9C5.8 9 6.5 9.4 6.5 10V12" fill="white" stroke="black" strokeWidth="1.5"/>
+      {/* Fingers curled */}
+      <path d="M6.5 11C6.5 11 7 8 9 8C11 8 11.5 11 11.5 11" fill="white" stroke="black" strokeWidth="1.5"/>
+      <path d="M11.5 11C11.5 11 12 8.5 14 8.5C16 8.5 16.5 11 16.5 11" fill="white" stroke="black" strokeWidth="1.5"/>
+      {/* Palm */}
+      <path d="M4 12V14C4 18 7.5 20 12 20C16.5 20 19 17 19 13V11C19 9.9 18.1 9 17 9C15.9 9 16.5 11 16.5 11" fill="white" stroke="black" strokeWidth="1.5"/>
     </svg>
   ),
   
@@ -75,9 +93,9 @@ const CursorSVGs = {
 
 // Hotspot offsets for each cursor (where the "click point" is)
 const HOTSPOTS = {
-  default: { x: 0, y: 0 },
-  grab: { x: 10, y: 10 },
-  grabbing: { x: 10, y: 10 },
+  default: { x: 2, y: 1 },  // Tip of arrow
+  grab: { x: 11, y: 12 },   // Center of palm
+  grabbing: { x: 11, y: 11 }, // Center of closed fist
   'ew-resize': { x: 10, y: 8 },
   'col-resize': { x: 8, y: 10 },
   'row-resize': { x: 10, y: 8 },
