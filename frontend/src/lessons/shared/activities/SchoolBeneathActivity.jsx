@@ -16,6 +16,12 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 
 const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes
 
+// CHROMEBOOK FIX: Detect Chromebook for custom cursor
+const isChromebook = typeof navigator !== 'undefined' && (
+  /CrOS/.test(navigator.userAgent) ||
+  (navigator.userAgentData?.platform === 'Chrome OS')
+);
+
 const SchoolBeneathActivity = ({
   onComplete,
   viewMode = false,
@@ -454,7 +460,7 @@ const SchoolBeneathActivity = ({
   // ============================================================================
   
   return (
-    <div className="h-full flex flex-col bg-gray-900 relative">{/* Added relative for overlay positioning */}
+    <div className={`h-full flex flex-col bg-gray-900 relative ${isChromebook ? 'chromebook-hide-cursor' : ''}`}>{/* Added relative for overlay positioning */}
       {/* Save Message Toast */}
       {saveMessage && (
         <div
