@@ -75,6 +75,7 @@ const MusicComposer = ({
   const savedLoopsRef = useRef(null);
   const dawReadyCalledRef = useRef(false);
   const initialLoopsLoadedRef = useRef(false);
+  const audioInitAttemptedRef = useRef(false);  // Prevent spam initialization
   const [currentlyPlayingPreview, setCurrentlyPlayingPreview] = useState(null);
 
   // Creator tools state (Beat Maker and Melody Maker panels)
@@ -208,6 +209,15 @@ const MusicComposer = ({
   React.useEffect(() => {
     console.log('🎵 MusicComposer showSoundEffects prop:', showSoundEffects);
   }, [showSoundEffects]);
+
+  // Auto-initialize audio on mount (once only, not on every render)
+  // This will attempt to start audio context - if browser blocks it (no user gesture),
+  // the ref resets and it will retry when user clicks anywhere
+  useEffect(() => {
+    if (!audioReady && !audioInitAttemptedRef.current) {
+      handleInitializeAudio();
+    }
+  }, [audioReady, handleInitializeAudio]);
 
   // Audio engine hook SECOND (now selectedVideo exists)
   const {
@@ -671,16 +681,25 @@ const MusicComposer = ({
     });
   }, []);
 
-  const handleInitializeAudio = async () => {
+  const handleInitializeAudio = useCallback(async () => {
+    // Prevent spam - only attempt once until user gesture succeeds
+    if (audioInitAttemptedRef.current) return;
+    audioInitAttemptedRef.current = true;
+
     try {
       await initializeAudio();
       setAudioReady(true);
       showToast?.('Audio engine ready!', 'success');
     } catch (error) {
+      // Reset on failure so user can retry with a click
+      audioInitAttemptedRef.current = false;
       console.error('Failed to initialize audio:', error);
-      showToast?.('Failed to initialize audio engine', 'error');
+      // Don't spam toast on autoplay failure - this is expected
+      if (!error.message?.includes('user gesture')) {
+        showToast?.('Failed to initialize audio engine', 'error');
+      }
     }
-  };
+  }, [initializeAudio, showToast]);
 
   const handleSubmit = async () => {
     if (placedLoops.length === 0) {
@@ -769,11 +788,7 @@ const MusicComposer = ({
         />
       )}
 
-      {/* Auto-initialize audio on first render - including tutorial mode */}
-      {!audioReady && (() => {
-        handleInitializeAudio();
-        return null;
-      })()}
+      {/* Audio is initialized via useEffect on mount, not inline */}
 
       {/* Header */}
       {!hideHeader && (
