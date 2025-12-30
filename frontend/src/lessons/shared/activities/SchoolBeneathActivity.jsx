@@ -217,6 +217,7 @@ const SchoolBeneathActivity = ({
   }, [sessionCode, isSessionMode, viewMode, placedLoops, studentId]);
 
   // Load saved work on mount ONLY - includes manual saves and view mode (from Join page)
+  // NOTE: We only load placedLoops here, NOT videoDuration - let video detection effect handle duration
   useEffect(() => {
     if (!studentId) return;
 
@@ -232,7 +233,7 @@ const SchoolBeneathActivity = ({
     const savedWork = loadStudentWork(storageKey, studentId);
     if (savedWork && savedWork.data && savedWork.data.placedLoops && savedWork.data.placedLoops.length > 0) {
       setPlacedLoops(savedWork.data.placedLoops);
-      setVideoDuration(savedWork.data.videoDuration || 60);
+      // DON'T set videoDuration from saved data - let video detection effect always re-detect
       console.log('✅ Loaded from saved work:', savedWork.data.placedLoops.length, 'loops');
       hasLoadedRef.current = true;
       return;
@@ -243,7 +244,7 @@ const SchoolBeneathActivity = ({
     const autoSaved = loadAutoSavedComposition(storageKey, studentId);
     if (autoSaved && autoSaved.composition && autoSaved.composition.placedLoops && autoSaved.composition.placedLoops.length > 0) {
       setPlacedLoops(autoSaved.composition.placedLoops);
-      setVideoDuration(autoSaved.composition.videoDuration || 60);
+      // DON'T set videoDuration from saved data - let video detection effect always re-detect
       console.log('✅ Auto-loaded previous work:', autoSaved.composition.placedLoops.length, 'loops');
       hasLoadedRef.current = true;
       return;
@@ -332,15 +333,18 @@ const SchoolBeneathActivity = ({
   // VIDEO DURATION DETECTION
   // ============================================================================
 
+  // Track if we've already detected duration this session
+  const durationDetectedRef = useRef(false);
+
   useEffect(() => {
     if (viewMode) return;
 
-    // Skip if we already have a valid duration (greater than fallback)
-    if (videoDuration && videoDuration > 60) {
-      console.log('Video duration already set:', videoDuration);
-      setIsLoadingVideo(false);
+    // Skip if we already detected duration this session
+    if (durationDetectedRef.current) {
       return;
     }
+
+    console.log('🎬 Detecting video duration from:', videoPath);
 
     const videoElement = document.createElement('video');
     videoElement.src = videoPath;
@@ -349,8 +353,9 @@ const SchoolBeneathActivity = ({
     const handleMetadata = () => {
       const duration = videoElement.duration;
       if (duration && duration > 0) {
-        console.log('[OK] Video duration loaded:', duration);
+        console.log('[OK] Video duration detected:', duration);
         setVideoDuration(duration);
+        durationDetectedRef.current = true;
       }
       setIsLoadingVideo(false);
       videoElement.removeEventListener('loadedmetadata', handleMetadata);
@@ -358,15 +363,9 @@ const SchoolBeneathActivity = ({
     };
 
     const handleError = () => {
-      // Use functional update to NEVER overwrite a valid duration
-      setVideoDuration(prev => {
-        if (prev && prev > 60) {
-          console.log('Video error ignored - keeping valid duration:', prev);
-          return prev;
-        }
-        console.warn('Video error, using fallback 60s');
-        return 60;
-      });
+      console.warn('Video metadata error, using fallback 60s');
+      setVideoDuration(60);
+      durationDetectedRef.current = true;
       setIsLoadingVideo(false);
       videoElement.removeEventListener('error', handleError);
     };
@@ -375,11 +374,12 @@ const SchoolBeneathActivity = ({
     videoElement.addEventListener('error', handleError);
 
     const timeout = setTimeout(() => {
-      setVideoDuration(prev => {
-        if (prev && prev > 0) return prev;
-        return 60;
-      });
-      setIsLoadingVideo(false);
+      if (!durationDetectedRef.current) {
+        console.warn('Video metadata timeout, using fallback 60s');
+        setVideoDuration(60);
+        durationDetectedRef.current = true;
+        setIsLoadingVideo(false);
+      }
     }, 5000);
 
     return () => {
@@ -388,7 +388,7 @@ const SchoolBeneathActivity = ({
       videoElement.removeEventListener('error', handleError);
       videoElement.src = '';
     };
-  }, [viewMode, videoPath, videoDuration]);
+  }, [viewMode, videoPath]);
   
   // ============================================================================
   // LOOP HANDLERS
