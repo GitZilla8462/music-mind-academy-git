@@ -201,8 +201,28 @@ const MusicComposer = ({
       }
     };
 
+    // Hide cursor when mouse leaves the viewport (e.g., to address bar)
+    const handleMouseLeave = (e) => {
+      // Check if mouse actually left the document (not just moved to a child element)
+      if (e.relatedTarget === null || e.relatedTarget.nodeName === 'HTML') {
+        setShowGlobalCursor(false);
+      }
+    };
+
+    // Show cursor when mouse re-enters the viewport
+    const handleMouseEnter = () => {
+      setShowGlobalCursor(true);
+    };
+
     document.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => document.removeEventListener('mousemove', handleMouseMove);
+    document.documentElement.addEventListener('mouseleave', handleMouseLeave);
+    document.documentElement.addEventListener('mouseenter', handleMouseEnter);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.documentElement.removeEventListener('mouseleave', handleMouseLeave);
+      document.documentElement.removeEventListener('mouseenter', handleMouseEnter);
+    };
   }, []);
 
   // DEBUG: Log showSoundEffects prop
