@@ -210,15 +210,6 @@ const MusicComposer = ({
     console.log('🎵 MusicComposer showSoundEffects prop:', showSoundEffects);
   }, [showSoundEffects]);
 
-  // Auto-initialize audio on mount (once only, not on every render)
-  // This will attempt to start audio context - if browser blocks it (no user gesture),
-  // the ref resets and it will retry when user clicks anywhere
-  useEffect(() => {
-    if (!audioReady && !audioInitAttemptedRef.current) {
-      handleInitializeAudio();
-    }
-  }, [audioReady, handleInitializeAudio]);
-
   // Audio engine hook SECOND (now selectedVideo exists)
   const {
     isPlaying,
@@ -700,6 +691,15 @@ const MusicComposer = ({
       }
     }
   }, [initializeAudio, showToast]);
+
+  // Auto-initialize audio on mount (once only, not on every render)
+  // This will attempt to start audio context - if browser blocks it (no user gesture),
+  // the ref resets and it will retry when user clicks anywhere
+  useEffect(() => {
+    if (!audioReady && !audioInitAttemptedRef.current) {
+      handleInitializeAudio();
+    }
+  }, [audioReady, handleInitializeAudio]);
 
   const handleSubmit = async () => {
     if (placedLoops.length === 0) {
