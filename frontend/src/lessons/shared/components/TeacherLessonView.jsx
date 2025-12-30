@@ -1254,6 +1254,68 @@ const TeacherLessonView = ({
     isPaused: false
   });
 
+  // Resizable panel state
+  const [sidebarWidth, setSidebarWidth] = useState(280);
+  const [bottomPanelHeight, setBottomPanelHeight] = useState(280);
+  const [isResizingSidebar, setIsResizingSidebar] = useState(false);
+  const [isResizingBottom, setIsResizingBottom] = useState(false);
+
+  // Handle sidebar horizontal resize
+  useEffect(() => {
+    if (!isResizingSidebar) return;
+
+    const handleMouseMove = (e) => {
+      const newWidth = Math.max(200, Math.min(500, e.clientX));
+      setSidebarWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizingSidebar(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizingSidebar]);
+
+  // Handle bottom panel vertical resize
+  useEffect(() => {
+    if (!isResizingBottom) return;
+
+    const sidebarEl = document.getElementById('teacher-sidebar');
+    if (!sidebarEl) return;
+
+    const handleMouseMove = (e) => {
+      const sidebarRect = sidebarEl.getBoundingClientRect();
+      const newHeight = sidebarRect.bottom - e.clientY;
+      setBottomPanelHeight(Math.max(150, Math.min(500, newHeight)));
+    };
+
+    const handleMouseUp = () => {
+      setIsResizingBottom(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizingBottom]);
+
   // Survey state - shown when 5+ students (real classroom use)
   // surveyType: 'quick' | 'midPilot' | 'finalPilot' | null
   const [surveyType, setSurveyType] = useState(null);
@@ -1616,11 +1678,12 @@ const TeacherLessonView = ({
       {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        <div 
+        <div
+          id="teacher-sidebar"
           className={`bg-white border-r border-slate-200 flex flex-col transition-all duration-300 flex-shrink-0 ${
             sidebarCollapsed ? 'w-14' : ''
           }`}
-          style={sidebarCollapsed ? {} : { width: 'clamp(240px, 18vw, 320px)' }}
+          style={sidebarCollapsed ? {} : { width: `${sidebarWidth}px` }}
         >
           {/* Join Info - Top of Sidebar */}
           <div className={`border-b border-slate-200 ${sidebarCollapsed ? 'p-2' : 'p-4'}`}>
@@ -1904,9 +1967,20 @@ const TeacherLessonView = ({
             )}
           </div>
 
+          {/* Vertical Resize Divider */}
+          {!sidebarCollapsed && (
+            <div
+              className="h-1 bg-slate-200 hover:bg-blue-400 cursor-row-resize transition-colors flex-shrink-0"
+              onMouseDown={() => setIsResizingBottom(true)}
+            />
+          )}
+
           {/* View Mode Toggle + Mini Preview - AT BOTTOM */}
           {!sidebarCollapsed && (
-            <div className="border-t border-slate-200 p-3">
+            <div
+              className="border-t border-slate-200 p-3 overflow-y-auto flex-shrink-0"
+              style={{ height: `${bottomPanelHeight}px` }}
+            >
               {/* Teacher/Student View Toggle */}
               <div className="flex bg-slate-100 rounded-lg p-1 mb-3">
                 <button
@@ -2118,6 +2192,14 @@ const TeacherLessonView = ({
             )}
           </div>
         </div>
+
+        {/* Horizontal Resize Divider */}
+        {!sidebarCollapsed && (
+          <div
+            className="w-1 bg-slate-200 hover:bg-blue-400 cursor-col-resize transition-colors flex-shrink-0"
+            onMouseDown={() => setIsResizingSidebar(true)}
+          />
+        )}
 
         {/* Presentation Area */}
         <div className="flex-1 relative bg-slate-900">
