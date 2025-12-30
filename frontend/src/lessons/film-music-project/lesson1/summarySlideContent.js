@@ -74,28 +74,29 @@ export const summarySlides = {
     ]
   },
 
-  compositionInstructions: {
-    title: "Composition Requirements",
-    icon: "🎵",
-    estimatedTime: "1 minute",
-    points: [
-      "Pick one mood to focus on during your composition.",
-      "Use 5 or more loops that match your chosen mood.",
-      "Create layers to make your music feel full and powerful.",
-      "💾 Hit Save (top right) to keep your work. Find it on the Join page (this device only).",
-      "Done early? Add more loops and sound effects!"
-    ]
-  },
-
-  compositionTutorial: {
+  whatIsDAW: {
     title: "What is a DAW?",
     subtitle: "Digital Audio Workstation",
     icon: "🎹",
-    estimatedTime: "2 minutes",
+    estimatedTime: "1 minute",
+    imagePath: "/landingpage/DigitalAudioWorkstation.png",
     points: [
-      "The same software professional composers use to create music for film.",
-      "Drag loops onto a timeline to build layers of sound.",
-      "Watch the video to learn the basics."
+      "DAW = Digital Audio Workstation — software that lets you record, edit, and create music on a computer.",
+      "Before DAWs, musicians needed million-dollar recording studios with giant mixing boards, tape machines, and rooms full of equipment.",
+      "In the 1990s, software like Pro Tools made it possible to do all of that on a regular computer."
+    ]
+  },
+
+  dawsToday: {
+    title: "DAWs Today",
+    icon: "🎧",
+    estimatedTime: "1 minute",
+    imagePath: "/landingpage/LandingPageTopPicture.png",
+    points: [
+      "Apps like GarageBand, FL Studio, Ableton, and Logic Pro are used by professional artists to make hit songs.",
+      "Billie Eilish's brother Finneas produced her Grammy-winning album in his bedroom using Logic Pro.",
+      "That song stuck in your head right now? It was probably made on a laptop, not in a fancy studio.",
+      "Next we will watch a 2 minute video that introduces the DAW we will use today."
     ]
   },
 

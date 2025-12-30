@@ -103,13 +103,20 @@ export const lessonSections = [
     title: '3. Create',
     subtitle: 'Tutorial → Compose',
     color: 'blue',
-    estimatedTime: 16,
+    estimatedTime: 17,
     stages: [
       {
-        id: 'composition-instructions',
+        id: 'what-is-daw',
         type: 'summary',
-        label: 'Composition Requirements',
-        description: 'Review the three requirements for the composition.',
+        label: 'What is a DAW?',
+        description: 'Introduce DAWs and their history.',
+        duration: 1
+      },
+      {
+        id: 'daws-today',
+        type: 'summary',
+        label: 'DAWs Today',
+        description: 'Modern DAWs and professional use.',
         duration: 1
       },
       {
@@ -328,14 +335,27 @@ export const lessonStages = [
     }
   },
   {
-    id: 'composition-instructions',
-    label: 'Composition Requirements',
-    description: 'Review the three requirements for the composition.',
+    id: 'what-is-daw',
+    label: 'What is a DAW?',
+    description: 'Introduce DAWs and their history.',
     type: 'summary',
     duration: 1,
     presentationView: {
-      type: 'slide',
+      type: 'image-slide',
+      imagePath: '/landingpage/DigitalAudioWorkstation.png',
       slidePath: '/lessons/film-music-project/lesson1/slides/9.svg'
+    }
+  },
+  {
+    id: 'daws-today',
+    label: 'DAWs Today',
+    description: 'Modern DAWs and professional use.',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'image-slide',
+      imagePath: '/landingpage/LandingPageTopPicture.png',
+      slidePath: '/lessons/film-music-project/lesson1/slides/10.svg'
     }
   },
   {
@@ -348,7 +368,7 @@ export const lessonStages = [
       type: 'video',
       videoPath: '/lessons/film-music-project/lesson1/IntrotoDAW122025.mp4',
       title: 'How to Use the DAW',
-      slidePath: '/lessons/film-music-project/lesson1/slides/10.svg'
+      slidePath: '/lessons/film-music-project/lesson1/slides/11.svg'
     }
   },
   {
@@ -359,7 +379,7 @@ export const lessonStages = [
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/11.svg'
+      slidePath: '/lessons/film-music-project/lesson1/slides/12.svg'
     }
   },
   {
@@ -373,7 +393,7 @@ export const lessonStages = [
     duration: 12,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/12.svg'
+      slidePath: '/lessons/film-music-project/lesson1/slides/13.svg'
     }
   },
   {
@@ -384,7 +404,7 @@ export const lessonStages = [
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/13.svg'
+      slidePath: '/lessons/film-music-project/lesson1/slides/14.svg'
     }
   },
   {
@@ -398,7 +418,7 @@ export const lessonStages = [
     duration: 5,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/14.svg'
+      slidePath: '/lessons/film-music-project/lesson1/slides/15.svg'
     }
   },
   {
@@ -409,7 +429,7 @@ export const lessonStages = [
     duration: 2,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/15.svg'
+      slidePath: '/lessons/film-music-project/lesson1/slides/16.svg'
     }
   }
 ];
@@ -425,7 +445,8 @@ export const getActivityForStage = (stage) => {
     'mood-categories': 'summary',
     'mood-match-intro': 'summary',
     'mood-match-game': 'mood-match-game',
-    'composition-instructions': 'summary',
+    'what-is-daw': 'summary',
+    'daws-today': 'summary',
     'composition-tutorial': 'video',
     'composition-reminder': 'summary',
     'adventure-composition': 'adventure-composition',

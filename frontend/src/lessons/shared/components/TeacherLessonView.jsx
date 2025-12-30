@@ -332,6 +332,68 @@ const PresentationContent = ({
       );
     }
 
+    // Image Slide - shows image with text overlay for DAW intro slides
+    if (type === 'image-slide') {
+      const { imagePath } = currentStageData.presentationView;
+
+      // Get content based on stage ID
+      const slideContent = {
+        'what-is-daw': {
+          title: 'What is a DAW?',
+          subtitle: 'Digital Audio Workstation',
+          points: [
+            'DAW = Digital Audio Workstation — software that lets you record, edit, and create music on a computer.',
+            'Before DAWs, musicians needed million-dollar recording studios with giant mixing boards, tape machines, and rooms full of equipment.',
+            'In the 1990s, software like Pro Tools made it possible to do all of that on a regular computer.'
+          ]
+        },
+        'daws-today': {
+          title: 'DAWs Today',
+          points: [
+            'Apps like GarageBand, FL Studio, Ableton, and Logic Pro are used by professional artists to make hit songs.',
+            "Billie Eilish's brother Finneas produced her Grammy-winning album in his bedroom using Logic Pro.",
+            "That song stuck in your head right now? It was probably made on a laptop, not in a fancy studio.",
+            'Next we will watch a 2 minute video that introduces the DAW we will use today.'
+          ]
+        }
+      };
+
+      const content = slideContent[currentStage] || { title: currentStage, points: [] };
+
+      return (
+        <div className="absolute inset-0 flex bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+          {/* Left side - Image */}
+          <div className="w-1/2 flex items-center justify-center p-8">
+            <img
+              src={imagePath}
+              alt={content.title}
+              className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-2xl"
+              onError={(e) => {
+                console.error('Failed to load image:', imagePath);
+                e.target.style.display = 'none';
+              }}
+            />
+          </div>
+
+          {/* Right side - Text content */}
+          <div className="w-1/2 flex flex-col justify-center p-8 pr-12">
+            <h1 className="text-5xl font-bold text-white mb-2">{content.title}</h1>
+            {content.subtitle && (
+              <h2 className="text-2xl text-purple-400 mb-8">{content.subtitle}</h2>
+            )}
+            <ul className="space-y-4">
+              {content.points.map((point, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <span className="text-purple-500 mt-1">•</span>
+                  <span className="text-xl text-slate-200 leading-relaxed">{point}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      );
+    }
+
     // Slide
     if (type === 'slide' && slidePath) {
       return (
