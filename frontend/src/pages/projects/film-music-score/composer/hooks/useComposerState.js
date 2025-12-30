@@ -1,14 +1,22 @@
 // File: /src/pages/projects/film-music-score/composer/hooks/useComposerState.js
 // Central state management
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export const useComposerState = (preselectedVideo) => {
   // FIXED: If preselectedVideo is provided, don't start in loading state
   const initialVideoLoading = !preselectedVideo;
-  
+
   // Video and composition state
   const [selectedVideo, setSelectedVideo] = useState(preselectedVideo);
+
+  // Sync selectedVideo when preselectedVideo prop changes (e.g., duration detected later)
+  useEffect(() => {
+    if (preselectedVideo?.duration && preselectedVideo.duration !== selectedVideo?.duration) {
+      console.log('📹 Updating selectedVideo duration:', preselectedVideo.duration);
+      setSelectedVideo(preselectedVideo);
+    }
+  }, [preselectedVideo?.duration]);
   const [placedLoops, setPlacedLoops] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedLoop, setSelectedLoop] = useState(null);
