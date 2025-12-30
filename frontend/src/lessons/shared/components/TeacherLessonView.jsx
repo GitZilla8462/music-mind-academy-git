@@ -259,7 +259,7 @@ const PresentationContent = ({
 
       return (
         <div className="absolute inset-0">
-          <MoodMatchTeacherView />
+          <MoodMatchTeacherView onAdvanceLesson={goToNextStage} />
         </div>
       );
     }

@@ -32,7 +32,7 @@ const ActivityBanner = () => (
   </div>
 );
 
-const MoodMatchTeacherView = () => {
+const MoodMatchTeacherView = ({ onAdvanceLesson }) => {
   const { sessionCode } = useSession();
 
   // Game state
@@ -252,14 +252,21 @@ const MoodMatchTeacherView = () => {
             <p className="text-xl text-purple-200">{generateSummaryInsight()}</p>
           </div>
 
-          {/* Restart Button */}
-          <div className="text-center">
+          {/* Action Buttons */}
+          <div className="flex items-center justify-center gap-4">
             <button
               onClick={handleRestartGame}
-              className="flex items-center gap-3 mx-auto px-8 py-4 bg-purple-600 hover:bg-purple-500 text-white text-xl font-bold rounded-xl transition-all"
+              className="flex items-center gap-3 px-8 py-4 bg-purple-600 hover:bg-purple-500 text-white text-xl font-bold rounded-xl transition-all"
             >
               <RotateCcw className="w-6 h-6" />
               PLAY AGAIN
+            </button>
+            <button
+              onClick={() => onAdvanceLesson?.()}
+              className="flex items-center gap-3 px-8 py-4 bg-green-600 hover:bg-green-500 text-white text-xl font-bold rounded-xl transition-all"
+            >
+              ADVANCE LESSON
+              <ChevronRight className="w-6 h-6" />
             </button>
           </div>
         </div>

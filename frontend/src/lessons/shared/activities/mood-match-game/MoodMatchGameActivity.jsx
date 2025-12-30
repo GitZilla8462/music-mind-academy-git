@@ -200,7 +200,7 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = f
           </div>
         </div>
 
-        {/* Bottom bar with Play and Advance buttons */}
+        {/* Bottom bar with Play button */}
         <div className="flex justify-end gap-4 pb-4">
           <button
             onClick={isPlaying ? stopLoop : playLastLoop}
@@ -221,12 +221,6 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = f
                 PLAY
               </>
             )}
-          </button>
-          <button
-            onClick={() => onComplete?.()}
-            className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-500 text-white text-lg font-bold rounded-lg transition-all"
-          >
-            Advance Lesson →
           </button>
         </div>
       </div>
