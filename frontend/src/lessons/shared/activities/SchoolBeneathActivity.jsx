@@ -545,7 +545,7 @@ const SchoolBeneathActivity = ({
             {/* View mode back button */}
             {viewMode && (
               <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/join')}
                 className="px-4 py-1.5 text-sm rounded bg-blue-600 hover:bg-blue-700"
               >
                 Back
