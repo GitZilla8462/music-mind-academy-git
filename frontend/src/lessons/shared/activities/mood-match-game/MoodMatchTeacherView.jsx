@@ -97,7 +97,8 @@ const MoodMatchTeacherView = ({ onAdvanceLesson }) => {
     }
 
     audioRef.current = new Audio(currentLoop.file);
-    audioRef.current.loop = true;
+    audioRef.current.loop = false;
+    audioRef.current.onended = () => setIsPlaying(false);
     audioRef.current.play()
       .then(() => setIsPlaying(true))
       .catch(err => console.error('Error playing audio:', err));
