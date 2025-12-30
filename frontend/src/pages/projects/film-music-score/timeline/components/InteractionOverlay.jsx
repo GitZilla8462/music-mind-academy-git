@@ -848,6 +848,7 @@ const InteractionOverlay = ({
       <div
         ref={overlayRef}
         className="interaction-overlay absolute inset-0"
+        data-cursor-handled="true"
         style={{
           // CHROMEBOOK FIX: Hide native cursor on Chromebook, use CustomCursor instead
           cursor: isChromebook ? 'none' : 'default',

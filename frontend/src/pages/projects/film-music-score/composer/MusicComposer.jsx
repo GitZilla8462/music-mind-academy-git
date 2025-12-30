@@ -22,6 +22,13 @@ import { renderBeatToBlob, renderMelodyToBlob } from '../shared/beatRenderUtils'
 import ComposerHeader from './components/ComposerHeader';
 import ComposerLayout from './components/ComposerLayout';
 import AudioInitModal from './components/AudioInitModal';
+import CustomCursor from '../timeline/components/CustomCursor';
+
+// CHROMEBOOK FIX: Detect Chromebook for global custom cursor
+const isChromebook = typeof navigator !== 'undefined' && (
+  /CrOS/.test(navigator.userAgent) ||
+  (navigator.userAgentData?.platform === 'Chrome OS')
+);
 
 const MusicComposer = ({
   showToast,
@@ -74,6 +81,12 @@ const MusicComposer = ({
   const [creatorMenuOpen, setCreatorMenuOpen] = useState(false);
   const [beatMakerOpen, setBeatMakerOpen] = useState(false);
   const [melodyMakerOpen, setMelodyMakerOpen] = useState(false);
+
+  // CHROMEBOOK FIX: Global custom cursor state
+  const [globalMousePos, setGlobalMousePos] = useState({ x: 0, y: 0 });
+  const [globalCursorType, setGlobalCursorType] = useState('default');
+  const [showGlobalCursor, setShowGlobalCursor] = useState(true);
+  const dawContainerRef = useRef(null);
   // Initialize with initialCustomLoops if provided, otherwise empty array
   // initialCustomLoops may come from StudentBeatMakerActivity saved beats
   const [customLoops, setCustomLoops] = useState(() => {
@@ -134,6 +147,62 @@ const MusicComposer = ({
       showToast?.('⚠️ Use the Back button in the app to exit safely!', 'warning');
     }
   });
+
+  // 🖱️ CHROMEBOOK GLOBAL CURSOR
+  // Track mouse position and detect cursor type based on hovered element
+  useEffect(() => {
+    if (!isChromebook) return;
+
+    const handleMouseMove = (e) => {
+      setGlobalMousePos({ x: e.clientX, y: e.clientY });
+
+      // Detect cursor type from the element under the cursor
+      const element = document.elementFromPoint(e.clientX, e.clientY);
+      if (element) {
+        // Check if element (or ancestor) handles its own cursor
+        // If so, hide global cursor and let local cursor handle it
+        let el = element;
+        let hasLocalCursor = false;
+        let cursorType = 'default';
+
+        while (el && el !== document.body) {
+          // Check for data-cursor-handled (component has its own CustomCursor)
+          if (el.dataset?.cursorHandled === 'true') {
+            hasLocalCursor = true;
+            break;
+          }
+          // Check for data-cursor (explicit cursor type)
+          if (el.dataset?.cursor && cursorType === 'default') {
+            cursorType = el.dataset.cursor;
+          }
+          el = el.parentElement;
+        }
+
+        setShowGlobalCursor(!hasLocalCursor);
+
+        // If no data-cursor found, fall back to computed style
+        if (cursorType === 'default' && !hasLocalCursor) {
+          const computedStyle = window.getComputedStyle(element);
+          const cursorStyle = computedStyle.cursor;
+
+          // Map CSS cursor values to our CustomCursor types
+          if (cursorStyle === 'pointer') cursorType = 'pointer';
+          else if (cursorStyle === 'grab') cursorType = 'grab';
+          else if (cursorStyle === 'grabbing') cursorType = 'grabbing';
+          else if (cursorStyle === 'ew-resize') cursorType = 'ew-resize';
+          else if (cursorStyle === 'col-resize') cursorType = 'col-resize';
+          else if (cursorStyle === 'row-resize') cursorType = 'row-resize';
+          else if (cursorStyle === 'crosshair') cursorType = 'crosshair';
+          // text, none, auto, default -> keep as 'default'
+        }
+
+        setGlobalCursorType(cursorType);
+      }
+    };
+
+    document.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => document.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   // DEBUG: Log showSoundEffects prop
   React.useEffect(() => {
@@ -686,8 +755,22 @@ const MusicComposer = ({
   }
 
   return (
-    <div className="h-full bg-gray-900 text-white flex flex-col">
-        {/* Auto-initialize audio on first render - including tutorial mode */}
+    <div
+      ref={dawContainerRef}
+      className="h-full bg-gray-900 text-white flex flex-col"
+      style={isChromebook ? { cursor: 'none' } : undefined}
+    >
+      {/* CHROMEBOOK FIX: Global custom cursor (hidden when over areas with local cursor) */}
+      {isChromebook && showGlobalCursor && (
+        <CustomCursor
+          cursorType={globalCursorType}
+          enabled={true}
+          initiallyVisible={true}
+          initialPosition={globalMousePos}
+        />
+      )}
+
+      {/* Auto-initialize audio on first render - including tutorial mode */}
       {!audioReady && (() => {
         handleInitializeAudio();
         return null;

@@ -90,13 +90,28 @@ const CustomCursor = ({
   containerRef,  // Ref to the element this cursor should appear over
   enabled = true,
   initiallyVisible = false,  // CHROMEBOOK FIX: Start visible when parent knows we're hovering
-  initialPosition = null  // CHROMEBOOK FIX: Initial mouse position from parent
+  initialPosition = null,  // CHROMEBOOK FIX: Initial mouse position from parent
+  debug = false  // Enable debug logging
 }) => {
   const defaultPos = initialPosition || { x: -100, y: -100 };
   const [position, setPosition] = useState(defaultPos);
   const [isVisible, setIsVisible] = useState(initiallyVisible);
   const rafRef = useRef(null);
   const positionRef = useRef(defaultPos);
+
+  // Debug logging on mount
+  useEffect(() => {
+    if (debug) {
+      console.log('🖱️ CustomCursor mounted:', {
+        cursorType,
+        enabled,
+        initiallyVisible,
+        initialPosition,
+        defaultPos,
+        isVisible
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (!enabled) return;
@@ -157,10 +172,25 @@ const CustomCursor = ({
     };
   }, [enabled, containerRef]);
 
-  if (!enabled || !isVisible) return null;
+  if (!enabled || !isVisible) {
+    if (debug) {
+      console.log('🖱️ CustomCursor NOT rendering:', { enabled, isVisible });
+    }
+    return null;
+  }
 
   const hotspot = HOTSPOTS[cursorType] || HOTSPOTS.default;
   const CursorSVG = CursorSVGs[cursorType] || CursorSVGs.default;
+
+  if (debug) {
+    console.log('🖱️ CustomCursor rendering:', {
+      cursorType,
+      position,
+      hotspot,
+      finalLeft: position.x - hotspot.x,
+      finalTop: position.y - hotspot.y
+    });
+  }
 
   // Use Portal to render outside any zoomed/transformed parent containers
   // This ensures position: fixed works correctly with screen coordinates

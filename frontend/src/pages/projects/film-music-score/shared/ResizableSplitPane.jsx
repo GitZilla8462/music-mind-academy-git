@@ -1,9 +1,8 @@
 // File: /src/pages/projects/film-music-score/shared/ResizableSplitPane.jsx
-// CHROMEBOOK FIX: Custom cursor integration to prevent flicker on grab bar
+// CHROMEBOOK FIX: Uses data-cursor attribute for global cursor detection
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { GripHorizontal } from 'lucide-react';
-import CustomCursor from '../timeline/components/CustomCursor.jsx';
 
 // Detect Chromebook/ChromeOS for custom cursor
 const isChromebook = typeof navigator !== 'undefined' && (
@@ -22,14 +21,8 @@ const ResizableSplitPane = ({
   const [isDragging, setIsDragging] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const containerRef = useRef(null);
-  const overlayRef = useRef(null);
   const dragStartY = useRef(0);
   const dragStartHeight = useRef(0);
-
-  // CHROMEBOOK FIX: Track cursor type for CustomCursor
-  const [cursorType, setCursorType] = useState('default');
-  // CHROMEBOOK FIX: Track mouse position for initial cursor placement
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   const handleMouseDown = useCallback((e) => {
     e.preventDefault();
@@ -43,18 +36,18 @@ const ResizableSplitPane = ({
 
     const containerRect = containerRef.current.getBoundingClientRect();
     const containerHeight = containerRect.height;
-    
+
     // Calculate new height based on mouse movement
     const deltaY = e.clientY - dragStartY.current;
     const newTopHeight = dragStartHeight.current + deltaY;
-    
+
     // Apply constraints
     const maxTopHeight = containerHeight - minBottomHeight;
     const constrainedHeight = Math.max(
       minTopHeight,
       Math.min(maxTopHeight, newTopHeight)
     );
-    
+
     setTopHeight(constrainedHeight);
   }, [isDragging, minTopHeight, minBottomHeight]);
 
@@ -66,34 +59,25 @@ const ResizableSplitPane = ({
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      // CHROMEBOOK FIX: Only set body cursor on non-Chromebook (Chromebook uses CustomCursor)
+      // Set body cursor for non-Chromebook (Chromebook uses global CustomCursor)
       if (!isChromebook) {
         document.body.style.cursor = 'row-resize';
       }
       document.body.style.userSelect = 'none';
-      setCursorType('row-resize');
 
       return () => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
-        setCursorType('default');
       };
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  // Update cursor type when hovering
-  useEffect(() => {
-    if (!isDragging) {
-      setCursorType(isHovering ? 'row-resize' : 'default');
-    }
-  }, [isHovering, isDragging]);
-
   return (
     <div ref={containerRef} className="flex flex-col h-full w-full relative">
       {/* Top Pane - Video */}
-      <div 
+      <div
         className="flex-shrink-0 overflow-hidden relative"
         style={{ height: `${topHeight}px` }}
       >
@@ -114,41 +98,31 @@ const ResizableSplitPane = ({
         />
       </div>
 
-      {/* CHROMEBOOK FIX: CustomCursor for Chromebook to prevent flicker */}
-      {isChromebook && (isHovering || isDragging) && (
-        <CustomCursor
-          cursorType={cursorType}
-          containerRef={overlayRef}
-          enabled={true}
-          initiallyVisible={true}
-          initialPosition={mousePosition}
-        />
-      )}
-
-      {/* Invisible overlay for mouse events - prevents cursor flicker on Chromebook */}
+      {/* Invisible overlay for mouse events */}
+      {/* data-cursor tells global CustomCursor what cursor type to show on Chromebook */}
       <div
-        ref={overlayRef}
         className="absolute left-0 right-0"
+        data-cursor="row-resize"
         style={{
           top: `${topHeight}px`,
           height: '16px', // Larger hit area for easier grabbing
           marginTop: '-4px', // Center over the visual divider
           zIndex: 41,
-          // CHROMEBOOK FIX: Hide native cursor on Chromebook, use CustomCursor instead
+          // Hide native cursor on Chromebook (global CustomCursor shows instead)
+          // Show row-resize on non-Chromebook
           cursor: isChromebook ? 'none' : 'row-resize',
           pointerEvents: 'auto'
         }}
         onMouseDown={handleMouseDown}
         onMouseEnter={(e) => {
-          setMousePosition({ x: e.clientX, y: e.clientY });
+          console.log('🎯 Grab bar mouseEnter:', {
+            isChromebook,
+            clientX: e.clientX,
+            clientY: e.clientY
+          });
           setIsHovering(true);
         }}
         onMouseLeave={() => setIsHovering(false)}
-        onMouseMove={(e) => {
-          if (isChromebook && isHovering) {
-            setMousePosition({ x: e.clientX, y: e.clientY });
-          }
-        }}
       />
 
       {/* Bottom Pane - Timeline */}
