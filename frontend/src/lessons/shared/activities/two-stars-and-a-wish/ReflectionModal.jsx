@@ -1,21 +1,23 @@
 // File: /src/lessons/film-music-project/lesson1/activities/two-stars-and-a-wish/ReflectionModal.jsx
 // UPDATED: Top-left positioning with minimize functionality
-// Steps: 1=choose type, 2=listen & share, 3=star1, 4=star2, 5=wish, 6=summary
-// UPDATED: Step 6 now has READ ALOUD banner at top, submit button at bottom
+// Steps: 1=choose type, 2=confidence, 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=summary
+// UPDATED: Step 8 now has READ ALOUD banner at top, submit button at bottom
 
 import React, { useState, useEffect, useRef } from 'react';
-import { CheckCircle, Star, Sparkles, Volume2, VolumeX, HelpCircle, Minimize2, Maximize2 } from 'lucide-react';
+import { CheckCircle, Star, Sparkles, Volume2, VolumeX, HelpCircle, Minimize2, Maximize2, Smile } from 'lucide-react';
 import { SELF_REFLECTION_PROMPTS, PARTNER_REFLECTION_OPTIONS } from './reflectionPrompts';
 
 const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSessionMode = false }) => {
-  // Steps: 1=choose type, 2=listen & share, 3=star1, 4=star2, 5=wish, 6=summary
-  const [currentStep, setCurrentStep] = useState(viewMode ? 6 : 1);
+  // Steps: 1=choose type, 2=confidence, 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=summary
+  const [currentStep, setCurrentStep] = useState(viewMode ? 8 : 1);
   const [reflectionData, setReflectionData] = useState({
     reviewType: null,
     partnerName: '',
+    confidence: '',
     star1: '',
     star2: '',
     wish: '',
+    vibe: '',
     submittedAt: null
   });
 
@@ -83,20 +85,44 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
     }
   };
 
+  // Confidence options
+  const confidenceOptions = [
+    { emoji: "🚀", label: "Nailed it!", description: "I'm really proud of this" },
+    { emoji: "😊", label: "Pretty good", description: "I think it turned out well" },
+    { emoji: "🤔", label: "Not sure", description: "It's okay, I guess" },
+    { emoji: "😬", label: "Needs work", description: "I know I can do better" }
+  ];
+
+  // Vibe options - mysterious/spooky theme for School Beneath
+  const vibeOptions = [
+    { emoji: "🕵️", text: "Detective vibes (Investigating mysteries)" },
+    { emoji: "👻", text: "Spooky atmosphere (Creepy and eerie)" },
+    { emoji: "🔮", text: "Mystical energy (Magical and enchanting)" },
+    { emoji: "🌙", text: "Midnight mood (Dark and mysterious)" },
+    { emoji: "🎭", text: "Dramatic reveal (Tension and suspense)" },
+    { emoji: "🌫️", text: "Foggy unknown (Uncertain and curious)" },
+    { emoji: "⚡", text: "Thrilling discovery (Exciting and intense)" },
+    { emoji: "🏚️", text: "Haunted halls (Abandoned and creepy)" },
+    { emoji: "🔦", text: "Searching in the dark (Exploring the unknown)" },
+    { emoji: "🎬", text: "Movie trailer energy (Epic and cinematic)" }
+  ];
+
   // Speak on step change
   useEffect(() => {
     const partnerName = reflectionData.partnerName || 'your partner';
     const reviewTarget = reflectionData.reviewType === 'self' ? 'your' : `${partnerName}'s`;
-    
+
     const messages = {
       1: "Whose composition are you reviewing? Choose whether you'll reflect on your own work or a friend's composition.",
-      2: reflectionData.reviewType === 'self'
+      2: "How confident do you feel about your composition? Be honest - there's no wrong answer!",
+      3: reflectionData.reviewType === 'self'
         ? "Now, listen to your entire film score from beginning to end. Pay attention to: How the music tools, such as timeline, tracks, and volume, were used. How the loops are timed with the video. And the overall sound and mood of the music."
         : `Now it's time to share! First, share your score with ${partnerName} so they can see and hear your work. Then, listen to ${partnerName}'s entire film score from beginning to end. Pay attention to: How the music tools were used. How the loops are timed with the video. And the overall sound and mood of the music.`,
-      3: "Star 1: Think about what went well with using the DAW tools. What did you do well?",
-      4: "Star 2: Think about what worked well with the loop timing and music sound.",
-      5: "Now for the Wish: What do you want to try or improve next time?",
-      6: reflectionData.reviewType === 'self' 
+      4: "Star 1: Think about what went well with using the DAW tools. What did you do well?",
+      5: "Star 2: Think about what worked well with the loop timing and music sound.",
+      6: "Now for the Wish: What do you want to try or improve next time?",
+      7: "Pick a vibe! If your composition was a movie mood, which one would it be?",
+      8: reflectionData.reviewType === 'self'
         ? "Here's your complete reflection summary! Now read your reflection out loud to yourself or share it with a neighbor."
         : `Here's your complete reflection summary! Now read your feedback out loud to ${partnerName}.`
     };
@@ -136,7 +162,12 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
       alert('Please enter your partner\'s name');
       return;
     }
-    goToNextStep();
+    // Skip confidence check for partner reviews
+    if (reflectionData.reviewType === 'partner') {
+      setCurrentStep(3); // Go directly to listen & share
+    } else {
+      setCurrentStep(2); // Go to confidence check for self review
+    }
   };
 
   const handleDropdownChange = (field, value) => {
@@ -235,11 +266,13 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           <h2 className="font-bold text-lg">
             {currentStep === 0 && "Teacher Instructions"}
             {currentStep === 1 && "Choose Review Type"}
-            {currentStep === 2 && "Listen & Share"}
-            {currentStep === 3 && "⭐ Star 1"}
-            {currentStep === 4 && "⭐ Star 2"}
-            {currentStep === 5 && "✨ Wish"}
-            {currentStep === 6 && "📝 Summary"}
+            {currentStep === 2 && "🎯 Confidence Check"}
+            {currentStep === 3 && "Listen & Share"}
+            {currentStep === 4 && "⭐ Star 1"}
+            {currentStep === 5 && "⭐ Star 2"}
+            {currentStep === 6 && "✨ Wish"}
+            {currentStep === 7 && "🎭 Pick a Vibe"}
+            {currentStep === 8 && "📝 Summary"}
           </h2>
         </div>
         <div className="flex items-center gap-2">
@@ -352,8 +385,38 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           </div>
         )}
 
-        {/* STEP 2: Listen & Share */}
+        {/* STEP 2: Confidence Check */}
         {currentStep === 2 && (
+          <div className="space-y-4">
+            <p className="text-gray-700 text-center mb-4">
+              How confident do you feel about {reflectionData.reviewType === 'self' ? 'your' : "your partner's"} composition?
+            </p>
+
+            <div className="grid grid-cols-2 gap-3">
+              {confidenceOptions.map((option, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setReflectionData(prev => ({ ...prev, confidence: option.label }));
+                    goToNextStep();
+                  }}
+                  className={`p-4 rounded-lg border-2 transition-all hover:scale-105 ${
+                    reflectionData.confidence === option.label
+                      ? 'border-purple-500 bg-purple-50'
+                      : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                  }`}
+                >
+                  <div className="text-3xl mb-2 text-center">{option.emoji}</div>
+                  <div className="font-bold text-gray-800 text-center text-sm">{option.label}</div>
+                  <div className="text-xs text-gray-500 text-center mt-1">{option.description}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: Listen & Share */}
+        {currentStep === 3 && (
           <div className="space-y-4">
             <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
               <p className="text-lg font-bold text-gray-800 mb-2">
@@ -394,8 +457,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           </div>
         )}
 
-        {/* STEP 3: Star 1 */}
-        {currentStep === 3 && (
+        {/* STEP 4: Star 1 */}
+        {currentStep === 4 && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Star className="text-yellow-500" size={24} />
@@ -446,8 +509,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           </div>
         )}
 
-        {/* STEP 4: Star 2 */}
-        {currentStep === 4 && (
+        {/* STEP 5: Star 2 */}
+        {currentStep === 5 && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Star className="text-yellow-500" size={24} />
@@ -498,8 +561,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           </div>
         )}
 
-        {/* STEP 5: Wish */}
-        {currentStep === 5 && (
+        {/* STEP 6: Wish */}
+        {currentStep === 6 && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="text-purple-500" size={24} />
@@ -542,16 +605,45 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
             )}
 
             <button
-              onClick={handleFinalSubmit}
-              className="w-full mt-4 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+              onClick={() => handleSubmitQuestion('wish')}
+              className="w-full mt-4 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
             >
-              View Summary →
+              Pick a Vibe →
             </button>
           </div>
         )}
 
-        {/* STEP 6: Summary - UPDATED with READ ALOUD at very top */}
-        {currentStep === 6 && (
+        {/* STEP 7: Vibe Selector */}
+        {currentStep === 7 && (
+          <div className="space-y-4">
+            <div className="text-center mb-4">
+              <Smile className="w-12 h-12 mx-auto text-purple-500 mb-2" />
+              <h3 className="font-bold text-gray-900">Pick a Vibe! 🎭</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                If {reflectionData.reviewType === 'self' ? 'your' : `your partner's`} composition was a movie mood, which would it be?
+              </p>
+            </div>
+
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {vibeOptions.map((vibe, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setReflectionData(prev => ({ ...prev, vibe: vibe.text }));
+                    handleFinalSubmit();
+                  }}
+                  className="w-full p-3 text-left rounded-lg border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all flex items-center gap-3"
+                >
+                  <span className="text-2xl">{vibe.emoji}</span>
+                  <span className="text-gray-900 text-sm">{vibe.text}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 8: Summary - UPDATED with READ ALOUD at very top */}
+        {currentStep === 8 && (
           <div className="space-y-4">
             {/* READ ALOUD INSTRUCTION AT VERY TOP */}
             <div className={`p-4 rounded-lg border-2 text-center ${
@@ -573,6 +665,16 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
             </div>
 
             <div className="space-y-4 bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-lg border-2 border-blue-200">
+              {reflectionData.confidence && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xl">🎯</span>
+                    <h3 className="font-bold text-gray-800">Confidence</h3>
+                  </div>
+                  <p className="text-gray-700 bg-white p-3 rounded border border-gray-200">{reflectionData.confidence}</p>
+                </div>
+              )}
+
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Star className="text-yellow-500" size={20} />
@@ -596,6 +698,16 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
                 </div>
                 <p className="text-gray-700 bg-white p-3 rounded border border-gray-200">{reflectionData.wish}</p>
               </div>
+
+              {reflectionData.vibe && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Smile className="text-purple-500" size={20} />
+                    <h3 className="font-bold text-gray-800">Vibe</h3>
+                  </div>
+                  <p className="text-gray-700 bg-white p-3 rounded border border-gray-200">{reflectionData.vibe}</p>
+                </div>
+              )}
             </div>
 
             {/* SUBMIT BUTTON AT BOTTOM */}
@@ -610,7 +722,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
         )}
 
         {/* Hint Section */}
-        {showHint && currentStep !== 6 && (
+        {showHint && currentStep !== 8 && (
           <div className="mt-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3">
             <div className="text-sm text-yellow-900">
               <span className="font-semibold">💡 Hint:</span> Take your time to think about your answer. Be specific and honest in your reflection!

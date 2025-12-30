@@ -1,22 +1,22 @@
 // File: /src/lessons/shared/activities/two-stars-and-a-wish/CityReflectionModal.jsx
 // City Soundscape Reflection Modal - Purple overlay that stays on top of composition
-// Adapted from SportsReflectionModal for city soundscapes
-// Allows students to reflect while composition remains accessible underneath
-// ✅ UPDATED: "Read out loud" instruction moved to top of summary and made more prominent
+// ✅ UPDATED: Added confidence check (self only) + renamed meme to vibe
+// Steps: 1=choose type, 2=confidence (self only), 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=summary
 
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, Star, Sparkles, Volume2, VolumeX, Minimize2, Maximize2, Smile } from 'lucide-react';
 
 const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, isSessionMode = false }) => {
-  // Steps: 1=choose type, 2=listen & share, 3=star1, 4=star2, 5=wish, 6=meme, 7=summary
-  const [currentStep, setCurrentStep] = useState(viewMode ? 7 : 1);
+  // Steps: 1=choose type, 2=confidence (self only), 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=summary
+  const [currentStep, setCurrentStep] = useState(viewMode ? 8 : 1);
   const [reflectionData, setReflectionData] = useState({
     reviewType: null,
     partnerName: '',
+    confidence: '',
     star1: '',
     star2: '',
     wish: '',
-    meme: '',
+    vibe: '',
     submittedAt: null
   });
 
@@ -76,20 +76,29 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
     }
   };
 
+  // Confidence options
+  const confidenceOptions = [
+    { emoji: "🚀", label: "Nailed it!", description: "I'm really proud of this" },
+    { emoji: "😊", label: "Pretty good", description: "I think it turned out well" },
+    { emoji: "🤔", label: "Not sure", description: "It's okay, I guess" },
+    { emoji: "😬", label: "Needs work", description: "I know I can do better" }
+  ];
+
   // Speak on step change
   useEffect(() => {
     const partnerName = reflectionData.partnerName || 'your partner';
-    
+
     const messages = {
       1: "Whose composition are you reviewing? Choose whether you'll reflect on your own work or a friend's composition.",
-      2: reflectionData.reviewType === 'self'
+      2: "How confident do you feel about your composition? Be honest - there's no wrong answer!",
+      3: reflectionData.reviewType === 'self'
         ? "Now, listen to your entire city soundscape from beginning to end. Pay attention to: How many layers you used. The overall texture. And how the layers work together to create a city atmosphere."
         : `Now it's time to share! First, share your soundscape with ${partnerName}. Then, listen to ${partnerName}'s entire city soundscape from beginning to end. Pay attention to the layers, texture, and overall atmosphere.`,
-      3: "Star 1: Think about what went well with texture and layering.",
-      4: "Star 2: Think about how well your loop choices worked together.",
-      5: "Now for the Wish: What do you want to try or improve next time?",
-      6: "Bonus question! If your city soundscape was a meme, which one would it be? Choose the one that best describes the vibe of your music!",
-      7: reflectionData.reviewType === 'self' 
+      4: "Star 1: Think about what went well with texture and layering.",
+      5: "Star 2: Think about how well your loop choices worked together.",
+      6: "Now for the Wish: What do you want to try or improve next time?",
+      7: "Pick a vibe! If your city soundscape was a mood, which one would it be?",
+      8: reflectionData.reviewType === 'self'
         ? "Here's your complete reflection summary! Now read your reflection out loud to yourself or share it with a neighbor."
         : `Here's your complete reflection summary! Now read your feedback out loud to ${partnerName}.`
     };
@@ -109,15 +118,21 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
 
   const handleReviewTypeSelection = (type) => {
     setReflectionData(prev => ({ ...prev, reviewType: type }));
-    
+
     if (type === 'partner') {
       const name = prompt("What is your partner's name?");
       if (name) {
         setReflectionData(prev => ({ ...prev, partnerName: name }));
       }
+      setCurrentStep(3); // Skip confidence for partner review
+    } else {
+      setCurrentStep(2); // Go to confidence check for self review
     }
-    
-    setCurrentStep(2);
+  };
+
+  const handleConfidenceSelection = (label) => {
+    setReflectionData(prev => ({ ...prev, confidence: label }));
+    setCurrentStep(3); // Go to listen & share
   };
 
   const handleMuteToggle = () => {
@@ -152,8 +167,8 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
     }
   };
 
-  // Meme options (city-themed)
-  const memeOptions = [
+  // Vibe options (city-themed)
+  const vibeOptions = [
     { emoji: "🏙️", text: "Big city energy (Bustling and alive)" },
     { emoji: "🌃", text: "Night city vibes (Mysterious and cool)" },
     { emoji: "🚕", text: "Rush hour chaos (Fast and hectic)" },
@@ -189,12 +204,13 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
           <Sparkles size={20} />
           <h2 className="font-bold text-lg">
             {currentStep === 1 && "Choose Review Type"}
-            {currentStep === 2 && "Listen & Share"}
-            {currentStep === 3 && "⭐ Star 1"}
-            {currentStep === 4 && "⭐ Star 2"}
-            {currentStep === 5 && "✨ Wish"}
-            {currentStep === 6 && "😄 Bonus: Meme"}
-            {currentStep === 7 && "📝 Summary"}
+            {currentStep === 2 && "🎯 Confidence Check"}
+            {currentStep === 3 && "Listen & Share"}
+            {currentStep === 4 && "⭐ Star 1"}
+            {currentStep === 5 && "⭐ Star 2"}
+            {currentStep === 6 && "✨ Wish"}
+            {currentStep === 7 && "🏙️ Pick a Vibe"}
+            {currentStep === 8 && "📝 Summary"}
           </h2>
         </div>
         <div className="flex items-center gap-2">
@@ -261,8 +277,35 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
           </div>
         )}
 
-        {/* STEP 2: Listen & Share */}
+        {/* STEP 2: Confidence Check */}
         {currentStep === 2 && (
+          <div className="space-y-4">
+            <p className="text-gray-700 text-center mb-4">
+              How confident do you feel about your composition?
+            </p>
+
+            <div className="grid grid-cols-2 gap-3">
+              {confidenceOptions.map((option, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleConfidenceSelection(option.label)}
+                  className={`p-4 rounded-lg border-2 transition-all hover:scale-105 ${
+                    reflectionData.confidence === option.label
+                      ? 'border-purple-500 bg-purple-50'
+                      : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                  }`}
+                >
+                  <div className="text-3xl mb-2 text-center">{option.emoji}</div>
+                  <div className="font-bold text-gray-800 text-center text-sm">{option.label}</div>
+                  <div className="text-xs text-gray-500 text-center mt-1">{option.description}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: Listen & Share */}
+        {currentStep === 3 && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <h3 className="font-bold text-gray-900">
@@ -290,7 +333,7 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
                 </div>
 
                 <button
-                  onClick={() => setCurrentStep(3)}
+                  onClick={() => setCurrentStep(4)}
                   className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700"
                 >
                   Continue to Reflection →
@@ -321,7 +364,7 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
                 </div>
 
                 <button
-                  onClick={() => setCurrentStep(3)}
+                  onClick={() => setCurrentStep(4)}
                   className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700"
                 >
                   Continue to Reflection →
@@ -331,8 +374,8 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
           </div>
         )}
 
-        {/* STEP 3: Star 1 - Texture & Layering */}
-        {currentStep === 3 && (
+        {/* STEP 4: Star 1 - Texture & Layering */}
+        {currentStep === 4 && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <Star className="w-12 h-12 mx-auto text-yellow-500 fill-yellow-500 mb-2" />
@@ -368,7 +411,7 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
                       setCustomInputs(prev => ({ ...prev, star1: true }));
                     } else {
                       setReflectionData(prev => ({ ...prev, star1: option }));
-                      setCurrentStep(4);
+                      setCurrentStep(5);
                     }
                   }}
                   className="w-full p-3 text-left rounded-lg border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all"
@@ -387,7 +430,7 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
                     placeholder="Type your response..."
                   />
                   <button
-                    onClick={() => setCurrentStep(4)}
+                    onClick={() => setCurrentStep(5)}
                     disabled={!reflectionData.star1.trim()}
                     className="w-full bg-purple-600 text-white py-2 rounded-lg disabled:opacity-50"
                   >
@@ -399,8 +442,8 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
           </div>
         )}
 
-        {/* STEP 4: Star 2 - Loop Choices */}
-        {currentStep === 4 && (
+        {/* STEP 5: Star 2 - Loop Choices */}
+        {currentStep === 5 && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <Star className="w-12 h-12 mx-auto text-yellow-500 fill-yellow-500 mb-2" />
@@ -436,7 +479,7 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
                       setCustomInputs(prev => ({ ...prev, star2: true }));
                     } else {
                       setReflectionData(prev => ({ ...prev, star2: option }));
-                      setCurrentStep(5);
+                      setCurrentStep(6);
                     }
                   }}
                   className="w-full p-3 text-left rounded-lg border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all"
@@ -455,7 +498,7 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
                     placeholder="Type your response..."
                   />
                   <button
-                    onClick={() => setCurrentStep(5)}
+                    onClick={() => setCurrentStep(6)}
                     disabled={!reflectionData.star2.trim()}
                     className="w-full bg-purple-600 text-white py-2 rounded-lg disabled:opacity-50"
                   >
@@ -467,8 +510,8 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
           </div>
         )}
 
-        {/* STEP 5: Wish */}
-        {currentStep === 5 && (
+        {/* STEP 6: Wish */}
+        {currentStep === 6 && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <Sparkles className="w-12 h-12 mx-auto text-purple-500 mb-2" />
@@ -504,7 +547,7 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
                       setCustomInputs(prev => ({ ...prev, wish: true }));
                     } else {
                       setReflectionData(prev => ({ ...prev, wish: option }));
-                      setCurrentStep(6);
+                      setCurrentStep(7);
                     }
                   }}
                   className="w-full p-3 text-left rounded-lg border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all"
@@ -523,7 +566,7 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
                     placeholder="Type your response..."
                   />
                   <button
-                    onClick={() => setCurrentStep(6)}
+                    onClick={() => setCurrentStep(7)}
                     disabled={!reflectionData.wish.trim()}
                     className="w-full bg-purple-600 text-white py-2 rounded-lg disabled:opacity-50"
                   >
@@ -535,37 +578,37 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
           </div>
         )}
 
-        {/* STEP 6: BONUS - Meme Question */}
-        {currentStep === 6 && (
+        {/* STEP 7: Vibe Selector */}
+        {currentStep === 7 && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <Smile className="w-12 h-12 mx-auto text-blue-500 mb-2" />
-              <h3 className="font-bold text-gray-900">Bonus: Meme Energy! 😄</h3>
+              <h3 className="font-bold text-gray-900">Pick a Vibe! 🏙️</h3>
               <p className="text-sm text-gray-600 mt-1">
-                If {reflectionData.reviewType === 'self' ? 'your' : `${reflectionData.partnerName}'s`} city soundscape was a meme, which would it be?
+                If {reflectionData.reviewType === 'self' ? 'your' : `${reflectionData.partnerName}'s`} city soundscape was a vibe, which would it be?
               </p>
             </div>
 
-            <div className="space-y-2">
-              {memeOptions.map((meme, idx) => (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {vibeOptions.map((vibe, idx) => (
                 <button
                   key={idx}
                   onClick={() => {
-                    setReflectionData(prev => ({ ...prev, meme: meme.text }));
-                    setCurrentStep(7);
+                    setReflectionData(prev => ({ ...prev, vibe: vibe.text }));
+                    setCurrentStep(8);
                   }}
                   className="w-full p-3 text-left rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all flex items-center gap-3"
                 >
-                  <span className="text-3xl">{meme.emoji}</span>
-                  <span className="text-gray-900">{meme.text}</span>
+                  <span className="text-3xl">{vibe.emoji}</span>
+                  <span className="text-gray-900">{vibe.text}</span>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* STEP 7: Summary - ✅ UPDATED with prominent "read out loud" at top */}
-        {currentStep === 7 && (
+        {/* STEP 8: Summary - ✅ UPDATED with prominent "read out loud" at top */}
+        {currentStep === 8 && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-2" />
@@ -584,6 +627,16 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
             </div>
 
             <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-4 border-2 border-purple-200 space-y-3">
+              {reflectionData.confidence && (
+                <div>
+                  <div className="flex items-center gap-2 font-bold text-gray-900 mb-1">
+                    <span className="text-lg">🎯</span>
+                    Confidence
+                  </div>
+                  <p className="text-gray-700">{reflectionData.confidence}</p>
+                </div>
+              )}
+
               <div>
                 <div className="flex items-center gap-2 font-bold text-gray-900 mb-1">
                   <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
@@ -608,13 +661,13 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
                 <p className="text-gray-700">{reflectionData.wish}</p>
               </div>
 
-              {reflectionData.meme && (
+              {reflectionData.vibe && (
                 <div>
                   <div className="flex items-center gap-2 font-bold text-gray-900 mb-1">
                     <Smile className="w-4 h-4 text-blue-500" />
-                    Meme Energy
+                    Vibe
                   </div>
-                  <p className="text-gray-700">{reflectionData.meme}</p>
+                  <p className="text-gray-700">{reflectionData.vibe}</p>
                 </div>
               )}
             </div>
