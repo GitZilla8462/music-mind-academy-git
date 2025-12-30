@@ -692,19 +692,19 @@ const MusicComposer = ({
     });
   }, []);
 
-  const handleInitializeAudio = useCallback(async () => {
-    // Prevent spam - only attempt once until user gesture succeeds
-    if (audioInitAttemptedRef.current) return;
-    audioInitAttemptedRef.current = true;
+  // Track if we need user gesture to init audio
+  const needsUserGestureRef = useRef(false);
 
+  const handleInitializeAudio = useCallback(async () => {
     try {
       await initializeAudio();
       setAudioReady(true);
+      needsUserGestureRef.current = false;
       showToast?.('Audio engine ready!', 'success');
     } catch (error) {
-      // Reset on failure so user can retry with a click
-      audioInitAttemptedRef.current = false;
       console.error('Failed to initialize audio:', error);
+      // Mark that we need a user gesture to retry
+      needsUserGestureRef.current = true;
       // Don't spam toast on autoplay failure - this is expected
       if (!error.message?.includes('user gesture')) {
         showToast?.('Failed to initialize audio engine', 'error');
@@ -712,29 +712,27 @@ const MusicComposer = ({
     }
   }, [initializeAudio, showToast]);
 
-  // Auto-initialize audio on mount (once only, not on every render)
-  // This will attempt to start audio context - if browser blocks it (no user gesture),
-  // we add a click listener to retry when user interacts
+  // Auto-initialize audio on mount (once only)
   useEffect(() => {
     if (!audioReady && !audioInitAttemptedRef.current) {
+      audioInitAttemptedRef.current = true;
       handleInitializeAudio();
     }
-  }, [audioReady, handleInitializeAudio]);
+  }, []); // Empty deps - only run once on mount
 
   // Retry audio initialization on user click if it failed on mount
-  // Uses a ref check instead of state to avoid closure issues
   useEffect(() => {
-    if (audioReady) return; // Already initialized, no need for listener
+    if (audioReady) return; // Already initialized
 
     const handleClick = () => {
-      // Check ref directly - state in closure may be stale
-      if (!audioInitAttemptedRef.current) {
+      // Only retry if we know we need a user gesture
+      if (needsUserGestureRef.current) {
         console.log('🎵 Retrying audio init on user click');
+        needsUserGestureRef.current = false; // Prevent spam during async call
         handleInitializeAudio();
       }
     };
 
-    // Keep trying on each click until audio is ready
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, [audioReady, handleInitializeAudio]);
