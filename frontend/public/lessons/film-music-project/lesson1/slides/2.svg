@@ -20,9 +20,11 @@
   <rect x="192" y="230" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
 
   <!-- Bullet Points -->
-  <text x="192" y="420" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">1. Discover how music creates mood.</text>
+  <text x="192" y="380" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">1. Discover how music creates mood.</text>
 
-  <text x="192" y="560" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">2. Practice matching loops to moods.</text>
+  <text x="192" y="500" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">2. Practice matching loops to moods.</text>
 
-  <text x="192" y="700" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">3. Create your own adventure score.</text>
+  <text x="192" y="620" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">3. Learn about a digital audio workstation.</text>
+
+  <text x="192" y="740" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">4. Create your own adventure score.</text>
 </svg>
