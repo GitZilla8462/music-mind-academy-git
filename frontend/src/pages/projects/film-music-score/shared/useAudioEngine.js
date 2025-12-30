@@ -41,10 +41,21 @@ export const useAudioEngine = (videoDuration = 60) => {
   };
 
   const initializeAudio = useCallback(async () => {
-    console.log('🎵 initializeAudio called');
+    console.log('🎵 initializeAudio called, context state:', Tone.context.state);
     if (Tone.context.state !== 'running') {
-      await Tone.start();
-      // Check if it actually started - Tone.start() can fail silently
+      try {
+        // Tone.start() can hang forever if autoplay is blocked
+        // Use a timeout to detect this and fail fast
+        const startPromise = Tone.start();
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Audio start timeout')), 500)
+        );
+        await Promise.race([startPromise, timeoutPromise]);
+      } catch (err) {
+        console.log('❌ Tone.start() failed:', err.message);
+        throw new Error('AudioContext requires user gesture to start');
+      }
+      // Check if it actually started - Tone.start() can fail silently on some browsers
       if (Tone.context.state !== 'running') {
         console.log('❌ Audio context failed to start, state:', Tone.context.state);
         throw new Error('AudioContext requires user gesture to start');
