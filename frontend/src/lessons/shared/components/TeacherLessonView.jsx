@@ -387,13 +387,13 @@ const PresentationContent = ({
               />
             </div>
 
-            {/* Right side - Bullet points (bigger text) */}
+            {/* Right side - Bullet points */}
             <div className="w-1/2 flex flex-col justify-center p-6 pr-12">
-              <ul className="space-y-6">
+              <ul className="space-y-5">
                 {content.points.map((point, index) => (
-                  <li key={index} className="flex items-start gap-4">
-                    <span className="text-purple-500 text-3xl mt-1">•</span>
-                    <span className="text-2xl text-slate-200 leading-relaxed">{point}</span>
+                  <li key={index} className="flex items-start gap-3">
+                    <span className="text-purple-500 text-xl mt-1">•</span>
+                    <span className="text-xl text-slate-200 leading-relaxed">{point}</span>
                   </li>
                 ))}
               </ul>
