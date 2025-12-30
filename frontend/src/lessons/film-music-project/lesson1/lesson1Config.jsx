@@ -368,7 +368,7 @@ export const lessonStages = [
       type: 'video',
       videoPath: '/lessons/film-music-project/lesson1/IntrotoDAW122025.mp4',
       title: 'How to Use the DAW',
-      slidePath: '/lessons/film-music-project/lesson1/slides/11.svg'
+      slidePath: '/lessons/film-music-project/lesson1/slides/10.svg'
     }
   },
   {
@@ -379,7 +379,7 @@ export const lessonStages = [
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/12.svg'
+      slidePath: '/lessons/film-music-project/lesson1/slides/11.svg'
     }
   },
   {
@@ -392,7 +392,7 @@ export const lessonStages = [
     hasTimer: true,
     duration: 12,
     presentationView: {
-      type: 'activity-slide',
+      type: 'slide',
       slidePath: '/lessons/film-music-project/lesson1/slides/12.svg'
     }
   },
@@ -404,7 +404,7 @@ export const lessonStages = [
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/14.svg'
+      slidePath: '/lessons/film-music-project/lesson1/slides/13.svg'
     }
   },
   {
@@ -417,7 +417,7 @@ export const lessonStages = [
     hasTimer: true,
     duration: 5,
     presentationView: {
-      type: 'activity-slide',
+      type: 'slide',
       slidePath: '/lessons/film-music-project/lesson1/slides/14.svg'
     }
   },
@@ -429,7 +429,7 @@ export const lessonStages = [
     duration: 2,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/16.svg'
+      slidePath: '/lessons/film-music-project/lesson1/slides/15.svg'
     }
   }
 ];
