@@ -18,13 +18,13 @@
   <text x="960" y="48" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white" font-weight="bold" text-anchor="middle">STUDENT ACTIVITY TIME</text>
 
   <!-- Title -->
-  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">REFLECTION</text>
+  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">TWO STARS AND A WISH</text>
 
   <!-- Accent line -->
   <rect x="192" y="230" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
 
   <!-- Subtitle -->
-  <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Activity Time</text>
+  <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Reflection Time</text>
 
   <!-- Bullet Points -->
   <text x="192" y="480" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">Complete your Two Stars and a Wish.</text>
