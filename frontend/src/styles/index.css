@@ -676,3 +676,10 @@ input[type="range"]::-moz-range-thumb:hover {
 .cursor-none:hover {
   cursor: none;
 }
+
+/* CHROMEBOOK FIX: Force cursor:none on ALL descendants in DAW */
+/* This ensures buttons, links, and other interactive elements don't show native cursor */
+.chromebook-hide-cursor,
+.chromebook-hide-cursor * {
+  cursor: none !important;
+}

@@ -757,8 +757,7 @@ const MusicComposer = ({
   return (
     <div
       ref={dawContainerRef}
-      className="h-full bg-gray-900 text-white flex flex-col"
-      style={isChromebook ? { cursor: 'none' } : undefined}
+      className={`h-full bg-gray-900 text-white flex flex-col ${isChromebook ? 'chromebook-hide-cursor' : ''}`}
     >
       {/* CHROMEBOOK FIX: Global custom cursor (hidden when over areas with local cursor) */}
       {isChromebook && showGlobalCursor && (
