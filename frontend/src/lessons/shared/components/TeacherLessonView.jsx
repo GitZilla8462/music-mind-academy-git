@@ -420,6 +420,38 @@ const PresentationContent = ({
       );
     }
 
+    // Activity Slide - shows slide WITH "Student Activity Time" banner on top
+    if (type === 'activity-slide' && slidePath) {
+      return (
+        <div className="absolute inset-0 flex flex-col bg-black">
+          {/* Student Activity Time Banner */}
+          <div
+            className="w-full flex items-center justify-center flex-shrink-0"
+            style={{
+              height: '64px',
+              backgroundColor: '#0d9488'
+            }}
+          >
+            <span className="text-white font-bold" style={{ fontSize: '28px' }}>
+              STUDENT ACTIVITY TIME
+            </span>
+          </div>
+          {/* Slide content */}
+          <div className="flex-1 flex items-center justify-center">
+            <img
+              src={slidePath}
+              alt={currentStage}
+              className="max-w-full max-h-full w-auto h-auto object-contain"
+              onError={(e) => {
+                console.error('Failed to load slide:', slidePath);
+                e.target.style.display = 'none';
+              }}
+            />
+          </div>
+        </div>
+      );
+    }
+
     // Video
     if (type === 'video' && videoPath) {
       return (
