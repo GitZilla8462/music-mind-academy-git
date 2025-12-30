@@ -3,7 +3,7 @@
 // Professional design: White/slate sidebar, dark presentation area
 // ✅ UPDATED: Added mini live preview box below view toggle
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   ChevronDown,
   ChevronRight,
@@ -1259,12 +1259,15 @@ const TeacherLessonView = ({
   const [bottomPanelHeight, setBottomPanelHeight] = useState(280);
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
   const [isResizingBottom, setIsResizingBottom] = useState(false);
+  const resizeStartY = useRef(0);
+  const resizeStartHeight = useRef(0);
 
   // Handle sidebar horizontal resize
   useEffect(() => {
     if (!isResizingSidebar) return;
 
     const handleMouseMove = (e) => {
+      e.preventDefault();
       const newWidth = Math.max(200, Math.min(500, e.clientX));
       setSidebarWidth(newWidth);
     };
@@ -1290,12 +1293,11 @@ const TeacherLessonView = ({
   useEffect(() => {
     if (!isResizingBottom) return;
 
-    const sidebarEl = document.getElementById('teacher-sidebar');
-    if (!sidebarEl) return;
-
     const handleMouseMove = (e) => {
-      const sidebarRect = sidebarEl.getBoundingClientRect();
-      const newHeight = sidebarRect.bottom - e.clientY;
+      e.preventDefault();
+      // Calculate delta from start position (dragging UP = positive delta = smaller bottom panel)
+      const deltaY = e.clientY - resizeStartY.current;
+      const newHeight = resizeStartHeight.current - deltaY;
       setBottomPanelHeight(Math.max(150, Math.min(500, newHeight)));
     };
 
@@ -1315,6 +1317,12 @@ const TeacherLessonView = ({
       document.body.style.userSelect = '';
     };
   }, [isResizingBottom]);
+
+  const startBottomResize = (e) => {
+    resizeStartY.current = e.clientY;
+    resizeStartHeight.current = bottomPanelHeight;
+    setIsResizingBottom(true);
+  };
 
   // Survey state - shown when 5+ students (real classroom use)
   // surveyType: 'quick' | 'midPilot' | 'finalPilot' | null
@@ -1680,9 +1688,9 @@ const TeacherLessonView = ({
         {/* Sidebar */}
         <div
           id="teacher-sidebar"
-          className={`bg-white border-r border-slate-200 flex flex-col transition-all duration-300 flex-shrink-0 ${
+          className={`bg-white border-r border-slate-200 flex flex-col flex-shrink-0 ${
             sidebarCollapsed ? 'w-14' : ''
-          }`}
+          } ${!isResizingSidebar && !isResizingBottom ? 'transition-all duration-300' : ''}`}
           style={sidebarCollapsed ? {} : { width: `${sidebarWidth}px` }}
         >
           {/* Join Info - Top of Sidebar */}
@@ -1971,7 +1979,7 @@ const TeacherLessonView = ({
           {!sidebarCollapsed && (
             <div
               className="h-1 bg-slate-200 hover:bg-blue-400 cursor-row-resize transition-colors flex-shrink-0"
-              onMouseDown={() => setIsResizingBottom(true)}
+              onMouseDown={startBottomResize}
             />
           )}
 
