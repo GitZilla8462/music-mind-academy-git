@@ -45,7 +45,8 @@ const PresentationContent = ({
   lessonConfig,
   lessonBasePath,
   viewMode, // 'teacher' or 'student'
-  onVideoEnded // callback when video finishes playing
+  onVideoEnded, // callback when video finishes playing
+  goToNextStage // callback to advance to next stage
 }) => {
   const [LayerDetectiveLeaderboard, setLayerDetectiveLeaderboard] = useState(null);
   const [LayerDetectiveResults, setLayerDetectiveResults] = useState(null);
@@ -497,6 +498,7 @@ const MiniPreview = ({ viewMode, sessionCode, currentStage, currentStageData, se
                 lessonConfig={config}
                 lessonBasePath={config?.lessonPath}
                 viewMode="teacher"
+                goToNextStage={goToNextStage}
               />
             </div>
           </div>
@@ -2088,6 +2090,7 @@ const TeacherLessonView = ({
             lessonBasePath={config.lessonPath}
             viewMode={viewMode}
             onVideoEnded={goToNextStage}
+            goToNextStage={goToNextStage}
           />
 
           {/* Floating Timer - Top Right (2x size) */}
