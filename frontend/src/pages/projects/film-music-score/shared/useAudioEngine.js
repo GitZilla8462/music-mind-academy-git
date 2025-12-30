@@ -374,10 +374,26 @@ export const useAudioEngine = (videoDuration = 60) => {
     console.log('========================================\n');
   }, [clearScheduledEvents, getRawContext]);
 
+  // Stop any active preview
+  const stopPreview = useCallback(() => {
+    if (previewSourceRef.current) {
+      console.log('🔇 Stopping preview');
+      try {
+        previewSourceRef.current.source.stop();
+        previewSourceRef.current.source.disconnect();
+        previewSourceRef.current.gainNode.disconnect();
+      } catch (err) {}
+      previewSourceRef.current = null;
+      currentPreviewLoopIdRef.current = null;
+    }
+  }, []);
+
   const play = useCallback(async () => {
     console.log('▶️ PLAY called');
     console.log(`   Transport state: ${Tone.Transport.state}`);
     console.log(`   Transport time: ${Tone.Transport.seconds.toFixed(3)}s`);
+
+    stopPreview();  // Stop any loop preview when timeline starts
 
     if (Tone.Transport.state !== 'started') {
       Tone.Transport.start();
@@ -385,24 +401,26 @@ export const useAudioEngine = (videoDuration = 60) => {
     }
 
     setIsPlaying(true);
-  }, []);
+  }, [stopPreview]);
 
   const pause = useCallback(() => {
     console.log('⏸️ PAUSE called');
     Tone.Transport.pause();
     setIsPlaying(false);
     clearScheduledEvents();
-  }, [clearScheduledEvents]);
+    stopPreview();  // Also stop any loop preview
+  }, [clearScheduledEvents, stopPreview]);
 
   const stop = useCallback(() => {
     console.log('⏹️ STOP called');
     transportStoppedByStopRef.current = true;
     Tone.Transport.stop();
     Tone.Transport.position = 0;
+    stopPreview();  // Also stop any loop preview
     setIsPlaying(false);
     setCurrentTime(0);
     clearScheduledEvents();
-  }, [clearScheduledEvents]);
+  }, [clearScheduledEvents, stopPreview]);
 
   const seek = useCallback((time) => {
     const now = Date.now();
@@ -550,6 +568,7 @@ export const useAudioEngine = (videoDuration = 60) => {
     setMasterVolume,
     toggleMute,
     previewLoop,
+    stopPreview,
     createLoopPlayer,
     scheduleLoops,
     initializeAudio,
