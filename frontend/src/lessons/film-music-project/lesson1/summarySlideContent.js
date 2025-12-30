@@ -23,7 +23,8 @@ export const summarySlides = {
     points: [
       "1. Discover how music creates mood",
       "2. Practice matching loops to moods",
-      "3. Create your own adventure score"
+      "3. Learn about a digital audio workstation",
+      "4. Create your own adventure score"
     ]
   },
 
