@@ -361,6 +361,11 @@ const SchoolBeneathActivity = ({
     };
 
     const handleError = () => {
+      // Guard: if we already detected duration, ignore spurious errors
+      // (setting videoElement.src = '' in handleMetadata triggers an error)
+      if (durationDetectedRef.current) {
+        return;
+      }
       console.warn('Video metadata error, using fallback 60s');
       setVideoDuration(60);
       durationDetectedRef.current = true;
