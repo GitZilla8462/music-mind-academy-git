@@ -24,7 +24,7 @@ export const soundEffects = [
   // ========================================
   {
     id: 'sfx-city-1',
-    name: 'Big City Ambience 1',
+    name: 'City 1',
     file: '/projects/film-music-score/soundEffects/bigcity1.mp3',
     duration: 10,
     category: 'City',
@@ -37,7 +37,7 @@ export const soundEffects = [
   },
   {
     id: 'sfx-city-2',
-    name: 'Big City Ambience 2',
+    name: 'City 2',
     file: '/projects/film-music-score/soundEffects/bigcity2.mp3',
     duration: 10,
     category: 'City',
@@ -50,7 +50,7 @@ export const soundEffects = [
   },
   {
     id: 'sfx-city-3',
-    name: 'Big City Ambience 3',
+    name: 'City 3',
     file: '/projects/film-music-score/soundEffects/bigcity3.mp3',
     duration: 10,
     category: 'City',
@@ -63,7 +63,7 @@ export const soundEffects = [
   },
   {
     id: 'sfx-city-4',
-    name: 'Big City Ambience 4',
+    name: 'City 4',
     file: '/projects/film-music-score/soundEffects/bigcity4.mp3',
     duration: 10,
     category: 'City',
@@ -76,7 +76,7 @@ export const soundEffects = [
   },
   {
     id: 'sfx-city-5',
-    name: 'Big City Ambience 5',
+    name: 'City 5',
     file: '/projects/film-music-score/soundEffects/bigcity5.mp3',
     duration: 10,
     category: 'City',
@@ -94,7 +94,7 @@ export const soundEffects = [
   // Forest
   {
     id: 'sfx-forest-1',
-    name: 'Forest Ambience 1',
+    name: 'Forest 1',
     file: '/projects/film-music-score/soundEffects/Forest1.mp3',
     duration: 12,
     category: 'Nature',
@@ -107,7 +107,7 @@ export const soundEffects = [
   },
   {
     id: 'sfx-forest-2',
-    name: 'Forest Ambience 2',
+    name: 'Forest 2',
     file: '/projects/film-music-score/soundEffects/Forest2.mp3',
     duration: 12,
     category: 'Nature',
@@ -120,7 +120,7 @@ export const soundEffects = [
   },
   {
     id: 'sfx-forest-3',
-    name: 'Forest Ambience 3',
+    name: 'Forest 3',
     file: '/projects/film-music-score/soundEffects/Forest3.mp3',
     duration: 12,
     category: 'Nature',
@@ -133,7 +133,7 @@ export const soundEffects = [
   },
   {
     id: 'sfx-forest-4',
-    name: 'Forest Ambience 4',
+    name: 'Forest 4',
     file: '/projects/film-music-score/soundEffects/Forest4.mp3',
     duration: 12,
     category: 'Nature',
@@ -147,7 +147,7 @@ export const soundEffects = [
   // Savanna
   {
     id: 'sfx-savanna-1',
-    name: 'Savanna Ambience 1',
+    name: 'Savanna 1',
     file: '/projects/film-music-score/soundEffects/Savanna1.mp3',
     duration: 12,
     category: 'Nature',
@@ -160,7 +160,7 @@ export const soundEffects = [
   },
   {
     id: 'sfx-savanna-2',
-    name: 'Savanna Ambience 2',
+    name: 'Savanna 2',
     file: '/projects/film-music-score/soundEffects/Savanna2.mp3',
     duration: 12,
     category: 'Nature',
@@ -173,7 +173,7 @@ export const soundEffects = [
   },
   {
     id: 'sfx-savanna-3',
-    name: 'Savanna Ambience 3',
+    name: 'Savanna 3',
     file: '/projects/film-music-score/soundEffects/Savanna3.mp3',
     duration: 12,
     category: 'Nature',
@@ -186,7 +186,7 @@ export const soundEffects = [
   },
   {
     id: 'sfx-savanna-4',
-    name: 'Savanna Ambience 4',
+    name: 'Savanna 4',
     file: '/projects/film-music-score/soundEffects/Savanna4.mp3',
     duration: 12,
     category: 'Nature',
@@ -200,7 +200,7 @@ export const soundEffects = [
   // Underwater
   {
     id: 'sfx-underwater-1',
-    name: 'Underwater Ambience 1',
+    name: 'Underwater 1',
     file: '/projects/film-music-score/soundEffects/Underwater1.mp3',
     duration: 12,
     category: 'Nature',
@@ -213,7 +213,7 @@ export const soundEffects = [
   },
   {
     id: 'sfx-underwater-2',
-    name: 'Underwater Ambience 2',
+    name: 'Underwater 2',
     file: '/projects/film-music-score/soundEffects/Underwater2.mp3',
     duration: 2.6,
     category: 'Nature',
@@ -226,7 +226,7 @@ export const soundEffects = [
   },
   {
     id: 'sfx-underwater-3',
-    name: 'Underwater Ambience 3',
+    name: 'Underwater 3',
     file: '/projects/film-music-score/soundEffects/Underwater3.mp3',
     duration: 12,
     category: 'Nature',
