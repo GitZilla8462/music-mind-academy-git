@@ -299,7 +299,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
             {currentStep === 5 && "⭐ Star 2"}
             {currentStep === 6 && "✨ Wish"}
             {currentStep === 7 && "😄 Pick a Vibe"}
-            {currentStep === 8 && "🎨 Place Stickers"}
+            {currentStep === 8 && "Place Stickers"}
             {currentStep === 9 && "📝 Summary"}
           </h2>
         </div>
@@ -699,74 +699,53 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
 
         {/* STEP 8: Place Stickers */}
         {currentStep === 8 && (
-          <div className="space-y-4">
-            <div className="text-center mb-4">
-              <span className="text-4xl">🎨</span>
-              <h3 className="font-bold text-gray-900 mt-2">Place Stickers!</h3>
-              <p className="text-sm text-gray-600 mt-1">
-                Mark up the composition with feedback stickers
-              </p>
+          <div className="space-y-2">
+            <p className="text-xs text-gray-600 text-center">
+              {selectedSticker ? `Click on the DAW to place ${selectedSticker}` : 'Select a sticker, then click on the DAW'}
+            </p>
+
+            {/* Sticker selection */}
+            <div className="flex justify-center gap-1">
+              {stickerOptions.map((sticker, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setSelectedSticker(sticker.emoji);
+                    setIsPlacingSticker(true);
+                  }}
+                  className={`p-1.5 rounded-lg transition-all ${
+                    selectedSticker === sticker.emoji
+                      ? 'bg-orange-500 scale-110 shadow-lg'
+                      : 'bg-gray-100 hover:bg-orange-100 border border-gray-200'
+                  }`}
+                  title={sticker.description}
+                >
+                  <span className="text-xl">{sticker.emoji}</span>
+                </button>
+              ))}
             </div>
 
-            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-              <p className="text-xs text-gray-600 mb-2 text-center">
-                {selectedSticker ? `Click anywhere on the DAW to place ${selectedSticker}` : 'Select a sticker below'}
-              </p>
-              <div className="flex justify-center gap-2">
-                {stickerOptions.map((sticker, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setSelectedSticker(sticker.emoji);
-                      setIsPlacingSticker(true);
-                    }}
-                    className={`p-2 rounded-lg transition-all ${
-                      selectedSticker === sticker.emoji
-                        ? 'bg-orange-500 scale-110 shadow-lg'
-                        : 'bg-white hover:bg-orange-100 border border-gray-200'
-                    }`}
-                    title={sticker.description}
-                  >
-                    <span className="text-2xl">{sticker.emoji}</span>
-                  </button>
+            {/* Placed stickers list */}
+            {reflectionData.stickers.length > 0 && (
+              <div className="flex flex-wrap gap-1 justify-center">
+                {reflectionData.stickers.map((sticker, idx) => (
+                  <div key={idx} className="flex items-center gap-0.5 bg-orange-50 px-1.5 py-0.5 rounded-full border border-orange-200">
+                    <span className="text-sm">{sticker.emoji}</span>
+                    <button
+                      onClick={() => {
+                        setReflectionData(prev => ({
+                          ...prev,
+                          stickers: prev.stickers.filter((_, i) => i !== idx)
+                        }));
+                      }}
+                      className="text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
                 ))}
               </div>
-            </div>
-
-            {reflectionData.stickers.length > 0 && (
-              <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
-                <p className="text-sm font-semibold text-gray-700 mb-2">
-                  Placed Stickers ({reflectionData.stickers.length})
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {reflectionData.stickers.map((sticker, idx) => (
-                    <div key={idx} className="flex items-center gap-1 bg-white px-2 py-1 rounded-full border border-orange-200">
-                      <span className="text-lg">{sticker.emoji}</span>
-                      <button
-                        onClick={() => {
-                          setReflectionData(prev => ({
-                            ...prev,
-                            stickers: prev.stickers.filter((_, i) => i !== idx)
-                          }));
-                        }}
-                        className="text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
             )}
-
-            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 text-sm text-gray-700">
-              <p className="font-semibold mb-1">How to place stickers:</p>
-              <ol className="list-decimal list-inside space-y-1 text-xs">
-                <li>Select a sticker from above</li>
-                <li>Click anywhere on the DAW (outside this modal) to place it</li>
-                <li>Add as many stickers as you want!</li>
-              </ol>
-            </div>
 
             <button
               onClick={() => {
@@ -776,9 +755,9 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
                 localStorage.setItem('sports-reflection', JSON.stringify(fullData));
                 setCurrentStep(9);
               }}
-              className="w-full px-6 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors"
+              className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors text-sm"
             >
-              {reflectionData.stickers.length > 0 ? 'Continue to Summary →' : 'Skip Stickers →'}
+              {reflectionData.stickers.length > 0 ? 'Continue →' : 'Skip →'}
             </button>
           </div>
         )}
