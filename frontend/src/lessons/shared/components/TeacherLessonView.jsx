@@ -353,7 +353,6 @@ const PresentationContent = ({
           points: [
             'Apps like GarageBand, FL Studio, Ableton, and Logic Pro are used by professional artists to make hit songs.',
             "Billie Eilish's brother Finneas produced her Grammy-winning album in his bedroom using Logic Pro.",
-            "That song stuck in your head right now? It was probably made on a laptop, not in a fancy studio.",
             'Next we will watch a 2 minute video that introduces the DAW we will use today.'
           ]
         }
