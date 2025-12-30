@@ -860,6 +860,7 @@ const MusicComposer = ({
         highlightSelector={highlightSelector}
         currentlyPlayingPreview={currentlyPlayingPreview}
         assignmentPanelContent={assignmentPanelContent}
+        playersReady={audioReady}  // FIX: Pass playersReady to enable play button
         // Creator tools (Beat Maker, Melody Maker)
         showCreatorTools={showCreatorTools}
         creatorMenuOpen={creatorMenuOpen}
