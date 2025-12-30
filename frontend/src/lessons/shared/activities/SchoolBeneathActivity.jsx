@@ -337,8 +337,6 @@ const SchoolBeneathActivity = ({
   const durationDetectedRef = useRef(false);
 
   useEffect(() => {
-    if (viewMode) return;
-
     // Skip if we already detected duration this session
     if (durationDetectedRef.current) {
       return;
@@ -388,7 +386,7 @@ const SchoolBeneathActivity = ({
       videoElement.removeEventListener('error', handleError);
       videoElement.src = '';
     };
-  }, [viewMode, videoPath]);
+  }, [videoPath]);
   
   // ============================================================================
   // LOOP HANDLERS
