@@ -43,6 +43,11 @@ export const useAudioEngine = (videoDuration = 60) => {
     console.log('🎵 initializeAudio called');
     if (Tone.context.state !== 'running') {
       await Tone.start();
+      // Check if it actually started - Tone.start() can fail silently
+      if (Tone.context.state !== 'running') {
+        console.log('❌ Audio context failed to start, state:', Tone.context.state);
+        throw new Error('AudioContext requires user gesture to start');
+      }
       console.log('✅ Audio context started, state:', Tone.context.state);
     } else {
       console.log('✅ Audio context already running');
