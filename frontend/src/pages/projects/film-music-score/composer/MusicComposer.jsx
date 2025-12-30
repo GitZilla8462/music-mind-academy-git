@@ -714,11 +714,29 @@ const MusicComposer = ({
 
   // Auto-initialize audio on mount (once only, not on every render)
   // This will attempt to start audio context - if browser blocks it (no user gesture),
-  // the ref resets and it will retry when user clicks anywhere
+  // we add a click listener to retry when user interacts
   useEffect(() => {
     if (!audioReady && !audioInitAttemptedRef.current) {
       handleInitializeAudio();
     }
+  }, [audioReady, handleInitializeAudio]);
+
+  // Retry audio initialization on user click if it failed on mount
+  // Uses a ref check instead of state to avoid closure issues
+  useEffect(() => {
+    if (audioReady) return; // Already initialized, no need for listener
+
+    const handleClick = () => {
+      // Check ref directly - state in closure may be stale
+      if (!audioInitAttemptedRef.current) {
+        console.log('🎵 Retrying audio init on user click');
+        handleInitializeAudio();
+      }
+    };
+
+    // Keep trying on each click until audio is ready
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
   }, [audioReady, handleInitializeAudio]);
 
   const handleSubmit = async () => {
