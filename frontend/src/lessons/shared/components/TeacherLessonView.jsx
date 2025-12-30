@@ -1255,7 +1255,7 @@ const TeacherLessonView = ({
   });
 
   // Resizable panel state
-  const [sidebarWidth, setSidebarWidth] = useState(280);
+  const [sidebarWidth, setSidebarWidth] = useState(340);
   const [bottomPanelHeight, setBottomPanelHeight] = useState(280);
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
   const [isResizingBottom, setIsResizingBottom] = useState(false);
