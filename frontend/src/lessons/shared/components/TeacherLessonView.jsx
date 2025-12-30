@@ -362,34 +362,42 @@ const PresentationContent = ({
       const content = slideContent[currentStage] || { title: currentStage, points: [] };
 
       return (
-        <div className="absolute inset-0 flex bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-          {/* Left side - Image */}
-          <div className="w-1/2 flex items-center justify-center p-8">
-            <img
-              src={imagePath}
-              alt={content.title}
-              className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-2xl"
-              onError={(e) => {
-                console.error('Failed to load image:', imagePath);
-                e.target.style.display = 'none';
-              }}
-            />
+        <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+          {/* Title - spans full width at top */}
+          <div className="text-center pt-8 pb-4">
+            <h1 className="text-6xl font-bold text-white mb-2">{content.title}</h1>
+            {content.subtitle && (
+              <h2 className="text-3xl text-purple-400">{content.subtitle}</h2>
+            )}
           </div>
 
-          {/* Right side - Text content */}
-          <div className="w-1/2 flex flex-col justify-center p-8 pr-12">
-            <h1 className="text-5xl font-bold text-white mb-2">{content.title}</h1>
-            {content.subtitle && (
-              <h2 className="text-2xl text-purple-400 mb-8">{content.subtitle}</h2>
-            )}
-            <ul className="space-y-4">
-              {content.points.map((point, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <span className="text-purple-500 mt-1">•</span>
-                  <span className="text-xl text-slate-200 leading-relaxed">{point}</span>
-                </li>
-              ))}
-            </ul>
+          {/* Content area - image and bullets side by side */}
+          <div className="flex-1 flex">
+            {/* Left side - Image (15% smaller) */}
+            <div className="w-1/2 flex items-center justify-center p-6">
+              <img
+                src={imagePath}
+                alt={content.title}
+                className="object-contain rounded-lg shadow-2xl"
+                style={{ maxWidth: '85%', maxHeight: '85%' }}
+                onError={(e) => {
+                  console.error('Failed to load image:', imagePath);
+                  e.target.style.display = 'none';
+                }}
+              />
+            </div>
+
+            {/* Right side - Bullet points (bigger text) */}
+            <div className="w-1/2 flex flex-col justify-center p-6 pr-12">
+              <ul className="space-y-6">
+                {content.points.map((point, index) => (
+                  <li key={index} className="flex items-start gap-4">
+                    <span className="text-purple-500 text-3xl mt-1">•</span>
+                    <span className="text-2xl text-slate-200 leading-relaxed">{point}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       );
