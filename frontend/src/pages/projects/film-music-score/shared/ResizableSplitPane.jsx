@@ -28,6 +28,8 @@ const ResizableSplitPane = ({
 
   // CHROMEBOOK FIX: Track cursor type for CustomCursor
   const [cursorType, setCursorType] = useState('default');
+  // CHROMEBOOK FIX: Track mouse position for initial cursor placement
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   const handleMouseDown = useCallback((e) => {
     e.preventDefault();
@@ -118,6 +120,8 @@ const ResizableSplitPane = ({
           cursorType={cursorType}
           containerRef={overlayRef}
           enabled={true}
+          initiallyVisible={true}
+          initialPosition={mousePosition}
         />
       )}
 
@@ -135,8 +139,16 @@ const ResizableSplitPane = ({
           pointerEvents: 'auto'
         }}
         onMouseDown={handleMouseDown}
-        onMouseEnter={() => setIsHovering(true)}
+        onMouseEnter={(e) => {
+          setMousePosition({ x: e.clientX, y: e.clientY });
+          setIsHovering(true);
+        }}
         onMouseLeave={() => setIsHovering(false)}
+        onMouseMove={(e) => {
+          if (isChromebook && isHovering) {
+            setMousePosition({ x: e.clientX, y: e.clientY });
+          }
+        }}
       />
 
       {/* Bottom Pane - Timeline */}

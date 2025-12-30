@@ -85,15 +85,18 @@ const HOTSPOTS = {
   pointer: { x: 4, y: 1 },
 };
 
-const CustomCursor = ({ 
+const CustomCursor = ({
   cursorType = 'default',
   containerRef,  // Ref to the element this cursor should appear over
-  enabled = true
+  enabled = true,
+  initiallyVisible = false,  // CHROMEBOOK FIX: Start visible when parent knows we're hovering
+  initialPosition = null  // CHROMEBOOK FIX: Initial mouse position from parent
 }) => {
-  const [position, setPosition] = useState({ x: -100, y: -100 });
-  const [isVisible, setIsVisible] = useState(false);
+  const defaultPos = initialPosition || { x: -100, y: -100 };
+  const [position, setPosition] = useState(defaultPos);
+  const [isVisible, setIsVisible] = useState(initiallyVisible);
   const rafRef = useRef(null);
-  const positionRef = useRef({ x: -100, y: -100 });
+  const positionRef = useRef(defaultPos);
 
   useEffect(() => {
     if (!enabled) return;
