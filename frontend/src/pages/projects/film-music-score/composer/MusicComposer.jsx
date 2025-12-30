@@ -75,7 +75,6 @@ const MusicComposer = ({
   const savedLoopsRef = useRef(null);
   const dawReadyCalledRef = useRef(false);
   const initialLoopsLoadedRef = useRef(false);
-  const audioInitAttemptedRef = useRef(false);  // Prevent spam initialization
   const [currentlyPlayingPreview, setCurrentlyPlayingPreview] = useState(null);
 
   // Creator tools state (Beat Maker and Melody Maker panels)
@@ -478,6 +477,8 @@ const MusicComposer = ({
     onPlaybackStartCallback,
     onPlaybackStopCallback,
     audioReady,
+    setAudioReady,
+    initializeAudio,
     showToast,
     placedLoops,
     selectedVideo,
@@ -692,61 +693,8 @@ const MusicComposer = ({
     });
   }, []);
 
-  // Track if we need user gesture to init audio
-  const needsUserGestureRef = useRef(false);
-
-  const handleInitializeAudio = useCallback(async () => {
-    try {
-      await initializeAudio();
-      setAudioReady(true);
-      needsUserGestureRef.current = false;
-      console.log('🎵 Audio initialized successfully!');
-      showToast?.('Audio engine ready!', 'success');
-    } catch (error) {
-      console.error('❌ Failed to auto-initialize audio:', error);
-      // Mark that we need a user gesture to retry
-      needsUserGestureRef.current = true;
-      console.log('🎵 Set needsUserGesture = true, waiting for click');
-      // Don't spam toast on autoplay failure - this is expected
-      if (!error.message?.includes('user gesture')) {
-        showToast?.('Failed to initialize audio engine', 'error');
-      }
-    }
-  }, [initializeAudio, showToast]);
-
-  // Auto-initialize audio on mount (once only)
-  useEffect(() => {
-    if (!audioReady && !audioInitAttemptedRef.current) {
-      audioInitAttemptedRef.current = true;
-      handleInitializeAudio();
-    }
-  }, []); // Empty deps - only run once on mount
-
-  // Retry audio initialization on user click if it failed on mount
-  useEffect(() => {
-    if (audioReady) {
-      console.log('🎵 Audio already ready, no click listener needed');
-      return;
-    }
-
-    console.log('🎵 Adding click listener for audio retry, needsUserGesture:', needsUserGestureRef.current);
-
-    const handleClick = (e) => {
-      console.log('🎵 Click detected, needsUserGesture:', needsUserGestureRef.current, 'audioReady:', audioReady);
-      // Only retry if we know we need a user gesture
-      if (needsUserGestureRef.current) {
-        console.log('🎵 Retrying audio init on user click');
-        needsUserGestureRef.current = false; // Prevent spam during async call
-        handleInitializeAudio();
-      }
-    };
-
-    document.addEventListener('click', handleClick);
-    return () => {
-      console.log('🎵 Removing click listener');
-      document.removeEventListener('click', handleClick);
-    };
-  }, [audioReady, handleInitializeAudio]);
+  // Audio is initialized on first play button click (see usePlaybackHandlers)
+  // This ensures we have a valid user gesture for browser autoplay policy
 
   const handleSubmit = async () => {
     if (placedLoops.length === 0) {

@@ -3,7 +3,7 @@
 // FIXED: Added playersReady prop to disable play button while audio loads
 
 import React from 'react';
-import { Play, Pause, Square, SkipBack, SkipForward, RotateCcw, Loader2 } from 'lucide-react';
+import { Play, Pause, Square, SkipBack, SkipForward, RotateCcw } from 'lucide-react';
 
 const TimelineHeader = ({ 
   placedLoops, 
@@ -67,19 +67,14 @@ const TimelineHeader = ({
 
             <button
               onClick={handlePlayPause}
-              disabled={!playersReady && !isPlaying}
               className={`p-1.5 rounded transition-colors ${
-                !playersReady && !isPlaying
-                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                  : isPlaying
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                isPlaying
+                  ? 'bg-green-600 hover:bg-green-700 text-white'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
               }`}
-              title={!playersReady && !isPlaying ? "Loading audio..." : isPlaying ? "Pause" : "Play"}
+              title={isPlaying ? "Pause" : "Play"}
             >
-              {!playersReady && !isPlaying ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : isPlaying ? (
+              {isPlaying ? (
                 <Pause size={16} />
               ) : (
                 <Play size={16} />

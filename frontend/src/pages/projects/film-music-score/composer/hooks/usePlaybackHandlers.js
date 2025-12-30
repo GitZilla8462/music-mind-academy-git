@@ -14,6 +14,8 @@ export const usePlaybackHandlers = ({
   onPlaybackStartCallback,
   onPlaybackStopCallback,
   audioReady,
+  setAudioReady,
+  initializeAudio,
   showToast,
   placedLoops,
   selectedVideo,
@@ -50,12 +52,15 @@ export const usePlaybackHandlers = ({
       onPlaybackStartCallback();
     }
 
-    if (!audioReady) {
-      showToast?.('Audio not ready', 'error');
-      return;
-    }
-    
     try {
+      // Initialize audio on first play (user gesture unlocks audio)
+      if (!audioReady) {
+        console.log('🎵 Initializing audio on first play...');
+        await initializeAudio();
+        setAudioReady(true);
+        console.log('✅ Audio initialized on play click');
+      }
+
       console.log(`🎬 Starting playback with ${placedLoops.length} loops`);
 
       // Resume AudioContext if suspended (browser autoplay policy)
@@ -84,7 +89,7 @@ export const usePlaybackHandlers = ({
       showToast?.('Failed to start playback', 'error');
     }
   }, [
-    audioReady, placedLoops, scheduleLoops, selectedVideo?.duration, 
+    audioReady, initializeAudio, setAudioReady, placedLoops, scheduleLoops, selectedVideo?.duration,
     play, showToast, getTrackStatesForScheduling, onPlaybackStartCallback, lockFeatures
   ]);
 
