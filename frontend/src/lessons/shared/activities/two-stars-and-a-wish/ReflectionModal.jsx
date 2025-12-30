@@ -316,9 +316,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
             className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-green-700 transition-all flex items-center gap-2"
           >
             <CheckCircle size={16} />
-            <span className="font-semibold">
-              {currentStep === 8 ? 'Skip to Submit' : 'Submit Reflection'}
-            </span>
+            <span className="font-semibold">Submit Reflection</span>
           </button>
         )}
       </div>
@@ -798,7 +796,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
               }}
               className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors text-sm"
             >
-              {reflectionData.stickers.length > 0 ? 'Continue →' : 'Skip →'}
+              Continue →
             </button>
           </div>
         )}
