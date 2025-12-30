@@ -25,6 +25,7 @@ export const useAudioEngine = (videoDuration = 60) => {
   const SCHEDULE_DEBOUNCE_MS = 50;
   const previewSourceRef = useRef(null);
   const currentPreviewLoopIdRef = useRef(null);
+  const previewRequestIdRef = useRef(0);  // Track preview request to handle race conditions
   const transportStoppedByStopRef = useRef(false);
 
   // Get the base loop ID from a placed loop ID
@@ -376,6 +377,9 @@ export const useAudioEngine = (videoDuration = 60) => {
 
   // Stop any active preview
   const stopPreview = useCallback(() => {
+    // Increment request ID to invalidate any pending decode operations
+    previewRequestIdRef.current += 1;
+
     if (previewSourceRef.current) {
       console.log('🔇 Stopping preview');
       try {
@@ -467,6 +471,10 @@ export const useAudioEngine = (videoDuration = 60) => {
 
     const isSameLoop = currentPreviewLoopIdRef.current === loopData.id;
 
+    // Increment request ID to invalidate any pending decode operations
+    previewRequestIdRef.current += 1;
+    const thisRequestId = previewRequestIdRef.current;
+
     // Stop any current preview
     if (previewSourceRef.current) {
       console.log('   Stopping previous preview');
@@ -494,6 +502,12 @@ export const useAudioEngine = (videoDuration = 60) => {
         console.log('   Decoding buffer for preview...');
         buffer = await decodeAudioFile(loopData.file, loopData.name);
         audioBuffersRef.current.set(baseId, buffer);
+      }
+
+      // Check if this request is still current (another preview may have been requested during decode)
+      if (thisRequestId !== previewRequestIdRef.current) {
+        console.log('   ⏭️ Stale preview request - ignoring (request', thisRequestId, 'vs current', previewRequestIdRef.current, ')');
+        return;
       }
 
       const rawContext = getRawContext();
