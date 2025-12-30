@@ -1,10 +1,10 @@
 // File: /src/lessons/shared/activities/two-stars-and-a-wish/WildlifeReflectionModal.jsx
 // Epic Wildlife - Two Stars and a Wish Reflection Modal
-// ✅ UPDATED: Added confidence check (self only) + renamed meme to vibe
-// Steps: 1=choose type, 2=confidence (self only), 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=summary
+// ✅ UPDATED: Added confidence check (self only) + vibe + stickers
+// Steps: 1=choose type, 2=confidence (self only), 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=stickers, 9=summary
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Star, ChevronRight, ChevronLeft, Check, Sparkles, Volume2, VolumeX, Minimize2, Maximize2, CheckCircle, Smile } from 'lucide-react';
+import { Star, ChevronRight, ChevronLeft, Check, Sparkles, Volume2, VolumeX, Minimize2, Maximize2, CheckCircle, Smile, X } from 'lucide-react';
 import { saveReflection, getReflection } from '../../../film-music-project/lesson3/lesson3StorageUtils';
 
 const WildlifeReflectionModal = ({
@@ -13,8 +13,8 @@ const WildlifeReflectionModal = ({
   viewMode = false,
   isSessionMode = false
 }) => {
-  // Steps: 1=choose type, 2=confidence (self only), 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=summary
-  const [currentStep, setCurrentStep] = useState(viewMode ? 8 : 1);
+  // Steps: 1=choose type, 2=confidence (self only), 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=stickers, 9=summary
+  const [currentStep, setCurrentStep] = useState(viewMode ? 9 : 1);
   const [reflectionData, setReflectionData] = useState({
     reviewType: null,
     partnerName: '',
@@ -23,8 +23,13 @@ const WildlifeReflectionModal = ({
     star2: '',
     wish: '',
     vibe: '',
+    stickers: [],
     submittedAt: null
   });
+
+  // Sticker placement state
+  const [selectedSticker, setSelectedSticker] = useState(null);
+  const [isPlacingSticker, setIsPlacingSticker] = useState(false);
 
   // For custom inputs
   const [customInputs, setCustomInputs] = useState({
@@ -99,7 +104,8 @@ const WildlifeReflectionModal = ({
       5: "Star 2: Think about how well the music supported the wildlife video.",
       6: "Now for the Wish: What do you want to try or improve next time?",
       7: "Pick a vibe! If the composition was a mood, which one would it be?",
-      8: reflectionData.reviewType === 'self'
+      8: "Now place some stickers on the composition! Pick a sticker, then click anywhere on the DAW to mark that spot.",
+      9: reflectionData.reviewType === 'self'
         ? "Here's your complete reflection summary! Now read your reflection out loud to yourself or share it with a neighbor."
         : `Here's your complete reflection summary! Now read your feedback out loud to ${partnerName}.`
     };
@@ -192,10 +198,40 @@ const WildlifeReflectionModal = ({
     { emoji: "🌙", text: "Calm and atmospheric" }
   ];
 
-  // If minimized, show small button
+  // Sticker options for marking up the composition
+  const stickerOptions = [
+    { emoji: "🔥", label: "Fire", description: "This part is amazing!" },
+    { emoji: "⭐", label: "Star", description: "Great moment" },
+    { emoji: "🎯", label: "Target", description: "Nailed it" },
+    { emoji: "💡", label: "Idea", description: "Creative choice" },
+    { emoji: "🔧", label: "Fix", description: "Could improve here" }
+  ];
+
+  // Handle sticker placement clicks
+  useEffect(() => {
+    if (!isPlacingSticker || !selectedSticker) return;
+
+    const handleClick = (e) => {
+      const modal = document.querySelector('[data-reflection-modal]');
+      if (modal && modal.contains(e.target)) return;
+
+      const x = (e.clientX / window.innerWidth) * 100;
+      const y = (e.clientY / window.innerHeight) * 100;
+
+      setReflectionData(prev => ({
+        ...prev,
+        stickers: [...prev.stickers, { emoji: selectedSticker, x, y }]
+      }));
+    };
+
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [isPlacingSticker, selectedSticker]);
+
+  // If minimized, show small button (with submit button on steps 8-9)
   if (isMinimized) {
     return (
-      <div className="fixed top-4 left-4 z-[100]">
+      <div className="fixed top-4 left-4 z-[100] flex flex-col gap-2">
         <button
           onClick={toggleMinimize}
           className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-4 py-2 rounded-lg shadow-lg hover:from-green-700 hover:to-teal-700 transition-all flex items-center gap-2"
@@ -203,12 +239,62 @@ const WildlifeReflectionModal = ({
           <Maximize2 size={16} />
           <span className="font-semibold">Show Reflection</span>
         </button>
+        {(currentStep === 8 || currentStep === 9) && (
+          <button
+            onClick={() => {
+              if (currentStep === 8) {
+                setSelectedSticker(null);
+                setIsPlacingSticker(false);
+                const fullData = { ...reflectionData, submittedAt: new Date().toISOString() };
+                localStorage.setItem('epic-wildlife-reflection', JSON.stringify(fullData));
+                setCurrentStep(9);
+              } else {
+                saveAndContinue();
+              }
+            }}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-green-700 transition-all flex items-center gap-2"
+          >
+            <CheckCircle size={16} />
+            <span className="font-semibold">
+              {currentStep === 8 ? 'Skip to Submit' : 'Submit Reflection'}
+            </span>
+          </button>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="fixed top-4 left-4 z-[100] w-96 max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-green-200">
+    <>
+      {/* Sticker Overlay - displays placed stickers */}
+      {reflectionData.stickers.length > 0 && (
+        <div className="fixed inset-0 pointer-events-none z-[90]">
+          {reflectionData.stickers.map((sticker, idx) => (
+            <div
+              key={idx}
+              className="absolute transform -translate-x-1/2 -translate-y-1/2 text-4xl drop-shadow-lg animate-bounce"
+              style={{
+                left: `${sticker.x}%`,
+                top: `${sticker.y}%`,
+                animationDelay: `${idx * 100}ms`,
+                animationDuration: '0.5s',
+                animationIterationCount: '1'
+              }}
+            >
+              {sticker.emoji}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Placing sticker indicator */}
+      {isPlacingSticker && selectedSticker && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-[110] bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg pointer-events-none">
+          Click anywhere to place {selectedSticker}
+        </div>
+      )}
+
+      <div data-reflection-modal className="fixed top-4 left-4 z-[100] w-96 max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-green-200">
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-4 py-3 rounded-t-xl flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
@@ -221,7 +307,8 @@ const WildlifeReflectionModal = ({
             {currentStep === 5 && "⭐ Star 2"}
             {currentStep === 6 && "✨ Wish"}
             {currentStep === 7 && "🌍 Pick a Vibe"}
-            {currentStep === 8 && "📝 Summary"}
+            {currentStep === 8 && "🎨 Place Stickers"}
+            {currentStep === 9 && "📝 Summary"}
           </h2>
         </div>
         <div className="flex items-center gap-2">
@@ -568,7 +655,7 @@ const WildlifeReflectionModal = ({
                   key={idx}
                   onClick={() => {
                     setReflectionData(prev => ({ ...prev, vibe: vibe.text }));
-                    setCurrentStep(8);
+                    setCurrentStep(8); // Go to stickers step
                   }}
                   className="w-full p-3 text-left rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all flex items-center gap-3"
                 >
@@ -580,8 +667,94 @@ const WildlifeReflectionModal = ({
           </div>
         )}
 
-        {/* STEP 8: Summary */}
+        {/* STEP 8: Place Stickers */}
         {currentStep === 8 && (
+          <div className="space-y-4">
+            <div className="text-center mb-4">
+              <span className="text-4xl">🎨</span>
+              <h3 className="font-bold text-gray-900 mt-2">Place Stickers!</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Mark up the composition with feedback stickers
+              </p>
+            </div>
+
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <p className="text-xs text-gray-600 mb-2 text-center">
+                {selectedSticker ? `Click anywhere on the DAW to place ${selectedSticker}` : 'Select a sticker below'}
+              </p>
+              <div className="flex justify-center gap-2">
+                {stickerOptions.map((sticker, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setSelectedSticker(sticker.emoji);
+                      setIsPlacingSticker(true);
+                    }}
+                    className={`p-2 rounded-lg transition-all ${
+                      selectedSticker === sticker.emoji
+                        ? 'bg-green-500 scale-110 shadow-lg'
+                        : 'bg-white hover:bg-green-100 border border-gray-200'
+                    }`}
+                    title={sticker.description}
+                  >
+                    <span className="text-2xl">{sticker.emoji}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {reflectionData.stickers.length > 0 && (
+              <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                <p className="text-sm font-semibold text-gray-700 mb-2">
+                  Placed Stickers ({reflectionData.stickers.length})
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {reflectionData.stickers.map((sticker, idx) => (
+                    <div key={idx} className="flex items-center gap-1 bg-white px-2 py-1 rounded-full border border-green-200">
+                      <span className="text-lg">{sticker.emoji}</span>
+                      <button
+                        onClick={() => {
+                          setReflectionData(prev => ({
+                            ...prev,
+                            stickers: prev.stickers.filter((_, i) => i !== idx)
+                          }));
+                        }}
+                        className="text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 text-sm text-gray-700">
+              <p className="font-semibold mb-1">How to place stickers:</p>
+              <ol className="list-decimal list-inside space-y-1 text-xs">
+                <li>Select a sticker from above</li>
+                <li>Click anywhere on the DAW (outside this modal) to place it</li>
+                <li>Add as many stickers as you want!</li>
+              </ol>
+            </div>
+
+            <button
+              onClick={() => {
+                setSelectedSticker(null);
+                setIsPlacingSticker(false);
+                const fullData = { ...reflectionData, submittedAt: new Date().toISOString() };
+                localStorage.setItem('epic-wildlife-reflection', JSON.stringify(fullData));
+                setCurrentStep(9);
+              }}
+              className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+            >
+              {reflectionData.stickers.length > 0 ? 'Continue to Summary →' : 'Skip Stickers →'}
+            </button>
+          </div>
+        )}
+
+        {/* STEP 9: Summary */}
+        {currentStep === 9 && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-2" />
@@ -632,12 +805,26 @@ const WildlifeReflectionModal = ({
                   <p className="text-gray-700">{reflectionData.vibe}</p>
                 </div>
               )}
+
+              {reflectionData.stickers && reflectionData.stickers.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 font-bold text-gray-900 mb-1">
+                    <span className="text-lg">🎨</span>
+                    Stickers Placed
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {reflectionData.stickers.map((sticker, idx) => (
+                      <span key={idx} className="text-2xl">{sticker.emoji}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
               <p className="text-sm text-gray-700">
                 📖 <strong>Now read your reflection out loud</strong>
-                {reflectionData.reviewType === 'self' 
+                {reflectionData.reviewType === 'self'
                   ? ' to yourself or share it with a neighbor.'
                   : ` to ${reflectionData.partnerName}.`
                 }
@@ -664,7 +851,8 @@ const WildlifeReflectionModal = ({
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

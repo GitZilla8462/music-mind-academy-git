@@ -1,15 +1,15 @@
 // File: /src/lessons/film-music-project/lesson1/activities/two-stars-and-a-wish/ReflectionModal.jsx
 // UPDATED: Top-left positioning with minimize functionality
-// Steps: 1=choose type, 2=confidence, 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=summary
-// UPDATED: Step 8 now has READ ALOUD banner at top, submit button at bottom
+// Steps: 1=choose type, 2=confidence, 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=stickers, 9=summary
+// UPDATED: Step 9 now has READ ALOUD banner at top, submit button at bottom
 
 import React, { useState, useEffect, useRef } from 'react';
-import { CheckCircle, Star, Sparkles, Volume2, VolumeX, HelpCircle, Minimize2, Maximize2, Smile } from 'lucide-react';
+import { CheckCircle, Star, Sparkles, Volume2, VolumeX, HelpCircle, Minimize2, Maximize2, Smile, X } from 'lucide-react';
 import { SELF_REFLECTION_PROMPTS, PARTNER_REFLECTION_OPTIONS } from './reflectionPrompts';
 
 const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSessionMode = false }) => {
-  // Steps: 1=choose type, 2=confidence, 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=summary
-  const [currentStep, setCurrentStep] = useState(viewMode ? 8 : 1);
+  // Steps: 1=choose type, 2=confidence, 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=stickers, 9=summary
+  const [currentStep, setCurrentStep] = useState(viewMode ? 9 : 1);
   const [reflectionData, setReflectionData] = useState({
     reviewType: null,
     partnerName: '',
@@ -18,8 +18,13 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
     star2: '',
     wish: '',
     vibe: '',
+    stickers: [],
     submittedAt: null
   });
+
+  // Sticker placement state
+  const [selectedSticker, setSelectedSticker] = useState(null);
+  const [isPlacingSticker, setIsPlacingSticker] = useState(false);
 
   // For partner reflection dropdowns
   const [customInputs, setCustomInputs] = useState({
@@ -107,6 +112,41 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
     { emoji: "🎬", text: "Movie trailer energy (Epic and cinematic)" }
   ];
 
+  // Sticker options for marking up the composition
+  const stickerOptions = [
+    { emoji: "🔥", label: "Fire", description: "This part is amazing!" },
+    { emoji: "⭐", label: "Star", description: "Great moment" },
+    { emoji: "🎯", label: "Target", description: "Nailed it" },
+    { emoji: "💡", label: "Idea", description: "Creative choice" },
+    { emoji: "🔧", label: "Fix", description: "Could improve here" }
+  ];
+
+  // Handle sticker placement clicks
+  useEffect(() => {
+    if (!isPlacingSticker || !selectedSticker) return;
+
+    const handleClick = (e) => {
+      // Don't place sticker if clicking inside the modal
+      const modal = document.querySelector('[data-reflection-modal]');
+      if (modal && modal.contains(e.target)) return;
+
+      // Calculate percentage position
+      const x = (e.clientX / window.innerWidth) * 100;
+      const y = (e.clientY / window.innerHeight) * 100;
+
+      // Add sticker to list
+      setReflectionData(prev => ({
+        ...prev,
+        stickers: [...prev.stickers, { emoji: selectedSticker, x, y }]
+      }));
+
+      // Keep sticker selected for placing more
+    };
+
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [isPlacingSticker, selectedSticker]);
+
   // Speak on step change
   useEffect(() => {
     const partnerName = reflectionData.partnerName || 'your partner';
@@ -122,7 +162,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
       5: "Star 2: Think about what worked well with the loop timing and music sound.",
       6: "Now for the Wish: What do you want to try or improve next time?",
       7: "Pick a vibe! If your composition was a movie mood, which one would it be?",
-      8: reflectionData.reviewType === 'self'
+      8: "Now place some stickers on the composition! Pick a sticker, then click anywhere on the DAW to mark that spot.",
+      9: reflectionData.reviewType === 'self'
         ? "Here's your complete reflection summary! Now read your reflection out loud to yourself or share it with a neighbor."
         : `Here's your complete reflection summary! Now read your feedback out loud to ${partnerName}.`
     };
@@ -242,10 +283,10 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
     setIsMinimized(!isMinimized);
   };
 
-  // If minimized, show small header only
+  // If minimized, show small header only (with submit button on steps 8-9)
   if (isMinimized) {
     return (
-      <div className="fixed top-4 left-4 z-[100]">
+      <div className="fixed top-4 left-4 z-[100] flex flex-col gap-2">
         <button
           onClick={toggleMinimize}
           className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:from-purple-700 hover:to-blue-700 transition-all flex items-center gap-2"
@@ -253,12 +294,63 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           <Maximize2 size={16} />
           <span className="font-semibold">Show Reflection</span>
         </button>
+        {/* Show submit button when minimized on steps 8-9 */}
+        {(currentStep === 8 || currentStep === 9) && (
+          <button
+            onClick={() => {
+              if (currentStep === 8) {
+                // From stickers step, go to summary first
+                setSelectedSticker(null);
+                setIsPlacingSticker(false);
+                handleFinalSubmit();
+              } else {
+                // From summary, submit directly
+                handleSubmitReflection();
+              }
+            }}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-green-700 transition-all flex items-center gap-2"
+          >
+            <CheckCircle size={16} />
+            <span className="font-semibold">
+              {currentStep === 8 ? 'Skip to Submit' : 'Submit Reflection'}
+            </span>
+          </button>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="fixed top-4 left-4 z-[100] w-96 max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-purple-200">
+    <>
+      {/* Sticker Overlay - displays placed stickers */}
+      {reflectionData.stickers.length > 0 && (
+        <div className="fixed inset-0 pointer-events-none z-[90]">
+          {reflectionData.stickers.map((sticker, idx) => (
+            <div
+              key={idx}
+              className="absolute transform -translate-x-1/2 -translate-y-1/2 text-4xl drop-shadow-lg animate-bounce"
+              style={{
+                left: `${sticker.x}%`,
+                top: `${sticker.y}%`,
+                animationDelay: `${idx * 100}ms`,
+                animationDuration: '0.5s',
+                animationIterationCount: '1'
+              }}
+            >
+              {sticker.emoji}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Placing sticker indicator */}
+      {isPlacingSticker && selectedSticker && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-[110] bg-purple-600 text-white px-4 py-2 rounded-lg shadow-lg pointer-events-none">
+          Click anywhere to place {selectedSticker}
+        </div>
+      )}
+
+      <div data-reflection-modal className="fixed top-4 left-4 z-[100] w-96 max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-purple-200">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-3 rounded-t-xl flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
@@ -272,7 +364,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
             {currentStep === 5 && "⭐ Star 2"}
             {currentStep === 6 && "✨ Wish"}
             {currentStep === 7 && "🎭 Pick a Vibe"}
-            {currentStep === 8 && "📝 Summary"}
+            {currentStep === 8 && "🎨 Place Stickers"}
+            {currentStep === 9 && "📝 Summary"}
           </h2>
         </div>
         <div className="flex items-center gap-2">
@@ -630,7 +723,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
                   key={idx}
                   onClick={() => {
                     setReflectionData(prev => ({ ...prev, vibe: vibe.text }));
-                    handleFinalSubmit();
+                    setCurrentStep(8); // Go to stickers step
                   }}
                   className="w-full p-3 text-left rounded-lg border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all flex items-center gap-3"
                 >
@@ -642,13 +735,100 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           </div>
         )}
 
-        {/* STEP 8: Summary - UPDATED with READ ALOUD at very top */}
+        {/* STEP 8: Place Stickers */}
         {currentStep === 8 && (
+          <div className="space-y-4">
+            <div className="text-center mb-4">
+              <span className="text-4xl">🎨</span>
+              <h3 className="font-bold text-gray-900 mt-2">Place Stickers!</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Mark up the composition with feedback stickers
+              </p>
+            </div>
+
+            {/* Sticker selection */}
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <p className="text-xs text-gray-600 mb-2 text-center">
+                {selectedSticker ? `Click anywhere on the DAW to place ${selectedSticker}` : 'Select a sticker below'}
+              </p>
+              <div className="flex justify-center gap-2">
+                {stickerOptions.map((sticker, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setSelectedSticker(sticker.emoji);
+                      setIsPlacingSticker(true);
+                    }}
+                    className={`p-2 rounded-lg transition-all ${
+                      selectedSticker === sticker.emoji
+                        ? 'bg-purple-500 scale-110 shadow-lg'
+                        : 'bg-white hover:bg-purple-100 border border-gray-200'
+                    }`}
+                    title={sticker.description}
+                  >
+                    <span className="text-2xl">{sticker.emoji}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Placed stickers list */}
+            {reflectionData.stickers.length > 0 && (
+              <div className="bg-purple-50 p-3 rounded-lg border border-purple-200">
+                <p className="text-sm font-semibold text-gray-700 mb-2">
+                  Placed Stickers ({reflectionData.stickers.length})
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {reflectionData.stickers.map((sticker, idx) => (
+                    <div key={idx} className="flex items-center gap-1 bg-white px-2 py-1 rounded-full border border-purple-200">
+                      <span className="text-lg">{sticker.emoji}</span>
+                      <button
+                        onClick={() => {
+                          setReflectionData(prev => ({
+                            ...prev,
+                            stickers: prev.stickers.filter((_, i) => i !== idx)
+                          }));
+                        }}
+                        className="text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Instructions */}
+            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 text-sm text-gray-700">
+              <p className="font-semibold mb-1">How to place stickers:</p>
+              <ol className="list-decimal list-inside space-y-1 text-xs">
+                <li>Select a sticker from above</li>
+                <li>Click anywhere on the DAW (outside this modal) to place it</li>
+                <li>Add as many stickers as you want!</li>
+              </ol>
+            </div>
+
+            <button
+              onClick={() => {
+                setSelectedSticker(null);
+                setIsPlacingSticker(false);
+                handleFinalSubmit();
+              }}
+              className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+            >
+              {reflectionData.stickers.length > 0 ? 'Continue to Summary →' : 'Skip Stickers →'}
+            </button>
+          </div>
+        )}
+
+        {/* STEP 9: Summary - UPDATED with READ ALOUD at very top */}
+        {currentStep === 9 && (
           <div className="space-y-4">
             {/* READ ALOUD INSTRUCTION AT VERY TOP */}
             <div className={`p-4 rounded-lg border-2 text-center ${
-              reflectionData.reviewType === 'self' 
-                ? 'bg-blue-100 border-blue-400' 
+              reflectionData.reviewType === 'self'
+                ? 'bg-blue-100 border-blue-400'
                 : 'bg-purple-100 border-purple-400'
             }`}>
               <p className="text-xl font-bold text-gray-800">
@@ -708,6 +888,21 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
                   <p className="text-gray-700 bg-white p-3 rounded border border-gray-200">{reflectionData.vibe}</p>
                 </div>
               )}
+
+              {/* Stickers placed */}
+              {reflectionData.stickers && reflectionData.stickers.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xl">🎨</span>
+                    <h3 className="font-bold text-gray-800">Stickers Placed</h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2 bg-white p-3 rounded border border-gray-200">
+                    {reflectionData.stickers.map((sticker, idx) => (
+                      <span key={idx} className="text-2xl">{sticker.emoji}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* SUBMIT BUTTON AT BOTTOM */}
@@ -722,7 +917,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
         )}
 
         {/* Hint Section */}
-        {showHint && currentStep !== 8 && (
+        {showHint && currentStep !== 9 && (
           <div className="mt-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3">
             <div className="text-sm text-yellow-900">
               <span className="font-semibold">💡 Hint:</span> Take your time to think about your answer. Be specific and honest in your reflection!
@@ -730,7 +925,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 
