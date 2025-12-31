@@ -66,10 +66,10 @@ const PresentationContent = ({
 
   // Load game components dynamically
   useEffect(() => {
-    // Layer Detective components
-    import('../../shared/activities/layer-detective/LayerDectectivePresentationView')
+    // Layer Detective components - NEW CLASS GAME VERSION
+    import('../../shared/activities/layer-detective/LayerDetectiveClassGame')
       .then(module => setLayerDetectiveLeaderboard(() => module.default))
-      .catch(() => console.log('Layer Detective leaderboard not available'));
+      .catch(() => console.log('Layer Detective class game not available'));
 
     import('../../shared/activities/layer-detective/LayerDetectiveResults')
       .then(module => setLayerDetectiveResults(() => module.default))
@@ -201,7 +201,7 @@ const PresentationContent = ({
     if (type === 'layer-detective-leaderboard' && LayerDetectiveLeaderboard) {
       return (
         <div className="absolute inset-0">
-          <LayerDetectiveLeaderboard sessionData={sessionData} />
+          <LayerDetectiveLeaderboard sessionData={sessionData} onComplete={goToNextStage} />
         </div>
       );
     }
@@ -537,7 +537,7 @@ const MiniPreview = ({ viewMode, sessionCode, currentStage, currentStageData, se
                 lessonConfig={config}
                 lessonBasePath={config?.lessonPath}
                 viewMode="teacher"
-                goToNextStage={goToNextStage}
+                goToNextStage={() => {}}
               />
             </div>
           </div>
