@@ -90,6 +90,24 @@ const WildlifeReflectionModal = ({
     { emoji: "😬", label: "Needs work", description: "I know I can do better" }
   ];
 
+  // Helper: Get confidence phrase for read-aloud paragraph
+  const getConfidencePhrase = (confidence, isPartner = false) => {
+    const mapping = {
+      "Nailed it!": { self: "really proud of", partner: "amazing" },
+      "Pretty good": { self: "pretty good about", partner: "really good" },
+      "Not sure": { self: "still figuring out", partner: "really creative" },
+      "Needs work": { self: "still working on", partner: "a great start" }
+    };
+    const phrases = mapping[confidence] || { self: "good about", partner: "great" };
+    return isPartner ? phrases.partner : phrases.self;
+  };
+
+  // Helper: Strip emoji from vibe text
+  const stripEmojiFromVibe = (vibe) => {
+    if (!vibe) return "";
+    return vibe.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]/gu, '').trim().toLowerCase();
+  };
+
   // Speak on step change
   useEffect(() => {
     const partnerName = reflectionData.partnerName || 'your partner';
@@ -462,17 +480,17 @@ const WildlifeReflectionModal = ({
             <div className="space-y-2">
               {[
                 reflectionData.reviewType === 'self'
-                  ? "I used clear Intro, A, A', and Outro sections"
-                  : `${reflectionData.partnerName} used clear sections effectively`,
+                  ? "using clear Intro, A, A', and Outro sections"
+                  : "using clear sections effectively",
                 reflectionData.reviewType === 'self'
-                  ? "I built up texture effectively through sections"
-                  : `${reflectionData.partnerName} built up texture well`,
+                  ? "building up texture effectively through sections"
+                  : "building up texture well through sections",
                 reflectionData.reviewType === 'self'
-                  ? "I created good contrast between sections"
-                  : `${reflectionData.partnerName} created good contrast`,
+                  ? "creating good contrast between sections"
+                  : "creating good contrast between sections",
                 reflectionData.reviewType === 'self'
-                  ? "I followed the sectional loop form structure well"
-                  : `${reflectionData.partnerName} followed the form well`,
+                  ? "following the sectional loop form structure well"
+                  : "following the form structure well",
                 "Custom..."
               ].map((option, idx) => (
                 <button
@@ -529,10 +547,10 @@ const WildlifeReflectionModal = ({
 
             <div className="space-y-2">
               {[
-                "The loops matched the mood of the footage",
-                "The section changes were well-timed",
-                "The texture changes enhanced the visual story",
-                "The music built tension and release effectively",
+                "how the loops matched the mood of the footage",
+                "how the section changes were well-timed",
+                "how the texture changes enhanced the visual story",
+                "how the music built tension and release effectively",
                 "Custom..."
               ].map((option, idx) => (
                 <button
@@ -590,17 +608,17 @@ const WildlifeReflectionModal = ({
             <div className="space-y-2">
               {[
                 reflectionData.reviewType === 'self'
-                  ? "I want to create more dramatic section changes"
-                  : `${reflectionData.partnerName} could create more dramatic changes`,
+                  ? "creating more dramatic section changes"
+                  : "creating more dramatic section changes",
                 reflectionData.reviewType === 'self'
-                  ? "I want to try adding a B section"
-                  : `${reflectionData.partnerName} could try adding a B section`,
+                  ? "adding a B section for more variety"
+                  : "adding a B section for more variety",
                 reflectionData.reviewType === 'self'
-                  ? "I want to better match music to video moments"
-                  : `${reflectionData.partnerName} could better match the video`,
+                  ? "better matching music to video moments"
+                  : "better matching music to video moments",
                 reflectionData.reviewType === 'self'
-                  ? "I want to experiment with different loop combinations"
-                  : `${reflectionData.partnerName} could try different loops`,
+                  ? "experimenting with different loop combinations"
+                  : "trying different loop combinations",
                 "Custom..."
               ].map((option, idx) => (
                 <button
@@ -673,7 +691,10 @@ const WildlifeReflectionModal = ({
         {/* STEP 8: Place Stickers */}
         {currentStep === 8 && (
           <div className="space-y-2">
-            <p className="text-xs text-gray-600 text-center">
+            <p className="text-sm text-gray-700 text-center font-semibold">
+              Place at least 3 feedback stickers
+            </p>
+            <p className="text-xs text-gray-500 text-center">
               {selectedSticker ? `Click on the DAW to place ${selectedSticker}` : 'Select a sticker, then click on the DAW'}
             </p>
 
@@ -697,6 +718,11 @@ const WildlifeReflectionModal = ({
                 </button>
               ))}
             </div>
+
+            {/* Placed stickers count */}
+            <p className={`text-center text-sm font-semibold ${reflectionData.stickers.length >= 3 ? 'text-green-600' : 'text-gray-500'}`}>
+              {reflectionData.stickers.length}/3 stickers placed
+            </p>
 
             {/* Placed stickers list */}
             {reflectionData.stickers.length > 0 && (
@@ -728,90 +754,63 @@ const WildlifeReflectionModal = ({
                 localStorage.setItem('epic-wildlife-reflection', JSON.stringify(fullData));
                 setCurrentStep(9);
               }}
-              className="w-full px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors text-sm"
+              disabled={reflectionData.stickers.length < 3}
+              className={`w-full px-4 py-2 rounded-lg font-semibold transition-colors text-sm ${
+                reflectionData.stickers.length >= 3
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
             >
               Continue →
             </button>
           </div>
         )}
 
-        {/* STEP 9: Summary */}
+        {/* STEP 9: Summary - Read-Aloud Paragraph */}
         {currentStep === 9 && (
           <div className="space-y-4">
-            <div className="text-center mb-4">
-              <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-2" />
-              <h3 className="font-bold text-gray-900">Your Reflection Summary</h3>
-            </div>
-
-            <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-lg p-4 border-2 border-green-200 space-y-3 text-sm">
-              {reflectionData.confidence && (
-                <div>
-                  <div className="flex items-center gap-2 font-bold text-gray-900 mb-1">
-                    <span className="text-lg">🎯</span>
-                    Confidence
-                  </div>
-                  <p className="text-gray-700">{reflectionData.confidence}</p>
-                </div>
-              )}
-
-              <div>
-                <div className="flex items-center gap-2 font-bold text-gray-900 mb-1">
-                  <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                  Star 1: Song Form
-                </div>
-                <p className="text-gray-700">{reflectionData.star1}</p>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 font-bold text-gray-900 mb-1">
-                  <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                  Star 2: Musical Choices
-                </div>
-                <p className="text-gray-700">{reflectionData.star2}</p>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 font-bold text-gray-900 mb-1">
-                  <Sparkles className="w-4 h-4 text-purple-500" />
-                  Wish: Try Next
-                </div>
-                <p className="text-gray-700">{reflectionData.wish}</p>
-              </div>
-
-              {reflectionData.vibe && (
-                <div>
-                  <div className="flex items-center gap-2 font-bold text-gray-900 mb-1">
-                    <Smile className="w-4 h-4 text-blue-500" />
-                    Vibe
-                  </div>
-                  <p className="text-gray-700">{reflectionData.vibe}</p>
-                </div>
-              )}
-
-              {reflectionData.stickers && reflectionData.stickers.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 font-bold text-gray-900 mb-1">
-                    <span className="text-lg">🎨</span>
-                    Stickers Placed
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {reflectionData.stickers.map((sticker, idx) => (
-                      <span key={idx} className="text-2xl">{sticker.emoji}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-              <p className="text-sm text-gray-700">
-                📖 <strong>Now read your reflection out loud</strong>
-                {reflectionData.reviewType === 'self'
-                  ? ' to yourself or share it with a neighbor.'
-                  : ` to ${reflectionData.partnerName}.`
-                }
+            {/* READ ALOUD HEADER */}
+            <div className="bg-gradient-to-r from-green-600 to-teal-600 p-3 rounded-lg text-center">
+              <p className="text-white font-bold text-lg">
+                📖 Read this out loud:
               </p>
             </div>
+
+            {/* Read-Aloud Paragraph Card */}
+            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-5 rounded-xl border-2 border-yellow-300 shadow-md">
+              <p className="text-gray-900 text-lg leading-loose">
+                {reflectionData.reviewType === 'self' ? (
+                  <>
+                    {reflectionData.confidence && (
+                      <>I felt <strong>{getConfidencePhrase(reflectionData.confidence, false)}</strong> my composition.<br /><br /></>
+                    )}
+                    One thing I did well with the DAW was <strong>{reflectionData.star1.toLowerCase()}</strong>.<br /><br />
+                    Something that worked well in my music was <strong>{reflectionData.star2.toLowerCase()}</strong>.<br /><br />
+                    Next time, I want to try <strong>{reflectionData.wish.toLowerCase()}</strong>.<br /><br />
+                    {reflectionData.vibe && (
+                      <>Overall, my composition gave off <strong>{stripEmojiFromVibe(reflectionData.vibe)}</strong> vibes.</>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    Hey <strong>{reflectionData.partnerName}</strong>! I thought your composition was <strong>{getConfidencePhrase(reflectionData.confidence, true)}</strong>.<br /><br />
+                    One thing you did really well with the DAW was <strong>{reflectionData.star1.toLowerCase()}</strong>.<br /><br />
+                    Something that worked well in your music was <strong>{reflectionData.star2.toLowerCase()}</strong>.<br /><br />
+                    I wonder what would happen if you tried <strong>{reflectionData.wish.toLowerCase()}</strong>.<br /><br />
+                    {reflectionData.vibe && (
+                      <>Overall, your composition gave off <strong>{stripEmojiFromVibe(reflectionData.vibe)}</strong> vibes!</>
+                    )}
+                  </>
+                )}
+              </p>
+            </div>
+
+            {/* Stickers note */}
+            {reflectionData.stickers && reflectionData.stickers.length > 0 && (
+              <p className="text-center text-sm text-gray-600">
+                🏷️ Your feedback stickers are shown on the composition above.
+              </p>
+            )}
 
             {!viewMode && (
               <button

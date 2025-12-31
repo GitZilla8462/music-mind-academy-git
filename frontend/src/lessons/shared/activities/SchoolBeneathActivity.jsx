@@ -268,17 +268,16 @@ const SchoolBeneathActivity = ({
     });
     
     // Show reflection when teacher advances to reflection stage
-    // Only show if not already showing (prevents infinite loop)
-    if (isReflectionStage && !showReflection && !viewingReflection && studentId) {
+    // Only show if:
+    // - Not already showing the reflection modal
+    // - Not already completed (submitted) the reflection
+    // - Not viewing the bonus game
+    // - Have a valid student ID
+    if (isReflectionStage && !showReflection && !viewingReflection && !reflectionCompleted && !showBonusGame && studentId) {
       console.log('âœ… Showing reflection modal');
       setShowReflection(true);
-      
-      // If already completed, set viewing mode
-      if (reflectionCompleted) {
-        setViewingReflection(true);
-      }
     }
-  }, [isReflectionStage, reflectionCompleted, studentId, showReflection, viewingReflection]);
+  }, [isReflectionStage, reflectionCompleted, studentId, showReflection, viewingReflection, showBonusGame]);
   
   // ============================================================================
   // âœ… NEW: REFLECTION VIEW HANDLERS
