@@ -59,7 +59,7 @@ export const lessonSections = [
     title: '2. Listening Map',
     subtitle: 'Video → Draw',
     color: 'blue',
-    estimatedTime: 11,
+    estimatedTime: 14,
     stages: [
       { 
         id: 'introduce-listening-map', 
@@ -68,22 +68,36 @@ export const lessonSections = [
         description: 'Announce: "We\'ll watch a 1-min video then draw while listening"',
         duration: 1
       },
-      { 
-        id: 'listening-map-video', 
-        type: 'video', 
+      {
+        id: 'listening-map-video',
+        type: 'video',
         label: '▶️ Play Video',
         description: 'PLAY VIDEO: Listening Map explanation (students watch main screen)',
         duration: 2
       },
-      { 
-        id: 'listening-map', 
-        type: 'activity', 
-        label: '🎮 Unlock Listening Map', 
+      {
+        id: 'music-for-listening-map',
+        type: 'summary',
+        label: 'Music For Listening Map',
+        description: 'Introduce: "Spring by Vivaldi - listen for violin imitating birds"',
+        duration: 1
+      },
+      {
+        id: 'listening-map',
+        type: 'activity',
+        label: '🎮 Unlock Listening Map',
         duration: 8,
         hasTimer: true,
         trackProgress: true,
         description: 'STUDENTS WORK: Create 4 rows, unique style per row',
         bonusDescription: 'Bonus: Add more colors, textures, and pictures'
+      },
+      {
+        id: 'share-and-pair',
+        type: 'summary',
+        label: 'Share and Pair',
+        description: 'Partner activity: Share work and discuss what inspired your choices',
+        duration: 2
       }
     ]
   },
@@ -268,9 +282,9 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson2/slides/6.png'
     }
   },
-  { 
-    id: 'listening-map-video', 
-    label: '▶️ Play Video', 
+  {
+    id: 'listening-map-video',
+    label: '▶️ Play Video',
     description: 'PLAY VIDEO: Listening Map explanation (students watch main screen)',
     type: 'video',
     duration: 2,
@@ -278,6 +292,17 @@ export const lessonStages = [
       type: 'video',
       videoPath: '/lessons/film-music-project/lesson2/ListeningMapExplanation.mp4',
       title: 'Listening Map Explanation'
+    }
+  },
+  {
+    id: 'music-for-listening-map',
+    label: 'Music For Listening Map',
+    description: 'Introduce: "Spring by Vivaldi - listen for violin imitating birds"',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'summary',
+      summaryKey: 'musicForListeningMap'
     }
   },
   {
@@ -292,6 +317,17 @@ export const lessonStages = [
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson2/slides/6.5.svg'
+    }
+  },
+  {
+    id: 'share-and-pair',
+    label: 'Share and Pair',
+    description: 'Partner activity: Share work and discuss what inspired your choices',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson2/slides/6.6.svg'
     }
   },
   // Activity 2: Composition
@@ -382,8 +418,10 @@ export const getActivityForStage = (stage) => {
     'introduce-listening-map': 'summary',
     'introduce-texture-drawings': 'summary',  // backward compatibility
     'listening-map-video': 'video',
+    'music-for-listening-map': 'summary',
     'listening-map': 'listening-map',
     'texture-drawings': 'listening-map',  // backward compatibility
+    'share-and-pair': 'summary',
     'composition-instructions': 'summary',
     'composition-instructions-continued': 'summary',
     'city-composition': 'city-composition-activity',

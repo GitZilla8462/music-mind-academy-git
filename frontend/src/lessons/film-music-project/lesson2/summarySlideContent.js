@@ -41,6 +41,19 @@ export const summarySlides = {
     ]
   },
 
+  musicForListeningMap: {
+    title: "Music For Listening Map",
+    subtitle: "🎵 Spring by Antonio Vivaldi",
+    icon: "🎻",
+    estimatedTime: "1 minute",
+    points: [
+      "Vivaldi was an Italian composer nicknamed \"The Red Priest\" because of his red hair.",
+      "\"The Four Seasons\" is a set of four pieces — one for Spring, Summer, Autumn, and Winter — and Spring is the most famous.",
+      "This is a concerto, which means one solo instrument (violin) shows off while the orchestra backs it up.",
+      "Listen for the solo violin imitating birds singing, thunder, and flowing streams."
+    ]
+  },
+
   // ✅ RENAMED: Listening Map summary slide content
   listeningMap: {
     title: "Listening Map",

@@ -29,9 +29,11 @@
   <!-- Bullet Points -->
   <text x="192" y="480" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">1. Create at least four different rows of art work.</text>
 
-  <text x="192" y="580" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">2. Each row should have a unique style.</text>
+  <text x="192" y="580" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">2. Everything you draw and make should be your interpretation of the music.</text>
 
   <text x="192" y="680" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#10b981">3. Bonus: Add more colors, textures, and pictures!</text>
+
+  <text x="192" y="780" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#fbbf24">★ When we are done, we will share our work with a partner.</text>
 
   <!-- Duration -->
   <text x="192" y="900" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">8 minutes—Open your Chromebook.</text>
