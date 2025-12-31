@@ -107,6 +107,20 @@ const RobotAvatar = ({
   const animationFrameRef = useRef(null);
   const isInitializedRef = useRef(false);
   const isLowEndRef = useRef(false); // ✅ Track for conditional particle rendering
+
+  // ✅ CHROMEBOOK OPTIMIZATION: Reusable graphics objects (avoid destroy/create cycle)
+  const graphicsRef = useRef({
+    shadow: null,
+    leftLeg: null,
+    rightLeg: null,
+    body: null,
+    pattern: null,
+    leftArm: null,
+    rightArm: null,
+    head: null,
+    accessory: null,
+    eyeSlants: [], // For angry eyes
+  });
   
   // Dance state
   const dance = useRef({
@@ -246,6 +260,12 @@ const RobotAvatar = ({
         appRef.current.destroy(true, { children: true, texture: true });
         appRef.current = null;
       }
+      // Reset graphics refs (objects destroyed by app.destroy)
+      graphicsRef.current = {
+        shadow: null, leftLeg: null, rightLeg: null, body: null,
+        pattern: null, leftArm: null, rightArm: null, head: null,
+        accessory: null, eyeSlants: [],
+      };
       isInitializedRef.current = false;
     };
   }, []);
@@ -568,20 +588,25 @@ const RobotAvatar = ({
     const { bodyColor, bodyShape, eyeStyle, mouthStyle, accessory, pattern } = configRef.current;
     const playing = isPlayingRef.current;
     const singing = animStateRef.current?.singing;
-    
-    // ✅ MEMORY LEAK FIX: Destroy old graphics objects before creating new ones
-    // removeChildren() only removes from display list, doesn't free GPU memory!
-    while (robot.children.length > 0) {
-      const child = robot.children[0];
-      robot.removeChild(child);
-      child.destroy();
-    }
+    const gfx = graphicsRef.current;
+
+    // ✅ CHROMEBOOK OPTIMIZATION: Reuse graphics objects instead of destroy/create
+    // Helper to get or create a graphics object
+    const getGraphics = (key) => {
+      if (!gfx[key]) {
+        gfx[key] = new PIXI.Graphics();
+        robot.addChild(gfx[key]);
+      } else {
+        gfx[key].clear();
+      }
+      return gfx[key];
+    };
 
     const mainColor = hexToNumber(bodyColor);
     const lightColor = adjustColor(bodyColor, 60);
     const darkColor = adjustColor(bodyColor, -40);
     const accentColor = 0x00ffff;
-    
+
     const getBodyRadius = () => {
       switch (bodyShape) {
         case 'round': return 20;
@@ -596,50 +621,46 @@ const RobotAvatar = ({
         default: return 12;
       }
     };
-    
+
     const bodyRadius = getBodyRadius();
     const bodyY = -d.bounce + d.crouch;
 
     // === SHADOW ===
-    const shadow = new PIXI.Graphics();
+    const shadow = getGraphics('shadow');
     const shadowScale = 1 - d.bounce * 0.008 + d.crouch * 0.01;
     shadow.ellipse(d.sway * 0.3, 95 + d.crouch * 0.5, 40 * shadowScale, 10);
     shadow.fill({ color: 0x000000, alpha: 0.2 });
-    robot.addChild(shadow);
 
     // === LEGS ===
-    const drawLeg = (xOffset, angle) => {
-      const leg = new PIXI.Graphics();
+    const drawLeg = (legGraphics, xOffset, angle) => {
       const legX = xOffset + d.sway * 0.3;
       const angleRad = angle * Math.PI / 180;
-      
+
       const thighEndX = legX + Math.sin(angleRad) * 30;
       const thighEndY = 50 + bodyY + Math.cos(angleRad) * 30;
-      
-      leg.moveTo(legX, 45 + bodyY);
-      leg.lineTo(thighEndX, thighEndY);
-      leg.stroke({ color: mainColor, width: 18, cap: 'round' });
-      
-      leg.circle(thighEndX, thighEndY, 8);
-      leg.fill({ color: lightColor });
-      
-      leg.moveTo(thighEndX, thighEndY);
-      leg.lineTo(thighEndX + Math.sin(angleRad * 0.3) * 28, thighEndY + 28);
-      leg.stroke({ color: darkColor, width: 14, cap: 'round' });
-      
+
+      legGraphics.moveTo(legX, 45 + bodyY);
+      legGraphics.lineTo(thighEndX, thighEndY);
+      legGraphics.stroke({ color: mainColor, width: 18, cap: 'round' });
+
+      legGraphics.circle(thighEndX, thighEndY, 8);
+      legGraphics.fill({ color: lightColor });
+
+      legGraphics.moveTo(thighEndX, thighEndY);
+      legGraphics.lineTo(thighEndX + Math.sin(angleRad * 0.3) * 28, thighEndY + 28);
+      legGraphics.stroke({ color: darkColor, width: 14, cap: 'round' });
+
       const footX = thighEndX + Math.sin(angleRad * 0.3) * 28;
       const footY = thighEndY + 28;
-      leg.ellipse(footX, footY + 5, 14, 8);
-      leg.fill({ color: darkColor });
-      
-      return leg;
+      legGraphics.ellipse(footX, footY + 5, 14, 8);
+      legGraphics.fill({ color: darkColor });
     };
-    
-    robot.addChild(drawLeg(-18, d.leftLegAngle));
-    robot.addChild(drawLeg(18, d.rightLegAngle));
+
+    drawLeg(getGraphics('leftLeg'), -18, d.leftLegAngle);
+    drawLeg(getGraphics('rightLeg'), 18, d.rightLegAngle);
 
     // === BODY ===
-    const body = new PIXI.Graphics();
+    const body = getGraphics('body');
     const bodyX = d.sway;
     
     if (bodyShape === 'triangle') {
@@ -735,12 +756,10 @@ const RobotAvatar = ({
     body.fill({ color: darkColor });
     body.circle(bodyX, 47 + bodyY, 6);
     body.fill({ color: accentColor, alpha: glowAlpha });
-    
-    robot.addChild(body);
-    
+
     // === PATTERN ===
+    const patternGfx = getGraphics('pattern');
     if (pattern !== 'none') {
-      const patternGfx = new PIXI.Graphics();
       
       if (pattern === 'spots') {
         patternGfx.circle(bodyX - 15, 15 + bodyY, 6);
@@ -854,134 +873,131 @@ const RobotAvatar = ({
         drawDrip(bodyX + 14, 10 + bodyY);
         patternGfx.fill({ color: 0xffffff, alpha: 0.35 });
       }
-      
-      robot.addChild(patternGfx);
     }
-    
+    // Note: pattern graphics cleared by getGraphics() when pattern === 'none'
+
     body.rotation = d.bodyRotation;
 
     // === ARMS === ✅ FIXED: Now bend INWARD correctly!
-    const drawArm = (side, angle) => {
-      const arm = new PIXI.Graphics();
+    const drawArm = (armGfx, side, angle) => {
       const isLeft = side === 'left';
       const xDir = isLeft ? -1 : 1;
       const xBase = isLeft ? -35 : 35;
       const armX = bodyX + xBase;
       const armY = 5 + bodyY;
       const angleRad = angle * Math.PI / 180;
-      
+
       // === SHOULDER JOINT ===
-      arm.circle(armX, armY, 10);
-      arm.fill({ color: darkColor });
-      arm.circle(armX, armY, 6);
-      arm.fill({ color: accentColor, alpha: playing ? 0.8 : 0.4 });
-      
+      armGfx.circle(armX, armY, 10);
+      armGfx.fill({ color: darkColor });
+      armGfx.circle(armX, armY, 6);
+      armGfx.fill({ color: accentColor, alpha: playing ? 0.8 : 0.4 });
+
       // === UPPER ARM ===
       const upperArmLength = 30;
       const elbowX = armX + Math.sin(angleRad) * upperArmLength;
       const elbowY = armY + Math.cos(angleRad) * upperArmLength;
-      
+
       // Upper arm segment
-      arm.moveTo(armX, armY);
-      arm.lineTo(elbowX, elbowY);
-      arm.stroke({ color: mainColor, width: 14, cap: 'round' });
-      
+      armGfx.moveTo(armX, armY);
+      armGfx.lineTo(elbowX, elbowY);
+      armGfx.stroke({ color: mainColor, width: 14, cap: 'round' });
+
       // Highlight
-      arm.moveTo(armX, armY);
-      arm.lineTo(elbowX, elbowY);
-      arm.stroke({ color: lightColor, width: 4, cap: 'round' });
-      
+      armGfx.moveTo(armX, armY);
+      armGfx.lineTo(elbowX, elbowY);
+      armGfx.stroke({ color: lightColor, width: 4, cap: 'round' });
+
       // === ELBOW JOINT ===
-      arm.circle(elbowX, elbowY, 9);
-      arm.fill({ color: darkColor });
-      arm.circle(elbowX, elbowY, 5);
-      arm.fill({ color: accentColor, alpha: playing ? 0.9 : 0.5 });
-      
+      armGfx.circle(elbowX, elbowY, 9);
+      armGfx.fill({ color: darkColor });
+      armGfx.circle(elbowX, elbowY, 5);
+      armGfx.fill({ color: accentColor, alpha: playing ? 0.9 : 0.5 });
+
       // === FOREARM ===
       // ✅ KEY FIX: Bend INWARD toward body (subtract for correct direction)
       const forearmBend = isLeft ? d.leftForearmAngle : d.rightForearmAngle;
       // Left arm: bend adds positive angle (toward right/center)
       // Right arm: bend subtracts (toward left/center)
       const forearmAngle = angleRad - forearmBend * xDir;
-      
+
       const forearmLength = 26;
       const wristX = elbowX + Math.sin(forearmAngle) * forearmLength;
       const wristY = elbowY + Math.cos(forearmAngle) * forearmLength;
-      
+
       // Forearm segment
-      arm.moveTo(elbowX, elbowY);
-      arm.lineTo(wristX, wristY);
-      arm.stroke({ color: darkColor, width: 12, cap: 'round' });
-      
+      armGfx.moveTo(elbowX, elbowY);
+      armGfx.lineTo(wristX, wristY);
+      armGfx.stroke({ color: darkColor, width: 12, cap: 'round' });
+
       // Forearm highlight
-      arm.moveTo(elbowX, elbowY);
-      arm.lineTo(wristX, wristY);
-      arm.stroke({ color: mainColor, width: 4, cap: 'round' });
-      
+      armGfx.moveTo(elbowX, elbowY);
+      armGfx.lineTo(wristX, wristY);
+      armGfx.stroke({ color: mainColor, width: 4, cap: 'round' });
+
       // === WRIST JOINT ===
-      arm.circle(wristX, wristY, 7);
-      arm.fill({ color: lightColor });
-      arm.circle(wristX, wristY, 4);
-      arm.fill({ color: accentColor, alpha: 0.6 });
-      
+      armGfx.circle(wristX, wristY, 7);
+      armGfx.fill({ color: lightColor });
+      armGfx.circle(wristX, wristY, 4);
+      armGfx.fill({ color: accentColor, alpha: 0.6 });
+
       // === HAND ===
       const wristAngle = isLeft ? d.leftWristAngle : d.rightWristAngle;
       const handAngle = forearmAngle + wristAngle * 0.5;
-      
+
       // Hand opens when singing
       const clawOpen = playing && singing ? 0.35 : 0.12;
-      
+
       const handDirX = Math.sin(handAngle);
       const handDirY = Math.cos(handAngle);
-      
+
       // Palm base
       const palmX = wristX + handDirX * 8;
       const palmY = wristY + handDirY * 8;
-      arm.circle(palmX, palmY, 6);
-      arm.fill({ color: lightColor });
-      
+      armGfx.circle(palmX, palmY, 6);
+      armGfx.fill({ color: lightColor });
+
       // Three fingers in a claw arrangement
       const fingerLength = 12;
       const fingerWidth = 4;
-      
+
       // Left finger
       const leftFingerAngle = handAngle - clawOpen;
       const leftFingerX = palmX + Math.sin(leftFingerAngle) * fingerLength;
       const leftFingerY = palmY + Math.cos(leftFingerAngle) * fingerLength;
-      arm.moveTo(palmX, palmY);
-      arm.lineTo(leftFingerX, leftFingerY);
-      arm.stroke({ color: lightColor, width: fingerWidth, cap: 'round' });
-      arm.circle(leftFingerX, leftFingerY, 3);
-      arm.fill({ color: accentColor, alpha: playing ? 0.8 : 0.4 });
-      
+      armGfx.moveTo(palmX, palmY);
+      armGfx.lineTo(leftFingerX, leftFingerY);
+      armGfx.stroke({ color: lightColor, width: fingerWidth, cap: 'round' });
+      armGfx.circle(leftFingerX, leftFingerY, 3);
+      armGfx.fill({ color: accentColor, alpha: playing ? 0.8 : 0.4 });
+
       // Center finger (slightly longer)
       const centerFingerX = palmX + handDirX * (fingerLength + 3);
       const centerFingerY = palmY + handDirY * (fingerLength + 3);
-      arm.moveTo(palmX, palmY);
-      arm.lineTo(centerFingerX, centerFingerY);
-      arm.stroke({ color: lightColor, width: fingerWidth, cap: 'round' });
-      arm.circle(centerFingerX, centerFingerY, 3);
-      arm.fill({ color: accentColor, alpha: playing ? 0.8 : 0.4 });
-      
+      armGfx.moveTo(palmX, palmY);
+      armGfx.lineTo(centerFingerX, centerFingerY);
+      armGfx.stroke({ color: lightColor, width: fingerWidth, cap: 'round' });
+      armGfx.circle(centerFingerX, centerFingerY, 3);
+      armGfx.fill({ color: accentColor, alpha: playing ? 0.8 : 0.4 });
+
       // Right finger
       const rightFingerAngle = handAngle + clawOpen;
       const rightFingerX = palmX + Math.sin(rightFingerAngle) * fingerLength;
       const rightFingerY = palmY + Math.cos(rightFingerAngle) * fingerLength;
-      arm.moveTo(palmX, palmY);
-      arm.lineTo(rightFingerX, rightFingerY);
-      arm.stroke({ color: lightColor, width: fingerWidth, cap: 'round' });
-      arm.circle(rightFingerX, rightFingerY, 3);
-      arm.fill({ color: accentColor, alpha: playing ? 0.8 : 0.4 });
-      
-      return arm;
+      armGfx.moveTo(palmX, palmY);
+      armGfx.lineTo(rightFingerX, rightFingerY);
+      armGfx.stroke({ color: lightColor, width: fingerWidth, cap: 'round' });
+      armGfx.circle(rightFingerX, rightFingerY, 3);
+      armGfx.fill({ color: accentColor, alpha: playing ? 0.8 : 0.4 });
     };
-    
-    // Arms are added AFTER head so hands appear in front of face
-    const leftArm = drawArm('left', d.leftArmAngle);
-    const rightArm = drawArm('right', d.rightArmAngle);
+
+    // Arms drawn AFTER head so hands appear in front of face
+    // Note: We'll call these after drawing the head
+    const leftArmGfx = getGraphics('leftArm');
+    const rightArmGfx = getGraphics('rightArm');
 
     // === HEAD ===
-    const head = new PIXI.Graphics();
+    const head = getGraphics('head');
     const headX = bodyX + d.sway * 0.2;
     const headY = -45 + bodyY - d.headBob;
     
@@ -1263,12 +1279,10 @@ const RobotAvatar = ({
     head.circle(headX - 38, headY - 5, 5);
     head.circle(headX + 38, headY - 5, 5);
     head.fill({ color: accentColor, alpha: playing && singing ? 0.9 : 0.3 });
-    
-    robot.addChild(head);
 
     // === ACCESSORY ===
+    const acc = getGraphics('accessory');
     if (accessory !== 'none') {
-      const acc = new PIXI.Graphics();
       const accY = headY - 35 - d.headBob;
       
       if (accessory === 'antenna') {
@@ -1401,13 +1415,12 @@ const RobotAvatar = ({
         acc.rect(headX - 26, headY - 42, 52, 8);
         acc.fill({ color: accentColor, alpha: 0.5 + Math.sin(d.beatTime * 4) * 0.3 });
       }
-      
-      robot.addChild(acc);
     }
+    // Note: accessory graphics cleared by getGraphics() when accessory === 'none'
 
-    // ✅ Arms added LAST so hands appear IN FRONT of face when raised
-    robot.addChild(leftArm);
-    robot.addChild(rightArm);
+    // ✅ Arms drawn LAST so hands appear IN FRONT of face when raised
+    drawArm(leftArmGfx, 'left', d.leftArmAngle);
+    drawArm(rightArmGfx, 'right', d.rightArmAngle);
 
   }, []);
 
