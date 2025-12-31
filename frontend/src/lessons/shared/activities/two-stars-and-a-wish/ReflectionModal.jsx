@@ -372,7 +372,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
         </div>
       )}
 
-      <div data-reflection-modal className="fixed top-4 left-4 z-[100] w-96 max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-purple-200">
+      <div data-reflection-modal className="fixed top-4 left-4 z-[100] w-96 max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-purple-200 chromebook-hide-cursor">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-3 rounded-t-xl flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
