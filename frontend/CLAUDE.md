@@ -14,6 +14,42 @@ A web-based music education platform where middle school students create music f
 
 ---
 
+## Deployment Setup
+
+This codebase deploys to **two separate Vercel projects** from the same GitHub repo:
+
+| Project | Domain | Purpose |
+|---------|--------|---------|
+| Music Mind Academy | musicmindacademy.com | Commercial product for teachers to purchase |
+| Music Room Tools | musicroomtools.org | Free educational version / pilot program |
+
+### Before Pushing Code
+
+**ALWAYS run these checks before pushing:**
+
+```bash
+# 1. Check for uncommitted files that might be needed
+git status
+
+# 2. Verify the build works locally
+npm run build
+```
+
+If the build fails locally, it will fail on Vercel too. Common issues:
+- New files created but not committed (imports will fail)
+- Syntax errors
+- Missing dependencies
+
+### After Pushing Code
+
+Both Vercel projects auto-deploy from the `main` branch. Check the Vercel dashboard to confirm both show "Ready" status. If a build fails:
+1. Check the build logs in Vercel for the error
+2. Fix the issue locally
+3. Run `npm run build` to verify
+4. Push the fix
+
+---
+
 ## The Unit: Music for Media (5 Lessons)
 
 Students learn to create music for video by mastering one concept at a time.
