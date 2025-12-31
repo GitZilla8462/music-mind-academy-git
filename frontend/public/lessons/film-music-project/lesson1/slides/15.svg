@@ -23,11 +23,11 @@
   <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Class Discussion</text>
 
   <!-- Bullet Points -->
-  <text x="192" y="480" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">What mood did you choose to create?</text>
+  <text x="192" y="480" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">1. What mood did you choose to create?</text>
 
-  <text x="192" y="600" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">How did you use music to achieve that mood?</text>
+  <text x="192" y="600" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">2. What would you change if you had 5 more minutes?</text>
 
-  <text x="192" y="720" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">Did anyone try a different mood for the same video?</text>
+  <text x="192" y="720" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">3. What is one thing you like about your or your partner's composition?</text>
 
   <!-- Key Insight -->
   <text x="192" y="900" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">Key Insight: Same video feels different with different music.</text>
