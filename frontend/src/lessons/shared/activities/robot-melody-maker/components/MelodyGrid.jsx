@@ -103,13 +103,11 @@ GridCell.displayName = 'GridCell';
 const MelodyGrid = memo(({ pattern, onChange }) => {
   // Toggle a cell on/off - memoized to prevent child re-renders
   const toggleCell = useCallback((row, col) => {
-    onChange(prev => {
-      // Handle both function and direct pattern updates
-      const currentPattern = typeof prev === 'function' ? prev : pattern;
-      return currentPattern.map((r, ri) =>
-        r.map((cell, ci) => (ri === row && ci === col ? !cell : cell))
-      );
-    });
+    // Compute new pattern using current pattern prop and pass it directly
+    const newPattern = pattern.map((r, ri) =>
+      r.map((cell, ci) => (ri === row && ci === col ? !cell : cell))
+    );
+    onChange(newPattern);
   }, [onChange, pattern]);
 
   // Apply a preset

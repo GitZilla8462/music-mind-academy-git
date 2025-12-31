@@ -14,6 +14,7 @@ import TwoStarsAndAWishActivity from '../activities/two-stars-and-a-wish/TwoStar
 import SoundEffectsActivity from '../activities/SoundEffectsActivity';
 import NameThatLoopActivity from '../activities/layer-detective/NameThatLoopActivity';
 import LayerDetectiveActivity from '../activities/layer-detective/LayerDetectiveActivity';
+import LayerDetectiveStudentView from '../activities/layer-detective/LayerDetectiveStudentView';
 import SportsCompositionActivity from "../activities/SportsCompositionActivity";
 import CityCompositionActivity from "../activities/CityCompositionActivity";
 import WildlifeCompositionActivity from "../activities/WildlifeCompositionActivity";
@@ -176,14 +177,21 @@ const ActivityRenderer = ({
           key={`robot-melody-maker-${activity.id}`}
           onSave={(data) => {
             console.log('Robot Melody saved:', data);
-            localStorage.setItem('robot-melody-creation', JSON.stringify(data));
+            localStorage.setItem('robot-band-creation', JSON.stringify(data));
           }}
           onSubmit={onComplete ? () => onComplete('robot-melody-maker') : undefined}
           studentName={studentName}
           assignmentId={assignmentId}
           savedData={(() => {
             try {
-              const saved = localStorage.getItem('robot-melody-creation');
+              // Try new student work storage first
+              const studentWork = localStorage.getItem('mma-saved-robot-melody-maker');
+              if (studentWork) {
+                const parsed = JSON.parse(studentWork);
+                return parsed.data || parsed;
+              }
+              // Fall back to direct localStorage save
+              const saved = localStorage.getItem('robot-band-creation');
               return saved ? JSON.parse(saved) : null;
             } catch {
               return null;
@@ -224,7 +232,17 @@ const ActivityRenderer = ({
       );
 
     // ✅ Layer Detective warm-up activity (Lesson 2)
+    // Uses synchronized student view in session mode, self-paced otherwise
     case 'layer-detective':
+      if (isSessionMode) {
+        return (
+          <LayerDetectiveStudentView
+            key={`layer-detective-student-${activity.id}`}
+            onComplete={onComplete}
+            isSessionMode={isSessionMode}
+          />
+        );
+      }
       return (
         <LayerDetectiveActivity
           key={`layer-detective-${activity.id}`}

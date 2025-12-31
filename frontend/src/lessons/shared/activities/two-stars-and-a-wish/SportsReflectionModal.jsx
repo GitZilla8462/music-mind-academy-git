@@ -1,7 +1,7 @@
 // File: /src/lessons/shared/activities/two-stars-and-a-wish/SportsReflectionModal.jsx
 // Sports Reflection Modal - Purple overlay that stays on top of composition
-// UPDATED: Added confidence check + vibe + stickers
-// Steps: 1=choose type, 2=confidence, 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=stickers, 9=summary
+// UPDATED: Added confidence check + vibe + highlights
+// Steps: 1=choose type, 2=confidence, 3=highlights, 4=listen & share, 5=star1, 6=star2, 7=wish, 8=vibe, 9=summary
 
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, Star, Sparkles, Volume2, VolumeX, Minimize2, Maximize2, Smile, X } from 'lucide-react';
@@ -9,7 +9,7 @@ import { CheckCircle, Star, Sparkles, Volume2, VolumeX, Minimize2, Maximize2, Sm
 const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, isSessionMode = false }) => {
   console.log('🎭 SportsReflectionModal MOUNTED', { viewMode, isSessionMode, compositionData: !!compositionData });
 
-  // Steps: 1=choose type, 2=confidence, 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=stickers, 9=summary
+  // Steps: 1=choose type, 2=confidence, 3=highlights, 4=listen & share, 5=star1, 6=star2, 7=wish, 8=vibe, 9=summary
   const [currentStep, setCurrentStep] = useState(viewMode ? 9 : 1);
   const [reflectionData, setReflectionData] = useState({
     reviewType: null,
@@ -116,14 +116,14 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
     const messages = {
       1: "Whose composition are you reviewing? Choose whether you'll reflect on your own work or a friend's composition.",
       2: "How confident do you feel about your composition? Be honest - there's no wrong answer!",
-      3: reflectionData.reviewType === 'self'
+      3: "Mark 3 highlights on the composition! Pick a sticker, then click anywhere on the DAW to mark parts you want to remember.",
+      4: reflectionData.reviewType === 'self'
         ? "Now, listen to your entire sports composition from beginning to end. Pay attention to: How many layers you used. How the music matched the sports action. And the overall energy and excitement."
         : `Now it's time to share! First, share your score with ${partnerName}. Then, listen to ${partnerName}'s entire sports composition from beginning to end. Pay attention to the layers, how it matches the action, and the energy level.`,
-      4: "Star 1: Think about what went well with texture and layering.",
-      5: "Star 2: Think about how well your music matched the sports action.",
-      6: "Now for the Wish: What do you want to try or improve next time?",
-      7: "Pick a vibe! If your composition was a meme, which one would it be? Choose the one that best describes the vibe of your music!",
-      8: "Now place some stickers on the composition! Pick a sticker, then click anywhere on the DAW to mark that spot.",
+      5: "Star 1: Think about what went well with texture and layering.",
+      6: "Star 2: Think about how well your music matched the sports action.",
+      7: "Now for the Wish: What do you want to try or improve next time?",
+      8: "Pick a vibe! If your composition was a meme, which one would it be? Choose the one that best describes the vibe of your music!",
       9: reflectionData.reviewType === 'self'
         ? "Here's your complete reflection summary! Now read your reflection out loud to yourself or share it with a neighbor."
         : `Here's your complete reflection summary! Now read your feedback out loud to ${partnerName}.`
@@ -151,7 +151,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
       if (name) {
         setReflectionData(prev => ({ ...prev, partnerName: name }));
       }
-      setCurrentStep(3); // Skip confidence for partner review, go to listen & share
+      setCurrentStep(3); // Skip confidence for partner review, go to highlights
     } else {
       setCurrentStep(2); // Go to confidence check for self review
     }
@@ -159,7 +159,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
 
   const handleConfidenceSelection = (label) => {
     setReflectionData(prev => ({ ...prev, confidence: label }));
-    setCurrentStep(3); // Go to listen & share
+    setCurrentStep(3); // Go to highlights
   };
 
   const handleMuteToggle = () => {
@@ -243,7 +243,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
     return () => document.removeEventListener('click', handleClick);
   }, [isPlacingSticker, selectedSticker]);
 
-  // If minimized, show small button (with submit button on steps 8-9)
+  // If minimized, show small button (with continue on step 3 highlights, submit on step 9)
   if (isMinimized) {
     return (
       <div className="fixed top-4 left-4 z-[100] flex flex-col gap-2">
@@ -254,19 +254,22 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
           <Maximize2 size={16} />
           <span className="font-semibold">Show Reflection</span>
         </button>
-        {(currentStep === 8 || currentStep === 9) && (
+        {currentStep === 3 && reflectionData.stickers.length >= 3 && (
           <button
             onClick={() => {
-              if (currentStep === 8) {
-                setSelectedSticker(null);
-                setIsPlacingSticker(false);
-                const fullData = { ...reflectionData, submittedAt: new Date().toISOString() };
-                localStorage.setItem('sports-reflection', JSON.stringify(fullData));
-                setCurrentStep(9);
-              } else {
-                saveAndContinue();
-              }
+              setSelectedSticker(null);
+              setIsPlacingSticker(false);
+              setCurrentStep(4);
             }}
+            className="bg-orange-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-orange-700 transition-all flex items-center gap-2"
+          >
+            <CheckCircle size={16} />
+            <span className="font-semibold">Continue</span>
+          </button>
+        )}
+        {currentStep === 9 && (
+          <button
+            onClick={saveAndContinue}
             className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-green-700 transition-all flex items-center gap-2"
           >
             <CheckCircle size={16} />
@@ -315,12 +318,12 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
           <h2 className="font-bold text-lg">
             {currentStep === 1 && "Choose Review Type"}
             {currentStep === 2 && "🎯 Confidence Check"}
-            {currentStep === 3 && "Listen & Share"}
-            {currentStep === 4 && "⭐ Star 1"}
-            {currentStep === 5 && "⭐ Star 2"}
-            {currentStep === 6 && "✨ Wish"}
-            {currentStep === 7 && "😄 Pick a Vibe"}
-            {currentStep === 8 && "Place Stickers"}
+            {currentStep === 3 && "🏷️ Mark Your Highlights"}
+            {currentStep === 4 && "Listen & Share"}
+            {currentStep === 5 && "⭐ Star 1"}
+            {currentStep === 6 && "⭐ Star 2"}
+            {currentStep === 7 && "✨ Wish"}
+            {currentStep === 8 && "😄 Pick a Vibe"}
             {currentStep === 9 && "📝 Summary"}
           </h2>
         </div>
@@ -415,8 +418,84 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
           </div>
         )}
 
-        {/* STEP 3: Listen & Share */}
+        {/* STEP 3: Mark Your Highlights */}
         {currentStep === 3 && (
+          <div className="space-y-2">
+            <p className="text-sm text-gray-700 text-center font-semibold">
+              Mark 3 highlights on the composition
+            </p>
+            <p className="text-xs text-gray-500 text-center">
+              {selectedSticker ? `Click on the DAW to place ${selectedSticker}` : 'Select a sticker, then click on the DAW'}
+            </p>
+
+            {/* Sticker selection */}
+            <div className="flex justify-center gap-1">
+              {stickerOptions.map((sticker, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setSelectedSticker(sticker.emoji);
+                    setIsPlacingSticker(true);
+                  }}
+                  className={`p-1.5 rounded-lg transition-all ${
+                    selectedSticker === sticker.emoji
+                      ? 'bg-orange-500 scale-110 shadow-lg'
+                      : 'bg-gray-100 hover:bg-orange-100 border border-gray-200'
+                  }`}
+                  title={sticker.description}
+                >
+                  <span className="text-xl">{sticker.emoji}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Placed highlights count */}
+            <p className={`text-center text-sm font-semibold ${reflectionData.stickers.length >= 3 ? 'text-green-600' : 'text-gray-500'}`}>
+              {reflectionData.stickers.length}/3 highlights marked
+            </p>
+
+            {/* Placed stickers list */}
+            {reflectionData.stickers.length > 0 && (
+              <div className="flex flex-wrap gap-1 justify-center">
+                {reflectionData.stickers.map((sticker, idx) => (
+                  <div key={idx} className="flex items-center gap-0.5 bg-orange-50 px-1.5 py-0.5 rounded-full border border-orange-200">
+                    <span className="text-sm">{sticker.emoji}</span>
+                    <button
+                      onClick={() => {
+                        setReflectionData(prev => ({
+                          ...prev,
+                          stickers: prev.stickers.filter((_, i) => i !== idx)
+                        }));
+                      }}
+                      className="text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              onClick={() => {
+                setSelectedSticker(null);
+                setIsPlacingSticker(false);
+                setCurrentStep(4);
+              }}
+              disabled={reflectionData.stickers.length < 3}
+              className={`w-full px-4 py-2 rounded-lg font-semibold transition-colors text-sm ${
+                reflectionData.stickers.length >= 3
+                  ? 'bg-orange-600 text-white hover:bg-orange-700'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Continue →
+            </button>
+          </div>
+        )}
+
+        {/* STEP 4: Listen & Share */}
+        {currentStep === 4 && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <h3 className="font-bold text-gray-900">
@@ -444,7 +523,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
                 </div>
 
                 <button
-                  onClick={() => setCurrentStep(4)}
+                  onClick={() => setCurrentStep(5)}
                   className="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700"
                 >
                   Continue to Reflection →
@@ -475,7 +554,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
                 </div>
 
                 <button
-                  onClick={() => setCurrentStep(4)}
+                  onClick={() => setCurrentStep(5)}
                   className="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700"
                 >
                   Continue to Reflection →
@@ -485,8 +564,8 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
           </div>
         )}
 
-        {/* STEP 4: Star 1 - Texture & Layering */}
-        {currentStep === 4 && (
+        {/* STEP 5: Star 1 - Texture & Layering */}
+        {currentStep === 5 && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <Star className="w-12 h-12 mx-auto text-yellow-500 fill-yellow-500 mb-2" />
@@ -522,7 +601,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
                       setCustomInputs(prev => ({ ...prev, star1: true }));
                     } else {
                       setReflectionData(prev => ({ ...prev, star1: option }));
-                      setCurrentStep(5);
+                      setCurrentStep(6);
                     }
                   }}
                   className="w-full p-3 text-left rounded-lg border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-all"
@@ -541,7 +620,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
                     placeholder="Type your response..."
                   />
                   <button
-                    onClick={() => setCurrentStep(5)}
+                    onClick={() => setCurrentStep(6)}
                     disabled={!reflectionData.star1.trim()}
                     className="w-full bg-orange-600 text-white py-2 rounded-lg disabled:opacity-50"
                   >
@@ -553,8 +632,8 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
           </div>
         )}
 
-        {/* STEP 5: Star 2 - Matching the Action */}
-        {currentStep === 5 && (
+        {/* STEP 6: Star 2 - Matching the Action */}
+        {currentStep === 6 && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <Star className="w-12 h-12 mx-auto text-yellow-500 fill-yellow-500 mb-2" />
@@ -590,7 +669,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
                       setCustomInputs(prev => ({ ...prev, star2: true }));
                     } else {
                       setReflectionData(prev => ({ ...prev, star2: option }));
-                      setCurrentStep(6);
+                      setCurrentStep(7);
                     }
                   }}
                   className="w-full p-3 text-left rounded-lg border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-all"
@@ -609,7 +688,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
                     placeholder="Type your response..."
                   />
                   <button
-                    onClick={() => setCurrentStep(6)}
+                    onClick={() => setCurrentStep(7)}
                     disabled={!reflectionData.star2.trim()}
                     className="w-full bg-orange-600 text-white py-2 rounded-lg disabled:opacity-50"
                   >
@@ -621,8 +700,8 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
           </div>
         )}
 
-        {/* STEP 6: Wish */}
-        {currentStep === 6 && (
+        {/* STEP 7: Wish */}
+        {currentStep === 7 && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <Sparkles className="w-12 h-12 mx-auto text-purple-500 mb-2" />
@@ -658,7 +737,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
                       setCustomInputs(prev => ({ ...prev, wish: true }));
                     } else {
                       setReflectionData(prev => ({ ...prev, wish: option }));
-                      setCurrentStep(7);
+                      setCurrentStep(8);
                     }
                   }}
                   className="w-full p-3 text-left rounded-lg border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-all"
@@ -677,7 +756,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
                     placeholder="Type your response..."
                   />
                   <button
-                    onClick={() => setCurrentStep(7)}
+                    onClick={() => setCurrentStep(8)}
                     disabled={!reflectionData.wish.trim()}
                     className="w-full bg-orange-600 text-white py-2 rounded-lg disabled:opacity-50"
                   >
@@ -689,8 +768,8 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
           </div>
         )}
 
-        {/* STEP 7: Vibe Selector */}
-        {currentStep === 7 && (
+        {/* STEP 8: Vibe Selector */}
+        {currentStep === 8 && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <Smile className="w-12 h-12 mx-auto text-blue-500 mb-2" />
@@ -706,7 +785,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
                   key={idx}
                   onClick={() => {
                     setReflectionData(prev => ({ ...prev, vibe: vibe.text }));
-                    setCurrentStep(8); // Go to stickers step
+                    setCurrentStep(9); // Go to summary step
                   }}
                   className="w-full p-3 text-left rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all flex items-center gap-3"
                 >
@@ -715,84 +794,6 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
                 </button>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* STEP 8: Place Stickers */}
-        {currentStep === 8 && (
-          <div className="space-y-2">
-            <p className="text-sm text-gray-700 text-center font-semibold">
-              Place at least 3 feedback stickers
-            </p>
-            <p className="text-xs text-gray-500 text-center">
-              {selectedSticker ? `Click on the DAW to place ${selectedSticker}` : 'Select a sticker, then click on the DAW'}
-            </p>
-
-            {/* Sticker selection */}
-            <div className="flex justify-center gap-1">
-              {stickerOptions.map((sticker, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    setSelectedSticker(sticker.emoji);
-                    setIsPlacingSticker(true);
-                  }}
-                  className={`p-1.5 rounded-lg transition-all ${
-                    selectedSticker === sticker.emoji
-                      ? 'bg-orange-500 scale-110 shadow-lg'
-                      : 'bg-gray-100 hover:bg-orange-100 border border-gray-200'
-                  }`}
-                  title={sticker.description}
-                >
-                  <span className="text-xl">{sticker.emoji}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Placed stickers count */}
-            <p className={`text-center text-sm font-semibold ${reflectionData.stickers.length >= 3 ? 'text-green-600' : 'text-gray-500'}`}>
-              {reflectionData.stickers.length}/3 stickers placed
-            </p>
-
-            {/* Placed stickers list */}
-            {reflectionData.stickers.length > 0 && (
-              <div className="flex flex-wrap gap-1 justify-center">
-                {reflectionData.stickers.map((sticker, idx) => (
-                  <div key={idx} className="flex items-center gap-0.5 bg-orange-50 px-1.5 py-0.5 rounded-full border border-orange-200">
-                    <span className="text-sm">{sticker.emoji}</span>
-                    <button
-                      onClick={() => {
-                        setReflectionData(prev => ({
-                          ...prev,
-                          stickers: prev.stickers.filter((_, i) => i !== idx)
-                        }));
-                      }}
-                      className="text-gray-400 hover:text-red-500 transition-colors"
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <button
-              onClick={() => {
-                setSelectedSticker(null);
-                setIsPlacingSticker(false);
-                const fullData = { ...reflectionData, submittedAt: new Date().toISOString() };
-                localStorage.setItem('sports-reflection', JSON.stringify(fullData));
-                setCurrentStep(9);
-              }}
-              disabled={reflectionData.stickers.length < 3}
-              className={`w-full px-4 py-2 rounded-lg font-semibold transition-colors text-sm ${
-                reflectionData.stickers.length >= 3
-                  ? 'bg-orange-600 text-white hover:bg-orange-700'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              Continue →
-            </button>
           </div>
         )}
 
