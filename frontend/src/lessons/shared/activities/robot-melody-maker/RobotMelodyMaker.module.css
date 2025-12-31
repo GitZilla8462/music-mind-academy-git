@@ -405,6 +405,21 @@
   grid-template-rows: repeat(8, 1fr);
   grid-template-columns: repeat(16, 1fr);
   gap: 1px;
+  position: relative;
+}
+
+/* ✅ CHROMEBOOK OPTIMIZATION: CSS-based playhead overlay (no per-cell re-renders) */
+.miniPlayhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: calc(100% / 16);
+  background: rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+  z-index: 1;
+  left: calc(var(--step, 0) * 100% / 16);
+  transition: left 0.05s linear;
+  will-change: left;
 }
 
 /* Mini grid cell */

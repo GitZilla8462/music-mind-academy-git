@@ -8,7 +8,7 @@
  * ✅ UPDATED: Saves to Join page using saveStudentWork
  */
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, memo, useMemo } from 'react';
 import {
   RobotAvatar,
   RobotCustomizer,
@@ -21,6 +21,38 @@ import useMelodyEngine from './hooks/useMelodyEngine';
 import { DEFAULT_MONSTER_CONFIG } from './config/defaults';
 import { saveStudentWork } from '../../../../utils/studentWorkStorage';
 import styles from './RobotMelodyMaker.module.css';
+
+// ✅ CHROMEBOOK OPTIMIZATION: Memoized mini cell (only re-renders when active state changes)
+const MiniCell = memo(({ isActive }) => (
+  <div className={`${styles.miniCell} ${isActive ? styles.active : ''}`} />
+));
+MiniCell.displayName = 'MiniCell';
+
+// ✅ CHROMEBOOK OPTIMIZATION: Memoized mini grid with CSS playhead
+const MiniMelodyGrid = memo(({ melody, robotId, currentStep, isPlaying }) => {
+  // Memoize cells - only changes when melody changes
+  const cells = useMemo(() => (
+    melody.map((row, rowIndex) =>
+      row.map((cell, colIndex) => (
+        <MiniCell key={`${rowIndex}-${colIndex}`} isActive={cell} />
+      ))
+    )
+  ), [melody]);
+
+  return (
+    <div className={`${styles.miniGrid} ${styles[`miniGrid${robotId}`]}`}>
+      {cells}
+      {/* CSS-based playhead - position controlled by CSS variable */}
+      {isPlaying && currentStep >= 0 && (
+        <div
+          className={styles.miniPlayhead}
+          style={{ '--step': currentStep }}
+        />
+      )}
+    </div>
+  );
+});
+MiniMelodyGrid.displayName = 'MiniMelodyGrid';
 
 // Create empty 8x16 pattern grid
 const createEmptyPattern = () => 
@@ -578,22 +610,15 @@ const MonsterMelodyMaker = ({
                         ))}
                       </select>
                       
-                      {/* Mini melody grid */}
+                      {/* Mini melody grid - ✅ CHROMEBOOK: Memoized with CSS playhead */}
                       <div className={styles.miniGridWrapper}>
                         {robot ? (
-                          <div className={`${styles.miniGrid} ${styles[`miniGrid${robot.id}`]}`}>
-                            {robot.melody.map((row, rowIndex) =>
-                              row.map((cell, colIndex) => {
-                                const isCurrentStep = isCurrentlyPlaying && currentStep === colIndex;
-                                return (
-                                  <div
-                                    key={`${rowIndex}-${colIndex}`}
-                                    className={`${styles.miniCell} ${cell ? styles.active : ''} ${isCurrentStep ? styles.currentStep : ''}`}
-                                  />
-                                );
-                              })
-                            )}
-                          </div>
+                          <MiniMelodyGrid
+                            melody={robot.melody}
+                            robotId={robot.id}
+                            currentStep={currentStep}
+                            isPlaying={isCurrentlyPlaying}
+                          />
                         ) : (
                           <div className={styles.emptyGrid}>
                             <span>Empty</span>

@@ -106,6 +106,7 @@ const RobotAvatar = ({
   const robotRef = useRef(null);
   const animationFrameRef = useRef(null);
   const isInitializedRef = useRef(false);
+  const isLowEndRef = useRef(false); // ✅ Track for conditional particle rendering
   
   // Dance state
   const dance = useRef({
@@ -210,6 +211,7 @@ const RobotAvatar = ({
       // Store performance mode for animation throttling
       appRef.current.isLowEnd = isLowEnd;
       appRef.current.isSmall = size === 'small';
+      isLowEndRef.current = isLowEnd; // ✅ Store for particle rendering
 
       // Dev logging for performance mode detection (only for normal size to reduce spam)
       if (import.meta.env.DEV && size === 'normal') {
@@ -1414,28 +1416,33 @@ const RobotAvatar = ({
     const isLowEnd = appRef.current?.isLowEnd;
     const isSmall = appRef.current?.isSmall;
 
-    // FPS targets - 30fps across the board for Chromebooks
-    let targetFPS;
-    if (isSmall) {
-      targetFPS = 30; // 30fps for split view (both Chromebook and normal)
-    } else {
-      targetFPS = isLowEnd ? 30 : 60; // Normal rates for single robot
-    }
-    const frameInterval = 1000 / targetFPS;
-
     // Dev-only FPS tracking
     let frameCount = 0;
     let fpsLastTime = performance.now();
     const isDev = import.meta.env.DEV;
 
     if (isDev && !isSmall) {
-      console.log(`🤖 Robot Animation: ${isLowEnd ? 'LOW-END MODE (30fps)' : 'NORMAL MODE (60fps)'}`);
+      console.log(`🤖 Robot Animation: ${isLowEnd ? 'LOW-END MODE' : 'NORMAL MODE'}`);
     }
 
     const animate = (currentTime) => {
       animationFrameRef.current = requestAnimationFrame(animate);
 
-      // Throttle frame rate for Chromebooks
+      // ✅ CHROMEBOOK OPTIMIZATION: Dynamic FPS based on play state
+      // - Playing: 30fps on Chromebook, 60fps normal
+      // - Idle: 15fps on Chromebook, 30fps normal (robot just breathes)
+      const playing = isPlayingRef.current;
+      let targetFPS;
+      if (isSmall) {
+        targetFPS = playing ? 24 : 12; // Split view: lower FPS
+      } else if (isLowEnd) {
+        targetFPS = playing ? 30 : 15; // Chromebook: 30fps playing, 15fps idle
+      } else {
+        targetFPS = playing ? 60 : 30; // Normal: 60fps playing, 30fps idle
+      }
+      const frameInterval = 1000 / targetFPS;
+
+      // Throttle frame rate
       const elapsed = currentTime - lastTime;
       if (elapsed < frameInterval) return;
       lastTime = currentTime - (elapsed % frameInterval);
@@ -1449,7 +1456,7 @@ const RobotAvatar = ({
         const fpsDelta = currentTime - fpsLastTime;
         if (fpsDelta >= 2000) {
           const fps = Math.round((frameCount * 1000) / fpsDelta);
-          console.log(`🎯 Robot FPS: ${fps} (target: ${targetFPS})`);
+          console.log(`🎯 Robot FPS: ${fps} (target: ${targetFPS}, playing: ${playing})`);
           frameCount = 0;
           fpsLastTime = currentTime;
         }
@@ -1471,11 +1478,12 @@ const RobotAvatar = ({
         }}
       />
       
-      {isPlaying && animationState?.singing && (
+      {/* ✅ CHROMEBOOK OPTIMIZATION: Skip particles on low-end devices */}
+      {isPlaying && animationState?.singing && !isLowEndRef.current && (
         <div className={styles.particles}>
           {[...Array(5)].map((_, i) => (
-            <span 
-              key={i} 
+            <span
+              key={i}
               className={styles.particle}
               style={{
                 left: `${15 + (i * 17)}%`,
