@@ -22,6 +22,7 @@ import TeacherLessonView from '../../shared/components/TeacherLessonView'; // âœ
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 import TransitionOverlay from '../../shared/components/TransitionOverlay';
+import LayerDetectiveStudentView from '../../shared/activities/layer-detective/LayerDetectiveStudentView';
 
 // Storage for viewing saved work
 import { loadStudentWork } from '../../../utils/studentWorkStorage';
@@ -397,6 +398,19 @@ const Lesson2Content = () => {
       return (
         <>
           <ListeningMapLoader onComplete={() => handleSessionActivityComplete(currentStage)} isSessionMode={true} />
+          <TransitionOverlay isVisible={showTransition} />
+        </>
+      );
+    }
+
+    // Layer Detective activity - Class game synced with teacher
+    if (currentStage === 'layer-detective') {
+      return (
+        <>
+          <LayerDetectiveStudentView
+            onComplete={() => handleSessionActivityComplete(currentStage)}
+            isSessionMode={true}
+          />
           <TransitionOverlay isVisible={showTransition} />
         </>
       );

@@ -15,89 +15,68 @@ export const lessonSections = [
     title: '1. Introduction',
     subtitle: 'Slides → Texture Concept',
     color: 'blue',
-    estimatedTime: 8,
+    estimatedTime: 5,
     stages: [
-      { 
-        id: 'city-soundscapes-intro', 
-        type: 'summary', 
+      {
+        id: 'city-soundscapes-intro',
+        type: 'summary',
         label: 'City Soundscapes',
-        description: 'Ask: "What city have you visited? How would it feel there?"',
-        duration: 1
+        description: 'Ask: "What city have you visited? How would it feel there?"'
       },
-      { 
-        id: 'show-agenda', 
-        type: 'summary', 
+      {
+        id: 'show-agenda',
+        type: 'summary',
         label: 'Agenda',
-        description: 'Review: "1) Learn texture & layering, 2) Create City Soundscape"',
-        duration: 1
+        description: 'Review: "1) Learn texture & layering, 2) Create City Soundscape"'
       },
-      { 
-        id: 'introduce-texture', 
-        type: 'summary', 
+      {
+        id: 'introduce-texture',
+        type: 'summary',
         label: 'Texture',
-        description: 'Explain: "Texture = thick/thin sound based on # of layers"',
-        duration: 2
+        description: 'Explain: "Texture = thick/thin sound based on # of layers"'
       },
-      { 
-        id: 'texture-continued', 
-        type: 'summary', 
+      {
+        id: 'texture-continued',
+        type: 'summary',
         label: 'Sandwich Analogy',
-        description: 'Analogy: "1 ingredient = thin, many ingredients = full"',
-        duration: 2
+        description: 'Analogy: "1 ingredient = thin, many ingredients = full"'
       },
-      { 
-        id: 'layers-and-texture', 
-        type: 'summary', 
+      {
+        id: 'layers-and-texture',
+        type: 'summary',
         label: 'Making Layers',
-        description: 'Explain: "1 layer = thin, 2-3 = medium, 4+ = full texture"',
-        duration: 2
+        description: 'Explain: "1 layer = thin, 2-3 = medium, 4+ = full texture"'
       }
     ]
   },
   {
-    id: 'activity1',
-    title: '2. Listening Map',
-    subtitle: 'Video → Draw',
-    color: 'blue',
-    estimatedTime: 14,
+    id: 'layer-detective-section',
+    title: '2. Layer Detective',
+    subtitle: 'Class Game',
+    color: 'orange',
+    estimatedTime: 5,
     stages: [
-      { 
-        id: 'introduce-listening-map', 
-        type: 'summary', 
-        label: 'Listening Map Intro',
-        description: 'Announce: "We\'ll watch a 1-min video then draw while listening"',
-        duration: 1
-      },
       {
-        id: 'listening-map-video',
-        type: 'video',
-        label: '▶️ Play Video',
-        description: 'PLAY VIDEO: Listening Map explanation (students watch main screen)',
-        duration: 2
-      },
-      {
-        id: 'music-for-listening-map',
+        id: 'layer-detective-intro',
         type: 'summary',
-        label: 'Music For Listening Map',
-        description: 'Introduce: "Spring by Vivaldi - listen for violin imitating birds"',
-        duration: 1
+        label: 'Layer Detective Intro',
+        description: 'Announce: "Now we will play a class game about layers!"'
       },
       {
-        id: 'listening-map',
+        id: 'layer-detective',
         type: 'activity',
-        label: '🎮 Unlock Listening Map',
-        duration: 8,
-        hasTimer: true,
+        label: '🎮 Layer Detective',
+        duration: 5,
+        hasTimer: false,
         trackProgress: true,
-        description: 'STUDENTS WORK: Create 4 rows, unique style per row',
-        bonusDescription: 'Bonus: Add more colors, textures, and pictures'
+        description: 'STUDENTS PLAY: Count layers, choose A/B/C, earn points',
+        bonusDescription: 'Faster answers = more points!'
       },
       {
-        id: 'share-and-pair',
+        id: 'layer-detective-results',
         type: 'summary',
-        label: 'Share and Pair',
-        description: 'Partner activity: Share work and discuss what inspired your choices',
-        duration: 2
+        label: '🏆 Results',
+        description: 'Show leaderboard and celebrate top scorers'
       }
     ]
   },
@@ -166,6 +145,33 @@ export const lessonSections = [
         duration: 2
       }
     ]
+  },
+  {
+    id: 'bonus-robot-melody',
+    title: '⭐ Bonus: Robot Melody Maker',
+    subtitle: 'Create & Customize',
+    color: 'purple',
+    estimatedTime: 10,
+    isBonus: true,
+    stages: [
+      {
+        id: 'bonus-intro',
+        type: 'summary',
+        label: 'Introduce Robot Melody Maker',
+        description: 'Announce: "Create loops and customize your robot!"',
+        duration: 1
+      },
+      {
+        id: 'robot-melody-maker',
+        type: 'activity',
+        label: '🎮 Unlock Robot Melody Maker',
+        duration: 8,
+        hasTimer: true,
+        trackProgress: true,
+        description: 'STUDENTS WORK: Create loops and customize their robot',
+        bonusDescription: 'Make your robot dance!'
+      }
+    ]
   }
 ];
 
@@ -183,23 +189,29 @@ export const lesson2Config = {
   lessonSections,
   activities: [
     {
-      id: 1,
-      type: "listening-map",
-      title: "Listening Map",
-      estimatedTime: "8 min"
+      id: 0,
+      type: "layer-detective",
+      title: "Layer Detective",
+      estimatedTime: "5 min"
     },
     {
-      id: 2,
+      id: 1,
       type: "city-composition-activity",
       title: "Compose Your City Soundscape",
       estimatedTime: "10 min",
       includesVideoSelection: true
     },
     {
-      id: 3,
+      id: 2,
       type: "two-stars-wish",
       title: "Reflection Activity",
       estimatedTime: "3 min"
+    },
+    {
+      id: 3,
+      type: "robot-melody-maker",
+      title: "Robot Melody Maker",
+      estimatedTime: "8 min"
     }
   ]
 };
@@ -215,122 +227,90 @@ export const lessonStages = [
     type: 'waiting'
   },
   // Introduction
-  { 
-    id: 'city-soundscapes-intro', 
-    label: 'City Soundscapes', 
+  {
+    id: 'city-soundscapes-intro',
+    label: 'City Soundscapes',
     description: 'Ask: "What city have you visited? How would it feel there?"',
     type: 'summary',
-    duration: 1,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson2/slides/1.png'
     }
   },
-  { 
-    id: 'show-agenda', 
-    label: 'Agenda', 
+  {
+    id: 'show-agenda',
+    label: 'Agenda',
     description: 'Review: "1) Learn texture & layering, 2) Create City Soundscape"',
     type: 'summary',
-    duration: 1,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson2/slides/2.png'
     }
   },
-  { 
-    id: 'introduce-texture', 
-    label: 'Texture', 
+  {
+    id: 'introduce-texture',
+    label: 'Texture',
     description: 'Explain: "Texture = thick/thin sound based on # of layers"',
     type: 'summary',
-    duration: 2,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson2/slides/3.png'
     }
   },
-  { 
-    id: 'texture-continued', 
-    label: 'Sandwich Analogy', 
+  {
+    id: 'texture-continued',
+    label: 'Sandwich Analogy',
     description: 'Analogy: "1 ingredient = thin, many ingredients = full"',
     type: 'summary',
-    duration: 2,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson2/slides/4.png'
     }
   },
-  { 
-    id: 'layers-and-texture', 
-    label: 'Making Layers', 
+  {
+    id: 'layers-and-texture',
+    label: 'Making Layers',
     description: 'Explain: "1 layer = thin, 2-3 = medium, 4+ = full texture"',
     type: 'summary',
-    duration: 2,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson2/slides/5.png'
     }
   },
-  // Activity 1: Listening Map
-  { 
-    id: 'introduce-listening-map', 
-    label: 'Listening Map Intro', 
-    description: 'Announce: "We\'ll watch a 1-min video then draw while listening"',
+  // Layer Detective Game
+  {
+    id: 'layer-detective-intro',
+    label: 'Layer Detective Intro',
+    description: 'Announce: "Now we will play a class game about layers!"',
     type: 'summary',
-    duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/6.png'
+      slidePath: '/lessons/film-music-project/lesson2/slides/5.5.svg'
     }
   },
   {
-    id: 'listening-map-video',
-    label: '▶️ Play Video',
-    description: 'PLAY VIDEO: Listening Map explanation (students watch main screen)',
-    type: 'video',
-    duration: 2,
-    presentationView: {
-      type: 'video',
-      videoPath: '/lessons/film-music-project/lesson2/ListeningMapExplanation.mp4',
-      title: 'Listening Map Explanation'
-    }
-  },
-  {
-    id: 'music-for-listening-map',
-    label: 'Music For Listening Map',
-    description: 'Introduce: "Spring by Vivaldi - listen for violin imitating birds"',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'summary',
-      summaryKey: 'musicForListeningMap'
-    }
-  },
-  {
-    id: 'listening-map',
-    label: '🎮 Unlock Listening Map',
-    description: 'STUDENTS WORK: Create 4 rows, unique style per row',
-    bonusDescription: 'Bonus: Add more colors, textures, and pictures',
+    id: 'layer-detective',
+    label: '🎮 Layer Detective',
+    description: 'STUDENTS PLAY: Count layers, choose A/B/C, earn points',
+    bonusDescription: 'Faster answers = more points!',
     hasProgress: true,
     type: 'activity',
-    hasTimer: true,
-    duration: 8,
+    hasTimer: false,
+    duration: 5,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/6.5.svg'
+      type: 'layer-detective-leaderboard'
     }
   },
   {
-    id: 'share-and-pair',
-    label: 'Share and Pair',
-    description: 'Partner activity: Share work and discuss what inspired your choices',
+    id: 'layer-detective-results',
+    label: '🏆 Results',
+    description: 'Show leaderboard and celebrate top scorers',
     type: 'summary',
-    duration: 2,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/6.6.svg'
+      type: 'layer-detective-results'
     }
   },
-  // Activity 2: Composition
+  // Activity: Composition
   { 
     id: 'composition-instructions', 
     label: 'Composition Instructions', 
@@ -404,6 +384,34 @@ export const lessonStages = [
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson2/slides/11.png'
     }
+  },
+  // ⭐ BONUS: Robot Melody Maker
+  {
+    id: 'bonus-intro',
+    label: 'Introduce Robot Melody Maker',
+    description: 'Announce: "Create loops and customize your robot!"',
+    type: 'summary',
+    duration: 1,
+    isBonus: true,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson3/slides/13.svg'
+    }
+  },
+  {
+    id: 'robot-melody-maker',
+    label: '🎮 Unlock Robot Melody Maker',
+    description: 'STUDENTS WORK: Create loops and customize their robot',
+    bonusDescription: 'Make your robot dance!',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: true,
+    duration: 8,
+    isBonus: true,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson3/slides/14.svg'
+    }
   }
 ];
 
@@ -415,19 +423,17 @@ export const getActivityForStage = (stage) => {
     'introduce-texture': 'summary',
     'texture-continued': 'summary',
     'layers-and-texture': 'summary',
-    'introduce-listening-map': 'summary',
-    'introduce-texture-drawings': 'summary',  // backward compatibility
-    'listening-map-video': 'video',
-    'music-for-listening-map': 'summary',
-    'listening-map': 'listening-map',
-    'texture-drawings': 'listening-map',  // backward compatibility
-    'share-and-pair': 'summary',
+    'layer-detective-intro': 'summary',
+    'layer-detective': 'layer-detective',
+    'layer-detective-results': 'summary',
     'composition-instructions': 'summary',
     'composition-instructions-continued': 'summary',
     'city-composition': 'city-composition-activity',
     'reflection-instructions': 'summary',
     'reflection': 'two-stars-wish',
-    'conclusion': 'discussion'
+    'conclusion': 'discussion',
+    'bonus-intro': 'summary',
+    'robot-melody-maker': 'robot-melody-maker'
   };
   return stageMap[stage];
 };

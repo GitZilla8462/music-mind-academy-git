@@ -1,0 +1,38 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Game Banner -->
+  <rect x="0" y="0" width="1920" height="70" fill="#f59e0b"/>
+  <text x="960" y="48" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="white" font-weight="bold" text-anchor="middle">CLASS GAME TIME!</text>
+
+  <!-- Title -->
+  <text x="192" y="220" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">LAYER DETECTIVE</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="250" width="450" height="3" fill="#f59e0b" opacity="0.7"/>
+
+  <!-- Subtitle -->
+  <text x="192" y="330" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#fbbf24">Can you hear how many layers are playing?</text>
+
+  <!-- Points -->
+  <text x="192" y="500" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">1. Listen carefully to each music clip.</text>
+
+  <text x="192" y="620" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">2. Count the layers (instruments) you hear.</text>
+
+  <text x="192" y="740" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">3. Choose A, B, or C — faster answers = more points!</text>
+
+  <!-- Fun note -->
+  <text x="192" y="900" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#10b981">Top scorers will be on the leaderboard!</text>
+</svg>

@@ -13,62 +13,114 @@ export const LESSON_TIMER_KEY = 'lesson3-timer';
 export const lessonSections = [
   {
     id: 'introduction',
-    title: 'Introduction',
-    subtitle: 'Song Form & Sectional Loops',
+    title: '1. Introduction',
+    subtitle: 'Epic Wildlife & Song Form',
     icon: '🌍',
     color: 'green',
-    estimatedTime: 12,
+    estimatedTime: 5,
     stages: [
-      { 
-        id: 'epic-wildlife-intro', 
-        type: 'summary', 
+      {
+        id: 'epic-wildlife-intro',
+        type: 'summary',
         label: "Epic Wildlife Introduction",
-        description: 'Display welcome screen - Slide 1',
-        duration: 1
+        description: 'Display welcome screen - Slide 1'
       },
-      { 
-        id: 'show-agenda', 
-        type: 'summary', 
+      {
+        id: 'show-agenda',
+        type: 'summary',
         label: 'Show Agenda',
-        description: 'Display lesson agenda - Slide 2',
-        duration: 1
+        description: 'Display lesson agenda - Slide 2'
       },
-      { 
-        id: 'introduce-song-form', 
-        type: 'summary', 
+      {
+        id: 'introduce-song-form',
+        type: 'summary',
         label: 'Introduce Song Form',
-        description: 'Introduction to song structure - Slide 3',
+        description: 'Introduction to song structure - Slide 3'
+      }
+    ]
+  },
+  {
+    id: 'listening-map-section',
+    title: '2. Listening Map',
+    subtitle: 'Video → Draw',
+    icon: '🎨',
+    color: 'yellow',
+    estimatedTime: 14,
+    stages: [
+      {
+        id: 'introduce-listening-map',
+        type: 'summary',
+        label: 'Listening Map Intro',
+        description: 'Explain: "A listening map is a visual guide that shows song form"',
         duration: 1
       },
-      { 
-        id: 'form-continued', 
-        type: 'summary', 
+      {
+        id: 'listening-map-video',
+        type: 'video',
+        label: '▶️ Play Video',
+        description: 'PLAY VIDEO: Listening Map explanation (students watch main screen)',
+        duration: 2
+      },
+      {
+        id: 'music-for-listening-map',
+        type: 'summary',
+        label: 'Music For Listening Map',
+        description: 'Introduce: "Spring by Vivaldi - listen for violin imitating birds"',
+        duration: 1
+      },
+      {
+        id: 'listening-map',
+        type: 'activity',
+        label: '🎮 Unlock Listening Map',
+        duration: 8,
+        hasTimer: true,
+        trackProgress: true,
+        description: 'STUDENTS WORK: Create 4 rows, unique style per row',
+        bonusDescription: 'Bonus: Add more colors, textures, and pictures'
+      },
+      {
+        id: 'share-and-pair',
+        type: 'summary',
+        label: 'Share and Pair',
+        description: 'Partner activity: Share work and discuss what inspired your choices',
+        duration: 2
+      }
+    ]
+  },
+  {
+    id: 'sectional-loop-form',
+    title: '3. Sectional Loop Form',
+    subtitle: 'Form & Structure',
+    icon: '🎵',
+    color: 'teal',
+    estimatedTime: 5,
+    stages: [
+      {
+        id: 'form-continued',
+        type: 'summary',
         label: 'Form Continued',
-        description: 'More about song form - Slide 4',
-        duration: 1
+        description: 'More about song form - Slide 4'
       },
-      { 
-        id: 'introduce-sectional-loop-form', 
-        type: 'summary', 
+      {
+        id: 'introduce-sectional-loop-form',
+        type: 'summary',
         label: 'Introduce Sectional Loop Form',
-        description: 'What is sectional loop form - Slide 5',
-        duration: 1
+        description: 'What is sectional loop form - Slide 5'
       },
-      { 
-        id: 'sectional-loop-example', 
-        type: 'summary', 
-        label: 'Introduce Sectional Loop Form Example',
-        description: 'Example of sectional loops - Slide 6',
-        duration: 1
+      {
+        id: 'sectional-loop-example',
+        type: 'summary',
+        label: 'Sectional Loop Form Example',
+        description: 'Example of sectional loops - Slide 6'
       }
     ]
   },
   {
     id: 'activity1',
-    title: 'Activity 1 - Sectional Loop Builder',
+    title: '4. Sectional Loop Builder',
     subtitle: 'Build the Wildlife Score',
     icon: '🎮',
-    color: 'teal',
+    color: 'purple',
     estimatedTime: 10,
     stages: [
       {
@@ -98,30 +150,30 @@ export const lessonSections = [
   },
   {
     id: 'activity2',
-    title: 'Activity 2 - Composition',
+    title: '5. Composition',
     subtitle: "Epic Wildlife Soundtrack",
     icon: '🎵',
     color: 'blue',
     estimatedTime: 18,
     stages: [
-      { 
-        id: 'composition-instructions', 
-        type: 'summary', 
+      {
+        id: 'composition-instructions',
+        type: 'summary',
         label: 'Show Composition Instructions',
         description: 'Display requirements - Slide 8',
         duration: 1
       },
-      { 
-        id: 'composition-instructions-continued', 
-        type: 'summary', 
+      {
+        id: 'composition-instructions-continued',
+        type: 'summary',
         label: 'Composition Instructions Continued',
         description: 'More composition details - Slide 9',
         duration: 1
       },
-      { 
-        id: 'wildlife-composition', 
-        type: 'activity', 
-        label: '🎮 Unlock Composition', 
+      {
+        id: 'wildlife-composition',
+        type: 'activity',
+        label: '🎮 Unlock Composition',
         duration: 10,
         hasTimer: true,
         trackProgress: true,
@@ -132,7 +184,7 @@ export const lessonSections = [
   },
   {
     id: 'reflection',
-    title: 'Reflection',
+    title: '6. Reflection',
     subtitle: 'Two Stars and a Wish',
     icon: '⭐',
     color: 'amber',
@@ -156,33 +208,6 @@ export const lessonSections = [
         bonusDescription: 'Bonus: Share Your Work'
       }
     ]
-  },
-  {
-    id: 'bonus',
-    title: 'Bonus',
-    subtitle: 'Robot Melody Maker',
-    icon: '🤖',
-    color: 'purple',
-    estimatedTime: 10,
-    stages: [
-      {
-        id: 'bonus-intro',
-        type: 'summary',
-        label: 'Introduce Robot Melody Maker',
-        description: 'Bonus activity introduction - Slide 13',
-        duration: 1
-      },
-      {
-        id: 'robot-melody-maker',
-        type: 'activity',
-        label: '🎮 Unlock Robot Melody Maker',
-        description: 'Students create loops and customize their robot',
-        duration: 8,
-        hasTimer: true,
-        trackProgress: true,
-        bonusDescription: 'Make your robot dance!'
-      }
-    ]
   }
 ];
 
@@ -199,28 +224,28 @@ export const lesson3Config = {
   activities: [
     {
       id: 1,
+      type: "listening-map",
+      title: "Listening Map",
+      estimatedTime: "8 min"
+    },
+    {
+      id: 2,
       type: "sectional-loop-builder",
       title: "Sectional Loop Builder Game",
       estimatedTime: "5 min"
     },
     {
-      id: 2,
+      id: 3,
       type: "wildlife-composition-activity",
       title: "Compose Your Wildlife Soundtrack",
       estimatedTime: "10 min",
       includesVideoSelection: true
     },
     {
-      id: 3,
+      id: 4,
       type: "two-stars-wish",
       title: "Reflection Activity",
       estimatedTime: "5 min"
-    },
-    {
-      id: 4,
-      type: "robot-melody-maker",
-      title: "Robot Melody Maker",
-      estimatedTime: "8 min"
     }
   ]
 };
@@ -258,9 +283,9 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson3/slides/2.png'
     }
   },
-  { 
-    id: 'introduce-song-form', 
-    label: 'Introduce Song Form', 
+  {
+    id: 'introduce-song-form',
+    label: 'Introduce Song Form',
     description: 'Introduction to song structure - Slide 3',
     type: 'summary',
     duration: 1,
@@ -269,9 +294,70 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson3/slides/3.png'
     }
   },
-  { 
-    id: 'form-continued', 
-    label: 'Form Continued', 
+  // Listening Map Section
+  {
+    id: 'introduce-listening-map',
+    label: 'Listening Map Intro',
+    description: 'Explain: "A listening map is a visual guide that shows song form"',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson3/slides/3.5.svg'
+    }
+  },
+  {
+    id: 'listening-map-video',
+    label: '▶️ Play Video',
+    description: 'PLAY VIDEO: Listening Map explanation (students watch main screen)',
+    type: 'video',
+    duration: 2,
+    presentationView: {
+      type: 'video',
+      videoPath: '/lessons/film-music-project/lesson2/ListeningMapExplanation.mp4',
+      title: 'Listening Map Explanation'
+    }
+  },
+  {
+    id: 'music-for-listening-map',
+    label: 'Music For Listening Map',
+    description: 'Introduce: "Spring by Vivaldi - listen for violin imitating birds"',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson2/slides/6.7.svg'
+    }
+  },
+  {
+    id: 'listening-map',
+    label: '🎮 Unlock Listening Map',
+    description: 'STUDENTS WORK: Create 4 rows, unique style per row',
+    bonusDescription: 'Bonus: Add more colors, textures, and pictures',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: true,
+    duration: 8,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson2/slides/6.5.svg'
+    }
+  },
+  {
+    id: 'share-and-pair',
+    label: 'Share and Pair',
+    description: 'Partner activity: Share work and discuss what inspired your choices',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson2/slides/6.6.svg'
+    }
+  },
+  // Sectional Loop Form Section
+  {
+    id: 'form-continued',
+    label: 'Form Continued',
     description: 'More about song form - Slide 4',
     type: 'summary',
     duration: 1,
@@ -398,32 +484,6 @@ export const lessonStages = [
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson3/slides/12.svg'
     }
-  },
-  // Bonus
-  {
-    id: 'bonus-intro',
-    label: 'Robot Melody Maker',
-    description: 'Bonus activity introduction - Slide 13',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson3/slides/13.svg'
-    }
-  },
-  {
-    id: 'robot-melody-maker',
-    label: '🎮 Unlock Robot Melody Maker',
-    description: 'Students create loops and customize their robot',
-    bonusDescription: 'Make your robot dance!',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 8,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson3/slides/14.svg'
-    }
   }
 ];
 
@@ -434,6 +494,11 @@ export const getActivityForStage = (stage) => {
     'kitchen-beats-intro': 'summary',  // backward compatibility
     'show-agenda': 'summary',
     'introduce-song-form': 'summary',
+    'introduce-listening-map': 'summary',
+    'listening-map-video': 'video',
+    'music-for-listening-map': 'summary',
+    'listening-map': 'listening-map',
+    'share-and-pair': 'summary',
     'form-continued': 'summary',
     'introduce-sectional-loop-form': 'summary',
     'sectional-loop-example': 'summary',
@@ -445,11 +510,7 @@ export const getActivityForStage = (stage) => {
     'wildlife-composition': 'wildlife-composition-activity',
     'kitchen-composition': 'wildlife-composition-activity',  // backward compatibility
     'reflection-instructions': 'summary',
-    'reflection': 'two-stars-wish',
-    'bonus-intro': 'summary',
-    'bonus-challenges': 'summary',  // backward compatibility
-    'robot-melody-maker': 'robot-melody-maker',
-    'monster-melody-maker': 'robot-melody-maker'  // backward compatibility
+    'reflection': 'two-stars-wish'
   };
   return stageMap[stage];
 };
