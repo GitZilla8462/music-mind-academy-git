@@ -82,10 +82,7 @@ const LayerDetectiveResults = ({ sessionData, onPlayAgain, onNextActivity }) => 
                 </div>
                 
                 <div className="text-6xl mb-4">{getMedal(2).icon}</div>
-                <h3 
-                  className="text-2xl font-bold mb-2"
-                  style={{ color: winners[1].playerColor }}
-                >
+                <h3 className="text-2xl font-bold mb-2 text-black">
                   {winners[1].name}
                 </h3>
                 <div className="text-4xl font-bold">{winners[1].score}</div>
@@ -108,10 +105,7 @@ const LayerDetectiveResults = ({ sessionData, onPlayAgain, onNextActivity }) => 
                 </div>
                 
                 <div className="text-7xl mb-4 animate-pulse">{getMedal(1).icon}</div>
-                <h3 
-                  className="text-3xl font-bold mb-2"
-                  style={{ color: winners[0].playerColor }}
-                >
+                <h3 className="text-3xl font-bold mb-2 text-black">
                   {winners[0].name}
                 </h3>
                 <div className="text-5xl font-bold">{winners[0].score}</div>
@@ -139,10 +133,7 @@ const LayerDetectiveResults = ({ sessionData, onPlayAgain, onNextActivity }) => 
                 </div>
                 
                 <div className="text-6xl mb-4">{getMedal(3).icon}</div>
-                <h3 
-                  className="text-2xl font-bold mb-2"
-                  style={{ color: winners[2].playerColor }}
-                >
+                <h3 className="text-2xl font-bold mb-2 text-black">
                   {winners[2].name}
                 </h3>
                 <div className="text-4xl font-bold">{winners[2].score}</div>
