@@ -1,11 +1,12 @@
 /**
  * FILE: monster-melody-maker/hooks/useMelodyEngine.js
- * 
+ *
  * OPTIMIZED for Chromebook performance:
  * - Stable refs prevent effect re-triggering
  * - Proper Tone.js timing (no negative values)
  * - Single initialization, pattern updates without restart
  * - Debounced callbacks
+ * - ✅ CHROMEBOOK FIX: Throttled visual callbacks to reduce React re-renders
  */
 
 import { useRef, useCallback, useEffect } from 'react';
@@ -22,18 +23,24 @@ const useMelodyEngine = ({ pattern, tempo, isPlaying, onNotePlay, onStep }) => {
   const isInitializedRef = useRef(false);
   const isPlayingRef = useRef(false);
   const isDisposedRef = useRef(false); // Prevents "Synth was already disposed" during HMR
-  
+
   // Store callbacks in refs to avoid effect re-runs
   const onNotePlayRef = useRef(onNotePlay);
   const onStepRef = useRef(onStep);
   const patternRef = useRef(pattern);
   const tempoRef = useRef(tempo);
-  
+
+  // ✅ CHROMEBOOK OPTIMIZATION: Track last callback time to throttle updates
+  const lastVisualUpdateRef = useRef(0);
+  const pendingStepRef = useRef(-1);
+  const pendingPitchRef = useRef(null);
+  const rafIdRef = useRef(null);
+
   // Update refs when props change (no effect trigger)
   useEffect(() => { onNotePlayRef.current = onNotePlay; }, [onNotePlay]);
   useEffect(() => { onStepRef.current = onStep; }, [onStep]);
   useEffect(() => { patternRef.current = pattern; }, [pattern]);
-  
+
   // Update tempo without restarting sequence
   useEffect(() => {
     tempoRef.current = tempo;
@@ -50,32 +57,57 @@ const useMelodyEngine = ({ pattern, tempo, isPlaying, onNotePlay, onStep }) => {
       await Tone.start();
       isDisposedRef.current = false; // Reset disposed flag
 
-      // Lightweight reverb
-      reverbRef.current = new Tone.Reverb({
-        decay: 1.2,
-        wet: 0.2,
-      }).toDestination();
+      // ✅ CHROMEBOOK OPTIMIZATION: Detect low-end devices
+      const isChromebook = /CrOS/.test(navigator.userAgent);
+      const isLowEnd = isChromebook || navigator.hardwareConcurrency <= 4;
 
-      // Simpler synth for better Chromebook performance
-      synthRef.current = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 4, // Reduced from 8
-        voice: Tone.Synth,
-        options: {
-          oscillator: {
-            type: 'triangle', // Simpler waveform (was triangle8)
+      if (isLowEnd) {
+        // Skip reverb entirely on Chromebook - direct to destination
+        synthRef.current = new Tone.PolySynth(Tone.Synth, {
+          maxPolyphony: 3, // Reduced further for Chromebook
+          voice: Tone.Synth,
+          options: {
+            oscillator: {
+              type: 'sine', // Simplest waveform for Chromebook
+            },
+            envelope: {
+              attack: 0.01,
+              decay: 0.15,
+              sustain: 0.15,
+              release: 0.3, // Very short release
+            },
           },
-          envelope: {
-            attack: 0.02,
-            decay: 0.2,
-            sustain: 0.2,
-            release: 0.5, // Shorter release
+        }).toDestination();
+
+        console.log('🎵 Melody engine initialized (CHROMEBOOK MODE - no reverb)');
+      } else {
+        // Normal devices get reverb
+        reverbRef.current = new Tone.Reverb({
+          decay: 1.2,
+          wet: 0.2,
+        }).toDestination();
+
+        synthRef.current = new Tone.PolySynth(Tone.Synth, {
+          maxPolyphony: 4,
+          voice: Tone.Synth,
+          options: {
+            oscillator: {
+              type: 'triangle',
+            },
+            envelope: {
+              attack: 0.02,
+              decay: 0.2,
+              sustain: 0.2,
+              release: 0.5,
+            },
           },
-        },
-      }).connect(reverbRef.current);
+        }).connect(reverbRef.current);
+
+        console.log('🎵 Melody engine initialized (NORMAL MODE)');
+      }
 
       synthRef.current.volume.value = -10;
       isInitializedRef.current = true;
-      console.log('🎵 Melody engine initialized');
       return true;
     } catch (error) {
       console.error('Failed to initialize audio:', error);
@@ -128,15 +160,25 @@ const useMelodyEngine = ({ pattern, tempo, isPlaying, onNotePlay, onStep }) => {
           }
         }
 
-        // Schedule visual updates (throttled via Draw)
-        Tone.getDraw().schedule(() => {
-          if (onNotePlayRef.current) {
-            onNotePlayRef.current(lowestActiveRow);
-          }
-          if (onStepRef.current) {
-            onStepRef.current(step);
-          }
-        }, time);
+        // ✅ CHROMEBOOK OPTIMIZATION: Batch visual updates using requestAnimationFrame
+        // Store pending updates instead of calling setState immediately
+        pendingStepRef.current = step;
+        pendingPitchRef.current = lowestActiveRow;
+
+        // Only schedule one RAF at a time
+        if (!rafIdRef.current) {
+          rafIdRef.current = requestAnimationFrame(() => {
+            rafIdRef.current = null;
+
+            // Apply the most recent pending updates
+            if (onNotePlayRef.current) {
+              onNotePlayRef.current(pendingPitchRef.current);
+            }
+            if (onStepRef.current) {
+              onStepRef.current(pendingStepRef.current);
+            }
+          });
+        }
       },
       [...Array(16).keys()],
       '16n'
@@ -219,7 +261,13 @@ const useMelodyEngine = ({ pattern, tempo, isPlaying, onNotePlay, onStep }) => {
     return () => {
       // Set disposed flag FIRST to prevent any pending callbacks
       isDisposedRef.current = true;
-      
+
+      // Cancel any pending RAF
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+
       if (sequenceRef.current) {
         try {
           sequenceRef.current.dispose();
@@ -239,14 +287,14 @@ const useMelodyEngine = ({ pattern, tempo, isPlaying, onNotePlay, onStep }) => {
         Tone.getTransport().stop();
         Tone.getTransport().cancel();
       } catch (e) {}
-      
+
       // Reset refs
       synthRef.current = null;
       sequenceRef.current = null;
       reverbRef.current = null;
       isInitializedRef.current = false;
       isPlayingRef.current = false;
-      
+
       console.log('🧹 Melody engine cleaned up');
     };
   }, []);

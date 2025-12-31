@@ -150,22 +150,34 @@ const MonsterMelodyMaker = ({
   const displayedRobot = getSongRobot() || selectedRobot;
 
   // ===== MELODY ENGINE =====
-  
+
+  // ✅ CHROMEBOOK OPTIMIZATION: Throttle animation state updates
+  const lastPitchRef = useRef(null);
   const handleNotePlay = useCallback((pitch) => {
-    if (pitch !== null) {
-      setAnimationState({ singing: true, pitch });
-    } else {
-      setAnimationState({ singing: false, pitch: null });
+    // Only update if pitch actually changed (reduces re-renders)
+    if (pitch !== lastPitchRef.current) {
+      lastPitchRef.current = pitch;
+      if (pitch !== null) {
+        setAnimationState({ singing: true, pitch });
+      } else {
+        setAnimationState({ singing: false, pitch: null });
+      }
     }
   }, []);
 
+  // ✅ CHROMEBOOK OPTIMIZATION: Track last step to avoid duplicate updates
+  const lastStepRef = useRef(-1);
   const handleStep = useCallback((step) => {
-    setCurrentStep(step);
-    
+    // Only update if step actually changed
+    if (step !== lastStepRef.current) {
+      lastStepRef.current = step;
+      setCurrentStep(step);
+    }
+
     // Track steps during song playback
     if (isPlayingSong) {
       songStepCountRef.current += 1;
-      
+
       // After 16 steps, move to next slot
       if (songStepCountRef.current >= 16) {
         songStepCountRef.current = 0;
@@ -233,6 +245,9 @@ const MonsterMelodyMaker = ({
     setCurrentStep(-1);
     songStepCountRef.current = 0;
     setAnimationState({ singing: false, pitch: null });
+    // Reset tracking refs
+    lastStepRef.current = -1;
+    lastPitchRef.current = null;
   }, []);
 
   // ===== ROBOT SELECTION =====
@@ -245,6 +260,9 @@ const MonsterMelodyMaker = ({
     setCurrentSongSlotIndex(-1);
     setAnimationState({ singing: false, pitch: null });
     setSelectedRobotId(robotId);
+    // Reset tracking refs
+    lastStepRef.current = -1;
+    lastPitchRef.current = null;
   }, []);
 
   // ===== ROBOT EDITING =====
@@ -304,6 +322,9 @@ const MonsterMelodyMaker = ({
     setCurrentStep(-1);
     setCurrentSongSlotIndex(-1);
     setAnimationState({ singing: false, pitch: null });
+    // Reset tracking refs
+    lastStepRef.current = -1;
+    lastPitchRef.current = null;
   }, []);
 
   // ===== SAVE =====
