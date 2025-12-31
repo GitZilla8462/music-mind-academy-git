@@ -1,6 +1,6 @@
 // File: /src/lessons/film-music-project/lesson1/activities/two-stars-and-a-wish/ReflectionModal.jsx
 // UPDATED: Top-left positioning with minimize functionality
-// Steps: 1=choose type, 2=confidence, 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=stickers, 9=summary
+// Steps: 1=choose type, 2=confidence, 3=mark highlights, 4=listen & share, 5=star1, 6=star2, 7=wish, 8=vibe, 9=summary
 // UPDATED: Step 9 now has READ ALOUD banner at top, submit button at bottom
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -8,7 +8,7 @@ import { CheckCircle, Star, Sparkles, Volume2, VolumeX, HelpCircle, Minimize2, M
 import { SELF_REFLECTION_PROMPTS, PARTNER_REFLECTION_OPTIONS } from './reflectionPrompts';
 
 const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSessionMode = false }) => {
-  // Steps: 1=choose type, 2=confidence, 3=listen & share, 4=star1, 5=star2, 6=wish, 7=vibe, 8=stickers, 9=summary
+  // Steps: 1=choose type, 2=confidence, 3=mark highlights, 4=listen & share, 5=star1, 6=star2, 7=wish, 8=vibe, 9=summary
   const [currentStep, setCurrentStep] = useState(viewMode ? 9 : 1);
   const [reflectionData, setReflectionData] = useState({
     reviewType: null,
@@ -175,14 +175,14 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
     const messages = {
       1: "Whose composition are you reviewing? Choose whether you'll reflect on your own work or a friend's composition.",
       2: "How confident do you feel about your composition? Be honest - there's no wrong answer!",
-      3: reflectionData.reviewType === 'self'
+      3: "Mark highlights for your partner! Pick a sticker, then click anywhere on the DAW to show what you're proud of.",
+      4: reflectionData.reviewType === 'self'
         ? "Now, listen to your entire film score from beginning to end. Pay attention to: How the music tools, such as timeline, tracks, and volume, were used. How the loops are timed with the video. And the overall sound and mood of the music."
         : `Now it's time to share! First, share your score with ${partnerName} so they can see and hear your work. Then, listen to ${partnerName}'s entire film score from beginning to end. Pay attention to: How the music tools were used. How the loops are timed with the video. And the overall sound and mood of the music.`,
-      4: "Star 1: Think about what went well with using the DAW tools. What did you do well?",
-      5: "Star 2: Think about what worked well with the loop timing and music sound.",
-      6: "Now for the Wish: What do you want to try or improve next time?",
-      7: "Pick a vibe! If your composition was a movie mood, which one would it be?",
-      8: "Now place some stickers on the composition! Pick a sticker, then click anywhere on the DAW to mark that spot.",
+      5: "Star 1: Think about what went well with using the DAW tools. What did you do well?",
+      6: "Star 2: Think about what worked well with the loop timing and music sound.",
+      7: "Now for the Wish: What do you want to try or improve next time?",
+      8: "Pick a vibe! If your composition was a movie mood, which one would it be?",
       9: reflectionData.reviewType === 'self'
         ? "Here's your complete reflection summary! Now read your reflection out loud to yourself or share it with a neighbor."
         : `Here's your complete reflection summary! Now read your feedback out loud to ${partnerName}.`
@@ -225,7 +225,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
     }
     // Skip confidence check for partner reviews
     if (reflectionData.reviewType === 'partner') {
-      setCurrentStep(3); // Go directly to listen & share
+      setCurrentStep(3); // Go directly to mark highlights
     } else {
       setCurrentStep(2); // Go to confidence check for self review
     }
@@ -328,20 +328,10 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           <Maximize2 size={16} />
           <span className="font-semibold">Show Reflection</span>
         </button>
-        {/* Show submit button when minimized on steps 8-9 */}
-        {(currentStep === 8 || currentStep === 9) && (
+        {/* Show submit button when minimized on summary step */}
+        {currentStep === 9 && (
           <button
-            onClick={() => {
-              if (currentStep === 8) {
-                // From stickers step, go to summary first
-                setSelectedSticker(null);
-                setIsPlacingSticker(false);
-                handleFinalSubmit();
-              } else {
-                // From summary, submit directly
-                handleSubmitReflection();
-              }
-            }}
+            onClick={handleSubmitReflection}
             className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-green-700 transition-all flex items-center gap-2"
           >
             <CheckCircle size={16} />
@@ -391,12 +381,12 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
             {currentStep === 0 && "Teacher Instructions"}
             {currentStep === 1 && "Choose Review Type"}
             {currentStep === 2 && "🎯 Confidence Check"}
-            {currentStep === 3 && "Listen & Share"}
-            {currentStep === 4 && "⭐ Star 1"}
-            {currentStep === 5 && "⭐ Star 2"}
-            {currentStep === 6 && "✨ Wish"}
-            {currentStep === 7 && "🎭 Pick a Vibe"}
-            {currentStep === 8 && "Place Stickers"}
+            {currentStep === 3 && "🏷️ Mark Highlights for Partner"}
+            {currentStep === 4 && "Listen & Share"}
+            {currentStep === 5 && "⭐ Star 1"}
+            {currentStep === 6 && "⭐ Star 2"}
+            {currentStep === 7 && "✨ Wish"}
+            {currentStep === 8 && "🎭 Pick a Vibe"}
             {currentStep === 9 && "📝 Summary"}
           </h2>
         </div>
@@ -540,8 +530,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           </div>
         )}
 
-        {/* STEP 3: Listen & Share */}
-        {currentStep === 3 && (
+        {/* STEP 4: Listen & Share */}
+        {currentStep === 4 && (
           <div className="space-y-4">
             <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
               <p className="text-lg font-bold text-gray-800 mb-2">
@@ -582,8 +572,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           </div>
         )}
 
-        {/* STEP 4: Star 1 */}
-        {currentStep === 4 && (
+        {/* STEP 5: Star 1 */}
+        {currentStep === 5 && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Star className="text-yellow-500" size={24} />
@@ -634,8 +624,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           </div>
         )}
 
-        {/* STEP 5: Star 2 */}
-        {currentStep === 5 && (
+        {/* STEP 6: Star 2 */}
+        {currentStep === 6 && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Star className="text-yellow-500" size={24} />
@@ -686,8 +676,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           </div>
         )}
 
-        {/* STEP 6: Wish */}
-        {currentStep === 6 && (
+        {/* STEP 7: Wish */}
+        {currentStep === 7 && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="text-purple-500" size={24} />
@@ -738,8 +728,8 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           </div>
         )}
 
-        {/* STEP 7: Vibe Selector */}
-        {currentStep === 7 && (
+        {/* STEP 8: Vibe Selector */}
+        {currentStep === 8 && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <Smile className="w-12 h-12 mx-auto text-purple-500 mb-2" />
@@ -755,7 +745,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
                   key={idx}
                   onClick={() => {
                     setReflectionData(prev => ({ ...prev, vibe: vibe.text }));
-                    setCurrentStep(8); // Go to stickers step
+                    setCurrentStep(9); // Go to summary step
                   }}
                   className="w-full p-3 text-left rounded-lg border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all flex items-center gap-3"
                 >
@@ -767,11 +757,11 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
           </div>
         )}
 
-        {/* STEP 8: Place Stickers */}
-        {currentStep === 8 && (
+        {/* STEP 3: Mark Highlights for Partner */}
+        {currentStep === 3 && (
           <div className="space-y-2">
             <p className="text-sm text-gray-700 text-center font-semibold">
-              Place at least 3 feedback stickers
+              Mark 3 highlights for your partner
             </p>
             <p className="text-xs text-gray-500 text-center">
               {selectedSticker ? `Click on the DAW to place ${selectedSticker}` : 'Select a sticker, then click on the DAW'}
@@ -800,7 +790,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
 
             {/* Placed stickers count */}
             <p className={`text-center text-sm font-semibold ${reflectionData.stickers.length >= 3 ? 'text-green-600' : 'text-gray-500'}`}>
-              {reflectionData.stickers.length}/3 stickers placed
+              {reflectionData.stickers.length}/3 highlights marked
             </p>
 
             {/* Placed stickers list */}
@@ -829,7 +819,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
               onClick={() => {
                 setSelectedSticker(null);
                 setIsPlacingSticker(false);
-                handleFinalSubmit();
+                goToNextStep();
               }}
               disabled={reflectionData.stickers.length < 3}
               className={`w-full px-4 py-2 rounded-lg font-semibold transition-colors text-sm ${
@@ -885,7 +875,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
             {/* Stickers note */}
             {reflectionData.stickers && reflectionData.stickers.length > 0 && (
               <p className="text-center text-sm text-gray-600">
-                🏷️ Your feedback stickers are shown on the composition above.
+                🏷️ Your highlights are shown on the composition above.
               </p>
             )}
 
