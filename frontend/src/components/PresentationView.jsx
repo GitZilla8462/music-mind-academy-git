@@ -621,6 +621,24 @@ const PresentationView = () => {
 
     // RENDER SECTIONAL LOOP BUILDER LEADERBOARD
     if (type === 'sectional-loop-builder-leaderboard') {
+      const handleAdvanceToResults = () => {
+        console.log('✅ Sectional Loop Builder complete - advancing to results');
+
+        const currentStageIndex = lessonConfig.lessonStages.findIndex(
+          stage => stage.id === currentStage
+        );
+
+        if (currentStageIndex !== -1 && currentStageIndex < lessonConfig.lessonStages.length - 1) {
+          const nextStage = lessonConfig.lessonStages[currentStageIndex + 1];
+          if (sessionCode) {
+            const db = getDatabase();
+            update(ref(db, `sessions/${sessionCode}`), {
+              currentStage: nextStage.id
+            });
+          }
+        }
+      };
+
       if (!SectionalLoopBuilderLeaderboard) {
         return (
           <div className="h-screen flex items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900" style={{ position: 'relative' }}>
@@ -629,10 +647,10 @@ const PresentationView = () => {
           </div>
         );
       }
-      
+
       return (
         <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
-          <SectionalLoopBuilderLeaderboard sessionData={sessionData} />
+          <SectionalLoopBuilderLeaderboard sessionData={sessionData} onAdvanceLesson={handleAdvanceToResults} />
           <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} isDarkBackground={false} />
         </div>
       );

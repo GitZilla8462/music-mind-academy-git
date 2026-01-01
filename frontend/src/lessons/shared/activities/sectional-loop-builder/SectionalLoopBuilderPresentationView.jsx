@@ -120,7 +120,7 @@ const getInstrumentColor = (instrument) => {
   return colorMap[instrument] || '#6B7280';
 };
 
-const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
+const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) => {
   const sessionCode = sessionData?.sessionCode || new URLSearchParams(window.location.search).get('session');
   
   // Setup
@@ -1156,7 +1156,14 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
                 <>
                   <div className="text-9xl mb-6">🏆</div>
                   <h2 className="text-5xl font-black mb-4">Game Complete!</h2>
-                  <p className="text-2xl text-white/70">Great job! Advance to see results →</p>
+                  <p className="text-2xl text-white/70 mb-8">Great job everyone!</p>
+                  <button
+                    onClick={() => onAdvanceLesson?.()}
+                    className="px-10 py-5 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-3 mx-auto"
+                  >
+                    <Trophy size={28} />
+                    Advance to See Results
+                  </button>
                 </>
               ) : (
                 <>

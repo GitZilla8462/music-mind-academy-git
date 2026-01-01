@@ -234,7 +234,7 @@ const PresentationContent = ({
     if (type === 'sectional-loop-builder-leaderboard' && SectionalLoopBuilderLeaderboard) {
       return (
         <div className="absolute inset-0">
-          <SectionalLoopBuilderLeaderboard sessionData={sessionData} />
+          <SectionalLoopBuilderLeaderboard sessionData={sessionData} onAdvanceLesson={goToNextStage} />
         </div>
       );
     }
