@@ -558,30 +558,6 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
               <div className="text-center">
                 {revealStep >= 2 && (
                   <div>
-                    <div className="text-2xl text-white/70 mb-3">The answer is...</div>
-
-                    {/* Correct answer highlighted */}
-                    <div className="grid grid-cols-3 gap-4 max-w-xl mx-auto mb-6">
-                      {ANSWERS.map(answer => {
-                        const isCorrect = answer.id === question.correctAnswer;
-                        return (
-                          <div
-                            key={answer.id}
-                            className={`p-6 rounded-2xl text-center transition-all ${
-                              isCorrect
-                                ? 'ring-4 ring-green-400 scale-110 shadow-lg'
-                                : 'opacity-40'
-                            }`}
-                            style={{ backgroundColor: isCorrect ? answer.color : `${answer.color}30` }}
-                          >
-                            <div className="text-5xl font-bold text-white mb-2">{answer.id}</div>
-                            <div className="text-lg text-white/80">{answer.label}</div>
-                            {isCorrect && <div className="text-3xl mt-2">✓</div>}
-                          </div>
-                        );
-                      })}
-                    </div>
-
                     {/* Stacked Tracks Visual */}
                     <div className="bg-black/30 rounded-2xl p-5 mb-6 max-w-2xl mx-auto">
                       <div className="flex items-center justify-center gap-2 mb-4">
@@ -657,11 +633,6 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
                         }
                       }
                     `}</style>
-
-                    <div className="text-2xl mb-4">
-                      <span className="text-green-400 font-bold">{correctCount}</span>
-                      <span className="text-white/60"> / {students.length} correct</span>
-                    </div>
                   </div>
                 )}
 
