@@ -618,11 +618,15 @@ export const SessionProvider = ({ children }) => {
         console.warn('Analytics logging failed (non-critical):', analyticsError);
       }
 
+      // Get the lesson route before clearing session data
+      const lessonRoute = sessionData?.lessonRoute || sessionData?.lessonId || '/lessons/film-music-project/lesson1';
+
       await firebaseEndSession(sessionCode);
       leaveSession();
 
+      // Navigate back to the lesson page (not the landing page)
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = lessonRoute;
       }, 500);
 
     } catch (error) {
