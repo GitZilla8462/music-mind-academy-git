@@ -171,21 +171,29 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
 
   const playSectionAudio = useCallback((section, onEnd = null) => {
     if (!sectionAudio?.[section]) return;
-    
+
     audioRefs.current.forEach(a => { a.pause(); a.currentTime = 0; });
-    
+
     const audios = sectionAudio[section].map(file => {
-      const audio = new Audio(file);
+      const audio = new Audio();
+      audio.preload = 'auto';
+      audio.src = file;
       audio.volume = 0.7;
       return audio;
     });
     audioRefs.current = audios;
-    
-    setTimeout(() => {
+
+    // Preload all audio, then play simultaneously for sync
+    Promise.all(audios.map(a => new Promise((resolve) => {
+      if (a.readyState >= 3) return resolve(); // Already loaded
+      a.addEventListener('canplaythrough', resolve, { once: true });
+      a.load();
+    }))).then(() => {
+      // All audio loaded - play all at the exact same moment
       audios.forEach(a => a.play().catch(console.error));
       setIsPlaying(true);
-    }, 50);
-    
+    }).catch(console.error);
+
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       audioRefs.current.forEach(a => { a.pause(); a.currentTime = 0; });
@@ -607,6 +615,11 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
     console.log('🎯 revealStep set to 2, gamePhase set to revealed - timestamp:', Date.now());
     sfx.reveal();
 
+    // Play the audio so students can hear the correct answer (like Layer Detective)
+    setTimeout(() => {
+      playSectionAudio(currentSection);
+    }, 300);
+
     // Update scores (500ms)
     setTimeout(() => {
       setRevealStep(3);
@@ -659,7 +672,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
       setRevealStep(5);
       setGamePhase('revealed');
     }, 4000);
-  }, [stopAudio, leaderboard, students, currentSection, sessionCode, updateGame]);
+  }, [stopAudio, leaderboard, students, currentSection, sessionCode, updateGame, playSectionAudio, safariHunters]);
 
   const nextRoundOrFinish = useCallback(() => {
     if (currentRound >= totalRounds) {

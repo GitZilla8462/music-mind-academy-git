@@ -210,20 +210,27 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
     // Stop existing audio
     stopAudio();
 
-    // Create all audio elements
+    // Create all audio elements with preload
     const audios = question.layers.map(layer => {
-      const audio = new Audio(layer.file);
+      const audio = new Audio();
+      audio.preload = 'auto';
+      audio.src = layer.file;
       audio.volume = 0.7;
       audio.loop = false;
       return audio;
     });
     audioRefs.current = audios;
 
-    // Play all at once (synchronized)
-    setTimeout(() => {
+    // Preload all audio, then play simultaneously for sync
+    Promise.all(audios.map(a => new Promise((resolve) => {
+      if (a.readyState >= 3) return resolve(); // Already loaded
+      a.addEventListener('canplaythrough', resolve, { once: true });
+      a.load();
+    }))).then(() => {
+      // All audio loaded - play all at the exact same moment
       audios.forEach(a => a.play().catch(console.error));
       setIsPlaying(true);
-    }, 50);
+    }).catch(console.error);
 
     // Track when audio ends
     let finishedCount = 0;
@@ -389,18 +396,28 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
       // Auto-play the next question's audio after giving time to read the question
       setTimeout(() => {
         // Play audio for next question (need to use the new index directly)
-        const nextQuestion = shuffledQuestions[nextIdx];
-        if (nextQuestion) {
-          const audios = nextQuestion.layers.map(layer => {
-            const audio = new Audio(layer.file);
+        const nextQuestionData = shuffledQuestions[nextIdx];
+        if (nextQuestionData) {
+          // Create audio elements with preload
+          const audios = nextQuestionData.layers.map(layer => {
+            const audio = new Audio();
+            audio.preload = 'auto';
+            audio.src = layer.file;
             audio.volume = 0.7;
             audio.loop = false;
             return audio;
           });
           audioRefs.current = audios;
 
-          audios.forEach(a => a.play().catch(console.error));
-          setIsPlaying(true);
+          // Preload all audio, then play simultaneously for sync
+          Promise.all(audios.map(a => new Promise((resolve) => {
+            if (a.readyState >= 3) return resolve();
+            a.addEventListener('canplaythrough', resolve, { once: true });
+            a.load();
+          }))).then(() => {
+            audios.forEach(a => a.play().catch(console.error));
+            setIsPlaying(true);
+          }).catch(console.error);
 
           let finishedCount = 0;
           audios.forEach(a => {
@@ -420,7 +437,7 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
             totalQuestions: shuffledQuestions.length,
             isPlaying: true,
             playStartTime: Date.now(),
-            questionData: { layers: nextQuestion.layers }
+            questionData: { layers: nextQuestionData.layers }
           });
         }
       }, 3000);
