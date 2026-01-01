@@ -116,6 +116,19 @@ const ANSWERS = [
 // Shuffle helper
 const shuffleArray = (arr) => [...arr].sort(() => Math.random() - 0.5);
 
+// Instrument emoji helper
+const getInstrumentEmoji = (instrument) => {
+  const emojiMap = {
+    'Drums': '🥁',
+    'Bass': '🎸',
+    'Brass': '🎺',
+    'Strings': '🎻',
+    'Piano': '🎹',
+    'Synth': '🎛️'
+  };
+  return emojiMap[instrument] || '🎵';
+};
+
 // Student Activity Banner
 const ActivityBanner = () => (
   <div
@@ -189,7 +202,8 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
     setIsPlaying(false);
   }, []);
 
-  const playAudio = useCallback(() => {
+  // Play audio only (no phase change) - used during reveal
+  const playAudioOnly = useCallback(() => {
     if (!shuffledQuestions[currentQuestion]) return;
     const question = shuffledQuestions[currentQuestion];
 
@@ -221,6 +235,13 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
         }
       };
     });
+  }, [shuffledQuestions, currentQuestion, stopAudio]);
+
+  const playAudio = useCallback(() => {
+    if (!shuffledQuestions[currentQuestion]) return;
+
+    // Play the audio
+    playAudioOnly();
 
     // Update phase to guessing and broadcast
     setGamePhase('guessing');
@@ -230,9 +251,9 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
       totalQuestions: shuffledQuestions.length,
       isPlaying: true,
       playStartTime: Date.now(),
-      questionData: { layers: question.layers }
+      questionData: { layers: shuffledQuestions[currentQuestion].layers }
     });
-  }, [shuffledQuestions, currentQuestion, stopAudio, updateGame]);
+  }, [shuffledQuestions, currentQuestion, playAudioOnly, updateGame]);
 
   // ============ GAME FLOW ============
   const startGame = useCallback(() => {
@@ -327,7 +348,12 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
 
     // Show next button
     setTimeout(() => setRevealStep(4), 1500);
-  }, [stopAudio, shuffledQuestions, currentQuestion, students, sessionCode, updateGame]);
+
+    // Play the audio so students can hear the correct answer
+    setTimeout(() => {
+      playAudioOnly();
+    }, 500);
+  }, [stopAudio, shuffledQuestions, currentQuestion, students, sessionCode, updateGame, playAudioOnly]);
 
   const nextQuestion = useCallback(() => {
     // Clear student answers
@@ -514,21 +540,81 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
                       })}
                     </div>
 
-                    {/* Show what the layers were */}
-                    <div className="bg-black/20 rounded-xl p-4 mb-6 max-w-xl mx-auto">
-                      <p className="text-purple-200 mb-3">The layers were:</p>
-                      <div className="flex flex-wrap justify-center gap-2">
+                    {/* Stacked Tracks Visual */}
+                    <div className="bg-black/30 rounded-2xl p-5 mb-6 max-w-2xl mx-auto">
+                      <div className="flex items-center justify-center gap-2 mb-4">
+                        <span className="text-2xl">🎧</span>
+                        <p className="text-xl text-white font-semibold">
+                          {question.layers.length} {question.layers.length === 1 ? 'Layer' : 'Layers'} Playing Together
+                        </p>
+                        {isPlaying && <span className="text-green-400 animate-pulse">🔊</span>}
+                      </div>
+
+                      {/* Stacked timeline tracks */}
+                      <div className="space-y-2">
                         {question.layers.map((layer, i) => (
-                          <span
+                          <div
                             key={i}
-                            className="px-4 py-2 rounded-full text-white font-semibold"
-                            style={{ backgroundColor: layer.color }}
+                            className="flex items-center gap-3 bg-black/40 rounded-xl overflow-hidden animate-slide-in-track"
+                            style={{
+                              animationDelay: `${i * 150}ms`,
+                              opacity: 0,
+                              animation: `slideInTrack 0.4s ease-out ${i * 150}ms forwards`
+                            }}
                           >
-                            {question.instruments[i] || layer.name}
-                          </span>
+                            {/* Instrument icon */}
+                            <div
+                              className="w-16 h-14 flex items-center justify-center text-2xl shrink-0"
+                              style={{ backgroundColor: layer.color }}
+                            >
+                              {getInstrumentEmoji(question.instruments[i])}
+                            </div>
+
+                            {/* Track bar */}
+                            <div className="flex-1 py-3 pr-4">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-white font-bold text-lg">
+                                  {question.instruments[i]}
+                                </span>
+                              </div>
+                              {/* Loop visualization bar */}
+                              <div
+                                className="h-4 rounded-full relative overflow-hidden"
+                                style={{ backgroundColor: `${layer.color}40` }}
+                              >
+                                <div
+                                  className={`absolute inset-0 rounded-full ${isPlaying ? 'animate-pulse' : ''}`}
+                                  style={{
+                                    backgroundColor: layer.color,
+                                    opacity: isPlaying ? 0.9 : 0.7
+                                  }}
+                                />
+                                {/* Loop pattern lines */}
+                                <div className="absolute inset-0 flex items-center justify-around opacity-30">
+                                  {[...Array(8)].map((_, j) => (
+                                    <div key={j} className="w-0.5 h-2 bg-white rounded-full" />
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         ))}
                       </div>
                     </div>
+
+                    {/* CSS for slide-in animation */}
+                    <style>{`
+                      @keyframes slideInTrack {
+                        from {
+                          opacity: 0;
+                          transform: translateX(-30px);
+                        }
+                        to {
+                          opacity: 1;
+                          transform: translateX(0);
+                        }
+                      }
+                    `}</style>
 
                     <div className="text-2xl mb-4">
                       <span className="text-green-400 font-bold">{correctCount}</span>
