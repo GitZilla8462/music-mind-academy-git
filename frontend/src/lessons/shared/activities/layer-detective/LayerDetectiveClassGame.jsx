@@ -319,9 +319,9 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
     setScoreChanges(changes);
     setCorrectCount(correct);
 
-    // Update game phase
+    // Update game phase - batch state updates
     setGamePhase('revealed');
-    setRevealStep(2); // Skip drumroll, show answer immediately
+    setRevealStep(4); // Show everything immediately
 
     // Broadcast to students
     updateGame({
@@ -330,29 +330,23 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
       correctInstruments: question.instruments
     });
 
-    // Update scores in Firebase
-    setTimeout(() => {
-      setRevealStep(3);
-      if (sessionCode) {
-        const db = getDatabase();
-        students.forEach(s => {
-          const change = changes[s.id];
-          if (change && change.delta > 0) {
-            update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
-              layerDetectiveScore: (s.score || 0) + change.delta
-            });
-          }
-        });
-      }
-    }, 800);
-
-    // Show next button
-    setTimeout(() => setRevealStep(4), 1500);
+    // Update scores in Firebase (single batch)
+    if (sessionCode) {
+      const db = getDatabase();
+      students.forEach(s => {
+        const change = changes[s.id];
+        if (change && change.delta > 0) {
+          update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+            layerDetectiveScore: (s.score || 0) + change.delta
+          });
+        }
+      });
+    }
 
     // Play the audio so students can hear the correct answer
     setTimeout(() => {
       playAudioOnly();
-    }, 500);
+    }, 300);
   }, [stopAudio, shuffledQuestions, currentQuestion, students, sessionCode, updateGame, playAudioOnly]);
 
   const nextQuestion = useCallback(() => {
@@ -556,100 +550,69 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
             {/* Revealed */}
             {gamePhase === 'revealed' && question && (
               <div className="text-center">
-                {revealStep >= 2 && (
-                  <div>
-                    <div className="text-3xl text-white/80 mb-4">The answer is...</div>
+                <div className="text-3xl text-white/80 mb-4">The answer is...</div>
 
-                    {/* Stacked Tracks Visual */}
-                    <div className="bg-black/30 rounded-2xl p-5 mb-6 max-w-2xl mx-auto">
-                      <div className="flex items-center justify-center gap-2 mb-4">
-                        <span className="text-2xl">🎧</span>
-                        <p className="text-xl text-white font-semibold">
-                          {question.layers.length} {question.layers.length === 1 ? 'Layer' : 'Layers'} Playing Together
-                        </p>
-                        {isPlaying && <span className="text-green-400 animate-pulse">🔊</span>}
-                      </div>
-
-                      {/* Stacked timeline tracks */}
-                      <div className="space-y-2">
-                        {question.layers.map((layer, i) => (
-                          <div
-                            key={i}
-                            className="flex items-center gap-3 bg-black/40 rounded-xl overflow-hidden animate-slide-in-track"
-                            style={{
-                              animationDelay: `${i * 150}ms`,
-                              opacity: 0,
-                              animation: `slideInTrack 0.4s ease-out ${i * 150}ms forwards`
-                            }}
-                          >
-                            {/* Instrument icon */}
-                            <div
-                              className="w-16 h-14 flex items-center justify-center text-2xl shrink-0"
-                              style={{ backgroundColor: layer.color }}
-                            >
-                              {getInstrumentEmoji(question.instruments[i])}
-                            </div>
-
-                            {/* Track bar */}
-                            <div className="flex-1 py-3 pr-4">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-white font-bold text-lg">
-                                  {question.instruments[i]}
-                                </span>
-                              </div>
-                              {/* Loop visualization bar */}
-                              <div
-                                className="h-4 rounded-full relative overflow-hidden"
-                                style={{ backgroundColor: `${layer.color}40` }}
-                              >
-                                <div
-                                  className={`absolute inset-0 rounded-full ${isPlaying ? 'animate-pulse' : ''}`}
-                                  style={{
-                                    backgroundColor: layer.color,
-                                    opacity: isPlaying ? 0.9 : 0.7
-                                  }}
-                                />
-                                {/* Loop pattern lines */}
-                                <div className="absolute inset-0 flex items-center justify-around opacity-30">
-                                  {[...Array(8)].map((_, j) => (
-                                    <div key={j} className="w-0.5 h-2 bg-white rounded-full" />
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* CSS for slide-in animation */}
-                    <style>{`
-                      @keyframes slideInTrack {
-                        from {
-                          opacity: 0;
-                          transform: translateX(-30px);
-                        }
-                        to {
-                          opacity: 1;
-                          transform: translateX(0);
-                        }
-                      }
-                    `}</style>
+                {/* Stacked Tracks Visual */}
+                <div className="bg-black/30 rounded-2xl p-5 mb-6 max-w-2xl mx-auto">
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <span className="text-2xl">🎧</span>
+                    <p className="text-xl text-white font-semibold">
+                      {question.layers.length} {question.layers.length === 1 ? 'Layer' : 'Layers'} Playing Together
+                    </p>
+                    {isPlaying && <span className="text-green-400 animate-pulse">🔊</span>}
                   </div>
-                )}
 
-                {revealStep >= 4 && (
-                  <button
-                    onClick={nextQuestion}
-                    className="px-10 py-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-2 mx-auto"
-                  >
-                    {currentQuestion >= shuffledQuestions.length - 1 ? (
-                      <>Finish <Trophy size={28} /></>
-                    ) : (
-                      <>Next Question <ChevronRight size={28} /></>
-                    )}
-                  </button>
-                )}
+                  {/* Stacked timeline tracks */}
+                  <div className="space-y-2">
+                    {question.layers.map((layer, i) => (
+                      <div
+                        key={`${question.id}-${i}`}
+                        className="flex items-center gap-3 bg-black/40 rounded-xl overflow-hidden"
+                      >
+                        {/* Instrument icon */}
+                        <div
+                          className="w-16 h-14 flex items-center justify-center text-2xl shrink-0"
+                          style={{ backgroundColor: layer.color }}
+                        >
+                          {getInstrumentEmoji(question.instruments[i])}
+                        </div>
+
+                        {/* Track bar */}
+                        <div className="flex-1 py-3 pr-4">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-white font-bold text-lg">
+                              {question.instruments[i]}
+                            </span>
+                          </div>
+                          {/* Loop visualization bar */}
+                          <div
+                            className="h-4 rounded-full relative overflow-hidden"
+                            style={{ backgroundColor: `${layer.color}40` }}
+                          >
+                            <div
+                              className={`absolute inset-0 rounded-full ${isPlaying ? 'animate-pulse' : ''}`}
+                              style={{
+                                backgroundColor: layer.color,
+                                opacity: isPlaying ? 0.9 : 0.7
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={nextQuestion}
+                  className="px-10 py-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-2 mx-auto"
+                >
+                  {currentQuestion >= shuffledQuestions.length - 1 ? (
+                    <>Finish <Trophy size={28} /></>
+                  ) : (
+                    <>Next Question <ChevronRight size={28} /></>
+                  )}
+                </button>
               </div>
             )}
 
