@@ -367,7 +367,7 @@ export const lessonStages = [
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 3,
+    duration: 5,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson2/slides/11.svg'
