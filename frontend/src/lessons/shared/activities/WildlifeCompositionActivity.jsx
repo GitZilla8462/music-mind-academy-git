@@ -254,7 +254,28 @@ const WildlifeCompositionActivity = ({
     
     return () => clearInterval(autoSaveInterval);
   }, [studentId, selectedVideo, placedLoops, viewMode]);
-  
+
+  // ✅ Auto-save on unmount (when student leaves the activity)
+  // This ensures work is saved even if teacher triggers save while student is on another activity
+  useEffect(() => {
+    return () => {
+      if (isSessionMode && !viewMode && placedLoops.length > 0 && studentId && selectedVideo) {
+        console.log('💾 Auto-saving wildlife composition on unmount...');
+        const savedData = {
+          placedLoops,
+          videoDuration,
+          requirements: { minLoops: 5, completed: placedLoops.length >= 5 },
+          videoId: selectedVideo.id,
+          videoTitle: selectedVideo.title,
+          videoPath: selectedVideo.videoPath,
+          savedAt: new Date().toISOString()
+        };
+        const key = `mma-saved-epic-wildlife-${studentId}`;
+        localStorage.setItem(key, JSON.stringify(savedData));
+      }
+    };
+  }, [isSessionMode, viewMode, placedLoops, studentId, selectedVideo, videoDuration]);
+
   // Load saved work on mount ONLY - includes manual saves
   useEffect(() => {
     if (!studentId || !selectedVideo) return;
