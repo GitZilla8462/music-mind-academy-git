@@ -130,9 +130,9 @@ const StageBackground = ({ theme = 'space', children }) => {
           <>
             <div className={styles.sun} />
             <div className={styles.birds}>
-              <span className={styles.bird}>🐦</span>
-              <span className={styles.bird}>🐦</span>
-              <span className={styles.bird}>🐦</span>
+              <div className={`${styles.bird} ${styles.bird1}`} />
+              <div className={`${styles.bird} ${styles.bird2}`} />
+              <div className={`${styles.bird} ${styles.bird3}`} />
             </div>
           </>
         );
@@ -154,9 +154,9 @@ const StageBackground = ({ theme = 'space', children }) => {
               <div className={`${styles.deadTree} ${styles.deadTree2}`} />
             </div>
             <div className={styles.bats}>
-              <span className={styles.bat}>🦇</span>
-              <span className={styles.bat}>🦇</span>
-              <span className={styles.bat}>🦇</span>
+              <div className={`${styles.bat} ${styles.bat1}`} />
+              <div className={`${styles.bat} ${styles.bat2}`} />
+              <div className={`${styles.bat} ${styles.bat3}`} />
             </div>
             <div className={styles.fog} />
           </>

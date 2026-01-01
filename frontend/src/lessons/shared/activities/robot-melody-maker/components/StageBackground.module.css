@@ -600,19 +600,47 @@
 
 .birds {
   position: absolute;
-  top: 25%;
-  left: 25%;
+  top: 20%;
+  left: 20%;
+  display: flex;
+  gap: 15px;
   animation: flyBirds 12s linear infinite;
 }
 
+/* CSS bird silhouette - simple V shape */
 .bird {
-  font-size: 0.7rem;
-  margin: 0 4px;
+  position: relative;
+  width: 12px;
+  height: 6px;
   animation: flapWings 0.4s ease-in-out infinite alternate;
 }
 
-.bird:nth-child(2) { animation-delay: 0.1s; }
-.bird:nth-child(3) { animation-delay: 0.2s; }
+.bird::before,
+.bird::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 3px;
+  background: #1a1a1a;
+  border-radius: 50%;
+}
+
+.bird::before {
+  left: 0;
+  transform: rotate(-25deg);
+  transform-origin: right center;
+}
+
+.bird::after {
+  right: 0;
+  transform: rotate(25deg);
+  transform-origin: left center;
+}
+
+.bird1 { }
+.bird2 { animation-delay: 0.1s; }
+.bird3 { animation-delay: 0.2s; }
 
 @keyframes flyBirds {
   0% { transform: translate(0, 0); }
@@ -621,7 +649,7 @@
 
 @keyframes flapWings {
   0% { transform: scaleY(1); }
-  100% { transform: scaleY(0.7); }
+  100% { transform: scaleY(0.6); }
 }
 
 /* ==================== VOLCANO THEME ==================== */
@@ -789,14 +817,45 @@
   position: absolute;
   top: 15%;
   left: 18%;
+  display: flex;
+  gap: 20px;
   animation: flyBats 8s ease-in-out infinite;
 }
 
+/* CSS bat silhouette */
 .bat {
-  font-size: 0.9rem;
-  margin: 0 8px;
+  position: relative;
+  width: 16px;
+  height: 8px;
   animation: flapBat 0.25s ease-in-out infinite alternate;
 }
+
+.bat::before,
+.bat::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 6px;
+  background: #1a1a2a;
+  border-radius: 50% 50% 0 0;
+}
+
+.bat::before {
+  left: -2px;
+  transform: rotate(-20deg) skewX(-10deg);
+  transform-origin: right bottom;
+}
+
+.bat::after {
+  right: -2px;
+  transform: rotate(20deg) skewX(10deg);
+  transform-origin: left bottom;
+}
+
+.bat1 { }
+.bat2 { animation-delay: 0.08s; }
+.bat3 { animation-delay: 0.16s; }
 
 @keyframes flyBats {
   0%, 100% { transform: translate(0, 0); }
@@ -804,8 +863,8 @@
 }
 
 @keyframes flapBat {
-  0% { transform: scaleX(1); }
-  100% { transform: scaleX(0.75); }
+  0% { transform: scaleY(1); }
+  100% { transform: scaleY(0.7); }
 }
 
 .fog {
