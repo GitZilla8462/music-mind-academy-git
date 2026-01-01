@@ -619,7 +619,13 @@ export const SessionProvider = ({ children }) => {
       }
 
       // Get the lesson route before clearing session data
-      const lessonRoute = sessionData?.lessonRoute || sessionData?.lessonId || '/lessons/film-music-project/lesson1';
+      // Strip any query parameters to avoid re-entering session mode
+      let lessonRoute = sessionData?.lessonRoute || sessionData?.lessonId || '/lessons/film-music-project/lesson1';
+
+      // Remove query parameters (e.g., ?session=XXX&role=teacher)
+      if (lessonRoute.includes('?')) {
+        lessonRoute = lessonRoute.split('?')[0];
+      }
 
       await firebaseEndSession(sessionCode);
       leaveSession();
