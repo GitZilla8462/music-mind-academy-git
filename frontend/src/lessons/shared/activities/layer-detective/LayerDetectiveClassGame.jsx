@@ -379,7 +379,7 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
         currentQuestion: nextIdx
       });
 
-      // Auto-play the next question's audio after a brief delay
+      // Auto-play the next question's audio after giving time to read the question
       setTimeout(() => {
         // Play audio for next question (need to use the new index directly)
         const nextQuestion = shuffledQuestions[nextIdx];
@@ -416,7 +416,7 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
             questionData: { layers: nextQuestion.layers }
           });
         }
-      }, 800);
+      }, 3000);
     }
   }, [sessionCode, students, currentQuestion, shuffledQuestions, updateGame, onComplete, stopAudio]);
 
