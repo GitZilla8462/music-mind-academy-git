@@ -128,7 +128,7 @@ export const FirebaseAuthProvider = ({ children }) => {
         setUser(null);
         setUserData(null);
 
-        const notApprovedError = new Error("Your email is not registered for access. Contact support@musicmindacademy.com");
+        const notApprovedError = new Error("Your email is not registered for access. Contact rob@musicmindacademy.com");
         notApprovedError.code = 'auth/not-approved';
         console.log('⚠️ Email not approved:', firebaseUser.email);
         throw notApprovedError;
@@ -161,7 +161,7 @@ export const FirebaseAuthProvider = ({ children }) => {
     const approved = await isEmailApproved(normalizedEmail);
 
     if (!approved) {
-      const notApprovedError = new Error("This email is not registered. Contact support@musicmindacademy.com");
+      const notApprovedError = new Error("This email is not registered. Contact rob@musicmindacademy.com");
       notApprovedError.code = 'auth/not-approved';
       console.log('⚠️ Email not approved for magic link:', normalizedEmail);
       throw notApprovedError;
@@ -223,7 +223,7 @@ export const FirebaseAuthProvider = ({ children }) => {
         setUser(null);
         setUserData(null);
 
-        const notApprovedError = new Error("Your email is not registered for access. Contact support@musicmindacademy.com");
+        const notApprovedError = new Error("Your email is not registered for access. Contact rob@musicmindacademy.com");
         notApprovedError.code = 'auth/not-approved';
         throw notApprovedError;
       }

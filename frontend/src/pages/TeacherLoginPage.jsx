@@ -62,7 +62,7 @@ const TeacherLoginPage = () => {
             // User opened link on different device, needs to enter email
             setNeedsEmailForMagicLink(true);
           } else if (err.code === 'auth/not-approved') {
-            setError("Your email is not registered for access. Contact support@musicmindacademy.com");
+            setError("Your email is not registered for access. Contact rob@musicmindacademy.com");
           } else {
             setError(err.message || 'Failed to complete sign-in. Please try again.');
           }
@@ -91,7 +91,7 @@ const TeacherLoginPage = () => {
     } catch (err) {
       console.error('Sign-in failed:', err);
       if (err.code === 'auth/not-approved') {
-        setError("Your email is not registered for access. Contact support@musicmindacademy.com");
+        setError("Your email is not registered for access. Contact rob@musicmindacademy.com");
       } else {
         setError(err.message || 'Sign-in failed. Please try again.');
       }
@@ -113,7 +113,7 @@ const TeacherLoginPage = () => {
     } catch (err) {
       console.error('Failed to send magic link:', err);
       if (err.code === 'auth/not-approved') {
-        setError("This email is not registered. Contact support@musicmindacademy.com");
+        setError("This email is not registered. Contact rob@musicmindacademy.com");
       } else {
         setError(err.message || 'Failed to send login link. Please try again.');
       }
@@ -135,7 +135,7 @@ const TeacherLoginPage = () => {
     } catch (err) {
       console.error('Magic link completion failed:', err);
       if (err.code === 'auth/not-approved') {
-        setError("Your email is not registered for access. Contact support@musicmindacademy.com");
+        setError("Your email is not registered for access. Contact rob@musicmindacademy.com");
       } else {
         setError(err.message || 'Failed to complete sign-in. Please try again.');
       }

@@ -222,7 +222,7 @@ const FirebaseTeacherDashboard = () => {
           </button>
 
           <button
-            onClick={() => window.open('mailto:support@musicmindacademy.com', '_blank')}
+            onClick={() => window.open('mailto:rob@musicmindacademy.com', '_blank')}
             className="bg-white border border-gray-200 rounded-xl p-6 text-left hover:border-blue-300 hover:shadow-md transition-all group"
           >
             <div className="text-3xl mb-3">💬</div>
