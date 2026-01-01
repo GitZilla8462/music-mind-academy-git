@@ -1,18 +1,26 @@
 // File: /pages/DemoActivity.jsx
 // Standalone demo page for teachers to preview activities
-// Opens in new window, shows exactly what students see
-// ✅ UPDATED: Changed overflow-hidden to overflow-auto to prevent bottom cutoff
+// Shows teacher view by default with toggle to student view
+// ✅ UPDATED: Now shows teacher view with student view toggle
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { X, Monitor, User } from 'lucide-react';
 import ActivityRenderer from '../lessons/shared/components/ActivityRenderer';
+
+// Teacher view components for activities that have them
+import MoodMatchTeacherView from '../lessons/shared/activities/mood-match-game/MoodMatchTeacherView';
+import LayerDetectiveActivity from '../lessons/shared/activities/layer-detective/LayerDetectiveActivity';
 
 const DemoActivity = () => {
   const [searchParams] = useSearchParams();
   const activityType = searchParams.get('activity');
   const activityTitle = searchParams.get('title') || 'Activity Preview';
   const [isReady, setIsReady] = useState(false);
+  const [viewMode, setViewMode] = useState('teacher'); // 'teacher' or 'student'
+
+  // Activities that have dedicated teacher views
+  const hasTeacherView = ['mood-match-game', 'layer-detective'].includes(activityType);
 
   // Mock composition data for reflection activities that need it
   const mockCompositionData = {
@@ -125,34 +133,85 @@ const DemoActivity = () => {
     );
   }
 
+  // Render the appropriate view based on activity type and view mode
+  const renderActivity = () => {
+    // Teacher view for activities that have dedicated teacher components
+    if (viewMode === 'teacher' && hasTeacherView) {
+      switch (activityType) {
+        case 'mood-match-game':
+          return <MoodMatchTeacherView onAdvanceLesson={handleComplete} />;
+        case 'layer-detective':
+          return <LayerDetectiveActivity onComplete={handleComplete} isSessionMode={false} />;
+        default:
+          return null;
+      }
+    }
+
+    // Student view (or activities without teacher view)
+    return (
+      <ActivityRenderer
+        activity={activity}
+        onComplete={handleComplete}
+        navToolsEnabled={false}
+        canAccessNavTools={false}
+        viewMode={false}
+        isSessionMode={false}
+      />
+    );
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gray-900">
       {/* Demo Header Bar */}
       <div className="bg-purple-600 px-4 py-2 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <span className="text-white font-semibold">👁️ TEACHER PREVIEW</span>
+          <span className="text-white font-semibold">👁️ PREVIEW</span>
           <span className="text-purple-200">|</span>
           <span className="text-purple-100">{activityTitle}</span>
         </div>
-        <button
-          onClick={handleClose}
-          className="flex items-center gap-2 px-4 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
-        >
-          <X className="w-4 h-4" />
-          <span>Exit Preview</span>
-        </button>
+
+        <div className="flex items-center gap-3">
+          {/* View Mode Toggle - only show for activities with teacher views */}
+          {hasTeacherView && (
+            <div className="flex items-center bg-white/10 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('teacher')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === 'teacher'
+                    ? 'bg-white text-purple-600'
+                    : 'text-white hover:bg-white/10'
+                }`}
+              >
+                <Monitor className="w-4 h-4" />
+                Teacher
+              </button>
+              <button
+                onClick={() => setViewMode('student')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === 'student'
+                    ? 'bg-white text-purple-600'
+                    : 'text-white hover:bg-white/10'
+                }`}
+              >
+                <User className="w-4 h-4" />
+                Student
+              </button>
+            </div>
+          )}
+
+          <button
+            onClick={handleClose}
+            className="flex items-center gap-2 px-4 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
+          >
+            <X className="w-4 h-4" />
+            <span>Exit</span>
+          </button>
+        </div>
       </div>
 
-      {/* Activity Content - overflow-auto allows scrolling if needed */}
+      {/* Activity Content */}
       <div className="flex-1 overflow-auto">
-        <ActivityRenderer
-          activity={activity}
-          onComplete={handleComplete}
-          navToolsEnabled={false}
-          canAccessNavTools={false}
-          viewMode={false}
-          isSessionMode={false}
-        />
+        {renderActivity()}
       </div>
     </div>
   );
