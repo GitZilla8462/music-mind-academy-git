@@ -17,7 +17,7 @@ const LayerDetectiveResults = ({ sessionData, onPlayAgain, onNextActivity }) => 
       .map(([id, data]) => ({
         id,
         name: data.playerName || data.displayName || data.name || 'Student',  // ✅ Check playerName FIRST (generated name)
-        score: data.score || 0,
+        score: data.layerDetectiveScore || data.score || 0,  // ✅ Check layerDetectiveScore FIRST
         playerColor: data.playerColor || '#3B82F6',        // ✅ Player color
         playerEmoji: data.playerEmoji || '🎵'              // ✅ Player emoji
       }))
