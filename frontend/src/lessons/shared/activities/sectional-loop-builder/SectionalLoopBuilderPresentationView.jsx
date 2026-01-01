@@ -1112,7 +1112,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
               )}
               {streakCallout && revealStep >= 4 && <div className="mt-3 text-xl text-orange-400 anim-pop">🔥 {streakCallout.name}: {streakCallout.streak} streak!</div>}
               {newLeader && revealStep >= 5 && <div className="mt-2 text-xl text-yellow-400 anim-pop">👑 New leader: {newLeader}!</div>}
-              {revealStep >= 5 && (
+              {revealStep >= 2 && (
                 <button onClick={nextClip} className="mt-4 px-10 py-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all">
                   {currentClipIndex >= 3 ? 'Round Complete →' : `Play Clip ${currentClipIndex + 2} →`}
                 </button>
