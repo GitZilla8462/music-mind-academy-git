@@ -356,6 +356,9 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
   }, [stopAudio, shuffledQuestions, currentQuestion, students, sessionCode, updateGame, playAudioOnly]);
 
   const nextQuestion = useCallback(() => {
+    // Stop any playing audio
+    stopAudio();
+
     // Clear student answers
     if (sessionCode) {
       const db = getDatabase();
@@ -381,8 +384,47 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
         phase: 'playing',
         currentQuestion: nextIdx
       });
+
+      // Auto-play the next question's audio after a brief delay
+      setTimeout(() => {
+        // Play audio for next question (need to use the new index directly)
+        const nextQuestion = shuffledQuestions[nextIdx];
+        if (nextQuestion) {
+          const audios = nextQuestion.layers.map(layer => {
+            const audio = new Audio(layer.file);
+            audio.volume = 0.7;
+            audio.loop = false;
+            return audio;
+          });
+          audioRefs.current = audios;
+
+          audios.forEach(a => a.play().catch(console.error));
+          setIsPlaying(true);
+
+          let finishedCount = 0;
+          audios.forEach(a => {
+            a.onended = () => {
+              finishedCount++;
+              if (finishedCount >= audios.length) {
+                setIsPlaying(false);
+              }
+            };
+          });
+
+          // Update to guessing phase
+          setGamePhase('guessing');
+          updateGame({
+            phase: 'guessing',
+            currentQuestion: nextIdx,
+            totalQuestions: shuffledQuestions.length,
+            isPlaying: true,
+            playStartTime: Date.now(),
+            questionData: { layers: nextQuestion.layers }
+          });
+        }
+      }, 800);
     }
-  }, [sessionCode, students, currentQuestion, shuffledQuestions.length, updateGame, onComplete]);
+  }, [sessionCode, students, currentQuestion, shuffledQuestions, updateGame, onComplete, stopAudio]);
 
   // Cleanup on unmount
   useEffect(() => () => stopAudio(), [stopAudio]);
