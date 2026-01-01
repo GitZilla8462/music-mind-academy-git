@@ -630,9 +630,13 @@ export const SessionProvider = ({ children }) => {
       await firebaseEndSession(sessionCode);
       leaveSession();
 
-      // Navigate back to the lesson page (not the landing page)
+      // Navigate back to the hub page for film-music-project lessons
       setTimeout(() => {
-        window.location.href = lessonRoute;
+        if (lessonRoute.includes('/lessons/film-music-project/')) {
+          window.location.href = '/music-loops-in-media-hub';
+        } else {
+          window.location.href = lessonRoute;
+        }
       }, 500);
 
     } catch (error) {
