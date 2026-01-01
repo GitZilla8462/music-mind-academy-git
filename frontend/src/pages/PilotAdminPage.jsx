@@ -709,69 +709,204 @@ const PilotAdminPage = () => {
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                 <BarChart3 size={20} />
-                Teacher Activity
+                Teacher Progress
               </h2>
+              <p className="text-sm text-gray-500 mt-1">Click on a lesson cell to see session details</p>
             </div>
 
-            {teacherAnalytics.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                No teacher activity recorded yet.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">First Login</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Activity</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sessions</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lessons Tried</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Time</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {teacherAnalytics.map((teacher) => (
-                      <tr key={teacher.uid} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="font-medium text-gray-800">{teacher.email}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(teacher.firstLogin)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(teacher.lastActivity)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">
-                            {teacher.totalSessions}
+            {(() => {
+              // Build teacher lesson data from sessions
+              const teacherLessonData = {};
+
+              pilotSessions.forEach(session => {
+                const email = session.teacherEmail;
+                if (!email) return;
+
+                // Determine lesson number
+                let lessonNum = null;
+                if (session.lessonRoute?.includes('lesson1')) lessonNum = 1;
+                else if (session.lessonRoute?.includes('lesson2')) lessonNum = 2;
+                else if (session.lessonRoute?.includes('lesson3')) lessonNum = 3;
+                else if (session.lessonRoute?.includes('lesson4')) lessonNum = 4;
+                else if (session.lessonRoute?.includes('lesson5')) lessonNum = 5;
+
+                if (!lessonNum) return;
+
+                // Initialize teacher data
+                if (!teacherLessonData[email]) {
+                  teacherLessonData[email] = {
+                    email,
+                    lessons: { 1: [], 2: [], 3: [], 4: [], 5: [] }
+                  };
+                }
+
+                // Add session to lesson
+                teacherLessonData[email].lessons[lessonNum].push({
+                  sessionCode: session.sessionCode,
+                  date: session.startTime,
+                  students: session.studentsJoined || 0,
+                  duration: session.duration || 0,
+                  completed: session.completed || false
+                });
+              });
+
+              const teachers = Object.values(teacherLessonData).sort((a, b) =>
+                a.email.localeCompare(b.email)
+              );
+
+              if (teachers.length === 0) {
+                return (
+                  <div className="p-8 text-center text-gray-500">
+                    No teacher activity recorded yet.
+                  </div>
+                );
+              }
+
+              // Render lesson cell
+              const LessonCell = ({ sessions, lessonNum, teacherEmail }) => {
+                const [expanded, setExpanded] = useState(false);
+
+                if (sessions.length === 0) {
+                  return (
+                    <td className="px-3 py-4 text-center">
+                      <span className="text-gray-300">—</span>
+                    </td>
+                  );
+                }
+
+                const totalStudents = sessions.reduce((sum, s) => sum + s.students, 0);
+                const totalTime = sessions.reduce((sum, s) => sum + s.duration, 0);
+                const hasCompleted = sessions.some(s => s.completed);
+                const sessionCount = sessions.length;
+
+                return (
+                  <td className="px-2 py-2 relative">
+                    <button
+                      onClick={() => setExpanded(!expanded)}
+                      className={`w-full px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        hasCompleted
+                          ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                          : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {hasCompleted ? '✓' : '⏳'}
+                        <span>{totalStudents}</span>
+                        {sessionCount > 1 && (
+                          <span className="text-xs opacity-70">×{sessionCount}</span>
+                        )}
+                      </div>
+                      <div className="text-xs opacity-70 mt-0.5">
+                        {formatDuration(totalTime)}
+                      </div>
+                    </button>
+
+                    {/* Expanded dropdown */}
+                    {expanded && (
+                      <div className="absolute z-20 top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-xl p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-semibold text-gray-800">
+                            Lesson {lessonNum} Details
                           </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex gap-1 flex-wrap">
-                            {teacher.lessonsVisited.length > 0 ? (
-                              teacher.lessonsVisited.map((lesson, i) => (
-                                <span key={i} className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                                  {lesson.lessonId.replace('lesson', 'L').replace('-mood', '')}
-                                  {lesson.visitCount > 1 && (
-                                    <span className="ml-1 font-bold">×{lesson.visitCount}</span>
-                                  )}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-gray-400 text-sm">None yet</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDuration(teacher.totalTimeOnSite)}
-                        </td>
+                          <button
+                            onClick={() => setExpanded(false)}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        <div className="text-xs text-gray-500 mb-2">
+                          {sessionCount} session{sessionCount > 1 ? 's' : ''} · {totalStudents} students · {formatDuration(totalTime)}
+                        </div>
+                        <div className="space-y-2 max-h-48 overflow-y-auto">
+                          {sessions
+                            .sort((a, b) => (b.date || 0) - (a.date || 0))
+                            .map((session, i) => (
+                              <div
+                                key={i}
+                                className={`p-2 rounded text-xs ${
+                                  session.completed ? 'bg-green-50' : 'bg-yellow-50'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium">
+                                    {session.date ? new Date(session.date).toLocaleDateString('en-US', {
+                                      month: 'short',
+                                      day: 'numeric'
+                                    }) : 'Unknown'}
+                                  </span>
+                                  <span className={session.completed ? 'text-green-600' : 'text-yellow-600'}>
+                                    {session.completed ? '✓ Done' : '⏳ Partial'}
+                                  </span>
+                                </div>
+                                <div className="text-gray-500 mt-1">
+                                  {session.students} students · {formatDuration(session.duration)}
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                  </td>
+                );
+              };
+
+              return (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">L1</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">L2</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24 bg-purple-50">L3</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">L4</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24 bg-amber-50">L5</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {teachers.map((teacher) => (
+                        <tr key={teacher.email} className="hover:bg-gray-50">
+                          <td className="px-4 py-3">
+                            <div className="font-medium text-gray-800 text-sm">
+                              {teacher.email.split('@')[0]}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              @{teacher.email.split('@')[1]}
+                            </div>
+                          </td>
+                          <LessonCell sessions={teacher.lessons[1]} lessonNum={1} teacherEmail={teacher.email} />
+                          <LessonCell sessions={teacher.lessons[2]} lessonNum={2} teacherEmail={teacher.email} />
+                          <LessonCell sessions={teacher.lessons[3]} lessonNum={3} teacherEmail={teacher.email} />
+                          <LessonCell sessions={teacher.lessons[4]} lessonNum={4} teacherEmail={teacher.email} />
+                          <LessonCell sessions={teacher.lessons[5]} lessonNum={5} teacherEmail={teacher.email} />
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* Legend */}
+                  <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center gap-6 text-xs text-gray-500">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded">✓ 25</span>
+                      <span>= Completed with 25 students</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded">⏳ 15</span>
+                      <span>= In progress / partial</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-300">—</span>
+                      <span>= Not started</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="bg-purple-50 px-2 py-1 rounded">L3</span>
+                      <span>= Mid-pilot survey</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
