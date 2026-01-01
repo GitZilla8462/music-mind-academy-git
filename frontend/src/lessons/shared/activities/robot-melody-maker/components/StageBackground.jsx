@@ -74,15 +74,11 @@ const StageBackground = ({ theme = 'space', children }) => {
       case 'forest':
         return (
           <>
-            <div className={styles.trees}>
-              <div className={`${styles.tree} ${styles.tree1}`} />
-              <div className={`${styles.tree} ${styles.tree2}`} />
-              <div className={`${styles.tree} ${styles.tree3}`} />
-              <div className={`${styles.tree} ${styles.tree4}`} />
-            </div>
+            <div className={styles.forestTrees} />
+            <div className={styles.forestMist} />
             <div className={styles.fireflies}>
-              {randomPositions.fireflies.map((pos, i) => (
-                <div 
+              {randomPositions.fireflies.slice(0, 6).map((pos, i) => (
+                <div
                   key={i}
                   className={styles.firefly}
                   style={{
@@ -99,9 +95,10 @@ const StageBackground = ({ theme = 'space', children }) => {
       case 'ocean':
         return (
           <>
+            <div className={styles.oceanRays} />
             <div className={styles.bubbles}>
               {randomPositions.bubbles.map((pos, i) => (
-                <div 
+                <div
                   key={i}
                   className={styles.bubble}
                   style={{
@@ -112,37 +109,19 @@ const StageBackground = ({ theme = 'space', children }) => {
                 />
               ))}
             </div>
-            <div className={styles.fish}>🐠</div>
-            <div className={styles.fish2}>🐟</div>
+            <div className={styles.seaweed} />
           </>
         );
         
       case 'candy':
         return (
           <>
-            <div className={styles.candyElements}>
-              <div className={`${styles.lollipop} ${styles.lollipop1}`}>🍭</div>
-              <div className={`${styles.lollipop} ${styles.lollipop2}`}>🍬</div>
-              <div className={`${styles.lollipop} ${styles.lollipop3}`}>🍭</div>
+            <div className={styles.candyClouds}>
+              <div className={`${styles.candyCloud} ${styles.candyCloud1}`} />
+              <div className={`${styles.candyCloud} ${styles.candyCloud2}`} />
+              <div className={`${styles.candyCloud} ${styles.candyCloud3}`} />
             </div>
-            <div className={styles.sprinkles}>
-              {randomPositions.sprinkles.map((pos, i) => (
-                <div 
-                  key={i}
-                  className={styles.sprinkle}
-                  style={{
-                    left: `${pos.x}%`,
-                    top: `${pos.y * 0.5}%`,
-                    backgroundColor: ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#1dd1a1'][i % 5],
-                    transform: `rotate(${pos.delay * 72}deg)`
-                  }}
-                />
-              ))}
-            </div>
-            <div className={styles.clouds}>
-              <div className={`${styles.cloud} ${styles.cloud1}`} />
-              <div className={`${styles.cloud} ${styles.cloud2}`} />
-            </div>
+            <div className={styles.candyStripes} />
           </>
         );
         
@@ -161,21 +140,8 @@ const StageBackground = ({ theme = 'space', children }) => {
       case 'volcano':
         return (
           <>
-            <div className={styles.volcanoMountain} />
             <div className={styles.lavaGlow} />
-            <div className={styles.ashParticles}>
-              {randomPositions.ash.map((pos, i) => (
-                <div 
-                  key={i}
-                  className={styles.ash}
-                  style={{
-                    left: `${pos.x}%`,
-                    animationDelay: `${pos.delay}s`,
-                    animationDuration: `${2 + pos.duration}s`
-                  }}
-                />
-              ))}
-            </div>
+            <div className={styles.lavaSplash} />
           </>
         );
 
@@ -199,26 +165,8 @@ const StageBackground = ({ theme = 'space', children }) => {
       case 'city':
         return (
           <>
-            <div className={styles.cityscape}>
-              <div className={`${styles.building} ${styles.building1}`} />
-              <div className={`${styles.building} ${styles.building2}`} />
-              <div className={`${styles.building} ${styles.building3}`} />
-              <div className={`${styles.building} ${styles.building4}`} />
-              <div className={`${styles.building} ${styles.building5}`} />
-            </div>
-            <div className={styles.cityLights}>
-              {randomPositions.stars.slice(0, 20).map((pos, i) => (
-                <div 
-                  key={i}
-                  className={styles.cityLight}
-                  style={{
-                    left: `${pos.x}%`,
-                    top: `${15 + pos.y * 0.35}%`,
-                    animationDelay: `${pos.delay}s`
-                  }}
-                />
-              ))}
-            </div>
+            <div className={styles.citySkyline} />
+            <div className={styles.cityWindows} />
           </>
         );
 
@@ -226,12 +174,8 @@ const StageBackground = ({ theme = 'space', children }) => {
         return (
           <>
             <div className={styles.beachSun} />
-            <div className={styles.palmTrees}>
-              <div className={`${styles.palm} ${styles.palm1}`}>🌴</div>
-              <div className={`${styles.palm} ${styles.palm2}`}>🌴</div>
-            </div>
             <div className={styles.beachWaves} />
-            <div className={styles.umbrella}>🏖️</div>
+            <div className={styles.beachSand} />
           </>
         );
 
@@ -240,8 +184,8 @@ const StageBackground = ({ theme = 'space', children }) => {
           <>
             <div className={styles.northernLights} />
             <div className={styles.snowfall}>
-              {randomPositions.snow.map((pos, i) => (
-                <div 
+              {randomPositions.snow.slice(0, 15).map((pos, i) => (
+                <div
                   key={i}
                   className={styles.snowflake}
                   style={{
@@ -252,33 +196,19 @@ const StageBackground = ({ theme = 'space', children }) => {
                 />
               ))}
             </div>
-            <div className={styles.penguin}>🐧</div>
+            <div className={styles.iceberg} />
           </>
         );
 
       case 'jungle':
         return (
           <>
+            <div className={styles.jungleCanopy} />
             <div className={styles.jungleVines}>
               <div className={`${styles.vine} ${styles.vine1}`} />
               <div className={`${styles.vine} ${styles.vine2}`} />
               <div className={`${styles.vine} ${styles.vine3}`} />
             </div>
-            <div className={styles.jungleLeaves}>
-              {randomPositions.leaves.map((pos, i) => (
-                <div 
-                  key={i}
-                  className={styles.leaf}
-                  style={{
-                    left: `${pos.x}%`,
-                    top: `${pos.y * 0.25}%`,
-                    animationDelay: `${pos.delay}s`
-                  }}
-                />
-              ))}
-            </div>
-            <div className={styles.parrot}>🦜</div>
-            <div className={styles.monkey}>🐒</div>
           </>
         );
 
@@ -288,8 +218,8 @@ const StageBackground = ({ theme = 'space', children }) => {
             <div className={styles.stormClouds} />
             <div className={styles.lightning} />
             <div className={styles.raindrops}>
-              {randomPositions.rain.map((pos, i) => (
-                <div 
+              {randomPositions.rain.slice(0, 12).map((pos, i) => (
+                <div
                   key={i}
                   className={styles.raindrop}
                   style={{
@@ -310,9 +240,9 @@ const StageBackground = ({ theme = 'space', children }) => {
               <div className={`${styles.pixelCloud} ${styles.pixelCloud1}`} />
               <div className={`${styles.pixelCloud} ${styles.pixelCloud2}`} />
             </div>
-            <div className={styles.coinBlocks}>
-              <div className={`${styles.coinBlock} ${styles.coinBlock1}`}>❓</div>
-              <div className={`${styles.coinBlock} ${styles.coinBlock2}`}>❓</div>
+            <div className={styles.pixelBlocks}>
+              <div className={`${styles.pixelBlock} ${styles.pixelBlock1}`} />
+              <div className={`${styles.pixelBlock} ${styles.pixelBlock2}`} />
             </div>
           </>
         );
@@ -325,40 +255,19 @@ const StageBackground = ({ theme = 'space', children }) => {
               <div className={`${styles.stageLight} ${styles.stageLight2}`} />
               <div className={`${styles.stageLight} ${styles.stageLight3}`} />
             </div>
-            <div className={styles.speakers}>
-              <div className={`${styles.speaker} ${styles.speakerLeft}`}>🔊</div>
-              <div className={`${styles.speaker} ${styles.speakerRight}`}>🔊</div>
-            </div>
-            <div className={styles.confettiContainer}>
-              {randomPositions.confetti.map((pos, i) => (
-                <div 
-                  key={i}
-                  className={styles.confettiPiece}
-                  style={{
-                    left: `${pos.x}%`,
-                    backgroundColor: ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#1dd1a1', '#fff'][i % 6],
-                    animationDelay: `${pos.delay}s`,
-                    animationDuration: `${2 + pos.duration}s`
-                  }}
-                />
-              ))}
-            </div>
+            <div className={styles.spotlightBeams} />
           </>
         );
 
       case 'station':
         return (
           <>
-            <div className={styles.spaceWindow}>
-              <div className={styles.earth} />
-            </div>
+            <div className={styles.stationWindow} />
+            <div className={styles.stationPanels} />
             <div className={styles.stationLights}>
               <div className={`${styles.stationLight} ${styles.stationLight1}`} />
               <div className={`${styles.stationLight} ${styles.stationLight2}`} />
-            </div>
-            <div className={styles.floatingItems}>
-              <span className={styles.floatItem}>🛸</span>
-              <span className={styles.floatItem}>⭐</span>
+              <div className={`${styles.stationLight} ${styles.stationLight3}`} />
             </div>
           </>
         );

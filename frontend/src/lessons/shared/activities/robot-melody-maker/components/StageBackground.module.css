@@ -414,83 +414,125 @@
 
 /* ==================== CANDY THEME ==================== */
 .candy {
-  background: linear-gradient(180deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%);
+  background: linear-gradient(180deg, #ffecd2 0%, #fcb69f 40%, #ff9a9e 100%);
 }
 
 .candy .floorSurface {
-  background: 
+  background:
     repeating-linear-gradient(
       90deg,
-      #d4a574 0px,
-      #d4a574 25px,
-      #e8c49a 25px,
-      #e8c49a 50px
+      #ffb6c1 0px,
+      #ffb6c1 30px,
+      #ffc0cb 30px,
+      #ffc0cb 60px
     ),
-    repeating-linear-gradient(
-      0deg,
-      #d4a574 0px,
-      #d4a574 25px,
-      #c49a6c 25px,
-      #c49a6c 50px
-    );
-  background-blend-mode: multiply;
+    linear-gradient(180deg, #ffd1dc 0%, #ffb6c1 100%);
 }
 
 .candy .stageEdge {
   background: linear-gradient(90deg, #ff9a9e, #ffecd2, #ff9a9e);
-  box-shadow: 0 0 15px rgba(255, 154, 158, 0.5);
+  box-shadow: 0 0 20px rgba(255, 154, 158, 0.6);
 }
 
 .candy .stageEdge::after {
   background: linear-gradient(180deg, #fcb69f 0%, #ff9a9e 100%);
 }
 
-.candyElements {
+/* Candy clouds - fluffy and colorful */
+.candyClouds {
   position: absolute;
   inset: 0;
 }
 
-.lollipop {
+.candyCloud {
   position: absolute;
-  font-size: 2rem;
-  animation: bobCandy 2s ease-in-out infinite;
+  border-radius: 50%;
+  opacity: 0.9;
 }
 
-.lollipop1 { top: 8%; left: 8%; }
-.lollipop2 { top: 15%; right: 12%; animation-delay: 0.5s; }
-.lollipop3 { top: 25%; left: 5%; animation-delay: 1s; }
-
-@keyframes bobCandy {
-  0%, 100% { transform: translateY(0) rotate(-5deg); }
-  50% { transform: translateY(-8px) rotate(5deg); }
+.candyCloud::before,
+.candyCloud::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
 }
 
-.sprinkles {
-  position: absolute;
-  inset: 0;
+.candyCloud1 {
+  top: 8%;
+  left: 5%;
+  width: 80px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 30px;
+}
+.candyCloud1::before {
+  top: -15px;
+  left: 15px;
+  width: 35px;
+  height: 35px;
+  background: rgba(255, 255, 255, 0.9);
+}
+.candyCloud1::after {
+  top: -10px;
+  right: 15px;
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.9);
 }
 
-.sprinkle {
-  position: absolute;
-  width: 4px;
-  height: 10px;
-  border-radius: 2px;
+.candyCloud2 {
+  top: 12%;
+  right: 10%;
+  width: 70px;
+  height: 35px;
+  background: rgba(255, 182, 193, 0.8);
+  border-radius: 25px;
+}
+.candyCloud2::before {
+  top: -12px;
+  left: 12px;
+  width: 30px;
+  height: 30px;
+  background: rgba(255, 182, 193, 0.8);
 }
 
-.clouds {
+.candyCloud3 {
+  top: 5%;
+  left: 35%;
+  width: 60px;
+  height: 30px;
+  background: rgba(255, 218, 185, 0.85);
+  border-radius: 20px;
+}
+.candyCloud3::before {
+  top: -10px;
+  left: 18px;
+  width: 25px;
+  height: 25px;
+  background: rgba(255, 218, 185, 0.85);
+}
+
+/* Candy stripes background accent */
+.candyStripes {
   position: absolute;
-  top: 0;
+  bottom: 46%;
   left: 0;
   right: 0;
-  height: 35%;
-}
-
-.cloud {
-  position: absolute;
-  width: 70px;
-  height: 25px;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 15px;
+  height: 8px;
+  background: repeating-linear-gradient(
+    90deg,
+    #ff6b6b 0px,
+    #ff6b6b 15px,
+    #feca57 15px,
+    #feca57 30px,
+    #48dbfb 30px,
+    #48dbfb 45px,
+    #ff9ff3 45px,
+    #ff9ff3 60px,
+    #1dd1a1 60px,
+    #1dd1a1 75px
+  );
+  opacity: 0.7;
 }
 
 .cloud::before,
@@ -783,66 +825,89 @@
 
 /* ==================== CITY THEME ==================== */
 .city {
-  background: linear-gradient(180deg, #0a1628 0%, #1a2a48 50%, #2a3a58 100%);
+  background: linear-gradient(180deg, #0a0a1a 0%, #1a1a3a 40%, #2a2a4a 100%);
 }
 
 .city .floorSurface {
-  background: 
+  background:
     repeating-linear-gradient(
       90deg,
       transparent 0px,
       transparent 48px,
-      rgba(80, 80, 80, 0.5) 48px,
-      rgba(80, 80, 80, 0.5) 52px
+      rgba(100, 100, 100, 0.3) 48px,
+      rgba(100, 100, 100, 0.3) 52px
     ),
-    linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+    linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
 }
 
 .city .stageEdge {
-  background: linear-gradient(90deg, #3a3a3a, #6a6a6a, #3a3a3a);
-  box-shadow: 0 0 10px rgba(100, 100, 100, 0.3);
+  background: linear-gradient(90deg, #2a2a2a, #4a4a4a, #2a2a2a);
+  box-shadow: 0 0 15px rgba(255, 200, 100, 0.2);
 }
 
 .city .stageEdge::after {
-  background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
 }
 
-.cityscape {
+/* City skyline silhouette */
+.citySkyline {
   position: absolute;
-  bottom: 45%;
+  bottom: 44%;
   left: 0;
   right: 0;
-  height: 50%;
+  height: 45%;
+  background:
+    /* Building 1 - left tall */
+    linear-gradient(to bottom, #0a0a1a 0%, #0a0a1a 100%) no-repeat 2% 100% / 8% 70%,
+    /* Building 2 - medium */
+    linear-gradient(to bottom, #0f0f1f 0%, #0f0f1f 100%) no-repeat 12% 100% / 10% 55%,
+    /* Building 3 - tall center-left */
+    linear-gradient(to bottom, #0a0a1a 0%, #0a0a1a 100%) no-repeat 24% 100% / 7% 80%,
+    /* Building 4 - short */
+    linear-gradient(to bottom, #121225 0%, #121225 100%) no-repeat 33% 100% / 9% 40%,
+    /* Building 5 - tallest center */
+    linear-gradient(to bottom, #080818 0%, #080818 100%) no-repeat 44% 100% / 6% 90%,
+    /* Building 6 - medium */
+    linear-gradient(to bottom, #0f0f20 0%, #0f0f20 100%) no-repeat 52% 100% / 11% 50%,
+    /* Building 7 - tall */
+    linear-gradient(to bottom, #0a0a18 0%, #0a0a18 100%) no-repeat 65% 100% / 8% 65%,
+    /* Building 8 - short right */
+    linear-gradient(to bottom, #101025 0%, #101025 100%) no-repeat 75% 100% / 10% 45%,
+    /* Building 9 - medium right */
+    linear-gradient(to bottom, #0c0c1c 0%, #0c0c1c 100%) no-repeat 87% 100% / 9% 60%;
 }
 
-.building {
+/* City windows - lit up */
+.cityWindows {
   position: absolute;
-  bottom: 0;
-  background: #0a1a2a;
-  border: 1px solid #1a2a3a;
+  bottom: 44%;
+  left: 0;
+  right: 0;
+  height: 45%;
+  background:
+    /* Row of windows */
+    radial-gradient(circle at 4% 60%, #ffd700 1px, transparent 1px),
+    radial-gradient(circle at 6% 55%, #ffcc00 1px, transparent 1px),
+    radial-gradient(circle at 5% 70%, #fff 1px, transparent 1px),
+    radial-gradient(circle at 14% 65%, #ffd700 1px, transparent 1px),
+    radial-gradient(circle at 16% 60%, #ff9900 1px, transparent 1px),
+    radial-gradient(circle at 26% 50%, #fff 1px, transparent 1px),
+    radial-gradient(circle at 27% 60%, #ffd700 1px, transparent 1px),
+    radial-gradient(circle at 46% 45%, #fff 1.5px, transparent 1.5px),
+    radial-gradient(circle at 47% 55%, #ffd700 1px, transparent 1px),
+    radial-gradient(circle at 48% 35%, #ffcc00 1px, transparent 1px),
+    radial-gradient(circle at 55% 62%, #ffd700 1px, transparent 1px),
+    radial-gradient(circle at 57% 58%, #fff 1px, transparent 1px),
+    radial-gradient(circle at 67% 55%, #ffd700 1px, transparent 1px),
+    radial-gradient(circle at 69% 65%, #ff9900 1px, transparent 1px),
+    radial-gradient(circle at 78% 62%, #fff 1px, transparent 1px),
+    radial-gradient(circle at 89% 58%, #ffd700 1px, transparent 1px),
+    radial-gradient(circle at 90% 65%, #ffcc00 1px, transparent 1px);
+  animation: cityTwinkle 3s ease-in-out infinite;
 }
 
-.building1 { left: 3%; width: 35px; height: 80px; }
-.building2 { left: 18%; width: 45px; height: 120px; }
-.building3 { left: 38%; width: 30px; height: 70px; }
-.building4 { right: 22%; width: 50px; height: 140px; }
-.building5 { right: 3%; width: 40px; height: 95px; }
-
-.cityLights {
-  position: absolute;
-  inset: 0;
-}
-
-.cityLight {
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  background: #ffd700;
-  animation: flicker 2s ease-in-out infinite;
-}
-
-@keyframes flicker {
-  0%, 100% { opacity: 0.2; }
+@keyframes cityTwinkle {
+  0%, 100% { opacity: 0.8; }
   50% { opacity: 1; }
 }
 
@@ -1243,33 +1308,38 @@
 .pixelCloud1 { left: 12%; }
 .pixelCloud2 { right: 18%; }
 
-.coinBlocks {
+/* Pixel blocks - clean retro style */
+.pixelBlocks {
   position: absolute;
   top: 22%;
   left: 0;
   right: 0;
 }
 
-.coinBlock {
+.pixelBlock {
   position: absolute;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   background: #DAA520;
-  border: 3px solid #8B6914;
+  border: 4px solid #8B6914;
+  box-shadow: inset -4px -4px 0 #B8860B, inset 4px 4px 0 #FFD700;
+}
+
+.pixelBlock::after {
+  content: '?';
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
-  animation: bumpBlock 1.2s ease-in-out infinite;
+  font-size: 18px;
+  font-weight: bold;
+  color: #8B4513;
+  font-family: monospace;
 }
 
-.coinBlock1 { left: 22%; }
-.coinBlock2 { right: 28%; animation-delay: 0.6s; }
-
-@keyframes bumpBlock {
-  0%, 92%, 100% { transform: translateY(0); }
-  96% { transform: translateY(-4px); }
-}
+.pixelBlock1 { left: 20%; }
+.pixelBlock2 { right: 25%; }
 
 /* ==================== CONCERT THEME ==================== */
 .concert {
@@ -1324,42 +1394,23 @@
   50% { transform: rotate(8deg); }
 }
 
-.speakers {
-  position: absolute;
-  bottom: 48%;
-}
-
-.speaker {
-  position: absolute;
-  font-size: 1.8rem;
-  animation: speakerPulse 0.4s ease-in-out infinite;
-}
-
-.speakerLeft { left: 3%; }
-.speakerRight { right: 3%; }
-
-@keyframes speakerPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
-}
-
-.confettiContainer {
+/* Spotlight beams - dramatic lighting */
+.spotlightBeams {
   position: absolute;
   inset: 0;
-  overflow: hidden;
+  background:
+    /* Center spotlight glow */
+    radial-gradient(ellipse at 50% 80%, rgba(255, 200, 100, 0.15) 0%, transparent 40%),
+    /* Left colored glow */
+    radial-gradient(ellipse at 20% 70%, rgba(255, 100, 100, 0.1) 0%, transparent 35%),
+    /* Right colored glow */
+    radial-gradient(ellipse at 80% 70%, rgba(100, 100, 255, 0.1) 0%, transparent 35%);
+  animation: concertPulse 2s ease-in-out infinite;
 }
 
-.confettiPiece {
-  position: absolute;
-  top: -8px;
-  width: 6px;
-  height: 6px;
-  animation: confettiFall 2.5s linear infinite;
-}
-
-@keyframes confettiFall {
-  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(320px) rotate(720deg); opacity: 0; }
+@keyframes concertPulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
 }
 
 /* ==================== STATION THEME ==================== */
