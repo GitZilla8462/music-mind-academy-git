@@ -97,7 +97,8 @@ const WildlifeCompositionActivity = ({
   const [showReflection, setShowReflection] = useState(false);
   const [reflectionCompleted, setReflectionCompleted] = useState(false);
   const [viewingReflection, setViewingReflection] = useState(false);
-  
+  const [showBonusGame, setShowBonusGame] = useState(false);
+
   // Student ID
   const [studentId, setStudentId] = useState('');
   
