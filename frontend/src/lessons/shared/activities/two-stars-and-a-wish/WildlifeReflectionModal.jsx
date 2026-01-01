@@ -31,6 +31,9 @@ const WildlifeReflectionModal = ({
   const [selectedSticker, setSelectedSticker] = useState(null);
   const [isPlacingSticker, setIsPlacingSticker] = useState(false);
 
+  // Timeline scroll tracking for sticker positioning
+  const [timelineScroll, setTimelineScroll] = useState({ x: 0, y: 0 });
+
   // For custom inputs
   const [customInputs, setCustomInputs] = useState({
     star1: false,
@@ -230,7 +233,26 @@ const WildlifeReflectionModal = ({
     { emoji: "🔧", label: "Fix", description: "Could improve here" }
   ];
 
-  // Handle sticker placement clicks
+  // Track timeline scroll position for sticker rendering
+  useEffect(() => {
+    const timelineScrollEl = document.querySelector('[data-timeline-scroll]');
+    if (!timelineScrollEl) return;
+
+    const handleScroll = () => {
+      setTimelineScroll({
+        x: timelineScrollEl.scrollLeft,
+        y: timelineScrollEl.scrollTop
+      });
+    };
+
+    // Initial scroll position
+    handleScroll();
+
+    timelineScrollEl.addEventListener('scroll', handleScroll);
+    return () => timelineScrollEl.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Handle sticker placement clicks - stores position relative to timeline content
   useEffect(() => {
     if (!isPlacingSticker || !selectedSticker) return;
 
@@ -238,13 +260,45 @@ const WildlifeReflectionModal = ({
       const modal = document.querySelector('[data-reflection-modal]');
       if (modal && modal.contains(e.target)) return;
 
-      const x = (e.clientX / window.innerWidth) * 100;
-      const y = (e.clientY / window.innerHeight) * 100;
+      // Find timeline content element
+      const timelineContent = document.querySelector('[data-timeline-content]');
+      const timelineScrollEl = document.querySelector('[data-timeline-scroll]');
 
-      setReflectionData(prev => ({
-        ...prev,
-        stickers: [...prev.stickers, { emoji: selectedSticker, x, y }]
-      }));
+      if (timelineContent && timelineScrollEl) {
+        // Calculate position relative to timeline content (accounting for scroll)
+        const contentRect = timelineContent.getBoundingClientRect();
+        const scrollLeft = timelineScrollEl.scrollLeft;
+        const scrollTop = timelineScrollEl.scrollTop;
+
+        // Position relative to content (in pixels from top-left of content)
+        const contentX = e.clientX - contentRect.left + scrollLeft;
+        const contentY = e.clientY - contentRect.top + scrollTop;
+
+        // Store as percentage of content size for responsiveness
+        const relativeX = (contentX / timelineContent.scrollWidth) * 100;
+        const relativeY = (contentY / timelineContent.scrollHeight) * 100;
+
+        setReflectionData(prev => ({
+          ...prev,
+          stickers: [...prev.stickers, {
+            emoji: selectedSticker,
+            relativeX,
+            relativeY,
+            // Keep legacy x/y for backwards compatibility with saved data
+            x: (e.clientX / window.innerWidth) * 100,
+            y: (e.clientY / window.innerHeight) * 100
+          }]
+        }));
+      } else {
+        // Fallback to viewport-relative if timeline not found
+        const x = (e.clientX / window.innerWidth) * 100;
+        const y = (e.clientY / window.innerHeight) * 100;
+
+        setReflectionData(prev => ({
+          ...prev,
+          stickers: [...prev.stickers, { emoji: selectedSticker, x, y }]
+        }));
+      }
     };
 
     document.addEventListener('click', handleClick);
@@ -290,24 +344,51 @@ const WildlifeReflectionModal = ({
 
   return (
     <>
-      {/* Sticker Overlay - displays placed stickers */}
+      {/* Sticker Overlay - displays placed stickers relative to timeline content */}
       {reflectionData.stickers.length > 0 && (
         <div className="fixed inset-0 pointer-events-none z-[90]">
-          {reflectionData.stickers.map((sticker, idx) => (
-            <div
-              key={idx}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2 text-4xl drop-shadow-lg animate-bounce"
-              style={{
-                left: `${sticker.x}%`,
-                top: `${sticker.y}%`,
-                animationDelay: `${idx * 100}ms`,
-                animationDuration: '0.5s',
-                animationIterationCount: '1'
-              }}
-            >
-              {sticker.emoji}
-            </div>
-          ))}
+          {reflectionData.stickers.map((sticker, idx) => {
+            // Calculate screen position from timeline-relative coordinates
+            const timelineContent = document.querySelector('[data-timeline-content]');
+            const timelineScrollEl = document.querySelector('[data-timeline-scroll]');
+
+            let left, top;
+
+            if (timelineContent && timelineScrollEl && sticker.relativeX !== undefined) {
+              // Use timeline-relative positioning
+              const contentRect = timelineContent.getBoundingClientRect();
+              const contentWidth = timelineContent.scrollWidth;
+              const contentHeight = timelineContent.scrollHeight;
+
+              // Convert relative position back to content pixels
+              const contentX = (sticker.relativeX / 100) * contentWidth;
+              const contentY = (sticker.relativeY / 100) * contentHeight;
+
+              // Calculate screen position (accounting for current scroll)
+              left = contentRect.left + contentX - timelineScroll.x;
+              top = contentRect.top + contentY - timelineScroll.y;
+            } else {
+              // Fallback to legacy viewport-relative positioning
+              left = (sticker.x / 100) * window.innerWidth;
+              top = (sticker.y / 100) * window.innerHeight;
+            }
+
+            return (
+              <div
+                key={idx}
+                className="absolute transform -translate-x-1/2 -translate-y-1/2 text-4xl drop-shadow-lg animate-bounce"
+                style={{
+                  left: `${left}px`,
+                  top: `${top}px`,
+                  animationDelay: `${idx * 100}ms`,
+                  animationDuration: '0.5s',
+                  animationIterationCount: '1'
+                }}
+              >
+                {sticker.emoji}
+              </div>
+            );
+          })}
         </div>
       )}
 

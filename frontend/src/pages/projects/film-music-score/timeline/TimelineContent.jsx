@@ -294,11 +294,12 @@ const TimelineContent = forwardRef(({
 
       {/* Timeline content with scrollbar */}
       <div className="flex-1 relative">
-        <div 
+        <div
           ref={timelineScrollRef}
           className="absolute inset-0"
+          data-timeline-scroll="true"
           onScroll={onTimelineScroll}
-          style={{ 
+          style={{
             paddingTop: TIMELINE_CONSTANTS.HEADER_HEIGHT,
             paddingBottom: '20px',
             overflow: 'auto'
@@ -307,8 +308,9 @@ const TimelineContent = forwardRef(({
           <div
             ref={timelineRef}
             className="relative bg-gray-900"
-            style={{ 
-              width: timelineWidth, 
+            data-timeline-content="true"
+            style={{
+              width: timelineWidth,
               height: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + TIMELINE_CONSTANTS.NUM_TRACKS * TIMELINE_CONSTANTS.TRACK_HEIGHT,
               minWidth: timelineWidth,
               position: 'relative'
