@@ -208,15 +208,21 @@ const SportsCompositionActivity = ({
       viewingReflection
     });
     
-    if (isReflectionStage && !showReflection && !viewingReflection && studentId) {
+    // Only show reflection modal if:
+    // - We're in reflection stage
+    // - Modal isn't already showing
+    // - Not already completed (submitted) the reflection
+    // - Not viewing the bonus game
+    // - Have a valid student ID
+    if (isReflectionStage && !showReflection && !viewingReflection && !reflectionCompleted && !showBonusGame && studentId) {
       console.log('✅ Showing reflection modal');
       setShowReflection(true);
-      
+
       if (reflectionCompleted) {
         setViewingReflection(true);
       }
     }
-  }, [isReflectionStage, reflectionCompleted, studentId, showReflection, viewingReflection]);
+  }, [isReflectionStage, reflectionCompleted, studentId, showReflection, viewingReflection, showBonusGame]);
   
   // Load previously selected video on mount - WITH detected duration
   useEffect(() => {
@@ -444,15 +450,21 @@ const SportsCompositionActivity = ({
       viewingReflection
     });
     
-    if (isReflectionStage && !showReflection && !viewingReflection && studentId) {
+    // Only show reflection modal if:
+    // - We're in reflection stage
+    // - Modal isn't already showing
+    // - Not already completed (submitted) the reflection
+    // - Not viewing the bonus game
+    // - Have a valid student ID
+    if (isReflectionStage && !showReflection && !viewingReflection && !reflectionCompleted && !showBonusGame && studentId) {
       console.log('✅ Showing sports reflection modal');
       setShowReflection(true);
-      
+
       if (reflectionCompleted) {
         setViewingReflection(true);
       }
     }
-  }, [isReflectionStage, reflectionCompleted, studentId, showReflection, viewingReflection]);
+  }, [isReflectionStage, reflectionCompleted, studentId, showReflection, viewingReflection, showBonusGame]);
   
   // REFLECTION VIEW HANDLERS
   const handleViewReflection = () => {
