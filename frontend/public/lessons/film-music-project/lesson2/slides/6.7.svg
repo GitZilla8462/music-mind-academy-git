@@ -27,15 +27,12 @@
   <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#fbbf24">Spring by Antonio Vivaldi</text>
 
   <!-- Points -->
-  <text x="192" y="460" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">Vivaldi wrote over 500 concertos — that's a piece featuring one solo</text>
-  <text x="192" y="510" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">instrument with a backup orchestra. He composed so quickly that people</text>
-  <text x="192" y="560" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">said he could write one faster than someone could copy it!</text>
-  <text x="192" y="610" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">"The Four Seasons" is a set of four pieces — one for Spring,</text>
-  <text x="192" y="660" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">Summer, Autumn, and Winter — and Spring is the most famous.</text>
+  <text x="192" y="460" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">"The Four Seasons" is a set of four pieces — one for Spring,</text>
+  <text x="192" y="510" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">Summer, Autumn, and Winter — and Spring is the most famous.</text>
 
-  <text x="192" y="760" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">This is a concerto, which means one solo instrument (violin)</text>
-  <text x="192" y="810" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">shows off while the orchestra backs it up.</text>
+  <text x="192" y="610" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">This is a concerto, which means one solo instrument (violin)</text>
+  <text x="192" y="660" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">shows off while the orchestra backs it up.</text>
 
-  <text x="192" y="920" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#10b981">Listen for the solo violin imitating birds singing, thunder,</text>
-  <text x="192" y="970" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#10b981">and flowing streams.</text>
+  <text x="192" y="760" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#10b981">Listen for the solo violin imitating birds singing, thunder,</text>
+  <text x="192" y="810" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#10b981">and flowing streams.</text>
 </svg>
