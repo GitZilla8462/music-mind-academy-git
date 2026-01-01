@@ -79,14 +79,11 @@ export const FirebaseAuthProvider = ({ children }) => {
       const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
 
-      // Run approval check and user creation in PARALLEL for faster sign-in
-      const [approved, data] = await Promise.all([
-        isEmailApproved(firebaseUser.email),
-        getOrCreateUser(firebaseUser)
-      ]);
+      // Check approval FIRST before creating user record
+      const approved = await isEmailApproved(firebaseUser.email);
 
       if (!approved) {
-        // Sign them out immediately
+        // Sign them out immediately - don't create user record
         await firebaseSignOut(auth);
         setUser(null);
         setUserData(null);
@@ -97,6 +94,8 @@ export const FirebaseAuthProvider = ({ children }) => {
         throw notApprovedError;
       }
 
+      // Only create user record AFTER approval confirmed
+      const data = await getOrCreateUser(firebaseUser);
       setUserData(data);
 
       // Track login for analytics (non-blocking - don't fail sign-in if analytics fails)
@@ -120,14 +119,11 @@ export const FirebaseAuthProvider = ({ children }) => {
       const result = await signInWithPopup(auth, microsoftProvider);
       const firebaseUser = result.user;
 
-      // Run approval check and user creation in PARALLEL for faster sign-in
-      const [approved, data] = await Promise.all([
-        isEmailApproved(firebaseUser.email),
-        getOrCreateUser(firebaseUser)
-      ]);
+      // Check approval FIRST before creating user record
+      const approved = await isEmailApproved(firebaseUser.email);
 
       if (!approved) {
-        // Sign them out immediately
+        // Sign them out immediately - don't create user record
         await firebaseSignOut(auth);
         setUser(null);
         setUserData(null);
@@ -138,6 +134,8 @@ export const FirebaseAuthProvider = ({ children }) => {
         throw notApprovedError;
       }
 
+      // Only create user record AFTER approval confirmed
+      const data = await getOrCreateUser(firebaseUser);
       setUserData(data);
 
       // Track login for analytics (non-blocking)
