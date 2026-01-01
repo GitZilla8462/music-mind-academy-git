@@ -1371,61 +1371,6 @@ const DrawingCanvas = forwardRef(({
         )}
       </div>
       
-      {/* Help tooltip */}
-      {selectedCount > 0 && isHandTool(tool) && (
-        <div style={{
-          position: 'absolute',
-          bottom: 8,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          color: '#ffffff',
-          padding: '8px 16px',
-          borderRadius: '8px',
-          fontSize: '12px',
-          pointerEvents: 'none',
-          whiteSpace: 'nowrap',
-          zIndex: 200
-        }}>
-          {isMultiSelect ? (
-            <>
-              <strong>{selectedCount} selected</strong> • 
-              <strong> Delete</strong> to remove • 
-              <strong> Drag</strong> to move all • 
-              <strong> Ctrl+C</strong> copy • 
-              <strong> Ctrl+V</strong> paste
-            </>
-          ) : (
-            <>
-              <strong>Delete</strong> to remove • 
-              <strong>Drag</strong> to move • 
-              <strong style={{color: '#60a5fa'}}>↻</strong> rotate • 
-              <strong style={{color: '#34d399'}}>⤡</strong> resize • 
-              <strong>Shift+click</strong> multi-select
-            </>
-          )}
-        </div>
-      )}
-      
-      {/* Marquee hint when no selection */}
-      {selectedCount === 0 && isHandTool(tool) && !isMarqueeSelecting && (
-        <div style={{
-          position: 'absolute',
-          bottom: 8,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          color: '#ffffff',
-          padding: '6px 12px',
-          borderRadius: '6px',
-          fontSize: '11px',
-          pointerEvents: 'none',
-          whiteSpace: 'nowrap',
-          zIndex: 200
-        }}>
-          Click sticker to select • Drag to marquee select • Shift+click for multi-select
-        </div>
-      )}
     </div>
   );
 });
