@@ -558,6 +558,8 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
               <div className="text-center">
                 {revealStep >= 2 && (
                   <div>
+                    <div className="text-3xl text-white/80 mb-4">The answer is...</div>
+
                     {/* Stacked Tracks Visual */}
                     <div className="bg-black/30 rounded-2xl p-5 mb-6 max-w-2xl mx-auto">
                       <div className="flex items-center justify-center gap-2 mb-4">
