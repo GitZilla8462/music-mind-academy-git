@@ -162,17 +162,18 @@ const MusicLoopsInMediaHub = () => {
       route: '/lessons/film-music-project/lesson3',
       available: true,
       hasLessonPlan: true,
-      inThisLesson: 'Students learn how film scores follow a story arc with distinct sections (Intro → A → A\' → Outro), then create an epic nature documentary soundtrack.',
+      inThisLesson: 'Students learn how film scores follow a story arc with distinct sections (Intro → A → A\' → Outro). They create a listening map to Vivaldi\'s Spring, play a section-matching game, then compose an epic nature documentary soundtrack.',
       studentsWill: [
-        'Understand sectional loop form (Intro, A, A\', Outro)',
-        'Match loops to song sections in a game',
-        'Compose a complete film score with structure'
+        'Create a listening map visualizing song form',
+        'Identify sections in sectional loop form (Intro, A, A\', Outro)',
+        'Compose a complete film score with clear structure'
       ],
       activities: [
-        { title: 'Introduction', description: 'Song form and structure concepts', time: 6 },
-        { title: 'Sectional Loop Builder', description: 'Game: Match loops to sections (leaderboard)', time: 6, activityType: 'sectional-loop-builder' },
-        { title: 'Composition', description: 'Score wildlife footage with sections', time: 12, activityType: 'wildlife-composition-activity' },
-        { title: 'Two Stars and a Wish', description: 'Reflect on your form choices', time: 6, activityType: 'two-stars-wish' },
+        { title: 'Introduction', description: 'Song form and structure concepts', time: 5 },
+        { title: 'Listening Map', description: 'Draw along to Vivaldi\'s Spring', time: 10, activityType: 'listening-map' },
+        { title: 'Sectional Loop Builder', description: 'Game: Identify which section is playing', time: 10, activityType: 'sectional-loop-builder' },
+        { title: 'Composition', description: 'Score wildlife footage with Intro → A → A\' → Outro', time: 15, activityType: 'wildlife-composition-activity' },
+        { title: 'Two Stars and a Wish', description: 'Reflect on your form choices', time: 5, activityType: 'two-stars-wish' },
         { title: 'Robot Melody Maker', description: 'Create loops and watch your robot dance', time: 8, activityType: 'robot-melody-maker', isBonus: true }
       ]
     },
