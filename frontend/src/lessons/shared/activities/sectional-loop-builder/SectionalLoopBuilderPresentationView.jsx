@@ -69,6 +69,57 @@ const SAFARI_ANIMALS = [
 // Generate a random 4-digit code
 const generateCode = () => String(Math.floor(1000 + Math.random() * 9000));
 
+// Extract instrument name from file path (e.g., "/path/Heroic Bass 1.mp3" → "Bass")
+const getInstrumentFromPath = (filePath) => {
+  const fileName = filePath.split('/').pop().replace(/\.(mp3|wav)$/, '');
+  // Remove mood prefix and number suffix, extract instrument
+  const instruments = ['Bass', 'Brass', 'Drums', 'Strings', 'Synth', 'Vocals', 'Piano', 'Guitar', 'Bells', 'Clarinet', 'Percussion', 'Keys', 'SynthLead'];
+  for (const inst of instruments) {
+    if (fileName.includes(inst)) return inst === 'SynthLead' ? 'Synth Lead' : inst;
+  }
+  return 'Loop';
+};
+
+// Instrument emoji helper
+const getInstrumentEmoji = (instrument) => {
+  const emojiMap = {
+    'Drums': '🥁',
+    'Bass': '🎸',
+    'Brass': '🎺',
+    'Strings': '🎻',
+    'Piano': '🎹',
+    'Synth': '🎛️',
+    'Synth Lead': '🎛️',
+    'Guitar': '🎸',
+    'Vocals': '🎤',
+    'Bells': '🔔',
+    'Clarinet': '🎵',
+    'Percussion': '🥁',
+    'Keys': '🎹'
+  };
+  return emojiMap[instrument] || '🎵';
+};
+
+// Instrument color helper
+const getInstrumentColor = (instrument) => {
+  const colorMap = {
+    'Drums': '#EF4444',
+    'Bass': '#6366F1',
+    'Brass': '#F59E0B',
+    'Strings': '#10B981',
+    'Piano': '#3B82F6',
+    'Synth': '#A855F7',
+    'Synth Lead': '#EC4899',
+    'Guitar': '#F97316',
+    'Vocals': '#14B8A6',
+    'Bells': '#FBBF24',
+    'Clarinet': '#8B5CF6',
+    'Percussion': '#DC2626',
+    'Keys': '#0EA5E9'
+  };
+  return colorMap[instrument] || '#6B7280';
+};
+
 const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
   const sessionCode = sessionData?.sessionCode || new URLSearchParams(window.location.search).get('session');
   
@@ -991,23 +1042,78 @@ const SectionalLoopBuilderPresentationView = ({ sessionData }) => {
           {gamePhase === 'revealed' && (
             <div className="text-center">
               {/* Large Round Indicator */}
-              <div className="text-5xl font-black text-white/80 mb-6">Round {currentRound}/{totalRounds} • Clip {currentClipIndex + 1}/4</div>
-              
+              <div className="text-4xl font-black text-white/80 mb-4">Round {currentRound}/{totalRounds} • Clip {currentClipIndex + 1}/4</div>
+
               {revealStep >= 1 && revealStep < 2 && <div className="text-7xl anim-drumroll">🥁</div>}
               {revealStep >= 2 && (
                 <div className="anim-pop">
-                  <div className="text-3xl text-white/70 mb-3">The answer is...</div>
-                  <div className="inline-block p-8 rounded-3xl mb-4" style={{ backgroundColor: SECTION_INFO[currentSection]?.color }}>
-                    <div className="text-7xl mb-2">{SECTION_INFO[currentSection]?.emoji}</div>
-                    <div className="text-5xl font-black">{SECTION_INFO[currentSection]?.label}</div>
+                  <div className="text-2xl text-white/70 mb-2">The answer is...</div>
+
+                  {/* Section Badge */}
+                  <div className="inline-block px-6 py-3 rounded-2xl mb-4" style={{ backgroundColor: SECTION_INFO[currentSection]?.color }}>
+                    <span className="text-4xl mr-2">{SECTION_INFO[currentSection]?.emoji}</span>
+                    <span className="text-4xl font-black">{SECTION_INFO[currentSection]?.label}</span>
                   </div>
-                  <div className="text-3xl"><span className="text-green-400 font-bold">{correctCount}</span><span className="text-white/60"> / {students.length} correct</span></div>
+
+                  {/* Stacked Tracks Visual - Like Layer Detective */}
+                  {sectionAudio?.[currentSection] && (
+                    <div className="bg-black/30 rounded-2xl p-4 mb-4 max-w-2xl mx-auto">
+                      <div className="flex items-center justify-center gap-2 mb-3">
+                        <span className="text-xl">🎧</span>
+                        <p className="text-lg text-white font-semibold">
+                          {sectionAudio[currentSection].length} {sectionAudio[currentSection].length === 1 ? 'Layer' : 'Layers'} Playing Together
+                        </p>
+                        {isPlaying && <span className="text-green-400 animate-pulse">🔊</span>}
+                      </div>
+
+                      {/* Stacked timeline tracks */}
+                      <div className="space-y-2">
+                        {sectionAudio[currentSection].map((filePath, i) => {
+                          const instrument = getInstrumentFromPath(filePath);
+                          const color = getInstrumentColor(instrument);
+                          return (
+                            <div
+                              key={i}
+                              className="flex items-center gap-3 bg-black/40 rounded-xl overflow-hidden"
+                            >
+                              {/* Instrument icon */}
+                              <div
+                                className="w-14 h-12 flex items-center justify-center text-2xl shrink-0"
+                                style={{ backgroundColor: color }}
+                              >
+                                {getInstrumentEmoji(instrument)}
+                              </div>
+
+                              {/* Track bar */}
+                              <div className="flex-1 py-2 pr-4">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-white font-bold text-lg">{instrument}</span>
+                                </div>
+                                {/* Loop visualization bar */}
+                                <div
+                                  className="h-3 rounded-full relative overflow-hidden"
+                                  style={{ backgroundColor: `${color}40` }}
+                                >
+                                  <div
+                                    className={`absolute inset-0 rounded-full ${isPlaying ? 'animate-pulse' : ''}`}
+                                    style={{ backgroundColor: color, opacity: isPlaying ? 0.9 : 0.7 }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="text-2xl"><span className="text-green-400 font-bold">{correctCount}</span><span className="text-white/60"> / {students.length} correct</span></div>
                 </div>
               )}
-              {streakCallout && revealStep >= 4 && <div className="mt-4 text-2xl text-orange-400 anim-pop">🔥 {streakCallout.name}: {streakCallout.streak} streak!</div>}
-              {newLeader && revealStep >= 5 && <div className="mt-3 text-2xl text-yellow-400 anim-pop">👑 New leader: {newLeader}!</div>}
+              {streakCallout && revealStep >= 4 && <div className="mt-3 text-xl text-orange-400 anim-pop">🔥 {streakCallout.name}: {streakCallout.streak} streak!</div>}
+              {newLeader && revealStep >= 5 && <div className="mt-2 text-xl text-yellow-400 anim-pop">👑 New leader: {newLeader}!</div>}
               {revealStep >= 5 && (
-                <button onClick={nextClip} className="mt-6 px-10 py-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all">
+                <button onClick={nextClip} className="mt-4 px-10 py-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all">
                   {currentClipIndex >= 3 ? 'Round Complete →' : `Play Clip ${currentClipIndex + 2} →`}
                 </button>
               )}
