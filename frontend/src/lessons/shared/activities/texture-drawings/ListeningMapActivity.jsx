@@ -629,6 +629,21 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
     return () => unsubscribe();
   }, [sessionCode, isSessionMode, studentId, handleManualSave]);
 
+  // ✅ Auto-save on unmount (when student leaves the activity)
+  // This ensures work is saved even if teacher triggers save while student is on another activity
+  const handleManualSaveRef = useRef(handleManualSave);
+  handleManualSaveRef.current = handleManualSave;
+
+  useEffect(() => {
+    return () => {
+      // Save silently when component unmounts
+      if (isSessionMode) {
+        console.log('💾 Auto-saving listening map on unmount...');
+        handleManualSaveRef.current?.(true);
+      }
+    };
+  }, [isSessionMode]);
+
   const handleProgressClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const ratio = (e.clientX - rect.left) / rect.width;

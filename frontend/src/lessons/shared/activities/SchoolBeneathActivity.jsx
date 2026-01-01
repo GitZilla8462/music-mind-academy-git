@@ -216,6 +216,27 @@ const SchoolBeneathActivity = ({
     return () => unsubscribe();
   }, [sessionCode, isSessionMode, viewMode, placedLoops, studentId]);
 
+  // ✅ Auto-save on unmount (when student leaves the activity)
+  // This ensures work is saved even if teacher triggers save while student is on another activity
+  useEffect(() => {
+    return () => {
+      if (isSessionMode && !viewMode && placedLoops.length > 0 && studentId) {
+        console.log('💾 Auto-saving composition on unmount...');
+        // Direct save logic since handleManualSave might be stale
+        const savedData = {
+          placedLoops,
+          videoDuration,
+          requirements,
+          title,
+          videoPath,
+          savedAt: new Date().toISOString()
+        };
+        const key = `mma-saved-${storageKey}-${studentId}`;
+        localStorage.setItem(key, JSON.stringify(savedData));
+      }
+    };
+  }, [isSessionMode, viewMode, placedLoops, studentId, videoDuration, requirements, title, videoPath, storageKey]);
+
   // Load saved work on mount ONLY - includes manual saves and view mode (from Join page)
   // NOTE: We only load placedLoops here, NOT videoDuration - let video detection effect handle duration
   useEffect(() => {
