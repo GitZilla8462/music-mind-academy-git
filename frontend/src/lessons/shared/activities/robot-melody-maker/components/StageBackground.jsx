@@ -114,16 +114,7 @@ const StageBackground = ({ theme = 'space', children }) => {
         );
         
       case 'candy':
-        return (
-          <>
-            <div className={styles.candyClouds}>
-              <div className={`${styles.candyCloud} ${styles.candyCloud1}`} />
-              <div className={`${styles.candyCloud} ${styles.candyCloud2}`} />
-              <div className={`${styles.candyCloud} ${styles.candyCloud3}`} />
-            </div>
-            <div className={styles.candyStripes} />
-          </>
-        );
+        return null;
         
       case 'sunset':
         return (
