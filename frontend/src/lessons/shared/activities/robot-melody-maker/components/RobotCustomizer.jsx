@@ -186,7 +186,7 @@ const RobotCustomizer = ({
       title: '🎭 Stage',
       items: [
         { value: 'space', emoji: '🌌', label: 'Space' },
-        { value: 'neon', emoji: '💜', label: 'Arcade' },
+        { value: 'arcade', emoji: '💜', label: 'Arcade' },
         { value: 'forest', emoji: '🌲', label: 'Forest' },
         { value: 'ocean', emoji: '🐠', label: 'Ocean' },
         { value: 'candy', emoji: '🍭', label: 'Candy' },
@@ -198,9 +198,9 @@ const RobotCustomizer = ({
         { value: 'arctic', emoji: '🐧', label: 'Arctic' },
         { value: 'jungle', emoji: '🦜', label: 'Jungle' },
         { value: 'storm', emoji: '⛈️', label: 'Storm' },
-        { value: 'gaming', emoji: '🎮', label: 'Pixel' },
+        { value: 'pixel', emoji: '🎮', label: 'Pixel' },
         { value: 'concert', emoji: '🎤', label: 'Concert' },
-        { value: 'spacestation', emoji: '🛸', label: 'Station' },
+        { value: 'station', emoji: '🛸', label: 'Station' },
       ],
     },
   };

@@ -1033,7 +1033,12 @@ const RobotAvatar = ({
     head.rotation = d.headTilt * Math.PI / 180;
     
     const eyeGlow = playing && singing ? 1 : 0.6;
-    
+
+    // Hide angry eye slants by default (only show when angry eyes selected)
+    gfx.eyeSlants.forEach(slant => {
+      if (slant) slant.visible = false;
+    });
+
     if (eyeStyle === 'cyclops') {
       head.roundRect(headX - 18, headY - 18, 36, 26, 8);
       head.fill({ color: 0x001a1a });
@@ -1052,13 +1057,19 @@ const RobotAvatar = ({
       [-15, 15].forEach((x, i) => {
         head.roundRect(headX + x - 10, headY - 16, 20, 14, 4);
         head.fill({ color: 0x001a1a });
-        const slant = new PIXI.Graphics();
+        // Reuse slant graphics instead of creating new ones each frame
+        if (!gfx.eyeSlants[i]) {
+          gfx.eyeSlants[i] = new PIXI.Graphics();
+          robot.addChild(gfx.eyeSlants[i]);
+        }
+        const slant = gfx.eyeSlants[i];
+        slant.clear();
         slant.rect(-8, -3, 16, 6);
         slant.fill({ color: 0xff4444, alpha: eyeGlow });
         slant.x = headX + x;
         slant.y = headY - 9;
         slant.rotation = (i === 0 ? 0.25 : -0.25);
-        robot.addChild(slant);
+        slant.visible = true;
       });
     } else if (eyeStyle === 'multiple') {
       [-20, 0, 20].forEach(x => {

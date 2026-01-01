@@ -104,7 +104,7 @@ export const MONSTER_PRESETS = {
       patternColor: '#feca5788',
       danceStyle: 'disco',
     },
-    stageTheme: 'neon',
+    stageTheme: 'arcade',
   },
   
   alien: {
@@ -179,7 +179,7 @@ export const MONSTER_PRESETS = {
       patternColor: '#ffffff33',
       danceStyle: 'hiphop',
     },
-    stageTheme: 'neon',
+    stageTheme: 'arcade',
   },
   
   silly: {
