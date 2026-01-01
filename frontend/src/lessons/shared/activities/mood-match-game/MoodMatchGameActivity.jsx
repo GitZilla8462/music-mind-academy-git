@@ -3,7 +3,7 @@
 // Students vote on moods, teacher controls pace and reveals results
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, Volume2, Check } from 'lucide-react';
+import { Play, Pause, Check } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import {
   subscribeToMoodMatchState,
@@ -311,39 +311,13 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = f
   // SCREEN 2: Voting screen
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      {/* Header */}
+      {/* Header - no play button, teacher controls audio */}
       <div className="bg-black/30 py-4 px-6">
-        <div className="flex items-center justify-between">
+        <div className="text-center">
           <div className="text-2xl font-bold text-white">
             LOOP {currentLoopIndex + 1} OF {GAME_LOOPS.length}
           </div>
-          <button
-            onClick={isPlaying ? stopLoop : playLoop}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg text-lg font-bold transition-all ${
-              isPlaying
-                ? 'bg-red-600 hover:bg-red-500 text-white'
-                : 'bg-green-600 hover:bg-green-500 text-white'
-            }`}
-          >
-            {isPlaying ? (
-              <>
-                <Pause className="w-6 h-6" />
-                STOP
-              </>
-            ) : (
-              <>
-                <Play className="w-6 h-6" />
-                PLAY
-              </>
-            )}
-          </button>
         </div>
-        {isPlaying && (
-          <div className="flex items-center gap-2 mt-2 text-green-400">
-            <Volume2 className="w-5 h-5 animate-pulse" />
-            <span>Playing...</span>
-          </div>
-        )}
       </div>
 
       {/* Main Content */}

@@ -358,61 +358,63 @@ const MoodMatchTeacherView = ({ onAdvanceLesson }) => {
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <ActivityBanner />
-      <div className="flex-1 flex flex-col p-8">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-5xl font-bold text-white mb-2">LOOP {currentLoopIndex + 1} OF {GAME_LOOPS.length}</h1>
-        <div className="w-24 h-1 bg-purple-500 mx-auto"></div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center">
-        {/* Play Button */}
-        <button
-          onClick={isPlaying ? stopLoop : playLoop}
-          className={`w-48 h-48 rounded-full flex items-center justify-center transition-all transform hover:scale-105 mb-8 ${
-            isPlaying
-              ? 'bg-red-600 hover:bg-red-500'
-              : 'bg-green-600 hover:bg-green-500'
-          }`}
-        >
-          {isPlaying ? (
-            <Pause className="w-24 h-24 text-white" />
-          ) : (
-            <Play className="w-24 h-24 text-white ml-4" />
-          )}
-        </button>
-
-        {isPlaying && (
-          <div className="flex items-center gap-3 text-green-400 text-2xl mb-8">
-            <Volume2 className="w-8 h-8 animate-pulse" />
-            <span>Playing loop for class...</span>
-          </div>
-        )}
-
-        {/* Instructions */}
-        <p className="text-2xl text-gray-300 mb-8">Students: Listen and vote on your Chromebook</p>
-
-        {/* Vote Count */}
-        <div className="flex items-center gap-3 text-3xl text-white mb-8">
-          <Users className="w-8 h-8 text-purple-400" />
-          <span>
-            <span className="font-bold text-purple-400">{voteCount}</span>
-            <span className="text-gray-400"> / {totalStudents}</span>
-            <span className="text-gray-500 ml-2">voted</span>
-          </span>
+      <div className="flex-1 flex flex-col p-6 min-h-0">
+        {/* Header */}
+        <div className="text-center mb-4 shrink-0">
+          <h1 className="text-4xl font-bold text-white mb-2">LOOP {currentLoopIndex + 1} OF {GAME_LOOPS.length}</h1>
+          <div className="w-24 h-1 bg-purple-500 mx-auto"></div>
         </div>
-      </div>
 
-      {/* Show Results Button */}
-      <div className="text-center">
-        <button
-          onClick={handleShowResults}
-          className="px-10 py-5 bg-purple-600 hover:bg-purple-500 text-white text-xl font-bold rounded-xl transition-all"
-        >
-          SHOW RESULTS
-        </button>
-      </div>
+        {/* Main Content - compact layout */}
+        <div className="flex-1 flex flex-col items-center justify-center min-h-0">
+          {/* Play Button - smaller */}
+          <button
+            onClick={isPlaying ? stopLoop : playLoop}
+            className={`w-32 h-32 rounded-full flex items-center justify-center transition-all transform hover:scale-105 mb-4 shrink-0 ${
+              isPlaying
+                ? 'bg-red-600 hover:bg-red-500'
+                : 'bg-green-600 hover:bg-green-500'
+            }`}
+          >
+            {isPlaying ? (
+              <Pause className="w-16 h-16 text-white" />
+            ) : (
+              <Play className="w-16 h-16 text-white ml-2" />
+            )}
+          </button>
+
+          {isPlaying && (
+            <div className="flex items-center gap-3 text-green-400 text-xl mb-4">
+              <Volume2 className="w-6 h-6 animate-pulse" />
+              <span>Playing loop for class...</span>
+            </div>
+          )}
+
+          {/* Vote Count */}
+          <div className="flex items-center gap-3 text-2xl text-white mb-4">
+            <Users className="w-6 h-6 text-purple-400" />
+            <span>
+              <span className="font-bold text-purple-400">{voteCount}</span>
+              <span className="text-gray-400"> / {totalStudents}</span>
+              <span className="text-gray-500 ml-2">voted</span>
+            </span>
+          </div>
+
+          {/* Instructions */}
+          <p className="text-xl text-gray-300 mb-4">Students: Listen and vote on your Chromebook</p>
+        </div>
+
+        {/* Show Results Button - fixed at bottom, always visible */}
+        <div className="shrink-0 py-4 bg-gradient-to-t from-gray-900 via-gray-900/95 to-transparent -mx-6 px-6 -mb-6">
+          <div className="text-center">
+            <button
+              onClick={handleShowResults}
+              className="px-12 py-5 bg-purple-600 hover:bg-purple-500 text-white text-2xl font-bold rounded-xl transition-all shadow-lg"
+            >
+              SHOW RESULTS
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
