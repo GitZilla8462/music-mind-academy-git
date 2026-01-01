@@ -312,65 +312,49 @@ const LayerDetectiveClassDemo = ({ onComplete }) => {
               <div className={`text-6xl mb-3 ${isCorrect ? 'animate-bounce' : ''}`}>
                 {isCorrect ? '✅' : '❌'}
               </div>
-              <div className={`text-4xl font-bold mb-2 ${
+              <div className={`text-4xl font-bold mb-4 ${
                 isCorrect ? 'text-green-600' : 'text-red-600'
               }`}>
                 {isCorrect ? 'Correct!' : 'Not Quite!'}
               </div>
-              <div className="text-2xl text-gray-700">
-                The answer is <span className="font-bold">{question.correctAnswer}</span> - <span className="font-bold">{question.numLayers} {question.numLayers === 1 ? 'Layer' : 'Layers'}</span>
-              </div>
             </div>
 
-            {/* Visual Answer - Compact */}
+            {/* Stacked Tracks Visual */}
             <div className="bg-blue-50 rounded-xl p-4 mb-4 border-4 border-blue-300">
-              <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">
-                Here are the loops that were playing:
-              </h3>
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <span className="text-2xl">🎧</span>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {question.numLayers} {question.numLayers === 1 ? 'Layer' : 'Layers'} Playing Together
+                </h3>
+              </div>
               <div className="space-y-2">
                 {question.layers.map((layer, index) => (
                   <div
                     key={index}
-                    className="h-14 rounded-lg flex items-center px-4 text-white font-bold text-lg shadow-lg transition-all animate-fadeIn"
-                    style={{ 
-                      backgroundColor: layer.color,
+                    className="h-14 rounded-lg flex items-center overflow-hidden shadow-lg transition-all animate-fadeIn"
+                    style={{
                       animationDelay: `${index * 0.15}s`
                     }}
                   >
-                    <div className="flex items-center justify-between w-full">
-                      <span>{layer.name}</span>
-                      <span className="text-sm opacity-90">{layer.category}</span>
+                    <div
+                      className="w-14 h-full flex items-center justify-center text-2xl"
+                      style={{ backgroundColor: layer.color }}
+                    >
+                      {layer.category === 'Drums' ? '🥁' :
+                       layer.category === 'Bass' ? '🎸' :
+                       layer.category === 'Brass' ? '🎺' :
+                       layer.category === 'Strings' ? '🎻' :
+                       layer.category === 'Piano' ? '🎹' :
+                       layer.category === 'Synth' ? '🎛️' : '🎵'}
+                    </div>
+                    <div
+                      className="flex-1 h-full flex items-center px-4 text-white font-bold text-lg"
+                      style={{ backgroundColor: layer.color }}
+                    >
+                      {layer.category}
                     </div>
                   </div>
                 ))}
-                
-                {/* Empty slots for remaining rows */}
-                {[...Array(4 - question.numLayers)].map((_, index) => (
-                  <div
-                    key={`empty-${index}`}
-                    className="h-14 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-sm font-semibold opacity-30"
-                  >
-                    (No loop)
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Key Learning - Compact */}
-            <div className="bg-green-50 rounded-lg p-3 mb-4 border-2 border-green-300">
-              <div className="text-lg text-gray-800 text-center">
-                {question.numLayers === 1 && (
-                  <p>🎵 <strong>1 layer = THIN texture.</strong> Just one instrument!</p>
-                )}
-                {question.numLayers === 2 && (
-                  <p>🎵 <strong>2 layers = MEDIUM texture.</strong> Two instruments together!</p>
-                )}
-                {question.numLayers === 3 && (
-                  <p>🎵 <strong>3 layers = THICK texture.</strong> Rich, full sound!</p>
-                )}
-                {question.numLayers === 4 && (
-                  <p>🎵 <strong>4 layers = VERY THICK texture.</strong> Maximum energy!</p>
-                )}
               </div>
             </div>
 
