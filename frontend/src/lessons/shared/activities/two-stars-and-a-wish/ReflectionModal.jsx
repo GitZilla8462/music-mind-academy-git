@@ -337,7 +337,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
       case 1: return "Choose Review Type";
       case 2: return "Partner's Name";
       case 3: return "🏷️ Mark Highlights";
-      case 4: return reflectionData.reviewType === 'self' ? "🎧 Listen to Your Score" : "🎧 Share & Listen";
+      case 4: return reflectionData.reviewType === 'self' ? "🎧 Listen" : `🎧 Listen to ${reflectionData.partnerName}'s Composition`;
       case 5: return "⭐ Star 1";
       case 6: return "⭐ Star 2";
       case 7: return "✨ Wish";
@@ -634,44 +634,31 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
             </div>
           )}
 
-          {/* STEP 4: Listen & Prepare */}
+          {/* STEP 4: Listen */}
           {currentStep === 4 && (
             <div className="space-y-4">
               <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
-                {reflectionData.reviewType === 'self' ? (
-                  <>
-                    <p className="text-lg font-bold text-gray-800 mb-2">
-                      🎧 Listen to Your Score
-                    </p>
-                    <div className="text-gray-700 space-y-2">
-                      <p>Listen to your entire film score from beginning to end.</p>
-                      <p className="font-semibold mt-3">Pay attention to:</p>
-                      <ul className="list-disc list-inside space-y-1 ml-2">
-                        <li>How you used the DAW tools (timeline, tracks, volume)</li>
-                        <li>How your loops are timed with the video</li>
-                        <li>The overall sound and mood of your music</li>
-                      </ul>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-lg font-bold text-gray-800 mb-2">
-                      🎧 Get Ready to Share
-                    </p>
-                    <div className="text-gray-700 space-y-2">
-                      <p>Get ready to share with <strong>{reflectionData.partnerName}</strong>.</p>
-                      <p className="mt-2">When they come to your screen, they'll look at your stickers and listen to your composition.</p>
-                      <p className="mt-2">Then you'll read your feedback out loud.</p>
-                    </div>
-                  </>
-                )}
+                <p className="text-lg font-bold text-gray-800 mb-2">
+                  {reflectionData.reviewType === 'self'
+                    ? '🎧 Listen to Your Composition'
+                    : `🎧 Listen to ${reflectionData.partnerName}'s Composition`
+                  }
+                </p>
+                <div className="text-gray-700 space-y-2">
+                  <p className="font-semibold">Pay attention to:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-2">
+                    <li>How the loops work together</li>
+                    <li>The overall mood and feel</li>
+                    <li>What stands out to you</li>
+                  </ul>
+                </div>
               </div>
 
               <button
                 onClick={goToNextStep}
                 className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
               >
-                Ready for Star 1 →
+                I Listened →
               </button>
             </div>
           )}

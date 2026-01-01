@@ -414,7 +414,7 @@ const WildlifeReflectionModal = ({
             {currentStep === 1 && "Choose Review Type"}
             {currentStep === 2 && "🎯 Confidence Check"}
             {currentStep === 3 && "🏷️ Mark Your Highlights"}
-            {currentStep === 4 && "Listen & Share"}
+            {currentStep === 4 && (reflectionData.reviewType === 'self' ? "🎧 Listen" : `🎧 Listen to ${reflectionData.partnerName}'s Composition`)}
             {currentStep === 5 && "⭐ Star 1"}
             {currentStep === 6 && "⭐ Star 2"}
             {currentStep === 7 && "✨ Wish"}
@@ -586,45 +586,31 @@ const WildlifeReflectionModal = ({
           </div>
         )}
 
-        {/* STEP 4: Listen & Share */}
+        {/* STEP 4: Listen */}
         {currentStep === 4 && (
           <div className="space-y-4">
-            <div className="text-center mb-4">
-              <div className="text-5xl mb-2">🎧</div>
-              <h3 className="font-bold text-gray-900">Listen & Share</h3>
-            </div>
-
-            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-              {reflectionData.reviewType === 'self' ? (
-                <div className="space-y-3 text-sm text-gray-700">
-                  <p><strong>Listen to your entire composition.</strong></p>
-                  <p>Pay attention to:</p>
-                  <ul className="list-disc pl-5 space-y-1">
-                    <li>How you used sectional form (Intro, A, A', Outro)</li>
-                    <li>How the music matched the wildlife footage</li>
-                    <li>The overall mood and texture changes</li>
-                  </ul>
-                </div>
-              ) : (
-                <div className="space-y-3 text-sm text-gray-700">
-                  <p><strong>1. Share your score</strong> with {reflectionData.partnerName}</p>
-                  <p><strong>2. Listen to {reflectionData.partnerName}'s composition</strong></p>
-                  <p>Pay attention to their sectional form, mood matching, and texture.</p>
-                </div>
-              )}
-            </div>
-
-            <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-              <p className="text-sm text-gray-700">
-                👆 <strong>Press play on the composition</strong> behind this panel to listen!
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <p className="text-lg font-bold text-gray-800 mb-2">
+                {reflectionData.reviewType === 'self'
+                  ? '🎧 Listen to Your Composition'
+                  : `🎧 Listen to ${reflectionData.partnerName}'s Composition`
+                }
               </p>
+              <div className="text-gray-700 space-y-2">
+                <p className="font-semibold">Pay attention to:</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>How the loops work together</li>
+                  <li>The overall mood and feel</li>
+                  <li>What stands out to you</li>
+                </ul>
+              </div>
             </div>
 
             <button
               onClick={() => setCurrentStep(5)}
               className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition-all"
             >
-              I've Listened → Continue
+              I Listened →
             </button>
           </div>
         )}

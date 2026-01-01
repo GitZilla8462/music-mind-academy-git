@@ -406,7 +406,7 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
             {currentStep === 1 && "Choose Review Type"}
             {currentStep === 2 && "🎯 Confidence Check"}
             {currentStep === 3 && "🏷️ Mark Your Highlights"}
-            {currentStep === 4 && "Listen & Share"}
+            {currentStep === 4 && (reflectionData.reviewType === 'self' ? "🎧 Listen" : `🎧 Listen to ${reflectionData.partnerName}'s Composition`)}
             {currentStep === 5 && "⭐ Star 1"}
             {currentStep === 6 && "⭐ Star 2"}
             {currentStep === 7 && "✨ Wish"}
@@ -581,73 +581,32 @@ const SportsReflectionModal = ({ compositionData, onComplete, viewMode = false, 
           </div>
         )}
 
-        {/* STEP 4: Listen & Share */}
+        {/* STEP 4: Listen */}
         {currentStep === 4 && (
           <div className="space-y-4">
-            <div className="text-center mb-4">
-              <h3 className="font-bold text-gray-900">
-                {reflectionData.reviewType === 'self' 
-                  ? '🎧 Listen to Your Composition' 
-                  : '🔄 Share & Listen'
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <p className="text-lg font-bold text-gray-800 mb-2">
+                {reflectionData.reviewType === 'self'
+                  ? '🎧 Listen to Your Composition'
+                  : `🎧 Listen to ${reflectionData.partnerName}'s Composition`
                 }
-              </h3>
+              </p>
+              <div className="text-gray-700 space-y-2">
+                <p className="font-semibold">Pay attention to:</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>How the loops work together</li>
+                  <li>The overall mood and feel</li>
+                  <li>What stands out to you</li>
+                </ul>
+              </div>
             </div>
 
-            {reflectionData.reviewType === 'self' ? (
-              <div className="space-y-4">
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <p className="text-gray-700 mb-3">
-                    Listen to your entire sports composition from beginning to end.
-                  </p>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="font-semibold text-gray-800">Pay attention to:</div>
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>How many layers you used and when</li>
-                      <li>How the music matched the sports action</li>
-                      <li>The overall energy and excitement</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setCurrentStep(5)}
-                  className="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700"
-                >
-                  Continue to Reflection →
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
-                  <div className="font-semibold text-gray-900 mb-2">📤 First: Share your score</div>
-                  <p className="text-sm text-gray-700">
-                    Share your score with {reflectionData.partnerName} so they can see and hear your work.
-                  </p>
-                </div>
-
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <div className="font-semibold text-gray-900 mb-2">🎧 Then: Listen</div>
-                  <p className="text-gray-700 mb-3">
-                    Listen to {reflectionData.partnerName}'s entire sports composition.
-                  </p>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="font-semibold text-gray-800">Pay attention to:</div>
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>How many layers they used and when</li>
-                      <li>How the music matched the sports action</li>
-                      <li>The overall energy and excitement</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setCurrentStep(5)}
-                  className="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700"
-                >
-                  Continue to Reflection →
-                </button>
-              </div>
-            )}
+            <button
+              onClick={() => setCurrentStep(5)}
+              className="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700"
+            >
+              I Listened →
+            </button>
           </div>
         )}
 
