@@ -7,6 +7,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Star, ChevronRight, ChevronLeft, Check, Sparkles, Volume2, VolumeX, Minimize2, Maximize2, CheckCircle, Smile, X } from 'lucide-react';
 import { saveReflection, getReflection } from '../../../film-music-project/lesson3/lesson3StorageUtils';
 
+// Chromebook detection for cursor handling
+const isChromebook = typeof navigator !== 'undefined' && (
+  /CrOS/.test(navigator.userAgent) ||
+  (navigator.userAgentData?.platform === 'Chrome OS')
+);
+
 const WildlifeReflectionModal = ({
   compositionData,
   onComplete,
@@ -399,7 +405,7 @@ const WildlifeReflectionModal = ({
         </div>
       )}
 
-      <div data-reflection-modal className="fixed top-4 left-4 z-[100] w-96 max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-green-200 chromebook-hide-cursor">
+      <div data-reflection-modal className={`fixed top-4 left-4 z-[100] w-96 max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-green-200 ${isChromebook ? 'chromebook-hide-cursor' : ''}`}>
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-4 py-3 rounded-t-xl flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
