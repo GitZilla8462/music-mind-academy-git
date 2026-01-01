@@ -129,21 +129,12 @@ const StageBackground = ({ theme = 'space', children }) => {
         return (
           <>
             <div className={styles.sun} />
-            <div className={styles.birds}>
-              <div className={`${styles.bird} ${styles.bird1}`} />
-              <div className={`${styles.bird} ${styles.bird2}`} />
-              <div className={`${styles.bird} ${styles.bird3}`} />
-            </div>
+            <div className={styles.sunsetGlow} />
           </>
         );
 
       case 'volcano':
-        return (
-          <>
-            <div className={styles.lavaGlow} />
-            <div className={styles.lavaSplash} />
-          </>
-        );
+        return null;
 
       case 'haunted':
         return (
@@ -201,16 +192,7 @@ const StageBackground = ({ theme = 'space', children }) => {
         );
 
       case 'jungle':
-        return (
-          <>
-            <div className={styles.jungleCanopy} />
-            <div className={styles.jungleVines}>
-              <div className={`${styles.vine} ${styles.vine1}`} />
-              <div className={`${styles.vine} ${styles.vine2}`} />
-              <div className={`${styles.vine} ${styles.vine3}`} />
-            </div>
-          </>
-        );
+        return null;
 
       case 'storm':
         return (
