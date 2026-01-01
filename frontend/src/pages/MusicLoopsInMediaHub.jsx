@@ -136,20 +136,18 @@ const MusicLoopsInMediaHub = () => {
       route: '/lessons/film-music-project/lesson2',
       available: true,
       hasLessonPlan: true,
-      inThisLesson: 'Students visualize how layers create texture using a listening map, then build their own rich city soundscape.',
+      inThisLesson: 'Students learn how layers create texture through the sandwich analogy, practice identifying layers in Layer Detective, then compose their own city soundscape.',
       studentsWill: [
-        'Understand thin vs. thick musical texture',
-        'Create a visual listening map while listening',
+        'Understand thin vs. thick musical texture (sandwich analogy)',
+        'Identify the number of layers in music (Layer Detective game)',
         'Build layered compositions for city footage'
       ],
       activities: [
-        { title: 'Introduction', description: 'What city have you visited?', time: 2 },
-        { title: 'Texture Concept', description: 'Layers create thick/thin sound (sandwich analogy)', time: 6 },
-        { title: 'Listening Map Video', description: 'How to visualize texture', time: 2 },
-        { title: 'Listening Map Activity', description: 'Draw while listening to music', time: 8, activityType: 'listening-map' },
-        { title: 'Composition', description: 'Create a city soundscape with 5+ layers', time: 10, activityType: 'city-composition-activity' },
-        { title: 'Two Stars and a Wish', description: 'Reflect on your layers', time: 3, activityType: 'two-stars-wish' },
-        { title: 'Discussion', description: 'What is texture? Compare compositions', time: 2 }
+        { title: 'Introduction', description: 'Texture concept with sandwich analogy', time: 5 },
+        { title: 'Layer Detective', description: 'Class game: Count layers, earn points!', time: 5, activityType: 'layer-detective' },
+        { title: 'Composition', description: 'Create a city soundscape with 5+ layers', time: 12, activityType: 'city-composition-activity' },
+        { title: 'Two Stars and a Wish', description: 'Reflect on your layers', time: 6, activityType: 'two-stars-wish' },
+        { title: 'Robot Melody Maker', description: 'Create loops and watch your robot dance', time: 10, activityType: 'robot-melody-maker', isBonus: true }
       ]
     },
     // Lesson 3: Form/Structure (Epic Wildlife)
