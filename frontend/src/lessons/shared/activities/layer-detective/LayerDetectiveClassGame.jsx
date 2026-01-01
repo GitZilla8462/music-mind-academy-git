@@ -9,7 +9,7 @@
 // 5. Next/Finished
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Users, Trophy, Eye, RotateCcw, ChevronRight } from 'lucide-react';
+import { Play, Pause, Users, Trophy, Eye, RotateCcw, ChevronRight } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
 
 // ============ QUESTIONS DATA ============
@@ -240,6 +240,13 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
   const playAudio = useCallback(() => {
     if (!shuffledQuestions[currentQuestion]) return;
 
+    // If already playing, pause instead
+    if (isPlaying) {
+      audioRefs.current.forEach(a => a.pause());
+      setIsPlaying(false);
+      return;
+    }
+
     // Play the audio
     playAudioOnly();
 
@@ -253,7 +260,7 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
       playStartTime: Date.now(),
       questionData: { layers: shuffledQuestions[currentQuestion].layers }
     });
-  }, [shuffledQuestions, currentQuestion, playAudioOnly, updateGame]);
+  }, [shuffledQuestions, currentQuestion, playAudioOnly, updateGame, isPlaying]);
 
   // ============ GAME FLOW ============
   const startGame = useCallback(() => {
@@ -492,9 +499,13 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
 
                 <button
                   onClick={playAudio}
-                  className="px-10 py-5 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-3xl font-bold flex items-center gap-3 mx-auto hover:scale-105 transition-all"
+                  className={`px-10 py-5 rounded-2xl text-3xl font-bold flex items-center gap-3 mx-auto hover:scale-105 transition-all ${
+                    isPlaying
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500'
+                      : 'bg-gradient-to-r from-green-500 to-teal-500'
+                  }`}
                 >
-                  <Play size={40} /> Play Audio
+                  {isPlaying ? <><Pause size={40} /> Pause</> : <><Play size={40} /> Play Audio</>}
                 </button>
               </div>
             )}
@@ -533,9 +544,13 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
                 <div className="flex gap-4 justify-center">
                   <button
                     onClick={playAudio}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-2xl text-xl font-bold flex items-center gap-2"
+                    className={`px-6 py-3 rounded-2xl text-xl font-bold flex items-center gap-2 ${
+                      isPlaying
+                        ? 'bg-orange-600 hover:bg-orange-700'
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
                   >
-                    <RotateCcw size={24} /> Replay
+                    {isPlaying ? <><Pause size={24} /> Pause</> : <><RotateCcw size={24} /> Replay</>}
                   </button>
                   <button
                     onClick={reveal}
