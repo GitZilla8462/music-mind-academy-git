@@ -274,7 +274,7 @@ const LessonPlan3PDF = () => {
           {/* Sectional Loop Builder Game */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-purple-50 p-2 rounded">
-              4. Sectional Loop Builder Game <span className="font-normal text-gray-600">— (10 min)</span>
+              4. Sectional Loop Builder Game <span className="font-normal text-gray-600">— (7 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -291,7 +291,7 @@ const LessonPlan3PDF = () => {
                   <td className="border p-2">"Listen to each clip and identify which section is playing!"</td>
                 </tr>
                 <tr className="bg-green-50">
-                  <td className="border p-2">8 min</td>
+                  <td className="border p-2">5 min</td>
                   <td className="border p-2 font-medium">🎮 Sectional Loop Builder</td>
                   <td className="border p-2">
                     <strong>STUDENTS PLAY:</strong> Identify sections by ear<br/>
@@ -311,7 +311,7 @@ const LessonPlan3PDF = () => {
           {/* Composition */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-green-50 p-2 rounded">
-              5. Composition <span className="font-normal text-gray-600">— Wildlife Documentary Score (15 min)</span>
+              5. Composition <span className="font-normal text-gray-600">— Wildlife Documentary Score (12 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -328,7 +328,7 @@ const LessonPlan3PDF = () => {
                   <td className="border p-2">Show composition requirements. "Create a score with clear sections!"</td>
                 </tr>
                 <tr className="bg-green-50">
-                  <td className="border p-2">13 min</td>
+                  <td className="border p-2">10 min</td>
                   <td className="border p-2 font-medium">🎮 Wildlife Composition</td>
                   <td className="border p-2">
                     <strong>STUDENTS WORK:</strong> Create epic wildlife score<br/>
@@ -343,7 +343,7 @@ const LessonPlan3PDF = () => {
           {/* Reflection */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-amber-50 p-2 rounded">
-              6. Reflection <span className="font-normal text-gray-600">— Two Stars and a Wish (5 min)</span>
+              6. Reflection <span className="font-normal text-gray-600">— Two Stars and a Wish (6 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -354,38 +354,17 @@ const LessonPlan3PDF = () => {
                 </tr>
               </thead>
               <tbody>
+                <tr>
+                  <td className="border p-2">1 min</td>
+                  <td className="border p-2 font-medium">Instructions</td>
+                  <td className="border p-2">Explain the Two Stars and a Wish prompts</td>
+                </tr>
                 <tr className="bg-green-50">
                   <td className="border p-2">5 min</td>
                   <td className="border p-2 font-medium">🎮 Two Stars and a Wish</td>
                   <td className="border p-2">
                     <strong>STUDENTS WORK:</strong> Reflect on structure choices<br/>
                     What section is strongest? What would you change?
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Bonus Activity */}
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-pink-50 p-2 rounded">
-              ⭐ Bonus Activity <span className="font-normal text-gray-600">— Robot Melody Maker (8 min)</span>
-            </h3>
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border p-2 text-left w-16">Time</th>
-                  <th className="border p-2 text-left w-48">Activity</th>
-                  <th className="border p-2 text-left">What to Say/Do</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="bg-pink-50">
-                  <td className="border p-2">8 min</td>
-                  <td className="border p-2 font-medium">🤖 Robot Melody Maker</td>
-                  <td className="border p-2">
-                    <strong>BONUS:</strong> Create loops and watch your robot dance!<br/>
-                    <em className="text-pink-700">Use if time allows or for fast finishers</em>
                   </td>
                 </tr>
               </tbody>

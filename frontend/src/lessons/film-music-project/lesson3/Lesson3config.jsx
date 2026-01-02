@@ -246,13 +246,6 @@ export const lesson3Config = {
       type: "two-stars-wish",
       title: "Reflection Activity",
       estimatedTime: "5 min"
-    },
-    {
-      id: 5,
-      type: "robot-melody-maker",
-      title: "Robot Melody Maker",
-      estimatedTime: "8 min",
-      isBonus: true
     }
   ]
 };
