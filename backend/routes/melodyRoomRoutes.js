@@ -71,11 +71,19 @@ router.get('/:code', async (req, res) => {
   }
 });
 
-// Update melody room (general update)
+// Update melody room (general update) - whitelist allowed fields for security
 router.put('/:code', async (req, res) => {
   try {
     const code = req.params.code.toUpperCase();
-    const updates = req.body;
+
+    // Only allow specific fields to be updated (prevents field injection)
+    const allowedFields = ['mode', 'concept', 'ending', 'melodies', 'status', 'readyPlayers', 'activeScenes', 'creatorIndex'];
+    const updates = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    }
 
     const room = await MelodyRoom.findOneAndUpdate(
       { code },

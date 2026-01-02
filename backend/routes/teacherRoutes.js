@@ -64,7 +64,4 @@ router.put('/submissions/:submissionId/grade', auth.authenticateToken, auth.requ
 // Route to update a student's submission status
 router.put('/submissions/:submissionId/status', auth.authenticateToken, auth.requireTeacher, teacherController.updateSubmissionStatus);
 
-// Fix routes for oboe889 student
-router.post('/direct-fix-oboe', teacherController.directFixOboe);
-
 module.exports = router;

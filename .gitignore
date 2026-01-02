@@ -10,3 +10,4 @@ dist/
 .vscode/
 backend/data/
 backend/public/projects/film-music-score/audio-backups-*/
+*.har
