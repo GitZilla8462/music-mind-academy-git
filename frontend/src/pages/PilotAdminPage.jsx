@@ -776,8 +776,14 @@ const PilotAdminPage = () => {
 
                 const totalStudents = sessions.reduce((sum, s) => sum + s.students, 0);
                 const totalTime = sessions.reduce((sum, s) => sum + s.duration, 0);
-                const hasCompleted = sessions.some(s => s.completed);
                 const sessionCount = sessions.length;
+
+                // Only count as "completed" if: completed + 10+ students + 15+ minutes
+                const MIN_STUDENTS = 10;
+                const MIN_DURATION = 15 * 60 * 1000; // 15 minutes in ms
+                const hasCompleted = sessions.some(s =>
+                  s.completed && s.students >= MIN_STUDENTS && s.duration >= MIN_DURATION
+                );
 
                 return (
                   <td className="px-2 py-2 relative">
@@ -886,14 +892,14 @@ const PilotAdminPage = () => {
                   </table>
 
                   {/* Legend */}
-                  <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center gap-6 text-xs text-gray-500">
+                  <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center gap-4 text-xs text-gray-500">
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-1 bg-green-100 text-green-800 rounded">✓ 25</span>
-                      <span>= Completed with 25 students</span>
+                      <span>= Completed (10+ students, 15+ min)</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded">⏳ 15</span>
-                      <span>= In progress / partial</span>
+                      <span>= Test run / partial</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-gray-300">—</span>
@@ -901,7 +907,7 @@ const PilotAdminPage = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="bg-purple-50 px-2 py-1 rounded">L3</span>
-                      <span>= Mid-pilot survey</span>
+                      <span>= Survey needed</span>
                     </div>
                   </div>
                 </div>
