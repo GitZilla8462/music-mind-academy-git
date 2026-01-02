@@ -132,7 +132,7 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
       // Joiner is always Player 1 (or higher for trio)
       // The creator is Player 0, so anyone joining is at least Player 1
       const modeConfig = MODES[room.mode || selectedMode];
-      const locksPerPerson = modeConfig?.perPerson || 3;
+      const locksPerPerson = modeConfig?.perPerson || 5;
 
       // Count how many players have contributed locks
       const playersThatHaveContributed = new Set();

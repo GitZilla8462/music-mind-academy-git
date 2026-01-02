@@ -11,12 +11,28 @@ export const useComposerState = (preselectedVideo) => {
   const [selectedVideo, setSelectedVideo] = useState(preselectedVideo);
 
   // Sync selectedVideo when preselectedVideo prop changes (e.g., duration detected later)
+  // Also sync when the entire preselectedVideo object changes (new video selected)
   useEffect(() => {
-    if (preselectedVideo?.duration && preselectedVideo.duration !== selectedVideo?.duration) {
-      console.log('📹 Updating selectedVideo duration:', preselectedVideo.duration);
+    if (!preselectedVideo) return;
+
+    // Sync if:
+    // 1. Duration changed (detected later)
+    // 2. Video ID changed (different video selected)
+    // 3. selectedVideo is null but preselectedVideo exists
+    const shouldSync = (
+      (preselectedVideo.duration && preselectedVideo.duration !== selectedVideo?.duration) ||
+      (preselectedVideo.id && preselectedVideo.id !== selectedVideo?.id) ||
+      (!selectedVideo && preselectedVideo)
+    );
+
+    if (shouldSync) {
+      console.log('📹 Syncing selectedVideo:', {
+        from: { id: selectedVideo?.id, duration: selectedVideo?.duration },
+        to: { id: preselectedVideo.id, duration: preselectedVideo.duration }
+      });
       setSelectedVideo(preselectedVideo);
     }
-  }, [preselectedVideo?.duration]);
+  }, [preselectedVideo?.duration, preselectedVideo?.id, selectedVideo?.id, selectedVideo?.duration]);
   const [placedLoops, setPlacedLoops] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedLoop, setSelectedLoop] = useState(null);

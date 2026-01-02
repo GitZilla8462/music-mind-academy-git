@@ -183,8 +183,8 @@ export const assignmentPanels = {
 // ========================================
 export const beatMakerContent = {
   instructions: {
-    title: "Build Your Beat",
-    text: "Add a kick, snare, hi-hat, and open hi-hat to make a drum pattern. This pattern can be used in your composition for today."
+    title: "Next you will make your own beat",
+    text: "Add a kick, snare, hi-hat, and open hi-hat to make a drum pattern."
   },
 
   drumDescriptions: {

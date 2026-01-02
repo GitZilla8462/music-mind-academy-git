@@ -39,7 +39,7 @@ const VIDEO_CONFIGS = [
 const VIDEO_DURATION = 10;
 const MESSAGE_DURATION = 2500;
 
-const VideoHookComparison = () => {
+const VideoHookComparison = ({ onAdvance }) => {
   const [phase, setPhase] = useState('intro');
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -362,20 +362,19 @@ const VideoHookComparison = () => {
 
       {/* DONE SCREEN */}
       {phase === 'done' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-700 to-teal-900">
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
           <div className="text-center">
-            <div className="text-[180px] mb-8">🎉</div>
-            <h2 className="text-8xl font-black text-white mb-8 tracking-tight">
-              All Done!
-            </h2>
-            <p className="text-5xl text-emerald-100 mb-14 font-medium">
-              Did you hear how the beat<br />changed the energy?
-            </p>
+            <button
+              onClick={onAdvance}
+              className="px-16 py-8 bg-emerald-500 hover:bg-emerald-600 rounded-2xl text-white font-black text-5xl shadow-2xl transition-all hover:scale-105"
+            >
+              Advance →
+            </button>
             <button
               onClick={handleRestart}
-              className="px-14 py-6 bg-white/20 hover:bg-white/30 rounded-2xl text-white font-bold text-4xl transition-all border-2 border-white/30"
+              className="block mx-auto mt-8 text-white/60 hover:text-white text-2xl underline transition-colors"
             >
-              Watch Again
+              or watch again
             </button>
           </div>
         </div>

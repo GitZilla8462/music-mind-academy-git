@@ -1,0 +1,42 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="192" y="150" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">WHAT IS BPM?</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="180" width="400" height="3" fill="#a5b4fc" opacity="0.5"/>
+
+  <!-- Subtitle -->
+  <text x="192" y="260" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#a5b4fc" font-weight="bold">Beats Per Minute</text>
+
+  <!-- Definition -->
+  <text x="192" y="380" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#e2e8f0">BPM = how many beats happen in one minute</text>
+
+  <!-- Example -->
+  <text x="192" y="480" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#e2e8f0">60 BPM = one beat per second (like a clock ticking)</text>
+
+  <!-- Speed explanation -->
+  <text x="192" y="580" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#22c55e">Higher BPM = faster music</text>
+  <text x="900" y="580" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#f59e0b">Slower BPM = slower music</text>
+
+  <!-- Sync explanation -->
+  <text x="192" y="720" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#e2e8f0">All loops in your project share the same BPM by mood -</text>
+  <text x="192" y="780" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#e2e8f0">that's why they sync up!</text>
+
+  <!-- Example callout -->
+  <rect x="192" y="840" width="1000" height="70" rx="12" fill="#8b5cf6" opacity="0.3"/>
+  <text x="220" y="888" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#c4b5fd">Example: Every loop in the Upbeat category is set to 127 BPM</text>
+</svg>

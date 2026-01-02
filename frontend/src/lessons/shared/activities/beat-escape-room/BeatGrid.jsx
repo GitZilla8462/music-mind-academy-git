@@ -68,6 +68,9 @@ const BeatGrid = ({
       ? targetPattern[instrument.id][beatIndex]
       : isActive;
 
+    // For revealed rows, check if this cell should NOT be active (show red X)
+    const isRevealedAsOff = isRevealed && targetPattern && !targetPattern[instrument.id][beatIndex] && isAllowed;
+
     const cellSize = size === 'large' ? 'w-16 h-16' : 'w-12 h-12';
     const instrumentColor = theme.colors[instrument.id] || instrument.color;
 
@@ -104,6 +107,15 @@ const BeatGrid = ({
               }}
             />
           )}
+          {/* Red X for revealed cells that should be OFF */}
+          {isRevealedAsOff && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <svg className="w-full h-full p-1" viewBox="0 0 24 24" stroke="#ef4444" strokeWidth="3" strokeLinecap="round">
+                <line x1="4" y1="4" x2="20" y2="20" />
+                <line x1="20" y1="4" x2="4" y2="20" />
+              </svg>
+            </div>
+          )}
         </button>
       );
     }
@@ -115,7 +127,7 @@ const BeatGrid = ({
         disabled={disabled || !isAllowed || isRevealed}
         onClick={() => handleCellClick(instrument.id, beatIndex)}
         className={`
-          ${cellSize} rounded-lg relative
+          ${cellSize} rounded-lg relative flex items-center justify-center
           ${!isChromebook ? 'transition-colors duration-150' : ''}
           ${!isAllowed ? 'cursor-not-allowed' : 'cursor-pointer'}
           ${!isChromebook && isAllowed ? 'hover:scale-105' : ''}
@@ -132,6 +144,29 @@ const BeatGrid = ({
         {/* X mark for disabled cells */}
         {!isAllowed && showConstraints && (
           <span className="text-gray-600 text-lg font-bold">×</span>
+        )}
+        {/* Red X for revealed cells that should be OFF - styled to match game theme */}
+        {isRevealedAsOff && (
+          <svg
+            className="absolute w-full h-full p-1.5 pointer-events-none"
+            viewBox="0 0 24 24"
+            style={{ filter: 'drop-shadow(0 0 4px rgba(239, 68, 68, 0.8))' }}
+          >
+            <line
+              x1="4" y1="4" x2="20" y2="20"
+              stroke="#ef4444"
+              strokeWidth="3"
+              strokeLinecap="round"
+              style={{ filter: 'drop-shadow(0 0 2px #ef4444)' }}
+            />
+            <line
+              x1="20" y1="4" x2="4" y2="20"
+              stroke="#ef4444"
+              strokeWidth="3"
+              strokeLinecap="round"
+              style={{ filter: 'drop-shadow(0 0 2px #ef4444)' }}
+            />
+          </svg>
         )}
       </button>
     );

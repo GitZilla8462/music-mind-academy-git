@@ -34,10 +34,11 @@ const BeatEscapeRoomCollabCreator = ({
   const prevStageRef = useRef(currentStage);
   const theme = THEMES[themeId] || THEMES['space-station'];
 
-  // Get which locks belong to this player
+  // Get which locks belong to this player (uses MODES config)
   const myLocks = useMemo(() => {
     if (mode === 'partner') {
-      return playerIndex === 0 ? [1, 3, 5] : [2, 4, 6];
+      // Partner mode: 10 locks total, 5 each
+      return playerIndex === 0 ? [1, 3, 5, 7, 9] : [2, 4, 6, 8, 10];
     } else if (mode === 'trio') {
       if (playerIndex === 0) return [1, 4, 7];
       if (playerIndex === 1) return [2, 5, 8];
@@ -46,7 +47,7 @@ const BeatEscapeRoomCollabCreator = ({
     return [1, 2, 3, 4, 5, 6]; // solo - all locks
   }, [mode, playerIndex]);
 
-  const totalLocks = mode === 'trio' ? 9 : 6;
+  const totalLocks = MODES[mode]?.totalLocks || 6;
 
   // Count completed locks
   const myCompletedCount = useMemo(() => {
@@ -495,9 +496,9 @@ const BeatEscapeRoomCollabCreator = ({
           </div>
         </div>
 
-        {/* Lock Grid - Big touch targets for Chromebooks */}
-        <div className="flex-1 flex flex-col items-center justify-center pb-48">
-          <div className="grid grid-cols-3 gap-3 w-full max-w-md">
+        {/* Lock Grid - Compact layout for Chromebooks (5 columns, 2 rows) */}
+        <div className="flex-1 flex flex-col items-center justify-center pb-40 px-2">
+          <div className="grid grid-cols-5 gap-2 w-full max-w-2xl">
             {Array.from({ length: totalLocks }, (_, i) => i + 1).map(lockNumber => {
               const isMyLock = myLocks.includes(lockNumber);
               const pattern = room?.patterns?.[lockNumber];
@@ -513,7 +514,7 @@ const BeatEscapeRoomCollabCreator = ({
                   onClick={() => handleLockClick(lockNumber)}
                   disabled={!isMyLock}
                   className={`
-                    aspect-square min-h-[90px] rounded-xl flex flex-col items-center justify-center
+                    aspect-square min-h-[70px] max-h-[100px] rounded-lg flex flex-col items-center justify-center
                     transition-all touch-manipulation border-2
                     ${isMyLock
                       ? isComplete
@@ -528,27 +529,26 @@ const BeatEscapeRoomCollabCreator = ({
                   `}
                   style={{ fontFamily: theme.font?.family }}
                 >
-                  <span className="text-lg font-bold text-white">Lock {lockNumber}</span>
-                  <span className="text-xs text-white/80 mt-1 flex items-center gap-1">
+                  <span className="text-base font-bold text-white">{lockNumber}</span>
+                  <span className="text-[10px] text-white/80 mt-0.5 flex items-center gap-0.5">
                     {isComplete ? (
                       <>
-                        <Check size={14} />
+                        <Check size={10} />
                         Done
                       </>
                     ) : partnerEditing ? (
                       <>
-                        <Loader size={14} className="animate-spin" />
-                        Partner...
+                        <Loader size={10} className="animate-spin" />
+                        ...
                       </>
                     ) : isMyLock ? (
                       <>
-                        <Edit3 size={14} />
-                        Tap to edit
+                        <Edit3 size={10} />
+                        Edit
                       </>
                     ) : (
                       <>
-                        <Lock size={14} />
-                        Partner's
+                        <Lock size={10} />
                       </>
                     )}
                   </span>

@@ -60,9 +60,9 @@ export const MODES = {
     id: 'partner',
     label: 'Partner',
     icon: '🧑‍🤝‍🧑',
-    totalLocks: 6,
-    perPerson: 3,
-    description: '3 locks each',
+    totalLocks: 10,
+    perPerson: 5,
+    description: '5 locks each',
     players: 2
   }
 };
@@ -73,8 +73,8 @@ export const getLockAssignments = (mode, playerIndex = 0) => {
       return [1, 2, 3, 4, 5, 6];
     case 'partner':
       return playerIndex === 0
-        ? [1, 3, 5]  // Player A: odd locks
-        : [2, 4, 6]; // Player B: even locks
+        ? [1, 3, 5, 7, 9]    // Player A: odd locks (1-9)
+        : [2, 4, 6, 8, 10];  // Player B: even locks (2-10)
     default:
       return [1, 2, 3, 4, 5, 6];
   }

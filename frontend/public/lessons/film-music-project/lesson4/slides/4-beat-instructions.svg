@@ -22,11 +22,15 @@
   <!-- Subtitle -->
   <text x="192" y="260" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Directions</text>
 
-  <!-- Main instruction -->
-  <text x="192" y="400" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">Add a kick, snare, hi-hat, and open hi-hat to make a drum pattern.</text>
+  <!-- Direction 1 -->
+  <text x="192" y="380" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">1. Next you will make your own beat</text>
 
-  <text x="192" y="500" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">This pattern can be used in your composition for today.</text>
+  <!-- Direction 2 -->
+  <text x="192" y="480" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">2. Add a kick, snare, hi-hat, and open hi-hat to make a drum pattern.</text>
+
+  <!-- Direction 3 -->
+  <text x="192" y="580" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">3. This pattern can be used in your composition for today.</text>
 
   <!-- Duration -->
-  <text x="192" y="700" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">8 minutes</text>
+  <text x="192" y="750" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">8 minutes</text>
 </svg>

@@ -85,7 +85,7 @@ const TUTORIAL_STEPS = [
   }
 ];
 
-const BeatBuilderDemo = () => {
+const BeatBuilderDemo = ({ onAdvance }) => {
   const [tutorialStep, setTutorialStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentBeat, setCurrentBeat] = useState(-1);
@@ -448,19 +448,24 @@ const BeatBuilderDemo = () => {
             )}
           </button>
 
-          {/* Next */}
-          <button
-            onClick={handleNextStep}
-            disabled={tutorialStep === TUTORIAL_STEPS.length - 1}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-base transition-all ${
-              tutorialStep === TUTORIAL_STEPS.length - 1
-                ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
-                : 'bg-purple-600 hover:bg-purple-500 text-white'
-            }`}
-          >
-            Next
-            <ArrowRight size={20} />
-          </button>
+          {/* Next / Advance */}
+          {tutorialStep === TUTORIAL_STEPS.length - 1 ? (
+            <button
+              onClick={onAdvance}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-base transition-all bg-emerald-500 hover:bg-emerald-600 text-white"
+            >
+              Advance
+              <ArrowRight size={20} />
+            </button>
+          ) : (
+            <button
+              onClick={handleNextStep}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-base transition-all bg-purple-600 hover:bg-purple-500 text-white"
+            >
+              Next
+              <ArrowRight size={20} />
+            </button>
+          )}
         </div>
       </div>
 

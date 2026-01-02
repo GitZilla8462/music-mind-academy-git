@@ -38,6 +38,10 @@ const Timeline = ({
   // NEW: Track if audio players are ready
   playersReady = true
 }) => {
+  // Debug: Log duration when it changes
+  React.useEffect(() => {
+    console.log('🎬 Timeline duration:', duration, `(${Math.floor(duration / 60)}:${String(Math.floor(duration % 60)).padStart(2, '0')})`);
+  }, [duration]);
   // Refs for timeline elements
   const timelineRef = useRef(null);
   const timelineScrollRef = useRef(null);

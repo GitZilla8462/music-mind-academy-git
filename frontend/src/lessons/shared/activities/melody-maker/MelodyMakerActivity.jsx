@@ -140,36 +140,40 @@ const INSTRUMENTS = {
   }
 };
 
-// Preset melody patterns (for 8 beats)
+// Preset melody patterns (for 8 beats) - ONE note per beat only
 const PRESETS = {
   ascending: {
     name: 'Ascending',
+    // Row 0 = A4 (highest), Row 4 = C4 (lowest)
+    // Goes C -> D -> E -> G -> A -> G -> E -> D (up then back down)
     pattern: [
-      [false, false, false, false, true, false, false, true],
-      [false, false, false, true, false, false, true, false],
-      [false, false, true, false, false, true, false, false],
-      [false, true, false, false, true, false, false, false],
-      [true, false, false, true, false, false, false, false],
+      [false, false, false, false, true, false, false, false],  // A4 on beat 5
+      [false, false, false, true, false, true, false, false],   // G4 on beats 4, 6
+      [false, false, true, false, false, false, true, false],   // E4 on beats 3, 7
+      [false, true, false, false, false, false, false, true],   // D4 on beats 2, 8
+      [true, false, false, false, false, false, false, false],  // C4 on beat 1
     ]
   },
   descending: {
     name: 'Descending',
+    // Goes A -> G -> E -> D -> C -> D -> E -> G (down then back up)
     pattern: [
-      [true, false, false, true, false, false, false, false],
-      [false, true, false, false, true, false, false, false],
-      [false, false, true, false, false, true, false, false],
-      [false, false, false, true, false, false, true, false],
-      [false, false, false, false, true, false, false, true],
+      [true, false, false, false, false, false, false, false],  // A4 on beat 1
+      [false, true, false, false, false, false, false, true],   // G4 on beats 2, 8
+      [false, false, true, false, false, false, true, false],   // E4 on beats 3, 7
+      [false, false, false, true, false, true, false, false],   // D4 on beats 4, 6
+      [false, false, false, false, true, false, false, false],  // C4 on beat 5
     ]
   },
   arch: {
     name: 'Arch',
+    // Goes C -> E -> G -> A -> A -> G -> E -> C (up to peak then down)
     pattern: [
-      [false, false, false, true, true, false, false, false],
-      [false, false, true, false, false, true, false, false],
-      [false, true, false, false, false, false, true, false],
-      [true, false, false, false, false, false, false, true],
-      [false, false, false, false, false, false, false, false],
+      [false, false, false, true, true, false, false, false],   // A4 on beats 4, 5
+      [false, false, true, false, false, true, false, false],   // G4 on beats 3, 6
+      [false, true, false, false, false, false, true, false],   // E4 on beats 2, 7
+      [false, false, false, false, false, false, false, false], // D4 (none)
+      [true, false, false, false, false, false, false, true],   // C4 on beats 1, 8
     ]
   }
 };

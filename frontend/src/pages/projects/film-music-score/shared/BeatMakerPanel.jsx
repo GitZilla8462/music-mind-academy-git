@@ -103,6 +103,39 @@ const PRESETS = {
       [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false], // clap
       [false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false] // openhat
     ]
+  },
+  trap: {
+    name: 'Trap',
+    // Rolling hi-hats, syncopated kicks, snappy snares - modern hip-hop sound
+    pattern: [
+      [true, false, false, false, false, true, false, false, true, false, false, false, true, false, false, false], // kick: 1, 6, 9, 13
+      [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false], // snare: 5, 13
+      [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true], // hihat: every step (rolling)
+      [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false], // clap: 5, 13
+      [false, false, false, false, false, false, true, false, false, false, false, false, false, false, true, false] // openhat: 7, 15
+    ]
+  },
+  disco: {
+    name: 'Disco',
+    // Four-on-the-floor with open hi-hats on offbeats for bouncy feel
+    pattern: [
+      [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false], // kick: every beat (1, 5, 9, 13)
+      [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false], // snare: 5, 13
+      [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false], // hihat: on beats
+      [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], // clap: none
+      [false, false, true, false, false, false, true, false, false, false, true, false, false, false, true, false] // openhat: offbeats (3, 7, 11, 15)
+    ]
+  },
+  halftime: {
+    name: 'Half-Time',
+    // Spacious, dramatic feel - snare on beat 3 only, great for epic/cinematic
+    pattern: [
+      [true, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false], // kick: 1, 9
+      [false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false], // snare: 9 (beat 3)
+      [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false], // hihat: sparse (1, 5, 9, 13)
+      [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], // clap: none
+      [false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false] // openhat: 13 for accent
+    ]
   }
 };
 
@@ -170,7 +203,7 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
   const [steps, setSteps] = useState(16);
   const [grid, setGrid] = useState(() => INSTRUMENTS.map(() => Array(16).fill(false)));
   const [kit, setKit] = useState('electronic');
-  const [bpm, setBpm] = useState(120);
+  const [bpm, setBpm] = useState(110); // Default to Heroic BPM
   const [selectedMood, setSelectedMood] = useState('heroic'); // Default to Heroic
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentStep, setCurrentStep] = useState(-1);
@@ -597,6 +630,14 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
     setIsExporting(true);
 
     try {
+      // Initialize audio if not already done (pre-render drum samples)
+      if (!drumSamplesRef.current) {
+        console.log('🥁 Initializing drum samples for export...');
+        await initializeAudio();
+        // Wait a moment for samples to be ready
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
       // Calculate duration: 16 steps = 1 bar, 32 steps = 2 bars
       // Then multiply by 4 to create a longer loop (4 repetitions)
       const bars = steps === 16 ? 1 : 2;
@@ -611,7 +652,8 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
       // Use pre-rendered samples for fast, Chromebook-friendly export
       const samples = drumSamplesRef.current;
       if (!samples) {
-        console.error('Drum samples not ready');
+        console.error('Drum samples not ready after initialization');
+        setIsExporting(false);
         return;
       }
 
@@ -842,28 +884,28 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
         </div>
       </div>
 
-      {/* Grid Area - fixed width range to prevent uneven shrinking and gaps */}
-      <div className="flex-1 flex flex-col px-6 py-4 justify-center items-center overflow-x-auto overflow-y-auto">
-        <div style={{ minWidth: steps === 16 ? '600px' : '900px', maxWidth: steps === 16 ? '800px' : '1100px', width: '100%' }}>
+      {/* Grid Area - responsive sizing for Chromebook (1366px) and floating modal (900px) */}
+      <div className="flex-1 flex flex-col px-2 py-3 justify-center items-center overflow-x-auto overflow-y-auto">
+        <div style={{ minWidth: steps === 16 ? '600px' : '800px', maxWidth: steps === 16 ? '800px' : '1100px', width: '100%' }}>
           {/* Beat Headers - uses same flex structure as grid for alignment */}
           <div className="flex items-end mb-2">
             {/* Spacer matching instrument label width */}
-            <div className="w-28 flex-shrink-0" />
+            <div className={`${steps === 32 ? 'w-14' : 'w-28'} flex-shrink-0`} />
           {/* Beat header groups - matches grid structure */}
-          <div className="flex flex-1 gap-1">
+          <div className={`flex flex-1 ${steps === 32 ? 'gap-0.5' : 'gap-1'}`}>
             {Array(steps / 4).fill(0).map((_, beatIndex) => (
               <div
                 key={beatIndex}
-                className={`flex-1 text-center border-r border-slate-600 last:border-r-0 px-1`}
+                className={`flex-1 text-center border-r border-slate-600 last:border-r-0 ${steps === 32 ? 'px-0.5' : 'px-1'}`}
               >
-                <div className="text-base font-bold text-white mb-1">Beat {beatIndex + 1}</div>
-                <div className="flex gap-1">
+                <div className={`${steps === 32 ? 'text-xs' : 'text-base'} font-bold text-white mb-1`}>Beat {beatIndex + 1}</div>
+                <div className={`flex ${steps === 32 ? 'gap-0.5' : 'gap-1'}`}>
                   {[1, 2, 3, 4].map(n => {
                     const isCurrent = currentStep === beatIndex * 4 + n - 1 && isPlaying;
                     return (
                       <span
                         key={n}
-                        className={`flex-1 text-center text-sm font-semibold min-w-[40px] max-w-[56px] ${
+                        className={`flex-1 text-center ${steps === 32 ? 'text-xs min-w-[18px] max-w-[24px]' : 'text-sm min-w-[40px] max-w-[56px]'} font-semibold ${
                           isCurrent ? 'text-green-400 font-bold' : 'text-slate-500'
                         }`}
                         style={isCurrent && !isChromebook ? { textShadow: '0 0 8px #4ade80' } : undefined}
@@ -890,21 +932,21 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
                 key={instrument.id}
                 className={`flex items-center transition-opacity ${rowHasNotes ? 'opacity-100' : 'opacity-70'}`}
               >
-                {/* Track label with DAW icon and full name */}
+                {/* Track label with DAW icon - compact for 32 steps */}
                 <div
-                  className="w-28 flex-shrink-0 flex items-center gap-2 pr-3 justify-end"
+                  className={`${steps === 32 ? 'w-14' : 'w-28'} flex-shrink-0 flex items-center gap-1 pr-1 justify-end`}
                   style={{ color: instrument.color }}
                 >
-                  {IconComponent && <IconComponent size={20} strokeWidth={2.5} />}
-                  <span className="text-base font-bold">{instrument.name}</span>
+                  {IconComponent && <IconComponent size={steps === 32 ? 14 : 20} strokeWidth={2.5} />}
+                  <span className={`${steps === 32 ? 'text-xs' : 'text-base'} font-bold`}>{steps === 32 ? instrument.shortName : instrument.name}</span>
                 </div>
 
                 {/* Beat groups with separators - square cells */}
-                <div className="flex flex-1 gap-1">
+                <div className={`flex flex-1 ${steps === 32 ? 'gap-0.5' : 'gap-1'}`}>
                   {Array(steps / 4).fill(0).map((_, beatIndex) => (
                     <div
                       key={beatIndex}
-                      className={`flex-1 flex gap-1 px-1 border-r border-slate-600 last:border-r-0 ${
+                      className={`flex-1 flex ${steps === 32 ? 'gap-0.5 px-0.5' : 'gap-1 px-1'} border-r border-slate-600 last:border-r-0 ${
                         beatIndex % 2 === 0 ? 'bg-slate-800/20' : ''
                       }`}
                     >
@@ -919,7 +961,7 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
                             <button
                               key={stepIndex}
                               onClick={() => toggleCell(instIndex, stepIndex)}
-                              className="flex-1 aspect-square rounded-xl min-w-[40px] max-w-[56px]"
+                              className={`flex-1 aspect-square rounded-lg ${steps === 32 ? 'min-w-[18px] max-w-[24px]' : 'min-w-[40px] max-w-[56px]'}`}
                               style={{
                                 backgroundColor: isActive
                                   ? (isCurrent ? '#22c55e' : instrument.color)
@@ -941,7 +983,7 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
                           <button
                             key={stepIndex}
                             onClick={() => toggleCell(instIndex, stepIndex)}
-                            className="flex-1 aspect-square rounded-xl transition-colors min-w-[40px] max-w-[56px]"
+                            className={`flex-1 aspect-square rounded-lg transition-colors ${steps === 32 ? 'min-w-[18px] max-w-[24px]' : 'min-w-[40px] max-w-[56px]'}`}
                             style={{
                               backgroundColor: isActive
                                 ? (isCurrent ? '#22c55e' : instrument.color)

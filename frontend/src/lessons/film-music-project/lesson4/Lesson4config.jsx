@@ -54,6 +54,13 @@ export const lessonSections = [
         duration: 3
       },
       {
+        id: 'bpm-basics',
+        type: 'summary',
+        label: 'What is BPM?',
+        description: 'Beats per minute and why loops sync',
+        duration: 2
+      },
+      {
         id: 'beat-demo',
         type: 'demo',
         label: 'Building a Beat',
@@ -257,6 +264,17 @@ export const lessonStages = [
     }
   },
   {
+    id: 'bpm-basics',
+    label: 'What is BPM?',
+    description: 'Beats per minute and why loops sync up',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson4/slides/3b-bpm-basics.svg'
+    }
+  },
+  {
     id: 'beat-demo',
     label: 'Building a Beat',
     description: 'Teacher demo: Layer kick → snare → hi-hat → open hi-hat',
@@ -381,6 +399,7 @@ export const getActivityForStage = (stage) => {
     'video-hook': 'demo',
     'hook-discussion': 'discussion',
     'beat-basics': 'summary',
+    'bpm-basics': 'summary',
     'beat-demo': 'beat-maker-demo',  // Teacher demo of beat maker
     'beat-maker-instructions': 'summary',
     'beat-maker-activity': 'student-beat-maker',  // Student beat creation

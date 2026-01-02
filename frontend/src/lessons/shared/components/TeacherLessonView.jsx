@@ -277,7 +277,7 @@ const PresentationContent = ({
 
       return (
         <div className="absolute inset-0">
-          <VideoHookComparison />
+          <VideoHookComparison onAdvance={goToNextStage} />
         </div>
       );
     }
@@ -294,7 +294,7 @@ const PresentationContent = ({
 
       return (
         <div className="absolute inset-0">
-          <BeatBuilderDemo />
+          <BeatBuilderDemo onAdvance={goToNextStage} />
         </div>
       );
     }
