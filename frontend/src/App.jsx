@@ -35,6 +35,11 @@ const LandingPage = React.lazy(() => import('./pages/LandingPage'));
 const EduLandingPage = React.lazy(() => import('./pages/EduLandingPage'));
 const TeacherLoginPage = React.lazy(() => import('./pages/TeacherLoginPage'));
 
+// Legal/Privacy pages
+const StudentPrivacy = React.lazy(() => import('./pages/StudentPrivacy'));
+const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
+const TermsOfService = React.lazy(() => import('./pages/TermsOfService'));
+
 // Dashboard pages
 const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
 const TeacherDashboard = React.lazy(() => import('./pages/TeacherDashboard'));
@@ -265,7 +270,12 @@ const AppContent = () => {
         <Routes>
         {/* Landing page for edu site */}
         <Route path="/" element={<EduLandingPage />} />
-        
+
+        {/* Legal/Privacy pages */}
+        <Route path="/student-privacy" element={<StudentPrivacy />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+
         {/* Teacher login page for approved pilot teachers */}
         <Route path="/login" element={<TeacherLoginPage />} />
 
@@ -374,6 +384,11 @@ const AppContent = () => {
       <Routes>
         {/* Public landing page at root */}
         <Route path="/" element={<LandingPage />} />
+
+        {/* Legal/Privacy pages */}
+        <Route path="/student-privacy" element={<StudentPrivacy />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
 
         {/* Teacher login page for approved pilot teachers */}
         <Route path="/login" element={<TeacherLoginPage />} />

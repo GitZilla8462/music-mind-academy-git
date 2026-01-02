@@ -949,7 +949,11 @@ const LandingPage = () => {
           </div>
           <div className="footer-text">Made by a fellow music teacher in Central New York</div>
           <div className="footer-text">Questions? Email <a href="mailto:rob@musicmindacademy.com" style={{ color: '#60a5fa', textDecoration: 'none' }}>rob@musicmindacademy.com</a></div>
-          <div className="footer-text">🛡️ Student Privacy First</div>
+          <div className="footer-text" style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <a href="/privacy" style={{ color: '#60a5fa', textDecoration: 'none' }}>Privacy Policy</a>
+            <a href="/student-privacy" style={{ color: '#60a5fa', textDecoration: 'none' }}>Student Data Privacy</a>
+            <a href="/terms" style={{ color: '#60a5fa', textDecoration: 'none' }}>Terms of Service</a>
+          </div>
         </div>
       </footer>
 
