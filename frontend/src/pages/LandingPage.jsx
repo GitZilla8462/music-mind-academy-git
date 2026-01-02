@@ -123,7 +123,7 @@ const LandingPage = () => {
 
         .nav-brand-text {
           font-family: 'Space Grotesk', sans-serif;
-          font-size: 1.25rem;
+          font-size: 1.5rem;
           font-weight: 700;
         }
 
@@ -681,8 +681,9 @@ const LandingPage = () => {
             <img
               src="/MusicMindAcademyLogo.png"
               alt="Music Mind Academy"
-              style={{ height: '40px', width: 'auto' }}
+              style={{ height: '56px', width: 'auto' }}
             />
+            <span className="nav-brand-text">Music Mind Academy</span>
           </div>
           <div style={{ display: 'flex', gap: '0.75rem' }}>
             <button onClick={handleTeacherLogin} className="btn btn-login">
