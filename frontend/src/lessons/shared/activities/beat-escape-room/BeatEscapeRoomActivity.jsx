@@ -425,7 +425,7 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
                 Your Escape Room is Ready!
               </h1>
               <p className="text-purple-200 text-lg">
-                Have players join with this code:
+                <span className="font-bold text-white">SHARE</span> - Give your ROOM CODE to someone else to play!
               </p>
             </div>
 

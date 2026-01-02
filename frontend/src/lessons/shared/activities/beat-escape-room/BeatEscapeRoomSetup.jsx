@@ -20,6 +20,8 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
   const [savedRooms, setSavedRooms] = useState([]);
   const [editingRoomIndex, setEditingRoomIndex] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [playCode, setPlayCode] = useState('');
+  const [playError, setPlayError] = useState('');
 
   const modes = Object.values(MODES);
   const themes = getAllThemes();
@@ -198,7 +200,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
             Beat Escape Room
           </h1>
           <p className="text-xl text-purple-200">
-            Create beat puzzles for your partner to solve!
+            <span className="font-bold text-white">PLAN</span> - Create beat patterns for each lock solo or with a partner.
           </p>
         </div>
 
@@ -229,6 +231,49 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
                   )}
                 </button>
               ))}
+
+              {/* Play Someone Else's Room */}
+              <div className="bg-gray-800/90 border-2 border-gray-600 rounded-2xl p-6 w-56">
+                <div className="text-xl font-bold text-white mb-1">Play Someone Else's Room</div>
+                <div className="text-gray-400 text-sm mb-3">Enter their code:</div>
+                <input
+                  type="text"
+                  value={playCode}
+                  onChange={(e) => {
+                    setPlayCode(e.target.value.toUpperCase());
+                    setPlayError('');
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && playCode.length >= 4) {
+                      onJoinRoom?.(playCode);
+                    }
+                  }}
+                  placeholder="CODE"
+                  maxLength={6}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-center text-lg font-mono tracking-widest uppercase focus:outline-none focus:border-green-500 mb-3"
+                />
+                {playError && (
+                  <div className="text-red-400 text-xs mb-2">{playError}</div>
+                )}
+                <button
+                  onClick={() => {
+                    if (playCode.length >= 4) {
+                      onJoinRoom?.(playCode);
+                    } else {
+                      setPlayError('Enter a valid code');
+                    }
+                  }}
+                  disabled={playCode.length < 4}
+                  className={`w-full px-4 py-2 rounded-lg font-bold transition-colors flex items-center justify-center gap-2 ${
+                    playCode.length >= 4
+                      ? 'bg-green-600 hover:bg-green-500 text-white'
+                      : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  <Play size={18} />
+                  Join
+                </button>
+              </div>
             </div>
           </div>
 
@@ -294,6 +339,11 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
                         <Play size={16} />
                         Play
                       </button>
+                      {room.data?.shareCode && (
+                        <div className="text-center text-gray-400 text-xs mt-2">
+                          Code: <span className="font-mono text-white">{room.data.shareCode}</span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

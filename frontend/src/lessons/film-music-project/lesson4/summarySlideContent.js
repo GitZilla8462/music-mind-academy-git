@@ -41,7 +41,7 @@ export const summarySlides = {
         definition: "A group of 4 beats (1-2-3-4)"
       }
     ],
-    intro: "Next, you'll hear the 4 sounds that make up almost every pop, hip-hop, rock, and EDM song:",
+    intro: "Below are four sounds that make up almost every pop, hip-hop, rock, and EDM song:",
     drumSounds: [
       {
         name: "KICK DRUM",

@@ -597,14 +597,8 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
     const ready = await initializeAudio();
     if (!ready) return;
 
-    // Choose playback mode based on device
-    // - Chromebook: pre-rendered (stable, no live editing)
-    // - Desktop: real-time synthesis (supports live editing)
-    if (isChromebook) {
-      await startPrerenderedPlayback();
-    } else {
-      await startRealtimePlayback();
-    }
+    // Always use pre-rendered playback for consistent timing on all devices
+    await startPrerenderedPlayback();
   };
 
   // Clear grid

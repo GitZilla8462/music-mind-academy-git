@@ -28,6 +28,18 @@ const DRUM_TRACKS = [
 // Tutorial steps with target cells
 const TUTORIAL_STEPS = [
   {
+    id: 'intro',
+    title: 'Building a Beat',
+    isIntro: true,
+    description: "Let's build a beat using a Kick, Snare, Hi-Hat, and Open Hi-Hat.",
+    pattern: {
+      kick: [],
+      snare: [],
+      hihat: [],
+      openhat: []
+    }
+  },
+  {
     id: 'kick',
     title: 'Add the Kick',
     description: 'The kick drum is the foundation',
@@ -90,84 +102,167 @@ const BeatBuilderDemo = ({ onAdvance }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentBeat, setCurrentBeat] = useState(-1);
 
-  const synthsRef = useRef(null);
-  const sequenceRef = useRef(null);
+  const drumSamplesRef = useRef(null);
+  const playerRef = useRef(null);
+  const stepIntervalRef = useRef(null);
 
   const currentConfig = TUTORIAL_STEPS[tutorialStep];
 
   // Check if a cell is a target for current step
   const isTargetCell = (trackId, stepIndex) => {
+    if (currentConfig.isIntro) return false;
     const targets = currentConfig.targets;
     if (!targets) return false;
     return targets.track === trackId && targets.steps.includes(stepIndex);
   };
+
+  // Check if we're on the intro screen
+  const isIntroScreen = currentConfig.isIntro;
 
   // Check if a cell is active (filled)
   const isCellActive = (trackId, stepIndex) => {
     return currentConfig.pattern[trackId]?.includes(stepIndex) || false;
   };
 
-  // Create synths
-  const createSynths = useCallback(() => {
-    return {
-      kick: new Tone.MembraneSynth({
-        pitchDecay: 0.05,
-        octaves: 4,
-        envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
-      }).toDestination(),
-      snare: new Tone.NoiseSynth({
-        noise: { type: 'white' },
-        envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.2 }
-      }).toDestination(),
-      hihat: new Tone.MetalSynth({
-        frequency: 200,
-        envelope: { attack: 0.001, decay: 0.1, release: 0.01 },
-        harmonicity: 5.1,
-        modulationIndex: 32,
-        resonance: 4000,
-        octaves: 1.5,
-        volume: -10
-      }).toDestination(),
-      openhat: new Tone.MetalSynth({
-        frequency: 180,
-        envelope: { attack: 0.001, decay: 0.3, release: 0.1 },
-        harmonicity: 5.1,
-        modulationIndex: 32,
-        resonance: 4000,
-        octaves: 1.5,
-        volume: -8
-      }).toDestination()
+  // Pre-render drum samples for consistent playback
+  const preRenderDrumSamples = useCallback(async () => {
+    const sampleDuration = 0.5;
+
+    const renderSample = async (createSynth, triggerFn) => {
+      return await Tone.Offline(({ transport }) => {
+        const synth = createSynth();
+        triggerFn(synth);
+        transport.start(0);
+      }, sampleDuration);
     };
+
+    return {
+      kick: await renderSample(
+        () => new Tone.MembraneSynth({
+          pitchDecay: 0.05,
+          octaves: 4,
+          envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
+        }).toDestination(),
+        (s) => s.triggerAttackRelease('C1', '8n', 0.01)
+      ),
+      snare: await renderSample(
+        () => new Tone.NoiseSynth({
+          noise: { type: 'white' },
+          envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.2 }
+        }).toDestination(),
+        (s) => s.triggerAttackRelease('16n', 0.01)
+      ),
+      hihat: await renderSample(
+        () => new Tone.MetalSynth({
+          frequency: 200,
+          envelope: { attack: 0.001, decay: 0.1, release: 0.01 },
+          harmonicity: 5.1,
+          modulationIndex: 32,
+          resonance: 4000,
+          octaves: 1.5,
+          volume: -10
+        }).toDestination(),
+        (s) => s.triggerAttackRelease('32n', 0.01)
+      ),
+      openhat: await renderSample(
+        () => new Tone.MetalSynth({
+          frequency: 180,
+          envelope: { attack: 0.001, decay: 0.3, release: 0.1 },
+          harmonicity: 5.1,
+          modulationIndex: 32,
+          resonance: 4000,
+          octaves: 1.5,
+          volume: -8
+        }).toDestination(),
+        (s) => s.triggerAttackRelease('16n', 0.01)
+      )
+    };
+  }, []);
+
+  // Render pattern to audio buffer
+  const renderPatternToBuffer = useCallback(async (pattern) => {
+    const samples = drumSamplesRef.current;
+    if (!samples) return null;
+
+    const secondsPerBeat = 60 / BPM;
+    const duration = secondsPerBeat * 4; // 1 bar (4 beats)
+
+    const sampleRate = samples.kick.sampleRate;
+    const outputLength = Math.ceil(duration * sampleRate);
+    const outputBuffer = Tone.context.createBuffer(2, outputLength, sampleRate);
+    const leftChannel = outputBuffer.getChannelData(0);
+    const rightChannel = outputBuffer.getChannelData(1);
+
+    const stepDuration = secondsPerBeat / 4;
+    const baseOffset = 0.005;
+
+    const instruments = ['kick', 'snare', 'hihat', 'openhat'];
+
+    for (let stepIndex = 0; stepIndex < STEPS; stepIndex++) {
+      const stepTime = baseOffset + (stepIndex * stepDuration);
+      const startSample = Math.floor(stepTime * sampleRate);
+
+      instruments.forEach(instId => {
+        if (pattern[instId]?.includes(stepIndex)) {
+          const sampleBuffer = samples[instId];
+          if (!sampleBuffer) return;
+
+          const sampleLeft = sampleBuffer.getChannelData(0);
+          const sampleRight = sampleBuffer.numberOfChannels > 1
+            ? sampleBuffer.getChannelData(1)
+            : sampleLeft;
+
+          for (let i = 0; i < sampleLeft.length && startSample + i < outputLength; i++) {
+            leftChannel[startSample + i] += sampleLeft[i];
+            rightChannel[startSample + i] += sampleRight[i];
+          }
+        }
+      });
+    }
+
+    // Normalize to prevent clipping
+    let maxSample = 0;
+    for (let i = 0; i < outputLength; i++) {
+      maxSample = Math.max(maxSample, Math.abs(leftChannel[i]), Math.abs(rightChannel[i]));
+    }
+    if (maxSample > 1) {
+      const scale = 0.95 / maxSample;
+      for (let i = 0; i < outputLength; i++) {
+        leftChannel[i] *= scale;
+        rightChannel[i] *= scale;
+      }
+    }
+
+    return { buffer: outputBuffer, duration };
   }, []);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       stopPlayback();
-      if (synthsRef.current) {
-        Object.values(synthsRef.current).forEach(synth => {
-          try { synth.dispose(); } catch (e) { /* ignore */ }
-        });
-      }
     };
   }, []);
 
   // Stop playback
   const stopPlayback = useCallback(() => {
-    try {
-      Tone.Transport.stop();
-      Tone.Transport.cancel();
-    } catch (e) { /* ignore */ }
-
-    if (sequenceRef.current) {
-      try { sequenceRef.current.dispose(); } catch (e) { /* ignore */ }
-      sequenceRef.current = null;
+    if (playerRef.current) {
+      try {
+        playerRef.current.stop();
+        playerRef.current.dispose();
+      } catch (e) { /* ignore */ }
+      playerRef.current = null;
     }
+
+    if (stepIntervalRef.current) {
+      clearInterval(stepIntervalRef.current);
+      stepIntervalRef.current = null;
+    }
+
     setIsPlaying(false);
     setCurrentBeat(-1);
   }, []);
 
-  // Play current pattern
+  // Play current pattern with pre-rendered audio
   const playPattern = useCallback(async () => {
     if (isPlaying) {
       stopPlayback();
@@ -175,53 +270,36 @@ const BeatBuilderDemo = ({ onAdvance }) => {
     }
 
     await Tone.start();
-    Tone.Transport.bpm.value = BPM;
 
-    if (!synthsRef.current) {
-      synthsRef.current = createSynths();
+    // Pre-render drum samples if not already done
+    if (!drumSamplesRef.current) {
+      drumSamplesRef.current = await preRenderDrumSamples();
     }
 
     const pattern = currentConfig.pattern;
+    const result = await renderPatternToBuffer(pattern);
+    if (!result) return;
 
-    if (sequenceRef.current) {
-      try { sequenceRef.current.dispose(); } catch (e) { /* ignore */ }
-    }
+    const { buffer, duration } = result;
 
-    try {
-      Tone.Transport.stop();
-      Tone.Transport.cancel();
-      Tone.Transport.position = 0;
-    } catch (e) { /* ignore */ }
+    // Create player with the buffer
+    const toneBuffer = new Tone.ToneAudioBuffer(buffer);
+    playerRef.current = new Tone.Player(toneBuffer).toDestination();
+    playerRef.current.loop = true;
 
-    const stepIndices = Array.from({ length: STEPS }, (_, i) => i);
-
-    sequenceRef.current = new Tone.Sequence(
-      (time, stepIdx) => {
-        if (pattern.kick.includes(stepIdx)) {
-          synthsRef.current.kick.triggerAttackRelease('C1', '8n', time);
-        }
-        if (pattern.snare.includes(stepIdx)) {
-          synthsRef.current.snare.triggerAttackRelease('16n', time);
-        }
-        if (pattern.hihat.includes(stepIdx)) {
-          synthsRef.current.hihat.triggerAttackRelease('32n', time);
-        }
-        if (pattern.openhat.includes(stepIdx)) {
-          synthsRef.current.openhat.triggerAttackRelease('16n', time);
-        }
-
-        Tone.Draw.schedule(() => {
-          setCurrentBeat(stepIdx);
-        }, time);
-      },
-      stepIndices,
-      '16n'
-    );
-
-    sequenceRef.current.start(0);
-    Tone.Transport.start('+0.05');
+    playerRef.current.start();
     setIsPlaying(true);
-  }, [isPlaying, currentConfig, createSynths, stopPlayback]);
+
+    // Visual step tracking
+    const stepDurationMs = (60 / BPM / 4) * 1000;
+    const startTime = performance.now();
+
+    stepIntervalRef.current = setInterval(() => {
+      const elapsed = performance.now() - startTime;
+      const currentStepCalc = Math.floor((elapsed / stepDurationMs) % STEPS);
+      setCurrentBeat(currentStepCalc);
+    }, stepDurationMs / 2);
+  }, [isPlaying, currentConfig, preRenderDrumSamples, renderPatternToBuffer, stopPlayback]);
 
   // Handle next step
   const handleNextStep = () => {
@@ -279,27 +357,50 @@ const BeatBuilderDemo = ({ onAdvance }) => {
 
       {/* Main Content - Fills Screen */}
       <div className="flex-1 flex flex-col px-8 py-4">
-        {/* Step Instructions - Large and prominent */}
-        <div className="text-center mb-4">
-          <h2
-            className="text-5xl font-black mb-2"
-            style={{ color: highlightedTrack?.color }}
-          >
-            Step {tutorialStep + 1}: {currentConfig.title}
-          </h2>
-          <p className="text-2xl text-slate-300">
-            {currentConfig.description} — {' '}
-            <span
-              className="font-bold px-4 py-1.5 rounded-lg"
-              style={{
-                backgroundColor: `${highlightedTrack?.color}30`,
-                color: highlightedTrack?.color
-              }}
-            >
-              {currentConfig.action}
-            </span>
-          </p>
-        </div>
+        {/* Intro Screen or Step Instructions */}
+        {isIntroScreen ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-center">
+            <h2 className="text-6xl font-black mb-6 text-purple-400">
+              {currentConfig.title}
+            </h2>
+            <p className="text-3xl text-slate-300 max-w-2xl">
+              {currentConfig.description}
+            </p>
+            <div className="mt-12 flex gap-6">
+              {DRUM_TRACKS.map(track => {
+                const IconComponent = TRACK_ICONS[track.id];
+                return (
+                  <div key={track.id} className="flex flex-col items-center gap-2">
+                    {IconComponent && <IconComponent size={48} style={{ color: track.color }} />}
+                    <span className="text-xl font-bold" style={{ color: track.color }}>{track.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Step Instructions - Large and prominent */}
+            <div className="text-center mb-4">
+              <h2
+                className="text-5xl font-black mb-2"
+                style={{ color: highlightedTrack?.color }}
+              >
+                Step {tutorialStep}: {currentConfig.title}
+              </h2>
+              <p className="text-2xl text-slate-300">
+                {currentConfig.description} — {' '}
+                <span
+                  className="font-bold px-4 py-1.5 rounded-lg"
+                  style={{
+                    backgroundColor: `${highlightedTrack?.color}30`,
+                    color: highlightedTrack?.color
+                  }}
+                >
+                  {currentConfig.action}
+                </span>
+              </p>
+            </div>
 
         {/* Grid Container - Fills remaining space, centered vertically */}
         <div className="flex-1 flex flex-col justify-center">
@@ -404,6 +505,8 @@ const BeatBuilderDemo = ({ onAdvance }) => {
             })}
           </div>
         </div>
+          </>
+        )}
       </div>
 
       {/* Controls */}
