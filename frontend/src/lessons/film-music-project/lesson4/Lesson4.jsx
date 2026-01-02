@@ -22,6 +22,7 @@ import TeacherLessonView from '../../shared/components/TeacherLessonView';
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 import TransitionOverlay from '../../shared/components/TransitionOverlay';
+import StudentActivityTimer from '../../shared/components/StudentActivityTimer';
 
 const LESSON_PROGRESS_KEY = 'lesson4-progress';
 const LESSON_TIMER_KEY = 'lesson4-timer';
@@ -300,6 +301,7 @@ const Lesson4 = () => {
             />
           </div>
         </div>
+        <StudentActivityTimer sessionCode={sessionCode} />
         <TransitionOverlay isVisible={showTransition} />
       </>
     );

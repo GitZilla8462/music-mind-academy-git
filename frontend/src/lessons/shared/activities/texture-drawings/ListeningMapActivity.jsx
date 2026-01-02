@@ -704,7 +704,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
             {expanded ? '✕' : '⛶'}
           </button>
 
-          <button onClick={handleManualSave}
+          <button onClick={() => handleManualSave(false)}
             className="px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold shadow-sm">
             💾 Save
           </button>
