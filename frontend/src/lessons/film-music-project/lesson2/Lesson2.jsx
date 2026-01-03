@@ -22,7 +22,6 @@ import TeacherLessonView from '../../shared/components/TeacherLessonView'; // âœ
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 import TransitionOverlay from '../../shared/components/TransitionOverlay';
-import StudentActivityTimer from '../../shared/components/StudentActivityTimer';
 import LayerDetectiveStudentView from '../../shared/activities/layer-detective/LayerDetectiveStudentView';
 
 // Storage for viewing saved work
@@ -442,7 +441,6 @@ const Lesson2Content = () => {
             />
           </div>
         </div>
-        <StudentActivityTimer sessionCode={sessionCode} />
         <TransitionOverlay isVisible={showTransition} />
       </>
     );
