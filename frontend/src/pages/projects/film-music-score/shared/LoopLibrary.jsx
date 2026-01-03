@@ -325,7 +325,8 @@ const LoopLibrary = ({
     // Stop previous preview if exists
     if (currentlyPlaying !== null) {
       console.log('🛑 Stopping previous preview');
-      const prevLoop = [...soundEffects, ...loops].find(l => l.id === currentlyPlaying);
+      // Include customLoops in search so custom beats can be stopped too
+      const prevLoop = [...soundEffects, ...loops, ...customLoops].find(l => l.id === currentlyPlaying);
       if (prevLoop && onLoopPreview) {
         onLoopPreview(prevLoop, false);
       }
