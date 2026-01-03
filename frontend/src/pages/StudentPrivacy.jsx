@@ -399,6 +399,21 @@ const StudentPrivacy = () => {
             </p>
           </div>
 
+          {/* IT Whitelist Box */}
+          <div className="highlight-box blue" style={{ marginBottom: '1.5rem' }}>
+            <h3 style={{ marginTop: 0, color: '#1e40af' }}>For IT Administrators: Domains to Whitelist</h3>
+            <p>To allow Music Mind Academy on your school network, whitelist these domains:</p>
+            <ul style={{ marginBottom: '0.5rem' }}>
+              <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>musicmindacademy.com</code></li>
+              <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>musicroomtools.org</code></li>
+              <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>*.firebaseapp.com</code></li>
+              <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>*.firebaseio.com</code></li>
+            </ul>
+            <p style={{ marginBottom: 0, fontSize: '0.9rem', color: '#475569' }}>
+              All traffic uses <strong>HTTPS (port 443)</strong>. If your school uses Google Workspace, Firebase domains may already be allowed.
+            </p>
+          </div>
+
           {/* Data Retention */}
           <h2>Data Retention</h2>
           <ul>
