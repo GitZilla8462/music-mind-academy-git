@@ -348,11 +348,18 @@ export const useAudioEngine = (videoDuration = 60) => {
       source.buffer = player.buffer;
 
       // Apply tempo correction to sync loops to project BPM (110 BPM)
-      // This time-stretches loops that are slightly off-tempo to stay in sync
-      const playbackRate = calculatePlaybackRate(player.buffer.duration);
-      source.playbackRate.value = playbackRate;
-      if (playbackRate !== 1.0) {
-        console.log(`   ⏱️ Tempo correction: ${loop.name} playbackRate=${playbackRate.toFixed(4)} (${((playbackRate - 1) * 100).toFixed(2)}% adjustment)`);
+      // SKIP for custom beats - they should play at their original BPM (the tempo the user created them at)
+      // Custom beats already have their BPM baked in from Beat Maker (e.g., 70 BPM for Hype mood)
+      let playbackRate = 1.0;
+      if (loop.type !== 'custom-beat' && loop.type !== 'custom-melody') {
+        playbackRate = calculatePlaybackRate(player.buffer.duration);
+        source.playbackRate.value = playbackRate;
+        if (playbackRate !== 1.0) {
+          console.log(`   ⏱️ Tempo correction: ${loop.name} playbackRate=${playbackRate.toFixed(4)} (${((playbackRate - 1) * 100).toFixed(2)}% adjustment)`);
+        }
+      } else {
+        source.playbackRate.value = 1.0;
+        console.log(`   ⏭️ Skipping tempo correction for custom ${loop.type}: plays at original BPM`);
       }
 
       // Enable looping if the loop is stretched beyond audio duration
@@ -558,10 +565,17 @@ export const useAudioEngine = (videoDuration = 60) => {
       source.buffer = buffer;
 
       // Apply tempo correction to sync preview to project BPM (110 BPM)
-      const playbackRate = calculatePlaybackRate(buffer.duration);
-      source.playbackRate.value = playbackRate;
-      if (playbackRate !== 1.0) {
-        console.log(`   ⏱️ Preview tempo correction: playbackRate=${playbackRate.toFixed(4)}`);
+      // SKIP for custom beats - they should play at their original BPM
+      let playbackRate = 1.0;
+      if (loopData.type !== 'custom-beat' && loopData.type !== 'custom-melody') {
+        playbackRate = calculatePlaybackRate(buffer.duration);
+        source.playbackRate.value = playbackRate;
+        if (playbackRate !== 1.0) {
+          console.log(`   ⏱️ Preview tempo correction: playbackRate=${playbackRate.toFixed(4)}`);
+        }
+      } else {
+        source.playbackRate.value = 1.0;
+        console.log(`   ⏭️ Skipping preview tempo correction for custom ${loopData.type}`);
       }
 
       const gainNode = rawContext.createGain();

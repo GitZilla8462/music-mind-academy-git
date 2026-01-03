@@ -262,11 +262,11 @@ const SportsCompositionActivity = ({
   }, [videoDurations]);
   
   // AUTO-SAVE - Single composition that works with any video
+  // NOTE: Don't include timestamp here - it changes every render and triggers re-renders
   const compositionData = {
     placedLoops,
     videoDuration,
-    videoId: selectedVideo?.id,
-    timestamp: Date.now()
+    videoId: selectedVideo?.id
   };
   
   // Use single key for all videos - composition transfers between videos
@@ -652,18 +652,9 @@ const SportsCompositionActivity = ({
     ));
   };
   
-  // DEBUG: Log render path
-  console.log('🎨 RENDER CHECK:', {
-    previewingVideo: !!previewingVideo,
-    isLoadingVideo,
-    selectedVideo: !!selectedVideo,
-    showVideoSelection,
-    detectingDurations,
-    viewMode,
-    isReflectionStage,
-    showReflection,
-    willShowLoadingScreen: (isLoadingVideo || (!selectedVideo && !showVideoSelection) || detectingDurations) && !viewMode && !isReflectionStage
-  });
+  // DEBUG: Commented out to prevent Chromebook performance issues (see throttling errors)
+  // Uncomment only when debugging render issues
+  // console.log('🎨 RENDER CHECK:', { previewingVideo: !!previewingVideo, isLoadingVideo, selectedVideo: !!selectedVideo, showVideoSelection, detectingDurations });
 
   // VIDEO PREVIEW FULLSCREEN
   if (previewingVideo) {
@@ -727,11 +718,9 @@ const SportsCompositionActivity = ({
   }
 
   // MAIN ACTIVITY
-  console.log('🎨 RENDERING MAIN ACTIVITY - showReflection:', showReflection);
   return (
     <div className="h-full flex flex-col bg-gray-900 relative">
       {/* Save Message Toast */}
-      {saveMessage && console.log('🎨 RENDERING TOAST:', saveMessage.text)}
       {saveMessage && (
         <div 
           className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] px-6 py-3 rounded-lg shadow-xl font-bold text-white transition-all duration-300 ${
@@ -844,7 +833,6 @@ const SportsCompositionActivity = ({
         )}
       </div>
 
-      {showReflection && console.log('🎨 RENDERING SportsReflectionModal')}
       {showReflection && (
         <SportsReflectionModal
           compositionData={{
