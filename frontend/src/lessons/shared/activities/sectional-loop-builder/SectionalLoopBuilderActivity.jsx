@@ -1216,61 +1216,50 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
               <div className="flex-1 flex flex-col items-center justify-center">
                 {!safariComplete ? (
                   <>
-                    <div className="text-6xl mb-4">🦁</div>
-                    <h1 className="text-4xl font-black mb-2 text-yellow-300">SAFARI TIME!</h1>
-                    <p className="text-xl mb-6 text-white/80">Leave your Chromebook and find the...</p>
+                    <h1 className="text-3xl font-black mb-4 text-yellow-300">SAFARI TIME!</h1>
+                    <p className="text-lg mb-4 text-white/80">Find the student with this animal:</p>
 
-                    <div className="bg-white/20 rounded-2xl p-6 mb-6 text-center">
-                      <div className="text-9xl">{safariTarget.emoji}</div>
+                    {/* Large Animal Display */}
+                    <div className="bg-white/20 rounded-3xl p-8 mb-6 text-center border-4 border-yellow-400">
+                      <div className="text-[120px] leading-none">{safariTarget.emoji}</div>
                     </div>
 
-                    <div className="bg-white/10 rounded-xl p-4 mb-4">
-                      <p className="text-sm text-white/70 mb-3 text-center">Look for this on a classmate's screen:</p>
-                      <div className="bg-black/70 rounded-2xl p-5 flex items-center justify-center gap-4 border-4 border-yellow-400">
-                        <span className="text-6xl">{safariTarget.emoji}</span>
-                        <span className="text-7xl font-mono font-black text-yellow-300 tracking-wider">1234</span>
+                    {/* Code Entry */}
+                    <p className="text-lg text-white/70 mb-2">Enter their code:</p>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={4}
+                      value={safariCodeInput}
+                      onChange={(e) => setSafariCodeInput(e.target.value.replace(/\D/g, ''))}
+                      className={`w-56 text-center text-5xl font-mono font-black bg-white/20 rounded-xl px-4 py-4 placeholder-white/30 transition-all mb-3 ${
+                        safariWrongCode
+                          ? 'border-4 border-red-500 text-red-400 animate-shake'
+                          : 'border-4 border-yellow-400 text-yellow-300'
+                      }`}
+                      placeholder="____"
+                    />
+                    {safariWrongCode && (
+                      <div className="text-red-400 font-bold text-lg animate-pulse mb-2">
+                        ❌ Wrong code! Try again
                       </div>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-3">
-                      <p className="text-lg text-white/70">Enter their code:</p>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        maxLength={4}
-                        value={safariCodeInput}
-                        onChange={(e) => setSafariCodeInput(e.target.value.replace(/\D/g, ''))}
-                        className={`w-56 text-center text-5xl font-mono font-black bg-white/20 rounded-xl px-4 py-4 placeholder-white/30 transition-all ${
-                          safariWrongCode
-                            ? 'border-4 border-red-500 text-red-400 animate-shake'
-                            : 'border-4 border-yellow-400 text-yellow-300'
-                        }`}
-                        placeholder="____"
-                      />
-                      {safariWrongCode && (
-                        <div className="text-red-400 font-bold text-lg animate-pulse">
-                          ❌ Wrong code! Try again
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          console.log('🦁 Submit button clicked!');
-                          submitSafariCode();
-                        }}
-                        disabled={safariCodeInput.length !== 4}
-                        className={`px-10 py-4 rounded-xl text-2xl font-bold transition-all active:scale-95 ${
-                          safariCodeInput.length === 4
-                            ? 'bg-gradient-to-r from-yellow-500 to-orange-500 shadow-lg'
-                            : 'bg-white/20 text-white/50'
-                        }`}
-                      >
-                        ✓ Submit Code
-                      </button>
-                    </div>
-
-                    <p className="text-white/50 text-sm mt-4">⏱️ Check the board for time remaining!</p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        console.log('🦁 Submit button clicked!');
+                        submitSafariCode();
+                      }}
+                      disabled={safariCodeInput.length !== 4}
+                      className={`px-10 py-4 rounded-xl text-2xl font-bold transition-all active:scale-95 ${
+                        safariCodeInput.length === 4
+                          ? 'bg-gradient-to-r from-yellow-500 to-orange-500 shadow-lg'
+                          : 'bg-white/20 text-white/50'
+                      }`}
+                    >
+                      ✓ Submit Code
+                    </button>
                   </>
                 ) : (
                   <div className="text-center">
@@ -1435,7 +1424,16 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
             {/* Header */}
             <div className="bg-white/10 rounded-xl p-3 mb-4">
               <div className="flex items-center justify-between">
-                <div>Round {currentRound} • Clip {currentClipIndex + 1}/4</div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg"
+                    style={{ backgroundColor: `${playerColor}30` }}>
+                    {playerEmoji}
+                  </div>
+                  <div>
+                    <div className="font-bold" style={{ color: playerColor }}>{playerName}</div>
+                    <div className="text-xs text-white/60">Round {currentRound} • Clip {currentClipIndex + 1}/4</div>
+                  </div>
+                </div>
                 <div className="flex items-center gap-2">
                   {clipResult.newStreak >= 2 && (
                     <div className="flex items-center gap-1 bg-orange-500/30 px-2 py-1 rounded-full">

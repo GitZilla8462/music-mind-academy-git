@@ -162,6 +162,20 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   const countdownRef = useRef(null);
   const countdownStartedRef = useRef(false);
 
+  // Refs for values used in countdown callback (to avoid stale closures)
+  const currentClipIndexRef = useRef(currentClipIndex);
+  const totalClipsPlayedRef = useRef(totalClipsPlayed);
+  const quizOrderRef = useRef(quizOrder);
+  const studentsRef = useRef(students);
+  const playSectionAudioRef = useRef(null);
+
+  // Keep refs in sync
+  useEffect(() => { currentClipIndexRef.current = currentClipIndex; }, [currentClipIndex]);
+  useEffect(() => { totalClipsPlayedRef.current = totalClipsPlayed; }, [totalClipsPlayed]);
+  useEffect(() => { quizOrderRef.current = quizOrder; }, [quizOrder]);
+  useEffect(() => { studentsRef.current = students; }, [students]);
+  // Note: playSectionAudioRef is updated after the function is defined below
+
   // Safari state
   const [safariAssignments, setSafariAssignments] = useState({}); // { studentId: { emoji, name, code } }
   const [safariHunters, setSafariHunters] = useState([]); // [{ studentId, name, targetEmoji, targetName }]
@@ -253,6 +267,9 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     }, SECTION_DURATION);
   }, [sectionAudio]);
 
+  // Keep playSectionAudio ref in sync (for use in countdown effect without causing re-runs)
+  useEffect(() => { playSectionAudioRef.current = playSectionAudio; }, [playSectionAudio]);
+
   const playFullSong = useCallback(() => {
     if (!sectionAudio) return;
     stopAudio();
@@ -335,30 +352,138 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     stopAudio();
     setCurrentRound(roundNum);
     setCurrentClipIndex(0);
-    
+
     const section = quizOrder[0];
     setCurrentSection(section);
     setGamePhase('guessing');
-    
+
+    const newTotalClips = (roundNum - 1) * 4 + 1;
+    setTotalClipsPlayed(newTotalClips);
+
+    // Set up Safari for this clip (same logic as startClipGuessing)
+    const shuffledAnimals = [...SAFARI_ANIMALS].sort(() => Math.random() - 0.5);
+    const newAssignments = {};
+    students.forEach((s, idx) => {
+      const animal = shuffledAnimals[idx % shuffledAnimals.length];
+      newAssignments[s.id] = {
+        emoji: animal.emoji,
+        name: animal.name,
+        code: generateCode()
+      };
+    });
+    setSafariAssignments(newAssignments);
+
+    // Safari requires at least 3 students
+    let hunters = [];
+    console.log('🦁 startRound - students.length:', students.length);
+    if (students.length >= 3) {
+      const eligibleStudents = students.filter(s => !studentsWhoWentOnSafari.has(s.id));
+      let finalEligible = eligibleStudents.length >= 2 ? eligibleStudents : students;
+
+      if (eligibleStudents.length < 2) {
+        setStudentsWhoWentOnSafari(new Set());
+      }
+
+      const shuffledEligible = [...finalEligible].sort(() => Math.random() - 0.5);
+      hunters = shuffledEligible.slice(0, 2).map(s => {
+        const validTargets = students.filter(other => other.id !== s.id && newAssignments[other.id]);
+        if (validTargets.length === 0) return null;
+        const randomTarget = validTargets[Math.floor(Math.random() * validTargets.length)];
+        const targetAssignment = newAssignments[randomTarget.id];
+        console.log('🦁 Safari hunter:', s.name, '→ looking for:', targetAssignment.emoji, targetAssignment.name);
+        return {
+          studentId: s.id,
+          name: s.name,
+          targetEmoji: targetAssignment.emoji,
+          targetName: targetAssignment.name
+        };
+      }).filter(h => h !== null);
+
+      setStudentsWhoWentOnSafari(prev => {
+        const newSet = new Set(prev);
+        hunters.forEach(h => newSet.add(h.studentId));
+        return newSet;
+      });
+    }
+    setSafariHunters(hunters);
+    setSafariTimer(45);
+    safariTimerStartedRef.current = false;
+
     if (sessionCode) {
       const db = getDatabase();
       students.forEach(s => {
         update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
-          currentAnswer: null, lockedIn: false, lastClipScore: 0
+          currentAnswer: null, lockedIn: false, lastClipScore: 0, safariComplete: false, safariBonus: 0
         });
       });
     }
-    
-    const newTotalClips = (roundNum - 1) * 4 + 1;
-    setTotalClipsPlayed(newTotalClips);
-    
+
     updateGame({
       gamePhase: 'guessing', currentRound: roundNum, currentClipIndex: 0,
-      totalRounds, quizOrder, correctAnswer: section, totalClipsPlayed: newTotalClips
+      totalRounds, quizOrder, correctAnswer: section, totalClipsPlayed: newTotalClips,
+      safariAssignments: newAssignments,
+      safariHunters: hunters,
+      safariTimer: hunters.length > 0 ? 45 : 0
     });
-    
+
     playSectionAudio(section);
-  }, [stopAudio, sessionCode, students, totalRounds, quizOrder, playSectionAudio, updateGame]);
+  }, [stopAudio, sessionCode, students, totalRounds, quizOrder, playSectionAudio, updateGame, studentsWhoWentOnSafari]);
+
+  // Start power-up countdown - called directly, not via useEffect
+  // This avoids React effect lifecycle issues that were causing the timer to stop early
+  // When countdown reaches 0, it just stops - teacher must click to advance
+  const startPowerPickCountdown = useCallback(() => {
+    // Clear any existing countdown
+    if (countdownRef.current) {
+      clearTimeout(countdownRef.current);
+      countdownRef.current = null;
+    }
+
+    const currentSessionCode = sessionCode;
+    const db = getDatabase();
+
+    // Start at 5
+    let count = 5;
+    setPowerPickCountdown(5);
+
+    update(ref(db, `sessions/${currentSessionCode}`), {
+      activityData: {
+        activity: 'sectional-loop-builder',
+        gamePhase: 'powerPick',
+        currentClipIndex: currentClipIndexRef.current,
+        totalClipsPlayed: totalClipsPlayedRef.current,
+        powerPickCountdown: 5
+      }
+    });
+
+    // Use setTimeout chain instead of setInterval for more reliable timing
+    const tick = () => {
+      count -= 1;
+      setPowerPickCountdown(count);
+
+      // Update Firebase with countdown
+      update(ref(db, `sessions/${currentSessionCode}`), {
+        activityData: {
+          activity: 'sectional-loop-builder',
+          gamePhase: 'powerPick',
+          currentClipIndex: currentClipIndexRef.current,
+          totalClipsPlayed: totalClipsPlayedRef.current,
+          powerPickCountdown: count
+        }
+      });
+
+      if (count <= 0) {
+        // Countdown done - just stop and wait for teacher to click Play Clip button
+        countdownRef.current = null;
+      } else {
+        // Schedule next tick
+        countdownRef.current = setTimeout(tick, 1000);
+      }
+    };
+
+    // Start first tick after 1 second
+    countdownRef.current = setTimeout(tick, 1000);
+  }, [sessionCode]);
 
   const nextClip = useCallback(() => {
     setRevealStep(0);
@@ -367,24 +492,22 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     setStreakCallout(null);
     setNewLeader(null);
     setCorrectCount(0);
-    
+
     const nextIndex = currentClipIndex + 1;
-    
+
     if (nextIndex >= quizOrder.length) {
       setGamePhase('roundSummary');
       updateGame({ gamePhase: 'roundSummary' });
       return;
     }
-    
+
     const newTotalClips = totalClipsPlayed + 1;
     if (newTotalClips > 1) {
       setCurrentClipIndex(nextIndex);
       setCurrentSection(quizOrder[nextIndex]);
       setTotalClipsPlayed(newTotalClips);
       setGamePhase('powerPick');
-      setPowerPickCountdown(5); // Set countdown immediately
-      countdownStartedRef.current = false; // Reset so effect will start countdown
-      
+
       if (sessionCode) {
         const db = getDatabase();
         students.forEach(s => {
@@ -393,12 +516,13 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
           });
         });
       }
-      
-      updateGame({ gamePhase: 'powerPick', currentClipIndex: nextIndex, totalClipsPlayed: newTotalClips, powerPickCountdown: 5 });
+
+      // Start countdown directly - don't rely on useEffect
+      startPowerPickCountdown();
     } else {
       startClipGuessing(nextIndex, newTotalClips);
     }
-  }, [currentClipIndex, totalClipsPlayed, sessionCode, students, updateGame, quizOrder]);
+  }, [currentClipIndex, totalClipsPlayed, sessionCode, students, updateGame, quizOrder, startPowerPickCountdown]);
 
   const startClipGuessing = useCallback((clipIndex, clipNum) => {
     const section = quizOrder[clipIndex];
@@ -419,9 +543,10 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
       };
     });
     setSafariAssignments(newAssignments);
-    
+
     // Safari requires at least 3 students (2 hunters + 1 target minimum)
     let hunters = [];
+    console.log('🦁 startClipGuessing - students.length:', students.length);
     if (students.length >= 3) {
       // Pick 2 students who haven't gone on Safari yet
       const eligibleStudents = students.filter(s => !studentsWhoWentOnSafari.has(s.id));
@@ -436,17 +561,28 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
       // Pick 2 random students
       const shuffledEligible = [...finalEligible].sort(() => Math.random() - 0.5);
       hunters = shuffledEligible.slice(0, 2).map(s => {
-        // Find a target animal (not their own)
-        const otherStudents = students.filter(other => other.id !== s.id);
-        const randomTarget = otherStudents[Math.floor(Math.random() * otherStudents.length)];
-        const targetAssignment = newAssignments[randomTarget?.id];
+        // Find a target animal (not their own) - only pick from students with valid assignments
+        const validTargets = students.filter(other =>
+          other.id !== s.id && newAssignments[other.id]
+        );
+
+        if (validTargets.length === 0) {
+          console.error('❌ No valid Safari targets found!');
+          return null;
+        }
+
+        const randomTarget = validTargets[Math.floor(Math.random() * validTargets.length)];
+        const targetAssignment = newAssignments[randomTarget.id];
+
+        console.log('🦁 Safari hunter:', s.name, '→ looking for:', targetAssignment.emoji, targetAssignment.name);
+
         return {
           studentId: s.id,
           name: s.name,
-          targetEmoji: targetAssignment?.emoji,
-          targetName: targetAssignment?.name
+          targetEmoji: targetAssignment.emoji,
+          targetName: targetAssignment.name
         };
-      });
+      }).filter(h => h !== null);
       
       setStudentsWhoWentOnSafari(prev => {
         const newSet = new Set(prev);
@@ -484,71 +620,10 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   }, [sessionCode, students, quizOrder, playSectionAudio, updateGame, studentsWhoWentOnSafari]);
 
   const startNextClipAfterPowerPick = useCallback(() => {
-    if (countdownRef.current) clearInterval(countdownRef.current);
+    if (countdownRef.current) clearTimeout(countdownRef.current);
     setPowerPickCountdown(0);
     startClipGuessing(currentClipIndex, totalClipsPlayed);
   }, [currentClipIndex, totalClipsPlayed, startClipGuessing]);
-
-  // Power-up countdown timer effect
-  useEffect(() => {
-    if (gamePhase !== 'powerPick') {
-      // Clear any existing countdown when leaving powerPick
-      if (countdownRef.current) {
-        clearInterval(countdownRef.current);
-        countdownRef.current = null;
-      }
-      countdownStartedRef.current = false;
-      return;
-    }
-    
-    // Don't restart if already running
-    if (countdownStartedRef.current) return;
-    countdownStartedRef.current = true;
-    
-    // Start 5 second countdown
-    setPowerPickCountdown(5);
-    updateGame({ gamePhase: 'powerPick', currentClipIndex, totalClipsPlayed, powerPickCountdown: 5 });
-    
-    let count = 5;
-    countdownRef.current = setInterval(() => {
-      count -= 1;
-      setPowerPickCountdown(count);
-      
-      if (count <= 0) {
-        clearInterval(countdownRef.current);
-        countdownRef.current = null;
-        // Auto-advance to next clip - use the values captured at start
-        const section = quizOrder[currentClipIndex];
-        setCurrentSection(section);
-        setGamePhase('guessing');
-        
-        if (sessionCode) {
-          const db = getDatabase();
-          students.forEach(s => {
-            update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
-              currentAnswer: null, lockedIn: false, lastClipScore: 0
-            });
-          });
-        }
-        
-        updateGame({
-          gamePhase: 'guessing', currentClipIndex, correctAnswer: section, totalClipsPlayed
-        });
-        
-        playSectionAudio(section);
-      } else {
-        // Update Firebase with countdown
-        updateGame({ gamePhase: 'powerPick', currentClipIndex, totalClipsPlayed, powerPickCountdown: count });
-      }
-    }, 1000);
-    
-    return () => {
-      if (countdownRef.current) {
-        clearInterval(countdownRef.current);
-        countdownRef.current = null;
-      }
-    };
-  }, [gamePhase, currentClipIndex, totalClipsPlayed, quizOrder, sessionCode, students, updateGame, playSectionAudio]);
 
   // Safari timer effect (45 second countdown during guessing)
   // OPTIMIZED: Send start timestamp once, students calculate locally
@@ -1142,8 +1217,8 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                 <span className="text-2xl text-white/70"> / {students.length} ready</span>
               </div>
               <div>
-                <button onClick={startNextClipAfterPowerPick} className="px-10 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all">
-                  Skip → Play Clip {currentClipIndex + 1}
+                <button onClick={startNextClipAfterPowerPick} className="px-10 py-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all">
+                  ▶️ Play Clip {currentClipIndex + 1}
                 </button>
               </div>
             </div>

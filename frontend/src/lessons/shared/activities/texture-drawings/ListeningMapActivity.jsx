@@ -575,7 +575,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
         }, studentId);
 
         if (!silent) {
-          setSaveMessage({ type: 'success', text: '✅ Saved! View it anytime from the Join page.' });
+          setSaveMessage({ type: 'success', text: '✅ Composition saved! View it anytime from the Join page.' });
         }
       }
     } catch (error) {

@@ -347,7 +347,7 @@ export const lessonStages = [
     id: 'share-and-pair',
     label: 'Share and Pair',
     description: 'Partner activity: Share work and discuss what inspired your choices',
-    type: 'summary',
+    type: 'activity',
     duration: 2,
     presentationView: {
       type: 'slide',
@@ -498,7 +498,7 @@ export const getActivityForStage = (stage) => {
     'listening-map-video': 'video',
     'music-for-listening-map': 'summary',
     'listening-map': 'listening-map',
-    'share-and-pair': 'summary',
+    'share-and-pair': 'listening-map',  // Students keep their listening map open to share
     'form-continued': 'summary',
     'introduce-sectional-loop-form': 'summary',
     'sectional-loop-example': 'summary',

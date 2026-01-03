@@ -9,7 +9,7 @@ import MusicComposer from "../../../pages/projects/film-music-score/composer/Mus
 import { useAutoSave } from '../../../hooks/useAutoSave.jsx';
 import WildlifeReflectionModal from './two-stars-and-a-wish/WildlifeReflectionModal.jsx';
 import { useSession } from '../../../context/SessionContext.jsx';
-import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson4/lesson4StorageUtils.js';
+// Note: Using wildlife-specific storage key instead of shared lesson4 utils
 import { saveStudentWork } from '../../../utils/studentWorkStorage.js';
 
 const WILDLIFE_COMPOSITION_DEADLINE = 10 * 60 * 1000; // 10 minutes
@@ -84,8 +84,19 @@ const WildlifeCompositionActivity = ({
   // Video selection state
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [showVideoSelection, setShowVideoSelection] = useState(() => {
-    const saved = getSelectedVideo();
-    return !saved;
+    // Use wildlife-specific key
+    try {
+      const data = localStorage.getItem('wildlife-selected-video');
+      const saved = data ? JSON.parse(data) : null;
+      // Also validate it's a valid wildlife video
+      if (saved) {
+        const isValidWildlife = WILDLIFE_VIDEOS.some(v => v.id === saved.videoId);
+        return !isValidWildlife;
+      }
+      return true;
+    } catch {
+      return true;
+    }
   });
   const [previewingVideo, setPreviewingVideo] = useState(null);
   
@@ -194,14 +205,26 @@ const WildlifeCompositionActivity = ({
   }, [isReflectionStage, reflectionCompleted, studentId, showReflection, viewingReflection, showBonusGame]);
   
   // Load previously selected video on mount - WITH detected duration
+  // Note: Uses lesson-specific key to avoid cross-lesson contamination
   useEffect(() => {
-    const savedVideoSelection = getSelectedVideo();
+    // Use wildlife-specific storage key instead of shared lesson4 key
+    const wildlifeVideoKey = 'wildlife-selected-video';
+    let savedVideoSelection = null;
+
+    try {
+      const data = localStorage.getItem(wildlifeVideoKey);
+      savedVideoSelection = data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error('Error loading wildlife video selection:', error);
+    }
+
     console.log('🎬 Loading saved wildlife video selection:', savedVideoSelection);
-    
+
     if (savedVideoSelection) {
+      // Validate video ID exists in WILDLIFE_VIDEOS
       const videoTemplate = WILDLIFE_VIDEOS.find(v => v.id === savedVideoSelection.videoId);
       console.log('🎬 Found video template:', videoTemplate);
-      
+
       if (videoTemplate) {
         if (videoDurations[videoTemplate.id]) {
           const video = {
@@ -218,11 +241,13 @@ const WildlifeCompositionActivity = ({
           setIsLoadingVideo(true);
         }
       } else {
-        console.error('❌ Video not found for ID:', savedVideoSelection.videoId);
+        // Invalid video ID (probably from another lesson) - show selection screen
+        console.log('⚠️ Saved video ID not valid for wildlife, showing selection:', savedVideoSelection.videoId);
+        setShowVideoSelection(true);
         setIsLoadingVideo(false);
       }
     } else {
-      console.log('ℹ️ No saved video selection found');
+      console.log('ℹ️ No saved wildlife video selection found');
       setIsLoadingVideo(false);
     }
   }, [videoDurations]);
@@ -464,8 +489,15 @@ const WildlifeCompositionActivity = ({
     setSelectedVideo(videoWithDuration);
     setVideoDuration(detectedDuration);
     setShowVideoSelection(false);
-    saveSelectedVideo(video.id, video.title);
-    
+
+    // Save to wildlife-specific key (not shared lesson4 key)
+    const selection = {
+      videoId: video.id,
+      videoTitle: video.title,
+      selectedAt: new Date().toISOString()
+    };
+    localStorage.setItem('wildlife-selected-video', JSON.stringify(selection));
+
     console.log('✅ Video selected with detected duration:', videoWithDuration.title, 'Duration:', detectedDuration, 's');
   };
   
