@@ -504,8 +504,14 @@ const MusicComposer = ({
     onLoopUpdateCallback,
     onLoopPreviewCallback: useCallback((loop, isPlaying) => {
       // Track which loop is currently playing
-      setCurrentlyPlayingPreview(isPlaying ? loop.id : null);
-      
+      // FIX: Use functional update to handle race condition when clicking between loops quickly
+      // Only clear if the loop that ended is the same as the currently playing loop
+      setCurrentlyPlayingPreview(prev => {
+        if (isPlaying) return loop.id;
+        // Only clear if this loop is the one currently playing (prevents race condition)
+        return prev === loop.id ? null : prev;
+      });
+
       // Call the original callback
       if (onLoopPreviewCallback) {
         onLoopPreviewCallback(loop, isPlaying);
