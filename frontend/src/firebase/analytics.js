@@ -5,6 +5,9 @@ import { getDatabase, ref, get, set, update, push, onValue } from 'firebase/data
 
 const database = getDatabase();
 
+// Admin emails to exclude from analytics (your test accounts)
+const EXCLUDED_EMAILS = ['robtaube90@gmail.com', 'robtaube92@gmail.com'];
+
 // ==========================================
 // TEACHER ACTIVITY TRACKING
 // ==========================================
@@ -308,6 +311,12 @@ export const getTeacherAnalytics = async () => {
   const teachers = [];
   snapshot.forEach((child) => {
     const data = child.val();
+
+    // Skip admin/test accounts
+    if (EXCLUDED_EMAILS.includes(data.email?.toLowerCase())) {
+      return;
+    }
+
     // Get lessons with visit counts
     const lessonsVisited = [];
     if (data.lessonsVisited) {
@@ -351,6 +360,12 @@ export const getPilotSessions = async () => {
   const sessions = [];
   snapshot.forEach((child) => {
     const data = child.val();
+
+    // Skip sessions from admin/test accounts
+    if (EXCLUDED_EMAILS.includes(data.teacherEmail?.toLowerCase())) {
+      return;
+    }
+
     sessions.push({
       sessionCode: child.key,
       ...data,
