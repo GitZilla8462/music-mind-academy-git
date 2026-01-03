@@ -526,16 +526,23 @@ const BeatBuilderDemo = ({ onAdvance }) => {
             Previous
           </button>
 
-          {/* Play/Stop */}
+          {/* Play/Stop - Disabled on intro screen */}
           <button
             onClick={playPattern}
+            disabled={isIntroScreen}
             className={`flex items-center gap-2 px-10 py-4 rounded-xl font-bold text-xl transition-all ${
-              isPlaying
-                ? 'bg-red-600 hover:bg-red-700'
-                : 'bg-green-600 hover:bg-green-700'
+              isIntroScreen
+                ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
+                : isPlaying
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-green-600 hover:bg-green-700'
             }`}
             style={{
-              boxShadow: isPlaying ? '0 0 24px #dc262650' : '0 0 24px #16a34a50'
+              boxShadow: isIntroScreen
+                ? 'none'
+                : isPlaying
+                  ? '0 0 24px #dc262650'
+                  : '0 0 24px #16a34a50'
             }}
           >
             {isPlaying ? (
