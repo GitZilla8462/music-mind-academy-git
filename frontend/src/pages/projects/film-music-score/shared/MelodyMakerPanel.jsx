@@ -364,6 +364,19 @@ const MelodyMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideCl
     const ready = await initializeAudio();
     if (!ready) return;
 
+    // Ensure audio context is running (critical for modal playback inside DAW)
+    try {
+      await Tone.start();
+      if (Tone.context.state !== 'running') {
+        console.log('🔊 Resuming audio context...');
+        await Tone.context.resume();
+      }
+      console.log('✅ Audio context state:', Tone.context.state);
+    } catch (err) {
+      console.error('❌ Failed to start audio context:', err);
+      return;
+    }
+
     if (sequenceRef.current) {
       try { sequenceRef.current.dispose(); } catch (e) { /* ignore */ }
       sequenceRef.current = null;

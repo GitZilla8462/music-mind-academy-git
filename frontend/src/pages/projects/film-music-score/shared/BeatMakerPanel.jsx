@@ -547,6 +547,19 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
 
   // Pre-rendered playback for Chromebook (stable but no live editing)
   const startPrerenderedPlayback = async () => {
+    // Ensure audio context is running FIRST (critical for modal playback inside DAW)
+    try {
+      await Tone.start();
+      if (Tone.context.state !== 'running') {
+        console.log('🔊 Resuming audio context...');
+        await Tone.context.resume();
+      }
+      console.log('✅ Audio context state:', Tone.context.state);
+    } catch (err) {
+      console.error('❌ Failed to start audio context:', err);
+      return;
+    }
+
     // Wait a moment for samples to be ready
     if (!drumSamplesRef.current) {
       console.log('⏳ Waiting for drum samples...');
@@ -570,7 +583,6 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
     playerRef.current.loop = true;
 
     // Start playback
-    await Tone.start();
     playerRef.current.start();
     setIsPlaying(true);
     console.log('▶️ Playback started (pre-rendered)');
