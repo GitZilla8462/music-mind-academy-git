@@ -78,7 +78,7 @@ const WildlifeCompositionActivity = ({
   const navigate = useNavigate();
   
   // Session mode detection
-  const { getCurrentStage } = useSession();
+  const { getCurrentStage, sessionCode } = useSession();
   const currentStage = isSessionMode ? getCurrentStage() : null;
   const isReflectionStage = currentStage === 'reflection' || currentStage === 'reflection-activity';
   
