@@ -19,6 +19,7 @@ import {
   Pause,
   RotateCcw,
   Plus,
+  Minus,
   Minimize2,
   HelpCircle,
   LogOut,
@@ -2116,7 +2117,7 @@ const TeacherLessonView = ({
                   }`}
                   title="-1 min"
                 >
-                  <Minimize2 size={28} />
+                  <Minus size={28} />
                 </button>
 
                 {/* Play/Pause */}
