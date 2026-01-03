@@ -41,6 +41,7 @@ const SchoolBeneathActivity = ({
 
   // Track last save command timestamp to detect new commands
   const lastSaveCommandRef = useRef(null);
+  const componentMountTimeRef = useRef(Date.now());
   const [teacherSaveToast, setTeacherSaveToast] = useState(false);
   
   // Reflection flow states
@@ -180,7 +181,8 @@ const SchoolBeneathActivity = ({
 
   // Listen for teacher's save command from Firebase
   useEffect(() => {
-    if (!sessionCode || !isSessionMode || viewMode) return;
+    // Don't set up listener until we have studentId ready
+    if (!sessionCode || !isSessionMode || viewMode || !studentId) return;
 
     const db = getDatabase();
     const sessionRef = ref(db, `sessions/${sessionCode}/saveCommand`);
@@ -188,11 +190,11 @@ const SchoolBeneathActivity = ({
     const unsubscribe = onValue(sessionRef, (snapshot) => {
       const saveCommand = snapshot.val();
 
-      // Skip if no command or same as last
+      // Skip if no command
       if (!saveCommand) return;
 
-      // On first load, just store the value without triggering
-      if (lastSaveCommandRef.current === null) {
+      // Only process save commands that were issued AFTER this component mounted
+      if (saveCommand <= componentMountTimeRef.current) {
         lastSaveCommandRef.current = saveCommand;
         return;
       }
@@ -203,7 +205,7 @@ const SchoolBeneathActivity = ({
         console.log('💾 Teacher save command received!');
 
         // Trigger save
-        if (placedLoops.length > 0 && studentId) {
+        if (placedLoops.length > 0) {
           handleManualSave(true); // Silent save
 
           // Show toast notification

@@ -5,8 +5,9 @@
 // ✅ FIXED: Changed sessionStorage to useRef to allow reload on refresh
 // ✅ UPDATED: Changed bonus activity from Layer Detective to Loop Lab
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getDatabase, ref, onValue } from 'firebase/database';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
 import { useAutoSave } from '../../../hooks/useAutoSave.jsx';
 import CityReflectionModal from './two-stars-and-a-wish/CityReflectionModal';
@@ -123,7 +124,14 @@ const CityCompositionActivity = ({
   // ✅ FIXED: Use ref instead of sessionStorage so it resets on page refresh
   const hasLoadedRef = useRef(false);
   const isSavingRef = useRef(false);
-  
+
+  // Track save command from teacher
+  const lastSaveCommandRef = useRef(null);
+  const componentMountTimeRef = useRef(Date.now());
+
+  // Teacher save toast
+  const [teacherSaveToast, setTeacherSaveToast] = useState(false);
+
   // Initialize student ID
   useEffect(() => {
     let id = localStorage.getItem('anonymous-student-id');
@@ -284,6 +292,42 @@ const CityCompositionActivity = ({
       }
     };
   }, [isSessionMode, viewMode, placedLoops, studentId, selectedVideo, videoDuration]);
+
+  // ✅ Listen for teacher's save command from Firebase
+  useEffect(() => {
+    // Don't set up listener until we have studentId ready
+    if (!sessionCode || !isSessionMode || viewMode || !studentId) return;
+
+    const db = getDatabase();
+    const saveCommandRef = ref(db, `sessions/${sessionCode}/saveCommand`);
+
+    const unsubscribe = onValue(saveCommandRef, (snapshot) => {
+      const saveCommand = snapshot.val();
+
+      if (!saveCommand) return;
+
+      // Only process save commands that were issued AFTER this component mounted
+      if (saveCommand <= componentMountTimeRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        return;
+      }
+
+      if (saveCommand !== lastSaveCommandRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        console.log('💾 Teacher save command received for city composition!');
+
+        if (placedLoops.length > 0 && selectedVideo) {
+          handleManualSave(true); // Silent save
+
+          // Show toast notification
+          setTeacherSaveToast(true);
+          setTimeout(() => setTeacherSaveToast(false), 3000);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [sessionCode, isSessionMode, viewMode, studentId, placedLoops, selectedVideo]);
 
   // Load saved work on mount ONLY - includes manual saves
   // ✅ FIXED: Use ref instead of sessionStorage so refresh reloads saved work
@@ -589,18 +633,25 @@ const CityCompositionActivity = ({
       {/* Save Message Toast */}
       {saveMessage && console.log('🎨 RENDERING TOAST:', saveMessage.text)}
       {saveMessage && (
-        <div 
+        <div
           className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] px-6 py-3 rounded-lg shadow-xl font-bold text-white transition-all duration-300 ${
             saveMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'
           }`}
-          style={{ 
+          style={{
             animation: 'fadeIn 0.3s ease-in'
           }}
         >
           {saveMessage.text}
         </div>
       )}
-      
+
+      {/* Teacher Save Command Toast */}
+      {teacherSaveToast && (
+        <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-[9999] px-6 py-3 rounded-lg shadow-xl font-bold text-white bg-blue-600 animate-pulse">
+          💾 Your teacher saved your composition!
+        </div>
+      )}
+
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translate(-50%, -20px); }
