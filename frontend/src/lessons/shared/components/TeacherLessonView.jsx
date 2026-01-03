@@ -329,7 +329,7 @@ const PresentationContent = ({
 
       return (
         <div className="absolute inset-0">
-          <MelodyBuilderTeacherDemo />
+          <MelodyBuilderTeacherDemo onComplete={goToNextStage} />
         </div>
       );
     }
