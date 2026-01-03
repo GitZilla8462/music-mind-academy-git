@@ -2155,13 +2155,13 @@ const TeacherLessonView = ({
                   <RotateCcw size={28} />
                 </button>
 
-                {/* Close */}
+                {/* Minimize */}
                 <button
                   onClick={() => setTimerVisible(false)}
-                  className="p-3 rounded-xl text-gray-500 hover:text-red-400 hover:bg-gray-700 transition-colors text-2xl"
-                  title="Hide timer"
+                  className="p-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+                  title="Minimize timer"
                 >
-                  ✕
+                  <Minus size={28} />
                 </button>
               </div>
             </div>
