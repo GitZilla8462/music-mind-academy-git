@@ -19,7 +19,7 @@ import {
   Pause,
   RotateCcw,
   Plus,
-  Minus,
+  Minimize2,
   HelpCircle,
   LogOut,
   PanelLeftClose,
@@ -2116,7 +2116,7 @@ const TeacherLessonView = ({
                   }`}
                   title="-1 min"
                 >
-                  <Minus size={28} />
+                  <Minimize2 size={28} />
                 </button>
 
                 {/* Play/Pause */}
@@ -2161,7 +2161,7 @@ const TeacherLessonView = ({
                   className="p-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
                   title="Minimize timer"
                 >
-                  <Minus size={28} />
+                  <Minimize2 size={28} />
                 </button>
               </div>
             </div>
