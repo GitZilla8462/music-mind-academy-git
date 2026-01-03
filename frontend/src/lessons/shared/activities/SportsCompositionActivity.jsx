@@ -108,6 +108,7 @@ const SportsCompositionActivity = ({
 
   // Track save command from teacher
   const lastSaveCommandRef = useRef(null);
+  const componentMountTimeRef = useRef(Date.now());
   const isReflectionStage = currentStage === 'reflection' || currentStage === 'reflection-activity';
   
   // Video selection state
@@ -291,7 +292,8 @@ const SportsCompositionActivity = ({
 
   // ✅ Listen for teacher's save command from Firebase
   useEffect(() => {
-    if (!sessionCode || !isSessionMode || viewMode) return;
+    // Don't set up listener until we have studentId ready
+    if (!sessionCode || !isSessionMode || viewMode || !studentId) return;
 
     const db = getDatabase();
     const saveCommandRef = ref(db, `sessions/${sessionCode}/saveCommand`);
@@ -302,8 +304,8 @@ const SportsCompositionActivity = ({
       // Skip if no command
       if (!saveCommand) return;
 
-      // On first load, just store the value without triggering
-      if (lastSaveCommandRef.current === null) {
+      // Only process save commands that were issued AFTER this component mounted
+      if (saveCommand <= componentMountTimeRef.current) {
         lastSaveCommandRef.current = saveCommand;
         return;
       }
@@ -314,7 +316,7 @@ const SportsCompositionActivity = ({
         console.log('💾 Teacher save command received for sports composition!');
 
         // Trigger immediate save
-        if (placedLoops.length > 0 && studentId) {
+        if (placedLoops.length > 0) {
           handleManualSave(true); // Silent save
         }
       }

@@ -591,9 +591,13 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
     setTimeout(() => { isSavingRef.current = false; }, 500);
   }, [studentId, mapConfig]);
 
+  // Track when this component mounted - only process save commands issued after mount
+  const componentMountTimeRef = useRef(Date.now());
+
   // ✅ Listen for teacher's save command from Firebase
   useEffect(() => {
-    if (!sessionCode || !isSessionMode) return;
+    // Don't set up listener until we have studentId ready
+    if (!sessionCode || !isSessionMode || !studentId) return;
 
     const db = getDatabase();
     const sessionRef = ref(db, `sessions/${sessionCode}/saveCommand`);
@@ -604,8 +608,10 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
       // Skip if no command
       if (!saveCommand) return;
 
-      // On first load, just store the value without triggering
-      if (lastSaveCommandRef.current === null) {
+      // Only process save commands that were issued AFTER this component mounted
+      // This prevents processing old commands from previous sessions
+      if (saveCommand <= componentMountTimeRef.current) {
+        console.log('📋 Ignoring old save command from before mount');
         lastSaveCommandRef.current = saveCommand;
         return;
       }
@@ -616,7 +622,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
         console.log('💾 Teacher save command received for listening map!');
 
         // Trigger save
-        if (studentId && canvasRef.current) {
+        if (canvasRef.current) {
           handleManualSave(true); // Silent save
 
           // Show toast notification
