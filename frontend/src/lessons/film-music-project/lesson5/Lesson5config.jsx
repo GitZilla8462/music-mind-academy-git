@@ -261,7 +261,7 @@ export const lessonStages = [
     id: 'melody-demo',
     label: 'Building a Melody',
     description: 'Teacher demo: Ascending, Descending, Steps, Skips',
-    type: 'activity',
+    type: 'demo',  // Students see "Watch the Main Screen"
     duration: 2,
     trackProgress: true,
     presentationView: {
