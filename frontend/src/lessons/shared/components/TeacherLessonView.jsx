@@ -334,6 +334,55 @@ const PresentationContent = ({
       );
     }
 
+    // Summary Slide - shows title with bullet points or sections
+    if (type === 'summary') {
+      const { title, bullets, sections } = currentStageData.presentationView;
+
+      return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-12">
+          {/* Title */}
+          <h1 className="text-7xl font-bold text-white mb-12 text-center">
+            {title}
+          </h1>
+
+          {/* Simple bullets (if provided) */}
+          {bullets && bullets.length > 0 && (
+            <div className="max-w-4xl">
+              <ul className="space-y-6">
+                {bullets.map((bullet, index) => (
+                  <li key={index} className="flex items-start gap-4">
+                    <span className="text-purple-400 text-4xl mt-1">•</span>
+                    <span className="text-3xl text-slate-200 leading-relaxed">{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Sections with headings (if provided) */}
+          {sections && sections.length > 0 && (
+            <div className="flex gap-16 max-w-6xl">
+              {sections.map((section, sectionIndex) => (
+                <div key={sectionIndex} className="flex-1">
+                  <h2 className="text-3xl font-bold text-purple-400 mb-6">
+                    {section.heading}
+                  </h2>
+                  <ul className="space-y-4">
+                    {section.bullets.map((bullet, bulletIndex) => (
+                      <li key={bulletIndex} className="flex items-start gap-3">
+                        <span className="text-purple-400 text-2xl mt-0.5">•</span>
+                        <span className="text-2xl text-slate-200 leading-snug">{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
     // Image Slide - shows image with text overlay for DAW intro slides
     if (type === 'image-slide') {
       const { imagePath } = currentStageData.presentationView;

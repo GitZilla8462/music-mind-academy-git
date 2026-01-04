@@ -142,9 +142,23 @@ export const lessonSections = [
     title: 'Bonus - Melody Mystery',
     subtitle: 'Solo or Partner Activity',
     color: 'pink',
-    estimatedTime: 10,
+    estimatedTime: 12,
     isBonus: true,
     stages: [
+      {
+        id: 'melody-mystery-intro',
+        type: 'summary',
+        label: 'Melody Mystery',
+        description: 'Introduction to the partner puzzle activity',
+        duration: 1
+      },
+      {
+        id: 'melody-mystery-howto',
+        type: 'summary',
+        label: 'How It Works',
+        description: 'Explain CREATE and SOLVE phases',
+        duration: 1
+      },
       {
         id: 'melody-mystery',
         type: 'activity',
@@ -359,6 +373,54 @@ export const lessonStages = [
   },
   // BONUS: Melody Mystery (at end so it doesn't interrupt main flow)
   {
+    id: 'melody-mystery-intro',
+    label: 'Melody Mystery',
+    description: 'Introduction to the partner puzzle activity',
+    type: 'summary',
+    isBonus: true,
+    duration: 1,
+    presentationView: {
+      type: 'summary',
+      title: 'Melody Mystery',
+      bullets: [
+        'Create a melody puzzle for a classmate to solve',
+        'Can they recreate your melody by ear?'
+      ]
+    }
+  },
+  {
+    id: 'melody-mystery-howto',
+    label: 'How It Works',
+    description: 'Explain CREATE and SOLVE phases',
+    type: 'summary',
+    isBonus: true,
+    duration: 1,
+    presentationView: {
+      type: 'summary',
+      title: 'How It Works',
+      sections: [
+        {
+          heading: 'PHASE 1: CREATE',
+          bullets: [
+            'Pick a mystery object',
+            'Build your melody on the grid',
+            'Get your mystery code and remember it!'
+          ]
+        },
+        {
+          heading: 'PHASE 2: SOLVE',
+          bullets: [
+            'Partner up and trade codes',
+            'Enter your partner\'s code',
+            'Tap the object to hear their hidden melody',
+            'Recreate it on the decoder grid',
+            'Check your answer!'
+          ]
+        }
+      ]
+    }
+  },
+  {
     id: 'melody-mystery',
     label: '🎮 Unlock Melody Mystery',
     description: 'Solo or partner activity: Create melody puzzles for others to solve',
@@ -371,7 +433,7 @@ export const lessonStages = [
     duration: 10,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson5/slides/9-melody-mystery-intro.svg'
+      slidePath: '/lessons/film-music-project/lesson5/slides/9-melody-mystery-activity.svg'
     }
   }
 ];
@@ -386,6 +448,8 @@ export const getActivityForStage = (stage) => {
     'melody-demo': 'melody-builder-demo',  // Teacher demo of melody builder
     'melody-maker-instructions': 'summary',
     'melody-maker-activity': 'student-melody-maker',  // Student melody creation
+    'melody-mystery-intro': 'summary',  // Melody Mystery intro slide
+    'melody-mystery-howto': 'summary',  // Melody Mystery how-to slide
     'melody-mystery': 'melody-mystery',  // Partner melody puzzle activity
     'composition-instructions': 'summary',
     'game-composition': 'game-composition-activity',
