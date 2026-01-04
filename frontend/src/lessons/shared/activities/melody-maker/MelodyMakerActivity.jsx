@@ -837,12 +837,14 @@ const MelodyMakerActivity = ({
   const [showMelodyMaker, setShowMelodyMaker] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Determine which mood to use (locked or default to first)
-  const activeMood = lockedMood || MOODS[0].id;
-  const activeMoodData = MOODS.find(m => m.id === activeMood || m.name === activeMood) || MOODS[0];
+  // Only use activeMoodData if mood is locked, otherwise show generic
+  const isMoodLocked = lockedMood !== null;
+  const activeMoodData = isMoodLocked
+    ? (MOODS.find(m => m.id === lockedMood || m.name === lockedMood) || MOODS[0])
+    : MOODS[0]; // Default for display purposes only
 
-  // Count how many melodies of the current mood have been saved
-  const moodMelodyCount = savedMelodies.filter(m => m.mood === activeMoodData.name).length;
+  // Count total melodies saved
+  const totalMelodyCount = savedMelodies.length;
 
   // Handle when a melody is saved
   const handleSaveMelody = useCallback((melodyLoop) => {
@@ -865,15 +867,19 @@ const MelodyMakerActivity = ({
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-3">
                 <Music2 className="text-purple-400" />
-                Build Your {activeMoodData.name} Melody
+                {isMoodLocked ? `Build Your ${activeMoodData.name} Melody` : 'Build Your Melody'}
               </h1>
               <p className="text-gray-400 mt-1 flex items-center gap-2">
-                <span
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-sm font-medium"
-                  style={{ backgroundColor: activeMoodData.color }}
-                >
-                  {activeMoodData.emoji} {activeMoodData.name}
-                </span>
+                {isMoodLocked ? (
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-sm font-medium"
+                    style={{ backgroundColor: activeMoodData.color }}
+                  >
+                    {activeMoodData.emoji} {activeMoodData.name}
+                  </span>
+                ) : (
+                  <span className="text-purple-400 font-medium">Choose any mood!</span>
+                )}
                 <span>Create a melody to use in your game composition</span>
               </p>
             </div>
@@ -881,10 +887,10 @@ const MelodyMakerActivity = ({
             {/* Progress indicator */}
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="text-sm text-gray-400">{activeMoodData.name} Melodies</div>
-                <div className="text-2xl font-bold" style={{ color: activeMoodData.color }}>{moodMelodyCount}</div>
+                <div className="text-sm text-gray-400">Melodies Created</div>
+                <div className="text-2xl font-bold text-purple-400">{totalMelodyCount}</div>
               </div>
-              {moodMelodyCount > 0 && (
+              {totalMelodyCount > 0 && (
                 <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
                   <Check size={24} />
                 </div>
@@ -901,8 +907,8 @@ const MelodyMakerActivity = ({
             onSave={handleSaveMelody}
             onClose={() => setShowMelodyMaker(false)}
             melodyCount={savedMelodies.length}
-            lockedMood={activeMoodData.id}
-            moodMelodyCount={moodMelodyCount}
+            lockedMood={lockedMood}
+            moodMelodyCount={totalMelodyCount}
           />
         ) : (
           /* Main menu */
@@ -945,16 +951,15 @@ const MelodyMakerActivity = ({
             <div>
               <button
                 onClick={() => setShowMelodyMaker(true)}
-                className="w-full py-4 px-6 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg"
+                className="w-full py-4 px-6 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg bg-purple-600 hover:bg-purple-500"
                 style={{
-                  backgroundColor: activeMoodData.color,
-                  boxShadow: `0 10px 25px -5px ${activeMoodData.color}40`
+                  boxShadow: '0 10px 25px -5px rgba(147, 51, 234, 0.4)'
                 }}
               >
                 <Music2 size={24} />
-                {moodMelodyCount === 0
-                  ? `Create Your ${activeMoodData.name} Melody`
-                  : `Create Another ${activeMoodData.name} Melody`}
+                {totalMelodyCount === 0
+                  ? 'Create Your Melody'
+                  : 'Create Another Melody'}
               </button>
             </div>
 
