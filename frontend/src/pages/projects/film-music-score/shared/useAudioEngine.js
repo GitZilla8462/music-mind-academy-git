@@ -534,11 +534,11 @@ export const useAudioEngine = (videoDuration = 60) => {
   const previewLoop = useCallback(async (loopData, onEnded = null) => {
     console.log('🎧 PREVIEW LOOP:', loopData.name);
 
-    const isSameLoop = currentPreviewLoopIdRef.current === loopData.id;
-
     // Increment request ID to invalidate any pending decode operations
     previewRequestIdRef.current += 1;
     const thisRequestId = previewRequestIdRef.current;
+
+    const isSameLoop = currentPreviewLoopIdRef.current === loopData.id;
 
     // Stop any current preview
     if (previewSourceRef.current) {
@@ -604,8 +604,12 @@ export const useAudioEngine = (videoDuration = 60) => {
 
       source.onended = () => {
         console.log('   Preview ended:', loopData.name);
-        previewSourceRef.current = null;
-        currentPreviewLoopIdRef.current = null;
+        // Only clear ref if this source is still the current one
+        // (prevents old stopped sources from clearing the new source's ref)
+        if (currentPreviewLoopIdRef.current === loopData.id) {
+          previewSourceRef.current = null;
+          currentPreviewLoopIdRef.current = null;
+        }
         if (onEnded) onEnded(loopData);
       };
 
