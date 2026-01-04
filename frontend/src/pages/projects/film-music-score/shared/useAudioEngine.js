@@ -54,9 +54,24 @@ export const useAudioEngine = (videoDuration = 60) => {
 
   // Get the base loop ID from a placed loop ID
   // e.g., "heroic-drums-1-1767032095368" -> "heroic-drums-1"
+  // For custom beats/melodies, preserve the creation timestamp as it's the unique ID:
+  // e.g., "custom-beat-1767483773613" -> "custom-beat-1767483773613" (not "custom-beat"!)
+  // e.g., "custom-beat-1767483773613-1767483778054" (placed) -> "custom-beat-1767483773613"
   const getBaseLoopId = (loopId) => {
-    // Remove the timestamp suffix (last part after the last hyphen if it's a number)
     const parts = loopId.split('-');
+
+    // Handle custom beats and custom melodies specially
+    // Format: custom-beat-<timestamp> or custom-beat-<timestamp>-<timestamp2>
+    // We need to preserve the first timestamp as it's the unique identifier
+    if (parts[0] === 'custom' && (parts[1] === 'beat' || parts[1] === 'melody')) {
+      // Always return first 3 parts: custom-beat-<timestamp> or custom-melody-<timestamp>
+      if (parts.length >= 3) {
+        return `${parts[0]}-${parts[1]}-${parts[2]}`;
+      }
+      return loopId;
+    }
+
+    // For regular loops, remove the timestamp suffix (last part if it's a long number)
     const lastPart = parts[parts.length - 1];
     if (/^\d{10,}$/.test(lastPart)) {
       return parts.slice(0, -1).join('-');
