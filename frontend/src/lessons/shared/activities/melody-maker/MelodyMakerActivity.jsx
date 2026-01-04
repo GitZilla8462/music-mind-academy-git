@@ -213,20 +213,22 @@ const getContourDescription = (grid, beats) => {
 // ============================================
 // MELODY GRID EDITOR COMPONENT
 // ============================================
-const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0 }) => {
+const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0, lockedMood = null, moodMelodyCount = 0 }) => {
   const [beats, setBeats] = useState(8); // 8 = 2 beats, 16 = 4 beats
-  const [moodIndex, setMoodIndex] = useState(0);
+  // If mood is locked, find its index; otherwise start at 0
+  const lockedMoodIndex = lockedMood ? MOODS.findIndex(m => m.id === lockedMood || m.name === lockedMood) : -1;
+  const [moodIndex, setMoodIndex] = useState(lockedMoodIndex >= 0 ? lockedMoodIndex : 0);
   const [instrument, setInstrument] = useState('piano');
   const [grid, setGrid] = useState(() => Array(5).fill(null).map(() => Array(8).fill(false)));
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentBeat, setCurrentBeat] = useState(-1);
   const [audioReady, setAudioReady] = useState(false);
   const [triggeredNotes, setTriggeredNotes] = useState({});
-  const [showMoodDropdown, setShowMoodDropdown] = useState(false);
   const [showInstrumentDropdown, setShowInstrumentDropdown] = useState(false);
   const [showPresetDropdown, setShowPresetDropdown] = useState(false);
-  const [showNameModal, setShowNameModal] = useState(false);
-  const [melodyName, setMelodyName] = useState('');
+
+  // Mood is locked - no dropdown needed
+  const isMoodLocked = lockedMood !== null;
 
   const synthRef = useRef(null);
   const sequenceRef = useRef(null);
@@ -441,26 +443,23 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0 }) => {
     setShowPresetDropdown(false);
   };
 
-  // Open naming modal before save
+  // Save melody directly with auto-generated name
   const handleSaveClick = () => {
     if (isPlaying) stopPlayback();
-    setMelodyName(`My ${currentMood.name} Melody`);
-    setShowNameModal(true);
-  };
 
-  // Confirm save with custom name
-  const confirmSave = () => {
     // Calculate duration
     const secondsPerBeat = 60 / bpm;
     const singlePatternDuration = secondsPerBeat * beats / 2;
     const LOOP_REPEATS = 4;
     const duration = singlePatternDuration * LOOP_REPEATS;
 
-    const finalName = melodyName.trim() || `My ${currentMood.name} Melody`;
+    // Auto-generate name: "My Upbeat Melody 1", "My Upbeat Melody 2", etc.
+    const melodyNumber = moodMelodyCount + 1;
+    const autoName = `My ${currentMood.name} Melody ${melodyNumber}`;
 
     const melodyLoop = {
       id: `mma-saved-melody-${Date.now()}`,
-      name: finalName,
+      name: autoName,
       file: null,
       mood: currentMood.name,
       color: currentMood.color,
@@ -479,7 +478,6 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0 }) => {
       savedAt: new Date().toISOString()
     };
 
-    setShowNameModal(false);
     onSave(melodyLoop);
   };
 
@@ -523,36 +521,13 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0 }) => {
               </button>
             </div>
 
-            {/* Mood Selector */}
-            <div className="relative">
-              <button
-                onClick={async () => {
-                  await initializeAudio();
-                  setShowMoodDropdown(!showMoodDropdown);
-                  setShowInstrumentDropdown(false);
-                  setShowPresetDropdown(false);
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-sm transition-all"
-                style={{ backgroundColor: currentMood.color }}
-              >
-                <span>{currentMood.emoji}</span>
-                <span>{currentMood.name}</span>
-                <ChevronDown size={14} />
-              </button>
-              {showMoodDropdown && (
-                <div className="absolute top-full left-0 mt-1 bg-slate-700 rounded-lg shadow-xl z-20 min-w-[150px]">
-                  {MOODS.map((mood, idx) => (
-                    <button
-                      key={mood.id}
-                      onClick={() => { setMoodIndex(idx); setShowMoodDropdown(false); }}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-600 first:rounded-t-lg last:rounded-b-lg"
-                    >
-                      <span>{mood.emoji}</span>
-                      <span>{mood.name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
+            {/* Mood Display - locked, no dropdown */}
+            <div
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-sm"
+              style={{ backgroundColor: currentMood.color }}
+            >
+              <span>{currentMood.emoji}</span>
+              <span>{currentMood.name}</span>
             </div>
 
             {/* Instrument Selector - Dropdown with names */}
@@ -561,7 +536,6 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0 }) => {
                 onClick={async () => {
                   await initializeAudio();
                   setShowInstrumentDropdown(!showInstrumentDropdown);
-                  setShowMoodDropdown(false);
                   setShowPresetDropdown(false);
                 }}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg font-bold text-sm transition-all"
@@ -594,7 +568,6 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0 }) => {
                 onClick={async () => {
                   await initializeAudio();
                   setShowPresetDropdown(!showPresetDropdown);
-                  setShowMoodDropdown(false);
                   setShowInstrumentDropdown(false);
                 }}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg font-bold text-sm"
@@ -811,47 +784,11 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0 }) => {
       </div>
 
       {/* Click outside to close dropdowns */}
-      {(showMoodDropdown || showInstrumentDropdown || showPresetDropdown) && (
+      {(showInstrumentDropdown || showPresetDropdown) && (
         <div
           className="fixed inset-0 z-10"
-          onClick={() => { setShowMoodDropdown(false); setShowInstrumentDropdown(false); setShowPresetDropdown(false); }}
+          onClick={() => { setShowInstrumentDropdown(false); setShowPresetDropdown(false); }}
         />
-      )}
-
-      {/* Name Modal */}
-      {showNameModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-          <div className="bg-slate-800 rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl border border-slate-600">
-            <h3 className="text-xl font-bold text-white mb-4">Name Your Melody</h3>
-            <input
-              type="text"
-              value={melodyName}
-              onChange={(e) => setMelodyName(e.target.value)}
-              placeholder="Enter melody name..."
-              className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') confirmSave();
-                if (e.key === 'Escape') setShowNameModal(false);
-              }}
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowNameModal(false)}
-                className="flex-1 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmSave}
-                className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-500 rounded-lg font-bold transition-all flex items-center justify-center gap-2"
-              >
-                <Save className="w-5 h-5" />
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );
@@ -863,11 +800,19 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0 }) => {
 const MelodyMakerActivity = ({
   onComplete,
   viewMode = false,
-  isSessionMode = false
+  isSessionMode = false,
+  lockedMood = null  // Lock to a specific mood (e.g., 'upbeat', 'heroic')
 }) => {
   const [savedMelodies, setSavedMelodies] = useState(() => loadSavedMelodies());
   const [showMelodyMaker, setShowMelodyMaker] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Determine which mood to use (locked or default to first)
+  const activeMood = lockedMood || MOODS[0].id;
+  const activeMoodData = MOODS.find(m => m.id === activeMood || m.name === activeMood) || MOODS[0];
+
+  // Count how many melodies of the current mood have been saved
+  const moodMelodyCount = savedMelodies.filter(m => m.mood === activeMoodData.name).length;
 
   // Handle when a melody is saved
   const handleSaveMelody = useCallback((melodyLoop) => {
@@ -890,20 +835,26 @@ const MelodyMakerActivity = ({
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-3">
                 <Music2 className="text-purple-400" />
-                Build Your Melody
+                Build Your {activeMoodData.name} Melody
               </h1>
-              <p className="text-gray-400 mt-1">
-                Create a melody to use in your game composition
+              <p className="text-gray-400 mt-1 flex items-center gap-2">
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-sm font-medium"
+                  style={{ backgroundColor: activeMoodData.color }}
+                >
+                  {activeMoodData.emoji} {activeMoodData.name}
+                </span>
+                <span>Create a melody to use in your game composition</span>
               </p>
             </div>
 
             {/* Progress indicator */}
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="text-sm text-gray-400">Melodies Created</div>
-                <div className="text-2xl font-bold text-purple-400">{savedMelodies.length}</div>
+                <div className="text-sm text-gray-400">{activeMoodData.name} Melodies</div>
+                <div className="text-2xl font-bold" style={{ color: activeMoodData.color }}>{moodMelodyCount}</div>
               </div>
-              {savedMelodies.length > 0 && (
+              {moodMelodyCount > 0 && (
                 <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
                   <Check size={24} />
                 </div>
@@ -920,6 +871,8 @@ const MelodyMakerActivity = ({
             onSave={handleSaveMelody}
             onClose={() => setShowMelodyMaker(false)}
             melodyCount={savedMelodies.length}
+            lockedMood={activeMoodData.id}
+            moodMelodyCount={moodMelodyCount}
           />
         ) : (
           /* Main menu */
@@ -962,10 +915,16 @@ const MelodyMakerActivity = ({
             <div>
               <button
                 onClick={() => setShowMelodyMaker(true)}
-                className="w-full py-4 px-6 bg-purple-600 hover:bg-purple-700 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg shadow-purple-500/20"
+                className="w-full py-4 px-6 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg"
+                style={{
+                  backgroundColor: activeMoodData.color,
+                  boxShadow: `0 10px 25px -5px ${activeMoodData.color}40`
+                }}
               >
                 <Music2 size={24} />
-                {savedMelodies.length === 0 ? 'Create Your Melody' : 'Create Another Melody'}
+                {moodMelodyCount === 0
+                  ? `Create Your ${activeMoodData.name} Melody`
+                  : `Create Another ${activeMoodData.name} Melody`}
               </button>
             </div>
 
