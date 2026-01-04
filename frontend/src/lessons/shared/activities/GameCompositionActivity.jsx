@@ -392,9 +392,10 @@ const GameCompositionActivity = ({
           emoji: videoToSave.emoji || '🎮',
           viewRoute: '/lessons/film-music-project/lesson5?view=saved',
           subtitle: `${loopsToSave.length} loops • ${formatDuration(videoToSave.duration)}`,
+          category: 'Film Music Project',
           data: compositionToSave
-        });
-        console.log('💾 Unmount save complete');
+        }, studentIdRef.current);
+        console.log('💾 Unmount save complete for student:', studentIdRef.current);
       }
     };
   }, [isSessionMode, viewMode]);
@@ -486,9 +487,9 @@ const GameCompositionActivity = ({
         videoEmoji: selectedVideo.emoji,
         timestamp: Date.now()
       }
-    });
+    }, studentId);
 
-    console.log('💾 Saved using studentWorkStorage system');
+    console.log('💾 Saved game composition for student:', studentId);
 
     if (!silent) {
       setSaveMessage({ type: 'success', text: '✅ Saved! View anytime from the Join page.' });

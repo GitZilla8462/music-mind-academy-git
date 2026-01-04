@@ -355,7 +355,7 @@ const Lesson5 = () => {
   let viewModeActive = false;
 
   if (viewSavedMode) {
-    activityToRender = lesson5Config.activities.find(a => a.type === 'student-melody-maker');
+    activityToRender = lesson5Config.activities.find(a => a.type === 'game-composition-activity');
     viewModeActive = true;
   } else if (viewReflectionMode) {
     activityToRender = lesson5Config.activities.find(a => a.type === 'two-stars-and-a-wish');
