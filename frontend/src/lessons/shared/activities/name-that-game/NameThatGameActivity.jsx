@@ -190,55 +190,7 @@ const NameThatGameActivity = ({ onComplete }) => {
     }
   };
 
-  const allCompleted = songsCompleted.every(Boolean);
-
-  // Show completion view when all songs are revealed
-  if (allCompleted) {
-    return (
-      <div className="h-full flex flex-col bg-gradient-to-br from-indigo-950 to-slate-900 text-white overflow-hidden">
-        {/* Header */}
-        <div className="flex-shrink-0 px-8 py-4 border-b border-white/10">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold flex items-center gap-3">
-              <span className="text-4xl">🎮</span>
-              NAME THAT GAME!
-            </h1>
-            <div className="flex items-center gap-2">
-              {GAME_THEMES.map((song, idx) => (
-                <div
-                  key={song.id}
-                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-green-500"
-                >
-                  ✓
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Completion Message */}
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-9xl mb-8">🎉</div>
-            <h2 className="text-6xl font-bold mb-4 text-green-400">Good Job!</h2>
-            <p className="text-2xl text-slate-300 mb-8">You identified all 4 video game melodies!</p>
-            <p className="text-xl text-amber-400 font-semibold mb-12">
-              You recognized each game by its MELODY - that's the power of a great theme!
-            </p>
-            {onComplete && (
-              <button
-                onClick={onComplete}
-                className="px-10 py-5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-2xl font-bold flex items-center gap-3 mx-auto transition-all hover:scale-105 active:scale-95"
-              >
-                Continue
-                <ArrowRight size={28} />
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const isLastSong = currentSongIndex === GAME_THEMES.length - 1;
 
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-indigo-950 to-slate-900 text-white overflow-hidden">
@@ -394,23 +346,30 @@ const NameThatGameActivity = ({ onComplete }) => {
               <span className="text-slate-400">
                 Song {currentSongIndex + 1} of {GAME_THEMES.length}
               </span>
-              {allCompleted && (
-                <p className="text-green-400 text-sm mt-1">All songs revealed!</p>
-              )}
             </div>
 
-            <button
-              onClick={handleNext}
-              disabled={currentSongIndex === GAME_THEMES.length - 1}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
-                currentSongIndex === GAME_THEMES.length - 1
-                  ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                  : 'bg-slate-700 hover:bg-slate-600 text-white'
-              }`}
-            >
-              Next
-              <ChevronRight size={20} />
-            </button>
+            {isLastSong && isRevealed ? (
+              <button
+                onClick={onComplete}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all bg-indigo-600 hover:bg-indigo-500 text-white hover:scale-105 active:scale-95"
+              >
+                Advance Slide
+                <ArrowRight size={20} />
+              </button>
+            ) : (
+              <button
+                onClick={handleNext}
+                disabled={isLastSong}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
+                  isLastSong
+                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                    : 'bg-slate-700 hover:bg-slate-600 text-white'
+                }`}
+              >
+                Next
+                <ChevronRight size={20} />
+              </button>
+            )}
           </div>
         </div>
       </div>

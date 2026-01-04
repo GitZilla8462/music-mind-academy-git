@@ -51,7 +51,7 @@ export const lessonSections = [
         type: 'summary',
         label: 'What is a Melody?',
         description: 'Melody, contour, steps, skips',
-        duration: 3
+        duration: 2
       },
       {
         id: 'melody-demo',
@@ -75,7 +75,7 @@ export const lessonSections = [
         duration: 8,
         hasTimer: true,
         trackProgress: true,
-        bonusDescription: 'Try different contours!'
+        bonusDescription: 'If you make one melody, click Create Another Melody to make more! They can all be options to choose from for your composition today.'
       }
     ]
   },
@@ -251,7 +251,7 @@ export const lessonStages = [
     label: 'What is a Melody?',
     description: 'Melody, contour, and how notes move',
     type: 'summary',
-    duration: 3,
+    duration: 2,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson5/slides/3-melody-basics.svg'
@@ -284,7 +284,7 @@ export const lessonStages = [
     id: 'melody-maker-activity',
     label: '🎮 Unlock Build Your Melody',
     description: 'Students create a melody using the note grid',
-    bonusDescription: 'Try different contours!',
+    bonusDescription: 'If you make one melody, click Create Another Melody to make more! They can all be options to choose from for your composition today.',
     type: 'activity',
     hasTimer: true,
     hasProgress: true,

@@ -71,7 +71,7 @@ const MelodyMysteryCollabCreator = ({
     if (!room?.melodies) return 0;
     return myScenes.filter(sceneIndex => {
       const melody = room.melodies[sceneIndex];
-      return melody?.grid && countSimpleNotes(melody.grid) >= 3;
+      return melody?.grid && countSimpleNotes(melody.grid) >= 4;
     }).length;
   }, [room?.melodies, myScenes]);
 
@@ -81,7 +81,7 @@ const MelodyMysteryCollabCreator = ({
     for (let i = 0; i < totalScenes; i++) {
       if (!myScenes.includes(i)) {
         const melody = room.melodies[i];
-        if (melody?.grid && countSimpleNotes(melody.grid) >= 3) {
+        if (melody?.grid && countSimpleNotes(melody.grid) >= 4) {
           count++;
         }
       }
@@ -342,9 +342,9 @@ const MelodyMysteryCollabCreator = ({
 
   const handleSaveAndClose = () => {
     if (editingScene !== null) {
-      // Check if melody has at least 3 notes
+      // Check if melody has 4 notes (one per beat)
       const noteCount = countSimpleNotes(currentGrid);
-      if (noteCount < 3) {
+      if (noteCount < 4) {
         sounds.wrongGuess();
         return;
       }
@@ -485,11 +485,11 @@ const MelodyMysteryCollabCreator = ({
                 </div>
 
                 {/* Note count */}
-                <div className={`text-center mt-4 text-sm ${noteCount < 3 ? 'text-orange-400' : 'text-green-400'}`}>
-                  {noteCount} / 3 minimum notes
-                  {noteCount < 3 && (
+                <div className={`text-center mt-4 text-sm ${noteCount < 4 ? 'text-orange-400' : 'text-green-400'}`}>
+                  {noteCount} / 4 notes (one per beat)
+                  {noteCount < 4 && (
                     <span className="block text-red-400 text-xs mt-1">
-                      Add at least 3 notes!
+                      Add a note for each beat!
                     </span>
                   )}
                 </div>
@@ -515,7 +515,7 @@ const MelodyMysteryCollabCreator = ({
             </button>
             <button
               onClick={handleSaveAndClose}
-              disabled={noteCount < 3}
+              disabled={noteCount < 4}
               className="px-6 py-3 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl text-white font-bold transition-colors"
             >
               Save Melody
@@ -591,7 +591,7 @@ const MelodyMysteryCollabCreator = ({
             {locations.map((location, sceneIndex) => {
               const isMyScene = myScenes.includes(sceneIndex);
               const melody = room?.melodies?.[sceneIndex];
-              const isComplete = melody?.grid && countSimpleNotes(melody.grid) >= 3;
+              const isComplete = melody?.grid && countSimpleNotes(melody.grid) >= 4;
               const partnerEditing = room?.activeScenes &&
                 Object.entries(room.activeScenes).some(
                   ([idx, scene]) => parseInt(idx) !== playerIndex && scene === sceneIndex

@@ -108,42 +108,39 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
     }
   };
 
-  // Solo mode: concept select goes to ending selection
-  const handleSoloConceptSelect = (concept) => {
-    if (!concept.available) return;
-    setSelectedConcept(concept.id);
-    setStep('ending');
+  // Get default ending for a concept (first available)
+  const getDefaultEnding = (conceptId) => {
+    const storyline = getStoryline(conceptId);
+    const endingIds = Object.keys(storyline?.endings || {});
+    return endingIds[0] || 'ranaway';
   };
 
-  // Solo mode: after ending selection, go directly to creating
-  const handleSoloEndingSelect = (endingId) => {
+  // Solo mode: concept select goes directly to creating (skip ending selection)
+  const handleSoloConceptSelect = (concept) => {
+    if (!concept.available) return;
+    const defaultEnding = getDefaultEnding(concept.id);
     onStartCreate({
-      concept: selectedConcept,
+      concept: concept.id,
       mode: selectedMode,
-      ending: endingId,
+      ending: defaultEnding,
       playerIndex: 0,
       shareCode: null,
     });
   };
 
-  // Partner mode: concept select goes to ending selection
-  const handlePartnerConceptSelect = (concept) => {
+  // Partner mode: concept select goes directly to room creation (skip ending selection)
+  const handlePartnerConceptSelect = async (concept) => {
     if (!concept.available || isCreating) return;
-    setSelectedConcept(concept.id);
-    setStep('ending');
-  };
-
-  // Partner mode: after ending selection, create room and show code
-  const handlePartnerEndingSelect = async (endingId) => {
-    if (isCreating) return;
     setIsCreating(true);
-    setSelectedEnding(endingId);
+    setSelectedConcept(concept.id);
+    const defaultEnding = getDefaultEnding(concept.id);
+    setSelectedEnding(defaultEnding);
 
     try {
       const room = await createRoom({
         mode: selectedMode,
-        concept: selectedConcept,
-        ending: endingId,
+        concept: concept.id,
+        ending: defaultEnding,
         melodies: {},
         status: 'creating'
       });
@@ -187,10 +184,7 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
   };
 
   const handleBack = () => {
-    if (step === 'ending') {
-      setStep('concept');
-      setSelectedEnding(null);
-    } else if (step === 'concept') {
+    if (step === 'concept') {
       if (selectedMode === 'partner' || selectedMode === 'trio') {
         setStep('partner-role');
       } else {
@@ -198,7 +192,7 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
         setSelectedMode(null);
       }
     } else if (step === 'show-code') {
-      setStep('ending');
+      setStep('concept');
       setGeneratedCode('');
     } else if (step === 'partner-role' || step === 'join-to-create') {
       setStep('mode');
@@ -514,87 +508,6 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
         <p className="mt-8 text-gray-500 text-sm relative z-10">
           More themes coming soon!
         </p>
-      </div>
-    );
-  }
-
-  // Step 4: Ending Selection (after concept is chosen)
-  if (step === 'ending') {
-    const conceptData = getConcept(selectedConcept);
-    const conceptAssets = getConceptAssets(selectedConcept);
-    const storyline = getStoryline(selectedConcept);
-    const endings = storyline?.endings || {};
-    const isPartnerMode = selectedMode === 'partner' || selectedMode === 'trio';
-    const handleEndingClick = isPartnerMode ? handlePartnerEndingSelect : handleSoloEndingSelect;
-
-    return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center p-6 relative"
-        style={{
-          backgroundImage: `url(${conceptAssets?.bgSetup || SHARED_BG_TITLE})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        <div className="absolute inset-0 bg-black/70 pointer-events-none" />
-
-        <button
-          onClick={handleBack}
-          className="absolute top-6 left-6 text-gray-300 hover:text-white transition-colors flex items-center gap-2 z-10"
-          style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}
-        >
-          ← Back
-        </button>
-
-        {/* Story Title & Intro */}
-        <div className="text-center mb-8 relative z-10 max-w-2xl bg-black/50 rounded-2xl p-6">
-          <div className="text-5xl mb-3">{conceptData?.icon}</div>
-          <h1 className="text-4xl font-black text-white mb-4"
-              style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(139, 92, 246, 0.6)' }}>
-            {conceptData?.name}
-          </h1>
-          <p className="text-lg text-gray-200 leading-relaxed"
-             style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
-            {storyline?.intro}
-          </p>
-        </div>
-
-        {/* Choose Your Ending Section */}
-        <div className="text-center mb-6 relative z-10">
-          <h2 className="text-2xl font-bold text-white"
-              style={{ textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}>
-            Choose Your Ending
-          </h2>
-          <p className="text-sm text-gray-200 mt-1"
-             style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
-            Pick how the mystery ends — you'll create clues for this story
-          </p>
-        </div>
-
-        {isCreating && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-30">
-            <div className="bg-gray-800 rounded-xl p-6 text-center">
-              <div className="text-2xl mb-2">Creating Room...</div>
-              <div className="text-gray-400">Please wait</div>
-            </div>
-          </div>
-        )}
-
-        {/* Ending Cards */}
-        <div className="grid grid-cols-3 gap-6 max-w-3xl relative z-10">
-          {Object.entries(endings).map(([endingId, ending]) => (
-            <button
-              key={endingId}
-              onClick={() => handleEndingClick(endingId)}
-              disabled={isCreating}
-              className="bg-gray-800/90 hover:bg-gray-700/90 border-2 border-gray-600 hover:border-purple-500 rounded-2xl p-6 transition-all duration-200 hover:scale-105"
-            >
-              <div className="text-4xl mb-3">{ending.icon}</div>
-              <div className="text-xl font-bold text-white mb-2">{ending.name}</div>
-              <div className="text-sm text-gray-400">6 locations to explore</div>
-            </button>
-          ))}
-        </div>
       </div>
     );
   }

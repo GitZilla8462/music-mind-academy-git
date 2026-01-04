@@ -133,6 +133,9 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
   const [inputError, setInputError] = useState(null);
   const [isPlayingTarget, setIsPlayingTarget] = useState(false);
   const [isPlayingPlayer, setIsPlayingPlayer] = useState(false);
+  const [hasPlayedSignal, setHasPlayedSignal] = useState(
+    locations.map(() => false)
+  );
   const [currentBeat, setCurrentBeat] = useState(-1);
   const [typeInput, setTypeInput] = useState('');
 
@@ -188,9 +191,10 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
     return () => disposeSimpleSynth();
   }, []);
 
-  // Handle grid toggle
+  // Handle grid toggle - only allow if signal has been played
   const handleGridToggle = (newGrid) => {
     if (gameState !== STATES.SOLVING) return;
+    if (!hasPlayedSignal[currentLocationIndex]) return; // Must play signal first
 
     setPlayerGrids(prev => {
       const newGrids = [...prev];
@@ -225,6 +229,13 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
       const newRemaining = [...prev];
       newRemaining[currentLocationIndex]--;
       return newRemaining;
+    });
+
+    // Mark signal as played for this location
+    setHasPlayedSignal(prev => {
+      const updated = [...prev];
+      updated[currentLocationIndex] = true;
+      return updated;
     });
 
     setIsPlayingTarget(true);
@@ -417,40 +428,69 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
         return updated;
       });
 
-      // Progressive hints: 3rd error = 1st note, 4th = 2nd note, 5th = 3rd note
+      // Progressive hints: 4 wrong = beat 2, 8 wrong = beat 3
+      // Beat 1 is always C (given), player must always answer beat 4
       const currentRevealed = revealedCols[currentLocationIndex] || [];
-      if (newAttempts >= 3 && currentRevealed.length < 3) {
-        // Find next note to reveal
-        const colToReveal = findNextNoteToReveal(targetGrid, currentRevealed);
-        if (colToReveal >= 0) {
-          setInputError('SIGNAL MISMATCH - NOTE REVEALED');
-          setTimeout(() => {
-            setInputError(null);
-            // Reveal the column
-            setRevealedCols(prev => {
-              const newRevealed = [...prev];
-              newRevealed[currentLocationIndex] = [...(newRevealed[currentLocationIndex] || []), colToReveal];
-              return newRevealed;
-            });
-            // Update player grid to show the hint
-            setPlayerGrids(prev => {
-              const newGrids = [...prev];
-              const newGrid = newGrids[currentLocationIndex].map(row => [...row]);
-              for (let row = 0; row < GRID_ROWS; row++) {
-                newGrid[row][colToReveal] = targetGrid[row][colToReveal];
-              }
-              newGrids[currentLocationIndex] = newGrid;
-              return newGrids;
-            });
-            // Track hint usage for scoring
-            setHintsUsed(prev => {
-              const updated = [...prev];
-              updated[currentLocationIndex] = (updated[currentLocationIndex] || 0) + 1;
-              return updated;
-            });
-            sounds.hint();
-          }, 1000);
-        }
+
+      // After 4 wrong attempts, reveal beat 2 (column 1)
+      if (newAttempts >= 4 && !currentRevealed.includes(1)) {
+        setInputError('SIGNAL MISMATCH - BEAT 2 REVEALED');
+        setTimeout(() => {
+          setInputError(null);
+          // Reveal column 1 (beat 2)
+          setRevealedCols(prev => {
+            const newRevealed = [...prev];
+            newRevealed[currentLocationIndex] = [...(newRevealed[currentLocationIndex] || []), 1];
+            return newRevealed;
+          });
+          // Update player grid to show the correct answer for beat 2
+          setPlayerGrids(prev => {
+            const newGrids = [...prev];
+            const newGrid = newGrids[currentLocationIndex].map(row => [...row]);
+            for (let row = 0; row < GRID_ROWS; row++) {
+              newGrid[row][1] = targetGrid[row][1];
+            }
+            newGrids[currentLocationIndex] = newGrid;
+            return newGrids;
+          });
+          // Track hint usage for scoring
+          setHintsUsed(prev => {
+            const updated = [...prev];
+            updated[currentLocationIndex] = (updated[currentLocationIndex] || 0) + 1;
+            return updated;
+          });
+          sounds.hint();
+        }, 1000);
+      }
+      // After 8 wrong attempts, reveal beat 3 (column 2)
+      else if (newAttempts >= 8 && currentRevealed.includes(1) && !currentRevealed.includes(2)) {
+        setInputError('SIGNAL MISMATCH - BEAT 3 REVEALED');
+        setTimeout(() => {
+          setInputError(null);
+          // Reveal column 2 (beat 3)
+          setRevealedCols(prev => {
+            const newRevealed = [...prev];
+            newRevealed[currentLocationIndex] = [...(newRevealed[currentLocationIndex] || []), 2];
+            return newRevealed;
+          });
+          // Update player grid to show the correct answer for beat 3
+          setPlayerGrids(prev => {
+            const newGrids = [...prev];
+            const newGrid = newGrids[currentLocationIndex].map(row => [...row]);
+            for (let row = 0; row < GRID_ROWS; row++) {
+              newGrid[row][2] = targetGrid[row][2];
+            }
+            newGrids[currentLocationIndex] = newGrid;
+            return newGrids;
+          });
+          // Track hint usage for scoring
+          setHintsUsed(prev => {
+            const updated = [...prev];
+            updated[currentLocationIndex] = (updated[currentLocationIndex] || 0) + 1;
+            return updated;
+          });
+          sounds.hint();
+        }, 1000);
       } else {
         setInputError('SIGNAL MISMATCH - TRY AGAIN');
         setTimeout(() => setInputError(null), 2000);
@@ -839,6 +879,7 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
       // Default: puzzle mode - show melody grid
       const currentWrongAttempts = wrongAttempts[currentLocationIndex];
       const currentHintsUsed = hintsUsed[currentLocationIndex];
+      const signalPlayed = hasPlayedSignal[currentLocationIndex];
       // Calculate current score percentage
       let currentPercentage = 100;
       currentPercentage -= currentWrongAttempts * 15;
@@ -846,37 +887,32 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
       currentPercentage = Math.max(25, currentPercentage);
 
       return (
-        <>
-          <SimpleMelodyGrid
-            grid={playerGrid}
-            onToggle={handleGridToggle}
-            disabled={false}
-            currentBeat={isPlayingTarget || isPlayingPlayer ? currentBeat : -1}
-          />
-          <p className="text-amber-600/70 mt-2 text-center text-xs font-mono">NOTES: {noteCount}/4</p>
-
-          {/* Attempt dots and score - like Beat Escape Room */}
-          <div className="mt-3 pt-2 border-t border-amber-900/30 flex items-center justify-between">
-            {/* Attempt dots - 5 dots for progressive hints at 3, 4, 5 */}
-            <div className="flex items-center gap-1">
-              <span className="text-amber-600/50 text-[10px] font-mono mr-1">ATTEMPTS:</span>
-              {[0, 1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className={`w-2 h-2 rounded-full border ${
-                    i < currentWrongAttempts
-                      ? i >= 2 ? 'bg-orange-500 border-orange-400' : 'bg-red-500 border-red-400'
-                      : 'bg-transparent border-amber-600/40'
-                  }`}
-                  title={i >= 2 ? `Hint ${i - 1} revealed at attempt ${i + 1}` : ''}
-                />
-              ))}
+        <div className="h-full flex flex-col">
+          {/* TOP: Attempts and Score - Beat Escape Room style */}
+          <div className="flex items-center justify-between mb-2 pb-2 border-b border-amber-900/30">
+            {/* Attempts - 4 circles that stay red once filled (don't reset) */}
+            <div className="flex flex-col">
+              <span className="text-amber-600/50 text-[10px] font-mono mb-1">ATTEMPTS</span>
+              <div className="flex gap-1.5">
+                {[1, 2, 3, 4].map((i) => {
+                  // Circles fill up to 4 and stay red - never reset
+                  const fillCount = Math.min(currentWrongAttempts, 4);
+                  return (
+                    <div
+                      key={i}
+                      className={`w-3.5 h-3.5 rounded-full transition-colors ${
+                        fillCount >= i ? 'bg-red-500' : 'bg-gray-600'
+                      }`}
+                    />
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Percentage score */}
-            <div className="flex items-center gap-1">
-              <span className="text-amber-600/50 text-[10px] font-mono">SCORE:</span>
-              <span className={`font-mono text-sm font-bold ${
+            {/* Score */}
+            <div className="flex flex-col items-end">
+              <span className="text-amber-600/50 text-[10px] font-mono mb-1">SCORE</span>
+              <span className={`font-mono text-lg font-bold ${
                 currentPercentage >= 80 ? 'text-green-400' :
                 currentPercentage >= 60 ? 'text-amber-400' : 'text-red-400'
               }`}>
@@ -884,7 +920,100 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
               </span>
             </div>
           </div>
-        </>
+
+          {/* MIDDLE: Grid */}
+          <div className="flex-1 relative">
+            {/* Overlay message if signal not played yet */}
+            {!signalPlayed && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10 rounded">
+                <p className="text-amber-400 font-mono text-sm tracking-wide animate-pulse">
+                  PLAY SIGNAL FIRST
+                </p>
+              </div>
+            )}
+
+            <SimpleMelodyGrid
+              grid={playerGrid}
+              onToggle={handleGridToggle}
+              disabled={!signalPlayed}
+              currentBeat={isPlayingTarget || isPlayingPlayer ? currentBeat : -1}
+              revealedCols={revealedCols[currentLocationIndex] || []}
+              targetGrid={targetMelody?.grid}
+            />
+            <p className="text-amber-600/70 mt-1 text-center text-xs font-mono">NOTES: {noteCount}/4</p>
+          </div>
+
+          {/* BOTTOM: Controls - Signal, My Melody, Back, Decode all in one row */}
+          <div className="mt-2 pt-2 border-t border-amber-900/30">
+            <div className="flex items-center justify-center gap-1.5">
+              {/* Signal button with pulsing glow if not played yet */}
+              <button
+                onClick={playTargetMelody}
+                disabled={listensRemaining[currentLocationIndex] <= 0 || isPlayingTarget}
+                className={`flex items-center gap-1 px-2 py-1.5 rounded text-[9px] font-mono tracking-wide transition-all ${
+                  listensRemaining[currentLocationIndex] > 0 && !isPlayingTarget
+                    ? 'bg-amber-600/30 border border-amber-500 text-amber-300 hover:bg-amber-600/50'
+                    : 'bg-slate-800/50 border border-slate-700 text-slate-600 cursor-not-allowed'
+                }`}
+                style={!signalPlayed && listensRemaining[currentLocationIndex] > 0 ? {
+                  animation: 'signalPulse 1.5s ease-in-out infinite',
+                  boxShadow: '0 0 15px rgba(245, 158, 11, 0.5)'
+                } : {}}
+              >
+                <Volume2 className="w-3 h-3" />
+                {isPlayingTarget ? '...' : 'SIGNAL'}
+              </button>
+
+              {/* My Melody button */}
+              <button
+                onClick={playPlayerMelody}
+                disabled={noteCount === 0 || isPlayingPlayer || !signalPlayed}
+                className={`flex items-center gap-1 px-2 py-1.5 rounded text-[9px] font-mono tracking-wide transition-all ${
+                  noteCount > 0 && !isPlayingPlayer && signalPlayed
+                    ? 'bg-slate-700/50 border border-slate-600 text-slate-300 hover:bg-slate-600/50'
+                    : 'bg-slate-800/50 border border-slate-700 text-slate-600 cursor-not-allowed'
+                }`}
+              >
+                <Play className="w-3 h-3" />
+                {isPlayingPlayer ? '...' : 'MINE'}
+              </button>
+
+              {/* Back button */}
+              <button
+                onClick={() => {
+                  setGameState(STATES.SCENE);
+                  setDecoderMode('puzzle');
+                }}
+                className="flex items-center gap-1 px-2 py-1.5 bg-slate-700/50 border border-slate-600 text-slate-300 hover:bg-slate-600/50 rounded text-[9px] font-mono tracking-wide"
+              >
+                <ChevronLeft className="w-3 h-3" />
+                BACK
+              </button>
+
+              {/* Decode button */}
+              <button
+                onClick={handleDecode}
+                disabled={noteCount < 3 || !signalPlayed}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded text-[9px] font-mono tracking-wide font-bold ${
+                  noteCount >= 3 && signalPlayed
+                    ? 'bg-amber-600/30 border border-amber-500 text-amber-300 hover:bg-amber-600/50'
+                    : 'bg-slate-800/50 border border-slate-700 text-slate-600 cursor-not-allowed'
+                }`}
+              >
+                DECODE
+                <ChevronRight className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+
+          {/* Pulsing animation style */}
+          <style>{`
+            @keyframes signalPulse {
+              0%, 100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.4); }
+              50% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.8); }
+            }
+          `}</style>
+        </div>
       );
     };
 
@@ -981,9 +1110,9 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
 
               {/* Screen bezel */}
               <div className="bg-black rounded-lg p-1.5 border border-amber-900/50">
-                {/* CRT-style screen - taller to fit melody grid */}
+                {/* CRT-style screen - minHeight matches puzzle view so decoded view doesn't shrink */}
                 <div className="bg-black rounded p-4 border border-amber-900/30 relative overflow-hidden"
-                     style={{ boxShadow: 'inset 0 0 20px rgba(245, 158, 11, 0.1)', minHeight: '300px' }}>
+                     style={{ boxShadow: 'inset 0 0 20px rgba(245, 158, 11, 0.1)', minHeight: '450px' }}>
                   {renderDecoderScreen()}
                 </div>
               </div>
@@ -1008,70 +1137,6 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
           </div>
         </div>
 
-        {/* Controls - only show in puzzle mode */}
-        {decoderMode === 'puzzle' && (
-          <div className="px-6 py-3 border-t border-amber-900/30 bg-black/40">
-            <div className="flex items-center justify-center gap-3 flex-wrap font-mono">
-              <button
-                onClick={playTargetMelody}
-                disabled={listensRemaining[currentLocationIndex] <= 0 || isPlayingTarget}
-                className={`flex items-center gap-2 px-4 py-2 rounded text-xs tracking-wide ${
-                  listensRemaining[currentLocationIndex] > 0 && !isPlayingTarget
-                    ? 'bg-amber-600/20 border border-amber-600/50 text-amber-400 hover:bg-amber-600/30'
-                    : 'bg-slate-800/50 text-slate-600 cursor-not-allowed'
-                }`}
-              >
-                <Volume2 className="w-4 h-4" />
-                {isPlayingTarget ? 'PLAYING...' : 'SIGNAL'}
-              </button>
-
-              <button
-                onClick={playPlayerMelody}
-                disabled={noteCount === 0 || isPlayingPlayer}
-                className={`flex items-center gap-2 px-4 py-2 rounded text-xs tracking-wide ${
-                  noteCount > 0 && !isPlayingPlayer
-                    ? 'bg-slate-700/50 border border-slate-600/50 text-slate-300 hover:bg-slate-700'
-                    : 'bg-slate-800/50 text-slate-600 cursor-not-allowed'
-                }`}
-              >
-                <Play className="w-4 h-4" />
-                {isPlayingPlayer ? 'PLAYING...' : 'MY MELODY'}
-              </button>
-
-              <button
-                onClick={clearGrid}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-700/50 border border-slate-600/50 text-slate-300 hover:bg-slate-700 rounded text-xs tracking-wide"
-              >
-                <Trash2 className="w-4 h-4" />
-                CLEAR
-              </button>
-
-              <button
-                onClick={() => {
-                  setGameState(STATES.SCENE);
-                  setDecoderMode('puzzle');
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-700/50 border border-slate-600/50 text-slate-300 hover:bg-slate-700 rounded text-xs tracking-wide"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                BACK
-              </button>
-
-              <button
-                onClick={handleDecode}
-                disabled={noteCount < 3}
-                className={`flex items-center gap-2 px-5 py-2 rounded text-xs tracking-wide font-bold ${
-                  noteCount >= 3
-                    ? 'bg-amber-600/30 border border-amber-500 text-amber-300 hover:bg-amber-600/50'
-                    : 'bg-slate-800/50 text-slate-600 cursor-not-allowed'
-                }`}
-              >
-                DECODE
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     );
   };

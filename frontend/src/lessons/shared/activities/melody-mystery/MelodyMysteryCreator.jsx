@@ -70,6 +70,7 @@ const MelodyMysteryCreator = ({
   });
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentBeat, setCurrentBeat] = useState(-1);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const playingRef = useRef(false);
 
@@ -151,17 +152,24 @@ const MelodyMysteryCreator = ({
     setCurrentLocation(index);
   };
 
-  // Check if current melody is valid (3+ notes)
-  const isCurrentValid = countSimpleNotes(currentGrid) >= 3;
+  // Check if current melody is valid (4 notes required - one for each beat)
+  const isCurrentValid = countSimpleNotes(currentGrid) >= 4;
+
+  // Clear error message when they add 4th note
+  useEffect(() => {
+    if (isCurrentValid && errorMessage) {
+      setErrorMessage(null);
+    }
+  }, [isCurrentValid, errorMessage]);
 
   // Check if all assigned melodies are complete (only check this player's locations)
   const myLocationsComplete = myMelodyAssignments.every(locIndex =>
-    countSimpleNotes(grids[locIndex]) >= 3
+    countSimpleNotes(grids[locIndex]) >= 4
   );
 
   // Count progress for display
   const myCompletedCount = myMelodyAssignments.filter(locIndex =>
-    countSimpleNotes(grids[locIndex]) >= 3
+    countSimpleNotes(grids[locIndex]) >= 4
   ).length;
 
   // Handle completion
@@ -181,8 +189,25 @@ const MelodyMysteryCreator = ({
   // Find next incomplete location for this player
   const findNextIncomplete = () => {
     return myMelodyAssignments.find(locIndex =>
-      countSimpleNotes(grids[locIndex]) < 3
+      countSimpleNotes(grids[locIndex]) < 4
     );
+  };
+
+  // Handle next button with validation
+  const handleNext = () => {
+    const noteCount = countSimpleNotes(currentGrid);
+    if (noteCount < 4) {
+      setErrorMessage(`You need 4 notes (one for each beat). You have ${noteCount}.`);
+      setTimeout(() => setErrorMessage(null), 3000);
+      return;
+    }
+
+    const nextIncomplete = findNextIncomplete();
+    if (nextIncomplete !== undefined) {
+      goToLocation(nextIncomplete);
+    } else if (currentLocation < locations.length - 1) {
+      goToLocation(currentLocation + 1);
+    }
   };
 
   return (
@@ -224,7 +249,7 @@ const MelodyMysteryCreator = ({
         <div className="flex items-center justify-center gap-2 mt-3">
           {locations.map((loc, i) => {
             const isMyLocation = myMelodyAssignments.includes(i);
-            const isComplete = countSimpleNotes(grids[i]) >= 3;
+            const isComplete = countSimpleNotes(grids[i]) >= 4;
             return (
               <button
                 key={i}
@@ -329,19 +354,27 @@ const MelodyMysteryCreator = ({
             </div>
 
             {/* Status */}
-            <div className="mt-4 flex items-center gap-4">
-              <span className="text-gray-400">
-                Notes: {countSimpleNotes(currentGrid)}/4
-              </span>
-              <span className="text-gray-600">|</span>
-              {canEditCurrentLocation ? (
-                <span className={isCurrentValid ? 'text-green-400' : 'text-yellow-400'}>
-                  {isCurrentValid ? 'Ready!' : 'Add 3+ notes'}
+            <div className="mt-4 flex flex-col items-center gap-2">
+              <div className="flex items-center gap-4">
+                <span className="text-gray-400">
+                  Notes: {countSimpleNotes(currentGrid)}/4
                 </span>
-              ) : (
-                <span className="text-orange-400">
-                  Partner's location
-                </span>
+                <span className="text-gray-600">|</span>
+                {canEditCurrentLocation ? (
+                  <span className={isCurrentValid ? 'text-green-400' : 'text-yellow-400'}>
+                    {isCurrentValid ? 'Ready!' : 'Need 4 notes (one per beat)'}
+                  </span>
+                ) : (
+                  <span className="text-orange-400">
+                    Partner's location
+                  </span>
+                )}
+              </div>
+              {/* Error message */}
+              {errorMessage && (
+                <div className="bg-red-900/80 border border-red-500 rounded-lg px-4 py-2 text-red-200 text-sm animate-pulse">
+                  {errorMessage}
+                </div>
               )}
             </div>
           </div>
@@ -406,15 +439,12 @@ const MelodyMysteryCreator = ({
           {/* Next / Complete */}
           {!myLocationsComplete ? (
             <button
-              onClick={() => {
-                const nextIncomplete = findNextIncomplete();
-                if (nextIncomplete !== undefined) {
-                  goToLocation(nextIncomplete);
-                } else if (currentLocation < locations.length - 1) {
-                  goToLocation(currentLocation + 1);
-                }
-              }}
-              className={`flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-white ${!isChromebook ? 'transition-all' : ''}`}
+              onClick={handleNext}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold ${!isChromebook ? 'transition-all' : ''} ${
+                isCurrentValid
+                  ? 'bg-green-600 hover:bg-green-500'
+                  : 'bg-slate-700 hover:bg-slate-600'
+              }`}
             >
               Next
               <ChevronRight className="w-5 h-5" />

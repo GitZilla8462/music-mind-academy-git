@@ -312,7 +312,7 @@ const PresentationContent = ({
 
       return (
         <div className="absolute inset-0">
-          <NameThatGameActivity />
+          <NameThatGameActivity onComplete={goToNextStage} />
         </div>
       );
     }

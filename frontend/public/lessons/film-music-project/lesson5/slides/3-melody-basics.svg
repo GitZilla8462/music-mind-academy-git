@@ -25,26 +25,27 @@
   <text x="960" y="340" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#a5b4fc" text-anchor="middle" font-weight="bold">it's the part of a song that gets stuck in your head!</text>
 
   <!-- Melody Terms Header -->
-  <text x="960" y="480" font-family="Arial, Helvetica, sans-serif" font-size="72" fill="#a5b4fc" font-weight="bold" text-anchor="middle">MELODY TERMS</text>
+  <text x="960" y="460" font-family="Arial, Helvetica, sans-serif" font-size="72" fill="#a5b4fc" font-weight="bold" text-anchor="middle">MELODY TERMS</text>
 
-  <!-- Accent line under Melody Terms -->
-  <rect x="660" y="510" width="600" height="3" fill="#a5b4fc" opacity="0.4"/>
+  <!-- Subtitle -->
+  <text x="960" y="520" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#94a3b8" text-anchor="middle">We will learn about the following terms in the next slide.</text>
 
-  <!-- 4 Vocabulary Words in 2x2 grid -->
-  <!-- Row 1 -->
-  <rect x="260" y="560" width="640" height="160" rx="16" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="3"/>
-  <text x="580" y="665" font-family="Arial, Helvetica, sans-serif" font-size="64" fill="#10b981" font-weight="bold" text-anchor="middle">ASCENDING</text>
+  <!-- 5 Vocabulary Words -->
+  <!-- CONTOUR - Featured prominently -->
+  <rect x="640" y="570" width="640" height="130" rx="16" fill="#8b5cf6" fill-opacity="0.25" stroke="#8b5cf6" stroke-width="3"/>
+  <text x="960" y="655" font-family="Arial, Helvetica, sans-serif" font-size="64" fill="#8b5cf6" font-weight="bold" text-anchor="middle">CONTOUR</text>
 
-  <rect x="1020" y="560" width="640" height="160" rx="16" fill="#ef4444" fill-opacity="0.2" stroke="#ef4444" stroke-width="3"/>
-  <text x="1340" y="665" font-family="Arial, Helvetica, sans-serif" font-size="64" fill="#ef4444" font-weight="bold" text-anchor="middle">DESCENDING</text>
+  <!-- Row 2: ASCENDING and DESCENDING -->
+  <rect x="260" y="720" width="640" height="130" rx="16" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="3"/>
+  <text x="580" y="805" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="#10b981" font-weight="bold" text-anchor="middle">ASCENDING</text>
 
-  <!-- Row 2 -->
-  <rect x="260" y="760" width="640" height="160" rx="16" fill="#3b82f6" fill-opacity="0.2" stroke="#3b82f6" stroke-width="3"/>
-  <text x="580" y="865" font-family="Arial, Helvetica, sans-serif" font-size="64" fill="#3b82f6" font-weight="bold" text-anchor="middle">STEPS</text>
+  <rect x="1020" y="720" width="640" height="130" rx="16" fill="#ef4444" fill-opacity="0.2" stroke="#ef4444" stroke-width="3"/>
+  <text x="1340" y="805" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="#ef4444" font-weight="bold" text-anchor="middle">DESCENDING</text>
 
-  <rect x="1020" y="760" width="640" height="160" rx="16" fill="#f59e0b" fill-opacity="0.2" stroke="#f59e0b" stroke-width="3"/>
-  <text x="1340" y="865" font-family="Arial, Helvetica, sans-serif" font-size="64" fill="#f59e0b" font-weight="bold" text-anchor="middle">SKIPS</text>
+  <!-- Row 3: STEPS and SKIPS -->
+  <rect x="260" y="870" width="640" height="130" rx="16" fill="#3b82f6" fill-opacity="0.2" stroke="#3b82f6" stroke-width="3"/>
+  <text x="580" y="955" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="#3b82f6" font-weight="bold" text-anchor="middle">STEPS</text>
 
-  <!-- Bottom text -->
-  <text x="960" y="1010" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#94a3b8" text-anchor="middle">Next, we will look at each movement with examples.</text>
+  <rect x="1020" y="870" width="640" height="130" rx="16" fill="#f59e0b" fill-opacity="0.2" stroke="#f59e0b" stroke-width="3"/>
+  <text x="1340" y="955" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="#f59e0b" font-weight="bold" text-anchor="middle">SKIPS</text>
 </svg>

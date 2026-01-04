@@ -179,6 +179,24 @@ const GameCompositionActivity = ({
   // Use ref so it resets on page refresh
   const hasLoadedRef = useRef(false);
 
+  // Refs for current values (used by Firebase listener and unmount save)
+  const placedLoopsRef = useRef(placedLoops);
+  const studentIdRef = useRef(studentId);
+  const selectedVideoRef = useRef(selectedVideo);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    placedLoopsRef.current = placedLoops;
+  }, [placedLoops]);
+
+  useEffect(() => {
+    studentIdRef.current = studentId;
+  }, [studentId]);
+
+  useEffect(() => {
+    selectedVideoRef.current = selectedVideo;
+  }, [selectedVideo]);
+
   // Initialize student ID
   useEffect(() => {
     const id = getStudentId();
@@ -330,26 +348,43 @@ const GameCompositionActivity = ({
         lastSaveCommandRef.current = saveCommand;
         console.log('💾 Teacher save command received for game composition!');
 
-        if (placedLoops.length > 0) {
-          handleManualSave(true);
+        // Use ref to get current placedLoops value (not stale closure)
+        if (placedLoopsRef.current.length > 0 && studentIdRef.current && selectedVideoRef.current) {
+          // Inline save to ensure we use current values
+          const videoToSave = selectedVideoRef.current;
+          const loopsToSave = placedLoopsRef.current;
+
+          saveStudentWork('game-composition', {
+            title: videoToSave.title,
+            emoji: videoToSave.emoji,
+            viewRoute: '/lessons/film-music-project/lesson5?view=saved',
+            subtitle: `${loopsToSave.length} loops • ${formatDuration(videoToSave.duration)}`,
+            category: 'Film Music Project',
+            data: {
+              placedLoops: loopsToSave,
+              videoDuration: videoToSave.duration,
+              videoId: videoToSave.id,
+              videoTitle: videoToSave.title,
+              videoPath: videoToSave.videoPath,
+              videoEmoji: videoToSave.emoji,
+              timestamp: Date.now()
+            }
+          });
+          console.log('💾 Teacher save command executed - saved', loopsToSave.length, 'loops');
+        } else {
+          console.log('⚠️ Teacher save command received but nothing to save:', {
+            hasLoops: placedLoopsRef.current.length > 0,
+            hasStudentId: !!studentIdRef.current,
+            hasVideo: !!selectedVideoRef.current
+          });
         }
       }
     });
 
     return () => unsubscribe();
-  }, [sessionCode, isSessionMode, viewMode, placedLoops, studentId]);
+  }, [sessionCode, isSessionMode, viewMode, studentId]);
 
   // Safety net: Save on unmount
-  const placedLoopsRef = useRef(placedLoops);
-  const studentIdRef = useRef(studentId);
-  const selectedVideoRef = useRef(selectedVideo);
-
-  useEffect(() => {
-    placedLoopsRef.current = placedLoops;
-    studentIdRef.current = studentId;
-    selectedVideoRef.current = selectedVideo;
-  }, [placedLoops, studentId, selectedVideo]);
-
   useEffect(() => {
     if (!isSessionMode || viewMode) return;
 

@@ -223,6 +223,7 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0 }) => {
   const [audioReady, setAudioReady] = useState(false);
   const [triggeredNotes, setTriggeredNotes] = useState({});
   const [showMoodDropdown, setShowMoodDropdown] = useState(false);
+  const [showInstrumentDropdown, setShowInstrumentDropdown] = useState(false);
   const [showPresetDropdown, setShowPresetDropdown] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
   const [melodyName, setMelodyName] = useState('');
@@ -488,112 +489,142 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0 }) => {
 
   return (
     <div className="h-full flex flex-col bg-slate-900 text-white overflow-hidden">
-      {/* Header */}
-      <div className="bg-slate-800 border-b border-slate-700 px-3 py-2.5">
-        <div className="flex items-center justify-center flex-wrap gap-3">
-          {/* Back button */}
-          <button
-            onClick={onClose}
-            className="flex items-center gap-1.5 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium"
-          >
-            <ArrowLeft size={18} />
-            Back
-          </button>
-
-          {/* Beat Length Toggle */}
-          <div className="flex bg-slate-700 rounded-lg p-0.5">
-            <button
-              onClick={() => setBeats(8)}
-              className={`px-4 py-2 rounded font-bold transition-all ${
-                beats === 8 ? 'bg-purple-600 text-white' : 'hover:bg-slate-600'
-              }`}
-            >
-              2 Beats
-            </button>
-            <button
-              onClick={() => setBeats(16)}
-              className={`px-4 py-2 rounded font-bold transition-all ${
-                beats === 16 ? 'bg-purple-600 text-white' : 'hover:bg-slate-600'
-              }`}
-            >
-              4 Beats
-            </button>
+      {/* Header - matching BeatBuilderDemo style */}
+      <div className="flex-shrink-0 bg-slate-800 border-b border-slate-700 px-6 py-3">
+        <div className="flex items-center justify-between">
+          {/* Left: Title and subtitle */}
+          <div className="flex items-center gap-3">
+            <Music2 className="text-purple-400" size={28} />
+            <div>
+              <h1 className="text-xl font-bold">Build Your Melody</h1>
+              <p className="text-slate-400 text-sm">Create a melody using contour</p>
+            </div>
           </div>
 
-          {/* Mood Selector */}
-          <div className="relative">
-            <button
-              onClick={async () => {
-                await initializeAudio();
-                setShowMoodDropdown(!showMoodDropdown);
-              }}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold transition-all"
-              style={{ backgroundColor: currentMood.color }}
-            >
-              <span>{currentMood.emoji}</span>
-              <span>{currentMood.name}</span>
-              <ChevronDown size={16} />
-            </button>
-            {showMoodDropdown && (
-              <div className="absolute top-full left-0 mt-1 bg-slate-700 rounded-lg shadow-xl z-20 min-w-[150px]">
-                {MOODS.map((mood, idx) => (
-                  <button
-                    key={mood.id}
-                    onClick={() => { setMoodIndex(idx); setShowMoodDropdown(false); }}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-600 first:rounded-t-lg last:rounded-b-lg"
-                  >
-                    <span>{mood.emoji}</span>
-                    <span>{mood.name}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Instrument Selector */}
-          <div className="flex items-center gap-0.5 bg-slate-700 rounded-lg p-0.5">
-            {Object.entries(INSTRUMENTS).map(([id, inst]) => (
+          {/* Right: Controls */}
+          <div className="flex items-center gap-3">
+            {/* Beat Length Toggle */}
+            <div className="flex bg-slate-700 rounded-lg p-0.5">
               <button
-                key={id}
+                onClick={() => setBeats(8)}
+                className={`px-3 py-1.5 rounded font-bold text-sm transition-all ${
+                  beats === 8 ? 'bg-purple-600 text-white' : 'hover:bg-slate-600'
+                }`}
+              >
+                2 Beats
+              </button>
+              <button
+                onClick={() => setBeats(16)}
+                className={`px-3 py-1.5 rounded font-bold text-sm transition-all ${
+                  beats === 16 ? 'bg-purple-600 text-white' : 'hover:bg-slate-600'
+                }`}
+              >
+                4 Beats
+              </button>
+            </div>
+
+            {/* Mood Selector */}
+            <div className="relative">
+              <button
                 onClick={async () => {
                   await initializeAudio();
-                  setInstrument(id);
+                  setShowMoodDropdown(!showMoodDropdown);
+                  setShowInstrumentDropdown(false);
+                  setShowPresetDropdown(false);
                 }}
-                className={`px-2.5 py-2 rounded text-xl transition-all ${
-                  instrument === id ? 'bg-purple-600 text-white' : 'hover:bg-slate-600'
-                }`}
-                title={inst.name}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-sm transition-all"
+                style={{ backgroundColor: currentMood.color }}
               >
-                {inst.icon}
+                <span>{currentMood.emoji}</span>
+                <span>{currentMood.name}</span>
+                <ChevronDown size={14} />
               </button>
-            ))}
-          </div>
+              {showMoodDropdown && (
+                <div className="absolute top-full left-0 mt-1 bg-slate-700 rounded-lg shadow-xl z-20 min-w-[150px]">
+                  {MOODS.map((mood, idx) => (
+                    <button
+                      key={mood.id}
+                      onClick={() => { setMoodIndex(idx); setShowMoodDropdown(false); }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-600 first:rounded-t-lg last:rounded-b-lg"
+                    >
+                      <span>{mood.emoji}</span>
+                      <span>{mood.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          {/* Preset Selector */}
-          <div className="relative">
+            {/* Instrument Selector - Dropdown with names */}
+            <div className="relative">
+              <button
+                onClick={async () => {
+                  await initializeAudio();
+                  setShowInstrumentDropdown(!showInstrumentDropdown);
+                  setShowMoodDropdown(false);
+                  setShowPresetDropdown(false);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg font-bold text-sm transition-all"
+              >
+                <span>{INSTRUMENTS[instrument].icon}</span>
+                <span>{INSTRUMENTS[instrument].name}</span>
+                <ChevronDown size={14} />
+              </button>
+              {showInstrumentDropdown && (
+                <div className="absolute top-full left-0 mt-1 bg-slate-700 rounded-lg shadow-xl z-20 min-w-[140px]">
+                  {Object.entries(INSTRUMENTS).map(([id, inst]) => (
+                    <button
+                      key={id}
+                      onClick={() => { setInstrument(id); setShowInstrumentDropdown(false); }}
+                      className={`w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-600 first:rounded-t-lg last:rounded-b-lg ${
+                        instrument === id ? 'bg-purple-600/30' : ''
+                      }`}
+                    >
+                      <span>{inst.icon}</span>
+                      <span>{inst.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Preset Selector */}
+            <div className="relative">
+              <button
+                onClick={async () => {
+                  await initializeAudio();
+                  setShowPresetDropdown(!showPresetDropdown);
+                  setShowMoodDropdown(false);
+                  setShowInstrumentDropdown(false);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg font-bold text-sm"
+              >
+                Presets
+                <ChevronDown size={14} />
+              </button>
+              {showPresetDropdown && (
+                <div className="absolute top-full right-0 mt-1 bg-slate-700 rounded-lg shadow-xl z-20 min-w-[130px]">
+                  {Object.entries(PRESETS).map(([id, preset]) => (
+                    <button
+                      key={id}
+                      onClick={() => applyPreset(id)}
+                      className="w-full text-left px-4 py-2.5 hover:bg-slate-600 first:rounded-t-lg last:rounded-b-lg"
+                    >
+                      {preset.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Back button */}
             <button
-              onClick={async () => {
-                await initializeAudio();
-                setShowPresetDropdown(!showPresetDropdown);
-              }}
-              className="flex items-center gap-1.5 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-bold"
+              onClick={onClose}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-600 hover:bg-slate-500 rounded-lg font-medium text-sm"
             >
-              Presets
-              <ChevronDown size={16} />
+              <ArrowLeft size={16} />
+              Back
             </button>
-            {showPresetDropdown && (
-              <div className="absolute top-full right-0 mt-1 bg-slate-700 rounded-lg shadow-xl z-20 min-w-[130px]">
-                {Object.entries(PRESETS).map(([id, preset]) => (
-                  <button
-                    key={id}
-                    onClick={() => applyPreset(id)}
-                    className="w-full text-left px-4 py-2.5 hover:bg-slate-600 first:rounded-t-lg last:rounded-b-lg"
-                  >
-                    {preset.name}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -695,7 +726,7 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0 }) => {
         </div>
 
         {/* Playback indicator */}
-        <div className="flex items-center gap-px mt-2 w-full max-w-3xl">
+        <div className="flex items-center gap-2 mt-2 w-full max-w-3xl">
           <div className="w-12" />
           <div className="flex-1 flex gap-px">
             {Array(beats).fill(0).map((_, i) => {
@@ -780,10 +811,10 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0 }) => {
       </div>
 
       {/* Click outside to close dropdowns */}
-      {(showMoodDropdown || showPresetDropdown) && (
+      {(showMoodDropdown || showInstrumentDropdown || showPresetDropdown) && (
         <div
           className="fixed inset-0 z-10"
-          onClick={() => { setShowMoodDropdown(false); setShowPresetDropdown(false); }}
+          onClick={() => { setShowMoodDropdown(false); setShowInstrumentDropdown(false); setShowPresetDropdown(false); }}
         />
       )}
 

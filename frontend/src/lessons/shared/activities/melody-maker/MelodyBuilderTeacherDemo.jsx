@@ -22,6 +22,7 @@ const MELODY_NOTES = [
 // Icons for each concept
 const CONCEPT_ICONS = {
   melody: Music2,
+  contour: TrendingUp,
   ascending: TrendingUp,
   descending: TrendingDown,
   repeated: Minus,
@@ -44,6 +45,21 @@ const TUTORIAL_STEPS = [
       [true, true, false, true, true, false, false, true],       // E
       [false, false, false, false, false, true, true, false],    // D
       [false, false, false, false, false, false, false, false],  // C
+    ]
+  },
+  {
+    id: 'contour',
+    title: 'What is CONTOUR?',
+    description: 'The shape of a melody as it moves up, down, or stays the same',
+    action: 'C → D → E → D → C → C → C → C',
+    color: '#8b5cf6',
+    teachingPoint: 'Contour is the SHAPE - watch how this melody goes UP, then DOWN, then STAYS the same!',
+    pattern: [
+      [false, false, false, false, false, false, false, false],  // A
+      [false, false, false, false, false, false, false, false],  // G
+      [false, false, true, false, false, false, false, false],   // E (beat 3 - highest point)
+      [false, true, false, true, false, false, false, false],    // D (beats 2, 4)
+      [true, false, false, false, true, true, true, true],       // C (beats 1, 5, 6, 7, 8 - repeated)
     ]
   },
   {
@@ -281,9 +297,9 @@ const MelodyBuilderTeacherDemo = ({ onComplete }) => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-900 text-white">
-      {/* Header */}
-      <div className="flex-shrink-0 bg-slate-800 border-b border-slate-700 px-6 py-3">
+    <div className="h-full flex flex-col bg-slate-900 text-white overflow-hidden">
+      {/* Header - always visible */}
+      <div className="flex-shrink-0 bg-slate-800 border-b border-slate-700 px-6 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Music2 className="text-purple-400" size={32} />
@@ -318,8 +334,8 @@ const MelodyBuilderTeacherDemo = ({ onComplete }) => {
         </div>
       </div>
 
-      {/* Main Content - Fills Screen */}
-      <div className="flex-1 flex flex-col px-8 py-4">
+      {/* Main Content - Scrollable if needed, controls always visible */}
+      <div className="flex-1 flex flex-col px-8 py-2 min-h-0 overflow-auto">
         {/* Step Instructions - Extra large for board visibility */}
         <div className="text-center mb-2">
           <div className="flex items-center justify-center gap-6 mb-2">
@@ -347,19 +363,50 @@ const MelodyBuilderTeacherDemo = ({ onComplete }) => {
 
         {/* Grid Container - Fills remaining space, centered vertically */}
         <div className="flex-1 flex flex-col justify-center">
-          {/* Beat Headers */}
-          <div className="flex mb-2" style={{ marginLeft: '100px' }}>
-            {Array.from({ length: BEATS }, (_, i) => (
-              <div
-                key={i}
-                className={`flex-1 text-center text-xl font-bold transition-all ${
-                  currentBeat === i ? 'text-white scale-110' : 'text-slate-500'
-                }`}
-                style={{ color: currentBeat === i ? currentConfig.color : undefined }}
-              >
-                {i + 1}
+          {/* Beat Group Headers - "Beat 1" and "Beat 2" */}
+          <div className="flex mb-1">
+            <div className="w-24 flex-shrink-0" />
+            <div className="flex-1 flex">
+              <div className="flex-1 text-center text-2xl font-bold text-slate-400">Beat 1</div>
+              <div className="w-6" /> {/* Spacer between beat groups */}
+              <div className="flex-1 text-center text-2xl font-bold text-slate-400">Beat 2</div>
+            </div>
+          </div>
+
+          {/* Subdivision Numbers - 1 2 3 4 | 1 2 3 4 */}
+          <div className="flex mb-2">
+            <div className="w-24 flex-shrink-0" />
+            <div className="flex-1 flex">
+              {/* Beat 1 subdivisions */}
+              <div className="flex-1 flex gap-2">
+                {[1, 2, 3, 4].map((num, i) => (
+                  <div
+                    key={`b1-${i}`}
+                    className={`flex-1 text-center text-xl font-bold transition-all ${
+                      currentBeat === i ? 'text-white scale-110' : 'text-slate-500'
+                    }`}
+                    style={{ color: currentBeat === i ? currentConfig.color : undefined }}
+                  >
+                    {num}
+                  </div>
+                ))}
               </div>
-            ))}
+              <div className="w-6" /> {/* Spacer between beat groups */}
+              {/* Beat 2 subdivisions */}
+              <div className="flex-1 flex gap-2">
+                {[1, 2, 3, 4].map((num, i) => (
+                  <div
+                    key={`b2-${i}`}
+                    className={`flex-1 text-center text-xl font-bold transition-all ${
+                      currentBeat === (i + 4) ? 'text-white scale-110' : 'text-slate-500'
+                    }`}
+                    style={{ color: currentBeat === (i + 4) ? currentConfig.color : undefined }}
+                  >
+                    {num}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Grid rows */}
@@ -381,38 +428,78 @@ const MelodyBuilderTeacherDemo = ({ onComplete }) => {
                     <span className="text-3xl font-bold">{note.name}</span>
                   </div>
 
-                  {/* Beat cells */}
-                  <div className="flex flex-1 h-full gap-2">
-                    {Array.from({ length: BEATS }, (_, beatIndex) => {
-                      const isActive = isCellActive(noteIndex, beatIndex);
-                      const isCurrent = currentBeat === beatIndex && isPlaying;
-                      const isTriggered = triggeredNotes[`${noteIndex}-${beatIndex}`];
+                  {/* Beat cells - grouped into Beat 1 and Beat 2 */}
+                  <div className="flex flex-1 h-full">
+                    {/* Beat 1 cells (0-3) */}
+                    <div className="flex-1 flex gap-2">
+                      {[0, 1, 2, 3].map((beatIndex) => {
+                        const isActive = isCellActive(noteIndex, beatIndex);
+                        const isCurrent = currentBeat === beatIndex && isPlaying;
+                        const isTriggered = triggeredNotes[`${noteIndex}-${beatIndex}`];
 
-                      return (
-                        <div
-                          key={beatIndex}
-                          className="flex-1 rounded-xl transition-all relative"
-                          style={{
-                            backgroundColor: isActive
-                              ? (isTriggered ? '#ffffff' : note.color)
-                              : isCurrent
-                                ? `${currentConfig.color}30`
-                                : 'rgba(255, 255, 255, 0.08)',
-                            border: isActive
-                              ? `3px solid ${note.color}`
-                              : isCurrent
-                                ? `2px solid ${currentConfig.color}60`
-                                : '2px solid rgba(255, 255, 255, 0.1)',
-                            boxShadow: isActive
-                              ? `0 0 20px ${note.color}50`
-                              : isCurrent
-                                ? `0 0 15px ${currentConfig.color}30`
-                                : 'none',
-                            transform: isTriggered ? 'scale(1.1)' : 'scale(1)',
-                          }}
-                        />
-                      );
-                    })}
+                        return (
+                          <div
+                            key={beatIndex}
+                            className="flex-1 rounded-xl transition-all relative"
+                            style={{
+                              backgroundColor: isActive
+                                ? (isTriggered ? '#ffffff' : note.color)
+                                : isCurrent
+                                  ? `${currentConfig.color}30`
+                                  : 'rgba(255, 255, 255, 0.08)',
+                              border: isActive
+                                ? `3px solid ${note.color}`
+                                : isCurrent
+                                  ? `2px solid ${currentConfig.color}60`
+                                  : '2px solid rgba(255, 255, 255, 0.1)',
+                              boxShadow: isActive
+                                ? `0 0 20px ${note.color}50`
+                                : isCurrent
+                                  ? `0 0 15px ${currentConfig.color}30`
+                                  : 'none',
+                              transform: isTriggered ? 'scale(1.1)' : 'scale(1)',
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* Empty spacer between beat groups - no visible element */}
+                    <div className="w-6" />
+
+                    {/* Beat 2 cells (4-7) */}
+                    <div className="flex-1 flex gap-2">
+                      {[4, 5, 6, 7].map((beatIndex) => {
+                        const isActive = isCellActive(noteIndex, beatIndex);
+                        const isCurrent = currentBeat === beatIndex && isPlaying;
+                        const isTriggered = triggeredNotes[`${noteIndex}-${beatIndex}`];
+
+                        return (
+                          <div
+                            key={beatIndex}
+                            className="flex-1 rounded-xl transition-all relative"
+                            style={{
+                              backgroundColor: isActive
+                                ? (isTriggered ? '#ffffff' : note.color)
+                                : isCurrent
+                                  ? `${currentConfig.color}30`
+                                  : 'rgba(255, 255, 255, 0.08)',
+                              border: isActive
+                                ? `3px solid ${note.color}`
+                                : isCurrent
+                                  ? `2px solid ${currentConfig.color}60`
+                                  : '2px solid rgba(255, 255, 255, 0.1)',
+                              boxShadow: isActive
+                                ? `0 0 20px ${note.color}50`
+                                : isCurrent
+                                  ? `0 0 15px ${currentConfig.color}30`
+                                  : 'none',
+                              transform: isTriggered ? 'scale(1.1)' : 'scale(1)',
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               );
@@ -431,8 +518,8 @@ const MelodyBuilderTeacherDemo = ({ onComplete }) => {
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex-shrink-0 bg-slate-800 border-t border-slate-700 px-6 py-4">
+      {/* Controls - always visible at bottom */}
+      <div className="flex-shrink-0 bg-slate-800 border-t border-slate-700 px-6 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           {/* Previous */}
           <button

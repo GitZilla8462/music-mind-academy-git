@@ -173,13 +173,13 @@ const DEVICE_SOUNDS = {
     effects: { lowpass: 4000, distortion: 0.1, wobble: 0.08, reverb: 0.15 }
   },
 
-  // === RADIO === AM radio crackle, narrow band
+  // === RADIO === AM radio sound, louder and clearer
   radio: {
     octaveShift: 0,
     synthType: 'am',
-    harmonicity: 2.5,
-    envelope: { attack: 0.02, decay: 0.2, sustain: 0.4, release: 0.5 },
-    effects: { bandpass: 1800, bandpassQ: 3, distortion: 0.15, tremolo: 8 }
+    harmonicity: 2,
+    envelope: { attack: 0.02, decay: 0.3, sustain: 0.5, release: 0.6 },
+    effects: { lowpass: 4000, distortion: 0.08, gain: 1.5 }
   },
 
   // === TUBE RADIO === Warmer, richer radio sound
@@ -564,6 +564,12 @@ const createDeviceSynth = async (deviceId) => {
   const effects = [];
   const fx = config.effects || {};
 
+  // Gain boost (for quiet devices like radio)
+  if (fx.gain && fx.gain !== 1) {
+    const gain = new Tone.Gain(fx.gain);
+    effects.push(gain);
+  }
+
   // Bitcrusher (for digital/retro sounds) - apply early
   if (fx.bitcrush) {
     const crusher = new Tone.BitCrusher(fx.bitcrush);
@@ -743,6 +749,8 @@ const SimpleMelodyGrid = ({
   currentBeat = -1,  // For playback animation
   showLabels = true,
   className = '',
+  revealedCols = [],   // Columns revealed as hints (locked, show correct answer)
+  targetGrid = null,   // The correct answer grid (for showing X marks)
 }) => {
   const [triggeredCells, setTriggeredCells] = useState({});
 
@@ -752,6 +760,9 @@ const SimpleMelodyGrid = ({
   // Handle cell click
   const handleCellClick = async (row, col) => {
     if (disabled) return;
+
+    // Check if this column is revealed (hint) - can't change revealed columns
+    if (revealedCols.includes(col)) return;
 
     // Check if allowed
     if (!COLUMN_CONSTRAINTS[col]?.includes(row)) return;
@@ -786,6 +797,10 @@ const SimpleMelodyGrid = ({
     const isCurrentBeat = currentBeat === col;
     const isTriggered = triggeredCells[`${row}-${col}`];
     const isAllowed = COLUMN_CONSTRAINTS[col]?.includes(row);
+    const isRevealed = revealedCols.includes(col);
+
+    // For revealed columns, check if this cell should show X (cell is OFF in target)
+    const isRevealedAsOff = isRevealed && targetGrid && !targetGrid[row][col] && isAllowed;
 
     // If not allowed in this column, render empty/hidden cell
     if (!isAllowed) {
@@ -802,12 +817,13 @@ const SimpleMelodyGrid = ({
       <button
         key={`${row}-${col}`}
         onClick={() => handleCellClick(row, col)}
-        disabled={disabled}
+        disabled={disabled || isRevealed}
         className={`
           flex-1 aspect-square rounded-lg relative flex items-center justify-center
           ${!isChromebook ? 'transition-all duration-75' : ''}
-          ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}
+          ${disabled || isRevealed ? 'cursor-not-allowed' : 'cursor-pointer'}
           ${isCurrentBeat ? 'ring-2 ring-white' : ''}
+          ${isRevealed ? 'ring-2 ring-amber-400' : ''}
         `}
         style={{
           backgroundColor: isActive ? note.color : '#475569',
@@ -828,6 +844,27 @@ const SimpleMelodyGrid = ({
             className="w-2.5 h-2.5 rounded-full bg-white"
             style={{ opacity: isTriggered ? 1 : 0.7 }}
           />
+        )}
+        {/* Red X for revealed cells that should be OFF */}
+        {isRevealedAsOff && (
+          <svg
+            className="absolute w-full h-full p-2 pointer-events-none"
+            viewBox="0 0 24 24"
+            style={{ filter: 'drop-shadow(0 0 4px rgba(239, 68, 68, 0.8))' }}
+          >
+            <line
+              x1="4" y1="4" x2="20" y2="20"
+              stroke="#ef4444"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+            <line
+              x1="20" y1="4" x2="4" y2="20"
+              stroke="#ef4444"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+          </svg>
         )}
       </button>
     );
