@@ -491,6 +491,36 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
           });
           sounds.hint();
         }, 1000);
+      }
+      // After 12 wrong attempts, reveal beat 4 (column 3)
+      else if (newAttempts >= 12 && currentRevealed.includes(2) && !currentRevealed.includes(3)) {
+        setInputError('SIGNAL MISMATCH - BEAT 4 REVEALED');
+        setTimeout(() => {
+          setInputError(null);
+          // Reveal column 3 (beat 4)
+          setRevealedCols(prev => {
+            const newRevealed = [...prev];
+            newRevealed[currentLocationIndex] = [...(newRevealed[currentLocationIndex] || []), 3];
+            return newRevealed;
+          });
+          // Update player grid to show the correct answer for beat 4
+          setPlayerGrids(prev => {
+            const newGrids = [...prev];
+            const newGrid = newGrids[currentLocationIndex].map(row => [...row]);
+            for (let row = 0; row < GRID_ROWS; row++) {
+              newGrid[row][3] = targetGrid[row][3];
+            }
+            newGrids[currentLocationIndex] = newGrid;
+            return newGrids;
+          });
+          // Track hint usage for scoring
+          setHintsUsed(prev => {
+            const updated = [...prev];
+            updated[currentLocationIndex] = (updated[currentLocationIndex] || 0) + 1;
+            return updated;
+          });
+          sounds.hint();
+        }, 1000);
       } else {
         setInputError('SIGNAL MISMATCH - TRY AGAIN');
         setTimeout(() => setInputError(null), 2000);
@@ -827,7 +857,24 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
             <div className="w-full h-px bg-amber-600/50 mb-4" />
 
             <div className="text-amber-300 text-sm leading-relaxed uppercase tracking-wide">
-              {location?.clue}
+              {/* Bold the answer keyword in the clue */}
+              {location?.clue && location?.answer ? (
+                (() => {
+                  const clue = location.clue;
+                  const answer = location.answer.toUpperCase();
+                  const index = clue.toUpperCase().indexOf(answer);
+                  if (index >= 0) {
+                    return (
+                      <>
+                        {clue.substring(0, index)}
+                        <span className="font-bold text-amber-100">{clue.substring(index, index + answer.length)}</span>
+                        {clue.substring(index + answer.length)}
+                      </>
+                    );
+                  }
+                  return clue;
+                })()
+              ) : location?.clue}
             </div>
 
             <div className="w-full h-px bg-amber-600/50 mt-4 mb-3" />
@@ -842,7 +889,7 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
             ) : (
               <div className="w-full space-y-2">
                 <div className="text-amber-400 text-[10px] tracking-[0.3em]">
-                  {isLastLocation ? '/// FINAL DESTINATION ///' : '/// ENTER COORDINATES ///'}
+                  {isLastLocation ? '/// FINAL DESTINATION ///' : '/// TYPE THE LOCATION ///'}
                 </div>
 
                 <input
@@ -1175,7 +1222,23 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
           style={{ borderColor: concept.colors.accent }}
         >
           <p className="text-xl font-semibold text-white">
-            "{location?.clue}"
+            "{location?.clue && location?.answer ? (
+              (() => {
+                const clue = location.clue;
+                const answer = location.answer.toUpperCase();
+                const index = clue.toUpperCase().indexOf(answer);
+                if (index >= 0) {
+                  return (
+                    <>
+                      {clue.substring(0, index)}
+                      <span className="font-bold text-yellow-300">{clue.substring(index, index + answer.length)}</span>
+                      {clue.substring(index + answer.length)}
+                    </>
+                  );
+                }
+                return clue;
+              })()
+            ) : location?.clue}"
           </p>
         </div>
 
@@ -1207,7 +1270,23 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
         <div className="bg-slate-700/80 rounded-xl p-4 mb-6">
           <p className="text-sm text-gray-400 mb-1">The clue said:</p>
           <p className="text-lg" style={{ color: concept.colors.accent }}>
-            "{location?.clue}"
+            "{location?.clue && location?.answer ? (
+              (() => {
+                const clue = location.clue;
+                const answer = location.answer.toUpperCase();
+                const index = clue.toUpperCase().indexOf(answer);
+                if (index >= 0) {
+                  return (
+                    <>
+                      {clue.substring(0, index)}
+                      <span className="font-bold text-yellow-300">{clue.substring(index, index + answer.length)}</span>
+                      {clue.substring(index + answer.length)}
+                    </>
+                  );
+                }
+                return clue;
+              })()
+            ) : location?.clue}"
           </p>
         </div>
 
