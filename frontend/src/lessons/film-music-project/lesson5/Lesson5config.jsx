@@ -432,8 +432,8 @@ export const lessonStages = [
     isBonus: true,
     duration: 10,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson5/slides/9-melody-mystery-activity.svg'
+      type: 'activity',
+      activityType: 'melody-mystery'
     }
   }
 ];
