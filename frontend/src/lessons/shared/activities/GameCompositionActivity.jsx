@@ -169,6 +169,7 @@ const GameCompositionActivity = ({
   const [isLoadingVideo, setIsLoadingVideo] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [saveMessage, setSaveMessage] = useState(null);
+  const [teacherSaveToast, setTeacherSaveToast] = useState(false);
   const timerRef = useRef(null);
   const autoAdvanceCalledRef = useRef(false);
   const isSavingRef = useRef(false);
@@ -348,41 +349,25 @@ const GameCompositionActivity = ({
         lastSaveCommandRef.current = saveCommand;
         console.log('💾 Teacher save command received for game composition!');
 
-        // Use ref to get current placedLoops value (not stale closure)
-        if (placedLoopsRef.current.length > 0 && studentIdRef.current && selectedVideoRef.current) {
-          // Inline save to ensure we use current values
-          const videoToSave = selectedVideoRef.current;
-          const loopsToSave = placedLoopsRef.current;
+        // Use state values (effect will recreate with fresh values when these change)
+        if (placedLoops.length > 0 && selectedVideo) {
+          handleManualSave(true); // Silent save
 
-          saveStudentWork('game-composition', {
-            title: videoToSave.title,
-            emoji: videoToSave.emoji,
-            viewRoute: '/lessons/film-music-project/lesson5?view=saved',
-            subtitle: `${loopsToSave.length} loops • ${formatDuration(videoToSave.duration)}`,
-            category: 'Film Music Project',
-            data: {
-              placedLoops: loopsToSave,
-              videoDuration: videoToSave.duration,
-              videoId: videoToSave.id,
-              videoTitle: videoToSave.title,
-              videoPath: videoToSave.videoPath,
-              videoEmoji: videoToSave.emoji,
-              timestamp: Date.now()
-            }
-          });
-          console.log('💾 Teacher save command executed - saved', loopsToSave.length, 'loops');
+          // Show toast notification
+          setTeacherSaveToast(true);
+          setTimeout(() => setTeacherSaveToast(false), 3000);
         } else {
           console.log('⚠️ Teacher save command received but nothing to save:', {
-            hasLoops: placedLoopsRef.current.length > 0,
-            hasStudentId: !!studentIdRef.current,
-            hasVideo: !!selectedVideoRef.current
+            hasLoops: placedLoops.length > 0,
+            hasStudentId: !!studentId,
+            hasVideo: !!selectedVideo
           });
         }
       }
     });
 
     return () => unsubscribe();
-  }, [sessionCode, isSessionMode, viewMode, studentId]);
+  }, [sessionCode, isSessionMode, viewMode, studentId, placedLoops, selectedVideo]);
 
   // Safety net: Save on unmount
   useEffect(() => {
@@ -706,6 +691,16 @@ const GameCompositionActivity = ({
           style={{ animation: 'fadeIn 0.3s ease-in' }}
         >
           {saveMessage.text}
+        </div>
+      )}
+
+      {/* Teacher Save Toast */}
+      {teacherSaveToast && (
+        <div
+          className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] px-6 py-3 rounded-lg shadow-xl font-bold text-white bg-blue-600"
+          style={{ animation: 'fadeIn 0.3s ease-in' }}
+        >
+          ✅ Your work has been saved!
         </div>
       )}
 
