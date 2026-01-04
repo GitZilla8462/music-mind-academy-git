@@ -228,7 +228,6 @@ const SchoolBeneathActivity = ({
         const savedData = {
           placedLoops,
           videoDuration,
-          requirements,
           title,
           videoPath,
           savedAt: new Date().toISOString()
@@ -237,7 +236,7 @@ const SchoolBeneathActivity = ({
         localStorage.setItem(key, JSON.stringify(savedData));
       }
     };
-  }, [isSessionMode, viewMode, placedLoops, studentId, videoDuration, requirements, title, videoPath, storageKey]);
+  }, [isSessionMode, viewMode, placedLoops, studentId, videoDuration, title, videoPath, storageKey]);
 
   // Load saved work on mount ONLY - includes manual saves and view mode (from Join page)
   // NOTE: We only load placedLoops here, NOT videoDuration - let video detection effect handle duration
