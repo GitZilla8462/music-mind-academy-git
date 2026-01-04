@@ -59,6 +59,7 @@ const PresentationContent = ({
   const [BeatBuilderDemo, setBeatBuilderDemo] = useState(null);
   const [NameThatGameActivity, setNameThatGameActivity] = useState(null);
   const [MelodyBuilderTeacherDemo, setMelodyBuilderTeacherDemo] = useState(null);
+  const [MelodyMysteryActivity, setMelodyMysteryActivity] = useState(null);
 
   // Get join URL based on site (defined early for use in join-code screen)
   const isProduction = window.location.hostname !== 'localhost';
@@ -113,6 +114,11 @@ const PresentationContent = ({
     import('../../shared/activities/melody-maker/MelodyBuilderTeacherDemo')
       .then(module => setMelodyBuilderTeacherDemo(() => module.default))
       .catch(() => console.log('Melody Builder Teacher Demo not available'));
+
+    // Lesson 5: Melody Mystery Activity
+    import('../../shared/activities/melody-mystery/MelodyMysteryActivity')
+      .then(module => setMelodyMysteryActivity(() => module.default))
+      .catch(() => console.log('Melody Mystery Activity not available'));
   }, []);
 
   // Student View Mode - Show iframe of student experience
@@ -332,6 +338,28 @@ const PresentationContent = ({
           <MelodyBuilderTeacherDemo onComplete={goToNextStage} />
         </div>
       );
+    }
+
+    // Activity type - renders the actual activity in teacher view
+    if (type === 'activity') {
+      const { activityType } = currentStageData.presentationView;
+
+      // Melody Mystery Activity
+      if (activityType === 'melody-mystery') {
+        if (!MelodyMysteryActivity) {
+          return (
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900">
+              <div className="text-white text-2xl">Loading Melody Mystery...</div>
+            </div>
+          );
+        }
+
+        return (
+          <div className="absolute inset-0">
+            <MelodyMysteryActivity onComplete={goToNextStage} />
+          </div>
+        );
+      }
     }
 
     // Summary Slide - shows title with bullet points or sections
