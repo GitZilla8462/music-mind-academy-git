@@ -57,6 +57,8 @@ export const useAudioEngine = (videoDuration = 60) => {
   // For custom beats/melodies, preserve the creation timestamp as it's the unique ID:
   // e.g., "custom-beat-1767483773613" -> "custom-beat-1767483773613" (not "custom-beat"!)
   // e.g., "custom-beat-1767483773613-1767483778054" (placed) -> "custom-beat-1767483773613"
+  // e.g., "mma-saved-melody-1767483773613" -> "mma-saved-melody-1767483773613"
+  // e.g., "mma-saved-melody-1767483773613-1767483778054" (placed) -> "mma-saved-melody-1767483773613"
   const getBaseLoopId = (loopId) => {
     const parts = loopId.split('-');
 
@@ -67,6 +69,17 @@ export const useAudioEngine = (videoDuration = 60) => {
       // Always return first 3 parts: custom-beat-<timestamp> or custom-melody-<timestamp>
       if (parts.length >= 3) {
         return `${parts[0]}-${parts[1]}-${parts[2]}`;
+      }
+      return loopId;
+    }
+
+    // Handle MMA saved beats and melodies: mma-saved-beat-<timestamp> or mma-saved-melody-<timestamp>
+    // Format: mma-saved-melody-<timestamp> or mma-saved-melody-<timestamp>-<timestamp2> (placed)
+    // We need to preserve the first timestamp as it's the unique identifier
+    if (parts[0] === 'mma' && parts[1] === 'saved' && (parts[2] === 'beat' || parts[2] === 'melody')) {
+      // Always return first 4 parts: mma-saved-melody-<timestamp>
+      if (parts.length >= 4) {
+        return `${parts[0]}-${parts[1]}-${parts[2]}-${parts[3]}`;
       }
       return loopId;
     }
