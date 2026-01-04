@@ -12,7 +12,7 @@ const StudentMelodyMakerActivity = ({
   viewMode = false,
   isSessionMode = false,
   isTeacherDemo = false,
-  lockedMood = 'heroic'  // Default to Heroic mood (first in list)
+  lockedMood = null  // null = allow all moods, set a mood id to lock
 }) => {
   const [hasSaved, setHasSaved] = useState(false);
   const { sessionData, currentStage } = useSession() || {};

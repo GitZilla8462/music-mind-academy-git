@@ -226,8 +226,9 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0, lockedMood = null,
   const [triggeredNotes, setTriggeredNotes] = useState({});
   const [showInstrumentDropdown, setShowInstrumentDropdown] = useState(false);
   const [showPresetDropdown, setShowPresetDropdown] = useState(false);
+  const [showMoodDropdown, setShowMoodDropdown] = useState(false);
 
-  // Mood is locked - no dropdown needed
+  // Mood is locked only if explicitly passed
   const isMoodLocked = lockedMood !== null;
 
   const synthRef = useRef(null);
@@ -521,13 +522,42 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0, lockedMood = null,
               </button>
             </div>
 
-            {/* Mood Display - locked, no dropdown */}
-            <div
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-sm"
-              style={{ backgroundColor: currentMood.color }}
-            >
-              <span>{currentMood.emoji}</span>
-              <span>{currentMood.name}</span>
+            {/* Mood Selector - Dropdown to choose mood */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  if (!isMoodLocked) {
+                    setShowMoodDropdown(!showMoodDropdown);
+                    setShowInstrumentDropdown(false);
+                    setShowPresetDropdown(false);
+                  }
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-sm transition-all ${
+                  isMoodLocked ? '' : 'hover:opacity-80 cursor-pointer'
+                }`}
+                style={{ backgroundColor: currentMood.color }}
+                disabled={isMoodLocked}
+              >
+                <span>{currentMood.emoji}</span>
+                <span>{currentMood.name}</span>
+                {!isMoodLocked && <ChevronDown size={14} />}
+              </button>
+              {showMoodDropdown && !isMoodLocked && (
+                <div className="absolute top-full left-0 mt-1 bg-slate-700 rounded-lg shadow-xl z-20 min-w-[140px]">
+                  {MOODS.map((mood, idx) => (
+                    <button
+                      key={mood.id}
+                      onClick={() => { setMoodIndex(idx); setShowMoodDropdown(false); }}
+                      className={`w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-600 first:rounded-t-lg last:rounded-b-lg ${
+                        moodIndex === idx ? 'bg-purple-600/30' : ''
+                      }`}
+                    >
+                      <span>{mood.emoji}</span>
+                      <span>{mood.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Instrument Selector - Dropdown with names */}
@@ -784,10 +814,10 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0, lockedMood = null,
       </div>
 
       {/* Click outside to close dropdowns */}
-      {(showInstrumentDropdown || showPresetDropdown) && (
+      {(showInstrumentDropdown || showPresetDropdown || showMoodDropdown) && (
         <div
           className="fixed inset-0 z-10"
-          onClick={() => { setShowInstrumentDropdown(false); setShowPresetDropdown(false); }}
+          onClick={() => { setShowInstrumentDropdown(false); setShowPresetDropdown(false); setShowMoodDropdown(false); }}
         />
       )}
     </div>
