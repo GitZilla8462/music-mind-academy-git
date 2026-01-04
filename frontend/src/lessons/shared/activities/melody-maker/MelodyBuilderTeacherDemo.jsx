@@ -139,7 +139,18 @@ const TUTORIAL_STEPS = [
   }
 ];
 
-const MelodyBuilderTeacherDemo = ({ onComplete }) => {
+const MelodyBuilderTeacherDemo = ({ onComplete, viewMode }) => {
+  // Student view - just show watch screen message
+  if (viewMode === 'student') {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-b from-indigo-950 via-slate-900 to-slate-950 text-white">
+        <div className="text-6xl mb-6">🎹</div>
+        <h1 className="text-4xl font-bold mb-4">Building a Melody</h1>
+        <p className="text-2xl text-indigo-300">Watch the screen</p>
+      </div>
+    );
+  }
+
   const [tutorialStep, setTutorialStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentBeat, setCurrentBeat] = useState(-1);

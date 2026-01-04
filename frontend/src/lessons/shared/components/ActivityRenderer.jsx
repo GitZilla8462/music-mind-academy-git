@@ -400,6 +400,7 @@ const ActivityRenderer = ({
         <MelodyBuilderTeacherDemo
           key={`melody-builder-demo-${activity.id}`}
           onComplete={onComplete}
+          viewMode={viewMode}
         />
       );
 
