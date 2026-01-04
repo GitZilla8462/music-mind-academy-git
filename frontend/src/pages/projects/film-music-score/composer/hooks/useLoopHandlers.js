@@ -23,6 +23,7 @@ export const useLoopHandlers = ({
   createLoopPlayer,
   scheduleLoops,
   previewLoop,
+  stopPreview,
   tutorialMode
 }) => {
   
@@ -215,15 +216,7 @@ export const useLoopHandlers = ({
       showToast?.('Please initialize audio first', 'error');
       return;
     }
-    
-    // 🔥 FIX: When stopping (isPlaying=false), we need to:
-    // 1. Call previewLoop to toggle/stop the audio
-    // 2. The previewLoop function should detect the loop is playing and stop it
-    //
-    // The key issue was that LoopLibrary was setting currentlyPlaying=null
-    // BEFORE calling this function, which broke the toggle detection.
-    // But previewLoop should still work if we pass it the loop that was playing.
-    
+
     try {
       if (isPlaying) {
         // Starting preview
@@ -233,19 +226,16 @@ export const useLoopHandlers = ({
           }
         });
       } else {
-        // Stopping preview - call previewLoop which should stop it
-        await previewLoop(loop, (endedLoop) => {
-          if (onLoopPreviewCallback) {
-            onLoopPreviewCallback(endedLoop, false);
-          }
-        });
+        // 🔥 FIX: Use stopPreview() directly instead of toggle behavior
+        // This guarantees the previous audio stops immediately, no race conditions
+        stopPreview();
       }
     } catch (error) {
       console.error('Error previewing loop:', error);
       showToast?.(`Failed to preview "${loop.name}" - ${error.message}`, 'error');
     }
   }, [
-    previewLoop, audioReady, showToast, onLoopPreviewCallback, 
+    previewLoop, stopPreview, audioReady, showToast, onLoopPreviewCallback,
     tutorialMode
   ]);
 

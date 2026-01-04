@@ -242,6 +242,7 @@ const MusicComposer = ({
     setMasterVolume,
     toggleMute,
     previewLoop,
+    stopPreview,
     createLoopPlayer,
     scheduleLoops,
     initializeAudio,
@@ -529,6 +530,7 @@ const MusicComposer = ({
     createLoopPlayer,
     scheduleLoops,
     previewLoop,
+    stopPreview,
     tutorialMode
   });
 
