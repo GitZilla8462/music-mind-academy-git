@@ -328,22 +328,28 @@ export const lessonStages = [
   },
   {
     id: 'class-reflection',
-    label: 'Class Reflection',
-    description: 'Raise hands to share thoughts on melody choices',
+    label: 'Reflect & Share',
+    description: 'Pair share then class reflection',
     type: 'summary',
     duration: 3,
     presentationView: {
       type: 'summary',
-      title: 'Class Reflection',
-      subtitle: 'Raise your hand to share!',
+      title: 'Reflect & Share',
       sections: [
         {
-          heading: 'Think About:',
+          heading: '👥 PAIR AND SHARE',
           bullets: [
-            'What mood did you choose for your melody? Why?',
+            'Sit in a group of 2 or 3',
+            'Play your composition for your partner(s)',
+            'Tell them what mood you chose and why'
+          ]
+        },
+        {
+          heading: '🙋 CLASS REFLECTION — Raise your hand!',
+          bullets: [
+            'What mood did you choose? Why?',
             'Did your melody go up, down, or stay the same?',
-            'How did your melody match the game video?',
-            'What would you do differently next time?'
+            'How did your melody match the game video?'
           ]
         }
       ]
