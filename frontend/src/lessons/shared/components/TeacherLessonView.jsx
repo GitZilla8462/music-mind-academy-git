@@ -336,14 +336,24 @@ const PresentationContent = ({
 
     // Summary Slide - shows title with bullet points or sections
     if (type === 'summary') {
-      const { title, bullets, sections } = currentStageData.presentationView;
+      const { title, subtitle, bullets, sections } = currentStageData.presentationView;
 
       return (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-12">
           {/* Title */}
-          <h1 className="text-7xl font-bold text-white mb-12 text-center">
+          <h1 className="text-7xl font-bold text-white mb-4 text-center">
             {title}
           </h1>
+
+          {/* Subtitle (if provided) */}
+          {subtitle && (
+            <p className="text-3xl text-purple-300 mb-10 text-center">
+              {subtitle}
+            </p>
+          )}
+
+          {/* Spacer if no subtitle */}
+          {!subtitle && <div className="mb-8" />}
 
           {/* Simple bullets (if provided) */}
           {bullets && bullets.length > 0 && (
@@ -361,13 +371,13 @@ const PresentationContent = ({
 
           {/* Sections with headings (if provided) */}
           {sections && sections.length > 0 && (
-            <div className="flex gap-16 max-w-6xl">
+            <div className="max-w-5xl w-full">
               {sections.map((section, sectionIndex) => (
-                <div key={sectionIndex} className="flex-1">
-                  <h2 className="text-3xl font-bold text-purple-400 mb-6">
+                <div key={sectionIndex} className="mb-8">
+                  <h2 className="text-4xl font-bold text-purple-400 mb-6">
                     {section.heading}
                   </h2>
-                  <ul className="space-y-4">
+                  <ul className="space-y-4 pl-4">
                     {section.bullets.map((bullet, bulletIndex) => (
                       <li key={bulletIndex} className="flex items-start gap-3">
                         <span className="text-purple-400 text-2xl mt-0.5">•</span>

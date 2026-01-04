@@ -113,20 +113,11 @@ export const lessonSections = [
     estimatedTime: 5,
     stages: [
       {
-        id: 'reflection-instructions',
+        id: 'class-reflection',
         type: 'summary',
-        label: 'Melody Spotlight Instructions',
-        description: 'Explain Melody Spotlight reflection activity',
-        duration: 1
-      },
-      {
-        id: 'reflection-activity',
-        type: 'activity',
-        label: '🎮 Unlock Melody Spotlight',
-        description: 'Reflect on your melodic choices',
-        duration: 3,
-        hasTimer: true,
-        trackProgress: true
+        label: 'Class Reflection',
+        description: 'Raise hands to share thoughts on melody choices',
+        duration: 3
       },
       {
         id: 'conclusion',
@@ -336,28 +327,26 @@ export const lessonStages = [
     }
   },
   {
-    id: 'reflection-instructions',
-    label: 'Melody Spotlight Instructions',
-    description: 'Explain Melody Spotlight reflection activity',
+    id: 'class-reflection',
+    label: 'Class Reflection',
+    description: 'Raise hands to share thoughts on melody choices',
     type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson5/slides/7-reflection-instructions.svg'
-    }
-  },
-  {
-    id: 'reflection-activity',
-    label: '🎮 Unlock Melody Spotlight',
-    description: 'Reflect on your melodic choices',
-    type: 'activity',
-    hasTimer: true,
-    hasProgress: true,
-    trackProgress: true,
     duration: 3,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson5/slides/7-activity-reflection.svg'
+      type: 'summary',
+      title: 'Class Reflection',
+      subtitle: 'Raise your hand to share!',
+      sections: [
+        {
+          heading: 'Think About:',
+          bullets: [
+            'What mood did you choose for your melody? Why?',
+            'Did your melody go up, down, or stay the same?',
+            'How did your melody match the game video?',
+            'What would you do differently next time?'
+          ]
+        }
+      ]
     }
   },
   {
@@ -453,8 +442,7 @@ export const getActivityForStage = (stage) => {
     'melody-mystery': 'melody-mystery',  // Partner melody puzzle activity
     'composition-instructions': 'summary',
     'game-composition': 'game-composition-activity',
-    'reflection-instructions': 'summary',
-    'reflection-activity': 'melody-spotlight',  // Melody Spotlight reflection
+    'class-reflection': 'summary',  // Class reflection with raised hands
     'conclusion': 'summary'
   };
   return stageMap[stage];
