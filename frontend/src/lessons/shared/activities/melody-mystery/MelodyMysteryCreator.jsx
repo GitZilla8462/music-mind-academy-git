@@ -284,7 +284,7 @@ const MelodyMysteryCreator = ({
           {/* Header */}
           <div className="px-4 py-4 border-b border-white/10">
             <h2 className="text-2xl font-bold text-center text-white">
-              Hide Signal In:
+              Step 1.) Choose where to hide the melody signal
             </h2>
           </div>
 
@@ -338,7 +338,7 @@ const MelodyMysteryCreator = ({
           {/* Header */}
           <div className="px-4 py-4 border-b border-white/10">
             <h2 className="text-2xl font-bold text-center text-white">
-              Make Signal Melody
+              Step 2.) Make your melody signal
             </h2>
           </div>
 
