@@ -234,26 +234,37 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
     hasAutoPlayedRef.current = false;
   }, [currentRound]);
 
-  // Auto-play loop when new round starts (only once per round)
+  // Auto-play loop when audio is ready (wait for canplaythrough event)
   useEffect(() => {
     if (!currentLoop || !audioRef.current || guessResult) return;
-    if (hasAutoPlayedRef.current) return; // Don't auto-play again if already played
+    if (hasAutoPlayedRef.current) return;
 
-    const timer = setTimeout(() => {
-      if (audioRef.current && currentLoop && !hasAutoPlayedRef.current) {
-        hasAutoPlayedRef.current = true;
-        audioRef.current.currentTime = 0;
-        audioRef.current.play()
-          .then(() => {
-            setIsPlaying(true);
-          })
-          .catch(err => {
-            console.error('Failed to auto-play:', err);
-          });
-      }
-    }, 600);
+    const audio = audioRef.current;
 
-    return () => clearTimeout(timer);
+    const handleCanPlay = () => {
+      if (hasAutoPlayedRef.current) return;
+      hasAutoPlayedRef.current = true;
+      audio.currentTime = 0;
+      audio.play()
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch(err => {
+          console.error('Failed to auto-play:', err);
+        });
+    };
+
+    // If audio is already ready, play immediately
+    if (audio.readyState >= 3) {
+      handleCanPlay();
+    } else {
+      // Wait for audio to be ready
+      audio.addEventListener('canplaythrough', handleCanPlay, { once: true });
+    }
+
+    return () => {
+      audio.removeEventListener('canplaythrough', handleCanPlay);
+    };
   }, [currentLoop, guessResult]);
 
   // Handle guess
