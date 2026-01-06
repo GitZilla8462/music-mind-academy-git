@@ -163,6 +163,8 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
   // Audio refs
   const audioRefs = useRef([]);
   const isPlayingRef = useRef(false); // Sync ref for rapid click protection
+  const playTimeoutRef = useRef(null); // Track scheduled playback timeout
+  const autoPlayTimeoutRef = useRef(null); // Track auto-play timeout when advancing questions
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
@@ -198,22 +200,37 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
 
   // ============ AUDIO PLAYBACK ============
   const stopAudio = useCallback(() => {
+    // Cancel any scheduled playback timeouts
+    if (playTimeoutRef.current) {
+      clearTimeout(playTimeoutRef.current);
+      playTimeoutRef.current = null;
+    }
+    if (autoPlayTimeoutRef.current) {
+      clearTimeout(autoPlayTimeoutRef.current);
+      autoPlayTimeoutRef.current = null;
+    }
     audioRefs.current.forEach(a => { a.pause(); a.currentTime = 0; });
     audioRefs.current = [];
     isPlayingRef.current = false;
     setIsPlaying(false);
+    console.log('🔇 stopAudio: Stopped all audio and cleared timeouts');
   }, []);
 
   // Play audio only (no phase change) - used during reveal
   const playAudioOnly = useCallback(() => {
-    if (!shuffledQuestions[currentQuestion]) return;
+    console.log('🔊 playAudioOnly: Called for question', currentQuestion, 'isPlayingRef:', isPlayingRef.current);
+    if (!shuffledQuestions[currentQuestion]) {
+      console.log('🔊 playAudioOnly: No question found, returning');
+      return;
+    }
     const question = shuffledQuestions[currentQuestion];
 
-    // Stop existing audio
+    // Stop existing audio (this also clears any pending timeouts)
     stopAudio();
 
     // Mark as playing immediately (sync) to prevent rapid click issues
     isPlayingRef.current = true;
+    console.log('🔊 playAudioOnly: Starting playback, set isPlayingRef to true');
 
     // Create all audio elements with preload
     const audios = question.layers.map(layer => {
@@ -232,7 +249,14 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
       a.addEventListener('canplaythrough', resolve, { once: true });
       a.load();
     }))).then(() => {
+      // Check if these audio elements are still the current ones
+      // (stopAudio may have been called while loading, which clears audioRefs)
+      if (audioRefs.current !== audios) {
+        console.log('🔊 playAudioOnly: Audio cancelled - refs changed during load');
+        return;
+      }
       // All audio loaded - play all at the exact same moment
+      console.log('🔊 playAudioOnly: All audio loaded, playing', audios.length, 'tracks');
       audios.forEach(a => a.play().catch(console.error));
       setIsPlaying(true);
     }).catch(console.error);
@@ -251,10 +275,12 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
   }, [shuffledQuestions, currentQuestion, stopAudio]);
 
   const playAudio = useCallback(() => {
+    console.log('▶️ playAudio: Button clicked, question:', currentQuestion, 'isPlayingRef:', isPlayingRef.current);
     if (!shuffledQuestions[currentQuestion]) return;
 
     // If already playing, pause instead (use ref for sync check to prevent rapid click issues)
     if (isPlayingRef.current) {
+      console.log('▶️ playAudio: Already playing, pausing instead');
       audioRefs.current.forEach(a => a.pause());
       isPlayingRef.current = false;
       setIsPlaying(false);
@@ -262,6 +288,7 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
     }
 
     // Play the audio
+    console.log('▶️ playAudio: Not playing, starting playback');
     playAudioOnly();
 
     // Update phase to guessing and broadcast
@@ -364,8 +391,12 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
       });
     }
 
-    // Play the audio so students can hear the correct answer
-    setTimeout(() => {
+    // Play the audio so students can hear the correct answer (after a short delay)
+    // Store timeout ID so it can be cancelled if user moves to next question quickly
+    console.log('⏰ revealAnswer: Scheduling playback in 300ms');
+    playTimeoutRef.current = setTimeout(() => {
+      console.log('⏰ revealAnswer: Timeout fired, calling playAudioOnly');
+      playTimeoutRef.current = null;
       playAudioOnly();
     }, 300);
   }, [stopAudio, shuffledQuestions, currentQuestion, students, sessionCode, updateGame, playAudioOnly]);
@@ -401,7 +432,9 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
       });
 
       // Auto-play the next question's audio after giving time to read the question
-      setTimeout(() => {
+      // Store timeout ref so it can be cancelled by stopAudio
+      autoPlayTimeoutRef.current = setTimeout(() => {
+        autoPlayTimeoutRef.current = null; // Clear ref since timeout fired
         // Play audio for next question (need to use the new index directly)
         const nextQuestionData = shuffledQuestions[nextIdx];
         if (nextQuestionData) {
@@ -422,6 +455,11 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
             a.addEventListener('canplaythrough', resolve, { once: true });
             a.load();
           }))).then(() => {
+            // Check if these audio elements are still current (stopAudio may have cleared them)
+            if (audioRefs.current !== audios) {
+              console.log('🔊 autoPlay: Audio cancelled - refs changed during load');
+              return;
+            }
             audios.forEach(a => a.play().catch(console.error));
             setIsPlaying(true);
           }).catch(console.error);
