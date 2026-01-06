@@ -162,6 +162,7 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
 
   // Audio refs
   const audioRefs = useRef([]);
+  const isPlayingRef = useRef(false); // Sync ref for rapid click protection
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
@@ -199,6 +200,7 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
   const stopAudio = useCallback(() => {
     audioRefs.current.forEach(a => { a.pause(); a.currentTime = 0; });
     audioRefs.current = [];
+    isPlayingRef.current = false;
     setIsPlaying(false);
   }, []);
 
@@ -209,6 +211,9 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
 
     // Stop existing audio
     stopAudio();
+
+    // Mark as playing immediately (sync) to prevent rapid click issues
+    isPlayingRef.current = true;
 
     // Create all audio elements with preload
     const audios = question.layers.map(layer => {
@@ -238,6 +243,7 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
       a.onended = () => {
         finishedCount++;
         if (finishedCount >= audios.length) {
+          isPlayingRef.current = false;
           setIsPlaying(false);
         }
       };
@@ -247,9 +253,10 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
   const playAudio = useCallback(() => {
     if (!shuffledQuestions[currentQuestion]) return;
 
-    // If already playing, pause instead
-    if (isPlaying) {
+    // If already playing, pause instead (use ref for sync check to prevent rapid click issues)
+    if (isPlayingRef.current) {
       audioRefs.current.forEach(a => a.pause());
+      isPlayingRef.current = false;
       setIsPlaying(false);
       return;
     }
@@ -267,7 +274,7 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
       playStartTime: Date.now(),
       questionData: { layers: shuffledQuestions[currentQuestion].layers }
     });
-  }, [shuffledQuestions, currentQuestion, playAudioOnly, updateGame, isPlaying]);
+  }, [shuffledQuestions, currentQuestion, playAudioOnly, updateGame]);
 
   // ============ GAME FLOW ============
   const startGame = useCallback(() => {
