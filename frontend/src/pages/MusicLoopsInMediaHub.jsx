@@ -14,7 +14,7 @@ const MusicLoopsInMediaHub = () => {
   const navigate = useNavigate();
   const [creatingSession, setCreatingSession] = useState(null);
   const [expandedLessons, setExpandedLessons] = useState({});
-  const [gettingStartedOpen, setGettingStartedOpen] = useState(true);
+  const [gettingStartedOpen, setGettingStartedOpen] = useState(false);
 
   // Get authenticated teacher info
   const { user, signOut } = useFirebaseAuth();
@@ -27,15 +27,13 @@ const MusicLoopsInMediaHub = () => {
   const joinUrl = isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join';
 
   // Check localStorage for Getting Started section state
-  // Open by default on first visit, collapsed for returning users
+  // Collapsed by default, user can expand if needed
   useEffect(() => {
     const savedState = localStorage.getItem('gettingStartedOpen');
     if (savedState !== null) {
       setGettingStartedOpen(savedState === 'true');
-    } else {
-      // First visit - keep open and save state
-      localStorage.setItem('gettingStartedOpen', 'false');
     }
+    // If no saved state, keep default (false/collapsed)
   }, []);
 
   const toggleGettingStarted = () => {
