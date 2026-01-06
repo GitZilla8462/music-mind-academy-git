@@ -263,23 +263,23 @@ const VideoPlayer = ({
         };
       case 'small-desktop':
         return {
-          controlsHeight: '85px',
-          padding: { top: '0.375rem', bottom: '0.375rem', side: '0.75rem' },
+          controlsHeight: '64px',
+          padding: { top: '0.25rem', bottom: '0.25rem', side: '0.5rem' },
           progressHeight: '3px',
-          iconSize: 18,
-          buttonPadding: '0.375rem',
+          iconSize: 16,
+          buttonPadding: '0.25rem',
           textSize: 'text-xs',
-          volumeWidth: 'w-16'
+          volumeWidth: 'w-14'
         };
       case 'medium-desktop':
         return {
-          controlsHeight: '90px',
-          padding: { top: '0.375rem', bottom: '0.375rem', side: '0.75rem' },
+          controlsHeight: '72px',
+          padding: { top: '0.25rem', bottom: '0.25rem', side: '0.5rem' },
           progressHeight: '3px',
-          iconSize: 18,
-          buttonPadding: '0.375rem',
+          iconSize: 16,
+          buttonPadding: '0.25rem',
           textSize: 'text-xs',
-          volumeWidth: 'w-20'
+          volumeWidth: 'w-16'
         };
       default: // large-desktop
         return {

@@ -47,7 +47,8 @@ const PresentationContent = ({
   lessonBasePath,
   viewMode, // 'teacher' or 'student'
   onVideoEnded, // callback when video finishes playing
-  goToNextStage // callback to advance to next stage
+  goToNextStage, // callback to advance to next stage
+  presentationZoom = 1 // zoom factor for scaling slides
 }) => {
   const [LayerDetectiveLeaderboard, setLayerDetectiveLeaderboard] = useState(null);
   const [LayerDetectiveResults, setLayerDetectiveResults] = useState(null);
@@ -64,7 +65,8 @@ const PresentationContent = ({
   // Get join URL based on site (defined early for use in join-code screen)
   const isProduction = window.location.hostname !== 'localhost';
   const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
-  const joinUrl = !isProduction ? 'localhost:5173/join' : (isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join');
+  // Use current host for dev (handles any port), production domains for prod
+  const joinUrl = !isProduction ? `${window.location.host}/join` : (isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join');
 
   // Load game components dynamically
   useEffect(() => {
@@ -124,11 +126,8 @@ const PresentationContent = ({
   // Student View Mode - Show iframe of student experience
   if (viewMode === 'student') {
     const getStudentUrl = () => {
-      const isProduction = window.location.hostname !== 'localhost';
-      const baseUrl = isProduction 
-        ? 'https://musicroomtools.org' 
-        : 'http://localhost:5173';
-      return `${baseUrl}/join?code=${sessionCode}&preview=true`;
+      // Use current origin for both dev and prod to handle any port
+      return `${window.location.origin}/join?code=${sessionCode}&preview=true`;
     };
 
     return (
@@ -448,42 +447,52 @@ const PresentationContent = ({
 
       const content = slideContent[currentStage] || { title: currentStage, points: [] };
 
+      // Apply zoom to scale 1920x1080 design to fit container
       return (
-        <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-          {/* Title - spans full width at top */}
-          <div className="text-center pt-8 pb-4">
-            <h1 className="text-6xl font-bold text-white mb-2">{content.title}</h1>
-            {content.subtitle && (
-              <h2 className="text-3xl text-purple-400">{content.subtitle}</h2>
-            )}
-          </div>
-
-          {/* Content area - image and bullets side by side */}
-          <div className="flex-1 flex">
-            {/* Left side - Image (15% smaller) */}
-            <div className="w-1/2 flex items-center justify-center p-6">
-              <img
-                src={imagePath}
-                alt={content.title}
-                className="object-contain rounded-lg shadow-2xl"
-                style={{ maxWidth: '85%', maxHeight: '85%' }}
-                onError={(e) => {
-                  console.error('Failed to load image:', imagePath);
-                  e.target.style.display = 'none';
-                }}
-              />
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+          <div
+            style={{
+              width: 1920,
+              height: 1080,
+              zoom: presentationZoom,
+            }}
+            className="flex flex-col"
+          >
+            {/* Title - spans full width at top */}
+            <div className="text-center pt-8 pb-4">
+              <h1 className="text-6xl font-bold text-white mb-2">{content.title}</h1>
+              {content.subtitle && (
+                <h2 className="text-3xl text-purple-400">{content.subtitle}</h2>
+              )}
             </div>
 
-            {/* Right side - Bullet points */}
-            <div className="w-1/2 flex flex-col justify-center p-6 pr-12">
-              <ul className="space-y-8">
-                {content.points.map((point, index) => (
-                  <li key={index} className="flex items-start gap-4">
-                    <span className="text-purple-500 text-5xl mt-1">•</span>
-                    <span className="text-4xl text-slate-200 leading-snug">{point}</span>
-                  </li>
-                ))}
-              </ul>
+            {/* Content area - image and bullets side by side */}
+            <div className="flex-1 flex">
+              {/* Left side - Image */}
+              <div className="w-1/2 flex items-center justify-center p-6">
+                <img
+                  src={imagePath}
+                  alt={content.title}
+                  className="object-contain rounded-lg shadow-2xl"
+                  style={{ maxWidth: '85%', maxHeight: '85%' }}
+                  onError={(e) => {
+                    console.error('Failed to load image:', imagePath);
+                    e.target.style.display = 'none';
+                  }}
+                />
+              </div>
+
+              {/* Right side - Bullet points */}
+              <div className="w-1/2 flex flex-col justify-center p-6 pr-12">
+                <ul className="space-y-8">
+                  {content.points.map((point, index) => (
+                    <li key={index} className="flex items-start gap-4">
+                      <span className="text-purple-500 text-5xl mt-1">•</span>
+                      <span className="text-4xl text-slate-200 leading-snug">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -575,11 +584,8 @@ const PresentationContent = ({
 // ============================================
 const MiniPreview = ({ viewMode, sessionCode, currentStage, currentStageData, sessionData, config, onSwitch }) => {
   const getStudentUrl = () => {
-    const isProduction = window.location.hostname !== 'localhost';
-    const baseUrl = isProduction 
-      ? 'https://musicroomtools.org' 
-      : 'http://localhost:5173';
-    return `${baseUrl}/join?code=${sessionCode}&preview=true`;
+    // Use current origin to handle any port in dev
+    return `${window.location.origin}/join?code=${sessionCode}&preview=true`;
   };
 
   return (
@@ -1342,12 +1348,44 @@ const TeacherLessonView = ({
   });
 
   // Resizable panel state
-  const [sidebarWidth, setSidebarWidth] = useState(340);
-  const [bottomPanelHeight, setBottomPanelHeight] = useState(280);
+  const [sidebarWidth, setSidebarWidth] = useState(280);
+  const [bottomPanelHeight, setBottomPanelHeight] = useState(180);
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
   const [isResizingBottom, setIsResizingBottom] = useState(false);
   const resizeStartY = useRef(0);
   const resizeStartHeight = useRef(0);
+
+  // Presentation scaling - design at 1920x1080, scale to fit any screen
+  const presentationRef = useRef(null);
+  const [presentationZoom, setPresentationZoom] = useState(1);
+  const DESIGN_WIDTH = 1920;
+  const DESIGN_HEIGHT = 1080;
+
+  useEffect(() => {
+    const container = presentationRef.current;
+    if (!container) return;
+
+    const calculateZoom = () => {
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+
+      // Scale to fit design size in container, cap at 1 (no upscaling)
+      const zoom = Math.min(
+        containerWidth / DESIGN_WIDTH,
+        containerHeight / DESIGN_HEIGHT,
+        1
+      );
+
+      setPresentationZoom(zoom);
+    };
+
+    calculateZoom();
+
+    const resizeObserver = new ResizeObserver(calculateZoom);
+    resizeObserver.observe(container);
+
+    return () => resizeObserver.disconnect();
+  }, []);
 
   // Handle sidebar horizontal resize
   useEffect(() => {
@@ -1355,7 +1393,7 @@ const TeacherLessonView = ({
 
     const handleMouseMove = (e) => {
       e.preventDefault();
-      const newWidth = Math.max(200, Math.min(500, e.clientX));
+      const newWidth = Math.max(200, Math.min(360, e.clientX));
       setSidebarWidth(newWidth);
     };
 
@@ -1764,7 +1802,8 @@ const TeacherLessonView = ({
   const getJoinUrl = () => {
     const isProduction = window.location.hostname !== 'localhost';
     const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
-    if (!isProduction) return 'localhost:5173/join';
+    // Use current host for dev (handles any port)
+    if (!isProduction) return `${window.location.host}/join`;
     return isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join';
   };
 
@@ -1775,13 +1814,13 @@ const TeacherLessonView = ({
         {/* Sidebar */}
         <div
           id="teacher-sidebar"
-          className={`bg-white border-r border-slate-200 flex flex-col flex-shrink-0 ${
+          className={`bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full overflow-hidden ${
             sidebarCollapsed ? 'w-14' : ''
           } ${!isResizingSidebar && !isResizingBottom ? 'transition-all duration-300' : ''}`}
           style={sidebarCollapsed ? {} : { width: `${sidebarWidth}px` }}
         >
           {/* Join Info - Top of Sidebar */}
-          <div className={`border-b border-slate-200 ${sidebarCollapsed ? 'p-2' : 'p-4'}`}>
+          <div className={`border-b border-slate-200 flex-shrink-0 ${sidebarCollapsed ? 'p-2' : 'p-4'}`}>
             {sidebarCollapsed ? (
               <div className="flex flex-col items-center gap-2">
                 <button
@@ -1828,7 +1867,7 @@ const TeacherLessonView = ({
 
           {/* Navigation Buttons - AT TOP */}
           {!sidebarCollapsed && (
-            <div className="p-3 border-b border-slate-200">
+            <div className="p-3 border-b border-slate-200 flex-shrink-0">
               {isOnJoinCode ? (
                 <div>
                   <button
@@ -2040,7 +2079,7 @@ const TeacherLessonView = ({
                                 </div>
 
                                 {/* Stage label */}
-                                <span className="flex-1 text-sm whitespace-nowrap">
+                                <span className="flex-1 text-xs truncate" title={stage.label}>
                                   {stage.label}
                                 </span>
 
@@ -2116,7 +2155,7 @@ const TeacherLessonView = ({
           )}
 
           {/* Footer Actions */}
-          <div className={`border-t border-slate-200 ${sidebarCollapsed ? 'p-2' : 'p-3'}`}>
+          <div className={`border-t border-slate-200 flex-shrink-0 ${sidebarCollapsed ? 'p-2' : 'p-3'}`}>
             {sidebarCollapsed ? (
               <div className="flex flex-col gap-1">
                 <button
@@ -2163,8 +2202,11 @@ const TeacherLessonView = ({
           />
         )}
 
-        {/* Presentation Area */}
-        <div className="flex-1 relative bg-slate-900">
+        {/* Presentation Area - scales to fit any screen size */}
+        <div
+          ref={presentationRef}
+          className="flex-1 relative bg-slate-900 overflow-hidden"
+        >
           <PresentationContent
             currentStage={currentStage}
             currentStageData={currentStageData}
@@ -2175,13 +2217,14 @@ const TeacherLessonView = ({
             viewMode={viewMode}
             onVideoEnded={goToNextStage}
             goToNextStage={goToNextStage}
+            presentationZoom={presentationZoom}
           />
 
           {/* Floating Timer - Top Right (2x size) */}
           {timerVisible && (
-            <div className="absolute top-4 right-4 z-50 bg-gray-900/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-700 p-6 min-w-[320px]">
+            <div className="absolute top-4 right-4 z-50 bg-gray-900/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-700 p-4 min-w-[180px]">
               {/* Timer Display */}
-              <div className={`text-6xl font-bold font-mono text-center mb-4 ${
+              <div className={`text-4xl font-bold font-mono text-center mb-2 ${
                 classroomTimer.isRunning
                   ? classroomTimer.timeRemaining <= 60
                     ? 'text-red-400'
@@ -2192,64 +2235,64 @@ const TeacherLessonView = ({
               </div>
 
               {/* Controls Row */}
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-1">
                 {/* Minus 1 min */}
                 <button
                   onClick={() => adjustClassroomTime(-1)}
                   disabled={classroomTimer.presetMinutes <= 1 || classroomTimer.isRunning}
-                  className={`p-3 rounded-xl transition-colors ${
+                  className={`p-2 rounded-lg transition-colors ${
                     classroomTimer.presetMinutes <= 1 || classroomTimer.isRunning
                       ? 'text-gray-600 cursor-not-allowed'
                       : 'text-gray-400 hover:text-white hover:bg-gray-700'
                   }`}
                   title="-1 min"
                 >
-                  <Minus size={28} />
+                  <Minus size={20} />
                 </button>
 
                 {/* Play/Pause */}
                 <button
                   onClick={classroomTimer.isRunning ? pauseClassroomTimer : startClassroomTimer}
-                  className={`p-4 rounded-xl transition-colors ${
+                  className={`p-3 rounded-lg transition-colors ${
                     classroomTimer.isRunning
                       ? 'bg-amber-500 hover:bg-amber-600 text-white'
                       : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}
                   title={classroomTimer.isRunning ? 'Pause' : 'Start'}
                 >
-                  {classroomTimer.isRunning ? <Pause size={32} /> : <Play size={32} />}
+                  {classroomTimer.isRunning ? <Pause size={24} /> : <Play size={24} />}
                 </button>
 
                 {/* Plus 1 min */}
                 <button
                   onClick={() => adjustClassroomTime(1)}
                   disabled={classroomTimer.presetMinutes >= 60 || classroomTimer.isRunning}
-                  className={`p-3 rounded-xl transition-colors ${
+                  className={`p-2 rounded-lg transition-colors ${
                     classroomTimer.presetMinutes >= 60 || classroomTimer.isRunning
                       ? 'text-gray-600 cursor-not-allowed'
                       : 'text-gray-400 hover:text-white hover:bg-gray-700'
                   }`}
                   title="+1 min"
                 >
-                  <Plus size={28} />
+                  <Plus size={20} />
                 </button>
 
                 {/* Reset */}
                 <button
                   onClick={resetClassroomTimer}
-                  className="p-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+                  className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
                   title="Reset"
                 >
-                  <RotateCcw size={28} />
+                  <RotateCcw size={20} />
                 </button>
 
                 {/* Minimize */}
                 <button
                   onClick={() => setTimerVisible(false)}
-                  className="p-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+                  className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
                   title="Minimize timer"
                 >
-                  <Minimize2 size={28} />
+                  <Minimize2 size={20} />
                 </button>
               </div>
             </div>

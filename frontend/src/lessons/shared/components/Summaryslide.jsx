@@ -17,7 +17,7 @@ const SummarySlide = ({ title, points, estimatedTime, icon, sessionCode }) => {
             <div className="text-center mb-6">
               <div className="inline-block bg-white/10 backdrop-blur-sm rounded-lg px-8 py-3">
                 <span className="text-gray-300 text-2xl">Code: </span>
-                <span className="text-white text-5xl font-bold tracking-wider font-mono">{sessionCode}</span>
+                <span className="text-white text-3xl font-bold tracking-wider font-mono">{sessionCode}</span>
               </div>
             </div>
           )}
@@ -28,11 +28,11 @@ const SummarySlide = ({ title, points, estimatedTime, icon, sessionCode }) => {
             {/* Title Section - Compact */}
             <div className="text-center mb-4">
               {icon && (
-                <div className="text-6xl mb-2">
+                <div className="text-4xl md:text-5xl mb-2">
                   {icon}
                 </div>
               )}
-              <h1 className="text-5xl font-bold text-gray-900 mb-2 leading-tight">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 leading-tight">
                 {title}
               </h1>
               {estimatedTime && (
@@ -48,13 +48,13 @@ const SummarySlide = ({ title, points, estimatedTime, icon, sessionCode }) => {
               {points.map((point, index) => (
                 <div key={index} className="flex items-start gap-4">
                   {/* Number Circle */}
-                  <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                    <span className="text-white text-3xl font-bold">{index + 1}</span>
+                  <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white text-xl md:text-2xl font-bold">{index + 1}</span>
                   </div>
                   
-                  {/* Content - 4X BIGGER TEXT (was text-5xl, now using custom sizing) */}
+                  {/* Content - responsive text sizing */}
                   <div className="flex-1">
-                    <div className="text-gray-800 font-bold leading-tight" style={{ fontSize: '3.5rem' }}>
+                    <div className="text-gray-800 font-bold leading-tight text-2xl md:text-3xl">
                       {point}
                     </div>
                   </div>

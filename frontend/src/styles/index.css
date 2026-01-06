@@ -683,3 +683,14 @@ input[type="range"]::-moz-range-thumb:hover {
 .chromebook-hide-cursor * {
   cursor: none !important;
 }
+
+/* Restore cursor for bonus overlays and activities that don't use custom cursor */
+/* Use this class on overlays that should show the native cursor */
+.restore-cursor,
+.restore-cursor * {
+  cursor: auto !important;
+}
+
+.restore-cursor button {
+  cursor: pointer !important;
+}

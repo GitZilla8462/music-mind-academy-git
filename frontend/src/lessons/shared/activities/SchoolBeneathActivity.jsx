@@ -628,8 +628,9 @@ const SchoolBeneathActivity = ({
       
       {/* Bonus game as overlay - keeps composition mounted underneath */}
       {/* data-cursor-handled tells MusicComposer's CustomCursor to hide */}
+      {/* restore-cursor overrides chromebook-hide-cursor from parent to show native cursor */}
       {showBonusGame && (
-        <div className="absolute inset-0 z-50 flex flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900" data-cursor-handled="true">
+        <div className="absolute inset-0 z-50 flex flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 restore-cursor" data-cursor-handled="true">
           <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-white">Bonus: Name That Loop!</h2>

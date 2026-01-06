@@ -284,26 +284,26 @@ const MoodMatchTeacherView = ({ onAdvanceLesson }) => {
     return (
       <div className="h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <ActivityBanner />
-        <div className="flex-1 flex flex-col p-8">
+        <div className="flex-1 flex flex-col p-4 min-h-0 overflow-hidden">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">LOOP {currentLoopIndex + 1} RESULTS</h1>
-          <p className="text-xl text-gray-400">{voteCount} votes</p>
+        <div className="text-center mb-3 shrink-0">
+          <h1 className="text-3xl font-bold text-white mb-1">LOOP {currentLoopIndex + 1} RESULTS</h1>
+          <p className="text-lg text-gray-400">{voteCount} votes</p>
         </div>
 
         {/* Bar Chart */}
-        <div className="flex-1 max-w-3xl mx-auto w-full">
+        <div className="max-w-3xl mx-auto w-full shrink-0">
           {MOOD_CATEGORIES.map((mood) => {
             const count = voteTally[mood.id] || 0;
             const percentage = voteCount > 0 ? (count / maxVotes) * 100 : 0;
 
             return (
-              <div key={mood.id} className="mb-6">
-                <div className="flex items-center gap-4 mb-2">
-                  <span className="text-xl font-bold text-white w-32">{mood.name.toUpperCase()}</span>
-                  <div className="flex-1 h-12 bg-gray-700 rounded-lg overflow-hidden">
+              <div key={mood.id} className="mb-3">
+                <div className="flex items-center gap-3 mb-1">
+                  <span className="text-lg font-bold text-white w-28">{mood.name.toUpperCase()}</span>
+                  <div className="flex-1 h-10 bg-gray-700 rounded-lg overflow-hidden">
                     <div
-                      className="h-full transition-all duration-500 flex items-center justify-end pr-4"
+                      className="h-full transition-all duration-500 flex items-center justify-end pr-3"
                       style={{
                         width: `${percentage}%`,
                         backgroundColor: mood.color,
@@ -311,12 +311,12 @@ const MoodMatchTeacherView = ({ onAdvanceLesson }) => {
                       }}
                     >
                       {count > 0 && (
-                        <span className="text-white font-bold text-lg">{count}</span>
+                        <span className="text-white font-bold">{count}</span>
                       )}
                     </div>
                   </div>
                   {count === 0 && (
-                    <span className="text-gray-500 font-bold text-lg w-8">0</span>
+                    <span className="text-gray-500 font-bold w-8">0</span>
                   )}
                 </div>
               </div>
@@ -324,30 +324,30 @@ const MoodMatchTeacherView = ({ onAdvanceLesson }) => {
           })}
         </div>
 
-        {/* Discussion Prompt */}
-        <div className="bg-black/40 rounded-xl p-6 max-w-3xl mx-auto w-full mb-8">
-          <p className="text-sm text-gray-400 mb-2 uppercase tracking-wide">Discussion</p>
-          <p className="text-2xl text-white">{discussionPrompt}</p>
-        </div>
-
-        {/* Next Button */}
-        <div className="text-center">
+        {/* Next Button - right below results */}
+        <div className="text-center shrink-0 py-3">
           <button
             onClick={handleNextLoop}
-            className="flex items-center gap-3 mx-auto px-10 py-5 bg-green-600 hover:bg-green-500 text-white text-xl font-bold rounded-xl transition-all"
+            className="flex items-center gap-3 mx-auto px-8 py-4 bg-green-600 hover:bg-green-500 text-white text-lg font-bold rounded-xl transition-all"
           >
             {currentLoopIndex < GAME_LOOPS.length - 1 ? (
               <>
                 NEXT LOOP
-                <ChevronRight className="w-6 h-6" />
+                <ChevronRight className="w-5 h-5" />
               </>
             ) : (
               <>
                 VIEW SUMMARY
-                <ChevronRight className="w-6 h-6" />
+                <ChevronRight className="w-5 h-5" />
               </>
             )}
           </button>
+        </div>
+
+        {/* Discussion Prompt - below next button */}
+        <div className="bg-black/40 rounded-xl p-4 max-w-3xl mx-auto w-full flex-1 min-h-0 overflow-y-auto">
+          <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">Discussion</p>
+          <p className="text-xl text-white">{discussionPrompt}</p>
         </div>
         </div>
       </div>
@@ -358,41 +358,41 @@ const MoodMatchTeacherView = ({ onAdvanceLesson }) => {
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <ActivityBanner />
-      <div className="flex-1 flex flex-col p-6 min-h-0">
+      <div className="flex-1 flex flex-col p-4 min-h-0">
         {/* Header */}
-        <div className="text-center mb-4 shrink-0">
-          <h1 className="text-4xl font-bold text-white mb-2">LOOP {currentLoopIndex + 1} OF {GAME_LOOPS.length}</h1>
-          <div className="w-24 h-1 bg-purple-500 mx-auto"></div>
+        <div className="text-center mb-2 shrink-0">
+          <h1 className="text-3xl font-bold text-white mb-1">LOOP {currentLoopIndex + 1} OF {GAME_LOOPS.length}</h1>
+          <div className="w-20 h-1 bg-purple-500 mx-auto"></div>
         </div>
 
         {/* Main Content - compact layout */}
         <div className="flex-1 flex flex-col items-center justify-center min-h-0">
-          {/* Play Button - smaller */}
+          {/* Play Button */}
           <button
             onClick={isPlaying ? stopLoop : playLoop}
-            className={`w-32 h-32 rounded-full flex items-center justify-center transition-all transform hover:scale-105 mb-4 shrink-0 ${
+            className={`w-24 h-24 rounded-full flex items-center justify-center transition-all transform hover:scale-105 mb-3 shrink-0 ${
               isPlaying
                 ? 'bg-red-600 hover:bg-red-500'
                 : 'bg-green-600 hover:bg-green-500'
             }`}
           >
             {isPlaying ? (
-              <Pause className="w-16 h-16 text-white" />
+              <Pause className="w-12 h-12 text-white" />
             ) : (
-              <Play className="w-16 h-16 text-white ml-2" />
+              <Play className="w-12 h-12 text-white ml-1" />
             )}
           </button>
 
           {isPlaying && (
-            <div className="flex items-center gap-3 text-green-400 text-xl mb-4">
-              <Volume2 className="w-6 h-6 animate-pulse" />
+            <div className="flex items-center gap-2 text-green-400 text-lg mb-3">
+              <Volume2 className="w-5 h-5 animate-pulse" />
               <span>Playing loop for class...</span>
             </div>
           )}
 
           {/* Vote Count */}
-          <div className="flex items-center gap-3 text-2xl text-white mb-4">
-            <Users className="w-6 h-6 text-purple-400" />
+          <div className="flex items-center gap-2 text-xl text-white mb-3">
+            <Users className="w-5 h-5 text-purple-400" />
             <span>
               <span className="font-bold text-purple-400">{voteCount}</span>
               <span className="text-gray-400"> / {totalStudents}</span>
@@ -401,19 +401,15 @@ const MoodMatchTeacherView = ({ onAdvanceLesson }) => {
           </div>
 
           {/* Instructions */}
-          <p className="text-xl text-gray-300 mb-4">Students: Listen and vote on your Chromebook</p>
-        </div>
+          <p className="text-lg text-gray-300 mb-3">Students: Listen and vote on your Chromebook</p>
 
-        {/* Show Results Button - fixed at bottom, always visible */}
-        <div className="shrink-0 py-4 bg-gradient-to-t from-gray-900 via-gray-900/95 to-transparent -mx-6 px-6 -mb-6">
-          <div className="text-center">
-            <button
-              onClick={handleShowResults}
-              className="px-12 py-5 bg-purple-600 hover:bg-purple-500 text-white text-2xl font-bold rounded-xl transition-all shadow-lg"
-            >
-              SHOW RESULTS
-            </button>
-          </div>
+          {/* Show Results Button - moved into main content */}
+          <button
+            onClick={handleShowResults}
+            className="px-10 py-4 bg-purple-600 hover:bg-purple-500 text-white text-xl font-bold rounded-xl transition-all shadow-lg"
+          >
+            SHOW RESULTS
+          </button>
         </div>
       </div>
     </div>
