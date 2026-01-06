@@ -494,7 +494,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
                 >
                   <div className="text-center">
                     <div className="text-3xl mb-2">🌟</div>
-                    <div className="font-bold text-gray-800 text-lg">Reflect on My Work</div>
+                    <div className="font-bold text-gray-800 text-lg">Reflect Solo</div>
                     <div className="text-sm text-gray-600 mt-1">
                       Review your own composition
                     </div>
@@ -507,9 +507,9 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
                 >
                   <div className="text-center">
                     <div className="text-3xl mb-2">🎁</div>
-                    <div className="font-bold text-gray-800 text-lg">Give Partner Feedback</div>
+                    <div className="font-bold text-gray-800 text-lg">Reflect with Partner</div>
                     <div className="text-sm text-gray-600 mt-1">
-                      Share feedback with a classmate
+                      Review with a classmate
                     </div>
                   </div>
                 </button>
