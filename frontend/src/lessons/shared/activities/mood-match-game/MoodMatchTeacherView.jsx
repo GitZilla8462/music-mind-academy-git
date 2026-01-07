@@ -174,7 +174,7 @@ const MoodMatchTeacherView = ({ onAdvanceLesson }) => {
   // SCREEN: Waiting to start
   if (currentLoopIndex < 0) {
     return (
-      <div className="h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="h-full flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <ActivityBanner />
         <div className="flex-1 flex flex-col items-center justify-center p-8">
         <div className="text-center max-w-2xl">
@@ -204,7 +204,7 @@ const MoodMatchTeacherView = ({ onAdvanceLesson }) => {
   // SCREEN: Final Summary
   if (isGameComplete) {
     return (
-      <div className="h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="h-full flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <ActivityBanner />
         <div className="flex-1 overflow-auto p-8">
         <div className="max-w-4xl mx-auto w-full">
@@ -282,7 +282,7 @@ const MoodMatchTeacherView = ({ onAdvanceLesson }) => {
     const maxVotes = Math.max(...Object.values(voteTally), 1);
 
     return (
-      <div className="h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="h-full flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <ActivityBanner />
         <div className="flex-1 flex flex-col p-4 min-h-0 overflow-hidden">
         {/* Header */}
@@ -356,7 +356,7 @@ const MoodMatchTeacherView = ({ onAdvanceLesson }) => {
 
   // SCREEN: Playing Loop / Collecting Votes
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="h-full flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <ActivityBanner />
       <div className="flex-1 flex flex-col p-4 min-h-0">
         {/* Header */}
