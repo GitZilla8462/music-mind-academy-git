@@ -267,7 +267,23 @@ const MusicLoopsInMediaHub = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <>
+      <style>{`
+        @media (max-width: 1400px) {
+          .hub-wrapper {
+            height: 100vh;
+            overflow: auto;
+          }
+          .hub-container {
+            transform: scale(0.75);
+            transform-origin: top left;
+            width: 133.33%;
+            min-height: 133.33%;
+          }
+        }
+      `}</style>
+      <div className="hub-wrapper">
+        <div className="hub-container min-h-screen bg-slate-50">
       {/* HEADER */}
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-8 py-6">
@@ -655,7 +671,9 @@ const MusicLoopsInMediaHub = () => {
           </div>
         </div>
       </div>
+      </div>
     </div>
+    </>
   );
 };
 
