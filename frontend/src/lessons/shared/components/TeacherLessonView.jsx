@@ -1808,7 +1808,23 @@ const TeacherLessonView = ({
   };
 
   return (
-    <div className="h-screen flex bg-slate-900 overflow-hidden">
+    <>
+      <style>{`
+        @media (max-width: 1400px) {
+          .teacher-lesson-wrapper {
+            height: 100vh;
+            overflow: hidden;
+          }
+          .teacher-lesson-container {
+            transform: scale(0.67);
+            transform-origin: top left;
+            width: 149.25%;
+            height: 149.25%;
+          }
+        }
+      `}</style>
+      <div className="teacher-lesson-wrapper">
+        <div className="teacher-lesson-container h-screen flex bg-slate-900 overflow-hidden">
       {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
@@ -2393,7 +2409,9 @@ const TeacherLessonView = ({
           sessionCode={sessionCode}
         />
       )}
+      </div>
     </div>
+    </>
   );
 };
 
