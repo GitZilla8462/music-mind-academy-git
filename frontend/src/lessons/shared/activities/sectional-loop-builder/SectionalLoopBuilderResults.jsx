@@ -39,7 +39,7 @@ const SectionalLoopBuilderResults = ({ sessionData }) => {
   const totalStudents = sessionData?.studentsJoined ? Object.keys(sessionData.studentsJoined).length : 0;
   
   return (
-    <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white flex items-center justify-center overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white flex items-center justify-center overflow-hidden">
       {/* Confetti Animation Background */}
       <div className="absolute inset-0 overflow-hidden">
         {[...Array(50)].map((_, i) => (

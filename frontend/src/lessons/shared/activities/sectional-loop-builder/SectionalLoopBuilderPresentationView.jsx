@@ -841,7 +841,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   // ============ RENDER ============
   return (
     <div
-      className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white overflow-hidden"
+      className="absolute inset-0 flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white overflow-hidden"
     >
       {/* Student Activity Banner */}
       <ActivityBanner />
