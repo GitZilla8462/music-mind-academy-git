@@ -184,22 +184,6 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   const safariTimerRef = useRef(null);
   const safariTimerStartedRef = useRef(false);
 
-  // CHROMEBOOK FIX: Responsive scaling for 1366x768 screens
-  const [contentScale, setContentScale] = useState(1);
-  useEffect(() => {
-    const calculateScale = () => {
-      const viewportHeight = window.innerHeight;
-      if (viewportHeight <= 768) return 0.75;
-      if (viewportHeight <= 900) return 0.85;
-      return 1;
-    };
-
-    setContentScale(calculateScale());
-
-    const handleResize = () => setContentScale(calculateScale());
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
@@ -855,16 +839,9 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   const hideHeader = hideHeaderPhases.includes(gamePhase);
 
   // ============ RENDER ============
-  // CHROMEBOOK FIX: Use 100% height to fill parent container
-  // CSS zoom handles visual scaling without needing height adjustments
   return (
     <div
-      className="flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white overflow-hidden"
-      style={{
-        height: '100%',
-        minHeight: '100vh',
-        zoom: contentScale < 1 ? contentScale : undefined
-      }}
+      className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white overflow-hidden"
     >
       {/* Student Activity Banner */}
       <ActivityBanner />
