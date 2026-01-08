@@ -862,11 +862,9 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
 
       {/* Main content area - scaled for smaller screens (Chromebook 1366x768) */}
       <div
-        className="flex-1 p-4 overflow-hidden flex flex-col"
+        className="flex-1 p-4 overflow-auto flex flex-col"
         style={{
-          transform: contentScale < 1 ? `scale(${contentScale})` : undefined,
-          transformOrigin: 'top center',
-          height: contentScale < 1 ? `${100 / contentScale}%` : undefined
+          zoom: contentScale < 1 ? contentScale : undefined
         }}
       >
         {/* Header - hidden during listening phases */}
