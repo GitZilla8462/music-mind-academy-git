@@ -2,27 +2,21 @@
 // REFACTORED: Pure visual component - NO mouse event handlers
 // All interaction is handled by InteractionOverlay
 // This eliminates cursor flickering on Chromebooks
+// CHROMEBOOK OPTIMIZED: Waveforms removed for better performance on low-end devices
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
-import { generateWaveform as generateWaveformCached, getCachedWaveform } from '../utils/waveformCache';
 
-const LoopBlock = React.memo(({ 
-  loop, 
-  timeToPixel, 
-  trackStates, 
-  selectedLoop, 
+const LoopBlock = React.memo(({
+  loop,
+  timeToPixel,
+  trackStates,
+  selectedLoop,
   draggedLoop,
   isMultiSelected = false,
   // Visual-only props - no callbacks for mouse events
 }) => {
-  const [waveformData, setWaveformData] = useState(null);
-  const [isGeneratingWaveform, setIsGeneratingWaveform] = useState(false);
-  const [waveformGenerated, setWaveformGenerated] = useState(false);
-  
   const originalDurationRef = useRef(null);
-  const canvasRef = useRef(null);
-  // REMOVED: Per-component cache - now using global waveformCache
 
   // Track original duration on first render
   useEffect(() => {
@@ -34,7 +28,7 @@ const LoopBlock = React.memo(({
   const isSelected = selectedLoop === loop.id || isMultiSelected;
   const isDragged = draggedLoop?.id === loop.id;
   const trackState = trackStates[`track-${loop.trackIndex}`];
-  
+
   // Calculate positions and dimensions
   const { leftPosition, width, topPosition } = useMemo(() => ({
     leftPosition: timeToPixel(loop.startTime),
@@ -43,7 +37,7 @@ const LoopBlock = React.memo(({
   }), [timeToPixel, loop.startTime, loop.endTime, loop.trackIndex]);
 
   const loopColor = loop.color || TIMELINE_CONSTANTS.CATEGORY_COLORS[loop.category]?.accent || '#3b82f6';
-  
+
   const categoryColor = useMemo(() => {
     if (loop.color) {
       return {
@@ -54,134 +48,6 @@ const LoopBlock = React.memo(({
     }
     return TIMELINE_CONSTANTS.CATEGORY_COLORS[loop.category] || TIMELINE_CONSTANTS.CATEGORY_COLORS.Default;
   }, [loop.color, loop.category]);
-
-  // Calculate loop repeats for notch display
-  const { numRepeats } = useMemo(() => {
-    const originalDuration = originalDurationRef.current || loop.duration;
-    const currentDuration = loop.endTime - loop.startTime;
-    const actualRepeats = currentDuration / originalDuration;
-    const repeats = Math.ceil(actualRepeats);
-    
-    return { 
-      numRepeats: Math.max(1, repeats)
-    };
-  }, [loop.endTime, loop.startTime, loop.duration]);
-
-  // ============================================================================
-  // WAVEFORM GENERATION - Uses global cache for Chromebook optimization
-  // ============================================================================
-
-  const loadWaveform = useCallback(async () => {
-    // Check global cache first (instant if already generated)
-    const cached = getCachedWaveform(loop.file);
-    if (cached) {
-      setWaveformData(cached);
-      setWaveformGenerated(true);
-      return;
-    }
-
-    if (waveformGenerated || isGeneratingWaveform) return;
-
-    setIsGeneratingWaveform(true);
-    try {
-      // Use global cache - handles deduplication automatically
-      // If another LoopBlock is already generating this waveform, we'll wait for it
-      const waveform = await generateWaveformCached(loop.file, 100);
-      setWaveformData(waveform);
-      setWaveformGenerated(true);
-    } catch (error) {
-      console.error(`❌ Waveform failed: ${loop.name}:`, error);
-      setWaveformGenerated(true); // Mark as done to prevent retry loop
-    } finally {
-      setIsGeneratingWaveform(false);
-    }
-  }, [loop.file, loop.name, waveformGenerated, isGeneratingWaveform]);
-
-  useEffect(() => {
-    if (!waveformGenerated && !isGeneratingWaveform) {
-      loadWaveform();
-    }
-  }, [loadWaveform, waveformGenerated, isGeneratingWaveform]);
-
-  // ============================================================================
-  // WAVEFORM DRAWING
-  // ============================================================================
-  
-  const drawWaveform = useCallback(() => {
-    if (!waveformData || !canvasRef.current || width <= 0) return;
-    
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    
-    if (canvas.width <= 0 || canvas.height <= 0) return;
-    
-    const { width: canvasWidth, height: canvasHeight } = canvas;
-    const originalDuration = originalDurationRef.current || loop.duration;
-    const currentDuration = loop.endTime - loop.startTime;
-    const startOffset = loop.startOffset || 0;
-    
-    const fullLoops = Math.floor(currentDuration / originalDuration);
-    const partialLoop = (currentDuration % originalDuration);
-    const totalSections = fullLoops + (partialLoop > 0.01 ? 1 : 0);
-
-    ctx.save();
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
-    try {
-      const centerY = canvasHeight / 2;
-      
-      for (let repeat = 0; repeat < totalSections; repeat++) {
-        const isPartialRepeat = (repeat === fullLoops && partialLoop > 0.01);
-        const repeatDuration = isPartialRepeat ? partialLoop : originalDuration;
-        const repeatWidth = (repeatDuration / currentDuration) * canvasWidth;
-        const offsetX = (repeat * originalDuration / currentDuration) * canvasWidth;
-        
-        const startPercent = startOffset / originalDuration;
-        const endPercent = isPartialRepeat 
-          ? (startOffset + partialLoop) / originalDuration
-          : (startOffset + originalDuration) / originalDuration;
-        
-        const startSample = Math.floor(startPercent * waveformData.length) % waveformData.length;
-        const endSample = Math.ceil(endPercent * waveformData.length);
-        const sampleRange = endSample - startSample;
-        
-        ctx.beginPath();
-        
-        const barCount = Math.max(20, Math.floor(repeatWidth / 3));
-        const barWidth = repeatWidth / barCount;
-        
-        for (let i = 0; i < barCount; i++) {
-          const sampleIndex = (startSample + Math.floor((i / barCount) * sampleRange)) % waveformData.length;
-          const amplitude = waveformData[sampleIndex] || 0;
-          const barHeight = Math.max(2, amplitude * (canvasHeight * 0.8));
-          
-          const x = offsetX + (i * barWidth);
-          const y = centerY - barHeight / 2;
-          
-          ctx.rect(x, y, Math.max(1, barWidth - 1), barHeight);
-        }
-        
-        const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
-        gradient.addColorStop(0, categoryColor.accent + 'CC');
-        gradient.addColorStop(0.5, categoryColor.accent + 'FF');
-        gradient.addColorStop(1, categoryColor.accent + 'CC');
-        
-        ctx.fillStyle = gradient;
-        ctx.fill();
-      }
-    } catch (error) {
-      console.error('Error drawing waveform:', error);
-    }
-
-    ctx.restore();
-  }, [waveformData, width, loop.duration, loop.endTime, loop.startTime, loop.startOffset, categoryColor.accent]);
-
-  // CHROMEBOOK OPTIMIZED: Skip expensive waveform redraw while loop is being dragged
-  useEffect(() => {
-    if (!isDragged) {
-      drawWaveform();
-    }
-  }, [drawWaveform, isDragged]);
 
   // Block height calculation
   const blockHeight = TIMELINE_CONSTANTS.TRACK_HEIGHT - 4;
@@ -205,7 +71,7 @@ const LoopBlock = React.memo(({
         top: isDragged ? 0 : (topPosition + 2),
         width: width,
         height: blockHeight,
-        backgroundColor: loopColor + '40',
+        backgroundColor: loopColor + '60',
         borderRadius: `${cornerRadius}px`,
         opacity: trackState?.muted ? 0.4 : (isDragged ? 0.8 : 1),
         // GPU-accelerated transform - use translate3d during drag for smooth movement
@@ -244,10 +110,10 @@ const LoopBlock = React.memo(({
             const originalDuration = originalDurationRef.current || loop.duration;
             const currentDuration = loop.endTime - loop.startTime;
             const startOffset = loop.startOffset || 0;
-            
+
             const totalOriginalDuration = currentDuration + startOffset;
             const fullLoopsForNotches = Math.floor(totalOriginalDuration / originalDuration);
-            
+
             const notchPositions = [];
             for (let i = 1; i <= fullLoopsForNotches; i++) {
               const markerTimeInOriginal = i * originalDuration;
@@ -259,32 +125,32 @@ const LoopBlock = React.memo(({
                 }
               }
             }
-            
+
             let pathData = `M ${cornerRadius},0`;
-            
+
             for (const x of notchPositions) {
               pathData += ` L ${x - notchSize},0`;
               pathData += ` L ${x},${notchSize}`;
               pathData += ` L ${x + notchSize},0`;
             }
-            
+
             pathData += ` L ${width - cornerRadius},0`;
             pathData += ` Q ${width},0 ${width},${cornerRadius}`;
             pathData += ` L ${width},${blockHeight - cornerRadius}`;
             pathData += ` Q ${width},${blockHeight} ${width - cornerRadius},${blockHeight}`;
-            
+
             for (let i = notchPositions.length - 1; i >= 0; i--) {
               const x = notchPositions[i];
               pathData += ` L ${x + notchSize},${blockHeight}`;
               pathData += ` L ${x},${blockHeight - notchSize}`;
               pathData += ` L ${x - notchSize},${blockHeight}`;
             }
-            
+
             pathData += ` L ${cornerRadius},${blockHeight}`;
             pathData += ` Q 0,${blockHeight} 0,${blockHeight - cornerRadius}`;
             pathData += ` L 0,${cornerRadius}`;
             pathData += ` Q 0,0 ${cornerRadius},0 Z`;
-            
+
             return pathData;
           })()}
           fill="none"
@@ -294,7 +160,7 @@ const LoopBlock = React.memo(({
             const g = parseInt(hex.substr(2, 2), 16);
             const b = parseInt(hex.substr(4, 2), 16);
             const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-            
+
             if (isSelected) return '#60a5fa';
             return brightness > 128 ? '#00000080' : '#ffffff80';
           })()}
@@ -308,10 +174,10 @@ const LoopBlock = React.memo(({
         const originalDuration = originalDurationRef.current || loop.duration;
         const currentDuration = loop.endTime - loop.startTime;
         const startOffset = loop.startOffset || 0;
-        
+
         const totalOriginalDuration = currentDuration + startOffset;
         const fullLoops = Math.floor(totalOriginalDuration / originalDuration);
-        
+
         const markers = [];
         for (let i = 1; i <= fullLoops; i++) {
           const markerTimeInOriginal = i * originalDuration;
@@ -322,12 +188,12 @@ const LoopBlock = React.memo(({
             }
           }
         }
-        
+
         if (markers.length === 0) return null;
-        
+
         return markers.map((markerTime, i) => {
           const x = (markerTime / currentDuration) * width;
-          
+
           return (
             <div
               key={i}
@@ -352,7 +218,7 @@ const LoopBlock = React.memo(({
 
       {/* Selection highlight */}
       {isSelected && (
-        <div 
+        <div
           className="absolute inset-0 rounded"
           style={{
             border: '2px solid #60a5fa',
@@ -365,7 +231,7 @@ const LoopBlock = React.memo(({
 
       {/* Multi-select highlight */}
       {isMultiSelected && !isSelected && (
-        <div 
+        <div
           className="absolute inset-0 rounded"
           style={{
             border: '2px dashed #60a5fa',
@@ -375,39 +241,31 @@ const LoopBlock = React.memo(({
         />
       )}
 
-      {/* Waveform canvas - centered vertically */}
-      <canvas
-        ref={canvasRef}
-        width={Math.max(1, width)}
-        height={Math.max(1, TIMELINE_CONSTANTS.TRACK_HEIGHT - 16)}
-        className="absolute"
-        style={{
-          opacity: 0.9,
-          width: `${width}px`,
-          height: `${TIMELINE_CONSTANTS.TRACK_HEIGHT - 16}px`,
-          top: '50%',
-          left: 0,
-          transform: 'translateY(-50%)',
-          pointerEvents: 'none',
-          cursor: 'inherit'
-        }}
-      />
-
       {/* Loop info - name and duration */}
-      <div 
+      <div
         className="absolute inset-0 p-2 flex items-center justify-between"
         style={{ pointerEvents: 'none', cursor: 'inherit' }}
       >
         <div className="flex flex-col min-w-0" style={{ pointerEvents: 'none', cursor: 'inherit' }}>
-          <span 
+          <span
             className="text-xs font-medium truncate"
-            style={{ color: categoryColor.text, pointerEvents: 'none', cursor: 'inherit' }}
+            style={{
+              color: categoryColor.text,
+              pointerEvents: 'none',
+              cursor: 'inherit',
+              textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+            }}
           >
             {loop.name}
           </span>
-          <span 
+          <span
             className="text-xs opacity-75 truncate"
-            style={{ color: categoryColor.text, pointerEvents: 'none', cursor: 'inherit' }}
+            style={{
+              color: categoryColor.text,
+              pointerEvents: 'none',
+              cursor: 'inherit',
+              textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+            }}
           >
             {Math.round((loop.endTime - loop.startTime) * 10) / 10}s
           </span>
@@ -415,22 +273,10 @@ const LoopBlock = React.memo(({
       </div>
 
       {/* Resize indicator (visual only - no interaction) */}
-      <div 
+      <div
         className="absolute top-0 bottom-0 right-0 w-1 bg-blue-400 opacity-0 hover:opacity-60 transition-opacity"
         style={{ pointerEvents: 'none', cursor: 'inherit' }}
       />
-
-      {/* Loading indicator */}
-      {isGeneratingWaveform && (
-        <div 
-          className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20"
-          style={{ pointerEvents: 'none', cursor: 'inherit' }}
-        >
-          <div className="text-xs" style={{ color: categoryColor.text, cursor: 'inherit' }}>
-            Loading...
-          </div>
-        </div>
-      )}
     </div>
   );
 });
