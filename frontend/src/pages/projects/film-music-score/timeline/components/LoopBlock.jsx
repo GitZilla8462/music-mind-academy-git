@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
+import { generateWaveform as generateWaveformCached, getCachedWaveform } from '../utils/waveformCache';
 
 const LoopBlock = React.memo(({ 
   loop, 
@@ -21,7 +22,7 @@ const LoopBlock = React.memo(({
   
   const originalDurationRef = useRef(null);
   const canvasRef = useRef(null);
-  const waveformCacheRef = useRef(new Map());
+  // REMOVED: Per-component cache - now using global waveformCache
 
   // Track original duration on first render
   useEffect(() => {
@@ -67,64 +68,30 @@ const LoopBlock = React.memo(({
   }, [loop.endTime, loop.startTime, loop.duration]);
 
   // ============================================================================
-  // WAVEFORM GENERATION
+  // WAVEFORM GENERATION - Uses global cache for Chromebook optimization
   // ============================================================================
-  
-  const generateWaveform = useCallback(async () => {
-    const cacheKey = loop.file;
-    
-    if (waveformCacheRef.current.has(cacheKey)) {
-      const cachedWaveform = waveformCacheRef.current.get(cacheKey);
-      setWaveformData(cachedWaveform);
+
+  const loadWaveform = useCallback(async () => {
+    // Check global cache first (instant if already generated)
+    const cached = getCachedWaveform(loop.file);
+    if (cached) {
+      setWaveformData(cached);
       setWaveformGenerated(true);
       return;
     }
 
     if (waveformGenerated || isGeneratingWaveform) return;
-    
+
     setIsGeneratingWaveform(true);
     try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const response = await fetch(loop.file);
-      const arrayBuffer = await response.arrayBuffer();
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-      
-      const channelData = audioBuffer.getChannelData(0);
-      const samples = 100; // CHROMEBOOK: Reduced from 200 for better performance
-      const blockSize = Math.floor(channelData.length / samples);
-      const waveform = [];
-      
-      for (let i = 0; i < samples; i++) {
-        const start = i * blockSize;
-        const end = Math.min(start + blockSize, channelData.length);
-        let sum = 0;
-        
-        for (let j = start; j < end; j++) {
-          sum += channelData[j] * channelData[j];
-        }
-        
-        const rms = Math.sqrt(sum / (end - start));
-        waveform.push(rms);
-      }
-      
-      const maxRms = Math.max(...waveform);
-      const normalizedWaveform = waveform.map(value => value / maxRms);
-      
-      waveformCacheRef.current.set(cacheKey, normalizedWaveform);
-      setWaveformData(normalizedWaveform);
+      // Use global cache - handles deduplication automatically
+      // If another LoopBlock is already generating this waveform, we'll wait for it
+      const waveform = await generateWaveformCached(loop.file, 100);
+      setWaveformData(waveform);
       setWaveformGenerated(true);
-      
-      audioContext.close();
     } catch (error) {
       console.error(`❌ Waveform failed: ${loop.name}:`, error);
-      
-      const fallbackWaveform = Array.from({ length: 200 }, (_, i) => 
-        Math.abs(Math.sin(i * 0.1)) * 0.5 + Math.random() * 0.3
-      );
-      
-      waveformCacheRef.current.set(loop.file, fallbackWaveform);
-      setWaveformData(fallbackWaveform);
-      setWaveformGenerated(true);
+      setWaveformGenerated(true); // Mark as done to prevent retry loop
     } finally {
       setIsGeneratingWaveform(false);
     }
@@ -132,9 +99,9 @@ const LoopBlock = React.memo(({
 
   useEffect(() => {
     if (!waveformGenerated && !isGeneratingWaveform) {
-      generateWaveform();
+      loadWaveform();
     }
-  }, [generateWaveform, waveformGenerated, isGeneratingWaveform]);
+  }, [loadWaveform, waveformGenerated, isGeneratingWaveform]);
 
   // ============================================================================
   // WAVEFORM DRAWING
