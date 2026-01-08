@@ -212,17 +212,22 @@ const CustomCursor = ({
 
   // Use Portal to render outside any zoomed/transformed parent containers
   // This ensures position: fixed works correctly with screen coordinates
+  // CHROMEBOOK OPTIMIZED: Use transform instead of left/top for GPU acceleration
   return ReactDOM.createPortal(
     <div
       className="custom-cursor-container"
       style={{
         position: 'fixed',
-        left: position.x - hotspot.x,
-        top: position.y - hotspot.y,
+        left: 0,
+        top: 0,
         pointerEvents: 'none',
         zIndex: 99999,
-        transform: 'translateZ(0)',
+        // GPU-accelerated positioning - avoids layout/paint, only compositing
+        transform: `translate3d(${position.x - hotspot.x}px, ${position.y - hotspot.y}px, 0)`,
         willChange: 'transform',
+        // Additional GPU hints for Chromebook
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
       }}
     >
       {CursorSVG}

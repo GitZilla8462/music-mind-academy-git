@@ -100,7 +100,43 @@ const InteractionOverlay = ({
   
   // Snap guide ref
   const snapGuideRef = useRef(null);
-  
+
+  // CHROMEBOOK OPTIMIZED: Cache CSS zoom to avoid DOM tree traversal on every mouse move
+  const cachedCssZoomRef = useRef(1);
+
+  // Calculate and cache CSS zoom on mount and resize
+  useEffect(() => {
+    const calculateCssZoom = () => {
+      if (!timelineRef.current) return;
+
+      let zoom = 1;
+      let element = timelineRef.current;
+      while (element) {
+        const style = window.getComputedStyle(element);
+        const z = parseFloat(style.zoom);
+        if (z && z !== 1) {
+          zoom *= z;
+        }
+        element = element.parentElement;
+      }
+      cachedCssZoomRef.current = zoom;
+    };
+
+    // Calculate initially
+    calculateCssZoom();
+
+    // Recalculate on resize (zoom might change with responsive layouts)
+    window.addEventListener('resize', calculateCssZoom);
+
+    // Also recalculate after a short delay (for dynamic zoom changes)
+    const timeoutId = setTimeout(calculateCssZoom, 100);
+
+    return () => {
+      window.removeEventListener('resize', calculateCssZoom);
+      clearTimeout(timeoutId);
+    };
+  }, [timelineRef]);
+
   // CHROMEBOOK FIX: Direct DOM cursor update - bypasses React state entirely
   // This prevents cursor flicker during re-renders from auto-save, session updates, etc.
   // On Chromebook, we also update cursorType state for the CustomCursor component
@@ -125,32 +161,24 @@ const InteractionOverlay = ({
   /**
    * Get mouse position relative to timeline content area
    * Handles: CSS zoom, browser zoom, display scaling, and various Chromebook configurations
+   * CHROMEBOOK OPTIMIZED: Uses cached CSS zoom instead of recalculating on every call
    */
   const getMousePosition = useCallback((e) => {
     if (!timelineRef.current) return { x: 0, y: 0 };
-    
+
     const rect = timelineRef.current.getBoundingClientRect();
     const scrollLeft = timelineScrollRef.current?.scrollLeft || 0;
     const scrollTop = timelineScrollRef.current?.scrollTop || 0;
-    
-    // Detect CSS zoom applied to parent elements (e.g., DAWTutorialActivity uses zoom: 0.75)
-    let cssZoom = 1;
-    let element = timelineRef.current;
-    while (element) {
-      const style = window.getComputedStyle(element);
-      const zoom = parseFloat(style.zoom);
-      if (zoom && zoom !== 1) {
-        cssZoom *= zoom;
-      }
-      element = element.parentElement;
-    }
-    
+
+    // Use cached CSS zoom instead of walking DOM tree on every mouse move
+    const cssZoom = cachedCssZoomRef.current;
+
     // Calculate position relative to the element
     // clientX/Y are already in viewport coordinates, rect is also in viewport coordinates
     // But if CSS zoom is applied, rect is scaled but clientX/Y are not
     const viewportX = (e.clientX - rect.left) / cssZoom;
     const viewportY = (e.clientY - rect.top) / cssZoom;
-    
+
     return {
       x: viewportX + scrollLeft,
       y: viewportY + scrollTop,
@@ -163,23 +191,15 @@ const InteractionOverlay = ({
    * Find which loop (if any) is under the mouse position
    * FIXED: Account for CSS zoom when comparing coordinates
    * FIXED: Don't double-add scroll offset - use viewport coordinates consistently
+   * CHROMEBOOK OPTIMIZED: Uses cached CSS zoom
    */
   const getLoopAtPosition = useCallback((x, y) => {
     if (!placedLoops || placedLoops.length === 0) return null;
     if (!timelineRef.current) return null;
-    
-    // Detect CSS zoom applied to parent elements
-    let cssZoom = 1;
-    let element = timelineRef.current;
-    while (element) {
-      const style = window.getComputedStyle(element);
-      const zoom = parseFloat(style.zoom);
-      if (zoom && zoom !== 1) {
-        cssZoom *= zoom;
-      }
-      element = element.parentElement;
-    }
-    
+
+    // Use cached CSS zoom instead of walking DOM tree
+    const cssZoom = cachedCssZoomRef.current;
+
     // Get timeline's position for coordinate conversion
     const timelineRect = timelineRef.current.getBoundingClientRect();
     
@@ -236,37 +256,29 @@ const InteractionOverlay = ({
    * Uses actual DOM position for accurate hit detection
    * FIXED: Account for CSS zoom and increased threshold for easier grabbing
    * FIXED: Use viewport coordinates consistently (don't double-add scroll)
+   * CHROMEBOOK OPTIMIZED: Uses cached CSS zoom
    */
   const getResizeZone = useCallback((x, loop) => {
     if (!loop) return null;
     if (!timelineRef.current) return null;
-    
+
     // Increased threshold for easier grabbing, especially with CSS zoom
     const RESIZE_THRESHOLD = 20; // pixels (increased from 12)
-    
+
     // Convert x (which includes scroll) back to viewport-relative
     const scrollLeft = timelineScrollRef.current?.scrollLeft || 0;
     const viewportX = x - scrollLeft;
-    
+
     // Try to get actual DOM element position
     const loopElement = timelineRef.current.querySelector(`[data-loop-id="${loop.id}"]`);
-    
+
     if (loopElement) {
       const timelineRect = timelineRef.current.getBoundingClientRect();
       const loopRect = loopElement.getBoundingClientRect();
-      
-      // Detect CSS zoom applied to parent elements
-      let cssZoom = 1;
-      let element = timelineRef.current;
-      while (element) {
-        const style = window.getComputedStyle(element);
-        const zoom = parseFloat(style.zoom);
-        if (zoom && zoom !== 1) {
-          cssZoom *= zoom;
-        }
-        element = element.parentElement;
-      }
-      
+
+      // Use cached CSS zoom instead of walking DOM tree
+      const cssZoom = cachedCssZoomRef.current;
+
       // Calculate right edge position in viewport coordinates, accounting for zoom
       // getBoundingClientRect returns viewport coordinates (no scroll needed)
       const right = (loopRect.right - timelineRect.left) / cssZoom;
@@ -458,10 +470,10 @@ const InteractionOverlay = ({
     
     // CHROMEBOOK FIX: Update cursor via direct DOM manipulation (not React state)
     // This prevents flicker during re-renders from auto-save, session updates, etc.
-    // Throttle to 100ms when not actively dragging for performance
+    // Throttle to 16ms (60fps) for smooth cursor movement on Chromebook
     if (!isDraggingLoop && !isResizing && !isDraggingPlayhead && !isSelecting) {
       const now = Date.now();
-      if (now - cursorUpdateRef.current > 100) {
+      if (now - cursorUpdateRef.current > 16) {
         cursorUpdateRef.current = now;
         setCursor(calculateCursor(x, y));
       }

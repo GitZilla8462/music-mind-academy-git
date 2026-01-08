@@ -209,9 +209,12 @@ const LoopBlock = React.memo(({
     ctx.restore();
   }, [waveformData, width, loop.duration, loop.endTime, loop.startTime, loop.startOffset, categoryColor.accent]);
 
+  // CHROMEBOOK OPTIMIZED: Skip expensive waveform redraw while loop is being dragged
   useEffect(() => {
-    drawWaveform();
-  }, [drawWaveform]);
+    if (!isDragged) {
+      drawWaveform();
+    }
+  }, [drawWaveform, isDragged]);
 
   // Block height calculation
   const blockHeight = TIMELINE_CONSTANTS.TRACK_HEIGHT - 4;
@@ -223,30 +226,42 @@ const LoopBlock = React.memo(({
 
   return (
     <div
-      className="loop-block absolute transition-shadow"
+      className="loop-block absolute"
       data-loop-id={loop.id}
       data-track-index={loop.trackIndex}
       data-start-time={loop.startTime}
       data-end-time={loop.endTime}
       style={{
-        left: leftPosition,
-        top: topPosition + 2,
+        // CHROMEBOOK OPTIMIZED: Use transform for positioning during drag (GPU-accelerated)
+        // This moves composition to GPU instead of triggering layout/paint
+        left: isDragged ? 0 : leftPosition,
+        top: isDragged ? 0 : (topPosition + 2),
         width: width,
         height: blockHeight,
         backgroundColor: loopColor + '40',
         borderRadius: `${cornerRadius}px`,
         opacity: trackState?.muted ? 0.4 : (isDragged ? 0.8 : 1),
-        transform: isDragged ? 'scale(1.02)' : 'scale(1)',
-        boxShadow: isSelected 
-          ? '0 0 0 2px #60a5fa, 0 4px 12px rgba(96, 165, 250, 0.3)' 
-          : isDragged 
-            ? '0 8px 24px rgba(0, 0, 0, 0.4)' 
+        // GPU-accelerated transform - use translate3d during drag for smooth movement
+        transform: isDragged
+          ? `translate3d(${leftPosition}px, ${topPosition + 2}px, 0) scale(1.02)`
+          : 'scale(1)',
+        // Tell browser to prepare GPU layer when dragging
+        willChange: isDragged ? 'transform' : 'auto',
+        // Disable transitions during drag for immediate response
+        transition: isDragged ? 'none' : 'box-shadow 0.15s ease',
+        boxShadow: isSelected
+          ? '0 0 0 2px #60a5fa, 0 4px 12px rgba(96, 165, 250, 0.3)'
+          : isDragged
+            ? '0 8px 24px rgba(0, 0, 0, 0.4)'
             : '0 2px 4px rgba(0, 0, 0, 0.2)',
         zIndex: isDragged ? 100 : (isSelected ? 30 : 20),
         // CRITICAL: No pointer events - overlay handles everything
         pointerEvents: 'none',
         // CHROMEBOOK FIX: Prevent cursor inheritance issues
-        cursor: 'inherit'
+        cursor: 'inherit',
+        // Additional GPU hints for Chromebook
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
       }}
     >
       {/* SVG Border with notches */}
