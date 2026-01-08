@@ -855,18 +855,23 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   const hideHeader = hideHeaderPhases.includes(gamePhase);
 
   // ============ RENDER ============
+  // CHROMEBOOK FIX: When zoomed, increase height to fill the parent container
+  // At 0.75 zoom, we need 133% height (100 / 0.75) to visually fill 100%
+  const containerHeight = contentScale < 1 ? `${100 / contentScale}vh` : '100vh';
+
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white overflow-hidden">
+    <div
+      className="flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white overflow-hidden"
+      style={{
+        height: containerHeight,
+        zoom: contentScale < 1 ? contentScale : undefined
+      }}
+    >
       {/* Student Activity Banner */}
       <ActivityBanner />
 
-      {/* Main content area - scaled for smaller screens (Chromebook 1366x768) */}
-      <div
-        className="flex-1 p-4 overflow-auto flex flex-col"
-        style={{
-          zoom: contentScale < 1 ? contentScale : undefined
-        }}
-      >
+      {/* Main content area */}
+      <div className="flex-1 p-4 overflow-auto flex flex-col">
         {/* Header - hidden during listening phases */}
         {!hideHeader && (
           <div className="flex items-center justify-between mb-3 flex-shrink-0">
