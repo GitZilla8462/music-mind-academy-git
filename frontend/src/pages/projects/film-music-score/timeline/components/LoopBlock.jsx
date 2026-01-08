@@ -241,35 +241,22 @@ const LoopBlock = React.memo(({
         />
       )}
 
-      {/* Loop info - name and duration */}
+      {/* Loop info - name only */}
       <div
-        className="absolute inset-0 p-2 flex items-center justify-between"
+        className="absolute inset-0 p-2 flex items-center"
         style={{ pointerEvents: 'none', cursor: 'inherit' }}
       >
-        <div className="flex flex-col min-w-0" style={{ pointerEvents: 'none', cursor: 'inherit' }}>
-          <span
-            className="text-xs font-medium truncate"
-            style={{
-              color: categoryColor.text,
-              pointerEvents: 'none',
-              cursor: 'inherit',
-              textShadow: '0 1px 2px rgba(0,0,0,0.5)'
-            }}
-          >
-            {loop.name}
-          </span>
-          <span
-            className="text-xs opacity-75 truncate"
-            style={{
-              color: categoryColor.text,
-              pointerEvents: 'none',
-              cursor: 'inherit',
-              textShadow: '0 1px 2px rgba(0,0,0,0.5)'
-            }}
-          >
-            {Math.round((loop.endTime - loop.startTime) * 10) / 10}s
-          </span>
-        </div>
+        <span
+          className="text-xs font-medium truncate"
+          style={{
+            color: categoryColor.text,
+            pointerEvents: 'none',
+            cursor: 'inherit',
+            textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+          }}
+        >
+          {loop.name}
+        </span>
       </div>
 
       {/* Resize indicator (visual only - no interaction) */}
