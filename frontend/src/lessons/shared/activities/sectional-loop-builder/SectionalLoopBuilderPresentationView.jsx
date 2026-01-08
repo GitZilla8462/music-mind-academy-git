@@ -184,6 +184,23 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   const safariTimerRef = useRef(null);
   const safariTimerStartedRef = useRef(false);
 
+  // CHROMEBOOK FIX: Responsive scaling for 1366x768 screens
+  const [contentScale, setContentScale] = useState(1);
+  useEffect(() => {
+    const calculateScale = () => {
+      const viewportHeight = window.innerHeight;
+      if (viewportHeight <= 768) return 0.75;
+      if (viewportHeight <= 900) return 0.85;
+      return 1;
+    };
+
+    setContentScale(calculateScale());
+
+    const handleResize = () => setContentScale(calculateScale());
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
     if (!sessionCode) return;
@@ -843,8 +860,15 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
       {/* Student Activity Banner */}
       <ActivityBanner />
 
-      {/* Main content area */}
-      <div className="flex-1 p-4 overflow-hidden flex flex-col">
+      {/* Main content area - scaled for smaller screens (Chromebook 1366x768) */}
+      <div
+        className="flex-1 p-4 overflow-hidden flex flex-col"
+        style={{
+          transform: contentScale < 1 ? `scale(${contentScale})` : undefined,
+          transformOrigin: 'top center',
+          height: contentScale < 1 ? `${100 / contentScale}%` : undefined
+        }}
+      >
         {/* Header - hidden during listening phases */}
         {!hideHeader && (
           <div className="flex items-center justify-between mb-3 flex-shrink-0">
