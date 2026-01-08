@@ -855,15 +855,14 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   const hideHeader = hideHeaderPhases.includes(gamePhase);
 
   // ============ RENDER ============
-  // CHROMEBOOK FIX: When zoomed, increase height to fill the parent container
-  // At 0.75 zoom, we need 133% height (100 / 0.75) to visually fill 100%
-  const containerHeight = contentScale < 1 ? `${100 / contentScale}vh` : '100vh';
-
+  // CHROMEBOOK FIX: Use 100% height to fill parent container
+  // CSS zoom handles visual scaling without needing height adjustments
   return (
     <div
       className="flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white overflow-hidden"
       style={{
-        height: containerHeight,
+        height: '100%',
+        minHeight: '100vh',
         zoom: contentScale < 1 ? contentScale : undefined
       }}
     >
