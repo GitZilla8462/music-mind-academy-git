@@ -151,10 +151,30 @@ const MusicComposer = ({
 
   // 🖱️ CHROMEBOOK GLOBAL CURSOR
   // Track mouse position and detect cursor type based on hovered element
+  // FIX: Only show custom cursor when mouse is INSIDE the DAW container
+  // This prevents double cursor in activity headers that wrap MusicComposer
   useEffect(() => {
     if (!isChromebook) return;
 
     const handleMouseMove = (e) => {
+      // FIX: First check if mouse is inside the DAW container
+      // If outside, hide custom cursor and let native cursor show
+      if (dawContainerRef.current) {
+        const rect = dawContainerRef.current.getBoundingClientRect();
+        const isInsideContainer = (
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom
+        );
+
+        if (!isInsideContainer) {
+          // Mouse is outside DAW container - hide custom cursor
+          setShowGlobalCursor(false);
+          return;
+        }
+      }
+
       setGlobalMousePos({ x: e.clientX, y: e.clientY });
 
       // Detect cursor type from the element under the cursor
@@ -211,7 +231,7 @@ const MusicComposer = ({
 
     // Show cursor when mouse re-enters the viewport
     const handleMouseEnter = () => {
-      setShowGlobalCursor(true);
+      // Don't automatically show - let handleMouseMove decide based on position
     };
 
     document.addEventListener('mousemove', handleMouseMove, { passive: true });
