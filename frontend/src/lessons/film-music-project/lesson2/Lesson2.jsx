@@ -320,6 +320,20 @@ const Lesson2Content = () => {
       );
     }
     
+    // Layer Detective Results - Show student their score and rank (BEFORE summary check!)
+    if (currentStage === 'layer-detective-results') {
+      return (
+        <>
+          <LayerDetectiveStudentView
+            onComplete={() => {}}
+            isSessionMode={true}
+            forceFinished={true}
+          />
+          <TransitionOverlay isVisible={showTransition} />
+        </>
+      );
+    }
+
     // SUMMARY SLIDES: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'summary') {
       return (
@@ -410,20 +424,6 @@ const Lesson2Content = () => {
           <LayerDetectiveStudentView
             onComplete={() => handleSessionActivityComplete(currentStage)}
             isSessionMode={true}
-          />
-          <TransitionOverlay isVisible={showTransition} />
-        </>
-      );
-    }
-
-    // Layer Detective Results - Show student their score and rank
-    if (currentStage === 'layer-detective-results') {
-      return (
-        <>
-          <LayerDetectiveStudentView
-            onComplete={() => {}}
-            isSessionMode={true}
-            forceFinished={true}
           />
           <TransitionOverlay isVisible={showTransition} />
         </>
