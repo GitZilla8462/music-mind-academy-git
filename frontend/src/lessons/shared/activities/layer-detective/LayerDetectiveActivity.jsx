@@ -11,7 +11,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Volume2, VolumeX, Play, Pause, RotateCcw, Trophy, Clock, RefreshCw } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { updateStudentScore } from '../../../../firebase/config';
-import { getDatabase, ref, update, push, set } from 'firebase/database';
+import { getDatabase, ref, update, push, set, onValue } from 'firebase/database';
 import { generatePlayerName, getPlayerColor, getPlayerEmoji } from './nameGenerator';
 
 const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
@@ -29,7 +29,13 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [shuffledQuestions, setShuffledQuestions] = useState([]);
   const [isPracticeMode, setIsPracticeMode] = useState(false); // ✅ Track if in practice mode
-  
+  const [hasPlayedAudio, setHasPlayedAudio] = useState(false); // ✅ Track if audio played this round
+
+  // ✅ Track teacher's class game state (for showing results)
+  const [teacherGamePhase, setTeacherGamePhase] = useState(null);
+  const [classLeaderboard, setClassLeaderboard] = useState([]);
+  const [myRank, setMyRank] = useState(null);
+
   // Timer states for scoring
   const [startTime, setStartTime] = useState(null);
   const [answerTime, setAnswerTime] = useState(0);
@@ -137,11 +143,11 @@ useEffect(() => {
         const name = generatePlayerName(userId);
         const color = getPlayerColor(userId);
         const emoji = getPlayerEmoji(userId);
-        
+
         setPlayerName(name);
         setPlayerColor(color);
         setPlayerEmoji(emoji);
-        
+
         console.log('🎮 Player assigned name:', name);
       } catch (err) {
         console.error('❌ Error generating player name:', err);
@@ -151,6 +157,51 @@ useEffect(() => {
       }
     }
   }, [userId]);
+
+  // ✅ Listen for teacher's class game state (to show results when teacher broadcasts)
+  useEffect(() => {
+    if (!sessionCode) return;
+
+    const db = getDatabase();
+
+    // Listen for game phase changes
+    const gameRef = ref(db, `sessions/${sessionCode}/layerDetective`);
+    const unsubGame = onValue(gameRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data?.phase) {
+        setTeacherGamePhase(data.phase);
+        console.log('🎮 Teacher game phase:', data.phase);
+      }
+    });
+
+    // Listen for all students to build leaderboard and find my rank
+    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const unsubStudents = onValue(studentsRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const list = Object.entries(data).map(([id, s]) => ({
+        id,
+        name: s.playerName || s.displayName || 'Student',
+        score: s.layerDetectiveScore || 0,
+        playerColor: s.playerColor || '#3B82F6',
+        playerEmoji: s.playerEmoji || '🎵'
+      }));
+
+      // Sort by score descending
+      const sorted = [...list].sort((a, b) => b.score - a.score);
+      setClassLeaderboard(sorted);
+
+      // Find my rank
+      const myIndex = sorted.findIndex(s => s.id === userId);
+      if (myIndex !== -1) {
+        setMyRank(myIndex + 1);
+      }
+    });
+
+    return () => {
+      unsubGame();
+      unsubStudents();
+    };
+  }, [sessionCode, userId]);
 
   // Calculate speed bonus (same as Name That Loop)
   const calculateSpeedBonus = (timeInMs) => {
@@ -371,6 +422,7 @@ useEffect(() => {
       const now = Date.now();
       setStartTime(now);
       setIsPlaying(true);
+      setHasPlayedAudio(true); // ✅ Mark audio as played for this round
 
       // Clear previous refs
       audioRefs.current = [];
@@ -579,7 +631,8 @@ useEffect(() => {
         setStartTime(null);
         setAnswerTime(0);
         setCurrentTime(0);
-        
+        setHasPlayedAudio(false); // ✅ Reset - must play audio again for new question
+
         console.log('➡️ Moving to next round:', nextRound + 1);
       }
     } catch (error) {
@@ -656,6 +709,98 @@ useEffect(() => {
   };
 
   const numLayers = currentQuestion?.layers.length || 0;
+
+  // ✅ TEACHER RESULTS SCREEN - Shows when teacher broadcasts 'finished' phase
+  if (teacherGamePhase === 'finished') {
+    const myData = classLeaderboard.find(s => s.id === userId);
+    const getRankEmoji = (rank) => {
+      if (rank === 1) return '🥇';
+      if (rank === 2) return '🥈';
+      if (rank === 3) return '🥉';
+      return `#${rank}`;
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full">
+          <div className="text-center">
+            <div className="text-6xl mb-4">🏆</div>
+
+            {/* Your Result */}
+            <div
+              className="inline-flex flex-col items-center px-8 py-4 rounded-2xl mb-4 shadow-lg"
+              style={{ backgroundColor: myData?.playerColor || playerColor }}
+            >
+              <span className="text-4xl mb-1">{myData?.playerEmoji || playerEmoji}</span>
+              <span className="text-2xl font-bold text-white">{myData?.name || playerName}</span>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-3xl">{getRankEmoji(myRank)}</span>
+                {myRank && myRank <= 3 && (
+                  <span className="text-xl font-bold text-white">
+                    {myRank === 1 ? '1st Place!' : myRank === 2 ? '2nd Place!' : '3rd Place!'}
+                  </span>
+                )}
+                {myRank && myRank > 3 && (
+                  <span className="text-xl font-bold text-white">Place</span>
+                )}
+              </div>
+            </div>
+
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Game Complete!</h1>
+
+            <div className="bg-gradient-to-r from-orange-100 to-red-100 rounded-lg p-4 mb-4">
+              <div className="text-4xl font-bold text-gray-900 mb-1">{myData?.score || 0}</div>
+              <div className="text-lg text-gray-700">Your Score</div>
+            </div>
+
+            {/* Mini Leaderboard - Top 5 */}
+            <div className="bg-gray-50 rounded-lg p-3 mb-4">
+              <h3 className="text-sm font-bold text-gray-700 mb-2">Class Leaderboard</h3>
+              <div className="space-y-1">
+                {classLeaderboard.slice(0, 5).map((student, idx) => (
+                  <div
+                    key={student.id}
+                    className={`flex items-center gap-2 px-2 py-1 rounded ${
+                      student.id === userId ? 'bg-orange-100 ring-2 ring-orange-400' : ''
+                    }`}
+                  >
+                    <span className="w-6 text-center font-bold text-sm">
+                      {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
+                    </span>
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                      style={{ backgroundColor: student.playerColor }}
+                    >
+                      {student.name.charAt(0)}
+                    </div>
+                    <span className="flex-1 truncate text-sm">{student.name}</span>
+                    <span className="font-bold text-sm">{student.score}</span>
+                  </div>
+                ))}
+              </div>
+              {myRank && myRank > 5 && (
+                <div className="mt-2 pt-2 border-t border-gray-200">
+                  <div className="flex items-center gap-2 px-2 py-1 bg-orange-100 ring-2 ring-orange-400 rounded">
+                    <span className="w-6 text-center font-bold text-sm">#{myRank}</span>
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                      style={{ backgroundColor: myData?.playerColor || playerColor }}
+                    >
+                      {(myData?.name || playerName).charAt(0)}
+                    </div>
+                    <span className="flex-1 truncate text-sm">{myData?.name || playerName}</span>
+                    <span className="font-bold text-sm">{myData?.score || 0}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <p className="text-gray-500 text-sm">Look at the main screen!</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // COMPLETION SCREEN - ✅ FIXED with Practice More button
   if (gameComplete) {
@@ -841,6 +986,7 @@ useEffect(() => {
               </div>
 
               {/* Answer Buttons - 3 choices only (A, B, C) */}
+              {/* Disabled until audio has been played */}
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { letter: 'A', num: 1, label: '1 Layer' },
@@ -850,13 +996,21 @@ useEffect(() => {
                   <button
                     key={option.letter}
                     onClick={() => handleGuess(option.letter)}
-                    className="bg-gray-100 hover:bg-gray-200 py-3 px-3 rounded-lg font-bold text-lg transition-all border-2 border-transparent hover:border-orange-500"
+                    disabled={!hasPlayedAudio}
+                    className={`py-3 px-3 rounded-lg font-bold text-lg transition-all border-2 ${
+                      hasPlayedAudio
+                        ? 'bg-gray-100 hover:bg-gray-200 border-transparent hover:border-orange-500'
+                        : 'bg-gray-200 cursor-not-allowed opacity-50 border-transparent'
+                    }`}
                   >
-                    <div className="text-orange-600">{option.letter}</div>
-                    <div className="text-gray-800 text-xs">{option.label}</div>
+                    <div className={hasPlayedAudio ? 'text-orange-600' : 'text-gray-400'}>{option.letter}</div>
+                    <div className={hasPlayedAudio ? 'text-gray-800 text-xs' : 'text-gray-400 text-xs'}>{option.label}</div>
                   </button>
                 ))}
               </div>
+              {!hasPlayedAudio && (
+                <p className="text-center text-gray-500 text-xs mt-1">Press Play to hear the audio first!</p>
+              )}
             </>
           ) : (
             /* ANSWER REVEALED - Very Compact for Chromebooks */
