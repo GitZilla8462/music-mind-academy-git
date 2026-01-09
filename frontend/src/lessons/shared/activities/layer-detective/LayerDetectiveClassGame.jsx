@@ -694,72 +694,18 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
               </div>
             )}
 
-            {/* Finished - Final Results */}
+            {/* Finished - Simple screen like Sectional Loop Builder */}
             {gamePhase === 'finished' && (
               <div className="text-center">
-                <div className="text-7xl mb-4">🏆</div>
-                <h2 className="text-5xl font-bold mb-2">Game Complete!</h2>
-                <p className="text-2xl text-white/70 mb-6">Final Results</p>
-
-                {/* Top 3 Podium */}
-                <div className="flex items-end justify-center gap-4 mb-6">
-                  {/* 2nd Place */}
-                  {leaderboard[1] && (
-                    <div className="text-center">
-                      <div
-                        className="w-20 h-20 rounded-full mx-auto mb-2 flex items-center justify-center text-3xl font-bold text-white shadow-lg"
-                        style={{ backgroundColor: leaderboard[1].playerColor }}
-                      >
-                        {leaderboard[1].name.charAt(0)}
-                      </div>
-                      <div className="text-xl font-bold truncate max-w-24">{leaderboard[1].name}</div>
-                      <div className="text-3xl">🥈</div>
-                      <div className="bg-gray-400 rounded-t-lg w-24 h-20 flex items-center justify-center">
-                        <span className="text-2xl font-bold text-white">{leaderboard[1].score}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 1st Place */}
-                  {leaderboard[0] && (
-                    <div className="text-center">
-                      <div
-                        className="w-24 h-24 rounded-full mx-auto mb-2 flex items-center justify-center text-4xl font-bold text-white shadow-lg ring-4 ring-yellow-400"
-                        style={{ backgroundColor: leaderboard[0].playerColor }}
-                      >
-                        {leaderboard[0].name.charAt(0)}
-                      </div>
-                      <div className="text-2xl font-bold truncate max-w-28">{leaderboard[0].name}</div>
-                      <div className="text-4xl">🥇</div>
-                      <div className="bg-yellow-500 rounded-t-lg w-28 h-28 flex items-center justify-center">
-                        <span className="text-3xl font-bold text-white">{leaderboard[0].score}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 3rd Place */}
-                  {leaderboard[2] && (
-                    <div className="text-center">
-                      <div
-                        className="w-16 h-16 rounded-full mx-auto mb-2 flex items-center justify-center text-2xl font-bold text-white shadow-lg"
-                        style={{ backgroundColor: leaderboard[2].playerColor }}
-                      >
-                        {leaderboard[2].name.charAt(0)}
-                      </div>
-                      <div className="text-lg font-bold truncate max-w-20">{leaderboard[2].name}</div>
-                      <div className="text-2xl">🥉</div>
-                      <div className="bg-amber-700 rounded-t-lg w-20 h-16 flex items-center justify-center">
-                        <span className="text-xl font-bold text-white">{leaderboard[2].score}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
+                <div className="text-9xl mb-6">🏆</div>
+                <h2 className="text-5xl font-black mb-4">Game Complete!</h2>
+                <p className="text-2xl text-white/70 mb-8">Great job everyone!</p>
                 <button
-                  onClick={startGame}
-                  className="px-10 py-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-2 mx-auto"
+                  onClick={() => onComplete?.()}
+                  className="px-10 py-5 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-3 mx-auto"
                 >
-                  <RotateCcw size={28} /> Play Again
+                  <Trophy size={28} />
+                  Advance to See Results
                 </button>
               </div>
             )}
