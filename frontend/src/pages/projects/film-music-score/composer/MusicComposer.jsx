@@ -780,19 +780,19 @@ const MusicComposer = ({
     return () => clearTimeout(timer);
   }, []);
 
-  // Hide loading screen when BOTH: minimum time passed AND DAW is ready
+  // Hide loading screen when BOTH: minimum time passed AND video is ready
+  // Note: Don't wait for audioReady - that requires user click (browser security)
+  // The DAW will show its own audio init modal if needed
   useEffect(() => {
-    const isDawReady = tutorialMode
-      ? audioReady && !videoLoading
-      : selectedVideo && audioReady && !videoLoading;
+    const isVideoReady = tutorialMode || (selectedVideo && !videoLoading);
 
-    if (loadingMinTimePassed && isDawReady && loadingScreenVisible) {
+    if (loadingMinTimePassed && isVideoReady && loadingScreenVisible) {
       // Small delay for smooth transition
       setTimeout(() => {
         setLoadingScreenVisible(false);
       }, 300);
     }
-  }, [loadingMinTimePassed, audioReady, selectedVideo, videoLoading, tutorialMode, loadingScreenVisible]);
+  }, [loadingMinTimePassed, selectedVideo, videoLoading, tutorialMode, loadingScreenVisible]);
 
   return (
     <CursorProvider>
