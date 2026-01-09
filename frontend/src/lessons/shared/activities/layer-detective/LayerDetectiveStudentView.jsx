@@ -337,8 +337,6 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
               </div>
             )}
           </div>
-
-          <p className="text-white/50 text-sm">Look at the main screen!</p>
         </div>
       </div>
     );
