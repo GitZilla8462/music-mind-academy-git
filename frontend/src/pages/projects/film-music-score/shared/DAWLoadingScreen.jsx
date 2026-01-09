@@ -51,11 +51,11 @@ const DAWLoadingScreen = () => {
   const [messageIndex, setMessageIndex] = useState(0);
   const [messages] = useState(() => shuffleArray(LOADING_MESSAGES));
 
-  // Rotate messages every 1.5 seconds
+  // Rotate messages every 3 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % messages.length);
-    }, 1500);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [messages.length]);
