@@ -2,16 +2,15 @@
 // OVERLAY PATTERN: Single transparent layer handles ALL mouse events
 // This eliminates cursor flickering by having ONE element control the cursor
 // Professional web DAWs (Soundtrap, BandLab) use this same approach
+//
+// UNIFIED CURSOR SYSTEM:
+// - Now integrates with CursorContext for coordinated cursor management
+// - Respects isDraggingFromLibrary to hide custom cursor during library drag
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
 import CustomCursor from './CustomCursor.jsx';
-
-// Detect Chromebook/ChromeOS for custom cursor
-const isChromebook = typeof navigator !== 'undefined' && (
-  /CrOS/.test(navigator.userAgent) ||
-  (navigator.userAgentData?.platform === 'Chrome OS')
-);
+import { useCursor } from '../../shared/CursorContext';
 
 const InteractionOverlay = ({
   // Data
@@ -63,11 +62,14 @@ const InteractionOverlay = ({
   hoveredTrack,
   setHoveredTrack
 }) => {
+  // UNIFIED CURSOR: Get global cursor state from context
+  const { isChromebook, isDraggingFromLibrary, isCustomCursorEnabled } = useCursor();
+
   // CHROMEBOOK FIX: Use ref instead of state for cursor to prevent flicker on re-renders
   // State changes cause re-renders which briefly reset cursor to default
   const overlayRef = useRef(null);
   const currentCursorRef = useRef('default');
-  
+
   // CHROMEBOOK FIX: Track cursor type in state for CustomCursor component
   // This is separate from the DOM cursor style
   const [cursorType, setCursorType] = useState('default');
@@ -140,19 +142,25 @@ const InteractionOverlay = ({
   // CHROMEBOOK FIX: Direct DOM cursor update - bypasses React state entirely
   // This prevents cursor flicker during re-renders from auto-save, session updates, etc.
   // On Chromebook, we also update cursorType state for the CustomCursor component
+  //
+  // UNIFIED CURSOR: When dragging from library, show native cursor instead of hiding
   const setCursor = useCallback((cursor) => {
     if (currentCursorRef.current !== cursor) {
       currentCursorRef.current = cursor;
-      
-      // Update DOM cursor (for non-Chromebook)
+
+      // Update DOM cursor
+      // - On Chromebook with custom cursor enabled: hide native cursor
+      // - During library drag: show native cursor (custom cursor is disabled)
+      // - Otherwise: show native cursor
       if (overlayRef.current) {
-        overlayRef.current.style.cursor = isChromebook ? 'none' : cursor;
+        const shouldHideNativeCursor = isChromebook && isCustomCursorEnabled && !isDraggingFromLibrary;
+        overlayRef.current.style.cursor = shouldHideNativeCursor ? 'none' : cursor;
       }
-      
+
       // Update state for CustomCursor (Chromebook only, but safe to always update)
       setCursorType(cursor);
     }
-  }, []);
+  }, [isChromebook, isCustomCursorEnabled, isDraggingFromLibrary]);
 
   // ============================================================================
   // HIT TESTING FUNCTIONS - Mathematical detection, no DOM events
@@ -815,24 +823,33 @@ const InteractionOverlay = ({
   // RENDER
   // ============================================================================
 
+  // UNIFIED CURSOR: Determine if custom cursor should be shown
+  // Only show when: Chromebook + custom cursor enabled + not dragging from library
+  const showCustomCursor = isChromebook && isCustomCursorEnabled && !isDraggingFromLibrary;
+
+  // UNIFIED CURSOR: Determine native cursor style
+  // During library drag, show the native cursor; otherwise hide on Chromebook
+  const nativeCursorStyle = showCustomCursor ? 'none' : 'default';
+
   return (
     <>
       {/* CHROMEBOOK FIX: Custom cursor component to avoid native cursor flicker */}
-      {isChromebook && (
+      {/* UNIFIED CURSOR: Only render when not dragging from library */}
+      {showCustomCursor && (
         <CustomCursor
           cursorType={cursorType}
           containerRef={overlayRef}
           enabled={true}
         />
       )}
-      
+
       <div
         ref={overlayRef}
         className="interaction-overlay absolute inset-0"
         data-cursor-handled="true"
         style={{
-          // CHROMEBOOK FIX: Hide native cursor on Chromebook, use CustomCursor instead
-          cursor: isChromebook ? 'none' : 'default',
+          // UNIFIED CURSOR: Show native cursor during library drag
+          cursor: nativeCursorStyle,
           zIndex: 50,
           // Transparent but captures all events
           backgroundColor: 'transparent',

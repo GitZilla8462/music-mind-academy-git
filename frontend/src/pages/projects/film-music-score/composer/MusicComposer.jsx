@@ -23,6 +23,7 @@ import ComposerHeader from './components/ComposerHeader';
 import ComposerLayout from './components/ComposerLayout';
 import AudioInitModal from './components/AudioInitModal';
 import CustomCursor from '../timeline/components/CustomCursor';
+import { CursorProvider } from '../shared/CursorContext';
 
 // CHROMEBOOK FIX: Detect Chromebook for global custom cursor
 const isChromebook = typeof navigator !== 'undefined' && (
@@ -766,30 +767,34 @@ const MusicComposer = ({
   // Loading state
   if (videoLoading || (!selectedVideo && !tutorialMode)) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <div className="text-lg">Loading video...</div>
-          <div className="text-sm text-gray-400 mt-2">Detecting video duration...</div>
+      <CursorProvider>
+        <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+          <div className="text-white text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div className="text-lg">Loading video...</div>
+            <div className="text-sm text-gray-400 mt-2">Detecting video duration...</div>
+          </div>
         </div>
-      </div>
+      </CursorProvider>
     );
   }
 
   return (
-    <div
-      ref={dawContainerRef}
-      className={`h-full bg-gray-900 text-white flex flex-col ${isChromebook ? 'chromebook-hide-cursor' : ''}`}
-    >
-      {/* CHROMEBOOK FIX: Global custom cursor (hidden when over areas with local cursor) */}
-      {isChromebook && showGlobalCursor && (
-        <CustomCursor
-          cursorType={globalCursorType}
-          enabled={true}
-          initiallyVisible={true}
-          initialPosition={globalMousePos}
-        />
-      )}
+    <CursorProvider>
+      <div
+        ref={dawContainerRef}
+        className={`h-full bg-gray-900 text-white flex flex-col ${isChromebook ? 'chromebook-hide-cursor' : ''}`}
+      >
+        {/* CHROMEBOOK FIX: Global custom cursor (hidden when over areas with local cursor) */}
+        {/* UNIFIED CURSOR: This will be automatically disabled during library drag via CursorContext */}
+        {isChromebook && showGlobalCursor && (
+          <CustomCursor
+            cursorType={globalCursorType}
+            enabled={true}
+            initiallyVisible={true}
+            initialPosition={globalMousePos}
+          />
+        )}
 
       {/* Audio is initialized via useEffect on mount, not inline */}
 
@@ -877,7 +882,8 @@ const MusicComposer = ({
         onAddMelodyLoop={handleAddMelodyLoop}
         onDeleteCustomLoop={handleDeleteCustomLoop}
       />
-    </div>
+      </div>
+    </CursorProvider>
   );
 };
 

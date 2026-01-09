@@ -2,9 +2,14 @@
 // CHROMEBOOK FIX: Custom cursor div that follows mouse position
 // This bypasses the browser's native cursor rendering which flickers on Chromebook GPU
 // Only renders over the timeline area when native cursor is hidden
+//
+// UNIFIED CURSOR SYSTEM:
+// - Now integrates with CursorContext to disable during HTML5 drag operations
+// - Solves "cursor in two places" issue when dragging from LoopLibrary
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
+import { useCursor } from '../../shared/CursorContext';
 
 // Cursor SVG components - inline for no flicker during cursor type changes
 // Designed to match standard OS cursors as closely as possible
@@ -111,11 +116,18 @@ const CustomCursor = ({
   initialPosition = null,  // CHROMEBOOK FIX: Initial mouse position from parent
   debug = false  // Enable debug logging
 }) => {
+  // UNIFIED CURSOR: Get global cursor state
+  const { isCustomCursorEnabled, isDraggingFromLibrary } = useCursor();
+
   const defaultPos = initialPosition || { x: -100, y: -100 };
   const [position, setPosition] = useState(defaultPos);
   const [isVisible, setIsVisible] = useState(initiallyVisible);
   const rafRef = useRef(null);
   const positionRef = useRef(defaultPos);
+
+  // UNIFIED CURSOR: Combine local enabled prop with global context
+  // Disable during library drag to prevent "cursor in two places"
+  const effectivelyEnabled = enabled && isCustomCursorEnabled && !isDraggingFromLibrary;
 
   // Debug logging on mount
   useEffect(() => {
@@ -132,7 +144,7 @@ const CustomCursor = ({
   }, []);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!effectivelyEnabled) return;
 
     const updatePosition = (e) => {
       positionRef.current = { x: e.clientX, y: e.clientY };
@@ -188,11 +200,11 @@ const CustomCursor = ({
         cancelAnimationFrame(rafRef.current);
       }
     };
-  }, [enabled, containerRef]);
+  }, [effectivelyEnabled, containerRef]);
 
-  if (!enabled || !isVisible) {
+  if (!effectivelyEnabled || !isVisible) {
     if (debug) {
-      console.log('🖱️ CustomCursor NOT rendering:', { enabled, isVisible });
+      console.log('🖱️ CustomCursor NOT rendering:', { effectivelyEnabled, isVisible, isDraggingFromLibrary });
     }
     return null;
   }

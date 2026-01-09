@@ -1,17 +1,19 @@
 // File: LoopLibrary.jsx
 // CHROMEBOOK FIX: Proper preview button state management
 // ✅ UPDATED: Added sound effect category dropdown (City, Nature, SFX)
-// 
+//
 // KEY CHANGES:
 // 1. Removed isPlayingAudio state that was disabling buttons
 // 2. Added short debounce (300ms) to prevent double-clicks
 // 3. Button disabled state only during debounce, not during playback
 // 4. This allows Chromebook users to click pause button
 // 5. Added SFX category filter dropdown
+// 6. UNIFIED CURSOR: Notifies CursorContext during drag to prevent "cursor in two places"
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Volume2, Search, Filter, Lock, Trash2, Disc3 } from 'lucide-react';
 import { soundEffects, SFX_CATEGORY_COLORS } from './soundEffectsData';
+import { useCursor } from './CursorContext';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
@@ -57,10 +59,13 @@ const LoopLibrary = ({
   const [moodFilter, setMoodFilter] = useState(lockedMood || 'All');
   const [instrumentFilter, setInstrumentFilter] = useState('All');
   const [sfxCategoryFilter, setSfxCategoryFilter] = useState('All');
-  
+
   // CHROMEBOOK FIX: Use debounce instead of isPlayingAudio
   const [buttonDebouncing, setButtonDebouncing] = useState(false);
   const debounceTimeoutRef = useRef(null);
+
+  // UNIFIED CURSOR: Get cursor control functions
+  const { disableCustomCursor, enableCustomCursor, isChromebook: isChromebookFromContext } = useCursor();
 
   useEffect(() => {
     console.log('🎵 LoopLibrary Props:', { restrictToCategory, lockedMood, showSoundEffects });
@@ -351,11 +356,16 @@ const LoopLibrary = ({
       return;
     }
 
+    // UNIFIED CURSOR: Disable custom cursor during drag to prevent "cursor in two places"
+    disableCustomCursor();
+
     e.dataTransfer.effectAllowed = 'copy';
     e.dataTransfer.setData('application/json', JSON.stringify(loop));
 
     // CHROMEBOOK FIX: Use custom drag image to avoid cursor being captured in preview
-    if (isChromebook) {
+    // Use context-based detection with fallback to local detection
+    const useChromebookDragImage = isChromebookFromContext || isChromebook;
+    if (useChromebookDragImage) {
       const dragPreview = e.target.cloneNode(true);
       dragPreview.style.position = 'absolute';
       dragPreview.style.top = '-1000px';
@@ -370,13 +380,20 @@ const LoopLibrary = ({
 
       // Clean up after drag starts
       setTimeout(() => {
-        document.body.removeChild(dragPreview);
+        if (dragPreview.parentNode) {
+          document.body.removeChild(dragPreview);
+        }
       }, 0);
     }
 
     if (onLoopDragStart) {
       onLoopDragStart(loop);
     }
+  };
+
+  // Handle drag end - re-enable custom cursor
+  const handleDragEnd = () => {
+    enableCustomCursor();
   };
 
   // Cleanup
@@ -543,6 +560,7 @@ const LoopLibrary = ({
                     }`}
                     draggable={!isLoading && lockFeatures.allowLoopDrag !== false}
                     onDragStart={(e) => !isLoading && handleDragStart(e, loop)}
+                    onDragEnd={handleDragEnd}
                   >
                     <div className="flex items-center justify-between gap-1.5">
                       <div className="flex-1 min-w-0">
@@ -652,6 +670,7 @@ const LoopLibrary = ({
                 } : {}}
                 draggable={lockFeatures.allowLoopDrag !== false && !restricted}
                 onDragStart={(e) => handleDragStart(e, loop)}
+                onDragEnd={handleDragEnd}
               >
                 <div className="flex items-center justify-between gap-1.5">
                   <div className="flex-1 min-w-0">
