@@ -90,9 +90,9 @@ const MusicComposer = ({
   const [showGlobalCursor, setShowGlobalCursor] = useState(true);
   const dawContainerRef = useRef(null);
 
-  // Loading screen state - show fun loading messages while DAW initializes
-  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
-  const [loadingScreenDismissed, setLoadingScreenDismissed] = useState(false);
+  // Loading screen state - show fun loading messages while DAW initializes underneath
+  const [loadingMinTimePassed, setLoadingMinTimePassed] = useState(false);
+  const [loadingScreenVisible, setLoadingScreenVisible] = useState(true);
   // Initialize with initialCustomLoops if provided, otherwise empty array
   // initialCustomLoops may come from StudentBeatMakerActivity saved beats
   const [customLoops, setCustomLoops] = useState(() => {
@@ -771,45 +771,34 @@ const MusicComposer = ({
     }
   };
 
-  // Handle loading screen completion
-  const handleLoadingComplete = useCallback(() => {
-    setShowLoadingScreen(false);
-    setLoadingScreenDismissed(true);
+  // Start minimum loading timer on mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoadingMinTimePassed(true);
+    }, 3000); // Minimum 3 seconds of loading screen
+
+    return () => clearTimeout(timer);
   }, []);
 
-  // Show fun loading screen on first mount (always shows for 3 seconds)
-  // This gives the DAW time to initialize audio, load loops, etc.
-  if (showLoadingScreen && !loadingScreenDismissed) {
-    return (
-      <CursorProvider>
-        <DAWLoadingScreen
-          duration={3000}
-          onComplete={handleLoadingComplete}
-          showProgress={true}
-        />
-      </CursorProvider>
-    );
-  }
+  // Hide loading screen when BOTH: minimum time passed AND DAW is ready
+  useEffect(() => {
+    const isDawReady = tutorialMode
+      ? audioReady && !videoLoading
+      : selectedVideo && audioReady && !videoLoading;
 
-  // If video is still loading after the fun screen, show simple loader
-  if (videoLoading || (!selectedVideo && !tutorialMode)) {
-    return (
-      <CursorProvider>
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-          <div className="text-white text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <div className="text-lg">Almost ready...</div>
-          </div>
-        </div>
-      </CursorProvider>
-    );
-  }
+    if (loadingMinTimePassed && isDawReady && loadingScreenVisible) {
+      // Small delay for smooth transition
+      setTimeout(() => {
+        setLoadingScreenVisible(false);
+      }, 300);
+    }
+  }, [loadingMinTimePassed, audioReady, selectedVideo, videoLoading, tutorialMode, loadingScreenVisible]);
 
   return (
     <CursorProvider>
       <div
         ref={dawContainerRef}
-        className={`h-full bg-gray-900 text-white flex flex-col ${isChromebook ? 'chromebook-hide-cursor' : ''}`}
+        className={`h-full bg-gray-900 text-white flex flex-col relative ${isChromebook ? 'chromebook-hide-cursor' : ''}`}
       >
         {/* CHROMEBOOK FIX: Global custom cursor (hidden when over areas with local cursor) */}
         {/* UNIFIED CURSOR: This will be automatically disabled during library drag via CursorContext */}
@@ -908,6 +897,16 @@ const MusicComposer = ({
         onAddMelodyLoop={handleAddMelodyLoop}
         onDeleteCustomLoop={handleDeleteCustomLoop}
       />
+
+      {/* Loading screen overlay - shows while DAW initializes underneath */}
+      {loadingScreenVisible && (
+        <div className="absolute inset-0 z-[9999]">
+          <DAWLoadingScreen
+            duration={3000}
+            showProgress={true}
+          />
+        </div>
+      )}
       </div>
     </CursorProvider>
   );
