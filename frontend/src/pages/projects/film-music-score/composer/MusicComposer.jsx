@@ -777,9 +777,9 @@ const MusicComposer = ({
     setLoadingScreenDismissed(true);
   }, []);
 
-  // Show fun loading screen while video/DAW loads
-  // Only show on first load, not when switching videos
-  if ((videoLoading || (!selectedVideo && !tutorialMode)) && !loadingScreenDismissed) {
+  // Show fun loading screen on first mount (always shows for 3 seconds)
+  // This gives the DAW time to initialize audio, load loops, etc.
+  if (showLoadingScreen && !loadingScreenDismissed) {
     return (
       <CursorProvider>
         <DAWLoadingScreen
@@ -791,7 +791,7 @@ const MusicComposer = ({
     );
   }
 
-  // If video is still loading but we've seen the loading screen, show simple loader
+  // If video is still loading after the fun screen, show simple loader
   if (videoLoading || (!selectedVideo && !tutorialMode)) {
     return (
       <CursorProvider>
