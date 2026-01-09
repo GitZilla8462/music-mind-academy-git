@@ -416,6 +416,20 @@ const Lesson2Content = () => {
       );
     }
 
+    // Layer Detective Results - Show student their score and rank
+    if (currentStage === 'layer-detective-results') {
+      return (
+        <>
+          <LayerDetectiveStudentView
+            onComplete={() => {}}
+            isSessionMode={true}
+            forceFinished={true}
+          />
+          <TransitionOverlay isVisible={showTransition} />
+        </>
+      );
+    }
+
     // Standard activity rendering
     const displayStage = currentStage === 'reflection' ? 'city-composition' : currentStage;
     const activityType = getActivityForStage(displayStage);

@@ -23,7 +23,7 @@ const SCORING = {
   speedThreshold: 5000 // 5 seconds for speed bonus
 };
 
-const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true }) => {
+const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFinished = false }) => {
   const { sessionCode, userId } = useSession();
 
   // Player info (no emoji)
@@ -46,6 +46,10 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true }) => {
   // Results
   const [wasCorrect, setWasCorrect] = useState(null);
   const [earnedPoints, setEarnedPoints] = useState(0);
+
+  // Leaderboard for results
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [myRank, setMyRank] = useState(null);
 
   // Audio refs (not used for playback, but for cleanup)
   const audioRefs = useRef([]);
@@ -143,6 +147,36 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true }) => {
     return () => unsubscribe();
   }, [sessionCode, currentQuestion, selectedAnswer, score, playStartTime, wasCorrect, userId]);
 
+  // Listen for leaderboard updates (for results display)
+  useEffect(() => {
+    if (!sessionCode) return;
+
+    const db = getDatabase();
+    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+
+    const unsubscribe = onValue(studentsRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const list = Object.entries(data).map(([id, s]) => ({
+        id,
+        name: s.playerName || s.displayName || 'Student',
+        score: s.layerDetectiveScore || 0,
+        playerColor: s.playerColor || '#3B82F6'
+      }));
+
+      // Sort by score descending
+      const sorted = [...list].sort((a, b) => b.score - a.score);
+      setLeaderboard(sorted);
+
+      // Find my rank
+      const myIndex = sorted.findIndex(s => s.id === userId);
+      if (myIndex !== -1) {
+        setMyRank(myIndex + 1);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [sessionCode, userId]);
+
   // Submit answer
   const submitAnswer = (answerId) => {
     if (answerSubmitted || gamePhase !== 'guessing') return;
@@ -195,25 +229,93 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true }) => {
   }
 
   // ============ FINISHED PHASE ============
-  if (gamePhase === 'finished') {
-    return (
-      <div className="h-screen bg-gradient-to-br from-yellow-600 via-orange-600 to-red-600 flex items-center justify-center p-6">
-        <div className="text-center">
-          <Trophy size={80} className="mx-auto text-yellow-300 mb-6" />
-          <h1 className="text-4xl font-bold text-white mb-4">Game Complete!</h1>
+  if (gamePhase === 'finished' || forceFinished) {
+    const getRankEmoji = (rank) => {
+      if (rank === 1) return '🥇';
+      if (rank === 2) return '🥈';
+      if (rank === 3) return '🥉';
+      return `#${rank}`;
+    };
 
-          <div className="bg-white/20 rounded-2xl p-8 inline-block mb-6">
-            <div
-              className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center text-3xl font-bold text-white"
-              style={{ backgroundColor: playerColor }}
-            >
+    const totalStudents = leaderboard.length;
+
+    return (
+      <div className="h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4 overflow-auto">
+        <div className="text-center max-w-md w-full">
+          <div className="text-6xl mb-4">🏆</div>
+
+          {/* Your Result - Prominent display */}
+          <div
+            className="inline-flex flex-col items-center px-8 py-4 rounded-2xl mb-4 shadow-lg"
+            style={{ backgroundColor: playerColor }}
+          >
+            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold text-white mb-2">
               {playerName.charAt(0)}
             </div>
-            <div className="text-2xl font-bold text-white mb-2">{playerName}</div>
-            <div className="text-5xl font-bold text-yellow-300">{score} pts</div>
+            <span className="text-2xl font-bold text-white">{playerName}</span>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-3xl">{getRankEmoji(myRank)}</span>
+              {myRank && myRank <= 3 && (
+                <span className="text-xl font-bold text-white">
+                  {myRank === 1 ? '1st Place!' : myRank === 2 ? '2nd Place!' : '3rd Place!'}
+                </span>
+              )}
+              {myRank && myRank > 3 && (
+                <span className="text-xl font-bold text-white">of {totalStudents}</span>
+              )}
+            </div>
           </div>
 
-          <p className="text-xl text-yellow-100">Check the main screen for final rankings!</p>
+          <h1 className="text-2xl font-bold text-white mb-2">Game Complete!</h1>
+
+          <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-lg p-4 mb-4 inline-block">
+            <div className="text-4xl font-bold text-gray-900 mb-1">{score}</div>
+            <div className="text-lg text-gray-800">Your Score</div>
+          </div>
+
+          {/* Mini Leaderboard - Top 5 */}
+          <div className="bg-white/10 rounded-lg p-3 mb-4">
+            <h3 className="text-sm font-bold text-white/70 mb-2">Class Leaderboard</h3>
+            <div className="space-y-1">
+              {leaderboard.slice(0, 5).map((student, idx) => (
+                <div
+                  key={student.id}
+                  className={`flex items-center gap-2 px-2 py-1 rounded ${
+                    student.id === userId ? 'bg-purple-500/50 ring-2 ring-purple-300' : ''
+                  }`}
+                >
+                  <span className="w-6 text-center font-bold text-sm text-white">
+                    {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
+                  </span>
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                    style={{ backgroundColor: student.playerColor }}
+                  >
+                    {student.name.charAt(0)}
+                  </div>
+                  <span className="flex-1 truncate text-sm text-white">{student.name}</span>
+                  <span className="font-bold text-sm text-yellow-300">{student.score}</span>
+                </div>
+              ))}
+            </div>
+            {myRank && myRank > 5 && (
+              <div className="mt-2 pt-2 border-t border-white/20">
+                <div className="flex items-center gap-2 px-2 py-1 bg-purple-500/50 ring-2 ring-purple-300 rounded">
+                  <span className="w-6 text-center font-bold text-sm text-white">#{myRank}</span>
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                    style={{ backgroundColor: playerColor }}
+                  >
+                    {playerName.charAt(0)}
+                  </div>
+                  <span className="flex-1 truncate text-sm text-white">{playerName}</span>
+                  <span className="font-bold text-sm text-yellow-300">{score}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <p className="text-white/50 text-sm">Look at the main screen!</p>
         </div>
       </div>
     );
