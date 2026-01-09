@@ -7,23 +7,33 @@ import { Rnd } from 'react-rnd';
 import { GripHorizontal, Minimize2, Maximize2 } from 'lucide-react';
 import BeatMakerPanel from './BeatMakerPanel';
 
+// Detect Chromebook for smaller sizing
+const isChromebook = typeof navigator !== 'undefined' && (
+  /CrOS/.test(navigator.userAgent) ||
+  (navigator.userAgentData?.platform === 'Chrome OS')
+);
+
 const FloatingBeatMaker = ({
   isOpen,
   onClose,
   onAddToProject,
   customLoopCount = 0
 }) => {
-  // Default size - larger to show all controls
-  const [size, setSize] = useState({ width: 900, height: 650 });
-  const [position, setPosition] = useState({ x: 100, y: 40 });
+  // Default size - smaller for Chromebook (1366x768)
+  const defaultSize = isChromebook
+    ? { width: 780, height: 560 }
+    : { width: 900, height: 650 };
+
+  const [size, setSize] = useState(defaultSize);
+  const [position, setPosition] = useState({ x: 100, y: 20 });
   const [isMinimized, setIsMinimized] = useState(false);
   const [prevSize, setPrevSize] = useState(null);
 
-  // Minimum and maximum constraints - larger for full grid visibility
-  const minWidth = 700;
-  const minHeight = 500;
-  const maxWidth = 1200;
-  const maxHeight = 850;
+  // Minimum and maximum constraints - smaller for Chromebook
+  const minWidth = isChromebook ? 600 : 700;
+  const minHeight = isChromebook ? 420 : 500;
+  const maxWidth = isChromebook ? 1000 : 1200;
+  const maxHeight = isChromebook ? 700 : 850;
 
   // Reset position when opening
   useEffect(() => {
@@ -32,8 +42,9 @@ const FloatingBeatMaker = ({
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
 
-      const x = Math.max(250, (viewportWidth - size.width) / 2);
-      const y = Math.max(80, (viewportHeight - size.height) / 2 - 50);
+      // Center horizontally, position near top so whole modal is visible
+      const x = Math.max(20, (viewportWidth - size.width) / 2);
+      const y = isChromebook ? 10 : Math.max(40, (viewportHeight - size.height) / 2 - 50);
 
       setPosition({ x, y });
       setIsMinimized(false);
