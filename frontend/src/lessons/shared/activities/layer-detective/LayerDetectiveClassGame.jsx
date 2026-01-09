@@ -417,9 +417,10 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
 
     const nextIdx = currentQuestion + 1;
     if (nextIdx >= shuffledQuestions.length) {
-      // Game finished - go to results slide
+      // Game finished - show results screen
+      setGamePhase('finished');
       updateGame({ phase: 'finished' });
-      if (onComplete) onComplete();
+      // Don't call onComplete immediately - let teacher see results first
     } else {
       setCurrentQuestion(nextIdx);
       setGamePhase('playing');
