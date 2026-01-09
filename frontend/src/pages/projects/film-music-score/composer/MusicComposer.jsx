@@ -901,10 +901,7 @@ const MusicComposer = ({
       {/* Loading screen overlay - shows while DAW initializes underneath */}
       {loadingScreenVisible && (
         <div className="absolute inset-0 z-[9999]">
-          <DAWLoadingScreen
-            duration={3000}
-            showProgress={true}
-          />
+          <DAWLoadingScreen />
         </div>
       )}
       </div>
