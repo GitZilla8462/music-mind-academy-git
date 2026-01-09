@@ -46,7 +46,8 @@ export const CursorProvider = ({ children }) => {
   // Ref to track drag state without re-renders
   const dragStateRef = useRef({
     isDragging: false,
-    dragStartTime: 0
+    dragStartTime: 0,
+    dropPosition: null // Track where the drop happened
   });
 
   // Disable custom cursor (called when HTML5 drag starts)
@@ -82,8 +83,21 @@ export const CursorProvider = ({ children }) => {
 
   // Global drag event listeners to catch drag end even if drop happens outside
   useEffect(() => {
-    const handleDragEnd = () => {
+    const handleDragEnd = (e) => {
       if (dragStateRef.current.isDragging) {
+        // Capture drop position so cursor can appear there (not where drag started)
+        if (e && e.clientX !== undefined && e.clientY !== undefined) {
+          dragStateRef.current.dropPosition = { x: e.clientX, y: e.clientY };
+          // Dispatch a synthetic mousemove to update cursor position
+          setTimeout(() => {
+            const moveEvent = new MouseEvent('mousemove', {
+              clientX: e.clientX,
+              clientY: e.clientY,
+              bubbles: true
+            });
+            document.dispatchEvent(moveEvent);
+          }, 60); // After cursor re-enables (50ms delay in enableCustomCursor)
+        }
         enableCustomCursor();
       }
     };
