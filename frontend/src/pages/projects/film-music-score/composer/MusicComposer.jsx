@@ -786,10 +786,10 @@ const MusicComposer = ({
     const isFullyReady = isVideoReady && audioReady;
 
     if (loadingMinTimePassed && isFullyReady && loadingScreenVisible) {
-      // Small delay for smooth transition
+      // Extra delay to let cursor system warm up before revealing DAW
       setTimeout(() => {
         setLoadingScreenVisible(false);
-      }, 300);
+      }, 800);
     }
   }, [loadingMinTimePassed, selectedVideo, videoLoading, tutorialMode, loadingScreenVisible, audioReady]);
 
@@ -898,8 +898,9 @@ const MusicComposer = ({
       />
 
       {/* Loading screen overlay - shows while DAW initializes underneath */}
+      {/* restore-cursor shows native cursor during loading (custom cursor hidden) */}
       {loadingScreenVisible && (
-        <div className="absolute inset-0 z-[9999]">
+        <div className="absolute inset-0 z-[9999] restore-cursor">
           <DAWLoadingScreen />
         </div>
       )}
