@@ -2,8 +2,15 @@
 // Epic Wildlife Composition - Nature Documentary Soundtrack
 // Uses MusicComposer component with wildlife video selection
 // ✅ Based on CityCompositionActivity structure
+// SEAMLESS CURSOR: Uses chromebook-hide-cursor for seamless custom cursor across entire activity
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+
+// Detect Chromebook for seamless cursor
+const isChromebook = typeof navigator !== 'undefined' && (
+  /CrOS/.test(navigator.userAgent) ||
+  (navigator.userAgentData?.platform === 'Chrome OS')
+);
 import { useNavigate } from 'react-router-dom';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer.jsx";
@@ -655,7 +662,7 @@ const WildlifeCompositionActivity = ({
   
   // MAIN ACTIVITY
   return (
-    <div className="h-full flex flex-col bg-gray-900 relative">
+    <div className={`h-full flex flex-col bg-gray-900 relative ${isChromebook ? 'chromebook-hide-cursor' : ''}`}>
       {/* Save Message Toast */}
       {saveMessage && console.log('🎨 RENDERING TOAST:', saveMessage.text)}
       {saveMessage && (

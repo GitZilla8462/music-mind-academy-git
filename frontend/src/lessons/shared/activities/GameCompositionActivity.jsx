@@ -2,8 +2,15 @@
 // Video Game Montage Composition - Lesson 5 (Game On! - Melody & Contour)
 // Based on SportsCompositionActivity pattern
 // Features: Video selection, DAW with Melody Maker + Beat Maker, auto-save, Join page integration
+// SEAMLESS CURSOR: Uses chromebook-hide-cursor for seamless custom cursor across entire activity
 
 import React, { useState, useEffect, useRef } from 'react';
+
+// Detect Chromebook for seamless cursor
+const isChromebook = typeof navigator !== 'undefined' && (
+  /CrOS/.test(navigator.userAgent) ||
+  (navigator.userAgentData?.platform === 'Chrome OS')
+);
 import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
 import { useAutoSave } from '../../../hooks/useAutoSave.jsx';
@@ -682,7 +689,7 @@ const GameCompositionActivity = ({
 
   // Main activity
   return (
-    <div className="h-full flex flex-col bg-gray-900 relative">
+    <div className={`h-full flex flex-col bg-gray-900 relative ${isChromebook ? 'chromebook-hide-cursor' : ''}`}>
       {/* Save Message Toast */}
       {saveMessage && (
         <div

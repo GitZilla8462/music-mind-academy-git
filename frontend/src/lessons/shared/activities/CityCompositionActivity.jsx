@@ -4,8 +4,15 @@
 // ✅ UPDATED: Added SAVE button to manually save composition to localStorage
 // ✅ FIXED: Changed sessionStorage to useRef to allow reload on refresh
 // ✅ UPDATED: Changed bonus activity from Layer Detective to Loop Lab
+// SEAMLESS CURSOR: Uses chromebook-hide-cursor for seamless custom cursor across entire activity
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+
+// Detect Chromebook for seamless cursor
+const isChromebook = typeof navigator !== 'undefined' && (
+  /CrOS/.test(navigator.userAgent) ||
+  (navigator.userAgentData?.platform === 'Chrome OS')
+);
 import { useNavigate } from 'react-router-dom';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
@@ -629,7 +636,7 @@ const CityCompositionActivity = ({
   
   // MAIN ACTIVITY
   return (
-    <div className="h-full flex flex-col bg-gray-900 relative">
+    <div className={`h-full flex flex-col bg-gray-900 relative ${isChromebook ? 'chromebook-hide-cursor' : ''}`}>
       {/* Save Message Toast */}
       {saveMessage && console.log('🎨 RENDERING TOAST:', saveMessage.text)}
       {saveMessage && (
