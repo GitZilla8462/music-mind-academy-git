@@ -780,6 +780,19 @@ const MusicComposer = ({
     return () => clearTimeout(timer);
   }, []);
 
+  // Fallback: hide loading screen after max 6 seconds even if audio isn't ready
+  // (browser may block audio without user gesture on page reload)
+  useEffect(() => {
+    const fallbackTimer = setTimeout(() => {
+      if (loadingScreenVisible) {
+        console.log('⏱️ Loading screen fallback timeout - hiding anyway');
+        setLoadingScreenVisible(false);
+      }
+    }, 6000);
+
+    return () => clearTimeout(fallbackTimer);
+  }, []);
+
   // Hide loading screen when: minimum time passed AND video ready AND audio ready
   useEffect(() => {
     const isVideoReady = tutorialMode || (selectedVideo && !videoLoading);
