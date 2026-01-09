@@ -814,7 +814,8 @@ const MusicComposer = ({
       >
         {/* CHROMEBOOK FIX: Global custom cursor (hidden when over areas with local cursor) */}
         {/* UNIFIED CURSOR: This will be automatically disabled during library drag via CursorContext */}
-        {isChromebook && showGlobalCursor && (
+        {/* Hide during loading screen to avoid double cursor */}
+        {isChromebook && showGlobalCursor && !loadingScreenVisible && (
           <CustomCursor
             cursorType={globalCursorType}
             enabled={true}
