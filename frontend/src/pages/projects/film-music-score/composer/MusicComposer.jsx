@@ -24,6 +24,7 @@ import ComposerLayout from './components/ComposerLayout';
 import AudioInitModal from './components/AudioInitModal';
 import CustomCursor from '../timeline/components/CustomCursor';
 import { CursorProvider } from '../shared/CursorContext';
+import DAWLoadingScreen from '../shared/DAWLoadingScreen';
 
 // CHROMEBOOK FIX: Detect Chromebook for global custom cursor
 const isChromebook = typeof navigator !== 'undefined' && (
@@ -88,6 +89,10 @@ const MusicComposer = ({
   const [globalCursorType, setGlobalCursorType] = useState('default');
   const [showGlobalCursor, setShowGlobalCursor] = useState(true);
   const dawContainerRef = useRef(null);
+
+  // Loading screen state - show fun loading messages while DAW initializes
+  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
+  const [loadingScreenDismissed, setLoadingScreenDismissed] = useState(false);
   // Initialize with initialCustomLoops if provided, otherwise empty array
   // initialCustomLoops may come from StudentBeatMakerActivity saved beats
   const [customLoops, setCustomLoops] = useState(() => {
@@ -766,15 +771,34 @@ const MusicComposer = ({
     }
   };
 
-  // Loading state
+  // Handle loading screen completion
+  const handleLoadingComplete = useCallback(() => {
+    setShowLoadingScreen(false);
+    setLoadingScreenDismissed(true);
+  }, []);
+
+  // Show fun loading screen while video/DAW loads
+  // Only show on first load, not when switching videos
+  if ((videoLoading || (!selectedVideo && !tutorialMode)) && !loadingScreenDismissed) {
+    return (
+      <CursorProvider>
+        <DAWLoadingScreen
+          duration={3000}
+          onComplete={handleLoadingComplete}
+          showProgress={true}
+        />
+      </CursorProvider>
+    );
+  }
+
+  // If video is still loading but we've seen the loading screen, show simple loader
   if (videoLoading || (!selectedVideo && !tutorialMode)) {
     return (
       <CursorProvider>
         <div className="min-h-screen bg-gray-900 flex items-center justify-center">
           <div className="text-white text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <div className="text-lg">Loading video...</div>
-            <div className="text-sm text-gray-400 mt-2">Detecting video duration...</div>
+            <div className="text-lg">Almost ready...</div>
           </div>
         </div>
       </CursorProvider>
