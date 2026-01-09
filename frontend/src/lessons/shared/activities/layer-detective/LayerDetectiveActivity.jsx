@@ -15,7 +15,7 @@ import { getDatabase, ref, update, push, set, onValue } from 'firebase/database'
 import { generatePlayerName, getPlayerColor, getPlayerEmoji } from './nameGenerator';
 
 const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
-  const { sessionCode, userId, userRole } = useSession();
+  const { sessionCode, userId, userRole, currentStage } = useSession();
   
   const [gameStarted, setGameStarted] = useState(false);
   const [currentRound, setCurrentRound] = useState(0);
@@ -711,7 +711,8 @@ useEffect(() => {
   const numLayers = currentQuestion?.layers.length || 0;
 
   // ✅ TEACHER RESULTS SCREEN - Shows when teacher broadcasts 'finished' phase
-  if (teacherGamePhase === 'finished') {
+  // Show results when teacher broadcasts 'finished' OR when on results slide
+  if (teacherGamePhase === 'finished' || currentStage === 'layer-detective-results') {
     const myData = classLeaderboard.find(s => s.id === userId);
     const getRankEmoji = (rank) => {
       if (rank === 1) return '🥇';

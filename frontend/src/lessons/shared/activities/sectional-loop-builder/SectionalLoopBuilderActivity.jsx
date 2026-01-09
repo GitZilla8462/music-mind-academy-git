@@ -1643,26 +1643,51 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     );
   }
 
-  // Finished
+  // Finished - Enhanced view with prominent rank display
   if (gamePhase === 'finished') {
+    const getRankEmoji = (r) => {
+      if (r === 1) return '🥇';
+      if (r === 2) return '🥈';
+      if (r === 3) return '🥉';
+      return `#${r}`;
+    };
+
     return (
       <>
         <div className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white">
           <style>{styles}</style>
           <ActivityBanner />
-          <div className="flex-1 flex flex-col items-center justify-center p-6">
-            <div className="text-6xl mb-4">🎉</div>
-            <h1 className="text-3xl font-bold mb-2">Game Complete!</h1>
+          <div className="flex-1 flex flex-col items-center justify-center p-4">
+            <div className="text-6xl mb-4">🏆</div>
 
-            <div className="bg-white/10 rounded-2xl p-6 text-center">
-              <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl mb-2"
-                style={{ backgroundColor: `${playerColor}30` }}>
-                {playerEmoji}
+            {/* Your Result - Prominent display */}
+            <div
+              className="inline-flex flex-col items-center px-8 py-4 rounded-2xl mb-4 shadow-lg"
+              style={{ backgroundColor: playerColor }}
+            >
+              <span className="text-4xl mb-1">{playerEmoji}</span>
+              <span className="text-2xl font-bold text-white">{playerName}</span>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-3xl">{getRankEmoji(rank)}</span>
+                {rank && rank <= 3 && (
+                  <span className="text-xl font-bold text-white">
+                    {rank === 1 ? '1st Place!' : rank === 2 ? '2nd Place!' : '3rd Place!'}
+                  </span>
+                )}
+                {rank && rank > 3 && (
+                  <span className="text-xl font-bold text-white">Place</span>
+                )}
               </div>
-              <div className="text-lg" style={{ color: playerColor }}>{playerName}</div>
-              <div className="text-4xl font-black text-yellow-400 mt-2">{score} pts</div>
-              <div className="text-white/60">Final Rank: #{rank} of {totalStudents}</div>
             </div>
+
+            <h1 className="text-2xl font-bold mb-2">Game Complete!</h1>
+
+            <div className="bg-gradient-to-r from-green-100 to-teal-100 rounded-lg p-4 mb-4">
+              <div className="text-4xl font-bold text-gray-900 mb-1">{score}</div>
+              <div className="text-lg text-gray-700">Your Score</div>
+            </div>
+
+            <p className="text-white/50 text-sm">Look at the main screen!</p>
           </div>
         </div>
         <TransitionOverlay isVisible={showTransition} />

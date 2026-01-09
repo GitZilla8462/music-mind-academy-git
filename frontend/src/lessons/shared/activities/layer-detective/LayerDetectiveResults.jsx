@@ -40,7 +40,7 @@ const LayerDetectiveResults = ({ sessionData, onPlayAgain, onNextActivity }) => 
   const totalPoints = winners.reduce((sum, w) => sum + w.score, 0);
   
   return (
-    <div className="h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white flex items-center justify-center overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white flex items-center justify-center overflow-hidden">
       {/* Confetti Animation Background */}
       <div className="absolute inset-0 overflow-hidden">
         {[...Array(50)].map((_, i) => (
