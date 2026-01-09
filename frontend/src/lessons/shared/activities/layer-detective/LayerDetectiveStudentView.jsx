@@ -228,8 +228,31 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
     );
   }
 
-  // ============ FINISHED PHASE ============
-  if (gamePhase === 'finished' || forceFinished) {
+  // ============ GAME FINISHED - Waiting for teacher to show results ============
+  if (gamePhase === 'finished') {
+    return (
+      <div className="h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-6">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🎉</div>
+          <h1 className="text-3xl font-bold text-white mb-4">Game Complete!</h1>
+          <div className="bg-white/10 rounded-2xl p-6 inline-block mb-4">
+            <div
+              className="w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl font-bold text-white"
+              style={{ backgroundColor: playerColor }}
+            >
+              {playerName.charAt(0)}
+            </div>
+            <div className="text-xl font-bold" style={{ color: playerColor }}>{playerName}</div>
+            <div className="text-3xl font-bold text-yellow-300 mt-2">{score} pts</div>
+          </div>
+          <p className="text-purple-200">Waiting for teacher to show results...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ============ RESULTS PHASE (only shown on results slide) ============
+  if (forceFinished) {
     const getRankEmoji = (rank) => {
       if (rank === 1) return '🥇';
       if (rank === 2) return '🥈';
