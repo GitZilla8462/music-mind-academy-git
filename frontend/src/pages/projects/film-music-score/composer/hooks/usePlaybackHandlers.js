@@ -30,6 +30,10 @@ export const usePlaybackHandlers = ({
   const lastScheduleTimeRef = useRef(0);
   const SCHEDULE_DEBOUNCE_MS = 200;
 
+  // Debounce play button to prevent multiple rapid triggers
+  const lastPlayClickRef = useRef(0);
+  const PLAY_DEBOUNCE_MS = 300;
+
   // Helper to get track states (with fallback defaults)
   const getTrackStatesForScheduling = useCallback(() => {
     const hasTrackStates = Object.keys(trackStates).length > 0;
@@ -44,6 +48,14 @@ export const usePlaybackHandlers = ({
   }, [trackStates]);
 
   const handlePlay = useCallback(async () => {
+    // Debounce: prevent multiple rapid play triggers (from multiple UI buttons)
+    const now = Date.now();
+    if (now - lastPlayClickRef.current < PLAY_DEBOUNCE_MS) {
+      console.log('⏸️ Play debounced - ignoring rapid click');
+      return;
+    }
+    lastPlayClickRef.current = now;
+
     if (lockFeatures.allowPlayback === false) {
       return;
     }
