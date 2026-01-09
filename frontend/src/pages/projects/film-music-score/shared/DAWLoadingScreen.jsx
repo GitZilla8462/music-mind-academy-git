@@ -20,7 +20,6 @@ const LOADING_MESSAGES = [
   "Adding that extra sparkle to the mix...",
   "Cranking the vibes to 11...",
   "Finding where the beat dropped...",
-  "Making sure everything slaps...",
   "Polishing the audio diamonds...",
 
   // Technical But Funny
