@@ -224,7 +224,6 @@ const MelodyMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideCl
   const [isExporting, setIsExporting] = useState(false);
   const [showInstrumentDropdown, setShowInstrumentDropdown] = useState(false);
   const [showPresetDropdown, setShowPresetDropdown] = useState(false);
-  const [triggeredNotes, setTriggeredNotes] = useState({});
 
   const synthRef = useRef(null);
   const sequenceRef = useRef(null);
@@ -351,7 +350,6 @@ const MelodyMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideCl
     }
     setIsPlaying(false);
     setCurrentBeat(-1);
-    setTriggeredNotes({});
   }, []);
 
   // Start/stop playback
@@ -392,21 +390,18 @@ const MelodyMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideCl
     sequenceRef.current = new Tone.Sequence(
       (time, beatIdx) => {
         const currentGrid = gridRef.current;
-        const triggered = {};
 
         currentNotes.forEach((note, noteIndex) => {
           if (currentGrid[noteIndex]?.[beatIdx]) {
-            triggered[`${noteIndex}-${beatIdx}`] = true;
             if (synthRef.current) {
               synthRef.current.triggerAttackRelease(note.id, '8n', time);
             }
           }
         });
 
+        // Update visual beat indicator
         Tone.Draw.schedule(() => {
           setCurrentBeat(beatIdx);
-          setTriggeredNotes(triggered);
-          setTimeout(() => setTriggeredNotes({}), 100);
         }, time);
       },
       beatIndices,
@@ -662,14 +657,14 @@ const MelodyMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideCl
       </div>
 
       {/* Main Grid Area */}
-      <div className="flex-1 flex flex-col p-4 overflow-hidden">
+      <div className="flex-1 flex flex-col p-3 overflow-hidden">
         {/* Beat Headers */}
-        <div className="flex mb-2" style={{ marginLeft: '60px' }}>
+        <div className="grid mb-1" style={{ marginLeft: '50px', gridTemplateColumns: `repeat(${beats}, 1fr)`, gap: '2px' }}>
           {Array.from({ length: beats }, (_, i) => (
             <div
               key={i}
-              className={`flex-1 text-center text-sm font-bold transition-all ${
-                currentBeat === i ? 'scale-110' : 'text-gray-500'
+              className={`text-center text-xs font-bold ${
+                currentBeat === i ? '' : 'text-gray-500'
               }`}
               style={{ color: currentBeat === i ? currentMood.color : undefined }}
             >
@@ -679,54 +674,50 @@ const MelodyMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideCl
         </div>
 
         {/* Grid Rows */}
-        <div className="flex-1 flex flex-col gap-1 min-h-0">
+        <div className="flex-1 flex flex-col gap-0.5 min-h-0">
           {currentNotes.map((note, noteIndex) => (
-            <div key={note.id} className="flex items-center gap-2 flex-1 min-h-0">
+            <div key={note.id} className="flex items-center gap-1 flex-1 min-h-0">
               {/* Note Label */}
               <div
-                className="w-14 flex-shrink-0 text-right font-bold text-lg"
+                className="w-12 flex-shrink-0 text-right font-bold text-sm"
                 style={{ color: note.color }}
               >
                 {note.name}
               </div>
 
-              {/* Beat Cells */}
-              <div className="flex-1 flex gap-1 h-full">
+              {/* Beat Cells - using CSS Grid for consistent sizing */}
+              <div
+                className="flex-1 grid h-full"
+                style={{ gridTemplateColumns: `repeat(${beats}, 1fr)`, gap: '2px' }}
+              >
                 {Array.from({ length: beats }, (_, beatIndex) => {
                   const isActive = grid[noteIndex]?.[beatIndex];
                   const isCurrent = currentBeat === beatIndex && isPlaying;
-                  const isTriggered = triggeredNotes[`${noteIndex}-${beatIndex}`];
 
                   return (
                     <button
                       key={beatIndex}
                       onClick={() => toggleCell(noteIndex, beatIndex)}
-                      className="flex-1 rounded-lg transition-all flex items-center justify-center"
+                      className="rounded transition-colors flex items-center justify-center"
                       style={{
                         backgroundColor: isActive
-                          ? (isTriggered ? '#ffffff' : note.color)
+                          ? note.color
                           : isCurrent
                             ? `${currentMood.color}30`
                             : 'rgba(255, 255, 255, 0.08)',
                         border: isActive
-                          ? `3px solid ${note.color}`
+                          ? `2px solid ${note.color}`
                           : isCurrent
                             ? `2px solid ${currentMood.color}60`
-                            : '2px solid rgba(255, 255, 255, 0.1)',
+                            : '1px solid rgba(255, 255, 255, 0.1)',
                         boxShadow: isActive
-                          ? `0 0 15px ${note.color}50`
-                          : isCurrent
-                            ? `0 0 10px ${currentMood.color}30`
-                            : 'none',
-                        transform: isTriggered ? 'scale(1.05)' : 'scale(1)',
-                        minHeight: '44px'
+                          ? `0 0 8px ${note.color}50`
+                          : 'none',
+                        minHeight: '36px'
                       }}
                     >
                       {isActive && (
-                        <div
-                          className="w-3 h-3 rounded-full bg-white"
-                          style={{ opacity: isTriggered ? 1 : 0.7 }}
-                        />
+                        <div className="w-2 h-2 rounded-full bg-white opacity-80" />
                       )}
                     </button>
                   );
@@ -737,14 +728,14 @@ const MelodyMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideCl
         </div>
 
         {/* Playback Progress */}
-        <div className="flex mt-2" style={{ marginLeft: '60px' }}>
+        <div className="grid mt-1" style={{ marginLeft: '50px', gridTemplateColumns: `repeat(${beats}, 1fr)`, gap: '2px' }}>
           {Array.from({ length: beats }, (_, i) => (
             <div
               key={i}
-              className="flex-1 h-1 mx-0.5 rounded-full transition-all"
+              className="h-1 rounded-full"
               style={{
                 backgroundColor: currentBeat === i ? currentMood.color : '#374151',
-                boxShadow: currentBeat === i ? `0 0 8px ${currentMood.color}` : 'none'
+                boxShadow: currentBeat === i ? `0 0 6px ${currentMood.color}` : 'none'
               }}
             />
           ))}
