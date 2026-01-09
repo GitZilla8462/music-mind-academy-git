@@ -827,7 +827,7 @@ const GameCompositionActivity = ({
 
       {/* Video Selection Overlay */}
       {showVideoSelection && !viewMode && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 p-6 overflow-y-auto">
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 p-6 overflow-y-auto restore-cursor">
           <div className="max-w-5xl w-full my-4">
             <div className="text-center mb-6">
               <h1 className="text-4xl font-bold text-white mb-3">
