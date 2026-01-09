@@ -496,12 +496,12 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
 
   // ============ RENDER ============
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white overflow-hidden">
+    <div className="min-h-screen h-full flex flex-col bg-indigo-900 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white overflow-hidden">
       {/* Student Activity Banner */}
       <ActivityBanner />
 
       {/* Main content */}
-      <div className="flex-1 p-4 overflow-hidden flex flex-col">
+      <div className="flex-1 p-4 overflow-hidden flex flex-col min-h-0">
         {/* Header */}
         <div className="flex items-center justify-between mb-3 flex-shrink-0">
           <div className="flex items-center gap-4">
