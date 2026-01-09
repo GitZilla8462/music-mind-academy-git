@@ -79,7 +79,7 @@ const DAWLoadingScreen = () => {
 
         {/* Title */}
         <h2 className="text-2xl font-bold text-white mb-4">
-          Music Composer
+          Loading Your Digital Audio Workstation
         </h2>
 
         {/* Funny loading message */}
