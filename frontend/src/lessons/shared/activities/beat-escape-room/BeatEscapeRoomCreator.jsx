@@ -127,13 +127,12 @@ const BeatEscapeRoomCreator = ({
 
   return (
     <div
-      className="min-h-screen flex flex-col"
+      className="h-full flex flex-col"
       style={{
         backgroundColor: theme.colors.background || '#0f172a',
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
       }}
     >
       {/* Dark overlay for readability */}
@@ -169,7 +168,7 @@ const BeatEscapeRoomCreator = ({
       </div>
 
       {/* Content container */}
-      <div className="relative z-10 min-h-screen flex flex-col overflow-auto">
+      <div className="relative z-10 h-full flex flex-col overflow-auto">
         {/* Title at top center */}
         <div className="w-full pt-4 mb-2">
           <h1

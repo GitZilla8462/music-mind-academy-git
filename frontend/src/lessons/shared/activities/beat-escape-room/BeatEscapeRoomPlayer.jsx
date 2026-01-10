@@ -210,13 +210,12 @@ const BeatEscapeRoomPlayer = ({ roomData, onComplete, onBack }) => {
 
   return (
     <div
-      className="beat-escape-player min-h-screen flex flex-col"
+      className="beat-escape-player h-full flex flex-col"
       style={{
         backgroundColor: theme.colors.background || '#0f172a',
         backgroundImage: `url(${currentBackground})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
       }}
     >
       {/* Dark overlay for readability - fixed to cover full viewport */}
@@ -261,7 +260,7 @@ const BeatEscapeRoomPlayer = ({ roomData, onComplete, onBack }) => {
       </div>
 
       {/* Content container */}
-      <div className="relative z-10 min-h-screen flex flex-col overflow-auto">
+      <div className="relative z-10 h-full flex flex-col overflow-auto">
         {/* Lock title at top center */}
         <div className="w-full pt-4 mb-2">
           <h1

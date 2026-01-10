@@ -208,22 +208,26 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
     if (playingRef.current) return;
     playingRef.current = true;
 
-    // Pass the device ID for unique sound per device
-    const deviceId = useDeviceSound ? selectedDeviceId : null;
+    try {
+      // Pass the device ID for unique sound per device
+      const deviceId = useDeviceSound ? selectedDeviceId : null;
 
-    await playSimpleGrid(grid, 120, (beat) => {
-      if (playingRef.current) {
-        setCurrentBeat(beat);
-      }
-    }, deviceId);
-
-    setCurrentBeat(-1);
-    playingRef.current = false;
+      await playSimpleGrid(grid, 120, (beat) => {
+        if (playingRef.current) {
+          setCurrentBeat(beat);
+        }
+      }, deviceId);
+    } catch (error) {
+      console.error('Error playing grid:', error);
+    } finally {
+      setCurrentBeat(-1);
+      playingRef.current = false;
+    }
   };
 
   // Play target melody
   const playTargetMelody = async () => {
-    if (listensRemaining[currentLocationIndex] <= 0 || isPlayingTarget) return;
+    if (listensRemaining[currentLocationIndex] <= 0 || isPlayingTarget || playingRef.current) return;
 
     setListensRemaining(prev => {
       const newRemaining = [...prev];
@@ -239,16 +243,22 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
     });
 
     setIsPlayingTarget(true);
-    await playGridWithAnimation(targetMelody.grid);
-    setIsPlayingTarget(false);
+    try {
+      await playGridWithAnimation(targetMelody.grid);
+    } finally {
+      setIsPlayingTarget(false);
+    }
   };
 
   // Play player melody (uses same device sound for comparison)
   const playPlayerMelody = async () => {
-    if (isPlayingPlayer) return;
+    if (isPlayingPlayer || playingRef.current) return;
     setIsPlayingPlayer(true);
-    await playGridWithAnimation(playerGrid, true);
-    setIsPlayingPlayer(false);
+    try {
+      await playGridWithAnimation(playerGrid, true);
+    } finally {
+      setIsPlayingPlayer(false);
+    }
   };
 
   // Reveal hint - reveal one column
@@ -996,9 +1006,9 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
               {/* Signal button with pulsing glow if not played yet */}
               <button
                 onClick={playTargetMelody}
-                disabled={listensRemaining[currentLocationIndex] <= 0 || isPlayingTarget}
+                disabled={listensRemaining[currentLocationIndex] <= 0 || isPlayingTarget || isPlayingPlayer}
                 className={`flex items-center gap-1 px-2 py-1.5 rounded text-[9px] font-mono tracking-wide transition-all ${
-                  listensRemaining[currentLocationIndex] > 0 && !isPlayingTarget
+                  listensRemaining[currentLocationIndex] > 0 && !isPlayingTarget && !isPlayingPlayer
                     ? 'bg-amber-600/30 border border-amber-500 text-amber-300 hover:bg-amber-600/50'
                     : 'bg-slate-800/50 border border-slate-700 text-slate-600 cursor-not-allowed'
                 }`}
@@ -1157,9 +1167,9 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
 
               {/* Screen bezel */}
               <div className="bg-black rounded-lg p-1.5 border border-amber-900/50">
-                {/* CRT-style screen - reduced minHeight for Chromebook 768px */}
+                {/* CRT-style screen - compact for Chromebook 768px at 110% zoom */}
                 <div className="bg-black rounded p-3 border border-amber-900/30 relative overflow-hidden"
-                     style={{ boxShadow: 'inset 0 0 20px rgba(245, 158, 11, 0.1)', minHeight: '320px' }}>
+                     style={{ boxShadow: 'inset 0 0 20px rgba(245, 158, 11, 0.1)', minHeight: '240px' }}>
                   {renderDecoderScreen()}
                 </div>
               </div>

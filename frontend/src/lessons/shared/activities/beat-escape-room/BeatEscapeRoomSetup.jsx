@@ -181,7 +181,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
   if (step === 'mode') {
     return (
       <div
-        className="min-h-screen flex flex-col p-6 relative overflow-auto"
+        className="h-full flex flex-col p-4 relative overflow-auto"
         style={{
           backgroundImage: `url(${sharedAssets.bgTitle})`,
           backgroundSize: 'cover',
@@ -360,7 +360,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
     const modeConfig = MODES[selectedMode];
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+        className="h-full flex flex-col items-center justify-center p-4 relative overflow-auto"
         style={{
           backgroundImage: `url(${sharedAssets.bgTitle})`,
           backgroundSize: 'cover',
@@ -373,28 +373,28 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
         {/* Back button */}
         <button
           onClick={handleBack}
-          className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2 z-10"
+          className="absolute top-4 left-4 text-gray-400 hover:text-white transition-colors flex items-center gap-2 z-10"
         >
           ← Back
         </button>
 
         {/* Header */}
-        <div className="text-center mb-10 relative z-10">
-          <h1 className="text-4xl font-black text-white mb-3">
+        <div className="text-center mb-6 relative z-10">
+          <h1 className="text-3xl font-black text-white mb-2">
             {modeConfig?.label} Mode
           </h1>
-          <p className="text-lg text-purple-200">
+          <p className="text-base text-purple-200">
             {modeConfig?.totalLocks} locks total - {modeConfig?.perPerson} locks each
           </p>
         </div>
 
         {/* Role Selection */}
-        <div className="w-full max-w-md space-y-4 relative z-10">
+        <div className="w-full max-w-md space-y-3 relative z-10">
           <button
             onClick={handleGenerateNewRoom}
-            className="w-full bg-gray-800/90 hover:bg-gray-700/90 border-2 border-gray-600 hover:border-purple-500 rounded-2xl p-6 transition-all duration-200 hover:scale-105"
+            className="w-full bg-gray-800/90 hover:bg-gray-700/90 border-2 border-gray-600 hover:border-purple-500 rounded-xl p-4 transition-all duration-200 hover:scale-105"
           >
-            <div className="text-xl font-bold text-white mb-1">
+            <div className="text-lg font-bold text-white mb-1">
               Generate New Room
             </div>
             <div className="text-gray-400 text-sm">
@@ -404,9 +404,9 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
 
           <button
             onClick={() => setStep('join-to-create')}
-            className="w-full bg-gray-800/90 hover:bg-gray-700/90 border-2 border-gray-600 hover:border-green-500 rounded-2xl p-6 transition-all duration-200 hover:scale-105"
+            className="w-full bg-gray-800/90 hover:bg-gray-700/90 border-2 border-gray-600 hover:border-green-500 rounded-xl p-4 transition-all duration-200 hover:scale-105"
           >
-            <div className="text-xl font-bold text-white mb-1">Join Partner's Room</div>
+            <div className="text-lg font-bold text-white mb-1">Join Partner's Room</div>
             <div className="text-gray-400 text-sm">
               Enter your partner's code
             </div>
@@ -424,7 +424,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
 
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+        className="h-full flex flex-col items-center justify-center p-4 relative overflow-auto"
         style={{
           backgroundImage: `url(${themeAssets?.bgRoom1 || sharedAssets.bgTitle})`,
           backgroundSize: 'cover',
@@ -437,50 +437,50 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
         {/* Back button */}
         <button
           onClick={handleBack}
-          className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2 z-10"
+          className="absolute top-4 left-4 text-gray-400 hover:text-white transition-colors flex items-center gap-2 z-10"
         >
           ← Back
         </button>
 
         {/* Header */}
-        <div className="text-center mb-8 relative z-10">
-          <h1 className="text-3xl font-black text-white mb-2">
+        <div className="text-center mb-4 relative z-10">
+          <h1 className="text-2xl font-black text-white mb-1">
             Room Created!
           </h1>
-          <p className="text-lg text-purple-200">
+          <p className="text-base text-purple-200">
             Share this code with your partner
           </p>
         </div>
 
         {/* Code Display */}
-        <div className="bg-gray-800/90 rounded-2xl p-8 w-full max-w-md mb-6 relative z-10">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="bg-gray-900 px-8 py-4 rounded-xl text-5xl font-mono font-bold text-white tracking-widest">
+        <div className="bg-gray-800/90 rounded-xl p-6 w-full max-w-md mb-4 relative z-10">
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <div className="bg-gray-900 px-6 py-3 rounded-xl text-4xl font-mono font-bold text-white tracking-widest">
               {generatedCode}
             </div>
             <button
               onClick={handleCopyCode}
-              className="p-4 bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors"
+              className="p-3 bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors"
               title="Copy code"
             >
               {copied ? (
-                <Check className="text-green-400" size={28} />
+                <Check className="text-green-400" size={24} />
               ) : (
-                <Copy className="text-gray-300" size={28} />
+                <Copy className="text-gray-300" size={24} />
               )}
             </button>
           </div>
           {copied && (
-            <p className="text-green-400 text-center">Copied!</p>
+            <p className="text-green-400 text-center text-sm">Copied!</p>
           )}
 
           {/* Theme info */}
-          <div className="bg-gray-700/50 rounded-lg p-3 mt-4 flex items-center justify-between">
+          <div className="bg-gray-700/50 rounded-lg p-2 mt-3 flex items-center justify-between">
             <span className="text-gray-400 text-sm">Theme:</span>
-            <span className="text-white font-semibold">{themeConfig?.name || 'Unknown'}</span>
+            <span className="text-white font-semibold text-sm">{themeConfig?.name || 'Unknown'}</span>
           </div>
 
-          <div className="bg-purple-900/50 rounded-lg p-4 mt-3">
+          <div className="bg-purple-900/50 rounded-lg p-3 mt-2">
             <p className="text-purple-200 text-sm text-center">
               Your partner enters this code to join and add their {modeConfig?.perPerson} locks
             </p>
@@ -490,7 +490,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
         {/* Continue Button */}
         <button
           onClick={handleContinueToCreate}
-          className="px-8 py-4 bg-green-600 hover:bg-green-500 rounded-xl text-white text-xl font-bold transition-all hover:scale-105 relative z-10"
+          className="px-6 py-3 bg-green-600 hover:bg-green-500 rounded-xl text-white text-lg font-bold transition-all hover:scale-105 relative z-10"
         >
           Start Creating Locks
         </button>
@@ -503,7 +503,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
     const modeConfig = MODES[selectedMode];
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+        className="h-full flex flex-col items-center justify-center p-4 relative overflow-auto"
         style={{
           backgroundImage: `url(${sharedAssets.bgTitle})`,
           backgroundSize: 'cover',
@@ -516,24 +516,24 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
         {/* Back button */}
         <button
           onClick={handleBack}
-          className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2 z-10"
+          className="absolute top-4 left-4 text-gray-400 hover:text-white transition-colors flex items-center gap-2 z-10"
         >
           ← Back
         </button>
 
         {/* Header */}
-        <div className="text-center mb-10 relative z-10">
-          <h1 className="text-4xl font-black text-white mb-3">
+        <div className="text-center mb-6 relative z-10">
+          <h1 className="text-3xl font-black text-white mb-2">
             Join Partner's Room
           </h1>
-          <p className="text-lg text-purple-200">
+          <p className="text-base text-purple-200">
             Enter the code from your partner
           </p>
         </div>
 
         {/* Join Form */}
-        <div className="bg-gray-800/90 rounded-2xl p-8 w-full max-w-md relative z-10">
-          <div className="flex flex-col gap-4">
+        <div className="bg-gray-800/90 rounded-xl p-6 w-full max-w-md relative z-10">
+          <div className="flex flex-col gap-3">
             <input
               type="text"
               value={joinCode}
@@ -544,23 +544,23 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
               onKeyPress={(e) => e.key === 'Enter' && handleJoinToCreate()}
               placeholder="Enter Partner's Code"
               maxLength={6}
-              className="w-full px-6 py-4 bg-gray-700 border-2 border-gray-600 rounded-xl text-white text-center text-2xl font-bold tracking-widest placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
+              className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white text-center text-xl font-bold tracking-widest placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
               autoFocus
             />
             <button
               onClick={handleJoinToCreate}
               disabled={!joinCode}
-              className="w-full px-6 py-4 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl text-white text-xl font-bold transition-colors flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl text-white text-lg font-bold transition-colors flex items-center justify-center gap-2"
             >
               Join & Add My Locks
             </button>
           </div>
 
           {joinError && (
-            <p className="text-red-400 text-sm text-center mt-4">{joinError}</p>
+            <p className="text-red-400 text-sm text-center mt-3">{joinError}</p>
           )}
 
-          <p className="text-gray-400 text-sm text-center mt-6">
+          <p className="text-gray-400 text-sm text-center mt-4">
             You'll add your {modeConfig?.perPerson} locks to complete the room
           </p>
         </div>
@@ -571,7 +571,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
   // Step 3: Theme Selection
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+      className="h-full flex flex-col items-center justify-center p-4 relative overflow-auto"
       style={{
         backgroundImage: `url(${sharedAssets.bgSelect})`,
         backgroundSize: 'cover',
@@ -584,21 +584,21 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
       {/* Back button */}
       <button
         onClick={handleBack}
-        className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2 z-10"
+        className="absolute top-4 left-4 text-gray-400 hover:text-white transition-colors flex items-center gap-2 z-10"
       >
         ← Back
       </button>
 
       {/* Header */}
-      <div className="text-center mb-10 relative z-10">
-        <h1 className="text-4xl font-black text-white mb-3">
+      <div className="text-center mb-6 relative z-10">
+        <h1 className="text-3xl font-black text-white mb-2">
           Choose Your Theme
         </h1>
-        <p className="text-lg text-purple-200">
+        <p className="text-base text-purple-200">
           {MODES[selectedMode]?.label} Mode - {MODES[selectedMode]?.totalLocks} Locks
         </p>
         {(selectedMode === 'partner' || selectedMode === 'trio') && (
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="text-sm text-gray-400 mt-1">
             Your partner will use the same theme
           </p>
         )}
