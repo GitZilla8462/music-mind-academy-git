@@ -138,7 +138,7 @@ export const summarySlides = {
   },
 
   reflection: {
-    title: "Two Stars and a Wish",
+    title: "Reflection Time",
     icon: "⭐",
     estimatedTime: "3 minutes",
     points: [

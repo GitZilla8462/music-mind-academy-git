@@ -25,10 +25,10 @@ const Lesson1TutorialModal = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
+      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">Welcome to Lesson 1!</h2>
+          <h2 className="text-xl font-bold text-white">New to Music Mind Academy?</h2>
           <button
             onClick={handleClose}
             className="text-white/80 hover:text-white transition-colors"
@@ -39,27 +39,9 @@ const Lesson1TutorialModal = ({ onClose }) => {
 
         {/* Content */}
         <div className="px-6 py-5">
-          <p className="text-gray-700 text-lg mb-4">
-            This lesson includes a <strong>Hook Video</strong> that shows the same scene with two different music scores.
+          <p className="text-gray-700 text-lg mb-5">
+            Watch the tutorial video below to learn how to run a lesson!
           </p>
-
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
-            <h3 className="font-semibold text-purple-900 mb-2">How to use the video:</h3>
-            <ol className="text-purple-800 space-y-2 text-sm">
-              <li className="flex gap-2">
-                <span className="font-bold">1.</span>
-                <span>Navigate to the <strong>"Hook Video"</strong> slide in the sidebar</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="font-bold">2.</span>
-                <span>Click <strong>Play</strong> to start the video on the projector</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="font-bold">3.</span>
-                <span>Ask students: <em>"How did the music change the feeling?"</em></span>
-              </li>
-            </ol>
-          </div>
 
           {/* Watch Tutorial Button */}
           <button
