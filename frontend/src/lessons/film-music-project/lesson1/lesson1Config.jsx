@@ -155,8 +155,8 @@ export const lessonSections = [
       {
         id: 'reflection-instructions',
         type: 'summary',
-        label: 'Reflection Instructions',
-        description: 'Explain Two Stars and a Wish.',
+        label: 'Reflection Time',
+        description: 'Introduce the reflection activity.',
         duration: 1
       },
       {
@@ -398,8 +398,8 @@ export const lessonStages = [
   },
   {
     id: 'reflection-instructions',
-    label: 'Reflection Instructions',
-    description: 'Explain Two Stars and a Wish.',
+    label: 'Reflection Time',
+    description: 'Introduce the reflection activity.',
     type: 'summary',
     duration: 1,
     presentationView: {
