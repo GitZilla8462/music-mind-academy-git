@@ -417,7 +417,7 @@ export const lessonStages = [
     hasTimer: true,
     duration: 5,
     presentationView: {
-      type: 'slide',
+      type: 'activity-slide',
       slidePath: '/lessons/film-music-project/lesson1/slides/13.svg'
     }
   },
