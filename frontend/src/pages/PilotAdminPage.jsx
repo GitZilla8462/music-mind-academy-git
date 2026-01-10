@@ -348,6 +348,11 @@ const PilotAdminPage = () => {
       ['Avg Session Duration (min)', durationMins(summaryStats?.avgSessionDuration)],
       ['Most Popular Lesson', summaryStats?.mostPopularLesson || 'N/A'],
       ['Return Rate (%)', summaryStats?.retentionRate || 0],
+      [''],
+      ['⚠️ DATA NOTE'],
+      ['Student counts before Jan 10, 2025 are inflated due to a bug where page refreshes'],
+      ['created duplicate student entries. This was fixed on Jan 10, 2025.'],
+      ['Affected sessions show ~20-40x actual student counts (e.g., 1,372 shown vs ~60 actual).'],
     ];
     const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
     XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
