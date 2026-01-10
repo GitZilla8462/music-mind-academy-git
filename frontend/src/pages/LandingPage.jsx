@@ -721,7 +721,7 @@ const LandingPage = () => {
               <button onClick={handleJoinPilot} className="btn-hero">
                 Join the Waitlist
               </button>
-              <span className="hero-note">Next pilot: March – June 2025</span>
+              <span className="hero-note">Next pilot: March – June 2026</span>
             </div>
           </div>
 
@@ -925,7 +925,7 @@ const LandingPage = () => {
       <section className="final-cta">
         <h2>January Pilot is Full!</h2>
         <p>
-          Join the waitlist for March – June 2025.
+          Join the waitlist for March – June 2026.
           <br />
           Waitlist applicants get priority access before new applications open.
           <br />
@@ -1004,7 +1004,7 @@ const LandingPage = () => {
                   <span style={{ fontSize: '1.25rem' }}>📅</span>
                   <div>
                     <div style={{ fontWeight: 600, color: '#1e293b' }}>Next pilot window</div>
-                    <div style={{ color: '#64748b', fontSize: '0.9rem' }}>March – June 2025</div>
+                    <div style={{ color: '#64748b', fontSize: '0.9rem' }}>March – June 2026</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
