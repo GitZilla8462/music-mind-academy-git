@@ -14,13 +14,13 @@
   <rect width="1920" height="1080" fill="url(#grid)"/>
 
   <!-- Title -->
-  <text x="192" y="180" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">TWO STARS AND A WISH</text>
+  <text x="192" y="180" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">Reflection Time</text>
 
   <!-- Accent line -->
   <rect x="192" y="210" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
 
   <!-- Subtitle -->
-  <text x="192" y="280" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Reflection Time</text>
+  <text x="192" y="280" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Share what worked and what you'd improve</text>
 
   <!-- Choose your reflection type -->
   <text x="192" y="400" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#fbbf24" font-weight="bold">Choose your reflection type:</text>
