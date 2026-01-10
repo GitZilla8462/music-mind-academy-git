@@ -19,17 +19,10 @@
   <!-- Accent line -->
   <rect x="192" y="150" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
 
-  <!-- Two option boxes -->
-  <!-- Self Reflection box -->
-  <rect x="192" y="200" width="400" height="100" rx="12" fill="#7c3aed" opacity="0.9"/>
-  <text x="392" y="265" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="white" font-weight="bold" text-anchor="middle">Self Reflection</text>
-
-  <!-- OR text -->
-  <text x="680" y="265" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#94a3b8" font-weight="bold">or</text>
-
-  <!-- Partner Reflection box -->
-  <rect x="768" y="200" width="480" height="100" rx="12" fill="#0891b2" opacity="0.9"/>
-  <text x="1008" y="265" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="white" font-weight="bold" text-anchor="middle">Partner Reflection</text>
+  <!-- Choose Review Type -->
+  <text x="192" y="230" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#fbbf24" font-weight="bold">Choose Review Type:</text>
+  <text x="240" y="290" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">1. Self Reflection</text>
+  <text x="240" y="350" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">2. Partner Reflection</text>
 
   <!-- What you'll do -->
   <text x="192" y="460" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#fbbf24" font-weight="bold">What you'll do:</text>
