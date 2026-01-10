@@ -16,6 +16,7 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer.jsx";
 import { useAutoSave } from '../../../hooks/useAutoSave.jsx';
 import WildlifeReflectionModal from './two-stars-and-a-wish/WildlifeReflectionModal.jsx';
+import LoopLabActivity from './loop-lab/LoopLabActivity';
 import { useSession } from '../../../context/SessionContext.jsx';
 // Note: Using wildlife-specific storage key instead of shared lesson4 utils
 import { saveStudentWork } from '../../../utils/studentWorkStorage.js';
@@ -804,13 +805,39 @@ const WildlifeCompositionActivity = ({
             setReflectionCompleted(true);
             setShowReflection(false);
             setViewingReflection(false);
-            // No bonus activity - just close
+            setShowBonusGame(true);
           }}
           viewMode={viewingReflection}
           isSessionMode={isSessionMode}
         />
       )}
-      
+
+      {/* Bonus Game: Loop Lab */}
+      {showBonusGame && (
+        <div className="absolute inset-0 z-50 flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900">
+          <div className="bg-gradient-to-r from-green-600 to-teal-600 p-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-white">🎮 Bonus Activity: Loop Lab!</h2>
+              <p className="text-green-100">Create and mix loops in the lab</p>
+            </div>
+            <button
+              onClick={() => setShowBonusGame(false)}
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
+            >
+              ← Back to Composition
+            </button>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <LoopLabActivity
+              onComplete={() => {
+                console.log('Loop Lab bonus complete');
+                setShowBonusGame(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Video selection as overlay - OPTIMIZED FOR 1366x768 */}
       {showVideoSelection && !viewMode && (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 p-6 overflow-y-auto restore-cursor">
