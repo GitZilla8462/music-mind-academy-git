@@ -746,7 +746,8 @@ const SimpleMelodyGrid = ({
   grid,
   onToggle,
   disabled = false,
-  currentBeat = -1,  // For playback animation
+  currentBeat = -1,  // For playback animation (progress bar)
+  highlightCells = true,  // Whether to highlight grid cells during playback (false for Signal)
   showLabels = true,
   className = '',
   revealedCols = [],   // Columns revealed as hints (locked, show correct answer)
@@ -794,8 +795,8 @@ const SimpleMelodyGrid = ({
   const renderCell = (row, col) => {
     const note = NOTES[row];
     const isActive = grid[row][col];
-    const isCurrentBeat = currentBeat === col;
-    const isTriggered = triggeredCells[`${row}-${col}`];
+    const isCurrentBeat = currentBeat === col && highlightCells;  // Only highlight cells if highlightCells is true
+    const isTriggered = triggeredCells[`${row}-${col}`] && highlightCells;  // Only trigger animation if highlighting
     const isAllowed = COLUMN_CONSTRAINTS[col]?.includes(row);
     const isRevealed = revealedCols.includes(col);
 

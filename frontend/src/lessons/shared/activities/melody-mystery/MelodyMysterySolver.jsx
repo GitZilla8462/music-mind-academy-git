@@ -1002,6 +1002,7 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
               onToggle={handleGridToggle}
               disabled={!signalPlayed}
               currentBeat={isPlayingTarget || isPlayingPlayer ? currentBeat : -1}
+              highlightCells={isPlayingPlayer}  // Only highlight grid cells when playing player's melody, not Signal
               revealedCols={revealedCols[currentLocationIndex] || []}
               targetGrid={targetMelody?.grid}
             />
