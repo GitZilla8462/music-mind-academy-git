@@ -14,24 +14,23 @@
   <rect width="1920" height="1080" fill="url(#grid)"/>
 
   <!-- Title -->
-  <text x="192" y="180" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">Reflection Time</text>
+  <text x="192" y="150" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">Reflection Time</text>
 
   <!-- Accent line -->
-  <rect x="192" y="210" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
-
+  <rect x="192" y="180" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
 
   <!-- Choose your reflection type -->
-  <text x="192" y="400" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#fbbf24" font-weight="bold">Choose your reflection type:</text>
-  <text x="240" y="470" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">Reflect on My Work — Review your own composition</text>
-  <text x="240" y="530" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">Give Partner Feedback — Help a classmate improve</text>
+  <text x="192" y="290" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#fbbf24" font-weight="bold">Choose your reflection type:</text>
+  <text x="240" y="355" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">Reflect on My Work — Review your own composition</text>
+  <text x="240" y="415" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">Give Partner Feedback — Help a classmate improve</text>
 
   <!-- What you'll do -->
-  <text x="192" y="640" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#fbbf24" font-weight="bold">What you'll do:</text>
-  <text x="240" y="710" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">1. Place stickers on the timeline to highlight favorite parts</text>
-  <text x="240" y="770" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">2. Give 2 Stars — Two things that worked well</text>
-  <text x="240" y="830" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">3. Make 1 Wish — One thing to try next time</text>
-  <text x="240" y="890" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">4. Pick a vibe — How does the music make you feel?</text>
+  <text x="192" y="530" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#fbbf24" font-weight="bold">What you'll do:</text>
+  <text x="240" y="600" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">1. Place stickers on the timeline to highlight favorite parts</text>
+  <text x="240" y="660" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">2. Give 2 Stars — Two things that worked well</text>
+  <text x="240" y="720" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">3. Make 1 Wish — One thing to try next time</text>
+  <text x="240" y="780" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">4. Pick a vibe — How does the music make you feel?</text>
 
   <!-- Bonus game mention -->
-  <text x="192" y="1000" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#10b981">Bonus: When finished, play Loop Lab with a partner!</text>
+  <text x="192" y="920" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#10b981">Bonus: When finished, play Loop Lab with a partner!</text>
 </svg>
