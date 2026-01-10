@@ -14,23 +14,23 @@
   <rect width="1920" height="1080" fill="url(#grid)"/>
 
   <!-- Title -->
-  <text x="192" y="150" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">BEAT SPOTLIGHT</text>
+  <text x="192" y="120" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">Reflection Time</text>
 
   <!-- Accent line -->
-  <rect x="192" y="180" width="500" height="3" fill="#a5b4fc" opacity="0.5"/>
+  <rect x="192" y="150" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
 
-  <!-- Subtitle -->
-  <text x="192" y="260" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">Reflection Time</text>
+  <!-- Choose Review Type -->
+  <text x="192" y="230" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#fbbf24" font-weight="bold">Choose Review Type:</text>
+  <text x="240" y="290" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">1. Self Reflection</text>
+  <text x="240" y="350" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">2. Partner Reflection</text>
 
-  <!-- Explanation -->
-  <text x="192" y="400" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">Time to reflect on your rhythmic choices!</text>
+  <!-- What you'll do -->
+  <text x="192" y="460" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#fbbf24" font-weight="bold">What you'll do:</text>
+  <text x="240" y="530" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">1. Place stickers on the timeline to highlight favorite parts</text>
+  <text x="240" y="590" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">2. Give 2 Stars — Two things that worked well</text>
+  <text x="240" y="650" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">3. Make 1 Wish — One thing to try next time</text>
+  <text x="240" y="710" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">4. Pick a vibe — How does the music make you feel?</text>
 
-  <text x="192" y="520" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#94a3b8">Think about:</text>
-
-  <text x="240" y="600" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">• What beat pattern did you create?</text>
-  <text x="240" y="670" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">• How does your rhythm match the action?</text>
-  <text x="240" y="740" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#e2e8f0">• What would you change next time?</text>
-
-  <!-- Duration -->
-  <text x="192" y="900" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">3 minutes</text>
+  <!-- Bonus game mention -->
+  <text x="192" y="850" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#10b981">Bonus: When finished, play Name That Loop with a partner!</text>
 </svg>

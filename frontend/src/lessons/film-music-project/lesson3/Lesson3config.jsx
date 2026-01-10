@@ -193,8 +193,8 @@ export const lessonSections = [
       {
         id: 'reflection-instructions',
         type: 'summary',
-        label: 'Two Stars and a Wish',
-        description: 'Explain the reflection prompts - Slide 11',
+        label: 'Reflection Time',
+        description: 'Introduce the reflection activity.',
         duration: 1
       },
       {
@@ -204,8 +204,8 @@ export const lessonSections = [
         duration: 5,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students complete Two Stars and a Wish - Slide 12',
-        bonusDescription: 'Bonus: Share Your Work'
+        description: 'STUDENTS WORK: Complete reflection activity.',
+        bonusDescription: 'Bonus: Name That Loop with a partner'
       }
     ]
   }
@@ -462,8 +462,8 @@ export const lessonStages = [
   // Reflection
   {
     id: 'reflection-instructions',
-    label: 'Two Stars and a Wish',
-    description: 'Explain the reflection prompts - Slide 11',
+    label: 'Reflection Time',
+    description: 'Introduce the reflection activity.',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -474,15 +474,15 @@ export const lessonStages = [
   {
     id: 'reflection',
     label: '🎮 Unlock Reflection',
-    description: 'Students complete Two Stars and a Wish',
-    bonusDescription: 'Bonus: Share Your Work',
+    description: 'STUDENTS WORK: Complete reflection activity.',
+    bonusDescription: 'Bonus: Name That Loop with a partner',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
     duration: 5,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson3/slides/12.svg'
+      type: 'activity-slide',
+      slidePath: '/lessons/film-music-project/lesson3/slides/11.svg'
     }
   }
 ];

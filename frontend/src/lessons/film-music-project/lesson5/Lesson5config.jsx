@@ -113,11 +113,20 @@ export const lessonSections = [
     estimatedTime: 5,
     stages: [
       {
-        id: 'class-reflection',
+        id: 'reflection-instructions',
         type: 'summary',
-        label: 'Class Reflection',
-        description: 'Raise hands to share thoughts on melody choices',
-        duration: 3
+        label: 'Reflection Time',
+        description: 'Introduce the reflection activity.',
+        duration: 1
+      },
+      {
+        id: 'reflection',
+        type: 'activity',
+        label: '🎮 Unlock Reflection',
+        description: 'STUDENTS WORK: Complete reflection activity.',
+        duration: 5,
+        hasTimer: true,
+        trackProgress: true
       },
       {
         id: 'conclusion',
@@ -327,32 +336,28 @@ export const lessonStages = [
     }
   },
   {
-    id: 'class-reflection',
-    label: 'Reflect & Share',
-    description: 'Pair share then class reflection',
+    id: 'reflection-instructions',
+    label: 'Reflection Time',
+    description: 'Introduce the reflection activity.',
     type: 'summary',
-    duration: 3,
+    duration: 1,
     presentationView: {
-      type: 'summary',
-      title: 'Reflect & Share',
-      sections: [
-        {
-          heading: '👥 PAIR AND SHARE',
-          bullets: [
-            'Sit in a group of 2 or 3',
-            'Play your composition for your partner(s)',
-            'Tell them what mood you chose and why'
-          ]
-        },
-        {
-          heading: '🙋 CLASS REFLECTION — Raise your hand!',
-          bullets: [
-            'What mood did you choose? Why?',
-            'Did your melody go up, down, or stay the same?',
-            'How did your melody match the game video?'
-          ]
-        }
-      ]
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson5/slides/7-reflection-instructions.svg'
+    }
+  },
+  {
+    id: 'reflection',
+    label: '🎮 Unlock Reflection',
+    description: 'STUDENTS WORK: Complete reflection activity.',
+    bonusDescription: 'Bonus: Melody Mystery with a partner',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: true,
+    duration: 5,
+    presentationView: {
+      type: 'activity-slide',
+      slidePath: '/lessons/film-music-project/lesson5/slides/7-reflection-instructions.svg'
     }
   },
   {
@@ -448,7 +453,8 @@ export const getActivityForStage = (stage) => {
     'melody-mystery': 'melody-mystery',  // Partner melody puzzle activity
     'composition-instructions': 'summary',
     'game-composition': 'game-composition-activity',
-    'class-reflection': 'summary',  // Class reflection with raised hands
+    'reflection-instructions': 'summary',
+    'reflection': 'two-stars-wish',  // Two Stars and a Wish reflection
     'conclusion': 'summary'
   };
   return stageMap[stage];

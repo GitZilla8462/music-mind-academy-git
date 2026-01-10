@@ -122,16 +122,16 @@ export const lessonSections = [
       {
         id: 'reflection-instructions',
         type: 'summary',
-        label: 'Beat Spotlight Instructions',
-        description: 'Explain Beat Spotlight reflection activity',
+        label: 'Reflection Time',
+        description: 'Introduce the reflection activity.',
         duration: 1
       },
       {
         id: 'reflection-activity',
         type: 'activity',
-        label: '🎮 Unlock Beat Spotlight',
-        description: 'Reflect on your rhythmic choices',
-        duration: 3,
+        label: '🎮 Unlock Reflection',
+        description: 'STUDENTS WORK: Complete reflection activity.',
+        duration: 5,
         hasTimer: true,
         trackProgress: true
       },
@@ -339,8 +339,8 @@ export const lessonStages = [
   },
   {
     id: 'reflection-instructions',
-    label: 'Beat Spotlight Instructions',
-    description: 'Explain Beat Spotlight reflection activity',
+    label: 'Reflection Time',
+    description: 'Introduce the reflection activity.',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -350,16 +350,17 @@ export const lessonStages = [
   },
   {
     id: 'reflection-activity',
-    label: '🎮 Unlock Beat Spotlight',
-    description: 'Reflect on your rhythmic choices',
+    label: '🎮 Unlock Reflection',
+    description: 'STUDENTS WORK: Complete reflection activity.',
+    bonusDescription: 'Bonus: Name That Loop with a partner',
     type: 'activity',
     hasTimer: true,
     hasProgress: true,
     trackProgress: true,
-    duration: 3,
+    duration: 5,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/7-activity-reflection.svg'
+      type: 'activity-slide',
+      slidePath: '/lessons/film-music-project/lesson4/slides/7-reflection-instructions.svg'
     }
   },
   {
@@ -407,7 +408,7 @@ export const getActivityForStage = (stage) => {
     'composition-instructions': 'summary',
     'sports-composition': 'sports-composition-activity',
     'reflection-instructions': 'summary',
-    'reflection-activity': 'beat-spotlight',  // Beat Spotlight reflection
+    'reflection-activity': 'two-stars-wish',  // Two Stars and a Wish reflection
     'conclusion': 'summary'
   };
   return stageMap[stage];
