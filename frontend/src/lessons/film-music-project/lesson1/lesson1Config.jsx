@@ -418,7 +418,7 @@ export const lessonStages = [
     duration: 5,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/14.svg'
+      slidePath: '/lessons/film-music-project/lesson1/slides/13.svg'
     }
   },
   {

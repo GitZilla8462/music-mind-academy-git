@@ -370,7 +370,7 @@ export const lessonStages = [
     duration: 5,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/11.svg'
+      slidePath: '/lessons/film-music-project/lesson2/slides/10.svg'
     }
   },
   // Conclusion
