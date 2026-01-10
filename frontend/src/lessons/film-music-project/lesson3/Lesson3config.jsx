@@ -184,8 +184,8 @@ export const lessonSections = [
   },
   {
     id: 'reflection',
-    title: '6. Reflection',
-    subtitle: 'Two Stars and a Wish',
+    title: '6. Reflect & Wrap Up',
+    subtitle: 'Reflection + Conclusion',
     icon: '⭐',
     color: 'amber',
     estimatedTime: 8,
@@ -206,6 +206,13 @@ export const lessonSections = [
         trackProgress: true,
         description: 'STUDENTS WORK: Complete reflection activity.',
         bonusDescription: 'Bonus: Name That Loop with a partner'
+      },
+      {
+        id: 'conclusion',
+        type: 'summary',
+        label: 'Key Insight',
+        description: 'Form gives your music a journey',
+        duration: 1
       }
     ]
   }
@@ -484,6 +491,18 @@ export const lessonStages = [
       type: 'activity-slide',
       slidePath: '/lessons/film-music-project/lesson3/slides/11.svg'
     }
+  },
+  // Conclusion
+  {
+    id: 'conclusion',
+    label: 'Key Insight',
+    description: 'Form gives your music a journey',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson3/slides/12-conclusion.svg'
+    }
   }
 ];
 
@@ -510,7 +529,8 @@ export const getActivityForStage = (stage) => {
     'wildlife-composition': 'wildlife-composition-activity',
     'kitchen-composition': 'wildlife-composition-activity',  // backward compatibility
     'reflection-instructions': 'summary',
-    'reflection': 'two-stars-wish'
+    'reflection': 'two-stars-wish',
+    'conclusion': 'summary'
   };
   return stageMap[stage];
 };
