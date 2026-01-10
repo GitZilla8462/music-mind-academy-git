@@ -684,6 +684,16 @@ input[type="range"]::-moz-range-thumb:hover {
   cursor: none !important;
 }
 
+/* CHROMEBOOK FIX: Slider thumb pseudo-elements need explicit cursor:none */
+/* The * selector doesn't reach pseudo-elements, so we target them directly */
+.chromebook-hide-cursor input[type="range"]::-webkit-slider-thumb {
+  cursor: none !important;
+}
+
+.chromebook-hide-cursor input[type="range"]::-moz-range-thumb {
+  cursor: none !important;
+}
+
 /* Restore cursor for bonus overlays and activities that don't use custom cursor */
 /* Use this class on overlays that should show the native cursor */
 .restore-cursor,

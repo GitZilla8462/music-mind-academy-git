@@ -2,11 +2,99 @@
 // Score the Adventure - Mood & Expression
 // Uses TeacherLessonView for combined sidebar + presentation
 
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from "../../../context/SessionContext";
-import { Monitor, Video, Gamepad2, Trophy, Clock } from 'lucide-react';
+import { Monitor, Video, Gamepad2, Trophy, Clock, X, Play } from 'lucide-react';
 import { getDatabase, ref, onValue } from 'firebase/database';
+
+// First-time tutorial modal for teachers
+const Lesson1TutorialModal = ({ onClose }) => {
+  const [dontShowAgain, setDontShowAgain] = useState(false);
+
+  const handleClose = () => {
+    if (dontShowAgain) {
+      localStorage.setItem('lesson1-tutorial-seen', 'true');
+    }
+    onClose();
+  };
+
+  const handleWatchVideo = () => {
+    window.open('/lessons/TutorialVideo.mp4', '_blank', 'width=1280,height=720,menubar=no,toolbar=no');
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-white">Welcome to Lesson 1!</h2>
+          <button
+            onClick={handleClose}
+            className="text-white/80 hover:text-white transition-colors"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="px-6 py-5">
+          <p className="text-gray-700 text-lg mb-4">
+            This lesson includes a <strong>Hook Video</strong> that shows the same scene with two different music scores.
+          </p>
+
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+            <h3 className="font-semibold text-purple-900 mb-2">How to use the video:</h3>
+            <ol className="text-purple-800 space-y-2 text-sm">
+              <li className="flex gap-2">
+                <span className="font-bold">1.</span>
+                <span>Navigate to the <strong>"Hook Video"</strong> slide in the sidebar</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="font-bold">2.</span>
+                <span>Click <strong>Play</strong> to start the video on the projector</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="font-bold">3.</span>
+                <span>Ask students: <em>"How did the music change the feeling?"</em></span>
+              </li>
+            </ol>
+          </div>
+
+          {/* Watch Tutorial Button */}
+          <button
+            onClick={handleWatchVideo}
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-all mb-4"
+          >
+            <Play size={20} fill="currentColor" />
+            Watch: How to Run a Lesson (2 min)
+          </button>
+
+          {/* Don't show again checkbox */}
+          <label className="flex items-center gap-2 cursor-pointer text-gray-600 hover:text-gray-800">
+            <input
+              type="checkbox"
+              checked={dontShowAgain}
+              onChange={(e) => setDontShowAgain(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+            />
+            <span className="text-sm">Don't show this again</span>
+          </label>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+          <button
+            onClick={handleClose}
+            className="w-full bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors"
+          >
+            Got it, let's start!
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Config
 import { lesson1Config, lessonStages, getActivityForStage } from './lesson1Config';
@@ -280,25 +368,37 @@ const Lesson1 = () => {
   // SESSION MODE: TEACHER VIEW
   // Uses TeacherLessonView for combined sidebar + presentation
   // ========================================
+
+  // Tutorial modal state - only show if teacher hasn't seen it
+  const [showTutorialModal, setShowTutorialModal] = React.useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('lesson1-tutorial-seen') !== 'true';
+  });
+
   if (sessionMode.isSessionMode && effectiveRole === 'teacher') {
     return (
-      <TeacherLessonView
-        config={lesson1Config}
-        sessionCode={sessionCode}
-        lessonStages={lessonStages}
-        getCurrentStage={getCurrentStage}
-        setCurrentStage={setCurrentStage}
-        getStudents={getStudents}
-        getProgressStats={getProgressStats}
-        endSession={endSession}
-        activityTimers={timers.activityTimers}
-        formatTime={timers.formatTime}
-        adjustPresetTime={timers.adjustPresetTime}
-        startActivityTimer={timers.startActivityTimer}
-        pauseActivityTimer={timers.pauseActivityTimer}
-        resumeActivityTimer={timers.resumeActivityTimer}
-        resetActivityTimer={timers.resetActivityTimer}
-      />
+      <>
+        {showTutorialModal && (
+          <Lesson1TutorialModal onClose={() => setShowTutorialModal(false)} />
+        )}
+        <TeacherLessonView
+          config={lesson1Config}
+          sessionCode={sessionCode}
+          lessonStages={lessonStages}
+          getCurrentStage={getCurrentStage}
+          setCurrentStage={setCurrentStage}
+          getStudents={getStudents}
+          getProgressStats={getProgressStats}
+          endSession={endSession}
+          activityTimers={timers.activityTimers}
+          formatTime={timers.formatTime}
+          adjustPresetTime={timers.adjustPresetTime}
+          startActivityTimer={timers.startActivityTimer}
+          pauseActivityTimer={timers.pauseActivityTimer}
+          resumeActivityTimer={timers.resumeActivityTimer}
+          resetActivityTimer={timers.resetActivityTimer}
+        />
+      </>
     );
   }
 

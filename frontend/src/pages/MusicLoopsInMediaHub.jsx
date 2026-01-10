@@ -331,14 +331,15 @@ const MusicLoopsInMediaHub = () => {
 
       {/* GETTING STARTED - Collapsible */}
       <div className="max-w-5xl mx-auto px-8 pb-6">
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div className="bg-gradient-to-r from-sky-50 to-blue-50 border-2 border-sky-200 rounded-xl overflow-hidden shadow-sm">
           {/* Header - Always visible, clickable */}
           <button
             onClick={toggleGettingStarted}
-            className="w-full px-6 py-5 flex items-center justify-between hover:bg-slate-50 transition-colors"
+            className="w-full px-6 py-5 flex items-center justify-between hover:bg-sky-100/50 transition-colors"
           >
-            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-sky-900 flex items-center gap-2">
               🚀 Getting Started
+              <span className="text-sm font-medium text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full">New here? Start here!</span>
             </h2>
             {gettingStartedOpen ? (
               <ChevronUp className="w-6 h-6 text-slate-500" />
