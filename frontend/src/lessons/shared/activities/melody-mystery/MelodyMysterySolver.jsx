@@ -118,7 +118,7 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
   );
   const [solvedLocations, setSolvedLocations] = useState([]);
   const [listensRemaining, setListensRemaining] = useState(
-    locations.map(() => 3)
+    locations.map(() => 10)  // 10 listens per location for better learning experience
   );
   const [hintsUsed, setHintsUsed] = useState(
     locations.map(() => 0)
