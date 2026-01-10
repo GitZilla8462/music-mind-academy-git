@@ -1,17 +1,29 @@
 // File: /src/lessons/film-music-project/lesson1/activities/two-stars-and-a-wish/TwoStarsAndAWishActivity.jsx
 // Main wrapper component for the reflection activity
-// UPDATED: Loads from auto-save (no submit required), seamless transition from composition
+// UPDATED: Accepts compositionData prop for use as modal in other lessons
+// When compositionData prop is provided, shows only ReflectionModal (DAW already visible behind)
+// When no prop, loads from localStorage and shows full DAW + modal (standalone mode)
 
 import React, { useState, useEffect } from 'react';
 import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
 import ReflectionModal from './ReflectionModal';
 import NameThatLoopActivity from '../layer-detective/NameThatLoopActivity';
 
-const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false, isSessionMode = false }) => {
+const TwoStarsAndAWishActivity = ({
+  onComplete,
+  viewMode = false,
+  isSessionMode = false,
+  compositionData: propsCompositionData = null,  // Accept composition data as prop
+  activityType = null  // Optional activity type for different reflection contexts
+}) => {
   const [showBonus, setShowBonus] = useState(false);
   const [isDAWReady, setIsDAWReady] = useState(false);
   const [reflectionCompleted, setReflectionCompleted] = useState(false);
-  
+
+  // Determine if we're in "modal mode" (compositionData passed as prop)
+  // In modal mode, the DAW is already showing behind us, so we just show the reflection modal
+  const isModalMode = propsCompositionData !== null;
+
   // Check if reflection is already completed when component mounts
   useEffect(() => {
     const savedReflection = localStorage.getItem('school-beneath-reflection');
@@ -26,18 +38,19 @@ const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false, isSessionMode 
       }
     }
   }, []);
-  
+
   // Load saved composition data - tries submitted version first, then falls back to auto-save
-  const getCompositionData = () => {
+  // Only used in standalone mode (when no compositionData prop)
+  const getCompositionDataFromStorage = () => {
     // First, try to load from the submitted version
     let saved = localStorage.getItem('school-beneath-composition');
-    
+
     // If not found, fallback to auto-saved version
     if (!saved) {
       console.log('No submitted composition found, loading from auto-save');
       saved = localStorage.getItem('school-beneath');
     }
-    
+
     if (saved) {
       try {
         const data = JSON.parse(saved);
@@ -55,7 +68,8 @@ const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false, isSessionMode 
     return null;
   };
 
-  const compositionData = getCompositionData();
+  // Use prop data if provided, otherwise load from localStorage
+  const compositionData = propsCompositionData || getCompositionDataFromStorage();
 
   if (!compositionData && !viewMode) {
     return (
@@ -107,10 +121,10 @@ const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false, isSessionMode 
             ← Back to Reflection
           </button>
         </div>
-        
+
         {/* Bonus Activity */}
         <div className="flex-1 overflow-hidden">
-          <NameThatLoopActivity 
+          <NameThatLoopActivity
             onComplete={() => {
               console.log('Bonus activity complete');
               onComplete(); // Still marks reflection as complete
@@ -121,6 +135,22 @@ const TwoStarsAndAWishActivity = ({ onComplete, viewMode = false, isSessionMode 
     );
   }
 
+  // MODAL MODE: When compositionData is passed as prop, DAW is already visible behind
+  // Just render the ReflectionModal directly
+  if (isModalMode) {
+    return (
+      <div className="w-full max-w-2xl mx-auto">
+        <ReflectionModal
+          compositionData={compositionData}
+          onComplete={handleReflectionComplete}
+          viewMode={reflectionCompleted ? true : viewMode}
+          isSessionMode={isSessionMode}
+        />
+      </div>
+    );
+  }
+
+  // STANDALONE MODE: Render full DAW + reflection modal (used in Lesson 1)
   return (
     <div className="h-full w-full flex flex-col bg-gray-900 relative">
       {/* Loading Overlay - Show while DAW initializes */}
