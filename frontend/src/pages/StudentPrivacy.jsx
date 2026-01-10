@@ -85,6 +85,102 @@ const StudentPrivacy = () => {
           border-color: #93c5fd;
         }
 
+        .highlight-box.amber {
+          background: #fffbeb;
+          border-color: #fcd34d;
+        }
+
+        .it-quick-ref {
+          background: #1e293b;
+          color: white;
+          border-radius: 12px;
+          padding: 1.5rem;
+          margin: 1.5rem 0;
+        }
+
+        .it-quick-ref h3 {
+          color: white;
+          margin-top: 0;
+          margin-bottom: 1rem;
+          font-size: 1rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .it-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.5rem 2rem;
+        }
+
+        .it-item {
+          display: flex;
+          justify-content: space-between;
+          padding: 0.25rem 0;
+          border-bottom: 1px solid #334155;
+        }
+
+        .it-item-label {
+          color: #94a3b8;
+        }
+
+        .it-item-value {
+          font-weight: 600;
+        }
+
+        .it-item-value.yes {
+          color: #4ade80;
+        }
+
+        .it-item-value.no {
+          color: #4ade80;
+        }
+
+        .it-domains {
+          margin-top: 1rem;
+          padding-top: 1rem;
+          border-top: 1px solid #334155;
+        }
+
+        .it-domains-title {
+          color: #94a3b8;
+          font-size: 0.875rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .it-domain-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+
+        .it-domain {
+          background: #334155;
+          padding: 0.25rem 0.75rem;
+          border-radius: 4px;
+          font-family: monospace;
+          font-size: 0.875rem;
+        }
+
+        .download-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-top: 1rem;
+          padding: 0.75rem 1.25rem;
+          background: #3b82f6;
+          color: white;
+          border-radius: 8px;
+          text-decoration: none;
+          font-weight: 600;
+          font-size: 0.875rem;
+          transition: background 0.2s;
+        }
+
+        .download-btn:hover {
+          background: #2563eb;
+        }
+
         .compliance-badges {
           display: flex;
           flex-wrap: wrap;
@@ -110,6 +206,9 @@ const StudentPrivacy = () => {
           }
           .data-table th, .data-table td {
             padding: 0.5rem;
+          }
+          .it-grid {
+            grid-template-columns: 1fr;
           }
         }
       `}</style>
@@ -202,9 +301,67 @@ const StudentPrivacy = () => {
             </p>
           </div>
 
+          {/* IT Quick Reference Box */}
+          <div className="it-quick-ref">
+            <h3>⚡ Quick Reference for IT Administrators</h3>
+            <div className="it-grid">
+              <div className="it-item">
+                <span className="it-item-label">Student PII Collected</span>
+                <span className="it-item-value no">NONE</span>
+              </div>
+              <div className="it-item">
+                <span className="it-item-label">Student Accounts Required</span>
+                <span className="it-item-value no">NO</span>
+              </div>
+              <div className="it-item">
+                <span className="it-item-label">Student Email Required</span>
+                <span className="it-item-value no">NO</span>
+              </div>
+              <div className="it-item">
+                <span className="it-item-label">Data Sold to Third Parties</span>
+                <span className="it-item-value no">NO</span>
+              </div>
+              <div className="it-item">
+                <span className="it-item-label">Advertising</span>
+                <span className="it-item-value no">NONE</span>
+              </div>
+              <div className="it-item">
+                <span className="it-item-label">AI Training on Student Data</span>
+                <span className="it-item-value no">NO</span>
+              </div>
+              <div className="it-item">
+                <span className="it-item-label">FERPA Compliant</span>
+                <span className="it-item-value yes">YES</span>
+              </div>
+              <div className="it-item">
+                <span className="it-item-label">COPPA Compliant</span>
+                <span className="it-item-value yes">YES</span>
+              </div>
+              <div className="it-item">
+                <span className="it-item-label">DPA Available</span>
+                <span className="it-item-value yes">YES</span>
+              </div>
+              <div className="it-item">
+                <span className="it-item-label">SSO/Clever/ClassLink</span>
+                <span className="it-item-value">NOT REQUIRED</span>
+              </div>
+            </div>
+            <div className="it-domains">
+              <div className="it-domains-title">Domains to Whitelist:</div>
+              <div className="it-domain-list">
+                <span className="it-domain">musicmindacademy.com</span>
+                <span className="it-domain">*.firebaseapp.com</span>
+                <span className="it-domain">*.firebaseio.com</span>
+              </div>
+            </div>
+            <a href="/MusicMindAcademy_IT_Privacy_Summary.pdf" className="download-btn" download>
+              📄 Download IT Summary (PDF)
+            </a>
+          </div>
+
           {/* Quick Summary Box */}
           <div className="highlight-box">
-            <h3 style={{ marginTop: 0, color: '#065f46' }}>Quick Summary</h3>
+            <h3 style={{ marginTop: 0, color: '#065f46' }}>Summary</h3>
             <p style={{ marginBottom: 0 }}>
               Music Mind Academy is designed with student privacy as a core principle. We collect <strong>no student emails</strong>,
               require <strong>no student accounts</strong>, and students are identified only by <strong>randomly assigned nicknames</strong>.
@@ -215,11 +372,11 @@ const StudentPrivacy = () => {
 
           {/* Compliance Badges */}
           <div className="compliance-badges">
-            <div className="compliance-badge">FERPA Compliant</div>
-            <div className="compliance-badge">COPPA Compliant</div>
-            <div className="compliance-badge">NY Ed Law 2-D Compliant</div>
-            <div className="compliance-badge">No Ads</div>
-            <div className="compliance-badge">No Data Selling</div>
+            <div className="compliance-badge">✓ FERPA Compliant</div>
+            <div className="compliance-badge">✓ COPPA Compliant</div>
+            <div className="compliance-badge">✓ NY Ed Law 2-D Compliant</div>
+            <div className="compliance-badge">✓ No Ads</div>
+            <div className="compliance-badge">✓ No Data Selling</div>
           </div>
 
           {/* What We Collect */}
@@ -313,6 +470,60 @@ const StudentPrivacy = () => {
             <li>Session history and usage analytics</li>
           </ul>
 
+          {/* SSO and Rostering */}
+          <h2>Single Sign-On & Rostering</h2>
+          <p>
+            <strong>Current status:</strong> Music Mind Academy does not currently integrate with Clever, ClassLink,
+            or district SSO systems. Students join sessions via class codes without needing accounts or logins.
+          </p>
+          <p>
+            <strong>Teacher authentication:</strong> Teachers sign in via Google or Microsoft OAuth.
+            SAML/district SSO for teachers is not currently supported but may be added based on demand.
+          </p>
+          <p>
+            <strong>Why no SSO is needed:</strong> Because students never create accounts and join only with
+            class codes, there is no rostering or SSO requirement. This simplifies deployment and eliminates
+            the need for student data synchronization.
+          </p>
+
+          {/* Data Subprocessors */}
+          <h2>Data Subprocessors</h2>
+          <p>Music Mind Academy uses the following third-party services:</p>
+
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Service</th>
+                <th>Purpose</th>
+                <th>Data Processed</th>
+                <th>Location</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Firebase (Google Cloud)</td>
+                <td>Database & Authentication</td>
+                <td>Teacher accounts, session data, student nicknames during active sessions</td>
+                <td>United States</td>
+              </tr>
+              <tr>
+                <td>Vercel</td>
+                <td>Web hosting (frontend)</td>
+                <td>Static files only - no student data</td>
+                <td>United States</td>
+              </tr>
+              <tr>
+                <td>Railway</td>
+                <td>Backend hosting</td>
+                <td>API requests - no persistent student data</td>
+                <td>United States</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p><strong>We do NOT use:</strong> Google Analytics, Facebook Pixel, advertising networks,
+          behavioral tracking, or any other third-party services that process student data.</p>
+
           {/* Data Storage */}
           <h2>Data Storage and Security</h2>
 
@@ -349,7 +560,28 @@ const StudentPrivacy = () => {
             <li><strong>Firebase Security Rules:</strong> Database access restricted by role</li>
             <li><strong>No persistent student identifiers:</strong> Students are not tracked across sessions</li>
             <li><strong>Minimal data collection:</strong> We only collect what's necessary for the service to function</li>
+            <li><strong>No student data at rest:</strong> Student compositions save locally, not on our servers</li>
           </ul>
+
+          {/* Breach Notification */}
+          <h2>Data Breach Response</h2>
+          <p>
+            In the unlikely event of a data breach affecting student information, Music Mind Academy will:
+          </p>
+          <ul>
+            <li>Notify affected schools/districts within <strong>72 hours</strong> of discovery</li>
+            <li>Provide details of what data was affected</li>
+            <li>Outline remediation steps taken</li>
+            <li>Cooperate with any required state reporting obligations</li>
+          </ul>
+          <div className="highlight-box">
+            <p style={{ marginBottom: 0 }}>
+              <strong>Note:</strong> Because we collect no student PII (no names, emails, or identifying information),
+              the risk of a meaningful student data breach is minimal. Even in a worst-case scenario,
+              exposed data would only include randomly-assigned nicknames like "Wild Panda" that cannot
+              be connected to real students.
+            </p>
+          </div>
 
           {/* Legal Compliance */}
           <h2>Legal Compliance</h2>
@@ -386,9 +618,39 @@ const StudentPrivacy = () => {
             <li>Being willing to sign Data Privacy Agreements (DPAs) with districts that require them</li>
           </ul>
 
-          {/* Data Privacy Agreements */}
+          {/* State DPA Status */}
+          <h2>Data Privacy Agreements by State</h2>
+          <p>Music Mind Academy has signed or is ready to sign DPAs in the following states:</p>
+
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>State</th>
+                <th>Status</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Ohio</td>
+                <td style={{ color: '#16a34a', fontWeight: 600 }}>Signed</td>
+                <td>Ohio NDPA signed. Exhibit E available for other Ohio districts to piggyback.</td>
+              </tr>
+              <tr>
+                <td>New York</td>
+                <td style={{ color: '#2563eb', fontWeight: 600 }}>Available</td>
+                <td>NY Ed Law 2-D compliant. DPA available on request.</td>
+              </tr>
+              <tr>
+                <td>All Other States</td>
+                <td style={{ color: '#2563eb', fontWeight: 600 }}>Available</td>
+                <td>Contact us to discuss your state's DPA requirements.</td>
+              </tr>
+            </tbody>
+          </table>
+
           <div className="highlight-box blue">
-            <h3 style={{ marginTop: 0, color: '#1e40af' }}>Data Privacy Agreements</h3>
+            <h3 style={{ marginTop: 0, color: '#1e40af' }}>Request a Data Privacy Agreement</h3>
             <p>
               If your district requires a signed Data Privacy Agreement (DPA), we are happy to work with you.
               We can review and sign agreements that outline our commitment to protecting student data and
@@ -406,12 +668,12 @@ const StudentPrivacy = () => {
             <p>To allow Music Mind Academy on your school network, whitelist these domains:</p>
             <ul style={{ marginBottom: '0.5rem' }}>
               <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>musicmindacademy.com</code></li>
-              <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>musicroomtools.org</code></li>
               <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>*.firebaseapp.com</code></li>
               <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>*.firebaseio.com</code></li>
             </ul>
             <p style={{ marginBottom: 0, fontSize: '0.9rem', color: '#475569' }}>
-              All traffic uses <strong>HTTPS (port 443)</strong>. If your school uses Google Workspace, Firebase domains may already be allowed.
+              All traffic uses <strong>HTTPS (port 443)</strong>. No special ports or protocols required.
+              If your school uses Google Workspace, Firebase domains may already be allowed.
             </p>
           </div>
 
@@ -457,9 +719,23 @@ const StudentPrivacy = () => {
 
           <h3>What third-party services do you use?</h3>
           <p>
-            We use Firebase (Google Cloud) for database and authentication. Teacher accounts authenticate
-            via Google or Microsoft OAuth. We do not use analytics services, advertising networks, or
-            any other third-party services that process student data.
+            We use Firebase (Google Cloud) for database and authentication, Vercel for frontend hosting,
+            and Railway for backend hosting. Teacher accounts authenticate via Google or Microsoft OAuth.
+            We do not use analytics services, advertising networks, or any other third-party services
+            that process student data.
+          </p>
+
+          <h3>Do you support Clever or ClassLink?</h3>
+          <p>
+            Not currently. Because students don't need accounts (they join with class codes only),
+            SSO integration isn't necessary. Teachers sign in via Google or Microsoft OAuth.
+          </p>
+
+          <h3>What happens if there's a data breach?</h3>
+          <p>
+            We will notify affected districts within 72 hours with details of what occurred and remediation steps.
+            However, because we don't collect student PII, the impact of any potential breach would be minimal —
+            exposed data would only include randomly-assigned nicknames that cannot identify real students.
           </p>
 
           {/* Contact */}
