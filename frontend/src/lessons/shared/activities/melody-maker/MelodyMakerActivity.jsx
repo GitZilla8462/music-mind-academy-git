@@ -3,7 +3,7 @@
 // Shows saved melodies, opens melody grid editor, saves to localStorage for DAW
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Square, Trash2, Save, Music, Check, ChevronDown, ArrowLeft, Music2 } from 'lucide-react';
+import { Play, Square, Trash2, Save, Music, Check, ChevronDown, ArrowLeft, Music2, Pencil } from 'lucide-react';
 import * as Tone from 'tone';
 
 // Storage key matching what GameCompositionActivity looks for
@@ -28,6 +28,34 @@ const saveMelodyToStorage = (melody) => {
     return updated;
   } catch (error) {
     console.error('Failed to save melody:', error);
+    return loadSavedMelodies();
+  }
+};
+
+// Delete a specific melody from localStorage
+const deleteMelodyFromStorage = (melodyId) => {
+  try {
+    const existing = loadSavedMelodies();
+    const updated = existing.filter(melody => melody.id !== melodyId);
+    localStorage.setItem(SAVED_MELODIES_KEY, JSON.stringify(updated));
+    return updated;
+  } catch (error) {
+    console.error('Failed to delete melody:', error);
+    return loadSavedMelodies();
+  }
+};
+
+// Update an existing melody in localStorage
+const updateMelodyInStorage = (updatedMelody) => {
+  try {
+    const existing = loadSavedMelodies();
+    const updated = existing.map(melody =>
+      melody.id === updatedMelody.id ? { ...updatedMelody, savedAt: new Date().toISOString() } : melody
+    );
+    localStorage.setItem(SAVED_MELODIES_KEY, JSON.stringify(updated));
+    return updated;
+  } catch (error) {
+    console.error('Failed to update melody:', error);
     return loadSavedMelodies();
   }
 };
@@ -213,13 +241,26 @@ const getContourDescription = (grid, beats) => {
 // ============================================
 // MELODY GRID EDITOR COMPONENT
 // ============================================
-const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0, lockedMood = null, moodMelodyCount = 0 }) => {
-  const [beats, setBeats] = useState(8); // 8 = 2 beats, 16 = 4 beats
+const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0, lockedMood = null, moodMelodyCount = 0, initialMelody = null }) => {
+  // Initialize state from initialMelody if provided (for editing)
+  const initializeFromMelody = (melody) => {
+    if (!melody) return null;
+    return {
+      beats: melody.beats || 8,
+      moodIndex: MOODS.findIndex(m => m.name === melody.mood || m.id === melody.mood) || 0,
+      instrument: melody.synthType || 'piano',
+      grid: melody.pattern || Array(5).fill(null).map(() => Array(melody.beats || 8).fill(false))
+    };
+  };
+
+  const initialData = initializeFromMelody(initialMelody);
+
+  const [beats, setBeats] = useState(initialData?.beats || 8); // 8 = 2 beats, 16 = 4 beats
   // If mood is locked, find its index; otherwise start at 0
   const lockedMoodIndex = lockedMood ? MOODS.findIndex(m => m.id === lockedMood || m.name === lockedMood) : -1;
-  const [moodIndex, setMoodIndex] = useState(lockedMoodIndex >= 0 ? lockedMoodIndex : 0);
-  const [instrument, setInstrument] = useState('piano');
-  const [grid, setGrid] = useState(() => Array(5).fill(null).map(() => Array(8).fill(false)));
+  const [moodIndex, setMoodIndex] = useState(lockedMoodIndex >= 0 ? lockedMoodIndex : (initialData?.moodIndex || 0));
+  const [instrument, setInstrument] = useState(initialData?.instrument || 'piano');
+  const [grid, setGrid] = useState(() => initialData?.grid || Array(5).fill(null).map(() => Array(8).fill(false)));
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentBeat, setCurrentBeat] = useState(-1);
   const [audioReady, setAudioReady] = useState(false);
@@ -836,6 +877,12 @@ const MelodyMakerActivity = ({
   const [savedMelodies, setSavedMelodies] = useState(() => loadSavedMelodies());
   const [showMelodyMaker, setShowMelodyMaker] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [editingMelody, setEditingMelody] = useState(null);
+  const [playingMelodyId, setPlayingMelodyId] = useState(null);
+
+  // Refs for melody preview playback
+  const previewSynthRef = useRef(null);
+  const previewSequenceRef = useRef(null);
 
   // Only use activeMoodData if mood is locked, otherwise show generic
   const isMoodLocked = lockedMood !== null;
@@ -846,17 +893,106 @@ const MelodyMakerActivity = ({
   // Count total melodies saved
   const totalMelodyCount = savedMelodies.length;
 
+  // Stop preview playback
+  const stopPreview = useCallback(() => {
+    try {
+      Tone.Transport.stop();
+      Tone.Transport.cancel();
+    } catch (e) { /* ignore */ }
+
+    if (previewSequenceRef.current) {
+      try { previewSequenceRef.current.dispose(); } catch (e) { /* ignore */ }
+      previewSequenceRef.current = null;
+    }
+    setPlayingMelodyId(null);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopPreview();
+      if (previewSynthRef.current) {
+        try { previewSynthRef.current.dispose(); } catch (e) { /* ignore */ }
+      }
+    };
+  }, [stopPreview]);
+
+  // Play a saved melody for preview
+  const playMelodyPreview = useCallback(async (melody) => {
+    if (playingMelodyId === melody.id) {
+      stopPreview();
+      return;
+    }
+
+    stopPreview();
+    await Tone.start();
+    Tone.Transport.bpm.value = melody.bpm || 110;
+
+    // Create synth based on melody's synthType
+    if (previewSynthRef.current) {
+      try { previewSynthRef.current.dispose(); } catch (e) { /* ignore */ }
+    }
+    const instrumentConfig = INSTRUMENTS[melody.synthType || 'piano']?.synth || INSTRUMENTS.piano.synth;
+    previewSynthRef.current = new Tone.Synth(instrumentConfig).toDestination();
+
+    const pattern = melody.pattern || [];
+    const notes = melody.notes || MOODS[0].notes.map(n => n.id);
+    const beats = melody.beats || 8;
+    const beatIndices = Array.from({ length: beats }, (_, i) => i);
+
+    previewSequenceRef.current = new Tone.Sequence(
+      (time, beat) => {
+        notes.forEach((noteId, noteIndex) => {
+          if (pattern[noteIndex] && pattern[noteIndex][beat]) {
+            previewSynthRef.current.triggerAttackRelease(noteId, '8n', time);
+          }
+        });
+      },
+      beatIndices,
+      '8n'
+    );
+
+    previewSequenceRef.current.loop = true;
+    previewSequenceRef.current.start(0);
+    Tone.Transport.start('+0.05');
+    setPlayingMelodyId(melody.id);
+  }, [playingMelodyId, stopPreview]);
+
+  // Delete a melody
+  const handleDeleteMelody = useCallback((melodyId) => {
+    stopPreview();
+    const updated = deleteMelodyFromStorage(melodyId);
+    setSavedMelodies(updated);
+  }, [stopPreview]);
+
+  // Start editing a melody
+  const handleEditMelody = useCallback((melody) => {
+    stopPreview();
+    setEditingMelody(melody);
+    setShowMelodyMaker(true);
+  }, [stopPreview]);
+
   // Handle when a melody is saved
   const handleSaveMelody = useCallback((melodyLoop) => {
     console.log('🎵 Melody created:', melodyLoop.name);
 
-    const updated = saveMelodyToStorage(melodyLoop);
+    let updated;
+    if (editingMelody) {
+      // Updating an existing melody
+      const updatedMelody = { ...melodyLoop, id: editingMelody.id };
+      updated = updateMelodyInStorage(updatedMelody);
+      setEditingMelody(null);
+    } else {
+      // Saving a new melody
+      updated = saveMelodyToStorage(melodyLoop);
+    }
+
     setSavedMelodies(updated);
     setShowMelodyMaker(false);
     setShowSuccess(true);
 
     setTimeout(() => setShowSuccess(false), 2000);
-  }, []);
+  }, [editingMelody]);
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 text-white">
@@ -905,10 +1041,14 @@ const MelodyMakerActivity = ({
         {showMelodyMaker ? (
           <MelodyGridEditor
             onSave={handleSaveMelody}
-            onClose={() => setShowMelodyMaker(false)}
+            onClose={() => {
+              setShowMelodyMaker(false);
+              setEditingMelody(null);
+            }}
             melodyCount={savedMelodies.length}
             lockedMood={lockedMood}
             moodMelodyCount={totalMelodyCount}
+            initialMelody={editingMelody}
           />
         ) : (
           /* Main menu */
@@ -938,9 +1078,43 @@ const MelodyMakerActivity = ({
                         style={{ backgroundColor: melody.color || '#a855f7' }}
                       />
                       <span className="font-medium">{melody.name}</span>
-                      <span className="text-gray-400 text-sm ml-auto">
+                      <span className="text-gray-400 text-sm">
                         {melody.bpm} BPM • {melody.beats === 16 ? '4' : '2'} beats
                       </span>
+                      <div className="flex items-center gap-2 ml-auto">
+                        {/* Play/Stop button */}
+                        <button
+                          onClick={() => playMelodyPreview(melody)}
+                          className={`p-2 rounded-lg transition-colors ${
+                            playingMelodyId === melody.id
+                              ? 'bg-green-600 hover:bg-green-700'
+                              : 'bg-gray-600 hover:bg-gray-500'
+                          }`}
+                          title={playingMelodyId === melody.id ? 'Stop' : 'Play'}
+                        >
+                          {playingMelodyId === melody.id ? (
+                            <Square size={16} />
+                          ) : (
+                            <Play size={16} />
+                          )}
+                        </button>
+                        {/* Edit button */}
+                        <button
+                          onClick={() => handleEditMelody(melody)}
+                          className="p-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        {/* Delete button */}
+                        <button
+                          onClick={() => handleDeleteMelody(melody.id)}
+                          className="p-2 bg-red-600 hover:bg-red-500 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

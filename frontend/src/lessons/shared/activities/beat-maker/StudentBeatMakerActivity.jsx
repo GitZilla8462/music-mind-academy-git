@@ -4,7 +4,7 @@
 // Beats are saved to localStorage and loaded into the SportsComposition activity
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Check, Music2, ArrowRight, Play, Square, Volume2 } from 'lucide-react';
+import { Check, Music2, ArrowRight, Play, Square, Volume2, Pencil, Trash2 } from 'lucide-react';
 import * as Tone from 'tone';
 import BeatMakerPanel from '../../../../pages/projects/film-music-score/shared/BeatMakerPanel';
 
@@ -90,6 +90,34 @@ const saveBeatToStorage = (beat) => {
     return updated;
   } catch (error) {
     console.error('Failed to save beat:', error);
+    return loadSavedBeats();
+  }
+};
+
+// Delete a specific beat from localStorage
+const deleteBeatFromStorage = (beatId) => {
+  try {
+    const existing = loadSavedBeats();
+    const updated = existing.filter(beat => beat.id !== beatId);
+    localStorage.setItem(SAVED_BEATS_KEY, JSON.stringify(updated));
+    return updated;
+  } catch (error) {
+    console.error('Failed to delete beat:', error);
+    return loadSavedBeats();
+  }
+};
+
+// Update an existing beat in localStorage
+const updateBeatInStorage = (updatedBeat) => {
+  try {
+    const existing = loadSavedBeats();
+    const updated = existing.map(beat =>
+      beat.id === updatedBeat.id ? { ...updatedBeat, savedAt: new Date().toISOString() } : beat
+    );
+    localStorage.setItem(SAVED_BEATS_KEY, JSON.stringify(updated));
+    return updated;
+  } catch (error) {
+    console.error('Failed to update beat:', error);
     return loadSavedBeats();
   }
 };
@@ -429,17 +457,138 @@ const StudentBeatMakerActivity = ({
   const [savedBeats, setSavedBeats] = useState(() => loadSavedBeats());
   const [showBeatMaker, setShowBeatMaker] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [editingBeat, setEditingBeat] = useState(null);
+  const [playingBeatId, setPlayingBeatId] = useState(null);
+
+  // Refs for beat preview playback
+  const previewSynthsRef = useRef(null);
+  const previewSequenceRef = useRef(null);
 
   // Minimum beats required before moving on
   const MIN_BEATS_REQUIRED = 1;
   const hasEnoughBeats = savedBeats.length >= MIN_BEATS_REQUIRED;
 
+  // Create synths for preview playback
+  const createPreviewSynths = useCallback(() => {
+    return {
+      kick: new Tone.MembraneSynth({
+        pitchDecay: 0.05,
+        octaves: 4,
+        envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
+      }).toDestination(),
+      snare: new Tone.NoiseSynth({
+        noise: { type: 'white' },
+        envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.2 }
+      }).toDestination(),
+      hihat: new Tone.MetalSynth({
+        frequency: 200,
+        envelope: { attack: 0.001, decay: 0.1, release: 0.01 },
+        harmonicity: 5.1,
+        modulationIndex: 32,
+        resonance: 4000,
+        octaves: 1.5,
+        volume: -10
+      }).toDestination(),
+      openhat: new Tone.MetalSynth({
+        frequency: 180,
+        envelope: { attack: 0.001, decay: 0.3, release: 0.1 },
+        harmonicity: 5.1,
+        modulationIndex: 32,
+        resonance: 4000,
+        octaves: 1.5,
+        volume: -8
+      }).toDestination()
+    };
+  }, []);
+
+  // Stop preview playback
+  const stopPreview = useCallback(() => {
+    try {
+      Tone.Transport.stop();
+      Tone.Transport.cancel();
+    } catch (e) { /* ignore */ }
+
+    if (previewSequenceRef.current) {
+      try { previewSequenceRef.current.dispose(); } catch (e) { /* ignore */ }
+      previewSequenceRef.current = null;
+    }
+    setPlayingBeatId(null);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopPreview();
+      if (previewSynthsRef.current) {
+        Object.values(previewSynthsRef.current).forEach(synth => {
+          try { synth.dispose(); } catch (e) { /* ignore */ }
+        });
+      }
+    };
+  }, [stopPreview]);
+
+  // Play a saved beat for preview
+  const playBeatPreview = useCallback(async (beat) => {
+    if (playingBeatId === beat.id) {
+      stopPreview();
+      return;
+    }
+
+    stopPreview();
+    await Tone.start();
+    Tone.Transport.bpm.value = beat.bpm || 110;
+
+    if (!previewSynthsRef.current) {
+      previewSynthsRef.current = createPreviewSynths();
+    }
+
+    const pattern = beat.pattern || {};
+    const stepIndices = Array.from({ length: beat.steps || 16 }, (_, i) => i);
+
+    previewSequenceRef.current = new Tone.Sequence(
+      (time, stepIdx) => {
+        if (pattern.kick?.includes(stepIdx)) {
+          previewSynthsRef.current.kick.triggerAttackRelease('C1', '8n', time);
+        }
+        if (pattern.snare?.includes(stepIdx)) {
+          previewSynthsRef.current.snare.triggerAttackRelease('16n', time);
+        }
+        if (pattern.hihat?.includes(stepIdx)) {
+          previewSynthsRef.current.hihat.triggerAttackRelease('32n', time);
+        }
+        if (pattern.openhat?.includes(stepIdx)) {
+          previewSynthsRef.current.openhat.triggerAttackRelease('16n', time);
+        }
+      },
+      stepIndices,
+      '16n'
+    );
+
+    previewSequenceRef.current.loop = true;
+    previewSequenceRef.current.start(0);
+    Tone.Transport.start('+0.05');
+    setPlayingBeatId(beat.id);
+  }, [playingBeatId, stopPreview, createPreviewSynths]);
+
+  // Delete a beat
+  const handleDeleteBeat = useCallback((beatId) => {
+    stopPreview();
+    const updated = deleteBeatFromStorage(beatId);
+    setSavedBeats(updated);
+  }, [stopPreview]);
+
+  // Start editing a beat
+  const handleEditBeat = useCallback((beat) => {
+    stopPreview();
+    setEditingBeat(beat);
+    setShowBeatMaker(true);
+  }, [stopPreview]);
+
   // Handle when a beat is added from BeatMakerPanel
   const handleAddBeat = useCallback((beatLoop) => {
     console.log('🎵 Beat created:', beatLoop.name);
 
-    // Save to localStorage for persistence
-    const updated = saveBeatToStorage({
+    const beatData = {
       ...beatLoop,
       // Remove blob URL for storage - will be re-rendered when loaded
       file: null,
@@ -448,7 +597,18 @@ const StudentBeatMakerActivity = ({
       kit: beatLoop.kit,
       steps: beatLoop.steps,
       savedAt: new Date().toISOString()
-    });
+    };
+
+    let updated;
+    if (editingBeat) {
+      // Updating an existing beat
+      beatData.id = editingBeat.id;
+      updated = updateBeatInStorage(beatData);
+      setEditingBeat(null);
+    } else {
+      // Saving a new beat
+      updated = saveBeatToStorage(beatData);
+    }
 
     setSavedBeats(updated);
     setShowBeatMaker(false);
@@ -456,7 +616,7 @@ const StudentBeatMakerActivity = ({
 
     // Hide success message after 2 seconds
     setTimeout(() => setShowSuccess(false), 2000);
-  }, []);
+  }, [editingBeat]);
 
   // Handle continue to composition
   const handleContinue = () => {
@@ -507,10 +667,14 @@ const StudentBeatMakerActivity = ({
         {showBeatMaker ? (
           /* Beat Maker Panel - Full screen mode, no padding */
           <BeatMakerPanel
-            onClose={() => setShowBeatMaker(false)}
+            onClose={() => {
+              setShowBeatMaker(false);
+              setEditingBeat(null);
+            }}
             onAddToProject={handleAddBeat}
             customLoopCount={savedBeats.length}
             hideClap
+            initialBeat={editingBeat}
           />
         ) : (
           /* Main menu */
@@ -540,9 +704,43 @@ const StudentBeatMakerActivity = ({
                         style={{ backgroundColor: beat.color || '#a855f7' }}
                       />
                       <span className="font-medium">{beat.name}</span>
-                      <span className="text-gray-400 text-sm ml-auto">
+                      <span className="text-gray-400 text-sm">
                         {beat.bpm} BPM
                       </span>
+                      <div className="flex items-center gap-2 ml-auto">
+                        {/* Play/Stop button */}
+                        <button
+                          onClick={() => playBeatPreview(beat)}
+                          className={`p-2 rounded-lg transition-colors ${
+                            playingBeatId === beat.id
+                              ? 'bg-green-600 hover:bg-green-700'
+                              : 'bg-gray-600 hover:bg-gray-500'
+                          }`}
+                          title={playingBeatId === beat.id ? 'Stop' : 'Play'}
+                        >
+                          {playingBeatId === beat.id ? (
+                            <Square size={16} />
+                          ) : (
+                            <Play size={16} />
+                          )}
+                        </button>
+                        {/* Edit button */}
+                        <button
+                          onClick={() => handleEditBeat(beat)}
+                          className="p-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        {/* Delete button */}
+                        <button
+                          onClick={() => handleDeleteBeat(beat.id)}
+                          className="p-2 bg-red-600 hover:bg-red-500 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

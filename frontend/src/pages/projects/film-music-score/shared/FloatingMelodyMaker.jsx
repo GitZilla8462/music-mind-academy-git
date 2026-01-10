@@ -90,12 +90,16 @@ const FloatingMelodyMaker = ({
       enableResizing={!isMinimized}
       style={{
         zIndex: 1000,
-        position: 'fixed'
+        position: 'fixed',
+        cursor: isChromebook ? 'none' : undefined
       }}
     >
       <div className="h-full flex flex-col bg-gray-900 rounded-lg shadow-2xl border border-gray-600 overflow-hidden">
         {/* Custom Drag Handle Header */}
-        <div className="drag-handle flex-shrink-0 bg-gray-800 border-b border-gray-700 px-3 py-2 cursor-move select-none">
+        <div
+          className={`drag-handle flex-shrink-0 bg-gray-800 border-b border-gray-700 px-3 py-2 select-none ${isChromebook ? '' : 'cursor-move'}`}
+          style={isChromebook ? { cursor: 'none' } : undefined}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <GripHorizontal size={16} className="text-gray-500" />

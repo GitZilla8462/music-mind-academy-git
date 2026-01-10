@@ -195,16 +195,38 @@ const audioBufferToWav = (buffer) => {
   return new Blob([arrayBuffer], { type: 'audio/wav' });
 };
 
-const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap = false, hideCloseButton = false }) => {
+const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap = false, hideCloseButton = false, initialBeat = null }) => {
   // Filter instruments based on hideClap prop
   const visibleInstruments = hideClap
     ? INSTRUMENTS.filter(inst => inst.id !== 'clap')
     : INSTRUMENTS;
-  const [steps, setSteps] = useState(16);
-  const [grid, setGrid] = useState(() => INSTRUMENTS.map(() => Array(16).fill(false)));
-  const [kit, setKit] = useState('electronic');
-  const [bpm, setBpm] = useState(110); // Default to Heroic BPM
-  const [selectedMood, setSelectedMood] = useState('heroic'); // Default to Heroic
+
+  // Initialize state from initialBeat if provided (for editing)
+  const initializeGridFromBeat = (beat) => {
+    if (!beat || !beat.pattern) {
+      return INSTRUMENTS.map(() => Array(16).fill(false));
+    }
+    // Convert pattern object to grid array
+    const grid = INSTRUMENTS.map(inst => {
+      const steps = beat.steps || 16;
+      const patternSteps = beat.pattern[inst.id] || [];
+      return Array(steps).fill(false).map((_, idx) => patternSteps.includes(idx));
+    });
+    return grid;
+  };
+
+  const [steps, setSteps] = useState(initialBeat?.steps || 16);
+  const [grid, setGrid] = useState(() => initializeGridFromBeat(initialBeat));
+  const [kit, setKit] = useState(initialBeat?.kit || 'electronic');
+  const [bpm, setBpm] = useState(initialBeat?.bpm || 110); // Default to Heroic BPM
+  const [selectedMood, setSelectedMood] = useState(() => {
+    if (initialBeat?.bpm) {
+      // Find mood by BPM
+      const mood = MOODS.find(m => m.bpm === initialBeat.bpm);
+      return mood?.id || 'heroic';
+    }
+    return 'heroic';
+  }); // Default to Heroic
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentStep, setCurrentStep] = useState(-1);
   const [audioReady, setAudioReady] = useState(false);
