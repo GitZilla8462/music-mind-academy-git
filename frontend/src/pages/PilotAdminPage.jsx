@@ -5,9 +5,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { getDatabase, ref, get, set, remove, onValue } from 'firebase/database';
-import { Users, UserPlus, Trash2, Mail, Calendar, Shield, ArrowLeft, RefreshCw, BarChart3, Clock, BookOpen, Play, Building2, GraduationCap, ChevronDown, ChevronUp, MessageSquare, Star } from 'lucide-react';
+import { Users, UserPlus, Trash2, Mail, Calendar, Shield, ArrowLeft, RefreshCw, BarChart3, Clock, BookOpen, Play, Building2, GraduationCap, ChevronDown, ChevronUp, MessageSquare, Star, Download } from 'lucide-react';
 import { getTeacherAnalytics, getPilotSessions, getPilotSummaryStats, subscribeToAnalytics } from '../firebase/analytics';
 import { SITE_TYPES } from '../firebase/approvedEmails';
+import * as XLSX from 'xlsx';
 
 // Your admin email(s) - only these can access this page
 const ADMIN_EMAILS = ['robtaube90@gmail.com', 'robtaube92@gmail.com'];
@@ -315,6 +316,235 @@ const PilotAdminPage = () => {
     return lessonId || 'Unknown';
   };
 
+  // Export all data to Excel
+  const exportToExcel = () => {
+    const workbook = XLSX.utils.book_new();
+
+    // Helper to format date for Excel
+    const excelDate = (timestamp) => {
+      if (!timestamp) return '';
+      return new Date(timestamp).toLocaleString('en-US', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit'
+      });
+    };
+
+    // Helper to format duration in minutes
+    const durationMins = (ms) => {
+      if (!ms) return 0;
+      return Math.round(ms / 60000);
+    };
+
+    // Sheet 1: Summary Stats
+    const summaryData = [
+      ['Music Mind Academy Pilot Program Report'],
+      ['Generated', new Date().toLocaleString()],
+      [''],
+      ['Summary Statistics'],
+      ['Academy Approved Emails', academyEmails.length],
+      ['Edu Approved Emails', eduEmails.length],
+      ['Registered Users', registeredUsers.length],
+      ['Total Sessions', summaryStats?.totalSessions || 0],
+      ['Avg Session Duration (min)', durationMins(summaryStats?.avgSessionDuration)],
+      ['Most Popular Lesson', summaryStats?.mostPopularLesson || 'N/A'],
+      ['Return Rate (%)', summaryStats?.retentionRate || 0],
+    ];
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+
+    // Sheet 2: Teacher Progress (L1-L5 grid)
+    const teacherLessonData = {};
+    pilotSessions.forEach(session => {
+      const email = session.teacherEmail;
+      if (!email) return;
+      let lessonNum = null;
+      if (session.lessonRoute?.includes('lesson1')) lessonNum = 1;
+      else if (session.lessonRoute?.includes('lesson2')) lessonNum = 2;
+      else if (session.lessonRoute?.includes('lesson3')) lessonNum = 3;
+      else if (session.lessonRoute?.includes('lesson4')) lessonNum = 4;
+      else if (session.lessonRoute?.includes('lesson5')) lessonNum = 5;
+      if (!lessonNum) return;
+
+      if (!teacherLessonData[email]) {
+        teacherLessonData[email] = { email, lessons: { 1: [], 2: [], 3: [], 4: [], 5: [] } };
+      }
+      teacherLessonData[email].lessons[lessonNum].push({
+        students: session.studentsJoined || 0,
+        duration: session.duration || 0,
+        completed: session.completed || false,
+        date: session.startTime
+      });
+    });
+
+    const teacherRows = [['Teacher Email', 'L1 Sessions', 'L1 Students', 'L1 Time (min)', 'L1 Completed',
+      'L2 Sessions', 'L2 Students', 'L2 Time (min)', 'L2 Completed',
+      'L3 Sessions', 'L3 Students', 'L3 Time (min)', 'L3 Completed',
+      'L4 Sessions', 'L4 Students', 'L4 Time (min)', 'L4 Completed',
+      'L5 Sessions', 'L5 Students', 'L5 Time (min)', 'L5 Completed',
+      'Total Sessions', 'Total Students', 'Total Time (min)']];
+
+    Object.values(teacherLessonData).forEach(teacher => {
+      const row = [teacher.email];
+      let totalSessions = 0, totalStudents = 0, totalTime = 0;
+
+      [1, 2, 3, 4, 5].forEach(lessonNum => {
+        const sessions = teacher.lessons[lessonNum];
+        const sessionCount = sessions.length;
+        const students = sessions.reduce((sum, s) => sum + s.students, 0);
+        const time = sessions.reduce((sum, s) => sum + s.duration, 0);
+        const completed = sessions.some(s => s.completed && s.students >= 10 && s.duration >= 15 * 60000);
+
+        row.push(sessionCount, students, durationMins(time), completed ? 'Yes' : 'No');
+        totalSessions += sessionCount;
+        totalStudents += students;
+        totalTime += time;
+      });
+
+      row.push(totalSessions, totalStudents, durationMins(totalTime));
+      teacherRows.push(row);
+    });
+
+    const teacherSheet = XLSX.utils.aoa_to_sheet(teacherRows);
+    XLSX.utils.book_append_sheet(workbook, teacherSheet, 'Teacher Progress');
+
+    // Sheet 3: All Sessions
+    const sessionRows = [['Session Code', 'Teacher Email', 'Lesson', 'Start Time', 'Duration (min)',
+      'Students Joined', 'Completed', 'Last Stage', 'Stage Times']];
+
+    pilotSessions.forEach(session => {
+      const stageTimes = session.stageTimes
+        ? Object.entries(session.stageTimes).map(([stage, time]) => `${stage}: ${durationMins(time)}m`).join('; ')
+        : '';
+
+      sessionRows.push([
+        session.sessionCode,
+        session.teacherEmail || '',
+        getLessonName(session.lessonId, session.lessonRoute),
+        excelDate(session.startTime),
+        durationMins(session.duration),
+        session.studentsJoined || 0,
+        session.completed ? 'Yes' : 'No',
+        session.lastStage || '',
+        stageTimes
+      ]);
+    });
+
+    const sessionsSheet = XLSX.utils.aoa_to_sheet(sessionRows);
+    XLSX.utils.book_append_sheet(workbook, sessionsSheet, 'Sessions');
+
+    // Sheet 4: Mid-Pilot Surveys
+    const midPilotRows = [['Session Code', 'Student Count', 'Date', 'Favorite Feature',
+      'Improvement Suggestion', 'Skipped Parts', 'Student Quotes', 'On Track to Finish']];
+
+    midPilotSurveys.forEach(survey => {
+      midPilotRows.push([
+        survey.sessionCode || survey.id,
+        survey.studentCount || '',
+        excelDate(survey.savedAt || survey.submittedAt),
+        survey.favoriteFeature || '',
+        survey.improvementSuggestion || '',
+        survey.skippedParts || '',
+        survey.studentQuotes || '',
+        survey.onTrack || ''
+      ]);
+    });
+
+    const midPilotSheet = XLSX.utils.aoa_to_sheet(midPilotRows);
+    XLSX.utils.book_append_sheet(workbook, midPilotSheet, 'Mid-Pilot Surveys');
+
+    // Sheet 5: Final Surveys
+    const finalRows = [['Session Code', 'Student Count', 'Date', 'PMF Score',
+      'Would Recommend', 'Feedback', 'Other Comments']];
+
+    finalPilotSurveys.forEach(survey => {
+      const otherFields = Object.entries(survey)
+        .filter(([key]) => !['id', 'sessionCode', 'studentCount', 'savedAt', 'submittedAt',
+          'surveyType', 'pmfScore', 'wouldRecommend', 'feedback'].includes(key))
+        .filter(([_, value]) => value && typeof value === 'string')
+        .map(([key, value]) => `${key}: ${value}`)
+        .join('; ');
+
+      finalRows.push([
+        survey.sessionCode || survey.id,
+        survey.studentCount || '',
+        excelDate(survey.savedAt || survey.submittedAt),
+        survey.pmfScore || '',
+        survey.wouldRecommend ? 'Yes' : 'No',
+        survey.feedback || '',
+        otherFields
+      ]);
+    });
+
+    const finalSheet = XLSX.utils.aoa_to_sheet(finalRows);
+    XLSX.utils.book_append_sheet(workbook, finalSheet, 'Final Surveys');
+
+    // Sheet 6: Quick Feedback
+    const quickRows = [['Session Code', 'Date', 'Rating', 'Feedback']];
+
+    quickSurveys.forEach(survey => {
+      quickRows.push([
+        survey.sessionCode || survey.id,
+        excelDate(survey.savedAt),
+        survey.rating || '',
+        survey.feedback || survey.comment || ''
+      ]);
+    });
+
+    const quickSheet = XLSX.utils.aoa_to_sheet(quickRows);
+    XLSX.utils.book_append_sheet(workbook, quickSheet, 'Quick Feedback');
+
+    // Sheet 7: Academy Approved Emails
+    const academyRows = [['Email', 'Approved Date', 'Notes', 'Approved By', 'Signed Up']];
+    academyEmails.forEach(item => {
+      const signedUp = registeredUsers.some(u => u.email?.toLowerCase() === item.email?.toLowerCase());
+      academyRows.push([
+        item.email,
+        excelDate(item.approvedAt),
+        item.notes || '',
+        item.approvedBy || '',
+        signedUp ? 'Yes' : 'No'
+      ]);
+    });
+    const academySheet = XLSX.utils.aoa_to_sheet(academyRows);
+    XLSX.utils.book_append_sheet(workbook, academySheet, 'Academy Emails');
+
+    // Sheet 8: Edu Approved Emails
+    const eduRows = [['Email', 'Approved Date', 'Notes', 'Approved By', 'Signed Up']];
+    eduEmails.forEach(item => {
+      const signedUp = registeredUsers.some(u => u.email?.toLowerCase() === item.email?.toLowerCase());
+      eduRows.push([
+        item.email,
+        excelDate(item.approvedAt),
+        item.notes || '',
+        item.approvedBy || '',
+        signedUp ? 'Yes' : 'No'
+      ]);
+    });
+    const eduSheet = XLSX.utils.aoa_to_sheet(eduRows);
+    XLSX.utils.book_append_sheet(workbook, eduSheet, 'Edu Emails');
+
+    // Sheet 9: Registered Users
+    const userRows = [['Display Name', 'Email', 'Created Date', 'Last Login', 'Is Pilot']];
+    registeredUsers.forEach(u => {
+      userRows.push([
+        u.displayName || '',
+        u.email || '',
+        excelDate(u.createdAt),
+        excelDate(u.lastLoginAt),
+        u.isPilot ? 'Yes' : 'No'
+      ]);
+    });
+    const userSheet = XLSX.utils.aoa_to_sheet(userRows);
+    XLSX.utils.book_append_sheet(workbook, userSheet, 'Registered Users');
+
+    // Generate filename with date
+    const dateStr = new Date().toISOString().split('T')[0];
+    const filename = `PilotProgram_Export_${dateStr}.xlsx`;
+
+    // Download the file
+    XLSX.writeFile(workbook, filename);
+  };
+
   // Auth loading - show minimal spinner
   if (authLoading) {
     return (
@@ -383,9 +613,18 @@ const PilotAdminPage = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Shield size={16} className="text-green-500" />
-            Admin: {user.email}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={exportToExcel}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+            >
+              <Download size={18} />
+              Export to Excel
+            </button>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Shield size={16} className="text-green-500" />
+              Admin: {user.email}
+            </div>
           </div>
         </div>
       </header>
