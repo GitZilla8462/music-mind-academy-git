@@ -43,7 +43,13 @@ export const useSessionMode = () => {
         if (isPreviewMode) {
           console.log('👀 Preview mode - skipping student join to avoid counting teacher as student');
         } else {
-          const studentId = localStorage.getItem('classroom-user-id') || 'student-' + Date.now();
+          // Get or create a persistent student ID (fixes bug where refreshes created new IDs)
+          let studentId = localStorage.getItem('classroom-user-id');
+          if (!studentId) {
+            studentId = 'student-' + Date.now();
+            localStorage.setItem('classroom-user-id', studentId);
+            console.log('🆔 Created new persistent student ID:', studentId);
+          }
           const studentName = localStorage.getItem('classroom-username') || 'Student';
           joinSession(urlSessionCode, studentId, studentName);
           console.log('Student joining session:', { urlSessionCode, studentId, studentName });
