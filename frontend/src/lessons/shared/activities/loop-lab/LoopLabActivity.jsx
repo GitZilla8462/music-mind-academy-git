@@ -267,23 +267,21 @@ const LoopLabActivity = ({ onComplete }) => {
       <div className={`h-full bg-gradient-to-br ${theme.bg} p-2`}>
         <style>{animationStyles}</style>
         <GameHeader round={round} totalRounds={totalRounds} powerUp={powerUp} p1Name={player1} p1Score={p1Score} p2Name={player2} p2Score={p2Score} currentListener={listener} />
-        
-        {/* ✅ LARGE "LOOK AWAY" WARNING - Very prominent at top */}
-        <div className="bg-red-600/90 rounded-xl p-2 mb-2 text-center animate-pulse shadow-lg border-2 border-red-400">
-          <p className="text-white font-black text-2xl">
-            🙈 {listenerName}, LOOK AWAY! 🙈
-          </p>
+
+        {/* LOOK AWAY WARNING */}
+        <div className="bg-red-600/90 rounded-lg px-3 py-1 mb-1 text-center animate-pulse border border-red-400">
+          <p className="text-white font-black text-lg">{listenerName}, LOOK AWAY!</p>
         </div>
-        
-        <div className="text-center mb-2">
-          <div className="inline-flex items-center gap-2 bg-black/40 px-4 py-1.5 rounded-full mb-2">
-            <span className="text-2xl">{theme.emoji}</span>
-            <span className="text-white font-bold text-base">{theme.name}</span>
+
+        <div className="text-center mb-1">
+          <div className="inline-flex items-center gap-1 bg-black/40 px-3 py-1 rounded-full text-sm">
+            <span className="text-lg">{theme.emoji}</span>
+            <span className="text-white font-bold">{theme.name}</span>
           </div>
-          <h1 className="text-xl font-black text-white">🔨 {builderName}: Pick 1-3 Instruments</h1>
+          <h1 className="text-base font-black text-white mt-1">{builderName}: Pick 1-3 Instruments</h1>
         </div>
-        <div className="max-w-lg mx-auto">
-          <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className="max-w-md mx-auto">
+          <div className="grid grid-cols-3 gap-1.5 mb-2">
             {instruments.map(inst => (
               <InstrumentButton key={inst} instrument={inst} icon={instrumentIcons[inst]}
                 isSelected={selected.includes(inst)} isDisabled={selected.length >= 3 && !selected.includes(inst)}
@@ -291,10 +289,10 @@ const LoopLabActivity = ({ onComplete }) => {
             ))}
           </div>
           <SelectionDots count={selected.length} />
-          <div className="text-center mt-3">
+          <div className="text-center mt-2">
             <button onClick={() => { sounds.click(); setPhase('handoff'); }} disabled={selected.length === 0}
-              className={`px-6 py-3 rounded-xl font-black text-base ${selected.length > 0 ? 'bg-white text-gray-900 hover:scale-105 shadow-lg' : 'bg-white/10 text-white/30'} transition-all`}>
-              🎧 Pass to {listenerName} →
+              className={`px-5 py-2 rounded-xl font-black text-sm ${selected.length > 0 ? 'bg-white text-gray-900 hover:scale-105 shadow-lg' : 'bg-white/10 text-white/30'} transition-all`}>
+              Pass to {listenerName} →
             </button>
           </div>
         </div>
@@ -400,12 +398,12 @@ const LoopLabActivity = ({ onComplete }) => {
       <div className={`h-full bg-gradient-to-br ${theme.bg} p-2`}>
         <style>{animationStyles}</style>
         <GameHeader round={round} totalRounds={totalRounds} powerUp={powerUp} p1Name={player1} p1Score={p1Score} p2Name={player2} p2Score={p2Score} currentListener={listener} />
-        <div className="text-center mb-2">
-          <div className="inline-flex items-center gap-2 bg-black/40 px-4 py-1 rounded-full mb-1">
-            <span className="text-2xl">{theme.emoji}</span>
-            <span className="text-white font-bold text-base">{theme.name}</span>
+        <div className="text-center mb-1">
+          <div className="inline-flex items-center gap-1 bg-black/40 px-3 py-1 rounded-full text-sm">
+            <span className="text-lg">{theme.emoji}</span>
+            <span className="text-white font-bold">{theme.name}</span>
           </div>
-          <h1 className="text-xl font-black text-white">👂 {listenerName}: Guess the Instruments!</h1>
+          <h1 className="text-base font-black text-white mt-1">{listenerName}: Guess the Instruments!</h1>
           <div className="flex justify-center items-center gap-2 mt-1">
             {streak >= 2 && <StreakFire streak={streak} />}
             {powerUp && <PowerUpBadge powerUp={powerUp} active />}
@@ -413,41 +411,41 @@ const LoopLabActivity = ({ onComplete }) => {
         </div>
         {/* Power-up hints */}
         {powerUp?.id === 'hint' && (
-          <div className="max-w-lg mx-auto mb-2">
-            <div className="bg-purple-500/30 rounded-lg px-3 py-2 text-center">
-              <p className="text-purple-200 font-bold text-sm">💡 There are {selected.length} instruments!</p>
+          <div className="max-w-md mx-auto mb-1">
+            <div className="bg-purple-500/30 rounded-lg px-2 py-1 text-center">
+              <p className="text-purple-200 font-bold text-xs">There are {selected.length} instruments!</p>
             </div>
           </div>
         )}
         {powerUp?.id === 'freebie' && !freebie && (
-          <div className="max-w-lg mx-auto mb-2 text-center">
-            <button onClick={useFreebie} className="px-4 py-2 bg-orange-500 text-white font-bold rounded-lg hover:scale-105 text-sm">
-              🎯 Use Freebie - Reveal One!
+          <div className="max-w-md mx-auto mb-1 text-center">
+            <button onClick={useFreebie} className="px-3 py-1 bg-orange-500 text-white font-bold rounded-lg hover:scale-105 text-xs">
+              Use Freebie - Reveal One!
             </button>
           </div>
         )}
         {freebie && (
-          <div className="max-w-lg mx-auto mb-2">
-            <div className="bg-green-500/30 rounded-lg px-3 py-2 text-center">
-              <p className="text-green-200 font-bold text-sm">🎯 Free: {instrumentIcons[freebie]} {freebie}</p>
+          <div className="max-w-md mx-auto mb-1">
+            <div className="bg-green-500/30 rounded-lg px-2 py-1 text-center">
+              <p className="text-green-200 font-bold text-xs">Free: {instrumentIcons[freebie]} {freebie}</p>
             </div>
           </div>
         )}
-        <div className="max-w-lg mx-auto">
-          <div className="text-center mb-3">
+        <div className="max-w-md mx-auto">
+          <div className="text-center mb-2">
             <button onClick={playing ? stopAudio : playMix}
-              className={`px-8 py-3 rounded-xl font-black text-lg ${playing ? 'bg-red-500 text-white' : 'bg-white text-gray-900'} shadow-lg hover:scale-105 transition-all`}>
-              {playing ? '⏹️ Stop' : '▶️ Play Mix'}
+              className={`px-6 py-2 rounded-xl font-black text-base ${playing ? 'bg-red-500 text-white' : 'bg-white text-gray-900'} shadow-lg hover:scale-105 transition-all`}>
+              {playing ? 'Stop' : 'Play Mix'}
             </button>
-            <div className="mt-2 text-sm">
+            <div className="mt-1 text-xs">
               {listened ? (
-                <span className="text-green-400 font-bold">✓ Played {playCount}x {playCount <= 2 && <span className="text-yellow-300">+10 Quick Bonus!</span>}</span>
+                <span className="text-green-400 font-bold">Played {playCount}x {playCount <= 2 && <span className="text-yellow-300">+10 Quick!</span>}</span>
               ) : (
-                <span className="text-white/50">Listen to the mix first!</span>
+                <span className="text-white/50">Listen first!</span>
               )}
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className="grid grid-cols-3 gap-1.5 mb-2">
             {instruments.map(inst => (
               <InstrumentButton key={inst} instrument={inst} icon={instrumentIcons[inst]}
                 isSelected={guesses.includes(inst)} isDisabled={(!listened || guesses.length >= 3) && !guesses.includes(inst)}
@@ -455,10 +453,10 @@ const LoopLabActivity = ({ onComplete }) => {
             ))}
           </div>
           <SelectionDots count={guesses.length} />
-          <div className="text-center mt-3">
+          <div className="text-center mt-2">
             <button onClick={submit} disabled={!listened || guesses.length === 0}
-              className={`px-6 py-3 rounded-xl font-black text-base ${listened && guesses.length > 0 ? 'bg-white text-gray-900 hover:scale-105 shadow-lg' : 'bg-white/10 text-white/30'} transition-all`}>
-              Submit Guess ({guesses.length}) ✓
+              className={`px-5 py-2 rounded-xl font-black text-sm ${listened && guesses.length > 0 ? 'bg-white text-gray-900 hover:scale-105 shadow-lg' : 'bg-white/10 text-white/30'} transition-all`}>
+              Submit ({guesses.length})
             </button>
           </div>
         </div>

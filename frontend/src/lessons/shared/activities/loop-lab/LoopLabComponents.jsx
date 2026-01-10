@@ -153,22 +153,22 @@ export const ScoreCard = ({ name, score, isActive, isLeader, streak, color, poin
 
 // Header bar with round and scores
 export const GameHeader = ({ round, totalRounds, powerUp, p1Name, p1Score, p2Name, p2Score, currentListener }) => (
-  <div className="flex justify-between items-center mb-3 px-1">
-    <div className="flex items-center gap-3">
-      <div className="bg-black/40 px-4 py-2 rounded-lg">
-        <span className="text-white font-bold text-base">Round {round}/{totalRounds}</span>
+  <div className="flex justify-between items-center mb-2 px-1">
+    <div className="flex items-center gap-2">
+      <div className="bg-black/40 px-3 py-1 rounded-lg">
+        <span className="text-white font-bold text-sm">Round {round}/{totalRounds}</span>
       </div>
       {powerUp && <PowerUpBadge powerUp={powerUp} active />}
     </div>
-    
-    <div className="flex gap-3">
-      <div className={`bg-black/40 px-3 py-2 rounded-lg ${currentListener === 1 ? 'ring-2 ring-cyan-400' : ''}`}>
-        <span className="text-cyan-400 font-bold text-sm">{p1Name}: </span>
-        <span className="text-white font-black text-base">{p1Score}</span>
+
+    <div className="flex gap-2">
+      <div className={`bg-black/40 px-2 py-1 rounded-lg ${currentListener === 1 ? 'ring-2 ring-cyan-400' : ''}`}>
+        <span className="text-cyan-400 font-bold text-xs">{p1Name}: </span>
+        <span className="text-white font-black text-sm">{p1Score}</span>
       </div>
-      <div className={`bg-black/40 px-3 py-2 rounded-lg ${currentListener === 2 ? 'ring-2 ring-pink-400' : ''}`}>
-        <span className="text-pink-400 font-bold text-sm">{p2Name}: </span>
-        <span className="text-white font-black text-base">{p2Score}</span>
+      <div className={`bg-black/40 px-2 py-1 rounded-lg ${currentListener === 2 ? 'ring-2 ring-pink-400' : ''}`}>
+        <span className="text-pink-400 font-bold text-xs">{p2Name}: </span>
+        <span className="text-white font-black text-sm">{p2Score}</span>
       </div>
     </div>
   </div>
@@ -176,8 +176,8 @@ export const GameHeader = ({ round, totalRounds, powerUp, p1Name, p1Score, p2Nam
 
 // Instrument button
 export const InstrumentButton = ({ instrument, icon, isSelected, isDisabled, isFreebie, onClick }) => {
-  let classes = 'p-4 rounded-xl text-center transition-all ';
-  
+  let classes = 'p-2 rounded-xl text-center transition-all ';
+
   if (isFreebie) {
     classes += 'bg-green-500 text-white ring-2 ring-green-300 scale-105';
   } else if (isSelected) {
@@ -187,23 +187,23 @@ export const InstrumentButton = ({ instrument, icon, isSelected, isDisabled, isF
   } else {
     classes += 'bg-white/20 text-white hover:bg-white/30 hover:scale-102 cursor-pointer';
   }
-  
+
   return (
     <button onClick={onClick} disabled={isDisabled && !isSelected} className={classes}>
-      <div className="text-3xl mb-1">{icon}</div>
-      <div className="font-bold text-sm leading-tight">{instrument}</div>
-      {isFreebie && <div className="text-xs font-bold mt-1">🎯 FREE</div>}
+      <div className="text-2xl">{icon}</div>
+      <div className="font-bold text-xs leading-tight">{instrument}</div>
+      {isFreebie && <div className="text-xs font-bold">FREE</div>}
     </button>
   );
 };
 
 // Selection indicator dots
 export const SelectionDots = ({ count, max = 3 }) => (
-  <div className="flex justify-center gap-3 my-3">
+  <div className="flex justify-center gap-2 my-2">
     {Array.from({ length: max }).map((_, i) => (
       <div
         key={i}
-        className={`w-14 h-3 rounded-full transition-all ${
+        className={`w-12 h-2 rounded-full transition-all ${
           count > i ? 'bg-white shadow-lg' : 'bg-white/20'
         }`}
       />
