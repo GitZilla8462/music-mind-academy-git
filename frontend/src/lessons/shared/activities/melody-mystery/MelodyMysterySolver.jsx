@@ -204,10 +204,8 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
   };
 
   // Play a grid with beat animation (uses device-specific sound)
+  // Note: Caller must set playingRef.current = true before calling
   const playGridWithAnimation = async (grid, useDeviceSound = true) => {
-    if (playingRef.current) return;
-    playingRef.current = true;
-
     try {
       // Pass the device ID for unique sound per device
       const deviceId = useDeviceSound ? selectedDeviceId : null;
@@ -227,37 +225,47 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
 
   // Play target melody
   const playTargetMelody = async () => {
+    // Check guards - use ref as primary guard since it's synchronous
     if (listensRemaining[currentLocationIndex] <= 0 || isPlayingTarget || playingRef.current) return;
 
-    setListensRemaining(prev => {
-      const newRemaining = [...prev];
-      newRemaining[currentLocationIndex]--;
-      return newRemaining;
-    });
-
-    // Mark signal as played for this location
-    setHasPlayedSignal(prev => {
-      const updated = [...prev];
-      updated[currentLocationIndex] = true;
-      return updated;
-    });
-
+    // Set ref IMMEDIATELY to prevent double-clicks (synchronous)
+    playingRef.current = true;
     setIsPlayingTarget(true);
+
     try {
+      setListensRemaining(prev => {
+        const newRemaining = [...prev];
+        newRemaining[currentLocationIndex]--;
+        return newRemaining;
+      });
+
+      // Mark signal as played for this location
+      setHasPlayedSignal(prev => {
+        const updated = [...prev];
+        updated[currentLocationIndex] = true;
+        return updated;
+      });
+
       await playGridWithAnimation(targetMelody.grid);
     } finally {
       setIsPlayingTarget(false);
+      // Note: playingRef.current is reset in playGridWithAnimation's finally block
     }
   };
 
   // Play player melody (uses same device sound for comparison)
   const playPlayerMelody = async () => {
     if (isPlayingPlayer || playingRef.current) return;
+
+    // Set ref IMMEDIATELY to prevent double-clicks (synchronous)
+    playingRef.current = true;
     setIsPlayingPlayer(true);
+
     try {
       await playGridWithAnimation(playerGrid, true);
     } finally {
       setIsPlayingPlayer(false);
+      // Note: playingRef.current is reset in playGridWithAnimation's finally block
     }
   };
 
