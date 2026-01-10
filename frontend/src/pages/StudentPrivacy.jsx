@@ -342,7 +342,7 @@ const StudentPrivacy = () => {
                 <span className="it-item-value yes">YES</span>
               </div>
               <div className="it-item">
-                <span className="it-item-label">SSO/Clever/ClassLink</span>
+                <span className="it-item-label">District SSO/Clever/ClassLink</span>
                 <span className="it-item-value">NOT REQUIRED</span>
               </div>
             </div>
@@ -633,8 +633,8 @@ const StudentPrivacy = () => {
             <tbody>
               <tr>
                 <td>Ohio</td>
-                <td style={{ color: '#16a34a', fontWeight: 600 }}>Signed</td>
-                <td>Ohio NDPA signed. Exhibit E available for other Ohio districts to piggyback.</td>
+                <td style={{ color: '#2563eb', fontWeight: 600 }}>Available</td>
+                <td>Ready to sign Ohio NDPA on request.</td>
               </tr>
               <tr>
                 <td>New York</td>
