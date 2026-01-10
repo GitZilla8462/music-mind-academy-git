@@ -603,7 +603,7 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
   // RENDER: Scene View (Point-and-Click) - Fullscreen Background
   // ========================================
   const renderScene = () => (
-    <div className="h-screen w-screen relative overflow-hidden bg-black">
+    <div className="h-full w-full relative overflow-hidden bg-black">
       {/* Fallback gradient */}
       <div
         className="absolute inset-0 -z-10"
@@ -773,7 +773,7 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
   const renderDeviceFound = () => {
     // Use the dynamically generated deviceHotspot from selectedDevice
     return (
-      <div className="h-screen w-screen relative overflow-hidden">
+      <div className="h-full w-full relative overflow-hidden">
         {/* Fullscreen background image - object-fill to match hotspot coordinates */}
         <img
           src={sceneImage}
@@ -1065,7 +1065,7 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
     };
 
     return (
-      <div className="h-screen flex flex-col text-white overflow-hidden bg-slate-950">
+      <div className="h-full flex flex-col text-white overflow-hidden bg-slate-950">
         {/* Noir-style gradient background */}
         <div
           className="absolute inset-0 -z-10"
@@ -1074,8 +1074,8 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
           }}
         />
 
-        {/* Header */}
-        <div className="px-6 py-3 border-b border-amber-900/30 bg-black/40">
+        {/* Header - Compact */}
+        <div className="px-4 py-2 border-b border-amber-900/30 bg-black/40">
           <div className="flex items-center justify-between">
             <div className="font-mono">
               <p className="text-xs text-amber-500/70 tracking-wider">{location?.name}</p>
@@ -1098,14 +1098,14 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
           </div>
         </div>
 
-        {/* Main content - Device + Decoder side by side */}
-        <div className="flex-1 flex items-center justify-center gap-8 p-4 overflow-hidden">
+        {/* Main content - Device + Decoder side by side - Compact for Chromebook */}
+        <div className="flex-1 flex items-center justify-center gap-4 p-3 overflow-hidden">
 
           {/* LEFT: Device image (pre-cropped) - same size as decoder */}
-          <div className="flex-1 max-w-md flex flex-col items-center">
+          <div className="flex-1 max-w-sm flex flex-col items-center">
             <div className="w-full rounded-xl overflow-hidden border-4 border-amber-500/50 shadow-2xl"
                  style={{
-                   minHeight: '300px',
+                   minHeight: '240px',
                    boxShadow: '0 0 60px rgba(245, 158, 11, 0.15), 0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                  }}>
               {/* Pre-cropped device image */}
@@ -1130,13 +1130,13 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
             </p>
           </div>
 
-          {/* RIGHT: Decoder frame - matches device image size */}
-          <div className="flex-1 max-w-md flex flex-col items-center">
-            <div className="decoder-frame bg-gradient-to-b from-stone-800 via-stone-900 to-black rounded-xl border-2 border-amber-800/60 shadow-2xl p-4 w-full"
+          {/* RIGHT: Decoder frame - matches device image size - Compact */}
+          <div className="flex-1 max-w-sm flex flex-col items-center">
+            <div className="decoder-frame bg-gradient-to-b from-stone-800 via-stone-900 to-black rounded-xl border-2 border-amber-800/60 shadow-2xl p-3 w-full"
                  style={{ boxShadow: '0 0 40px rgba(245, 158, 11, 0.1), inset 0 0 30px rgba(0,0,0,0.5)' }}>
 
               {/* Top bar with indicator light, label/error, and antenna */}
-              <div className="flex items-center justify-between mb-3 px-2">
+              <div className="flex items-center justify-between mb-2 px-1">
                 <div
                   className={`w-3 h-3 rounded-full ${!isChromebook ? 'animate-pulse' : ''}`}
                   style={{
@@ -1157,15 +1157,15 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
 
               {/* Screen bezel */}
               <div className="bg-black rounded-lg p-1.5 border border-amber-900/50">
-                {/* CRT-style screen - minHeight matches puzzle view so decoded view doesn't shrink */}
-                <div className="bg-black rounded p-4 border border-amber-900/30 relative overflow-hidden"
-                     style={{ boxShadow: 'inset 0 0 20px rgba(245, 158, 11, 0.1)', minHeight: '450px' }}>
+                {/* CRT-style screen - reduced minHeight for Chromebook 768px */}
+                <div className="bg-black rounded p-3 border border-amber-900/30 relative overflow-hidden"
+                     style={{ boxShadow: 'inset 0 0 20px rgba(245, 158, 11, 0.1)', minHeight: '320px' }}>
                   {renderDecoderScreen()}
                 </div>
               </div>
 
               {/* Bottom knobs */}
-              <div className="flex items-center justify-between mt-3 px-2">
+              <div className="flex items-center justify-between mt-2 px-1">
                 <div className="flex gap-2">
                   <div className="w-3 h-3 rounded-full bg-gradient-to-b from-stone-600 to-stone-800 border border-stone-500" />
                   <div className="w-3 h-3 rounded-full bg-gradient-to-b from-stone-600 to-stone-800 border border-stone-500" />
@@ -1193,7 +1193,7 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
   // ========================================
   const renderClueRevealed = () => (
     <div
-      className="h-screen flex flex-col items-center justify-center p-6"
+      className="h-full flex flex-col items-center justify-center p-4"
       style={{ backgroundColor: concept.colors.background }}
     >
       <div className="bg-slate-800/90 rounded-2xl p-8 max-w-lg w-full text-center border border-white/10">
@@ -1259,7 +1259,7 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
   // ========================================
   const renderTypeLocation = () => (
     <div
-      className="h-screen flex flex-col items-center justify-center p-6"
+      className="h-full flex flex-col items-center justify-center p-4"
       style={{ backgroundColor: concept.colors.background }}
     >
       <div className="bg-slate-800/90 rounded-2xl p-8 max-w-md w-full text-center border border-white/10">
@@ -1329,7 +1329,7 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
   // ========================================
   const renderFinalAnswer = () => (
     <div
-      className="h-screen flex flex-col items-center justify-center p-6"
+      className="h-full flex flex-col items-center justify-center p-4"
       style={{ backgroundColor: concept.colors.background }}
     >
       <div className="bg-slate-800/90 rounded-2xl p-8 max-w-md w-full text-center border border-white/10">
@@ -1396,7 +1396,7 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
   // Error screen if missing required data
   if (!ending || locations.length === 0) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center p-6 bg-gray-900 text-white">
+      <div className="h-full flex flex-col items-center justify-center p-4 bg-gray-900 text-white">
         <div className="text-6xl mb-4">⚠️</div>
         <h1 className="text-2xl font-bold mb-2">Mystery Not Ready</h1>
         <p className="text-gray-400 mb-6 text-center max-w-md">
@@ -1419,7 +1419,7 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
 
   if (melodies.length === 0) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center p-6 bg-gray-900 text-white">
+      <div className="h-full flex flex-col items-center justify-center p-4 bg-gray-900 text-white">
         <div className="text-6xl mb-4">🎵</div>
         <h1 className="text-2xl font-bold mb-2">No Melodies Created</h1>
         <p className="text-gray-400 mb-6 text-center max-w-md">

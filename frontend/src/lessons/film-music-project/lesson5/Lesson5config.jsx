@@ -454,7 +454,7 @@ export const getActivityForStage = (stage) => {
     'composition-instructions': 'summary',
     'game-composition': 'game-composition-activity',
     'reflection-instructions': 'summary',
-    'reflection': 'two-stars-wish',  // Two Stars and a Wish reflection
+    'reflection': 'two-stars-and-a-wish',  // Two Stars and a Wish reflection
     'conclusion': 'summary'
   };
   return stageMap[stage];

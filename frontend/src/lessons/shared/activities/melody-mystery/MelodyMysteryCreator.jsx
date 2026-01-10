@@ -212,41 +212,41 @@ const MelodyMysteryCreator = ({
 
   return (
     <div
-      className="h-screen flex flex-col text-white overflow-hidden"
+      className="h-full flex flex-col text-white overflow-hidden"
       style={{
         backgroundImage: `linear-gradient(to bottom, rgba(30, 27, 75, 0.9), rgba(30, 27, 75, 0.95)), url(${backgroundImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}
     >
-      {/* Header */}
+      {/* Header - Compact for Chromebook */}
       <div
-        className="border-b border-white/20 px-6 py-4"
+        className="border-b border-white/20 px-4 py-2"
         style={{ backgroundColor: `${concept.colors.primary}20` }}
       >
         <div className="flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-2 text-sm mb-1" style={{ color: concept.colors.accent }}>
+            <div className="flex items-center gap-2 text-xs" style={{ color: concept.colors.accent }}>
               <span>{endingData?.icon}</span>
               <span>{endingData?.name}</span>
             </div>
-            <h1 className="text-xl font-bold flex items-center gap-2">
-              <MapPin className="w-5 h-5" style={{ color: concept.colors.accent }} />
+            <h1 className="text-lg font-bold flex items-center gap-2">
+              <MapPin className="w-4 h-4" style={{ color: concept.colors.accent }} />
               Location {currentLocation + 1}: {location?.name}
             </h1>
           </div>
           <div className="text-right">
-            <p className="text-gray-400 text-sm">
+            <p className="text-gray-400 text-xs">
               {mode === 'partner' ? 'Your Progress' : mode === 'trio' ? 'Your Melodies' : 'Progress'}
             </p>
-            <p className="text-white font-bold">
+            <p className="text-white font-bold text-sm">
               {myCompletedCount} / {myMelodyAssignments.length}
             </p>
           </div>
         </div>
 
         {/* Location dots */}
-        <div className="flex items-center justify-center gap-2 mt-3">
+        <div className="flex items-center justify-center gap-2 mt-2">
           {locations.map((loc, i) => {
             const isMyLocation = myMelodyAssignments.includes(i);
             const isComplete = countSimpleNotes(grids[i]) >= 4;
@@ -281,16 +281,16 @@ const MelodyMysteryCreator = ({
 
         {/* LEFT SIDE: Device Picker */}
         <div className="w-1/2 flex flex-col border-r border-white/10 bg-black/20">
-          {/* Header */}
-          <div className="px-4 py-4 border-b border-white/10">
-            <h2 className="text-2xl font-bold text-center text-white">
+          {/* Header - Compact */}
+          <div className="px-3 py-2 border-b border-white/10">
+            <h2 className="text-lg font-bold text-center text-white">
               Step 1.) Choose where to hide the melody signal
             </h2>
           </div>
 
-          {/* Device Grid with Labels - Large tiles to fill space */}
-          <div className="flex-1 flex items-center justify-center p-6">
-            <div className="grid grid-cols-3 gap-5 w-full max-w-lg">
+          {/* Device Grid with Labels - Compact for Chromebook */}
+          <div className="flex-1 flex items-center justify-center p-3">
+            <div className="grid grid-cols-3 gap-3 w-full max-w-md">
               {selectableDevices.map((device) => {
                 const deviceImagePath = getDeviceImage(conceptId, location.id, device.letter, device.id);
                 return (
@@ -325,7 +325,7 @@ const MelodyMysteryCreator = ({
 
           {/* Partner Lock Notice (if applicable) */}
           {!canEditCurrentLocation && (
-            <div className="px-4 py-2 bg-orange-900/30 border-t border-orange-500/30">
+            <div className="px-3 py-1.5 bg-orange-900/30 border-t border-orange-500/30">
               <p className="text-orange-400 text-xs text-center">
                 This location is assigned to your partner.
               </p>
@@ -335,16 +335,16 @@ const MelodyMysteryCreator = ({
 
         {/* RIGHT SIDE: Melody Puzzle */}
         <div className="w-1/2 flex flex-col bg-black/30">
-          {/* Header */}
-          <div className="px-4 py-4 border-b border-white/10">
-            <h2 className="text-2xl font-bold text-center text-white">
+          {/* Header - Compact */}
+          <div className="px-3 py-2 border-b border-white/10">
+            <h2 className="text-lg font-bold text-center text-white">
               Step 2.) Make your melody signal
             </h2>
           </div>
 
-          {/* Grid */}
-          <div className="flex-1 flex flex-col items-center justify-center p-4 overflow-hidden">
-            <div className="w-full max-w-sm">
+          {/* Grid - Compact */}
+          <div className="flex-1 flex flex-col items-center justify-center p-3 overflow-hidden">
+            <div className="w-full max-w-xs">
               <SimpleMelodyGrid
                 grid={currentGrid}
                 onToggle={handleGridToggle}
@@ -353,16 +353,16 @@ const MelodyMysteryCreator = ({
               />
             </div>
 
-            {/* Status */}
-            <div className="mt-4 flex flex-col items-center gap-2">
-              <div className="flex items-center gap-4">
+            {/* Status - Compact */}
+            <div className="mt-2 flex flex-col items-center gap-1">
+              <div className="flex items-center gap-3 text-sm">
                 <span className="text-gray-400">
                   Notes: {countSimpleNotes(currentGrid)}/4
                 </span>
                 <span className="text-gray-600">|</span>
                 {canEditCurrentLocation ? (
                   <span className={isCurrentValid ? 'text-green-400' : 'text-yellow-400'}>
-                    {isCurrentValid ? 'Ready!' : 'Need 4 notes (one per beat)'}
+                    {isCurrentValid ? 'Ready!' : 'Need 4 notes'}
                   </span>
                 ) : (
                   <span className="text-orange-400">
@@ -372,7 +372,7 @@ const MelodyMysteryCreator = ({
               </div>
               {/* Error message */}
               {errorMessage && (
-                <div className="bg-red-900/80 border border-red-500 rounded-lg px-4 py-2 text-red-200 text-sm animate-pulse">
+                <div className="bg-red-900/80 border border-red-500 rounded-lg px-3 py-1.5 text-red-200 text-xs animate-pulse">
                   {errorMessage}
                 </div>
               )}
@@ -381,43 +381,43 @@ const MelodyMysteryCreator = ({
         </div>
       </div>
 
-      {/* Controls */}
+      {/* Controls - Compact */}
       <div
-        className="border-t border-white/20 px-6 py-4"
+        className="border-t border-white/20 px-4 py-2"
         style={{ backgroundColor: `${concept.colors.primary}20` }}
       >
-        <div className="flex items-center justify-between max-w-3xl mx-auto">
+        <div className="flex items-center justify-between max-w-2xl mx-auto">
           {/* Navigation */}
           <button
             onClick={() => goToLocation(Math.max(0, currentLocation - 1))}
             disabled={currentLocation === 0}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg ${!isChromebook ? 'transition-all' : ''} ${
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm ${!isChromebook ? 'transition-all' : ''} ${
               currentLocation === 0
                 ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
                 : 'bg-slate-700 hover:bg-slate-600 text-white'
             }`}
           >
-            <ChevronLeft className="w-5 h-5" />
-            Previous
+            <ChevronLeft className="w-4 h-4" />
+            Prev
           </button>
 
           {/* Playback controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={handlePlay}
-              className={`flex items-center gap-2 px-6 py-2 rounded-lg font-bold ${!isChromebook ? 'transition-all' : ''}`}
+              className={`flex items-center gap-1 px-4 py-1.5 rounded-lg font-bold text-sm ${!isChromebook ? 'transition-all' : ''}`}
               style={{
                 backgroundColor: isPlaying ? '#dc2626' : concept.colors.primary
               }}
             >
               {isPlaying ? (
                 <>
-                  <Square className="w-5 h-5" />
+                  <Square className="w-4 h-4" />
                   Stop
                 </>
               ) : (
                 <>
-                  <Play className="w-5 h-5" />
+                  <Play className="w-4 h-4" />
                   Play
                 </>
               )}
@@ -425,14 +425,20 @@ const MelodyMysteryCreator = ({
             <button
               onClick={clearGrid}
               disabled={!canEditCurrentLocation}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm ${
                 canEditCurrentLocation
                   ? 'bg-slate-700 hover:bg-slate-600'
                   : 'bg-slate-700 opacity-50 cursor-not-allowed'
               }`}
             >
-              <Trash2 className="w-5 h-5" />
+              <Trash2 className="w-4 h-4" />
               Clear
+            </button>
+            <button
+              onClick={onBack}
+              className="text-gray-500 hover:text-gray-300 text-xs px-2"
+            >
+              Cancel
             </button>
           </div>
 
@@ -440,34 +446,25 @@ const MelodyMysteryCreator = ({
           {!myLocationsComplete ? (
             <button
               onClick={handleNext}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold ${!isChromebook ? 'transition-all' : ''} ${
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-white font-semibold text-sm ${!isChromebook ? 'transition-all' : ''} ${
                 isCurrentValid
                   ? 'bg-green-600 hover:bg-green-500'
                   : 'bg-slate-700 hover:bg-slate-600'
               }`}
             >
               Next
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-4 h-4" />
             </button>
           ) : (
             <button
               onClick={handleComplete}
-              className={`flex items-center gap-2 px-6 py-2 rounded-lg font-bold text-white ${!isChromebook ? 'transition-all' : ''}`}
+              className={`flex items-center gap-1 px-4 py-1.5 rounded-lg font-bold text-white text-sm ${!isChromebook ? 'transition-all' : ''}`}
               style={{ backgroundColor: '#16a34a' }}
             >
-              Create Mystery
-              <ChevronRight className="w-5 h-5" />
+              Create
+              <ChevronRight className="w-4 h-4" />
             </button>
           )}
-        </div>
-
-        <div className="text-center mt-3">
-          <button
-            onClick={onBack}
-            className="text-gray-500 hover:text-gray-300 text-sm"
-          >
-            Cancel
-          </button>
         </div>
       </div>
     </div>

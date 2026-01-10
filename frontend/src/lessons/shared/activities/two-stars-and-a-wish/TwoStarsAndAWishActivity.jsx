@@ -8,6 +8,81 @@ import React, { useState, useEffect } from 'react';
 import MusicComposer from "../../../../pages/projects/film-music-score/composer/MusicComposer";
 import ReflectionModal from './ReflectionModal';
 import NameThatLoopActivity from '../layer-detective/NameThatLoopActivity';
+import LoopLabActivity from '../loop-lab/LoopLabActivity';
+import { loadStudentWork, getStudentId } from '../../../../utils/studentWorkStorage';
+
+// Lesson-specific configuration for standalone mode
+const LESSON_CONFIGS = {
+  'school-beneath': {
+    localStorageKeys: ['school-beneath-composition', 'school-beneath'],
+    studentWorkKey: null,
+    reflectionKey: 'school-beneath-reflection',
+    video: {
+      id: 'school-beneath',
+      title: 'The School Beneath',
+      videoPath: '/lessons/videos/film-music-loop-project/SchoolMystery.mp4'
+    },
+    filterLoopCategory: 'Mysterious'
+  },
+  'game-composition': {
+    localStorageKeys: [],
+    studentWorkKey: 'game-composition',  // Uses studentWorkStorage
+    reflectionKey: 'game-reflection',
+    video: null,  // Video is stored in composition data
+    filterLoopCategory: null
+  }
+};
+
+// Helper function to load composition data (pure function, no state updates)
+const loadCompositionFromStorage = () => {
+  // Try each lesson's storage keys in order
+  for (const [lessonId, config] of Object.entries(LESSON_CONFIGS)) {
+    // First try direct localStorage keys
+    for (const key of config.localStorageKeys || []) {
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          console.log(`Found composition in localStorage: ${key}`);
+          return {
+            lessonType: lessonId,
+            data: {
+              placedLoops: data.placedLoops || [],
+              requirements: data.requirements || {},
+              videoDuration: data.videoDuration || 60,
+              videoId: data.videoId || null,
+              videoTitle: data.videoTitle || null,
+              videoPath: data.videoPath || null
+            }
+          };
+        } catch (error) {
+          console.error(`Error loading composition from ${key}:`, error);
+        }
+      }
+    }
+
+    // Then try studentWorkStorage
+    if (config.studentWorkKey) {
+      const savedWork = loadStudentWork(config.studentWorkKey);
+      if (savedWork && savedWork.data) {
+        console.log(`Found composition in studentWorkStorage: ${config.studentWorkKey}`);
+        const data = savedWork.data;
+        return {
+          lessonType: lessonId,
+          data: {
+            placedLoops: data.placedLoops || [],
+            requirements: data.requirements || {},
+            videoDuration: data.videoDuration || 60,
+            videoId: data.videoId || null,
+            videoTitle: data.videoTitle || null,
+            videoPath: data.videoPath || null
+          }
+        };
+      }
+    }
+  }
+  return null;
+};
 
 const TwoStarsAndAWishActivity = ({
   onComplete,
@@ -20,56 +95,39 @@ const TwoStarsAndAWishActivity = ({
   const [isDAWReady, setIsDAWReady] = useState(false);
   const [reflectionCompleted, setReflectionCompleted] = useState(false);
 
+  // Load composition data once on mount (use lazy initial state)
+  const [storedComposition] = useState(() => {
+    if (propsCompositionData) return null; // Don't load if props provided
+    return loadCompositionFromStorage();
+  });
+
   // Determine if we're in "modal mode" (compositionData passed as prop)
   // In modal mode, the DAW is already showing behind us, so we just show the reflection modal
   const isModalMode = propsCompositionData !== null;
 
+  // Use prop data if provided, otherwise use stored data
+  const compositionData = propsCompositionData || storedComposition?.data || null;
+  const lessonType = storedComposition?.lessonType || 'school-beneath';
+
   // Check if reflection is already completed when component mounts
   useEffect(() => {
-    const savedReflection = localStorage.getItem('school-beneath-reflection');
-    if (savedReflection) {
-      try {
-        const data = JSON.parse(savedReflection);
-        if (data.submittedAt) {
-          setReflectionCompleted(true);
+    // Check all possible reflection keys
+    const reflectionKeys = ['school-beneath-reflection', 'game-reflection'];
+    for (const key of reflectionKeys) {
+      const savedReflection = localStorage.getItem(key);
+      if (savedReflection) {
+        try {
+          const data = JSON.parse(savedReflection);
+          if (data.submittedAt) {
+            setReflectionCompleted(true);
+            break;
+          }
+        } catch (error) {
+          console.error('Error loading reflection status:', error);
         }
-      } catch (error) {
-        console.error('Error loading reflection status:', error);
       }
     }
   }, []);
-
-  // Load saved composition data - tries submitted version first, then falls back to auto-save
-  // Only used in standalone mode (when no compositionData prop)
-  const getCompositionDataFromStorage = () => {
-    // First, try to load from the submitted version
-    let saved = localStorage.getItem('school-beneath-composition');
-
-    // If not found, fallback to auto-saved version
-    if (!saved) {
-      console.log('No submitted composition found, loading from auto-save');
-      saved = localStorage.getItem('school-beneath');
-    }
-
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        // Return the composition data (handles both formats)
-        return {
-          placedLoops: data.placedLoops || [],
-          requirements: data.requirements || {},
-          videoDuration: data.videoDuration || 60
-        };
-      } catch (error) {
-        console.error('Error loading composition:', error);
-        return null;
-      }
-    }
-    return null;
-  };
-
-  // Use prop data if provided, otherwise load from localStorage
-  const compositionData = propsCompositionData || getCompositionDataFromStorage();
 
   if (!compositionData && !viewMode) {
     return (
@@ -105,14 +163,21 @@ const TwoStarsAndAWishActivity = ({
   };
 
   // If bonus is showing, render the bonus activity
+  // Lesson 5 (game-composition) uses Loop Lab, others use Name That Loop
   if (showBonus) {
+    const isLesson5 = lessonType === 'game-composition';
+
     return (
       <div className="h-screen w-full flex flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
         {/* Header with option to go back */}
         <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-white">🎮 Bonus Activity: Name That Loop!</h2>
-            <p className="text-blue-100">Play the listening game with a partner</p>
+            <h2 className="text-2xl font-bold text-white">
+              {isLesson5 ? '🎮 Bonus Activity: Loop Lab!' : '🎮 Bonus Activity: Name That Loop!'}
+            </h2>
+            <p className="text-blue-100">
+              {isLesson5 ? 'Create and mix loops in the lab' : 'Play the listening game with a partner'}
+            </p>
           </div>
           <button
             onClick={() => setShowBonus(false)}
@@ -124,12 +189,21 @@ const TwoStarsAndAWishActivity = ({
 
         {/* Bonus Activity */}
         <div className="flex-1 overflow-hidden">
-          <NameThatLoopActivity
-            onComplete={() => {
-              console.log('Bonus activity complete');
-              onComplete(); // Still marks reflection as complete
-            }}
-          />
+          {isLesson5 ? (
+            <LoopLabActivity
+              onComplete={() => {
+                console.log('Loop Lab bonus activity complete');
+                onComplete();
+              }}
+            />
+          ) : (
+            <NameThatLoopActivity
+              onComplete={() => {
+                console.log('Name That Loop bonus activity complete');
+                onComplete();
+              }}
+            />
+          )}
         </div>
       </div>
     );
@@ -150,7 +224,44 @@ const TwoStarsAndAWishActivity = ({
     );
   }
 
-  // STANDALONE MODE: Render full DAW + reflection modal (used in Lesson 1)
+  // Get the lesson config for the current lesson type
+  const lessonConfig = LESSON_CONFIGS[lessonType] || LESSON_CONFIGS['school-beneath'];
+
+  // Determine the video to use - either from config or from composition data
+  const getVideoForReflection = () => {
+    if (lessonConfig.video) {
+      // Use predefined video from config (e.g., School Beneath)
+      return {
+        ...lessonConfig.video,
+        duration: compositionData?.videoDuration || 60
+      };
+    } else if (compositionData?.videoId) {
+      // Use video from composition data (e.g., Game Composition)
+      // Map video IDs to paths for Lesson 5 game videos
+      const gameVideoPaths = {
+        'grow-a-garden': '/lessons/film-music-project/GrowAGarden.mp4',
+        'minecraft': '/lessons/film-music-project/MinecraftGameplay.mp4',
+        'unpacking': '/lessons/film-music-project/Unpacking.mp4'
+      };
+      return {
+        id: compositionData.videoId,
+        title: compositionData.videoTitle || 'Game Video',
+        duration: compositionData.videoDuration || 60,
+        videoPath: gameVideoPaths[compositionData.videoId] || compositionData.videoPath
+      };
+    }
+    // Fallback
+    return {
+      id: 'school-beneath',
+      title: 'The School Beneath',
+      duration: 60,
+      videoPath: '/lessons/videos/film-music-loop-project/SchoolMystery.mp4'
+    };
+  };
+
+  const videoConfig = getVideoForReflection();
+
+  // STANDALONE MODE: Render full DAW + reflection modal
   return (
     <div className="h-full w-full flex flex-col bg-gray-900 relative">
       {/* Loading Overlay - Show while DAW initializes */}
@@ -174,13 +285,8 @@ const TwoStarsAndAWishActivity = ({
             setIsDAWReady(true);
           }}
           tutorialMode={false}
-          preselectedVideo={{
-            id: 'school-beneath',
-            title: 'The School Beneath',
-            duration: compositionData?.videoDuration || 60,
-            videoPath: '/lessons/videos/film-music-loop-project/SchoolMystery.mp4'
-          }}
-          filterLoopCategory="Mysterious"
+          preselectedVideo={videoConfig}
+          filterLoopCategory={lessonConfig.filterLoopCategory}
           hideHeader={true}
           hideSubmitButton={true}
           isLessonMode={true}

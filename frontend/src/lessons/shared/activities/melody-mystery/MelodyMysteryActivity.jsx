@@ -221,15 +221,9 @@ const MelodyMysteryActivity = ({ onComplete, viewMode, isSessionMode, initialLoa
       }
     });
     setIsSaved(true);
-    setSaveMessage({ type: 'success', text: 'Saved to Join page!' });
-    setTimeout(() => setSaveMessage(null), 4000);
 
-    // Partner joiner goes to solve, first player goes to share
-    if (isPartnerJoiner) {
-      setPhase(PHASES.SOLVE);
-    } else {
-      setPhase(PHASES.SHARE);
-    }
+    // Go back to setup (first screen)
+    handleCreateNew();
   };
 
   // Handle completing collaborative CREATE phase (partner/trio modes)
@@ -277,8 +271,8 @@ const MelodyMysteryActivity = ({ onComplete, viewMode, isSessionMode, initialLoa
     });
     setIsSaved(true);
 
-    // Go directly to solve (skip share phase for collab mode)
-    setPhase(PHASES.SOLVE);
+    // Go back to setup (first screen)
+    handleCreateNew();
   };
 
   // Handle starting solve after sharing
@@ -565,7 +559,7 @@ const MelodyMysteryActivity = ({ onComplete, viewMode, isSessionMode, initialLoa
   };
 
   return (
-    <div className="mystery-melody-activity">
+    <div className="mystery-melody-activity h-full w-full">
       {renderPhase()}
     </div>
   );

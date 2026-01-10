@@ -220,7 +220,7 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
   if (step === 'mode') {
     return (
       <div
-        className="min-h-screen flex flex-col p-6 relative overflow-auto"
+        className="h-full flex flex-col p-4 relative overflow-auto"
         style={{
           backgroundImage: `url(${SHARED_BG_TITLE})`,
           backgroundSize: 'cover',
@@ -252,19 +252,19 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
               How are you working today?
             </h2>
 
-            <div className="flex gap-6 justify-center">
+            <div className="flex gap-4 justify-center">
               {modes.map(mode => (
                 <button
                   key={mode.id}
                   onClick={() => handleModeSelect(mode.id)}
-                  className="group bg-gray-800/90 hover:bg-gray-700/90 border-2 border-gray-600 hover:border-purple-500 rounded-2xl p-8 w-48 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-purple-500/30"
+                  className="group bg-gray-800/90 hover:bg-gray-700/90 border-2 border-gray-600 hover:border-purple-500 rounded-xl p-4 w-32 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-purple-500/30"
                 >
-                  <div className="text-2xl font-bold text-white mb-2">{mode.label}</div>
-                  <div className="text-purple-400 font-semibold text-lg">
+                  <div className="text-lg font-bold text-white mb-1">{mode.label}</div>
+                  <div className="text-purple-400 font-semibold text-sm">
                     {mode.totalMelodies} melodies
                   </div>
                   {mode.perPerson < mode.totalMelodies && (
-                    <div className="text-gray-400 text-sm mt-1">
+                    <div className="text-gray-400 text-xs mt-1">
                       ({mode.perPerson} each)
                     </div>
                   )}
@@ -272,9 +272,9 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
               ))}
 
               {/* Play Someone Else's Mystery */}
-              <div className="bg-gray-800/90 border-2 border-gray-600 rounded-2xl p-6 w-56">
-                <div className="text-xl font-bold text-white mb-1">Play Someone Else's Mystery</div>
-                <div className="text-gray-400 text-sm mb-3">Enter their code:</div>
+              <div className="bg-gray-800/90 border-2 border-gray-600 rounded-xl p-4 w-40">
+                <div className="text-sm font-bold text-white mb-1">Play Someone Else's Mystery</div>
+                <div className="text-gray-400 text-xs mb-2">Enter their code:</div>
                 <input
                   type="text"
                   value={playCode}
@@ -289,10 +289,10 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
                   }}
                   placeholder="CODE"
                   maxLength={6}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-center text-lg font-mono tracking-widest uppercase focus:outline-none focus:border-green-500 mb-3"
+                  className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-white text-center text-sm font-mono tracking-widest uppercase focus:outline-none focus:border-green-500 mb-2"
                 />
                 {playError && (
-                  <div className="text-red-400 text-xs mb-2">{playError}</div>
+                  <div className="text-red-400 text-xs mb-1">{playError}</div>
                 )}
                 <button
                   onClick={() => {
@@ -303,13 +303,13 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
                     }
                   }}
                   disabled={playCode.length < 4}
-                  className={`w-full px-4 py-2 rounded-lg font-bold transition-colors flex items-center justify-center gap-2 ${
+                  className={`w-full px-3 py-1.5 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-1 ${
                     playCode.length >= 4
                       ? 'bg-green-600 hover:bg-green-500 text-white'
                       : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                   }`}
                 >
-                  <Play size={18} />
+                  <Play size={14} />
                   Join
                 </button>
               </div>
@@ -387,6 +387,11 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
                         <Play size={16} />
                         Play
                       </button>
+                      {room.data?.shareCode && (
+                        <div className="text-center text-gray-400 text-xs mt-2">
+                          Code: <span className="font-mono text-white">{room.data.shareCode}</span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -403,7 +408,7 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
     const modeConfig = MODES[selectedMode];
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+        className="h-full flex flex-col items-center justify-center p-4 relative"
         style={{
           backgroundImage: `url(${SHARED_BG_TITLE})`,
           backgroundSize: 'cover',
@@ -462,7 +467,7 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
 
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+        className="h-full flex flex-col items-center justify-center p-4 relative overflow-auto"
         style={{
           backgroundImage: `url(${SHARED_BG_TITLE})`,
           backgroundSize: 'cover',
@@ -567,7 +572,7 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
 
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+        className="h-full flex flex-col items-center justify-center p-4 relative overflow-auto"
         style={{
           backgroundImage: `url(${conceptAssets?.bgShare || SHARED_BG_TITLE})`,
           backgroundSize: 'cover',
@@ -645,7 +650,7 @@ const MelodyMysterySetup = ({ onStartCreate, onJoinMystery, onJoinToCreate, onPl
     const modeConfig = MODES[selectedMode];
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center p-6 relative"
+        className="h-full flex flex-col items-center justify-center p-4 relative overflow-auto"
         style={{
           backgroundImage: `url(${SHARED_BG_TITLE})`,
           backgroundSize: 'cover',

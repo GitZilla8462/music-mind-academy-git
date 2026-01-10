@@ -237,11 +237,9 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
       }
     });
     setIsSaved(true);
-    setSaveMessage({ type: 'success', text: '✅ Saved to Join page!' });
-    setTimeout(() => setSaveMessage(null), 4000);
 
-    // Go to share screen
-    setPhase(PHASES.SHARE);
+    // Go back to setup (first screen)
+    handleCreateNew();
   };
 
   // Handle starting play after sharing
@@ -384,10 +382,9 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
                   }
                 });
                 setIsSaved(true);
-                setSaveMessage({ type: 'success', text: '✅ Saved to Join page!' });
-                setTimeout(() => setSaveMessage(null), 4000);
 
-                setPhase(PHASES.SHARE);
+                // Go back to setup (first screen)
+                handleCreateNew();
               }}
               onBack={handleBack}
             />
