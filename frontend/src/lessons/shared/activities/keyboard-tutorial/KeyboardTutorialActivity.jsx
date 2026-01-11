@@ -167,25 +167,36 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
   const FALL_AREA_HEIGHT = 300;
   const FALL_SPEED = 200; // pixels per second
 
-  // Initialize synth
+  // Initialize synth AFTER unlock (when audio context is ready)
   useEffect(() => {
+    if (!isUnlocked) return;
+
+    // Create synth after audio context is initialized
     synthRef.current = new Tone.PolySynth(Tone.Synth, {
       maxPolyphony: 8,
       ...PIANO_CONFIG
     }).toDestination();
-    synthRef.current.volume.value = -10;
+    synthRef.current.volume.value = -6; // Louder
+
+    console.log('🎹 Synth initialized');
 
     return () => {
       if (synthRef.current) {
         synthRef.current.dispose();
+        synthRef.current = null;
       }
     };
-  }, []);
+  }, [isUnlocked]);
 
   // Handle unlock
   const handleUnlock = async () => {
-    await initAudio();
-    setIsUnlocked(true);
+    try {
+      await initAudio();
+      console.log('🔊 Audio context started');
+      setIsUnlocked(true);
+    } catch (err) {
+      console.error('Audio init error:', err);
+    }
   };
 
   // Play a note with splash
