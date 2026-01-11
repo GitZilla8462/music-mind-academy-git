@@ -1,6 +1,6 @@
 // File: /src/lessons/shared/activities/keyboard-tutorial/KeyboardTutorialActivity.jsx
 // Piano Player with Synthesia-style Falling Notes
-// Features: Hit/Miss detection, BPM tempo control, splash effects
+// Features: Learn mode (frozen notes), Play mode (falling notes), Hit/Miss detection
 //
 // PERFORMANCE OPTIMIZATIONS FOR CHROMEBOOK:
 // - requestAnimationFrame for smooth 60fps animation
@@ -44,6 +44,9 @@ const FALL_AREA_HEIGHT = 320;
 const HIT_ZONE_Y = FALL_AREA_HEIGHT - NOTE_HEIGHT; // Hit zone is at the piano keys
 const HIT_ZONE_TOLERANCE = 80; // Wide tolerance for easier gameplay
 
+// Learn mode note spacing
+const LEARN_NOTE_SPACING = 60; // Pixels between notes in learn mode
+
 // O(1) lookup
 const KEY_TO_NOTE = new Map(PIANO_KEYS.map(k => [k.keyboardKey.toLowerCase(), k]));
 const NOTE_TO_KEY = new Map(PIANO_KEYS.map(k => [k.note, k]));
@@ -71,20 +74,22 @@ const MELODIES = {
     name: 'Ascending Scale',
     icon: <ArrowUp size={20} />,
     notes: ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'],
-    description: 'C → D → E → F → G → A → B → C'
+    description: 'C → D → E → F → G → A → B → C',
+    learnMessage: "Let's play an ascending scale!"
   },
   descending: {
     id: 'descending',
     name: 'Descending Scale',
     icon: <ArrowDown size={20} />,
     notes: ['C5', 'B4', 'A4', 'G4', 'F4', 'E4', 'D4', 'C4'],
-    description: 'C → B → A → G → F → E → D → C'
+    description: 'C → B → A → G → F → E → D → C',
+    learnMessage: "Let's play a descending scale!"
   }
 };
 
 // Tempo settings - Quarter notes at 80 BPM
 const BPM = 80;
-const BEAT_DURATION_MS = 60000 / BPM; // 600ms per beat (quarter note)
+const BEAT_DURATION_MS = 60000 / BPM; // 750ms per beat (quarter note)
 const FALL_TIME_BEATS = 2; // How many beats it takes for a note to fall from top to hit zone
 const PIXELS_PER_MS = FALL_AREA_HEIGHT / (BEAT_DURATION_MS * FALL_TIME_BEATS);
 const NOTE_SPACING_MS = BEAT_DURATION_MS; // One quarter note between each note
@@ -111,14 +116,18 @@ const initAudio = async () => {
 const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode = false }) => {
   // States
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [mode, setMode] = useState('menu');
+  const [mode, setMode] = useState('menu'); // menu, learn, playing, freeplay, complete
   const [selectedMelody, setSelectedMelody] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [pressedKeys, setPressedKeys] = useState(new Set());
   const [keyFeedback, setKeyFeedback] = useState({}); // { note: 'hit' | 'miss' }
   const [score, setScore] = useState({ hits: 0, misses: 0, total: 0 });
 
-  // Falling notes state
+  // Learn mode state
+  const [learnCurrentIndex, setLearnCurrentIndex] = useState(0);
+  const [learnNoteOffsets, setLearnNoteOffsets] = useState([]); // Y offset for each note (for animation)
+
+  // Falling notes state (for play mode)
   const [fallingNotes, setFallingNotes] = useState([]);
   const animationRef = useRef(null);
   const synthRef = useRef(null);
@@ -149,16 +158,15 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
   };
 
   // Set key feedback (green for hit, red for miss)
-  const setKeyFeedbackWithTimeout = useCallback((note, type) => {
+  const setKeyFeedbackWithTimeout = useCallback((note, type, duration = 400) => {
     setKeyFeedback(prev => ({ ...prev, [note]: type }));
-    // Clear after 400ms
     setTimeout(() => {
       setKeyFeedback(prev => {
         const next = { ...prev };
         delete next[note];
         return next;
       });
-    }, 400);
+    }, duration);
   }, []);
 
   // Play a note sound
@@ -174,8 +182,34 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
     // Always play the sound
     playNoteSound(noteData.note);
 
-    // Check if there's a note to hit in the hit zone
-    if (isPlaying) {
+    // LEARN MODE: Check if correct note
+    if (mode === 'learn' && selectedMelody) {
+      const expectedNote = selectedMelody.notes[learnCurrentIndex];
+
+      if (noteData.note === expectedNote) {
+        // Correct! Light up green and shift notes down
+        setKeyFeedbackWithTimeout(noteData.note, 'hit', 300);
+
+        // Animate all notes shifting down
+        setLearnNoteOffsets(prev => prev.map((offset, idx) =>
+          idx >= learnCurrentIndex ? offset + LEARN_NOTE_SPACING + NOTE_HEIGHT : offset
+        ));
+
+        // Move to next note
+        const nextIndex = learnCurrentIndex + 1;
+        if (nextIndex >= selectedMelody.notes.length) {
+          // Done with learn mode! Start play mode after a brief delay
+          setTimeout(() => {
+            startPlayMode();
+          }, 800);
+        } else {
+          setLearnCurrentIndex(nextIndex);
+        }
+      }
+    }
+
+    // PLAY MODE: Check if there's a note to hit in the hit zone
+    if (mode === 'playing' && isPlaying) {
       setFallingNotes(prev => {
         const noteInZone = prev.find(n =>
           !n.hit && !n.missed &&
@@ -205,20 +239,29 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
         return newSet;
       });
     }, 150);
-  }, [isPlaying, playNoteSound, setKeyFeedbackWithTimeout]);
+  }, [mode, selectedMelody, learnCurrentIndex, isPlaying, playNoteSound, setKeyFeedbackWithTimeout]);
 
-  // Start melody
-  const startMelody = (melodyId) => {
+  // Start learn mode for a melody
+  const startLearnMode = (melodyId) => {
     const melody = MELODIES[melodyId];
     setSelectedMelody(melody);
-    setScore({ hits: 0, misses: 0, total: melody.notes.length });
+    setLearnCurrentIndex(0);
+    // Initialize note offsets (all start at 0)
+    setLearnNoteOffsets(new Array(melody.notes.length).fill(0));
+    setMode('learn');
+  };
+
+  // Start play mode (falling notes)
+  const startPlayMode = () => {
+    if (!selectedMelody) return;
+
+    setScore({ hits: 0, misses: 0, total: selectedMelody.notes.length });
     setMode('playing');
 
     // Create falling notes spaced as quarter notes
-    // Each note is one beat apart (600ms at 100 BPM)
     const pixelsPerQuarterNote = PIXELS_PER_MS * NOTE_SPACING_MS;
 
-    const notes = melody.notes.map((note, index) => ({
+    const notes = selectedMelody.notes.map((note, index) => ({
       id: `${note}-${index}-${Date.now()}`,
       note,
       y: -NOTE_HEIGHT - (index * pixelsPerQuarterNote),
@@ -231,9 +274,9 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
     lastTimeRef.current = 0;
   };
 
-  // Animation loop
+  // Animation loop for play mode
   useEffect(() => {
-    if (!isPlaying || fallingNotes.length === 0) return;
+    if (mode !== 'playing' || !isPlaying || fallingNotes.length === 0) return;
 
     const animate = (currentTime) => {
       if (!lastTimeRef.current) lastTimeRef.current = currentTime;
@@ -295,7 +338,7 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isPlaying, setKeyFeedbackWithTimeout]);
+  }, [mode, isPlaying, setKeyFeedbackWithTimeout]);
 
   // Keyboard input
   useEffect(() => {
@@ -321,6 +364,8 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
     setIsPlaying(false);
     setFallingNotes([]);
     setKeyFeedback({});
+    setLearnCurrentIndex(0);
+    setLearnNoteOffsets([]);
     lastTimeRef.current = 0;
   };
 
@@ -328,6 +373,9 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
   const accuracy = score.hits + score.misses > 0
     ? Math.round((score.hits / (score.hits + score.misses)) * 100)
     : 0;
+
+  // Get the current note to play in learn mode
+  const currentLearnNote = selectedMelody?.notes[learnCurrentIndex];
 
   // Unlock Screen
   if (!isUnlocked) {
@@ -337,10 +385,10 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
           <div className="text-8xl mb-6">🎹</div>
           <h1 className="text-4xl font-bold text-white mb-4">Piano Player</h1>
           <p className="text-xl text-gray-300 mb-2">
-            Hit the notes as they reach the keys!
+            Learn melodies step by step!
           </p>
           <p className="text-gray-500 mb-8">
-            Quarter Notes at {BPM} BPM
+            First learn, then play at {BPM} BPM
           </p>
           <button
             onClick={handleUnlock}
@@ -362,7 +410,9 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
           <div>
             <h1 className="text-xl font-bold text-white">🎹 Piano Player</h1>
             <p className="text-gray-400 text-sm">
-              {mode === 'playing' ? `${selectedMelody?.name} • ♩ = ${BPM}` : mode === 'freeplay' ? 'Free Play' : 'Select a melody'}
+              {mode === 'learn' ? `Learning: ${selectedMelody?.name}` :
+               mode === 'playing' ? `${selectedMelody?.name} • ♩ = ${BPM}` :
+               mode === 'freeplay' ? 'Free Play' : 'Select a melody'}
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -372,7 +422,12 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
                 <span className="text-red-400">✗ {score.misses}</span>
               </div>
             )}
-            {(mode === 'playing' || mode === 'freeplay') && (
+            {mode === 'learn' && (
+              <div className="text-sm text-gray-400">
+                {learnCurrentIndex + 1} / {selectedMelody?.notes.length}
+              </div>
+            )}
+            {(mode === 'playing' || mode === 'freeplay' || mode === 'learn') && (
               <button onClick={resetToMenu} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm">
                 Back
               </button>
@@ -391,7 +446,7 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
             {Object.values(MELODIES).map((melody) => (
               <button
                 key={melody.id}
-                onClick={() => startMelody(melody.id)}
+                onClick={() => startLearnMode(melody.id)}
                 className="w-full p-4 bg-gray-800 hover:bg-gray-700 rounded-xl flex items-center gap-4 transition-colors group"
               >
                 <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white">
@@ -418,6 +473,167 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
                 </div>
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Learn Mode */}
+        {mode === 'learn' && selectedMelody && (
+          <div className="relative" style={{ width: PIANO_WIDTH }}>
+            {/* Message */}
+            <div className="text-center mb-4">
+              <p className="text-2xl font-bold text-white mb-2">{selectedMelody.learnMessage}</p>
+              <p className="text-gray-400">Play each note as it's highlighted</p>
+            </div>
+
+            {/* Notes Area */}
+            <div
+              className="relative bg-gray-950 rounded-t-xl overflow-hidden"
+              style={{ height: FALL_AREA_HEIGHT }}
+            >
+              {/* Lane guides */}
+              {WHITE_KEYS.map((key, idx) => (
+                <div
+                  key={key.note}
+                  className="absolute top-0 bottom-0 border-r border-gray-800/30"
+                  style={{ left: idx * WHITE_KEY_WIDTH, width: WHITE_KEY_WIDTH }}
+                />
+              ))}
+
+              {/* Frozen notes - all visible, stacked from bottom */}
+              {selectedMelody.notes.map((note, index) => {
+                const keyData = NOTE_TO_KEY.get(note);
+                const noteX = getNoteX(note);
+                const isCurrentNote = index === learnCurrentIndex;
+                const isPlayed = index < learnCurrentIndex;
+
+                // Calculate Y position: bottom note is at hit zone, others stack above
+                // As notes are played, they shift down (offset increases)
+                const baseY = HIT_ZONE_Y - (index * (NOTE_HEIGHT + LEARN_NOTE_SPACING));
+                const offset = learnNoteOffsets[index] || 0;
+                const noteY = baseY + offset;
+
+                // Don't render notes that have scrolled off
+                if (isPlayed) return null;
+
+                return (
+                  <div
+                    key={`learn-${note}-${index}`}
+                    className={`absolute rounded-md flex items-center justify-center font-bold text-sm shadow-lg transition-all duration-300 ${
+                      isCurrentNote
+                        ? 'bg-green-500 ring-4 ring-green-400/50'
+                        : keyData?.isBlack
+                        ? 'bg-purple-500/70'
+                        : 'bg-blue-500/70'
+                    }`}
+                    style={{
+                      left: noteX,
+                      top: noteY,
+                      width: NOTE_WIDTH,
+                      height: NOTE_HEIGHT,
+                      transform: 'translateZ(0)',
+                    }}
+                  >
+                    <span className="text-white text-shadow">{keyData?.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Piano Keyboard */}
+            <div className="relative bg-gray-800 rounded-b-xl pt-1 pb-2 px-1" style={{ height: WHITE_KEY_HEIGHT + 20 }}>
+              {/* White keys */}
+              <div className="relative flex">
+                {WHITE_KEYS.map((key) => {
+                  const isPressed = pressedKeys.has(key.note);
+                  const feedback = keyFeedback[key.note];
+                  const isExpectedKey = key.note === currentLearnNote;
+
+                  // Determine key color
+                  let bgClass = 'bg-white hover:bg-gray-100';
+                  let borderClass = 'border-gray-300';
+                  if (feedback === 'hit') {
+                    bgClass = 'bg-green-400';
+                    borderClass = 'border-green-500';
+                  } else if (feedback === 'miss') {
+                    bgClass = 'bg-red-400';
+                    borderClass = 'border-red-500';
+                  } else if (isExpectedKey) {
+                    bgClass = 'bg-green-200';
+                    borderClass = 'border-green-400';
+                  } else if (isPressed) {
+                    bgClass = 'bg-orange-300';
+                    borderClass = 'border-orange-400';
+                  }
+
+                  return (
+                    <button
+                      key={key.note}
+                      onMouseDown={() => handleKeyPress(key)}
+                      onTouchStart={(e) => { e.preventDefault(); handleKeyPress(key); }}
+                      className={`relative flex flex-col items-center justify-end pb-2 rounded-b-lg border transition-all duration-100 ${bgClass} ${borderClass}`}
+                      style={{
+                        width: WHITE_KEY_WIDTH,
+                        height: WHITE_KEY_HEIGHT,
+                        transform: isPressed ? 'translateY(2px)' : 'none',
+                      }}
+                    >
+                      <span className={`text-xs font-bold ${feedback ? 'text-white' : isExpectedKey ? 'text-green-700' : isPressed ? 'text-orange-700' : 'text-gray-700'}`}>
+                        {key.label}
+                      </span>
+                      <span className={`text-[10px] mt-0.5 ${feedback ? 'text-white/70' : 'text-gray-400'}`}>
+                        {key.keyboardKey.toUpperCase()}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Black keys */}
+              {BLACK_KEYS.map((key, idx) => {
+                const isPressed = pressedKeys.has(key.note);
+                const feedback = keyFeedback[key.note];
+                const isExpectedKey = key.note === currentLearnNote;
+                const positions = [0, 1, 3, 4, 5];
+                const leftPos = (positions[idx] + 1) * WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2;
+
+                // Determine black key color
+                let bgClass = 'bg-gray-900 hover:bg-gray-800';
+                if (feedback === 'hit') {
+                  bgClass = 'bg-green-500';
+                } else if (feedback === 'miss') {
+                  bgClass = 'bg-red-500';
+                } else if (isExpectedKey) {
+                  bgClass = 'bg-green-600';
+                } else if (isPressed) {
+                  bgClass = 'bg-purple-600';
+                }
+
+                return (
+                  <button
+                    key={key.note}
+                    onMouseDown={() => handleKeyPress(key)}
+                    onTouchStart={(e) => { e.preventDefault(); handleKeyPress(key); }}
+                    className={`absolute top-1 rounded-b-lg flex flex-col items-center justify-end pb-1 transition-all duration-100 ${bgClass}`}
+                    style={{
+                      left: leftPos,
+                      width: BLACK_KEY_WIDTH,
+                      height: BLACK_KEY_HEIGHT,
+                      transform: isPressed ? 'translateY(2px)' : 'none',
+                      zIndex: 10
+                    }}
+                  >
+                    <span className="text-[9px] text-gray-400">
+                      {key.keyboardKey.toUpperCase()}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Key hint */}
+            <p className="text-center text-gray-500 text-xs mt-3">
+              White: A S D F G H J K • Black: W E T Y U
+            </p>
           </div>
         )}
 
@@ -597,7 +813,7 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
             </div>
             <div className="flex gap-3 justify-center pt-4">
               <button
-                onClick={() => startMelody(selectedMelody.id)}
+                onClick={() => startLearnMode(selectedMelody.id)}
                 className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg"
               >
                 Play Again
