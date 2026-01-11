@@ -112,6 +112,138 @@ const initAudio = async () => {
 
 
 // ============================================
+// Hand Overlay Component - SVG hands over piano keys
+// ============================================
+const HandOverlay = () => {
+  const yellowStroke = "#facc15";
+  const strokeWidth = 2.5;
+  const fingerWidth = 18;
+
+  // Finger lengths (middle longest, pinky shortest)
+  const fingerLengths = {
+    pinky: 45,
+    ring: 55,
+    middle: 62,
+    index: 52
+  };
+
+  // Key centers (each key is WHITE_KEY_WIDTH = 52px)
+  const keyCenter = (keyIndex) => keyIndex * WHITE_KEY_WIDTH + WHITE_KEY_WIDTH / 2;
+
+  // Finger positions - fingertips at y=0, extending downward
+  const leftHand = [
+    { finger: 'pinky', num: 5, x: keyCenter(0), length: fingerLengths.pinky },
+    { finger: 'ring', num: 4, x: keyCenter(1), length: fingerLengths.ring },
+    { finger: 'middle', num: 3, x: keyCenter(2), length: fingerLengths.middle },
+    { finger: 'index', num: 2, x: keyCenter(3), length: fingerLengths.index },
+  ];
+
+  const rightHand = [
+    { finger: 'index', num: 2, x: keyCenter(4), length: fingerLengths.index },
+    { finger: 'middle', num: 3, x: keyCenter(5), length: fingerLengths.middle },
+    { finger: 'ring', num: 4, x: keyCenter(6), length: fingerLengths.ring },
+    { finger: 'pinky', num: 5, x: keyCenter(7), length: fingerLengths.pinky },
+  ];
+
+  const renderFinger = (f, idx) => (
+    <g key={idx}>
+      {/* Finger - rounded rectangle from top (y=0) extending down */}
+      <rect
+        x={f.x - fingerWidth / 2}
+        y={2}
+        width={fingerWidth}
+        height={f.length}
+        rx={fingerWidth / 2}
+        ry={fingerWidth / 2}
+        fill="none"
+        stroke={yellowStroke}
+        strokeWidth={strokeWidth}
+      />
+      {/* Finger number below the finger */}
+      <text
+        x={f.x}
+        y={f.length + 18}
+        textAnchor="middle"
+        fill={yellowStroke}
+        fontSize="13"
+        fontWeight="bold"
+      >
+        {f.num}
+      </text>
+    </g>
+  );
+
+  // Palm arc paths
+  const leftPalmY = 75;
+  const rightPalmY = 75;
+
+  return (
+    <div
+      className="absolute pointer-events-none z-20"
+      style={{ top: 0, left: 1, width: PIANO_WIDTH, height: WHITE_KEY_HEIGHT }}
+    >
+      <svg
+        width={PIANO_WIDTH}
+        height={WHITE_KEY_HEIGHT}
+        style={{ opacity: 0.85 }}
+      >
+        {/* Left Hand Fingers */}
+        {leftHand.map(renderFinger)}
+
+        {/* Left Palm - curved arc connecting fingers */}
+        <path
+          d={`M ${keyCenter(0) - fingerWidth/2 - 5} ${fingerLengths.pinky + 5}
+              Q ${keyCenter(0) - 20} ${leftPalmY + 30}, ${keyCenter(1.5)} ${leftPalmY + 45}
+              Q ${keyCenter(3) + 20} ${leftPalmY + 30}, ${keyCenter(3) + fingerWidth/2 + 5} ${fingerLengths.index + 5}`}
+          fill="none"
+          stroke={yellowStroke}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+        />
+
+        {/* LH Label */}
+        <text
+          x={keyCenter(1.5)}
+          y={leftPalmY + 38}
+          textAnchor="middle"
+          fill={yellowStroke}
+          fontSize="15"
+          fontWeight="bold"
+        >
+          LH
+        </text>
+
+        {/* Right Hand Fingers */}
+        {rightHand.map(renderFinger)}
+
+        {/* Right Palm - curved arc connecting fingers */}
+        <path
+          d={`M ${keyCenter(4) - fingerWidth/2 - 5} ${fingerLengths.index + 5}
+              Q ${keyCenter(4) - 20} ${rightPalmY + 30}, ${keyCenter(5.5)} ${rightPalmY + 45}
+              Q ${keyCenter(7) + 20} ${rightPalmY + 30}, ${keyCenter(7) + fingerWidth/2 + 5} ${fingerLengths.pinky + 5}`}
+          fill="none"
+          stroke={yellowStroke}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+        />
+
+        {/* RH Label */}
+        <text
+          x={keyCenter(5.5)}
+          y={rightPalmY + 38}
+          textAnchor="middle"
+          fill={yellowStroke}
+          fontSize="15"
+          fontWeight="bold"
+        >
+          RH
+        </text>
+      </svg>
+    </div>
+  );
+};
+
+// ============================================
 // Beat Indicator Component
 // ============================================
 const BeatIndicator = ({ beat, isPlaying }) => {
@@ -628,6 +760,8 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
 
             {/* Piano Keyboard */}
             <div className="relative bg-gray-800 rounded-b-xl pt-1 pb-2 px-1" style={{ height: WHITE_KEY_HEIGHT + 20 }}>
+              {/* Hand overlay */}
+              <HandOverlay />
 
               {/* White keys */}
               <div className="relative flex">
