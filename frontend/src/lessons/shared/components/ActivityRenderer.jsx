@@ -60,6 +60,11 @@ import MelodyMysteryActivity from '../activities/melody-mystery';
 // ✅ ADDED: Name That Game for Lesson 5 (Game On - Intro Demo)
 import NameThatGameActivity from '../activities/name-that-game';
 
+// ✅ ADDED: Film Music Lesson 1 - Leitmotif & Melody Activities
+import LeitmotifDetectiveActivity from '../activities/leitmotif-detective';
+import MotifBuilderActivity from '../activities/motif-builder';
+import KeyboardTutorialActivity from '../activities/keyboard-tutorial';
+
 const ActivityRenderer = ({
   activity,
   onComplete,
@@ -443,6 +448,37 @@ const ActivityRenderer = ({
         <NameThatGameActivity
           key={`name-that-game-${activity.id}`}
           onComplete={onComplete}
+        />
+      );
+
+    // ✅ ADDED: Keyboard Tutorial (Film Music Lesson 1 - Leitmotif & Melody)
+    case 'keyboard-tutorial':
+      return (
+        <KeyboardTutorialActivity
+          key={`keyboard-tutorial-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Leitmotif Detective (Film Music Lesson 1 - Leitmotif & Melody)
+    case 'leitmotif-detective':
+      return (
+        <LeitmotifDetectiveActivity
+          key={`leitmotif-detective-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Motif Builder (Film Music Lesson 1 - Leitmotif & Melody)
+    case 'motif-builder':
+      return (
+        <MotifBuilderActivity
+          key={`motif-builder-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
         />
       );
 

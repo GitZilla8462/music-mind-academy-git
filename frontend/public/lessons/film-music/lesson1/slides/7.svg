@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg7" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e293b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg7)"/>
+
+  <text x="960" y="200" text-anchor="middle" fill="#f97316" font-family="Arial, sans-serif" font-size="72" font-weight="bold">Keyboard Practice</text>
+
+  <text x="960" y="400" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="48">Students are practicing on their devices</text>
+
+  <text x="960" y="550" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="36">5 Challenges:</text>
+  <text x="960" y="620" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="28">Find Middle C | Play C-D-E | Play E-D-C | Find G | Play C-E-G</text>
+
+  <text x="960" y="800" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="28">Walk around and help students who need assistance</text>
+</svg>

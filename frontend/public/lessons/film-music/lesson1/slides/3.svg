@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0f0f"/>
+      <stop offset="100%" style="stop-color:#1a1a1a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg3)"/>
+
+  <text x="960" y="200" text-anchor="middle" fill="#ef4444" font-family="Arial, sans-serif" font-size="120" font-weight="bold">*breathes*</text>
+
+  <text x="960" y="400" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="72" font-weight="bold">Khhhhh... Purrrrr...</text>
+
+  <text x="960" y="600" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="48">You already know who's coming.</text>
+
+  <text x="960" y="750" text-anchor="middle" fill="#f97316" font-family="Arial, sans-serif" font-size="36" font-weight="bold">But how?</text>
+
+  <text x="960" y="900" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="28">Teacher: Play Darth Vader breathing, then Imperial March</text>
+</svg>

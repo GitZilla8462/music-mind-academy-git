@@ -50,6 +50,7 @@ const PilotAdminPage = React.lazy(() => import('./pages/PilotAdminPage'));
 // Classroom and hub pages
 const MusicClassroomResources = React.lazy(() => import('./pages/MusicClassroomResources'));
 const MusicLoopsInMediaHub = React.lazy(() => import('./pages/MusicLoopsInMediaHub'));
+const FilmMusicHub = React.lazy(() => import('./pages/FilmMusicHub'));
 
 // Assignment/class management pages
 const CreateAssignmentPage = React.lazy(() => import('./pages/CreateAssignmentPage'));
@@ -73,6 +74,9 @@ const Lesson2 = React.lazy(() => import('./lessons/film-music-project/lesson2/Le
 const Lesson3 = React.lazy(() => import('./lessons/film-music-project/lesson3/Lesson3'));
 const Lesson4 = React.lazy(() => import('./lessons/film-music-project/lesson4/Lesson4'));
 const Lesson5 = React.lazy(() => import('./lessons/film-music-project/lesson5/Lesson5'));
+
+// Film Music Unit Lessons (NEW - Leitmotif-based curriculum)
+const FMLesson1 = React.lazy(() => import('./lessons/film-music/lesson1/Lesson1'));
 
 // Lesson plan PDFs
 const LessonPlanPDF = React.lazy(() => import('./lessons/film-music-project/lesson1/LessonPlanPDF'));
@@ -334,6 +338,10 @@ const AppContent = () => {
         <Route path="/lessons/film-music-project/lesson5" element={<Lesson5 />} />
         <Route path="/lessons/film-music-1" element={<Lesson1 />} />
         <Route path="/lessons/film-music-2" element={<Lesson2 />} />
+
+        {/* Film Music Unit Routes (NEW - Leitmotif-based curriculum) */}
+        <Route path="/lessons/film-music/lesson1" element={<FMLesson1 />} />
+
         <Route path="/lessons/:lessonId" element={<SimpleLessonPlaceholder />} />
         
         {/* Music Classroom Resources - Unit selection page */}
@@ -341,7 +349,14 @@ const AppContent = () => {
 
         {/* Music Loops in Media Hub */}
         <Route path="/music-loops-in-media" element={<MusicLoopsInMediaHub />} />
-        
+
+        {/* Film Music Hub - Coming Soon placeholder (early access) */}
+        <Route path="/film-music-hub" element={
+          <FirebaseProtectedRoute>
+            <FilmMusicHub />
+          </FirebaseProtectedRoute>
+        } />
+
         {/* Allow access to projects without authentication in classroom mode */}
         <Route path="/projects/film-music-score" element={<VideoSelection showToast={showToast} isDemo={true} />} />
         <Route path="/projects/video-selection" element={<VideoSelection showToast={showToast} />} />
@@ -433,6 +448,10 @@ const AppContent = () => {
         <Route path="/lessons/film-music-project/lesson4" element={<Lesson4 />} />
         <Route path="/lessons/film-music-project/lesson5" element={<Lesson5 />} />
         <Route path="/lessons/film-music-1" element={<Lesson1 />} />
+
+        {/* Film Music Unit Routes (NEW - Leitmotif-based curriculum) */}
+        <Route path="/lessons/film-music/lesson1" element={<FMLesson1 />} />
+
         <Route path="/lessons/:lessonId" element={<SimpleLessonPlaceholder />} />
 
         {/* PROTECTED ROUTES */}
@@ -474,6 +493,13 @@ const AppContent = () => {
         <Route path="/music-loops-in-media-hub" element={
           <FirebaseProtectedRoute>
             <MusicLoopsInMediaHub />
+          </FirebaseProtectedRoute>
+        } />
+
+        {/* Film Music Hub - Coming Soon placeholder (early access) */}
+        <Route path="/film-music-hub" element={
+          <FirebaseProtectedRoute>
+            <FilmMusicHub />
           </FirebaseProtectedRoute>
         } />
 

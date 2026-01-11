@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg8" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e293b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg8)"/>
+
+  <text x="960" y="120" text-anchor="middle" fill="#f97316" font-family="Arial, sans-serif" font-size="64" font-weight="bold">Leitmotif Detective</text>
+  <text x="960" y="180" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="28">Can you identify the character from the music?</text>
+
+  <text x="960" y="280" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="36" font-weight="bold">Character Types:</text>
+
+  <rect x="200" y="320" width="480" height="140" rx="12" fill="#ef444420" stroke="#ef4444" stroke-width="2"/>
+  <text x="440" y="380" text-anchor="middle" fill="#ef4444" font-family="Arial, sans-serif" font-size="32" font-weight="bold">Hero</text>
+  <text x="440" y="420" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="20">Rising melody, major key, brass</text>
+
+  <rect x="720" y="320" width="480" height="140" rx="12" fill="#7c3aed20" stroke="#7c3aed" stroke-width="2"/>
+  <text x="960" y="380" text-anchor="middle" fill="#7c3aed" font-family="Arial, sans-serif" font-size="32" font-weight="bold">Villain</text>
+  <text x="960" y="420" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="20">Low register, minor key, dissonance</text>
+
+  <rect x="1240" y="320" width="480" height="140" rx="12" fill="#ec489920" stroke="#ec4899" stroke-width="2"/>
+  <text x="1480" y="380" text-anchor="middle" fill="#ec4899" font-family="Arial, sans-serif" font-size="32" font-weight="bold">Love Interest</text>
+  <text x="1480" y="420" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="20">Lyrical melody, soft, strings</text>
+
+  <rect x="200" y="500" width="480" height="140" rx="12" fill="#f59e0b20" stroke="#f59e0b" stroke-width="2"/>
+  <text x="440" y="560" text-anchor="middle" fill="#f59e0b" font-family="Arial, sans-serif" font-size="32" font-weight="bold">Comic Relief</text>
+  <text x="440" y="600" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="20">Quirky rhythm, staccato, woodwinds</text>
+
+  <rect x="720" y="500" width="480" height="140" rx="12" fill="#3b82f620" stroke="#3b82f6" stroke-width="2"/>
+  <text x="960" y="560" text-anchor="middle" fill="#3b82f6" font-family="Arial, sans-serif" font-size="32" font-weight="bold">Mysterious</text>
+  <text x="960" y="600" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="20">Ambiguous harmony, sparse, atmospheric</text>
+
+  <rect x="1240" y="500" width="480" height="140" rx="12" fill="#10b98120" stroke="#10b981" stroke-width="2"/>
+  <text x="1480" y="560" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="32" font-weight="bold">Innocent</text>
+  <text x="1480" y="600" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="20">Simple melody, high register, celesta</text>
+
+  <text x="960" y="750" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="32">Listen to each theme and identify the character type!</text>
+  <text x="960" y="820" text-anchor="middle" fill="#f97316" font-family="Arial, sans-serif" font-size="28">8 Themes to Identify</text>
+</svg>

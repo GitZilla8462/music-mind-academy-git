@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e293b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg5)"/>
+
+  <text x="960" y="100" text-anchor="middle" fill="#f97316" font-family="Arial, sans-serif" font-size="56" font-weight="bold">Famous Leitmotifs</text>
+
+  <rect x="150" y="180" width="500" height="280" rx="16" fill="#1e3a5f"/>
+  <text x="400" y="250" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="32" font-weight="bold">Star Wars</text>
+  <text x="400" y="310" text-anchor="middle" fill="#ef4444" font-family="Arial, sans-serif" font-size="28">Imperial March</text>
+  <text x="400" y="360" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="22">Dark, heavy, menacing</text>
+  <text x="400" y="420" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="20">= Darth Vader / The Empire</text>
+
+  <rect x="710" y="180" width="500" height="280" rx="16" fill="#1e3a5f"/>
+  <text x="960" y="250" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="32" font-weight="bold">Harry Potter</text>
+  <text x="960" y="310" text-anchor="middle" fill="#8b5cf6" font-family="Arial, sans-serif" font-size="28">Hedwig's Theme</text>
+  <text x="960" y="360" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="22">Magical, mysterious, wonder</text>
+  <text x="960" y="420" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="20">= Magic / Wizarding World</text>
+
+  <rect x="1270" y="180" width="500" height="280" rx="16" fill="#1e3a5f"/>
+  <text x="1520" y="250" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="32" font-weight="bold">Jaws</text>
+  <text x="1520" y="310" text-anchor="middle" fill="#3b82f6" font-family="Arial, sans-serif" font-size="28">Two-Note Theme</text>
+  <text x="1520" y="360" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="22">Suspense, danger, approaching</text>
+  <text x="1520" y="420" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="20">= The Shark</text>
+
+  <rect x="430" y="520" width="500" height="280" rx="16" fill="#1e3a5f"/>
+  <text x="680" y="590" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="32" font-weight="bold">Lord of the Rings</text>
+  <text x="680" y="650" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="28">Shire Theme</text>
+  <text x="680" y="700" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="22">Peaceful, homey, innocent</text>
+  <text x="680" y="760" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="20">= Hobbits / Home</text>
+
+  <rect x="990" y="520" width="500" height="280" rx="16" fill="#1e3a5f"/>
+  <text x="1240" y="590" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="32" font-weight="bold">Pirates of Caribbean</text>
+  <text x="1240" y="650" text-anchor="middle" fill="#f59e0b" font-family="Arial, sans-serif" font-size="28">He's a Pirate</text>
+  <text x="1240" y="700" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="22">Adventurous, swashbuckling</text>
+  <text x="1240" y="760" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="20">= Jack Sparrow / Adventure</text>
+
+  <text x="960" y="920" text-anchor="middle" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="28">Every character has a musical identity!</text>
+</svg>

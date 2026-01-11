@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e293b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg2)"/>
+  <text x="960" y="120" text-anchor="middle" fill="#f97316" font-family="Arial, sans-serif" font-size="64" font-weight="bold">Today's Agenda</text>
+
+  <rect x="300" y="200" width="1320" height="100" rx="12" fill="#1e3a5f"/>
+  <text x="360" y="265" fill="#f97316" font-family="Arial, sans-serif" font-size="36" font-weight="bold">1.</text>
+  <text x="420" y="265" fill="#ffffff" font-family="Arial, sans-serif" font-size="36">Introduction</text>
+  <text x="900" y="265" fill="#94a3b8" font-family="Arial, sans-serif" font-size="28">Hook + What is a leitmotif?</text>
+
+  <rect x="300" y="320" width="1320" height="100" rx="12" fill="#1e3a5f"/>
+  <text x="360" y="385" fill="#f97316" font-family="Arial, sans-serif" font-size="36" font-weight="bold">2.</text>
+  <text x="420" y="385" fill="#ffffff" font-family="Arial, sans-serif" font-size="36">Keyboard Basics</text>
+  <text x="900" y="385" fill="#94a3b8" font-family="Arial, sans-serif" font-size="28">Learn to play notes</text>
+
+  <rect x="300" y="440" width="1320" height="100" rx="12" fill="#1e3a5f"/>
+  <text x="360" y="505" fill="#f97316" font-family="Arial, sans-serif" font-size="36" font-weight="bold">3.</text>
+  <text x="420" y="505" fill="#ffffff" font-family="Arial, sans-serif" font-size="36">Leitmotif Detective</text>
+  <text x="900" y="505" fill="#94a3b8" font-family="Arial, sans-serif" font-size="28">Identify character themes</text>
+
+  <rect x="300" y="560" width="1320" height="100" rx="12" fill="#1e3a5f"/>
+  <text x="360" y="625" fill="#f97316" font-family="Arial, sans-serif" font-size="36" font-weight="bold">4.</text>
+  <text x="420" y="625" fill="#ffffff" font-family="Arial, sans-serif" font-size="36">Motif Builder</text>
+  <text x="900" y="625" fill="#94a3b8" font-family="Arial, sans-serif" font-size="28">Create your character theme</text>
+
+  <rect x="300" y="680" width="1320" height="100" rx="12" fill="#1e3a5f"/>
+  <text x="360" y="745" fill="#f97316" font-family="Arial, sans-serif" font-size="36" font-weight="bold">5.</text>
+  <text x="420" y="745" fill="#ffffff" font-family="Arial, sans-serif" font-size="36">Reflection</text>
+  <text x="900" y="745" fill="#94a3b8" font-family="Arial, sans-serif" font-size="28">Two Stars and a Wish</text>
+
+  <text x="960" y="920" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="28">~40 minutes</text>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg9" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e293b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg9)"/>
+
+  <text x="960" y="200" text-anchor="middle" fill="#f97316" font-family="Arial, sans-serif" font-size="72" font-weight="bold">Leitmotif Detective</text>
+
+  <text x="960" y="400" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="48">Students are identifying character themes</text>
+
+  <text x="960" y="550" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="36">Listen | Identify | Explain WHY</text>
+
+  <text x="960" y="700" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="28">Bonus: Can they explain what musical clues they heard?</text>
+
+  <text x="960" y="850" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="28">Monitor progress in the sidebar</text>
+</svg>
