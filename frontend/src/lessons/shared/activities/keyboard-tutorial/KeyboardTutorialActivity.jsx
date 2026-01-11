@@ -114,91 +114,74 @@ const initAudio = async () => {
 // Hand Overlay Component - Positioned over piano keys
 // ============================================
 const HandOverlay = () => {
-  // Hand overlay that sits on top of the piano keys
-  // Left hand covers keys 0-3 (C,D,E,F), Right hand covers keys 4-7 (G,A,B,C)
-  const leftHandX = 0; // Start at first key
-  const rightHandX = 4 * WHITE_KEY_WIDTH; // Start at 5th key (G)
-  const handWidth = 4 * WHITE_KEY_WIDTH; // Each hand spans 4 keys
-  const handHeight = 120;
+  // Each finger centered on its key, fingertip at edge of white key
+  // Left hand: C(0), D(1), E(2), F(3) - fingers 5,4,3,2
+  // Right hand: G(4), A(5), B(6), C(7) - fingers 2,3,4,5
+  const keyCenter = (keyIndex) => keyIndex * WHITE_KEY_WIDTH + WHITE_KEY_WIDTH / 2;
+  const fingerWidth = 20;
+  const fingerHeight = 55;
+  const palmY = 70; // Where palm starts
+  const fingerTopY = 5; // Fingertips near top edge of keys
+
+  const yellowStroke = "#facc15"; // Tailwind yellow-400
 
   return (
     <div
       className="absolute pointer-events-none z-20"
-      style={{
-        top: 10,
-        left: 0,
-        right: 0,
-        height: handHeight,
-      }}
+      style={{ top: 0, left: 0, right: 0, height: WHITE_KEY_HEIGHT }}
     >
-      {/* Left Hand */}
-      <svg
-        className="absolute"
-        style={{ left: leftHandX, top: 0 }}
-        width={handWidth}
-        height={handHeight}
-        viewBox="0 0 208 120"
-      >
-        {/* Palm outline */}
-        <path
-          d="M 30 115
-             Q 10 100 15 80
-             L 20 50
-             Q 22 40 30 38
-             L 30 25 Q 30 15 38 15 Q 46 15 46 25 L 46 45
-             L 50 20 Q 50 8 60 8 Q 70 8 70 20 L 70 48
-             L 74 15 Q 74 3 85 3 Q 96 3 96 15 L 96 50
-             L 100 22 Q 100 10 111 10 Q 122 10 122 22 L 122 55
-             L 130 45 Q 145 35 155 50 Q 160 58 150 70 L 125 95
-             Q 110 115 80 115 Z"
-          fill="none"
-          stroke="white"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          opacity="0.7"
-        />
-        {/* Finger numbers */}
-        <text x="38" y="12" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">5</text>
-        <text x="65" y="5" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">4</text>
-        <text x="90" y="0" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">3</text>
-        <text x="116" y="7" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">2</text>
-        <text x="158" y="42" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold" opacity="0.5">1</text>
-      </svg>
+      <svg width={PIANO_WIDTH} height={WHITE_KEY_HEIGHT} className="absolute top-0 left-0">
+        {/* Left Hand - fingers 5,4,3,2 on keys C,D,E,F (indices 0,1,2,3) */}
+        {/* Pinky (5) on C */}
+        <rect x={keyCenter(0) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight} rx={fingerWidth/2}
+          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
+        <text x={keyCenter(0)} y={fingerTopY + fingerHeight + 14} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">5</text>
 
-      {/* Right Hand */}
-      <svg
-        className="absolute"
-        style={{ left: rightHandX, top: 0 }}
-        width={handWidth}
-        height={handHeight}
-        viewBox="0 0 208 120"
-      >
-        {/* Palm outline - mirrored */}
-        <path
-          d="M 178 115
-             Q 198 100 193 80
-             L 188 50
-             Q 186 40 178 38
-             L 178 25 Q 178 15 170 15 Q 162 15 162 25 L 162 45
-             L 158 20 Q 158 8 148 8 Q 138 8 138 20 L 138 48
-             L 134 15 Q 134 3 123 3 Q 112 3 112 15 L 112 50
-             L 108 22 Q 108 10 97 10 Q 86 10 86 22 L 86 55
-             L 78 45 Q 63 35 53 50 Q 48 58 58 70 L 83 95
-             Q 98 115 128 115 Z"
-          fill="none"
-          stroke="white"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          opacity="0.7"
-        />
-        {/* Finger numbers */}
-        <text x="50" y="42" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold" opacity="0.5">1</text>
-        <text x="92" y="7" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">2</text>
-        <text x="118" y="0" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">3</text>
-        <text x="143" y="5" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">4</text>
-        <text x="170" y="12" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">5</text>
+        {/* Ring (4) on D */}
+        <rect x={keyCenter(1) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight + 8} rx={fingerWidth/2}
+          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
+        <text x={keyCenter(1)} y={fingerTopY + fingerHeight + 22} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">4</text>
+
+        {/* Middle (3) on E */}
+        <rect x={keyCenter(2) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight + 12} rx={fingerWidth/2}
+          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
+        <text x={keyCenter(2)} y={fingerTopY + fingerHeight + 26} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">3</text>
+
+        {/* Index (2) on F */}
+        <rect x={keyCenter(3) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight + 5} rx={fingerWidth/2}
+          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
+        <text x={keyCenter(3)} y={fingerTopY + fingerHeight + 19} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">2</text>
+
+        {/* Left palm area with LH label */}
+        <ellipse cx={keyCenter(1.5)} cy={palmY + 45} rx={WHITE_KEY_WIDTH * 1.8} ry={30}
+          fill="none" stroke={yellowStroke} strokeWidth="2" opacity="0.5"/>
+        <text x={keyCenter(1.5)} y={palmY + 50} textAnchor="middle" fill={yellowStroke} fontSize="16" fontWeight="bold" opacity="0.8">LH</text>
+
+        {/* Right Hand - fingers 2,3,4,5 on keys G,A,B,C (indices 4,5,6,7) */}
+        {/* Index (2) on G */}
+        <rect x={keyCenter(4) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight + 5} rx={fingerWidth/2}
+          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
+        <text x={keyCenter(4)} y={fingerTopY + fingerHeight + 19} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">2</text>
+
+        {/* Middle (3) on A */}
+        <rect x={keyCenter(5) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight + 12} rx={fingerWidth/2}
+          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
+        <text x={keyCenter(5)} y={fingerTopY + fingerHeight + 26} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">3</text>
+
+        {/* Ring (4) on B */}
+        <rect x={keyCenter(6) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight + 8} rx={fingerWidth/2}
+          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
+        <text x={keyCenter(6)} y={fingerTopY + fingerHeight + 22} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">4</text>
+
+        {/* Pinky (5) on C */}
+        <rect x={keyCenter(7) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight} rx={fingerWidth/2}
+          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
+        <text x={keyCenter(7)} y={fingerTopY + fingerHeight + 14} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">5</text>
+
+        {/* Right palm area with RH label */}
+        <ellipse cx={keyCenter(5.5)} cy={palmY + 45} rx={WHITE_KEY_WIDTH * 1.8} ry={30}
+          fill="none" stroke={yellowStroke} strokeWidth="2" opacity="0.5"/>
+        <text x={keyCenter(5.5)} y={palmY + 50} textAnchor="middle" fill={yellowStroke} fontSize="16" fontWeight="bold" opacity="0.8">RH</text>
       </svg>
     </div>
   );
