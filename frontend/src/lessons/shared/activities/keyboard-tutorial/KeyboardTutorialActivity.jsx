@@ -1,6 +1,6 @@
 // File: /src/lessons/shared/activities/keyboard-tutorial/KeyboardTutorialActivity.jsx
 // Piano Player with Synthesia-style Falling Notes
-// Features: Learn mode (frozen notes), Play mode (falling notes), Hit/Miss detection
+// Features: Learn mode (frozen notes), Play mode (falling notes with beat), Hit/Miss detection
 //
 // PERFORMANCE OPTIMIZATIONS FOR CHROMEBOOK:
 // - requestAnimationFrame for smooth 60fps animation
@@ -12,19 +12,19 @@ import * as Tone from 'tone';
 
 // Full octave: C4 to C5 (13 keys including black keys)
 const PIANO_KEYS = [
-  { note: 'C4', label: 'C', isBlack: false, keyboardKey: 'a' },
-  { note: 'C#4', label: 'C#', isBlack: true, keyboardKey: 'w' },
-  { note: 'D4', label: 'D', isBlack: false, keyboardKey: 's' },
-  { note: 'D#4', label: 'D#', isBlack: true, keyboardKey: 'e' },
-  { note: 'E4', label: 'E', isBlack: false, keyboardKey: 'd' },
-  { note: 'F4', label: 'F', isBlack: false, keyboardKey: 'f' },
-  { note: 'F#4', label: 'F#', isBlack: true, keyboardKey: 't' },
-  { note: 'G4', label: 'G', isBlack: false, keyboardKey: 'g' },
-  { note: 'G#4', label: 'G#', isBlack: true, keyboardKey: 'y' },
-  { note: 'A4', label: 'A', isBlack: false, keyboardKey: 'h' },
-  { note: 'A#4', label: 'A#', isBlack: true, keyboardKey: 'u' },
-  { note: 'B4', label: 'B', isBlack: false, keyboardKey: 'j' },
-  { note: 'C5', label: 'C', isBlack: false, keyboardKey: 'k' },
+  { note: 'C4', label: 'C', isBlack: false, keyboardKey: 'a', finger: 'L5' }, // Left pinky
+  { note: 'C#4', label: 'C#', isBlack: true, keyboardKey: 'w', finger: null },
+  { note: 'D4', label: 'D', isBlack: false, keyboardKey: 's', finger: 'L4' }, // Left ring
+  { note: 'D#4', label: 'D#', isBlack: true, keyboardKey: 'e', finger: null },
+  { note: 'E4', label: 'E', isBlack: false, keyboardKey: 'd', finger: 'L3' }, // Left middle
+  { note: 'F4', label: 'F', isBlack: false, keyboardKey: 'f', finger: 'L2' }, // Left index
+  { note: 'F#4', label: 'F#', isBlack: true, keyboardKey: 't', finger: null },
+  { note: 'G4', label: 'G', isBlack: false, keyboardKey: 'g', finger: 'R2' }, // Right index
+  { note: 'G#4', label: 'G#', isBlack: true, keyboardKey: 'y', finger: null },
+  { note: 'A4', label: 'A', isBlack: false, keyboardKey: 'h', finger: 'R3' }, // Right middle
+  { note: 'A#4', label: 'A#', isBlack: true, keyboardKey: 'u', finger: null },
+  { note: 'B4', label: 'B', isBlack: false, keyboardKey: 'j', finger: 'R4' }, // Right ring
+  { note: 'C5', label: 'C', isBlack: false, keyboardKey: 'k', finger: 'R5' }, // Right pinky
 ];
 
 const WHITE_KEYS = PIANO_KEYS.filter(k => !k.isBlack);
@@ -111,6 +111,94 @@ const initAudio = async () => {
 };
 
 // ============================================
+// Hand Outline Component
+// ============================================
+const HandOutlines = () => {
+  return (
+    <div className="flex justify-center gap-2 mb-3">
+      {/* Left Hand */}
+      <div className="flex flex-col items-center">
+        <div className="text-xs text-gray-500 mb-1">Left Hand</div>
+        <svg width="120" height="70" viewBox="0 0 120 70" className="opacity-80">
+          {/* Palm */}
+          <ellipse cx="60" cy="50" rx="35" ry="18" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+          {/* Fingers - from pinky (5) to index (2) */}
+          {/* Pinky - A */}
+          <rect x="15" y="15" width="14" height="35" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+          <text x="22" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">5</text>
+          <text x="22" y="8" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">A</text>
+          {/* Ring - S */}
+          <rect x="32" y="5" width="14" height="42" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+          <text x="39" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">4</text>
+          <text x="39" y="-2" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">S</text>
+          {/* Middle - D */}
+          <rect x="50" y="2" width="14" height="45" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+          <text x="57" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">3</text>
+          <text x="57" y="-5" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">D</text>
+          {/* Index - F */}
+          <rect x="68" y="8" width="14" height="40" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+          <text x="75" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">2</text>
+          <text x="75" y="1" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">F</text>
+          {/* Thumb (not used but shown for completeness) */}
+          <ellipse cx="95" cy="45" rx="10" ry="14" fill="#374151" stroke="#6b7280" strokeWidth="1" transform="rotate(30 95 45)"/>
+          <text x="95" y="50" textAnchor="middle" fill="#6b7280" fontSize="8">1</text>
+        </svg>
+      </div>
+
+      {/* Right Hand */}
+      <div className="flex flex-col items-center">
+        <div className="text-xs text-gray-500 mb-1">Right Hand</div>
+        <svg width="120" height="70" viewBox="0 0 120 70" className="opacity-80">
+          {/* Palm */}
+          <ellipse cx="60" cy="50" rx="35" ry="18" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+          {/* Thumb (not used but shown for completeness) */}
+          <ellipse cx="25" cy="45" rx="10" ry="14" fill="#374151" stroke="#6b7280" strokeWidth="1" transform="rotate(-30 25 45)"/>
+          <text x="25" y="50" textAnchor="middle" fill="#6b7280" fontSize="8">1</text>
+          {/* Index - G */}
+          <rect x="38" y="8" width="14" height="40" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+          <text x="45" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">2</text>
+          <text x="45" y="1" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">G</text>
+          {/* Middle - H */}
+          <rect x="56" y="2" width="14" height="45" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+          <text x="63" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">3</text>
+          <text x="63" y="-5" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">H</text>
+          {/* Ring - J */}
+          <rect x="74" y="5" width="14" height="42" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+          <text x="81" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">4</text>
+          <text x="81" y="-2" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">J</text>
+          {/* Pinky - K */}
+          <rect x="91" y="15" width="14" height="35" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+          <text x="98" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">5</text>
+          <text x="98" y="8" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">K</text>
+        </svg>
+      </div>
+    </div>
+  );
+};
+
+// ============================================
+// Beat Indicator Component
+// ============================================
+const BeatIndicator = ({ beat, isPlaying }) => {
+  return (
+    <div className="flex items-center gap-2 mb-2">
+      <span className="text-gray-400 text-sm">Beat:</span>
+      <div className="flex gap-1">
+        {[1, 2, 3, 4].map((b) => (
+          <div
+            key={b}
+            className={`w-3 h-3 rounded-full transition-all duration-100 ${
+              isPlaying && beat === b ? 'bg-orange-500 scale-125' : 'bg-gray-700'
+            }`}
+          />
+        ))}
+      </div>
+      <span className="text-gray-500 text-xs ml-2">♩ = {BPM}</span>
+    </div>
+  );
+};
+
+// ============================================
 // Main Component
 // ============================================
 const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode = false }) => {
@@ -122,6 +210,7 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
   const [pressedKeys, setPressedKeys] = useState(new Set());
   const [keyFeedback, setKeyFeedback] = useState({}); // { note: 'hit' | 'miss' }
   const [score, setScore] = useState({ hits: 0, misses: 0, total: 0 });
+  const [currentBeat, setCurrentBeat] = useState(1);
 
   // Learn mode state
   const [learnCurrentIndex, setLearnCurrentIndex] = useState(0);
@@ -131,6 +220,8 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
   const [fallingNotes, setFallingNotes] = useState([]);
   const animationRef = useRef(null);
   const synthRef = useRef(null);
+  const metronomeRef = useRef(null);
+  const beatIntervalRef = useRef(null);
   const lastTimeRef = useRef(0);
 
   // Initialize synth AFTER unlock
@@ -143,10 +234,30 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
     }).toDestination();
     synthRef.current.volume.value = -6;
 
+    // Create metronome sound (woodblock-like click)
+    metronomeRef.current = new Tone.MembraneSynth({
+      pitchDecay: 0.008,
+      octaves: 2,
+      envelope: {
+        attack: 0.001,
+        decay: 0.1,
+        sustain: 0,
+        release: 0.1
+      }
+    }).toDestination();
+    metronomeRef.current.volume.value = -12;
+
     return () => {
       if (synthRef.current) {
         synthRef.current.dispose();
         synthRef.current = null;
+      }
+      if (metronomeRef.current) {
+        metronomeRef.current.dispose();
+        metronomeRef.current = null;
+      }
+      if (beatIntervalRef.current) {
+        clearInterval(beatIntervalRef.current);
       }
     };
   }, [isUnlocked]);
@@ -156,6 +267,39 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
     await initAudio();
     setIsUnlocked(true);
   };
+
+  // Play metronome click
+  const playMetronomeClick = useCallback((isDownbeat = false) => {
+    if (!metronomeRef.current) return;
+    // Higher pitch for downbeat (beat 1)
+    const pitch = isDownbeat ? 'C3' : 'G2';
+    metronomeRef.current.triggerAttackRelease(pitch, '16n', Tone.immediate());
+  }, []);
+
+  // Start beat tracking for play mode
+  const startBeatTracking = useCallback(() => {
+    let beat = 0;
+
+    // Play first beat immediately
+    beat = 1;
+    setCurrentBeat(1);
+    playMetronomeClick(true);
+
+    beatIntervalRef.current = setInterval(() => {
+      beat = (beat % 4) + 1;
+      setCurrentBeat(beat);
+      playMetronomeClick(beat === 1);
+    }, BEAT_DURATION_MS);
+  }, [playMetronomeClick]);
+
+  // Stop beat tracking
+  const stopBeatTracking = useCallback(() => {
+    if (beatIntervalRef.current) {
+      clearInterval(beatIntervalRef.current);
+      beatIntervalRef.current = null;
+    }
+    setCurrentBeat(1);
+  }, []);
 
   // Set key feedback (green for hit, red for miss)
   const setKeyFeedbackWithTimeout = useCallback((note, type, duration = 400) => {
@@ -251,8 +395,8 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
     setMode('learn');
   };
 
-  // Start play mode (falling notes)
-  const startPlayMode = () => {
+  // Start play mode (falling notes with beat)
+  const startPlayMode = useCallback(() => {
     if (!selectedMelody) return;
 
     setScore({ hits: 0, misses: 0, total: selectedMelody.notes.length });
@@ -272,7 +416,10 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
     setFallingNotes(notes);
     setIsPlaying(true);
     lastTimeRef.current = 0;
-  };
+
+    // Start the beat/metronome
+    startBeatTracking();
+  }, [selectedMelody, startBeatTracking]);
 
   // Animation loop for play mode
   useEffect(() => {
@@ -318,6 +465,7 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
           if (remaining.length === 0) {
             setTimeout(() => {
               setIsPlaying(false);
+              stopBeatTracking();
               setMode('complete');
             }, 500);
           }
@@ -338,7 +486,7 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [mode, isPlaying, setKeyFeedbackWithTimeout]);
+  }, [mode, isPlaying, setKeyFeedbackWithTimeout, stopBeatTracking]);
 
   // Keyboard input
   useEffect(() => {
@@ -366,6 +514,7 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
     setKeyFeedback({});
     setLearnCurrentIndex(0);
     setLearnNoteOffsets([]);
+    stopBeatTracking();
     lastTimeRef.current = 0;
   };
 
@@ -410,8 +559,8 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
           <div>
             <h1 className="text-xl font-bold text-white">🎹 Piano Player</h1>
             <p className="text-gray-400 text-sm">
-              {mode === 'learn' ? `Learning: ${selectedMelody?.name}` :
-               mode === 'playing' ? `${selectedMelody?.name} • ♩ = ${BPM}` :
+              {mode === 'learn' ? `Part 1: Play Note by Note` :
+               mode === 'playing' ? `Part 2: Play in Time • ♩ = ${BPM}` :
                mode === 'freeplay' ? 'Free Play' : 'Select a melody'}
             </p>
           </div>
@@ -479,11 +628,17 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
         {/* Learn Mode */}
         {mode === 'learn' && selectedMelody && (
           <div className="relative" style={{ width: PIANO_WIDTH }}>
-            {/* Message */}
-            <div className="text-center mb-4">
-              <p className="text-2xl font-bold text-white mb-2">{selectedMelody.learnMessage}</p>
-              <p className="text-gray-400">Play each note as it's highlighted</p>
+            {/* Part 1 Title */}
+            <div className="text-center mb-2">
+              <div className="inline-block px-3 py-1 bg-blue-600 rounded-full text-white text-sm font-semibold mb-2">
+                Part 1: Play Note by Note
+              </div>
+              <p className="text-2xl font-bold text-white mb-1">{selectedMelody.learnMessage}</p>
+              <p className="text-gray-400 text-sm">Play each note as it's highlighted</p>
             </div>
+
+            {/* Hand Position Guide */}
+            <HandOutlines />
 
             {/* Notes Area */}
             <div
@@ -629,17 +784,23 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
                 );
               })}
             </div>
-
-            {/* Key hint */}
-            <p className="text-center text-gray-500 text-xs mt-3">
-              White: A S D F G H J K • Black: W E T Y U
-            </p>
           </div>
         )}
 
         {/* Playing / Free Play Mode */}
         {(mode === 'playing' || mode === 'freeplay') && (
           <div className="relative" style={{ width: PIANO_WIDTH }}>
+            {/* Part 2 Title & Beat Indicator */}
+            {mode === 'playing' && (
+              <div className="text-center mb-2">
+                <div className="inline-block px-3 py-1 bg-orange-600 rounded-full text-white text-sm font-semibold mb-2">
+                  Part 2: Play in Time
+                </div>
+                <p className="text-lg font-bold text-white mb-1">Now play with the beat!</p>
+                <BeatIndicator beat={currentBeat} isPlaying={isPlaying} />
+              </div>
+            )}
+
             {/* Falling Notes Area */}
             <div
               className="relative bg-gray-950 rounded-t-xl overflow-hidden"
