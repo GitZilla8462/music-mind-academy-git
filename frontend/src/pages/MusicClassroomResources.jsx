@@ -9,6 +9,9 @@ import { createSession, getSessionData } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 
+// Early access emails for unreleased units
+const EARLY_ACCESS_EMAILS = ['robtaube90@gmail.com'];
+
 function MusicClassroomResources() {
   const navigate = useNavigate();
 
@@ -56,6 +59,10 @@ function MusicClassroomResources() {
   
   // Get user role - check Firebase first, then localStorage
   const userRole = firebaseUser?.role || localStorage.getItem('classroom-user-role');
+
+  // Check if user has early access to unreleased units
+  const userEmail = firebaseUser?.email || legacyUser?.email || '';
+  const hasEarlyAccess = EARLY_ACCESS_EMAILS.includes(userEmail.toLowerCase());
 
   // Handle opening tutorial - COMMENTED OUT (outdated)
   // const handleOpenTutorial = () => {
@@ -634,27 +641,44 @@ function MusicClassroomResources() {
           </div>
         )}
 
-        {/* Music for Media Unit Card */}
+        {/* Music for Media Unit Card - January Pilot */}
         <div
           onClick={() => navigate(isEduMode ? '/music-loops-in-media' : '/music-loops-in-media-hub')}
           style={{
             backgroundColor: 'white',
             borderRadius: '12px',
-            padding: '24px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            border: '1px solid #e2e8f0',
+            padding: '0',
+            boxShadow: '0 2px 8px rgba(59, 130, 246, 0.15)',
+            border: '2px solid #3b82f6',
             cursor: 'pointer',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
+            overflow: 'hidden'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.25)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+            e.currentTarget.style.boxShadow = '0 2px 8px rgba(59, 130, 246, 0.15)';
           }}
         >
+          {/* Blue Pilot Header */}
+          <div style={{
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            padding: '8px 16px',
+            fontSize: '13px',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span>🚀</span>
+            January Pilot — Click to Start
+          </div>
+
+          <div style={{ padding: '24px' }}>
           {/* Header Row */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
             {/* Icon */}
@@ -662,7 +686,7 @@ function MusicClassroomResources() {
               width: '64px',
               height: '64px',
               borderRadius: '12px',
-              background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+              background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -817,21 +841,6 @@ function MusicClassroomResources() {
                   <strong>Game On!</strong> — Melody & Contour
                 </span>
               </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{
-                  width: '22px', height: '22px',
-                  borderRadius: '50%',
-                  backgroundColor: '#94a3b8',
-                  color: 'white',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>6</span>
-                <span style={{ fontSize: '14px', color: '#94a3b8' }}>
-                  <strong>Director's Cut</strong> — Capstone (Coming Soon)
-                </span>
-              </div>
             </div>
           </div>
 
@@ -841,8 +850,148 @@ function MusicClassroomResources() {
             alignItems: 'center',
             justifyContent: 'space-between'
           }}>
-            <span style={{ fontSize: '14px', color: '#3b82f6', fontWeight: '600' }}>
+            <span style={{ fontSize: '14px', color: '#2563eb', fontWeight: '600' }}>
               View Lessons →
+            </span>
+          </div>
+          </div>
+        </div>
+
+        {/* Film Music Unit Card - Coming Soon */}
+        <div
+          onClick={() => hasEarlyAccess && navigate('/film-music-hub')}
+          style={{
+            backgroundColor: '#f8fafc',
+            borderRadius: '12px',
+            padding: '24px',
+            marginTop: '20px',
+            boxShadow: 'none',
+            border: '1px dashed #cbd5e1',
+            cursor: hasEarlyAccess ? 'pointer' : 'default',
+            transition: 'all 0.2s',
+            position: 'relative',
+            opacity: hasEarlyAccess ? 0.9 : 0.6
+          }}
+          onMouseEnter={(e) => {
+            if (hasEarlyAccess) {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (hasEarlyAccess) {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+            }
+          }}
+        >
+          {/* Coming Soon Badge - only show for non-early-access users */}
+          {!hasEarlyAccess && (
+            <div style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              backgroundColor: '#fef3c7',
+              color: '#92400e',
+              padding: '6px 12px',
+              borderRadius: '20px',
+              fontSize: '12px',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <span>🔒</span>
+              Selected Pilot — May 2026
+            </div>
+          )}
+
+          {/* Header Row */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
+            {/* Icon */}
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #f97316, #ea580c)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <span style={{ fontSize: '28px' }}>🎵</span>
+            </div>
+
+            {/* Title & Meta */}
+            <div style={{ flex: 1 }}>
+              <h3 style={{
+                fontSize: '22px',
+                fontWeight: '700',
+                color: '#1e293b',
+                marginBottom: '4px'
+              }}>
+                Film Music
+              </h3>
+              <p style={{
+                fontSize: '15px',
+                color: '#64748b',
+                marginBottom: '8px'
+              }}>
+                Explore the art of composing music for film and cinema.
+              </p>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <span style={{
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: '#475569',
+                  backgroundColor: '#f1f5f9',
+                  padding: '4px 10px',
+                  borderRadius: '4px'
+                }}>
+                  Coming Soon
+                </span>
+                <span style={{
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: '#475569',
+                  backgroundColor: '#f1f5f9',
+                  padding: '4px 10px',
+                  borderRadius: '4px'
+                }}>
+                  Grades 6-8
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div style={{
+            backgroundColor: '#f8fafc',
+            borderRadius: '8px',
+            padding: '16px',
+            marginBottom: '16px'
+          }}>
+            <p style={{
+              fontSize: '14px',
+              color: '#64748b',
+              lineHeight: '1.6'
+            }}>
+              A new unit exploring film scoring techniques, musical storytelling, and how composers create emotional impact in movies. Stay tuned!
+            </p>
+          </div>
+
+          {/* CTA */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <span style={{
+              fontSize: '14px',
+              color: hasEarlyAccess ? '#3b82f6' : '#94a3b8',
+              fontWeight: '600'
+            }}>
+              {hasEarlyAccess ? 'Preview Unit →' : 'Selected Pilot — May 2026'}
             </span>
           </div>
         </div>

@@ -3,4 +3,4 @@ export { default } from './KeyboardTutorialActivity';
 export { default as KeyboardTutorialActivity } from './KeyboardTutorialActivity';
 
 // Export reusable components for DAW integration
-export { GAME_NOTES, MELODIES, GamePiano } from './KeyboardTutorialActivity';
+export { PIANO_KEYS, MELODIES } from './KeyboardTutorialActivity';

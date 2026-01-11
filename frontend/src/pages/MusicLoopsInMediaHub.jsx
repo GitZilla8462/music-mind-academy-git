@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../firebase/config';
-import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play, ArrowLeft } from 'lucide-react';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { logSessionCreated, logLessonVisit } from '../firebase/analytics';
 
@@ -231,32 +231,6 @@ const MusicLoopsInMediaHub = () => {
         { title: 'Discussion', description: 'What contour did you use? Why?', time: 2 },
         { title: 'Melody Mystery', description: 'Create melody puzzles for a partner to solve', time: 10, activityType: 'melody-mystery', isBonus: true, isPartnerActivity: true }
       ]
-    },
-    // Lesson 6: Capstone (Student Choice) - was lesson5
-    {
-      id: 'lesson6',
-      number: 6,
-      icon: '🎓',
-      title: 'Director\'s Cut',
-      concept: 'All Concepts Combined',
-      essentialQuestion: 'How do all musical elements combine to effectively score media?',
-      color: 'from-amber-500 to-orange-600',
-      route: '/lessons/film-music-project/lesson6',
-      available: false,
-      hasLessonPlan: false,
-      inThisLesson: 'Students apply mood, texture, form, rhythm, and melody to create a complete film score for a video of their choice.',
-      studentsWill: [
-        'Plan a composition using all five concepts',
-        'Create a polished film score independently',
-        'Present and explain their creative choices'
-      ],
-      activities: [
-        { title: 'Review', description: 'Revisit all five music concepts', time: 5 },
-        { title: 'Planning', description: 'Choose video and plan your approach', time: 5 },
-        { title: 'Composition', description: 'Create your capstone score', time: 23 },
-        { title: 'Peer Review', description: 'Gallery walk and feedback', time: 7 },
-        { title: 'Share & Celebrate', description: 'Present highlights to class', time: 4 }
-      ]
     }
   ];
 
@@ -288,9 +262,15 @@ const MusicLoopsInMediaHub = () => {
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-8 py-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-slate-900">
-              {isEduSite ? 'Music Room Tools' : 'Music Mind Academy'}
-            </h1>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate('/music-classroom-resources')}
+                className="flex items-center gap-2 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                <ArrowLeft size={20} />
+                <span className="font-medium">Back to Units</span>
+              </button>
+            </div>
             {user && (
               <button
                 onClick={async () => {
