@@ -111,78 +111,28 @@ const initAudio = async () => {
 };
 
 // ============================================
-// Hand Overlay Component - Positioned over piano keys
+// Hand Overlay Component - PNG image over piano keys
 // ============================================
 const HandOverlay = () => {
-  // Each finger centered on its key, fingertip at edge of white key
-  // Left hand: C(0), D(1), E(2), F(3) - fingers 5,4,3,2
-  // Right hand: G(4), A(5), B(6), C(7) - fingers 2,3,4,5
-  const keyCenter = (keyIndex) => keyIndex * WHITE_KEY_WIDTH + WHITE_KEY_WIDTH / 2;
-  const fingerWidth = 20;
-  const fingerHeight = 55;
-  const palmY = 70; // Where palm starts
-  const fingerTopY = 5; // Fingertips near top edge of keys
-
-  const yellowStroke = "#facc15"; // Tailwind yellow-400
-
+  // Use the pianohands.png image positioned over the 8 white keys (C,D,E,F,G,A,B,C)
   return (
     <div
       className="absolute pointer-events-none z-20"
-      style={{ top: 0, left: 0, right: 0, height: WHITE_KEY_HEIGHT }}
+      style={{
+        top: -10,
+        left: 0,
+        width: PIANO_WIDTH,
+        height: WHITE_KEY_HEIGHT + 10,
+      }}
     >
-      <svg width={PIANO_WIDTH} height={WHITE_KEY_HEIGHT} className="absolute top-0 left-0">
-        {/* Left Hand - fingers 5,4,3,2 on keys C,D,E,F (indices 0,1,2,3) */}
-        {/* Pinky (5) on C */}
-        <rect x={keyCenter(0) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight} rx={fingerWidth/2}
-          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
-        <text x={keyCenter(0)} y={fingerTopY + fingerHeight + 14} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">5</text>
-
-        {/* Ring (4) on D */}
-        <rect x={keyCenter(1) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight + 8} rx={fingerWidth/2}
-          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
-        <text x={keyCenter(1)} y={fingerTopY + fingerHeight + 22} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">4</text>
-
-        {/* Middle (3) on E */}
-        <rect x={keyCenter(2) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight + 12} rx={fingerWidth/2}
-          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
-        <text x={keyCenter(2)} y={fingerTopY + fingerHeight + 26} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">3</text>
-
-        {/* Index (2) on F */}
-        <rect x={keyCenter(3) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight + 5} rx={fingerWidth/2}
-          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
-        <text x={keyCenter(3)} y={fingerTopY + fingerHeight + 19} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">2</text>
-
-        {/* Left palm area with LH label */}
-        <ellipse cx={keyCenter(1.5)} cy={palmY + 45} rx={WHITE_KEY_WIDTH * 1.8} ry={30}
-          fill="none" stroke={yellowStroke} strokeWidth="2" opacity="0.5"/>
-        <text x={keyCenter(1.5)} y={palmY + 50} textAnchor="middle" fill={yellowStroke} fontSize="16" fontWeight="bold" opacity="0.8">LH</text>
-
-        {/* Right Hand - fingers 2,3,4,5 on keys G,A,B,C (indices 4,5,6,7) */}
-        {/* Index (2) on G */}
-        <rect x={keyCenter(4) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight + 5} rx={fingerWidth/2}
-          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
-        <text x={keyCenter(4)} y={fingerTopY + fingerHeight + 19} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">2</text>
-
-        {/* Middle (3) on A */}
-        <rect x={keyCenter(5) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight + 12} rx={fingerWidth/2}
-          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
-        <text x={keyCenter(5)} y={fingerTopY + fingerHeight + 26} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">3</text>
-
-        {/* Ring (4) on B */}
-        <rect x={keyCenter(6) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight + 8} rx={fingerWidth/2}
-          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
-        <text x={keyCenter(6)} y={fingerTopY + fingerHeight + 22} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">4</text>
-
-        {/* Pinky (5) on C */}
-        <rect x={keyCenter(7) - fingerWidth/2} y={fingerTopY} width={fingerWidth} height={fingerHeight} rx={fingerWidth/2}
-          fill="none" stroke={yellowStroke} strokeWidth="2.5" opacity="0.85"/>
-        <text x={keyCenter(7)} y={fingerTopY + fingerHeight + 14} textAnchor="middle" fill={yellowStroke} fontSize="12" fontWeight="bold">5</text>
-
-        {/* Right palm area with RH label */}
-        <ellipse cx={keyCenter(5.5)} cy={palmY + 45} rx={WHITE_KEY_WIDTH * 1.8} ry={30}
-          fill="none" stroke={yellowStroke} strokeWidth="2" opacity="0.5"/>
-        <text x={keyCenter(5.5)} y={palmY + 50} textAnchor="middle" fill={yellowStroke} fontSize="16" fontWeight="bold" opacity="0.8">RH</text>
-      </svg>
+      <img
+        src="/pianohands.png"
+        alt="Hand position guide"
+        className="w-full h-full object-contain opacity-90"
+        style={{
+          objectPosition: 'center top',
+        }}
+      />
     </div>
   );
 };
