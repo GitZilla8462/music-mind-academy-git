@@ -111,67 +111,95 @@ const initAudio = async () => {
 };
 
 // ============================================
-// Hand Outline Component
+// Hand Overlay Component - Positioned over piano keys
 // ============================================
-const HandOutlines = () => {
+const HandOverlay = () => {
+  // Hand overlay that sits on top of the piano keys
+  // Left hand covers keys 0-3 (C,D,E,F), Right hand covers keys 4-7 (G,A,B,C)
+  const leftHandX = 0; // Start at first key
+  const rightHandX = 4 * WHITE_KEY_WIDTH; // Start at 5th key (G)
+  const handWidth = 4 * WHITE_KEY_WIDTH; // Each hand spans 4 keys
+  const handHeight = 120;
+
   return (
-    <div className="flex justify-center gap-2 mb-3">
+    <div
+      className="absolute pointer-events-none z-20"
+      style={{
+        top: 10,
+        left: 0,
+        right: 0,
+        height: handHeight,
+      }}
+    >
       {/* Left Hand */}
-      <div className="flex flex-col items-center">
-        <div className="text-xs text-gray-500 mb-1">Left Hand</div>
-        <svg width="120" height="70" viewBox="0 0 120 70" className="opacity-80">
-          {/* Palm */}
-          <ellipse cx="60" cy="50" rx="35" ry="18" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
-          {/* Fingers - from pinky (5) to index (2) */}
-          {/* Pinky - A */}
-          <rect x="15" y="15" width="14" height="35" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
-          <text x="22" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">5</text>
-          <text x="22" y="8" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">A</text>
-          {/* Ring - S */}
-          <rect x="32" y="5" width="14" height="42" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
-          <text x="39" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">4</text>
-          <text x="39" y="-2" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">S</text>
-          {/* Middle - D */}
-          <rect x="50" y="2" width="14" height="45" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
-          <text x="57" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">3</text>
-          <text x="57" y="-5" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">D</text>
-          {/* Index - F */}
-          <rect x="68" y="8" width="14" height="40" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
-          <text x="75" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">2</text>
-          <text x="75" y="1" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">F</text>
-          {/* Thumb (not used but shown for completeness) */}
-          <ellipse cx="95" cy="45" rx="10" ry="14" fill="#374151" stroke="#6b7280" strokeWidth="1" transform="rotate(30 95 45)"/>
-          <text x="95" y="50" textAnchor="middle" fill="#6b7280" fontSize="8">1</text>
-        </svg>
-      </div>
+      <svg
+        className="absolute"
+        style={{ left: leftHandX, top: 0 }}
+        width={handWidth}
+        height={handHeight}
+        viewBox="0 0 208 120"
+      >
+        {/* Palm outline */}
+        <path
+          d="M 30 115
+             Q 10 100 15 80
+             L 20 50
+             Q 22 40 30 38
+             L 30 25 Q 30 15 38 15 Q 46 15 46 25 L 46 45
+             L 50 20 Q 50 8 60 8 Q 70 8 70 20 L 70 48
+             L 74 15 Q 74 3 85 3 Q 96 3 96 15 L 96 50
+             L 100 22 Q 100 10 111 10 Q 122 10 122 22 L 122 55
+             L 130 45 Q 145 35 155 50 Q 160 58 150 70 L 125 95
+             Q 110 115 80 115 Z"
+          fill="none"
+          stroke="white"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.7"
+        />
+        {/* Finger numbers */}
+        <text x="38" y="12" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">5</text>
+        <text x="65" y="5" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">4</text>
+        <text x="90" y="0" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">3</text>
+        <text x="116" y="7" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">2</text>
+        <text x="158" y="42" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold" opacity="0.5">1</text>
+      </svg>
 
       {/* Right Hand */}
-      <div className="flex flex-col items-center">
-        <div className="text-xs text-gray-500 mb-1">Right Hand</div>
-        <svg width="120" height="70" viewBox="0 0 120 70" className="opacity-80">
-          {/* Palm */}
-          <ellipse cx="60" cy="50" rx="35" ry="18" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
-          {/* Thumb (not used but shown for completeness) */}
-          <ellipse cx="25" cy="45" rx="10" ry="14" fill="#374151" stroke="#6b7280" strokeWidth="1" transform="rotate(-30 25 45)"/>
-          <text x="25" y="50" textAnchor="middle" fill="#6b7280" fontSize="8">1</text>
-          {/* Index - G */}
-          <rect x="38" y="8" width="14" height="40" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
-          <text x="45" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">2</text>
-          <text x="45" y="1" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">G</text>
-          {/* Middle - H */}
-          <rect x="56" y="2" width="14" height="45" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
-          <text x="63" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">3</text>
-          <text x="63" y="-5" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">H</text>
-          {/* Ring - J */}
-          <rect x="74" y="5" width="14" height="42" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
-          <text x="81" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">4</text>
-          <text x="81" y="-2" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">J</text>
-          {/* Pinky - K */}
-          <rect x="91" y="15" width="14" height="35" rx="7" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
-          <text x="98" y="55" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">5</text>
-          <text x="98" y="8" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">K</text>
-        </svg>
-      </div>
+      <svg
+        className="absolute"
+        style={{ left: rightHandX, top: 0 }}
+        width={handWidth}
+        height={handHeight}
+        viewBox="0 0 208 120"
+      >
+        {/* Palm outline - mirrored */}
+        <path
+          d="M 178 115
+             Q 198 100 193 80
+             L 188 50
+             Q 186 40 178 38
+             L 178 25 Q 178 15 170 15 Q 162 15 162 25 L 162 45
+             L 158 20 Q 158 8 148 8 Q 138 8 138 20 L 138 48
+             L 134 15 Q 134 3 123 3 Q 112 3 112 15 L 112 50
+             L 108 22 Q 108 10 97 10 Q 86 10 86 22 L 86 55
+             L 78 45 Q 63 35 53 50 Q 48 58 58 70 L 83 95
+             Q 98 115 128 115 Z"
+          fill="none"
+          stroke="white"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.7"
+        />
+        {/* Finger numbers */}
+        <text x="50" y="42" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold" opacity="0.5">1</text>
+        <text x="92" y="7" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">2</text>
+        <text x="118" y="0" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">3</text>
+        <text x="143" y="5" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">4</text>
+        <text x="170" y="12" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.9">5</text>
+      </svg>
     </div>
   );
 };
@@ -637,9 +665,6 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
               <p className="text-gray-400 text-sm">Play each note as it's highlighted</p>
             </div>
 
-            {/* Hand Position Guide */}
-            <HandOutlines />
-
             {/* Notes Area */}
             <div
               className="relative bg-gray-950 rounded-t-xl overflow-hidden"
@@ -694,8 +719,11 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
               })}
             </div>
 
-            {/* Piano Keyboard */}
+            {/* Piano Keyboard with Hand Overlay */}
             <div className="relative bg-gray-800 rounded-b-xl pt-1 pb-2 px-1" style={{ height: WHITE_KEY_HEIGHT + 20 }}>
+              {/* Hand outline overlay */}
+              <HandOverlay />
+
               {/* White keys */}
               <div className="relative flex">
                 {WHITE_KEYS.map((key) => {
