@@ -110,32 +110,6 @@ const initAudio = async () => {
   audioContextInitialized = true;
 };
 
-// ============================================
-// Hand Overlay Component - PNG image over piano keys
-// ============================================
-const HandOverlay = () => {
-  // Use the pianohands.png image positioned over the 8 white keys (C,D,E,F,G,A,B,C)
-  return (
-    <div
-      className="absolute pointer-events-none z-20"
-      style={{
-        top: -10,
-        left: 0,
-        width: PIANO_WIDTH,
-        height: WHITE_KEY_HEIGHT + 10,
-      }}
-    >
-      <img
-        src="/pianohands.png"
-        alt="Hand position guide"
-        className="w-full h-full object-contain opacity-90"
-        style={{
-          objectPosition: 'center top',
-        }}
-      />
-    </div>
-  );
-};
 
 // ============================================
 // Beat Indicator Component
@@ -652,10 +626,8 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
               })}
             </div>
 
-            {/* Piano Keyboard with Hand Overlay */}
+            {/* Piano Keyboard */}
             <div className="relative bg-gray-800 rounded-b-xl pt-1 pb-2 px-1" style={{ height: WHITE_KEY_HEIGHT + 20 }}>
-              {/* Hand outline overlay */}
-              <HandOverlay />
 
               {/* White keys */}
               <div className="relative flex">
