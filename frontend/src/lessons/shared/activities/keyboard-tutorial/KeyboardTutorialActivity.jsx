@@ -30,17 +30,29 @@ const PIANO_KEYS = [
 const WHITE_KEYS = PIANO_KEYS.filter(k => !k.isBlack);
 const BLACK_KEYS = PIANO_KEYS.filter(k => k.isBlack);
 
-// Key dimensions
-const WHITE_KEY_WIDTH = 52;
-const WHITE_KEY_HEIGHT = 140;
-const BLACK_KEY_WIDTH = 32;
-const BLACK_KEY_HEIGHT = 90;
+// Key dimensions - sized for 1366px Chromebook screens
+const WHITE_KEY_WIDTH = 48;
+const WHITE_KEY_HEIGHT = 120;
+const BLACK_KEY_WIDTH = 28;
+const BLACK_KEY_HEIGHT = 75;
+
+// Finger name mapping
+const FINGER_NAMES = {
+  'L5': 'left pinky',
+  'L4': 'left ring finger',
+  'L3': 'left middle finger',
+  'L2': 'left index finger',
+  'R2': 'right index finger',
+  'R3': 'right middle finger',
+  'R4': 'right ring finger',
+  'R5': 'right pinky'
+};
 const PIANO_WIDTH = WHITE_KEYS.length * WHITE_KEY_WIDTH;
 
-// Falling notes dimensions
-const NOTE_WIDTH = 40;
-const NOTE_HEIGHT = 50;
-const FALL_AREA_HEIGHT = 320;
+// Falling notes dimensions - sized for Chromebook screens
+const NOTE_WIDTH = 36;
+const NOTE_HEIGHT = 40;
+const FALL_AREA_HEIGHT = 260;
 const HIT_ZONE_Y = FALL_AREA_HEIGHT - NOTE_HEIGHT; // Hit zone is at the piano keys
 const HIT_ZONE_TOLERANCE = 80; // Wide tolerance for easier gameplay
 
@@ -112,133 +124,30 @@ const initAudio = async () => {
 
 
 // ============================================
-// Hand Overlay Component - SVG hands over piano keys
+// Hand Overlay Component - uses pianohands.png image
 // ============================================
 const HandOverlay = () => {
-  const yellowStroke = "#facc15";
-  const strokeWidth = 2.5;
-  const fingerWidth = 18;
-
-  // Finger lengths (middle longest, pinky shortest)
-  const fingerLengths = {
-    pinky: 45,
-    ring: 55,
-    middle: 62,
-    index: 52
-  };
-
-  // Key centers (each key is WHITE_KEY_WIDTH = 52px)
-  const keyCenter = (keyIndex) => keyIndex * WHITE_KEY_WIDTH + WHITE_KEY_WIDTH / 2;
-
-  // Finger positions - fingertips at y=0, extending downward
-  const leftHand = [
-    { finger: 'pinky', num: 5, x: keyCenter(0), length: fingerLengths.pinky },
-    { finger: 'ring', num: 4, x: keyCenter(1), length: fingerLengths.ring },
-    { finger: 'middle', num: 3, x: keyCenter(2), length: fingerLengths.middle },
-    { finger: 'index', num: 2, x: keyCenter(3), length: fingerLengths.index },
-  ];
-
-  const rightHand = [
-    { finger: 'index', num: 2, x: keyCenter(4), length: fingerLengths.index },
-    { finger: 'middle', num: 3, x: keyCenter(5), length: fingerLengths.middle },
-    { finger: 'ring', num: 4, x: keyCenter(6), length: fingerLengths.ring },
-    { finger: 'pinky', num: 5, x: keyCenter(7), length: fingerLengths.pinky },
-  ];
-
-  const renderFinger = (f, idx) => (
-    <g key={idx}>
-      {/* Finger - rounded rectangle from top (y=0) extending down */}
-      <rect
-        x={f.x - fingerWidth / 2}
-        y={2}
-        width={fingerWidth}
-        height={f.length}
-        rx={fingerWidth / 2}
-        ry={fingerWidth / 2}
-        fill="none"
-        stroke={yellowStroke}
-        strokeWidth={strokeWidth}
-      />
-      {/* Finger number below the finger */}
-      <text
-        x={f.x}
-        y={f.length + 18}
-        textAnchor="middle"
-        fill={yellowStroke}
-        fontSize="13"
-        fontWeight="bold"
-      >
-        {f.num}
-      </text>
-    </g>
-  );
-
-  // Palm arc paths
-  const leftPalmY = 75;
-  const rightPalmY = 75;
-
+  // Position the image so fingertips align with top edge of white keys
+  // The image will be scaled to match PIANO_WIDTH
   return (
     <div
-      className="absolute pointer-events-none z-20"
-      style={{ top: 0, left: 1, width: PIANO_WIDTH, height: WHITE_KEY_HEIGHT }}
+      className="absolute pointer-events-none"
+      style={{
+        top: -10, // Offset to align fingertips with top of keys
+        left: 0,
+        width: PIANO_WIDTH,
+        zIndex: 20
+      }}
     >
-      <svg
-        width={PIANO_WIDTH}
-        height={WHITE_KEY_HEIGHT}
-        style={{ opacity: 0.85 }}
-      >
-        {/* Left Hand Fingers */}
-        {leftHand.map(renderFinger)}
-
-        {/* Left Palm - curved arc connecting fingers */}
-        <path
-          d={`M ${keyCenter(0) - fingerWidth/2 - 5} ${fingerLengths.pinky + 5}
-              Q ${keyCenter(0) - 20} ${leftPalmY + 30}, ${keyCenter(1.5)} ${leftPalmY + 45}
-              Q ${keyCenter(3) + 20} ${leftPalmY + 30}, ${keyCenter(3) + fingerWidth/2 + 5} ${fingerLengths.index + 5}`}
-          fill="none"
-          stroke={yellowStroke}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-        />
-
-        {/* LH Label */}
-        <text
-          x={keyCenter(1.5)}
-          y={leftPalmY + 38}
-          textAnchor="middle"
-          fill={yellowStroke}
-          fontSize="15"
-          fontWeight="bold"
-        >
-          LH
-        </text>
-
-        {/* Right Hand Fingers */}
-        {rightHand.map(renderFinger)}
-
-        {/* Right Palm - curved arc connecting fingers */}
-        <path
-          d={`M ${keyCenter(4) - fingerWidth/2 - 5} ${fingerLengths.index + 5}
-              Q ${keyCenter(4) - 20} ${rightPalmY + 30}, ${keyCenter(5.5)} ${rightPalmY + 45}
-              Q ${keyCenter(7) + 20} ${rightPalmY + 30}, ${keyCenter(7) + fingerWidth/2 + 5} ${fingerLengths.pinky + 5}`}
-          fill="none"
-          stroke={yellowStroke}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-        />
-
-        {/* RH Label */}
-        <text
-          x={keyCenter(5.5)}
-          y={rightPalmY + 38}
-          textAnchor="middle"
-          fill={yellowStroke}
-          fontSize="15"
-          fontWeight="bold"
-        >
-          RH
-        </text>
-      </svg>
+      <img
+        src="/pianohands.png"
+        alt="Hand position guide"
+        style={{
+          width: PIANO_WIDTH,
+          height: 'auto',
+          opacity: 0.9
+        }}
+      />
     </div>
   );
 };
@@ -271,13 +180,17 @@ const BeatIndicator = ({ beat, isPlaying }) => {
 const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode = false }) => {
   // States
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [mode, setMode] = useState('menu'); // menu, learn, playing, freeplay, complete
+  const [mode, setMode] = useState('intro'); // intro, menu, learn, playing, freeplay, complete
   const [selectedMelody, setSelectedMelody] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [pressedKeys, setPressedKeys] = useState(new Set());
   const [keyFeedback, setKeyFeedback] = useState({}); // { note: 'hit' | 'miss' }
   const [score, setScore] = useState({ hits: 0, misses: 0, total: 0 });
   const [currentBeat, setCurrentBeat] = useState(1);
+
+  // Intro tutorial state - tracks which white key user should play next
+  const [introKeyIndex, setIntroKeyIndex] = useState(0);
+  const [introComplete, setIntroComplete] = useState(false);
 
   // Learn mode state
   const [learnCurrentIndex, setLearnCurrentIndex] = useState(0);
@@ -393,6 +306,23 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
     // Always play the sound
     playNoteSound(noteData.note);
 
+    // INTRO MODE: Check if user pressed the expected key
+    if (mode === 'intro' && !introComplete) {
+      const expectedKey = WHITE_KEYS[introKeyIndex];
+      if (noteData.note === expectedKey.note) {
+        // Correct key! Show green feedback
+        setKeyFeedbackWithTimeout(noteData.note, 'hit', 300);
+
+        // Move to next key or complete
+        const nextIndex = introKeyIndex + 1;
+        if (nextIndex >= WHITE_KEYS.length) {
+          setIntroComplete(true);
+        } else {
+          setIntroKeyIndex(nextIndex);
+        }
+      }
+    }
+
     // LEARN MODE: Check if correct note
     if (mode === 'learn' && selectedMelody) {
       const expectedNote = selectedMelody.notes[learnCurrentIndex];
@@ -450,7 +380,7 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
         return newSet;
       });
     }, 150);
-  }, [mode, selectedMelody, learnCurrentIndex, isPlaying, playNoteSound, setKeyFeedbackWithTimeout]);
+  }, [mode, selectedMelody, learnCurrentIndex, isPlaying, playNoteSound, setKeyFeedbackWithTimeout, introKeyIndex, introComplete]);
 
   // Start learn mode for a melody
   const startLearnMode = (melodyId) => {
@@ -624,9 +554,10 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
       <div className="flex-shrink-0 border-b border-gray-700 p-3">
         <div className="flex items-center justify-between max-w-2xl mx-auto">
           <div>
-            <h1 className="text-xl font-bold text-white">🎹 Piano Player</h1>
+            <h1 className="text-lg font-bold text-white">🎹 Piano Player</h1>
             <p className="text-gray-400 text-sm">
-              {mode === 'learn' ? `Part 1: Play Note by Note` :
+              {mode === 'intro' ? (introComplete ? 'Ready to play!' : `Hand Position • ${introKeyIndex + 1}/${WHITE_KEYS.length}`) :
+               mode === 'learn' ? `Part 1: Play Note by Note` :
                mode === 'playing' ? `Part 2: Play in Time • ♩ = ${BPM}` :
                mode === 'freeplay' ? 'Free Play' : 'Select a melody'}
             </p>
@@ -648,12 +579,163 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
                 Back
               </button>
             )}
+            <button
+              onClick={() => onComplete?.()}
+              className={`flex items-center gap-2 px-5 py-2.5 font-semibold rounded-lg transition-all cursor-pointer ${
+                mode === 'intro' && introComplete
+                  ? 'bg-green-500 hover:bg-green-600 text-white ring-4 ring-green-400/50 animate-pulse'
+                  : 'bg-orange-500 hover:bg-orange-600 text-white'
+              }`}
+            >
+              Continue
+              <ChevronRight size={18} />
+            </button>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 overflow-hidden">
+      <div className="flex-1 flex flex-col items-center justify-start pt-2 p-4 overflow-hidden">
+
+        {/* Intro - Hand Position Tutorial */}
+        {mode === 'intro' && (
+          <div className="relative" style={{ width: PIANO_WIDTH + 80 }}>
+            {/* Hand Position Image with Directions */}
+            <div className="text-center mb-2">
+              <h2 className="text-xl font-bold text-white mb-1">Place Your Hands Like This</h2>
+              <p className="text-gray-400 text-sm">Left hand: A S D F • Right hand: G H J K</p>
+            </div>
+
+            {/* Hand image - larger */}
+            <div className="bg-gray-800 rounded-lg p-2 mb-2 mx-auto" style={{ width: PIANO_WIDTH + 60 }}>
+              <img
+                src="/pianohands.png"
+                alt="Hand position guide"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block'
+                }}
+              />
+            </div>
+
+            {/* Finger prompt */}
+            <div className="text-center mb-2">
+              {!introComplete ? (
+                <>
+                  <p className="text-lg text-white mb-1">
+                    Play your <span className="text-green-400 font-bold">{FINGER_NAMES[WHITE_KEYS[introKeyIndex].finger]}</span>
+                  </p>
+                  <p className="text-gray-400 text-sm">
+                    Press the <span className="text-green-400 font-bold">{WHITE_KEYS[introKeyIndex].keyboardKey.toUpperCase()}</span> key
+                  </p>
+                  {/* Progress dots */}
+                  <div className="flex justify-center gap-1 mt-2">
+                    {WHITE_KEYS.map((_, idx) => (
+                      <div
+                        key={idx}
+                        className={`w-2 h-2 rounded-full ${
+                          idx < introKeyIndex ? 'bg-green-500' :
+                          idx === introKeyIndex ? 'bg-green-400 animate-pulse' :
+                          'bg-gray-600'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className="text-xl text-green-400 font-bold">
+                  Great job! Click Continue to play melodies
+                </p>
+              )}
+            </div>
+
+            {/* Virtual Keyboard */}
+            <div className="relative bg-gray-800 rounded-lg pt-1 pb-2 px-1 mx-auto" style={{ width: PIANO_WIDTH, height: WHITE_KEY_HEIGHT + 16 }}>
+              {/* White keys */}
+              <div className="relative flex">
+                {WHITE_KEYS.map((key, idx) => {
+                  const isPressed = pressedKeys.has(key.note);
+                  const feedback = keyFeedback[key.note];
+                  const isCurrentKey = idx === introKeyIndex && !introComplete;
+                  const isPlayed = introComplete || idx < introKeyIndex;
+
+                  let bgClass = 'bg-white hover:bg-gray-100';
+                  let borderClass = 'border-gray-300';
+                  if (feedback === 'hit') {
+                    bgClass = 'bg-green-400';
+                    borderClass = 'border-green-500';
+                  } else if (isCurrentKey) {
+                    bgClass = 'bg-green-200';
+                    borderClass = 'border-green-400';
+                  } else if (isPlayed) {
+                    bgClass = 'bg-green-100';
+                    borderClass = 'border-green-300';
+                  } else if (isPressed) {
+                    bgClass = 'bg-orange-300';
+                    borderClass = 'border-orange-400';
+                  }
+
+                  return (
+                    <button
+                      key={key.note}
+                      onMouseDown={() => handleKeyPress(key)}
+                      onTouchStart={(e) => { e.preventDefault(); handleKeyPress(key); }}
+                      className={`relative flex flex-col items-center justify-end pb-2 rounded-b-lg border transition-all duration-100 ${bgClass} ${borderClass} ${isCurrentKey ? 'ring-2 ring-green-400' : ''}`}
+                      style={{
+                        width: WHITE_KEY_WIDTH,
+                        height: WHITE_KEY_HEIGHT,
+                        transform: isPressed ? 'translateY(2px)' : 'none',
+                      }}
+                    >
+                      <span className={`text-xs font-bold ${feedback ? 'text-white' : isCurrentKey ? 'text-green-700' : isPressed ? 'text-orange-700' : 'text-gray-700'}`}>
+                        {key.label}
+                      </span>
+                      <span className={`text-[10px] mt-0.5 ${feedback ? 'text-white/70' : isCurrentKey ? 'text-green-600' : 'text-gray-400'}`}>
+                        {key.keyboardKey.toUpperCase()}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Black keys */}
+              {BLACK_KEYS.map((key, idx) => {
+                const isPressed = pressedKeys.has(key.note);
+                const feedback = keyFeedback[key.note];
+                const positions = [0, 1, 3, 4, 5];
+                const leftPos = (positions[idx] + 1) * WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2;
+
+                let bgClass = 'bg-gray-900 hover:bg-gray-800';
+                if (feedback === 'hit') {
+                  bgClass = 'bg-green-500';
+                } else if (isPressed) {
+                  bgClass = 'bg-purple-600';
+                }
+
+                return (
+                  <button
+                    key={key.note}
+                    onMouseDown={() => handleKeyPress(key)}
+                    onTouchStart={(e) => { e.preventDefault(); handleKeyPress(key); }}
+                    className={`absolute top-1 rounded-b-lg flex flex-col items-center justify-end pb-1 transition-all duration-100 ${bgClass}`}
+                    style={{
+                      left: leftPos,
+                      width: BLACK_KEY_WIDTH,
+                      height: BLACK_KEY_HEIGHT,
+                      transform: isPressed ? 'translateY(2px)' : 'none',
+                      zIndex: 10
+                    }}
+                  >
+                    <span className="text-[9px] text-gray-400">
+                      {key.keyboardKey.toUpperCase()}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Menu */}
         {mode === 'menu' && (
@@ -760,8 +842,6 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
 
             {/* Piano Keyboard */}
             <div className="relative bg-gray-800 rounded-b-xl pt-1 pb-2 px-1" style={{ height: WHITE_KEY_HEIGHT + 20 }}>
-              {/* Hand overlay */}
-              <HandOverlay />
 
               {/* White keys */}
               <div className="relative flex">
@@ -1055,19 +1135,6 @@ const KeyboardTutorialActivity = ({ onComplete, isSessionMode = false, viewMode 
             </div>
           </div>
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="flex-shrink-0 border-t border-gray-700 p-3">
-        <div className="max-w-2xl mx-auto flex justify-end">
-          <button
-            onClick={() => onComplete?.()}
-            className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg"
-          >
-            Continue
-            <ChevronRight size={18} />
-          </button>
-        </div>
       </div>
     </div>
   );
