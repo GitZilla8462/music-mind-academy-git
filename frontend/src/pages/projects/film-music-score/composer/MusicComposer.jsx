@@ -32,6 +32,13 @@ const isChromebook = typeof navigator !== 'undefined' && (
   (navigator.userAgentData?.platform === 'Chrome OS')
 );
 
+// Check if we're in passive mode (iframe preview) - disable audio to improve performance
+const isPassiveMode = () => {
+  if (typeof window === 'undefined') return false;
+  const params = new URLSearchParams(window.location.search);
+  return params.get('passive') === 'true';
+};
+
 const MusicComposer = ({
   showToast,
   isDemo = false,
@@ -78,6 +85,9 @@ const MusicComposer = ({
   const dawReadyCalledRef = useRef(false);
   const initialLoopsLoadedRef = useRef(false);
   const [currentlyPlayingPreview, setCurrentlyPlayingPreview] = useState(null);
+
+  // Check passive mode once on mount - disables audio in iframe previews for performance
+  const isPassive = useRef(isPassiveMode()).current;
 
   // Creator tools state (Beat Maker and Melody Maker panels)
   const [creatorMenuOpen, setCreatorMenuOpen] = useState(false);
@@ -583,7 +593,9 @@ const MusicComposer = ({
     compositionKey,
     // NEW: Custom loops (Beat Maker) for save/load
     customLoops,
-    setCustomLoops
+    setCustomLoops,
+    // Passive mode - disable audio for iframe previews
+    isPassive
   });
 
   // Re-render custom beats AND melodies that were loaded from localStorage

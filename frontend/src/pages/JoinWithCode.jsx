@@ -22,6 +22,7 @@ function JoinWithCode() {
 
   // Check for preview mode (used by teacher's presentation view)
   const isPreviewMode = searchParams.get('preview') === 'true';
+  const isPassiveMode = searchParams.get('passive') === 'true';
   const urlCode = searchParams.get('code');
   const loadRoomCode = searchParams.get('loadRoom');
   const loadMelodyMysteryCode = searchParams.get('loadMelodyMystery');
@@ -78,7 +79,7 @@ function JoinWithCode() {
   const handleAutoJoin = async (code) => {
     try {
       const sessionData = await getSessionData(code);
-      
+
       if (!sessionData) {
         console.error('❌ Preview mode: Session not found');
         setError('Session not found');
@@ -86,7 +87,9 @@ function JoinWithCode() {
       }
 
       const lessonRoute = sessionData.lessonRoute || sessionData.lessonId || '/lessons/film-music-project/lesson1';
-      window.location.href = `${lessonRoute}?session=${code}&role=student&preview=true`;
+      // Preserve passive=true if present (disables navigation prevention in iframe previews)
+      const passiveParam = isPassiveMode ? '&passive=true' : '';
+      window.location.href = `${lessonRoute}?session=${code}&role=student&preview=true${passiveParam}`;
     } catch (error) {
       console.error('❌ Preview mode error:', error);
       setError('Failed to load preview');

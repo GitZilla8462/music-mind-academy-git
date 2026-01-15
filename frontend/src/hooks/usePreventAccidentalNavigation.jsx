@@ -11,13 +11,23 @@
 //   hasUnsavedWork: placedLoops.length > 0 || hasUnsavedChanges,
 //   onNavigationAttempt: () => showToast?.('Use the Back button to exit safely', 'warning')
 // });
+//
+// NOTE: When ?passive=true is in the URL, navigation prevention is disabled.
+// This is used for iframe previews to avoid IPC flooding (Chrome throttling).
 
 import { useEffect, useCallback, useRef } from 'react';
+
+// Check if we're in passive mode (iframe preview) - should skip all navigation prevention
+const isPassiveMode = () => {
+  if (typeof window === 'undefined') return false;
+  const params = new URLSearchParams(window.location.search);
+  return params.get('passive') === 'true';
+};
 
 /**
  * Hook to prevent accidental navigation away from composition pages
  * Especially useful for Chromebooks where two-finger swipe triggers browser back
- * 
+ *
  * @param {Object} options
  * @param {boolean} options.hasUnsavedWork - Whether there's unsaved work to protect
  * @param {string} options.warningMessage - Message to show when navigation is blocked
@@ -33,7 +43,10 @@ export const usePreventAccidentalNavigation = ({
   onConfirmedLeave = null
 } = {}) => {
   const hasUnsavedWorkRef = useRef(hasUnsavedWork);
-  
+
+  // Check passive mode once on mount (stable reference)
+  const isPassiveRef = useRef(isPassiveMode());
+
   // Keep ref updated without triggering effect re-runs
   useEffect(() => {
     hasUnsavedWorkRef.current = hasUnsavedWork;
@@ -41,6 +54,9 @@ export const usePreventAccidentalNavigation = ({
 
   // Handle popstate (browser back button / two-finger swipe)
   const handlePopState = useCallback((e) => {
+    // Skip in passive mode
+    if (isPassiveRef.current) return;
+
     if (!hasUnsavedWorkRef.current) {
       // No unsaved work, allow navigation
       return;
@@ -48,7 +64,7 @@ export const usePreventAccidentalNavigation = ({
 
     // Re-push state to prevent navigation
     window.history.pushState(null, '', window.location.href);
-    
+
     // Notify via callback
     if (onNavigationAttempt) {
       onNavigationAttempt();
@@ -57,7 +73,7 @@ export const usePreventAccidentalNavigation = ({
     if (allowConfirmation) {
       // Show confirmation dialog
       const confirmLeave = window.confirm(warningMessage + '\n\nClick OK to leave anyway, or Cancel to stay.');
-      
+
       if (confirmLeave) {
         // User confirmed - allow navigation
         if (onConfirmedLeave) {
@@ -72,10 +88,13 @@ export const usePreventAccidentalNavigation = ({
 
   // Handle beforeunload (page refresh, close tab, etc.)
   const handleBeforeUnload = useCallback((e) => {
+    // Skip in passive mode
+    if (isPassiveRef.current) return;
+
     if (!hasUnsavedWorkRef.current) {
       return;
     }
-    
+
     // Standard way to trigger browser's "Leave site?" dialog
     e.preventDefault();
     e.returnValue = warningMessage;
@@ -83,42 +102,48 @@ export const usePreventAccidentalNavigation = ({
   }, [warningMessage]);
 
   useEffect(() => {
+    // Skip all navigation prevention in passive mode (iframe previews)
+    // This prevents IPC flooding that causes Chrome to throttle
+    if (isPassiveRef.current) {
+      return;
+    }
+
     // === 1. PREVENT OVERSCROLL GESTURES (Two-finger swipe on Chromebooks) ===
     // This is the main fix for the Chromebook issue
     const originalBodyOverscroll = document.body.style.overscrollBehaviorX;
     const originalHtmlOverscroll = document.documentElement.style.overscrollBehaviorX;
     const originalTouchAction = document.body.style.touchAction;
-    
+
     document.body.style.overscrollBehaviorX = 'none';
     document.documentElement.style.overscrollBehaviorX = 'none';
     // Restrict touch actions to vertical pan and pinch zoom only
     document.body.style.touchAction = 'pan-y pinch-zoom';
-    
+
     // === 2. PUSH HISTORY STATE TO INTERCEPT BACK BUTTON ===
     // This creates a "buffer" state that we can catch
     window.history.pushState(null, '', window.location.href);
-    
+
     // === 3. ADD EVENT LISTENERS ===
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('beforeunload', handleBeforeUnload);
-    
+
     // === 4. PREVENT HORIZONTAL SWIPE ON TOUCH DEVICES ===
     let touchStartX = 0;
     let touchStartY = 0;
-    
+
     const handleTouchStart = (e) => {
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
     };
-    
+
     const handleTouchMove = (e) => {
       if (!hasUnsavedWorkRef.current) return;
-      
+
       const touchCurrentX = e.touches[0].clientX;
       const touchCurrentY = e.touches[0].clientY;
       const deltaX = Math.abs(touchCurrentX - touchStartX);
       const deltaY = Math.abs(touchCurrentY - touchStartY);
-      
+
       // If horizontal swipe is dominant and starts from left edge (back gesture zone)
       if (deltaX > deltaY && touchStartX < 50 && deltaX > 30) {
         e.preventDefault();
@@ -127,14 +152,14 @@ export const usePreventAccidentalNavigation = ({
         }
       }
     };
-    
+
     document.addEventListener('touchstart', handleTouchStart, { passive: true });
     document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    
+
     // === 5. PREVENT KEYBOARD SHORTCUTS FOR BACK (Alt+Left Arrow) ===
     const handleKeyDown = (e) => {
       if (!hasUnsavedWorkRef.current) return;
-      
+
       // Alt + Left Arrow (common back shortcut)
       if (e.altKey && e.key === 'ArrowLeft') {
         e.preventDefault();
@@ -142,24 +167,24 @@ export const usePreventAccidentalNavigation = ({
           onNavigationAttempt();
         }
       }
-      
+
       // Backspace outside of input fields (old back navigation)
-      if (e.key === 'Backspace' && 
+      if (e.key === 'Backspace' &&
           !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) &&
           !document.activeElement.isContentEditable) {
         e.preventDefault();
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyDown);
-    
+
     // === CLEANUP ===
     return () => {
       // Restore original styles
       document.body.style.overscrollBehaviorX = originalBodyOverscroll || '';
       document.documentElement.style.overscrollBehaviorX = originalHtmlOverscroll || '';
       document.body.style.touchAction = originalTouchAction || '';
-      
+
       // Remove event listeners
       window.removeEventListener('popstate', handlePopState);
       window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -176,21 +201,23 @@ export const usePreventAccidentalNavigation = ({
  */
 export const useBlockBackNavigation = (isActive = true) => {
   useEffect(() => {
+    // Skip in passive mode (iframe previews)
+    if (isPassiveMode()) return;
     if (!isActive) return;
-    
+
     // Prevent overscroll
     document.body.style.overscrollBehaviorX = 'none';
     document.documentElement.style.overscrollBehaviorX = 'none';
-    
+
     // Push state to intercept
     window.history.pushState(null, '', window.location.href);
-    
+
     const handlePopState = () => {
       window.history.pushState(null, '', window.location.href);
     };
-    
+
     window.addEventListener('popstate', handlePopState);
-    
+
     return () => {
       document.body.style.overscrollBehaviorX = '';
       document.documentElement.style.overscrollBehaviorX = '';

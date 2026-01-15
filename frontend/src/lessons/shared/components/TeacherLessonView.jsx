@@ -127,7 +127,8 @@ const PresentationContent = ({
   if (viewMode === 'student') {
     const getStudentUrl = () => {
       // Use current origin for both dev and prod to handle any port
-      return `${window.location.origin}/join?code=${sessionCode}&preview=true`;
+      // passive=true disables navigation prevention hooks to avoid IPC flooding
+      return `${window.location.origin}/join?code=${sessionCode}&preview=true&passive=true`;
     };
 
     return (
@@ -585,7 +586,8 @@ const PresentationContent = ({
 const MiniPreview = ({ viewMode, sessionCode, currentStage, currentStageData, sessionData, config, onSwitch }) => {
   const getStudentUrl = () => {
     // Use current origin to handle any port in dev
-    return `${window.location.origin}/join?code=${sessionCode}&preview=true`;
+    // passive=true disables navigation prevention hooks to avoid IPC flooding
+    return `${window.location.origin}/join?code=${sessionCode}&preview=true&passive=true`;
   };
 
   return (

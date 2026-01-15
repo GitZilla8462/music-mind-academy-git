@@ -53,7 +53,10 @@ export const useComposerEffects = ({
 
   // NEW: Custom loops (Beat Maker)
   customLoops = [],
-  setCustomLoops = null
+  setCustomLoops = null,
+
+  // Passive mode - disable audio for iframe previews (performance optimization)
+  isPassive = false
 }) => {
   
   // Track if we've already loaded a video to prevent re-initialization
@@ -283,8 +286,14 @@ export const useComposerEffects = ({
     }
   }, [assignmentId, videoId, preselectedVideo, setPlacedLoops, setSubmissionNotes, compositionKey, placedLoops, setCustomLoops]);
 
-  // Auto-initialize audio for all modes
+  // Auto-initialize audio for all modes (skip in passive mode for performance)
   useEffect(() => {
+    // Skip audio initialization in passive mode (iframe previews)
+    if (isPassive) {
+      console.log('⏸️ Passive mode - skipping audio initialization');
+      return;
+    }
+
     if (!audioReady) {
       const autoInit = async () => {
         try {
@@ -295,11 +304,11 @@ export const useComposerEffects = ({
           console.error('❌ Failed to auto-initialize audio:', error);
         }
       };
-      
+
       const timer = setTimeout(autoInit, 100);
       return () => clearTimeout(timer);
     }
-  }, [audioReady, initializeAudio, setAudioReady]);
+  }, [audioReady, initializeAudio, setAudioReady, isPassive]);
 
   // Handle panel resizing with smooth gradual movement
   useEffect(() => {
