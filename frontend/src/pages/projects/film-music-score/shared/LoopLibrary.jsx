@@ -496,6 +496,7 @@ const LoopLibrary = ({
         {/* Filters */}
         <div className="space-y-1.5">
           {/* Mood filter */}
+          {/* CHROMEBOOK FIX: restore-cursor overrides chromebook-hide-cursor from parent */}
           <div className="relative">
             <select
               value={moodFilter}
@@ -511,7 +512,7 @@ const LoopLibrary = ({
               onFocus={onSelectOpen}
               onBlur={onSelectClose}
               disabled={!!lockedMood}
-              className={`w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-blue-500 focus:outline-none px-2 py-1.5 ${
+              className={`w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-blue-500 focus:outline-none px-2 py-1.5 restore-cursor ${
                 lockedMood ? 'opacity-60 cursor-not-allowed' : ''
               }`}
             >
@@ -537,7 +538,7 @@ const LoopLibrary = ({
             }}
             onFocus={onSelectOpen}
             onBlur={onSelectClose}
-            className="w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-blue-500 focus:outline-none px-2 py-1.5"
+            className="w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-blue-500 focus:outline-none px-2 py-1.5 restore-cursor"
           >
             <option value="All">All Instruments</option>
             {instruments.filter(i => i !== 'All').map(inst => (
@@ -558,7 +559,7 @@ const LoopLibrary = ({
               }}
               onFocus={onSelectOpen}
               onBlur={onSelectClose}
-              className="w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-purple-500 focus:outline-none px-2 py-1.5"
+              className="w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-purple-500 focus:outline-none px-2 py-1.5 restore-cursor"
             >
               <option value="All">Sound Effects</option>
               <option value="City">City</option>
