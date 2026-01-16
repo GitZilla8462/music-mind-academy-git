@@ -99,6 +99,7 @@ const CustomCursor = memo(({
   enabled = true,
   initiallyVisible = false,
   initialPosition = null,
+  name = 'unnamed', // DEBUG: Unique identifier for this cursor instance
 }) => {
   // UNIFIED CURSOR: Get global cursor state
   const { isCustomCursorEnabled, isDraggingFromLibrary } = useCursor();
@@ -146,12 +147,12 @@ const CustomCursor = memo(({
           cursorElementRef.current.style.visibility = 'hidden';
           cursorElementRef.current.style.opacity = '0';
           isVisibleRef.current = false;
-          console.log('🖱️ [CustomCursor] HIDING - over LoopLibrary', { x: e.clientX, y: e.clientY });
+          console.log(`🖱️ [CustomCursor:${name}] HIDING - over LoopLibrary`, { x: e.clientX, y: e.clientY });
           return;
         }
       } else if (e.isTrusted === false) {
         // DEBUG: Log synthetic event skipping LoopLibrary check
-        console.log('🖱️ [CustomCursor] SYNTHETIC mousemove - skipping LoopLibrary check', { x: e.clientX, y: e.clientY });
+        console.log(`🖱️ [CustomCursor:${name}] SYNTHETIC mousemove - skipping LoopLibrary check`, { x: e.clientX, y: e.clientY });
       }
 
       // Check if we should show the cursor (enabled and over timeline container)
@@ -169,7 +170,7 @@ const CustomCursor = memo(({
 
       // DEBUG: Log synthetic mousemove handling
       if (e.isTrusted === false) {
-        console.log('🖱️ [CustomCursor] SYNTHETIC mousemove received', {
+        console.log(`🖱️ [CustomCursor:${name}] SYNTHETIC mousemove received`, {
           x: e.clientX,
           y: e.clientY,
           effectivelyEnabled: effectivelyEnabledRef.current,
@@ -188,7 +189,7 @@ const CustomCursor = memo(({
         const y = e.clientY - hotspot.y;
         cursorElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
         // DEBUG: Log when cursor is shown (both real and synthetic)
-        console.log('🖱️ [CustomCursor] SHOWING cursor', {
+        console.log(`🖱️ [CustomCursor:${name}] SHOWING cursor`, {
           x, y,
           isSynthetic: e.isTrusted === false,
           hasContainer: !!containerRef?.current
@@ -199,7 +200,7 @@ const CustomCursor = memo(({
         cursorElementRef.current.style.opacity = '0';
         isVisibleRef.current = false;
         // DEBUG: Log when cursor is hidden (both real and synthetic)
-        console.log('🖱️ [CustomCursor] HIDING cursor', {
+        console.log(`🖱️ [CustomCursor:${name}] HIDING cursor`, {
           effectivelyEnabled: effectivelyEnabledRef.current,
           isOverContainer,
           isSynthetic: e.isTrusted === false,
@@ -223,7 +224,7 @@ const CustomCursor = memo(({
     const container = containerRef?.current;
 
     // DEBUG: Log when effectivelyEnabled changes
-    console.log('🖱️ [CustomCursor] EFFECT 2 running', {
+    console.log(`🖱️ [CustomCursor:${name}] EFFECT 2 running`, {
       effectivelyEnabled,
       hasContainer: !!container,
       positionRef: positionRef.current

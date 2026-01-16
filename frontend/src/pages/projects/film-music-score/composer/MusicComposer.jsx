@@ -833,6 +833,7 @@ const MusicComposer = ({
         {/* This prevents cursor disappearing during handoff to timeline cursor */}
         {isChromebook && !loadingScreenVisible && (
           <CustomCursor
+            name="GLOBAL"
             cursorType={globalCursorType}
             enabled={true}
             initiallyVisible={true}

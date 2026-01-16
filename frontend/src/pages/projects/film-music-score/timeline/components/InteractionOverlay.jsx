@@ -837,6 +837,7 @@ const InteractionOverlay = ({
       {/* The component handles its own visibility internally via CursorContext */}
       {isChromebook && (
         <CustomCursor
+          name="TIMELINE"
           cursorType={cursorType}
           containerRef={overlayRef}
           enabled={true}
