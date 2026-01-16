@@ -76,6 +76,12 @@ export const CursorProvider = ({ children }) => {
   const enableCustomCursor = useCallback(() => {
     dragStateRef.current.isDragging = false;
 
+    // CHROMEBOOK FIX: Immediately show default cursor to prevent invisible cursor gap
+    // The custom cursor will take over once it's positioned
+    if (isChromebook) {
+      document.body.style.cursor = 'default';
+    }
+
     // Use requestAnimationFrame to sync with render cycle
     // Double-RAF ensures the browser has completed the current frame
     requestAnimationFrame(() => {
@@ -83,11 +89,6 @@ export const CursorProvider = ({ children }) => {
         if (!dragStateRef.current.isDragging) {
           setIsCustomCursorEnabled(isChromebook);
           setDraggingFromLibrary(false);
-
-          // Reset body cursor
-          if (isChromebook) {
-            document.body.style.cursor = '';
-          }
         }
       });
     });
