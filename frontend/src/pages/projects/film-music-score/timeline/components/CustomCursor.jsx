@@ -184,22 +184,30 @@ const CustomCursor = memo(({
       // The effect now re-subscribes when effectivelyEnabled changes
       if (effectivelyEnabled && isOverContainer) {
         // Show and update cursor position
-        cursorElementRef.current.style.visibility = 'visible';
-        cursorElementRef.current.style.opacity = '1';
+        // CHROMEBOOK FIX: Use setProperty with 'important' to override any CSS
+        cursorElementRef.current.style.setProperty('visibility', 'visible', 'important');
+        cursorElementRef.current.style.setProperty('opacity', '1', 'important');
+        cursorElementRef.current.style.setProperty('display', 'block', 'important');
         isVisibleRef.current = true;
         const x = e.clientX - hotspot.x;
         const y = e.clientY - hotspot.y;
         cursorElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-        // DEBUG: Log when cursor is shown (both real and synthetic)
+        // DEBUG: Log when cursor is shown with actual computed style
+        const computed = window.getComputedStyle(cursorElementRef.current);
         console.log(`🖱️ [CustomCursor:${name}] SHOWING cursor`, {
           x, y,
           isSynthetic: e.isTrusted === false,
-          hasContainer: !!containerRef?.current
+          hasContainer: !!containerRef?.current,
+          // DEBUG: Actual computed styles
+          computedVisibility: computed.visibility,
+          computedOpacity: computed.opacity,
+          computedDisplay: computed.display,
+          inDOM: document.body.contains(cursorElementRef.current)
         });
       } else {
         // Hide cursor when not over container
-        cursorElementRef.current.style.visibility = 'hidden';
-        cursorElementRef.current.style.opacity = '0';
+        cursorElementRef.current.style.setProperty('visibility', 'hidden', 'important');
+        cursorElementRef.current.style.setProperty('opacity', '0', 'important');
         isVisibleRef.current = false;
         // DEBUG: Log when cursor is hidden (both real and synthetic)
         console.log(`🖱️ [CustomCursor:${name}] HIDING cursor`, {
@@ -269,22 +277,31 @@ const CustomCursor = memo(({
     };
 
     // Helper to show/hide cursor
+    // CHROMEBOOK FIX: Use setProperty with 'important' to override any CSS
     const showCursor = () => {
       if (cursorElementRef.current) {
-        cursorElementRef.current.style.visibility = 'visible';
-        cursorElementRef.current.style.opacity = '1';
+        cursorElementRef.current.style.setProperty('visibility', 'visible', 'important');
+        cursorElementRef.current.style.setProperty('opacity', '1', 'important');
+        cursorElementRef.current.style.setProperty('display', 'block', 'important');
         // Update position immediately
         const x = positionRef.current.x - hotspot.x;
         const y = positionRef.current.y - hotspot.y;
         cursorElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-        console.log(`🖱️ [CustomCursor:${name}] EFFECT 2 showCursor called`, { x, y });
+        // DEBUG: Log with computed styles
+        const computed = window.getComputedStyle(cursorElementRef.current);
+        console.log(`🖱️ [CustomCursor:${name}] EFFECT 2 showCursor called`, {
+          x, y,
+          computedVisibility: computed.visibility,
+          computedOpacity: computed.opacity,
+          inDOM: document.body.contains(cursorElementRef.current)
+        });
       }
     };
 
     const hideCursor = () => {
       if (cursorElementRef.current) {
-        cursorElementRef.current.style.visibility = 'hidden';
-        cursorElementRef.current.style.opacity = '0';
+        cursorElementRef.current.style.setProperty('visibility', 'hidden', 'important');
+        cursorElementRef.current.style.setProperty('opacity', '0', 'important');
         console.log(`🖱️ [CustomCursor:${name}] EFFECT 2 hideCursor called`);
       }
     };
