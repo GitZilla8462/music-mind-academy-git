@@ -359,11 +359,27 @@ const CustomCursor = memo(({
   // Use visibility to hide instead of returning null
   const CursorSVG = CursorSVGs[cursorType] || CursorSVGs.default;
 
-  // Determine initial visibility based on enabled state
-  const initialVisibility = effectivelyEnabled && initiallyVisible ? 'visible' : 'hidden';
-  const initialOpacity = effectivelyEnabled && initiallyVisible ? '1' : '0';
+  // CHROMEBOOK FIX: useLayoutEffect to set initial visibility BEFORE paint
+  // This ensures visibility is set correctly before user sees anything
+  // We do this via ref callback + useLayoutEffect, NOT inline styles
+  // because inline styles get reset on every render and conflict with DOM manipulation
+  useLayoutEffect(() => {
+    if (cursorElementRef.current) {
+      // Set initial visibility based on current state
+      if (effectivelyEnabled && initiallyVisible) {
+        cursorElementRef.current.style.visibility = 'visible';
+        cursorElementRef.current.style.opacity = '1';
+      } else {
+        cursorElementRef.current.style.visibility = 'hidden';
+        cursorElementRef.current.style.opacity = '0';
+      }
+      console.log(`🖱️ [CustomCursor:${name}] INITIAL visibility set`, { effectivelyEnabled, initiallyVisible });
+    }
+  }, []); // Only run once on mount
 
   // Portal renders cursor at document.body level for correct positioning
+  // CHROMEBOOK FIX: NO inline visibility/opacity styles - only set via DOM manipulation
+  // This prevents React re-renders from resetting our visibility changes
   return ReactDOM.createPortal(
     <div
       ref={cursorElementRef}
@@ -374,15 +390,16 @@ const CustomCursor = memo(({
         top: 0,
         pointerEvents: 'none',
         zIndex: 99999,
-        // CHROMEBOOK FIX: Use visibility instead of display for instant show/hide
-        visibility: initialVisibility,
-        opacity: initialOpacity,
-        // Initial position
+        // Initial position (off-screen)
         transform: `translate3d(${(initialPosition?.x || -100) - hotspot.x}px, ${(initialPosition?.y || -100) - hotspot.y}px, 0)`,
-        // GPU acceleration hints
-        willChange: 'transform, visibility, opacity',
+        // CHROMEBOOK FIX: Remove willChange as it can cause GPU issues on Chromebook
+        // Only keep backface visibility for minor performance
         backfaceVisibility: 'hidden',
         WebkitBackfaceVisibility: 'hidden',
+        // DEBUG: Add subtle background to verify element exists (TEMPORARY - remove after testing)
+        backgroundColor: 'rgba(255,0,0,0.2)',
+        padding: '2px',
+        borderRadius: '2px',
       }}
     >
       {CursorSVG}
