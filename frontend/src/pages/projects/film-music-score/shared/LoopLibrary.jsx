@@ -85,24 +85,38 @@ const LoopLibrary = ({
     console.log('🎵 LoopLibrary Props:', { restrictToCategory, lockedMood, showSoundEffects });
   }, []);
 
+  // CHROMEBOOK FIX: Track when we've applied cursor styles to avoid spam
+  const cursorStylesAppliedRef = useRef(false);
+  const lastLoopCountRef = useRef(0);
+
   // CHROMEBOOK FIX: Force cursor visibility using setProperty with !important
   // This overrides any CSS !important rules from parent containers
-  // NOTE: Must run after loading completes (when containerRef is attached to DOM)
-  // and when loops change (new elements need cursor styles)
+  // OPTIMIZED: Only runs once when loading completes, and again if loop count changes
   useEffect(() => {
-    if (isChromebook && containerRef.current) {
-      // Use setProperty to set cursor with !important flag
-      containerRef.current.style.setProperty('cursor', 'auto', 'important');
+    if (!isChromebook || !containerRef.current) return;
+    if (loading) return; // Wait for loading to complete
 
-      // Also set on all child elements (in case * selector is too weak)
-      const allChildren = containerRef.current.querySelectorAll('*');
-      allChildren.forEach(child => {
-        child.style.setProperty('cursor', 'auto', 'important');
-      });
+    const currentLoopCount = loops.length;
 
-      console.log('🖱️ LoopLibrary: Forced cursor:auto on container and', allChildren.length, 'children');
+    // Only apply if: first time OR loop count changed
+    if (cursorStylesAppliedRef.current && currentLoopCount === lastLoopCountRef.current) {
+      return; // Already applied and loop count hasn't changed
     }
-  }, [loading, loops]); // Re-run when loading completes and when loops change
+
+    // Use setProperty to set cursor with !important flag
+    containerRef.current.style.setProperty('cursor', 'auto', 'important');
+
+    // Also set on all child elements (in case * selector is too weak)
+    const allChildren = containerRef.current.querySelectorAll('*');
+    allChildren.forEach(child => {
+      child.style.setProperty('cursor', 'auto', 'important');
+    });
+
+    cursorStylesAppliedRef.current = true;
+    lastLoopCountRef.current = currentLoopCount;
+
+    console.log('🖱️ LoopLibrary: Applied cursor:auto to container and', allChildren.length, 'children');
+  }, [loading, loops.length]); // Only depend on loading and loop COUNT, not the array itself
 
   useEffect(() => {
     if (lockedMood) {

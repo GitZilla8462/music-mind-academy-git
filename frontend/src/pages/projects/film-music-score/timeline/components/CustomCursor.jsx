@@ -125,6 +125,7 @@ const CustomCursor = memo(({
   // EFFECT 1: ALWAYS track mouse position - never disabled
   // This ensures positionRef is accurate when cursor is re-enabled after dropdown/drag
   // CHROMEBOOK FIX: Also hides cursor when over loop-library (which has native cursor)
+  // CHROMEBOOK FIX: Global cursor hides when over elements with data-cursor-handled="true"
   useEffect(() => {
     const updatePosition = (e) => {
       positionRef.current = { x: e.clientX, y: e.clientY };
@@ -151,6 +152,26 @@ const CustomCursor = memo(({
           cursorElementRef.current.style.opacity = '0';
           isVisibleRef.current = false;
           return;
+        }
+      }
+
+      // CHROMEBOOK FIX: If this is a global cursor (no containerRef), hide when over
+      // elements that have their own cursor handler (data-cursor-handled="true")
+      // This prevents two custom cursors showing simultaneously
+      if (!containerRef?.current && e.isTrusted !== false) {
+        const elementUnderCursor = document.elementFromPoint(e.clientX, e.clientY);
+        if (elementUnderCursor) {
+          let el = elementUnderCursor;
+          while (el && el !== document.body) {
+            if (el.dataset?.cursorHandled === 'true') {
+              // Another component handles cursor here - hide global cursor
+              cursorElementRef.current.style.visibility = 'hidden';
+              cursorElementRef.current.style.opacity = '0';
+              isVisibleRef.current = false;
+              return;
+            }
+            el = el.parentElement;
+          }
         }
       }
 
@@ -250,6 +271,25 @@ const CustomCursor = memo(({
       );
     };
 
+    // CHROMEBOOK FIX: Check if mouse is over an element with data-cursor-handled="true"
+    // Global cursor should hide when another component handles its own cursor
+    const isMouseOverCursorHandledElement = () => {
+      if (containerRef?.current) return false; // Only applies to global cursor
+      const elementUnderCursor = document.elementFromPoint(
+        positionRef.current.x,
+        positionRef.current.y
+      );
+      if (!elementUnderCursor) return false;
+      let el = elementUnderCursor;
+      while (el && el !== document.body) {
+        if (el.dataset?.cursorHandled === 'true') {
+          return true;
+        }
+        el = el.parentElement;
+      }
+      return false;
+    };
+
     // Helper to show/hide cursor
     // CHROMEBOOK FIX: Use setProperty with 'important' to override any CSS
     // CHROMEBOOK FIX: Force browser repaint to fix Chrome compositor bug
@@ -292,7 +332,8 @@ const CustomCursor = memo(({
 
     // CHROMEBOOK FIX: Don't show custom cursor if mouse is over loop library
     // The loop library uses native cursor, so showing custom cursor there causes "two cursors"
-    if (isMouseOverLoopLibrary()) {
+    // Also don't show global cursor if over an element that handles its own cursor
+    if (isMouseOverLoopLibrary() || isMouseOverCursorHandledElement()) {
       isVisibleRef.current = false;
       hideCursor();
       // Don't return early - still need to set up event listeners
@@ -325,8 +366,8 @@ const CustomCursor = memo(({
       container.addEventListener('mouseenter', handleMouseEnter);
       container.addEventListener('mouseleave', handleMouseLeave);
     } else {
-      // No container = check if NOT over loop library, then show
-      if (!isMouseOverLoopLibrary()) {
+      // No container = check if NOT over loop library or cursor-handled element, then show
+      if (!isMouseOverLoopLibrary() && !isMouseOverCursorHandledElement()) {
         isVisibleRef.current = true;
         showCursor();
       }
