@@ -873,14 +873,13 @@ const MusicComposer = ({
       >
         {/* CHROMEBOOK FIX: Global custom cursor - always rendered, hides itself when over LoopLibrary */}
         {/* UNIFIED CURSOR: This will be automatically disabled during library drag via CursorContext */}
-        {/* Hide during loading screen to avoid double cursor */}
-        {/* FIXED: Removed showGlobalCursor condition - cursor handles its own visibility */}
-        {/* This prevents cursor disappearing during handoff to timeline cursor */}
+        {/* PERFORMANCE FIX: Mount cursor during loading (hidden) so it's warmed up when loading ends */}
+        {/* This prevents 2-3 second lag after loading screen hides from cursor initialization */}
         {/* Uses GlobalCursorWithKey wrapper to force remount after dropdown selection */}
-        {isChromebook && !loadingScreenVisible && (
+        {isChromebook && (
           <GlobalCursorWithKey
             cursorType={globalCursorType}
-            initiallyVisible={true}
+            initiallyVisible={!loadingScreenVisible}
             initialPosition={globalMousePos}
           />
         )}
