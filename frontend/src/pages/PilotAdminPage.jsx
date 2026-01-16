@@ -4,8 +4,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
-import { getDatabase, ref, get, set, remove, onValue } from 'firebase/database';
-import { Users, UserPlus, Trash2, Mail, Calendar, Shield, ArrowLeft, RefreshCw, BarChart3, Clock, BookOpen, Play, Building2, GraduationCap, ChevronDown, ChevronUp, MessageSquare, Star, Download } from 'lucide-react';
+import { getDatabase, ref, get, set, remove, onValue, update } from 'firebase/database';
+import { Users, UserPlus, Trash2, Mail, Calendar, Shield, ArrowLeft, RefreshCw, BarChart3, Clock, BookOpen, Play, Building2, GraduationCap, ChevronDown, ChevronUp, MessageSquare, Star, Download, DatabaseBackup } from 'lucide-react';
 import { getTeacherAnalytics, getPilotSessions, getPilotSummaryStats, subscribeToAnalytics } from '../firebase/analytics';
 import { SITE_TYPES } from '../firebase/approvedEmails';
 import * as XLSX from 'xlsx';
@@ -52,6 +52,10 @@ const PilotAdminPage = () => {
   const [quickSurveys, setQuickSurveys] = useState([]);
   const [midPilotSurveys, setMidPilotSurveys] = useState([]);
   const [finalPilotSurveys, setFinalPilotSurveys] = useState([]);
+
+  // Backfill state
+  const [isBackfilling, setIsBackfilling] = useState(false);
+  const [backfillResult, setBackfillResult] = useState(null);
 
   const database = getDatabase();
 
@@ -550,6 +554,98 @@ const PilotAdminPage = () => {
     XLSX.writeFile(workbook, filename);
   };
 
+  // Backfill student counts from sessions/ to pilotSessions/
+  const backfillStudentCounts = async () => {
+    if (!confirm('This will look up actual student counts from live session data and update analytics. Continue?')) {
+      return;
+    }
+
+    setIsBackfilling(true);
+    setBackfillResult(null);
+
+    try {
+      // Get all pilotSessions
+      const pilotSessionsRef = ref(database, 'pilotSessions');
+      const pilotSnapshot = await get(pilotSessionsRef);
+
+      if (!pilotSnapshot.exists()) {
+        setBackfillResult({ success: false, message: 'No pilot sessions found' });
+        setIsBackfilling(false);
+        return;
+      }
+
+      let updated = 0;
+      let notFound = 0;
+      let alreadyCorrect = 0;
+      let errors = 0;
+      const details = [];
+
+      const pilotData = pilotSnapshot.val();
+      const sessionCodes = Object.keys(pilotData);
+
+      for (const sessionCode of sessionCodes) {
+        const pilotSession = pilotData[sessionCode];
+        const currentCount = pilotSession.studentsJoined || 0;
+
+        try {
+          // Look up the actual session data
+          const liveSessionRef = ref(database, `sessions/${sessionCode}`);
+          const liveSnapshot = await get(liveSessionRef);
+
+          if (!liveSnapshot.exists()) {
+            notFound++;
+            details.push({ code: sessionCode, status: 'not_found', oldCount: currentCount });
+            continue;
+          }
+
+          const liveSession = liveSnapshot.val();
+          const actualCount = liveSession.studentsJoined
+            ? Object.keys(liveSession.studentsJoined).length
+            : 0;
+
+          if (actualCount === currentCount) {
+            alreadyCorrect++;
+            continue;
+          }
+
+          // Update pilotSessions with the correct count
+          const updateRef = ref(database, `pilotSessions/${sessionCode}`);
+          await update(updateRef, { studentsJoined: actualCount });
+
+          updated++;
+          details.push({
+            code: sessionCode,
+            status: 'updated',
+            oldCount: currentCount,
+            newCount: actualCount,
+            teacher: pilotSession.teacherEmail
+          });
+
+        } catch (err) {
+          errors++;
+          details.push({ code: sessionCode, status: 'error', error: err.message });
+        }
+      }
+
+      setBackfillResult({
+        success: true,
+        message: `Backfill complete: ${updated} updated, ${alreadyCorrect} already correct, ${notFound} live sessions not found, ${errors} errors`,
+        updated,
+        alreadyCorrect,
+        notFound,
+        errors,
+        details: details.filter(d => d.status === 'updated') // Only show updated ones
+      });
+
+      console.log('Backfill details:', details);
+
+    } catch (err) {
+      setBackfillResult({ success: false, message: `Error: ${err.message}` });
+    } finally {
+      setIsBackfilling(false);
+    }
+  };
+
   // Auth loading - show minimal spinner
   if (authLoading) {
     return (
@@ -619,6 +715,19 @@ const PilotAdminPage = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            <button
+              onClick={backfillStudentCounts}
+              disabled={isBackfilling}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white rounded-lg font-medium transition-colors"
+              title="Recover student counts from live session data"
+            >
+              {isBackfilling ? (
+                <RefreshCw size={18} className="animate-spin" />
+              ) : (
+                <DatabaseBackup size={18} />
+              )}
+              {isBackfilling ? 'Backfilling...' : 'Recover Student Data'}
+            </button>
             <button
               onClick={exportToExcel}
               className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
@@ -698,6 +807,44 @@ const PilotAdminPage = () => {
           <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center justify-between">
             {error}
             <button onClick={() => setError(null)} className="text-red-700 hover:text-red-900">×</button>
+          </div>
+        )}
+
+        {/* Backfill Results */}
+        {backfillResult && (
+          <div className={`mb-4 p-4 rounded-lg border ${
+            backfillResult.success ? 'bg-orange-50 border-orange-300' : 'bg-red-100 border-red-400'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className={`font-medium ${backfillResult.success ? 'text-orange-800' : 'text-red-700'}`}>
+                {backfillResult.message}
+              </span>
+              <button
+                onClick={() => setBackfillResult(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </div>
+            {backfillResult.details && backfillResult.details.length > 0 && (
+              <div className="mt-3 max-h-48 overflow-y-auto">
+                <p className="text-sm font-medium text-orange-700 mb-2">Updated sessions:</p>
+                <div className="space-y-1">
+                  {backfillResult.details.map((d, i) => (
+                    <div key={i} className="text-sm text-gray-700 bg-white p-2 rounded">
+                      <span className="font-mono font-bold text-blue-600">{d.code}</span>
+                      <span className="mx-2">•</span>
+                      <span>{d.teacher?.split('@')[0]}</span>
+                      <span className="mx-2">•</span>
+                      <span className="text-red-500">{d.oldCount}</span>
+                      <span className="mx-1">→</span>
+                      <span className="text-green-600 font-bold">{d.newCount}</span>
+                      <span className="text-gray-500 ml-1">students</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
