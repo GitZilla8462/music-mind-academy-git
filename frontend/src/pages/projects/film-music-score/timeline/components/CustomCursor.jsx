@@ -9,6 +9,9 @@
 //
 // UNIFIED CURSOR SYSTEM:
 // - Integrates with CursorContext to disable during HTML5 drag operations
+//
+// NOTE: There is a known bug where cursor disappears after dropdown selection on Chromebook.
+// See CHROMEBOOK_CURSOR_BUG_NOTES.md for investigation details.
 
 import React, { useEffect, useLayoutEffect, useRef, memo } from 'react';
 import ReactDOM from 'react-dom';
@@ -99,7 +102,7 @@ const CustomCursor = memo(({
   enabled = true,
   initiallyVisible = false,
   initialPosition = null,
-  name = 'unnamed', // DEBUG: Unique identifier for this cursor instance
+  name = 'unnamed',
 }) => {
   // UNIFIED CURSOR: Get global cursor state
   const { isCustomCursorEnabled, isDraggingFromLibrary, getLastMousePosition } = useCursor();
@@ -147,12 +150,8 @@ const CustomCursor = memo(({
           cursorElementRef.current.style.visibility = 'hidden';
           cursorElementRef.current.style.opacity = '0';
           isVisibleRef.current = false;
-          console.log(`🖱️ [CustomCursor:${name}] HIDING - over LoopLibrary`, { x: e.clientX, y: e.clientY });
           return;
         }
-      } else if (e.isTrusted === false) {
-        // DEBUG: Log synthetic event skipping LoopLibrary check
-        console.log(`🖱️ [CustomCursor:${name}] SYNTHETIC mousemove - skipping LoopLibrary check`, { x: e.clientX, y: e.clientY });
       }
 
       // Check if we should show the cursor (enabled and over timeline container)
@@ -168,18 +167,6 @@ const CustomCursor = memo(({
         );
       }
 
-      // DEBUG: Log synthetic mousemove handling
-      if (e.isTrusted === false) {
-        console.log(`🖱️ [CustomCursor:${name}] SYNTHETIC mousemove received`, {
-          x: e.clientX,
-          y: e.clientY,
-          effectivelyEnabled,
-          isOverContainer,
-          isOverLoopLibrary,
-          willShow: effectivelyEnabled && isOverContainer
-        });
-      }
-
       // CHROMEBOOK FIX: Use effectivelyEnabled directly instead of ref to avoid race conditions
       // The effect now re-subscribes when effectivelyEnabled changes
       if (effectivelyEnabled && isOverContainer) {
@@ -192,32 +179,11 @@ const CustomCursor = memo(({
         const x = e.clientX - hotspot.x;
         const y = e.clientY - hotspot.y;
         cursorElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-        // DEBUG: Log when cursor is shown with actual computed style
-        const computed = window.getComputedStyle(cursorElementRef.current);
-        console.log(`🖱️ [CustomCursor:${name}] SHOWING cursor`, {
-          x, y,
-          isSynthetic: e.isTrusted === false,
-          hasContainer: !!containerRef?.current,
-          // DEBUG: Actual computed styles
-          computedVisibility: computed.visibility,
-          computedOpacity: computed.opacity,
-          computedDisplay: computed.display,
-          inDOM: document.body.contains(cursorElementRef.current)
-        });
       } else {
         // Hide cursor when not over container
         cursorElementRef.current.style.setProperty('visibility', 'hidden', 'important');
         cursorElementRef.current.style.setProperty('opacity', '0', 'important');
         isVisibleRef.current = false;
-        // DEBUG: Log when cursor is hidden (both real and synthetic)
-        console.log(`🖱️ [CustomCursor:${name}] HIDING cursor`, {
-          effectivelyEnabled,
-          isOverContainer,
-          isSynthetic: e.isTrusted === false,
-          hasContainer: !!containerRef?.current,
-          x: e.clientX,
-          y: e.clientY
-        });
       }
     };
 
@@ -227,7 +193,7 @@ const CustomCursor = memo(({
     return () => {
       document.removeEventListener('mousemove', updatePosition);
     };
-  }, [hotspot.x, hotspot.y, containerRef, effectivelyEnabled, name]); // CHROMEBOOK FIX: Re-subscribe when effectivelyEnabled changes
+  }, [hotspot.x, hotspot.y, containerRef, effectivelyEnabled, name]);
 
   // EFFECT 2: Handle visibility and container enter/leave
   // CHROMEBOOK FIX: Use useLayoutEffect so visibility is set BEFORE browser paints
@@ -242,14 +208,6 @@ const CustomCursor = memo(({
       // Update our local position ref with context position
       positionRef.current = contextPosition;
     }
-
-    // DEBUG: Log when effectivelyEnabled changes
-    console.log(`🖱️ [CustomCursor:${name}] EFFECT 2 (useLayoutEffect) running`, {
-      effectivelyEnabled,
-      hasContainer: !!container,
-      positionRef: positionRef.current,
-      contextPosition
-    });
 
     // Helper to check if mouse is over container
     const isMouseOverContainer = () => {
@@ -287,14 +245,6 @@ const CustomCursor = memo(({
         const x = positionRef.current.x - hotspot.x;
         const y = positionRef.current.y - hotspot.y;
         cursorElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-        // DEBUG: Log with computed styles
-        const computed = window.getComputedStyle(cursorElementRef.current);
-        console.log(`🖱️ [CustomCursor:${name}] EFFECT 2 showCursor called`, {
-          x, y,
-          computedVisibility: computed.visibility,
-          computedOpacity: computed.opacity,
-          inDOM: document.body.contains(cursorElementRef.current)
-        });
       }
     };
 
@@ -302,7 +252,6 @@ const CustomCursor = memo(({
       if (cursorElementRef.current) {
         cursorElementRef.current.style.setProperty('visibility', 'hidden', 'important');
         cursorElementRef.current.style.setProperty('opacity', '0', 'important');
-        console.log(`🖱️ [CustomCursor:${name}] EFFECT 2 hideCursor called`);
       }
     };
 
@@ -315,7 +264,6 @@ const CustomCursor = memo(({
     // CHROMEBOOK FIX: Don't show custom cursor if mouse is over loop library
     // The loop library uses native cursor, so showing custom cursor there causes "two cursors"
     if (isMouseOverLoopLibrary()) {
-      console.log(`🖱️ [CustomCursor:${name}] EFFECT 2 - mouse over LoopLibrary, hiding`);
       isVisibleRef.current = false;
       hideCursor();
       // Don't return early - still need to set up event listeners
@@ -390,7 +338,6 @@ const CustomCursor = memo(({
         cursorElementRef.current.style.visibility = 'hidden';
         cursorElementRef.current.style.opacity = '0';
       }
-      console.log(`🖱️ [CustomCursor:${name}] INITIAL visibility set`, { effectivelyEnabled, initiallyVisible });
     }
   }, []); // Only run once on mount
 
@@ -413,10 +360,6 @@ const CustomCursor = memo(({
         // Only keep backface visibility for minor performance
         backfaceVisibility: 'hidden',
         WebkitBackfaceVisibility: 'hidden',
-        // DEBUG: Add subtle background to verify element exists (TEMPORARY - remove after testing)
-        backgroundColor: 'rgba(255,0,0,0.2)',
-        padding: '2px',
-        borderRadius: '2px',
       }}
     >
       {CursorSVG}

@@ -13,8 +13,8 @@ const isChromebook = typeof navigator !== 'undefined' && (
   (navigator.userAgentData?.platform === 'Chrome OS')
 );
 
-// DEBUG: Cursor state logging
-const DEBUG_CURSOR = true;
+// DEBUG: Cursor state logging (disabled for production - enable for debugging)
+const DEBUG_CURSOR = false;
 const logCursor = (action, data = {}) => {
   if (DEBUG_CURSOR) {
     console.log(`🖱️ [Cursor] ${action}`, {
