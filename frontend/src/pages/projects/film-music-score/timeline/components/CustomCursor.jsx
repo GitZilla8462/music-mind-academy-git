@@ -129,9 +129,11 @@ const CustomCursor = memo(({
 
       // CHROMEBOOK FIX: Check if mouse is over the loop library area
       // The loop library shows native cursor, so we must hide custom cursor there
+      // IMPORTANT: Skip this check for synthetic events (isTrusted=false) because
+      // native dropdown interactions don't update mouse position, so coordinates are stale
       const loopLibrary = document.querySelector('.loop-library');
       let isOverLoopLibrary = false;
-      if (loopLibrary) {
+      if (loopLibrary && e.isTrusted !== false) {
         const rect = loopLibrary.getBoundingClientRect();
         isOverLoopLibrary = (
           e.clientX >= rect.left &&
@@ -144,12 +146,11 @@ const CustomCursor = memo(({
           cursorElementRef.current.style.visibility = 'hidden';
           cursorElementRef.current.style.opacity = '0';
           isVisibleRef.current = false;
-          // DEBUG: Log when hiding due to LoopLibrary
-          if (e.isTrusted === false) {
-            console.log('🖱️ [CustomCursor] SYNTHETIC mousemove over LoopLibrary - hiding', { x: e.clientX, y: e.clientY });
-          }
           return;
         }
+      } else if (e.isTrusted === false) {
+        // DEBUG: Log synthetic event skipping LoopLibrary check
+        console.log('🖱️ [CustomCursor] SYNTHETIC mousemove - skipping LoopLibrary check', { x: e.clientX, y: e.clientY });
       }
 
       // Check if we should show the cursor (enabled and over timeline container)
