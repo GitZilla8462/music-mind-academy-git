@@ -68,7 +68,8 @@ export const CursorProvider = ({ children }) => {
   const [isSelectOpen, setIsSelectOpen] = useState(false);
 
   // CHROMEBOOK FIX: Force cursor remount after dropdown to fix Chrome rendering bug
-  const [cursorKey, setCursorKey] = useState(0);
+  // Start at 1 (not 0) so the first remount behaves like subsequent remounts
+  const [cursorKey, setCursorKey] = useState(1);
 
   // DEBUG: Log state changes
   useEffect(() => {
