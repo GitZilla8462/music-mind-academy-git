@@ -173,21 +173,48 @@ export const CursorProvider = ({ children }) => {
         document.body.style.cursor = 'default';
         logCursor('onSelectClose SET body cursor to default');
       }
-      // CHROMEBOOK FIX: Dispatch synthetic mousemove to trigger cursor visibility update
-      // This is needed because the user may have stopped moving before state updated
-      // Use setTimeout to ensure React has fully completed re-rendering
-      // RAF alone isn't enough because React 18's concurrent rendering can defer updates
+      // CHROMEBOOK FIX: Force Chrome to repaint by manipulating the cursor element directly
+      // and dispatching multiple synthetic events with delays
       // Store timeout ID in ref so it can be cancelled if a new dropdown opens
       pendingSyntheticMousemoveRef.current = setTimeout(() => {
         pendingSyntheticMousemoveRef.current = null; // Clear ref once timeout fires
+
+        // Find and force repaint on cursor element
+        const cursorEl = document.querySelector('.custom-cursor-container');
+        if (cursorEl) {
+          // Force GPU layer recreation by toggling transform
+          const currentTransform = cursorEl.style.transform;
+          cursorEl.style.transform = 'none';
+          void cursorEl.offsetHeight; // Force reflow
+          cursorEl.style.transform = currentTransform;
+          logCursor('onSelectClose forced cursor element repaint');
+        }
+
+        // Dispatch synthetic mousemove
         logCursor('onSelectClose dispatching synthetic mousemove', lastMousePosition.current);
         const moveEvent = new MouseEvent('mousemove', {
           clientX: lastMousePosition.current.x,
           clientY: lastMousePosition.current.y,
-          bubbles: true
+          bubbles: true,
+          cancelable: true
         });
         document.dispatchEvent(moveEvent);
-      }, 50);
+
+        // CHROMEBOOK FIX: Dispatch a second mousemove after another frame
+        // to ensure Chrome processes the change
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const moveEvent2 = new MouseEvent('mousemove', {
+              clientX: lastMousePosition.current.x,
+              clientY: lastMousePosition.current.y,
+              bubbles: true,
+              cancelable: true
+            });
+            document.dispatchEvent(moveEvent2);
+            logCursor('onSelectClose dispatched second synthetic mousemove');
+          });
+        });
+      }, 100); // Increased delay to 100ms to give Chrome more time
     } else {
       logCursor('onSelectClose still dragging - skipping re-enable');
     }
