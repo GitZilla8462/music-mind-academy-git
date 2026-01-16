@@ -462,7 +462,9 @@ const LoopLibrary = ({
   }
 
   return (
-    <div className={`h-full flex flex-col bg-gray-800 loop-library ${highlighted ? 'tutorial-highlight' : ''}`}>
+    // CHROMEBOOK FIX: restore-cursor ensures native cursor is always visible in loop library
+    // The custom cursor only renders in the timeline area, so we need native cursor here
+    <div className={`h-full flex flex-col bg-gray-800 loop-library restore-cursor ${highlighted ? 'tutorial-highlight' : ''}`}>
       {/* Header */}
       <div className="p-2 border-b border-gray-700">
         <div className="flex items-center justify-between mb-2">
