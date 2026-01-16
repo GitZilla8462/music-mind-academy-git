@@ -159,14 +159,17 @@ export const CursorProvider = ({ children }) => {
       }
       // CHROMEBOOK FIX: Dispatch synthetic mousemove to trigger cursor visibility update
       // This is needed because the user may have stopped moving before state updated
+      // Use double RAF to give React time to re-render CustomCursor first
       requestAnimationFrame(() => {
-        logCursor('onSelectClose dispatching synthetic mousemove', lastMousePosition.current);
-        const moveEvent = new MouseEvent('mousemove', {
-          clientX: lastMousePosition.current.x,
-          clientY: lastMousePosition.current.y,
-          bubbles: true
+        requestAnimationFrame(() => {
+          logCursor('onSelectClose dispatching synthetic mousemove', lastMousePosition.current);
+          const moveEvent = new MouseEvent('mousemove', {
+            clientX: lastMousePosition.current.x,
+            clientY: lastMousePosition.current.y,
+            bubbles: true
+          });
+          document.dispatchEvent(moveEvent);
         });
-        document.dispatchEvent(moveEvent);
       });
     } else {
       logCursor('onSelectClose still dragging - skipping re-enable');
