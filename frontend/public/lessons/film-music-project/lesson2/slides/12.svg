@@ -14,7 +14,7 @@
   <rect width="1920" height="1080" fill="url(#grid)"/>
 
   <!-- Title -->
-  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">CLASS WRAP-UP</text>
+  <text x="192" y="200" font-family="Arial, Helvetica, sans-serif" font-size="84" fill="white" font-weight="bold">CLASS DISCUSSION</text>
 
   <!-- Accent line -->
   <rect x="192" y="230" width="384" height="3" fill="#a5b4fc" opacity="0.5"/>
@@ -23,10 +23,10 @@
   <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a5b4fc">End of Lesson</text>
 
   <!-- Bullet Points -->
-  <text x="192" y="500" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">1. What is form in music?</text>
+  <text x="192" y="500" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">1. What is texture in music?</text>
 
-  <text x="192" y="640" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">2. What is one thing your partner did well in their</text>
-  <text x="232" y="710" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">composition?</text>
+  <text x="192" y="640" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">2. What mood and city did your partner choose?</text>
 
-  <text x="192" y="850" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">3. What sections did you include in your composition?</text>
+  <text x="192" y="780" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">3. What is one thing that you like about your</text>
+  <text x="232" y="850" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">partner's composition?</text>
 </svg>

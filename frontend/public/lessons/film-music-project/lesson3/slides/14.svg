@@ -24,7 +24,7 @@
   <rect x="192" y="230" width="384" height="3" fill="#a855f7" opacity="0.5"/>
 
   <!-- Subtitle -->
-  <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a855f7">Activity Time</text>
+  <text x="192" y="310" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#a855f7">Bonus Activity - If more time allows!</text>
 
   <!-- Bullet Points -->
   <text x="192" y="480" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">Create loops and watch your robot dance!</text>

@@ -4,7 +4,7 @@
 // PHASES:
 // 1. Setup - Choose rounds, random mood selected
 // 2. Listening - Play full song, highlight sections
-// 3. Quiz Loop (4 clips per round): guessing → revealed → powerPick
+// 3. Quiz Loop (5 clips per round): guessing → revealed → powerPick
 // 4. roundSummary → finished
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -127,7 +127,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   const [totalRounds, setTotalRounds] = useState(null);
   const [currentMood, setCurrentMood] = useState(null);
   const [sectionAudio, setSectionAudio] = useState(null);
-  const [quizOrder, setQuizOrder] = useState(['intro', 'a', 'aPrime', 'outro']);
+  const [quizOrder, setQuizOrder] = useState(['intro', 'a', 'aPrime', 'a', 'outro']);
   
   // Game state
   const [gamePhase, setGamePhase] = useState('setup');
@@ -823,7 +823,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     const mood = getRandomMood();
     setCurrentMood(mood);
     setSectionAudio(generateSongStructure(mood));
-    setQuizOrder(shuffleArray(['intro', 'a', 'aPrime', 'outro']));
+    setQuizOrder(shuffleArray(['intro', 'a', 'aPrime', 'a', 'outro']));
     setTotalRounds(n);
   };
 
@@ -831,7 +831,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     const mood = getRandomMood();
     setCurrentMood(mood);
     setSectionAudio(generateSongStructure(mood));
-    setQuizOrder(shuffleArray(['intro', 'a', 'aPrime', 'outro']));
+    setQuizOrder(shuffleArray(['intro', 'a', 'aPrime', 'a', 'outro']));
   };
 
   const showLeaderboard = ['guessing', 'revealed', 'powerPick', 'roundSummary', 'finished'].includes(gamePhase);
@@ -1005,27 +1005,9 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                         borderWidth: '3px'
                       }}
                     >
-                      <div className="text-5xl mb-2">{info.emoji}</div>
                       <div className="text-3xl font-black" style={{ color: info.color }}>{info.label}</div>
-                      
-                      {/* Layer boxes visualization */}
-                      <div className="flex justify-center gap-2 my-4">
-                        {[...Array(4)].map((_, i) => (
-                          <div 
-                            key={i}
-                            className={`w-10 h-6 rounded transition-all duration-300 ${
-                              i < info.layers && isPlaying ? 'animate-pulse' : ''
-                            }`}
-                            style={{ 
-                              backgroundColor: i < info.layers 
-                                ? (isPlaying ? info.color : `${info.color}80`)
-                                : 'rgba(255,255,255,0.1)'
-                            }}
-                          />
-                        ))}
-                      </div>
-                      
-                      <div className="text-xl text-white/70">{info.layers} {info.layers === 1 ? 'layer' : 'layers'}</div>
+
+                      <div className="text-4xl font-bold text-white mt-4">{info.layers} {info.layers === 1 ? 'layer' : 'layers'}</div>
                       
                       {isPlaying && (
                         <div className="mt-3 text-lg font-bold text-white bg-white/20 rounded-full px-4 py-2">
@@ -1047,7 +1029,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
             <div className="text-center">
               <div className="text-9xl mb-6">🎯</div>
               <h1 className="text-6xl font-black mb-4">Get Ready!</h1>
-              <p className="text-3xl text-white/70 mb-8">Question 1 of 4 • What section is this?</p>
+              <p className="text-3xl text-white/70 mb-8">Question 1 of 5 • What section is this?</p>
               <button onClick={() => startRound(1)} className="px-10 py-5 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl text-3xl font-bold flex items-center gap-3 mx-auto hover:scale-105 transition-all">
                 <Play size={40} /> Play Clip 1
               </button>
@@ -1056,9 +1038,9 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
 
           {/* Guessing */}
           {gamePhase === 'guessing' && (
-            <div className="text-center">
-              {/* Large Round Indicator */}
-              <div className="text-5xl font-black text-white/80 mb-4">Round {currentRound}/{totalRounds} • Clip {currentClipIndex + 1}/4</div>
+            <div className="text-center relative w-full">
+              {/* Round Indicator - top right */}
+              <div className="absolute top-0 right-0 text-xl font-bold text-white/60 z-10 bg-black/30 px-3 py-1 rounded-lg">Round {currentRound}/{totalRounds} • Clip {currentClipIndex + 1}/5</div>
               
               {/* Safari Timer - big countdown */}
               {safariHunters.length > 0 && (
@@ -1090,12 +1072,11 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
               {/* Section Options - visible to students and teacher */}
               <div className="grid grid-cols-4 gap-4 max-w-4xl mx-auto mb-4">
                 {Object.entries(SECTION_INFO).map(([key, info]) => (
-                  <div 
+                  <div
                     key={key}
                     className="p-4 rounded-2xl text-center transition-all"
                     style={{ backgroundColor: `${info.color}30`, borderColor: info.color, borderWidth: '3px' }}
                   >
-                    <div className="text-4xl mb-1">{info.emoji}</div>
                     <div className="text-2xl font-black" style={{ color: info.color }}>{info.label}</div>
                     <div className="text-white/70 text-lg">{info.layers} {info.layers === 1 ? 'layer' : 'layers'}</div>
                   </div>
@@ -1118,9 +1099,9 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
 
           {/* Revealed */}
           {gamePhase === 'revealed' && (
-            <div className="text-center">
-              {/* Large Round Indicator */}
-              <div className="text-4xl font-black text-white/80 mb-4">Round {currentRound}/{totalRounds} • Clip {currentClipIndex + 1}/4</div>
+            <div className="text-center relative w-full">
+              {/* Round Indicator - top right */}
+              <div className="absolute top-0 right-0 text-xl font-bold text-white/60 z-10 bg-black/30 px-3 py-1 rounded-lg">Round {currentRound}/{totalRounds} • Clip {currentClipIndex + 1}/5</div>
 
               {revealStep >= 1 && revealStep < 2 && <div className="text-7xl anim-drumroll">🥁</div>}
               {revealStep >= 2 && (
@@ -1129,7 +1110,6 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
 
                   {/* Section Badge */}
                   <div className="inline-block px-6 py-3 rounded-2xl mb-4" style={{ backgroundColor: SECTION_INFO[currentSection]?.color }}>
-                    <span className="text-4xl mr-2">{SECTION_INFO[currentSection]?.emoji}</span>
                     <span className="text-4xl font-black">{SECTION_INFO[currentSection]?.label}</span>
                   </div>
 
@@ -1192,7 +1172,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
               {newLeader && revealStep >= 5 && <div className="mt-2 text-xl text-yellow-400 anim-pop">👑 New leader: {newLeader}!</div>}
               {revealStep >= 2 && (
                 <button onClick={nextClip} className="mt-4 px-10 py-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all">
-                  {currentClipIndex >= 3 ? 'Round Complete →' : `Play Clip ${currentClipIndex + 2} →`}
+                  {currentClipIndex >= 4 ? 'Round Complete →' : `Play Clip ${currentClipIndex + 2} →`}
                 </button>
               )}
             </div>
@@ -1200,10 +1180,10 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
 
           {/* Power Pick */}
           {gamePhase === 'powerPick' && (
-            <div className="text-center">
-              {/* Large Round Indicator */}
-              <div className="text-5xl font-black text-white/80 mb-6">Round {currentRound}/{totalRounds} • Clip {currentClipIndex + 1}/4</div>
-              
+            <div className="text-center relative w-full">
+              {/* Round Indicator - top right */}
+              <div className="absolute top-0 right-0 text-xl font-bold text-white/60 z-10 bg-black/30 px-3 py-1 rounded-lg">Round {currentRound}/{totalRounds} • Clip {currentClipIndex + 1}/5</div>
+
               <div className="text-7xl mb-4">✨</div>
               <h2 className="text-4xl font-black mb-4">Power-Up Time!</h2>
               

@@ -44,7 +44,7 @@ export const summarySlides = {
   sectionalLoopBuilder: {
     title: "Sectional Loop Builder Game",
     icon: "🎮",
-    estimatedTime: "5 minutes",
+    estimatedTime: "10 minutes",
     points: [
       "Listen to mystery clips and count the layers",
       "Place each clip in the correct slot",
@@ -71,7 +71,7 @@ export const summarySlides = {
   wildlifeComposition: {
     title: "Compose Your Wildlife Soundtrack",
     icon: "🦁",
-    estimatedTime: "10 minutes",
+    estimatedTime: "12 minutes",
     points: [
       "Choose a wildlife video to score.",
       "Use sectional loop form: Intro → A → A' → A → Outro.",
@@ -83,7 +83,7 @@ export const summarySlides = {
   reflection: {
     title: "Two Stars and a Wish",
     icon: "⭐",
-    estimatedTime: "5 minutes",
+    estimatedTime: "2 minutes",
     points: [
       "Name two things you did well with song form and sections.",
       "Describe one thing you would improve or try differently.",

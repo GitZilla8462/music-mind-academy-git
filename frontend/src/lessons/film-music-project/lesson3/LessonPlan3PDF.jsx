@@ -34,7 +34,7 @@ const LessonPlan3PDF = () => {
           </p>
           <div className="flex gap-6 mt-3 text-sm">
             <div><strong>Grade Level:</strong> 6-8</div>
-            <div><strong>Duration:</strong> 45 minutes</div>
+            <div><strong>Duration:</strong> 40 minutes (+ 14 min bonus)</div>
           </div>
         </div>
 
@@ -44,13 +44,13 @@ const LessonPlan3PDF = () => {
             Lesson Overview
           </h2>
           <p className="text-sm mb-4">
-            Students learn how film scores follow a story arc with distinct sections (Intro → A → A' → Outro). They create a listening map to Vivaldi's Spring, play a section-matching game, then compose an epic nature documentary soundtrack.
+            Students learn how film scores follow a story arc with distinct sections (Intro → A → A' → Outro). They play a section-matching game, then compose an epic nature documentary soundtrack.
           </p>
           <h3 className="text-lg font-semibold text-gray-800 mb-2">Students Will:</h3>
           <ul className="list-disc ml-6 space-y-1">
-            <li className="text-sm">Create a listening map visualizing song form</li>
             <li className="text-sm">Identify sections in sectional loop form (Intro, A, A', Outro)</li>
             <li className="text-sm">Compose a complete film score with clear structure</li>
+            <li className="text-sm">(Bonus) Create a listening map visualizing song form</li>
           </ul>
         </section>
 
@@ -164,13 +164,13 @@ const LessonPlan3PDF = () => {
         {/* STAGE 3: LEARNING PLAN */}
         <section className="mb-8 page-break-before">
           <h2 className="text-2xl font-bold text-green-800 mb-4 border-b-2 border-green-300 pb-2">
-            STAGE 3: LEARNING PLAN (45 minutes)
+            STAGE 3: LEARNING PLAN (40 minutes core + 14 min bonus)
           </h2>
 
           {/* Introduction */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-blue-50 p-2 rounded">
-              1. Introduction <span className="font-normal text-gray-600">— Song Form Concept (5 min)</span>
+              1. Introduction <span className="font-normal text-gray-600">— Song Form Concept (3 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -195,10 +195,144 @@ const LessonPlan3PDF = () => {
             </table>
           </div>
 
-          {/* Listening Map */}
+          {/* Sectional Loop Form */}
           <div className="mb-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-yellow-50 p-2 rounded">
-              2. Listening Map <span className="font-normal text-gray-600">— Vivaldi's Spring (14 min)</span>
+            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-teal-50 p-2 rounded">
+              2. Sectional Loop Form <span className="font-normal text-gray-600">— Teaching (3 min)</span>
+            </h3>
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border p-2 text-left w-16">Time</th>
+                  <th className="border p-2 text-left w-48">Activity</th>
+                  <th className="border p-2 text-left">What to Say/Do</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="border p-2">5 min</td>
+                  <td className="border p-2 font-medium">Form Continued</td>
+                  <td className="border p-2">
+                    Explain Intro → A → A' → Outro in detail<br/>
+                    <strong>Intro:</strong> Sets the scene (fewer layers)<br/>
+                    <strong>A:</strong> Main theme with full instrumentation<br/>
+                    <strong>A':</strong> Variation - same foundation, different details<br/>
+                    <strong>Outro:</strong> Wraps up, often returns to simpler texture
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Sectional Loop Builder Game */}
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-purple-50 p-2 rounded">
+              3. Sectional Loop Builder Game <span className="font-normal text-gray-600">— (12 min)</span>
+            </h3>
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border p-2 text-left w-16">Time</th>
+                  <th className="border p-2 text-left w-48">Activity</th>
+                  <th className="border p-2 text-left">What to Say/Do</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="border p-2">1 min</td>
+                  <td className="border p-2 font-medium">Instructions</td>
+                  <td className="border p-2">"Listen to each clip and identify which section is playing!"</td>
+                </tr>
+                <tr className="bg-green-50">
+                  <td className="border p-2">10 min</td>
+                  <td className="border p-2 font-medium">🎮 Sectional Loop Builder</td>
+                  <td className="border p-2">
+                    <strong>STUDENTS PLAY:</strong> Identify sections by ear<br/>
+                    Leaderboard shows on projector<br/>
+                    <em className="text-green-700">Points for correct answers + speed bonus</em>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border p-2">1 min</td>
+                  <td className="border p-2 font-medium">Results</td>
+                  <td className="border p-2">Show winner celebration, review any tricky sections</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Composition */}
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-green-50 p-2 rounded">
+              4. Composition <span className="font-normal text-gray-600">— Wildlife Documentary Score (14 min)</span>
+            </h3>
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border p-2 text-left w-16">Time</th>
+                  <th className="border p-2 text-left w-48">Activity</th>
+                  <th className="border p-2 text-left">What to Say/Do</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="border p-2">2 min</td>
+                  <td className="border p-2 font-medium">Instructions</td>
+                  <td className="border p-2">Show composition requirements. "Create a score with clear sections!"</td>
+                </tr>
+                <tr className="bg-green-50">
+                  <td className="border p-2">12 min</td>
+                  <td className="border p-2 font-medium">🎮 Wildlife Composition</td>
+                  <td className="border p-2">
+                    <strong>STUDENTS WORK:</strong> Create epic wildlife score<br/>
+                    Choose video, then build Intro → A → A' → Outro<br/>
+                    <em className="text-green-700">5+ loops required, focus on WHEN loops enter/exit</em>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Reflection */}
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-amber-50 p-2 rounded">
+              5. Reflection & Wrap-Up <span className="font-normal text-gray-600">— (8 min)</span>
+            </h3>
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border p-2 text-left w-16">Time</th>
+                  <th className="border p-2 text-left w-48">Activity</th>
+                  <th className="border p-2 text-left">What to Say/Do</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="border p-2">1 min</td>
+                  <td className="border p-2 font-medium">Instructions</td>
+                  <td className="border p-2">Explain the Two Stars and a Wish prompts</td>
+                </tr>
+                <tr className="bg-green-50">
+                  <td className="border p-2">6 min</td>
+                  <td className="border p-2 font-medium">🎮 Two Stars and a Wish</td>
+                  <td className="border p-2">
+                    <strong>STUDENTS WORK:</strong> Reflect on structure choices<br/>
+                    What section is strongest? What would you change?
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border p-2">1 min</td>
+                  <td className="border p-2 font-medium">Class Wrap-Up</td>
+                  <td className="border p-2">Discussion: What is form? What did your partner do well?</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* BONUS: Listening Map */}
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-yellow-50 p-2 rounded border-2 border-yellow-400">
+              ⭐ BONUS: Listening Map <span className="font-normal text-gray-600">— If Time Allows (14 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -237,135 +371,6 @@ const LessonPlan3PDF = () => {
                   <td className="border p-2">2 min</td>
                   <td className="border p-2 font-medium">Share & Pair</td>
                   <td className="border p-2">Partner activity: Share your listening map, discuss choices</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Sectional Loop Form */}
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-teal-50 p-2 rounded">
-              3. Sectional Loop Form <span className="font-normal text-gray-600">— Teaching (5 min)</span>
-            </h3>
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border p-2 text-left w-16">Time</th>
-                  <th className="border p-2 text-left w-48">Activity</th>
-                  <th className="border p-2 text-left">What to Say/Do</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="border p-2">5 min</td>
-                  <td className="border p-2 font-medium">Form Continued</td>
-                  <td className="border p-2">
-                    Explain Intro → A → A' → Outro in detail<br/>
-                    <strong>Intro:</strong> Sets the scene (fewer layers)<br/>
-                    <strong>A:</strong> Main theme with full instrumentation<br/>
-                    <strong>A':</strong> Variation - same foundation, different details<br/>
-                    <strong>Outro:</strong> Wraps up, often returns to simpler texture
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Sectional Loop Builder Game */}
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-purple-50 p-2 rounded">
-              4. Sectional Loop Builder Game <span className="font-normal text-gray-600">— (7 min)</span>
-            </h3>
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border p-2 text-left w-16">Time</th>
-                  <th className="border p-2 text-left w-48">Activity</th>
-                  <th className="border p-2 text-left">What to Say/Do</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="border p-2">1 min</td>
-                  <td className="border p-2 font-medium">Instructions</td>
-                  <td className="border p-2">"Listen to each clip and identify which section is playing!"</td>
-                </tr>
-                <tr className="bg-green-50">
-                  <td className="border p-2">5 min</td>
-                  <td className="border p-2 font-medium">🎮 Sectional Loop Builder</td>
-                  <td className="border p-2">
-                    <strong>STUDENTS PLAY:</strong> Identify sections by ear<br/>
-                    Leaderboard shows on projector<br/>
-                    <em className="text-green-700">Points for correct answers + speed bonus</em>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border p-2">1 min</td>
-                  <td className="border p-2 font-medium">Results</td>
-                  <td className="border p-2">Show winner celebration, review any tricky sections</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Composition */}
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-green-50 p-2 rounded">
-              5. Composition <span className="font-normal text-gray-600">— Wildlife Documentary Score (12 min)</span>
-            </h3>
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border p-2 text-left w-16">Time</th>
-                  <th className="border p-2 text-left w-48">Activity</th>
-                  <th className="border p-2 text-left">What to Say/Do</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="border p-2">2 min</td>
-                  <td className="border p-2 font-medium">Instructions</td>
-                  <td className="border p-2">Show composition requirements. "Create a score with clear sections!"</td>
-                </tr>
-                <tr className="bg-green-50">
-                  <td className="border p-2">10 min</td>
-                  <td className="border p-2 font-medium">🎮 Wildlife Composition</td>
-                  <td className="border p-2">
-                    <strong>STUDENTS WORK:</strong> Create epic wildlife score<br/>
-                    Choose video, then build Intro → A → A' → Outro<br/>
-                    <em className="text-green-700">5+ loops required, focus on WHEN loops enter/exit</em>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Reflection */}
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-amber-50 p-2 rounded">
-              6. Reflection <span className="font-normal text-gray-600">— Two Stars and a Wish (6 min)</span>
-            </h3>
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border p-2 text-left w-16">Time</th>
-                  <th className="border p-2 text-left w-48">Activity</th>
-                  <th className="border p-2 text-left">What to Say/Do</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="border p-2">1 min</td>
-                  <td className="border p-2 font-medium">Instructions</td>
-                  <td className="border p-2">Explain the Two Stars and a Wish prompts</td>
-                </tr>
-                <tr className="bg-green-50">
-                  <td className="border p-2">5 min</td>
-                  <td className="border p-2 font-medium">🎮 Two Stars and a Wish</td>
-                  <td className="border p-2">
-                    <strong>STUDENTS WORK:</strong> Reflect on structure choices<br/>
-                    What section is strongest? What would you change?
-                  </td>
                 </tr>
               </tbody>
             </table>

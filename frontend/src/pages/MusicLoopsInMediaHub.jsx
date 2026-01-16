@@ -160,19 +160,19 @@ const MusicLoopsInMediaHub = () => {
       route: '/lessons/film-music-project/lesson3',
       available: true,
       hasLessonPlan: true,
-      inThisLesson: 'Students learn how film scores follow a story arc with distinct sections (Intro → A → A\' → Outro). They create a listening map to Vivaldi\'s Spring, play a section-matching game, then compose an epic nature documentary soundtrack.',
+      inThisLesson: 'Students learn how film scores follow a story arc with distinct sections (Intro → A → A\' → Outro). They play a section-matching game, then compose an epic nature documentary soundtrack.',
       studentsWill: [
-        'Create a listening map visualizing song form',
         'Identify sections in sectional loop form (Intro, A, A\', Outro)',
-        'Compose a complete film score with clear structure'
+        'Compose a complete film score with clear structure',
+        '(Bonus) Create a listening map visualizing song form'
       ],
       activities: [
-        { title: 'Introduction', description: 'Song form and sectional loop structure (Intro → A → A\' → Outro)', time: 5 },
-        { title: 'Listening Map', description: 'Watch video explanation, then draw along to Vivaldi\'s Spring. Share & pair with a partner.', time: 14, activityType: 'listening-map' },
-        { title: 'Sectional Loop Form', description: 'Learn how A\' differs from A while staying connected', time: 5 },
-        { title: 'Sectional Loop Builder', description: 'Game: Listen to clips and identify which section is playing. Leaderboard on projector!', time: 7, activityType: 'sectional-loop-builder' },
-        { title: 'Composition', description: 'Score epic wildlife footage with Intro → A → A\' → Outro structure', time: 12, activityType: 'wildlife-composition-activity' },
-        { title: 'Two Stars and a Wish', description: 'Reflect on your structural choices', time: 6, activityType: 'two-stars-wish' }
+        { title: 'Introduction', description: 'Song form and sectional loop structure (Intro → A → A\' → Outro)', time: 3 },
+        { title: 'Sectional Loop Form', description: 'Learn how A\' differs from A while staying connected', time: 3 },
+        { title: 'Sectional Loop Builder', description: 'Game: Listen to clips and identify which section is playing. Leaderboard on projector!', time: 12, activityType: 'sectional-loop-builder' },
+        { title: 'Composition', description: 'Score epic wildlife footage with Intro → A → A\' → Outro structure', time: 14, activityType: 'wildlife-composition-activity' },
+        { title: 'Reflection & Wrap-Up', description: 'Two Stars and a Wish + class discussion', time: 8, activityType: 'two-stars-wish' },
+        { title: 'Listening Map', description: 'Watch video explanation, then draw along to Vivaldi\'s Spring', time: 14, activityType: 'listening-map', isBonus: true }
       ]
     },
     // Lesson 4: Beat/Rhythm (Sports Highlight)

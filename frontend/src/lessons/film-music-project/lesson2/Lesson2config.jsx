@@ -382,7 +382,7 @@ export const lessonStages = [
     duration: 2,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/11.png'
+      slidePath: '/lessons/film-music-project/lesson2/slides/12.svg'
     }
   },
   // ⭐ BONUS: Robot Melody Maker

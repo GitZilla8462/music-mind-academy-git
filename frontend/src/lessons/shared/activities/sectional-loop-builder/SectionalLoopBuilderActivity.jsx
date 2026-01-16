@@ -1327,7 +1327,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
 
             {/* Round/Clip info */}
             <div className="text-center mb-3">
-              <div className="text-sm text-white/60">Round {currentRound} • Clip {currentClipIndex + 1}/4</div>
+              <div className="text-sm text-white/60">Round {currentRound} • Clip {currentClipIndex + 1}/5</div>
               <div className="text-2xl font-bold">🎧 Tap your answer!</div>
             </div>
 
@@ -1431,7 +1431,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
                   </div>
                   <div>
                     <div className="font-bold" style={{ color: playerColor }}>{playerName}</div>
-                    <div className="text-xs text-white/60">Round {currentRound} • Clip {currentClipIndex + 1}/4</div>
+                    <div className="text-xs text-white/60">Round {currentRound} • Clip {currentClipIndex + 1}/5</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

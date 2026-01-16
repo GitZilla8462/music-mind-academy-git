@@ -17,7 +17,7 @@ export const lessonSections = [
     subtitle: 'Epic Wildlife & Song Form',
     icon: '🌍',
     color: 'green',
-    estimatedTime: 5,
+    estimatedTime: 3,
     stages: [
       {
         id: 'epic-wildlife-intro',
@@ -40,12 +40,142 @@ export const lessonSections = [
     ]
   },
   {
+    id: 'sectional-loop-form',
+    title: '2. Sectional Loop Form',
+    subtitle: 'Form & Structure',
+    icon: '🎵',
+    color: 'teal',
+    estimatedTime: 3,
+    stages: [
+      {
+        id: 'form-continued',
+        type: 'summary',
+        label: 'Form Continued',
+        description: 'More about song form - Slide 4'
+      },
+      {
+        id: 'introduce-sectional-loop-form',
+        type: 'summary',
+        label: 'Introduce Sectional Loop Form',
+        description: 'What is sectional loop form - Slide 5'
+      },
+      {
+        id: 'sectional-loop-example',
+        type: 'summary',
+        label: 'Sectional Loop Form Example',
+        description: 'Example of sectional loops - Slide 6'
+      }
+    ]
+  },
+  {
+    id: 'activity1',
+    title: '3. Sectional Loop Builder',
+    subtitle: 'Build the Wildlife Score',
+    icon: '🎮',
+    color: 'purple',
+    estimatedTime: 12,
+    stages: [
+      {
+        id: 'introduce-sectional-builder',
+        type: 'summary',
+        label: 'Introduce Sectional Loop Builder Game',
+        description: 'Game instructions - Slide 7',
+        duration: 1
+      },
+      {
+        id: 'sectional-loop-builder',
+        type: 'activity',
+        label: '🎮 Unlock Sectional Loop Builder Game',
+        duration: 10,
+        trackProgress: true,
+        description: 'Students play individually - leaderboard on projector',
+        bonusDescription: 'Safari: Find your classmates!'
+      },
+      {
+        id: 'sectional-loop-builder-results',
+        type: 'results',
+        label: 'Show Game Results',
+        description: 'Display winner podium on projector',
+        duration: 1
+      }
+    ]
+  },
+  {
+    id: 'activity2',
+    title: '4. Composition',
+    subtitle: "Epic Wildlife Soundtrack",
+    icon: '🎵',
+    color: 'blue',
+    estimatedTime: 14,
+    stages: [
+      {
+        id: 'composition-instructions',
+        type: 'summary',
+        label: 'Show Composition Instructions',
+        description: 'Display requirements - Slide 8',
+        duration: 1
+      },
+      {
+        id: 'composition-instructions-continued',
+        type: 'summary',
+        label: 'Composition Instructions Continued',
+        description: 'More composition details - Slide 9',
+        duration: 1
+      },
+      {
+        id: 'wildlife-composition',
+        type: 'activity',
+        label: '🎮 Unlock Composition',
+        duration: 12,
+        hasTimer: true,
+        trackProgress: true,
+        description: "Students compose wildlife soundtrack music - Slide 10",
+        bonusDescription: 'Bonus: Add More Sections'
+      }
+    ]
+  },
+  {
+    id: 'reflection',
+    title: '5. Reflect & Wrap Up',
+    subtitle: 'Reflection + Conclusion',
+    icon: '⭐',
+    color: 'amber',
+    estimatedTime: 8,
+    stages: [
+      {
+        id: 'reflection-instructions',
+        type: 'summary',
+        label: 'Reflection Time',
+        description: 'Introduce the reflection activity.',
+        duration: 1
+      },
+      {
+        id: 'reflection',
+        type: 'activity',
+        label: '🎮 Unlock Reflection',
+        duration: 6,
+        hasTimer: true,
+        trackProgress: true,
+        description: 'STUDENTS WORK: Complete reflection activity.',
+        bonusDescription: 'Bonus: Name That Loop with a partner'
+      },
+      {
+        id: 'conclusion',
+        type: 'summary',
+        label: 'Class Wrap-Up',
+        description: 'Discussion: What is form? What did your partner do well?',
+        duration: 1
+      }
+    ]
+  },
+  {
     id: 'listening-map-section',
-    title: '2. Listening Map',
+    title: '⭐ Bonus: Listening Map',
     subtitle: 'Video → Draw',
     icon: '🎨',
     color: 'yellow',
     estimatedTime: 14,
+    isBonus: true,
     stages: [
       {
         id: 'introduce-listening-map',
@@ -86,135 +216,6 @@ export const lessonSections = [
         duration: 2
       }
     ]
-  },
-  {
-    id: 'sectional-loop-form',
-    title: '3. Sectional Loop Form',
-    subtitle: 'Form & Structure',
-    icon: '🎵',
-    color: 'teal',
-    estimatedTime: 5,
-    stages: [
-      {
-        id: 'form-continued',
-        type: 'summary',
-        label: 'Form Continued',
-        description: 'More about song form - Slide 4'
-      },
-      {
-        id: 'introduce-sectional-loop-form',
-        type: 'summary',
-        label: 'Introduce Sectional Loop Form',
-        description: 'What is sectional loop form - Slide 5'
-      },
-      {
-        id: 'sectional-loop-example',
-        type: 'summary',
-        label: 'Sectional Loop Form Example',
-        description: 'Example of sectional loops - Slide 6'
-      }
-    ]
-  },
-  {
-    id: 'activity1',
-    title: '4. Sectional Loop Builder',
-    subtitle: 'Build the Wildlife Score',
-    icon: '🎮',
-    color: 'purple',
-    estimatedTime: 10,
-    stages: [
-      {
-        id: 'introduce-sectional-builder',
-        type: 'summary',
-        label: 'Introduce Sectional Loop Builder Game',
-        description: 'Game instructions - Slide 7',
-        duration: 1
-      },
-      {
-        id: 'sectional-loop-builder',
-        type: 'activity',
-        label: '🎮 Unlock Sectional Loop Builder Game',
-        duration: 5,
-        trackProgress: true,
-        description: 'Students play individually - leaderboard on projector',
-        bonusDescription: 'Safari: Find your classmates!'
-      },
-      {
-        id: 'sectional-loop-builder-results',
-        type: 'results',
-        label: 'Show Game Results',
-        description: 'Display winner podium on projector',
-        duration: 1
-      }
-    ]
-  },
-  {
-    id: 'activity2',
-    title: '5. Composition',
-    subtitle: "Epic Wildlife Soundtrack",
-    icon: '🎵',
-    color: 'blue',
-    estimatedTime: 18,
-    stages: [
-      {
-        id: 'composition-instructions',
-        type: 'summary',
-        label: 'Show Composition Instructions',
-        description: 'Display requirements - Slide 8',
-        duration: 1
-      },
-      {
-        id: 'composition-instructions-continued',
-        type: 'summary',
-        label: 'Composition Instructions Continued',
-        description: 'More composition details - Slide 9',
-        duration: 1
-      },
-      {
-        id: 'wildlife-composition',
-        type: 'activity',
-        label: '🎮 Unlock Composition',
-        duration: 10,
-        hasTimer: true,
-        trackProgress: true,
-        description: "Students compose wildlife soundtrack music - Slide 10",
-        bonusDescription: 'Bonus: Add More Sections'
-      }
-    ]
-  },
-  {
-    id: 'reflection',
-    title: '6. Reflect & Wrap Up',
-    subtitle: 'Reflection + Conclusion',
-    icon: '⭐',
-    color: 'amber',
-    estimatedTime: 8,
-    stages: [
-      {
-        id: 'reflection-instructions',
-        type: 'summary',
-        label: 'Reflection Time',
-        description: 'Introduce the reflection activity.',
-        duration: 1
-      },
-      {
-        id: 'reflection',
-        type: 'activity',
-        label: '🎮 Unlock Reflection',
-        duration: 5,
-        hasTimer: true,
-        trackProgress: true,
-        description: 'STUDENTS WORK: Complete reflection activity.',
-        bonusDescription: 'Bonus: Name That Loop with a partner'
-      },
-      {
-        id: 'conclusion',
-        type: 'summary',
-        label: 'Key Insight',
-        description: 'Form gives your music a journey',
-        duration: 1
-      }
-    ]
   }
 ];
 
@@ -231,28 +232,29 @@ export const lesson3Config = {
   activities: [
     {
       id: 1,
-      type: "listening-map",
-      title: "Listening Map",
-      estimatedTime: "8 min"
+      type: "sectional-loop-builder",
+      title: "Sectional Loop Builder Game",
+      estimatedTime: "10 min"
     },
     {
       id: 2,
-      type: "sectional-loop-builder",
-      title: "Sectional Loop Builder Game",
-      estimatedTime: "5 min"
-    },
-    {
-      id: 3,
       type: "wildlife-composition-activity",
       title: "Compose Your Wildlife Soundtrack",
-      estimatedTime: "10 min",
+      estimatedTime: "12 min",
       includesVideoSelection: true
     },
     {
-      id: 4,
+      id: 3,
       type: "two-stars-wish",
       title: "Reflection Activity",
-      estimatedTime: "5 min"
+      estimatedTime: "2 min"
+    },
+    {
+      id: 4,
+      type: "listening-map",
+      title: "Listening Map (Bonus)",
+      estimatedTime: "8 min",
+      isBonus: true
     }
   ]
 };
@@ -299,66 +301,6 @@ export const lessonStages = [
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson3/slides/3.png'
-    }
-  },
-  // Listening Map Section
-  {
-    id: 'introduce-listening-map',
-    label: 'Listening Map Intro',
-    description: 'Explain: "A listening map is a visual guide that shows song form"',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson3/slides/3.5.svg'
-    }
-  },
-  {
-    id: 'listening-map-video',
-    label: '▶️ Play Video',
-    description: 'PLAY VIDEO: Listening Map explanation (students watch main screen)',
-    type: 'video',
-    duration: 2,
-    presentationView: {
-      type: 'video',
-      videoPath: '/lessons/film-music-project/lesson2/ListeningMapExplanation.mp4',
-      title: 'Listening Map Explanation'
-    }
-  },
-  {
-    id: 'music-for-listening-map',
-    label: 'Music For Listening Map',
-    description: 'Introduce: "Spring by Vivaldi - listen for violin imitating birds"',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/6.7.svg'
-    }
-  },
-  {
-    id: 'listening-map',
-    label: '🎮 Unlock Listening Map',
-    description: 'STUDENTS WORK: Create 4 rows, unique style per row',
-    bonusDescription: 'Bonus: Add more colors, textures, and pictures',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 8,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/6.5.svg'
-    }
-  },
-  {
-    id: 'share-and-pair',
-    label: 'Share and Pair',
-    description: 'Partner activity: Share work and discuss what inspired your choices',
-    type: 'activity',
-    duration: 2,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/6.6.svg'
     }
   },
   // Sectional Loop Form Section
@@ -414,7 +356,7 @@ export const lessonStages = [
     bonusDescription: 'Safari: Find your classmates!',
     hasProgress: true,
     type: 'activity',
-    duration: 5,
+    duration: 10,
     presentationView: {
       type: 'sectional-loop-builder-leaderboard'
     }
@@ -460,7 +402,7 @@ export const lessonStages = [
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 10,
+    duration: 12,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson3/slides/10.svg'
@@ -486,7 +428,7 @@ export const lessonStages = [
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 5,
+    duration: 6,
     presentationView: {
       type: 'activity-slide',
       slidePath: '/lessons/film-music-project/lesson3/slides/11.svg'
@@ -495,13 +437,78 @@ export const lessonStages = [
   // Conclusion
   {
     id: 'conclusion',
-    label: 'Key Insight',
-    description: 'Form gives your music a journey',
+    label: 'Class Wrap-Up',
+    description: 'Discussion: What is form? What did your partner do well?',
     type: 'summary',
     duration: 1,
     presentationView: {
       type: 'slide',
       slidePath: '/lessons/film-music-project/lesson3/slides/12-conclusion.svg'
+    }
+  },
+  // ⭐ BONUS: Listening Map Section
+  {
+    id: 'introduce-listening-map',
+    label: 'Listening Map Intro',
+    description: 'Explain: "A listening map is a visual guide that shows song form"',
+    type: 'summary',
+    duration: 1,
+    isBonus: true,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson3/slides/3.5.svg'
+    }
+  },
+  {
+    id: 'listening-map-video',
+    label: '▶️ Play Video',
+    description: 'PLAY VIDEO: Listening Map explanation (students watch main screen)',
+    type: 'video',
+    duration: 2,
+    isBonus: true,
+    presentationView: {
+      type: 'video',
+      videoPath: '/lessons/film-music-project/lesson2/ListeningMapExplanation.mp4',
+      title: 'Listening Map Explanation'
+    }
+  },
+  {
+    id: 'music-for-listening-map',
+    label: 'Music For Listening Map',
+    description: 'Introduce: "Spring by Vivaldi - listen for violin imitating birds"',
+    type: 'summary',
+    duration: 1,
+    isBonus: true,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson2/slides/6.7.svg'
+    }
+  },
+  {
+    id: 'listening-map',
+    label: '🎮 Unlock Listening Map',
+    description: 'STUDENTS WORK: Create 4 rows, unique style per row',
+    bonusDescription: 'Bonus: Add more colors, textures, and pictures',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: true,
+    duration: 8,
+    isBonus: true,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson2/slides/6.5.svg'
+    }
+  },
+  {
+    id: 'share-and-pair',
+    label: 'Share and Pair',
+    description: 'Partner activity: Share work and discuss what inspired your choices',
+    type: 'activity',
+    duration: 2,
+    isBonus: true,
+    presentationView: {
+      type: 'slide',
+      slidePath: '/lessons/film-music-project/lesson2/slides/6.6.svg'
     }
   }
 ];
