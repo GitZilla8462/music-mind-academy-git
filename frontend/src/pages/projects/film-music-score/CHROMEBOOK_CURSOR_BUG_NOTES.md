@@ -110,9 +110,100 @@ Yet the user cannot see the cursor visually until they click.
 7. Check if clicking triggers some focus/blur event we're missing
 8. Investigate if the Portal is being affected by something
 
+---
+
+## Research Findings (January 2026)
+
+### Most Promising Solution: Force Browser Repaint
+
+Based on web research, this appears to be a **Chrome repaint/compositor bug** where the element exists in the DOM with correct styles but the browser doesn't visually render it. This is a known issue in Chrome.
+
+**Solution to try - Force repaint by reading offsetHeight:**
+```javascript
+// After setting visibility to visible, force a repaint:
+cursorElementRef.current.style.display = 'none';
+cursorElementRef.current.offsetHeight; // Force reflow
+cursorElementRef.current.style.display = 'block';
+```
+
+Source: [React Discuss - Repaint bug: markup exists but not being shown](https://discuss.reactjs.org/t/repaint-bug-markup-exists-but-not-being-shown/558)
+
+### Alternative: GPU Layer Promotion
+Add CSS transform to force hardware acceleration:
+```css
+-webkit-transform: translateZ(0);
+/* or */
+-webkit-transform: translate3d(0,0,0);
+```
+
+Source: [Postman Blog - UI Repaint Issue on Chrome](https://blog.postman.com/ui-repaint-issue-on-chrome/)
+
+### Why Clicking Fixes It
+The click event likely triggers a focus change which forces Chrome to repaint. The blur event from the native `<select>` dropdown may put Chrome's compositor in a bad state where it doesn't repaint fixed-position Portal elements.
+
+Source: [Chrome DevTools - Emulate a focused page](https://medium.com/@utrycy/debug-the-dom-node-that-disappears-when-the-focus-changes-with-chrome-627723d3a197)
+
+### Debugging Tools
+1. **chrome://gpu** - Check if hardware acceleration is working
+2. **DevTools > Rendering > Show composited layer borders** - See which elements are GPU layers
+3. **DevTools > Performance** - Look for forced reflows
+4. **"Emulate a focused page"** in DevTools to prevent blur-related issues
+
+Source: [Chrome GPU Compositing Documentation](https://www.chromium.org/developers/design-documents/gpu-accelerated-compositing-in-chrome/)
+
+---
+
+## Recommended Fix Implementation
+
+### Option 1: Force Repaint in showCursor()
+```javascript
+const showCursor = () => {
+  if (cursorElementRef.current) {
+    // Force repaint trick for Chrome
+    cursorElementRef.current.style.display = 'none';
+    void cursorElementRef.current.offsetHeight; // Force reflow
+    cursorElementRef.current.style.display = 'block';
+
+    cursorElementRef.current.style.setProperty('visibility', 'visible', 'important');
+    cursorElementRef.current.style.setProperty('opacity', '1', 'important');
+    // ... rest of positioning code
+  }
+};
+```
+
+### Option 2: Trigger Repaint After Dropdown Close
+In `onSelectClose` callback, after re-enabling cursor:
+```javascript
+// Force repaint on all cursor elements
+document.querySelectorAll('.custom-cursor-container').forEach(el => {
+  el.style.display = 'none';
+  void el.offsetHeight;
+  el.style.display = 'block';
+});
+```
+
+### Option 3: Use requestAnimationFrame Chain
+```javascript
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    // Force repaint here
+    cursorElementRef.current.style.transform = 'translateZ(0)';
+  });
+});
+```
+
+---
+
 ## Code Location
 - Main cursor logic: `src/pages/projects/film-music-score/timeline/components/CustomCursor.jsx`
 - Context: `src/pages/projects/film-music-score/shared/CursorContext.jsx`
 
 ## Date
 January 2026
+
+## References
+- [React Discuss - Repaint bug](https://discuss.reactjs.org/t/repaint-bug-markup-exists-but-not-being-shown/558)
+- [Chrome GPU Compositing](https://www.chromium.org/developers/design-documents/gpu-accelerated-compositing-in-chrome/)
+- [Force Reflow List](https://gist.github.com/paulirish/5d52fb081b3570c81e3a)
+- [Chrome DevTools Forced Reflow](https://developer.chrome.com/docs/performance/insights/forced-reflow)
+- [Postman UI Repaint Issue](https://blog.postman.com/ui-repaint-issue-on-chrome/)
