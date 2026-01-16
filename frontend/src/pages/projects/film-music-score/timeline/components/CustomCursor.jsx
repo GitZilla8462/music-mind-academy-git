@@ -114,101 +114,108 @@ const CustomCursor = memo(({
   // Get hotspot for current cursor type
   const hotspot = HOTSPOTS[cursorType] || HOTSPOTS.default;
 
+  // Store effectivelyEnabled in a ref so position tracking can access it without re-subscribing
+  const effectivelyEnabledRef = useRef(effectivelyEnabled);
+  effectivelyEnabledRef.current = effectivelyEnabled;
+
+  // EFFECT 1: ALWAYS track mouse position - never disabled
+  // This ensures positionRef is accurate when cursor is re-enabled after dropdown/drag
   useEffect(() => {
-    // CHROMEBOOK FIX: Always keep element mounted, just hide with visibility
-    // This eliminates the delay from mounting/unmounting React components
-    if (!effectivelyEnabled) {
-      // Hide cursor when disabled - use visibility so element stays in DOM
-      if (cursorElementRef.current) {
-        cursorElementRef.current.style.visibility = 'hidden';
-        cursorElementRef.current.style.opacity = '0';
-      }
-      return;
-    }
-
-    // Show cursor when enabled
-    if (cursorElementRef.current) {
-      if (isVisibleRef.current) {
-        cursorElementRef.current.style.visibility = 'visible';
-        cursorElementRef.current.style.opacity = '1';
-      } else {
-        cursorElementRef.current.style.visibility = 'hidden';
-        cursorElementRef.current.style.opacity = '0';
-      }
-    }
-
-    // PERFORMANCE: Direct DOM manipulation - bypasses React entirely
-    // This runs at native browser speed with zero overhead
     const updatePosition = (e) => {
       positionRef.current = { x: e.clientX, y: e.clientY };
 
-      // Direct DOM update - no React, no state, no re-render
-      if (cursorElementRef.current && isVisibleRef.current) {
+      // Only update visual cursor if enabled and visible
+      if (effectivelyEnabledRef.current && cursorElementRef.current && isVisibleRef.current) {
         const x = e.clientX - hotspot.x;
         const y = e.clientY - hotspot.y;
         cursorElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
       }
     };
 
-    const handleMouseEnter = (e) => {
-      if (containerRef?.current?.contains(e.target) || e.target === containerRef?.current) {
-        isVisibleRef.current = true;
-        if (cursorElementRef.current) {
-          cursorElementRef.current.style.visibility = 'visible';
-          cursorElementRef.current.style.opacity = '1';
-          // Update position immediately on enter
-          const x = positionRef.current.x - hotspot.x;
-          const y = positionRef.current.y - hotspot.y;
-          cursorElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-        }
-      }
-    };
-
-    const handleMouseLeave = (e) => {
-      if (containerRef?.current && !containerRef.current.contains(e.relatedTarget)) {
-        isVisibleRef.current = false;
-        if (cursorElementRef.current) {
-          cursorElementRef.current.style.visibility = 'hidden';
-          cursorElementRef.current.style.opacity = '0';
-        }
-      }
-    };
-
-    const container = containerRef?.current;
-
     // Use passive listener for maximum performance
     document.addEventListener('mousemove', updatePosition, { passive: true });
 
-    if (container) {
-      container.addEventListener('mouseenter', handleMouseEnter);
-      container.addEventListener('mouseleave', handleMouseLeave);
+    return () => {
+      document.removeEventListener('mousemove', updatePosition);
+    };
+  }, [hotspot.x, hotspot.y]); // Only re-subscribe when hotspot changes
 
-      // Check if mouse is already over container
+  // EFFECT 2: Handle visibility and container enter/leave
+  useEffect(() => {
+    const container = containerRef?.current;
+
+    // Helper to check if mouse is over container
+    const isMouseOverContainer = () => {
+      if (!container) return true; // No container = always visible
       const rect = container.getBoundingClientRect();
-      const isOver = (
+      return (
         positionRef.current.x >= rect.left &&
         positionRef.current.x <= rect.right &&
         positionRef.current.y >= rect.top &&
         positionRef.current.y <= rect.bottom
       );
-      if (isOver) {
-        isVisibleRef.current = true;
-        if (cursorElementRef.current) {
-          cursorElementRef.current.style.visibility = 'visible';
-          cursorElementRef.current.style.opacity = '1';
-        }
-      }
-    } else {
-      // No container = always visible (global cursor mode)
-      isVisibleRef.current = true;
+    };
+
+    // Helper to show/hide cursor
+    const showCursor = () => {
       if (cursorElementRef.current) {
         cursorElementRef.current.style.visibility = 'visible';
         cursorElementRef.current.style.opacity = '1';
+        // Update position immediately
+        const x = positionRef.current.x - hotspot.x;
+        const y = positionRef.current.y - hotspot.y;
+        cursorElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
       }
+    };
+
+    const hideCursor = () => {
+      if (cursorElementRef.current) {
+        cursorElementRef.current.style.visibility = 'hidden';
+        cursorElementRef.current.style.opacity = '0';
+      }
+    };
+
+    if (!effectivelyEnabled) {
+      // Hide cursor when disabled
+      hideCursor();
+      return;
+    }
+
+    // Cursor is enabled - check if mouse is over container and show/hide accordingly
+    if (isMouseOverContainer()) {
+      isVisibleRef.current = true;
+      showCursor();
+    } else {
+      isVisibleRef.current = false;
+      hideCursor();
+    }
+
+    const handleMouseEnter = (e) => {
+      if (container?.contains(e.target) || e.target === container) {
+        isVisibleRef.current = true;
+        if (effectivelyEnabledRef.current) {
+          showCursor();
+        }
+      }
+    };
+
+    const handleMouseLeave = (e) => {
+      if (container && !container.contains(e.relatedTarget)) {
+        isVisibleRef.current = false;
+        hideCursor();
+      }
+    };
+
+    if (container) {
+      container.addEventListener('mouseenter', handleMouseEnter);
+      container.addEventListener('mouseleave', handleMouseLeave);
+    } else {
+      // No container = always visible (global cursor mode)
+      isVisibleRef.current = true;
+      showCursor();
     }
 
     return () => {
-      document.removeEventListener('mousemove', updatePosition);
       if (container) {
         container.removeEventListener('mouseenter', handleMouseEnter);
         container.removeEventListener('mouseleave', handleMouseLeave);
