@@ -160,17 +160,30 @@ This fix has been implemented in CustomCursor.jsx in two places:
 1. `showCursor()` helper in EFFECT 2 (useLayoutEffect) - always forces repaint
 2. `updatePosition()` in EFFECT 1 (mousemove handler) - forces repaint only when transitioning from hidden to visible
 
+**UPDATED: Now using DOUBLE requestAnimationFrame instead of synchronous reflow**
+
+The single synchronous reflow (`offsetHeight`) wasn't sufficient for Chromebook.
+Double RAF ensures two complete frame cycles, which forces Chrome's compositor to
+properly process the visibility change.
+
 ```javascript
 const showCursor = () => {
   if (cursorElementRef.current) {
-    // Force repaint trick for Chrome
-    cursorElementRef.current.style.display = 'none';
-    void cursorElementRef.current.offsetHeight; // Force reflow
-    cursorElementRef.current.style.display = 'block';
+    const el = cursorElementRef.current;
 
-    cursorElementRef.current.style.setProperty('visibility', 'visible', 'important');
-    cursorElementRef.current.style.setProperty('opacity', '1', 'important');
-    // ... rest of positioning code
+    // Double RAF ensures Chrome compositor processes the visibility change
+    // First RAF: hide element and schedule second RAF
+    // Second RAF: show element after browser has processed the hidden state
+    el.style.display = 'none';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!cursorElementRef.current) return;
+        el.style.setProperty('display', 'block', 'important');
+        el.style.setProperty('visibility', 'visible', 'important');
+        el.style.setProperty('opacity', '1', 'important');
+        el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      });
+    });
   }
 };
 ```

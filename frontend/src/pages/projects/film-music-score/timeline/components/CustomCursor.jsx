@@ -170,22 +170,31 @@ const CustomCursor = memo(({
       // CHROMEBOOK FIX: Use effectivelyEnabled directly instead of ref to avoid race conditions
       // The effect now re-subscribes when effectivelyEnabled changes
       if (effectivelyEnabled && isOverContainer) {
-        // CHROMEBOOK FIX: Force repaint when transitioning from hidden to visible
-        // This fixes Chrome compositor bug where element exists but isn't painted
-        if (!isVisibleRef.current) {
-          cursorElementRef.current.style.display = 'none';
-          void cursorElementRef.current.offsetHeight; // Force synchronous reflow
-          cursorElementRef.current.style.display = 'block';
-        }
-        // Show and update cursor position
-        // CHROMEBOOK FIX: Use setProperty with 'important' to override any CSS
-        cursorElementRef.current.style.setProperty('visibility', 'visible', 'important');
-        cursorElementRef.current.style.setProperty('opacity', '1', 'important');
-        cursorElementRef.current.style.setProperty('display', 'block', 'important');
-        isVisibleRef.current = true;
+        const el = cursorElementRef.current;
         const x = e.clientX - hotspot.x;
         const y = e.clientY - hotspot.y;
-        cursorElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+        // CHROMEBOOK FIX: Force repaint when transitioning from hidden to visible
+        // Using double RAF to ensure Chrome compositor processes the change
+        if (!isVisibleRef.current) {
+          el.style.display = 'none';
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              if (!cursorElementRef.current) return;
+              el.style.setProperty('display', 'block', 'important');
+              el.style.setProperty('visibility', 'visible', 'important');
+              el.style.setProperty('opacity', '1', 'important');
+              el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+            });
+          });
+        } else {
+          // Already visible, just update position (no RAF needed)
+          el.style.setProperty('visibility', 'visible', 'important');
+          el.style.setProperty('opacity', '1', 'important');
+          el.style.setProperty('display', 'block', 'important');
+          el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        }
+        isVisibleRef.current = true;
       } else {
         // Hide cursor when not over container
         cursorElementRef.current.style.setProperty('visibility', 'hidden', 'important');
@@ -245,22 +254,26 @@ const CustomCursor = memo(({
     // CHROMEBOOK FIX: Use setProperty with 'important' to override any CSS
     // CHROMEBOOK FIX: Force browser repaint to fix Chrome compositor bug
     // After dropdown closes, Chrome may not repaint fixed-position Portal elements
-    // Toggling display + reading offsetHeight forces a synchronous reflow
+    // Using DOUBLE requestAnimationFrame to ensure two complete frame cycles
     const showCursor = () => {
       if (cursorElementRef.current) {
-        // Force repaint trick for Chrome compositor bug
-        // This fixes cursor disappearing after dropdown selection on Chromebook
-        cursorElementRef.current.style.display = 'none';
-        void cursorElementRef.current.offsetHeight; // Force synchronous reflow
-        cursorElementRef.current.style.display = 'block';
-
-        cursorElementRef.current.style.setProperty('visibility', 'visible', 'important');
-        cursorElementRef.current.style.setProperty('opacity', '1', 'important');
-        cursorElementRef.current.style.setProperty('display', 'block', 'important');
-        // Update position immediately
+        const el = cursorElementRef.current;
         const x = positionRef.current.x - hotspot.x;
         const y = positionRef.current.y - hotspot.y;
-        cursorElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+        // Double RAF ensures Chrome compositor processes the visibility change
+        // First RAF: hide element and schedule second RAF
+        // Second RAF: show element after browser has processed the hidden state
+        el.style.display = 'none';
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (!cursorElementRef.current) return;
+            el.style.setProperty('display', 'block', 'important');
+            el.style.setProperty('visibility', 'visible', 'important');
+            el.style.setProperty('opacity', '1', 'important');
+            el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+          });
+        });
       }
     };
 
