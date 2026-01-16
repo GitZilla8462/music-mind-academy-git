@@ -87,6 +87,8 @@ const LoopLibrary = ({
 
   // CHROMEBOOK FIX: Force cursor visibility using setProperty with !important
   // This overrides any CSS !important rules from parent containers
+  // NOTE: Must run after loading completes (when containerRef is attached to DOM)
+  // and when loops change (new elements need cursor styles)
   useEffect(() => {
     if (isChromebook && containerRef.current) {
       // Use setProperty to set cursor with !important flag
@@ -100,7 +102,7 @@ const LoopLibrary = ({
 
       console.log('🖱️ LoopLibrary: Forced cursor:auto on container and', allChildren.length, 'children');
     }
-  }, []);
+  }, [loading, loops]); // Re-run when loading completes and when loops change
 
   useEffect(() => {
     if (lockedMood) {
