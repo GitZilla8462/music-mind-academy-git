@@ -143,24 +143,20 @@ export const CursorProvider = ({ children }) => {
   const onSelectClose = useCallback(() => {
     logCursor('onSelectClose CALLED (dropdown blurred)');
     setIsSelectOpen(false);
-    // Re-enable custom cursor after select closes (with RAF for smooth transition)
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        // Only re-enable if not dragging
-        if (!dragStateRef.current.isDragging) {
-          logCursor('onSelectClose RAF complete, re-enabling custom cursor');
-          setIsCustomCursorEnabled(isChromebook);
-          // CHROMEBOOK FIX: Keep body cursor as 'default' instead of empty string
-          // Empty string inherits from parent which might be 'none'
-          if (isChromebook) {
-            document.body.style.cursor = 'default';
-            logCursor('onSelectClose SET body cursor to default');
-          }
-        } else {
-          logCursor('onSelectClose RAF complete, but still dragging - skipping re-enable');
-        }
-      });
-    });
+    // CHROMEBOOK FIX: Immediately re-enable custom cursor (no RAF delay)
+    // The RAF delay was causing cursor to disappear when user quickly moved to timeline
+    // after selecting from dropdown
+    if (!dragStateRef.current.isDragging) {
+      logCursor('onSelectClose re-enabling custom cursor immediately');
+      setIsCustomCursorEnabled(isChromebook);
+      // Keep body cursor as 'default' instead of empty string
+      if (isChromebook) {
+        document.body.style.cursor = 'default';
+        logCursor('onSelectClose SET body cursor to default');
+      }
+    } else {
+      logCursor('onSelectClose still dragging - skipping re-enable');
+    }
   }, []);
 
   // Global drag event listeners to catch drag end even if drop happens outside
