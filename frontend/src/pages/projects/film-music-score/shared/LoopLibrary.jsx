@@ -65,7 +65,14 @@ const LoopLibrary = ({
   const debounceTimeoutRef = useRef(null);
 
   // UNIFIED CURSOR: Get cursor control functions
-  const { disableCustomCursor, enableCustomCursor, isChromebook: isChromebookFromContext } = useCursor();
+  const {
+    disableCustomCursor,
+    enableCustomCursor,
+    isChromebook: isChromebookFromContext,
+    // CHROMEBOOK FIX: Select dropdown tracking to prevent two cursors
+    onSelectOpen,
+    onSelectClose
+  } = useCursor();
 
   useEffect(() => {
     console.log('🎵 LoopLibrary Props:', { restrictToCategory, lockedMood, showSoundEffects });
@@ -480,6 +487,8 @@ const LoopLibrary = ({
                   }
                 }
               }}
+              onFocus={onSelectOpen}
+              onBlur={onSelectClose}
               disabled={!!lockedMood}
               className={`w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-blue-500 focus:outline-none px-2 py-1.5 ${
                 lockedMood ? 'opacity-60 cursor-not-allowed' : ''
@@ -505,6 +514,8 @@ const LoopLibrary = ({
                 setSfxCategoryFilter('All');
               }
             }}
+            onFocus={onSelectOpen}
+            onBlur={onSelectClose}
             className="w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-blue-500 focus:outline-none px-2 py-1.5"
           >
             <option value="All">All Instruments</option>
@@ -524,6 +535,8 @@ const LoopLibrary = ({
                   setInstrumentFilter('All');
                 }
               }}
+              onFocus={onSelectOpen}
+              onBlur={onSelectClose}
               className="w-full bg-gray-700 text-white text-xs rounded border border-gray-600 focus:border-purple-500 focus:outline-none px-2 py-1.5"
             >
               <option value="All">Sound Effects</option>

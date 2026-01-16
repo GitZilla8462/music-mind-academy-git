@@ -27,7 +27,10 @@ export const useCursor = () => {
       isCustomCursorEnabled: false,
       disableCustomCursor: () => {},
       enableCustomCursor: () => {},
-      isChromebook: false
+      isChromebook: false,
+      // CHROMEBOOK FIX: Select/dropdown tracking
+      onSelectOpen: () => {},
+      onSelectClose: () => {}
     };
   }
   return context;
@@ -42,6 +45,10 @@ export const CursorProvider = ({ children }) => {
 
   // Whether custom cursor should be shown (disabled during library drag)
   const [isCustomCursorEnabled, setIsCustomCursorEnabled] = useState(isChromebook);
+
+  // CHROMEBOOK FIX: Track when native select dropdowns are open
+  // Native selects render outside React DOM, causing two cursors to appear
+  const [isSelectOpen, setIsSelectOpen] = useState(false);
 
   // Ref to track drag state without re-renders
   const dragStateRef = useRef({
@@ -81,6 +88,26 @@ export const CursorProvider = ({ children }) => {
           if (isChromebook) {
             document.body.style.cursor = '';
           }
+        }
+      });
+    });
+  }, []);
+
+  // CHROMEBOOK FIX: Handle native select dropdown open/close
+  // Native selects render outside React DOM, so we need to hide custom cursor
+  const onSelectOpen = useCallback(() => {
+    setIsSelectOpen(true);
+    setIsCustomCursorEnabled(false);
+  }, []);
+
+  const onSelectClose = useCallback(() => {
+    setIsSelectOpen(false);
+    // Re-enable custom cursor after select closes (with RAF for smooth transition)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        // Only re-enable if not dragging
+        if (!dragStateRef.current.isDragging) {
+          setIsCustomCursorEnabled(isChromebook);
         }
       });
     });
@@ -141,7 +168,11 @@ export const CursorProvider = ({ children }) => {
     isCustomCursorEnabled,
     disableCustomCursor,
     enableCustomCursor,
-    isChromebook
+    isChromebook,
+    // CHROMEBOOK FIX: Select/dropdown tracking
+    isSelectOpen,
+    onSelectOpen,
+    onSelectClose
   };
 
   return (
