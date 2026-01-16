@@ -86,6 +86,28 @@ export const CursorProvider = ({ children }) => {
     logCursor('CursorProvider MOUNTED', { isChromebook });
   }, []);
 
+  // CHROMEBOOK FIX: "Warm up" the cursor by forcing a remount cycle on page load
+  // This ensures the cursor has been through a full mount/unmount/remount cycle
+  // BEFORE the user interacts with any dropdown, fixing the first-dropdown-fails bug
+  useEffect(() => {
+    if (isChromebook) {
+      // Wait for initial render to complete
+      const warmupTimer = setTimeout(() => {
+        logCursor('WARMUP: Starting cursor warmup cycle');
+        // First remount
+        setCursorKey(k => k + 1);
+
+        setTimeout(() => {
+          // Second remount
+          setCursorKey(k => k + 1);
+          logCursor('WARMUP: Cursor warmup complete');
+        }, 100);
+      }, 500); // Wait 500ms after mount for everything to stabilize
+
+      return () => clearTimeout(warmupTimer);
+    }
+  }, []);
+
   // Ref to track drag state without re-renders
   const dragStateRef = useRef({
     isDragging: false,
