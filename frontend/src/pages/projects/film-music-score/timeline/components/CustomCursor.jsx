@@ -186,11 +186,19 @@ const CustomCursor = memo(({
         const x = e.clientX - hotspot.x;
         const y = e.clientY - hotspot.y;
         cursorElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        // DEBUG: Log when cursor is shown
+        if (e.isTrusted === false) {
+          console.log('🖱️ [CustomCursor] SHOWING cursor at', { x, y, visibility: cursorElementRef.current.style.visibility });
+        }
       } else {
         // Hide cursor when not over container
         cursorElementRef.current.style.visibility = 'hidden';
         cursorElementRef.current.style.opacity = '0';
         isVisibleRef.current = false;
+        // DEBUG: Log when cursor is hidden
+        if (e.isTrusted === false) {
+          console.log('🖱️ [CustomCursor] HIDING cursor', { effectivelyEnabled: effectivelyEnabledRef.current, isOverContainer });
+        }
       }
     };
 
