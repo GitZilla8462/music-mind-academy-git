@@ -23,8 +23,24 @@ import ComposerHeader from './components/ComposerHeader';
 import ComposerLayout from './components/ComposerLayout';
 import AudioInitModal from './components/AudioInitModal';
 import CustomCursor from '../timeline/components/CustomCursor';
-import { CursorProvider } from '../shared/CursorContext';
+import { CursorProvider, useCursor } from '../shared/CursorContext';
 import DAWLoadingScreen from '../shared/DAWLoadingScreen';
+
+// CHROMEBOOK FIX: Wrapper component that uses context to get cursorKey for forced remount
+// This fixes the cursor disappearing after dropdown selection bug
+const GlobalCursorWithKey = ({ cursorType, initiallyVisible, initialPosition }) => {
+  const { cursorKey } = useCursor();
+  return (
+    <CustomCursor
+      key={`global-cursor-${cursorKey}`}
+      name="GLOBAL"
+      cursorType={cursorType}
+      enabled={true}
+      initiallyVisible={initiallyVisible}
+      initialPosition={initialPosition}
+    />
+  );
+};
 
 // CHROMEBOOK FIX: Detect Chromebook for global custom cursor
 const isChromebook = typeof navigator !== 'undefined' && (
@@ -831,11 +847,10 @@ const MusicComposer = ({
         {/* Hide during loading screen to avoid double cursor */}
         {/* FIXED: Removed showGlobalCursor condition - cursor handles its own visibility */}
         {/* This prevents cursor disappearing during handoff to timeline cursor */}
+        {/* Uses GlobalCursorWithKey wrapper to force remount after dropdown selection */}
         {isChromebook && !loadingScreenVisible && (
-          <CustomCursor
-            name="GLOBAL"
+          <GlobalCursorWithKey
             cursorType={globalCursorType}
-            enabled={true}
             initiallyVisible={true}
             initialPosition={globalMousePos}
           />

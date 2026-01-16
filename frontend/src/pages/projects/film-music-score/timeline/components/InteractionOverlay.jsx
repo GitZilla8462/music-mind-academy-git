@@ -63,7 +63,7 @@ const InteractionOverlay = ({
   setHoveredTrack
 }) => {
   // UNIFIED CURSOR: Get global cursor state from context
-  const { isChromebook, isDraggingFromLibrary, isCustomCursorEnabled } = useCursor();
+  const { isChromebook, isDraggingFromLibrary, isCustomCursorEnabled, cursorKey } = useCursor();
 
   // CHROMEBOOK FIX: Use ref instead of state for cursor to prevent flicker on re-renders
   // State changes cause re-renders which briefly reset cursor to default
@@ -835,8 +835,10 @@ const InteractionOverlay = ({
     <>
       {/* CHROMEBOOK FIX: Always render CustomCursor on Chromebook to avoid mount/unmount delays */}
       {/* The component handles its own visibility internally via CursorContext */}
+      {/* cursorKey forces remount after dropdown selection to fix Chrome rendering bug */}
       {isChromebook && (
         <CustomCursor
+          key={`timeline-cursor-${cursorKey}`}
           name="TIMELINE"
           cursorType={cursorType}
           containerRef={overlayRef}

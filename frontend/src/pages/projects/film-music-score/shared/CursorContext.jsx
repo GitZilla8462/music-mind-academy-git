@@ -45,7 +45,9 @@ export const useCursor = () => {
       onSelectOpen: () => {},
       onSelectClose: () => {},
       // CHROMEBOOK FIX: Direct position access
-      getLastMousePosition: () => ({ x: 0, y: 0 })
+      getLastMousePosition: () => ({ x: 0, y: 0 }),
+      // CHROMEBOOK FIX: Cursor remount key
+      cursorKey: 0
     };
   }
   return context;
@@ -64,6 +66,9 @@ export const CursorProvider = ({ children }) => {
   // CHROMEBOOK FIX: Track when native select dropdowns are open
   // Native selects render outside React DOM, causing two cursors to appear
   const [isSelectOpen, setIsSelectOpen] = useState(false);
+
+  // CHROMEBOOK FIX: Force cursor remount after dropdown to fix Chrome rendering bug
+  const [cursorKey, setCursorKey] = useState(0);
 
   // DEBUG: Log state changes
   useEffect(() => {
@@ -167,54 +172,35 @@ export const CursorProvider = ({ children }) => {
     // after selecting from dropdown
     if (!dragStateRef.current.isDragging) {
       logCursor('onSelectClose re-enabling custom cursor immediately');
-      setIsCustomCursorEnabled(isChromebook);
+
       // Keep body cursor as 'default' instead of empty string
       if (isChromebook) {
         document.body.style.cursor = 'default';
         logCursor('onSelectClose SET body cursor to default');
       }
-      // CHROMEBOOK FIX: Force Chrome to repaint by manipulating the cursor element directly
-      // and dispatching multiple synthetic events with delays
-      // Store timeout ID in ref so it can be cancelled if a new dropdown opens
-      pendingSyntheticMousemoveRef.current = setTimeout(() => {
-        pendingSyntheticMousemoveRef.current = null; // Clear ref once timeout fires
 
-        // Find and force repaint on cursor element
-        const cursorEl = document.querySelector('.custom-cursor-container');
-        if (cursorEl) {
-          // Force GPU layer recreation by toggling transform
-          const currentTransform = cursorEl.style.transform;
-          cursorEl.style.transform = 'none';
-          void cursorEl.offsetHeight; // Force reflow
-          cursorEl.style.transform = currentTransform;
-          logCursor('onSelectClose forced cursor element repaint');
-        }
+      // CHROMEBOOK FIX: Force cursor component to completely remount
+      // This is the nuclear option - instead of trying to repaint, we destroy
+      // and recreate the cursor element, forcing Chrome to render fresh
+      setCursorKey(k => k + 1);
+      logCursor('onSelectClose incremented cursorKey to force remount');
 
-        // Dispatch synthetic mousemove
-        logCursor('onSelectClose dispatching synthetic mousemove', lastMousePosition.current);
-        const moveEvent = new MouseEvent('mousemove', {
-          clientX: lastMousePosition.current.x,
-          clientY: lastMousePosition.current.y,
-          bubbles: true,
-          cancelable: true
-        });
-        document.dispatchEvent(moveEvent);
+      // Re-enable after a frame to allow the old cursor to unmount
+      requestAnimationFrame(() => {
+        setIsCustomCursorEnabled(isChromebook);
 
-        // CHROMEBOOK FIX: Dispatch a second mousemove after another frame
-        // to ensure Chrome processes the change
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            const moveEvent2 = new MouseEvent('mousemove', {
-              clientX: lastMousePosition.current.x,
-              clientY: lastMousePosition.current.y,
-              bubbles: true,
-              cancelable: true
-            });
-            document.dispatchEvent(moveEvent2);
-            logCursor('onSelectClose dispatched second synthetic mousemove');
+        // Dispatch synthetic mousemove to position the new cursor
+        setTimeout(() => {
+          const moveEvent = new MouseEvent('mousemove', {
+            clientX: lastMousePosition.current.x,
+            clientY: lastMousePosition.current.y,
+            bubbles: true,
+            cancelable: true
           });
-        });
-      }, 100); // Increased delay to 100ms to give Chrome more time
+          document.dispatchEvent(moveEvent);
+          logCursor('onSelectClose dispatched synthetic mousemove after remount');
+        }, 50);
+      });
     } else {
       logCursor('onSelectClose still dragging - skipping re-enable');
     }
@@ -303,7 +289,9 @@ export const CursorProvider = ({ children }) => {
     onSelectOpen,
     onSelectClose,
     // CHROMEBOOK FIX: Direct position access for immediate cursor positioning
-    getLastMousePosition
+    getLastMousePosition,
+    // CHROMEBOOK FIX: Key to force cursor remount after dropdown
+    cursorKey
   };
 
   return (
