@@ -385,10 +385,7 @@ const CustomCursor = memo(({
         zIndex: 99999,
         // Initial position (off-screen)
         transform: `translate3d(${(initialPosition?.x || -100) - hotspot.x}px, ${(initialPosition?.y || -100) - hotspot.y}px, 0)`,
-        // CHROMEBOOK FIX: Remove willChange as it can cause GPU issues on Chromebook
-        // Only keep backface visibility for minor performance
-        backfaceVisibility: 'hidden',
-        WebkitBackfaceVisibility: 'hidden',
+        // CHROMEBOOK FIX: Removed backfaceVisibility as it can cause GPU compositing issues on Chromebook
       }}
     >
       {CursorSVG}
