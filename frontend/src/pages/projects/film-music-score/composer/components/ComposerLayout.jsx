@@ -85,7 +85,10 @@ const ComposerLayout = ({
   customLoops = [],
   onAddCustomLoop,
   onAddMelodyLoop,
-  onDeleteCustomLoop
+  onDeleteCustomLoop,
+
+  // Passive mode - disable video playback for iframe previews
+  isPassive = false
 }) => {
   return (
     <div 

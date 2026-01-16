@@ -24,7 +24,9 @@ export const usePlaybackHandlers = ({
   pause,
   stop,
   seek,
-  scheduleLoops
+  scheduleLoops,
+  // Passive mode - disable all playback for iframe previews
+  isPassive = false
 }) => {
 
   const lastScheduleTimeRef = useRef(0);

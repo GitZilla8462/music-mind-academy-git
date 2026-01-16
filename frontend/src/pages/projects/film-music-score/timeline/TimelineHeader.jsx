@@ -1,15 +1,19 @@
 // File: /src/pages/projects/film-music-score/timeline/TimelineHeader.jsx
 // FIXED: Removed loop count/zoom text, centered transport controls over video area
 // FIXED: Added playersReady prop to disable play button while audio loads
+// FIXED: Added debouncing to prevent double-click from toggling play/pause twice
 
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import { Play, Pause, Square, SkipBack, SkipForward, RotateCcw } from 'lucide-react';
 
-const TimelineHeader = ({ 
-  placedLoops, 
-  localZoom, 
-  onZoomChange, 
-  duration, 
+// Debounce time for play/pause toggle (prevents double-click issues)
+const PLAY_PAUSE_DEBOUNCE_MS = 300;
+
+const TimelineHeader = ({
+  placedLoops,
+  localZoom,
+  onZoomChange,
+  duration,
   showTimelineLabel = false,
   // Transport control props
   isPlaying,
@@ -22,6 +26,9 @@ const TimelineHeader = ({
   // NEW: Track if audio players are ready
   playersReady = true
 }) => {
+  // Debounce ref for play/pause to prevent double-click issues
+  const lastPlayPauseClickRef = useRef(0);
+
   const skipBackward = () => {
     const newTime = Math.max(0, currentTime - 10);
     onSeek(newTime);
@@ -32,13 +39,21 @@ const TimelineHeader = ({
     onSeek(newTime);
   };
 
-  const handlePlayPause = () => {
+  const handlePlayPause = useCallback(() => {
+    // Debounce: prevent rapid double-clicks from toggling twice
+    const now = Date.now();
+    if (now - lastPlayPauseClickRef.current < PLAY_PAUSE_DEBOUNCE_MS) {
+      console.log('⏸️ Play/pause debounced - ignoring rapid click');
+      return;
+    }
+    lastPlayPauseClickRef.current = now;
+
     if (isPlaying) {
       onPause();
     } else {
       onPlay();
     }
-  };
+  }, [isPlaying, onPlay, onPause]);
 
   return (
     <div className="bg-gray-800 px-3 py-1 border-b border-gray-700 flex-shrink-0">

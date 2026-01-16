@@ -506,7 +506,9 @@ const MusicComposer = ({
     pause,
     stop,
     seek,
-    scheduleLoops
+    scheduleLoops,
+    // Passive mode - disable all playback for iframe previews
+    isPassive
   });
 
   // Loop handlers
@@ -921,6 +923,8 @@ const MusicComposer = ({
         onAddCustomLoop={handleAddCustomLoop}
         onAddMelodyLoop={handleAddMelodyLoop}
         onDeleteCustomLoop={handleDeleteCustomLoop}
+        // Passive mode - disable video playback in iframe previews
+        isPassive={isPassive}
       />
 
       {/* Loading screen overlay - shows while DAW initializes underneath */}

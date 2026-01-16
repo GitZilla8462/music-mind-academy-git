@@ -22,6 +22,13 @@ const isChromebook = typeof navigator !== 'undefined' && (
   (navigator.userAgentData?.platform === 'Chrome OS')
 );
 
+// Check if we're in passive mode (iframe preview) - defer MusicComposer loading for performance
+const isPassiveMode = () => {
+  if (typeof window === 'undefined') return false;
+  const params = new URLSearchParams(window.location.search);
+  return params.get('passive') === 'true';
+};
+
 const SchoolBeneathActivity = ({
   onComplete,
   viewMode = false,
@@ -33,7 +40,7 @@ const SchoolBeneathActivity = ({
   storageKey = 'school-beneath'
 }) => {
   const navigate = useNavigate();
-  
+
   // Session mode detection
   const { getCurrentStage, sessionCode } = useSession();
   const currentStage = isSessionMode ? getCurrentStage() : null;
@@ -478,11 +485,11 @@ const SchoolBeneathActivity = ({
   // ============================================================================
   
   // BONUS GAME moved to overlay at bottom of component
-  
+
   // ============================================================================
   // MAIN ACTIVITY
   // ============================================================================
-  
+
   return (
     <div className={`h-full flex flex-col bg-gray-900 relative ${isChromebook ? 'chromebook-hide-cursor' : ''}`}>{/* Added relative for overlay positioning */}
       {/* Save Message Toast */}

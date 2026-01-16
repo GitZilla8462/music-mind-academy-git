@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
-import { Play, Pause, Square, SkipBack, SkipForward, Volume2, VolumeX, RotateCcw, 
+import React, { useState, useRef, useCallback } from 'react';
+import { Play, Pause, Square, SkipBack, SkipForward, Volume2, VolumeX, RotateCcw,
          Settings, Headphones, Repeat, Activity, Clock } from 'lucide-react';
+
+// Debounce time for play/pause toggle (prevents double-click issues)
+const PLAY_PAUSE_DEBOUNCE_MS = 300;
 
 const TransportControls = ({
   isPlaying,
@@ -19,9 +22,12 @@ const TransportControls = ({
   const [isLooping, setIsLooping] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [metronomeEnabled, setMetronomeEnabled] = useState(false);
-  
+
   // ADDED: Button press states for visual feedback
   const [pressedButton, setPressedButton] = useState(null);
+
+  // Debounce ref for play/pause to prevent double-click issues
+  const lastPlayPauseClickRef = useRef(0);
 
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
@@ -57,13 +63,21 @@ const TransportControls = ({
     setTimeout(() => setPressedButton(null), 150);
   };
 
-  const handlePlayPause = () => {
+  const handlePlayPause = useCallback(() => {
+    // Debounce: prevent rapid double-clicks from toggling twice
+    const now = Date.now();
+    if (now - lastPlayPauseClickRef.current < PLAY_PAUSE_DEBOUNCE_MS) {
+      console.log('⏸️ Play/pause debounced - ignoring rapid click');
+      return;
+    }
+    lastPlayPauseClickRef.current = now;
+
     if (isPlaying) {
       onPause();
     } else {
       onPlay();
     }
-  };
+  }, [isPlaying, onPlay, onPause]);
 
   return (
     <div 

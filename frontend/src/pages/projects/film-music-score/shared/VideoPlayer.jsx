@@ -3,13 +3,17 @@
 // UPDATED: Added tutorial highlight support
 // FIXED: Wrapped in React.memo to prevent cursor flickering during playback
 // CHROMEBOOK FIX: Stable cursor to prevent flickering
+// FIXED: Added debouncing to prevent double-click issues
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Play } from 'lucide-react';
 
+// Debounce time for play/pause toggle (prevents double-click issues)
+const PLAY_PAUSE_DEBOUNCE_MS = 300;
+
 const VideoPlayer = ({
-  videoUrl,           
-  selectedVideo,      
+  videoUrl,
+  selectedVideo,
   currentTime,
   isPlaying,
   onTimeUpdate,
@@ -22,6 +26,7 @@ const VideoPlayer = ({
 }) => {
   const videoRef = useRef(null);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const lastClickRef = useRef(0);
 
   // Extract video URL from either prop format
   const actualVideoUrl = videoUrl || 
@@ -77,9 +82,20 @@ const VideoPlayer = ({
     const video = videoRef.current;
     if (!video) return;
 
+    console.log('🎬 VideoPlayer playback control: isPlaying=' + isPlaying + ', videoSrc=' + video.src?.substring(0, 50));
+
     if (isPlaying) {
-      video.play().catch(err => console.error('Play error:', err));
+      video.play()
+        .then(() => {
+          console.log('✅ Video play() succeeded, video.paused=' + video.paused + ', video.currentTime=' + video.currentTime);
+          // Check again after a short delay
+          setTimeout(() => {
+            console.log('🎬 Video state after 100ms: paused=' + video.paused + ', currentTime=' + video.currentTime);
+          }, 100);
+        })
+        .catch(err => console.error('❌ Video play() error:', err));
     } else {
+      console.log('⏸️ VideoPlayer: pausing video');
       video.pause();
     }
   }, [isPlaying]);
@@ -99,13 +115,21 @@ const VideoPlayer = ({
     }
   }, [currentTime, isPlaying]);
 
-  const handleVideoClick = () => {
+  const handleVideoClick = useCallback(() => {
+    // Debounce: prevent rapid double-clicks from toggling twice
+    const now = Date.now();
+    if (now - lastClickRef.current < PLAY_PAUSE_DEBOUNCE_MS) {
+      console.log('⏸️ VideoPlayer click debounced - ignoring rapid click');
+      return;
+    }
+    lastClickRef.current = now;
+
     if (isPlaying) {
       onPause?.();
     } else {
       onPlay?.();
     }
-  };
+  }, [isPlaying, onPlay, onPause]);
 
   // Check if we have a valid video URL
   if (!actualVideoUrl) {
