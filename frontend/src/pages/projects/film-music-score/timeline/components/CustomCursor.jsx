@@ -137,6 +137,20 @@ const CustomCursor = memo(({
     }
   }, [initiallyVisible]);
 
+  // DEBUG: Log cursor state on mount
+  useEffect(() => {
+    console.log(`🎯 [${name}] CustomCursor MOUNTED:`, {
+      containerRef: !!containerRef,
+      containerRefCurrent: !!containerRef?.current,
+      enabled,
+      isCustomCursorEnabled,
+      isDraggingFromLibrary,
+      effectivelyEnabled,
+      isActivatedRef: isActivatedRef.current,
+      initiallyVisible
+    });
+  }, []);
+
   // EFFECT 1: ALWAYS track mouse position - never disabled
   // This ensures positionRef is accurate when cursor is re-enabled after dropdown/drag
   // CHROMEBOOK FIX: Also hides cursor when over loop-library (which has native cursor)
@@ -206,6 +220,18 @@ const CustomCursor = memo(({
       // CHROMEBOOK FIX: Use effectivelyEnabled directly instead of ref to avoid race conditions
       // The effect now re-subscribes when effectivelyEnabled changes
       // LOADING SCREEN FIX: Also check isActivatedRef - cursor stays hidden during loading
+      // DEBUG: Log first few mousemoves to diagnose
+      if (!window._cursorDebugCount) window._cursorDebugCount = {};
+      if (!window._cursorDebugCount[name]) window._cursorDebugCount[name] = 0;
+      if (window._cursorDebugCount[name] < 3) {
+        window._cursorDebugCount[name]++;
+        console.log(`🎯 [${name}] mousemove #${window._cursorDebugCount[name]}:`, {
+          effectivelyEnabled,
+          isOverContainer,
+          isActivatedRef: isActivatedRef.current,
+          willShow: effectivelyEnabled && isOverContainer && isActivatedRef.current
+        });
+      }
       if (effectivelyEnabled && isOverContainer && isActivatedRef.current) {
         const el = cursorElementRef.current;
         const x = e.clientX - hotspot.x;
