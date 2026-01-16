@@ -189,8 +189,9 @@ export const CursorProvider = ({ children }) => {
       requestAnimationFrame(() => {
         setIsCustomCursorEnabled(isChromebook);
 
-        // Dispatch synthetic mousemove to position the new cursor
-        setTimeout(() => {
+        // Dispatch multiple synthetic mousemove events with increasing delays
+        // to ensure the new cursor component is fully mounted and ready
+        const dispatchMouseMove = () => {
           const moveEvent = new MouseEvent('mousemove', {
             clientX: lastMousePosition.current.x,
             clientY: lastMousePosition.current.y,
@@ -198,8 +199,25 @@ export const CursorProvider = ({ children }) => {
             cancelable: true
           });
           document.dispatchEvent(moveEvent);
-          logCursor('onSelectClose dispatched synthetic mousemove after remount');
-        }, 50);
+        };
+
+        // First attempt after 100ms
+        setTimeout(() => {
+          dispatchMouseMove();
+          logCursor('onSelectClose dispatched mousemove #1 (100ms)');
+        }, 100);
+
+        // Second attempt after 200ms
+        setTimeout(() => {
+          dispatchMouseMove();
+          logCursor('onSelectClose dispatched mousemove #2 (200ms)');
+        }, 200);
+
+        // Third attempt after 300ms (should definitely be mounted by now)
+        setTimeout(() => {
+          dispatchMouseMove();
+          logCursor('onSelectClose dispatched mousemove #3 (300ms)');
+        }, 300);
       });
     } else {
       logCursor('onSelectClose still dragging - skipping re-enable');
