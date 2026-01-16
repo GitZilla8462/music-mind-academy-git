@@ -438,7 +438,17 @@ export const SessionProvider = ({ children }) => {
       console.log('📚 Full session data:', sessionData);
       
       await firebaseJoinSession(code, studentId, studentName || 'Student');
-      
+
+      // ✅ Update analytics with new student count
+      // Calculate count: existing students + 1 (this student)
+      const existingCount = sessionData.studentsJoined
+        ? Object.keys(sessionData.studentsJoined).length
+        : 0;
+      const newCount = existingCount + 1;
+      logStudentJoined(code, newCount).catch((err) => {
+        console.warn('Analytics student count update failed (non-critical):', err);
+      });
+
       setSessionCode(code);
       setUserRole('student');
       setUserId(studentId);
@@ -516,13 +526,22 @@ export const SessionProvider = ({ children }) => {
       console.log('🎵 Generated musical name:', musicalName);
       
       await firebaseJoinSession(code, studentId, musicalName);
-      
+
+      // ✅ Update analytics with new student count
+      const existingCount = sessionData.studentsJoined
+        ? Object.keys(sessionData.studentsJoined).length
+        : 0;
+      const newCount = existingCount + 1;
+      logStudentJoined(code, newCount).catch((err) => {
+        console.warn('Analytics student count update failed (non-critical):', err);
+      });
+
       setSessionCode(code);
       setUserRole('student');
       setUserId(studentId);
       setIsInSession(true);
       hasAutoCleanedRef.current = false;
-      
+
       localStorage.setItem('current-session-studentName', musicalName);
       localStorage.setItem('current-session-time', Date.now().toString());
       
