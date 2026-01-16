@@ -150,10 +150,11 @@ export const CursorProvider = ({ children }) => {
         if (!dragStateRef.current.isDragging) {
           logCursor('onSelectClose RAF complete, re-enabling custom cursor');
           setIsCustomCursorEnabled(isChromebook);
-          // Reset body cursor when custom cursor takes over
+          // CHROMEBOOK FIX: Keep body cursor as 'default' instead of empty string
+          // Empty string inherits from parent which might be 'none'
           if (isChromebook) {
-            document.body.style.cursor = '';
-            logCursor('onSelectClose SET body cursor to empty string');
+            document.body.style.cursor = 'default';
+            logCursor('onSelectClose SET body cursor to default');
           }
         } else {
           logCursor('onSelectClose RAF complete, but still dragging - skipping re-enable');
