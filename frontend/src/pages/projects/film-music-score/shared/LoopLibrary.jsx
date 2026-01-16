@@ -64,6 +64,10 @@ const LoopLibrary = ({
   const [buttonDebouncing, setButtonDebouncing] = useState(false);
   const debounceTimeoutRef = useRef(null);
 
+  // CHROMEBOOK FIX: Store drag preview reference for cleanup on dragend
+  // This prevents the preview from being removed too early during re-renders
+  const dragPreviewRef = useRef(null);
+
   // UNIFIED CURSOR: Get cursor control functions
   const {
     disableCustomCursor,
@@ -373,6 +377,11 @@ const LoopLibrary = ({
     // Use context-based detection with fallback to local detection
     const useChromebookDragImage = isChromebookFromContext || isChromebook;
     if (useChromebookDragImage) {
+      // Clean up any existing drag preview first
+      if (dragPreviewRef.current && dragPreviewRef.current.parentNode) {
+        document.body.removeChild(dragPreviewRef.current);
+      }
+
       const dragPreview = e.target.cloneNode(true);
       dragPreview.style.position = 'absolute';
       dragPreview.style.top = '-1000px';
@@ -380,17 +389,18 @@ const LoopLibrary = ({
       dragPreview.style.cursor = 'none';
       dragPreview.style.pointerEvents = 'none';
       dragPreview.style.width = `${e.target.offsetWidth}px`;
+      // CHROMEBOOK FIX: Add ID for debugging and ensure it stays in DOM during drag
+      dragPreview.id = 'drag-preview-element';
       document.body.appendChild(dragPreview);
+
+      // Store reference for cleanup on dragend (not setTimeout)
+      dragPreviewRef.current = dragPreview;
 
       // Set drag image offset to center of element
       e.dataTransfer.setDragImage(dragPreview, e.target.offsetWidth / 2, 15);
 
-      // Clean up after drag starts
-      setTimeout(() => {
-        if (dragPreview.parentNode) {
-          document.body.removeChild(dragPreview);
-        }
-      }, 0);
+      // CHROMEBOOK FIX: Don't remove immediately - keep it around during the entire drag
+      // It will be cleaned up in handleDragEnd instead
     }
 
     if (onLoopDragStart) {
@@ -398,9 +408,15 @@ const LoopLibrary = ({
     }
   };
 
-  // Handle drag end - re-enable custom cursor
+  // Handle drag end - re-enable custom cursor and clean up drag preview
   const handleDragEnd = () => {
     enableCustomCursor();
+
+    // CHROMEBOOK FIX: Clean up drag preview element now that drag is complete
+    if (dragPreviewRef.current && dragPreviewRef.current.parentNode) {
+      document.body.removeChild(dragPreviewRef.current);
+      dragPreviewRef.current = null;
+    }
   };
 
   // Cleanup
@@ -408,6 +424,11 @@ const LoopLibrary = ({
     return () => {
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
+      }
+      // CHROMEBOOK FIX: Clean up drag preview on unmount
+      if (dragPreviewRef.current && dragPreviewRef.current.parentNode) {
+        document.body.removeChild(dragPreviewRef.current);
+        dragPreviewRef.current = null;
       }
     };
   }, []);

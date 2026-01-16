@@ -17,6 +17,10 @@ import CreatorPanel from '../../shared/CreatorPanel';
 import FloatingBeatMaker from '../../shared/FloatingBeatMaker';
 import FloatingMelodyMaker from '../../shared/FloatingMelodyMaker';
 
+// CHROMEBOOK FIX: Stable empty function to prevent re-renders during playback
+// Inline () => {} creates new reference every render, breaking React.memo
+const NOOP = () => {};
+
 const ComposerLayout = ({
   // State
   leftPanelWidth,
@@ -109,7 +113,7 @@ const ComposerLayout = ({
           selectedCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
           onLoopPreview={handleLoopPreview}
-          onLoopDragStart={() => {}}
+          onLoopDragStart={NOOP}
           tutorialMode={tutorialMode}
           lockFeatures={lockFeatures}
           restrictToCategory={restrictToCategory}
