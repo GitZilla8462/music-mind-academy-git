@@ -823,19 +823,19 @@ const InteractionOverlay = ({
   // RENDER
   // ============================================================================
 
-  // UNIFIED CURSOR: Determine if custom cursor should be shown
-  // Only show when: Chromebook + custom cursor enabled + not dragging from library
-  const showCustomCursor = isChromebook && isCustomCursorEnabled && !isDraggingFromLibrary;
+  // UNIFIED CURSOR: Determine if custom cursor should be active
+  // Only active when: Chromebook + custom cursor enabled + not dragging from library
+  const isCustomCursorActive = isChromebook && isCustomCursorEnabled && !isDraggingFromLibrary;
 
   // UNIFIED CURSOR: Determine native cursor style
   // During library drag, show the native cursor; otherwise hide on Chromebook
-  const nativeCursorStyle = showCustomCursor ? 'none' : 'default';
+  const nativeCursorStyle = isCustomCursorActive ? 'none' : 'default';
 
   return (
     <>
-      {/* CHROMEBOOK FIX: Custom cursor component to avoid native cursor flicker */}
-      {/* UNIFIED CURSOR: Only render when not dragging from library */}
-      {showCustomCursor && (
+      {/* CHROMEBOOK FIX: Always render CustomCursor on Chromebook to avoid mount/unmount delays */}
+      {/* The component handles its own visibility internally via CursorContext */}
+      {isChromebook && (
         <CustomCursor
           cursorType={cursorType}
           containerRef={overlayRef}

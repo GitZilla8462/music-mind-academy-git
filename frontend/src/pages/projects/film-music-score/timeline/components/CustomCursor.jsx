@@ -115,17 +115,26 @@ const CustomCursor = memo(({
   const hotspot = HOTSPOTS[cursorType] || HOTSPOTS.default;
 
   useEffect(() => {
+    // CHROMEBOOK FIX: Always keep element mounted, just hide with visibility
+    // This eliminates the delay from mounting/unmounting React components
     if (!effectivelyEnabled) {
-      // Hide cursor when disabled
+      // Hide cursor when disabled - use visibility so element stays in DOM
       if (cursorElementRef.current) {
-        cursorElementRef.current.style.display = 'none';
+        cursorElementRef.current.style.visibility = 'hidden';
+        cursorElementRef.current.style.opacity = '0';
       }
       return;
     }
 
     // Show cursor when enabled
     if (cursorElementRef.current) {
-      cursorElementRef.current.style.display = isVisibleRef.current ? 'block' : 'none';
+      if (isVisibleRef.current) {
+        cursorElementRef.current.style.visibility = 'visible';
+        cursorElementRef.current.style.opacity = '1';
+      } else {
+        cursorElementRef.current.style.visibility = 'hidden';
+        cursorElementRef.current.style.opacity = '0';
+      }
     }
 
     // PERFORMANCE: Direct DOM manipulation - bypasses React entirely
@@ -145,7 +154,8 @@ const CustomCursor = memo(({
       if (containerRef?.current?.contains(e.target) || e.target === containerRef?.current) {
         isVisibleRef.current = true;
         if (cursorElementRef.current) {
-          cursorElementRef.current.style.display = 'block';
+          cursorElementRef.current.style.visibility = 'visible';
+          cursorElementRef.current.style.opacity = '1';
           // Update position immediately on enter
           const x = positionRef.current.x - hotspot.x;
           const y = positionRef.current.y - hotspot.y;
@@ -158,7 +168,8 @@ const CustomCursor = memo(({
       if (containerRef?.current && !containerRef.current.contains(e.relatedTarget)) {
         isVisibleRef.current = false;
         if (cursorElementRef.current) {
-          cursorElementRef.current.style.display = 'none';
+          cursorElementRef.current.style.visibility = 'hidden';
+          cursorElementRef.current.style.opacity = '0';
         }
       }
     };
@@ -183,14 +194,16 @@ const CustomCursor = memo(({
       if (isOver) {
         isVisibleRef.current = true;
         if (cursorElementRef.current) {
-          cursorElementRef.current.style.display = 'block';
+          cursorElementRef.current.style.visibility = 'visible';
+          cursorElementRef.current.style.opacity = '1';
         }
       }
     } else {
       // No container = always visible (global cursor mode)
       isVisibleRef.current = true;
       if (cursorElementRef.current) {
-        cursorElementRef.current.style.display = 'block';
+        cursorElementRef.current.style.visibility = 'visible';
+        cursorElementRef.current.style.opacity = '1';
       }
     }
 
@@ -212,12 +225,13 @@ const CustomCursor = memo(({
     }
   }, [cursorType, hotspot.x, hotspot.y]);
 
-  // Don't render anything if disabled
-  if (!effectivelyEnabled) {
-    return null;
-  }
-
+  // CHROMEBOOK FIX: Always render the cursor element to avoid mount/unmount delays
+  // Use visibility to hide instead of returning null
   const CursorSVG = CursorSVGs[cursorType] || CursorSVGs.default;
+
+  // Determine initial visibility based on enabled state
+  const initialVisibility = effectivelyEnabled && initiallyVisible ? 'visible' : 'hidden';
+  const initialOpacity = effectivelyEnabled && initiallyVisible ? '1' : '0';
 
   // Portal renders cursor at document.body level for correct positioning
   return ReactDOM.createPortal(
@@ -230,11 +244,13 @@ const CustomCursor = memo(({
         top: 0,
         pointerEvents: 'none',
         zIndex: 99999,
-        display: initiallyVisible ? 'block' : 'none',
+        // CHROMEBOOK FIX: Use visibility instead of display for instant show/hide
+        visibility: initialVisibility,
+        opacity: initialOpacity,
         // Initial position
         transform: `translate3d(${(initialPosition?.x || -100) - hotspot.x}px, ${(initialPosition?.y || -100) - hotspot.y}px, 0)`,
         // GPU acceleration hints
-        willChange: 'transform',
+        willChange: 'transform, visibility, opacity',
         backfaceVisibility: 'hidden',
         WebkitBackfaceVisibility: 'hidden',
       }}

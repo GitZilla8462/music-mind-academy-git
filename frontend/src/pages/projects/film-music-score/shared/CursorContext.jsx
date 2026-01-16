@@ -64,21 +64,26 @@ export const CursorProvider = ({ children }) => {
   }, []);
 
   // Re-enable custom cursor (called when drag ends)
+  // CHROMEBOOK FIX: Use requestAnimationFrame instead of fixed timeouts
+  // This syncs with the actual render cycle instead of guessing timing
   const enableCustomCursor = useCallback(() => {
     dragStateRef.current.isDragging = false;
 
-    // Small delay to prevent flicker during drop transition
-    setTimeout(() => {
-      if (!dragStateRef.current.isDragging) {
-        setIsCustomCursorEnabled(isChromebook);
-        setDraggingFromLibrary(false);
+    // Use requestAnimationFrame to sync with render cycle
+    // Double-RAF ensures the browser has completed the current frame
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!dragStateRef.current.isDragging) {
+          setIsCustomCursorEnabled(isChromebook);
+          setDraggingFromLibrary(false);
 
-        // Reset body cursor
-        if (isChromebook) {
-          document.body.style.cursor = '';
+          // Reset body cursor
+          if (isChromebook) {
+            document.body.style.cursor = '';
+          }
         }
-      }
-    }, 50);
+      });
+    });
   }, []);
 
   // Global drag event listeners to catch drag end even if drop happens outside
@@ -89,14 +94,19 @@ export const CursorProvider = ({ children }) => {
         if (e && e.clientX !== undefined && e.clientY !== undefined) {
           dragStateRef.current.dropPosition = { x: e.clientX, y: e.clientY };
           // Dispatch a synthetic mousemove to update cursor position
-          setTimeout(() => {
-            const moveEvent = new MouseEvent('mousemove', {
-              clientX: e.clientX,
-              clientY: e.clientY,
-              bubbles: true
+          // CHROMEBOOK FIX: Use triple-RAF to ensure cursor is re-enabled first
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                const moveEvent = new MouseEvent('mousemove', {
+                  clientX: e.clientX,
+                  clientY: e.clientY,
+                  bubbles: true
+                });
+                document.dispatchEvent(moveEvent);
+              });
             });
-            document.dispatchEvent(moveEvent);
-          }, 60); // After cursor re-enables (50ms delay in enableCustomCursor)
+          });
         }
         enableCustomCursor();
       }
