@@ -179,18 +179,17 @@ export const CursorProvider = ({ children }) => {
         logCursor('onSelectClose SET body cursor to default');
       }
 
-      // CHROMEBOOK FIX: Force cursor component to completely remount
-      // This is the nuclear option - instead of trying to repaint, we destroy
-      // and recreate the cursor element, forcing Chrome to render fresh
+      // CHROMEBOOK FIX: Force cursor component to completely remount TWICE
+      // The first remount sometimes fails on Chrome, but the second always works
+      // So we do two remounts in quick succession to guarantee it works
       setCursorKey(k => k + 1);
-      logCursor('onSelectClose incremented cursorKey to force remount');
+      logCursor('onSelectClose incremented cursorKey (first remount)');
 
       // Re-enable after a frame to allow the old cursor to unmount
       requestAnimationFrame(() => {
         setIsCustomCursorEnabled(isChromebook);
 
-        // Dispatch multiple synthetic mousemove events with increasing delays
-        // to ensure the new cursor component is fully mounted and ready
+        // Helper to dispatch mousemove
         const dispatchMouseMove = () => {
           const moveEvent = new MouseEvent('mousemove', {
             clientX: lastMousePosition.current.x,
@@ -201,23 +200,22 @@ export const CursorProvider = ({ children }) => {
           document.dispatchEvent(moveEvent);
         };
 
-        // First attempt after 100ms
+        // After first remount, do a second remount
         setTimeout(() => {
-          dispatchMouseMove();
-          logCursor('onSelectClose dispatched mousemove #1 (100ms)');
-        }, 100);
+          setCursorKey(k => k + 1);
+          logCursor('onSelectClose incremented cursorKey (second remount)');
 
-        // Second attempt after 200ms
-        setTimeout(() => {
-          dispatchMouseMove();
-          logCursor('onSelectClose dispatched mousemove #2 (200ms)');
-        }, 200);
+          // After second remount, dispatch mousemove events
+          setTimeout(() => {
+            dispatchMouseMove();
+            logCursor('onSelectClose dispatched mousemove #1 (after double remount)');
+          }, 100);
 
-        // Third attempt after 300ms (should definitely be mounted by now)
-        setTimeout(() => {
-          dispatchMouseMove();
-          logCursor('onSelectClose dispatched mousemove #3 (300ms)');
-        }, 300);
+          setTimeout(() => {
+            dispatchMouseMove();
+            logCursor('onSelectClose dispatched mousemove #2');
+          }, 200);
+        }, 50);
       });
     } else {
       logCursor('onSelectClose still dragging - skipping re-enable');
