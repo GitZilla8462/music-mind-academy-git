@@ -88,6 +88,10 @@ export const CursorProvider = ({ children }) => {
   // CHROMEBOOK FIX: Track last known mouse position for synthetic events
   const lastMousePosition = useRef({ x: 0, y: 0 });
 
+  // CHROMEBOOK FIX: Track pending synthetic mousemove timeout
+  // This allows us to cancel it if a new dropdown opens before it fires
+  const pendingSyntheticMousemoveRef = useRef(null);
+
   // Disable custom cursor (called when HTML5 drag starts)
   const disableCustomCursor = useCallback(() => {
     logCursor('disableCustomCursor CALLED (drag start)');
@@ -134,6 +138,16 @@ export const CursorProvider = ({ children }) => {
   // Native selects render outside React DOM, so we need to hide custom cursor
   const onSelectOpen = useCallback(() => {
     logCursor('onSelectOpen CALLED (dropdown focused)');
+
+    // CHROMEBOOK FIX: Cancel any pending synthetic mousemove from previous dropdown close
+    // This prevents the race condition where the synthetic mousemove fires after
+    // a new dropdown has already opened and disabled the custom cursor
+    if (pendingSyntheticMousemoveRef.current) {
+      clearTimeout(pendingSyntheticMousemoveRef.current);
+      pendingSyntheticMousemoveRef.current = null;
+      logCursor('onSelectOpen CANCELLED pending synthetic mousemove');
+    }
+
     setIsSelectOpen(true);
     setIsCustomCursorEnabled(false);
     // CHROMEBOOK FIX: Ensure native cursor is visible when custom cursor is disabled
@@ -161,7 +175,9 @@ export const CursorProvider = ({ children }) => {
       // This is needed because the user may have stopped moving before state updated
       // Use setTimeout to ensure React has fully completed re-rendering
       // RAF alone isn't enough because React 18's concurrent rendering can defer updates
-      setTimeout(() => {
+      // Store timeout ID in ref so it can be cancelled if a new dropdown opens
+      pendingSyntheticMousemoveRef.current = setTimeout(() => {
+        pendingSyntheticMousemoveRef.current = null; // Clear ref once timeout fires
         logCursor('onSelectClose dispatching synthetic mousemove', lastMousePosition.current);
         const moveEvent = new MouseEvent('mousemove', {
           clientX: lastMousePosition.current.x,
