@@ -146,6 +146,7 @@ const CustomCursor = memo(({
           cursorElementRef.current.style.visibility = 'hidden';
           cursorElementRef.current.style.opacity = '0';
           isVisibleRef.current = false;
+          console.log('🖱️ [CustomCursor] HIDING - over LoopLibrary', { x: e.clientX, y: e.clientY });
           return;
         }
       } else if (e.isTrusted === false) {
@@ -186,19 +187,26 @@ const CustomCursor = memo(({
         const x = e.clientX - hotspot.x;
         const y = e.clientY - hotspot.y;
         cursorElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-        // DEBUG: Log when cursor is shown
-        if (e.isTrusted === false) {
-          console.log('🖱️ [CustomCursor] SHOWING cursor at', { x, y, visibility: cursorElementRef.current.style.visibility });
-        }
+        // DEBUG: Log when cursor is shown (both real and synthetic)
+        console.log('🖱️ [CustomCursor] SHOWING cursor', {
+          x, y,
+          isSynthetic: e.isTrusted === false,
+          hasContainer: !!containerRef?.current
+        });
       } else {
         // Hide cursor when not over container
         cursorElementRef.current.style.visibility = 'hidden';
         cursorElementRef.current.style.opacity = '0';
         isVisibleRef.current = false;
-        // DEBUG: Log when cursor is hidden
-        if (e.isTrusted === false) {
-          console.log('🖱️ [CustomCursor] HIDING cursor', { effectivelyEnabled: effectivelyEnabledRef.current, isOverContainer });
-        }
+        // DEBUG: Log when cursor is hidden (both real and synthetic)
+        console.log('🖱️ [CustomCursor] HIDING cursor', {
+          effectivelyEnabled: effectivelyEnabledRef.current,
+          isOverContainer,
+          isSynthetic: e.isTrusted === false,
+          hasContainer: !!containerRef?.current,
+          x: e.clientX,
+          y: e.clientY
+        });
       }
     };
 
