@@ -165,84 +165,20 @@ export const CursorProvider = ({ children }) => {
   }, []);
 
   // CHROMEBOOK FIX: Handle native select dropdown open/close
-  // Native selects render outside React DOM, so we need to hide custom cursor
+  // SIMPLIFIED: Don't disable custom cursor on dropdown open - just track the state
+  // Hiding/showing was causing the cursor to disappear permanently on first interaction
   const onSelectOpen = useCallback(() => {
-    logCursor('onSelectOpen CALLED (dropdown focused)');
-
-    // CHROMEBOOK FIX: Cancel any pending synthetic mousemove from previous dropdown close
-    // This prevents the race condition where the synthetic mousemove fires after
-    // a new dropdown has already opened and disabled the custom cursor
-    if (pendingSyntheticMousemoveRef.current) {
-      clearTimeout(pendingSyntheticMousemoveRef.current);
-      pendingSyntheticMousemoveRef.current = null;
-      logCursor('onSelectOpen CANCELLED pending synthetic mousemove');
-    }
-
+    logCursor('onSelectOpen CALLED (dropdown focused) - NOT disabling cursor');
     setIsSelectOpen(true);
-    setIsCustomCursorEnabled(false);
-    // CHROMEBOOK FIX: Ensure native cursor is visible when custom cursor is disabled
-    if (isChromebook) {
-      document.body.style.cursor = 'default';
-      logCursor('onSelectOpen SET body cursor to default');
-    }
+    // Don't disable custom cursor - let it stay visible
+    // The slight visual overlap is better than cursor disappearing
   }, []);
 
   const onSelectClose = useCallback(() => {
-    logCursor('onSelectClose CALLED (dropdown blurred)');
+    logCursor('onSelectClose CALLED (dropdown blurred) - simplified, no cursor changes');
     setIsSelectOpen(false);
-    // CHROMEBOOK FIX: Immediately re-enable custom cursor (no RAF delay)
-    // The RAF delay was causing cursor to disappear when user quickly moved to timeline
-    // after selecting from dropdown
-    if (!dragStateRef.current.isDragging) {
-      logCursor('onSelectClose re-enabling custom cursor immediately');
-
-      // Keep body cursor as 'default' instead of empty string
-      if (isChromebook) {
-        document.body.style.cursor = 'default';
-        logCursor('onSelectClose SET body cursor to default');
-      }
-
-      // CHROMEBOOK FIX: Force cursor component to completely remount TWICE
-      // The first remount sometimes fails on Chrome, but the second always works
-      // So we do two remounts in quick succession to guarantee it works
-      setCursorKey(k => k + 1);
-      logCursor('onSelectClose incremented cursorKey (first remount)');
-
-      // Re-enable after a frame to allow the old cursor to unmount
-      requestAnimationFrame(() => {
-        setIsCustomCursorEnabled(isChromebook);
-
-        // Helper to dispatch mousemove
-        const dispatchMouseMove = () => {
-          const moveEvent = new MouseEvent('mousemove', {
-            clientX: lastMousePosition.current.x,
-            clientY: lastMousePosition.current.y,
-            bubbles: true,
-            cancelable: true
-          });
-          document.dispatchEvent(moveEvent);
-        };
-
-        // After first remount, do a second remount
-        setTimeout(() => {
-          setCursorKey(k => k + 1);
-          logCursor('onSelectClose incremented cursorKey (second remount)');
-
-          // After second remount, dispatch mousemove events
-          setTimeout(() => {
-            dispatchMouseMove();
-            logCursor('onSelectClose dispatched mousemove #1 (after double remount)');
-          }, 100);
-
-          setTimeout(() => {
-            dispatchMouseMove();
-            logCursor('onSelectClose dispatched mousemove #2');
-          }, 200);
-        }, 50);
-      });
-    } else {
-      logCursor('onSelectClose still dragging - skipping re-enable');
-    }
+    // SIMPLIFIED: Don't do any cursor manipulation
+    // Since we're not hiding cursor on open, we don't need to show it on close
   }, []);
 
   // CHROMEBOOK FIX: Global mousemove listener to track last known position
