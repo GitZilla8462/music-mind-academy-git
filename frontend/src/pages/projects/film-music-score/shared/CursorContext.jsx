@@ -85,6 +85,9 @@ export const CursorProvider = ({ children }) => {
     dropPosition: null // Track where the drop happened
   });
 
+  // CHROMEBOOK FIX: Track last known mouse position for synthetic events
+  const lastMousePosition = useRef({ x: 0, y: 0 });
+
   // Disable custom cursor (called when HTML5 drag starts)
   const disableCustomCursor = useCallback(() => {
     logCursor('disableCustomCursor CALLED (drag start)');
@@ -154,9 +157,32 @@ export const CursorProvider = ({ children }) => {
         document.body.style.cursor = 'default';
         logCursor('onSelectClose SET body cursor to default');
       }
+      // CHROMEBOOK FIX: Dispatch synthetic mousemove to trigger cursor visibility update
+      // This is needed because the user may have stopped moving before state updated
+      requestAnimationFrame(() => {
+        logCursor('onSelectClose dispatching synthetic mousemove', lastMousePosition.current);
+        const moveEvent = new MouseEvent('mousemove', {
+          clientX: lastMousePosition.current.x,
+          clientY: lastMousePosition.current.y,
+          bubbles: true
+        });
+        document.dispatchEvent(moveEvent);
+      });
     } else {
       logCursor('onSelectClose still dragging - skipping re-enable');
     }
+  }, []);
+
+  // CHROMEBOOK FIX: Global mousemove listener to track last known position
+  // This is needed so we can dispatch synthetic mousemove after dropdown closes
+  useEffect(() => {
+    const trackMousePosition = (e) => {
+      lastMousePosition.current = { x: e.clientX, y: e.clientY };
+    };
+    document.addEventListener('mousemove', trackMousePosition, { passive: true });
+    return () => {
+      document.removeEventListener('mousemove', trackMousePosition);
+    };
   }, []);
 
   // Global drag event listeners to catch drag end even if drop happens outside
