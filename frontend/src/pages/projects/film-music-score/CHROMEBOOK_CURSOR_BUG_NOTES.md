@@ -155,7 +155,11 @@ Source: [Chrome GPU Compositing Documentation](https://www.chromium.org/develope
 
 ## Recommended Fix Implementation
 
-### Option 1: Force Repaint in showCursor()
+### ✅ Option 1: Force Repaint in showCursor() - IMPLEMENTED (January 2026)
+This fix has been implemented in CustomCursor.jsx in two places:
+1. `showCursor()` helper in EFFECT 2 (useLayoutEffect) - always forces repaint
+2. `updatePosition()` in EFFECT 1 (mousemove handler) - forces repaint only when transitioning from hidden to visible
+
 ```javascript
 const showCursor = () => {
   if (cursorElementRef.current) {
