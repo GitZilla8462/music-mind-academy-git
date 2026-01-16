@@ -98,6 +98,10 @@ export const CursorProvider = ({ children }) => {
   const onSelectOpen = useCallback(() => {
     setIsSelectOpen(true);
     setIsCustomCursorEnabled(false);
+    // CHROMEBOOK FIX: Ensure native cursor is visible when custom cursor is disabled
+    if (isChromebook) {
+      document.body.style.cursor = 'default';
+    }
   }, []);
 
   const onSelectClose = useCallback(() => {
@@ -108,6 +112,10 @@ export const CursorProvider = ({ children }) => {
         // Only re-enable if not dragging
         if (!dragStateRef.current.isDragging) {
           setIsCustomCursorEnabled(isChromebook);
+          // Reset body cursor when custom cursor takes over
+          if (isChromebook) {
+            document.body.style.cursor = '';
+          }
         }
       });
     });
