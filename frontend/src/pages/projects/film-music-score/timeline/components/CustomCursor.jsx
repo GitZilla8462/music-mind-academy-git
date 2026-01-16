@@ -362,11 +362,24 @@ const CustomCursor = memo(({
       }
     };
 
+    // GHOST CURSOR FIX: Handler for when mouse exits the viewport entirely
+    // This prevents the cursor from staying visible when user quickly moves mouse
+    // to browser chrome (URL bar, tabs, etc.) or outside the window
+    const handleViewportLeave = (e) => {
+      // Check if mouse actually left the document (not just moved to a child element)
+      if (e.relatedTarget === null || e.relatedTarget.nodeName === 'HTML') {
+        isVisibleRef.current = false;
+        hideCursor();
+      }
+    };
+
     if (container) {
       container.addEventListener('mouseenter', handleMouseEnter);
       container.addEventListener('mouseleave', handleMouseLeave);
     } else {
-      // No container = check if NOT over loop library or cursor-handled element, then show
+      // No container = global cursor, listen for viewport exit
+      document.documentElement.addEventListener('mouseleave', handleViewportLeave);
+      // Check if NOT over loop library or cursor-handled element, then show
       if (!isMouseOverLoopLibrary() && !isMouseOverCursorHandledElement()) {
         isVisibleRef.current = true;
         showCursor();
@@ -377,6 +390,8 @@ const CustomCursor = memo(({
       if (container) {
         container.removeEventListener('mouseenter', handleMouseEnter);
         container.removeEventListener('mouseleave', handleMouseLeave);
+      } else {
+        document.documentElement.removeEventListener('mouseleave', handleViewportLeave);
       }
     };
   }, [effectivelyEnabled, containerRef, hotspot.x, hotspot.y, getLastMousePosition, name]);

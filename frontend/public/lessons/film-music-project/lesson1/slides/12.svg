@@ -34,7 +34,8 @@
   <text x="192" y="640" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#e2e8f0">Make the audience feel your mood.</text>
 
   <text x="192" y="740" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#e2e8f0">💾 Hit Save (top right) to keep your work.</text>
-  <text x="230" y="800" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#94a3b8">Find it on the Join page (this device only).</text>
+  <text x="230" y="790" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#fbbf24">Your student work will only be saved locally to your Chromebook.</text>
+  <text x="230" y="830" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#fbbf24">You can find your saved assignment at musicmindacademy.com/join</text>
 
   <!-- Duration -->
   <text x="192" y="950" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">12 minutes—Open your Chromebook and begin.</text>
