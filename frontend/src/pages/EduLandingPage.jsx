@@ -33,6 +33,7 @@ const EduLandingPage = () => {
   };
 
   const goToLogin = () => navigate('/login');
+  const handleJoinClass = () => navigate('/join');
 
   return (
     <div className="min-h-screen bg-white text-slate-800" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -74,8 +75,15 @@ const EduLandingPage = () => {
             </div>
             <span className="font-display text-xl font-bold text-slate-800">Music Room Tools</span>
           </div>
-          
-          <button
+
+          <div className="flex items-center gap-5">
+            <button
+              onClick={handleJoinClass}
+              className="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white font-semibold text-sm rounded-full transition-colors"
+            >
+              Join Class
+            </button>
+            <button
             onClick={handleGoogleSignIn}
             disabled={isSigningIn}
             className="btn-primary px-5 py-2 rounded-full text-sm font-semibold text-white flex items-center gap-2 disabled:opacity-50"
@@ -99,7 +107,8 @@ const EduLandingPage = () => {
                 Teacher Login
               </>
             )}
-          </button>
+            </button>
+          </div>
         </div>
       </nav>
 

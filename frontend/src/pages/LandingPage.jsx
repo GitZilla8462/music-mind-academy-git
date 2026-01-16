@@ -64,6 +64,10 @@ const LandingPage = () => {
     navigate('/login');
   };
 
+  const handleJoinClass = () => {
+    navigate('/join');
+  };
+
   return (
     <div className="landing-page" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <style>{`
@@ -155,6 +159,23 @@ const LandingPage = () => {
 
         .btn-login:hover {
           background: #0f172a;
+          transform: translateY(-1px);
+        }
+
+        .btn-join {
+          background: #334155;
+          color: white;
+          padding: 0.625rem 1.25rem;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 0.875rem;
+          cursor: pointer;
+          border: none;
+          transition: all 0.2s ease;
+        }
+
+        .btn-join:hover {
+          background: #1e293b;
           transform: translateY(-1px);
         }
 
@@ -685,7 +706,10 @@ const LandingPage = () => {
             />
             <span className="nav-brand-text">Music Mind Academy</span>
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+            <button onClick={handleJoinClass} className="btn btn-join">
+              Join Class
+            </button>
             <button onClick={handleTeacherLogin} className="btn btn-login">
               Teacher Login
             </button>

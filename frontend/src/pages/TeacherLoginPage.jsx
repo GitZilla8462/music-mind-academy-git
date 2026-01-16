@@ -164,6 +164,12 @@ const TeacherLoginPage = () => {
             </div>
             <span className="text-xl font-bold text-slate-800">{siteName}</span>
           </a>
+          <button
+            onClick={() => navigate('/join')}
+            className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-sm rounded-lg transition-colors"
+          >
+            Join Class
+          </button>
         </div>
       </header>
 
