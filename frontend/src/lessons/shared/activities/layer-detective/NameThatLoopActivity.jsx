@@ -26,8 +26,11 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
   const [answerTime, setAnswerTime] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
-  
+
   const audioRef = useRef(null);
+
+  // Detect if we're in an iframe (teacher preview) - audio auto-play won't work
+  const isInIframe = window.self !== window.top;
 
   // Voice reading function
   const speakText = (text) => {
@@ -201,14 +204,25 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
   // Play/pause loop
   const playLoop = () => {
     if (!currentLoop || !audioRef.current) return;
-    
+
+    const audio = audioRef.current;
+
     if (isPlaying) {
-      audioRef.current.pause();
+      audio.pause();
       setIsPlaying(false);
     } else {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play();
-      setIsPlaying(true);
+      // Ensure volume is set correctly (preview mode may have muted it before data attribute was set)
+      audio.volume = 1;
+      audio.muted = false;
+      audio.currentTime = 0;
+      audio.play()
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch(err => {
+          console.error('Audio play failed:', err.message);
+          setIsPlaying(false);
+        });
     }
   };
 
@@ -235,9 +249,15 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
   }, [currentRound]);
 
   // Auto-play loop when audio is ready (wait for canplaythrough event)
+  // Skip auto-play in iframe (teacher preview) - user must click Play button
   useEffect(() => {
     if (!currentLoop || !audioRef.current || guessResult) return;
     if (hasAutoPlayedRef.current) return;
+
+    // Skip auto-play in iframe - browsers block it without user gesture inside iframe
+    if (isInIframe) {
+      return;
+    }
 
     const audio = audioRef.current;
 
@@ -265,7 +285,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
     return () => {
       audio.removeEventListener('canplaythrough', handleCanPlay);
     };
-  }, [currentLoop, guessResult]);
+  }, [currentLoop, guessResult, isInIframe]);
 
   // Handle guess
   const handleGuess = (guessedName) => {
@@ -622,7 +642,7 @@ const NameThatLoopActivity = ({ onComplete, viewMode = false }) => {
   // GAME PLAYING SCREEN - Compact for Chromebook
   return (
     <div className="h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-3">
-      <audio ref={audioRef} src={currentLoop?.src} />
+      <audio ref={audioRef} src={currentLoop?.src} data-game-audio="true" />
       
       <div className="bg-white rounded-xl shadow-2xl p-4 max-w-2xl w-full relative">
         <VoiceToggleButton />

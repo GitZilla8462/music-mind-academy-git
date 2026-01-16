@@ -157,6 +157,8 @@ const Lesson1 = () => {
 
       const muteEverything = () => {
         document.querySelectorAll('audio, video').forEach(el => {
+          // Skip game audio elements (like Name That Loop) - they should play in preview
+          if (el.dataset.gameAudio === 'true') return;
           el.muted = true;
           el.volume = 0;
           el.pause();

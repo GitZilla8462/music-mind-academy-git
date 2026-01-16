@@ -143,6 +143,7 @@ const PresentationContent = ({
           src={getStudentUrl()}
           className="absolute top-10 left-0 w-full h-[calc(100%-40px)] border-none"
           title="Student View Preview"
+          allow="autoplay"
         />
       </div>
     );
@@ -618,6 +619,7 @@ const MiniPreview = ({ viewMode, sessionCode, currentStage, currentStageData, se
             className="w-full h-full border-none pointer-events-none"
             style={{ transform: 'scale(0.15)', transformOrigin: 'top left', width: '666%', height: '666%' }}
             title="Student View Preview"
+            allow="autoplay"
           />
         ) : (
           // Show mini teacher view (presentation content)

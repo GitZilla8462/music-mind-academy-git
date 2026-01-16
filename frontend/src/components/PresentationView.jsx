@@ -170,6 +170,7 @@ const StudentViewEmbed = ({ sessionCode }) => {
           border: 'none',
         }}
         title="Student View Preview"
+        allow="autoplay"
       />
     </div>
   );
