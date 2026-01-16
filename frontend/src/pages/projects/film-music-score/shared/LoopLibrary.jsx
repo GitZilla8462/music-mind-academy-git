@@ -68,6 +68,9 @@ const LoopLibrary = ({
   // This prevents the preview from being removed too early during re-renders
   const dragPreviewRef = useRef(null);
 
+  // CHROMEBOOK FIX: Ref to force cursor visibility via inline style with !important
+  const containerRef = useRef(null);
+
   // UNIFIED CURSOR: Get cursor control functions
   const {
     disableCustomCursor,
@@ -80,6 +83,23 @@ const LoopLibrary = ({
 
   useEffect(() => {
     console.log('🎵 LoopLibrary Props:', { restrictToCategory, lockedMood, showSoundEffects });
+  }, []);
+
+  // CHROMEBOOK FIX: Force cursor visibility using setProperty with !important
+  // This overrides any CSS !important rules from parent containers
+  useEffect(() => {
+    if (isChromebook && containerRef.current) {
+      // Use setProperty to set cursor with !important flag
+      containerRef.current.style.setProperty('cursor', 'auto', 'important');
+
+      // Also set on all child elements (in case * selector is too weak)
+      const allChildren = containerRef.current.querySelectorAll('*');
+      allChildren.forEach(child => {
+        child.style.setProperty('cursor', 'auto', 'important');
+      });
+
+      console.log('🖱️ LoopLibrary: Forced cursor:auto on container and', allChildren.length, 'children');
+    }
   }, []);
 
   useEffect(() => {
@@ -464,7 +484,11 @@ const LoopLibrary = ({
   return (
     // CHROMEBOOK FIX: restore-cursor ensures native cursor is always visible in loop library
     // The custom cursor only renders in the timeline area, so we need native cursor here
-    <div className={`h-full flex flex-col bg-gray-800 loop-library restore-cursor ${highlighted ? 'tutorial-highlight' : ''}`}>
+    // ref used to force cursor:auto via setProperty with !important
+    <div
+      ref={containerRef}
+      className={`h-full flex flex-col bg-gray-800 loop-library restore-cursor ${highlighted ? 'tutorial-highlight' : ''}`}
+    >
       {/* Header */}
       <div className="p-2 border-b border-gray-700">
         <div className="flex items-center justify-between mb-2">
