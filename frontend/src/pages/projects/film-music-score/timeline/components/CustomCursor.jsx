@@ -173,14 +173,16 @@ const CustomCursor = memo(({
         console.log(`🖱️ [CustomCursor:${name}] SYNTHETIC mousemove received`, {
           x: e.clientX,
           y: e.clientY,
-          effectivelyEnabled: effectivelyEnabledRef.current,
+          effectivelyEnabled,
           isOverContainer,
           isOverLoopLibrary,
-          willShow: effectivelyEnabledRef.current && isOverContainer
+          willShow: effectivelyEnabled && isOverContainer
         });
       }
 
-      if (effectivelyEnabledRef.current && isOverContainer) {
+      // CHROMEBOOK FIX: Use effectivelyEnabled directly instead of ref to avoid race conditions
+      // The effect now re-subscribes when effectivelyEnabled changes
+      if (effectivelyEnabled && isOverContainer) {
         // Show and update cursor position
         cursorElementRef.current.style.visibility = 'visible';
         cursorElementRef.current.style.opacity = '1';
@@ -201,7 +203,7 @@ const CustomCursor = memo(({
         isVisibleRef.current = false;
         // DEBUG: Log when cursor is hidden (both real and synthetic)
         console.log(`🖱️ [CustomCursor:${name}] HIDING cursor`, {
-          effectivelyEnabled: effectivelyEnabledRef.current,
+          effectivelyEnabled,
           isOverContainer,
           isSynthetic: e.isTrusted === false,
           hasContainer: !!containerRef?.current,
@@ -217,7 +219,7 @@ const CustomCursor = memo(({
     return () => {
       document.removeEventListener('mousemove', updatePosition);
     };
-  }, [hotspot.x, hotspot.y, containerRef]); // Re-subscribe when hotspot or container changes
+  }, [hotspot.x, hotspot.y, containerRef, effectivelyEnabled, name]); // CHROMEBOOK FIX: Re-subscribe when effectivelyEnabled changes
 
   // EFFECT 2: Handle visibility and container enter/leave
   useEffect(() => {
