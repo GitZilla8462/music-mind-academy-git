@@ -847,22 +847,6 @@ const MusicComposer = ({
 
     const isFullyReady = isVideoReady && audioReady && isCustomBeatsReady;
 
-    // DEBUG: Log all conditions to find what's blocking
-    console.log('🔍 Loading screen check:', {
-      loadingMinTimePassed,
-      tutorialMode,
-      selectedVideo: selectedVideo ? `"${selectedVideo}"` : null,
-      videoLoading,
-      isVideoReady,
-      audioReady,
-      customBeatsNeedRender,
-      customBeatsRendering,
-      isCustomBeatsReady,
-      isFullyReady,
-      loadingScreenVisible,
-      willHide: loadingMinTimePassed && isFullyReady && loadingScreenVisible
-    });
-
     if (loadingMinTimePassed && isFullyReady && loadingScreenVisible) {
       console.log('✅ All conditions met - hiding loading screen in 300ms');
       // PERFORMANCE FIX: Store timeout in ref so it can be cancelled if fallback fires first
