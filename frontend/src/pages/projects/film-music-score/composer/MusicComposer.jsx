@@ -826,10 +826,12 @@ const MusicComposer = ({
         ref={dawContainerRef}
         className={`h-full bg-gray-900 text-white flex flex-col relative ${isChromebook ? 'chromebook-hide-cursor' : ''}`}
       >
-        {/* CHROMEBOOK FIX: Global custom cursor (hidden when over areas with local cursor) */}
+        {/* CHROMEBOOK FIX: Global custom cursor - always rendered, hides itself when over LoopLibrary */}
         {/* UNIFIED CURSOR: This will be automatically disabled during library drag via CursorContext */}
         {/* Hide during loading screen to avoid double cursor */}
-        {isChromebook && showGlobalCursor && !loadingScreenVisible && (
+        {/* FIXED: Removed showGlobalCursor condition - cursor handles its own visibility */}
+        {/* This prevents cursor disappearing during handoff to timeline cursor */}
+        {isChromebook && !loadingScreenVisible && (
           <CustomCursor
             cursorType={globalCursorType}
             enabled={true}
