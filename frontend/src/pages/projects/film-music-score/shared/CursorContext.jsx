@@ -43,7 +43,9 @@ export const useCursor = () => {
       isChromebook: false,
       // CHROMEBOOK FIX: Select/dropdown tracking
       onSelectOpen: () => {},
-      onSelectClose: () => {}
+      onSelectClose: () => {},
+      // CHROMEBOOK FIX: Direct position access
+      getLastMousePosition: () => ({ x: 0, y: 0 })
     };
   }
   return context;
@@ -257,6 +259,9 @@ export const CursorProvider = ({ children }) => {
     };
   }, [enableCustomCursor]);
 
+  // CHROMEBOOK FIX: Getter for last mouse position so CustomCursor can position immediately
+  const getLastMousePosition = useCallback(() => lastMousePosition.current, []);
+
   const value = {
     cursorType,
     setCursorType,
@@ -269,7 +274,9 @@ export const CursorProvider = ({ children }) => {
     // CHROMEBOOK FIX: Select/dropdown tracking
     isSelectOpen,
     onSelectOpen,
-    onSelectClose
+    onSelectClose,
+    // CHROMEBOOK FIX: Direct position access for immediate cursor positioning
+    getLastMousePosition
   };
 
   return (

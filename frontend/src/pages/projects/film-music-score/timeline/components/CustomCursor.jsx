@@ -10,7 +10,7 @@
 // UNIFIED CURSOR SYSTEM:
 // - Integrates with CursorContext to disable during HTML5 drag operations
 
-import React, { useEffect, useRef, memo } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, memo } from 'react';
 import ReactDOM from 'react-dom';
 import { useCursor } from '../../shared/CursorContext';
 
@@ -102,7 +102,7 @@ const CustomCursor = memo(({
   name = 'unnamed', // DEBUG: Unique identifier for this cursor instance
 }) => {
   // UNIFIED CURSOR: Get global cursor state
-  const { isCustomCursorEnabled, isDraggingFromLibrary } = useCursor();
+  const { isCustomCursorEnabled, isDraggingFromLibrary, getLastMousePosition } = useCursor();
 
   // Refs for direct DOM manipulation (no React state = no re-renders = no lag)
   const cursorElementRef = useRef(null);
@@ -222,20 +222,44 @@ const CustomCursor = memo(({
   }, [hotspot.x, hotspot.y, containerRef, effectivelyEnabled, name]); // CHROMEBOOK FIX: Re-subscribe when effectivelyEnabled changes
 
   // EFFECT 2: Handle visibility and container enter/leave
-  useEffect(() => {
+  // CHROMEBOOK FIX: Use useLayoutEffect so visibility is set BEFORE browser paints
+  // This prevents the flicker where inline style (hidden) shows briefly before DOM manipulation
+  useLayoutEffect(() => {
     const container = containerRef?.current;
 
+    // CHROMEBOOK FIX: Get accurate mouse position from context
+    // This is more reliable than positionRef which might be stale after dropdown interactions
+    const contextPosition = getLastMousePosition();
+    if (contextPosition.x !== 0 || contextPosition.y !== 0) {
+      // Update our local position ref with context position
+      positionRef.current = contextPosition;
+    }
+
     // DEBUG: Log when effectivelyEnabled changes
-    console.log(`🖱️ [CustomCursor:${name}] EFFECT 2 running`, {
+    console.log(`🖱️ [CustomCursor:${name}] EFFECT 2 (useLayoutEffect) running`, {
       effectivelyEnabled,
       hasContainer: !!container,
-      positionRef: positionRef.current
+      positionRef: positionRef.current,
+      contextPosition
     });
 
     // Helper to check if mouse is over container
     const isMouseOverContainer = () => {
       if (!container) return true; // No container = always visible
       const rect = container.getBoundingClientRect();
+      return (
+        positionRef.current.x >= rect.left &&
+        positionRef.current.x <= rect.right &&
+        positionRef.current.y >= rect.top &&
+        positionRef.current.y <= rect.bottom
+      );
+    };
+
+    // CHROMEBOOK FIX: Check if mouse is over loop library (which uses native cursor)
+    const isMouseOverLoopLibrary = () => {
+      const loopLibrary = document.querySelector('.loop-library');
+      if (!loopLibrary) return false;
+      const rect = loopLibrary.getBoundingClientRect();
       return (
         positionRef.current.x >= rect.left &&
         positionRef.current.x <= rect.right &&
@@ -253,6 +277,7 @@ const CustomCursor = memo(({
         const x = positionRef.current.x - hotspot.x;
         const y = positionRef.current.y - hotspot.y;
         cursorElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        console.log(`🖱️ [CustomCursor:${name}] EFFECT 2 showCursor called`, { x, y });
       }
     };
 
@@ -260,6 +285,7 @@ const CustomCursor = memo(({
       if (cursorElementRef.current) {
         cursorElementRef.current.style.visibility = 'hidden';
         cursorElementRef.current.style.opacity = '0';
+        console.log(`🖱️ [CustomCursor:${name}] EFFECT 2 hideCursor called`);
       }
     };
 
@@ -269,8 +295,15 @@ const CustomCursor = memo(({
       return;
     }
 
-    // Cursor is enabled - check if mouse is over container and show/hide accordingly
-    if (isMouseOverContainer()) {
+    // CHROMEBOOK FIX: Don't show custom cursor if mouse is over loop library
+    // The loop library uses native cursor, so showing custom cursor there causes "two cursors"
+    if (isMouseOverLoopLibrary()) {
+      console.log(`🖱️ [CustomCursor:${name}] EFFECT 2 - mouse over LoopLibrary, hiding`);
+      isVisibleRef.current = false;
+      hideCursor();
+      // Don't return early - still need to set up event listeners
+    } else if (isMouseOverContainer()) {
+      // Cursor is enabled and mouse is over container (or no container) - show it
       isVisibleRef.current = true;
       showCursor();
     } else {
@@ -298,9 +331,11 @@ const CustomCursor = memo(({
       container.addEventListener('mouseenter', handleMouseEnter);
       container.addEventListener('mouseleave', handleMouseLeave);
     } else {
-      // No container = always visible (global cursor mode)
-      isVisibleRef.current = true;
-      showCursor();
+      // No container = check if NOT over loop library, then show
+      if (!isMouseOverLoopLibrary()) {
+        isVisibleRef.current = true;
+        showCursor();
+      }
     }
 
     return () => {
@@ -309,7 +344,7 @@ const CustomCursor = memo(({
         container.removeEventListener('mouseleave', handleMouseLeave);
       }
     };
-  }, [effectivelyEnabled, containerRef, hotspot.x, hotspot.y]);
+  }, [effectivelyEnabled, containerRef, hotspot.x, hotspot.y, getLastMousePosition, name]);
 
   // Update hotspot when cursor type changes
   useEffect(() => {
