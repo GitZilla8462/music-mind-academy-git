@@ -120,15 +120,59 @@ const CustomCursor = memo(({
 
   // EFFECT 1: ALWAYS track mouse position - never disabled
   // This ensures positionRef is accurate when cursor is re-enabled after dropdown/drag
+  // CHROMEBOOK FIX: Also hides cursor when over loop-library (which has native cursor)
   useEffect(() => {
     const updatePosition = (e) => {
       positionRef.current = { x: e.clientX, y: e.clientY };
 
-      // Only update visual cursor if enabled and visible
-      if (effectivelyEnabledRef.current && cursorElementRef.current && isVisibleRef.current) {
+      if (!cursorElementRef.current) return;
+
+      // CHROMEBOOK FIX: Check if mouse is over the loop library area
+      // The loop library shows native cursor, so we must hide custom cursor there
+      const loopLibrary = document.querySelector('.loop-library');
+      if (loopLibrary) {
+        const rect = loopLibrary.getBoundingClientRect();
+        const isOverLoopLibrary = (
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom
+        );
+        if (isOverLoopLibrary) {
+          // Hide custom cursor when over loop library (native cursor shows there)
+          cursorElementRef.current.style.visibility = 'hidden';
+          cursorElementRef.current.style.opacity = '0';
+          isVisibleRef.current = false;
+          return;
+        }
+      }
+
+      // Check if we should show the cursor (enabled and over timeline container)
+      const container = containerRef?.current;
+      let isOverContainer = true; // Default to true if no container
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        isOverContainer = (
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom
+        );
+      }
+
+      if (effectivelyEnabledRef.current && isOverContainer) {
+        // Show and update cursor position
+        cursorElementRef.current.style.visibility = 'visible';
+        cursorElementRef.current.style.opacity = '1';
+        isVisibleRef.current = true;
         const x = e.clientX - hotspot.x;
         const y = e.clientY - hotspot.y;
         cursorElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      } else {
+        // Hide cursor when not over container
+        cursorElementRef.current.style.visibility = 'hidden';
+        cursorElementRef.current.style.opacity = '0';
+        isVisibleRef.current = false;
       }
     };
 
@@ -138,7 +182,7 @@ const CustomCursor = memo(({
     return () => {
       document.removeEventListener('mousemove', updatePosition);
     };
-  }, [hotspot.x, hotspot.y]); // Only re-subscribe when hotspot changes
+  }, [hotspot.x, hotspot.y, containerRef]); // Re-subscribe when hotspot or container changes
 
   // EFFECT 2: Handle visibility and container enter/leave
   useEffect(() => {
