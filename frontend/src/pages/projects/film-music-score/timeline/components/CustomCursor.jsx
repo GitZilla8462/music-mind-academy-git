@@ -130,9 +130,10 @@ const CustomCursor = memo(({
       // CHROMEBOOK FIX: Check if mouse is over the loop library area
       // The loop library shows native cursor, so we must hide custom cursor there
       const loopLibrary = document.querySelector('.loop-library');
+      let isOverLoopLibrary = false;
       if (loopLibrary) {
         const rect = loopLibrary.getBoundingClientRect();
-        const isOverLoopLibrary = (
+        isOverLoopLibrary = (
           e.clientX >= rect.left &&
           e.clientX <= rect.right &&
           e.clientY >= rect.top &&
@@ -143,6 +144,10 @@ const CustomCursor = memo(({
           cursorElementRef.current.style.visibility = 'hidden';
           cursorElementRef.current.style.opacity = '0';
           isVisibleRef.current = false;
+          // DEBUG: Log when hiding due to LoopLibrary
+          if (e.isTrusted === false) {
+            console.log('🖱️ [CustomCursor] SYNTHETIC mousemove over LoopLibrary - hiding', { x: e.clientX, y: e.clientY });
+          }
           return;
         }
       }
@@ -158,6 +163,18 @@ const CustomCursor = memo(({
           e.clientY >= rect.top &&
           e.clientY <= rect.bottom
         );
+      }
+
+      // DEBUG: Log synthetic mousemove handling
+      if (e.isTrusted === false) {
+        console.log('🖱️ [CustomCursor] SYNTHETIC mousemove received', {
+          x: e.clientX,
+          y: e.clientY,
+          effectivelyEnabled: effectivelyEnabledRef.current,
+          isOverContainer,
+          isOverLoopLibrary,
+          willShow: effectivelyEnabledRef.current && isOverContainer
+        });
       }
 
       if (effectivelyEnabledRef.current && isOverContainer) {
@@ -187,6 +204,13 @@ const CustomCursor = memo(({
   // EFFECT 2: Handle visibility and container enter/leave
   useEffect(() => {
     const container = containerRef?.current;
+
+    // DEBUG: Log when effectivelyEnabled changes
+    console.log('🖱️ [CustomCursor] EFFECT 2 running', {
+      effectivelyEnabled,
+      hasContainer: !!container,
+      positionRef: positionRef.current
+    });
 
     // Helper to check if mouse is over container
     const isMouseOverContainer = () => {
