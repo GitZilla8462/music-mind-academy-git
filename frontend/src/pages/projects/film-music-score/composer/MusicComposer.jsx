@@ -810,31 +810,43 @@ const MusicComposer = ({
     return () => clearTimeout(timer);
   }, []);
 
-  // Fallback: hide loading screen after max 6 seconds even if audio isn't ready
+  // Fallback: hide loading screen after max 12 seconds even if audio/beats aren't ready
   // (browser may block audio without user gesture on page reload)
+  // Increased from 6s to 12s to allow time for custom beat re-rendering
   useEffect(() => {
     const fallbackTimer = setTimeout(() => {
       if (loadingScreenVisible) {
         console.log('⏱️ Loading screen fallback timeout - hiding anyway');
         setLoadingScreenVisible(false);
       }
-    }, 6000);
+    }, 12000);
 
     return () => clearTimeout(fallbackTimer);
   }, []);
 
-  // Hide loading screen when: minimum time passed AND video ready AND audio ready
+  // Hide loading screen when: minimum time passed AND video ready AND audio ready AND custom beats rendered
+  // FIXED: Wait for custom beat re-rendering to complete before hiding loading screen
+  // This prevents the 2-3 second lag on Chromebook after loading screen hides
   useEffect(() => {
     const isVideoReady = tutorialMode || (selectedVideo && !videoLoading);
-    const isFullyReady = isVideoReady && audioReady;
+
+    // Check if any custom beats still need rendering
+    const customBeatsNeedRender = placedLoops.some(loop =>
+      loop.type === 'custom-beat' &&
+      loop.pattern &&
+      loop.needsRender === true
+    );
+    const isCustomBeatsReady = !customBeatsNeedRender && !customBeatsRendering;
+
+    const isFullyReady = isVideoReady && audioReady && isCustomBeatsReady;
 
     if (loadingMinTimePassed && isFullyReady && loadingScreenVisible) {
-      // Extra delay to let cursor system warm up before revealing DAW
+      // Small delay to ensure everything is settled
       setTimeout(() => {
         setLoadingScreenVisible(false);
-      }, 800);
+      }, 300);
     }
-  }, [loadingMinTimePassed, selectedVideo, videoLoading, tutorialMode, loadingScreenVisible, audioReady]);
+  }, [loadingMinTimePassed, selectedVideo, videoLoading, tutorialMode, loadingScreenVisible, audioReady, placedLoops, customBeatsRendering]);
 
   return (
     <CursorProvider>
