@@ -424,14 +424,29 @@ const CustomCursor = memo(({
         top: 0,
         pointerEvents: 'none',
         zIndex: 99999,
+        // PERFORMANCE FIX: GPU optimization hints
+        willChange: 'transform',  // Hints browser to create compositing layer
+        contain: 'layout style',  // Isolates this element's reflows from rest of DOM
         // Initial position (off-screen)
         transform: `translate3d(${(initialPosition?.x || -100) - hotspot.x}px, ${(initialPosition?.y || -100) - hotspot.y}px, 0)`,
-        // CHROMEBOOK FIX: Removed backfaceVisibility as it can cause GPU compositing issues on Chromebook
       }}
     >
       {CursorSVG}
     </div>,
     document.body
+  );
+// PERFORMANCE FIX: Custom comparison to prevent re-renders from position changes
+// Position updates are handled via direct DOM manipulation, not React props
+}, (prevProps, nextProps) => {
+  // Return true if props are equal (should NOT re-render)
+  // Only re-render if cursorType, enabled, or initiallyVisible changes
+  // Ignore initialPosition changes - position is tracked via refs and DOM manipulation
+  return (
+    prevProps.cursorType === nextProps.cursorType &&
+    prevProps.enabled === nextProps.enabled &&
+    prevProps.initiallyVisible === nextProps.initiallyVisible &&
+    prevProps.name === nextProps.name
+    // Intentionally NOT comparing initialPosition or containerRef
   );
 });
 

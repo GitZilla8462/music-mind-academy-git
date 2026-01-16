@@ -111,14 +111,20 @@ const MusicComposer = ({
   const [melodyMakerOpen, setMelodyMakerOpen] = useState(false);
 
   // CHROMEBOOK FIX: Global custom cursor state
-  const [globalMousePos, setGlobalMousePos] = useState({ x: 0, y: 0 });
+  // PERFORMANCE FIX: Use refs instead of state to avoid re-renders on every mousemove
+  // React 18 batching doesn't help across separate mousemove events (60+/sec)
+  const globalMousePosRef = useRef({ x: 0, y: 0 });
+  const globalCursorTypeRef = useRef('default');
+  const showGlobalCursorRef = useRef(true);
+  // State only for values that need to trigger re-renders (cursor type changes)
   const [globalCursorType, setGlobalCursorType] = useState('default');
-  const [showGlobalCursor, setShowGlobalCursor] = useState(true);
   const dawContainerRef = useRef(null);
 
   // Loading screen state - show fun loading messages while DAW initializes underneath
   const [loadingMinTimePassed, setLoadingMinTimePassed] = useState(false);
   const [loadingScreenVisible, setLoadingScreenVisible] = useState(true);
+  // PERFORMANCE FIX: Ref to track hide timeout to prevent race condition
+  const loadingHideTimeoutRef = useRef(null);
   // Initialize with initialCustomLoops if provided, otherwise empty array
   // initialCustomLoops may come from StudentBeatMakerActivity saved beats
   const [customLoops, setCustomLoops] = useState(() => {
@@ -184,11 +190,13 @@ const MusicComposer = ({
   // Track mouse position and detect cursor type based on hovered element
   // SEAMLESS CURSOR: Custom cursor covers entire screen on Chromebook
   // Parent activities should add 'chromebook-hide-cursor' class to hide native cursor
+  // PERFORMANCE FIX: Use refs to avoid re-renders, only setState when cursor type changes
   useEffect(() => {
     if (!isChromebook) return;
 
     const handleMouseMove = (e) => {
-      setGlobalMousePos({ x: e.clientX, y: e.clientY });
+      // PERFORMANCE FIX: Update ref (no re-render) instead of state
+      globalMousePosRef.current = { x: e.clientX, y: e.clientY };
 
       // Detect cursor type from the element under the cursor
       const element = document.elementFromPoint(e.clientX, e.clientY);
@@ -212,25 +220,18 @@ const MusicComposer = ({
           el = el.parentElement;
         }
 
-        setShowGlobalCursor(!hasLocalCursor);
+        // PERFORMANCE FIX: Update ref instead of state
+        showGlobalCursorRef.current = !hasLocalCursor;
 
-        // If no data-cursor found, fall back to computed style
-        if (cursorType === 'default' && !hasLocalCursor) {
-          const computedStyle = window.getComputedStyle(element);
-          const cursorStyle = computedStyle.cursor;
+        // PERFORMANCE FIX: Removed getComputedStyle - it forces layout recalculation
+        // Cursor type detection now relies solely on data-cursor attributes
+        // Elements that need custom cursor types should add data-cursor="pointer" etc.
 
-          // Map CSS cursor values to our CustomCursor types
-          if (cursorStyle === 'pointer') cursorType = 'pointer';
-          else if (cursorStyle === 'grab') cursorType = 'grab';
-          else if (cursorStyle === 'grabbing') cursorType = 'grabbing';
-          else if (cursorStyle === 'ew-resize') cursorType = 'ew-resize';
-          else if (cursorStyle === 'col-resize') cursorType = 'col-resize';
-          else if (cursorStyle === 'row-resize') cursorType = 'row-resize';
-          else if (cursorStyle === 'crosshair') cursorType = 'crosshair';
-          // text, none, auto, default -> keep as 'default'
+        // PERFORMANCE FIX: Only call setState if cursor type actually changed
+        if (cursorType !== globalCursorTypeRef.current) {
+          globalCursorTypeRef.current = cursorType;
+          setGlobalCursorType(cursorType);
         }
-
-        setGlobalCursorType(cursorType);
       }
     };
 
@@ -238,7 +239,7 @@ const MusicComposer = ({
     const handleMouseLeave = (e) => {
       // Check if mouse actually left the document (not just moved to a child element)
       if (e.relatedTarget === null || e.relatedTarget.nodeName === 'HTML') {
-        setShowGlobalCursor(false);
+        showGlobalCursorRef.current = false;
       }
     };
 
@@ -813,16 +814,22 @@ const MusicComposer = ({
   // Fallback: hide loading screen after max 12 seconds even if audio/beats aren't ready
   // (browser may block audio without user gesture on page reload)
   // Increased from 6s to 12s to allow time for custom beat re-rendering
+  // PERFORMANCE FIX: Cancel any pending hide timeout to prevent race condition
   useEffect(() => {
     const fallbackTimer = setTimeout(() => {
       if (loadingScreenVisible) {
+        // Cancel any pending condition-based hide timeout
+        if (loadingHideTimeoutRef.current) {
+          clearTimeout(loadingHideTimeoutRef.current);
+          loadingHideTimeoutRef.current = null;
+        }
         console.log('⏱️ Loading screen fallback timeout - hiding anyway');
         setLoadingScreenVisible(false);
       }
     }, 12000);
 
     return () => clearTimeout(fallbackTimer);
-  }, []);
+  }, [loadingScreenVisible]);
 
   // Hide loading screen when: minimum time passed AND video ready AND audio ready AND custom beats rendered
   // FIXED: Wait for custom beat re-rendering to complete before hiding loading screen
@@ -858,8 +865,14 @@ const MusicComposer = ({
 
     if (loadingMinTimePassed && isFullyReady && loadingScreenVisible) {
       console.log('✅ All conditions met - hiding loading screen in 300ms');
+      // PERFORMANCE FIX: Store timeout in ref so it can be cancelled if fallback fires first
+      // Clear any existing timeout first to prevent multiple pending hides
+      if (loadingHideTimeoutRef.current) {
+        clearTimeout(loadingHideTimeoutRef.current);
+      }
       // Small delay to ensure everything is settled
-      setTimeout(() => {
+      loadingHideTimeoutRef.current = setTimeout(() => {
+        loadingHideTimeoutRef.current = null;
         setLoadingScreenVisible(false);
       }, 300);
     }
@@ -880,7 +893,7 @@ const MusicComposer = ({
           <GlobalCursorWithKey
             cursorType={globalCursorType}
             initiallyVisible={!loadingScreenVisible}
-            initialPosition={globalMousePos}
+            initialPosition={globalMousePosRef.current}
           />
         )}
 
