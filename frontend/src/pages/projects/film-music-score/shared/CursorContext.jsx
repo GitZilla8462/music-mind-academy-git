@@ -13,6 +13,19 @@ const isChromebook = typeof navigator !== 'undefined' && (
   (navigator.userAgentData?.platform === 'Chrome OS')
 );
 
+// DEBUG: Cursor state logging
+const DEBUG_CURSOR = true;
+const logCursor = (action, data = {}) => {
+  if (DEBUG_CURSOR) {
+    console.log(`🖱️ [Cursor] ${action}`, {
+      ...data,
+      bodyCursor: document.body.style.cursor,
+      isChromebook,
+      timestamp: new Date().toISOString().split('T')[1]
+    });
+  }
+};
+
 const CursorContext = createContext(null);
 
 export const useCursor = () => {
@@ -50,6 +63,21 @@ export const CursorProvider = ({ children }) => {
   // Native selects render outside React DOM, causing two cursors to appear
   const [isSelectOpen, setIsSelectOpen] = useState(false);
 
+  // DEBUG: Log state changes
+  useEffect(() => {
+    logCursor('STATE CHANGE', {
+      isCustomCursorEnabled,
+      isDraggingFromLibrary,
+      isSelectOpen,
+      cursorType
+    });
+  }, [isCustomCursorEnabled, isDraggingFromLibrary, isSelectOpen, cursorType]);
+
+  // DEBUG: Log on mount
+  useEffect(() => {
+    logCursor('CursorProvider MOUNTED', { isChromebook });
+  }, []);
+
   // Ref to track drag state without re-renders
   const dragStateRef = useRef({
     isDragging: false,
@@ -59,6 +87,7 @@ export const CursorProvider = ({ children }) => {
 
   // Disable custom cursor (called when HTML5 drag starts)
   const disableCustomCursor = useCallback(() => {
+    logCursor('disableCustomCursor CALLED (drag start)');
     dragStateRef.current.isDragging = true;
     dragStateRef.current.dragStartTime = Date.now();
     setIsCustomCursorEnabled(false);
@@ -67,6 +96,7 @@ export const CursorProvider = ({ children }) => {
     // Set grabbing cursor on body during drag
     if (isChromebook) {
       document.body.style.cursor = 'grabbing';
+      logCursor('disableCustomCursor SET body cursor to grabbing');
     }
   }, []);
 
@@ -74,12 +104,14 @@ export const CursorProvider = ({ children }) => {
   // CHROMEBOOK FIX: Use requestAnimationFrame instead of fixed timeouts
   // This syncs with the actual render cycle instead of guessing timing
   const enableCustomCursor = useCallback(() => {
+    logCursor('enableCustomCursor CALLED (drag end)');
     dragStateRef.current.isDragging = false;
 
     // CHROMEBOOK FIX: Immediately show default cursor to prevent invisible cursor gap
     // The custom cursor will take over once it's positioned
     if (isChromebook) {
       document.body.style.cursor = 'default';
+      logCursor('enableCustomCursor SET body cursor to default');
     }
 
     // Use requestAnimationFrame to sync with render cycle
@@ -87,6 +119,7 @@ export const CursorProvider = ({ children }) => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         if (!dragStateRef.current.isDragging) {
+          logCursor('enableCustomCursor RAF complete, re-enabling custom cursor');
           setIsCustomCursorEnabled(isChromebook);
           setDraggingFromLibrary(false);
         }
@@ -97,26 +130,33 @@ export const CursorProvider = ({ children }) => {
   // CHROMEBOOK FIX: Handle native select dropdown open/close
   // Native selects render outside React DOM, so we need to hide custom cursor
   const onSelectOpen = useCallback(() => {
+    logCursor('onSelectOpen CALLED (dropdown focused)');
     setIsSelectOpen(true);
     setIsCustomCursorEnabled(false);
     // CHROMEBOOK FIX: Ensure native cursor is visible when custom cursor is disabled
     if (isChromebook) {
       document.body.style.cursor = 'default';
+      logCursor('onSelectOpen SET body cursor to default');
     }
   }, []);
 
   const onSelectClose = useCallback(() => {
+    logCursor('onSelectClose CALLED (dropdown blurred)');
     setIsSelectOpen(false);
     // Re-enable custom cursor after select closes (with RAF for smooth transition)
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         // Only re-enable if not dragging
         if (!dragStateRef.current.isDragging) {
+          logCursor('onSelectClose RAF complete, re-enabling custom cursor');
           setIsCustomCursorEnabled(isChromebook);
           // Reset body cursor when custom cursor takes over
           if (isChromebook) {
             document.body.style.cursor = '';
+            logCursor('onSelectClose SET body cursor to empty string');
           }
+        } else {
+          logCursor('onSelectClose RAF complete, but still dragging - skipping re-enable');
         }
       });
     });
@@ -125,6 +165,12 @@ export const CursorProvider = ({ children }) => {
   // Global drag event listeners to catch drag end even if drop happens outside
   useEffect(() => {
     const handleDragEnd = (e) => {
+      logCursor('handleDragEnd EVENT fired', {
+        isDragging: dragStateRef.current.isDragging,
+        eventType: e.type,
+        clientX: e.clientX,
+        clientY: e.clientY
+      });
       if (dragStateRef.current.isDragging) {
         // Capture drop position so cursor can appear there (not where drag started)
         if (e && e.clientX !== undefined && e.clientY !== undefined) {
@@ -134,6 +180,7 @@ export const CursorProvider = ({ children }) => {
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
               requestAnimationFrame(() => {
+                logCursor('handleDragEnd dispatching synthetic mousemove');
                 const moveEvent = new MouseEvent('mousemove', {
                   clientX: e.clientX,
                   clientY: e.clientY,
