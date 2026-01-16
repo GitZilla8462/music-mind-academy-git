@@ -42,8 +42,8 @@
 
   <rect x="192" y="730" width="1536" height="100" rx="12" fill="#1e293b" stroke="#f59e0b" stroke-width="3"/>
   <text x="232" y="775" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#f59e0b" font-weight="bold">✓</text>
-  <text x="280" y="775" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="white" font-weight="bold">Use intentional contour</text>
-  <text x="280" y="815" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#94a3b8">ascending for excitement, descending for calm</text>
+  <text x="280" y="775" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="white" font-weight="bold">💾 Hit Save (top right) to keep your work.</text>
+  <text x="280" y="815" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#fbbf24">Your student work will only be saved locally to your Chromebook. You can find your saved assignment at musicmindacademy.com/join</text>
 
   <!-- Key reminder -->
   <rect x="192" y="900" width="1536" height="80" rx="12" fill="#374151" stroke="#fbbf24" stroke-width="2"/>

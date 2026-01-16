@@ -114,7 +114,9 @@ const CustomCursor = memo(({
 
   // LOADING SCREEN FIX: Track whether cursor is "activated" (allowed to show)
   // If initiallyVisible is false (during loading), cursor stays hidden until prop changes to true
-  const isActivatedRef = useRef(initiallyVisible);
+  // EXCEPTION: Cursors with containerRef (TIMELINE cursor) are always activated because they
+  // manage their own visibility via container bounds - they don't need loading screen logic
+  const isActivatedRef = useRef(containerRef ? true : initiallyVisible);
 
   // Combine local enabled prop with global context
   const effectivelyEnabled = enabled && isCustomCursorEnabled && !isDraggingFromLibrary;
