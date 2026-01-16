@@ -31,10 +31,14 @@
 
   <text x="192" y="570" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">2. Build your soundtrack using sectional loop form</text>
 
-  <text x="192" y="660" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">3. Use at least 5 different loops</text>
+  <text x="192" y="620" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">3. Use at least 5 different loops</text>
 
-  <text x="192" y="750" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#10b981">4. Create contrast between sections!</text>
+  <text x="192" y="700" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#e2e8f0">4. 💾 Hit Save (top right) to keep your work.</text>
+  <text x="230" y="750" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#fbbf24">Your student work will only be saved locally to your Chromebook.</text>
+  <text x="230" y="790" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#fbbf24">You can find your saved assignment at musicmindacademy.com/join</text>
+
+  <text x="192" y="870" font-family="Arial, Helvetica, sans-serif" font-size="48" fill="#10b981">5. Create contrast between sections!</text>
 
   <!-- Duration -->
-  <text x="192" y="920" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">10 minutes—Open your Chromebook and start composing.</text>
+  <text x="192" y="980" font-family="Arial, Helvetica, sans-serif" font-size="38" fill="#a5b4fc">10 minutes—Open your Chromebook and start composing.</text>
 </svg>

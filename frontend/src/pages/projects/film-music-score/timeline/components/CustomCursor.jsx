@@ -112,6 +112,10 @@ const CustomCursor = memo(({
   const isVisibleRef = useRef(initiallyVisible);
   const positionRef = useRef(initialPosition || { x: -100, y: -100 });
 
+  // LOADING SCREEN FIX: Track whether cursor is "activated" (allowed to show)
+  // If initiallyVisible is false (during loading), cursor stays hidden until prop changes to true
+  const isActivatedRef = useRef(initiallyVisible);
+
   // Combine local enabled prop with global context
   const effectivelyEnabled = enabled && isCustomCursorEnabled && !isDraggingFromLibrary;
 
@@ -121,6 +125,15 @@ const CustomCursor = memo(({
   // Store effectivelyEnabled in a ref so position tracking can access it without re-subscribing
   const effectivelyEnabledRef = useRef(effectivelyEnabled);
   effectivelyEnabledRef.current = effectivelyEnabled;
+
+  // LOADING SCREEN FIX: Watch for initiallyVisible changes (false -> true means loading finished)
+  // This activates the cursor and allows it to be shown
+  useEffect(() => {
+    if (initiallyVisible && !isActivatedRef.current) {
+      // Loading screen just finished - activate the cursor
+      isActivatedRef.current = true;
+    }
+  }, [initiallyVisible]);
 
   // EFFECT 1: ALWAYS track mouse position - never disabled
   // This ensures positionRef is accurate when cursor is re-enabled after dropdown/drag
@@ -190,7 +203,8 @@ const CustomCursor = memo(({
 
       // CHROMEBOOK FIX: Use effectivelyEnabled directly instead of ref to avoid race conditions
       // The effect now re-subscribes when effectivelyEnabled changes
-      if (effectivelyEnabled && isOverContainer) {
+      // LOADING SCREEN FIX: Also check isActivatedRef - cursor stays hidden during loading
+      if (effectivelyEnabled && isOverContainer && isActivatedRef.current) {
         const el = cursorElementRef.current;
         const x = e.clientX - hotspot.x;
         const y = e.clientY - hotspot.y;
@@ -333,7 +347,8 @@ const CustomCursor = memo(({
     // CHROMEBOOK FIX: Don't show custom cursor if mouse is over loop library
     // The loop library uses native cursor, so showing custom cursor there causes "two cursors"
     // Also don't show global cursor if over an element that handles its own cursor
-    if (isMouseOverLoopLibrary() || isMouseOverCursorHandledElement()) {
+    // LOADING SCREEN FIX: Also don't show if cursor hasn't been activated yet
+    if (isMouseOverLoopLibrary() || isMouseOverCursorHandledElement() || !isActivatedRef.current) {
       isVisibleRef.current = false;
       hideCursor();
       // Don't return early - still need to set up event listeners
@@ -349,7 +364,8 @@ const CustomCursor = memo(({
     const handleMouseEnter = (e) => {
       if (container?.contains(e.target) || e.target === container) {
         isVisibleRef.current = true;
-        if (effectivelyEnabledRef.current) {
+        // LOADING SCREEN FIX: Only show if cursor has been activated
+        if (effectivelyEnabledRef.current && isActivatedRef.current) {
           showCursor();
         }
       }
