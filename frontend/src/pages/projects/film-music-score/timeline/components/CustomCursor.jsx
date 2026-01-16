@@ -170,6 +170,13 @@ const CustomCursor = memo(({
       // CHROMEBOOK FIX: Use effectivelyEnabled directly instead of ref to avoid race conditions
       // The effect now re-subscribes when effectivelyEnabled changes
       if (effectivelyEnabled && isOverContainer) {
+        // CHROMEBOOK FIX: Force repaint when transitioning from hidden to visible
+        // This fixes Chrome compositor bug where element exists but isn't painted
+        if (!isVisibleRef.current) {
+          cursorElementRef.current.style.display = 'none';
+          void cursorElementRef.current.offsetHeight; // Force synchronous reflow
+          cursorElementRef.current.style.display = 'block';
+        }
         // Show and update cursor position
         // CHROMEBOOK FIX: Use setProperty with 'important' to override any CSS
         cursorElementRef.current.style.setProperty('visibility', 'visible', 'important');
@@ -236,8 +243,17 @@ const CustomCursor = memo(({
 
     // Helper to show/hide cursor
     // CHROMEBOOK FIX: Use setProperty with 'important' to override any CSS
+    // CHROMEBOOK FIX: Force browser repaint to fix Chrome compositor bug
+    // After dropdown closes, Chrome may not repaint fixed-position Portal elements
+    // Toggling display + reading offsetHeight forces a synchronous reflow
     const showCursor = () => {
       if (cursorElementRef.current) {
+        // Force repaint trick for Chrome compositor bug
+        // This fixes cursor disappearing after dropdown selection on Chromebook
+        cursorElementRef.current.style.display = 'none';
+        void cursorElementRef.current.offsetHeight; // Force synchronous reflow
+        cursorElementRef.current.style.display = 'block';
+
         cursorElementRef.current.style.setProperty('visibility', 'visible', 'important');
         cursorElementRef.current.style.setProperty('opacity', '1', 'important');
         cursorElementRef.current.style.setProperty('display', 'block', 'important');
