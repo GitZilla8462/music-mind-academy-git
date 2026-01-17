@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import { Clock, Minimize2, Maximize2 } from 'lucide-react';
+import { useTimerSound } from '../hooks/useTimerSound';
 
 const StudentActivityTimer = ({ sessionCode }) => {
   const [countdownTime, setCountdownTime] = useState(0);
@@ -13,6 +14,9 @@ const StudentActivityTimer = ({ sessionCode }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const lastFirebaseTime = useRef(null);
   const lastFirebaseActive = useRef(null);
+
+  // Timer sound hook (plays chime when timer ends)
+  const { isMuted, toggleMute, playTimerEndSound } = useTimerSound();
 
   // Format time as M:SS
   const formatTime = (seconds) => {
@@ -57,6 +61,8 @@ const StudentActivityTimer = ({ sessionCode }) => {
       setCountdownTime(prev => {
         if (prev <= 1) {
           setTimerActive(false);
+          // Play timer end sound
+          playTimerEndSound();
           return 0;
         }
         return prev - 1;
@@ -64,7 +70,7 @@ const StudentActivityTimer = ({ sessionCode }) => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [timerActive, countdownTime]);
+  }, [timerActive, countdownTime, playTimerEndSound]);
 
   // Don't render if no active timer
   if (!timerActive && countdownTime <= 0) {
@@ -78,23 +84,34 @@ const StudentActivityTimer = ({ sessionCode }) => {
   // Minimized view - just a small icon with time
   if (isMinimized) {
     return (
-      <button
-        onClick={() => setIsMinimized(false)}
-        className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-3 py-2 rounded-full shadow-lg border transition-all hover:scale-105 ${
+      <div
+        className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-3 py-2 rounded-full shadow-lg border transition-all ${
           isWarning
             ? 'bg-red-600 border-red-500 text-white'
             : isUrgent
             ? 'bg-amber-500 border-amber-400 text-white'
             : 'bg-gray-800/95 border-gray-700 text-white'
         }`}
-        title="Expand timer"
       >
-        <Clock size={18} className={isWarning ? 'animate-pulse' : ''} />
-        <span className={`font-mono font-bold ${isWarning ? 'animate-pulse' : ''}`}>
-          {formatTime(countdownTime)}
-        </span>
-        <Maximize2 size={14} className="opacity-70" />
-      </button>
+        <button
+          onClick={() => setIsMinimized(false)}
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          title="Expand timer"
+        >
+          <Clock size={18} className={isWarning ? 'animate-pulse' : ''} />
+          <span className={`font-mono font-bold ${isWarning ? 'animate-pulse' : ''}`}>
+            {formatTime(countdownTime)}
+          </span>
+          <Maximize2 size={14} className="opacity-70" />
+        </button>
+        <button
+          onClick={toggleMute}
+          className="p-1 rounded hover:bg-white/20 transition-colors"
+          title={isMuted ? 'Unmute timer sound' : 'Mute timer sound'}
+        >
+          {isMuted ? '🔇' : '🔔'}
+        </button>
+      </div>
     );
   }
 
@@ -109,19 +126,28 @@ const StudentActivityTimer = ({ sessionCode }) => {
           : 'bg-gray-800/95 border-gray-700'
       }`}
     >
-      {/* Header with minimize button */}
+      {/* Header with mute and minimize buttons */}
       <div className="flex items-center justify-between px-4 pt-3 pb-1">
         <div className="flex items-center gap-2 text-white/80 text-sm font-medium">
           <Clock size={16} />
           <span>Time Remaining</span>
         </div>
-        <button
-          onClick={() => setIsMinimized(true)}
-          className="p-1.5 rounded-lg hover:bg-white/20 text-white/70 hover:text-white transition-colors"
-          title="Minimize timer"
-        >
-          <Minimize2 size={16} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={toggleMute}
+            className="p-1.5 rounded-lg hover:bg-white/20 text-white/70 hover:text-white transition-colors"
+            title={isMuted ? 'Unmute timer sound' : 'Mute timer sound'}
+          >
+            {isMuted ? '🔇' : '🔔'}
+          </button>
+          <button
+            onClick={() => setIsMinimized(true)}
+            className="p-1.5 rounded-lg hover:bg-white/20 text-white/70 hover:text-white transition-colors"
+            title="Minimize timer"
+          >
+            <Minimize2 size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Timer display */}
