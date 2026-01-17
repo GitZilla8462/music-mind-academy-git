@@ -539,12 +539,24 @@ const SchoolBeneathActivity = ({
           <div className="flex items-center gap-4">
             {/* ✅ SAVE BUTTON */}
             {studentId && placedLoops.length > 0 && !viewMode && (
-              <button
-                onClick={() => handleManualSave()}
-                className="px-4 py-1.5 text-sm rounded bg-green-600 hover:bg-green-700 font-bold transition-colors"
-              >
-                💾 Save
-              </button>
+              <>
+                <button
+                  onClick={() => handleManualSave()}
+                  className="px-4 py-1.5 text-sm rounded bg-green-600 hover:bg-green-700 font-bold transition-colors"
+                >
+                  💾 Save
+                </button>
+                <button
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to start over? This will clear all your loops and cannot be undone.')) {
+                      setPlacedLoops([]);
+                    }
+                  }}
+                  className="px-4 py-1.5 text-sm rounded bg-red-600 hover:bg-red-700 font-bold transition-colors"
+                >
+                  🔄 Reset
+                </button>
+              </>
             )}
 
             {/* View reflection button (shows reflection modal over current composition) */}
