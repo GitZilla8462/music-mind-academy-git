@@ -781,8 +781,22 @@ const SportsCompositionActivity = ({
                 <button
                   onClick={() => {
                     if (window.confirm('Are you sure you want to start over? This will clear all your loops and cannot be undone.')) {
+                      // Clear state
                       setPlacedLoops([]);
-                      setResetKey(prev => prev + 1); // Force DAW remount
+
+                      // Clear all localStorage saves for this composition
+                      localStorage.removeItem(`mma-saved-sports-composition-${studentId}`);
+                      localStorage.removeItem(`mma-saved-${studentId}-sports-composition`);
+                      localStorage.removeItem(`autosave-${studentId}-sports-composition`);
+                      localStorage.removeItem(`sports-composition-${studentId}`);
+
+                      // Reset the loaded flag so it doesn't try to reload
+                      hasLoadedRef.current = false;
+
+                      // Force DAW remount
+                      setResetKey(prev => prev + 1);
+
+                      console.log('🔄 Composition reset - cleared state and localStorage');
                     }
                   }}
                   className="px-4 py-1.5 text-sm rounded bg-red-600 hover:bg-red-700 font-bold transition-colors"
