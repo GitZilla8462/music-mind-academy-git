@@ -141,6 +141,7 @@ const SportsCompositionActivity = ({
   
   // Composition state
   const [placedLoops, setPlacedLoops] = useState([]);
+  const [resetKey, setResetKey] = useState(0); // Used to force DAW remount on reset
   const [videoDuration, setVideoDuration] = useState(null);
   const [isLoadingVideo, setIsLoadingVideo] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -774,6 +775,7 @@ const SportsCompositionActivity = ({
                   onClick={() => {
                     if (window.confirm('Are you sure you want to start over? This will clear all your loops and cannot be undone.')) {
                       setPlacedLoops([]);
+                      setResetKey(prev => prev + 1); // Force DAW remount
                     }
                   }}
                   className="px-4 py-1.5 text-sm rounded bg-red-600 hover:bg-red-700 font-bold transition-colors"
@@ -818,7 +820,7 @@ const SportsCompositionActivity = ({
       <div className="flex-1 min-h-0">
         {selectedVideo ? (
           <MusicComposer
-            key={`sports-composer-${selectedVideo?.id || 'none'}`}
+            key={`sports-composer-${selectedVideo?.id || 'none'}-${resetKey}`}
             onLoopDropCallback={handleLoopPlaced}
             onLoopDeleteCallback={handleLoopDeleted}
             onLoopUpdateCallback={handleLoopUpdated}
