@@ -50,6 +50,7 @@ const SchoolBeneathActivity = ({
   // Track last save command timestamp to detect new commands
   const lastSaveCommandRef = useRef(null);
   const componentMountTimeRef = useRef(Date.now());
+  const isResettingRef = useRef(false); // Prevents unmount auto-save during reset
   const [teacherSaveToast, setTeacherSaveToast] = useState(false);
   
   // Reflection flow states
@@ -234,6 +235,11 @@ const SchoolBeneathActivity = ({
   // This ensures work is saved even if teacher triggers save while student is on another activity
   useEffect(() => {
     return () => {
+      // Skip auto-save if reset was just triggered (prevents re-saving cleared work)
+      if (isResettingRef.current) {
+        console.log('⏭️ Skipping unmount auto-save - reset in progress');
+        return;
+      }
       if (isSessionMode && !viewMode && placedLoops.length > 0 && studentId) {
         console.log('💾 Auto-saving composition on unmount...');
         // Direct save logic since handleManualSave might be stale
@@ -557,6 +563,9 @@ const SchoolBeneathActivity = ({
                 <button
                   onClick={() => {
                     if (window.confirm('Are you sure you want to start over? This will clear all your loops and cannot be undone.')) {
+                      // Set flag to prevent unmount auto-save from re-saving the old loops
+                      isResettingRef.current = true;
+
                       // Clear state
                       setPlacedLoops([]);
 
@@ -568,6 +577,11 @@ const SchoolBeneathActivity = ({
 
                       // Force DAW remount
                       setResetKey(prev => prev + 1);
+
+                      // Clear the reset flag after remount completes
+                      setTimeout(() => {
+                        isResettingRef.current = false;
+                      }, 100);
 
                       console.log('🔄 Composition reset - cleared state and all localStorage');
                     }

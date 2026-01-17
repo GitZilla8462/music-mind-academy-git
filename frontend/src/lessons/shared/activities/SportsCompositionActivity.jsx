@@ -159,6 +159,7 @@ const SportsCompositionActivity = ({
   
   // ✅ FIXED: Use ref instead of sessionStorage so it resets on page refresh
   const hasLoadedRef = useRef(false);
+  const isResettingRef = useRef(false); // Prevents unmount auto-save during reset
   
   // Initialize student ID using the new utility
   useEffect(() => {
@@ -353,6 +354,11 @@ const SportsCompositionActivity = ({
     if (!isSessionMode || viewMode) return;
 
     return () => {
+      // Skip auto-save if reset was just triggered (prevents re-saving cleared work)
+      if (isResettingRef.current) {
+        console.log('⏭️ Skipping unmount auto-save - reset in progress');
+        return;
+      }
       // Save on unmount if we have loops
       if (placedLoopsRef.current.length > 0 && studentIdRef.current && selectedVideoRef.current) {
         console.log('💾 Saving on unmount (safety net)...');
@@ -781,6 +787,9 @@ const SportsCompositionActivity = ({
                 <button
                   onClick={() => {
                     if (window.confirm('Are you sure you want to start over? This will clear all your loops and cannot be undone.')) {
+                      // Set flag to prevent unmount auto-save from re-saving the old loops
+                      isResettingRef.current = true;
+
                       // Clear state
                       setPlacedLoops([]);
 
@@ -792,6 +801,11 @@ const SportsCompositionActivity = ({
 
                       // Force DAW remount
                       setResetKey(prev => prev + 1);
+
+                      // Clear the reset flag after remount completes
+                      setTimeout(() => {
+                        isResettingRef.current = false;
+                      }, 100);
 
                       console.log('🔄 Composition reset - cleared state and localStorage');
                     }

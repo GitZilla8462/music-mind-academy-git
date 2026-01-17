@@ -141,6 +141,7 @@ const CityCompositionActivity = ({
   // Track save command from teacher
   const lastSaveCommandRef = useRef(null);
   const componentMountTimeRef = useRef(Date.now());
+  const isResettingRef = useRef(false); // Prevents unmount auto-save during reset
 
   // Teacher save toast
   const [teacherSaveToast, setTeacherSaveToast] = useState(false);
@@ -289,6 +290,11 @@ const CityCompositionActivity = ({
   // This ensures work is saved even if teacher triggers save while student is on another activity
   useEffect(() => {
     return () => {
+      // Skip auto-save if reset was just triggered (prevents re-saving cleared work)
+      if (isResettingRef.current) {
+        console.log('⏭️ Skipping unmount auto-save - reset in progress');
+        return;
+      }
       if (isSessionMode && !viewMode && placedLoops.length > 0 && studentId && selectedVideo) {
         console.log('💾 Auto-saving city composition on unmount...');
         const savedData = {
@@ -701,19 +707,26 @@ const CityCompositionActivity = ({
                 <button
                   onClick={() => {
                     if (window.confirm('Are you sure you want to start over? This will clear all your loops and cannot be undone.')) {
+                      // Set flag to prevent unmount auto-save from re-saving the old loops
+                      isResettingRef.current = true;
+
                       // Clear state
                       setPlacedLoops([]);
 
-                      // Clear all localStorage saves for this composition
-                      localStorage.removeItem(`mma-saved-city-soundscapes-${studentId}`);
-                      localStorage.removeItem(`city-composition-${studentId}`);
-                      localStorage.removeItem(`autosave-${studentId}-city-composition`);
+                      // Clear ALL localStorage saves for this composition (handles all key patterns)
+                      clearAllCompositionSaves('city-composition', studentId);
+                      clearAllCompositionSaves('city-soundscapes', studentId);
 
                       // Reset the loaded flag so it doesn't try to reload
                       hasLoadedRef.current = false;
 
                       // Force DAW remount
                       setResetKey(prev => prev + 1);
+
+                      // Clear the reset flag after remount completes
+                      setTimeout(() => {
+                        isResettingRef.current = false;
+                      }, 100);
 
                       console.log('🔄 Composition reset - cleared state and localStorage');
                     }

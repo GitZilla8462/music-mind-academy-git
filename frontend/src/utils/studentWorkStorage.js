@@ -253,7 +253,10 @@ export const clearAllCompositionSaves = (activityId, studentId = null) => {
   // Pattern 4: Autosave format - autosave-{studentId}-{activityId}
   localStorage.removeItem(`autosave-${id}-${activityId}`);
 
-  // Pattern 5: Clear from centralized auto-save object (student-compositions-autosave)
+  // Pattern 5: MusicComposer internal save - composition-{activityId}
+  localStorage.removeItem(`composition-${activityId}`);
+
+  // Pattern 6: Clear from centralized auto-save object (student-compositions-autosave)
   try {
     const autoSaveKey = 'student-compositions-autosave';
     const existingSaves = JSON.parse(localStorage.getItem(autoSaveKey) || '{}');

@@ -17,7 +17,7 @@ import { useAutoSave } from '../../../hooks/useAutoSave.jsx';
 import TwoStarsAndAWishActivity from './two-stars-and-a-wish/TwoStarsAndAWishActivity';
 import { useTimerSound } from '../hooks/useTimerSound';
 import { useSession } from '../../../context/SessionContext';
-import { saveStudentWork, loadStudentWork, getStudentId } from '../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, getStudentId, clearAllCompositionSaves } from '../../../utils/studentWorkStorage';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
 // Storage keys for Lesson 5
@@ -191,6 +191,8 @@ const GameCompositionActivity = ({
 
   // Use ref so it resets on page refresh
   const hasLoadedRef = useRef(false);
+
+  const isResettingRef = useRef(false); // Prevents unmount auto-save during reset
 
   // Refs for current values (used by Firebase listener and unmount save)
   const placedLoopsRef = useRef(placedLoops);
@@ -386,6 +388,11 @@ const GameCompositionActivity = ({
     if (!isSessionMode || viewMode) return;
 
     return () => {
+      // Skip auto-save if reset was just triggered (prevents re-saving cleared work)
+      if (isResettingRef.current) {
+        console.log('⏭️ Skipping unmount auto-save - reset in progress');
+        return;
+      }
       if (placedLoopsRef.current.length > 0 && studentIdRef.current && selectedVideoRef.current) {
         console.log('💾 Saving on unmount (safety net)...');
         const videoToSave = selectedVideoRef.current;
@@ -752,19 +759,25 @@ const GameCompositionActivity = ({
                 <button
                   onClick={() => {
                     if (window.confirm('Are you sure you want to start over? This will clear all your loops and cannot be undone.')) {
+                      // Set flag to prevent unmount auto-save from re-saving the old loops
+                      isResettingRef.current = true;
+
                       // Clear state
                       setPlacedLoops([]);
 
-                      // Clear all localStorage saves for this composition
-                      localStorage.removeItem(`mma-saved-game-composition-${studentId}`);
-                      localStorage.removeItem(`mma-saved-${studentId}-game-composition`);
-                      localStorage.removeItem(`autosave-${studentId}-game-composition`);
+                      // Clear ALL localStorage saves for this composition (handles all key patterns)
+                      clearAllCompositionSaves('game-composition', studentId);
 
                       // Reset the loaded flag so it doesn't try to reload
                       hasLoadedRef.current = false;
 
                       // Force DAW remount
                       setResetKey(prev => prev + 1);
+
+                      // Clear the reset flag after remount completes
+                      setTimeout(() => {
+                        isResettingRef.current = false;
+                      }, 100);
 
                       console.log('🔄 Composition reset - cleared state and localStorage');
                     }
