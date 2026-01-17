@@ -89,6 +89,7 @@ const SchoolBeneathActivity = ({
   
   // Composition state
   const [placedLoops, setPlacedLoops] = useState([]);
+  const [resetKey, setResetKey] = useState(0); // Used to force DAW remount on reset
   const [videoDuration, setVideoDuration] = useState(null);
   const [isLoadingVideo, setIsLoadingVideo] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -550,6 +551,7 @@ const SchoolBeneathActivity = ({
                   onClick={() => {
                     if (window.confirm('Are you sure you want to start over? This will clear all your loops and cannot be undone.')) {
                       setPlacedLoops([]);
+                      setResetKey(prev => prev + 1); // Force DAW remount
                     }
                   }}
                   className="px-4 py-1.5 text-sm rounded bg-red-600 hover:bg-red-700 font-bold transition-colors"
@@ -598,7 +600,7 @@ const SchoolBeneathActivity = ({
       {/* DAW */}
       <div className="flex-1 min-h-0">
         <MusicComposer
-          key={showBonusGame ? 'bonus-active' : 'composition-active'}  // âœ… Only change when switching views, not on every loop
+          key={`composition-${resetKey}-${showBonusGame ? 'bonus' : 'active'}`}  // Includes resetKey to force remount on reset
           onLoopDropCallback={handleLoopPlaced}
           onLoopDeleteCallback={handleLoopDeleted}
           onLoopUpdateCallback={handleLoopUpdated}
