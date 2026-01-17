@@ -6,13 +6,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
-import { saveCompositionToServer, loadAutoSavedComposition } from '../../film-music-project/lesson1/compositionServerUtils';
+import { saveCompositionToServer, loadAutoSavedComposition, deleteAutoSave } from '../../film-music-project/lesson1/compositionServerUtils';
 import { useAutoSave, AutoSaveIndicator } from '../../../hooks/useAutoSave.jsx';
 import ReflectionModal from './two-stars-and-a-wish/ReflectionModal';
 import { useTimerSound } from '../hooks/useTimerSound';
 import NameThatLoopActivity from './layer-detective/NameThatLoopActivity';
 import { useSession } from '../../../context/SessionContext';
-import { saveStudentWork, loadStudentWork } from '../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, clearAllCompositionSaves } from '../../../utils/studentWorkStorage';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
 const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes
@@ -560,10 +560,8 @@ const SchoolBeneathActivity = ({
                       // Clear state
                       setPlacedLoops([]);
 
-                      // Clear all localStorage saves for this composition
-                      localStorage.removeItem(`mma-saved-${storageKey}-${studentId}`);
-                      localStorage.removeItem(`mma-saved-${studentId}-${storageKey}`);
-                      localStorage.removeItem(`autosave-${studentId}-${storageKey}`);
+                      // Clear ALL localStorage saves for this composition (handles all key patterns)
+                      clearAllCompositionSaves(storageKey, studentId);
 
                       // Reset the loaded flag so it doesn't try to reload
                       hasLoadedRef.current = false;
@@ -571,7 +569,7 @@ const SchoolBeneathActivity = ({
                       // Force DAW remount
                       setResetKey(prev => prev + 1);
 
-                      console.log('🔄 Composition reset - cleared state and localStorage');
+                      console.log('🔄 Composition reset - cleared state and all localStorage');
                     }
                   }}
                   className="px-4 py-1.5 text-sm rounded bg-red-600 hover:bg-red-700 font-bold transition-colors"

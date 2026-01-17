@@ -226,6 +226,46 @@ export const migrateOldSaves = (studentId = null) => {
   if (migratedCount > 0) {
     console.log(`🔄 Migration complete: ${migratedCount} items migrated`);
   }
-  
+
   return migratedCount;
+};
+
+/**
+ * Clear ALL localStorage saves for a specific activity and student.
+ * This handles all the different key patterns that have been used across the codebase.
+ * Use this in reset buttons to ensure a complete clean slate.
+ *
+ * @param {string} activityId - The activity ID (e.g., 'school-beneath', 'sports-composition')
+ * @param {string} [studentId] - Optional student ID (uses current if not provided)
+ */
+export const clearAllCompositionSaves = (activityId, studentId = null) => {
+  const id = studentId || getStudentId();
+
+  // Pattern 1: New format - mma-saved-{studentId}-{activityId}
+  localStorage.removeItem(`mma-saved-${id}-${activityId}`);
+
+  // Pattern 2: Alternate order - mma-saved-{activityId}-{studentId}
+  localStorage.removeItem(`mma-saved-${activityId}-${id}`);
+
+  // Pattern 3: Legacy format - {activityId}-{studentId}
+  localStorage.removeItem(`${activityId}-${id}`);
+
+  // Pattern 4: Autosave format - autosave-{studentId}-{activityId}
+  localStorage.removeItem(`autosave-${id}-${activityId}`);
+
+  // Pattern 5: Clear from centralized auto-save object (student-compositions-autosave)
+  try {
+    const autoSaveKey = 'student-compositions-autosave';
+    const existingSaves = JSON.parse(localStorage.getItem(autoSaveKey) || '{}');
+    const saveKey = `${id}-${activityId}`;
+
+    if (existingSaves[saveKey]) {
+      delete existingSaves[saveKey];
+      localStorage.setItem(autoSaveKey, JSON.stringify(existingSaves));
+    }
+  } catch (error) {
+    console.error('Error clearing centralized auto-save:', error);
+  }
+
+  console.log(`🗑️ Cleared all saves for ${activityId} (student: ${id})`);
 };

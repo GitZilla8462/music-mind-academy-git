@@ -22,6 +22,7 @@ import { useTimerSound } from '../hooks/useTimerSound';
 import LoopLab from './loop-lab/LoopLabActivity';
 import { useSession } from '../../../context/SessionContext';
 import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson2/lesson2StorageUtils';
+import { clearAllCompositionSaves } from '../../../utils/studentWorkStorage';
 
 const CITY_COMPOSITION_DEADLINE = 10 * 60 * 1000; // 10 minutes
 

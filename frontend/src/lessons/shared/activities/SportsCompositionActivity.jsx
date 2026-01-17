@@ -19,7 +19,7 @@ import { useTimerSound } from '../hooks/useTimerSound';
 import NameThatLoopActivity from './layer-detective/NameThatLoopActivity';
 import { useSession } from '../../../context/SessionContext';
 import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson4/lesson4StorageUtils';
-import { saveStudentWork, loadStudentWork, getStudentId } from '../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, getStudentId, clearAllCompositionSaves } from '../../../utils/studentWorkStorage';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
 // Load saved beats from StudentBeatMakerActivity
@@ -784,11 +784,8 @@ const SportsCompositionActivity = ({
                       // Clear state
                       setPlacedLoops([]);
 
-                      // Clear all localStorage saves for this composition
-                      localStorage.removeItem(`mma-saved-sports-composition-${studentId}`);
-                      localStorage.removeItem(`mma-saved-${studentId}-sports-composition`);
-                      localStorage.removeItem(`autosave-${studentId}-sports-composition`);
-                      localStorage.removeItem(`sports-composition-${studentId}`);
+                      // Clear ALL localStorage saves for this composition (handles all key patterns)
+                      clearAllCompositionSaves('sports-composition', studentId);
 
                       // Reset the loaded flag so it doesn't try to reload
                       hasLoadedRef.current = false;

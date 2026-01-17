@@ -35,18 +35,31 @@ export const useTimerSound = () => {
     }
   }, [isMuted]);
 
-  // Toggle mute state
-  const toggleMute = useCallback(() => {
+  // Toggle mute state and prime audio context (user gesture unlocks audio)
+  const toggleMute = useCallback(async () => {
     setIsMuted(prev => !prev);
+
+    // Prime the audio context on user interaction (this unlocks browser audio)
+    try {
+      if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
+        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContextRef.current.state === 'suspended') {
+        await audioContextRef.current.resume();
+        console.log('🔊 Audio context unlocked by user interaction');
+      }
+    } catch (e) {
+      console.warn('Failed to prime audio context:', e);
+    }
   }, []);
 
-  // Play a gentle two-tone chime using Web Audio API
-  const playTimerEndSound = useCallback(() => {
+  // Play an attention-grabbing pulse alert using Web Audio API
+  const playTimerEndSound = useCallback(async () => {
     if (isMuted) return;
 
     try {
-      // Create or reuse audio context
-      if (!audioContextRef.current) {
+      // Create audio context on demand
+      if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
         audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
       }
 
@@ -54,39 +67,52 @@ export const useTimerSound = () => {
 
       // Resume context if suspended (browser autoplay policy)
       if (ctx.state === 'suspended') {
-        ctx.resume();
+        await ctx.resume();
       }
+
+      console.log('🔔 Playing timer sound, context state:', ctx.state);
 
       const now = ctx.currentTime;
 
-      // Create a gentle two-note chime (C5 -> E5 -> G5)
-      const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
-      const noteDuration = 0.3;
-      const noteGap = 0.15;
+      // Create beep-beep-beep pattern, repeated 3 times
+      const frequency = 660; // E5 - pleasant but noticeable
+      const beepDuration = 0.15;
+      const beepGap = 0.1;
+      const groupGap = 0.35;
+      const groupLength = (beepDuration + beepGap) * 3;
 
-      notes.forEach((freq, i) => {
+      // Pattern: beep-beep-beep ... beep-beep-beep ... beep-beep-beep
+      const beepTimes = [];
+      for (let group = 0; group < 3; group++) {
+        for (let beep = 0; beep < 3; beep++) {
+          beepTimes.push(group * (groupLength + groupGap) + beep * (beepDuration + beepGap));
+        }
+      }
+
+      beepTimes.forEach((offset) => {
         const oscillator = ctx.createOscillator();
         const gainNode = ctx.createGain();
 
         oscillator.connect(gainNode);
         gainNode.connect(ctx.destination);
 
-        // Use a soft sine wave
+        // Use sine wave for smooth, pleasant tone
         oscillator.type = 'sine';
-        oscillator.frequency.value = freq;
+        oscillator.frequency.value = frequency;
 
-        // Envelope: quick attack, gentle decay
-        const startTime = now + (i * (noteDuration + noteGap));
+        // Smooth attack and release - LOUD volume
+        const startTime = now + offset;
         gainNode.gain.setValueAtTime(0, startTime);
-        gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.05); // Attack
-        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + noteDuration); // Decay
+        gainNode.gain.linearRampToValueAtTime(0.8, startTime + 0.03); // Smooth attack, loud
+        gainNode.gain.setValueAtTime(0.8, startTime + beepDuration - 0.04);
+        gainNode.gain.linearRampToValueAtTime(0, startTime + beepDuration); // Smooth release
 
         oscillator.start(startTime);
-        oscillator.stop(startTime + noteDuration + 0.1);
+        oscillator.stop(startTime + beepDuration + 0.05);
       });
 
     } catch (error) {
-      console.warn('Failed to play timer sound:', error);
+      console.error('🔇 Failed to play timer sound:', error);
     }
   }, [isMuted]);
 

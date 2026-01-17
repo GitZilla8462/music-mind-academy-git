@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { saveSurveyResponse, saveMidPilotSurvey, saveFinalPilotSurvey } from '../../../firebase/analytics';
 import { getDatabase, ref, onValue, update } from 'firebase/database';
+import { useTimerSound } from '../hooks/useTimerSound';
 
 // ============================================
 // PRESENTATION CONTENT COMPONENT
@@ -1351,6 +1352,9 @@ const TeacherLessonView = ({
     isPaused: false
   });
 
+  // Timer sound hook (plays chime when timer ends)
+  const { isMuted, toggleMute, playTimerEndSound } = useTimerSound();
+
   // Resizable panel state
   const [sidebarWidth, setSidebarWidth] = useState(280);
   const [bottomPanelHeight, setBottomPanelHeight] = useState(180);
@@ -1697,6 +1701,8 @@ const TeacherLessonView = ({
     const interval = setInterval(() => {
       setClassroomTimer(prev => {
         if (prev.timeRemaining <= 1) {
+          // Play timer end sound
+          playTimerEndSound();
           return {
             ...prev,
             isRunning: false,
@@ -1712,7 +1718,7 @@ const TeacherLessonView = ({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [classroomTimer.isRunning]);
+  }, [classroomTimer.isRunning, playTimerEndSound]);
 
   // Check if current stage is a saveable activity (composition or listening map)
   const isSaveableActivity = currentStageData?.type === 'activity' &&
@@ -2242,16 +2248,22 @@ const TeacherLessonView = ({
 
           {/* Floating Timer - Top Right (2x size) */}
           {timerVisible && (
-            <div className="absolute top-4 right-4 z-50 bg-gray-900/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-700 p-4 min-w-[180px]">
+            <div className={`absolute top-4 right-4 z-50 backdrop-blur-sm rounded-2xl shadow-2xl p-4 min-w-[180px] transition-colors ${
+              classroomTimer.timeRemaining === 0 && !classroomTimer.isRunning
+                ? 'bg-red-600 border-2 border-red-400 animate-pulse'
+                : 'bg-gray-900/95 border border-gray-700'
+            }`}>
               {/* Timer Display */}
               <div className={`text-4xl font-bold font-mono text-center mb-2 ${
-                classroomTimer.isRunning
-                  ? classroomTimer.timeRemaining <= 60
-                    ? 'text-red-400'
-                    : 'text-white'
-                  : 'text-gray-300'
+                classroomTimer.timeRemaining === 0 && !classroomTimer.isRunning
+                  ? 'text-white'
+                  : classroomTimer.isRunning
+                    ? classroomTimer.timeRemaining <= 60
+                      ? 'text-red-400'
+                      : 'text-white'
+                    : 'text-gray-300'
               }`}>
-                {formatClassroomTime(classroomTimer.timeRemaining)}
+                {classroomTimer.timeRemaining === 0 ? "TIME'S UP!" : formatClassroomTime(classroomTimer.timeRemaining)}
               </div>
 
               {/* Controls Row */}
@@ -2304,6 +2316,15 @@ const TeacherLessonView = ({
                   title="Reset"
                 >
                   <RotateCcw size={20} />
+                </button>
+
+                {/* Mute/Unmute Sound */}
+                <button
+                  onClick={toggleMute}
+                  className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+                  title={isMuted ? 'Unmute timer sound' : 'Mute timer sound'}
+                >
+                  {isMuted ? '🔇' : '🔔'}
                 </button>
 
                 {/* Minimize */}
