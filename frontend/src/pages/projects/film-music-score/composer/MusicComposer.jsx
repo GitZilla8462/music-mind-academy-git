@@ -528,6 +528,56 @@ const MusicComposer = ({
     isPassive
   });
 
+  // ============================================================================
+  // IMMEDIATE SAVE - For delete operations to prevent race condition with refresh
+  // Must be defined before useLoopHandlers so it can be passed as a prop
+  // ============================================================================
+  const saveCompositionImmediately = useCallback((updatedPlacedLoops) => {
+    const saveKey = compositionKey
+      || assignmentId
+      || videoId
+      || preselectedVideo?.id
+      || preselectedVideo?.videoPath
+      || 'default-composition';
+
+    const hasContent = updatedPlacedLoops.length > 0 || customLoops.length > 0;
+
+    if (!hasContent) {
+      // If no content left, remove the saved composition entirely
+      localStorage.removeItem(`composition-${saveKey}`);
+      console.log('🗑️ Removed empty composition from localStorage');
+      return;
+    }
+
+    // Save custom loops with pattern data (exclude blob URLs which don't persist)
+    const customLoopsToSave = customLoops.map(loop => ({
+      id: loop.id,
+      name: loop.name,
+      instrument: loop.instrument,
+      mood: loop.mood,
+      color: loop.color,
+      category: loop.category,
+      duration: loop.duration,
+      type: loop.type,
+      bpm: loop.bpm,
+      kit: loop.kit,
+      steps: loop.steps,
+      pattern: loop.pattern
+    }));
+
+    const compositionData = {
+      selectedVideo,
+      placedLoops: updatedPlacedLoops,
+      submissionNotes,
+      videoId,
+      customLoops: customLoopsToSave,
+      lastModified: new Date().toISOString()
+    };
+
+    localStorage.setItem(`composition-${saveKey}`, JSON.stringify(compositionData));
+    console.log(`💾 Immediate save: ${updatedPlacedLoops.length} loops`);
+  }, [compositionKey, assignmentId, videoId, preselectedVideo, selectedVideo, submissionNotes, customLoops]);
+
   // Loop handlers
   const {
     handleLoopDrop,
@@ -568,7 +618,8 @@ const MusicComposer = ({
     scheduleLoops,
     previewLoop,
     stopPreview,
-    tutorialMode
+    tutorialMode,
+    saveCompositionImmediately
   });
 
   // All useEffect logic - NOW WITH compositionKey and customLoops

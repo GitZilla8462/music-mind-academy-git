@@ -24,7 +24,8 @@ export const useLoopHandlers = ({
   scheduleLoops,
   previewLoop,
   stopPreview,
-  tutorialMode
+  tutorialMode,
+  saveCompositionImmediately
 }) => {
   
   // 🔥 FIX: Add ref to track scheduling timeout
@@ -142,19 +143,26 @@ export const useLoopHandlers = ({
     const updatedLoops = placedLoops.filter(loop => loop.id !== loopId);
     setPlacedLoops(updatedLoops);
     setHasUnsavedChanges(true);
-    
+
     if (selectedLoop === loopId) {
       setSelectedLoop(null);
     }
-    
+
     if (updatedLoops.length > 0) {
       scheduleLoops(updatedLoops, selectedVideo?.duration || 60, trackStates);
     }
-    
+
+    // 🔥 FIX: Save immediately to prevent race condition with page refresh
+    // The debounced auto-save (2 second delay) can miss deletions if user refreshes quickly
+    if (saveCompositionImmediately) {
+      saveCompositionImmediately(updatedLoops);
+    }
+
     showToast?.('Loop removed', 'info');
   }, [
-    selectedLoop, showToast, placedLoops, scheduleLoops, selectedVideo?.duration, 
-    trackStates, onLoopDeleteCallback, setPlacedLoops, setHasUnsavedChanges, setSelectedLoop
+    selectedLoop, showToast, placedLoops, scheduleLoops, selectedVideo?.duration,
+    trackStates, onLoopDeleteCallback, setPlacedLoops, setHasUnsavedChanges, setSelectedLoop,
+    saveCompositionImmediately
   ]);
 
   const handleLoopSelect = useCallback((loopId) => {
