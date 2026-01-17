@@ -9,6 +9,7 @@ import MusicComposer from "../../../pages/projects/film-music-score/composer/Mus
 import { saveCompositionToServer, loadAutoSavedComposition } from '../../film-music-project/lesson1/compositionServerUtils';
 import { useAutoSave, AutoSaveIndicator } from '../../../hooks/useAutoSave.jsx';
 import ReflectionModal from './two-stars-and-a-wish/ReflectionModal';
+import { useTimerSound } from '../hooks/useTimerSound';
 import NameThatLoopActivity from './layer-detective/NameThatLoopActivity';
 import { useSession } from '../../../context/SessionContext';
 import { saveStudentWork, loadStudentWork } from '../../../utils/studentWorkStorage';
@@ -98,7 +99,10 @@ const SchoolBeneathActivity = ({
   const autoAdvanceCalledRef = useRef(false);
   const hasLoadedRef = useRef(false);
   const isSavingRef = useRef(false);
-  
+
+  // Timer sound hook (plays chime when timer ends)
+  const { isMuted, toggleMute, playTimerEndSound } = useTimerSound();
+
   // ============================================================================
   // AUTO-SAVE
   // ============================================================================
@@ -346,7 +350,10 @@ const SchoolBeneathActivity = ({
       if (newRemaining <= 0 && !autoAdvanceCalledRef.current) {
         autoAdvanceCalledRef.current = true;
         clearInterval(timerRef.current);
-        
+
+        // Play timer end sound
+        playTimerEndSound();
+
         if (onComplete) {
           setTimeout(() => onComplete(), 2000);
         }
@@ -356,8 +363,8 @@ const SchoolBeneathActivity = ({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [lessonStartTime, viewMode, isSessionMode, onComplete]);
-  
+  }, [lessonStartTime, onComplete, viewMode, isSessionMode, playTimerEndSound]);
+
   // ============================================================================
   // VIDEO DURATION DETECTION
   // ============================================================================
@@ -581,9 +588,16 @@ const SchoolBeneathActivity = ({
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-gray-400">Time:</span>
                 <span className="font-mono">{formatTime(timeRemaining)}</span>
+                <button
+                  onClick={toggleMute}
+                  className="p-1 rounded hover:bg-gray-700 transition-colors"
+                  title={isMuted ? 'Unmute timer sound' : 'Mute timer sound'}
+                >
+                  {isMuted ? '🔇' : '🔔'}
+                </button>
               </div>
             )}
-            
+
             {/* View mode back button */}
             {viewMode && (
               <button

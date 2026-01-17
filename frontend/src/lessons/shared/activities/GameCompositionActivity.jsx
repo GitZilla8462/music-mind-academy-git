@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
 import { useAutoSave } from '../../../hooks/useAutoSave.jsx';
 import TwoStarsAndAWishActivity from './two-stars-and-a-wish/TwoStarsAndAWishActivity';
+import { useTimerSound } from '../hooks/useTimerSound';
 import { useSession } from '../../../context/SessionContext';
 import { saveStudentWork, loadStudentWork, getStudentId } from '../../../utils/studentWorkStorage';
 import { getDatabase, ref, onValue } from 'firebase/database';
@@ -181,6 +182,9 @@ const GameCompositionActivity = ({
   const timerRef = useRef(null);
   const autoAdvanceCalledRef = useRef(false);
   const isSavingRef = useRef(false);
+
+  // Timer sound hook (plays chime when timer ends)
+  const { isMuted, toggleMute, playTimerEndSound } = useTimerSound();
 
   // Custom melodies from StudentMelodyMakerActivity (passed to DAW as initialCustomLoops)
   const [savedStudentMelodies, setSavedStudentMelodies] = useState(() => loadSavedMelodies());
@@ -528,6 +532,9 @@ const GameCompositionActivity = ({
         autoAdvanceCalledRef.current = true;
         clearInterval(timerRef.current);
 
+        // Play timer end sound
+        playTimerEndSound();
+
         if (onComplete) {
           setTimeout(() => onComplete(), 2000);
         }
@@ -537,7 +544,7 @@ const GameCompositionActivity = ({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [lessonStartTime, onComplete, viewMode, isSessionMode]);
+  }, [lessonStartTime, onComplete, viewMode, isSessionMode, playTimerEndSound]);
 
   const formatTime = (ms) => {
     if (!ms || ms < 0) return '0:00';
@@ -764,6 +771,13 @@ const GameCompositionActivity = ({
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-gray-400">Time:</span>
                 <span className="font-mono">{formatTime(timeRemaining)}</span>
+                <button
+                  onClick={toggleMute}
+                  className="p-1 rounded hover:bg-gray-700 transition-colors"
+                  title={isMuted ? 'Unmute timer sound' : 'Mute timer sound'}
+                >
+                  {isMuted ? '🔇' : '🔔'}
+                </button>
               </div>
             )}
 

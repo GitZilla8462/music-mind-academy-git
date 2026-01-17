@@ -16,6 +16,7 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer.jsx";
 import { useAutoSave } from '../../../hooks/useAutoSave.jsx';
 import WildlifeReflectionModal from './two-stars-and-a-wish/WildlifeReflectionModal.jsx';
+import { useTimerSound } from '../hooks/useTimerSound';
 import LoopLabActivity from './loop-lab/LoopLabActivity';
 import { useSession } from '../../../context/SessionContext.jsx';
 // Note: Using wildlife-specific storage key instead of shared lesson4 utils
@@ -131,7 +132,10 @@ const WildlifeCompositionActivity = ({
   const [saveMessage, setSaveMessage] = useState(null);
   const timerRef = useRef(null);
   const autoAdvanceCalledRef = useRef(false);
-  
+
+  // Timer sound hook (plays chime when timer ends)
+  const { isMuted, toggleMute, playTimerEndSound } = useTimerSound();
+
   // Use ref instead of sessionStorage so it resets on page refresh
   const hasLoadedRef = useRef(false);
   const isSavingRef = useRef(false);
@@ -502,7 +506,10 @@ const WildlifeCompositionActivity = ({
       if (newRemaining <= 0 && !autoAdvanceCalledRef.current) {
         autoAdvanceCalledRef.current = true;
         clearInterval(timerRef.current);
-        
+
+        // Play timer end sound
+        playTimerEndSound();
+
         if (onComplete) {
           setTimeout(() => onComplete(), 2000);
         }
@@ -512,8 +519,8 @@ const WildlifeCompositionActivity = ({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [lessonStartTime, onComplete, viewMode, isSessionMode]);
-  
+  }, [lessonStartTime, onComplete, viewMode, isSessionMode, playTimerEndSound]);
+
   const formatTime = (ms) => {
     if (!ms || ms < 0) return '0:00';
     const totalSeconds = Math.floor(ms / 1000);
@@ -748,9 +755,16 @@ const WildlifeCompositionActivity = ({
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-gray-400">Time:</span>
                 <span className="font-mono">{formatTime(timeRemaining)}</span>
+                <button
+                  onClick={toggleMute}
+                  className="p-1 rounded hover:bg-gray-700 transition-colors"
+                  title={isMuted ? 'Unmute timer sound' : 'Mute timer sound'}
+                >
+                  {isMuted ? '🔇' : '🔔'}
+                </button>
               </div>
             )}
-            
+
             {viewMode && (
               <button
                 onClick={() => {

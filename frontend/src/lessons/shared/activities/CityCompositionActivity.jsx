@@ -18,6 +18,7 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
 import { useAutoSave } from '../../../hooks/useAutoSave.jsx';
 import CityReflectionModal from './two-stars-and-a-wish/CityReflectionModal';
+import { useTimerSound } from '../hooks/useTimerSound';
 import LoopLab from './loop-lab/LoopLabActivity';
 import { useSession } from '../../../context/SessionContext';
 import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson2/lesson2StorageUtils';
@@ -128,7 +129,10 @@ const CityCompositionActivity = ({
   const [saveMessage, setSaveMessage] = useState(null);
   const timerRef = useRef(null);
   const autoAdvanceCalledRef = useRef(false);
-  
+
+  // Timer sound hook (plays chime when timer ends)
+  const { isMuted, toggleMute, playTimerEndSound } = useTimerSound();
+
   // ✅ FIXED: Use ref instead of sessionStorage so it resets on page refresh
   const hasLoadedRef = useRef(false);
   const isSavingRef = useRef(false);
@@ -476,7 +480,10 @@ const CityCompositionActivity = ({
       if (newRemaining <= 0 && !autoAdvanceCalledRef.current) {
         autoAdvanceCalledRef.current = true;
         clearInterval(timerRef.current);
-        
+
+        // Play timer end sound
+        playTimerEndSound();
+
         if (onComplete) {
           setTimeout(() => onComplete(), 2000);
         }
@@ -486,7 +493,7 @@ const CityCompositionActivity = ({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [lessonStartTime, onComplete, viewMode, isSessionMode]);
+  }, [lessonStartTime, onComplete, viewMode, isSessionMode, playTimerEndSound]);
   
   const formatTime = (ms) => {
     if (!ms || ms < 0) return '0:00';
@@ -721,6 +728,13 @@ const CityCompositionActivity = ({
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-gray-400">Time:</span>
                 <span className="font-mono">{formatTime(timeRemaining)}</span>
+                <button
+                  onClick={toggleMute}
+                  className="p-1 rounded hover:bg-gray-700 transition-colors"
+                  title={isMuted ? 'Unmute timer sound' : 'Mute timer sound'}
+                >
+                  {isMuted ? '🔇' : '🔔'}
+                </button>
               </div>
             )}
             
