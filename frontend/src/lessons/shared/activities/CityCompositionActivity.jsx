@@ -716,6 +716,10 @@ const CityCompositionActivity = ({
                       // Clear ALL localStorage saves for this composition (handles all key patterns)
                       clearAllCompositionSaves('city-composition', studentId);
                       clearAllCompositionSaves('city-soundscapes', studentId);
+                      // Also clear MusicComposer's internal save key (includes video ID)
+                      if (selectedVideo?.id) {
+                        clearAllCompositionSaves(`city-composition-${selectedVideo.id}`, studentId);
+                      }
 
                       // Reset the loaded flag so it doesn't try to reload
                       hasLoadedRef.current = false;

@@ -795,6 +795,10 @@ const SportsCompositionActivity = ({
 
                       // Clear ALL localStorage saves for this composition (handles all key patterns)
                       clearAllCompositionSaves('sports-composition', studentId);
+                      // Also clear MusicComposer's internal save key (uses video ID as key)
+                      if (selectedVideo?.id) {
+                        clearAllCompositionSaves(selectedVideo.id, studentId);
+                      }
 
                       // Reset the loaded flag so it doesn't try to reload
                       hasLoadedRef.current = false;

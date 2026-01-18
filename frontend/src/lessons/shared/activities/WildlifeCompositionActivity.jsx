@@ -742,6 +742,10 @@ const WildlifeCompositionActivity = ({
                       // Clear ALL localStorage saves for this composition (handles all key patterns)
                       clearAllCompositionSaves('epic-wildlife', studentId);
                       clearAllCompositionSaves('epic-wildlife-composition', studentId);
+                      // Also clear MusicComposer's internal save key (includes video ID)
+                      if (selectedVideo?.id) {
+                        clearAllCompositionSaves(`epic-wildlife-composition-${selectedVideo.id}`, studentId);
+                      }
 
                       // Reset the loaded flag so it doesn't try to reload
                       hasLoadedRef.current = false;
