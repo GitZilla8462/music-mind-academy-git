@@ -888,22 +888,24 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
           {/* Pre-listening */}
           {gamePhase === 'setup' && totalRounds && currentMood && (
             <div className="text-center">
-              <div className="text-9xl mb-4">🎧</div>
-              <h2 className="text-6xl font-black mb-4">Listen to the Full Song</h2>
-              <div className="inline-flex items-center gap-3 bg-white/10 rounded-full px-6 py-3 mb-6">
-                <span className="text-4xl">{MOOD_INFO[currentMood]?.emoji}</span>
-                <span className="text-3xl font-bold" style={{ color: MOOD_INFO[currentMood]?.color }}>{currentMood}</span>
-                <button onClick={handleRerollMood} className="ml-2 text-white/50 hover:text-white"><Shuffle size={24} /></button>
-              </div>
-              <div className="bg-white/10 rounded-2xl p-6 max-w-2xl mx-auto mb-6">
-                <div className="grid grid-cols-4 gap-4">
-                  {Object.entries(SECTION_INFO).map(([key, info]) => (
-                    <div key={key} className="p-4 rounded-xl text-center" style={{ backgroundColor: `${info.color}30` }}>
-                      <div className="text-4xl mb-1">{info.emoji}</div>
-                      <div className="font-bold text-xl" style={{ color: info.color }}>{info.label}</div>
-                      <div className="text-white/60 text-lg">{sectionAudio?.[key]?.length || 0} layers</div>
-                    </div>
-                  ))}
+              <h2 className="text-6xl font-black mb-6">Listen to the Full Song</h2>
+              <div className="bg-white/10 rounded-2xl p-6 max-w-3xl mx-auto mb-6">
+                <div className="grid grid-cols-5 gap-4">
+                  {[
+                    { key: 'intro', label: 'INTRO' },
+                    { key: 'a', label: 'A' },
+                    { key: 'aPrime', label: "A'" },
+                    { key: 'a', label: 'A' },
+                    { key: 'outro', label: 'OUTRO' }
+                  ].map((section, idx) => {
+                    const info = SECTION_INFO[section.key];
+                    return (
+                      <div key={idx} className="p-4 rounded-xl text-center" style={{ backgroundColor: `${info.color}30` }}>
+                        <div className="font-bold text-xl" style={{ color: info.color }}>{section.label}</div>
+                        <div className="text-white/60 text-lg">{sectionAudio?.[section.key]?.length || 0} layers</div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
               <div className="flex items-center justify-center gap-4">
@@ -911,7 +913,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                   <Play size={40} /> Start Listening
                 </button>
                 <button onClick={() => { setGamePhase('preQuiz'); updateGame({ gamePhase: 'preQuiz' }); }}
-                  className="px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-lg opacity-50 hover:opacity-100">🔧 Skip</button>
+                  className="px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-lg opacity-50 hover:opacity-100">Skip</button>
               </div>
             </div>
           )}
