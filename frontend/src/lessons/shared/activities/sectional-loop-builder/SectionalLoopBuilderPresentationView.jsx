@@ -880,9 +880,9 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
           {/* Pre-listening */}
           {gamePhase === 'setup' && totalRounds && currentMood && (
             <div className="text-center">
-              <h2 className="text-6xl font-black mb-6">Listen to the Full Song</h2>
-              <div className="bg-white/10 rounded-2xl p-6 max-w-3xl mx-auto mb-6">
-                <div className="grid grid-cols-5 gap-4">
+              <h2 className="text-6xl font-black mb-8">Listen to the Full Song</h2>
+              <div className="bg-white/10 rounded-2xl p-8 max-w-5xl mx-auto mb-8">
+                <div className="grid grid-cols-5 gap-6">
                   {[
                     { key: 'intro', label: 'INTRO' },
                     { key: 'a', label: 'A' },
@@ -892,9 +892,9 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                   ].map((section, idx) => {
                     const info = SECTION_INFO[section.key];
                     return (
-                      <div key={idx} className="p-4 rounded-xl text-center" style={{ backgroundColor: `${info.color}30` }}>
-                        <div className="font-bold text-xl" style={{ color: info.color }}>{section.label}</div>
-                        <div className="text-white/60 text-lg">{sectionAudio?.[section.key]?.length || 0} layers</div>
+                      <div key={idx} className="p-6 rounded-2xl text-center" style={{ backgroundColor: `${info.color}30` }}>
+                        <div className="font-black text-4xl mb-2" style={{ color: info.color }}>{section.label}</div>
+                        <div className="text-white/70 text-2xl">{sectionAudio?.[section.key]?.length || 0} layers</div>
                       </div>
                     );
                   })}
