@@ -42,7 +42,7 @@ export const summarySlides = {
   },
 
   sectionalLoopBuilder: {
-    title: "Sectional Loop Builder Game",
+    title: "Section Safari Game",
     icon: "🎮",
     estimatedTime: "10 minutes",
     points: [
@@ -109,7 +109,7 @@ export const summarySlides = {
 // ========================================
 export const assignmentPanels = {
   sectionalLoopBuilder: {
-    title: "Sectional Loop Builder Game",
+    title: "Section Safari Game",
     requirements: [
       {
         id: "listen",
@@ -320,7 +320,7 @@ export const reflectionActivity = {
 // ========================================
 export const sectionalLoopBuilderContent = {
   instructions: {
-    title: "🎮 Sectional Loop Builder",
+    title: "🎮 Section Safari",
     subtitle: "Build the Wildlife Score",
     overview: "Listen to mystery clips and place them in the correct order to build the song structure.",
     mainSteps: [

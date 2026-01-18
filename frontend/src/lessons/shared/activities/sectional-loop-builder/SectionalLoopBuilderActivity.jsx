@@ -21,7 +21,7 @@ const ActivityBanner = () => (
   <div className="bg-gradient-to-r from-green-800 to-teal-800 px-4 py-2 flex items-center justify-center gap-2 border-b border-green-600/50">
     <Globe size={18} className="text-green-300" />
     <span className="text-green-100 font-semibold text-sm">Epic Wildlife</span>
-    <span className="text-green-300/70 text-xs">• Sectional Loop Builder</span>
+    <span className="text-green-300/70 text-xs">• Section Safari</span>
   </div>
 );
 
@@ -248,7 +248,7 @@ const DemoModeGame = () => {
       <div className="h-screen bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 flex flex-col items-center justify-center p-6 text-white">
         <style>{styles}</style>
         <div className="text-6xl mb-4">🎮</div>
-        <h1 className="text-3xl font-bold mb-2">Sectional Loop Builder</h1>
+        <h1 className="text-3xl font-bold mb-2">Section Safari</h1>
         <p className="text-lg text-white/70 mb-2">Teacher Demo Mode</p>
         
         <div className="bg-white/10 rounded-xl p-4 mb-6 max-w-md">
@@ -1325,9 +1325,9 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
               </div>
             </div>
 
-            {/* Round/Clip info */}
+            {/* Question info */}
             <div className="text-center mb-3">
-              <div className="text-sm text-white/60">Round {currentRound} • Clip {currentClipIndex + 1}/5</div>
+              <div className="text-sm text-white/60">Question {totalClipsPlayed} of 10</div>
               <div className="text-2xl font-bold">🎧 Tap your answer!</div>
             </div>
 
@@ -1431,7 +1431,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
                   </div>
                   <div>
                     <div className="font-bold" style={{ color: playerColor }}>{playerName}</div>
-                    <div className="text-xs text-white/60">Round {currentRound} • Clip {currentClipIndex + 1}/5</div>
+                    <div className="text-xs text-white/60">Question {totalClipsPlayed} of 10</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1596,7 +1596,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
           )}
           
             <div className="text-white/60 text-sm">
-              {currentClipIndex < 3 ? 'Next clip coming...' : 'Round summary coming...'}
+              {totalClipsPlayed < 10 ? 'Next question coming...' : 'Final results coming...'}
             </div>
           </div>
           </div>
@@ -1606,7 +1606,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     );
   }
 
-  // Round Summary
+  // Halfway checkpoint (after question 5)
   if (gamePhase === 'roundSummary') {
     return (
       <>
@@ -1615,7 +1615,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
           <ActivityBanner />
           <div className="flex-1 flex flex-col items-center justify-center p-6">
             <div className="text-5xl mb-4">📊</div>
-            <h1 className="text-3xl font-bold mb-2">Round {currentRound} Complete!</h1>
+            <h1 className="text-3xl font-bold mb-2">Halfway There!</h1>
 
             <div className="bg-white/10 rounded-2xl p-6 text-center mb-4">
               <div className="text-lg text-white/70 mb-2">Your Score</div>
@@ -1634,7 +1634,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
             </div>
 
             <div className="text-white/60">
-              {currentRound < totalRounds ? 'Next round starting soon...' : 'Final results coming...'}
+              5 more questions to go...
             </div>
           </div>
         </div>

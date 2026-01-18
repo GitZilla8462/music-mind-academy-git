@@ -358,7 +358,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     setCurrentSection(section);
     setGamePhase('guessing');
 
-    const newTotalClips = (roundNum - 1) * 4 + 1;
+    const newTotalClips = (roundNum - 1) * 5 + 1;
     setTotalClipsPlayed(newTotalClips);
 
     // Set up Safari for this clip (same logic as startClipGuessing)
@@ -870,19 +870,17 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
       <div className={`grid ${showLeaderboard ? 'grid-cols-3' : 'grid-cols-1'} gap-3 flex-1 min-h-0`}>
         <div className={`${showLeaderboard ? 'col-span-2' : ''} ${hideHeader ? '' : 'bg-black/20'} rounded-2xl p-6 flex items-center justify-center min-h-0`}>
           
-          {/* Setup - choose rounds */}
+          {/* Setup - auto-select 10 questions (2 rounds x 5 clips) */}
           {gamePhase === 'setup' && !totalRounds && (
             <div className="text-center">
               <Settings size={100} className="mx-auto mb-6 text-white/50" />
-              <h2 className="text-5xl font-bold mb-4">How many rounds?</h2>
-              <p className="text-2xl text-white/70 mb-8">Each round: 4 sections (randomized)</p>
+              <h2 className="text-5xl font-bold mb-4">Ready to Start?</h2>
+              <p className="text-2xl text-white/70 mb-8">10 questions • Listen and identify the section!</p>
               <div className="flex gap-6 justify-center">
-                {[1, 2, 3].map(n => (
-                  <button key={n} onClick={() => handleSelectRounds(n)}
-                    className="px-10 py-5 bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 rounded-2xl text-3xl font-bold hover:scale-105 transition-all">
-                    {n} Round{n > 1 ? 's' : ''}
-                  </button>
-                ))}
+                <button onClick={() => handleSelectRounds(2)}
+                  className="px-10 py-5 bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 rounded-2xl text-3xl font-bold hover:scale-105 transition-all">
+                  Start Game
+                </button>
               </div>
             </div>
           )}
@@ -923,22 +921,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
             <div className="text-center flex flex-col items-center justify-center">
               <div className="text-9xl mb-8">🎧</div>
               <h1 className="text-6xl font-black mb-12">Listen to the following 5 sections!</h1>
-              <button 
-                onClick={() => { setGamePhase('listenIntro2'); updateGame({ gamePhase: 'listenIntro2', mood: currentMood }); }}
-                className="px-12 py-5 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-3xl font-bold hover:scale-105 transition-all"
-              >
-                Next →
-              </button>
-            </div>
-          )}
-
-          {/* Listen Intro Screen 2 */}
-          {gamePhase === 'listenIntro2' && (
-            <div className="text-center flex flex-col items-center justify-center">
-              <div className="text-9xl mb-8">🎵</div>
-              <h1 className="text-6xl font-black mb-4">What instruments do you hear</h1>
-              <h1 className="text-6xl font-black mb-12">in each section?</h1>
-              <button 
+              <button
                 onClick={() => { setGamePhase('listenIntro3'); updateGame({ gamePhase: 'listenIntro3', mood: currentMood }); }}
                 className="px-12 py-5 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-3xl font-bold hover:scale-105 transition-all"
               >
@@ -946,6 +929,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
               </button>
             </div>
           )}
+
 
           {/* Listen Intro Screen 3 - Safari Directions */}
           {gamePhase === 'listenIntro3' && (
@@ -984,41 +968,62 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
           {gamePhase === 'listening' && (
             <div className="text-center w-full">
               {/* Directions at top - clean, white, big */}
-              <h1 className="text-5xl font-bold text-white mb-10">
+              <h1 className="text-5xl font-bold text-white mb-8">
                 Listen for drums, strings, brass, synths... Count the layers!
               </h1>
-              
-              {/* Section Cards - 5 cards: INTRO, A, A', A, OUTRO */}
-              <div className="flex justify-center gap-4 max-w-6xl mx-auto mb-8">
-                {SONG_STRUCTURE.map((pos, idx) => {
-                  const info = SECTION_INFO[pos.section];
-                  const isPlaying = currentPlayPosition === idx;
-                  return (
-                    <div 
-                      key={idx}
-                      className={`p-6 rounded-2xl text-center transition-all duration-300 flex-1 ${
-                        isPlaying ? 'ring-4 ring-white scale-105 shadow-lg' : ''
-                      }`}
-                      style={{ 
-                        backgroundColor: isPlaying ? `${info.color}60` : `${info.color}25`,
-                        borderColor: info.color,
-                        borderWidth: '3px'
-                      }}
-                    >
-                      <div className="text-3xl font-black" style={{ color: info.color }}>{info.label}</div>
 
-                      <div className="text-4xl font-bold text-white mt-4">{info.layers} {info.layers === 1 ? 'layer' : 'layers'}</div>
-                      
-                      {isPlaying && (
-                        <div className="mt-3 text-lg font-bold text-white bg-white/20 rounded-full px-4 py-2">
-                          🔊 NOW PLAYING
+              {/* Section Cards - 5 cards: INTRO, A, A', A, OUTRO with loop names */}
+              <div className="flex justify-center gap-3 max-w-6xl mx-auto mb-6">
+                {(() => {
+                  // Define loops for each section position
+                  const sectionLoops = [
+                    { section: 'intro', loops: ['Heroic Drums', 'Heroic Strings'] },
+                    { section: 'a', loops: ['Heroic Drums', 'Heroic Strings', 'Heroic Keys'] },
+                    { section: 'aPrime', loops: ['Heroic Drums', 'Heroic Strings', 'Heroic Keys', 'Heroic Brass'] },
+                    { section: 'a', loops: ['Heroic Drums', 'Heroic Strings', 'Heroic Keys'] },
+                    { section: 'outro', loops: ['Heroic Drums'] }
+                  ];
+
+                  return sectionLoops.map((item, idx) => {
+                    const info = SECTION_INFO[item.section];
+                    const isPlaying = currentPlayPosition === idx;
+                    return (
+                      <div
+                        key={idx}
+                        className={`p-4 rounded-2xl text-center transition-all duration-300 flex-1 min-w-0 ${
+                          isPlaying ? 'ring-4 ring-white scale-105 shadow-lg' : ''
+                        }`}
+                        style={{
+                          backgroundColor: isPlaying ? `${info.color}60` : `${info.color}25`,
+                          borderColor: info.color,
+                          borderWidth: '3px'
+                        }}
+                      >
+                        <div className="text-2xl font-black mb-3" style={{ color: info.color }}>{info.label}</div>
+
+                        {/* Loop names listed vertically */}
+                        <div className="space-y-1">
+                          {item.loops.map((loopName, loopIdx) => (
+                            <div
+                              key={loopIdx}
+                              className="text-sm font-medium text-white/90 bg-black/20 rounded px-2 py-1"
+                            >
+                              {loopName}
+                            </div>
+                          ))}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+
+                        {isPlaying && (
+                          <div className="mt-3 text-sm font-bold text-white bg-white/20 rounded-full px-3 py-1">
+                            🔊 NOW PLAYING
+                          </div>
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
               </div>
-              
+
               <button onClick={() => { stopAudio(); setGamePhase('preQuiz'); updateGame({ gamePhase: 'preQuiz' }); }}
                 className="px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-lg opacity-50 hover:opacity-100">🔧 Skip</button>
             </div>
@@ -1029,19 +1034,22 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
             <div className="text-center">
               <div className="text-9xl mb-6">🎯</div>
               <h1 className="text-6xl font-black mb-4">Get Ready!</h1>
-              <p className="text-3xl text-white/70 mb-8">Question 1 of 5 • What section is this?</p>
+              <p className="text-3xl text-white/70 mb-8">10 questions • What section is this?</p>
               <button onClick={() => startRound(1)} className="px-10 py-5 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl text-3xl font-bold flex items-center gap-3 mx-auto hover:scale-105 transition-all">
-                <Play size={40} /> Play Clip 1
+                <Play size={40} /> Question 1
               </button>
             </div>
           )}
 
           {/* Guessing */}
           {gamePhase === 'guessing' && (
-            <div className="text-center relative w-full">
-              {/* Round Indicator - top right */}
-              <div className="absolute top-0 right-0 text-xl font-bold text-white/60 z-10 bg-black/30 px-3 py-1 rounded-lg">Round {currentRound}/{totalRounds} • Clip {currentClipIndex + 1}/5</div>
-              
+            <div className="text-center relative w-full self-start">
+              {/* Question Indicator - top right */}
+              <div className="absolute top-0 right-0 text-xl font-bold text-white/60 z-10 bg-black/30 px-3 py-1 rounded-lg">Question {totalClipsPlayed} of 10</div>
+
+              {/* Main question */}
+              <div className="text-5xl font-black text-white mb-4">What section is this?</div>
+
               {/* Safari Timer - big countdown */}
               {safariHunters.length > 0 && (
                 <div className="mb-4">
@@ -1052,7 +1060,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                   </div>
                 </div>
               )}
-              
+
               {/* Safari Hunters Display */}
               {safariHunters.length > 0 && (
                 <div className="flex justify-center gap-4 mb-4">
@@ -1065,9 +1073,6 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                   ))}
                 </div>
               )}
-              
-              <div className="text-6xl font-black mb-2">🎧 LISTEN!</div>
-              <div className="text-2xl text-yellow-300 mb-4">What section is this?</div>
               
               {/* Section Options - visible to students and teacher */}
               <div className="grid grid-cols-4 gap-4 max-w-4xl mx-auto mb-4">
@@ -1100,8 +1105,8 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
           {/* Revealed */}
           {gamePhase === 'revealed' && (
             <div className="text-center relative w-full">
-              {/* Round Indicator - top right */}
-              <div className="absolute top-0 right-0 text-xl font-bold text-white/60 z-10 bg-black/30 px-3 py-1 rounded-lg">Round {currentRound}/{totalRounds} • Clip {currentClipIndex + 1}/5</div>
+              {/* Question Indicator - top right */}
+              <div className="absolute top-0 right-0 text-xl font-bold text-white/60 z-10 bg-black/30 px-3 py-1 rounded-lg">Question {totalClipsPlayed} of 10</div>
 
               {revealStep >= 1 && revealStep < 2 && <div className="text-7xl anim-drumroll">🥁</div>}
               {revealStep >= 2 && (
@@ -1172,7 +1177,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
               {newLeader && revealStep >= 5 && <div className="mt-2 text-xl text-yellow-400 anim-pop">👑 New leader: {newLeader}!</div>}
               {revealStep >= 2 && (
                 <button onClick={nextClip} className="mt-4 px-10 py-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all">
-                  {currentClipIndex >= 4 ? 'Round Complete →' : `Play Clip ${currentClipIndex + 2} →`}
+                  {totalClipsPlayed >= 10 ? 'See Final Results →' : totalClipsPlayed === 5 ? 'Halfway Point →' : `Question ${totalClipsPlayed + 1} →`}
                 </button>
               )}
             </div>
@@ -1181,8 +1186,8 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
           {/* Power Pick */}
           {gamePhase === 'powerPick' && (
             <div className="text-center relative w-full">
-              {/* Round Indicator - top right */}
-              <div className="absolute top-0 right-0 text-xl font-bold text-white/60 z-10 bg-black/30 px-3 py-1 rounded-lg">Round {currentRound}/{totalRounds} • Clip {currentClipIndex + 1}/5</div>
+              {/* Question Indicator - top right */}
+              <div className="absolute top-0 right-0 text-xl font-bold text-white/60 z-10 bg-black/30 px-3 py-1 rounded-lg">Question {totalClipsPlayed} of 10</div>
 
               <div className="text-7xl mb-4">✨</div>
               <h2 className="text-4xl font-black mb-4">Power-Up Time!</h2>
@@ -1201,20 +1206,20 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
               </div>
               <div>
                 <button onClick={startNextClipAfterPowerPick} className="px-10 py-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all">
-                  ▶️ Play Clip {currentClipIndex + 1}
+                  ▶️ Question {totalClipsPlayed}
                 </button>
               </div>
             </div>
           )}
 
-          {/* Round Summary / Finished */}
+          {/* Halfway / Finished */}
           {(gamePhase === 'roundSummary' || gamePhase === 'finished') && (
             <div className="text-center">
-              {currentRound >= totalRounds ? (
+              {totalClipsPlayed >= 10 ? (
                 <>
                   <div className="text-9xl mb-6">🏆</div>
                   <h2 className="text-5xl font-black mb-4">Game Complete!</h2>
-                  <p className="text-2xl text-white/70 mb-8">Great job everyone!</p>
+                  <p className="text-2xl text-white/70 mb-8">Great job everyone! 10 questions done!</p>
                   <button
                     onClick={() => onAdvanceLesson?.()}
                     className="px-10 py-5 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-3 mx-auto"
@@ -1226,9 +1231,10 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
               ) : (
                 <>
                   <div className="text-8xl mb-6">🎉</div>
-                  <h2 className="text-5xl font-black mb-6">Round {currentRound} Complete!</h2>
+                  <h2 className="text-5xl font-black mb-6">Halfway There!</h2>
+                  <p className="text-2xl text-white/70 mb-4">5 questions down, 5 to go!</p>
                   <button onClick={nextRoundOrFinish} className="px-10 py-5 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all">
-                    Start Round {currentRound + 1} →
+                    Continue to Question 6 →
                   </button>
                 </>
               )}

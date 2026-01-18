@@ -169,7 +169,7 @@ const MusicLoopsInMediaHub = () => {
       activities: [
         { title: 'Introduction', description: 'Song form and sectional loop structure (Intro → A → A\' → Outro)', time: 3 },
         { title: 'Sectional Loop Form', description: 'Learn how A\' differs from A while staying connected', time: 3 },
-        { title: 'Sectional Loop Builder', description: 'Game: Listen to clips and identify which section is playing. Leaderboard on projector!', time: 12, activityType: 'sectional-loop-builder' },
+        { title: 'Section Safari', description: 'Game: Listen to clips and identify which section is playing. Leaderboard on projector!', time: 12, activityType: 'sectional-loop-builder' },
         { title: 'Composition', description: 'Score epic wildlife footage with Intro → A → A\' → Outro structure', time: 14, activityType: 'wildlife-composition-activity' },
         { title: 'Reflection & Wrap-Up', description: 'Two Stars and a Wish + class discussion', time: 8, activityType: 'two-stars-wish' },
         { title: 'Listening Map', description: 'Watch video explanation, then draw along to Vivaldi\'s Spring', time: 14, activityType: 'listening-map', isBonus: true }

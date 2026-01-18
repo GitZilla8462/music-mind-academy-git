@@ -69,7 +69,7 @@ export const lessonSections = [
   },
   {
     id: 'activity1',
-    title: '3. Sectional Loop Builder',
+    title: '3. Section Safari',
     subtitle: 'Build the Wildlife Score',
     icon: '🎮',
     color: 'purple',
@@ -78,14 +78,14 @@ export const lessonSections = [
       {
         id: 'introduce-sectional-builder',
         type: 'summary',
-        label: 'Introduce Sectional Loop Builder Game',
+        label: 'Introduce Section Safari Game',
         description: 'Game instructions - Slide 7',
         duration: 1
       },
       {
         id: 'sectional-loop-builder',
         type: 'activity',
-        label: '🎮 Unlock Sectional Loop Builder Game',
+        label: '🎮 Unlock Section Safari Game',
         duration: 10,
         trackProgress: true,
         description: 'Students play individually - leaderboard on projector',
@@ -233,7 +233,7 @@ export const lesson3Config = {
     {
       id: 1,
       type: "sectional-loop-builder",
-      title: "Sectional Loop Builder Game",
+      title: "Section Safari Game",
       estimatedTime: "10 min"
     },
     {
@@ -337,10 +337,10 @@ export const lessonStages = [
       slidePath: '/lessons/film-music-project/lesson3/slides/6.png'
     }
   },
-  // Activity 1: Sectional Loop Builder Game
-  { 
-    id: 'introduce-sectional-builder', 
-    label: 'Introduce Sectional Loop Builder Game', 
+  // Activity 1: Section Safari Game
+  {
+    id: 'introduce-sectional-builder',
+    label: 'Introduce Section Safari Game', 
     description: 'Game instructions - Slide 7',
     type: 'summary',
     duration: 1,
@@ -351,7 +351,7 @@ export const lessonStages = [
   },
   {
     id: 'sectional-loop-builder',
-    label: '🎮 Unlock Sectional Loop Builder Game',
+    label: '🎮 Unlock Section Safari Game',
     description: 'Students play individually - leaderboard on projector',
     bonusDescription: 'Safari: Find your classmates!',
     hasProgress: true,

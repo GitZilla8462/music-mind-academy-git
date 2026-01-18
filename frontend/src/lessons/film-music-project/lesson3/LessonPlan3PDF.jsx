@@ -119,7 +119,7 @@ const LessonPlan3PDF = () => {
             </h3>
             <ul className="list-disc ml-6 space-y-1">
               <li className="text-sm">Create a listening map while listening to Vivaldi's Spring</li>
-              <li className="text-sm">Identify sections by ear in the Sectional Loop Builder game</li>
+              <li className="text-sm">Identify sections by ear in the Section Safari game</li>
               <li className="text-sm">Compose a structured wildlife documentary score</li>
               <li className="text-sm">Explain their structural choices using musical vocabulary</li>
             </ul>
@@ -154,7 +154,7 @@ const LessonPlan3PDF = () => {
             </h3>
             <ul className="list-disc ml-6 space-y-1">
               <li className="text-sm">Listening Map activity (formative - understanding of visual form representation)</li>
-              <li className="text-sm">Sectional Loop Builder game (formative - identifying sections by ear)</li>
+              <li className="text-sm">Section Safari game (formative - identifying sections by ear)</li>
               <li className="text-sm">Real-time progress tracking during composition</li>
               <li className="text-sm">"Two Stars and a Wish" reflection (self-assessment)</li>
             </ul>
@@ -224,10 +224,10 @@ const LessonPlan3PDF = () => {
             </table>
           </div>
 
-          {/* Sectional Loop Builder Game */}
+          {/* Section Safari Game */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-purple-50 p-2 rounded">
-              3. Sectional Loop Builder Game <span className="font-normal text-gray-600">— (12 min)</span>
+              3. Section Safari Game <span className="font-normal text-gray-600">— (12 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -245,7 +245,7 @@ const LessonPlan3PDF = () => {
                 </tr>
                 <tr className="bg-green-50">
                   <td className="border p-2">10 min</td>
-                  <td className="border p-2 font-medium">🎮 Sectional Loop Builder</td>
+                  <td className="border p-2 font-medium">🎮 Section Safari</td>
                   <td className="border p-2">
                     <strong>STUDENTS PLAY:</strong> Identify sections by ear<br/>
                     Leaderboard shows on projector<br/>
@@ -423,7 +423,7 @@ const LessonPlan3PDF = () => {
           </h2>
           <ul className="list-disc ml-6 space-y-2">
             <li className="text-sm">The Listening Map builds on the form concepts from the intro</li>
-            <li className="text-sm">In Sectional Loop Builder, explain that A' has different layers than A</li>
+            <li className="text-sm">In Section Safari, explain that A' has different layers than A</li>
             <li className="text-sm">Emphasize that Intro should have fewer layers - save the big sounds!</li>
             <li className="text-sm">Green rows (🎮) indicate student activity time - start the timer!</li>
             <li className="text-sm">All student work saves automatically and appears on the Join page</li>
