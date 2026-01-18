@@ -272,28 +272,41 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   useEffect(() => { playSectionAudioRef.current = playSectionAudio; }, [playSectionAudio]);
 
   // Start the actual listening phase with audio
-  const startListeningAudio = useCallback(() => {
+  const startListeningAudio = useCallback(async () => {
     if (!sectionAudio) return;
-    
+
     setGamePhase('listening');
     updateGame({ gamePhase: 'listening', mood: currentMood });
-    
+
     sfx.tick();
     setTimeout(() => sfx.reveal(), 300);
-    
+
+    // Create all audio elements with preload
     const songAudios = SONG_STRUCTURE.map(pos => ({
       section: pos.section,
       audios: sectionAudio[pos.section].map(file => {
-        const audio = new Audio(file);
+        const audio = new Audio();
+        audio.preload = 'auto';
+        audio.src = file;
         audio.volume = 0;
         return audio;
       })
     }));
-    
+
+    // Preload ALL audio files before starting playback
+    const allAudios = songAudios.flatMap(s => s.audios);
+    await Promise.all(allAudios.map(a => new Promise((resolve) => {
+      if (a.readyState >= 3) return resolve();
+      a.addEventListener('canplaythrough', resolve, { once: true });
+      a.load();
+    })));
+
+    console.log('✅ All audio preloaded, starting playback');
+
     let positionIndex = 0;
     const FADE_DURATION = 150;
     const OVERLAP = 100;
-    
+
     const fadeIn = (audios) => {
       audios.forEach(a => { a.currentTime = 0; a.volume = 0; a.play().catch(() => {}); });
       let step = 0;
@@ -303,7 +316,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
         if (step >= 10) clearInterval(interval);
       }, FADE_DURATION / 10);
     };
-    
+
     const fadeOut = (audios) => {
       let step = 0;
       const startVol = audios[0]?.volume || 0.7;
@@ -313,7 +326,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
         if (step >= 10) { clearInterval(interval); audios.forEach(a => a.pause()); }
       }, FADE_DURATION / 10);
     };
-    
+
     const playNext = () => {
       if (positionIndex >= SONG_STRUCTURE.length) {
         if (audioRefs.current.length > 0) fadeOut(audioRefs.current);
@@ -323,21 +336,22 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
         updateGame({ gamePhase: 'listenIntro3' });
         return;
       }
-      
+
       setCurrentPlayPosition(positionIndex);
       setIsPlaying(true);
-      
+
       if (positionIndex > 0 && audioRefs.current.length > 0) fadeOut(audioRefs.current);
-      
+
       fadeIn(songAudios[positionIndex].audios);
       audioRefs.current = songAudios[positionIndex].audios;
       positionIndex++;
-      
+
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(playNext, SECTION_DURATION - OVERLAP);
     };
-    
-    setTimeout(playNext, 100);
+
+    // Start playback immediately (audio is already preloaded)
+    playNext();
   }, [updateGame, sectionAudio, currentMood]);
 
   // ============ GAME FLOW ============
