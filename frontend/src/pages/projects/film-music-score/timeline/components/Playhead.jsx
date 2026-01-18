@@ -22,28 +22,22 @@ const Playhead = ({
       }}
       data-playhead="true"
     >
-      {/* Triangle playhead in the header */}
+      {/* Diamond playhead in the header */}
       {isInHeader && (
         <div
-          className={`absolute top-0 -left-4 transition-transform ${
+          className={`absolute -top-1 -left-[10px] transition-transform ${
             isDraggingPlayhead ? 'scale-110' : ''
           }`}
           style={{ pointerEvents: 'none' }}
         >
-          <div className="relative">
-            {/* Solid background to cover the line behind */}
-            <div
-              className="absolute top-[10px] left-[12px] w-[8px] h-[14px] bg-red-500"
-              style={{ pointerEvents: 'none' }}
-            />
-            <div
-              className="w-0 h-0 border-l-[16px] border-r-[16px] border-t-[20px] border-l-transparent border-r-transparent border-t-red-500"
-              style={{
-                filter: 'drop-shadow(0 2px 4px rgba(239, 68, 68, 0.4))',
-                pointerEvents: 'none'
-              }}
-            />
-          </div>
+          {/* Diamond shape - rotated square */}
+          <div
+            className="w-5 h-5 bg-red-500 rotate-45"
+            style={{
+              boxShadow: '0 2px 6px rgba(239, 68, 68, 0.5)',
+              pointerEvents: 'none'
+            }}
+          />
         </div>
       )}
       
