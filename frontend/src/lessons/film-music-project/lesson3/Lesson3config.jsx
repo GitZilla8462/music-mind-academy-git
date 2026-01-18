@@ -340,13 +340,13 @@ export const lessonStages = [
   // Activity 1: Section Safari Game
   {
     id: 'introduce-sectional-builder',
-    label: 'Introduce Section Safari Game', 
+    label: 'Introduce Section Safari Game',
     description: 'Game instructions - Slide 7',
     type: 'summary',
     duration: 1,
     presentationView: {
       type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson3/slides/7.png'
+      slidePath: '/lessons/film-music-project/lesson3/slides/7-section-safari.svg'
     }
   },
   {

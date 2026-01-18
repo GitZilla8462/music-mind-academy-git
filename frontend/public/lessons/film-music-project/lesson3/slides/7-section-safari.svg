@@ -1,0 +1,39 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="192" y="140" font-family="Arial, Helvetica, sans-serif" font-size="96" fill="white" font-weight="bold">Section Safari</text>
+
+  <!-- Accent line -->
+  <rect x="192" y="175" width="500" height="4" fill="#a5b4fc" opacity="0.5"/>
+
+  <!-- Instructions -->
+  <text x="240" y="340" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="#e2e8f0">1.</text>
+  <text x="320" y="340" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="#e2e8f0">Whole class game.</text>
+
+  <text x="240" y="460" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="#e2e8f0">2.</text>
+  <text x="320" y="460" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="#e2e8f0">Everyone will guess a section of music</text>
+  <text x="320" y="530" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="#e2e8f0">based on the listening example.</text>
+
+  <text x="240" y="650" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="#e2e8f0">3.</text>
+  <text x="320" y="650" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="#e2e8f0">The board will keep track of the score!</text>
+
+  <text x="240" y="770" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="#e2e8f0">4.</text>
+  <text x="320" y="770" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="#e2e8f0">Answer correctly and quickly for the</text>
+  <text x="320" y="840" font-family="Arial, Helvetica, sans-serif" font-size="56" fill="#e2e8f0">most points!</text>
+
+  <!-- Point emphasis -->
+  <text x="240" y="970" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#fbbf24" font-weight="bold">🎯 Speed + Accuracy = High Score!</text>
+</svg>
