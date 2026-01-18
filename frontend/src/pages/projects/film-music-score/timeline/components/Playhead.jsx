@@ -25,7 +25,7 @@ const Playhead = ({
       {/* Diamond playhead in the header */}
       {isInHeader && (
         <div
-          className={`absolute top-[4px] -left-[6px] transition-transform ${
+          className={`absolute top-[3.5px] -left-[6px] transition-transform ${
             isDraggingPlayhead ? 'scale-110' : ''
           }`}
           style={{ pointerEvents: 'none' }}
