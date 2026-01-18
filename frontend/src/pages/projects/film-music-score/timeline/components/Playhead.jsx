@@ -24,17 +24,22 @@ const Playhead = ({
     >
       {/* Triangle playhead in the header */}
       {isInHeader && (
-        <div 
+        <div
           className={`absolute top-0 -left-4 transition-transform ${
-            isDraggingPlayhead ? 'scale-125' : ''
+            isDraggingPlayhead ? 'scale-110' : ''
           }`}
           style={{ pointerEvents: 'none' }}
         >
           <div className="relative">
-            <div 
-              className="w-0 h-0 border-l-[16px] border-r-[16px] border-t-[20px] border-l-transparent border-r-transparent border-t-red-500 drop-shadow-lg opacity-80"
+            {/* Solid background to cover the line behind */}
+            <div
+              className="absolute top-[10px] left-[12px] w-[8px] h-[14px] bg-red-500"
+              style={{ pointerEvents: 'none' }}
+            />
+            <div
+              className="w-0 h-0 border-l-[16px] border-r-[16px] border-t-[20px] border-l-transparent border-r-transparent border-t-red-500"
               style={{
-                filter: 'drop-shadow(0 2px 4px rgba(239, 68, 68, 0.3))',
+                filter: 'drop-shadow(0 2px 4px rgba(239, 68, 68, 0.4))',
                 pointerEvents: 'none'
               }}
             />

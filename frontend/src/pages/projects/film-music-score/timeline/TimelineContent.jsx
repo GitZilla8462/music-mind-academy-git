@@ -3,7 +3,7 @@
 // Visual elements have pointer-events: none
 // This eliminates cursor flickering on Chromebooks
 
-import React, { forwardRef, useCallback, useState } from 'react';
+import React, { forwardRef, useCallback, useState, useEffect } from 'react';
 import TimeMarkers from './components/TimeMarkers';
 import VideoTrackHeader from './components/VideoTrackHeader';
 import TrackHeader from './components/TrackHeader';
@@ -63,6 +63,54 @@ const TimelineContent = forwardRef(({
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState(null);
+
+  // Time ruler scrubbing state
+  const [isScrubbing, setIsScrubbing] = useState(false);
+
+  // Handle time ruler scrubbing (click/drag to seek)
+  const handleTimeRulerMouseDown = useCallback((e) => {
+    if (e.button !== 0) return; // Left click only
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const scrollLeft = timeHeaderRef?.current?.scrollLeft || 0;
+    const x = e.clientX - rect.left + scrollLeft;
+    const time = pixelToTime(x);
+    const constrainedTime = Math.max(0, Math.min(duration, time));
+
+    setIsScrubbing(true);
+    setIsDraggingPlayhead(true);
+    onSeek?.(constrainedTime);
+  }, [pixelToTime, duration, onSeek, setIsDraggingPlayhead, timeHeaderRef]);
+
+  const handleTimeRulerMouseMove = useCallback((e) => {
+    if (!isScrubbing) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const scrollLeft = timeHeaderRef?.current?.scrollLeft || 0;
+    const x = e.clientX - rect.left + scrollLeft;
+    const time = pixelToTime(x);
+    const constrainedTime = Math.max(0, Math.min(duration, time));
+
+    onSeek?.(constrainedTime);
+  }, [isScrubbing, pixelToTime, duration, onSeek, timeHeaderRef]);
+
+  const handleTimeRulerMouseUp = useCallback(() => {
+    setIsScrubbing(false);
+    setIsDraggingPlayhead(false);
+  }, [setIsDraggingPlayhead]);
+
+  // Global mouse up listener for scrubbing (in case mouse leaves the header)
+  useEffect(() => {
+    if (isScrubbing) {
+      const handleGlobalMouseUp = () => {
+        setIsScrubbing(false);
+        setIsDraggingPlayhead(false);
+      };
+
+      window.addEventListener('mouseup', handleGlobalMouseUp);
+      return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+    }
+  }, [isScrubbing, setIsDraggingPlayhead]);
 
   // ============================================================================
   // SELECTION BOX HANDLERS (delegated from overlay)
@@ -225,15 +273,18 @@ const TimelineContent = forwardRef(({
           style={{ width: '154px', height: TIMELINE_CONSTANTS.HEADER_HEIGHT }} 
         />
         
-        <div 
+        <div
           ref={timeHeaderRef}
           className="flex-1 overflow-x-hidden bg-gray-800 border-b border-gray-700"
-          style={{ height: TIMELINE_CONSTANTS.HEADER_HEIGHT }}
+          style={{ height: TIMELINE_CONSTANTS.HEADER_HEIGHT, cursor: isScrubbing ? 'col-resize' : 'pointer' }}
           onScroll={onTimeHeaderScroll}
+          onMouseDown={handleTimeRulerMouseDown}
+          onMouseMove={handleTimeRulerMouseMove}
+          onMouseUp={handleTimeRulerMouseUp}
         >
           <div
             className="relative bg-gray-800"
-            style={{ width: timelineWidth, height: TIMELINE_CONSTANTS.HEADER_HEIGHT }}
+            style={{ width: timelineWidth, height: TIMELINE_CONSTANTS.HEADER_HEIGHT, cursor: 'inherit' }}
           >
             <TimeMarkers 
               duration={duration} 
