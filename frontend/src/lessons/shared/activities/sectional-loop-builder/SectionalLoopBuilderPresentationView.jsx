@@ -271,14 +271,6 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   // Keep playSectionAudio ref in sync (for use in countdown effect without causing re-runs)
   useEffect(() => { playSectionAudioRef.current = playSectionAudio; }, [playSectionAudio]);
 
-  const playFullSong = useCallback(() => {
-    if (!sectionAudio) return;
-    stopAudio();
-    // Just show intro screen 1 - teacher clicks Next to advance
-    setGamePhase('listenIntro1');
-    updateGame({ gamePhase: 'listenIntro1', mood: currentMood });
-  }, [stopAudio, updateGame, sectionAudio, currentMood]);
-
   // Start the actual listening phase with audio
   const startListeningAudio = useCallback(() => {
     if (!sectionAudio) return;
@@ -835,7 +827,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   };
 
   const showLeaderboard = ['guessing', 'revealed', 'powerPick', 'roundSummary', 'finished'].includes(gamePhase);
-  const hideHeaderPhases = ['listenIntro1', 'listenIntro2', 'listenIntro3', 'listening'];
+  const hideHeaderPhases = ['listenIntro3', 'listening'];
   const hideHeader = hideHeaderPhases.includes(gamePhase);
 
   // ============ RENDER ============
@@ -909,7 +901,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                 </div>
               </div>
               <div className="flex items-center justify-center gap-4">
-                <button onClick={playFullSong} className="px-10 py-5 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-3xl font-bold flex items-center gap-3 hover:scale-105 transition-all">
+                <button onClick={startListeningAudio} className="px-10 py-5 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-3xl font-bold flex items-center gap-3 hover:scale-105 transition-all">
                   <Play size={40} /> Start Listening
                 </button>
                 <button onClick={() => { setGamePhase('preQuiz'); updateGame({ gamePhase: 'preQuiz' }); }}
@@ -918,22 +910,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
             </div>
           )}
 
-          {/* Listen Intro Screen 1 */}
-          {gamePhase === 'listenIntro1' && (
-            <div className="text-center flex flex-col items-center justify-center">
-              <div className="text-9xl mb-8">🎧</div>
-              <h1 className="text-6xl font-black mb-12">Listen to the following 6 sections!</h1>
-              <button
-                onClick={startListeningAudio}
-                className="px-12 py-5 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-3xl font-bold flex items-center gap-3 hover:scale-105 transition-all"
-              >
-                <Play size={36} /> Start Listening
-              </button>
-            </div>
-          )}
-
-
-          {/* Listen Intro Screen 3 - Safari Directions */}
+          {/* Safari Directions */}
           {gamePhase === 'listenIntro3' && (
             <div className="text-center flex flex-col items-center justify-center">
               <h1 className="text-5xl font-black mb-6 text-amber-300">Safari Bonus Round!</h1>
