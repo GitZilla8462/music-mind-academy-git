@@ -275,7 +275,7 @@ const TimelineContent = forwardRef(({
         
         <div
           ref={timeHeaderRef}
-          className="flex-1 overflow-x-hidden bg-gray-800 border-b border-gray-700"
+          className="flex-1 overflow-x-hidden bg-gray-800 border-b border-gray-700 select-none"
           style={{ height: TIMELINE_CONSTANTS.HEADER_HEIGHT, cursor: isScrubbing ? 'col-resize' : 'pointer' }}
           onScroll={onTimeHeaderScroll}
           onMouseDown={handleTimeRulerMouseDown}
