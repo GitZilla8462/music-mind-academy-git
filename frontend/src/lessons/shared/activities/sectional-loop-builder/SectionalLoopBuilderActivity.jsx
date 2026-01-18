@@ -1216,8 +1216,8 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
               <div className="flex-1 flex flex-col items-center justify-center">
                 {!safariComplete ? (
                   <>
-                    <h1 className="text-3xl font-black mb-4 text-yellow-300">SAFARI TIME!</h1>
-                    <p className="text-lg mb-4 text-white/80">Find the student with this animal:</p>
+                    <h1 className="text-3xl font-black mb-1 text-yellow-300">SAFARI EXPLORER</h1>
+                    <p className="text-lg mb-4 text-white/80">Walk around and find the Wildlife!</p>
 
                     {/* Large Animal Display */}
                     <div className="bg-white/20 rounded-3xl p-8 mb-6 text-center border-4 border-yellow-400">
@@ -1325,8 +1325,14 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
               </div>
             </div>
 
-            {/* Question info */}
+            {/* Role indicator + Question info */}
             <div className="text-center mb-3">
+              {myAnimal && (
+                <div className="inline-block bg-blue-500/30 border border-blue-400/50 rounded-full px-4 py-1 mb-2">
+                  <span className="text-blue-300 font-bold text-sm">THE WILDLIFE</span>
+                  <span className="text-white/60 text-sm"> • Stay seated and answer</span>
+                </div>
+              )}
               <div className="text-sm text-white/60">Question {totalClipsPlayed} of 10</div>
               <div className="text-2xl font-bold">🎧 Tap your answer!</div>
             </div>
