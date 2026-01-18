@@ -380,19 +380,19 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     });
     setSafariAssignments(newAssignments);
 
-    // Safari requires at least 3 students
+    // Safari requires at least 4 students (3 hunters + 1 target minimum)
     let hunters = [];
     console.log('🦁 startRound - students.length:', students.length);
-    if (students.length >= 3) {
+    if (students.length >= 4) {
       const eligibleStudents = students.filter(s => !studentsWhoWentOnSafari.has(s.id));
-      let finalEligible = eligibleStudents.length >= 2 ? eligibleStudents : students;
+      let finalEligible = eligibleStudents.length >= 3 ? eligibleStudents : students;
 
-      if (eligibleStudents.length < 2) {
+      if (eligibleStudents.length < 3) {
         setStudentsWhoWentOnSafari(new Set());
       }
 
       const shuffledEligible = [...finalEligible].sort(() => Math.random() - 0.5);
-      hunters = shuffledEligible.slice(0, 2).map(s => {
+      hunters = shuffledEligible.slice(0, 3).map(s => {
         const validTargets = students.filter(other => other.id !== s.id && newAssignments[other.id]);
         if (validTargets.length === 0) return null;
         const randomTarget = validTargets[Math.floor(Math.random() * validTargets.length)];
@@ -551,23 +551,23 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     });
     setSafariAssignments(newAssignments);
 
-    // Safari requires at least 3 students (2 hunters + 1 target minimum)
+    // Safari requires at least 4 students (3 hunters + 1 target minimum)
     let hunters = [];
     console.log('🦁 startClipGuessing - students.length:', students.length);
-    if (students.length >= 3) {
-      // Pick 2 students who haven't gone on Safari yet
+    if (students.length >= 4) {
+      // Pick 3 students who haven't gone on Safari yet
       const eligibleStudents = students.filter(s => !studentsWhoWentOnSafari.has(s.id));
       
       // If everyone has gone, reset the list
       let finalEligible = eligibleStudents;
-      if (eligibleStudents.length < 2) {
+      if (eligibleStudents.length < 3) {
         setStudentsWhoWentOnSafari(new Set());
         finalEligible = students;
       }
       
-      // Pick 2 random students
+      // Pick 3 random students
       const shuffledEligible = [...finalEligible].sort(() => Math.random() - 0.5);
-      hunters = shuffledEligible.slice(0, 2).map(s => {
+      hunters = shuffledEligible.slice(0, 3).map(s => {
         // Find a target animal (not their own) - only pick from students with valid assignments
         const validTargets = students.filter(other =>
           other.id !== s.id && newAssignments[other.id]
@@ -924,33 +924,64 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
             </div>
           )}
 
-          {/* Safari Directions */}
+          {/* Safari Directions - Split Screen */}
           {gamePhase === 'listenIntro3' && (
-            <div className="text-center flex flex-col items-center justify-center">
-              <h1 className="text-5xl font-black mb-6 text-amber-300">Safari Bonus Round!</h1>
+            <div className="text-center flex flex-col items-center justify-center w-full">
+              <h1 className="text-5xl font-black mb-4 text-amber-300">Safari Bonus Round!</h1>
+              <p className="text-xl text-white/70 mb-4">Each round, 3 students are randomly picked to go on Safari</p>
 
-              <div className="bg-white/10 rounded-2xl p-6 max-w-4xl mb-6">
-                {/* Step 1 */}
-                <p className="text-2xl font-bold text-white mb-4">1. Each round, 2 students will have a screen that looks like this:</p>
+              {/* Split Screen Container */}
+              <div className="grid grid-cols-2 gap-6 max-w-6xl w-full mb-4">
+                {/* LEFT: Safari Students */}
+                <div className="bg-gradient-to-br from-amber-900/50 to-orange-900/50 rounded-2xl p-5 border-2 border-amber-400">
+                  <h2 className="text-2xl font-black text-amber-300 mb-3">Safari Students (3)</h2>
 
-                {/* Mockup of Safari Hunter Screen */}
-                <div className="bg-gradient-to-br from-amber-900 via-orange-900 to-yellow-900 rounded-2xl p-6 mb-6 max-w-md mx-auto border-4 border-yellow-400">
-                  <div className="text-2xl font-black text-yellow-300 mb-3">SAFARI TIME!</div>
-                  <p className="text-white/80 mb-2">Find the student with this animal:</p>
-                  <div className="bg-white/20 rounded-2xl p-4 mb-4 border-4 border-yellow-400">
-                    <div className="text-8xl">🦁</div>
+                  <div className="text-left space-y-3 mb-4">
+                    <p className="text-white"><span className="text-amber-300 font-bold">1.</span> You'll see a target animal to find</p>
+                    <p className="text-white"><span className="text-amber-300 font-bold">2.</span> Walk around and look at classmates' screens</p>
+                    <p className="text-white"><span className="text-amber-300 font-bold">3.</span> Find your target animal and their code</p>
+                    <p className="text-white"><span className="text-amber-300 font-bold">4.</span> Type the code into your device</p>
                   </div>
-                  <p className="text-white/70 mb-2">Enter their code:</p>
-                  <div className="bg-white/20 rounded-xl px-4 py-3 border-4 border-yellow-400">
-                    <span className="text-4xl font-mono font-black text-yellow-300/50">_ _ _ _</span>
+
+                  {/* Mini mockup of Safari hunter screen */}
+                  <div className="bg-gradient-to-br from-amber-800 to-orange-800 rounded-xl p-3 border-2 border-yellow-400">
+                    <div className="text-sm font-bold text-yellow-300 mb-1">Your screen:</div>
+                    <div className="flex items-center gap-3">
+                      <div className="bg-white/20 rounded-lg p-2 border-2 border-yellow-400">
+                        <span className="text-4xl">🦁</span>
+                      </div>
+                      <div className="text-left">
+                        <div className="text-white/80 text-sm">Find this animal!</div>
+                        <div className="bg-white/20 rounded px-2 py-1 mt-1 border border-yellow-400">
+                          <span className="font-mono text-yellow-300/50">_ _ _ _</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+
+                  <p className="text-green-400 font-bold mt-3 text-sm">+50 bonus + auto-correct!</p>
                 </div>
 
-                {/* Step 2 */}
-                <p className="text-2xl font-bold text-white mb-3">2. Go on a safari around the room and look at other students' Chromebooks.</p>
-                <p className="text-xl text-white/80 mb-4">They will have an animal and a code. If someone has YOUR animal, copy the code from their device and type it into your device before the time runs out!</p>
+                {/* RIGHT: Non-Safari Students */}
+                <div className="bg-gradient-to-br from-blue-900/50 to-teal-900/50 rounded-2xl p-5 border-2 border-blue-400">
+                  <h2 className="text-2xl font-black text-blue-300 mb-3">Everyone Else</h2>
 
-                <p className="text-lg text-green-400 font-bold">+50 bonus points for finding your animal! Safari students also get the question correct automatically! 🎉</p>
+                  <div className="text-left space-y-3 mb-4">
+                    <p className="text-white"><span className="text-blue-300 font-bold">1.</span> Answer the question like normal</p>
+                    <p className="text-white"><span className="text-blue-300 font-bold">2.</span> Your screen shows an animal + code</p>
+                    <p className="text-white"><span className="text-blue-300 font-bold">3.</span> Keep your screen visible!</p>
+                    <p className="text-white/60 text-sm">(Safari students may need to see your code)</p>
+                  </div>
+
+                  {/* Mini mockup of non-Safari student screen */}
+                  <div className="bg-gradient-to-br from-blue-800 to-teal-800 rounded-xl p-3 border-2 border-blue-400">
+                    <div className="text-sm font-bold text-blue-300 mb-1">Your screen (top corner):</div>
+                    <div className="bg-black/50 rounded-lg p-3 border-2 border-yellow-400 inline-block">
+                      <div className="text-4xl mb-1">🐘</div>
+                      <div className="text-3xl font-mono font-black text-yellow-300">4827</div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <button
