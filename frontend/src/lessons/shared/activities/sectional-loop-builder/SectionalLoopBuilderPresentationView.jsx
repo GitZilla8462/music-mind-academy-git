@@ -13,7 +13,7 @@ import { getDatabase, ref, update, onValue } from 'firebase/database';
 
 import {
   LOOPS_BY_MOOD, MOOD_INFO, SECTION_INFO, SONG_STRUCTURE, SECTION_DURATION,
-  generateSongStructure, shuffleArray, getRandomMood
+  generateSongStructure, shuffleArray, getRandomMood, SECTION_LOOP_NAMES
 } from './SectionalLoopBuilderAudio';
 
 import { sfx, animationStyles } from './SectionalLoopBuilderSFX';
@@ -956,16 +956,16 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                 Listen to each section!
               </h1>
 
-              {/* Section Cards - 5 cards: INTRO, A, A', A, OUTRO with loop names */}
+              {/* Section Cards - 5 cards: INTRO, A, A', A, OUTRO with actual loop names */}
               <div className="flex justify-center gap-3 max-w-6xl mx-auto mb-6">
                 {(() => {
-                  // Define loops for each section position
+                  // Use actual loop names from SECTION_LOOP_NAMES
                   const sectionLoops = [
-                    { section: 'intro', loops: ['Drums', 'Strings'] },
-                    { section: 'a', loops: ['Drums', 'Strings', 'Keys'] },
-                    { section: 'aPrime', loops: ['Drums', 'Strings', 'Keys', 'Brass'] },
-                    { section: 'a', loops: ['Drums', 'Strings', 'Keys'] },
-                    { section: 'outro', loops: ['Drums'] }
+                    { section: 'intro', loops: SECTION_LOOP_NAMES.intro },
+                    { section: 'a', loops: SECTION_LOOP_NAMES.a },
+                    { section: 'aPrime', loops: SECTION_LOOP_NAMES.aPrime },
+                    { section: 'a', loops: SECTION_LOOP_NAMES.a },
+                    { section: 'outro', loops: SECTION_LOOP_NAMES.outro }
                   ];
 
                   return sectionLoops.map((item, idx) => {

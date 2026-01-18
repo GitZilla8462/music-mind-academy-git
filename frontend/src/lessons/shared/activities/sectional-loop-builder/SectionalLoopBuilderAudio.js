@@ -71,48 +71,41 @@ export const SONG_STRUCTURE = [
 
 export const SECTION_DURATION = 8000;
 
-// ============ HELPER: Generate random section audio respecting instrument constraints ============
-export const generateSectionAudio = (mood, layerCount) => {
-  const moodLoops = LOOPS_BY_MOOD[mood];
-  if (!moodLoops) return [];
-  
-  const instruments = Object.keys(moodLoops);
-  const selectedLoops = [];
-  const usedInstruments = new Set();
-  
-  // Shuffle instruments for variety
-  const shuffledInstruments = [...instruments].sort(() => Math.random() - 0.5);
-  
-  for (const instrument of shuffledInstruments) {
-    if (selectedLoops.length >= layerCount) break;
-    if (usedInstruments.has(instrument)) continue;
-    
-    const loops = moodLoops[instrument];
-    const randomLoop = loops[Math.floor(Math.random() * loops.length)];
-    selectedLoops.push(randomLoop);
-    usedInstruments.add(instrument);
-  }
-  
-  return selectedLoops;
+// ============ FIXED SONG STRUCTURE ============
+// Using specific Heroic loops for consistent playback
+const FIXED_LOOPS = {
+  drums: '/projects/film-music-score/loops/Heroic Drums 1.mp3',
+  strings: '/projects/film-music-score/loops/Heroic Strings 1.mp3',
+  synth: '/projects/film-music-score/loops/Heroic Synth 1.mp3',
+  brass: '/projects/film-music-score/loops/Heroic Brass 2.mp3'
 };
 
-// ============ HELPER: Generate full song structure for a mood ============
+// Fixed section structure with exact loops
+export const FIXED_SECTION_AUDIO = {
+  intro: [FIXED_LOOPS.drums, FIXED_LOOPS.strings],
+  a: [FIXED_LOOPS.drums, FIXED_LOOPS.strings, FIXED_LOOPS.synth],
+  aPrime: [FIXED_LOOPS.drums, FIXED_LOOPS.strings, FIXED_LOOPS.synth, FIXED_LOOPS.brass],
+  outro: [FIXED_LOOPS.drums]
+};
+
+// Display names for each section's loops
+export const SECTION_LOOP_NAMES = {
+  intro: ['Heroic Drums 1', 'Heroic Strings 1'],
+  a: ['Heroic Drums 1', 'Heroic Strings 1', 'Heroic Synth 1'],
+  aPrime: ['Heroic Drums 1', 'Heroic Strings 1', 'Heroic Synth 1', 'Heroic Brass 2'],
+  outro: ['Heroic Drums 1']
+};
+
+// ============ HELPER: Generate full song structure ============
+// Now returns fixed structure instead of random
 export const generateSongStructure = (mood) => {
-  // INTRO: 2 layers, A: 3 layers, A': 4 layers, OUTRO: 1 layer
-  const structure = {
-    intro: generateSectionAudio(mood, 2),
-    a: generateSectionAudio(mood, 3),
-    aPrime: generateSectionAudio(mood, 4),
-    outro: generateSectionAudio(mood, 1)
-  };
-  
-  console.log('🎵 Generated song structure for mood:', mood);
-  console.log('🎵 INTRO layers:', structure.intro);
-  console.log('🎵 A layers:', structure.a);
-  console.log('🎵 A\' layers:', structure.aPrime);
-  console.log('🎵 OUTRO layers:', structure.outro);
-  
-  return structure;
+  console.log('🎵 Using fixed Heroic song structure');
+  console.log('🎵 INTRO layers:', FIXED_SECTION_AUDIO.intro);
+  console.log('🎵 A layers:', FIXED_SECTION_AUDIO.a);
+  console.log('🎵 A\' layers:', FIXED_SECTION_AUDIO.aPrime);
+  console.log('🎵 OUTRO layers:', FIXED_SECTION_AUDIO.outro);
+
+  return FIXED_SECTION_AUDIO;
 };
 
 // ============ HELPER: Shuffle array ============
