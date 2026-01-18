@@ -25,16 +25,16 @@ const Playhead = ({
       {/* Diamond playhead in the header */}
       {isInHeader && (
         <div
-          className={`absolute -top-1 -left-[10px] transition-transform ${
+          className={`absolute -top-[5px] -left-[7px] transition-transform ${
             isDraggingPlayhead ? 'scale-110' : ''
           }`}
           style={{ pointerEvents: 'none' }}
         >
           {/* Diamond shape - rotated square */}
           <div
-            className="w-5 h-5 bg-red-500 rotate-45"
+            className="w-3.5 h-3.5 bg-red-500 rotate-45"
             style={{
-              boxShadow: '0 2px 6px rgba(239, 68, 68, 0.5)',
+              boxShadow: '0 2px 4px rgba(239, 68, 68, 0.5)',
               pointerEvents: 'none'
             }}
           />
