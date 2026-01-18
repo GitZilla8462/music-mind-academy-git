@@ -951,13 +951,13 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
           {/* Listening - 5 cards: INTRO, A, A', A, OUTRO */}
           {gamePhase === 'listening' && (
             <div className="text-center w-full">
-              {/* Directions at top - clean, white, big */}
-              <h1 className="text-5xl font-bold text-white mb-8">
+              {/* Directions at top - large and prominent */}
+              <h1 className="text-7xl font-black text-white mb-6">
                 Listen to each section!
               </h1>
 
               {/* Section Cards - 5 cards: INTRO, A, A', A, OUTRO with actual loop names */}
-              <div className="flex justify-center gap-3 max-w-6xl mx-auto mb-6">
+              <div className="flex justify-center gap-4 max-w-7xl mx-auto mb-6">
                 {(() => {
                   // Use actual loop names from SECTION_LOOP_NAMES
                   const sectionLoops = [
@@ -974,34 +974,28 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                     return (
                       <div
                         key={idx}
-                        className={`p-4 rounded-2xl text-center transition-all duration-300 flex-1 min-w-0 ${
+                        className={`p-6 rounded-2xl text-center transition-all duration-300 flex-1 min-w-0 ${
                           isPlaying ? 'ring-4 ring-white scale-105 shadow-lg' : ''
                         }`}
                         style={{
                           backgroundColor: isPlaying ? `${info.color}60` : `${info.color}25`,
                           borderColor: info.color,
-                          borderWidth: '3px'
+                          borderWidth: '4px'
                         }}
                       >
-                        <div className="text-2xl font-black mb-3" style={{ color: info.color }}>{info.label}</div>
+                        <div className="text-4xl font-black mb-4" style={{ color: info.color }}>{info.label}</div>
 
                         {/* Loop names listed vertically */}
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                           {item.loops.map((loopName, loopIdx) => (
                             <div
                               key={loopIdx}
-                              className="text-sm font-medium text-white/90 bg-black/20 rounded px-2 py-1"
+                              className="text-lg font-semibold text-white/90 bg-black/20 rounded-lg px-3 py-2"
                             >
                               {loopName}
                             </div>
                           ))}
                         </div>
-
-                        {isPlaying && (
-                          <div className="mt-3 text-sm font-bold text-white bg-white/20 rounded-full px-3 py-1">
-                            NOW PLAYING
-                          </div>
-                        )}
                       </div>
                     );
                   });
