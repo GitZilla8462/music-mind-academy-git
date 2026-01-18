@@ -928,13 +928,13 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
           {gamePhase === 'listenIntro3' && (
             <div className="text-center flex flex-col items-center justify-center w-full">
               <h1 className="text-5xl font-black mb-4 text-amber-300">Safari Bonus Round!</h1>
-              <p className="text-xl text-white/70 mb-4">Each round, 3 students are randomly picked to go on Safari</p>
+              <p className="text-xl text-white/70 mb-4">Each round, 3 students become Safari Explorers, everyone else is the Wildlife</p>
 
               {/* Split Screen Container */}
               <div className="grid grid-cols-2 gap-6 max-w-6xl w-full mb-4">
-                {/* LEFT: Safari Students */}
+                {/* LEFT: Safari Explorers */}
                 <div className="bg-gradient-to-br from-amber-900/50 to-orange-900/50 rounded-2xl p-5 border-2 border-amber-400">
-                  <h2 className="text-2xl font-black text-amber-300 mb-3">Safari Students (3)</h2>
+                  <h2 className="text-2xl font-black text-amber-300 mb-3">Safari Explorers (3)</h2>
 
                   <div className="text-left space-y-3 mb-4">
                     <p className="text-white"><span className="text-amber-300 font-bold">1.</span> You'll see a target animal to find</p>
@@ -943,7 +943,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                     <p className="text-white"><span className="text-amber-300 font-bold">4.</span> Type the code into your device</p>
                   </div>
 
-                  {/* Mini mockup of Safari hunter screen */}
+                  {/* Mini mockup of Safari Explorer screen */}
                   <div className="bg-gradient-to-br from-amber-800 to-orange-800 rounded-xl p-3 border-2 border-yellow-400">
                     <div className="text-sm font-bold text-yellow-300 mb-1">Your screen:</div>
                     <div className="flex items-center gap-3">
@@ -962,18 +962,18 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                   <p className="text-green-400 font-bold mt-3 text-sm">+50 bonus + auto-correct!</p>
                 </div>
 
-                {/* RIGHT: Non-Safari Students */}
+                {/* RIGHT: The Wildlife */}
                 <div className="bg-gradient-to-br from-blue-900/50 to-teal-900/50 rounded-2xl p-5 border-2 border-blue-400">
-                  <h2 className="text-2xl font-black text-blue-300 mb-3">Everyone Else</h2>
+                  <h2 className="text-2xl font-black text-blue-300 mb-3">The Wildlife</h2>
 
                   <div className="text-left space-y-3 mb-4">
                     <p className="text-white"><span className="text-blue-300 font-bold">1.</span> Answer the question like normal</p>
                     <p className="text-white"><span className="text-blue-300 font-bold">2.</span> Your screen shows an animal + code</p>
                     <p className="text-white"><span className="text-blue-300 font-bold">3.</span> Keep your screen visible!</p>
-                    <p className="text-white/60 text-sm">(Safari students may need to see your code)</p>
+                    <p className="text-white/60 text-sm">(Explorers may need to see your code)</p>
                   </div>
 
-                  {/* Mini mockup of non-Safari student screen */}
+                  {/* Mini mockup of Wildlife student screen */}
                   <div className="bg-gradient-to-br from-blue-800 to-teal-800 rounded-xl p-3 border-2 border-blue-400">
                     <div className="text-sm font-bold text-blue-300 mb-1">Your screen (top corner):</div>
                     <div className="bg-black/50 rounded-lg p-3 border-2 border-yellow-400 inline-block">
