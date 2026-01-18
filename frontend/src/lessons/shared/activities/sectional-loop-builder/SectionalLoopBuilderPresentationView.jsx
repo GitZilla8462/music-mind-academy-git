@@ -953,7 +953,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
             <div className="text-center w-full">
               {/* Directions at top - clean, white, big */}
               <h1 className="text-5xl font-bold text-white mb-8">
-                Listen for drums, strings, brass, synths... Count the layers!
+                Listen to each section!
               </h1>
 
               {/* Section Cards - 6 cards: INTRO, A, A', A, A, OUTRO with loop names */}
