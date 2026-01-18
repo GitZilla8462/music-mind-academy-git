@@ -969,7 +969,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
             </div>
           )}
 
-          {/* Listening - 5 cards matching SONG_STRUCTURE */}
+          {/* Listening - 6 cards: INTRO, A, A', A, A, OUTRO */}
           {gamePhase === 'listening' && (
             <div className="text-center w-full">
               {/* Directions at top - clean, white, big */}
@@ -977,16 +977,17 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                 Listen for drums, strings, brass, synths... Count the layers!
               </h1>
 
-              {/* Section Cards - 5 cards: INTRO, A, A', A, OUTRO with loop names */}
+              {/* Section Cards - 6 cards: INTRO, A, A', A, A, OUTRO with loop names */}
               <div className="flex justify-center gap-3 max-w-6xl mx-auto mb-6">
                 {(() => {
                   // Define loops for each section position
                   const sectionLoops = [
-                    { section: 'intro', loops: ['Heroic Drums', 'Heroic Strings'] },
-                    { section: 'a', loops: ['Heroic Drums', 'Heroic Strings', 'Heroic Keys'] },
-                    { section: 'aPrime', loops: ['Heroic Drums', 'Heroic Strings', 'Heroic Keys', 'Heroic Brass'] },
-                    { section: 'a', loops: ['Heroic Drums', 'Heroic Strings', 'Heroic Keys'] },
-                    { section: 'outro', loops: ['Heroic Drums'] }
+                    { section: 'intro', loops: ['Drums', 'Strings'] },
+                    { section: 'a', loops: ['Drums', 'Strings', 'Keys'] },
+                    { section: 'aPrime', loops: ['Drums', 'Strings', 'Keys', 'Brass'] },
+                    { section: 'a', loops: ['Drums', 'Strings', 'Keys'] },
+                    { section: 'a', loops: ['Drums', 'Strings', 'Keys'] },
+                    { section: 'outro', loops: ['Drums'] }
                   ];
 
                   return sectionLoops.map((item, idx) => {
@@ -1020,7 +1021,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
 
                         {isPlaying && (
                           <div className="mt-3 text-sm font-bold text-white bg-white/20 rounded-full px-3 py-1">
-                            🔊 NOW PLAYING
+                            NOW PLAYING
                           </div>
                         )}
                       </div>
