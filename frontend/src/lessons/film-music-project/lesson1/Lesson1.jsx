@@ -161,7 +161,7 @@ const Lesson1 = () => {
           if (el.dataset.gameAudio === 'true') return;
           el.muted = true;
           el.volume = 0;
-          el.pause();
+          // Don't pause - just mute. Pausing breaks video playback in DAW preview.
         });
       };
 
