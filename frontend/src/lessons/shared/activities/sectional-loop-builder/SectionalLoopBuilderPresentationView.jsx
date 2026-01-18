@@ -948,7 +948,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
             </div>
           )}
 
-          {/* Listening - 6 cards: INTRO, A, A', A, A, OUTRO */}
+          {/* Listening - 5 cards: INTRO, A, A', A, OUTRO */}
           {gamePhase === 'listening' && (
             <div className="text-center w-full">
               {/* Directions at top - clean, white, big */}
@@ -956,7 +956,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                 Listen to each section!
               </h1>
 
-              {/* Section Cards - 6 cards: INTRO, A, A', A, A, OUTRO with loop names */}
+              {/* Section Cards - 5 cards: INTRO, A, A', A, OUTRO with loop names */}
               <div className="flex justify-center gap-3 max-w-6xl mx-auto mb-6">
                 {(() => {
                   // Define loops for each section position
@@ -964,7 +964,6 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                     { section: 'intro', loops: ['Drums', 'Strings'] },
                     { section: 'a', loops: ['Drums', 'Strings', 'Keys'] },
                     { section: 'aPrime', loops: ['Drums', 'Strings', 'Keys', 'Brass'] },
-                    { section: 'a', loops: ['Drums', 'Strings', 'Keys'] },
                     { section: 'a', loops: ['Drums', 'Strings', 'Keys'] },
                     { section: 'outro', loops: ['Drums'] }
                   ];
