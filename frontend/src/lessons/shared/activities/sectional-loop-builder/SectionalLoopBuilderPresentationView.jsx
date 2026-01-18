@@ -934,28 +934,33 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
           {/* Listen Intro Screen 3 - Safari Directions */}
           {gamePhase === 'listenIntro3' && (
             <div className="text-center flex flex-col items-center justify-center">
-              <div className="text-8xl mb-6">🦁</div>
               <h1 className="text-5xl font-black mb-6 text-amber-300">Safari Bonus Round!</h1>
-              <p className="text-2xl text-white/80 mb-6">Each round, 2 students go on Safari!</p>
-              
-              <div className="bg-white/10 rounded-2xl p-6 max-w-2xl mb-6">
-                <p className="text-xl mb-4">Look for an animal badge on classmates' screens:</p>
-                <div className="flex items-center justify-center gap-6 mb-4">
-                  <div className="bg-black/40 rounded-xl p-4 text-center">
-                    <div className="text-5xl mb-2">🐘</div>
-                    <div className="text-2xl font-mono font-bold text-yellow-300">4729</div>
+
+              <div className="bg-white/10 rounded-2xl p-6 max-w-4xl mb-6">
+                {/* Step 1 */}
+                <p className="text-2xl font-bold text-white mb-4">1. Each round, 2 students will have a screen that looks like this:</p>
+
+                {/* Mockup of Safari Hunter Screen */}
+                <div className="bg-gradient-to-br from-amber-900 via-orange-900 to-yellow-900 rounded-2xl p-6 mb-6 max-w-md mx-auto border-4 border-yellow-400">
+                  <div className="text-2xl font-black text-yellow-300 mb-3">SAFARI TIME!</div>
+                  <p className="text-white/80 mb-2">Find the student with this animal:</p>
+                  <div className="bg-white/20 rounded-2xl p-4 mb-4 border-4 border-yellow-400">
+                    <div className="text-8xl">🦁</div>
                   </div>
-                  <div className="text-4xl">→</div>
-                  <div className="text-left">
-                    <p className="text-xl font-bold text-green-400">Find your animal</p>
-                    <p className="text-xl font-bold text-yellow-300">Enter their code</p>
-                    <p className="text-xl font-bold text-amber-300">Get +50 bonus points!</p>
+                  <p className="text-white/70 mb-2">Enter their code:</p>
+                  <div className="bg-white/20 rounded-xl px-4 py-3 border-4 border-yellow-400">
+                    <span className="text-4xl font-mono font-black text-yellow-300/50">_ _ _ _</span>
                   </div>
                 </div>
-                <p className="text-white/60">Safari students also get the question correct automatically! 🎉</p>
+
+                {/* Step 2 */}
+                <p className="text-2xl font-bold text-white mb-3">2. Go on a safari around the room and look at other students' Chromebooks.</p>
+                <p className="text-xl text-white/80 mb-4">They will have an animal and a code. If someone has YOUR animal, copy the code from their device and type it into your device before the time runs out!</p>
+
+                <p className="text-lg text-green-400 font-bold">+50 bonus points for finding your animal! Safari students also get the question correct automatically! 🎉</p>
               </div>
-              
-              <button 
+
+              <button
                 onClick={startListeningAudio}
                 className="px-12 py-5 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-3xl font-bold flex items-center gap-3 hover:scale-105 transition-all"
               >
