@@ -327,8 +327,8 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
         if (audioRefs.current.length > 0) fadeOut(audioRefs.current);
         setCurrentPlayPosition(-1);
         setIsPlaying(false);
-        setGamePhase('preQuiz');
-        updateGame({ gamePhase: 'preQuiz' });
+        setGamePhase('listenIntro3');
+        updateGame({ gamePhase: 'listenIntro3' });
         return;
       }
       
@@ -920,12 +920,12 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
           {gamePhase === 'listenIntro1' && (
             <div className="text-center flex flex-col items-center justify-center">
               <div className="text-9xl mb-8">🎧</div>
-              <h1 className="text-6xl font-black mb-12">Listen to the following 5 sections!</h1>
+              <h1 className="text-6xl font-black mb-12">Listen to the following 6 sections!</h1>
               <button
-                onClick={() => { setGamePhase('listenIntro3'); updateGame({ gamePhase: 'listenIntro3', mood: currentMood }); }}
-                className="px-12 py-5 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-3xl font-bold hover:scale-105 transition-all"
+                onClick={startListeningAudio}
+                className="px-12 py-5 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-3xl font-bold flex items-center gap-3 hover:scale-105 transition-all"
               >
-                Next →
+                <Play size={36} /> Start Listening
               </button>
             </div>
           )}
@@ -961,10 +961,10 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
               </div>
 
               <button
-                onClick={startListeningAudio}
-                className="px-12 py-5 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-3xl font-bold flex items-center gap-3 hover:scale-105 transition-all"
+                onClick={() => { setGamePhase('preQuiz'); updateGame({ gamePhase: 'preQuiz' }); }}
+                className="px-12 py-5 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-3xl font-bold hover:scale-105 transition-all"
               >
-                <Play size={36} /> Start Listening
+                Next →
               </button>
             </div>
           )}
@@ -1030,8 +1030,8 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                 })()}
               </div>
 
-              <button onClick={() => { stopAudio(); setGamePhase('preQuiz'); updateGame({ gamePhase: 'preQuiz' }); }}
-                className="px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-lg opacity-50 hover:opacity-100">🔧 Skip</button>
+              <button onClick={() => { stopAudio(); setGamePhase('listenIntro3'); updateGame({ gamePhase: 'listenIntro3' }); }}
+                className="px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-lg opacity-50 hover:opacity-100">Skip</button>
             </div>
           )}
 
