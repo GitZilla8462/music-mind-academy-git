@@ -33,10 +33,7 @@ const Playhead = ({
           {/* Diamond shape - rotated square */}
           <div
             className="w-3.5 h-3.5 bg-red-500 rotate-45"
-            style={{
-              boxShadow: '0 2px 4px rgba(239, 68, 68, 0.5)',
-              pointerEvents: 'none'
-            }}
+            style={{ pointerEvents: 'none' }}
           />
         </div>
       )}
