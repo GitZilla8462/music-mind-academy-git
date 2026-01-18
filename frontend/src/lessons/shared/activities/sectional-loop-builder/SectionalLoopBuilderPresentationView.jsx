@@ -928,7 +928,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
           {gamePhase === 'listenIntro3' && (
             <div className="text-center flex flex-col items-center justify-center w-full">
               <h1 className="text-5xl font-black mb-4 text-amber-300">Safari Bonus Round!</h1>
-              <p className="text-xl text-white/70 mb-4">Each round, 3 students become Safari Explorers, everyone else is the Wildlife</p>
+              <p className="text-xl text-white/70 mb-4">Each round, the game will tell you if you're a Safari Explorer or Wildlife</p>
 
               {/* Split Screen Container */}
               <div className="grid grid-cols-2 gap-6 max-w-6xl w-full mb-4">
@@ -967,7 +967,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                   <h2 className="text-2xl font-black text-blue-300 mb-3">The Wildlife</h2>
 
                   <div className="text-left space-y-3 mb-4">
-                    <p className="text-white"><span className="text-blue-300 font-bold">1.</span> Answer the question like normal</p>
+                    <p className="text-white"><span className="text-blue-300 font-bold">1.</span> Stay in your seat and answer the question</p>
                     <p className="text-white"><span className="text-blue-300 font-bold">2.</span> Your screen shows an animal + code</p>
                     <p className="text-white"><span className="text-blue-300 font-bold">3.</span> Keep your screen visible!</p>
                     <p className="text-white/60 text-sm">(Explorers may need to see your code)</p>
