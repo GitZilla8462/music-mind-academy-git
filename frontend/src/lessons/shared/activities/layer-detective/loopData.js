@@ -4,64 +4,64 @@
 export const loopsData = [
   // HEROIC LOOPS
   {
-    name: "Heroic Bass 1",
+    name: "Heroic Bells 1",
     category: "Heroic",
-    instrument: "Bass",
-    src: "/projects/film-music-score/loops/Heroic Bass 1.mp3"
+    instrument: "Bells",
+    src: "/projects/film-music-score/loops/Heroic Bells 1.m4a"
   },
   {
     name: "Heroic Brass 2",
     category: "Heroic",
     instrument: "Brass",
-    src: "/projects/film-music-score/loops/Heroic Brass 2.mp3"
+    src: "/projects/film-music-score/loops/Heroic Brass 2.m4a"
   },
   {
     name: "Heroic Drums 1",
     category: "Heroic",
     instrument: "Drums",
-    src: "/projects/film-music-score/loops/Heroic Drums 1.mp3"
+    src: "/projects/film-music-score/loops/Heroic Drums 1.m4a"
   },
   {
     name: "Heroic Drums 2",
     category: "Heroic",
     instrument: "Drums",
-    src: "/projects/film-music-score/loops/Heroic Drums 2.mp3"
+    src: "/projects/film-music-score/loops/Heroic Drums 2.m4a"
   },
   {
     name: "Heroic Strings 1",
     category: "Heroic",
     instrument: "Strings",
-    src: "/projects/film-music-score/loops/Heroic Strings 1.mp3"
+    src: "/projects/film-music-score/loops/Heroic Strings 1.m4a"
   },
   {
     name: "Heroic Strings 2",
     category: "Heroic",
     instrument: "Strings",
-    src: "/projects/film-music-score/loops/Heroic Strings 2.mp3"
+    src: "/projects/film-music-score/loops/Heroic Strings 2.m4a"
   },
   {
     name: "Heroic Strings 3",
     category: "Heroic",
     instrument: "Strings",
-    src: "/projects/film-music-score/loops/Heroic Strings 3.mp3"
+    src: "/projects/film-music-score/loops/Heroic Strings 3.m4a"
   },
   {
-    name: "Heroic Synth 1",
+    name: "Heroic Piano 1",
     category: "Heroic",
-    instrument: "Synth",
-    src: "/projects/film-music-score/loops/Heroic Synth 1.mp3"
+    instrument: "Piano",
+    src: "/projects/film-music-score/loops/Heroic Piano 1.m4a"
   },
   {
-    name: "Heroic Synth 2",
+    name: "Heroic Guitar 1",
     category: "Heroic",
-    instrument: "Synth",
-    src: "/projects/film-music-score/loops/Heroic Synth 2.mp3"
+    instrument: "Guitar",
+    src: "/projects/film-music-score/loops/Heroic Guitar 1.m4a"
   },
   {
-    name: "Heroic Vocals",
+    name: "Heroic Vocals 1",
     category: "Heroic",
     instrument: "Vocals",
-    src: "/projects/film-music-score/loops/Heroic Vocals.mp3"
+    src: "/projects/film-music-score/loops/Heroic Vocals 1.m4a"
   },
 
   // MYSTERIOUS LOOPS

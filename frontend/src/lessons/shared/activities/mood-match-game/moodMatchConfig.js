@@ -40,7 +40,7 @@ export const GAME_LOOPS = [
   {
     id: 'loop-1',
     name: 'Heroic Brass 2',
-    file: '/projects/film-music-score/loops/Heroic Brass 2.mp3',
+    file: '/projects/film-music-score/loops/Heroic Brass 2.m4a',
     // Clear heroic - good starting loop
     notes: 'Brass fanfare, major key, triumphant feel'
   },
@@ -68,7 +68,7 @@ export const GAME_LOOPS = [
   {
     id: 'loop-5',
     name: 'Heroic Strings 1',
-    file: '/projects/film-music-score/loops/Heroic Strings 1.mp3',
+    file: '/projects/film-music-score/loops/Heroic Strings 1.m4a',
     // Could be heroic or mysterious - strings can go either way
     notes: 'Sweeping strings, could feel epic or atmospheric'
   },

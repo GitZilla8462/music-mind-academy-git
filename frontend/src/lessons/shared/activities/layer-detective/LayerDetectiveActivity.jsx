@@ -229,7 +229,7 @@ useEffect(() => {
       correctAnswer: 'A',
       mood: 'Heroic',
       layers: [
-        { name: 'Heroic Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 1.mp3', color: '#EF4444' }
+        { name: 'Heroic Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 1.m4a', color: '#EF4444' }
       ]
     },
     {
@@ -237,8 +237,8 @@ useEffect(() => {
       correctAnswer: 'B',
       mood: 'Heroic',
       layers: [
-        { name: 'Heroic Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 1.mp3', color: '#EF4444' },
-        { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.mp3', color: '#F59E0B' }
+        { name: 'Heroic Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 1.m4a', color: '#EF4444' },
+        { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.m4a', color: '#F59E0B' }
       ]
     },
     {
@@ -246,9 +246,9 @@ useEffect(() => {
       correctAnswer: 'C',
       mood: 'Heroic',
       layers: [
-        { name: 'Heroic Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 1.mp3', color: '#EF4444' },
-        { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.mp3', color: '#F59E0B' },
-        { name: 'Heroic Strings 1', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 1.mp3', color: '#10B981' }
+        { name: 'Heroic Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 1.m4a', color: '#EF4444' },
+        { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.m4a', color: '#F59E0B' },
+        { name: 'Heroic Strings 1', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 1.m4a', color: '#10B981' }
       ]
     },
     {
@@ -256,8 +256,8 @@ useEffect(() => {
       correctAnswer: 'B',
       mood: 'Heroic',
       layers: [
-        { name: 'Heroic Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 2.mp3', color: '#DC2626' },
-        { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.mp3', color: '#EA580C' }
+        { name: 'Heroic Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 2.m4a', color: '#DC2626' },
+        { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.m4a', color: '#EA580C' }
       ]
     },
     {
@@ -265,9 +265,9 @@ useEffect(() => {
       correctAnswer: 'C',
       mood: 'Heroic',
       layers: [
-        { name: 'Heroic Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 2.mp3', color: '#DC2626' },
-        { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.mp3', color: '#EA580C' },
-        { name: 'Heroic Synth 2', category: 'Synth', file: '/projects/film-music-score/loops/Heroic Synth 2.mp3', color: '#7C3AED' }
+        { name: 'Heroic Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 2.m4a', color: '#DC2626' },
+        { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.m4a', color: '#EA580C' },
+        { name: 'Heroic Piano 1', category: 'Piano', file: '/projects/film-music-score/loops/Heroic Piano 1.m4a', color: '#7C3AED' }
       ]
     },
     {
@@ -275,7 +275,7 @@ useEffect(() => {
       correctAnswer: 'A',
       mood: 'Heroic',
       layers: [
-        { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.mp3', color: '#F59E0B' }
+        { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.m4a', color: '#F59E0B' }
       ]
     },
     {
@@ -283,9 +283,9 @@ useEffect(() => {
       correctAnswer: 'C',
       mood: 'Heroic',
       layers: [
-        { name: 'Heroic Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 1.mp3', color: '#EF4444' },
-        { name: 'Heroic Synth 1', category: 'Synth', file: '/projects/film-music-score/loops/Heroic Synth 1.mp3', color: '#8B5CF6' },
-        { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.mp3', color: '#F59E0B' }
+        { name: 'Heroic Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 1.m4a', color: '#EF4444' },
+        { name: 'Heroic Piano 1', category: 'Piano', file: '/projects/film-music-score/loops/Heroic Piano 1.m4a', color: '#8B5CF6' },
+        { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.m4a', color: '#F59E0B' }
       ]
     },
     {
@@ -293,7 +293,7 @@ useEffect(() => {
       correctAnswer: 'A',
       mood: 'Heroic',
       layers: [
-        { name: 'Heroic Strings 1', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 1.mp3', color: '#10B981' }
+        { name: 'Heroic Strings 1', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 1.m4a', color: '#10B981' }
       ]
     },
 

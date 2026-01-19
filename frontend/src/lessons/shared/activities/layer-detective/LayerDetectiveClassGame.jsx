@@ -19,7 +19,7 @@ const QUESTIONS = [
     correctAnswer: '1',
     instruments: ['Drums'],
     layers: [
-      { name: 'Heroic Drums 1', file: '/projects/film-music-score/loops/Heroic Drums 1.mp3', color: '#EF4444' }
+      { name: 'Heroic Drums 1', file: '/projects/film-music-score/loops/Heroic Drums 1.m4a', color: '#EF4444' }
     ]
   },
   {
@@ -27,8 +27,8 @@ const QUESTIONS = [
     correctAnswer: '2',
     instruments: ['Drums', 'Brass'],
     layers: [
-      { name: 'Heroic Drums 1', file: '/projects/film-music-score/loops/Heroic Drums 1.mp3', color: '#EF4444' },
-      { name: 'Heroic Brass 2', file: '/projects/film-music-score/loops/Heroic Brass 2.mp3', color: '#F59E0B' }
+      { name: 'Heroic Drums 1', file: '/projects/film-music-score/loops/Heroic Drums 1.m4a', color: '#EF4444' },
+      { name: 'Heroic Brass 2', file: '/projects/film-music-score/loops/Heroic Brass 2.m4a', color: '#F59E0B' }
     ]
   },
   {
@@ -36,9 +36,9 @@ const QUESTIONS = [
     correctAnswer: '3',
     instruments: ['Drums', 'Brass', 'Strings'],
     layers: [
-      { name: 'Heroic Drums 1', file: '/projects/film-music-score/loops/Heroic Drums 1.mp3', color: '#EF4444' },
-      { name: 'Heroic Brass 2', file: '/projects/film-music-score/loops/Heroic Brass 2.mp3', color: '#F59E0B' },
-      { name: 'Heroic Strings 1', file: '/projects/film-music-score/loops/Heroic Strings 1.mp3', color: '#10B981' }
+      { name: 'Heroic Drums 1', file: '/projects/film-music-score/loops/Heroic Drums 1.m4a', color: '#EF4444' },
+      { name: 'Heroic Brass 2', file: '/projects/film-music-score/loops/Heroic Brass 2.m4a', color: '#F59E0B' },
+      { name: 'Heroic Strings 1', file: '/projects/film-music-score/loops/Heroic Strings 1.m4a', color: '#10B981' }
     ]
   },
   {
@@ -80,9 +80,9 @@ const QUESTIONS = [
   {
     id: 8,
     correctAnswer: '1',
-    instruments: ['Synth'],
+    instruments: ['Piano'],
     layers: [
-      { name: 'Heroic Synth 1', file: '/projects/film-music-score/loops/Heroic Synth 1.mp3', color: '#7C3AED' }
+      { name: 'Heroic Piano 1', file: '/projects/film-music-score/loops/Heroic Piano 1.m4a', color: '#7C3AED' }
     ]
   },
   {
@@ -100,8 +100,8 @@ const QUESTIONS = [
     correctAnswer: '2',
     instruments: ['Drums', 'Strings'],
     layers: [
-      { name: 'Heroic Drums 2', file: '/projects/film-music-score/loops/Heroic Drums 2.mp3', color: '#EF4444' },
-      { name: 'Heroic Strings 2', file: '/projects/film-music-score/loops/Heroic Strings 2.mp3', color: '#10B981' }
+      { name: 'Heroic Drums 2', file: '/projects/film-music-score/loops/Heroic Drums 2.m4a', color: '#EF4444' },
+      { name: 'Heroic Strings 2', file: '/projects/film-music-score/loops/Heroic Strings 2.m4a', color: '#10B981' }
     ]
   }
 ];

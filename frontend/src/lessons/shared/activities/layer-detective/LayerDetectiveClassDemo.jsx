@@ -26,12 +26,12 @@ const LayerDetectiveClassDemo = ({ onComplete }) => {
         {
           name: 'Heroic Drums 1',
           category: 'Drums',
-          file: '/projects/film-music-score/loops/Heroic Drums 1.mp3',
+          file: '/projects/film-music-score/loops/Heroic Drums 1.m4a',
           color: '#EF4444' // Red
         }
       ]
     },
-    
+
     // QUESTION 2: 2 Layers
     {
       id: 2,
@@ -42,18 +42,18 @@ const LayerDetectiveClassDemo = ({ onComplete }) => {
         {
           name: 'Heroic Drums 1',
           category: 'Drums',
-          file: '/projects/film-music-score/loops/Heroic Drums 1.mp3',
+          file: '/projects/film-music-score/loops/Heroic Drums 1.m4a',
           color: '#EF4444'
         },
         {
           name: 'Heroic Brass 2',
           category: 'Brass',
-          file: '/projects/film-music-score/loops/Heroic Brass 2.mp3',
+          file: '/projects/film-music-score/loops/Heroic Brass 2.m4a',
           color: '#F59E0B' // Orange
         }
       ]
     },
-    
+
     // QUESTION 3: 3 Layers
     {
       id: 3,
@@ -64,24 +64,24 @@ const LayerDetectiveClassDemo = ({ onComplete }) => {
         {
           name: 'Heroic Drums 1',
           category: 'Drums',
-          file: '/projects/film-music-score/loops/Heroic Drums 1.mp3',
+          file: '/projects/film-music-score/loops/Heroic Drums 1.m4a',
           color: '#EF4444'
         },
         {
           name: 'Heroic Brass 2',
           category: 'Brass',
-          file: '/projects/film-music-score/loops/Heroic Brass 2.mp3',
+          file: '/projects/film-music-score/loops/Heroic Brass 2.m4a',
           color: '#F59E0B'
         },
         {
           name: 'Heroic Strings 1',
           category: 'Strings',
-          file: '/projects/film-music-score/loops/Heroic Strings 1.mp3',
+          file: '/projects/film-music-score/loops/Heroic Strings 1.m4a',
           color: '#10B981' // Green
         }
       ]
     },
-    
+
     // QUESTION 4: 4 Layers
     {
       id: 4,
@@ -92,25 +92,25 @@ const LayerDetectiveClassDemo = ({ onComplete }) => {
         {
           name: 'Heroic Drums 1',
           category: 'Drums',
-          file: '/projects/film-music-score/loops/Heroic Drums 1.mp3',
+          file: '/projects/film-music-score/loops/Heroic Drums 1.m4a',
           color: '#EF4444'
         },
         {
           name: 'Heroic Brass 2',
           category: 'Brass',
-          file: '/projects/film-music-score/loops/Heroic Brass 2.mp3',
+          file: '/projects/film-music-score/loops/Heroic Brass 2.m4a',
           color: '#F59E0B'
         },
         {
           name: 'Heroic Strings 1',
           category: 'Strings',
-          file: '/projects/film-music-score/loops/Heroic Strings 1.mp3',
+          file: '/projects/film-music-score/loops/Heroic Strings 1.m4a',
           color: '#10B981'
         },
         {
-          name: 'Heroic Synth 1',
-          category: 'Synth',
-          file: '/projects/film-music-score/loops/Heroic Synth 1.mp3',
+          name: 'Heroic Piano 1',
+          category: 'Piano',
+          file: '/projects/film-music-score/loops/Heroic Piano 1.m4a',
           color: '#8B5CF6' // Purple
         }
       ]

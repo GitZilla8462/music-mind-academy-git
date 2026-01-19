@@ -12,8 +12,8 @@ const VIDEO_CONFIGS = [
     title: 'Basketball',
     emoji: '🏀',
     videoPath: '/lessons/film-music-project/lesson4/BasketballHighlightReel.mp4',
-    melodyPath: '/projects/film-music-score/loops/Hype Bass 1.wav',
-    drumsPath: '/projects/film-music-score/loops/Hype Drums 1.wav',
+    melodyPath: '/projects/film-music-score/loops/Hype Bass 1.m4a',
+    drumsPath: '/projects/film-music-score/loops/Hype Drums 1.m4a',
     color: '#ef4444'
   },
   {
@@ -21,8 +21,8 @@ const VIDEO_CONFIGS = [
     title: 'Soccer',
     emoji: '⚽',
     videoPath: '/lessons/film-music-project/lesson4/SoccerHighlightReel.mp4',
-    melodyPath: '/projects/film-music-score/loops/Hype Bass 2.wav',
-    drumsPath: '/projects/film-music-score/loops/Hype Drums 2.wav',
+    melodyPath: '/projects/film-music-score/loops/Hype Bass 2.m4a',
+    drumsPath: '/projects/film-music-score/loops/Hype Drums 2.m4a',
     color: '#22c55e'
   },
   {
@@ -30,8 +30,8 @@ const VIDEO_CONFIGS = [
     title: 'Skateboarding',
     emoji: '🛹',
     videoPath: '/lessons/film-music-project/lesson4/SkateboardHighlighReel.mp4',
-    melodyPath: '/projects/film-music-score/loops/Hype Guitar 1.wav',
-    drumsPath: '/projects/film-music-score/loops/Hype Drums 3.wav',
+    melodyPath: '/projects/film-music-score/loops/Hype Guitar 1.m4a',
+    drumsPath: '/projects/film-music-score/loops/Hype Drums 3.m4a',
     color: '#a855f7'
   }
 ];

@@ -32,16 +32,16 @@ const LayerDetectivePartnerGame = ({ onComplete, viewMode = false }) => {
   // ✅ RULE: Each question will use loops from ONLY ONE MOOD
   const loopsByMood = {
     Heroic: [
-      { name: 'Heroic Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 1.mp3', color: '#EF4444' },
-      { name: 'Heroic Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 2.mp3', color: '#DC2626' },
-      { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.mp3', color: '#F59E0B' },
-      { name: 'Heroic Strings 1', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 1.mp3', color: '#10B981' },
-      { name: 'Heroic Strings 2', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 2.mp3', color: '#059669' },
-      { name: 'Heroic Strings 3', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 3.mp3', color: '#047857' },
-      { name: 'Heroic Synth 1', category: 'Synth', file: '/projects/film-music-score/loops/Heroic Synth 1.mp3', color: '#8B5CF6' },
-      { name: 'Heroic Synth 2', category: 'Synth', file: '/projects/film-music-score/loops/Heroic Synth 2.mp3', color: '#7C3AED' },
-      { name: 'Heroic Vocals', category: 'Vocals', file: '/projects/film-music-score/loops/Heroic Vocals.mp3', color: '#EC4899' },
-      { name: 'Heroic Bass 1', category: 'Bass', file: '/projects/film-music-score/loops/Heroic Bass 1.mp3', color: '#3B82F6' }
+      { name: 'Heroic Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 1.m4a', color: '#EF4444' },
+      { name: 'Heroic Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Heroic Drums 2.m4a', color: '#DC2626' },
+      { name: 'Heroic Brass 2', category: 'Brass', file: '/projects/film-music-score/loops/Heroic Brass 2.m4a', color: '#F59E0B' },
+      { name: 'Heroic Strings 1', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 1.m4a', color: '#10B981' },
+      { name: 'Heroic Strings 2', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 2.m4a', color: '#059669' },
+      { name: 'Heroic Strings 3', category: 'Strings', file: '/projects/film-music-score/loops/Heroic Strings 3.m4a', color: '#047857' },
+      { name: 'Heroic Piano 1', category: 'Piano', file: '/projects/film-music-score/loops/Heroic Piano 1.m4a', color: '#8B5CF6' },
+      { name: 'Heroic Bells 1', category: 'Bells', file: '/projects/film-music-score/loops/Heroic Bells 1.m4a', color: '#7C3AED' },
+      { name: 'Heroic Vocals 1', category: 'Vocals', file: '/projects/film-music-score/loops/Heroic Vocals 1.m4a', color: '#EC4899' },
+      { name: 'Heroic Guitar 1', category: 'Guitar', file: '/projects/film-music-score/loops/Heroic Guitar 1.m4a', color: '#3B82F6' }
     ],
     Scary: [
       { name: 'Scary Percussion 1', category: 'Percussion', file: '/projects/film-music-score/loops/Scary Percussion 1.mp3', color: '#EF4444' },
@@ -82,19 +82,19 @@ const LayerDetectivePartnerGame = ({ onComplete, viewMode = false }) => {
       { name: 'Mysterious Bass 2', category: 'Bass', file: '/projects/film-music-score/loops/Mysterious Bass 2.mp3', color: '#2563EB' }
     ],
     Hype: [
-      { name: 'Hype Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Hype Drums 1.wav', color: '#EF4444' },
-      { name: 'Hype Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Hype Drums 2.wav', color: '#DC2626' },
-      { name: 'Hype Drums 3', category: 'Drums', file: '/projects/film-music-score/loops/Hype Drums 3.wav', color: '#B91C1C' },
-      { name: 'Hype Guitar 1', category: 'Guitar', file: '/projects/film-music-score/loops/Hype Guitar 1.wav', color: '#F59E0B' },
-      { name: 'Hype Guitar 2', category: 'Guitar', file: '/projects/film-music-score/loops/Hype Guitar 2.wav', color: '#D97706' },
-      { name: 'Hype Keys 1', category: 'Keys', file: '/projects/film-music-score/loops/Hype Keys 1.wav', color: '#10B981' },
-      { name: 'Hype Synth 1', category: 'Synth', file: '/projects/film-music-score/loops/Hype Synth 1.wav', color: '#8B5CF6' },
-      { name: 'Hype Synth 2', category: 'Synth', file: '/projects/film-music-score/loops/Hype Synth 2.wav', color: '#7C3AED' },
-      { name: 'Hype Synth Lead 1', category: 'Synth Lead', file: '/projects/film-music-score/loops/Hype Synth Lead 1.wav', color: '#EC4899' },
-      { name: 'Hype Synth Lead 2', category: 'Synth Lead', file: '/projects/film-music-score/loops/Hype Synth Lead 2.wav', color: '#DB2777' },
-      { name: 'Hype Synth Lead 3', category: 'Synth Lead', file: '/projects/film-music-score/loops/Hype Synth Lead 3.wav', color: '#BE185D' },
-      { name: 'Hype Bass 1', category: 'Bass', file: '/projects/film-music-score/loops/Hype Bass 1.wav', color: '#3B82F6' },
-      { name: 'Hype Bass 2', category: 'Bass', file: '/projects/film-music-score/loops/Hype Bass 2.wav', color: '#2563EB' }
+      { name: 'Hype Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Hype Drums 1.m4a', color: '#EF4444' },
+      { name: 'Hype Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Hype Drums 2.m4a', color: '#DC2626' },
+      { name: 'Hype Drums 3', category: 'Drums', file: '/projects/film-music-score/loops/Hype Drums 3.m4a', color: '#B91C1C' },
+      { name: 'Hype Guitar 1', category: 'Guitar', file: '/projects/film-music-score/loops/Hype Guitar 1.m4a', color: '#F59E0B' },
+      { name: 'Hype Guitar 2', category: 'Guitar', file: '/projects/film-music-score/loops/Hype Guitar 2.m4a', color: '#D97706' },
+      { name: 'Hype Piano 1', category: 'Piano', file: '/projects/film-music-score/loops/Hype Piano 1.m4a', color: '#10B981' },
+      { name: 'Hype Synth 1', category: 'Synth', file: '/projects/film-music-score/loops/Hype Synth 1.m4a', color: '#8B5CF6' },
+      { name: 'Hype Synth 2', category: 'Synth', file: '/projects/film-music-score/loops/Hype Synth 2.m4a', color: '#7C3AED' },
+      { name: 'Hype Lead 1', category: 'Lead', file: '/projects/film-music-score/loops/Hype Lead 1.m4a', color: '#EC4899' },
+      { name: 'Hype Lead 2', category: 'Lead', file: '/projects/film-music-score/loops/Hype Lead 2.m4a', color: '#DB2777' },
+      { name: 'Hype Lead 3', category: 'Lead', file: '/projects/film-music-score/loops/Hype Lead 3.m4a', color: '#BE185D' },
+      { name: 'Hype Bass 1', category: 'Bass', file: '/projects/film-music-score/loops/Hype Bass 1.m4a', color: '#3B82F6' },
+      { name: 'Hype Bass 2', category: 'Bass', file: '/projects/film-music-score/loops/Hype Bass 2.m4a', color: '#2563EB' }
     ]
   };
 

@@ -1,244 +1,324 @@
 {
-  "generatedAt": "2026-01-19T17:05:30.403Z",
-  "count": 62,
+  "generatedAt": "2026-01-19T23:35:08.336Z",
+  "count": 72,
   "loops": [
     {
-      "id": "heroic-bass-1",
-      "name": "Heroic Bass 1",
-      "file": "/projects/film-music-score/loops/Heroic Bass 1.mp3",
-      "extension": "mp3",
+      "id": "heroic-bells-1",
+      "name": "Heroic Bells 1",
+      "file": "/projects/film-music-score/loops/Heroic Bells 1.m4a",
+      "extension": "m4a",
       "mood": "Heroic",
-      "instrument": "Bass"
+      "instrument": "Woodwinds"
+    },
+    {
+      "id": "heroic-bells-2",
+      "name": "Heroic Bells 2",
+      "file": "/projects/film-music-score/loops/Heroic Bells 2.m4a",
+      "extension": "m4a",
+      "mood": "Heroic",
+      "instrument": "Woodwinds"
+    },
+    {
+      "id": "heroic-brass-1",
+      "name": "Heroic Brass 1",
+      "file": "/projects/film-music-score/loops/Heroic Brass 1.m4a",
+      "extension": "m4a",
+      "mood": "Heroic",
+      "instrument": "Brass"
     },
     {
       "id": "heroic-brass-2",
       "name": "Heroic Brass 2",
-      "file": "/projects/film-music-score/loops/Heroic Brass 2.mp3",
-      "extension": "mp3",
+      "file": "/projects/film-music-score/loops/Heroic Brass 2.m4a",
+      "extension": "m4a",
       "mood": "Heroic",
       "instrument": "Brass"
     },
     {
       "id": "heroic-drums-1",
       "name": "Heroic Drums 1",
-      "file": "/projects/film-music-score/loops/Heroic Drums 1.mp3",
-      "extension": "mp3",
+      "file": "/projects/film-music-score/loops/Heroic Drums 1.m4a",
+      "extension": "m4a",
       "mood": "Heroic",
       "instrument": "Drums"
     },
     {
       "id": "heroic-drums-2",
       "name": "Heroic Drums 2",
-      "file": "/projects/film-music-score/loops/Heroic Drums 2.mp3",
-      "extension": "mp3",
+      "file": "/projects/film-music-score/loops/Heroic Drums 2.m4a",
+      "extension": "m4a",
       "mood": "Heroic",
       "instrument": "Drums"
     },
     {
+      "id": "heroic-drums-3",
+      "name": "Heroic Drums 3",
+      "file": "/projects/film-music-score/loops/Heroic Drums 3.m4a",
+      "extension": "m4a",
+      "mood": "Heroic",
+      "instrument": "Drums"
+    },
+    {
+      "id": "heroic-drums-4",
+      "name": "Heroic Drums 4",
+      "file": "/projects/film-music-score/loops/Heroic Drums 4.m4a",
+      "extension": "m4a",
+      "mood": "Heroic",
+      "instrument": "Drums"
+    },
+    {
+      "id": "heroic-guitar-1",
+      "name": "Heroic Guitar 1",
+      "file": "/projects/film-music-score/loops/Heroic Guitar 1.m4a",
+      "extension": "m4a",
+      "mood": "Heroic",
+      "instrument": "Guitar"
+    },
+    {
+      "id": "heroic-guitar-2",
+      "name": "Heroic Guitar 2",
+      "file": "/projects/film-music-score/loops/Heroic Guitar 2.m4a",
+      "extension": "m4a",
+      "mood": "Heroic",
+      "instrument": "Guitar"
+    },
+    {
+      "id": "heroic-marimba",
+      "name": "Heroic Marimba",
+      "file": "/projects/film-music-score/loops/Heroic Marimba.m4a",
+      "extension": "m4a",
+      "mood": "Heroic",
+      "instrument": "Other"
+    },
+    {
+      "id": "heroic-piano-1",
+      "name": "Heroic Piano 1",
+      "file": "/projects/film-music-score/loops/Heroic Piano 1.m4a",
+      "extension": "m4a",
+      "mood": "Heroic",
+      "instrument": "Keys"
+    },
+    {
       "id": "heroic-strings-1",
       "name": "Heroic Strings 1",
-      "file": "/projects/film-music-score/loops/Heroic Strings 1.mp3",
-      "extension": "mp3",
+      "file": "/projects/film-music-score/loops/Heroic Strings 1.m4a",
+      "extension": "m4a",
       "mood": "Heroic",
       "instrument": "Strings"
     },
     {
       "id": "heroic-strings-2",
       "name": "Heroic Strings 2",
-      "file": "/projects/film-music-score/loops/Heroic Strings 2.mp3",
-      "extension": "mp3",
+      "file": "/projects/film-music-score/loops/Heroic Strings 2.m4a",
+      "extension": "m4a",
       "mood": "Heroic",
       "instrument": "Strings"
     },
     {
       "id": "heroic-strings-3",
       "name": "Heroic Strings 3",
-      "file": "/projects/film-music-score/loops/Heroic Strings 3.mp3",
-      "extension": "mp3",
+      "file": "/projects/film-music-score/loops/Heroic Strings 3.m4a",
+      "extension": "m4a",
       "mood": "Heroic",
       "instrument": "Strings"
     },
     {
-      "id": "heroic-synth-1",
-      "name": "Heroic Synth 1",
-      "file": "/projects/film-music-score/loops/Heroic Synth 1.mp3",
-      "extension": "mp3",
+      "id": "heroic-strings-4",
+      "name": "Heroic Strings 4",
+      "file": "/projects/film-music-score/loops/Heroic Strings 4.m4a",
+      "extension": "m4a",
       "mood": "Heroic",
-      "instrument": "Synth"
+      "instrument": "Strings"
     },
     {
-      "id": "heroic-synth-2",
-      "name": "Heroic Synth 2",
-      "file": "/projects/film-music-score/loops/Heroic Synth 2.mp3",
-      "extension": "mp3",
+      "id": "heroic-vibraphone",
+      "name": "Heroic Vibraphone",
+      "file": "/projects/film-music-score/loops/Heroic Vibraphone.m4a",
+      "extension": "m4a",
       "mood": "Heroic",
-      "instrument": "Synth"
+      "instrument": "Other"
     },
     {
-      "id": "heroic-vocals",
-      "name": "Heroic Vocals",
-      "file": "/projects/film-music-score/loops/Heroic Vocals.mp3",
-      "extension": "mp3",
+      "id": "heroic-vocals-1",
+      "name": "Heroic Vocals 1",
+      "file": "/projects/film-music-score/loops/Heroic Vocals 1.m4a",
+      "extension": "m4a",
+      "mood": "Heroic",
+      "instrument": "Vocals"
+    },
+    {
+      "id": "heroic-vocals-2",
+      "name": "Heroic Vocals 2",
+      "file": "/projects/film-music-score/loops/Heroic Vocals 2.m4a",
+      "extension": "m4a",
       "mood": "Heroic",
       "instrument": "Vocals"
     },
     {
       "id": "hype-bass-1",
       "name": "Hype Bass 1",
-      "file": "/projects/film-music-score/loops/Hype Bass 1.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Bass 1.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Bass"
     },
     {
       "id": "hype-bass-2",
       "name": "Hype Bass 2",
-      "file": "/projects/film-music-score/loops/Hype Bass 2.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Bass 2.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Bass"
     },
     {
       "id": "hype-bells-1",
       "name": "Hype Bells 1",
-      "file": "/projects/film-music-score/loops/Hype Bells 1.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Bells 1.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Woodwinds"
     },
     {
       "id": "hype-bells-2",
       "name": "Hype Bells 2",
-      "file": "/projects/film-music-score/loops/Hype Bells 2.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Bells 2.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Woodwinds"
     },
     {
       "id": "hype-bells-3",
       "name": "Hype Bells 3",
-      "file": "/projects/film-music-score/loops/Hype Bells 3.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Bells 3.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Woodwinds"
     },
     {
       "id": "hype-drums-1",
       "name": "Hype Drums 1",
-      "file": "/projects/film-music-score/loops/Hype Drums 1.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Drums 1.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Drums"
     },
     {
       "id": "hype-drums-2",
       "name": "Hype Drums 2",
-      "file": "/projects/film-music-score/loops/Hype Drums 2.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Drums 2.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Drums"
     },
     {
       "id": "hype-drums-3",
       "name": "Hype Drums 3",
-      "file": "/projects/film-music-score/loops/Hype Drums 3.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Drums 3.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Drums"
     },
     {
       "id": "hype-guitar-1",
       "name": "Hype Guitar 1",
-      "file": "/projects/film-music-score/loops/Hype Guitar 1.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Guitar 1.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Guitar"
     },
     {
       "id": "hype-guitar-2",
       "name": "Hype Guitar 2",
-      "file": "/projects/film-music-score/loops/Hype Guitar 2.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Guitar 2.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Guitar"
     },
     {
-      "id": "hype-keys-1",
-      "name": "Hype Keys 1",
-      "file": "/projects/film-music-score/loops/Hype Keys 1.wav",
-      "extension": "wav",
+      "id": "hype-lead-1",
+      "name": "Hype Lead 1",
+      "file": "/projects/film-music-score/loops/Hype Lead 1.m4a",
+      "extension": "m4a",
+      "mood": "Hype",
+      "instrument": "Other"
+    },
+    {
+      "id": "hype-lead-2",
+      "name": "Hype Lead 2",
+      "file": "/projects/film-music-score/loops/Hype Lead 2.m4a",
+      "extension": "m4a",
+      "mood": "Hype",
+      "instrument": "Other"
+    },
+    {
+      "id": "hype-lead-3",
+      "name": "Hype Lead 3",
+      "file": "/projects/film-music-score/loops/Hype Lead 3.m4a",
+      "extension": "m4a",
+      "mood": "Hype",
+      "instrument": "Other"
+    },
+    {
+      "id": "hype-piano-1",
+      "name": "Hype Piano 1",
+      "file": "/projects/film-music-score/loops/Hype Piano 1.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Keys"
     },
     {
       "id": "hype-strings-1",
       "name": "Hype Strings 1",
-      "file": "/projects/film-music-score/loops/Hype Strings 1.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Strings 1.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Strings"
     },
     {
       "id": "hype-strings-2",
       "name": "Hype Strings 2",
-      "file": "/projects/film-music-score/loops/Hype Strings 2.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Strings 2.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Strings"
     },
     {
       "id": "hype-strings-3",
       "name": "Hype Strings 3",
-      "file": "/projects/film-music-score/loops/Hype Strings 3.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Strings 3.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Strings"
     },
     {
       "id": "hype-strings-4",
       "name": "Hype Strings 4",
-      "file": "/projects/film-music-score/loops/Hype Strings 4.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Strings 4.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Strings"
     },
     {
       "id": "hype-synth-1",
       "name": "Hype Synth 1",
-      "file": "/projects/film-music-score/loops/Hype Synth 1.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Synth 1.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Synth"
     },
     {
       "id": "hype-synth-2",
       "name": "Hype Synth 2",
-      "file": "/projects/film-music-score/loops/Hype Synth 2.wav",
-      "extension": "wav",
+      "file": "/projects/film-music-score/loops/Hype Synth 2.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Synth"
     },
     {
-      "id": "hype-synth-lead-1",
-      "name": "Hype Synth Lead 1",
-      "file": "/projects/film-music-score/loops/Hype Synth Lead 1.wav",
-      "extension": "wav",
-      "mood": "Hype",
-      "instrument": "Synth"
-    },
-    {
-      "id": "hype-synth-lead-2",
-      "name": "Hype Synth Lead 2",
-      "file": "/projects/film-music-score/loops/Hype Synth Lead 2.wav",
-      "extension": "wav",
-      "mood": "Hype",
-      "instrument": "Synth"
-    },
-    {
-      "id": "hype-synth-lead-3",
-      "name": "Hype Synth Lead 3",
-      "file": "/projects/film-music-score/loops/Hype Synth Lead 3.wav",
-      "extension": "wav",
+      "id": "hype-synth-3",
+      "name": "Hype Synth 3",
+      "file": "/projects/film-music-score/loops/Hype Synth 3.m4a",
+      "extension": "m4a",
       "mood": "Hype",
       "instrument": "Synth"
     },

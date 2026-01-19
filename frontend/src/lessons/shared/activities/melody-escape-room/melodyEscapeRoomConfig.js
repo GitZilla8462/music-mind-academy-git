@@ -3,20 +3,25 @@
 // Reuse loop data from existing library
 export const loopData = {
   Heroic: {
-    Bass: ['/projects/film-music-score/loops/Heroic Bass 1.mp3'],
-    Brass: ['/projects/film-music-score/loops/Heroic Brass 2.mp3'],
-    Drums: ['/projects/film-music-score/loops/Heroic Drums 1.mp3', '/projects/film-music-score/loops/Heroic Drums 2.mp3'],
-    Strings: ['/projects/film-music-score/loops/Heroic Strings 1.mp3', '/projects/film-music-score/loops/Heroic Strings 2.mp3'],
-    Synth: ['/projects/film-music-score/loops/Heroic Synth 1.mp3', '/projects/film-music-score/loops/Heroic Synth 2.mp3'],
-    Vocals: ['/projects/film-music-score/loops/Heroic Vocals.mp3']
+    Bells: ['/projects/film-music-score/loops/Heroic Bells 1.m4a', '/projects/film-music-score/loops/Heroic Bells 2.m4a'],
+    Brass: ['/projects/film-music-score/loops/Heroic Brass 1.m4a', '/projects/film-music-score/loops/Heroic Brass 2.m4a'],
+    Drums: ['/projects/film-music-score/loops/Heroic Drums 1.m4a', '/projects/film-music-score/loops/Heroic Drums 2.m4a', '/projects/film-music-score/loops/Heroic Drums 3.m4a', '/projects/film-music-score/loops/Heroic Drums 4.m4a'],
+    Guitar: ['/projects/film-music-score/loops/Heroic Guitar 1.m4a', '/projects/film-music-score/loops/Heroic Guitar 2.m4a'],
+    Marimba: ['/projects/film-music-score/loops/Heroic Marimba.m4a'],
+    Piano: ['/projects/film-music-score/loops/Heroic Piano 1.m4a'],
+    Strings: ['/projects/film-music-score/loops/Heroic Strings 1.m4a', '/projects/film-music-score/loops/Heroic Strings 2.m4a', '/projects/film-music-score/loops/Heroic Strings 3.m4a', '/projects/film-music-score/loops/Heroic Strings 4.m4a'],
+    Vibraphone: ['/projects/film-music-score/loops/Heroic Vibraphone.m4a'],
+    Vocals: ['/projects/film-music-score/loops/Heroic Vocals 1.m4a', '/projects/film-music-score/loops/Heroic Vocals 2.m4a']
   },
   Hype: {
-    Bass: ['/projects/film-music-score/loops/Hype Bass 1.wav', '/projects/film-music-score/loops/Hype Bass 2.wav'],
-    Drums: ['/projects/film-music-score/loops/Hype Drums 1.wav', '/projects/film-music-score/loops/Hype Drums 2.wav'],
-    Guitar: ['/projects/film-music-score/loops/Hype Guitar 1.wav', '/projects/film-music-score/loops/Hype Guitar 2.wav'],
-    Keys: ['/projects/film-music-score/loops/Hype Keys 1.wav'],
-    Synth: ['/projects/film-music-score/loops/Hype Synth 1.wav', '/projects/film-music-score/loops/Hype Synth 2.wav'],
-    'Synth Lead': ['/projects/film-music-score/loops/Hype Synth Lead 1.wav', '/projects/film-music-score/loops/Hype Synth Lead 2.wav']
+    Bass: ['/projects/film-music-score/loops/Hype Bass 1.m4a', '/projects/film-music-score/loops/Hype Bass 2.m4a'],
+    Bells: ['/projects/film-music-score/loops/Hype Bells 1.m4a', '/projects/film-music-score/loops/Hype Bells 2.m4a', '/projects/film-music-score/loops/Hype Bells 3.m4a'],
+    Drums: ['/projects/film-music-score/loops/Hype Drums 1.m4a', '/projects/film-music-score/loops/Hype Drums 2.m4a', '/projects/film-music-score/loops/Hype Drums 3.m4a'],
+    Guitar: ['/projects/film-music-score/loops/Hype Guitar 1.m4a', '/projects/film-music-score/loops/Hype Guitar 2.m4a'],
+    Lead: ['/projects/film-music-score/loops/Hype Lead 1.m4a', '/projects/film-music-score/loops/Hype Lead 2.m4a', '/projects/film-music-score/loops/Hype Lead 3.m4a'],
+    Piano: ['/projects/film-music-score/loops/Hype Piano 1.m4a'],
+    Strings: ['/projects/film-music-score/loops/Hype Strings 1.m4a', '/projects/film-music-score/loops/Hype Strings 2.m4a', '/projects/film-music-score/loops/Hype Strings 3.m4a', '/projects/film-music-score/loops/Hype Strings 4.m4a'],
+    Synth: ['/projects/film-music-score/loops/Hype Synth 1.m4a', '/projects/film-music-score/loops/Hype Synth 2.m4a', '/projects/film-music-score/loops/Hype Synth 3.m4a']
   },
   Mysterious: {
     Bass: ['/projects/film-music-score/loops/Mysterious Bass 1.mp3', '/projects/film-music-score/loops/Mysterious Bass 2.mp3'],
@@ -47,15 +52,17 @@ export const categories = Object.keys(loopData);
 
 export const instrumentIcons = {
   Bass: '🎸', Brass: '🎺', Drums: '🥁', Strings: '🎻', Synth: '🎹', Vocals: '🎤',
-  Guitar: '🎸', Keys: '🎹', 'Synth Lead': '🎛️', Percussion: '🪘', Bells: '🔔',
-  Clarinet: '🎷', 'Electric Bass': '🎸', 'Electric Guitar': '🎸', Piano: '🎹'
+  Guitar: '🎸', Keys: '🎹', Lead: '🎛️', Percussion: '🪘', Bells: '🔔',
+  Clarinet: '🎷', 'Electric Bass': '🎸', 'Electric Guitar': '🎸', Piano: '🎹',
+  Marimba: '🎵', Vibraphone: '🎵'
 };
 
 // All unique instruments for answer matching
 export const allInstruments = [
   'Bass', 'Brass', 'Drums', 'Strings', 'Synth', 'Vocals',
-  'Guitar', 'Keys', 'Synth Lead', 'Percussion', 'Bells',
-  'Clarinet', 'Electric Bass', 'Electric Guitar', 'Piano'
+  'Guitar', 'Keys', 'Lead', 'Percussion', 'Bells',
+  'Clarinet', 'Electric Bass', 'Electric Guitar', 'Piano',
+  'Marimba', 'Vibraphone'
 ];
 
 // Room themes for creators to choose
@@ -131,8 +138,9 @@ export const normalizeInstrument = (input) => {
     'singing': 'vocals',
     'e bass': 'electric bass',
     'e guitar': 'electric guitar',
-    'lead synth': 'synth lead',
-    'synth-lead': 'synth lead',
+    'lead synth': 'lead',
+    'synth lead': 'lead',
+    'synth-lead': 'lead',
     'perc': 'percussion'
   };
 
