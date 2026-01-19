@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "dev:edu": "VITE_SITE_MODE=edu vite",
+    "prebuild": "node scripts/generateLoopManifest.cjs",
     "build": "vite build",
+    "generate-loops": "node scripts/generateLoopManifest.cjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

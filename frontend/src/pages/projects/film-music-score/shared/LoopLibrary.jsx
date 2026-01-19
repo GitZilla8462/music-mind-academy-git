@@ -15,7 +15,8 @@ import { Play, Pause, Volume2, Search, Filter, Lock, Trash2, Disc3 } from 'lucid
 import { soundEffects, SFX_CATEGORY_COLORS } from './soundEffectsData';
 import { useCursor } from './CursorContext';
 
-const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
+// Loop manifest is generated at build time from public/projects/film-music-score/loops/
+const LOOPS_MANIFEST_URL = '/projects/film-music-score/loops.json';
 
 // CHROMEBOOK FIX: Detect Chromebook for custom drag image
 const isChromebook = typeof navigator !== 'undefined' && (
@@ -133,20 +134,20 @@ const LoopLibrary = ({
     }
   }, [currentlyPlayingLoopId, currentlyPlaying]);
 
-  // Load loops from backend
+  // Load loops from static manifest (generated at build time)
   useEffect(() => {
-    const loadLoopsFromAPI = async () => {
+    const loadLoopsFromManifest = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
-        const response = await fetch(`${API_BASE_URL}/api/loops`);
+        const response = await fetch(LOOPS_MANIFEST_URL);
         if (!response.ok) {
-          throw new Error(`Failed to fetch loops: ${response.status}`);
+          throw new Error(`Failed to fetch loops manifest: ${response.status}`);
         }
-        
-        const serverLoops = await response.json();
-        const processedLoops = serverLoops.map(serverLoop => 
+
+        const manifest = await response.json();
+        const processedLoops = manifest.loops.map(serverLoop =>
           createLoopFromServerData(serverLoop)
         );
 
@@ -156,16 +157,16 @@ const LoopLibrary = ({
         processedLoops.forEach(loop => {
           testAudioFile(loop.file, loop.id);
         });
-        
+
       } catch (error) {
-        console.error('Failed to load loops from API:', error);
+        console.error('Failed to load loops from manifest:', error);
         setError(error.message);
         setLoops([]);
         setLoading(false);
       }
     };
 
-    loadLoopsFromAPI();
+    loadLoopsFromManifest();
   }, []);
 
   const createLoopFromServerData = (serverLoop) => {
@@ -490,7 +491,7 @@ const LoopLibrary = ({
             <Volume2 size={48} className="mx-auto mb-4 opacity-50" />
             <p className="font-medium">Failed to load loops</p>
             <p className="text-sm mt-2 text-gray-300">{error}</p>
-            <p className="text-xs mt-4 text-gray-500">Make sure backend server is running</p>
+            <p className="text-xs mt-4 text-gray-500">Try refreshing the page</p>
           </div>
         </div>
       </div>

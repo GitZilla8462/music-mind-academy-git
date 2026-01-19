@@ -1,0 +1,502 @@
+{
+  "generatedAt": "2026-01-19T17:05:30.403Z",
+  "count": 62,
+  "loops": [
+    {
+      "id": "heroic-bass-1",
+      "name": "Heroic Bass 1",
+      "file": "/projects/film-music-score/loops/Heroic Bass 1.mp3",
+      "extension": "mp3",
+      "mood": "Heroic",
+      "instrument": "Bass"
+    },
+    {
+      "id": "heroic-brass-2",
+      "name": "Heroic Brass 2",
+      "file": "/projects/film-music-score/loops/Heroic Brass 2.mp3",
+      "extension": "mp3",
+      "mood": "Heroic",
+      "instrument": "Brass"
+    },
+    {
+      "id": "heroic-drums-1",
+      "name": "Heroic Drums 1",
+      "file": "/projects/film-music-score/loops/Heroic Drums 1.mp3",
+      "extension": "mp3",
+      "mood": "Heroic",
+      "instrument": "Drums"
+    },
+    {
+      "id": "heroic-drums-2",
+      "name": "Heroic Drums 2",
+      "file": "/projects/film-music-score/loops/Heroic Drums 2.mp3",
+      "extension": "mp3",
+      "mood": "Heroic",
+      "instrument": "Drums"
+    },
+    {
+      "id": "heroic-strings-1",
+      "name": "Heroic Strings 1",
+      "file": "/projects/film-music-score/loops/Heroic Strings 1.mp3",
+      "extension": "mp3",
+      "mood": "Heroic",
+      "instrument": "Strings"
+    },
+    {
+      "id": "heroic-strings-2",
+      "name": "Heroic Strings 2",
+      "file": "/projects/film-music-score/loops/Heroic Strings 2.mp3",
+      "extension": "mp3",
+      "mood": "Heroic",
+      "instrument": "Strings"
+    },
+    {
+      "id": "heroic-strings-3",
+      "name": "Heroic Strings 3",
+      "file": "/projects/film-music-score/loops/Heroic Strings 3.mp3",
+      "extension": "mp3",
+      "mood": "Heroic",
+      "instrument": "Strings"
+    },
+    {
+      "id": "heroic-synth-1",
+      "name": "Heroic Synth 1",
+      "file": "/projects/film-music-score/loops/Heroic Synth 1.mp3",
+      "extension": "mp3",
+      "mood": "Heroic",
+      "instrument": "Synth"
+    },
+    {
+      "id": "heroic-synth-2",
+      "name": "Heroic Synth 2",
+      "file": "/projects/film-music-score/loops/Heroic Synth 2.mp3",
+      "extension": "mp3",
+      "mood": "Heroic",
+      "instrument": "Synth"
+    },
+    {
+      "id": "heroic-vocals",
+      "name": "Heroic Vocals",
+      "file": "/projects/film-music-score/loops/Heroic Vocals.mp3",
+      "extension": "mp3",
+      "mood": "Heroic",
+      "instrument": "Vocals"
+    },
+    {
+      "id": "hype-bass-1",
+      "name": "Hype Bass 1",
+      "file": "/projects/film-music-score/loops/Hype Bass 1.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Bass"
+    },
+    {
+      "id": "hype-bass-2",
+      "name": "Hype Bass 2",
+      "file": "/projects/film-music-score/loops/Hype Bass 2.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Bass"
+    },
+    {
+      "id": "hype-bells-1",
+      "name": "Hype Bells 1",
+      "file": "/projects/film-music-score/loops/Hype Bells 1.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Woodwinds"
+    },
+    {
+      "id": "hype-bells-2",
+      "name": "Hype Bells 2",
+      "file": "/projects/film-music-score/loops/Hype Bells 2.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Woodwinds"
+    },
+    {
+      "id": "hype-bells-3",
+      "name": "Hype Bells 3",
+      "file": "/projects/film-music-score/loops/Hype Bells 3.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Woodwinds"
+    },
+    {
+      "id": "hype-drums-1",
+      "name": "Hype Drums 1",
+      "file": "/projects/film-music-score/loops/Hype Drums 1.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Drums"
+    },
+    {
+      "id": "hype-drums-2",
+      "name": "Hype Drums 2",
+      "file": "/projects/film-music-score/loops/Hype Drums 2.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Drums"
+    },
+    {
+      "id": "hype-drums-3",
+      "name": "Hype Drums 3",
+      "file": "/projects/film-music-score/loops/Hype Drums 3.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Drums"
+    },
+    {
+      "id": "hype-guitar-1",
+      "name": "Hype Guitar 1",
+      "file": "/projects/film-music-score/loops/Hype Guitar 1.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Guitar"
+    },
+    {
+      "id": "hype-guitar-2",
+      "name": "Hype Guitar 2",
+      "file": "/projects/film-music-score/loops/Hype Guitar 2.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Guitar"
+    },
+    {
+      "id": "hype-keys-1",
+      "name": "Hype Keys 1",
+      "file": "/projects/film-music-score/loops/Hype Keys 1.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Keys"
+    },
+    {
+      "id": "hype-strings-1",
+      "name": "Hype Strings 1",
+      "file": "/projects/film-music-score/loops/Hype Strings 1.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Strings"
+    },
+    {
+      "id": "hype-strings-2",
+      "name": "Hype Strings 2",
+      "file": "/projects/film-music-score/loops/Hype Strings 2.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Strings"
+    },
+    {
+      "id": "hype-strings-3",
+      "name": "Hype Strings 3",
+      "file": "/projects/film-music-score/loops/Hype Strings 3.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Strings"
+    },
+    {
+      "id": "hype-strings-4",
+      "name": "Hype Strings 4",
+      "file": "/projects/film-music-score/loops/Hype Strings 4.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Strings"
+    },
+    {
+      "id": "hype-synth-1",
+      "name": "Hype Synth 1",
+      "file": "/projects/film-music-score/loops/Hype Synth 1.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Synth"
+    },
+    {
+      "id": "hype-synth-2",
+      "name": "Hype Synth 2",
+      "file": "/projects/film-music-score/loops/Hype Synth 2.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Synth"
+    },
+    {
+      "id": "hype-synth-lead-1",
+      "name": "Hype Synth Lead 1",
+      "file": "/projects/film-music-score/loops/Hype Synth Lead 1.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Synth"
+    },
+    {
+      "id": "hype-synth-lead-2",
+      "name": "Hype Synth Lead 2",
+      "file": "/projects/film-music-score/loops/Hype Synth Lead 2.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Synth"
+    },
+    {
+      "id": "hype-synth-lead-3",
+      "name": "Hype Synth Lead 3",
+      "file": "/projects/film-music-score/loops/Hype Synth Lead 3.wav",
+      "extension": "wav",
+      "mood": "Hype",
+      "instrument": "Synth"
+    },
+    {
+      "id": "mysterious-drums-2",
+      "name": "Mysterious  Drums 2",
+      "file": "/projects/film-music-score/loops/Mysterious  Drums 2.mp3",
+      "extension": "mp3",
+      "mood": "Mysterious",
+      "instrument": "Drums"
+    },
+    {
+      "id": "mysterious-synth-3",
+      "name": "Mysterious  Synth 3",
+      "file": "/projects/film-music-score/loops/Mysterious  Synth 3.mp3",
+      "extension": "mp3",
+      "mood": "Mysterious",
+      "instrument": "Synth"
+    },
+    {
+      "id": "mysterious-bass-1",
+      "name": "Mysterious Bass 1",
+      "file": "/projects/film-music-score/loops/Mysterious Bass 1.mp3",
+      "extension": "mp3",
+      "mood": "Mysterious",
+      "instrument": "Bass"
+    },
+    {
+      "id": "mysterious-bass-2",
+      "name": "Mysterious Bass 2",
+      "file": "/projects/film-music-score/loops/Mysterious Bass 2.mp3",
+      "extension": "mp3",
+      "mood": "Mysterious",
+      "instrument": "Bass"
+    },
+    {
+      "id": "mysterious-guitar",
+      "name": "Mysterious Guitar",
+      "file": "/projects/film-music-score/loops/Mysterious Guitar.mp3",
+      "extension": "mp3",
+      "mood": "Mysterious",
+      "instrument": "Guitar"
+    },
+    {
+      "id": "mysterious-strings",
+      "name": "Mysterious Strings",
+      "file": "/projects/film-music-score/loops/Mysterious Strings.mp3",
+      "extension": "mp3",
+      "mood": "Mysterious",
+      "instrument": "Strings"
+    },
+    {
+      "id": "mysterious-strings-2",
+      "name": "Mysterious Strings 2",
+      "file": "/projects/film-music-score/loops/Mysterious Strings 2.mp3",
+      "extension": "mp3",
+      "mood": "Mysterious",
+      "instrument": "Strings"
+    },
+    {
+      "id": "mysterious-synth-1",
+      "name": "Mysterious Synth 1",
+      "file": "/projects/film-music-score/loops/Mysterious Synth 1.mp3",
+      "extension": "mp3",
+      "mood": "Mysterious",
+      "instrument": "Synth"
+    },
+    {
+      "id": "mysterious-synth-2",
+      "name": "Mysterious Synth 2",
+      "file": "/projects/film-music-score/loops/Mysterious Synth 2.mp3",
+      "extension": "mp3",
+      "mood": "Mysterious",
+      "instrument": "Synth"
+    },
+    {
+      "id": "scary-bass-1",
+      "name": "Scary Bass 1",
+      "file": "/projects/film-music-score/loops/Scary Bass 1.mp3",
+      "extension": "mp3",
+      "mood": "Scary",
+      "instrument": "Bass"
+    },
+    {
+      "id": "scary-bass-2",
+      "name": "Scary Bass 2",
+      "file": "/projects/film-music-score/loops/Scary Bass 2.mp3",
+      "extension": "mp3",
+      "mood": "Scary",
+      "instrument": "Bass"
+    },
+    {
+      "id": "scary-bass-3",
+      "name": "Scary Bass 3",
+      "file": "/projects/film-music-score/loops/Scary Bass 3.mp3",
+      "extension": "mp3",
+      "mood": "Scary",
+      "instrument": "Bass"
+    },
+    {
+      "id": "scary-brass-1",
+      "name": "Scary Brass 1",
+      "file": "/projects/film-music-score/loops/Scary Brass 1.mp3",
+      "extension": "mp3",
+      "mood": "Scary",
+      "instrument": "Brass"
+    },
+    {
+      "id": "scary-percussion-1",
+      "name": "Scary Percussion 1",
+      "file": "/projects/film-music-score/loops/Scary Percussion 1.mp3",
+      "extension": "mp3",
+      "mood": "Scary",
+      "instrument": "Drums"
+    },
+    {
+      "id": "scary-percussion-2",
+      "name": "Scary Percussion 2",
+      "file": "/projects/film-music-score/loops/Scary Percussion 2.mp3",
+      "extension": "mp3",
+      "mood": "Scary",
+      "instrument": "Drums"
+    },
+    {
+      "id": "scary-strings-1",
+      "name": "Scary Strings 1",
+      "file": "/projects/film-music-score/loops/Scary Strings 1.mp3",
+      "extension": "mp3",
+      "mood": "Scary",
+      "instrument": "Strings"
+    },
+    {
+      "id": "scary-strings-2",
+      "name": "Scary Strings 2",
+      "file": "/projects/film-music-score/loops/Scary Strings 2.mp3",
+      "extension": "mp3",
+      "mood": "Scary",
+      "instrument": "Strings"
+    },
+    {
+      "id": "scary-strings-3",
+      "name": "Scary Strings 3",
+      "file": "/projects/film-music-score/loops/Scary Strings 3.mp3",
+      "extension": "mp3",
+      "mood": "Scary",
+      "instrument": "Strings"
+    },
+    {
+      "id": "scary-strings-4",
+      "name": "Scary Strings 4",
+      "file": "/projects/film-music-score/loops/Scary Strings 4.mp3",
+      "extension": "mp3",
+      "mood": "Scary",
+      "instrument": "Strings"
+    },
+    {
+      "id": "scary-synth-1",
+      "name": "Scary Synth 1",
+      "file": "/projects/film-music-score/loops/Scary Synth 1.mp3",
+      "extension": "mp3",
+      "mood": "Scary",
+      "instrument": "Synth"
+    },
+    {
+      "id": "scary-synth-2",
+      "name": "Scary Synth 2",
+      "file": "/projects/film-music-score/loops/Scary Synth 2.mp3",
+      "extension": "mp3",
+      "mood": "Scary",
+      "instrument": "Synth"
+    },
+    {
+      "id": "scary-synth-3",
+      "name": "Scary Synth 3",
+      "file": "/projects/film-music-score/loops/Scary Synth 3.mp3",
+      "extension": "mp3",
+      "mood": "Scary",
+      "instrument": "Synth"
+    },
+    {
+      "id": "scary-synth-4",
+      "name": "Scary Synth 4",
+      "file": "/projects/film-music-score/loops/Scary Synth 4.mp3",
+      "extension": "mp3",
+      "mood": "Scary",
+      "instrument": "Synth"
+    },
+    {
+      "id": "upbeat-bells",
+      "name": "Upbeat Bells",
+      "file": "/projects/film-music-score/loops/Upbeat Bells.mp3",
+      "extension": "mp3",
+      "mood": "Upbeat",
+      "instrument": "Drums"
+    },
+    {
+      "id": "upbeat-clarinet",
+      "name": "Upbeat Clarinet",
+      "file": "/projects/film-music-score/loops/Upbeat Clarinet.mp3",
+      "extension": "mp3",
+      "mood": "Upbeat",
+      "instrument": "Drums"
+    },
+    {
+      "id": "upbeat-drums-1",
+      "name": "Upbeat Drums 1",
+      "file": "/projects/film-music-score/loops/Upbeat Drums 1.mp3",
+      "extension": "mp3",
+      "mood": "Upbeat",
+      "instrument": "Drums"
+    },
+    {
+      "id": "upbeat-drums-2",
+      "name": "Upbeat Drums 2",
+      "file": "/projects/film-music-score/loops/Upbeat Drums 2.mp3",
+      "extension": "mp3",
+      "mood": "Upbeat",
+      "instrument": "Drums"
+    },
+    {
+      "id": "upbeat-electric-bass",
+      "name": "Upbeat Electric Bass",
+      "file": "/projects/film-music-score/loops/Upbeat Electric Bass.mp3",
+      "extension": "mp3",
+      "mood": "Upbeat",
+      "instrument": "Bass"
+    },
+    {
+      "id": "upbeat-electric-guitar",
+      "name": "Upbeat Electric Guitar",
+      "file": "/projects/film-music-score/loops/Upbeat Electric Guitar.mp3",
+      "extension": "mp3",
+      "mood": "Upbeat",
+      "instrument": "Guitar"
+    },
+    {
+      "id": "upbeat-piano",
+      "name": "Upbeat Piano",
+      "file": "/projects/film-music-score/loops/Upbeat Piano.mp3",
+      "extension": "mp3",
+      "mood": "Upbeat",
+      "instrument": "Keys"
+    },
+    {
+      "id": "upbeat-string-bass",
+      "name": "Upbeat String Bass",
+      "file": "/projects/film-music-score/loops/Upbeat String Bass.mp3",
+      "extension": "mp3",
+      "mood": "Upbeat",
+      "instrument": "Bass"
+    },
+    {
+      "id": "upbeat-strings",
+      "name": "Upbeat Strings",
+      "file": "/projects/film-music-score/loops/Upbeat Strings.mp3",
+      "extension": "mp3",
+      "mood": "Upbeat",
+      "instrument": "Drums"
+    }
+  ]
+}
