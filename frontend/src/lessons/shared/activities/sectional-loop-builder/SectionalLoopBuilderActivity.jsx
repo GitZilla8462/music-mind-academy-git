@@ -529,6 +529,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
   // Overall
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
+  const scoreRef = useRef(0); // Track score synchronously to avoid stale closure issues
   const [rank, setRank] = useState(null);
   const [totalStudents, setTotalStudents] = useState(0);
   
@@ -797,7 +798,9 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
       setRank(sorted.findIndex(s => s.id === userId) + 1);
 
       if (students[userId]) {
-        setScore(students[userId].score || 0);
+        const currentScore = students[userId].score || 0;
+        setScore(currentScore);
+        scoreRef.current = currentScore; // Keep ref in sync for calculateScore
         setStreak(students[userId].streak || 0);
       }
     });
@@ -970,8 +973,15 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
       wasSafari
     });
     
-    const newScore = score + total;
-    
+    // Use scoreRef to get the latest score (avoids stale closure issues)
+    const currentScore = scoreRef.current;
+    const newScore = currentScore + total;
+
+    console.log('📊 Score update:', { currentScore, total, newScore });
+
+    // Update ref immediately for next calculation
+    scoreRef.current = newScore;
+
     if (sessionCode && userId && !viewMode) {
       const db = getDatabase();
       update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
