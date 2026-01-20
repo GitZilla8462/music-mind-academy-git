@@ -4,7 +4,7 @@
 // PHASES:
 // 1. Setup - Choose rounds, random mood selected
 // 2. Listening - Play full song, highlight sections
-// 3. Quiz Loop (5 clips per round): guessing → revealed → powerPick
+// 3. Quiz Loop (5 clips per round): guessing → revealed
 // 4. roundSummary → finished
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -143,7 +143,8 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   // Audio refs
   const audioRefs = useRef([]);
   const timeoutRef = useRef(null);
-  
+  const revealTimeoutsRef = useRef([]); // Store reveal animation timeouts
+
   // Students
   const [students, setStudents] = useState([]);
   const [lockedCount, setLockedCount] = useState(0);
@@ -157,13 +158,9 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   const [correctCount, setCorrectCount] = useState(0);
   const [newLeader, setNewLeader] = useState(null);
   
-  // Power-up countdown
-  const [powerPickCountdown, setPowerPickCountdown] = useState(5);
-  const countdownRef = useRef(null);
-  const countdownStartedRef = useRef(false);
-
-  // Refs for values used in countdown callback (to avoid stale closures)
+  // Refs for values used in callbacks (to avoid stale closures)
   const currentClipIndexRef = useRef(currentClipIndex);
+  const currentRoundRef = useRef(currentRound);
   const totalClipsPlayedRef = useRef(totalClipsPlayed);
   const quizOrderRef = useRef(quizOrder);
   const studentsRef = useRef(students);
@@ -171,6 +168,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
 
   // Keep refs in sync
   useEffect(() => { currentClipIndexRef.current = currentClipIndex; }, [currentClipIndex]);
+  useEffect(() => { currentRoundRef.current = currentRound; }, [currentRound]);
   useEffect(() => { totalClipsPlayedRef.current = totalClipsPlayed; }, [totalClipsPlayed]);
   useEffect(() => { quizOrderRef.current = quizOrder; }, [quizOrder]);
   useEffect(() => { studentsRef.current = students; }, [students]);
@@ -186,11 +184,18 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
 
 
   // Firebase: Update game state
+  // IMPORTANT: Always include currentRound and currentClipIndex to prevent data loss
+  // when partial updates are sent (e.g., reveal() only sending gamePhase)
   const updateGame = useCallback((data) => {
     if (!sessionCode) return;
     const db = getDatabase();
     update(ref(db, `sessions/${sessionCode}`), {
-      activityData: { ...data, activity: 'sectional-loop-builder' }
+      activityData: {
+        currentRound: currentRoundRef.current,
+        currentClipIndex: currentClipIndexRef.current,
+        ...data,
+        activity: 'sectional-loop-builder'
+      }
     });
   }, [sessionCode]);
 
@@ -437,108 +442,13 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     playSectionAudio(section);
   }, [stopAudio, sessionCode, students, totalRounds, quizOrder, playSectionAudio, updateGame, studentsWhoWentOnSafari]);
 
-  // Start power-up countdown - called directly, not via useEffect
-  // This avoids React effect lifecycle issues that were causing the timer to stop early
-  // When countdown reaches 0, it just stops - teacher must click to advance
-  const startPowerPickCountdown = useCallback(() => {
-    // Clear any existing countdown
-    if (countdownRef.current) {
-      clearTimeout(countdownRef.current);
-      countdownRef.current = null;
-    }
-
-    const currentSessionCode = sessionCode;
-    const db = getDatabase();
-
-    // Start at 5
-    let count = 5;
-    setPowerPickCountdown(5);
-
-    update(ref(db, `sessions/${currentSessionCode}`), {
-      activityData: {
-        activity: 'sectional-loop-builder',
-        gamePhase: 'powerPick',
-        currentClipIndex: currentClipIndexRef.current,
-        totalClipsPlayed: totalClipsPlayedRef.current,
-        powerPickCountdown: 5
-      }
-    });
-
-    // Use setTimeout chain instead of setInterval for more reliable timing
-    const tick = () => {
-      count -= 1;
-      setPowerPickCountdown(count);
-
-      // Update Firebase with countdown
-      update(ref(db, `sessions/${currentSessionCode}`), {
-        activityData: {
-          activity: 'sectional-loop-builder',
-          gamePhase: 'powerPick',
-          currentClipIndex: currentClipIndexRef.current,
-          totalClipsPlayed: totalClipsPlayedRef.current,
-          powerPickCountdown: count
-        }
-      });
-
-      if (count <= 0) {
-        // Countdown done - just stop and wait for teacher to click Play Clip button
-        countdownRef.current = null;
-      } else {
-        // Schedule next tick
-        countdownRef.current = setTimeout(tick, 1000);
-      }
-    };
-
-    // Start first tick after 1 second
-    countdownRef.current = setTimeout(tick, 1000);
-  }, [sessionCode]);
-
-  const nextClip = useCallback(() => {
-    setRevealStep(0);
-    setScoreChanges({});
-    setPreviousRanks({});
-    setStreakCallout(null);
-    setNewLeader(null);
-    setCorrectCount(0);
-
-    const nextIndex = currentClipIndex + 1;
-
-    if (nextIndex >= quizOrder.length) {
-      setGamePhase('roundSummary');
-      updateGame({ gamePhase: 'roundSummary' });
-      return;
-    }
-
-    const newTotalClips = totalClipsPlayed + 1;
-    if (newTotalClips > 1) {
-      setCurrentClipIndex(nextIndex);
-      setCurrentSection(quizOrder[nextIndex]);
-      setTotalClipsPlayed(newTotalClips);
-      setGamePhase('powerPick');
-
-      if (sessionCode) {
-        const db = getDatabase();
-        students.forEach(s => {
-          update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
-            currentAnswer: null, lockedIn: false, lastClipScore: 0, powerUp: null
-          });
-        });
-      }
-
-      // Start countdown directly - don't rely on useEffect
-      startPowerPickCountdown();
-    } else {
-      startClipGuessing(nextIndex, newTotalClips);
-    }
-  }, [currentClipIndex, totalClipsPlayed, sessionCode, students, updateGame, quizOrder, startPowerPickCountdown]);
-
   const startClipGuessing = useCallback((clipIndex, clipNum) => {
     const section = quizOrder[clipIndex];
     setCurrentClipIndex(clipIndex);
     setCurrentSection(section);
     setTotalClipsPlayed(clipNum);
     setGamePhase('guessing');
-    
+
     // Assign animals and codes to students (shuffle each clip)
     const shuffledAnimals = [...SAFARI_ANIMALS].sort(() => Math.random() - 0.5);
     const newAssignments = {};
@@ -558,14 +468,14 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     if (students.length >= 4) {
       // Pick 3 students who haven't gone on Safari yet
       const eligibleStudents = students.filter(s => !studentsWhoWentOnSafari.has(s.id));
-      
+
       // If everyone has gone, reset the list
       let finalEligible = eligibleStudents;
       if (eligibleStudents.length < 3) {
         setStudentsWhoWentOnSafari(new Set());
         finalEligible = students;
       }
-      
+
       // Pick 3 random students
       const shuffledEligible = [...finalEligible].sort(() => Math.random() - 0.5);
       hunters = shuffledEligible.slice(0, 3).map(s => {
@@ -591,20 +501,20 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
           targetName: targetAssignment.name
         };
       }).filter(h => h !== null);
-      
+
       setStudentsWhoWentOnSafari(prev => {
         const newSet = new Set(prev);
         hunters.forEach(h => newSet.add(h.studentId));
         return newSet;
       });
     }
-    
+
     setSafariHunters(hunters);
-    
+
     // Reset Safari timer
     setSafariTimer(45);
     safariTimerStartedRef.current = false;
-    
+
     if (sessionCode) {
       const db = getDatabase();
       students.forEach(s => {
@@ -617,22 +527,41 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
 
     updateGame({
       gamePhase: 'guessing',
-      currentClipIndex: clipIndex, 
-      correctAnswer: section, 
+      currentClipIndex: clipIndex,
+      correctAnswer: section,
       totalClipsPlayed: clipNum,
       safariAssignments: newAssignments,
       safariHunters: hunters,
       safariTimer: hunters.length > 0 ? 45 : 0
     });
-    
+
     playSectionAudio(section);
   }, [sessionCode, students, quizOrder, playSectionAudio, updateGame, studentsWhoWentOnSafari]);
 
-  const startNextClipAfterPowerPick = useCallback(() => {
-    if (countdownRef.current) clearTimeout(countdownRef.current);
-    setPowerPickCountdown(0);
-    startClipGuessing(currentClipIndex, totalClipsPlayed);
-  }, [currentClipIndex, totalClipsPlayed, startClipGuessing]);
+  const nextClip = useCallback(() => {
+    // Clear any pending reveal animation timeouts from previous question
+    revealTimeoutsRef.current.forEach(id => clearTimeout(id));
+    revealTimeoutsRef.current = [];
+
+    setRevealStep(0);
+    setScoreChanges({});
+    setPreviousRanks({});
+    setStreakCallout(null);
+    setNewLeader(null);
+    setCorrectCount(0);
+
+    // Use refs to avoid stale closure issues when clicking quickly
+    const nextIndex = currentClipIndexRef.current + 1;
+
+    if (nextIndex >= quizOrder.length) {
+      setGamePhase('roundSummary');
+      updateGame({ gamePhase: 'roundSummary' });
+      return;
+    }
+
+    const newTotalClips = totalClipsPlayedRef.current + 1;
+    startClipGuessing(nextIndex, newTotalClips);
+  }, [updateGame, quizOrder, startClipGuessing]);
 
   // Safari timer effect (45 second countdown during guessing)
   // OPTIMIZED: Send start timestamp once, students calculate locally
@@ -715,17 +644,13 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
             delta += (s.safariBonus || 50);
           }
 
-          if (s.powerUp === 'bonus') delta += 15;
-          if (s.powerUp === 'double') delta *= 2;
-
           changes[s.id] = { delta, isCorrect: true, safari: isOnSafari, safariComplete: s.safariComplete };
 
           if (newStreak > highestStreak.streak) {
             highestStreak = { name: s.name, streak: newStreak };
           }
         } else {
-          let delta = s.powerUp === 'shield' ? 0 : -5;
-          changes[s.id] = { delta, isCorrect: false };
+          changes[s.id] = { delta: 0, isCorrect: false };
         }
       } else {
         changes[s.id] = { delta: 0, isCorrect: false, noAnswer: true };
@@ -750,15 +675,19 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     console.log('🎯 revealStep set to 2, gamePhase set to revealed - timestamp:', Date.now());
     sfx.reveal();
 
+    // Clear any existing reveal timeouts before starting new ones
+    revealTimeoutsRef.current.forEach(id => clearTimeout(id));
+    revealTimeoutsRef.current = [];
+
     // Play the audio so students can hear the correct answer (like Layer Detective)
-    setTimeout(() => {
+    revealTimeoutsRef.current.push(setTimeout(() => {
       playSectionAudio(currentSection);
-    }, 300);
+    }, 300));
 
     // Update scores (500ms) - NOTE: Students update their own scores in Firebase
     // Teacher only updates streak for display consistency, NOT the score itself
     // This prevents race conditions where both student and teacher write scores
-    setTimeout(() => {
+    revealTimeoutsRef.current.push(setTimeout(() => {
       setRevealStep(3);
 
       // Sound effects only - students handle their own score updates
@@ -769,19 +698,19 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
           popDelay += 50;
         }
       });
-    }, 500);
+    }, 500));
 
     // Streak callouts (1s)
-    setTimeout(() => {
+    revealTimeoutsRef.current.push(setTimeout(() => {
       setRevealStep(4);
       if (highestStreak.streak >= 3) {
         setStreakCallout(highestStreak);
         sfx.streak();
       }
-    }, 1000);
+    }, 1000));
 
     // Button appears after 4 seconds - gives students time to see their result
-    setTimeout(() => {
+    revealTimeoutsRef.current.push(setTimeout(() => {
       const newLeaderboard = [...students]
         .map(s => ({ ...s, score: (s.score || 0) + (changes[s.id]?.delta || 0) }))
         .sort((a, b) => b.score - a.score);
@@ -793,7 +722,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
 
       setRevealStep(5);
       setGamePhase('revealed');
-    }, 4000);
+    }, 4000));
   }, [stopAudio, leaderboard, students, currentSection, sessionCode, updateGame, playSectionAudio, safariHunters]);
 
   const nextRoundOrFinish = useCallback(() => {
@@ -829,7 +758,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     setQuizOrder(shuffleArray(['intro', 'a', 'aPrime', 'a', 'outro']));
   };
 
-  const showLeaderboard = ['guessing', 'revealed', 'powerPick', 'roundSummary', 'finished'].includes(gamePhase);
+  const showLeaderboard = ['guessing', 'revealed', 'roundSummary', 'finished'].includes(gamePhase);
   const hideHeaderPhases = ['listenIntro3', 'listening'];
   const hideHeader = hideHeaderPhases.includes(gamePhase);
 
@@ -1195,35 +1124,6 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
             </div>
           )}
 
-          {/* Power Pick */}
-          {gamePhase === 'powerPick' && (
-            <div className="text-center relative w-full">
-              {/* Question Indicator - top right */}
-              <div className="absolute top-0 right-0 text-xl font-bold text-white/60 z-10 bg-black/30 px-3 py-1 rounded-lg">Question {totalClipsPlayed} of 10</div>
-
-              <div className="text-7xl mb-4">✨</div>
-              <h2 className="text-4xl font-black mb-4">Power-Up Time!</h2>
-              
-              {/* Countdown Timer */}
-              <div className="mb-6">
-                <div className={`text-8xl font-black ${powerPickCountdown <= 2 ? 'text-red-400 animate-pulse' : 'text-yellow-400'}`}>
-                  {powerPickCountdown}
-                </div>
-                <div className="text-white/60 text-xl">seconds to choose</div>
-              </div>
-              
-              <div className="bg-white/10 rounded-2xl px-8 py-4 inline-block mb-6">
-                <span className="text-5xl font-black text-green-400">{students.filter(s => s.powerUp).length}</span>
-                <span className="text-2xl text-white/70"> / {students.length} ready</span>
-              </div>
-              <div>
-                <button onClick={startNextClipAfterPowerPick} className="px-10 py-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all">
-                  ▶️ Question {totalClipsPlayed}
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Halfway / Finished */}
           {(gamePhase === 'roundSummary' || gamePhase === 'finished') && (
             <div className="text-center">
@@ -1272,7 +1172,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                     <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl" style={{ backgroundColor: `${student.playerColor}30` }}>{student.playerEmoji}</div>
                     <span className="flex-1 truncate text-lg font-medium">{student.name}</span>
                     {student.streak >= 2 && <span className="text-orange-400 text-lg">🔥{student.streak}</span>}
-                    <span className="font-bold text-xl">{student.score + (isRevealing ? (change?.delta || 0) : 0)}</span>
+                    <span className="font-bold text-xl">{student.score}</span>
                     {isRevealing && change && change.delta !== 0 && (
                       <span className={`text-lg font-bold ${change.delta > 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {change.delta > 0 ? '+' : ''}{change.delta}

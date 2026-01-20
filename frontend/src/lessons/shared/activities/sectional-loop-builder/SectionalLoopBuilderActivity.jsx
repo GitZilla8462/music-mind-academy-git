@@ -1,12 +1,12 @@
 // File: /src/lessons/shared/activities/sectional-loop-builder/SectionalLoopBuilderActivity.jsx
 // Epic Wildlife - Student View
-// ✅ UPDATED: Added demo mode for teacher preview
-// 
+// ✅ UPDATED: Removed power-ups for simpler game flow
+//
 // Features:
 // - Tap to answer (no lock-in button)
-// - Power-up selection (after first clip)
 // - Animated score breakdown
-// - Streak tracking, speed bonus, perfect bonus
+// - Streak tracking, speed bonus
+// - Safari bonus for finding classmates
 // - Demo mode for standalone teacher preview
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -28,18 +28,10 @@ const ActivityBanner = () => (
 // ============ SCORING ============
 const SCORING = {
   correct: 15,
-  wrong: 5,
+  wrong: 0,
   speed: 10,
   streak: 5,
   maxStreak: 20
-};
-
-// Power-ups
-const POWER_UPS = {
-  double: { id: 'double', name: '2X', emoji: '✨', desc: 'Double points!', color: 'from-yellow-400 to-amber-500' },
-  shield: { id: 'shield', name: 'SHIELD', emoji: '🛡️', desc: 'No penalties!', color: 'from-blue-400 to-cyan-500' },
-  bonus: { id: 'bonus', name: '+15', emoji: '🎁', desc: 'Free points!', color: 'from-green-400 to-emerald-500' },
-  speed: { id: 'speed', name: 'SPEED+', emoji: '⚡', desc: '5 sec bonus!', color: 'from-purple-400 to-pink-500' }
 };
 
 // Safari animals
@@ -469,7 +461,7 @@ const DemoModeGame = () => {
         
         <div className="bg-white/10 rounded-xl p-4 mb-6 max-w-md text-center">
           <p className="text-white/70 text-sm">
-            In the real game, students compete on a live leaderboard, earn power-ups between clips, and can go on Safari hunts to find classmates!
+            In the real game, students compete on a live leaderboard and can go on Safari hunts to find classmates for bonus points!
           </p>
         </div>
         
@@ -513,16 +505,11 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
   const [hasAnswered, setHasAnswered] = useState(false);
   
   // Store answer in ref for reveal phase
-  const answeredRef = useRef({ answer: null, time: null, powerUp: null });
+  const answeredRef = useRef({ answer: null, time: null });
 
   // Track Safari status for this clip (in case Firebase clears it before reveal)
   const wasSafariThisClipRef = useRef(false);
-  
-  // Power-up
-  const [selectedPowerUp, setSelectedPowerUp] = useState(null);
-  const [powerUpChoices, setPowerUpChoices] = useState([]);
-  const [powerPickCountdown, setPowerPickCountdown] = useState(5);
-  
+
   // Results for current clip
   const [clipResult, setClipResult] = useState(null);
   
@@ -530,6 +517,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const scoreRef = useRef(0); // Track score synchronously to avoid stale closure issues
+  const streakRef = useRef(0); // Track streak synchronously to avoid stale closure issues
   const [rank, setRank] = useState(null);
   const [totalStudents, setTotalStudents] = useState(0);
   
@@ -618,13 +606,6 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     return <DemoModeGame />;
   }
 
-  // Generate 3 random power-ups
-  const generatePowerUpChoices = () => {
-    const all = Object.values(POWER_UPS);
-    const shuffled = [...all].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 3);
-  };
-
   // Init player
   useEffect(() => {
     if (!userId || initRef.current) return;
@@ -640,13 +621,13 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     
     if (sessionCode && !viewMode) {
       const db = getDatabase();
+      // Don't reset score/streak on rejoin - only update display info
+      // Score is managed by calculateScore(), streak by reveal updates
       update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
         playerName: name,
         displayName: name,
         playerColor: color,
         playerEmoji: emoji,
-        score: 0,
-        streak: 0,
         currentAnswer: null,
         lockedIn: false,
         lastActivity: Date.now()
@@ -665,12 +646,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
       const data = snapshot.val();
       console.log('📡 Student received activityData:', data?.gamePhase, data?.activity);
       if (!data || data.activity !== 'sectional-loop-builder') return;
-      
-      // Always update countdown regardless of state change
-      if (data.powerPickCountdown !== undefined) {
-        setPowerPickCountdown(data.powerPickCountdown);
-      }
-      
+
       // Update Safari animal assignment for this student
       if (data.safariAssignments) {
         console.log('🦁 Safari assignments received:', Object.keys(data.safariAssignments).length, 'students');
@@ -737,9 +713,8 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
           setAnswerTime(null);
           setHasAnswered(false);
           setClipResult(null);
-          setSelectedPowerUp(null);
           setElapsedTime(0);
-          answeredRef.current = { answer: null, time: null, powerUp: null };
+          answeredRef.current = { answer: null, time: null };
           // Reset Safari state
           setSafariCodeInput('');
           setSafariComplete(false);
@@ -753,12 +728,6 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
         timerRef.current = setInterval(() => {
           setElapsedTime(prev => prev + 100);
         }, 100);
-      }
-      
-      // Power pick phase
-      if (newPhase === 'powerPick') {
-        setPowerUpChoices(generatePowerUpChoices());
-        setSelectedPowerUp(null);
       }
       
       // Revealed - calculate score
@@ -799,9 +768,11 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
 
       if (students[userId]) {
         const currentScore = students[userId].score || 0;
+        const currentStreak = students[userId].streak || 0;
         setScore(currentScore);
         scoreRef.current = currentScore; // Keep ref in sync for calculateScore
-        setStreak(students[userId].streak || 0);
+        setStreak(currentStreak);
+        streakRef.current = currentStreak; // Keep ref in sync for calculateScore
       }
     });
 
@@ -830,8 +801,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     // Store in ref for reveal
     answeredRef.current = {
       answer: section,
-      time: time,
-      powerUp: selectedPowerUp
+      time: time
     };
     
     console.log('✅ Answered:', section, `(${time}ms)`);
@@ -842,19 +812,6 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
         currentAnswer: section,
         answerTime: time,
         lockedIn: true,
-        lastActivity: Date.now()
-      }).catch(console.error);
-    }
-  };
-
-  // Select power-up
-  const selectPowerUp = (pu) => {
-    setSelectedPowerUp(pu);
-    
-    if (sessionCode && userId && !viewMode) {
-      const db = getDatabase();
-      update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
-        powerUp: pu.id,
         lastActivity: Date.now()
       }).catch(console.error);
     }
@@ -908,7 +865,6 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
   const calculateScore = (correct) => {
     const myAnswer = answeredRef.current.answer || selectedAnswer;
     const myTime = answeredRef.current.time ?? answerTime;
-    const myPowerUp = answeredRef.current.powerUp || selectedPowerUp;
     const wasAnswered = myAnswer !== null;
 
     // Safari students automatically get correct (they were on Safari, not answering)
@@ -917,7 +873,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     const isCorrect = wasSafari ? true : (myAnswer === correct);
 
     console.log('📊 Score calc:', { myAnswer, correct, isCorrect, wasAnswered, wasSafari, wasSafariRef: wasSafariThisClipRef.current, safariBonus: safariBonusRef.current });
-    
+
     // No answer and not on Safari = no points
     if (!wasAnswered && !wasSafari) {
       setClipResult({
@@ -927,37 +883,29 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
         wrongPts: 0,
         speedBonus: 0,
         streakBonus: 0,
-        bonusPts: 0,
         safariPts: 0,
-        doubled: false,
         total: 0,
         newStreak: 0,
         noAnswer: true
       });
       return;
     }
-    
+
     let correctPts = isCorrect ? SCORING.correct : 0;
     let wrongPts = (!isCorrect && !wasSafari) ? SCORING.wrong : 0;
-    
-    if (myPowerUp?.id === 'shield') wrongPts = 0;
-    
-    const speedThreshold = myPowerUp?.id === 'speed' ? 5000 : 3000;
+
     // Safari students don't get speed bonus (they weren't answering)
-    const speedBonus = (!wasSafari && isCorrect && myTime !== null && myTime < speedThreshold) ? SCORING.speed : 0;
-    
-    const newStreak = isCorrect ? streak + 1 : 0;
+    const speedBonus = (!wasSafari && isCorrect && myTime !== null && myTime < 3000) ? SCORING.speed : 0;
+
+    // Use streakRef to get the latest streak (avoids stale closure issues)
+    const newStreak = isCorrect ? streakRef.current + 1 : 0;
     const streakBonus = newStreak >= 2 ? Math.min(newStreak * SCORING.streak, SCORING.maxStreak) : 0;
-    
-    const bonusPts = myPowerUp?.id === 'bonus' ? 15 : 0;
-    
+
     // Include Safari bonus if they completed it (use ref for synchronous access)
     const safariPts = safariBonusRef.current || 0;
-    
-    let total = Math.max(0, correctPts - wrongPts + speedBonus + streakBonus + bonusPts + safariPts);
-    
-    if (myPowerUp?.id === 'double') total *= 2;
-    
+
+    let total = Math.max(0, correctPts - wrongPts + speedBonus + streakBonus + safariPts);
+
     setClipResult({
       isCorrect,
       myAnswer: wasSafari ? 'SAFARI' : myAnswer,
@@ -965,9 +913,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
       wrongPts,
       speedBonus,
       streakBonus,
-      bonusPts,
       safariPts,
-      doubled: myPowerUp?.id === 'double',
       total,
       newStreak,
       wasSafari
@@ -977,10 +923,11 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     const currentScore = scoreRef.current;
     const newScore = currentScore + total;
 
-    console.log('📊 Score update:', { currentScore, total, newScore });
+    console.log('📊 Score update:', { currentScore, total, newScore, newStreak });
 
-    // Update ref immediately for next calculation
+    // Update refs immediately for next calculation
     scoreRef.current = newScore;
+    streakRef.current = newStreak;
 
     if (sessionCode && userId && !viewMode) {
       const db = getDatabase();
@@ -1122,78 +1069,6 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     );
   }
 
-  // Power Pick
-  if (gamePhase === 'powerPick') {
-    return (
-      <>
-        <div className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white">
-          <style>{styles}</style>
-          <ActivityBanner />
-
-          <div className="flex-1 flex flex-col p-4">
-            {/* Header */}
-            <div className="bg-white/10 rounded-xl p-3 mb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: `${playerColor}30` }}>
-                    {playerEmoji}
-                  </div>
-                  <span className="font-bold" style={{ color: playerColor }}>{playerName}</span>
-                </div>
-                <div className="bg-white/10 px-3 py-1 rounded-lg">
-                  <span className="text-xl font-bold text-yellow-400">{score}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex-1 flex flex-col items-center justify-center">
-              <div className="text-5xl mb-2">✨</div>
-              <h2 className="text-2xl font-bold mb-2">Choose Your Power-Up!</h2>
-
-              {/* Countdown Timer */}
-              <div className="mb-4">
-                <div className={`text-5xl font-black ${powerPickCountdown <= 2 ? 'text-red-400 animate-pulse' : 'text-yellow-400'}`}>
-                  {powerPickCountdown}
-                </div>
-                <div className="text-white/60 text-xs">seconds</div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 w-full max-w-md mb-4">
-                {powerUpChoices.map((pu) => (
-                  <button
-                    key={pu.id}
-                    onClick={() => selectPowerUp(pu)}
-                    className={`p-4 rounded-xl text-center transition-all ${
-                      selectedPowerUp?.id === pu.id
-                        ? `bg-gradient-to-br ${pu.color} ring-4 ring-white scale-105`
-                        : 'bg-white/20 hover:bg-white/30'
-                    }`}
-                  >
-                    <div className="text-4xl mb-2">{pu.emoji}</div>
-                    <div className="font-bold">{pu.name}</div>
-                    <div className="text-xs text-white/70">{pu.desc}</div>
-                  </button>
-                ))}
-              </div>
-
-              {selectedPowerUp && (
-                <div className="text-green-400 font-bold text-lg">
-                  ✓ {selectedPowerUp.name} selected!
-                </div>
-              )}
-
-              {!selectedPowerUp && (
-                <p className="text-white/50 text-sm mt-2">Tap a power-up before time runs out!</p>
-              )}
-            </div>
-          </div>
-        </div>
-        <TransitionOverlay isVisible={showTransition} />
-      </>
-    );
-  }
-
   // Guessing
   if (gamePhase === 'guessing') {
     // If on Safari, show Safari screen instead
@@ -1323,11 +1198,6 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
                       <span className="text-orange-400 font-bold">{streak}</span>
                     </div>
                   )}
-                  {selectedPowerUp && (
-                    <div className={`px-2 py-1 rounded-full text-sm bg-gradient-to-r ${selectedPowerUp.color}`}>
-                      {selectedPowerUp.emoji}
-                    </div>
-                  )}
                   <div className="bg-white/10 px-3 py-1 rounded-lg">
                     <span className="text-xl font-bold text-yellow-400">{score}</span>
                   </div>
@@ -1358,7 +1228,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
             )}
 
             {/* Speed bonus indicator - only show if not answered and in bonus window */}
-            {!hasAnswered && elapsedTime < (selectedPowerUp?.id === 'speed' ? 5000 : 3000) && (
+            {!hasAnswered && elapsedTime < 3000 && (
               <div className="text-center mb-3">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/30 text-green-300 animate-pulse">
                   <span className="text-lg font-bold">⚡ Speed Bonus!</span>
@@ -1394,7 +1264,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
                     style={{ color: SECTION_INFO[selectedAnswer]?.color }}>
                     {SECTION_INFO[selectedAnswer]?.emoji} {SECTION_INFO[selectedAnswer]?.label}
                   </div>
-                  {answerTime < (selectedPowerUp?.id === 'speed' ? 5000 : 3000) && (
+                  {answerTime < 3000 && (
                     <div className="text-yellow-400 mt-2">⚡ Speed Bonus!</div>
                   )}
                   <div className="text-white/60 mt-4">Waiting for reveal...</div>
@@ -1521,15 +1391,6 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
                   {clipResult.streakBonus > 0 && (
                     <ScoreItem value={clipResult.streakBonus} label="Streak" emoji="🔥" delay={300} />
                   )}
-                  {clipResult.doubled && (
-                    <div
-                      className="bg-yellow-500/20 rounded-lg px-3 py-2 text-center"
-                      style={{ animation: 'slideUp 0.3s ease-out 400ms both' }}
-                    >
-                      <div className="text-xl font-black text-yellow-400">×2</div>
-                      <div className="text-xs text-yellow-200">Double!</div>
-                    </div>
-                  )}
                 </div>
 
                 {/* Show what they could have earned */}
@@ -1584,20 +1445,8 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
                   {clipResult.streakBonus > 0 && (
                     <ScoreItem value={clipResult.streakBonus} label="Streak" emoji="🔥" delay={300} />
                   )}
-                  {clipResult.bonusPts > 0 && (
-                    <ScoreItem value={clipResult.bonusPts} label="Bonus" emoji="🎁" delay={400} />
-                  )}
                   {clipResult.safariPts > 0 && (
-                    <ScoreItem value={clipResult.safariPts} label="Safari" emoji="🦁" delay={450} />
-                  )}
-                  {clipResult.doubled && (
-                    <div 
-                      className="bg-yellow-500/20 rounded-lg px-3 py-2 text-center"
-                      style={{ animation: 'slideUp 0.3s ease-out 500ms both' }}
-                    >
-                      <div className="text-xl font-black text-yellow-400">×2</div>
-                      <div className="text-xs text-yellow-200">Double!</div>
-                    </div>
+                    <ScoreItem value={clipResult.safariPts} label="Safari" emoji="🦁" delay={400} />
                   )}
                 </div>
                 
