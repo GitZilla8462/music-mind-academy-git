@@ -641,6 +641,30 @@ const AppContent = () => {
   );
 };
 
+// TEMPORARY: Test button for Sentry verification - DELETE AFTER TESTING
+const SentryTestButton = () => (
+  <button
+    onClick={() => {
+      throw new Error('Sentry test error - delete this button after verification!');
+    }}
+    style={{
+      position: 'fixed',
+      bottom: '20px',
+      left: '20px',
+      padding: '10px 20px',
+      backgroundColor: '#dc2626',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      zIndex: 9999,
+      fontWeight: 'bold',
+    }}
+  >
+    Test Sentry Error
+  </button>
+);
+
 const App = () => {
   // Set page title based on site mode
   useEffect(() => {
@@ -684,6 +708,7 @@ const App = () => {
         <AuthProvider>
           <FirebaseAuthProvider>
             <AppContent />
+            <SentryTestButton /> {/* TEMPORARY - DELETE AFTER TESTING */}
           </FirebaseAuthProvider>
         </AuthProvider>
       </Router>
