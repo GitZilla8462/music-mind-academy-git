@@ -753,26 +753,13 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
       playSectionAudio(currentSection);
     }, 300);
 
-    // Update scores (500ms)
+    // Update scores (500ms) - NOTE: Students update their own scores in Firebase
+    // Teacher only updates streak for display consistency, NOT the score itself
+    // This prevents race conditions where both student and teacher write scores
     setTimeout(() => {
       setRevealStep(3);
 
-      if (sessionCode) {
-        const db = getDatabase();
-        students.forEach(s => {
-          const change = changes[s.id];
-          if (change) {
-            const isCorrect = change.isCorrect;
-            const newStreak = isCorrect ? (s.streak || 0) + 1 : 0;
-            update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
-              score: (s.score || 0) + change.delta,
-              streak: newStreak,
-              lastClipScore: change.delta
-            });
-          }
-        });
-      }
-
+      // Sound effects only - students handle their own score updates
       let popDelay = 0;
       students.forEach(s => {
         if (changes[s.id]?.delta > 0) {
