@@ -59,30 +59,41 @@ const CITY_VIDEOS = [
 ];
 
 // Helper function to detect video duration
+// CHROMEBOOK MEMORY OPTIMIZATION: Properly clean up video elements and listeners
 const detectVideoDuration = async (videoPath) => {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video');
     video.preload = 'metadata';
-    
-    const timeout = setTimeout(() => {
+
+    // Store listeners so we can remove them
+    const cleanup = () => {
+      video.removeEventListener('loadedmetadata', onLoadedMetadata);
+      video.removeEventListener('error', onError);
       video.src = '';
+      video.load(); // Force release of video resources
+    };
+
+    const timeout = setTimeout(() => {
+      cleanup();
       reject(new Error('Video duration detection timeout'));
     }, 10000);
-    
-    video.addEventListener('loadedmetadata', () => {
+
+    const onLoadedMetadata = () => {
       clearTimeout(timeout);
       const duration = video.duration;
-      console.log(`✅ Detected duration for ${videoPath}: ${duration}s (${Math.floor(duration/60)}:${Math.floor(duration%60).toString().padStart(2, '0')})`);
-      video.src = '';
+      console.log(`✅ Detected duration for ${videoPath}: ${duration}s`);
+      cleanup();
       resolve(duration);
-    });
-    
-    video.addEventListener('error', (e) => {
+    };
+
+    const onError = (e) => {
       clearTimeout(timeout);
-      video.src = '';
+      cleanup();
       reject(new Error(`Video load error: ${e.message || 'Unknown error'}`));
-    });
-    
+    };
+
+    video.addEventListener('loadedmetadata', onLoadedMetadata);
+    video.addEventListener('error', onError);
     video.src = videoPath;
   });
 };
