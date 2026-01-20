@@ -191,3 +191,12 @@ export const sounds = {
 export const initAudio = () => {
   getAudioContext();
 };
+
+// CHROMEBOOK MEMORY OPTIMIZATION: Close audio context when leaving activity
+export const closeAudio = () => {
+  if (audioCtx && audioCtx.state !== 'closed') {
+    audioCtx.close().catch(() => {}); // Ignore errors on close
+    audioCtx = null;
+    console.log('🧹 Loop Lab audio context closed');
+  }
+};

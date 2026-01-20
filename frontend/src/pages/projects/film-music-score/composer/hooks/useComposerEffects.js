@@ -115,50 +115,67 @@ export const useComposerEffects = ({
         
         setVideoLoading(true);
         console.log('🔍 Detecting duration for preselected video...');
-        
+
+        // CHROMEBOOK MEMORY OPTIMIZATION: Properly clean up video element
         const videoElement = document.createElement('video');
-        videoElement.src = preselectedVideo.videoPath;
         videoElement.preload = 'metadata';
-        
+
+        let timeoutId = null;
+        let onLoadedMetadata = null;
+        let onError = null;
+
+        const cleanup = () => {
+          if (timeoutId) clearTimeout(timeoutId);
+          if (onLoadedMetadata) videoElement.removeEventListener('loadedmetadata', onLoadedMetadata);
+          if (onError) videoElement.removeEventListener('error', onError);
+          videoElement.pause();
+          videoElement.src = '';
+          videoElement.load(); // Force release of video resources
+        };
+
         const loadPromise = new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => {
+          timeoutId = setTimeout(() => {
             reject(new Error('Video metadata load timeout'));
           }, 10000);
-          
-          videoElement.addEventListener('loadedmetadata', () => {
-            clearTimeout(timeout);
+
+          onLoadedMetadata = () => {
+            clearTimeout(timeoutId);
             const detectedDuration = videoElement.duration;
             console.log('✅ Detected video duration:', detectedDuration, 'seconds');
             resolve(detectedDuration);
-          });
-          
-          videoElement.addEventListener('error', (e) => {
-            clearTimeout(timeout);
+          };
+
+          onError = (e) => {
+            clearTimeout(timeoutId);
             reject(new Error(`Video load error: ${e.message || 'Unknown error'}`));
-          });
+          };
+
+          videoElement.addEventListener('loadedmetadata', onLoadedMetadata);
+          videoElement.addEventListener('error', onError);
         });
-        
+
+        videoElement.src = preselectedVideo.videoPath;
+
         try {
           const detectedDuration = await loadPromise;
-          
+
           const videoWithDuration = {
             ...preselectedVideo,
             duration: detectedDuration
           };
-          
+
           setSelectedVideo(videoWithDuration);
         } catch (error) {
           console.error('❌ Error detecting video duration:', error);
           showToast?.('Failed to load video duration. Using default 60s.', 'warning');
-          
+
           const videoWithFallback = {
             ...preselectedVideo,
             duration: 60
           };
           setSelectedVideo(videoWithFallback);
         } finally {
-          videoElement.src = '';
-          videoElement.load();
+          cleanup();
           setVideoLoading(false);
         }
       }

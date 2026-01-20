@@ -40,6 +40,15 @@ const playChord = (frequencies, duration, type = 'sine', volume = 0.2) => {
   });
 };
 
+// CHROMEBOOK MEMORY OPTIMIZATION: Close audio context when leaving activity
+export const closeAudioContext = () => {
+  if (audioCtx && audioCtx.state !== 'closed') {
+    audioCtx.close().catch(() => {}); // Ignore errors on close
+    audioCtx = null;
+    console.log('🧹 Section Safari audio context closed');
+  }
+};
+
 // ============ SOUND EFFECTS ============
 export const sfx = {
   // Drumroll before reveal

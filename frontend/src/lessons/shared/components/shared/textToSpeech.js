@@ -13,8 +13,11 @@ export const speakText = (text, voiceEnabled) => {
     utterance.volume = 0.7;
     
     const setVoice = () => {
+      // CHROMEBOOK MEMORY OPTIMIZATION: Clear handler after use
+      window.speechSynthesis.onvoiceschanged = null;
+
       const voices = window.speechSynthesis.getVoices();
-      
+
       const preferredVoices = [
         'Samantha',
         'Google UK English Female',
@@ -23,28 +26,28 @@ export const speakText = (text, voiceEnabled) => {
         'Victoria',
         'Fiona'
       ];
-      
+
       let selectedVoice = null;
       for (const preferred of preferredVoices) {
         selectedVoice = voices.find(voice => voice.name.includes(preferred));
         if (selectedVoice) break;
       }
-      
+
       if (!selectedVoice) {
-        selectedVoice = voices.find(voice => 
-          voice.lang.startsWith('en') && 
-          (voice.name.toLowerCase().includes('female') || 
+        selectedVoice = voices.find(voice =>
+          voice.lang.startsWith('en') &&
+          (voice.name.toLowerCase().includes('female') ||
            voice.name.toLowerCase().includes('woman'))
         );
       }
-      
+
       if (selectedVoice) {
         utterance.voice = selectedVoice;
       }
-      
+
       window.speechSynthesis.speak(utterance);
     };
-    
+
     if (window.speechSynthesis.getVoices().length > 0) {
       setVoice();
     } else {

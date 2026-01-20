@@ -99,24 +99,38 @@ export const useLoopManager = () => {
   }, []);
 
   // Validate audio file
+  // CHROMEBOOK MEMORY OPTIMIZATION: Properly clean up Audio elements
   const validateAudioFile = async (fileUrl) => {
     return new Promise((resolve) => {
       const audio = new Audio();
-      const timeout = setTimeout(() => {
+
+      const cleanup = () => {
+        audio.removeEventListener('canplaythrough', onCanPlay);
+        audio.removeEventListener('error', onError);
+        audio.pause();
         audio.src = '';
+        audio.load(); // Force release of audio resources
+      };
+
+      const timeout = setTimeout(() => {
+        cleanup();
         resolve(false);
       }, 5000);
 
-      audio.addEventListener('canplaythrough', () => {
+      const onCanPlay = () => {
         clearTimeout(timeout);
+        cleanup();
         resolve(true);
-      });
+      };
 
-      audio.addEventListener('error', () => {
+      const onError = () => {
         clearTimeout(timeout);
+        cleanup();
         resolve(false);
-      });
+      };
 
+      audio.addEventListener('canplaythrough', onCanPlay);
+      audio.addEventListener('error', onError);
       audio.src = fileUrl;
     });
   };
