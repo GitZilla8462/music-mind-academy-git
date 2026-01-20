@@ -313,14 +313,14 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
     setScoreChanges({});
     setCorrectCount(0);
 
-    // Reset student answers
+    // Reset student answers and scores
     if (sessionCode) {
       const db = getDatabase();
       students.forEach(s => {
         update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
           layerDetectiveAnswer: null,
           layerDetectiveScore: 0
-        });
+        }).catch(err => console.error(`❌ Failed to reset student ${s.id}:`, err));
       });
     }
 
@@ -378,17 +378,25 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
       correctInstruments: question.instruments
     });
 
-    // Update scores in Firebase (single batch)
+    // Update scores in Firebase with error handling
     if (sessionCode) {
       const db = getDatabase();
-      students.forEach(s => {
-        const change = changes[s.id];
-        if (change && change.delta > 0) {
-          update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
-            layerDetectiveScore: (s.score || 0) + change.delta
-          });
-        }
-      });
+      const scoreUpdates = students
+        .filter(s => changes[s.id]?.delta > 0)
+        .map(s => {
+          const change = changes[s.id];
+          const newScore = (s.score || 0) + change.delta;
+          return update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+            layerDetectiveScore: newScore
+          })
+            .then(() => console.log(`✅ Score updated for ${s.name}: ${newScore}`))
+            .catch(err => console.error(`❌ Failed to update score for ${s.name}:`, err));
+        });
+
+      // Log when all updates complete
+      Promise.all(scoreUpdates)
+        .then(() => console.log(`✅ All ${scoreUpdates.length} score updates completed`))
+        .catch(err => console.error('❌ Some score updates failed:', err));
     }
 
     // Play the audio so students can hear the correct answer (after a short delay)
@@ -411,7 +419,7 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
       students.forEach(s => {
         update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
           layerDetectiveAnswer: null
-        });
+        }).catch(err => console.error(`❌ Failed to clear answer for ${s.id}:`, err));
       });
     }
 
