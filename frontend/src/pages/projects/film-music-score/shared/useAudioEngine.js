@@ -7,6 +7,10 @@ import * as Tone from 'tone';
 const PROJECT_BPM = 110;
 const BEAT_DURATION = 60 / PROJECT_BPM; // ~0.545454 seconds per beat
 
+// CHROMEBOOK MEMORY OPTIMIZATION: Limit cached audio buffers
+// Each buffer can be 1-5MB depending on loop length
+const MAX_CACHED_BUFFERS = 10;
+
 // Calculate playback rate to sync a loop to the project BPM
 // This ensures all library loops play at exactly 110 BPM regardless of their original tempo
 const calculatePlaybackRate = (actualDuration) => {
@@ -39,6 +43,9 @@ export const useAudioEngine = (videoDuration = 60) => {
 
   // AudioBuffer cache - keyed by BASE loop ID (e.g., "heroic-drums-1")
   const audioBuffersRef = useRef(new Map());
+
+  // Track buffer usage order for LRU eviction (most recent at end)
+  const bufferUsageOrderRef = useRef([]);
 
   // Active sources for cleanup
   const activeSourcesRef = useRef(new Set());
@@ -83,6 +90,49 @@ export const useAudioEngine = (videoDuration = 60) => {
     }
     return loopId;
   };
+
+  // Get IDs of buffers currently in use (placed on timeline)
+  const getInUseBufferIds = useCallback(() => {
+    const inUse = new Set();
+    playersRef.current.forEach((player) => {
+      if (player.baseId) {
+        inUse.add(player.baseId);
+      }
+    });
+    return inUse;
+  }, []);
+
+  // Mark a buffer as recently used and evict old ones if over limit
+  const touchBuffer = useCallback((baseId) => {
+    // Remove from current position and add to end (most recent)
+    const index = bufferUsageOrderRef.current.indexOf(baseId);
+    if (index > -1) {
+      bufferUsageOrderRef.current.splice(index, 1);
+    }
+    bufferUsageOrderRef.current.push(baseId);
+
+    // Evict old buffers if over limit
+    while (audioBuffersRef.current.size > MAX_CACHED_BUFFERS) {
+      const inUse = getInUseBufferIds();
+
+      // Find oldest buffer that's not in use
+      let evicted = false;
+      for (const oldId of bufferUsageOrderRef.current) {
+        if (!inUse.has(oldId)) {
+          audioBuffersRef.current.delete(oldId);
+          bufferUsageOrderRef.current = bufferUsageOrderRef.current.filter(id => id !== oldId);
+          console.log(`🧹 Evicted audio buffer: ${oldId} (cache size: ${audioBuffersRef.current.size})`);
+          evicted = true;
+          break;
+        }
+      }
+
+      // If all buffers are in use, stop trying to evict
+      if (!evicted) {
+        break;
+      }
+    }
+  }, [getInUseBufferIds]);
 
   const initializeAudio = useCallback(async () => {
     if (Tone.context.state !== 'running') {
@@ -144,6 +194,7 @@ export const useAudioEngine = (videoDuration = 60) => {
       });
       activeSourcesRef.current.clear();
       audioBuffersRef.current.clear();
+      bufferUsageOrderRef.current = []; // Clear usage tracking
 
       try {
         Tone.Transport.stop();
@@ -178,6 +229,7 @@ export const useAudioEngine = (videoDuration = 60) => {
     // Check if we already have this buffer cached
     if (audioBuffersRef.current.has(baseId)) {
       const buffer = audioBuffersRef.current.get(baseId);
+      touchBuffer(baseId); // Mark as recently used
 
       const wrappedPlayer = {
         buffer,
@@ -193,8 +245,9 @@ export const useAudioEngine = (videoDuration = 60) => {
     try {
       const buffer = await decodeAudioFile(loopData.file, loopData.name);
 
-      // Cache by base ID
+      // Cache by base ID and mark as recently used
       audioBuffersRef.current.set(baseId, buffer);
+      touchBuffer(baseId);
 
       const wrappedPlayer = {
         buffer,
@@ -209,7 +262,7 @@ export const useAudioEngine = (videoDuration = 60) => {
       console.error(`Failed to decode ${loopData.name}:`, error);
       throw error;
     }
-  }, [decodeAudioFile]);
+  }, [decodeAudioFile, touchBuffer]);
 
   const scheduleLoops = useCallback((placedLoops, duration, trackStates) => {
     const now = Date.now();
@@ -464,6 +517,9 @@ export const useAudioEngine = (videoDuration = 60) => {
         audioBuffersRef.current.set(baseId, buffer);
       }
 
+      // Mark as recently used (triggers eviction of old buffers if needed)
+      touchBuffer(baseId);
+
       // Check if this request is still current
       if (thisRequestId !== previewRequestIdRef.current) {
         return;
@@ -503,7 +559,7 @@ export const useAudioEngine = (videoDuration = 60) => {
       currentPreviewLoopIdRef.current = null;
       throw error;
     }
-  }, [decodeAudioFile, volume, getRawContext]);
+  }, [decodeAudioFile, volume, getRawContext, touchBuffer]);
 
   // Time update loop
   useEffect(() => {

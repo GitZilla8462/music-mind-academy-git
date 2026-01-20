@@ -296,4 +296,13 @@ export const getAudioEngine = () => {
   return audioEngineInstance;
 };
 
+// CHROMEBOOK MEMORY OPTIMIZATION: Dispose and reset singleton when leaving Layer Lab
+export const disposeAudioEngine = () => {
+  if (audioEngineInstance) {
+    console.log('🧹 Disposing Layer Lab audio engine');
+    audioEngineInstance.dispose();
+    audioEngineInstance = null;
+  }
+};
+
 export default AudioEngine;

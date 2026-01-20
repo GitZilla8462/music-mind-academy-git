@@ -94,6 +94,47 @@ const LayerLabActivity = ({ onComplete }) => {
   useEffect(() => { trackSoundsRef.current = trackSounds; }, [trackSounds]);
   useEffect(() => { currentScaleRef.current = currentScale; }, [currentScale]);
 
+  // CHROMEBOOK MEMORY OPTIMIZATION: Cleanup synths on unmount
+  useEffect(() => {
+    return () => {
+      console.log('🧹 Layer Lab unmounting - disposing audio');
+
+      // Dispose all melodic synths
+      Object.values(synthsRef.current).forEach(synth => {
+        try {
+          synth.dispose();
+        } catch (err) {}
+      });
+      synthsRef.current = {};
+
+      // Dispose all drum kits
+      Object.values(drumKitsRef.current).forEach(kit => {
+        Object.values(kit).forEach(drum => {
+          try {
+            drum.dispose();
+          } catch (err) {}
+        });
+      });
+      drumKitsRef.current = {};
+
+      // Stop and dispose sequence
+      if (sequenceRef.current) {
+        try {
+          sequenceRef.current.stop();
+          sequenceRef.current.dispose();
+        } catch (err) {}
+        sequenceRef.current = null;
+      }
+
+      // Stop transport
+      try {
+        Tone.Transport.stop();
+      } catch (err) {}
+
+      isInitializedRef.current = false;
+    };
+  }, []);
+
   // ============================================================================
   // AUDIO INITIALIZATION
   // ============================================================================
