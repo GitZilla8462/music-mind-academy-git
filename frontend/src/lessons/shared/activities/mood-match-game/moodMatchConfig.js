@@ -54,7 +54,7 @@ export const GAME_LOOPS = [
   {
     id: 'loop-3',
     name: 'Mysterious Synth 1',
-    file: '/projects/film-music-score/loops/Mysterious Synth 1.mp3',
+    file: '/projects/film-music-score/loops/Mysterious Synth 1.m4a',
     // Could be mysterious or scary - good discussion
     notes: 'Atmospheric synth, could feel eerie or curious'
   },
@@ -82,7 +82,7 @@ export const GAME_LOOPS = [
   {
     id: 'loop-7',
     name: 'Mysterious Bass 1',
-    file: '/projects/film-music-score/loops/Mysterious Bass 1.mp3',
+    file: '/projects/film-music-score/loops/Mysterious Bass 1.m4a',
     // Could be mysterious or scary - ambiguous low sounds
     notes: 'Deep bass, could feel curious or threatening'
   },

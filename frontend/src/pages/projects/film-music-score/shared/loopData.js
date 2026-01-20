@@ -69,55 +69,109 @@ export const loopsData = [
     name: "Mysterious Bass 1",
     category: "Mysterious",
     instrument: "Bass",
-    src: "/projects/film-music-score/loops/Mysterious Bass 1.mp3"
+    src: "/projects/film-music-score/loops/Mysterious Bass 1.m4a"
   },
   {
     name: "Mysterious Bass 2",
     category: "Mysterious",
     instrument: "Bass",
-    src: "/projects/film-music-score/loops/Mysterious Bass 2.mp3"
+    src: "/projects/film-music-score/loops/Mysterious Bass 2.m4a"
+  },
+  {
+    name: "Mysterious Brass 1",
+    category: "Mysterious",
+    instrument: "Brass",
+    src: "/projects/film-music-score/loops/Mysterious Brass 1.m4a"
+  },
+  {
+    name: "Mysterious Drums 1",
+    category: "Mysterious",
+    instrument: "Drums",
+    src: "/projects/film-music-score/loops/Mysterious Drums 1.m4a"
   },
   {
     name: "Mysterious Drums 2",
     category: "Mysterious",
     instrument: "Drums",
-    src: "/projects/film-music-score/loops/Mysterious  Drums 2.mp3"
+    src: "/projects/film-music-score/loops/Mysterious Drums 2.m4a"
   },
   {
-    name: "Mysterious Guitar",
+    name: "Mysterious Drums 3",
+    category: "Mysterious",
+    instrument: "Drums",
+    src: "/projects/film-music-score/loops/Mysterious Drums 3.m4a"
+  },
+  {
+    name: "Mysterious Glockenspiel",
+    category: "Mysterious",
+    instrument: "Glockenspiel",
+    src: "/projects/film-music-score/loops/Mysterious Glockenspiel.m4a"
+  },
+  {
+    name: "Mysterious Guitar 1",
     category: "Mysterious",
     instrument: "Guitar",
-    src: "/projects/film-music-score/loops/Mysterious Guitar.mp3"
+    src: "/projects/film-music-score/loops/Mysterious Guitar 1.m4a"
   },
   {
-    name: "Mysterious Strings",
+    name: "Mysterious Keys 1",
+    category: "Mysterious",
+    instrument: "Keys",
+    src: "/projects/film-music-score/loops/Mysterious Keys 1.m4a"
+  },
+  {
+    name: "Mysterious Keys 2",
+    category: "Mysterious",
+    instrument: "Keys",
+    src: "/projects/film-music-score/loops/Mysterious Keys 2.m4a"
+  },
+  {
+    name: "Mysterious Keys 3",
+    category: "Mysterious",
+    instrument: "Keys",
+    src: "/projects/film-music-score/loops/Mysterious Keys 3.m4a"
+  },
+  {
+    name: "Mysterious Strings 1",
     category: "Mysterious",
     instrument: "Strings",
-    src: "/projects/film-music-score/loops/Mysterious Strings.mp3"
+    src: "/projects/film-music-score/loops/Mysterious Strings 1.m4a"
   },
   {
     name: "Mysterious Strings 2",
     category: "Mysterious",
     instrument: "Strings",
-    src: "/projects/film-music-score/loops/Mysterious Strings 2.mp3"
+    src: "/projects/film-music-score/loops/Mysterious Strings 2.m4a"
+  },
+  {
+    name: "Mysterious Strings 3",
+    category: "Mysterious",
+    instrument: "Strings",
+    src: "/projects/film-music-score/loops/Mysterious Strings 3.m4a"
   },
   {
     name: "Mysterious Synth 1",
     category: "Mysterious",
     instrument: "Synth",
-    src: "/projects/film-music-score/loops/Mysterious Synth 1.mp3"
+    src: "/projects/film-music-score/loops/Mysterious Synth 1.m4a"
   },
   {
     name: "Mysterious Synth 2",
     category: "Mysterious",
     instrument: "Synth",
-    src: "/projects/film-music-score/loops/Mysterious Synth 2.mp3"
+    src: "/projects/film-music-score/loops/Mysterious Synth 2.m4a"
   },
   {
     name: "Mysterious Synth 3",
     category: "Mysterious",
     instrument: "Synth",
-    src: "/projects/film-music-score/loops/Mysterious  Synth 3.mp3"
+    src: "/projects/film-music-score/loops/Mysterious Synth 3.m4a"
+  },
+  {
+    name: "Mysterious Synth 4",
+    category: "Mysterious",
+    instrument: "Synth",
+    src: "/projects/film-music-score/loops/Mysterious Synth 4.m4a"
   },
 
   // SCARY LOOPS

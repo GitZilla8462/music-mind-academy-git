@@ -23,11 +23,14 @@ export const LOOPS_BY_MOOD = {
     Synth: ['/projects/film-music-score/loops/Scary Synth 1.mp3', '/projects/film-music-score/loops/Scary Synth 2.mp3', '/projects/film-music-score/loops/Scary Synth 3.mp3', '/projects/film-music-score/loops/Scary Synth 4.mp3']
   },
   Mysterious: {
-    Bass: ['/projects/film-music-score/loops/Mysterious Bass 1.mp3', '/projects/film-music-score/loops/Mysterious Bass 2.mp3'],
-    Drums: ['/projects/film-music-score/loops/Mysterious  Drums 2.mp3'],
-    Guitar: ['/projects/film-music-score/loops/Mysterious Guitar.mp3'],
-    Strings: ['/projects/film-music-score/loops/Mysterious Strings.mp3', '/projects/film-music-score/loops/Mysterious Strings 2.mp3'],
-    Synth: ['/projects/film-music-score/loops/Mysterious Synth 1.mp3', '/projects/film-music-score/loops/Mysterious Synth 2.mp3', '/projects/film-music-score/loops/Mysterious  Synth 3.mp3']
+    Bass: ['/projects/film-music-score/loops/Mysterious Bass 1.m4a', '/projects/film-music-score/loops/Mysterious Bass 2.m4a'],
+    Brass: ['/projects/film-music-score/loops/Mysterious Brass 1.m4a'],
+    Drums: ['/projects/film-music-score/loops/Mysterious Drums 1.m4a', '/projects/film-music-score/loops/Mysterious Drums 2.m4a', '/projects/film-music-score/loops/Mysterious Drums 3.m4a'],
+    Glockenspiel: ['/projects/film-music-score/loops/Mysterious Glockenspiel.m4a'],
+    Guitar: ['/projects/film-music-score/loops/Mysterious Guitar 1.m4a'],
+    Keys: ['/projects/film-music-score/loops/Mysterious Keys 1.m4a', '/projects/film-music-score/loops/Mysterious Keys 2.m4a', '/projects/film-music-score/loops/Mysterious Keys 3.m4a'],
+    Strings: ['/projects/film-music-score/loops/Mysterious Strings 1.m4a', '/projects/film-music-score/loops/Mysterious Strings 2.m4a', '/projects/film-music-score/loops/Mysterious Strings 3.m4a'],
+    Synth: ['/projects/film-music-score/loops/Mysterious Synth 1.m4a', '/projects/film-music-score/loops/Mysterious Synth 2.m4a', '/projects/film-music-score/loops/Mysterious Synth 3.m4a', '/projects/film-music-score/loops/Mysterious Synth 4.m4a']
   },
   Upbeat: {
     Bells: ['/projects/film-music-score/loops/Upbeat Bells.mp3'],

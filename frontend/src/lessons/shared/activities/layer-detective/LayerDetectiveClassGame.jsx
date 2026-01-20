@@ -63,9 +63,9 @@ const QUESTIONS = [
     correctAnswer: '3',
     instruments: ['Bass', 'Strings', 'Synth'],
     layers: [
-      { name: 'Mysterious Bass 1', file: '/projects/film-music-score/loops/Mysterious Bass 1.mp3', color: '#6366F1' },
-      { name: 'Mysterious Strings', file: '/projects/film-music-score/loops/Mysterious Strings.mp3', color: '#8B5CF6' },
-      { name: 'Mysterious Synth 1', file: '/projects/film-music-score/loops/Mysterious Synth 1.mp3', color: '#A855F7' }
+      { name: 'Mysterious Bass 1', file: '/projects/film-music-score/loops/Mysterious Bass 1.m4a', color: '#6366F1' },
+      { name: 'Mysterious Strings 1', file: '/projects/film-music-score/loops/Mysterious Strings 1.m4a', color: '#8B5CF6' },
+      { name: 'Mysterious Synth 1', file: '/projects/film-music-score/loops/Mysterious Synth 1.m4a', color: '#A855F7' }
     ]
   },
   {

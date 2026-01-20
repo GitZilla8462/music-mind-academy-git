@@ -71,15 +71,16 @@ const LayerDetectivePartnerGame = ({ onComplete, viewMode = false }) => {
       { name: 'Upbeat Bells', category: 'Bells', file: '/projects/film-music-score/loops/Upbeat Bells.mp3', color: '#F59E0B' }
     ],
     Mysterious: [
-      { name: 'Mysterious Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Mysterious  Drums 2.mp3', color: '#EF4444' },
-      { name: 'Mysterious Guitar', category: 'Guitar', file: '/projects/film-music-score/loops/Mysterious Guitar.mp3', color: '#F59E0B' },
-      { name: 'Mysterious Strings', category: 'Strings', file: '/projects/film-music-score/loops/Mysterious Strings.mp3', color: '#10B981' },
-      { name: 'Mysterious Strings 2', category: 'Strings', file: '/projects/film-music-score/loops/Mysterious Strings 2.mp3', color: '#059669' },
-      { name: 'Mysterious Synth 1', category: 'Synth', file: '/projects/film-music-score/loops/Mysterious Synth 1.mp3', color: '#8B5CF6' },
-      { name: 'Mysterious Synth 2', category: 'Synth', file: '/projects/film-music-score/loops/Mysterious Synth 2.mp3', color: '#7C3AED' },
-      { name: 'Mysterious Synth 3', category: 'Synth', file: '/projects/film-music-score/loops/Mysterious  Synth 3.mp3', color: '#6D28D9' },
-      { name: 'Mysterious Bass 1', category: 'Bass', file: '/projects/film-music-score/loops/Mysterious Bass 1.mp3', color: '#3B82F6' },
-      { name: 'Mysterious Bass 2', category: 'Bass', file: '/projects/film-music-score/loops/Mysterious Bass 2.mp3', color: '#2563EB' }
+      { name: 'Mysterious Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Mysterious Drums 1.m4a', color: '#EF4444' },
+      { name: 'Mysterious Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Mysterious Drums 2.m4a', color: '#DC2626' },
+      { name: 'Mysterious Guitar 1', category: 'Guitar', file: '/projects/film-music-score/loops/Mysterious Guitar 1.m4a', color: '#F59E0B' },
+      { name: 'Mysterious Strings 1', category: 'Strings', file: '/projects/film-music-score/loops/Mysterious Strings 1.m4a', color: '#10B981' },
+      { name: 'Mysterious Strings 2', category: 'Strings', file: '/projects/film-music-score/loops/Mysterious Strings 2.m4a', color: '#059669' },
+      { name: 'Mysterious Synth 1', category: 'Synth', file: '/projects/film-music-score/loops/Mysterious Synth 1.m4a', color: '#8B5CF6' },
+      { name: 'Mysterious Synth 2', category: 'Synth', file: '/projects/film-music-score/loops/Mysterious Synth 2.m4a', color: '#7C3AED' },
+      { name: 'Mysterious Keys 1', category: 'Keys', file: '/projects/film-music-score/loops/Mysterious Keys 1.m4a', color: '#6D28D9' },
+      { name: 'Mysterious Bass 1', category: 'Bass', file: '/projects/film-music-score/loops/Mysterious Bass 1.m4a', color: '#3B82F6' },
+      { name: 'Mysterious Bass 2', category: 'Bass', file: '/projects/film-music-score/loops/Mysterious Bass 2.m4a', color: '#2563EB' }
     ],
     Hype: [
       { name: 'Hype Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Hype Drums 1.m4a', color: '#EF4444' },
