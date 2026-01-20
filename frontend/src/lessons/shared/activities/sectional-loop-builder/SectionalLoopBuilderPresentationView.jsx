@@ -420,7 +420,8 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
       const db = getDatabase();
       students.forEach(s => {
         update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
-          currentAnswer: null, lockedIn: false, lastClipScore: 0, safariComplete: false, safariBonus: 0
+          currentAnswer: null, lockedIn: false, lastClipScore: 0, safariComplete: false, safariBonus: 0,
+          powerUp: null, answerTime: null  // Clear stale data from previous games
         });
       });
     }
@@ -608,13 +609,14 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
       const db = getDatabase();
       students.forEach(s => {
         update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
-          currentAnswer: null, lockedIn: false, lastClipScore: 0, safariComplete: false, safariBonus: 0
+          currentAnswer: null, lockedIn: false, lastClipScore: 0, safariComplete: false, safariBonus: 0,
+          answerTime: null  // Clear stale answer time from previous clip
         });
       });
     }
-    
+
     updateGame({
-      gamePhase: 'guessing', 
+      gamePhase: 'guessing',
       currentClipIndex: clipIndex, 
       correctAnswer: section, 
       totalClipsPlayed: clipNum,
