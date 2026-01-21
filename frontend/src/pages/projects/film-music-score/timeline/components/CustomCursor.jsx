@@ -205,8 +205,9 @@ const CustomCursor = memo(({
 
       // PERF: Quick bail-out checks using cached bounds (no DOM queries)
 
-      // Check 1: Is cursor over loop library? (uses native cursor there)
-      if (loopLibraryBoundsRef.current && isPointInRect(x, y, loopLibraryBoundsRef.current)) {
+      // Check 1: Is cursor over loop library? (only for global cursor - uses native cursor there)
+      // FIX: Skip this check for timeline cursor (has containerRef) - it should only check its container
+      if (!containerRef?.current && loopLibraryBoundsRef.current && isPointInRect(x, y, loopLibraryBoundsRef.current)) {
         if (lastVisibilityRef.current !== false) {
           el.style.visibility = 'hidden';
           el.style.opacity = '0';
@@ -309,11 +310,16 @@ const CustomCursor = memo(({
       return;
     }
 
-    // Check if we should show cursor at current position
+    // FIX: If we don't have a valid mouse position yet, don't make visibility decisions
+    // Let the mousemove or mouseenter handlers take over
     const { x, y } = positionRef.current;
+    if (x === -100 && y === -100) {
+      // Position unknown - don't hide, let event handlers manage visibility
+      return;
+    }
 
-    // Check loop library bounds
-    if (loopLibraryBoundsRef.current && isPointInRect(x, y, loopLibraryBoundsRef.current)) {
+    // Check loop library bounds (only for global cursor)
+    if (!containerRef?.current && loopLibraryBoundsRef.current && isPointInRect(x, y, loopLibraryBoundsRef.current)) {
       el.style.visibility = 'hidden';
       el.style.opacity = '0';
       lastVisibilityRef.current = false;
@@ -366,6 +372,55 @@ const CustomCursor = memo(({
       document.documentElement.removeEventListener('mouseleave', handleViewportLeave);
     };
   }, []);
+
+  // FIX: Add mouseenter/mouseleave handlers for containers
+  // This ensures cursor shows when mouse enters container area even without mousemove
+  useEffect(() => {
+    const container = containerRef?.current;
+    if (!container) return;
+
+    const handleMouseEnter = (e) => {
+      // Update position from enter event
+      positionRef.current = { x: e.clientX, y: e.clientY };
+
+      // Update container bounds on enter (they might have changed)
+      containerBoundsRef.current = container.getBoundingClientRect();
+
+      if (effectivelyEnabledRef.current && isActivatedRef.current) {
+        const el = cursorElementRef.current;
+        if (el) {
+          const transformX = e.clientX - hotspot.x;
+          const transformY = e.clientY - hotspot.y;
+          el.style.transform = `translate3d(${transformX}px, ${transformY}px, 0)`;
+          el.style.visibility = 'visible';
+          el.style.opacity = '1';
+          lastVisibilityRef.current = true;
+          isVisibleRef.current = true;
+        }
+      }
+    };
+
+    const handleMouseLeave = (e) => {
+      // Only hide if mouse actually left the container (not just moved to a child)
+      if (!container.contains(e.relatedTarget)) {
+        const el = cursorElementRef.current;
+        if (el) {
+          el.style.visibility = 'hidden';
+          el.style.opacity = '0';
+          lastVisibilityRef.current = false;
+          isVisibleRef.current = false;
+        }
+      }
+    };
+
+    container.addEventListener('mouseenter', handleMouseEnter);
+    container.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      container.removeEventListener('mouseenter', handleMouseEnter);
+      container.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [containerRef, hotspot.x, hotspot.y]);
 
   // Update position when cursor type changes (hotspot offset changes)
   useEffect(() => {
