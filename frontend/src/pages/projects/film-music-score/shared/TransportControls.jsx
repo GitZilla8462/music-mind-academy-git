@@ -67,7 +67,6 @@ const TransportControls = ({
     // Debounce: prevent rapid double-clicks from toggling twice
     const now = Date.now();
     if (now - lastPlayPauseClickRef.current < PLAY_PAUSE_DEBOUNCE_MS) {
-      console.log('⏸️ Play/pause debounced - ignoring rapid click');
       return;
     }
     lastPlayPauseClickRef.current = now;

@@ -37,25 +37,12 @@ const VideoPlayer = ({
                         selectedVideo?.videoUrl || 
                         selectedVideo?.file;
 
-  // Debug logging
-  useEffect(() => {
-    console.log('🎬 VideoPlayer Debug:', {
-      hasVideoUrl: !!videoUrl,
-      hasSelectedVideo: !!selectedVideo,
-      selectedVideoObject: selectedVideo,
-      actualVideoUrl,
-      isVideoLoaded,
-      highlighted
-    });
-  }, [videoUrl, selectedVideo, actualVideoUrl, isVideoLoaded, highlighted]);
-
   // Load video metadata
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     const handleLoadedMetadata = () => {
-      console.log('[OK] Video loaded, duration:', video.duration);
       setIsVideoLoaded(true);
       if (onVideoReady) {
         onVideoReady(video.duration);
@@ -82,20 +69,9 @@ const VideoPlayer = ({
     const video = videoRef.current;
     if (!video) return;
 
-    console.log('🎬 VideoPlayer playback control: isPlaying=' + isPlaying + ', videoSrc=' + video.src?.substring(0, 50));
-
     if (isPlaying) {
-      video.play()
-        .then(() => {
-          console.log('✅ Video play() succeeded, video.paused=' + video.paused + ', video.currentTime=' + video.currentTime);
-          // Check again after a short delay
-          setTimeout(() => {
-            console.log('🎬 Video state after 100ms: paused=' + video.paused + ', currentTime=' + video.currentTime);
-          }, 100);
-        })
-        .catch(err => console.error('❌ Video play() error:', err));
+      video.play().catch(err => console.error('Video play() error:', err));
     } else {
-      console.log('⏸️ VideoPlayer: pausing video');
       video.pause();
     }
   }, [isPlaying]);
@@ -119,7 +95,6 @@ const VideoPlayer = ({
     // Debounce: prevent rapid double-clicks from toggling twice
     const now = Date.now();
     if (now - lastClickRef.current < PLAY_PAUSE_DEBOUNCE_MS) {
-      console.log('⏸️ VideoPlayer click debounced - ignoring rapid click');
       return;
     }
     lastClickRef.current = now;

@@ -36,10 +36,6 @@ const calculatePlaybackRate = (actualDuration) => {
 };
 
 export const useAudioEngine = (videoDuration = 60) => {
-  // Debug: log what videoDuration we received
-  useEffect(() => {
-    console.log('🎬 useAudioEngine initialized with videoDuration=' + videoDuration);
-  }, [videoDuration]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(0.7);
@@ -427,20 +423,16 @@ export const useAudioEngine = (videoDuration = 60) => {
   }, []);
 
   const play = useCallback(async () => {
-    console.log('▶️ useAudioEngine.play() called');
     stopPreview();
 
     if (Tone.Transport.state !== 'started') {
       Tone.Transport.start();
     }
 
-    console.log('▶️ useAudioEngine: setting isPlaying=true');
     setIsPlaying(true);
   }, [stopPreview]);
 
   const pause = useCallback(() => {
-    console.log('⏸️ useAudioEngine.pause() called');
-    console.trace('⏸️ pause() caller stack:');
     Tone.Transport.pause();
     setIsPlaying(false);
     clearScheduledEvents();
@@ -448,8 +440,6 @@ export const useAudioEngine = (videoDuration = 60) => {
   }, [clearScheduledEvents, stopPreview]);
 
   const stop = useCallback(() => {
-    console.log('⏹️ useAudioEngine.stop() called');
-    console.trace('⏹️ stop() caller stack:');
     transportStoppedByStopRef.current = true;
     Tone.Transport.stop();
     Tone.Transport.position = 0;
@@ -549,7 +539,6 @@ export const useAudioEngine = (videoDuration = 60) => {
       // CHROMEBOOK FIX: Resume AudioContext if suspended (browser autoplay policy)
       // This can happen after tab visibility change or period of inactivity
       if (rawContext.state === 'suspended') {
-        console.log('🔊 AudioContext suspended - resuming for preview...');
         await rawContext.resume();
       }
 
@@ -596,7 +585,6 @@ export const useAudioEngine = (videoDuration = 60) => {
         setCurrentTime(newTime);
 
         if (videoDuration && videoDuration > 0 && newTime >= videoDuration) {
-          console.log('⏹️ useAudioEngine: reached end of video, stopping. newTime=' + newTime + ', videoDuration=' + videoDuration);
           Tone.Transport.stop();
           Tone.Transport.position = 0;
           setIsPlaying(false);

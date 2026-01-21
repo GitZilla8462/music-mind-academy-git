@@ -82,9 +82,6 @@ const LoopLibrary = ({
     onSelectClose
   } = useCursor();
 
-  useEffect(() => {
-    console.log('🎵 LoopLibrary Props:', { restrictToCategory, lockedMood, showSoundEffects });
-  }, []);
 
   // CHROMEBOOK FIX: Track when we've applied cursor styles to avoid spam
   const cursorStylesAppliedRef = useRef(false);
@@ -115,8 +112,6 @@ const LoopLibrary = ({
 
     cursorStylesAppliedRef.current = true;
     lastLoopCountRef.current = currentLoopCount;
-
-    console.log('🖱️ LoopLibrary: Applied cursor:auto to container and', allChildren.length, 'children');
   }, [loading, loops.length]); // Only depend on loading and loop COUNT, not the array itself
 
   useEffect(() => {
@@ -128,7 +123,6 @@ const LoopLibrary = ({
   // CHROMEBOOK FIX: Sync with parent's currently playing state
   useEffect(() => {
     if (currentlyPlayingLoopId === null && currentlyPlaying !== null) {
-      console.log('🔄 Parent stopped preview, resetting UI');
       setCurrentlyPlaying(null);
       setButtonDebouncing(false);
     }
@@ -362,15 +356,8 @@ const LoopLibrary = ({
 
   // CHROMEBOOK FIX: Improved play handler
   const handlePlayLoop = async (loop) => {
-    console.log('🎵 Preview button clicked:', { 
-      loopId: loop.id, 
-      currentlyPlaying,
-      debouncing: buttonDebouncing
-    });
-    
     // Prevent rapid clicking during debounce
     if (buttonDebouncing) {
-      console.log('⏸️ Ignoring click during debounce period');
       return;
     }
 
@@ -386,14 +373,12 @@ const LoopLibrary = ({
 
     // If clicking same loop, stop it
     if (currentlyPlaying === loop.id) {
-      console.log('⏹️ Stopping preview');
-      
       // 🔥 FIX: Call onLoopPreview FIRST (to actually stop the audio)
       // THEN update the UI state
       if (onLoopPreview) {
         onLoopPreview(loop, false);
       }
-      
+
       // Update UI state after audio is stopped
       setCurrentlyPlaying(null);
       return;
@@ -401,7 +386,6 @@ const LoopLibrary = ({
 
     // Stop previous preview if exists
     if (currentlyPlaying !== null) {
-      console.log('🛑 Stopping previous preview');
       // Include customLoops in search so custom beats can be stopped too
       const prevLoop = [...soundEffects, ...loops, ...customLoops].find(l => l.id === currentlyPlaying);
       if (prevLoop && onLoopPreview) {
@@ -410,12 +394,10 @@ const LoopLibrary = ({
     }
 
     // Start new preview
-    console.log('▶️ Starting preview');
-    
     // 🔥 FIX: Update UI state FIRST, then start audio
     // This way the audio engine can check if something is already playing
     setCurrentlyPlaying(loop.id);
-    
+
     if (onLoopPreview) {
       onLoopPreview(loop, true);
     }

@@ -114,14 +114,7 @@ const ResizableSplitPane = ({
           pointerEvents: 'auto'
         }}
         onMouseDown={handleMouseDown}
-        onMouseEnter={(e) => {
-          console.log('🎯 Grab bar mouseEnter:', {
-            isChromebook,
-            clientX: e.clientX,
-            clientY: e.clientY
-          });
-          setIsHovering(true);
-        }}
+        onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       />
 
