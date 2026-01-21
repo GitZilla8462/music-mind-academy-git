@@ -101,8 +101,8 @@ const isPointInRect = (x, y, rect) => {
   return rect && x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
 };
 
-// DEBUG: Logging for cursor issues
-const DEBUG_CURSOR = true;
+// DEBUG: Logging for cursor issues (disabled for production)
+const DEBUG_CURSOR = false;
 const logCursor = (name, action, data = {}) => {
   if (DEBUG_CURSOR) {
     console.log(`🖱️ [CustomCursor:${name}] ${action}`, data);
@@ -542,10 +542,9 @@ const CustomCursor = memo(({
         zIndex: 99999,
         // PERF: GPU optimization - create dedicated compositing layer
         willChange: 'transform',
-        // PERF: Strict containment - isolates this element completely
-        contain: 'strict',
-        // PERF: Hint that content won't change size
-        contentVisibility: 'visible',
+        // PERF: Layout/paint containment without size containment
+        // NOTE: DO NOT use 'strict' - it includes size containment which clips to 0x0
+        contain: 'layout paint',
         // Initial position (off-screen)
         transform: `translate3d(${(initialPosition?.x || -100) - hotspot.x}px, ${(initialPosition?.y || -100) - hotspot.y}px, 0)`,
       }}
