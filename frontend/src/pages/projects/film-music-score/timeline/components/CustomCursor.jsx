@@ -101,6 +101,14 @@ const isPointInRect = (x, y, rect) => {
   return rect && x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
 };
 
+// DEBUG: Logging for cursor issues
+const DEBUG_CURSOR = true;
+const logCursor = (name, action, data = {}) => {
+  if (DEBUG_CURSOR) {
+    console.log(`🖱️ [CustomCursor:${name}] ${action}`, data);
+  }
+};
+
 const CustomCursor = memo(({
   cursorType = 'default',
   containerRef,
@@ -137,6 +145,20 @@ const CustomCursor = memo(({
   // Store effectivelyEnabled in a ref so position tracking can access it
   const effectivelyEnabledRef = useRef(effectivelyEnabled);
   effectivelyEnabledRef.current = effectivelyEnabled;
+
+  // DEBUG: Log on mount
+  useEffect(() => {
+    logCursor(name, 'MOUNTED', {
+      enabled,
+      isCustomCursorEnabled,
+      isDraggingFromLibrary,
+      effectivelyEnabled,
+      initiallyVisible,
+      hasContainerRef: !!containerRef,
+      containerRefCurrent: containerRef?.current ? 'SET' : 'NULL',
+      isActivated: isActivatedRef.current,
+    });
+  }, []);
 
   // LOADING SCREEN FIX: Watch for initiallyVisible changes
   useEffect(() => {
@@ -190,11 +212,25 @@ const CustomCursor = memo(({
   // MAIN EFFECT: Single optimized mousemove handler
   useEffect(() => {
     const el = cursorElementRef.current;
-    if (!el) return;
+
+    // DEBUG: Log mousemove effect run
+    logCursor(name, 'MOUSEMOVE_EFFECT_RUN', {
+      hasCursorElement: !!el,
+      hasContainerRef: !!containerRef?.current,
+    });
+
+    if (!el) {
+      logCursor(name, 'MOUSEMOVE_EFFECT_SKIPPED', { reason: 'cursorElementRef.current is null' });
+      return;
+    }
 
     // PERF: Pre-calculate hotspot offsets
     const hotspotX = hotspot.x;
     const hotspotY = hotspot.y;
+
+    // DEBUG: Throttle logging to avoid console flood
+    let logCount = 0;
+    const MAX_LOGS = 5;
 
     const updatePosition = (e) => {
       const x = e.clientX;
@@ -249,12 +285,27 @@ const CustomCursor = memo(({
         // PERF: Only update bounds if we don't have them or every 100 mousemoves
         if (!containerBoundsRef.current) {
           containerBoundsRef.current = containerRef.current.getBoundingClientRect();
+          // DEBUG
+          logCursor(name, 'BOUNDS_CALCULATED', { bounds: containerBoundsRef.current });
         }
         isOverContainer = isPointInRect(x, y, containerBoundsRef.current);
       }
 
       // Check 4: Should we show the cursor?
       const shouldShow = effectivelyEnabledRef.current && isOverContainer && isActivatedRef.current;
+
+      // DEBUG: Log first few decisions
+      if (logCount < MAX_LOGS && containerRef?.current) {
+        logCursor(name, 'MOUSEMOVE_DECISION', {
+          x, y,
+          isOverContainer,
+          effectivelyEnabled: effectivelyEnabledRef.current,
+          isActivated: isActivatedRef.current,
+          shouldShow,
+          bounds: containerBoundsRef.current,
+        });
+        logCount++;
+      }
 
       if (shouldShow) {
         // PERF: Calculate position with hotspot offset
@@ -270,6 +321,7 @@ const CustomCursor = memo(({
           el.style.opacity = '1';
           lastVisibilityRef.current = true;
           isVisibleRef.current = true;
+          logCursor(name, 'CURSOR_SHOWN_VIA_MOUSEMOVE', { x, y });
         }
       } else {
         // Hide cursor
@@ -377,9 +429,27 @@ const CustomCursor = memo(({
   // This ensures cursor shows when mouse enters container area even without mousemove
   useEffect(() => {
     const container = containerRef?.current;
-    if (!container) return;
+
+    // DEBUG: Log whether container is available
+    logCursor(name, 'MOUSEENTER_EFFECT_RUN', {
+      hasContainer: !!container,
+      containerClassName: container?.className || 'N/A',
+    });
+
+    if (!container) {
+      logCursor(name, 'MOUSEENTER_EFFECT_SKIPPED', { reason: 'containerRef.current is null' });
+      return;
+    }
 
     const handleMouseEnter = (e) => {
+      // DEBUG
+      logCursor(name, 'MOUSEENTER', {
+        x: e.clientX,
+        y: e.clientY,
+        effectivelyEnabled: effectivelyEnabledRef.current,
+        isActivated: isActivatedRef.current,
+      });
+
       // Update position from enter event
       positionRef.current = { x: e.clientX, y: e.clientY };
 
@@ -396,7 +466,13 @@ const CustomCursor = memo(({
           el.style.opacity = '1';
           lastVisibilityRef.current = true;
           isVisibleRef.current = true;
+          logCursor(name, 'CURSOR_SHOWN_VIA_MOUSEENTER', { x: e.clientX, y: e.clientY });
         }
+      } else {
+        logCursor(name, 'MOUSEENTER_NOT_SHOWING', {
+          effectivelyEnabled: effectivelyEnabledRef.current,
+          isActivated: isActivatedRef.current,
+        });
       }
     };
 
@@ -409,18 +485,20 @@ const CustomCursor = memo(({
           el.style.opacity = '0';
           lastVisibilityRef.current = false;
           isVisibleRef.current = false;
+          logCursor(name, 'CURSOR_HIDDEN_VIA_MOUSELEAVE');
         }
       }
     };
 
     container.addEventListener('mouseenter', handleMouseEnter);
     container.addEventListener('mouseleave', handleMouseLeave);
+    logCursor(name, 'MOUSEENTER_HANDLERS_ATTACHED', { containerClassName: container.className });
 
     return () => {
       container.removeEventListener('mouseenter', handleMouseEnter);
       container.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [containerRef, hotspot.x, hotspot.y]);
+  }, [containerRef, hotspot.x, hotspot.y, name]);
 
   // Update position when cursor type changes (hotspot offset changes)
   useEffect(() => {
