@@ -11,6 +11,10 @@ const BEAT_DURATION = 60 / PROJECT_BPM; // ~0.545454 seconds per beat
 // Each buffer can be 1-5MB depending on loop length
 const MAX_CACHED_BUFFERS = 10;
 
+// Track buffers that failed to decode (so we can show feedback to user)
+// Key: baseId, Value: error message
+const failedBuffersMap = new Map();
+
 // Calculate playback rate to sync a loop to the project BPM
 // This ensures all library loops play at exactly 110 BPM regardless of their original tempo
 const calculatePlaybackRate = (actualDuration) => {
@@ -241,6 +245,12 @@ export const useAudioEngine = (videoDuration = 60) => {
       return wrappedPlayer;
     }
 
+    // Check if this buffer previously failed to decode
+    if (failedBuffersMap.has(baseId)) {
+      console.warn(`⚠️ Skipping ${loopData.name} - previously failed to decode`);
+      return null;
+    }
+
     // Decode the audio file
     try {
       const buffer = await decodeAudioFile(loopData.file, loopData.name);
@@ -260,6 +270,8 @@ export const useAudioEngine = (videoDuration = 60) => {
       return wrappedPlayer;
     } catch (error) {
       console.error(`Failed to decode ${loopData.name}:`, error);
+      // Track this as a failed buffer so we can provide user feedback
+      failedBuffersMap.set(baseId, error.message || 'Unable to decode audio');
       throw error;
     }
   }, [decodeAudioFile, touchBuffer]);
@@ -510,6 +522,13 @@ export const useAudioEngine = (videoDuration = 60) => {
     try {
       // Get or create buffer
       const baseId = getBaseLoopId(loopData.id);
+
+      // CHROMEBOOK FIX: Check if this buffer previously failed to decode
+      if (failedBuffersMap.has(baseId)) {
+        const errorMsg = failedBuffersMap.get(baseId);
+        throw new Error(`This loop failed to load on your device: ${errorMsg}`);
+      }
+
       let buffer = audioBuffersRef.current.get(baseId);
 
       if (!buffer) {
@@ -526,6 +545,14 @@ export const useAudioEngine = (videoDuration = 60) => {
       }
 
       const rawContext = getRawContext();
+
+      // CHROMEBOOK FIX: Resume AudioContext if suspended (browser autoplay policy)
+      // This can happen after tab visibility change or period of inactivity
+      if (rawContext.state === 'suspended') {
+        console.log('🔊 AudioContext suspended - resuming for preview...');
+        await rawContext.resume();
+      }
+
       const source = rawContext.createBufferSource();
       source.buffer = buffer;
 
@@ -592,6 +619,18 @@ export const useAudioEngine = (videoDuration = 60) => {
     };
   }, [isPlaying, videoDuration, clearScheduledEvents]);
 
+  // Helper to check if a loop failed to decode (for UI feedback)
+  const isLoopDecodeFailed = useCallback((loopId) => {
+    const baseId = getBaseLoopId(loopId);
+    return failedBuffersMap.has(baseId);
+  }, []);
+
+  // Get the error message for a failed loop
+  const getLoopDecodeError = useCallback((loopId) => {
+    const baseId = getBaseLoopId(loopId);
+    return failedBuffersMap.get(baseId) || null;
+  }, []);
+
   return {
     isPlaying,
     currentTime,
@@ -608,6 +647,9 @@ export const useAudioEngine = (videoDuration = 60) => {
     createLoopPlayer,
     scheduleLoops,
     initializeAudio,
-    playersRef
+    playersRef,
+    // CHROMEBOOK: Helpers to check for failed audio decodes
+    isLoopDecodeFailed,
+    getLoopDecodeError
   };
 };

@@ -1,8 +1,10 @@
 // hooks/useLoopHandlers.js - All loop-related event handlers
 // 🔥 FIXED: Infinite rerender loop during resize
 // 🔥 CHROMEBOOK FIX: Preview stop functionality now works properly
+// 🔥 CHROMEBOOK FIX: Auto-initialize audio on preview click (don't require play first)
 // 🔥 FIXED: Removed lockFeatures restrictions to allow free interaction during tutorial
 import { useCallback, useRef, useEffect } from 'react';
+import * as Tone from 'tone';
 
 export const useLoopHandlers = ({
   lockFeatures,
@@ -205,6 +207,7 @@ export const useLoopHandlers = ({
   ]);
 
   // 🔥 CHROMEBOOK FIX: Handle stop explicitly, don't rely on toggle behavior
+  // 🔥 CHROMEBOOK FIX: Auto-resume AudioContext if suspended (tab visibility change)
   const handleLoopPreview = useCallback(async (loop, isPlaying) => {
     // 🔥 REMOVED: lockFeatures restriction - allow preview anytime
     // if (lockFeatures.allowLoopPreview === false) {
@@ -220,9 +223,22 @@ export const useLoopHandlers = ({
       return;
     }
 
+    // CHROMEBOOK FIX: If audio isn't ready but we need to preview, try to initialize it
+    // This handles the case where user clicks preview before clicking play
     if (!audioReady) {
-      showToast?.('Please initialize audio first', 'error');
-      return;
+      try {
+        // Try to start Tone.js AudioContext (requires user gesture - we have one!)
+        if (Tone.context.state !== 'running') {
+          console.log('🔊 Auto-initializing audio for preview...');
+          await Tone.start();
+        }
+        // Note: audioReady will still be false, but the AudioContext is now running
+        // previewLoop will handle the actual audio playback
+      } catch (err) {
+        console.error('Failed to auto-initialize audio:', err);
+        showToast?.('Tap the Play button first to enable audio', 'info');
+        return;
+      }
     }
 
     try {
@@ -240,7 +256,12 @@ export const useLoopHandlers = ({
       }
     } catch (error) {
       console.error('Error previewing loop:', error);
-      showToast?.(`Failed to preview "${loop.name}" - ${error.message}`, 'error');
+      // Provide user-friendly error messages
+      if (error.message?.includes('failed to load')) {
+        showToast?.(`"${loop.name}" can't play on this device`, 'error');
+      } else {
+        showToast?.(`Failed to preview "${loop.name}"`, 'error');
+      }
     }
   }, [
     previewLoop, stopPreview, audioReady, showToast, onLoopPreviewCallback,

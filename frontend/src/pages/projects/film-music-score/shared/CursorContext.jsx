@@ -138,29 +138,24 @@ export const CursorProvider = ({ children }) => {
   }, []);
 
   // Re-enable custom cursor (called when drag ends)
-  // CHROMEBOOK FIX: Use requestAnimationFrame instead of fixed timeouts
-  // This syncs with the actual render cycle instead of guessing timing
+  // PERF OPTIMIZED: Removed double-RAF, use single RAF for minimal latency
   const enableCustomCursor = useCallback(() => {
     logCursor('enableCustomCursor CALLED (drag end)');
     dragStateRef.current.isDragging = false;
 
     // CHROMEBOOK FIX: Immediately show default cursor to prevent invisible cursor gap
-    // The custom cursor will take over once it's positioned
     if (isChromebook) {
       document.body.style.cursor = 'default';
       logCursor('enableCustomCursor SET body cursor to default');
     }
 
-    // Use requestAnimationFrame to sync with render cycle
-    // Double-RAF ensures the browser has completed the current frame
+    // PERF: Single RAF is sufficient - no need for double RAF
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (!dragStateRef.current.isDragging) {
-          logCursor('enableCustomCursor RAF complete, re-enabling custom cursor');
-          setIsCustomCursorEnabled(isChromebook);
-          setDraggingFromLibrary(false);
-        }
-      });
+      if (!dragStateRef.current.isDragging) {
+        logCursor('enableCustomCursor RAF complete, re-enabling custom cursor');
+        setIsCustomCursorEnabled(isChromebook);
+        setDraggingFromLibrary(false);
+      }
     });
   }, []);
 
@@ -206,23 +201,24 @@ export const CursorProvider = ({ children }) => {
         // Capture drop position so cursor can appear there (not where drag started)
         if (e && e.clientX !== undefined && e.clientY !== undefined) {
           dragStateRef.current.dropPosition = { x: e.clientX, y: e.clientY };
-          // Dispatch a synthetic mousemove to update cursor position
-          // CHROMEBOOK FIX: Use triple-RAF to ensure cursor is re-enabled first
+          // Update last known position immediately
+          lastMousePosition.current = { x: e.clientX, y: e.clientY };
+        }
+        // Re-enable cursor first, then dispatch synthetic mousemove
+        enableCustomCursor();
+
+        // PERF: Single RAF is sufficient - cursor re-enable happens in same frame
+        if (e && e.clientX !== undefined) {
           requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                logCursor('handleDragEnd dispatching synthetic mousemove');
-                const moveEvent = new MouseEvent('mousemove', {
-                  clientX: e.clientX,
-                  clientY: e.clientY,
-                  bubbles: true
-                });
-                document.dispatchEvent(moveEvent);
-              });
+            logCursor('handleDragEnd dispatching synthetic mousemove');
+            const moveEvent = new MouseEvent('mousemove', {
+              clientX: e.clientX,
+              clientY: e.clientY,
+              bubbles: true
             });
+            document.dispatchEvent(moveEvent);
           });
         }
-        enableCustomCursor();
       }
     };
 
