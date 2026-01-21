@@ -154,9 +154,30 @@ const LoopLibrary = ({
         setLoops(processedLoops);
         setLoading(false);
 
-        processedLoops.forEach(loop => {
-          testAudioFile(loop.file, loop.id);
-        });
+        // CHROMEBOOK OPTIMIZATION: Only preload first 15 loops in batches of 2
+        // Rest will load on-demand when clicked (prevents overwhelming low-end devices)
+        const PRELOAD_COUNT = 15;
+        const BATCH_SIZE = 2;
+        const loopsToPreload = processedLoops.slice(0, PRELOAD_COUNT);
+
+        const loadBatch = async (startIndex) => {
+          const batch = loopsToPreload.slice(startIndex, startIndex + BATCH_SIZE);
+          if (batch.length === 0) return;
+
+          // Load this batch in parallel
+          await Promise.all(batch.map(loop => testAudioFile(loop.file, loop.id)));
+
+          // Small delay before next batch to keep UI smooth
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+          // Load next batch
+          if (startIndex + BATCH_SIZE < loopsToPreload.length) {
+            loadBatch(startIndex + BATCH_SIZE);
+          }
+        };
+
+        // Start batch loading
+        loadBatch(0);
 
       } catch (error) {
         console.error('Failed to load loops from manifest:', error);
@@ -278,10 +299,13 @@ const LoopLibrary = ({
       
       testAudio.src = '';
     } catch (error) {
-      console.warn(`Failed to load audio for ${loopId}:`, error);
-      setLoops(prev => prev.map(loop => 
-        loop.id === loopId 
-          ? { ...loop, loaded: true, accessible: false }
+      // CHROMEBOOK FIX: Don't mark as inaccessible on preload failure
+      // On-demand loading when user clicks might still work
+      // Only log at debug level to reduce console noise
+      console.debug(`Preload skipped for ${loopId} (will load on-demand):`, error?.message || error);
+      setLoops(prev => prev.map(loop =>
+        loop.id === loopId
+          ? { ...loop, loaded: false, accessible: true }
           : loop
       ));
     }
@@ -771,6 +795,7 @@ const LoopLibrary = ({
                   </div>
 
                   {/* CHROMEBOOK FIX: Button only disabled during debounce, not during playback */}
+                  {/* CHROMEBOOK FIX: Removed !loop.loaded check - allows on-demand loading when clicked */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -780,22 +805,21 @@ const LoopLibrary = ({
                       }
                     }}
                     disabled={
-                      !loop.loaded || 
-                      !loop.accessible || 
-                      lockFeatures.allowLoopPreview === false || 
+                      !loop.accessible ||
+                      lockFeatures.allowLoopPreview === false ||
                       buttonDebouncing ||  // Only disabled during debounce!
                       restricted
                     }
                     className={`flex-shrink-0 p-1 rounded-full transition-colors ${
                       isThisLoopPlaying
                         ? 'bg-green-600 hover:bg-green-700 text-white'
-                        : loop.loaded && loop.accessible && !buttonDebouncing && !restricted
-                        ? isSoundEffect 
+                        : loop.accessible && !buttonDebouncing && !restricted
+                        ? isSoundEffect
                           ? 'text-white hover:brightness-125'
                           : 'bg-gray-600 hover:bg-gray-500 text-gray-300'
                         : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                     }`}
-                    style={isSoundEffect && !isThisLoopPlaying && loop.loaded && loop.accessible && !buttonDebouncing && !restricted ? {
+                    style={isSoundEffect && !isThisLoopPlaying && loop.accessible && !buttonDebouncing && !restricted ? {
                       backgroundColor: sfxBgColor
                     } : {}}
                     title={
