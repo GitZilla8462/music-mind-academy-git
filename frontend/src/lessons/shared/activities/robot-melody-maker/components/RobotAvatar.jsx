@@ -199,6 +199,9 @@ const RobotAvatar = ({
   useEffect(() => {
     if (!containerRef.current || isInitializedRef.current) return;
 
+    // Track if component is still mounted during async init
+    let isMounted = true;
+
     const initPixi = async () => {
       const app = new PIXI.Application();
 
@@ -218,6 +221,12 @@ const RobotAvatar = ({
         autoDensity: true,
         powerPreference: isLowEnd ? 'low-power' : 'high-performance',
       });
+
+      // Check if component unmounted during async init - prevents NotFoundError
+      if (!isMounted || !containerRef.current) {
+        app.destroy(true);
+        return;
+      }
 
       containerRef.current.appendChild(app.canvas);
       appRef.current = app;
@@ -253,6 +262,9 @@ const RobotAvatar = ({
     initPixi();
 
     return () => {
+      // Mark as unmounted to prevent async init from continuing
+      isMounted = false;
+
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }

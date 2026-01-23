@@ -2,16 +2,25 @@
 // Big celebration for top 3 winners with generated names
 // src/lessons/shared/activities/sectional-loop-builder/SectionalLoopBuilderResults.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Trophy, Star } from 'lucide-react';
 
 const SectionalLoopBuilderResults = ({ sessionData }) => {
   const [winners, setWinners] = useState([]);
   const [showAnimation, setShowAnimation] = useState(false);
-  
+  const isMountedRef = useRef(true);
+
+  // Track mounted state to prevent state updates after unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   useEffect(() => {
     if (!sessionData?.studentsJoined) return;
-    
+
     // Get top 3 winners
     const students = Object.entries(sessionData.studentsJoined)
       .map(([id, data]) => ({
@@ -23,11 +32,17 @@ const SectionalLoopBuilderResults = ({ sessionData }) => {
       }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 3);
-    
+
     setWinners(students);
-    
-    // Trigger animation
-    setTimeout(() => setShowAnimation(true), 100);
+
+    // Trigger animation (with cleanup to prevent state update after unmount)
+    const timeoutId = setTimeout(() => {
+      if (isMountedRef.current) {
+        setShowAnimation(true);
+      }
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [sessionData]);
   
   const getMedal = (rank) => {
