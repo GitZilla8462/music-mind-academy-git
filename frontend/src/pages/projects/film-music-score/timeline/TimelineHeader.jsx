@@ -30,11 +30,13 @@ const TimelineHeader = ({
   const lastPlayPauseClickRef = useRef(0);
 
   const skipBackward = () => {
+    if (!playersReady) return;
     const newTime = Math.max(0, currentTime - 10);
     onSeek(newTime);
   };
 
   const skipForward = () => {
+    if (!playersReady) return;
     const newTime = Math.min(duration, currentTime + 10);
     onSeek(newTime);
   };
@@ -66,50 +68,73 @@ const TimelineHeader = ({
           <div className="flex items-center space-x-1 bg-gray-700/50 rounded px-1 py-0.5">
             <button
               onClick={onRestart}
-              className="p-1 rounded transition-colors text-gray-400 hover:text-white hover:bg-gray-600"
+              disabled={!playersReady}
+              className={`p-2 rounded transition-colors ${
+                playersReady
+                  ? 'text-gray-400 hover:text-white hover:bg-gray-600'
+                  : 'text-gray-600 cursor-not-allowed'
+              }`}
               title="Restart"
             >
-              <RotateCcw size={14} />
+              <RotateCcw size={16} />
             </button>
-            
+
             <button
               onClick={skipBackward}
-              className="p-1 rounded transition-colors text-gray-400 hover:text-white hover:bg-gray-600"
-              title="Skip back 10s"
+              disabled={!playersReady}
+              className={`p-2 rounded transition-colors ${
+                playersReady
+                  ? 'text-gray-400 hover:text-white hover:bg-gray-600'
+                  : 'text-gray-600 cursor-not-allowed'
+              }`}
+              title={playersReady ? "Skip back 10s" : "Loading audio..."}
             >
-              <SkipBack size={14} />
+              <SkipBack size={16} />
             </button>
 
             <button
               onClick={handlePlayPause}
-              className={`p-1.5 rounded transition-colors ${
-                isPlaying
-                  ? 'bg-green-600 hover:bg-green-700 text-white'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              disabled={!playersReady}
+              className={`p-2 rounded transition-colors ${
+                !playersReady
+                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  : isPlaying
+                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
               }`}
-              title={isPlaying ? "Pause" : "Play"}
+              title={!playersReady ? "Loading audio..." : isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? (
-                <Pause size={16} />
+                <Pause size={18} />
               ) : (
-                <Play size={16} />
+                <Play size={18} />
               )}
             </button>
 
             <button
               onClick={onStop}
-              className="p-1 rounded transition-colors text-gray-400 hover:text-white hover:bg-gray-600"
+              disabled={!playersReady}
+              className={`p-2 rounded transition-colors ${
+                playersReady
+                  ? 'text-gray-400 hover:text-white hover:bg-gray-600'
+                  : 'text-gray-600 cursor-not-allowed'
+              }`}
               title="Stop"
             >
-              <Square size={14} />
+              <Square size={16} />
             </button>
 
             <button
               onClick={skipForward}
-              className="p-1 rounded transition-colors text-gray-400 hover:text-white hover:bg-gray-600"
-              title="Skip forward 10s"
+              disabled={!playersReady}
+              className={`p-2 rounded transition-colors ${
+                playersReady
+                  ? 'text-gray-400 hover:text-white hover:bg-gray-600'
+                  : 'text-gray-600 cursor-not-allowed'
+              }`}
+              title={playersReady ? "Skip forward 10s" : "Loading audio..."}
             >
-              <SkipForward size={14} />
+              <SkipForward size={16} />
             </button>
           </div>
         </div>
