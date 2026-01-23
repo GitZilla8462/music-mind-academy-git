@@ -13,7 +13,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@sentry/react": "^10.35.0",
     "@tonejs/midi": "^2.0.28",
     "axios": "^1.12.1",
     "date-fns": "^4.1.0",

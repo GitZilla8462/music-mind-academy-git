@@ -5,7 +5,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { getDatabase, ref, get, set, remove, onValue, update } from 'firebase/database';
-import { Users, UserPlus, Trash2, Mail, Calendar, Shield, ArrowLeft, RefreshCw, BarChart3, Clock, BookOpen, Play, Building2, GraduationCap, ChevronDown, ChevronUp, MessageSquare, Star, Download, DatabaseBackup } from 'lucide-react';
+import { Users, UserPlus, Trash2, Mail, Calendar, Shield, ArrowLeft, RefreshCw, BarChart3, Clock, BookOpen, Play, Building2, GraduationCap, ChevronDown, ChevronUp, MessageSquare, Star, Download, DatabaseBackup, AlertTriangle } from 'lucide-react';
+import ErrorLogViewer from '../components/admin/ErrorLogViewer';
 import { getTeacherAnalytics, getPilotSessions, getPilotSummaryStats, subscribeToAnalytics } from '../firebase/analytics';
 import { SITE_TYPES } from '../firebase/approvedEmails';
 import * as XLSX from 'xlsx';
@@ -1053,6 +1054,17 @@ const PilotAdminPage = () => {
             <MessageSquare size={18} />
             Surveys ({midPilotSurveys.length + finalPilotSurveys.length + quickSurveys.length})
           </button>
+          <button
+            onClick={() => setActiveTab('errors')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+              activeTab === 'errors'
+                ? 'bg-red-600 text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <AlertTriangle size={18} />
+            Error Logs
+          </button>
         </div>
 
         {/* Approved Emails List */}
@@ -1879,6 +1891,11 @@ const PilotAdminPage = () => {
               )}
             </div>
           </div>
+        )}
+
+        {/* Error Logs Tab */}
+        {activeTab === 'errors' && (
+          <ErrorLogViewer />
         )}
         </>
         )}

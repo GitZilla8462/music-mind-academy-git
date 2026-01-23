@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import * as Sentry from '@sentry/react';
 import { ClassProvider } from './context/ClassContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SessionProvider } from './context/SessionContext';
 import { FirebaseAuthProvider } from './context/FirebaseAuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Import styles - including snap guide styles
 import './App.css';
@@ -658,28 +658,7 @@ const App = () => {
   }, []);
 
   return (
-    <Sentry.ErrorBoundary
-      fallback={({ error, resetError }) => (
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-          <div className="bg-gray-800 rounded-xl p-8 max-w-md text-center">
-            <div className="text-6xl mb-4">😵</div>
-            <h1 className="text-2xl font-bold text-white mb-2">Something went wrong</h1>
-            <p className="text-gray-400 mb-6">
-              We've been notified and are working on it. Try refreshing the page.
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
-            >
-              Refresh Page
-            </button>
-          </div>
-        </div>
-      )}
-      onError={(error, componentStack) => {
-        console.error('🚨 Sentry caught error:', error);
-      }}
-    >
+    <ErrorBoundary>
       <Router>
         <AuthProvider>
           <FirebaseAuthProvider>
@@ -687,7 +666,7 @@ const App = () => {
           </FirebaseAuthProvider>
         </AuthProvider>
       </Router>
-    </Sentry.ErrorBoundary>
+    </ErrorBoundary>
   );
 };
 
