@@ -94,15 +94,12 @@ const TimelineHeader = ({
 
             <button
               onClick={handlePlayPause}
-              disabled={!playersReady}
               className={`p-2 rounded transition-colors ${
-                !playersReady
-                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                  : isPlaying
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                isPlaying
+                  ? 'bg-green-600 hover:bg-green-700 text-white'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
               }`}
-              title={!playersReady ? "Loading audio..." : isPlaying ? "Pause" : "Play"}
+              title={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? (
                 <Pause size={18} />
