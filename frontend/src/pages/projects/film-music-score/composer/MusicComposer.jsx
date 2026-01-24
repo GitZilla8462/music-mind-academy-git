@@ -417,16 +417,15 @@ const MusicComposer = ({
       return;
     }
 
-    // ✅ FIX: Use savedLoopsRef if available (from props), otherwise use placedLoops directly (from localStorage)
-    const loopsToCheck = savedLoopsRef.current || placedLoops;
-
-    if (loopsToCheck.length === 0) {
+    // ✅ FIX: Always use placedLoops - it contains both saved loops AND newly dropped loops
+    // Previously used savedLoopsRef.current which missed newly dropped loops
+    if (placedLoops.length === 0) {
       return;
     }
 
     // ✅ FIX: Find loops that are missing players (check by ID)
     // Also skip custom beats with stale blob URLs (they need re-rendering first)
-    const loopsWithoutPlayers = loopsToCheck.filter(loop => {
+    const loopsWithoutPlayers = placedLoops.filter(loop => {
       const hasPlayer = playersRef.current && (
         playersRef.current.has(loop.id) ||
         playersRef.current.get(loop.id)

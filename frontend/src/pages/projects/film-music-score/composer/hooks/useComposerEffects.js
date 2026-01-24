@@ -303,14 +303,9 @@ export const useComposerEffects = ({
     }
   }, [assignmentId, videoId, preselectedVideo, setPlacedLoops, setSubmissionNotes, compositionKey, placedLoops, setCustomLoops]);
 
-  // Auto-initialize audio for all modes (skip in passive mode for performance)
+  // Auto-initialize audio for all modes (including passive/preview mode)
+  // Audio initialization is needed for the DAW to work properly - delete, playback, etc.
   useEffect(() => {
-    // Skip audio initialization in passive mode (iframe previews)
-    if (isPassive) {
-      console.log('⏸️ Passive mode - skipping audio initialization');
-      return;
-    }
-
     if (!audioReady) {
       const autoInit = async () => {
         try {
@@ -325,7 +320,7 @@ export const useComposerEffects = ({
       const timer = setTimeout(autoInit, 100);
       return () => clearTimeout(timer);
     }
-  }, [audioReady, initializeAudio, setAudioReady, isPassive]);
+  }, [audioReady, initializeAudio, setAudioReady]);
 
   // Handle panel resizing with smooth gradual movement
   useEffect(() => {
