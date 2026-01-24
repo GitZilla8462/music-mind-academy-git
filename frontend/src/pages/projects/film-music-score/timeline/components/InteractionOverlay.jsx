@@ -106,7 +106,9 @@ const InteractionOverlay = ({
   // CHROMEBOOK OPTIMIZED: Cache CSS zoom to avoid DOM tree traversal on every mouse move
   const cachedCssZoomRef = useRef(1);
 
-  // Calculate and cache CSS zoom on mount and resize
+  // Calculate and cache CSS zoom on mount, resize, and when loops change
+  // FIX: Recalculate when placedLoops changes - fixes issue where saved loops
+  // couldn't be interacted with until a new loop was placed (iframe preview timing issue)
   useEffect(() => {
     const calculateCssZoom = () => {
       if (!timelineRef.current) return;
@@ -130,14 +132,16 @@ const InteractionOverlay = ({
     // Recalculate on resize (zoom might change with responsive layouts)
     window.addEventListener('resize', calculateCssZoom);
 
-    // Also recalculate after a short delay (for dynamic zoom changes)
-    const timeoutId = setTimeout(calculateCssZoom, 100);
+    // Also recalculate after short delays (for dynamic zoom changes and iframe loading)
+    const timeoutId1 = setTimeout(calculateCssZoom, 100);
+    const timeoutId2 = setTimeout(calculateCssZoom, 500); // Extra delay for iframe preview
 
     return () => {
       window.removeEventListener('resize', calculateCssZoom);
-      clearTimeout(timeoutId);
+      clearTimeout(timeoutId1);
+      clearTimeout(timeoutId2);
     };
-  }, [timelineRef]);
+  }, [timelineRef, placedLoops.length]);
 
   // CHROMEBOOK FIX: Direct DOM cursor update - bypasses React state entirely
   // This prevents cursor flicker during re-renders from auto-save, session updates, etc.
