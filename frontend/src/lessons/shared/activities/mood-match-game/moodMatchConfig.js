@@ -47,7 +47,7 @@ export const GAME_LOOPS = [
   {
     id: 'loop-2',
     name: 'Scary Strings 2',
-    file: '/projects/film-music-score/loops/Scary Strings 2.mp3',
+    file: '/projects/film-music-score/loops/Scary Strings 2.m4a',
     // Clear scary
     notes: 'Tense strings, dissonant, builds suspense'
   },
@@ -75,7 +75,7 @@ export const GAME_LOOPS = [
   {
     id: 'loop-6',
     name: 'Scary Synth 3',
-    file: '/projects/film-music-score/loops/Scary Synth 3.mp3',
+    file: '/projects/film-music-score/loops/Scary Synth 3.m4a',
     // Clear scary
     notes: 'Low synth, ominous, horror feel'
   },

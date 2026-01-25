@@ -34,11 +34,11 @@ export const loopData = {
     Synth: ['/projects/film-music-score/loops/Mysterious Synth 1.m4a', '/projects/film-music-score/loops/Mysterious Synth 2.m4a', '/projects/film-music-score/loops/Mysterious Synth 3.m4a', '/projects/film-music-score/loops/Mysterious Synth 4.m4a']
   },
   Scary: {
-    Bass: ['/projects/film-music-score/loops/Scary Bass 1.mp3', '/projects/film-music-score/loops/Scary Bass 2.mp3'],
-    Brass: ['/projects/film-music-score/loops/Scary Brass 1.mp3'],
-    Percussion: ['/projects/film-music-score/loops/Scary Percussion 1.mp3', '/projects/film-music-score/loops/Scary Percussion 2.mp3'],
-    Strings: ['/projects/film-music-score/loops/Scary Strings 1.mp3', '/projects/film-music-score/loops/Scary Strings 2.mp3'],
-    Synth: ['/projects/film-music-score/loops/Scary Synth 1.mp3', '/projects/film-music-score/loops/Scary Synth 2.mp3']
+    Bass: ['/projects/film-music-score/loops/Scary Bass 1.m4a', '/projects/film-music-score/loops/Scary Bass 2.m4a'],
+    Brass: ['/projects/film-music-score/loops/Scary Brass 1.m4a'],
+    Percussion: ['/projects/film-music-score/loops/Scary Percussion 1.m4a', '/projects/film-music-score/loops/Scary Percussion 2.m4a'],
+    Strings: ['/projects/film-music-score/loops/Scary Strings 1.m4a', '/projects/film-music-score/loops/Scary Strings 2.m4a'],
+    Synth: ['/projects/film-music-score/loops/Scary Synth 1.m4a', '/projects/film-music-score/loops/Scary Synth 2.m4a']
   },
   Upbeat: {
     Bells: ['/projects/film-music-score/loops/Upbeat Bells.m4a'],

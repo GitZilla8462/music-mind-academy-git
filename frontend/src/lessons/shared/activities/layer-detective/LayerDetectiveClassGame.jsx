@@ -73,8 +73,8 @@ const QUESTIONS = [
     correctAnswer: '2',
     instruments: ['Bass', 'Strings'],
     layers: [
-      { name: 'Scary Bass 1', file: '/projects/film-music-score/loops/Scary Bass 1.mp3', color: '#991B1B' },
-      { name: 'Scary Strings 1', file: '/projects/film-music-score/loops/Scary Strings 1.mp3', color: '#7F1D1D' }
+      { name: 'Scary Bass 1', file: '/projects/film-music-score/loops/Scary Bass 1.m4a', color: '#991B1B' },
+      { name: 'Scary Strings 1', file: '/projects/film-music-score/loops/Scary Strings 1.m4a', color: '#7F1D1D' }
     ]
   },
   {

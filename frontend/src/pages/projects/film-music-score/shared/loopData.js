@@ -179,85 +179,85 @@ export const loopsData = [
     name: "Scary Bass 1",
     category: "Scary",
     instrument: "Bass",
-    src: "/projects/film-music-score/loops/Scary Bass 1.mp3"
+    src: "/projects/film-music-score/loops/Scary Bass 1.m4a"
   },
   {
     name: "Scary Bass 2",
     category: "Scary",
     instrument: "Bass",
-    src: "/projects/film-music-score/loops/Scary Bass 2.mp3"
+    src: "/projects/film-music-score/loops/Scary Bass 2.m4a"
   },
   {
     name: "Scary Bass 3",
     category: "Scary",
     instrument: "Bass",
-    src: "/projects/film-music-score/loops/Scary Bass 3.mp3"
+    src: "/projects/film-music-score/loops/Scary Bass 3.m4a"
   },
   {
     name: "Scary Brass 1",
     category: "Scary",
     instrument: "Brass",
-    src: "/projects/film-music-score/loops/Scary Brass 1.mp3"
+    src: "/projects/film-music-score/loops/Scary Brass 1.m4a"
   },
   {
     name: "Scary Percussion 1",
     category: "Scary",
     instrument: "Percussion",
-    src: "/projects/film-music-score/loops/Scary Percussion 1.mp3"
+    src: "/projects/film-music-score/loops/Scary Percussion 1.m4a"
   },
   {
     name: "Scary Percussion 2",
     category: "Scary",
     instrument: "Percussion",
-    src: "/projects/film-music-score/loops/Scary Percussion 2.mp3"
+    src: "/projects/film-music-score/loops/Scary Percussion 2.m4a"
   },
   {
     name: "Scary Strings 1",
     category: "Scary",
     instrument: "Strings",
-    src: "/projects/film-music-score/loops/Scary Strings 1.mp3"
+    src: "/projects/film-music-score/loops/Scary Strings 1.m4a"
   },
   {
     name: "Scary Strings 2",
     category: "Scary",
     instrument: "Strings",
-    src: "/projects/film-music-score/loops/Scary Strings 2.mp3"
+    src: "/projects/film-music-score/loops/Scary Strings 2.m4a"
   },
   {
     name: "Scary Strings 3",
     category: "Scary",
     instrument: "Strings",
-    src: "/projects/film-music-score/loops/Scary Strings 3.mp3"
+    src: "/projects/film-music-score/loops/Scary Strings 3.m4a"
   },
   {
     name: "Scary Strings 4",
     category: "Scary",
     instrument: "Strings",
-    src: "/projects/film-music-score/loops/Scary Strings 4.mp3"
+    src: "/projects/film-music-score/loops/Scary Strings 4.m4a"
   },
   {
     name: "Scary Synth 1",
     category: "Scary",
     instrument: "Synth",
-    src: "/projects/film-music-score/loops/Scary Synth 1.mp3"
+    src: "/projects/film-music-score/loops/Scary Synth 1.m4a"
   },
   {
     name: "Scary Synth 2",
     category: "Scary",
     instrument: "Synth",
-    src: "/projects/film-music-score/loops/Scary Synth 2.mp3"
+    src: "/projects/film-music-score/loops/Scary Synth 2.m4a"
   },
   {
     name: "Scary Synth 3",
     category: "Scary",
     instrument: "Synth",
-    src: "/projects/film-music-score/loops/Scary Synth 3.mp3"
+    src: "/projects/film-music-score/loops/Scary Synth 3.m4a"
   },
   {
     name: "Scary Synth 4",
     category: "Scary",
     instrument: "Synth",
-    src: "/projects/film-music-score/loops/Scary Synth 4.mp3"
+    src: "/projects/film-music-score/loops/Scary Synth 4.m4a"
   },
 
   // UPBEAT LOOPS
