@@ -96,6 +96,11 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
 
       // Handle phase changes
       if (data.phase === 'playing' || data.phase === 'guessing') {
+        // New game starting - reset score when going back to question 0
+        if (data.currentQuestion === 0 && currentQuestion !== 0) {
+          setScore(0);
+        }
+
         // New question - reset answers
         if (data.currentQuestion !== currentQuestion) {
           setSelectedAnswer(null);

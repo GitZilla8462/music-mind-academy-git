@@ -378,26 +378,8 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
       correctInstruments: question.instruments
     });
 
-    // Update scores in Firebase with error handling
-    if (sessionCode) {
-      const db = getDatabase();
-      const scoreUpdates = students
-        .filter(s => changes[s.id]?.delta > 0)
-        .map(s => {
-          const change = changes[s.id];
-          const newScore = (s.score || 0) + change.delta;
-          return update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
-            layerDetectiveScore: newScore
-          })
-            .then(() => console.log(`✅ Score updated for ${s.name}: ${newScore}`))
-            .catch(err => console.error(`❌ Failed to update score for ${s.name}:`, err));
-        });
-
-      // Log when all updates complete
-      Promise.all(scoreUpdates)
-        .then(() => console.log(`✅ All ${scoreUpdates.length} score updates completed`))
-        .catch(err => console.error('❌ Some score updates failed:', err));
-    }
+    // NOTE: Students write their own scores to Firebase (like Section Safari)
+    // Teacher just reads scores from Firebase, doesn't write them
 
     // Play the audio so students can hear the correct answer (after a short delay)
     // Store timeout ID so it can be cancelled if user moves to next question quickly
