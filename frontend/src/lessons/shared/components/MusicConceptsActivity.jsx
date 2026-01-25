@@ -159,13 +159,13 @@ const MusicConceptsActivity = ({ onComplete }) => {
         {
           name: 'Allegro (Fast and Lively, 120-168 BPM)',
           description: 'Allegro means "cheerful" or "lively" in Italian. This fast tempo creates energy, excitement, and joy. You\'ll hear allegro in dance music, celebration scenes, chase sequences in movies, and upbeat pop songs. The quick pace makes you want to move and creates a sense of urgency or happiness.',
-          audio: '/projects/film-music-score/loops/Upbeat Piano.wav',
+          audio: '/projects/film-music-score/loops/Upbeat Piano 1.m4a',
           characteristics: ['Fast', 'Energetic', 'Joyful', 'Exciting', 'Lively']
         },
         {
           name: 'Presto (Very Fast, 168+ BPM)',
           description: 'Presto means "quickly" in Italian and is one of the fastest tempo markings. This extremely fast speed creates intense excitement, panic, or superhuman energy. Think of action movie soundtracks, video game music during intense moments, or classical pieces that showcase incredible skill. Presto can make listeners feel their heart racing!',
-          audio: '/projects/film-music-score/loops/Upbeat Drums 2.wav',
+          audio: '/projects/film-music-score/loops/Upbeat Drums 2.m4a',
           characteristics: ['Very Fast', 'Intense', 'Thrilling', 'Urgent', 'Virtuosic']
         }
       ]
@@ -190,13 +190,13 @@ const MusicConceptsActivity = ({ onComplete }) => {
         {
           name: 'Mezzo Forte (mf) - Medium Loud',
           description: 'Mezzo forte means "half strong" - this is a confident, clear volume that most music sits at. It\'s loud enough to be heard clearly but not overwhelming. Think of a confident speaking voice or music that fills a room nicely. Many pop songs, classical themes, and movie soundtracks use mezzo forte as their main dynamic level.',
-          audio: '/projects/film-music-score/loops/Upbeat Acoustic Guitar.wav',
+          audio: '/projects/film-music-score/loops/Upbeat Acoustic Guitar.m4a',
           characteristics: ['Medium Loud', 'Confident', 'Clear', 'Balanced', 'Present']
         },
         {
           name: 'Forte (f) - Loud',
           description: 'Forte means "strong" in Italian. This loud dynamic creates power, excitement, and drama. Forte grabs attention and makes bold statements. You\'ll hear forte in action scenes, triumphant moments, rock concerts, and when composers want to create impact. It\'s like someone speaking with authority and passion.',
-          audio: '/projects/film-music-score/loops/Upbeat Drums 1.wav',
+          audio: '/projects/film-music-score/loops/Upbeat Drums 1.m4a',
           characteristics: ['Loud', 'Powerful', 'Dramatic', 'Bold', 'Commanding']
         }
       ]
@@ -209,7 +209,7 @@ const MusicConceptsActivity = ({ onComplete }) => {
         {
           name: 'Piano - The Universal Storyteller',
           description: 'The piano is incredibly versatile - it can play melody, harmony, and rhythm all at once. Its wide range from very low to very high notes makes it perfect for expressing any emotion. Gentle piano melodies can sound romantic or peaceful, while powerful piano chords can sound dramatic or triumphant. In film music, piano often represents human emotions, memories, or intimate moments.',
-          audio: '/projects/film-music-score/loops/Upbeat Piano.wav',
+          audio: '/projects/film-music-score/loops/Upbeat Piano 1.m4a',
           characteristics: ['Versatile', 'Expressive', 'Emotional', 'Clear', 'Dynamic']
         },
         {
@@ -221,7 +221,7 @@ const MusicConceptsActivity = ({ onComplete }) => {
         {
           name: 'Guitar - The Personal Voice',
           description: 'Guitars have a warm, personal quality that feels like someone speaking directly to you. Acoustic guitars can sound folk-like, peaceful, or introspective, while electric guitars can be powerful, edgy, or modern. Guitars are great for creating atmosphere - a gentle fingerpicked guitar might represent countryside or memories, while a distorted electric guitar could represent rebellion or power.',
-          audio: '/projects/film-music-score/loops/Upbeat Acoustic Guitar.wav',
+          audio: '/projects/film-music-score/loops/Upbeat Acoustic Guitar.m4a',
           characteristics: ['Personal', 'Warm', 'Versatile', 'Atmospheric', 'Relatable']
         },
         {
@@ -233,7 +233,7 @@ const MusicConceptsActivity = ({ onComplete }) => {
         {
           name: 'Drums - The Rhythmic Engine',
           description: 'Drums are the heartbeat of music - they provide the pulse that makes you want to move. Different drum sounds create different feelings: soft brushes might sound jazzy and relaxed, while pounding timpani drums sound epic and powerful. In film music, drums can represent danger, excitement, marching armies, or celebration. They drive the energy and can make quiet scenes feel urgent.',
-          audio: '/projects/film-music-score/loops/Upbeat Drums 2.wav',
+          audio: '/projects/film-music-score/loops/Upbeat Drums 2.m4a',
           characteristics: ['Rhythmic', 'Driving', 'Energetic', 'Powerful', 'Pulse']
         }
       ]
@@ -252,7 +252,7 @@ const MusicConceptsActivity = ({ onComplete }) => {
         {
           name: 'Major Harmony - The Sound of Light',
           description: 'Major chords and scales use a pattern of notes that sounds naturally bright and positive. Our ears hear major harmony as resolved, complete, and happy. Major keys are used in celebration music, pop songs, children\'s songs, and triumphant movie moments. The brightness of major harmony can represent hope, joy, victory, or simple contentment. It feels like musical sunshine.',
-          audio: '/projects/film-music-score/loops/Upbeat Bells.wav',
+          audio: '/projects/film-music-score/loops/Upbeat Bells.m4a',
           characteristics: ['Bright', 'Happy', 'Resolved', 'Positive', 'Triumphant']
         }
       ]
@@ -270,13 +270,13 @@ const MusicConceptsActivity = ({ onComplete }) => {
       },
       {
         question: 'This music has what kind of tempo feel?',
-        audio: '/projects/film-music-score/loops/Upbeat Drums 2.wav',
+        audio: '/projects/film-music-score/loops/Upbeat Drums 2.m4a',
         options: ['Largo (Very Slow)', 'Andante (Walking Pace)', 'Allegro (Fast)', 'Presto (Very Fast)'],
         correct: 3
       },
       {
         question: 'What tempo would you use to describe this musical example?',
-        audio: '/projects/film-music-score/loops/Upbeat Piano.wav',
+        audio: '/projects/film-music-score/loops/Upbeat Piano 1.m4a',
         options: ['Largo (Very Slow)', 'Andante (Walking Pace)', 'Allegro (Fast)', 'Presto (Very Fast)'],
         correct: 2
       },
@@ -290,7 +290,7 @@ const MusicConceptsActivity = ({ onComplete }) => {
     dynamics: [
       {
         question: 'What dynamic level do you hear in this musical example?',
-        audio: '/projects/film-music-score/loops/Upbeat Drums 1.wav',
+        audio: '/projects/film-music-score/loops/Upbeat Drums 1.m4a',
         options: ['Piano (Soft)', 'Mezzo Piano (Medium Soft)', 'Mezzo Forte (Medium Loud)', 'Forte (Loud)'],
         correct: 3
       },
@@ -302,7 +302,7 @@ const MusicConceptsActivity = ({ onComplete }) => {
       },
       {
         question: 'What dynamic marking would best fit this audio?',
-        audio: '/projects/film-music-score/loops/Upbeat Acoustic Guitar.wav',
+        audio: '/projects/film-music-score/loops/Upbeat Acoustic Guitar.m4a',
         options: ['Piano (Soft)', 'Mezzo Piano (Medium Soft)', 'Mezzo Forte (Medium Loud)', 'Forte (Loud)'],
         correct: 2
       },
@@ -322,13 +322,13 @@ const MusicConceptsActivity = ({ onComplete }) => {
       },
       {
         question: 'Which instrument do you hear prominently in this example?',
-        audio: '/projects/film-music-score/loops/Upbeat Acoustic Guitar.wav',
+        audio: '/projects/film-music-score/loops/Upbeat Acoustic Guitar.m4a',
         options: ['Piano', 'Drums', 'Guitar', 'Strings'],
         correct: 2
       },
       {
         question: 'What type of instrument is featured in this audio?',
-        audio: '/projects/film-music-score/loops/Upbeat Piano.wav',
+        audio: '/projects/film-music-score/loops/Upbeat Piano 1.m4a',
         options: ['Guitar', 'Piano', 'Drums', 'Synthesizer'],
         correct: 1
       },
@@ -342,7 +342,7 @@ const MusicConceptsActivity = ({ onComplete }) => {
     harmony: [
       {
         question: 'What type of harmony do you hear in this example?',
-        audio: '/projects/film-music-score/loops/Upbeat Piano.wav',
+        audio: '/projects/film-music-score/loops/Upbeat Piano 1.m4a',
         options: ['Minor Harmony', 'Major Harmony'],
         correct: 1
       },
@@ -354,7 +354,7 @@ const MusicConceptsActivity = ({ onComplete }) => {
       },
       {
         question: 'What kind of harmonic feeling does this music have?',
-        audio: '/projects/film-music-score/loops/Upbeat Bells.wav',
+        audio: '/projects/film-music-score/loops/Upbeat Bells.m4a',
         options: ['Minor (Dark and Emotional)', 'Major (Bright and Happy)'],
         correct: 1
       },

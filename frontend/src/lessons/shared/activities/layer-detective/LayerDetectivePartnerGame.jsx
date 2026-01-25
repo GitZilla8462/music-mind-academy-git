@@ -60,15 +60,15 @@ const LayerDetectivePartnerGame = ({ onComplete, viewMode = false }) => {
       { name: 'Scary Bass 3', category: 'Bass', file: '/projects/film-music-score/loops/Scary Bass 3.mp3', color: '#1D4ED8' }
     ],
     Upbeat: [
-      { name: 'Upbeat Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 1.mp3', color: '#EF4444' },
-      { name: 'Upbeat Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 2.mp3', color: '#DC2626' },
-      { name: 'Upbeat Electric Guitar', category: 'Guitar', file: '/projects/film-music-score/loops/Upbeat Electric Guitar.mp3', color: '#F59E0B' },
-      { name: 'Upbeat Piano', category: 'Piano', file: '/projects/film-music-score/loops/Upbeat Piano.mp3', color: '#10B981' },
-      { name: 'Upbeat Strings', category: 'Strings', file: '/projects/film-music-score/loops/Upbeat Strings.mp3', color: '#8B5CF6' },
-      { name: 'Upbeat Electric Bass', category: 'Bass', file: '/projects/film-music-score/loops/Upbeat Electric Bass.mp3', color: '#3B82F6' },
-      { name: 'Upbeat String Bass', category: 'Bass', file: '/projects/film-music-score/loops/Upbeat String Bass.mp3', color: '#2563EB' },
-      { name: 'Upbeat Clarinet', category: 'Woodwinds', file: '/projects/film-music-score/loops/Upbeat Clarinet.mp3', color: '#EC4899' },
-      { name: 'Upbeat Bells', category: 'Bells', file: '/projects/film-music-score/loops/Upbeat Bells.mp3', color: '#F59E0B' }
+      { name: 'Upbeat Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 1.m4a', color: '#EF4444' },
+      { name: 'Upbeat Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 2.m4a', color: '#DC2626' },
+      { name: 'Upbeat Electric Guitar', category: 'Guitar', file: '/projects/film-music-score/loops/Upbeat Electric Guitar.m4a', color: '#F59E0B' },
+      { name: 'Upbeat Piano 1', category: 'Piano', file: '/projects/film-music-score/loops/Upbeat Piano 1.m4a', color: '#10B981' },
+      { name: 'Upbeat Strings 1', category: 'Strings', file: '/projects/film-music-score/loops/Upbeat Strings 1.m4a', color: '#8B5CF6' },
+      { name: 'Upbeat Electric Bass', category: 'Bass', file: '/projects/film-music-score/loops/Upbeat Electric Bass.m4a', color: '#3B82F6' },
+      { name: 'Upbeat Bass', category: 'Bass', file: '/projects/film-music-score/loops/Upbeat Bass.m4a', color: '#2563EB' },
+      { name: 'Upbeat Clarinet', category: 'Woodwinds', file: '/projects/film-music-score/loops/Upbeat Clarinet.m4a', color: '#EC4899' },
+      { name: 'Upbeat Bells', category: 'Bells', file: '/projects/film-music-score/loops/Upbeat Bells.m4a', color: '#F59E0B' }
     ],
     Mysterious: [
       { name: 'Mysterious Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Mysterious Drums 1.m4a', color: '#EF4444' },

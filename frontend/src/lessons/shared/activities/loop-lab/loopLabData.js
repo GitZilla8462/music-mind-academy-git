@@ -40,14 +40,16 @@ export const loopData = {
     Synth: ['/projects/film-music-score/loops/Scary Synth 1.mp3', '/projects/film-music-score/loops/Scary Synth 2.mp3', '/projects/film-music-score/loops/Scary Synth 3.mp3', '/projects/film-music-score/loops/Scary Synth 4.mp3']
   },
   Upbeat: {
-    Bells: ['/projects/film-music-score/loops/Upbeat Bells.mp3'],
-    Clarinet: ['/projects/film-music-score/loops/Upbeat Clarinet.mp3'],
-    Drums: ['/projects/film-music-score/loops/Upbeat Drums 1.mp3', '/projects/film-music-score/loops/Upbeat Drums 2.mp3'],
-    'Electric Bass': ['/projects/film-music-score/loops/Upbeat Electric Bass.mp3'],
-    'Electric Guitar': ['/projects/film-music-score/loops/Upbeat Electric Guitar.mp3'],
-    Piano: ['/projects/film-music-score/loops/Upbeat Piano.mp3'],
-    'String Bass': ['/projects/film-music-score/loops/Upbeat String Bass.mp3'],
-    Strings: ['/projects/film-music-score/loops/Upbeat Strings.mp3']
+    Bells: ['/projects/film-music-score/loops/Upbeat Bells.m4a'],
+    Clarinet: ['/projects/film-music-score/loops/Upbeat Clarinet.m4a'],
+    Drums: ['/projects/film-music-score/loops/Upbeat Drums 1.m4a', '/projects/film-music-score/loops/Upbeat Drums 2.m4a', '/projects/film-music-score/loops/Upbeat Drums 3.m4a'],
+    'Electric Bass': ['/projects/film-music-score/loops/Upbeat Electric Bass.m4a'],
+    'Electric Guitar': ['/projects/film-music-score/loops/Upbeat Electric Guitar.m4a', '/projects/film-music-score/loops/Upbeat Electric Guitar 2.m4a'],
+    'Acoustic Guitar': ['/projects/film-music-score/loops/Upbeat Acoustic Guitar.m4a'],
+    Piano: ['/projects/film-music-score/loops/Upbeat Piano 1.m4a', '/projects/film-music-score/loops/Upbeat Piano 2.m4a', '/projects/film-music-score/loops/Upbeat Piano 3.m4a'],
+    Bass: ['/projects/film-music-score/loops/Upbeat Bass.m4a'],
+    Clavichord: ['/projects/film-music-score/loops/Upbeat Clavichord.m4a'],
+    Strings: ['/projects/film-music-score/loops/Upbeat Strings 1.m4a', '/projects/film-music-score/loops/Upbeat Strings 2.m4a']
   }
 };
 

@@ -33,13 +33,14 @@ export const LOOPS_BY_MOOD = {
     Synth: ['/projects/film-music-score/loops/Mysterious Synth 1.m4a', '/projects/film-music-score/loops/Mysterious Synth 2.m4a', '/projects/film-music-score/loops/Mysterious Synth 3.m4a', '/projects/film-music-score/loops/Mysterious Synth 4.m4a']
   },
   Upbeat: {
-    Bells: ['/projects/film-music-score/loops/Upbeat Bells.mp3'],
-    Clarinet: ['/projects/film-music-score/loops/Upbeat Clarinet.mp3'],
-    Drums: ['/projects/film-music-score/loops/Upbeat Drums 1.mp3', '/projects/film-music-score/loops/Upbeat Drums 2.mp3'],
-    Guitar: ['/projects/film-music-score/loops/Upbeat Electric Guitar.mp3'],
-    Bass: ['/projects/film-music-score/loops/Upbeat Electric Bass.mp3', '/projects/film-music-score/loops/Upbeat String Bass.mp3'],
-    Piano: ['/projects/film-music-score/loops/Upbeat Piano.mp3'],
-    Strings: ['/projects/film-music-score/loops/Upbeat Strings.mp3']
+    Bells: ['/projects/film-music-score/loops/Upbeat Bells.m4a'],
+    Clarinet: ['/projects/film-music-score/loops/Upbeat Clarinet.m4a'],
+    Drums: ['/projects/film-music-score/loops/Upbeat Drums 1.m4a', '/projects/film-music-score/loops/Upbeat Drums 2.m4a', '/projects/film-music-score/loops/Upbeat Drums 3.m4a'],
+    Guitar: ['/projects/film-music-score/loops/Upbeat Electric Guitar.m4a', '/projects/film-music-score/loops/Upbeat Electric Guitar 2.m4a', '/projects/film-music-score/loops/Upbeat Acoustic Guitar.m4a'],
+    Bass: ['/projects/film-music-score/loops/Upbeat Electric Bass.m4a', '/projects/film-music-score/loops/Upbeat Bass.m4a'],
+    Piano: ['/projects/film-music-score/loops/Upbeat Piano 1.m4a', '/projects/film-music-score/loops/Upbeat Piano 2.m4a', '/projects/film-music-score/loops/Upbeat Piano 3.m4a'],
+    Strings: ['/projects/film-music-score/loops/Upbeat Strings 1.m4a', '/projects/film-music-score/loops/Upbeat Strings 2.m4a'],
+    Clavichord: ['/projects/film-music-score/loops/Upbeat Clavichord.m4a']
   },
   Hype: {
     Bass: ['/projects/film-music-score/loops/Hype Bass 1.m4a', '/projects/film-music-score/loops/Hype Bass 2.m4a'],

@@ -262,58 +262,100 @@ export const loopsData = [
 
   // UPBEAT LOOPS
   {
+    name: "Upbeat Acoustic Guitar",
+    category: "Upbeat",
+    instrument: "Acoustic Guitar",
+    src: "/projects/film-music-score/loops/Upbeat Acoustic Guitar.m4a"
+  },
+  {
+    name: "Upbeat Bass",
+    category: "Upbeat",
+    instrument: "Bass",
+    src: "/projects/film-music-score/loops/Upbeat Bass.m4a"
+  },
+  {
     name: "Upbeat Bells",
     category: "Upbeat",
     instrument: "Bells",
-    src: "/projects/film-music-score/loops/Upbeat Bells.mp3"
+    src: "/projects/film-music-score/loops/Upbeat Bells.m4a"
   },
   {
     name: "Upbeat Clarinet",
     category: "Upbeat",
     instrument: "Clarinet",
-    src: "/projects/film-music-score/loops/Upbeat Clarinet.mp3"
+    src: "/projects/film-music-score/loops/Upbeat Clarinet.m4a"
+  },
+  {
+    name: "Upbeat Clavichord",
+    category: "Upbeat",
+    instrument: "Clavichord",
+    src: "/projects/film-music-score/loops/Upbeat Clavichord.m4a"
   },
   {
     name: "Upbeat Drums 1",
     category: "Upbeat",
     instrument: "Drums",
-    src: "/projects/film-music-score/loops/Upbeat Drums 1.mp3"
+    src: "/projects/film-music-score/loops/Upbeat Drums 1.m4a"
   },
   {
     name: "Upbeat Drums 2",
     category: "Upbeat",
     instrument: "Drums",
-    src: "/projects/film-music-score/loops/Upbeat Drums 2.mp3"
+    src: "/projects/film-music-score/loops/Upbeat Drums 2.m4a"
+  },
+  {
+    name: "Upbeat Drums 3",
+    category: "Upbeat",
+    instrument: "Drums",
+    src: "/projects/film-music-score/loops/Upbeat Drums 3.m4a"
   },
   {
     name: "Upbeat Electric Bass",
     category: "Upbeat",
     instrument: "Electric Bass",
-    src: "/projects/film-music-score/loops/Upbeat Electric Bass.mp3"
+    src: "/projects/film-music-score/loops/Upbeat Electric Bass.m4a"
   },
   {
     name: "Upbeat Electric Guitar",
     category: "Upbeat",
     instrument: "Electric Guitar",
-    src: "/projects/film-music-score/loops/Upbeat Electric Guitar.mp3"
+    src: "/projects/film-music-score/loops/Upbeat Electric Guitar.m4a"
   },
   {
-    name: "Upbeat Piano",
+    name: "Upbeat Electric Guitar 2",
+    category: "Upbeat",
+    instrument: "Electric Guitar",
+    src: "/projects/film-music-score/loops/Upbeat Electric Guitar 2.m4a"
+  },
+  {
+    name: "Upbeat Piano 1",
     category: "Upbeat",
     instrument: "Piano",
-    src: "/projects/film-music-score/loops/Upbeat Piano.mp3"
+    src: "/projects/film-music-score/loops/Upbeat Piano 1.m4a"
   },
   {
-    name: "Upbeat String Bass",
+    name: "Upbeat Piano 2",
     category: "Upbeat",
-    instrument: "String Bass",
-    src: "/projects/film-music-score/loops/Upbeat String Bass.mp3"
+    instrument: "Piano",
+    src: "/projects/film-music-score/loops/Upbeat Piano 2.m4a"
   },
   {
-    name: "Upbeat Strings",
+    name: "Upbeat Piano 3",
+    category: "Upbeat",
+    instrument: "Piano",
+    src: "/projects/film-music-score/loops/Upbeat Piano 3.m4a"
+  },
+  {
+    name: "Upbeat Strings 1",
     category: "Upbeat",
     instrument: "Strings",
-    src: "/projects/film-music-score/loops/Upbeat Strings.mp3"
+    src: "/projects/film-music-score/loops/Upbeat Strings 1.m4a"
+  },
+  {
+    name: "Upbeat Strings 2",
+    category: "Upbeat",
+    instrument: "Strings",
+    src: "/projects/film-music-score/loops/Upbeat Strings 2.m4a"
   }
 ];
 

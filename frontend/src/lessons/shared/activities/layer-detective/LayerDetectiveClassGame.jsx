@@ -46,7 +46,7 @@ const QUESTIONS = [
     correctAnswer: '1',
     instruments: ['Piano'],
     layers: [
-      { name: 'Upbeat Piano', file: '/projects/film-music-score/loops/Upbeat Piano.mp3', color: '#3B82F6' }
+      { name: 'Upbeat Piano 1', file: '/projects/film-music-score/loops/Upbeat Piano 1.m4a', color: '#3B82F6' }
     ]
   },
   {
@@ -54,8 +54,8 @@ const QUESTIONS = [
     correctAnswer: '2',
     instruments: ['Drums', 'Bass'],
     layers: [
-      { name: 'Upbeat Drums 1', file: '/projects/film-music-score/loops/Upbeat Drums 1.mp3', color: '#DC2626' },
-      { name: 'Upbeat Electric Bass', file: '/projects/film-music-score/loops/Upbeat Electric Bass.mp3', color: '#059669' }
+      { name: 'Upbeat Drums 1', file: '/projects/film-music-score/loops/Upbeat Drums 1.m4a', color: '#DC2626' },
+      { name: 'Upbeat Electric Bass', file: '/projects/film-music-score/loops/Upbeat Electric Bass.m4a', color: '#059669' }
     ]
   },
   {
@@ -90,9 +90,9 @@ const QUESTIONS = [
     correctAnswer: '3',
     instruments: ['Drums', 'Piano', 'Strings'],
     layers: [
-      { name: 'Upbeat Drums 2', file: '/projects/film-music-score/loops/Upbeat Drums 2.mp3', color: '#DC2626' },
-      { name: 'Upbeat Piano', file: '/projects/film-music-score/loops/Upbeat Piano.mp3', color: '#3B82F6' },
-      { name: 'Upbeat Strings', file: '/projects/film-music-score/loops/Upbeat Strings.mp3', color: '#10B981' }
+      { name: 'Upbeat Drums 2', file: '/projects/film-music-score/loops/Upbeat Drums 2.m4a', color: '#DC2626' },
+      { name: 'Upbeat Piano 1', file: '/projects/film-music-score/loops/Upbeat Piano 1.m4a', color: '#3B82F6' },
+      { name: 'Upbeat Strings 1', file: '/projects/film-music-score/loops/Upbeat Strings 1.m4a', color: '#10B981' }
     ]
   },
   {

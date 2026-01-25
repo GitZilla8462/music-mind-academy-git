@@ -303,7 +303,7 @@ useEffect(() => {
       correctAnswer: 'A',
       mood: 'Upbeat',
       layers: [
-        { name: 'Upbeat Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 1.mp3', color: '#DC2626' }
+        { name: 'Upbeat Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 1.m4a', color: '#DC2626' }
       ]
     },
     {
@@ -311,8 +311,8 @@ useEffect(() => {
       correctAnswer: 'B',
       mood: 'Upbeat',
       layers: [
-        { name: 'Upbeat Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 1.mp3', color: '#DC2626' },
-        { name: 'Upbeat Electric Guitar', category: 'Guitar', file: '/projects/film-music-score/loops/Upbeat Electric Guitar.mp3', color: '#EA580C' }
+        { name: 'Upbeat Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 1.m4a', color: '#DC2626' },
+        { name: 'Upbeat Electric Guitar', category: 'Guitar', file: '/projects/film-music-score/loops/Upbeat Electric Guitar.m4a', color: '#EA580C' }
       ]
     },
     {
@@ -320,9 +320,9 @@ useEffect(() => {
       correctAnswer: 'C',
       mood: 'Upbeat',
       layers: [
-        { name: 'Upbeat Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 1.mp3', color: '#DC2626' },
-        { name: 'Upbeat Electric Guitar', category: 'Guitar', file: '/projects/film-music-score/loops/Upbeat Electric Guitar.mp3', color: '#EA580C' },
-        { name: 'Upbeat Piano', category: 'Piano', file: '/projects/film-music-score/loops/Upbeat Piano.mp3', color: '#10B981' }
+        { name: 'Upbeat Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 1.m4a', color: '#DC2626' },
+        { name: 'Upbeat Electric Guitar', category: 'Guitar', file: '/projects/film-music-score/loops/Upbeat Electric Guitar.m4a', color: '#EA580C' },
+        { name: 'Upbeat Piano 1', category: 'Piano', file: '/projects/film-music-score/loops/Upbeat Piano 1.m4a', color: '#10B981' }
       ]
     },
     {
@@ -330,8 +330,8 @@ useEffect(() => {
       correctAnswer: 'B',
       mood: 'Upbeat',
       layers: [
-        { name: 'Upbeat Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 2.mp3', color: '#EF4444' },
-        { name: 'Upbeat Electric Bass', category: 'Bass', file: '/projects/film-music-score/loops/Upbeat Electric Bass.mp3', color: '#F59E0B' }
+        { name: 'Upbeat Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 2.m4a', color: '#EF4444' },
+        { name: 'Upbeat Electric Bass', category: 'Bass', file: '/projects/film-music-score/loops/Upbeat Electric Bass.m4a', color: '#F59E0B' }
       ]
     },
     {
@@ -339,9 +339,9 @@ useEffect(() => {
       correctAnswer: 'C',
       mood: 'Upbeat',
       layers: [
-        { name: 'Upbeat Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 2.mp3', color: '#EF4444' },
-        { name: 'Upbeat Electric Bass', category: 'Bass', file: '/projects/film-music-score/loops/Upbeat Electric Bass.mp3', color: '#F59E0B' },
-        { name: 'Upbeat Strings', category: 'Strings', file: '/projects/film-music-score/loops/Upbeat Strings.mp3', color: '#8B5CF6' }
+        { name: 'Upbeat Drums 2', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 2.m4a', color: '#EF4444' },
+        { name: 'Upbeat Electric Bass', category: 'Bass', file: '/projects/film-music-score/loops/Upbeat Electric Bass.m4a', color: '#F59E0B' },
+        { name: 'Upbeat Strings 1', category: 'Strings', file: '/projects/film-music-score/loops/Upbeat Strings 1.m4a', color: '#8B5CF6' }
       ]
     },
     {
@@ -349,7 +349,7 @@ useEffect(() => {
       correctAnswer: 'A',
       mood: 'Upbeat',
       layers: [
-        { name: 'Upbeat Electric Guitar', category: 'Guitar', file: '/projects/film-music-score/loops/Upbeat Electric Guitar.mp3', color: '#EA580C' }
+        { name: 'Upbeat Electric Guitar', category: 'Guitar', file: '/projects/film-music-score/loops/Upbeat Electric Guitar.m4a', color: '#EA580C' }
       ]
     },
     {
@@ -357,9 +357,9 @@ useEffect(() => {
       correctAnswer: 'C',
       mood: 'Upbeat',
       layers: [
-        { name: 'Upbeat Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 1.mp3', color: '#DC2626' },
-        { name: 'Upbeat Clarinet', category: 'Woodwinds', file: '/projects/film-music-score/loops/Upbeat Clarinet.mp3', color: '#8B5CF6' },
-        { name: 'Upbeat Electric Guitar', category: 'Guitar', file: '/projects/film-music-score/loops/Upbeat Electric Guitar.mp3', color: '#EA580C' }
+        { name: 'Upbeat Drums 1', category: 'Drums', file: '/projects/film-music-score/loops/Upbeat Drums 1.m4a', color: '#DC2626' },
+        { name: 'Upbeat Clarinet', category: 'Woodwinds', file: '/projects/film-music-score/loops/Upbeat Clarinet.m4a', color: '#8B5CF6' },
+        { name: 'Upbeat Electric Guitar', category: 'Guitar', file: '/projects/film-music-score/loops/Upbeat Electric Guitar.m4a', color: '#EA580C' }
       ]
     },
     {
@@ -367,7 +367,7 @@ useEffect(() => {
       correctAnswer: 'A',
       mood: 'Upbeat',
       layers: [
-        { name: 'Upbeat Piano', category: 'Piano', file: '/projects/film-music-score/loops/Upbeat Piano.mp3', color: '#10B981' }
+        { name: 'Upbeat Piano 1', category: 'Piano', file: '/projects/film-music-score/loops/Upbeat Piano 1.m4a', color: '#10B981' }
       ]
     }
   ];

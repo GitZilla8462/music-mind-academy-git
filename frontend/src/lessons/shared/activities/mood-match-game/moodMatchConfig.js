@@ -60,8 +60,8 @@ export const GAME_LOOPS = [
   },
   {
     id: 'loop-4',
-    name: 'Upbeat Piano',
-    file: '/projects/film-music-score/loops/Upbeat Piano.mp3',
+    name: 'Upbeat Piano 1',
+    file: '/projects/film-music-score/loops/Upbeat Piano 1.m4a',
     // Clear upbeat
     notes: 'Bright piano, major key, happy feel'
   },
@@ -89,7 +89,7 @@ export const GAME_LOOPS = [
   {
     id: 'loop-8',
     name: 'Upbeat Drums 1',
-    file: '/projects/film-music-score/loops/Upbeat Drums 1.mp3',
+    file: '/projects/film-music-score/loops/Upbeat Drums 1.m4a',
     // Could be upbeat or heroic - energetic drums
     notes: 'Driving rhythm, could feel happy or powerful'
   }
