@@ -60,7 +60,7 @@ const errorLogSchema = new mongoose.Schema({
   // App context
   siteMode: {
     type: String,
-    enum: ['academy', 'tools', 'unknown'],
+    enum: ['academy', 'edu', 'tools', 'unknown'],
     default: 'unknown'
   },
   appVersion: {
