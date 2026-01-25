@@ -69,13 +69,12 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
       setPlayerName(name);
       setPlayerColor(color);
 
-      // Save to Firebase
+      // Save player info to Firebase (don't reset score here - let game logic handle it)
       if (sessionCode) {
         const db = getDatabase();
         update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
           playerName: name,
-          playerColor: color,
-          layerDetectiveScore: 0
+          playerColor: color
         });
       }
     }
@@ -99,10 +98,15 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
 
       // Handle phase changes
       if (data.phase === 'playing' || data.phase === 'guessing') {
-        // New game starting - reset score when going back to question 0
+        // New game starting - reset score when on question 0
+        // Check scoredQuestionRef to detect fresh game (if we haven't scored Q0 yet but have scores, reset)
+        if (data.currentQuestion === 0 && scoredQuestionRef.current === -1 && score > 0) {
+          setScore(0);
+        }
+        // Also reset when going back to Q0 from a later question (teacher restart)
         if (data.currentQuestion === 0 && currentQuestion !== 0) {
           setScore(0);
-          scoredQuestionRef.current = -1; // Reset scored tracking for new game
+          scoredQuestionRef.current = -1;
         }
 
         // New question - reset answers
@@ -129,7 +133,6 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
 
         // Calculate score if answered - use ref to prevent double-scoring same question
         const questionNum = data.currentQuestion || 0;
-        console.log('🎯 Reveal check:', { questionNum, selectedAnswer, wasCorrect, scoredRef: scoredQuestionRef.current, score });
 
         if (selectedAnswer && wasCorrect === null && scoredQuestionRef.current !== questionNum) {
           scoredQuestionRef.current = questionNum; // Mark as scored BEFORE calculation
@@ -149,7 +152,6 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
           setEarnedPoints(points);
           const newScore = score + points;
           setScore(newScore);
-          console.log('📊 Score calculated:', { points, score, newScore, questionNum });
 
           // Update Firebase - re-fetch userId from localStorage as extra safety for race condition
           const effectiveUserId = userId || localStorage.getItem('current-session-userId');
@@ -158,7 +160,6 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
             update(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}`), {
               layerDetectiveScore: newScore
             });
-            console.log('✅ Firebase updated:', { effectiveUserId, newScore });
           }
         }
       }
