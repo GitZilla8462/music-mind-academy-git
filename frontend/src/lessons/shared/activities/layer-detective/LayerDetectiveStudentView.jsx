@@ -91,6 +91,15 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
       const data = snapshot.val();
       if (!data) return;
 
+      console.log('🎮 Firebase update:', {
+        phase: data.phase,
+        currentQuestion: data.currentQuestion,
+        correctAnswer: data.correctAnswer,
+        closureSelectedAnswer: selectedAnswer,
+        closureWasCorrect: wasCorrect,
+        closureScoredRef: scoredQuestionRef.current
+      });
+
       // Update game phase
       setGamePhase(data.phase || 'waiting');
       setCurrentQuestion(data.currentQuestion || 0);
@@ -128,6 +137,13 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
 
       // Handle reveal
       if (data.phase === 'revealed' && data.correctAnswer) {
+        console.log('🎯 REVEAL PHASE:', {
+          correctAnswer: data.correctAnswer,
+          selectedAnswer,
+          wasCorrect,
+          scoredRef: scoredQuestionRef.current,
+          questionNum: data.currentQuestion || 0
+        });
         setCorrectAnswer(data.correctAnswer);
         setCorrectInstruments(data.correctInstruments || []);
 
@@ -135,6 +151,7 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
         const questionNum = data.currentQuestion || 0;
 
         if (selectedAnswer && wasCorrect === null && scoredQuestionRef.current !== questionNum) {
+          console.log('📊 CALCULATING SCORE...');
           scoredQuestionRef.current = questionNum; // Mark as scored BEFORE calculation
 
           const isCorrect = selectedAnswer === data.correctAnswer;
@@ -152,15 +169,25 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
           setEarnedPoints(points);
           const newScore = score + points;
           setScore(newScore);
+          console.log('📊 Score calculated:', { points, newScore, isCorrect });
 
           // Update Firebase - re-fetch userId from localStorage as extra safety for race condition
           const effectiveUserId = userId || localStorage.getItem('current-session-userId');
           if (sessionCode && effectiveUserId) {
             const db = getDatabase();
+            console.log('🔥 Writing score to Firebase:', { effectiveUserId, newScore });
             update(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}`), {
               layerDetectiveScore: newScore
             });
+          } else {
+            console.log('❌ Cannot write to Firebase:', { sessionCode, effectiveUserId });
           }
+        } else {
+          console.log('⏭️ Score calc SKIPPED:', {
+            hasSelectedAnswer: !!selectedAnswer,
+            wasCorrectIsNull: wasCorrect === null,
+            scoredRefCheck: scoredQuestionRef.current !== questionNum
+          });
         }
       }
     });
@@ -200,8 +227,13 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
 
   // Submit answer
   const submitAnswer = (answerId) => {
-    if (answerSubmitted || gamePhase !== 'guessing') return;
+    console.log('📝 submitAnswer called:', { answerId, answerSubmitted, gamePhase });
+    if (answerSubmitted || gamePhase !== 'guessing') {
+      console.log('📝 submitAnswer BLOCKED:', { answerSubmitted, gamePhase });
+      return;
+    }
 
+    console.log('✅ Answer saved:', answerId);
     setSelectedAnswer(answerId);
     setAnswerSubmitted(true);
 
