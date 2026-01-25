@@ -30,13 +30,15 @@ const animals = [
  * @returns {string} - Generated name like "Blazing Dragon"
  */
 export const generatePlayerName = (userId) => {
-  // Use userId as seed for consistent names per user
-  // Hash the userId and a modified version separately for better distribution
-  const seed1 = hashCode(userId);
-  const seed2 = hashCode(userId + '_animal'); // Different seed for animal
+  // Extract numeric part from userId (e.g., "Student-902285" -> 902285)
+  // This gives much better distribution than hashing the full string
+  const numMatch = userId.match(/\d+/);
+  const num = numMatch ? parseInt(numMatch[0], 10) : hashCode(userId);
 
-  const adjectiveIndex = Math.abs(seed1) % adjectives.length;
-  const animalIndex = Math.abs(seed2) % animals.length;
+  // Use prime multipliers to get independent indices for adjective and animal
+  // This ensures different digits affect each index differently
+  const adjectiveIndex = num % adjectives.length;
+  const animalIndex = Math.floor(num / adjectives.length) % animals.length;
 
   return `${adjectives[adjectiveIndex]} ${animals[animalIndex]}`;
 };
@@ -68,9 +70,10 @@ export const getPlayerColor = (userId) => {
     '#14B8A6', // Teal
     '#F97316', // Deep Orange
   ];
-  
-  const seed = hashCode(userId);
-  return colors[Math.abs(seed) % colors.length];
+
+  const numMatch = userId.match(/\d+/);
+  const num = numMatch ? parseInt(numMatch[0], 10) : hashCode(userId);
+  return colors[num % colors.length];
 };
 
 /**
@@ -83,7 +86,8 @@ export const getPlayerEmoji = (userId) => {
     '⭐', '🌟', '✨', '💫', '🔥',
     '🎯', '🏆', '🎪', '🎨', '🎭'
   ];
-  
-  const seed = hashCode(userId);
-  return emojis[Math.abs(seed) % emojis.length];
+
+  const numMatch = userId.match(/\d+/);
+  const num = numMatch ? parseInt(numMatch[0], 10) : hashCode(userId);
+  return emojis[Math.floor(num / 8) % emojis.length]; // Offset by color count for variety
 };
