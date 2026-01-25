@@ -923,23 +923,12 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     const currentScore = scoreRef.current;
     const newScore = currentScore + total;
 
-    console.log('📊 Score update:', { currentScore, total, newScore, newStreak });
-
     // Update refs immediately for next calculation
     scoreRef.current = newScore;
     streakRef.current = newStreak;
 
-    // DEBUG: Log all values that affect Firebase update
-    console.log('🔥 Firebase update check:', {
-      sessionCode: sessionCode || '(null)',
-      userId: userId || '(null)',
-      viewMode,
-      willUpdate: !!(sessionCode && userId && !viewMode)
-    });
-
     if (sessionCode && userId && !viewMode) {
       const db = getDatabase();
-      console.log('🔥 Attempting Firebase score update for', userId, 'score:', newScore);
       update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
         score: newScore,
         streak: newStreak,
@@ -948,11 +937,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
         lockedIn: false,
         powerUp: null,
         lastActivity: Date.now()
-      })
-        .then(() => console.log('✅ Firebase score update SUCCESS for', userId))
-        .catch((err) => console.error('❌ Firebase score update FAILED for', userId, err));
-    } else {
-      console.error('⚠️ Firebase update SKIPPED!', { sessionCode, userId, viewMode });
+      }).catch(console.error);
     }
   };
 
@@ -1527,7 +1512,15 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
       if (r === 1) return '🥇';
       if (r === 2) return '🥈';
       if (r === 3) return '🥉';
-      return `#${r}`;
+      return '🎖️';
+    };
+
+    const getRankText = (r) => {
+      if (r === 1) return '1st Place!';
+      if (r === 2) return '2nd Place!';
+      if (r === 3) return '3rd Place!';
+      if (r) return `${r}${r === 11 || r === 12 || r === 13 ? 'th' : r % 10 === 1 ? 'st' : r % 10 === 2 ? 'nd' : r % 10 === 3 ? 'rd' : 'th'} Place`;
+      return '';
     };
 
     return (
@@ -1536,36 +1529,35 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
           <style>{styles}</style>
           <ActivityBanner />
           <div className="flex-1 flex flex-col items-center justify-center p-4">
-            <div className="text-6xl mb-4">🏆</div>
+            {/* Big rank display */}
+            <div className="text-8xl mb-2">{getRankEmoji(rank)}</div>
 
-            {/* Your Result - Prominent display */}
-            <div
-              className="inline-flex flex-col items-center px-8 py-4 rounded-2xl mb-4 shadow-lg"
-              style={{ backgroundColor: playerColor }}
-            >
-              <span className="text-4xl mb-1">{playerEmoji}</span>
-              <span className="text-2xl font-bold text-white">{playerName}</span>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-3xl">{getRankEmoji(rank)}</span>
-                {rank && rank <= 3 && (
-                  <span className="text-xl font-bold text-white">
-                    {rank === 1 ? '1st Place!' : rank === 2 ? '2nd Place!' : '3rd Place!'}
-                  </span>
-                )}
-                {rank && rank > 3 && (
-                  <span className="text-xl font-bold text-white">Place</span>
-                )}
+            {/* Rank text */}
+            {rank && (
+              <div className="text-4xl font-black text-yellow-300 mb-4">
+                {getRankText(rank)}
               </div>
+            )}
+
+            {/* Player identity card */}
+            <div
+              className="inline-flex flex-col items-center px-10 py-5 rounded-2xl mb-4 shadow-lg border-4 border-white/30"
+              style={{ backgroundColor: playerColor || '#3B82F6' }}
+            >
+              <span className="text-5xl mb-2">{playerEmoji || '🎵'}</span>
+              <span className="text-3xl font-black text-white">{playerName || 'Player'}</span>
             </div>
 
-            <h1 className="text-2xl font-bold mb-2">Game Complete!</h1>
-
-            <div className="bg-gradient-to-r from-green-100 to-teal-100 rounded-lg p-4 mb-4">
-              <div className="text-4xl font-bold text-gray-900 mb-1">{score}</div>
-              <div className="text-lg text-gray-700">Your Score</div>
+            {/* Score */}
+            <div className="bg-black/30 rounded-2xl px-8 py-4 mb-4 text-center">
+              <div className="text-lg text-white/70 mb-1">Final Score</div>
+              <div className="text-5xl font-black text-yellow-400">{score}</div>
+              {totalStudents > 1 && (
+                <div className="text-sm text-white/50 mt-1">out of {totalStudents} players</div>
+              )}
             </div>
 
-            <p className="text-white/50 text-sm">Look at the main screen!</p>
+            <h1 className="text-2xl font-bold text-green-400">🎉 Game Complete!</h1>
           </div>
         </div>
         <TransitionOverlay isVisible={showTransition} />
