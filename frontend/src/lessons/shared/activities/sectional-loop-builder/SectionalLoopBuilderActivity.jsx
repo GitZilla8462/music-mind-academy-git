@@ -783,12 +783,19 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
   }, [sessionCode, userId]);
 
   // Ensure clipResult is calculated if we're in revealed phase but don't have it
+  // Also retry when userId becomes available (fixes race condition on slow devices like Chromebooks)
   useEffect(() => {
     if (gamePhase === 'revealed' && !clipResult && correctAnswer) {
-      console.log('🔄 Calculating score for revealed phase (late calculation)');
-      calculateScore(correctAnswer);
+      // Only calculate if we have userId now (may have been null on first attempt)
+      const currentUserId = contextUserId || localStorage.getItem('current-session-userId');
+      if (currentUserId) {
+        console.log('🔄 Calculating score for revealed phase (late calculation, userId:', currentUserId, ')');
+        calculateScore(correctAnswer);
+      } else {
+        console.log('⏳ Waiting for userId before calculating score...');
+      }
     }
-  }, [gamePhase, clipResult, correctAnswer]);
+  }, [gamePhase, clipResult, correctAnswer, contextUserId]);
 
   // Select answer - immediate, no lock-in needed
   const selectAnswer = (section) => {
@@ -930,12 +937,15 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     scoreRef.current = newScore;
     streakRef.current = newStreak;
 
-    // Log score calculation result
-    console.log('📊 Score result:', { currentScore, total, newScore, userId: userId || '(null)' });
+    // Re-fetch userId from localStorage if scoped value is null (fixes race condition)
+    const effectiveUserId = userId || localStorage.getItem('current-session-userId');
 
-    if (sessionCode && userId && !viewMode) {
+    // Log score calculation result
+    console.log('📊 Score result:', { currentScore, total, newScore, userId: effectiveUserId || '(null)' });
+
+    if (sessionCode && effectiveUserId && !viewMode) {
       const db = getDatabase();
-      update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}`), {
         score: newScore,
         streak: newStreak,
         lastClipScore: total,
@@ -944,10 +954,10 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
         powerUp: null,
         lastActivity: Date.now()
       })
-        .then(() => console.log('✅ Score saved:', newScore, 'for', userId))
+        .then(() => console.log('✅ Score saved:', newScore, 'for', effectiveUserId))
         .catch((err) => console.error('❌ Score save FAILED:', err));
     } else {
-      console.warn('⚠️ Score NOT saved - missing:', { sessionCode: !!sessionCode, userId: !!userId, viewMode });
+      console.warn('⚠️ Score NOT saved - missing:', { sessionCode: !!sessionCode, effectiveUserId: !!effectiveUserId, viewMode });
     }
   };
 
