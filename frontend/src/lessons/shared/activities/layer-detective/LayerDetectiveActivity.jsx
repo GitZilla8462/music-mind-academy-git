@@ -15,7 +15,10 @@ import { getDatabase, ref, update, push, set, onValue } from 'firebase/database'
 import { generatePlayerName, getPlayerColor, getPlayerEmoji } from './nameGenerator';
 
 const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
-  const { sessionCode, userId, userRole, currentStage } = useSession();
+  const { sessionCode, userId: contextUserId, userRole, currentStage } = useSession();
+
+  // Fallback: if context userId is null, try localStorage (fixes race condition on Chromebooks)
+  const userId = contextUserId || localStorage.getItem('current-session-userId');
   
   const [gameStarted, setGameStarted] = useState(false);
   const [currentRound, setCurrentRound] = useState(0);
