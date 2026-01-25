@@ -600,7 +600,7 @@
       "file": "/projects/film-music-score/loops/Upbeat Bells.m4a",
       "extension": "m4a",
       "mood": "Upbeat",
-      "instrument": "Drums"
+      "instrument": "Bells"
     },
     {
       "id": "upbeat-clarinet",
@@ -608,7 +608,7 @@
       "file": "/projects/film-music-score/loops/Upbeat Clarinet.m4a",
       "extension": "m4a",
       "mood": "Upbeat",
-      "instrument": "Drums"
+      "instrument": "Woodwinds"
     },
     {
       "id": "upbeat-clavichord",
@@ -616,7 +616,7 @@
       "file": "/projects/film-music-score/loops/Upbeat Clavichord.m4a",
       "extension": "m4a",
       "mood": "Upbeat",
-      "instrument": "Drums"
+      "instrument": "Keys"
     },
     {
       "id": "upbeat-drums-1",
