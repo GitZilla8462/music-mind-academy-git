@@ -734,13 +734,10 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
                         <span className="text-green-400 text-sm">✓</span>
                       )}
                       <span className="font-bold text-xl">
-                        {student.score + (isRevealing ? (change?.delta || 0) : 0)}
+                        {student.score}
                       </span>
-                      {isRevealing && change?.wasFirst && (
-                        <span className="text-yellow-400 text-sm font-bold">⚡1st</span>
-                      )}
-                      {isRevealing && change && change.delta > 0 && (
-                        <span className="text-lg font-bold text-green-400">+{change.delta}</span>
+                      {isRevealing && change?.isCorrect && (
+                        <span className="text-lg font-bold text-green-400">✓</span>
                       )}
                     </div>
                   );
