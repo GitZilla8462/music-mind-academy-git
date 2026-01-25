@@ -540,6 +540,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
   const [safariWrongCode, setSafariWrongCode] = useState(false); // Track wrong code attempts
   const [allSafariAssignments, setAllSafariAssignments] = useState({}); // Store all assignments for code lookup
   const safariBonusRef = useRef(0); // Track bonus synchronously for score calculation
+  const userIdRef = useRef(userId); // Track userId for stale closure in Firebase listeners
 
   // Tutorial mode - active for round 1 only
   const tutorialMode = currentRound === 1;
@@ -638,6 +639,11 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     }
   }, [userId, sessionCode, viewMode]);
 
+  // Keep userIdRef in sync for Firebase listener closures
+  useEffect(() => {
+    userIdRef.current = userId;
+  }, [userId]);
+
   // Listen to game state (from activityData where teacher writes)
   useEffect(() => {
     if (!sessionCode) return;
@@ -651,21 +657,24 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
       if (!data || data.activity !== 'sectional-loop-builder') return;
 
       // Update Safari animal assignment for this student
+      // Use userIdRef.current to avoid stale closure
+      const currentUserId = userIdRef.current;
       if (data.safariAssignments) {
         console.log('🦁 Safari assignments received:', Object.keys(data.safariAssignments).length, 'students');
+        console.log('🦁 DEBUG - My userId:', currentUserId, '| Assignment keys:', Object.keys(data.safariAssignments));
         setAllSafariAssignments(data.safariAssignments); // Store all for code lookup
-        if (userId && data.safariAssignments[userId]) {
-          const myAssignment = data.safariAssignments[userId];
+        if (currentUserId && data.safariAssignments[currentUserId]) {
+          const myAssignment = data.safariAssignments[currentUserId];
           console.log('🦁 My animal:', myAssignment.emoji, myAssignment.name, myAssignment.code);
           setMyAnimal({ emoji: myAssignment.emoji, name: myAssignment.name, code: myAssignment.code });
         }
       }
-      
+
       // Check if this student is on Safari
       if (data.safariHunters && data.safariHunters.length > 0) {
         console.log('🦁 Safari hunters:', data.safariHunters.map(h => h.name).join(', '));
-        if (userId) {
-          const myHunt = data.safariHunters.find(h => h.studentId === userId);
+        if (currentUserId) {
+          const myHunt = data.safariHunters.find(h => h.studentId === currentUserId);
           // Only activate Safari if we have a valid target with emoji and name
           if (myHunt && myHunt.targetEmoji && myHunt.targetName) {
             console.log('🦁 I AM ON SAFARI! Looking for:', myHunt.targetEmoji, myHunt.targetName);
