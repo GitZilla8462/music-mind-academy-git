@@ -129,6 +129,8 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
 
         // Calculate score if answered - use ref to prevent double-scoring same question
         const questionNum = data.currentQuestion || 0;
+        console.log('🎯 Reveal check:', { questionNum, selectedAnswer, wasCorrect, scoredRef: scoredQuestionRef.current, score });
+
         if (selectedAnswer && wasCorrect === null && scoredQuestionRef.current !== questionNum) {
           scoredQuestionRef.current = questionNum; // Mark as scored BEFORE calculation
 
@@ -147,6 +149,7 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
           setEarnedPoints(points);
           const newScore = score + points;
           setScore(newScore);
+          console.log('📊 Score calculated:', { points, score, newScore, questionNum });
 
           // Update Firebase - re-fetch userId from localStorage as extra safety for race condition
           const effectiveUserId = userId || localStorage.getItem('current-session-userId');
@@ -155,6 +158,7 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
             update(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}`), {
               layerDetectiveScore: newScore
             });
+            console.log('✅ Firebase updated:', { effectiveUserId, newScore });
           }
         }
       }
