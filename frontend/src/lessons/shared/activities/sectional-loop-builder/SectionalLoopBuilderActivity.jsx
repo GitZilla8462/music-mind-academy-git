@@ -481,7 +481,10 @@ const DemoModeGame = () => {
 
 // ============ MAIN COMPONENT ============
 const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionMode = false }) => {
-  const { sessionCode, userId } = useSession();
+  const { sessionCode, userId: contextUserId } = useSession();
+
+  // Fallback: if context userId is null, try localStorage (fixes timing issue with session context)
+  const userId = contextUserId || localStorage.getItem('current-session-userId');
   
   // Demo mode: no session, let teacher play standalone
   const isDemoMode = !sessionCode && !isSessionMode;
