@@ -18,7 +18,7 @@ const animals = [
   'Wolf', 'Bear', 'Lion', 'Panther', 'Hawk',
   'Dolphin', 'Shark', 'Whale', 'Orca', 'Manta',
   'Cheetah', 'Leopard', 'Jaguar', 'Puma', 'Lynx',
-  'Raven', 'Owl', 'Falcon', 'Condor', 'Vulture',
+  'Raven', 'Owl', 'Mustang', 'Condor', 'Vulture',
   'Fox', 'Coyote', 'Badger', 'Otter', 'Raccoon',
   'Cobra', 'Python', 'Viper', 'Anaconda', 'Mamba',
   'Pegasus', 'Unicorn', 'Griffin', 'Sphinx', 'Kraken'
@@ -31,10 +31,13 @@ const animals = [
  */
 export const generatePlayerName = (userId) => {
   // Use userId as seed for consistent names per user
-  const seed = hashCode(userId);
-  const adjectiveIndex = Math.abs(seed) % adjectives.length;
-  const animalIndex = Math.abs(seed * 2) % animals.length;
-  
+  // Hash the userId and a modified version separately for better distribution
+  const seed1 = hashCode(userId);
+  const seed2 = hashCode(userId + '_animal'); // Different seed for animal
+
+  const adjectiveIndex = Math.abs(seed1) % adjectives.length;
+  const animalIndex = Math.abs(seed2) % animals.length;
+
   return `${adjectives[adjectiveIndex]} ${animals[animalIndex]}`;
 };
 
