@@ -660,24 +660,19 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
       // Use userIdRef.current to avoid stale closure
       const currentUserId = userIdRef.current;
       if (data.safariAssignments) {
-        console.log('🦁 Safari assignments received:', Object.keys(data.safariAssignments).length, 'students');
-        console.log('🦁 DEBUG - My userId:', currentUserId, '| Assignment keys:', Object.keys(data.safariAssignments));
         setAllSafariAssignments(data.safariAssignments); // Store all for code lookup
         if (currentUserId && data.safariAssignments[currentUserId]) {
           const myAssignment = data.safariAssignments[currentUserId];
-          console.log('🦁 My animal:', myAssignment.emoji, myAssignment.name, myAssignment.code);
           setMyAnimal({ emoji: myAssignment.emoji, name: myAssignment.name, code: myAssignment.code });
         }
       }
 
       // Check if this student is on Safari
       if (data.safariHunters && data.safariHunters.length > 0) {
-        console.log('🦁 Safari hunters:', data.safariHunters.map(h => h.name).join(', '));
         if (currentUserId) {
           const myHunt = data.safariHunters.find(h => h.studentId === currentUserId);
           // Only activate Safari if we have a valid target with emoji and name
           if (myHunt && myHunt.targetEmoji && myHunt.targetName) {
-            console.log('🦁 I AM ON SAFARI! Looking for:', myHunt.targetEmoji, myHunt.targetName);
             setOnSafari(true);
             setSafariTarget({ emoji: myHunt.targetEmoji, name: myHunt.targetName });
             wasSafariThisClipRef.current = true; // Track that we were on Safari this clip
