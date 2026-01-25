@@ -789,10 +789,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
       // Only calculate if we have userId now (may have been null on first attempt)
       const currentUserId = contextUserId || localStorage.getItem('current-session-userId');
       if (currentUserId) {
-        console.log('🔄 Calculating score for revealed phase (late calculation, userId:', currentUserId, ')');
         calculateScore(correctAnswer);
-      } else {
-        console.log('⏳ Waiting for userId before calculating score...');
       }
     }
   }, [gamePhase, clipResult, correctAnswer, contextUserId]);
@@ -882,8 +879,6 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     const wasSafari = wasSafariThisClipRef.current || onSafari;
     const isCorrect = wasSafari ? true : (myAnswer === correct);
 
-    console.log('📊 Score calc:', { myAnswer, correct, isCorrect, wasAnswered, wasSafari, wasSafariRef: wasSafariThisClipRef.current, safariBonus: safariBonusRef.current });
-
     // No answer and not on Safari = no points
     if (!wasAnswered && !wasSafari) {
       setClipResult({
@@ -940,9 +935,6 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     // Re-fetch userId from localStorage if scoped value is null (fixes race condition)
     const effectiveUserId = userId || localStorage.getItem('current-session-userId');
 
-    // Log score calculation result
-    console.log('📊 Score result:', { currentScore, total, newScore, userId: effectiveUserId || '(null)' });
-
     if (sessionCode && effectiveUserId && !viewMode) {
       const db = getDatabase();
       update(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}`), {
@@ -953,11 +945,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
         lockedIn: false,
         powerUp: null,
         lastActivity: Date.now()
-      })
-        .then(() => console.log('✅ Score saved:', newScore, 'for', effectiveUserId))
-        .catch((err) => console.error('❌ Score save FAILED:', err));
-    } else {
-      console.warn('⚠️ Score NOT saved - missing:', { sessionCode: !!sessionCode, effectiveUserId: !!effectiveUserId, viewMode });
+      });
     }
   };
 
