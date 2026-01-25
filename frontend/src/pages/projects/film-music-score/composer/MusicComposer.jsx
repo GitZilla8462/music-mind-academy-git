@@ -926,7 +926,7 @@ const MusicComposer = ({
         {isChromebook && (
           <GlobalCursorWithKey
             cursorType={globalCursorType}
-            initiallyVisible={!loadingScreenVisible}
+            initiallyVisible={true}
             initialPosition={globalMousePosRef.current}
           />
         )}
@@ -1021,9 +1021,9 @@ const MusicComposer = ({
       />
 
       {/* Loading screen overlay - shows while DAW initializes underneath */}
-      {/* restore-cursor shows native cursor during loading (custom cursor hidden) */}
+      {/* Custom cursor stays visible during loading for consistent UX */}
       {loadingScreenVisible && (
-        <div className="absolute inset-0 z-[9999] restore-cursor">
+        <div className="absolute inset-0 z-[9999]">
           <DAWLoadingScreen />
         </div>
       )}
