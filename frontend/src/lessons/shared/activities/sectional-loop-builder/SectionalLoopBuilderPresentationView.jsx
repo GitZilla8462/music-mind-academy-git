@@ -397,8 +397,14 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
       }
 
       const shuffledEligible = [...finalEligible].sort(() => Math.random() - 0.5);
-      hunters = shuffledEligible.slice(0, 3).map(s => {
-        const validTargets = students.filter(other => other.id !== s.id && newAssignments[other.id]);
+      const hunterStudents = shuffledEligible.slice(0, 3);
+      const hunterIds = new Set(hunterStudents.map(s => s.id));
+
+      hunters = hunterStudents.map(s => {
+        // Exclude ALL hunters from valid targets - hunters don't display their animal badge
+        const validTargets = students.filter(other =>
+          !hunterIds.has(other.id) && newAssignments[other.id]
+        );
         if (validTargets.length === 0) return null;
         const randomTarget = validTargets[Math.floor(Math.random() * validTargets.length)];
         const targetAssignment = newAssignments[randomTarget.id];
@@ -478,10 +484,13 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
 
       // Pick 3 random students
       const shuffledEligible = [...finalEligible].sort(() => Math.random() - 0.5);
-      hunters = shuffledEligible.slice(0, 3).map(s => {
-        // Find a target animal (not their own) - only pick from students with valid assignments
+      const hunterStudents = shuffledEligible.slice(0, 3);
+      const hunterIds = new Set(hunterStudents.map(s => s.id));
+
+      hunters = hunterStudents.map(s => {
+        // Exclude ALL hunters from valid targets - hunters don't display their animal badge
         const validTargets = students.filter(other =>
-          other.id !== s.id && newAssignments[other.id]
+          !hunterIds.has(other.id) && newAssignments[other.id]
         );
 
         if (validTargets.length === 0) {
