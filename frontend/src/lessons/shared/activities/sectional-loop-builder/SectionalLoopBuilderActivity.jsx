@@ -927,6 +927,9 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     scoreRef.current = newScore;
     streakRef.current = newStreak;
 
+    // Log score calculation result
+    console.log('📊 Score result:', { currentScore, total, newScore, userId: userId || '(null)' });
+
     if (sessionCode && userId && !viewMode) {
       const db = getDatabase();
       update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
@@ -937,7 +940,11 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
         lockedIn: false,
         powerUp: null,
         lastActivity: Date.now()
-      }).catch(console.error);
+      })
+        .then(() => console.log('✅ Score saved:', newScore, 'for', userId))
+        .catch((err) => console.error('❌ Score save FAILED:', err));
+    } else {
+      console.warn('⚠️ Score NOT saved - missing:', { sessionCode: !!sessionCode, userId: !!userId, viewMode });
     }
   };
 
