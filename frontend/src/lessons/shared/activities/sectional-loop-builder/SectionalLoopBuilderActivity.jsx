@@ -929,8 +929,17 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     scoreRef.current = newScore;
     streakRef.current = newStreak;
 
+    // DEBUG: Log all values that affect Firebase update
+    console.log('🔥 Firebase update check:', {
+      sessionCode: sessionCode || '(null)',
+      userId: userId || '(null)',
+      viewMode,
+      willUpdate: !!(sessionCode && userId && !viewMode)
+    });
+
     if (sessionCode && userId && !viewMode) {
       const db = getDatabase();
+      console.log('🔥 Attempting Firebase score update for', userId, 'score:', newScore);
       update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
         score: newScore,
         streak: newStreak,
@@ -939,7 +948,11 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
         lockedIn: false,
         powerUp: null,
         lastActivity: Date.now()
-      }).catch(console.error);
+      })
+        .then(() => console.log('✅ Firebase score update SUCCESS for', userId))
+        .catch((err) => console.error('❌ Firebase score update FAILED for', userId, err));
+    } else {
+      console.error('⚠️ Firebase update SKIPPED!', { sessionCode, userId, viewMode });
     }
   };
 
