@@ -25,22 +25,53 @@ const animals = [
 ];
 
 /**
- * Generate a unique fun name for a student
+ * Generate a fun name for a student based on userId
  * @param {string} userId - The user's ID (for consistency)
+ * @param {number} attempt - Attempt number for collision resolution (default 0)
  * @returns {string} - Generated name like "Blazing Dragon"
  */
-export const generatePlayerName = (userId) => {
+export const generatePlayerName = (userId, attempt = 0) => {
   // Extract numeric part from userId (e.g., "Student-902285" -> 902285)
   // This gives much better distribution than hashing the full string
   const numMatch = userId.match(/\d+/);
-  const num = numMatch ? parseInt(numMatch[0], 10) : hashCode(userId);
+  let num = numMatch ? parseInt(numMatch[0], 10) : hashCode(userId);
+
+  // Add attempt offset to get different name on collision
+  // Using a prime multiplier ensures good distribution across attempts
+  num = num + (attempt * 127);
 
   // Use prime multipliers to get independent indices for adjective and animal
   // This ensures different digits affect each index differently
-  const adjectiveIndex = num % adjectives.length;
-  const animalIndex = Math.floor(num / adjectives.length) % animals.length;
+  const adjectiveIndex = Math.abs(num) % adjectives.length;
+  const animalIndex = Math.abs(Math.floor(num / adjectives.length)) % animals.length;
 
   return `${adjectives[adjectiveIndex]} ${animals[animalIndex]}`;
+};
+
+/**
+ * Generate a unique fun name that doesn't collide with existing names
+ * @param {string} userId - The user's ID
+ * @param {Array<string>} existingNames - Names already in use
+ * @param {number} maxAttempts - Maximum attempts before adding number suffix
+ * @returns {string} - Unique generated name
+ */
+export const generateUniquePlayerName = (userId, existingNames = [], maxAttempts = 50) => {
+  let attempt = 0;
+  let name = generatePlayerName(userId, attempt);
+
+  // Try different names until we find a unique one
+  while (existingNames.includes(name) && attempt < maxAttempts) {
+    attempt++;
+    name = generatePlayerName(userId, attempt);
+  }
+
+  // If still colliding after max attempts, add a number suffix
+  if (existingNames.includes(name)) {
+    const randomNum = Math.floor(Math.random() * 99) + 1;
+    name = `${name} ${randomNum}`;
+  }
+
+  return name;
 };
 
 /**

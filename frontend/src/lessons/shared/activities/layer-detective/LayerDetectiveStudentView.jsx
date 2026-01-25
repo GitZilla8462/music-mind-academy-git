@@ -6,8 +6,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Volume2, Check, Trophy } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
-import { getDatabase, ref, update, onValue } from 'firebase/database';
-import { generatePlayerName, getPlayerColor } from './nameGenerator';
+import { getDatabase, ref, update, onValue, get } from 'firebase/database';
+import { generateUniquePlayerName, getPlayerColor } from './nameGenerator';
 
 // Answer options (1, 2, 3)
 const ANSWERS = [
@@ -61,23 +61,50 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
   const audioRefs = useRef([]);
 
   // Generate player name on mount (no emoji)
+  // Fetches existing names first to avoid duplicates
   useEffect(() => {
-    if (userId) {
-      const name = generatePlayerName(userId);
+    if (!userId) return;
+
+    const assignPlayerName = async () => {
+      const db = getDatabase();
       const color = getPlayerColor(userId);
+      let name;
+
+      // Fetch existing player names to avoid duplicates
+      if (sessionCode) {
+        try {
+          const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+          const snapshot = await get(studentsRef);
+          const studentsData = snapshot.val() || {};
+
+          // Get all existing player names (excluding our own if re-joining)
+          const existingNames = Object.entries(studentsData)
+            .filter(([id]) => id !== userId)
+            .map(([, data]) => data.playerName)
+            .filter(Boolean);
+
+          name = generateUniquePlayerName(userId, existingNames);
+        } catch (err) {
+          console.error('Error fetching existing names:', err);
+          name = generateUniquePlayerName(userId, []);
+        }
+      } else {
+        name = generateUniquePlayerName(userId, []);
+      }
 
       setPlayerName(name);
       setPlayerColor(color);
 
       // Save player info to Firebase (don't reset score here - let game logic handle it)
       if (sessionCode) {
-        const db = getDatabase();
         update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
           playerName: name,
           playerColor: color
         });
       }
-    }
+    };
+
+    assignPlayerName();
   }, [userId, sessionCode]);
 
   // Listen for game state updates from teacher

@@ -11,8 +11,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Volume2, VolumeX, Play, Pause, RotateCcw, Trophy, Clock, RefreshCw } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { updateStudentScore } from '../../../../firebase/config';
-import { getDatabase, ref, update, push, set, onValue } from 'firebase/database';
-import { generatePlayerName, getPlayerColor, getPlayerEmoji } from './nameGenerator';
+import { getDatabase, ref, update, push, set, onValue, get } from 'firebase/database';
+import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from './nameGenerator';
 
 const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
   const { sessionCode, userId: contextUserId, userRole, currentStage } = useSession();
@@ -140,12 +140,38 @@ useEffect(() => {
   }, [sessionCode, userId, gameStarted]);
 
   // Generate player name on mount
+  // Fetches existing names first to avoid duplicates
   useEffect(() => {
-    if (userId) {
+    if (!userId) return;
+
+    const assignPlayerName = async () => {
       try {
-        const name = generatePlayerName(userId);
+        const db = getDatabase();
         const color = getPlayerColor(userId);
         const emoji = getPlayerEmoji(userId);
+        let name;
+
+        // Fetch existing player names to avoid duplicates
+        if (sessionCode) {
+          try {
+            const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+            const snapshot = await get(studentsRef);
+            const studentsData = snapshot.val() || {};
+
+            // Get all existing player names (excluding our own if re-joining)
+            const existingNames = Object.entries(studentsData)
+              .filter(([id]) => id !== userId)
+              .map(([, data]) => data.playerName)
+              .filter(Boolean);
+
+            name = generateUniquePlayerName(userId, existingNames);
+          } catch (err) {
+            console.error('Error fetching existing names:', err);
+            name = generateUniquePlayerName(userId, []);
+          }
+        } else {
+          name = generateUniquePlayerName(userId, []);
+        }
 
         setPlayerName(name);
         setPlayerColor(color);
@@ -158,8 +184,10 @@ useEffect(() => {
         setPlayerColor('#3B82F6');
         setPlayerEmoji('🎵');
       }
-    }
-  }, [userId]);
+    };
+
+    assignPlayerName();
+  }, [userId, sessionCode]);
 
   // ✅ Listen for teacher's class game state (to show results when teacher broadcasts)
   useEffect(() => {
