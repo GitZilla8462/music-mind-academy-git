@@ -24,7 +24,10 @@ const SCORING = {
 };
 
 const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFinished = false }) => {
-  const { sessionCode, userId } = useSession();
+  const { sessionCode, userId: contextUserId } = useSession();
+
+  // Fallback: if context userId is null, try localStorage (fixes race condition on Chromebooks)
+  const userId = contextUserId || localStorage.getItem('current-session-userId');
 
   // Player info (no emoji)
   const [playerName, setPlayerName] = useState('');
@@ -133,10 +136,11 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
           const newScore = score + points;
           setScore(newScore);
 
-          // Update Firebase
-          if (sessionCode && userId) {
+          // Update Firebase - re-fetch userId from localStorage as extra safety for race condition
+          const effectiveUserId = userId || localStorage.getItem('current-session-userId');
+          if (sessionCode && effectiveUserId) {
             const db = getDatabase();
-            update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+            update(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}`), {
               layerDetectiveScore: newScore
             });
           }
@@ -145,7 +149,7 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
     });
 
     return () => unsubscribe();
-  }, [sessionCode, currentQuestion, selectedAnswer, score, playStartTime, wasCorrect, userId]);
+  }, [sessionCode, currentQuestion, selectedAnswer, score, playStartTime, wasCorrect, userId, contextUserId]);
 
   // Listen for leaderboard updates (for results display)
   useEffect(() => {
