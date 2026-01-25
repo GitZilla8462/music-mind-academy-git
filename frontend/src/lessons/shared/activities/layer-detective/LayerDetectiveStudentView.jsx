@@ -468,9 +468,10 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
             {wasCorrect ? (
               <div className="bg-green-500/30 rounded-2xl p-6 mb-4">
                 <p className="text-3xl font-bold text-green-400 mb-2">Correct!</p>
-                <p className="text-xl text-white">+{earnedPoints} points</p>
-                {earnedPoints > SCORING.correct && (
-                  <p className="text-sm text-yellow-300 mt-1">Speed bonus!</p>
+                {earnedPoints > SCORING.correct ? (
+                  <p className="text-xl text-white">+{SCORING.correct} points <span className="text-yellow-300">(+{SCORING.speedBonus} speed bonus!)</span></p>
+                ) : (
+                  <p className="text-xl text-white">+{earnedPoints} points</p>
                 )}
               </div>
             ) : wasCorrect === false ? (
