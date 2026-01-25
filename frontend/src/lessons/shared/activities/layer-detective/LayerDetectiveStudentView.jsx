@@ -54,6 +54,9 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
   const [leaderboard, setLeaderboard] = useState([]);
   const [myRank, setMyRank] = useState(null);
 
+  // Track which question we've already scored to prevent double-scoring
+  const scoredQuestionRef = useRef(-1);
+
   // Audio refs (not used for playback, but for cleanup)
   const audioRefs = useRef([]);
 
@@ -99,6 +102,7 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
         // New game starting - reset score when going back to question 0
         if (data.currentQuestion === 0 && currentQuestion !== 0) {
           setScore(0);
+          scoredQuestionRef.current = -1; // Reset scored tracking for new game
         }
 
         // New question - reset answers
@@ -123,8 +127,11 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
         setCorrectAnswer(data.correctAnswer);
         setCorrectInstruments(data.correctInstruments || []);
 
-        // Calculate score if answered
-        if (selectedAnswer && wasCorrect === null) {
+        // Calculate score if answered - use ref to prevent double-scoring same question
+        const questionNum = data.currentQuestion || 0;
+        if (selectedAnswer && wasCorrect === null && scoredQuestionRef.current !== questionNum) {
+          scoredQuestionRef.current = questionNum; // Mark as scored BEFORE calculation
+
           const isCorrect = selectedAnswer === data.correctAnswer;
           setWasCorrect(isCorrect);
 
