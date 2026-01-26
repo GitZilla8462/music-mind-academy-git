@@ -241,6 +241,30 @@ const LoopBlock = React.memo(({
         />
       )}
 
+      {/* Fade indicators - visual gradients showing fade in/out */}
+      {loop.fadeIn > 0 && (
+        <div
+          className="absolute left-0 top-0 bottom-0"
+          style={{
+            width: `${Math.min(50, (loop.fadeIn / (loop.endTime - loop.startTime)) * 100)}%`,
+            background: 'linear-gradient(to right, rgba(0,0,0,0.6), transparent)',
+            pointerEvents: 'none',
+            borderRadius: '4px 0 0 4px'
+          }}
+        />
+      )}
+      {loop.fadeOut > 0 && (
+        <div
+          className="absolute right-0 top-0 bottom-0"
+          style={{
+            width: `${Math.min(50, (loop.fadeOut / (loop.endTime - loop.startTime)) * 100)}%`,
+            background: 'linear-gradient(to left, rgba(0,0,0,0.6), transparent)',
+            pointerEvents: 'none',
+            borderRadius: '0 4px 4px 0'
+          }}
+        />
+      )}
+
       {/* Loop info - name only */}
       <div
         className="absolute inset-0 p-2 flex items-center"

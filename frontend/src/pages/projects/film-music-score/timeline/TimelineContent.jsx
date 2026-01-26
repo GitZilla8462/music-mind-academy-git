@@ -3,7 +3,7 @@
 // Visual elements have pointer-events: none
 // This eliminates cursor flickering on Chromebooks
 
-import React, { forwardRef, useCallback, useState, useEffect } from 'react';
+import React, { forwardRef, useCallback, useState, useEffect, useMemo } from 'react';
 import TimeMarkers from './components/TimeMarkers';
 import VideoTrackHeader from './components/VideoTrackHeader';
 import TrackHeader from './components/TrackHeader';
@@ -11,6 +11,7 @@ import LoopBlock from './components/LoopBlock';
 import Playhead from './components/Playhead';
 import TimelineGrid from './components/TimelineGrid';
 import InteractionOverlay from './components/InteractionOverlay';
+import FadeControlsPopup from './components/FadeControlsPopup';
 import { TIMELINE_CONSTANTS } from './constants/timelineConstants';
 
 const TimelineContent = forwardRef(({
@@ -63,6 +64,39 @@ const TimelineContent = forwardRef(({
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState(null);
+
+  // Fade controls popup - shows when a loop is selected
+  const selectedLoopObject = useMemo(() => {
+    if (!selectedLoop) return null;
+    return placedLoops.find(l => l.id === selectedLoop);
+  }, [selectedLoop, placedLoops]);
+
+  // Calculate popup position based on selected loop
+  const fadePopupPosition = useMemo(() => {
+    if (!selectedLoopObject || !timelineScrollRef?.current) return null;
+
+    const scrollRect = timelineScrollRef.current.getBoundingClientRect();
+    const scrollLeft = timelineScrollRef.current.scrollLeft;
+
+    // Get loop position in pixels
+    const loopLeft = timeToPixel(selectedLoopObject.startTime);
+    const loopRight = timeToPixel(selectedLoopObject.endTime);
+    const loopCenter = (loopLeft + loopRight) / 2;
+
+    // Calculate screen position
+    const screenX = scrollRect.left + loopCenter - scrollLeft;
+    const loopTop = TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT +
+                    (selectedLoopObject.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT);
+    const screenY = scrollRect.top + loopTop - timelineScrollRef.current.scrollTop + TIMELINE_CONSTANTS.TRACK_HEIGHT + 10;
+
+    // Keep popup within screen bounds
+    const popupWidth = 220;
+    const popupHeight = 180;
+    const clampedX = Math.max(10, Math.min(window.innerWidth - popupWidth - 10, screenX - popupWidth / 2));
+    const clampedY = Math.max(10, Math.min(window.innerHeight - popupHeight - 10, screenY));
+
+    return { x: clampedX, y: clampedY };
+  }, [selectedLoopObject, timeToPixel, timelineScrollRef]);
 
   // Time ruler scrubbing state
   const [isScrubbing, setIsScrubbing] = useState(false);
@@ -565,6 +599,16 @@ const TimelineContent = forwardRef(({
             </span>
           </button>
         </div>
+      )}
+
+      {/* Fade Controls Popup - shows when a single loop is selected */}
+      {selectedLoopObject && fadePopupPosition && !contextMenu && (
+        <FadeControlsPopup
+          loop={selectedLoopObject}
+          onUpdate={onLoopUpdate}
+          onClose={() => onLoopSelect?.(null)}
+          position={fadePopupPosition}
+        />
       )}
     </div>
   );

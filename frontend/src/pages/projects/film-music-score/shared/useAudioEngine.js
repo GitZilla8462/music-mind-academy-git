@@ -401,7 +401,6 @@ export const useAudioEngine = (videoDuration = 60) => {
 
       // Create gain node for volume
       const gainNode = audioContext.createGain();
-      gainNode.gain.value = effectiveVolume;
 
       // Connect: source -> gain -> destination
       source.connect(gainNode);
@@ -417,7 +416,40 @@ export const useAudioEngine = (videoDuration = 60) => {
 
       // Calculate when to start
       const transportTime = Math.max(0, loop.startTime - schedulingStartTime);
-      const startWhen = transportTime <= 0.01 ? 0 : audioContext.currentTime + transportTime;
+      const startWhen = transportTime <= 0.01 ? audioContext.currentTime : audioContext.currentTime + transportTime;
+
+      // ============================================================
+      // FADE IN/OUT - Apply gain automation for smooth fades
+      // ============================================================
+      const fadeIn = loop.fadeIn || 0;
+      const fadeOut = loop.fadeOut || 0;
+
+      // Clamp fade durations to not exceed the loop duration
+      const maxFadeDuration = remainingTimeline / 2; // Each fade can't exceed half the loop
+      const actualFadeIn = Math.min(fadeIn, maxFadeDuration);
+      const actualFadeOut = Math.min(fadeOut, maxFadeDuration);
+
+      if (actualFadeIn > 0) {
+        // Start at 0, ramp up to full volume
+        gainNode.gain.setValueAtTime(0, startWhen);
+        gainNode.gain.linearRampToValueAtTime(effectiveVolume, startWhen + actualFadeIn);
+      } else {
+        // No fade in - start at full volume
+        gainNode.gain.setValueAtTime(effectiveVolume, startWhen);
+      }
+
+      if (actualFadeOut > 0) {
+        // Calculate when fade out should start
+        const fadeOutStart = startWhen + remainingTimeline - actualFadeOut;
+        // If there's a fade in, make sure we're at full volume before fade out starts
+        if (actualFadeIn > 0 && fadeOutStart > startWhen + actualFadeIn) {
+          gainNode.gain.setValueAtTime(effectiveVolume, fadeOutStart);
+        } else if (actualFadeIn === 0) {
+          gainNode.gain.setValueAtTime(effectiveVolume, fadeOutStart);
+        }
+        // Ramp down to 0
+        gainNode.gain.linearRampToValueAtTime(0, startWhen + remainingTimeline);
+      }
 
       try {
         source.start(startWhen, audioOffset, remainingTimeline);
