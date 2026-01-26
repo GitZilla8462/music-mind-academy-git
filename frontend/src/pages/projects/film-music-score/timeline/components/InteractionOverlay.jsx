@@ -918,6 +918,7 @@ const InteractionOverlay = ({
         onMouseMove={handleMouseMove}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
+        onPointerUp={handleMouseUp}  // CHROMEBOOK FIX: pointerup fires more reliably on trackpads
         onMouseLeave={handleMouseUp}
         onContextMenu={handleContextMenu}
         onDoubleClick={handleDoubleClick}
