@@ -52,35 +52,27 @@ const TrackHeader = ({
           <span className="text-white text-[10px] font-medium w-11 flex-shrink-0 whitespace-nowrap overflow-hidden text-ellipsis">
             {trackState.name || `Track ${trackIndex + 1}`}
           </span>
-          
-          <div className="flex items-center space-x-0.5 flex-1">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                const newVolume = Math.max(0, (trackState.volume || 0.7) - 0.05);
-                updateTrackState(trackId, { volume: newVolume });
-              }}
-              className="w-4 h-4 bg-gray-600 hover:bg-gray-500 rounded text-xs text-white flex items-center justify-center transition-colors flex-shrink-0"
-              title="Decrease volume"
-            >
-              ‹
-            </button>
-            
-            <span className="text-xs text-gray-400 w-7 text-center flex-shrink-0">
-              {Math.round((trackState.volume || 0.7) * 100)}%
-            </span>
-            
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                const newVolume = Math.min(1, (trackState.volume || 0.7) + 0.05);
-                updateTrackState(trackId, { volume: newVolume });
-              }}
-              className="w-4 h-4 bg-gray-600 hover:bg-gray-500 rounded text-xs text-white flex items-center justify-center transition-colors flex-shrink-0"
-              title="Increase volume"
-            >
-              ›
-            </button>
+
+          {/* Volume bars - 5 segments for 0%, 25%, 50%, 75%, 100% */}
+          <div className="flex items-center gap-0.5 flex-1" title={`Volume: ${Math.round((trackState.volume || 0.7) * 100)}%`}>
+            {[0.2, 0.4, 0.6, 0.8, 1.0].map((level, i) => {
+              const currentVolume = trackState.volume ?? 0.7;
+              const isFilled = currentVolume >= level - 0.1;
+              return (
+                <button
+                  key={i}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    updateTrackState(trackId, { volume: level });
+                  }}
+                  className={`flex-1 h-3 rounded-sm ${
+                    isFilled ? 'bg-green-500' : 'bg-gray-600'
+                  }`}
+                  style={{ minWidth: '8px' }}
+                  title={`Set volume to ${level * 100}%`}
+                />
+              );
+            })}
           </div>
         </div>
 
