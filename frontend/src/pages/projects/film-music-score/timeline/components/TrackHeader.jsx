@@ -1,19 +1,23 @@
 // File: /src/pages/projects/film-music-score/timeline/components/TrackHeader.jsx
 // FIXED: Changed width from w-40 to w-48 to eliminate gap
+// UPDATED: Added fade button with popup for track-level fade in/out
 
-import React from 'react';
-import { Volume2, VolumeX, Headphones } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Volume2, VolumeX, Headphones, TrendingDown } from 'lucide-react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
+import TrackFadePopup from './TrackFadePopup';
 
-const TrackHeader = ({ 
-  trackIndex, 
-  trackStates, 
-  updateTrackState, 
-  placedLoops, 
+const TrackHeader = ({
+  trackIndex,
+  trackStates,
+  updateTrackState,
+  placedLoops,
   hoveredTrack,
   onTrackHeaderClick,
   tutorialMode = false
 }) => {
+  const [showFadePopup, setShowFadePopup] = useState(false);
+  const fadeButtonRef = useRef(null);
   const trackId = `track-${trackIndex}`;
   const trackState = trackStates[trackId] || {};
   const hasLoops = placedLoops.some(loop => loop.trackIndex === trackIndex);
@@ -113,8 +117,40 @@ const TrackHeader = ({
           >
             <Headphones size={12} />
           </button>
+
+          {/* Fade button */}
+          <button
+            ref={fadeButtonRef}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowFadePopup(!showFadePopup);
+            }}
+            className={`rounded transition-colors flex-shrink-0 flex items-center justify-center ${
+              (trackState.fadeIn > 0 || trackState.fadeOut > 0)
+                ? 'bg-purple-500 text-white'
+                : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+            }`}
+            style={{ width: '18px', height: '18px' }}
+            title="Fade in/out settings"
+          >
+            <TrendingDown size={12} />
+          </button>
         </div>
       </div>
+
+      {/* Fade popup */}
+      {showFadePopup && fadeButtonRef.current && (
+        <TrackFadePopup
+          trackId={trackId}
+          trackState={trackState}
+          onUpdate={updateTrackState}
+          onClose={() => setShowFadePopup(false)}
+          position={{
+            x: fadeButtonRef.current.getBoundingClientRect().left,
+            y: fadeButtonRef.current.getBoundingClientRect().bottom + 5
+          }}
+        />
+      )}
     </div>
   );
 };

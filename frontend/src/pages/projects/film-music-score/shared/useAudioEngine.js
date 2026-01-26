@@ -401,7 +401,6 @@ export const useAudioEngine = (videoDuration = 60) => {
 
       // Create gain node for volume
       const gainNode = audioContext.createGain();
-      gainNode.gain.value = effectiveVolume;
 
       // Connect: source -> gain -> destination
       source.connect(gainNode);
@@ -417,7 +416,38 @@ export const useAudioEngine = (videoDuration = 60) => {
 
       // Calculate when to start
       const transportTime = Math.max(0, loop.startTime - schedulingStartTime);
-      const startWhen = transportTime <= 0.01 ? 0 : audioContext.currentTime + transportTime;
+      const startWhen = transportTime <= 0.01 ? audioContext.currentTime : audioContext.currentTime + transportTime;
+
+      // ============================================================
+      // FADE IN/OUT - Apply gain automation from track settings
+      // ============================================================
+      const fadeIn = trackState.fadeIn || 0;
+      const fadeOut = trackState.fadeOut || 0;
+
+      // Clamp fade durations to not exceed the loop duration
+      const maxFadeDuration = remainingTimeline / 2;
+      const actualFadeIn = Math.min(fadeIn, maxFadeDuration);
+      const actualFadeOut = Math.min(fadeOut, maxFadeDuration);
+
+      if (actualFadeIn > 0) {
+        // Start at 0, ramp up to full volume
+        gainNode.gain.setValueAtTime(0, startWhen);
+        gainNode.gain.linearRampToValueAtTime(effectiveVolume, startWhen + actualFadeIn);
+      } else {
+        // No fade in - start at full volume
+        gainNode.gain.setValueAtTime(effectiveVolume, startWhen);
+      }
+
+      if (actualFadeOut > 0) {
+        // Calculate when fade out should start
+        const fadeOutStart = startWhen + remainingTimeline - actualFadeOut;
+        // Set volume at fade out start point
+        if (fadeOutStart > startWhen + actualFadeIn) {
+          gainNode.gain.setValueAtTime(effectiveVolume, fadeOutStart);
+        }
+        // Ramp down to 0
+        gainNode.gain.linearRampToValueAtTime(0, startWhen + remainingTimeline);
+      }
 
       try {
         source.start(startWhen, audioOffset, remainingTimeline);
