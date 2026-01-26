@@ -725,7 +725,9 @@ const InteractionOverlay = ({
     // Constrain values
     const loopDuration = activeLoop.endTime - activeLoop.startTime;
     const constrainedTrack = Math.max(0, Math.min(TIMELINE_CONSTANTS.NUM_TRACKS - 1, newTrackIndex));
-    const constrainedStart = Math.max(0, Math.min(duration - loopDuration, newStartTime));
+    // Ensure loop can always be placed at position 0, even if loop is longer than timeline
+    const maxStartPosition = Math.max(0, duration - loopDuration);
+    const constrainedStart = Math.max(0, Math.min(maxStartPosition, newStartTime));
 
     // PERFORMANCE FIX: Instead of updating React state every 25ms (causing ~80 re-renders per drag),
     // use direct DOM transforms for visual feedback. State is updated once on drag end.
@@ -779,9 +781,10 @@ const InteractionOverlay = ({
     // RESIZE OPTIMIZATION: Only update React state when repeat count changes
     // This shows repeat markers appearing as students drag past loop boundaries
     // Minimal state updates (2-5 instead of ~80) for Chromebook performance
-    const originalDuration = activeLoop.duration;
+    const originalDuration = activeLoop.duration || (activeLoop.endTime - activeLoop.startTime);
     const newDuration = newEndTime - newStartTime;
-    const newRepeatCount = Math.floor(newDuration / originalDuration);
+    // Safeguard: ensure we don't divide by zero or get invalid repeat counts
+    const newRepeatCount = originalDuration > 0 ? Math.floor(newDuration / originalDuration) : 1;
 
     // Check if repeat count changed - if so, update state to show new markers
     if (newRepeatCount !== lastRepeatCountRef.current) {
