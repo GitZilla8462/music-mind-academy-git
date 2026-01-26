@@ -281,7 +281,8 @@ const MusicComposer = ({
     createLoopPlayer,
     scheduleLoops,
     initializeAudio,
-    playersRef
+    playersRef,
+    activeGainNodesRef  // ✅ NEW: For real-time volume updates during playback
   } = useAudioEngine(selectedVideo?.duration);
 
   // 🛑 CLEANUP: Stop audio on component unmount
@@ -494,6 +495,7 @@ const MusicComposer = ({
   useVolumeControl({
     audioReady,
     playersRef,
+    activeGainNodesRef,  // ✅ NEW: For real-time volume updates during playback
     placedLoops,
     trackStates,
     volume,

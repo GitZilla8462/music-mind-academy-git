@@ -1,5 +1,6 @@
 // shared/useAudioEngine.js - Web Audio API with AudioBuffer for Chromebook sync
 // CHROMEBOOK OPTIMIZED: Debug logging removed for better performance
+// ✅ FIXED: Store gain node references for real-time volume updates during playback
 import { useState, useRef, useCallback, useEffect } from 'react';
 import * as Tone from 'tone';
 
@@ -49,6 +50,10 @@ export const useAudioEngine = (videoDuration = 60) => {
 
   // Active sources for cleanup
   const activeSourcesRef = useRef(new Set());
+
+  // ✅ NEW: Store active gain nodes for real-time volume updates
+  // Key: loop.id, Value: GainNode
+  const activeGainNodesRef = useRef(new Map());
 
   // Legacy refs for compatibility
   const playersRef = useRef(new Map());
@@ -171,6 +176,9 @@ export const useAudioEngine = (videoDuration = 60) => {
       }
     });
     activeSourcesRef.current.clear();
+
+    // ✅ Clear active gain nodes
+    activeGainNodesRef.current.clear();
 
     // Clear scheduled events
     scheduledEventsRef.current.forEach(event => {
@@ -390,6 +398,9 @@ export const useAudioEngine = (videoDuration = 60) => {
       source.connect(gainNode);
       gainNode.connect(audioContext.destination);
 
+      // ✅ Store gain node reference for real-time volume updates
+      activeGainNodesRef.current.set(loop.id, gainNode);
+
       // Validate offset is within buffer bounds
       if (audioOffset >= bufferDuration || remainingTimeline <= 0) {
         return;
@@ -405,6 +416,7 @@ export const useAudioEngine = (videoDuration = 60) => {
 
         source.onended = () => {
           activeSourcesRef.current.delete(source);
+          activeGainNodesRef.current.delete(loop.id); // ✅ Remove gain node reference
           source.disconnect();
           gainNode.disconnect();
         };
@@ -643,6 +655,8 @@ export const useAudioEngine = (videoDuration = 60) => {
     scheduleLoops,
     initializeAudio,
     playersRef,
+    // ✅ NEW: Expose active gain nodes for real-time volume updates
+    activeGainNodesRef,
     // CHROMEBOOK: Helpers to check for failed audio decodes
     isLoopDecodeFailed,
     getLoopDecodeError

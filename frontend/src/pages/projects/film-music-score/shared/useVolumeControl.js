@@ -1,5 +1,6 @@
 // useVolumeControl.js - FIXED: Wait for players to be ready before applying volumes
 // ✅ KEY FIX: Check if players exist before trying to apply volumes
+// ✅ FIXED: Update active gain nodes for real-time volume changes during playback
 import { useEffect, useRef } from 'react';
 
 // Debug logging (disabled for production - enable for debugging volume issues)
@@ -8,6 +9,7 @@ const DEBUG_VOLUME = false;
 export const useVolumeControl = ({
   audioReady,
   playersRef,
+  activeGainNodesRef,  // ✅ NEW: Ref to active gain nodes for real-time updates
   placedLoops,
   trackStates,
   volume,
@@ -56,11 +58,6 @@ export const useVolumeControl = ({
       const player = playersRef.current[loop.id];
       const trackState = trackStates[`track-${loop.trackIndex}`];
 
-      if (!player) {
-        failCount++;
-        return;
-      }
-
       if (!trackState) {
         failCount++;
         return;
@@ -81,6 +78,20 @@ export const useVolumeControl = ({
       const finalVolume = loopVolume * trackVolume * masterVol * trackMuted * masterMuted * soloMultiplier;
 
       try {
+        // ✅ NEW: Update active gain node for real-time volume during playback
+        const activeGainNode = activeGainNodesRef?.current?.get(loop.id);
+        if (activeGainNode) {
+          activeGainNode.gain.value = finalVolume;
+          successCount++;
+          return; // Successfully updated active playback
+        }
+
+        // Fallback: Update player if it exists (for non-playing loops)
+        if (!player) {
+          failCount++;
+          return;
+        }
+
         if (player.isNative && player.audio) {
           // Native HTML5 Audio: Use linear volume (0-1)
           const clampedVolume = Math.max(0, Math.min(1, finalVolume));
@@ -92,7 +103,8 @@ export const useVolumeControl = ({
           player.volume.value = dbValue;
           successCount++;
         } else {
-          failCount++;
+          // Buffer-based player without active gain node - this is fine, volume will apply on next play
+          successCount++;
         }
       } catch (error) {
         console.error(`❌ ${loop.name}: Volume update failed -`, error.message);
