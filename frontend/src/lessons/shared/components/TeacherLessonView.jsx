@@ -124,32 +124,6 @@ const PresentationContent = ({
       .catch(() => console.log('Melody Mystery Activity not available'));
   }, []);
 
-  // Student View Mode - Show iframe of student experience
-  if (viewMode === 'student') {
-    const getStudentUrl = () => {
-      // Use current origin for both dev and prod to handle any port
-      // passive=true disables navigation prevention hooks to avoid IPC flooding
-      return `${window.location.origin}/join?code=${sessionCode}&preview=true&passive=true`;
-    };
-
-    return (
-      <div className="absolute inset-0 bg-slate-900">
-        <div className="absolute top-0 left-0 right-0 h-10 bg-emerald-600 flex items-center justify-center z-10">
-          <span className="text-white text-sm font-semibold flex items-center gap-2">
-            <Smartphone size={16} />
-            STUDENT VIEW PREVIEW
-          </span>
-        </div>
-        <iframe
-          src={getStudentUrl()}
-          className="absolute top-10 left-0 w-full h-[calc(100%-40px)] border-none"
-          title="Student View Preview"
-          allow="autoplay"
-        />
-      </div>
-    );
-  }
-
   // Join Code Screen
   if (currentStage === 'locked' || currentStage === 'join-code') {
     const studentCount = sessionData?.studentsJoined 
@@ -2233,18 +2207,40 @@ const TeacherLessonView = ({
           ref={presentationRef}
           className="flex-1 relative bg-slate-900 overflow-hidden"
         >
-          <PresentationContent
-            currentStage={currentStage}
-            currentStageData={currentStageData}
-            sessionCode={sessionCode}
-            sessionData={sessionData}
-            lessonConfig={config}
-            lessonBasePath={config.lessonPath}
-            viewMode={viewMode}
-            onVideoEnded={goToNextStage}
-            goToNextStage={goToNextStage}
-            presentationZoom={presentationZoom}
-          />
+          {/* Teacher content - always mounted to preserve state (like mood game progress) */}
+          {/* Hidden when in student view mode */}
+          <div className={viewMode === 'student' ? 'hidden' : ''}>
+            <PresentationContent
+              currentStage={currentStage}
+              currentStageData={currentStageData}
+              sessionCode={sessionCode}
+              sessionData={sessionData}
+              lessonConfig={config}
+              lessonBasePath={config.lessonPath}
+              viewMode="teacher"
+              onVideoEnded={goToNextStage}
+              goToNextStage={goToNextStage}
+              presentationZoom={presentationZoom}
+            />
+          </div>
+
+          {/* Student view iframe - shown when in student view mode */}
+          {viewMode === 'student' && (
+            <div className="absolute inset-0 bg-slate-900">
+              <div className="absolute top-0 left-0 right-0 h-10 bg-emerald-600 flex items-center justify-center z-10">
+                <span className="text-white text-sm font-semibold flex items-center gap-2">
+                  <Smartphone size={16} />
+                  STUDENT VIEW PREVIEW
+                </span>
+              </div>
+              <iframe
+                src={`${window.location.origin}/join?code=${sessionCode}&preview=true&passive=true`}
+                className="absolute top-10 left-0 w-full h-[calc(100%-40px)] border-none"
+                title="Student View Preview"
+                allow="autoplay"
+              />
+            </div>
+          )}
 
           {/* Floating Timer - Top Right (2x size) */}
           {timerVisible && (
