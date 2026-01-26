@@ -100,7 +100,11 @@ const InteractionOverlay = ({
   // PERFORMANCE FIX: Store pending loop update during drag, only apply on drag end
   // This reduces ~80 state updates per drag to just 1, helping Chromebook performance
   const pendingLoopUpdateRef = useRef(null);
-  
+
+  // RESIZE OPTIMIZATION: Track repeat count to only update when a new repeat boundary is crossed
+  // This shows students "1 loop... 2 loops... 3 loops" as they drag, with minimal state updates
+  const lastRepeatCountRef = useRef(0);
+
   // CHROMEBOOK FIX: Throttle cursor updates to prevent flickering
   const cursorUpdateRef = useRef(0);
   
@@ -526,18 +530,22 @@ const InteractionOverlay = ({
         // Start resize
         e.preventDefault();
         e.stopPropagation();
-        
+
         setIsResizing(true);
         setResizeDirection(resizeZone);
         setActiveLoop(loop);
         setCursor('ew-resize');
-        
+
         dragStateRef.current = {
           initialStartTime: loop.startTime,
           initialEndTime: loop.endTime,
           startX: x
         };
-        
+
+        // Initialize repeat count for resize optimization
+        const currentDuration = loop.endTime - loop.startTime;
+        lastRepeatCountRef.current = Math.floor(currentDuration / loop.duration);
+
         onLoopSelect?.(loop.id);
         return;
       }
@@ -637,6 +645,7 @@ const InteractionOverlay = ({
       setIsResizing(false);
       setResizeDirection(null);
       setActiveLoop(null);
+      lastRepeatCountRef.current = 0; // Reset for next resize
     }
 
     if (isDraggingPlayhead) {
@@ -758,21 +767,30 @@ const InteractionOverlay = ({
       newStartTime = Math.max(0, Math.min(maxStartTime, snappedTime));
     }
 
-    // PERFORMANCE FIX: Use direct DOM manipulation for visual feedback during resize
-    // instead of updating React state every 25ms. State is updated once on drag end.
-    const loopElement = timelineRef.current.querySelector(`[data-loop-id="${activeLoop.id}"]`);
-    if (loopElement) {
-      // Calculate width change for right resize
-      const newWidth = timeToPixel(newEndTime) - timeToPixel(newStartTime);
-      const originalWidth = timeToPixel(activeLoop.endTime) - timeToPixel(activeLoop.startTime);
-      const scaleX = newWidth / originalWidth;
+    // RESIZE OPTIMIZATION: Only update state when the repeat count changes
+    // This shows students "1 loop... 2 loops... 3 loops" as they drag
+    // with minimal state updates (2-5 updates instead of ~80)
+    const originalDuration = activeLoop.duration;
+    const newDuration = newEndTime - newStartTime;
+    const newRepeatCount = Math.floor(newDuration / originalDuration);
 
-      // Apply scale transform from the left edge
-      loopElement.style.transformOrigin = 'left center';
-      loopElement.style.transform = `scaleX(${scaleX})`;
+    // Check if repeat count changed - if so, update state to show new markers
+    if (newRepeatCount !== lastRepeatCountRef.current) {
+      lastRepeatCountRef.current = newRepeatCount;
+
+      // Update state so LoopBlock re-renders with correct repeat markers
+      onLoopResize?.(activeLoop.id, {
+        startTime: newStartTime,
+        endTime: newEndTime
+      });
+      onLoopUpdate?.(activeLoop.id, {
+        trackIndex: activeLoop.trackIndex,
+        startTime: newStartTime,
+        endTime: newEndTime
+      });
     }
 
-    // Store the pending update for mouse up
+    // Always store the pending update for final mouse up (exact position)
     pendingLoopUpdateRef.current = {
       id: activeLoop.id,
       trackIndex: activeLoop.trackIndex,
@@ -780,7 +798,7 @@ const InteractionOverlay = ({
       endTime: newEndTime,
       isResize: true
     };
-  }, [activeLoop, resizeDirection, pixelToTime, applySnapping, duration, timelineRef, timeToPixel]);
+  }, [activeLoop, resizeDirection, pixelToTime, applySnapping, duration, timelineRef, timeToPixel, onLoopResize, onLoopUpdate]);
 
   const handlePlayheadDrag = useCallback((e, x) => {
     const newTime = pixelToTime(x);
