@@ -88,7 +88,8 @@ const TrackHeader = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              updateTrackState(trackId, { muted: !trackState.muted });
+              // Mute and solo are mutually exclusive - turn off solo when muting
+              updateTrackState(trackId, { muted: !trackState.muted, solo: false });
             }}
             className={`rounded transition-colors flex-shrink-0 flex items-center justify-center ${
               isEffectivelyMuted
@@ -104,7 +105,8 @@ const TrackHeader = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              updateTrackState(trackId, { solo: !trackState.solo });
+              // Mute and solo are mutually exclusive - turn off mute when soloing
+              updateTrackState(trackId, { solo: !trackState.solo, muted: false });
             }}
             className={`rounded transition-colors flex-shrink-0 flex items-center justify-center ${
               trackState.solo
