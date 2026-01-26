@@ -3,6 +3,7 @@
 // ✅ FIXED: Accept currentStage as VALUE instead of getter function to prevent render-time state updates
 // ✅ OPTIMIZED: Drastically reduced Firebase updates to prevent network flooding
 // ✅ OPTIMIZED: Added isTeacher flag - students don't need local timer management
+// ✅ FIXED: Use timestamp-based calculation to prevent time loss when browser tab is backgrounded
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getDatabase, ref, update } from 'firebase/database';
@@ -40,7 +41,11 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages, isTea
   // Track which timers have been auto-started to prevent repeated calls
   const autoStartedTimers = useRef(new Set());
   const lastStageRef = useRef(null);
-  
+
+  // ✅ FIXED: Track timer end times (absolute timestamps) to prevent time loss on tab switch
+  // Key: activityId, Value: { endTime: timestamp, pausedRemaining: ms (when paused) }
+  const timerEndTimeRef = useRef({});
+
   // ✅ NEW: Track last Firebase update to prevent flooding
   const lastFirebaseUpdateRef = useRef(0);
   const pendingFirebaseUpdateRef = useRef(null);
@@ -124,26 +129,32 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages, isTea
   // ✅ Start timer - accepts activityId and optional duration in MINUTES
   const startActivityTimer = useCallback((activityId, durationMinutes = null) => {
     console.log(`▶️  Starting timer for ${activityId}`, { durationMinutes });
-    
+
     setActivityTimers(prev => {
       const currentTimer = prev[activityId];
       if (!currentTimer) {
         console.warn(`⚠️  No timer config for ${activityId}`);
         return prev;
       }
-      
+
       // Use provided duration or fall back to preset
       const minutes = durationMinutes !== null ? durationMinutes : currentTimer.presetTime;
       const seconds = minutes * 60;
-      
+
       console.log(`   Starting with ${minutes} minutes (${seconds} seconds)`);
-      
+
+      // ✅ FIXED: Store absolute end time to survive tab throttling
+      timerEndTimeRef.current[activityId] = {
+        endTime: Date.now() + (seconds * 1000),
+        pausedRemaining: null
+      };
+
       // ✅ Force immediate Firebase update for timer start
       updateFirebaseThrottled({
         countdownTime: seconds,
         timerActive: true
       }, true); // forceImmediate = true
-      
+
       return {
         ...prev,
         [activityId]: {
@@ -158,21 +169,38 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages, isTea
   // Pause timer
   const pauseActivityTimer = useCallback((activityId) => {
     console.log(`⏸️  Pausing timer for ${activityId}`);
-    
+
+    // ✅ FIXED: Calculate remaining time from end time and save it
+    const timerData = timerEndTimeRef.current[activityId];
+    if (timerData?.endTime) {
+      const remainingMs = Math.max(0, timerData.endTime - Date.now());
+      timerEndTimeRef.current[activityId] = {
+        endTime: null,
+        pausedRemaining: remainingMs
+      };
+    }
+
     setActivityTimers(prev => {
       const currentTimer = prev[activityId];
       if (!currentTimer) return prev;
-      
+
+      // Calculate accurate remaining time
+      const timerData = timerEndTimeRef.current[activityId];
+      const remainingSeconds = timerData?.pausedRemaining
+        ? Math.floor(timerData.pausedRemaining / 1000)
+        : currentTimer.timeRemaining;
+
       // ✅ Force immediate Firebase update for pause
       updateFirebaseThrottled({
-        countdownTime: currentTimer.timeRemaining,
+        countdownTime: remainingSeconds,
         timerActive: false
       }, true);
-      
+
       return {
         ...prev,
         [activityId]: {
           ...currentTimer,
+          timeRemaining: remainingSeconds,
           isActive: false
         }
       };
@@ -182,17 +210,26 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages, isTea
   // Resume timer
   const resumeActivityTimer = useCallback((activityId) => {
     console.log(`▶️  Resuming timer for ${activityId}`);
-    
+
+    // ✅ FIXED: Recalculate end time from saved remaining time
+    const timerData = timerEndTimeRef.current[activityId];
+    if (timerData?.pausedRemaining) {
+      timerEndTimeRef.current[activityId] = {
+        endTime: Date.now() + timerData.pausedRemaining,
+        pausedRemaining: null
+      };
+    }
+
     setActivityTimers(prev => {
       const currentTimer = prev[activityId];
       if (!currentTimer) return prev;
-      
+
       // ✅ Force immediate Firebase update for resume
       updateFirebaseThrottled({
         countdownTime: currentTimer.timeRemaining,
         timerActive: true
       }, true);
-      
+
       return {
         ...prev,
         [activityId]: {
@@ -206,16 +243,19 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages, isTea
   // ✅ Reset timer
   const resetActivityTimer = useCallback((activityId) => {
     console.log(`🔄 Resetting timer for ${activityId}`);
-    
+
     // Clear auto-started flag so it can be auto-started again
     autoStartedTimers.current.delete(activityId);
-    
+
+    // ✅ FIXED: Clear timer end time data
+    delete timerEndTimeRef.current[activityId];
+
     // ✅ Force immediate Firebase update for reset
     updateFirebaseThrottled({
       countdownTime: 0,
       timerActive: false
     }, true);
-    
+
     setActivityTimers(prev => ({
       ...prev,
       [activityId]: {
@@ -238,11 +278,14 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages, isTea
       // If leaving a timer stage
       if (previousStageData?.hasTimer) {
         const previousTimer = activityTimers[lastStageRef.current];
-        
+
         // If timer was running, stop it immediately
         if (previousTimer?.isActive) {
           console.log(`🛑 Stage changed from ${lastStageRef.current} to ${currentStage} - stopping timer`);
-          
+
+          // ✅ FIXED: Clear timer end time data
+          delete timerEndTimeRef.current[lastStageRef.current];
+
           // Immediately stop the timer
           setActivityTimers(prev => ({
             ...prev,
@@ -252,7 +295,7 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages, isTea
               timeRemaining: 0
             }
           }));
-          
+
           // ✅ Force immediate Firebase update for stage change
           updateFirebaseThrottled({
             countdownTime: null,
@@ -273,7 +316,8 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages, isTea
     lastStageRef.current = currentStage;
   }, [currentStage, lessonStages, activityTimers, sessionCode, updateFirebaseThrottled]);
 
-  // ✅ Countdown effect - OPTIMIZED to reduce Firebase updates
+  // ✅ Countdown effect - FIXED to use timestamp-based calculation
+  // This prevents time loss when browser tab is backgrounded/throttled
   // Only runs for teachers
   useEffect(() => {
     if (!isTeacher) return;
@@ -282,29 +326,40 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages, isTea
 
     Object.keys(activityTimers).forEach(activityId => {
       const timer = activityTimers[activityId];
-      
+
       if (timer.isActive && timer.timeRemaining > 0) {
         const interval = setInterval(() => {
+          // ✅ FIXED: Calculate remaining time from absolute end time
+          // This survives browser tab throttling
+          const timerData = timerEndTimeRef.current[activityId];
+          if (!timerData?.endTime) {
+            // Fallback: if no end time stored, skip this tick
+            return;
+          }
+
+          const newTimeRemaining = Math.max(0, Math.floor((timerData.endTime - Date.now()) / 1000));
+
           setActivityTimers(prev => {
             const currentTimer = prev[activityId];
-            
+
             // Stop immediately if timer is no longer active or doesn't exist
-            if (!currentTimer || !currentTimer.isActive || currentTimer.timeRemaining <= 0) {
+            if (!currentTimer || !currentTimer.isActive) {
               return prev;
             }
-            
-            const newTimeRemaining = currentTimer.timeRemaining - 1;
-            
+
             // Time's up!
             if (newTimeRemaining <= 0) {
               console.log(`⏰ Timer finished for ${activityId}`);
+
+              // Clear the end time ref
+              delete timerEndTimeRef.current[activityId];
 
               // ✅ Force immediate Firebase update when timer finishes
               updateFirebaseThrottled({
                 countdownTime: 0,
                 timerActive: false
               }, true);
-              
+
               return {
                 ...prev,
                 [activityId]: {
@@ -314,7 +369,7 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages, isTea
                 }
               };
             }
-            
+
             // ✅ OPTIMIZED: Update Firebase much less frequently
             // - Every 30 seconds when > 2 minutes remaining
             // - Every 10 seconds when 30s - 2 min remaining
@@ -326,7 +381,7 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages, isTea
               (newTimeRemaining > 10 && newTimeRemaining <= 30 && newTimeRemaining % 5 === 0) ||
               (newTimeRemaining <= 10)
             );
-            
+
             if (shouldUpdateFirebase) {
               // Use throttled update (not forced) so it can batch if needed
               updateFirebaseThrottled({
@@ -334,7 +389,7 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages, isTea
                 timerActive: true
               }, newTimeRemaining <= 10); // Force only for last 10 seconds
             }
-            
+
             return {
               ...prev,
               [activityId]: {
@@ -344,11 +399,11 @@ export const useActivityTimers = (sessionCode, currentStage, lessonStages, isTea
             };
           });
         }, 1000);
-        
+
         intervals.push(interval);
       }
     });
-    
+
     return () => intervals.forEach(interval => clearInterval(interval));
   }, [activityTimers, updateFirebaseThrottled, isTeacher]);
 
