@@ -192,14 +192,14 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
         <div className="absolute inset-0 bg-black/50 pointer-events-none" />
 
         {/* Header */}
-        <div className="text-center pt-4 pb-6 relative z-10">
+        <div className="text-center pt-2 pb-4 relative z-10">
           <h1
-            className="text-5xl font-black text-white mb-2 uppercase tracking-wider"
+            className="text-4xl font-black text-white mb-1 uppercase tracking-wider"
             style={{ textShadow: '0 0 20px rgba(139, 92, 246, 0.8), 0 4px 8px rgba(0,0,0,0.5)' }}
           >
             Beat Escape Room
           </h1>
-          <p className="text-xl text-purple-200">
+          <p className="text-lg text-purple-200">
             Create beat puzzles for your partner to solve!
           </p>
         </div>
@@ -207,25 +207,25 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
         {/* Main Content */}
         <div className="flex-1 flex flex-col items-center relative z-10">
           {/* Mode Selection - Hero Section */}
-          <div className="w-full max-w-3xl mb-8">
-            <h2 className="text-center text-2xl font-bold text-white mb-6"
+          <div className="w-full max-w-3xl mb-4">
+            <h2 className="text-center text-xl font-bold text-white mb-4"
                 style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
               How are you working today?
             </h2>
 
-            <div className="flex gap-4 justify-center">
+            <div className="flex gap-3 justify-center">
               {modes.map(mode => (
                 <button
                   key={mode.id}
                   onClick={() => handleModeSelect(mode.id)}
-                  className="group bg-gray-800/90 hover:bg-gray-700/90 border-2 border-gray-600 hover:border-purple-500 rounded-xl p-4 w-32 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-purple-500/30"
+                  className="group bg-gray-800/90 hover:bg-gray-700/90 border-2 border-gray-600 hover:border-purple-500 rounded-xl p-3 w-28 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-purple-500/30"
                 >
-                  <div className="text-lg font-bold text-white mb-1">{mode.label}</div>
+                  <div className="text-base font-bold text-white mb-0.5">{mode.label}</div>
                   <div className="text-purple-400 font-semibold text-sm">
                     {mode.totalLocks} locks
                   </div>
                   {mode.perPerson < mode.totalLocks && (
-                    <div className="text-gray-400 text-xs mt-1">
+                    <div className="text-gray-400 text-xs">
                       ({mode.perPerson} each)
                     </div>
                   )}
@@ -233,9 +233,9 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
               ))}
 
               {/* Play Someone Else's Room */}
-              <div className="bg-gray-800/90 border-2 border-gray-600 rounded-xl p-4 w-40">
-                <div className="text-sm font-bold text-white mb-1">Play Someone Else's Room</div>
-                <div className="text-gray-400 text-xs mb-2">Enter their code:</div>
+              <div className="bg-gray-800/90 border-2 border-gray-600 rounded-xl p-3 w-36">
+                <div className="text-sm font-bold text-white mb-0.5">Play Someone Else's Room</div>
+                <div className="text-gray-400 text-xs mb-1.5">Enter their code:</div>
                 <input
                   type="text"
                   value={playCode}
@@ -250,7 +250,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
                   }}
                   placeholder="CODE"
                   maxLength={6}
-                  className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-white text-center text-sm font-mono tracking-widest uppercase focus:outline-none focus:border-green-500 mb-2"
+                  className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded-lg text-white text-center text-sm font-mono tracking-widest uppercase focus:outline-none focus:border-green-500 mb-1.5"
                 />
                 {playError && (
                   <div className="text-red-400 text-xs mb-1">{playError}</div>
@@ -264,7 +264,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
                     }
                   }}
                   disabled={playCode.length < 4}
-                  className={`w-full px-3 py-1.5 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-1 ${
+                  className={`w-full px-2 py-1 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-1 ${
                     playCode.length >= 4
                       ? 'bg-green-600 hover:bg-green-500 text-white'
                       : 'bg-gray-700 text-gray-500 cursor-not-allowed'
@@ -280,13 +280,13 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
           {/* Saved Rooms Section */}
           {savedRooms.length > 0 && (
             <div className="w-full max-w-4xl">
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-3 mb-2">
                 <div className="flex-1 h-px bg-gray-600" />
-                <h3 className="text-lg font-semibold text-gray-300">YOUR ESCAPE ROOMS</h3>
+                <h3 className="text-base font-semibold text-gray-300">YOUR ESCAPE ROOMS</h3>
                 <div className="flex-1 h-px bg-gray-600" />
               </div>
 
-              <div className="flex gap-4 overflow-x-auto pb-2">
+              <div className="flex gap-3 overflow-x-auto pb-2">
                 {savedRooms.map((room, index) => {
                   const themeName = THEMES[room.data?.theme]?.name || 'Escape';
                   const defaultTitle = `My ${themeName} Room`;
@@ -297,10 +297,10 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
                   return (
                     <div
                       key={index}
-                      className="bg-gray-800/90 rounded-xl p-4 border border-gray-600 min-w-[200px] flex-shrink-0"
+                      className="bg-gray-800/90 rounded-xl p-3 border border-gray-600 min-w-[170px] flex-shrink-0"
                     >
                       {isEditing ? (
-                        <div className="mb-3">
+                        <div className="mb-2">
                           <input
                             type="text"
                             value={editingTitle}
@@ -313,7 +313,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
                           />
                         </div>
                       ) : (
-                        <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-start justify-between mb-1">
                           <div className="text-white font-semibold text-sm leading-tight pr-2">
                             {displayTitle}
                           </div>
@@ -322,25 +322,25 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
                               setEditingRoomIndex(index);
                               setEditingTitle(room.title || '');
                             }}
-                            className="text-gray-400 hover:text-purple-400 transition-colors p-1"
+                            className="text-gray-400 hover:text-purple-400 transition-colors p-0.5"
                             title="Edit title"
                           >
-                            <Pencil size={14} />
+                            <Pencil size={12} />
                           </button>
                         </div>
                       )}
-                      <div className="text-gray-400 text-xs mb-3">
+                      <div className="text-gray-400 text-xs mb-2">
                         {lockCount} locks • {themeName}
                       </div>
                       <button
                         onClick={() => onPlaySavedRoom?.(room)}
-                        className="w-full px-3 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                        className="w-full px-2 py-1.5 bg-green-600 hover:bg-green-500 rounded-lg text-white text-sm font-semibold transition-colors flex items-center justify-center gap-1"
                       >
-                        <Play size={16} />
+                        <Play size={14} />
                         Play
                       </button>
                       {room.data?.shareCode && (
-                        <div className="text-center text-gray-400 text-xs mt-2">
+                        <div className="text-center text-gray-400 text-xs mt-1.5">
                           Code: <span className="font-mono text-white">{room.data.shareCode}</span>
                         </div>
                       )}
