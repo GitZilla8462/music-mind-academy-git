@@ -1,7 +1,9 @@
 // TrackFadePopup.jsx - Popup for track-level fade in/out controls
 // Appears when clicking the fade button in the track header
+// Uses Portal to render at document body level (fixes z-index stacking issues)
 
 import React, { useCallback, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 const TrackFadePopup = ({
   trackId,
@@ -54,14 +56,16 @@ const TrackFadePopup = ({
     return `${seconds.toFixed(1)}s`;
   };
 
-  return (
+  // Use portal to render at document body level, escaping any parent stacking contexts
+  return createPortal(
     <div
       ref={popupRef}
-      className="fixed z-[9999] bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-3"
+      className="fixed bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-3"
       style={{
         left: position?.x || 100,
         top: position?.y || 100,
-        minWidth: '180px'
+        minWidth: '180px',
+        zIndex: 99999 // Very high z-index since we're at body level now
       }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -137,7 +141,8 @@ const TrackFadePopup = ({
           Smooth
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
