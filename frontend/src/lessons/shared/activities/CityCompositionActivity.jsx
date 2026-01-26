@@ -297,13 +297,14 @@ const CityCompositionActivity = ({
   }, [videoDurations]);
   
   // AUTO-SAVE
-  const compositionData = {
+  // 🔥 PERFORMANCE FIX: Memoize compositionData and remove timestamp
+  // timestamp: Date.now() was causing data to always appear "changed", triggering saves every interval
+  const compositionData = useMemo(() => ({
     placedLoops,
     videoDuration,
-    videoId: selectedVideo?.id,
-    timestamp: Date.now()
-  };
-  
+    videoId: selectedVideo?.id
+  }), [placedLoops, videoDuration, selectedVideo?.id]);
+
   const { hasSavedWork, loadSavedWork } = useAutoSave(
     studentId,
     'city-composition',
