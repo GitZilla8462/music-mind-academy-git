@@ -320,8 +320,15 @@ export const useAudioEngine = (videoDuration = 60) => {
       const trackId = `track-${loop.trackIndex}`;
       const trackState = trackStates[trackId];
 
+      // Check if muted
       if (!trackState || trackState.muted) {
         return;
+      }
+
+      // Check for solo: if ANY track is soloed, only play soloed tracks
+      const anyTrackSoloed = Object.values(trackStates).some(ts => ts.solo);
+      if (anyTrackSoloed && !trackState.solo) {
+        return; // Skip non-soloed tracks when solo is active
       }
 
       const trackVolume = trackState.volume ?? 0.7;

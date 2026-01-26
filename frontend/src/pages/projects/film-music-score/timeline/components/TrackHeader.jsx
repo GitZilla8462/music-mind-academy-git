@@ -2,6 +2,7 @@
 // FIXED: Changed width from w-40 to w-48 to eliminate gap
 
 import React from 'react';
+import { VolumeX, Headphones } from 'lucide-react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
 
 const TrackHeader = ({ 
@@ -83,15 +84,15 @@ const TrackHeader = ({
               e.stopPropagation();
               updateTrackState(trackId, { muted: !trackState.muted });
             }}
-            className={`px-1 text-[9px] leading-none rounded transition-colors flex-shrink-0 ${
-              trackState.muted 
-                ? 'bg-red-500 text-white' 
+            className={`rounded transition-colors flex-shrink-0 flex items-center justify-center ${
+              trackState.muted
+                ? 'bg-red-500 text-white'
                 : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
             }`}
-            style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            title="Mute"
+            style={{ width: '18px', height: '18px' }}
+            title="Mute this track"
           >
-            M
+            <VolumeX size={12} />
           </button>
 
           <button
@@ -99,15 +100,15 @@ const TrackHeader = ({
               e.stopPropagation();
               updateTrackState(trackId, { solo: !trackState.solo });
             }}
-            className={`px-1 text-[9px] leading-none rounded transition-colors flex-shrink-0 ${
-              trackState.solo 
-                ? 'bg-yellow-500 text-black' 
+            className={`rounded transition-colors flex-shrink-0 flex items-center justify-center ${
+              trackState.solo
+                ? 'bg-yellow-500 text-black'
                 : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
             }`}
-            style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            title="Solo"
+            style={{ width: '18px', height: '18px' }}
+            title="Solo - hear only this track"
           >
-            S
+            <Headphones size={12} />
           </button>
         </div>
       </div>
