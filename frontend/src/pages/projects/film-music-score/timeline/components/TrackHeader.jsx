@@ -2,7 +2,7 @@
 // FIXED: Changed width from w-40 to w-48 to eliminate gap
 
 import React from 'react';
-import { VolumeX, Headphones } from 'lucide-react';
+import { Volume2, VolumeX, Headphones } from 'lucide-react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
 
 const TrackHeader = ({ 
@@ -53,8 +53,10 @@ const TrackHeader = ({
             {trackState.name || `Track ${trackIndex + 1}`}
           </span>
 
-          {/* Volume bars - 5 segments for 0%, 25%, 50%, 75%, 100% */}
-          <div className="flex items-center gap-0.5 flex-1" title={`Volume: ${Math.round((trackState.volume || 0.7) * 100)}%`}>
+          {/* Volume icon + bars - 5 segments for 20%, 40%, 60%, 80%, 100% */}
+          <div className="flex items-center gap-1 flex-1" title={`Volume: ${Math.round((trackState.volume || 0.7) * 100)}%`}>
+            <Volume2 size={12} className="text-gray-400 flex-shrink-0" />
+            <div className="flex items-center gap-0.5 flex-1">
             {[0.2, 0.4, 0.6, 0.8, 1.0].map((level, i) => {
               const currentVolume = trackState.volume ?? 0.7;
               const isFilled = currentVolume >= level - 0.1;
@@ -73,6 +75,7 @@ const TrackHeader = ({
                 />
               );
             })}
+            </div>
           </div>
         </div>
 
