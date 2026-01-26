@@ -1046,6 +1046,8 @@ const MusicComposer = ({
         onPause={handlePause}
         onSeek={handleSeek}
         onRestart={handleRestart}
+        volume={volume}
+        onVolumeChange={setMasterVolume}
       />
 
       {/* Loading screen overlay - shows while DAW initializes underneath */}

@@ -2,7 +2,7 @@
 // Shows loop blocks on left, video on right, simple transport controls at bottom
 
 import React, { useEffect, useCallback, useRef } from 'react';
-import { X, Play, Pause, RotateCcw } from 'lucide-react';
+import { X, Play, Pause, RotateCcw, SkipBack, SkipForward, Volume2 } from 'lucide-react';
 
 const FullScreenPreview = ({
   isOpen,
@@ -15,7 +15,9 @@ const FullScreenPreview = ({
   onPlay,
   onPause,
   onSeek,
-  onRestart
+  onRestart,
+  volume,
+  onVolumeChange
 }) => {
   const videoRef = useRef(null);
 
@@ -78,6 +80,17 @@ const FullScreenPreview = ({
     const newTime = percent * duration;
     onSeek(newTime);
   }, [duration, onSeek]);
+
+  // Skip forward/backward by 5 seconds
+  const handleSkipBack = useCallback(() => {
+    const newTime = Math.max(0, currentTime - 5);
+    onSeek(newTime);
+  }, [currentTime, onSeek]);
+
+  const handleSkipForward = useCallback(() => {
+    const newTime = Math.min(duration, currentTime + 5);
+    onSeek(newTime);
+  }, [currentTime, duration, onSeek]);
 
   // Get unique track indices and sort them
   const trackIndices = [...new Set(placedLoops.map(loop => loop.trackIndex))].sort((a, b) => a - b);
@@ -195,15 +208,26 @@ const FullScreenPreview = ({
       </div>
 
       {/* Bottom transport controls */}
-      <div className="h-16 bg-gray-800 border-t border-gray-700 flex items-center justify-center gap-4 px-4">
+      <div className="h-16 bg-gray-800 border-t border-gray-700 flex items-center justify-center gap-3 px-6">
+        {/* Restart */}
         <button
           onClick={onRestart}
-          className="p-3 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
+          className="p-2.5 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
           title="Restart"
         >
-          <RotateCcw size={20} />
+          <RotateCcw size={18} />
         </button>
 
+        {/* Skip Back 5s */}
+        <button
+          onClick={handleSkipBack}
+          className="p-2.5 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
+          title="Back 5 seconds"
+        >
+          <SkipBack size={18} />
+        </button>
+
+        {/* Play/Pause */}
         <button
           onClick={isPlaying ? onPause : onPlay}
           className="p-4 bg-blue-600 hover:bg-blue-500 rounded-full text-white transition-colors"
@@ -212,8 +236,33 @@ const FullScreenPreview = ({
           {isPlaying ? <Pause size={28} /> : <Play size={28} className="ml-1" />}
         </button>
 
-        <div className="text-white font-mono text-lg ml-4">
+        {/* Skip Forward 5s */}
+        <button
+          onClick={handleSkipForward}
+          className="p-2.5 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
+          title="Forward 5 seconds"
+        >
+          <SkipForward size={18} />
+        </button>
+
+        {/* Time display */}
+        <div className="text-white font-mono text-base mx-4">
           {formatTime(currentTime)} / {formatTime(duration)}
+        </div>
+
+        {/* Volume control */}
+        <div className="flex items-center gap-2 ml-4">
+          <Volume2 size={20} className="text-gray-400" />
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={volume ?? 0.7}
+            onChange={(e) => onVolumeChange?.(parseFloat(e.target.value))}
+            className="w-24 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+            title={`Volume: ${Math.round((volume ?? 0.7) * 100)}%`}
+          />
         </div>
       </div>
     </div>
