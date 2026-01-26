@@ -123,7 +123,10 @@ const TrackHeader = ({
             ref={fadeButtonRef}
             onClick={(e) => {
               e.stopPropagation();
-              setShowFadePopup(!showFadePopup);
+              // Only open, don't toggle - let clicking outside close it
+              if (!showFadePopup) {
+                setShowFadePopup(true);
+              }
             }}
             className={`rounded transition-colors flex-shrink-0 flex items-center justify-center ${
               (trackState.fadeIn > 0 || trackState.fadeOut > 0)
@@ -139,18 +142,28 @@ const TrackHeader = ({
       </div>
 
       {/* Fade popup */}
-      {showFadePopup && fadeButtonRef.current && (
-        <TrackFadePopup
-          trackId={trackId}
-          trackState={trackState}
-          onUpdate={updateTrackState}
-          onClose={() => setShowFadePopup(false)}
-          position={{
-            x: fadeButtonRef.current.getBoundingClientRect().left,
-            y: fadeButtonRef.current.getBoundingClientRect().bottom + 5
-          }}
-        />
-      )}
+      {showFadePopup && fadeButtonRef.current && (() => {
+        const buttonRect = fadeButtonRef.current.getBoundingClientRect();
+        const popupHeight = 180; // Approximate popup height
+        const spaceBelow = window.innerHeight - buttonRect.bottom;
+        const spaceAbove = buttonRect.top;
+
+        // Show above if not enough room below, otherwise show below
+        const showAbove = spaceBelow < popupHeight && spaceAbove > spaceBelow;
+
+        return (
+          <TrackFadePopup
+            trackId={trackId}
+            trackState={trackState}
+            onUpdate={updateTrackState}
+            onClose={() => setShowFadePopup(false)}
+            position={{
+              x: buttonRect.left,
+              y: showAbove ? buttonRect.top - popupHeight - 5 : buttonRect.bottom + 5
+            }}
+          />
+        );
+      })()}
     </div>
   );
 };
