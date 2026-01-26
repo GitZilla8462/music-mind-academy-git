@@ -738,12 +738,12 @@ const MusicComposer = ({
   // Track state change handler with callback
   const handleTrackStateChange = useCallback((newTrackStates) => {
     setTrackStates(newTrackStates);
-    
+
     if (onTrackVolumeChangeCallback || onTrackSoloToggleCallback) {
       Object.keys(newTrackStates).forEach(trackKey => {
         const oldState = trackStates[trackKey];
         const newState = newTrackStates[trackKey];
-        
+
         if (oldState && newState) {
           if (oldState.volume !== newState.volume && onTrackVolumeChangeCallback) {
             onTrackVolumeChangeCallback(trackKey, newState.volume);
@@ -754,7 +754,12 @@ const MusicComposer = ({
         }
       });
     }
-  }, [trackStates, onTrackVolumeChangeCallback, onTrackSoloToggleCallback, setTrackStates]);
+
+    // Reschedule loops during playback so mute/solo changes take effect immediately
+    if (isPlaying && placedLoops.length > 0) {
+      scheduleLoops(placedLoops, selectedVideo?.duration || 60, newTrackStates);
+    }
+  }, [trackStates, onTrackVolumeChangeCallback, onTrackSoloToggleCallback, setTrackStates, isPlaying, placedLoops, scheduleLoops, selectedVideo?.duration]);
 
   // UI Actions
   const handleBack = () => {
