@@ -362,9 +362,18 @@ export const useAudioEngine = (videoDuration = 60) => {
       const shouldLoop = timelineDuration > bufferDuration * 1.05;
 
       // Calculate audio offset
+      // KEY FIX: Sync all loops to a global beat grid starting from time 0
+      // This ensures loops entering later are in phase with loops already playing
       let audioOffset;
-      if (shouldLoop && timelineProgress > 0) {
-        audioOffset = loopOffset + (timelineProgress % bufferDuration);
+      if (shouldLoop) {
+        if (timelineProgress > 0) {
+          // Loop already started - calculate position based on current time
+          audioOffset = loopOffset + (timelineProgress % bufferDuration);
+        } else {
+          // Loop starts in the future - sync to global beat grid
+          // Calculate what beat position the loop should start at based on its start time
+          audioOffset = loopOffset + (loop.startTime % bufferDuration);
+        }
       } else {
         audioOffset = loopOffset + timelineProgress;
       }
