@@ -551,7 +551,7 @@ const BeatEscapeRoomActivity = ({ onComplete, viewMode, isSessionMode }) => {
   };
 
   return (
-    <div className="beat-escape-room-activity">
+    <div className="beat-escape-room-activity h-screen bg-gray-900 overflow-hidden">
       {renderPhase()}
     </div>
   );
