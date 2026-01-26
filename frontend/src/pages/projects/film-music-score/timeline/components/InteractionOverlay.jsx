@@ -607,13 +607,14 @@ const InteractionOverlay = ({
     if ((isDraggingLoop || isResizing) && pendingLoopUpdateRef.current) {
       const pending = pendingLoopUpdateRef.current;
 
-      // Clear the transform on the loop element
+      // Clear DOM overrides on the loop element (transform for drag, width for resize)
       if (timelineRef.current) {
         const loopElement = timelineRef.current.querySelector(`[data-loop-id="${pending.id}"]`);
         if (loopElement) {
           loopElement.style.transform = '';
           loopElement.style.transformOrigin = '';
           loopElement.style.zIndex = '';
+          loopElement.style.width = ''; // Clear resize width override
         }
       }
 
@@ -767,9 +768,17 @@ const InteractionOverlay = ({
       newStartTime = Math.max(0, Math.min(maxStartTime, snappedTime));
     }
 
-    // RESIZE OPTIMIZATION: Only update state when the repeat count changes
-    // This shows students "1 loop... 2 loops... 3 loops" as they drag
-    // with minimal state updates (2-5 updates instead of ~80)
+    // SMOOTH VISUAL FEEDBACK: Update element width via DOM for instant response
+    // This gives smooth expansion without React re-renders
+    const loopElement = timelineRef.current.querySelector(`[data-loop-id="${activeLoop.id}"]`);
+    if (loopElement) {
+      const newWidth = timeToPixel(newEndTime) - timeToPixel(newStartTime);
+      loopElement.style.width = `${newWidth}px`;
+    }
+
+    // RESIZE OPTIMIZATION: Only update React state when repeat count changes
+    // This shows repeat markers appearing as students drag past loop boundaries
+    // Minimal state updates (2-5 instead of ~80) for Chromebook performance
     const originalDuration = activeLoop.duration;
     const newDuration = newEndTime - newStartTime;
     const newRepeatCount = Math.floor(newDuration / originalDuration);
