@@ -96,6 +96,10 @@ const InteractionOverlay = ({
   const lastUpdateRef = useRef(0);
   const rafRef = useRef(null);
   const isShiftKeyRef = useRef(false);
+
+  // PERFORMANCE FIX: Store pending loop update during drag, only apply on drag end
+  // This reduces ~80 state updates per drag to just 1, helping Chromebook performance
+  const pendingLoopUpdateRef = useRef(null);
   
   // CHROMEBOOK FIX: Throttle cursor updates to prevent flickering
   const cursorUpdateRef = useRef(0);
@@ -590,41 +594,73 @@ const InteractionOverlay = ({
   ]);
 
   const handleMouseUp = useCallback((e) => {
+    // PERFORMANCE FIX: Apply pending loop update on drag end (single state update)
+    // This replaces the ~80 state updates that were happening during drag
+    if ((isDraggingLoop || isResizing) && pendingLoopUpdateRef.current) {
+      const pending = pendingLoopUpdateRef.current;
+
+      // Clear the transform on the loop element
+      if (timelineRef.current) {
+        const loopElement = timelineRef.current.querySelector(`[data-loop-id="${pending.id}"]`);
+        if (loopElement) {
+          loopElement.style.transform = '';
+          loopElement.style.transformOrigin = '';
+          loopElement.style.zIndex = '';
+        }
+      }
+
+      // Apply the final update (single state update instead of ~80)
+      if (pending.isResize) {
+        onLoopResize?.(pending.id, {
+          startTime: pending.startTime,
+          endTime: pending.endTime
+        });
+      }
+      onLoopUpdate?.(pending.id, {
+        trackIndex: pending.trackIndex,
+        startTime: pending.startTime,
+        endTime: pending.endTime
+      });
+
+      pendingLoopUpdateRef.current = null;
+    }
+
     // End any active operation
     if (isDraggingLoop) {
       updateSnapGuide(null, false);
       setIsDraggingLoop(false);
       setActiveLoop(null);
     }
-    
+
     if (isResizing) {
       updateSnapGuide(null, false);
       setIsResizing(false);
       setResizeDirection(null);
       setActiveLoop(null);
     }
-    
+
     if (isDraggingPlayhead) {
       setIsDraggingPlayhead?.(false);
       onPlayheadDragEnd?.();
     }
-    
+
     if (isSelecting) {
       setIsSelecting(false);
       onSelectionEnd?.();
     }
-    
+
     // Reset cursor based on current position
     const { x, y } = getMousePosition(e);
     setCursor(calculateCursor(x, y));
-    
+
     // Reset drag state
     dragStateRef.current = {};
     lastUpdateRef.current = 0;
   }, [
     isDraggingLoop, isResizing, isDraggingPlayhead, isSelecting,
     getMousePosition, calculateCursor, setIsDraggingPlayhead,
-    onPlayheadDragEnd, onSelectionEnd, updateSnapGuide
+    onPlayheadDragEnd, onSelectionEnd, updateSnapGuide, timelineRef,
+    onLoopUpdate, onLoopResize
   ]);
 
   const handleContextMenu = useCallback((e) => {
@@ -660,50 +696,58 @@ const InteractionOverlay = ({
   const handleLoopDrag = useCallback((e, x, y) => {
     if (!activeLoop) return;
     if (!timelineRef.current) return;
-    
+
     const targetLoopLeft = x - dragStateRef.current.loopOffsetX;
     const targetLoopTop = y - dragStateRef.current.loopOffsetY;
-    
+
     let newStartTime = pixelToTime(targetLoopLeft);
-    
+
     // Apply snapping
     const snapResult = applySnapping(newStartTime, activeLoop.id);
     newStartTime = snapResult.time;
-    
+
     // Calculate track index using constants (more reliable than DOM queries)
     // CHROMEBOOK FIX: DOM getBoundingClientRect returns viewport pixels,
     // but our y coordinate is already zoom-corrected, causing ~1 track offset
     const yRelativeToTracks = targetLoopTop - TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT;
     const newTrackIndex = Math.floor(yRelativeToTracks / TIMELINE_CONSTANTS.TRACK_HEIGHT);
-    
+
     // Constrain values
     const loopDuration = activeLoop.endTime - activeLoop.startTime;
     const constrainedTrack = Math.max(0, Math.min(TIMELINE_CONSTANTS.NUM_TRACKS - 1, newTrackIndex));
     const constrainedStart = Math.max(0, Math.min(duration - loopDuration, newStartTime));
-    
-    // Throttle updates for performance (25ms = ~40fps, balanced for Chromebook)
-    const now = Date.now();
-    if (now - lastUpdateRef.current > 25) {
-      lastUpdateRef.current = now;
-      
-      onLoopUpdate?.(activeLoop.id, {
-        trackIndex: constrainedTrack,
-        startTime: constrainedStart,
-        endTime: constrainedStart + loopDuration
-      });
+
+    // PERFORMANCE FIX: Instead of updating React state every 25ms (causing ~80 re-renders per drag),
+    // use direct DOM transforms for visual feedback. State is updated once on drag end.
+    // This dramatically reduces CPU/memory usage on low-powered Chromebooks.
+    const loopElement = timelineRef.current.querySelector(`[data-loop-id="${activeLoop.id}"]`);
+    if (loopElement) {
+      const deltaX = timeToPixel(constrainedStart) - timeToPixel(activeLoop.startTime);
+      const deltaY = (constrainedTrack - activeLoop.trackIndex) * TIMELINE_CONSTANTS.TRACK_HEIGHT;
+      loopElement.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+      loopElement.style.zIndex = '100'; // Keep dragged loop on top
     }
-  }, [activeLoop, pixelToTime, applySnapping, duration, onLoopUpdate, timelineRef, timelineScrollRef]);
+
+    // Store the pending update for mouse up
+    pendingLoopUpdateRef.current = {
+      id: activeLoop.id,
+      trackIndex: constrainedTrack,
+      startTime: constrainedStart,
+      endTime: constrainedStart + loopDuration
+    };
+  }, [activeLoop, pixelToTime, applySnapping, duration, timelineRef, timeToPixel]);
 
   const handleResizeDrag = useCallback((e, x) => {
     if (!activeLoop || !resizeDirection) return;
-    
+    if (!timelineRef.current) return;
+
     const newTime = pixelToTime(x);
     const snapResult = applySnapping(newTime, activeLoop.id);
     const snappedTime = snapResult.time;
-    
+
     let newStartTime = activeLoop.startTime;
     let newEndTime = activeLoop.endTime;
-    
+
     if (resizeDirection === 'right') {
       // Minimum duration constraint
       const minEndTime = activeLoop.startTime + 0.5;
@@ -713,24 +757,30 @@ const InteractionOverlay = ({
       const maxStartTime = activeLoop.endTime - 0.5;
       newStartTime = Math.max(0, Math.min(maxStartTime, snappedTime));
     }
-    
-    // Throttle updates (25ms = ~40fps, balanced for Chromebook)
-    const now = Date.now();
-    if (now - lastUpdateRef.current > 25) {
-      lastUpdateRef.current = now;
-      
-      onLoopResize?.(activeLoop.id, {
-        startTime: newStartTime,
-        endTime: newEndTime
-      });
-      
-      // Also call onLoopUpdate for state consistency
-      onLoopUpdate?.(activeLoop.id, {
-        startTime: newStartTime,
-        endTime: newEndTime
-      });
+
+    // PERFORMANCE FIX: Use direct DOM manipulation for visual feedback during resize
+    // instead of updating React state every 25ms. State is updated once on drag end.
+    const loopElement = timelineRef.current.querySelector(`[data-loop-id="${activeLoop.id}"]`);
+    if (loopElement) {
+      // Calculate width change for right resize
+      const newWidth = timeToPixel(newEndTime) - timeToPixel(newStartTime);
+      const originalWidth = timeToPixel(activeLoop.endTime) - timeToPixel(activeLoop.startTime);
+      const scaleX = newWidth / originalWidth;
+
+      // Apply scale transform from the left edge
+      loopElement.style.transformOrigin = 'left center';
+      loopElement.style.transform = `scaleX(${scaleX})`;
     }
-  }, [activeLoop, resizeDirection, pixelToTime, applySnapping, duration, onLoopResize, onLoopUpdate]);
+
+    // Store the pending update for mouse up
+    pendingLoopUpdateRef.current = {
+      id: activeLoop.id,
+      trackIndex: activeLoop.trackIndex,
+      startTime: newStartTime,
+      endTime: newEndTime,
+      isResize: true
+    };
+  }, [activeLoop, resizeDirection, pixelToTime, applySnapping, duration, timelineRef, timeToPixel]);
 
   const handlePlayheadDrag = useCallback((e, x) => {
     const newTime = pixelToTime(x);
