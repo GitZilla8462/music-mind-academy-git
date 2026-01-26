@@ -6,7 +6,7 @@
 // FIXED: Added debouncing to prevent double-click issues
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Play } from 'lucide-react';
+import { Play, Maximize2 } from 'lucide-react';
 
 // Debounce time for play/pause toggle (prevents double-click issues)
 const PLAY_PAUSE_DEBOUNCE_MS = 300;
@@ -22,7 +22,8 @@ const VideoPlayer = ({
   onSeek,
   onVideoReady,
   duration,
-  highlighted = false  // NEW: Highlight for tutorial
+  highlighted = false,  // NEW: Highlight for tutorial
+  onFullScreenClick     // NEW: Callback to open full screen preview
 }) => {
   const videoRef = useRef(null);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
@@ -144,7 +145,7 @@ const VideoPlayer = ({
         contain: 'layout style paint'
       }}
     >
-      <div 
+      <div
         className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded text-sm font-medium z-10"
         // CHROMEBOOK FIX: Prevent label from interfering with cursor
         style={{ pointerEvents: 'none' }}
@@ -154,6 +155,20 @@ const VideoPlayer = ({
           <span className="ml-2 text-gray-300">- {selectedVideo.title}</span>
         )}
       </div>
+
+      {/* Full Screen Preview Button */}
+      {onFullScreenClick && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onFullScreenClick();
+          }}
+          className="absolute top-4 right-4 p-2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white rounded z-10 transition-colors"
+          title="Full Screen Preview"
+        >
+          <Maximize2 size={18} />
+        </button>
+      )}
 
       {/* CHROMEBOOK OPTIMIZATION: preload="auto" and playsInline */}
       {/* CURSOR FIX: pointer-events-none so container handles all clicks consistently */}

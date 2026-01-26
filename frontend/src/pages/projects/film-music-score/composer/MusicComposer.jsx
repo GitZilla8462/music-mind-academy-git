@@ -25,6 +25,7 @@ import AudioInitModal from './components/AudioInitModal';
 import CustomCursor from '../timeline/components/CustomCursor';
 import { CursorProvider, useCursor } from '../shared/CursorContext';
 import DAWLoadingScreen from '../shared/DAWLoadingScreen';
+import FullScreenPreview from '../shared/FullScreenPreview';
 
 // CHROMEBOOK FIX: Wrapper component that uses context to get cursorKey for forced remount
 // This fixes the cursor disappearing after dropdown selection bug
@@ -109,6 +110,9 @@ const MusicComposer = ({
   const [creatorMenuOpen, setCreatorMenuOpen] = useState(false);
   const [beatMakerOpen, setBeatMakerOpen] = useState(false);
   const [melodyMakerOpen, setMelodyMakerOpen] = useState(false);
+
+  // Full screen preview mode
+  const [fullScreenPreviewOpen, setFullScreenPreviewOpen] = useState(false);
 
   // CHROMEBOOK FIX: Global custom cursor state
   // PERFORMANCE FIX: Use refs instead of state to avoid re-renders on every mousemove
@@ -1025,6 +1029,23 @@ const MusicComposer = ({
         onDeleteCustomLoop={handleDeleteCustomLoop}
         // Passive mode - disable video playback in iframe previews
         isPassive={isPassive}
+        // Full screen preview
+        onFullScreenClick={() => setFullScreenPreviewOpen(true)}
+      />
+
+      {/* Full Screen Preview Modal */}
+      <FullScreenPreview
+        isOpen={fullScreenPreviewOpen}
+        onClose={() => setFullScreenPreviewOpen(false)}
+        placedLoops={placedLoops}
+        selectedVideo={selectedVideo}
+        currentTime={currentTime}
+        duration={selectedVideo?.duration || 60}
+        isPlaying={isPlaying}
+        onPlay={handlePlay}
+        onPause={handlePause}
+        onSeek={handleSeek}
+        onRestart={handleRestart}
       />
 
       {/* Loading screen overlay - shows while DAW initializes underneath */}

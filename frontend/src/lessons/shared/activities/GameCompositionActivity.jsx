@@ -613,17 +613,6 @@ const GameCompositionActivity = ({
     }
   };
 
-  const handleChangeVideo = () => {
-    const confirmChange = window.confirm(
-      'Change video? Your loops will stay on the timeline and play with the new video you select.'
-    );
-
-    if (confirmChange) {
-      console.log('🔄 Showing video selection (keeping current composition loaded)');
-      setShowVideoSelection(true);
-    }
-  };
-
   // Composition event handlers
   const handleLoopPlaced = (loopData, trackIndex, startTime) => {
     const newLoop = {
@@ -748,14 +737,26 @@ const GameCompositionActivity = ({
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">
         <div className="px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h2 className="text-sm font-bold">
-              {selectedVideo?.emoji} {selectedVideo?.title} - Composition
-              {selectedVideo?.duration && (
-                <span className="text-xs text-gray-400 ml-2">
-                  ({formatDuration(selectedVideo.duration)})
-                </span>
-              )}
-            </h2>
+            <h2 className="text-sm font-bold">Composition</h2>
+            {!viewMode && !showReflection && (
+              <div className="flex items-center gap-1">
+                {GAME_VIDEOS.map(video => (
+                  <button
+                    key={video.id}
+                    onClick={() => handleVideoSelect(video)}
+                    disabled={selectedVideo?.id === video.id}
+                    className={`px-2 py-1 text-xs rounded transition-colors ${
+                      selectedVideo?.id === video.id
+                        ? 'bg-purple-600 text-white cursor-default'
+                        : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                    }`}
+                    title={video.title}
+                  >
+                    {video.emoji} {video.title.split(' ')[0]}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-4">

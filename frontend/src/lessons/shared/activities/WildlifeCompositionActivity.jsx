@@ -626,7 +626,7 @@ const WildlifeCompositionActivity = ({
       loop.id === loopId ? { ...loop, ...updates } : loop
     ));
   };
-  
+
   // VIDEO PREVIEW FULLSCREEN
   if (previewingVideo) {
     return (
@@ -721,14 +721,26 @@ const WildlifeCompositionActivity = ({
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">
         <div className="px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h2 className="text-sm font-bold">
-              {selectedVideo?.emoji} {selectedVideo?.title} - Epic Wildlife Soundtrack
-              {selectedVideo?.duration && (
-                <span className="text-xs text-gray-400 ml-2">
-                  ({Math.floor(selectedVideo.duration / 60)}:{Math.floor(selectedVideo.duration % 60).toString().padStart(2, '0')})
-                </span>
-              )}
-            </h2>
+            <h2 className="text-sm font-bold">Epic Wildlife</h2>
+            {!viewMode && !showReflection && (
+              <div className="flex items-center gap-1">
+                {WILDLIFE_VIDEOS.map(video => (
+                  <button
+                    key={video.id}
+                    onClick={() => handleVideoSelect(video)}
+                    disabled={selectedVideo?.id === video.id}
+                    className={`px-2 py-1 text-xs rounded transition-colors ${
+                      selectedVideo?.id === video.id
+                        ? 'bg-green-600 text-white cursor-default'
+                        : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                    }`}
+                    title={video.title}
+                  >
+                    {video.emoji} {video.title.split(' ')[0]}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           
           <div className="flex items-center gap-4">

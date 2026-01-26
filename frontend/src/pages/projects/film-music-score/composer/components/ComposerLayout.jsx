@@ -92,7 +92,10 @@ const ComposerLayout = ({
   onDeleteCustomLoop,
 
   // Passive mode - disable video playback for iframe previews
-  isPassive = false
+  isPassive = false,
+
+  // Full screen preview
+  onFullScreenClick
 }) => {
   return (
     <div 
@@ -171,7 +174,9 @@ const ComposerLayout = ({
                       onSeek={handleSeek}
                       onPlay={handlePlay}
                       onPause={pause}
-                    highlighted={highlightSelector === '.video-player-container'} />
+                      highlighted={highlightSelector === '.video-player-container'}
+                      onFullScreenClick={onFullScreenClick}
+                    />
                   </div>
                 </div>
               </div>
@@ -250,6 +255,7 @@ const ComposerLayout = ({
                       onPlay={handlePlay}
                       onPause={pause}
                       highlighted={highlightSelector === '.video-player-container'}
+                      onFullScreenClick={onFullScreenClick}
                     />
                   </div>
                 </div>
