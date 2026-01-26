@@ -957,6 +957,65 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
 
   // ========== RENDERS ==========
 
+  // Force finished (when teacher advances to results stage) - must come FIRST
+  if (forceFinished) {
+    const getRankEmoji = (r) => {
+      if (r === 1) return '🥇';
+      if (r === 2) return '🥈';
+      if (r === 3) return '🥉';
+      return '🎖️';
+    };
+
+    const getRankText = (r) => {
+      if (r === 1) return '1st Place!';
+      if (r === 2) return '2nd Place!';
+      if (r === 3) return '3rd Place!';
+      if (r) return `${r}${r === 11 || r === 12 || r === 13 ? 'th' : r % 10 === 1 ? 'st' : r % 10 === 2 ? 'nd' : r % 10 === 3 ? 'rd' : 'th'} Place`;
+      return '';
+    };
+
+    return (
+      <>
+        <div className="h-screen flex flex-col bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white">
+          <style>{styles}</style>
+          <ActivityBanner />
+          <div className="flex-1 flex flex-col items-center justify-center p-4">
+            {/* Big rank display */}
+            <div className="text-8xl mb-2">{getRankEmoji(rank)}</div>
+
+            {/* Rank text */}
+            {rank && (
+              <div className="text-4xl font-black text-yellow-300 mb-4">
+                {getRankText(rank)}
+              </div>
+            )}
+
+            {/* Player identity card */}
+            <div
+              className="inline-flex flex-col items-center px-10 py-5 rounded-2xl mb-4 shadow-lg border-4 border-white/30"
+              style={{ backgroundColor: playerColor || '#3B82F6' }}
+            >
+              <span className="text-5xl mb-2">{playerEmoji || '🎵'}</span>
+              <span className="text-3xl font-black text-white">{playerName || 'Player'}</span>
+            </div>
+
+            {/* Score */}
+            <div className="bg-black/30 rounded-2xl px-8 py-4 mb-4 text-center">
+              <div className="text-lg text-white/70 mb-1">Final Score</div>
+              <div className="text-5xl font-black text-yellow-400">{score}</div>
+              {totalStudents > 1 && (
+                <div className="text-sm text-white/50 mt-1">out of {totalStudents} players</div>
+              )}
+            </div>
+
+            <h1 className="text-2xl font-bold text-green-400">🎉 Game Complete!</h1>
+          </div>
+        </div>
+        <TransitionOverlay isVisible={showTransition} />
+      </>
+    );
+  }
+
   // Waiting
   if (gamePhase === 'waiting') {
     return (
