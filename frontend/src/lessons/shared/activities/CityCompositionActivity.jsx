@@ -6,7 +6,7 @@
 // ✅ UPDATED: Changed bonus activity from Layer Detective to Loop Lab
 // SEAMLESS CURSOR: Uses chromebook-hide-cursor for seamless custom cursor across entire activity
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 // Detect Chromebook for seamless cursor
 const isChromebook = typeof navigator !== 'undefined' && (
@@ -166,6 +166,23 @@ const CityCompositionActivity = ({
 
   // Teacher save toast
   const [teacherSaveToast, setTeacherSaveToast] = useState(false);
+
+  // 🔥 PERFORMANCE FIX: Memoize props passed to MusicComposer to prevent infinite re-renders
+  // Creating inline objects/functions causes new references every render, triggering effect re-runs
+  const memoizedPreselectedVideo = useMemo(() => {
+    if (!selectedVideo) return null;
+    return {
+      id: selectedVideo.id,
+      title: selectedVideo.title,
+      duration: selectedVideo.duration,
+      videoPath: selectedVideo.videoPath
+    };
+  }, [selectedVideo?.id, selectedVideo?.title, selectedVideo?.duration, selectedVideo?.videoPath]);
+
+  // Memoize showToast callback to prevent re-renders
+  const memoizedShowToast = useCallback((msg, type) => {
+    console.log(msg, type);
+  }, []);
 
   // Initialize student ID
   useEffect(() => {
@@ -829,19 +846,14 @@ const CityCompositionActivity = ({
             onLoopDeleteCallback={handleLoopDeleted}
             onLoopUpdateCallback={handleLoopUpdated}
             tutorialMode={false}
-            preselectedVideo={{
-              id: selectedVideo.id,
-              title: selectedVideo.title,
-              duration: selectedVideo.duration,
-              videoPath: selectedVideo.videoPath
-            }}
+            preselectedVideo={memoizedPreselectedVideo}
             restrictToCategory={null}
             lockedMood={null}
             showSoundEffects={true}
             hideHeader={true}
             hideSubmitButton={true}
             isLessonMode={true}
-            showToast={(msg, type) => console.log(msg, type)}
+            showToast={memoizedShowToast}
             initialPlacedLoops={placedLoops}
             readOnly={viewMode || showReflection}
             assignmentPanelContent={null}
