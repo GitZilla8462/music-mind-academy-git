@@ -18,6 +18,12 @@ const TrackHeader = ({
   const trackState = trackStates[trackId] || {};
   const hasLoops = placedLoops.some(loop => loop.trackIndex === trackIndex);
 
+  // Check if this track is effectively muted (either explicitly or due to another track being soloed)
+  const anyOtherTrackSoloed = Object.entries(trackStates).some(
+    ([id, state]) => id !== trackId && state.solo
+  );
+  const isEffectivelyMuted = trackState.muted || (anyOtherTrackSoloed && !trackState.solo);
+
   // Handle track header click
   const handleHeaderClick = (e) => {
     // Only trigger if clicking the main header area, not buttons
@@ -85,12 +91,12 @@ const TrackHeader = ({
               updateTrackState(trackId, { muted: !trackState.muted });
             }}
             className={`rounded transition-colors flex-shrink-0 flex items-center justify-center ${
-              trackState.muted
+              isEffectivelyMuted
                 ? 'bg-red-500 text-white'
                 : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
             }`}
             style={{ width: '18px', height: '18px' }}
-            title="Mute this track"
+            title={isEffectivelyMuted && !trackState.muted ? "Muted (another track is soloed)" : "Mute this track"}
           >
             <VolumeX size={12} />
           </button>
