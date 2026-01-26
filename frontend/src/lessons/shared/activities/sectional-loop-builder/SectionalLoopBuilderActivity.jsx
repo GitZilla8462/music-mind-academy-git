@@ -480,7 +480,7 @@ const DemoModeGame = () => {
 };
 
 // ============ MAIN COMPONENT ============
-const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionMode = false }) => {
+const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionMode = false, forceFinished = false }) => {
   const { sessionCode, userId: contextUserId } = useSession();
 
   // Fallback: if context userId is null, try localStorage (fixes timing issue with session context)
@@ -1519,7 +1519,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
   }
 
   // Finished - Enhanced view with prominent rank display
-  if (gamePhase === 'finished') {
+  if (gamePhase === 'finished' || forceFinished) {
     const getRankEmoji = (r) => {
       if (r === 1) return '🥇';
       if (r === 2) return '🥈';

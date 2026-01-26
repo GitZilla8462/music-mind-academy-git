@@ -23,6 +23,7 @@ import TeacherLessonView from '../../shared/components/TeacherLessonView';
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 import TransitionOverlay from '../../shared/components/TransitionOverlay';
+import SectionalLoopBuilderActivity from '../../shared/activities/sectional-loop-builder/SectionalLoopBuilderActivity';
 
 const LESSON_PROGRESS_KEY = 'lesson3-progress';
 const LESSON_TIMER_KEY = 'lesson3-timer';
@@ -188,6 +189,20 @@ const Lesson3 = () => {
       );
     }
     
+    // Section Safari Results - Show student their score and rank (BEFORE results type check!)
+    if (currentStage === 'sectional-loop-builder-results') {
+      return (
+        <>
+          <SectionalLoopBuilderActivity
+            onComplete={() => {}}
+            isSessionMode={true}
+            forceFinished={true}
+          />
+          <TransitionOverlay isVisible={showTransition} />
+        </>
+      );
+    }
+
     // RESULTS: Students see "Watch the Main Screen" for game results
     if (currentStageData?.type === 'results') {
       return (
