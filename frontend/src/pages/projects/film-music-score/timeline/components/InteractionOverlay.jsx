@@ -618,16 +618,6 @@ const InteractionOverlay = ({
         }
       }
 
-      // DEBUG: Log the final update values
-      console.log('🔍 Final loop update:', {
-        id: pending.id,
-        trackIndex: pending.trackIndex,
-        startTime: pending.startTime,
-        endTime: pending.endTime,
-        duration: pending.endTime - pending.startTime,
-        isResize: pending.isResize
-      });
-
       // Apply the final update (single state update instead of ~80)
       if (pending.isResize) {
         onLoopResize?.(pending.id, {
@@ -738,18 +728,6 @@ const InteractionOverlay = ({
     // Ensure loop can always be placed at position 0, even if loop is longer than timeline
     const maxStartPosition = Math.max(0, duration - loopDuration);
     const constrainedStart = Math.max(0, Math.min(maxStartPosition, newStartTime));
-
-    // DEBUG: Log when dragging near position 0
-    if (constrainedStart < 1) {
-      console.log('🔍 Drag near 0:', {
-        constrainedStart,
-        loopDuration,
-        maxStartPosition,
-        newStartTime,
-        activeLoopStart: activeLoop.startTime,
-        activeLoopEnd: activeLoop.endTime
-      });
-    }
 
     // PERFORMANCE FIX: Instead of updating React state every 25ms (causing ~80 re-renders per drag),
     // use direct DOM transforms for visual feedback. State is updated once on drag end.
