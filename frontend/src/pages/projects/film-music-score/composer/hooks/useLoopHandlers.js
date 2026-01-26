@@ -177,36 +177,38 @@ export const useLoopHandlers = ({
 
   // 🔥 FIX: Debounce scheduleLoops to prevent infinite loop during resize
   // ✅ CHROMEBOOK OPTIMIZED: Increased debounce, reduced logging
+  // 🔥 FIX: Use functional update to avoid stale closure issue
+  // When a loop is dropped and immediately dragged, the callback might have
+  // stale placedLoops that doesn't include the new loop, causing it to disappear
   const handleLoopUpdate = useCallback((loopId, updates) => {
-    // 🔥 REMOVED: lockFeatures restriction - allow moves anytime
-    // if (lockFeatures.allowLoopMove === false) {
-    //   return;
-    // }
-
     if (onLoopUpdateCallback) {
       onLoopUpdateCallback(loopId, updates);
     }
 
-    const updatedLoops = placedLoops.map(loop => 
-      loop.id === loopId 
-        ? { ...loop, ...updates }
-        : loop
-    );
-    setPlacedLoops(updatedLoops);
+    // 🔥 FIX: Use functional update to always get latest state
+    // This prevents the bug where dragging a newly-dropped loop would use
+    // stale placedLoops from closure and lose the loop
+    setPlacedLoops(prevLoops => {
+      const updatedLoops = prevLoops.map(loop =>
+        loop.id === loopId
+          ? { ...loop, ...updates }
+          : loop
+      );
+
+      // Schedule audio update with the updated loops
+      if (scheduleTimeoutRef.current) {
+        clearTimeout(scheduleTimeoutRef.current);
+      }
+      scheduleTimeoutRef.current = setTimeout(() => {
+        scheduleLoops(updatedLoops, selectedVideo?.duration || 60, trackStates);
+        scheduleTimeoutRef.current = null;
+      }, 250);
+
+      return updatedLoops;
+    });
     setHasUnsavedChanges(true);
-    
-    // 🔥 FIX: Debounce scheduleLoops to prevent infinite loop during resize
-    // ✅ CHROMEBOOK: Increased to 250ms for smoother performance on low-end devices
-    if (scheduleTimeoutRef.current) {
-      clearTimeout(scheduleTimeoutRef.current);
-    }
-    
-    scheduleTimeoutRef.current = setTimeout(() => {
-      scheduleLoops(updatedLoops, selectedVideo?.duration || 60, trackStates);
-      scheduleTimeoutRef.current = null;
-    }, 250); // Increased from 150ms for Chromebook performance
   }, [
-    placedLoops, scheduleLoops, selectedVideo?.duration, trackStates, 
+    scheduleLoops, selectedVideo?.duration, trackStates,
     onLoopUpdateCallback, setPlacedLoops, setHasUnsavedChanges
   ]);
 
