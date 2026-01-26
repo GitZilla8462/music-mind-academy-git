@@ -94,7 +94,9 @@ const MusicComposer = ({
   // NEW: Enable creator tools (Beat Maker panel)
   showCreatorTools = false,
   // NEW: Initial custom loops (e.g., beats from StudentBeatMakerActivity)
-  initialCustomLoops = null
+  initialCustomLoops = null,
+  // NEW: Initial cursor position (for seamless cursor when MusicComposer remounts)
+  initialCursorPosition = null
 }) => {
   const { videoId, assignmentId } = useParams();
   const navigate = useNavigate();
@@ -117,7 +119,8 @@ const MusicComposer = ({
   // CHROMEBOOK FIX: Global custom cursor state
   // PERFORMANCE FIX: Use refs instead of state to avoid re-renders on every mousemove
   // React 18 batching doesn't help across separate mousemove events (60+/sec)
-  const globalMousePosRef = useRef({ x: 0, y: 0 });
+  // Use initialCursorPosition if provided (fixes cursor jump when MusicComposer remounts)
+  const globalMousePosRef = useRef(initialCursorPosition || { x: 0, y: 0 });
   const globalCursorTypeRef = useRef('default');
   const showGlobalCursorRef = useRef(true);
   // State only for values that need to trigger re-renders (cursor type changes)

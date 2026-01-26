@@ -154,6 +154,16 @@ const CityCompositionActivity = ({
   const componentMountTimeRef = useRef(Date.now());
   const isResettingRef = useRef(false); // Prevents unmount auto-save during reset
 
+  // Track mouse position so it survives MusicComposer remounts (fixes cursor jump on video switch)
+  const lastMousePositionRef = useRef({ x: 0, y: 0 });
+  useEffect(() => {
+    const trackMouse = (e) => {
+      lastMousePositionRef.current = { x: e.clientX, y: e.clientY };
+    };
+    document.addEventListener('mousemove', trackMouse, { passive: true });
+    return () => document.removeEventListener('mousemove', trackMouse);
+  }, []);
+
   // Teacher save toast
   const [teacherSaveToast, setTeacherSaveToast] = useState(false);
 
@@ -835,6 +845,7 @@ const CityCompositionActivity = ({
             initialPlacedLoops={placedLoops}
             readOnly={viewMode || showReflection}
             assignmentPanelContent={null}
+            initialCursorPosition={lastMousePositionRef.current}
           />
         ) : (
           <div className="h-full flex items-center justify-center bg-gray-900">
