@@ -41,10 +41,6 @@ export const useLoopHandlers = ({
 
     console.log('🎵 handleLoopDrop called:', { loopData: loopData?.name, trackIndex, startTime });
 
-    if (onLoopDropCallback) {
-      onLoopDropCallback(loopData, trackIndex, startTime);
-    }
-
     // 🔥 REMOVED: audioReady check - allow loops to be placed before audio initializes
     // The audio players will be created when audio becomes ready
     // if (!audioReady) {
@@ -78,6 +74,14 @@ export const useLoopHandlers = ({
         mood: loopData.mood
       })
     };
+
+    // 🔥 FIX: Call callback AFTER creating the loop, passing the full loop object
+    // This ensures CityCompositionActivity uses the SAME loop ID as MusicComposer
+    // Previously, both components created their own loops with different IDs,
+    // causing updates/deletes to fail (ID mismatch)
+    if (onLoopDropCallback) {
+      onLoopDropCallback(newLoop);
+    }
 
     // ✅ Add loop to UI IMMEDIATELY (optimistic update)
     const updatedLoops = [...placedLoops, newLoop];

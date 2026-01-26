@@ -591,28 +591,14 @@ const CityCompositionActivity = ({
   };
   
   // COMPOSITION EVENT HANDLERS - ✅ FIXED to update state
-  const handleLoopPlaced = (loopData, trackIndex, startTime) => {
-    console.log(`🎵 Loop placed: ${loopData.name} on track ${trackIndex} at ${startTime}s`);
-    
-    // Create new loop object
-    const newLoop = {
-      id: `${loopData.id}-${Date.now()}`,
-      originalId: loopData.id,
-      name: loopData.name,
-      file: loopData.file,
-      duration: loopData.duration,
-      category: loopData.category,
-      mood: loopData.mood,
-      color: loopData.color,
-      trackIndex: trackIndex,
-      startTime: startTime,
-      endTime: startTime + loopData.duration,
-      volume: 1.0
-    };
-    
-    // Update state
-    setPlacedLoops(prev => [...prev, newLoop]);
-    console.log(`✅ Added "${loopData.name}" to state - new total: ${placedLoops.length + 1}`);
+  // 🔥 FIX: Receive the full loop object from MusicComposer (with same ID)
+  // Previously created a new loop with different ID, causing update/delete failures
+  const handleLoopPlaced = (loop) => {
+    console.log(`🎵 Loop placed: ${loop.name} on track ${loop.trackIndex} at ${loop.startTime}s`);
+
+    // Update state with the loop object from MusicComposer (same ID)
+    setPlacedLoops(prev => [...prev, loop]);
+    console.log(`✅ Added "${loop.name}" to state - new total: ${placedLoops.length + 1}`);
   };
   
   const handleLoopDeleted = (loopId) => {
