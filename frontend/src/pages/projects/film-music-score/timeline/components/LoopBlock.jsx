@@ -7,7 +7,9 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import { TIMELINE_CONSTANTS } from '../constants/timelineConstants';
 
-const LoopBlock = React.memo(({
+// 🔥 FIX: Removed inner React.memo - was causing double-wrapping which prevented re-renders
+// The outer React.memo at export handles memoization with custom comparison
+const LoopBlock = ({
   loop,
   timeToPixel,
   trackStates,
@@ -266,8 +268,41 @@ const LoopBlock = React.memo(({
       />
     </div>
   );
-});
+};
 
 LoopBlock.displayName = 'LoopBlock';
 
-export default React.memo(LoopBlock);
+// 🔥 FIX: Custom comparison function to ensure re-renders when loop properties change
+// This fixes the "small sliver" bug where loops wouldn't update visually after drag
+const arePropsEqual = (prevProps, nextProps) => {
+  // Always re-render if loop object reference changed AND any key property differs
+  if (prevProps.loop !== nextProps.loop) {
+    // Check if relevant properties actually changed
+    const loopChanged = (
+      prevProps.loop.id !== nextProps.loop.id ||
+      prevProps.loop.trackIndex !== nextProps.loop.trackIndex ||
+      prevProps.loop.startTime !== nextProps.loop.startTime ||
+      prevProps.loop.endTime !== nextProps.loop.endTime ||
+      prevProps.loop.color !== nextProps.loop.color ||
+      prevProps.loop.name !== nextProps.loop.name
+    );
+    if (loopChanged) return false; // Re-render needed
+  }
+
+  // Check other props that affect rendering
+  if (prevProps.selectedLoop !== nextProps.selectedLoop) return false;
+  if (prevProps.draggedLoop?.id !== nextProps.draggedLoop?.id) return false;
+  if (prevProps.isMultiSelected !== nextProps.isMultiSelected) return false;
+  if (prevProps.timeToPixel !== nextProps.timeToPixel) return false;
+
+  // Track states comparison (check the specific track for this loop)
+  const trackKey = `track-${prevProps.loop.trackIndex}`;
+  const prevTrackState = prevProps.trackStates[trackKey];
+  const nextTrackState = nextProps.trackStates[trackKey];
+  if (prevTrackState?.muted !== nextTrackState?.muted) return false;
+  if (prevTrackState?.visible !== nextTrackState?.visible) return false;
+
+  return true; // Props are equal, skip re-render
+};
+
+export default React.memo(LoopBlock, arePropsEqual);
