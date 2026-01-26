@@ -378,9 +378,6 @@ export const useAudioEngine = (videoDuration = 60) => {
         audioOffset = loopOffset + timelineProgress;
       }
 
-      // DEBUG: Log sync calculations
-      console.log(`🎵 SYNC: "${loop.name}" track=${loop.trackIndex} startTime=${loop.startTime.toFixed(2)} bufferDur=${bufferDuration.toFixed(2)} audioOffset=${audioOffset.toFixed(2)} shouldLoop=${shouldLoop}`);
-
       // How much timeline remains for this loop
       const remainingTimeline = loop.endTime - Math.max(loop.startTime, schedulingStartTime);
 
