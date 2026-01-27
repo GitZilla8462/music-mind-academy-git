@@ -20,6 +20,16 @@ const LoopBlock = ({
 }) => {
   const originalDurationRef = useRef(null);
 
+  // DEBUG: Log every render to track re-render behavior
+  console.log('🎨 LoopBlock render:', {
+    loopId: loop.id,
+    loopName: loop.name,
+    startTime: loop.startTime,
+    endTime: loop.endTime,
+    trackIndex: loop.trackIndex,
+    isDragged: draggedLoop?.id === loop.id
+  });
+
   // Track original duration on first render
   useEffect(() => {
     if (originalDurationRef.current === null && loop.duration > 0) {
@@ -32,11 +42,31 @@ const LoopBlock = ({
   const trackState = trackStates[`track-${loop.trackIndex}`];
 
   // Calculate positions and dimensions
-  const { leftPosition, width, topPosition } = useMemo(() => ({
-    leftPosition: timeToPixel(loop.startTime),
-    width: Math.max(1, timeToPixel(loop.endTime) - timeToPixel(loop.startTime)),
-    topPosition: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT)
-  }), [timeToPixel, loop.startTime, loop.endTime, loop.trackIndex]);
+  const { leftPosition, width, topPosition } = useMemo(() => {
+    const left = timeToPixel(loop.startTime);
+    const right = timeToPixel(loop.endTime);
+    const calculatedWidth = Math.max(1, right - left);
+
+    // DEBUG: Log when width is suspiciously small
+    if (calculatedWidth < 10) {
+      console.log('🔴 LoopBlock tiny width:', {
+        loopId: loop.id,
+        loopName: loop.name,
+        startTime: loop.startTime,
+        endTime: loop.endTime,
+        leftPx: left,
+        rightPx: right,
+        width: calculatedWidth,
+        isDragged
+      });
+    }
+
+    return {
+      leftPosition: left,
+      width: calculatedWidth,
+      topPosition: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT)
+    };
+  }, [timeToPixel, loop.startTime, loop.endTime, loop.trackIndex, loop.id, loop.name, isDragged]);
 
   const loopColor = loop.color || TIMELINE_CONSTANTS.CATEGORY_COLORS[loop.category]?.accent || '#3b82f6';
 
@@ -67,19 +97,18 @@ const LoopBlock = ({
       data-start-time={loop.startTime}
       data-end-time={loop.endTime}
       style={{
-        // CHROMEBOOK OPTIMIZED: Use transform for positioning during drag (GPU-accelerated)
-        // This moves composition to GPU instead of triggering layout/paint
-        left: isDragged ? 0 : leftPosition,
-        top: isDragged ? 0 : (topPosition + 2),
+        // FIX: Always use state-based positioning. InteractionOverlay applies delta transforms
+        // on top of this base position during drag. Previously, isDragged mode used left:0/top:0
+        // with absolute transform positioning, which conflicted with InteractionOverlay's delta transforms.
+        left: leftPosition,
+        top: topPosition + 2,
         width: width,
         height: blockHeight,
         backgroundColor: loopColor + '60',
         borderRadius: `${cornerRadius}px`,
         opacity: trackState?.muted ? 0.4 : (isDragged ? 0.8 : 1),
-        // GPU-accelerated transform - use translate3d during drag for smooth movement
-        transform: isDragged
-          ? `translate3d(${leftPosition}px, ${topPosition + 2}px, 0) scale(1.02)`
-          : 'scale(1)',
+        // Keep scale effect for visual feedback during drag
+        transform: isDragged ? 'scale(1.02)' : 'scale(1)',
         // Tell browser to prepare GPU layer when dragging
         willChange: isDragged ? 'transform' : 'auto',
         // Disable transitions during drag for immediate response
@@ -286,12 +315,28 @@ const arePropsEqual = (prevProps, nextProps) => {
       prevProps.loop.color !== nextProps.loop.color ||
       prevProps.loop.name !== nextProps.loop.name
     );
-    if (loopChanged) return false; // Re-render needed
+    if (loopChanged) {
+      console.log('🔄 arePropsEqual: loop changed, will re-render', {
+        id: nextProps.loop.id,
+        prevStart: prevProps.loop.startTime,
+        nextStart: nextProps.loop.startTime,
+        prevEnd: prevProps.loop.endTime,
+        nextEnd: nextProps.loop.endTime
+      });
+      return false; // Re-render needed
+    }
   }
 
   // Check other props that affect rendering
   if (prevProps.selectedLoop !== nextProps.selectedLoop) return false;
-  if (prevProps.draggedLoop?.id !== nextProps.draggedLoop?.id) return false;
+  if (prevProps.draggedLoop?.id !== nextProps.draggedLoop?.id) {
+    console.log('🔄 arePropsEqual: draggedLoop changed, will re-render', {
+      id: nextProps.loop.id,
+      prevDragged: prevProps.draggedLoop?.id,
+      nextDragged: nextProps.draggedLoop?.id
+    });
+    return false;
+  }
   if (prevProps.isMultiSelected !== nextProps.isMultiSelected) return false;
   if (prevProps.timeToPixel !== nextProps.timeToPixel) return false;
 

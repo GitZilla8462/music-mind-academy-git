@@ -20,44 +20,47 @@ const InteractionOverlay = ({
   trackStates,
   selectedLoop,
   selectedLoopIds,
-  
+
   // Conversion functions
   timeToPixel,
   pixelToTime,
-  
+
   // Refs
   timelineRef,
   timelineScrollRef,
-  
+
   // Loop handlers
   onLoopSelect,
   onLoopUpdate,
   onLoopDelete,
   onLoopDrop,
-  
+
   // Playhead handlers
   onSeek,
   onPlayheadDragStart,
   onPlayheadDragEnd,
-  
+
   // Selection box
   onSelectionStart,
   onSelectionUpdate,
   onSelectionEnd,
-  
+
   // Resize handler
   onLoopResize,
-  
+
   // State
   isDraggingPlayhead,
   setIsDraggingPlayhead,
-  
+
+  // FIX: Sync drag state with LoopBlock's isDragged prop
+  setDraggedLoop,
+
   // Context menu
   onContextMenu,
-  
+
   // Lock features (tutorial mode)
   lockFeatures = {},
-  
+
   // Drag and drop from library
   hoveredTrack,
   setHoveredTrack
@@ -282,8 +285,9 @@ const InteractionOverlay = ({
     if (!loop) return null;
     if (!timelineRef.current) return null;
 
-    // Increased threshold for easier grabbing, especially with CSS zoom
-    const RESIZE_THRESHOLD = 20; // pixels (increased from 12)
+    // Reduced threshold - 20px was too large, causing accidental resize when trying to move loops
+    // At common zoom levels, loops can be 30-50px wide, so 20px left almost no "move zone"
+    const RESIZE_THRESHOLD = 8; // pixels (reduced from 20 to prevent accidental resize)
 
     // Convert x (which includes scroll) back to viewport-relative
     const scrollLeft = timelineScrollRef.current?.scrollLeft || 0;
@@ -553,9 +557,11 @@ const InteractionOverlay = ({
       // Start loop drag - no lockFeatures restrictions
       e.preventDefault();
       e.stopPropagation();
-      
+
       setIsDraggingLoop(true);
       setActiveLoop(loop);
+      // FIX: Sync with parent state so LoopBlock's isDragged is correct
+      setDraggedLoop?.(loop);
       setCursor('grabbing');
       
       const loopLeft = timeToPixel(loop.startTime);
@@ -598,7 +604,7 @@ const InteractionOverlay = ({
   }, [
     getMousePosition, getLoopAtPosition, getResizeZone, isNearPlayhead,
     lockFeatures, onLoopSelect, onPlayheadDragStart, onSelectionStart,
-    setIsDraggingPlayhead, timeToPixel
+    setIsDraggingPlayhead, timeToPixel, setDraggedLoop
   ]);
 
   const handleMouseUp = useCallback((e) => {
@@ -606,17 +612,7 @@ const InteractionOverlay = ({
     // This replaces the ~80 state updates that were happening during drag
     if ((isDraggingLoop || isResizing) && pendingLoopUpdateRef.current) {
       const pending = pendingLoopUpdateRef.current;
-
-      // Clear DOM overrides on the loop element (transform for drag, width for resize)
-      if (timelineRef.current) {
-        const loopElement = timelineRef.current.querySelector(`[data-loop-id="${pending.id}"]`);
-        if (loopElement) {
-          loopElement.style.transform = '';
-          loopElement.style.transformOrigin = '';
-          loopElement.style.zIndex = '';
-          loopElement.style.width = ''; // Clear resize width override
-        }
-      }
+      const loopElement = timelineRef.current?.querySelector(`[data-loop-id="${pending.id}"]`);
 
       // DEBUG: Log the final update values
       console.log('🔍 Final loop update:', {
@@ -629,6 +625,7 @@ const InteractionOverlay = ({
       });
 
       // Apply the final update (single state update instead of ~80)
+      // Do this BEFORE clearing DOM styles so React re-render happens with correct values
       if (pending.isResize) {
         onLoopResize?.(pending.id, {
           startTime: pending.startTime,
@@ -641,6 +638,30 @@ const InteractionOverlay = ({
         endTime: pending.endTime
       });
 
+      // FIX: Clear DOM overrides AFTER state update, using requestAnimationFrame
+      // to ensure React has time to re-render with new values before we clear the overrides.
+      // This prevents the "sliver" bug where the element briefly has no transform.
+      if (loopElement) {
+        // 🔥 FIX: Only clear width for RESIZE operations, not MOVE operations
+        // Clearing width on MOVE removes React's inline width style, causing the loop
+        // to collapse to content width (a thin sliver). React doesn't re-render because
+        // props haven't changed, so the sliver persists.
+        const wasResize = pending.isResize;
+
+        requestAnimationFrame(() => {
+          // Double-RAF ensures React's commit phase has completed
+          requestAnimationFrame(() => {
+            loopElement.style.transform = '';
+            loopElement.style.transformOrigin = '';
+            loopElement.style.zIndex = '';
+            // Only clear width if we actually set it (resize operations only)
+            if (wasResize) {
+              loopElement.style.width = '';
+            }
+          });
+        });
+      }
+
       pendingLoopUpdateRef.current = null;
     }
 
@@ -649,6 +670,8 @@ const InteractionOverlay = ({
       updateSnapGuide(null, false);
       setIsDraggingLoop(false);
       setActiveLoop(null);
+      // FIX: Clear parent drag state so LoopBlock's isDragged becomes false
+      setDraggedLoop?.(null);
     }
 
     if (isResizing) {
@@ -680,7 +703,7 @@ const InteractionOverlay = ({
     isDraggingLoop, isResizing, isDraggingPlayhead, isSelecting,
     getMousePosition, calculateCursor, setIsDraggingPlayhead,
     onPlayheadDragEnd, onSelectionEnd, updateSnapGuide, timelineRef,
-    onLoopUpdate, onLoopResize
+    onLoopUpdate, onLoopResize, setDraggedLoop
   ]);
 
   const handleContextMenu = useCallback((e) => {

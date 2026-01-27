@@ -115,27 +115,10 @@ const SoundEffectsActivity = ({
   };
 
   // Callbacks for loop management
-  const handleLoopPlaced = (loopData, trackIndex, startTime) => {
-    console.log('Loop/Sound effect placed:', loopData, trackIndex, startTime);
-    
-    const newLoop = {
-      id: `${loopData.id}-${Date.now()}`,
-      originalId: loopData.id,
-      name: loopData.name,
-      file: loopData.file,
-      duration: loopData.duration,
-      category: loopData.category,
-      mood: loopData.mood,
-      type: loopData.type, // Will be 'soundEffect' for sound effects
-      color: loopData.color,
-      trackIndex,
-      startTime,
-      endTime: startTime + loopData.duration,
-      volume: 1,
-      muted: false
-    };
-    
-    setPlacedLoops(prev => [...prev, newLoop]);
+  // FIX: Receive full loop object from useLoopHandlers (not raw params)
+  const handleLoopPlaced = (loop) => {
+    console.log('Loop/Sound effect placed:', loop.name, loop.trackIndex, loop.startTime);
+    setPlacedLoops(prev => [...prev, loop]);
   };
 
   const handleLoopDeleted = (loopId) => {

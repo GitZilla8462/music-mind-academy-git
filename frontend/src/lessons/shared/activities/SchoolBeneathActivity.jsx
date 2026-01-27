@@ -439,23 +439,12 @@ const SchoolBeneathActivity = ({
   // LOOP HANDLERS
   // ============================================================================
   
-  const handleLoopPlaced = (loopData, trackIndex, startTime) => {
-    const newLoop = {
-      id: `${loopData.id}-${Date.now()}`,
-      originalId: loopData.id,
-      name: loopData.name,
-      file: loopData.file,
-      duration: loopData.duration,
-      category: loopData.category,
-      mood: loopData.mood,
-      color: loopData.color,
-      trackIndex: trackIndex,
-      startTime: startTime,
-      endTime: startTime + loopData.duration,  // âœ… CRITICAL: Required for rendering and audio scheduling
-      volume: 1.0
-    };
-    
-    setPlacedLoops(prev => [...prev, newLoop]);
+  // FIX: Receive full loop object from useLoopHandlers (not raw params)
+  // useLoopHandlers already creates the loop with proper ID, so just use it directly
+  const handleLoopPlaced = (loop) => {
+    console.log(`🎵 Loop placed: ${loop.name} on track ${loop.trackIndex} at ${loop.startTime}s`);
+    setPlacedLoops(prev => [...prev, loop]);
+    console.log(`✅ Added "${loop.name}" to state - new total: ${placedLoops.length + 1}`);
   };
 
   const handleLoopDeleted = (loopId) => {

@@ -497,42 +497,45 @@ const TimelineContent = forwardRef(({
               trackStates={trackStates}
               selectedLoop={selectedLoop}
               selectedLoopIds={selectedLoopIds}
-              
+
               // Conversion functions
               timeToPixel={timeToPixel}
               pixelToTime={pixelToTime}
-              
+
               // Refs
               timelineRef={timelineRef}
               timelineScrollRef={timelineScrollRef}
-              
+
               // Loop handlers
               onLoopSelect={onLoopSelect}
               onLoopUpdate={handleLoopUpdateWithMulti}
               onLoopDelete={onLoopDelete}
               onLoopDrop={onLoopDrop}
               onLoopResize={onLoopResizeCallback}
-              
+
               // Playhead handlers
               onSeek={onSeek}
               onPlayheadDragStart={() => setIsDraggingPlayhead?.(true)}
               onPlayheadDragEnd={() => setIsDraggingPlayhead?.(false)}
-              
+
               // Selection handlers
               onSelectionStart={handleSelectionStartFromOverlay}
               onSelectionUpdate={handleSelectionUpdate}
               onSelectionEnd={handleSelectionEnd}
-              
+
               // State
               isDraggingPlayhead={isDraggingPlayhead}
               setIsDraggingPlayhead={setIsDraggingPlayhead}
-              
+
+              // FIX: Pass setDraggedLoop to sync drag state with LoopBlock
+              setDraggedLoop={setDraggedLoop}
+
               // Context menu
               onContextMenu={handleContextMenu}
-              
+
               // Lock features
               lockFeatures={lockFeatures}
-              
+
               // Drag & drop from library
               hoveredTrack={hoveredTrack}
               setHoveredTrack={setHoveredTrack}

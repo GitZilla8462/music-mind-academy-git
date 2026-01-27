@@ -595,26 +595,9 @@ const WildlifeCompositionActivity = ({
   };
   
   // COMPOSITION EVENT HANDLERS
-  // ✅ CHROMEBOOK OPTIMIZED: Removed verbose logging
-  const handleLoopPlaced = (loopData, trackIndex, startTime) => {
-    // Create new loop object
-    const newLoop = {
-      id: `${loopData.id}-${Date.now()}`,
-      originalId: loopData.id,
-      name: loopData.name,
-      file: loopData.file,
-      duration: loopData.duration,
-      category: loopData.category,
-      mood: loopData.mood,
-      color: loopData.color,
-      trackIndex: trackIndex,
-      startTime: startTime,
-      endTime: startTime + loopData.duration,
-      volume: 1.0
-    };
-    
-    // Update state
-    setPlacedLoops(prev => [...prev, newLoop]);
+  // FIX: Receive full loop object from useLoopHandlers (not raw params)
+  const handleLoopPlaced = (loop) => {
+    setPlacedLoops(prev => [...prev, loop]);
   };
   
   const handleLoopDeleted = (loopId) => {
