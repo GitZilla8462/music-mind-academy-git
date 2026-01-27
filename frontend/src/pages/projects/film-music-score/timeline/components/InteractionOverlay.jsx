@@ -640,13 +640,11 @@ const InteractionOverlay = ({
 
       // FIX: Clear DOM overrides AFTER state update, using requestAnimationFrame
       // to ensure React has time to re-render with new values before we clear the overrides.
-      // This prevents the "sliver" bug where the element briefly has no transform.
       if (loopElement) {
-        // 🔥 FIX: Only clear width for RESIZE operations, not MOVE operations
-        // Clearing width on MOVE removes React's inline width style, causing the loop
-        // to collapse to content width (a thin sliver). React doesn't re-render because
-        // props haven't changed, so the sliver persists.
+        // Capture values for the closure (pending ref gets nulled below)
         const wasResize = pending.isResize;
+        const finalStartTime = pending.startTime;
+        const finalEndTime = pending.endTime;
 
         requestAnimationFrame(() => {
           // Double-RAF ensures React's commit phase has completed
@@ -654,9 +652,15 @@ const InteractionOverlay = ({
             loopElement.style.transform = '';
             loopElement.style.transformOrigin = '';
             loopElement.style.zIndex = '';
-            // Only clear width if we actually set it (resize operations only)
+
+            // 🔥 FIX: For resize operations, set width to the FINAL correct value instead
+            // of clearing it. Clearing width removes React's inline style before React
+            // re-renders, causing the loop to collapse to a thin sliver.
+            // By setting the correct final width, we maintain continuity until React
+            // takes over on its next render.
             if (wasResize) {
-              loopElement.style.width = '';
+              const finalWidth = timeToPixel(finalEndTime) - timeToPixel(finalStartTime);
+              loopElement.style.width = `${Math.max(1, finalWidth)}px`;
             }
           });
         });
