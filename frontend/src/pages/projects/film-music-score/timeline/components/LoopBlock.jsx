@@ -128,62 +128,20 @@ const LoopBlock = ({
         WebkitBackfaceVisibility: 'hidden',
       }}
     >
-      {/* SVG Border with notches */}
+      {/* SVG Border - simple rounded rectangle (notches moved to separator lines) */}
       <svg
         className="absolute inset-0 w-full h-full"
         viewBox={`0 0 ${width} ${blockHeight}`}
         preserveAspectRatio="none"
         style={{ pointerEvents: 'none', cursor: 'inherit' }}
       >
-        <path
-          d={(() => {
-            const notchSize = 4;
-            const originalDuration = originalDurationRef.current || loop.duration;
-            const currentDuration = loop.endTime - loop.startTime;
-            const startOffset = loop.startOffset || 0;
-
-            const totalOriginalDuration = currentDuration + startOffset;
-            const fullLoopsForNotches = Math.floor(totalOriginalDuration / originalDuration);
-
-            const notchPositions = [];
-            for (let i = 1; i <= fullLoopsForNotches; i++) {
-              const markerTimeInOriginal = i * originalDuration;
-              if (markerTimeInOriginal > startOffset) {
-                const markerTimeInVisible = markerTimeInOriginal - startOffset;
-                if (markerTimeInVisible < currentDuration) {
-                  const x = (markerTimeInVisible / currentDuration) * width;
-                  notchPositions.push(x);
-                }
-              }
-            }
-
-            let pathData = `M ${cornerRadius},0`;
-
-            for (const x of notchPositions) {
-              pathData += ` L ${x - notchSize},0`;
-              pathData += ` L ${x},${notchSize}`;
-              pathData += ` L ${x + notchSize},0`;
-            }
-
-            pathData += ` L ${width - cornerRadius},0`;
-            pathData += ` Q ${width},0 ${width},${cornerRadius}`;
-            pathData += ` L ${width},${blockHeight - cornerRadius}`;
-            pathData += ` Q ${width},${blockHeight} ${width - cornerRadius},${blockHeight}`;
-
-            for (let i = notchPositions.length - 1; i >= 0; i--) {
-              const x = notchPositions[i];
-              pathData += ` L ${x + notchSize},${blockHeight}`;
-              pathData += ` L ${x},${blockHeight - notchSize}`;
-              pathData += ` L ${x - notchSize},${blockHeight}`;
-            }
-
-            pathData += ` L ${cornerRadius},${blockHeight}`;
-            pathData += ` Q 0,${blockHeight} 0,${blockHeight - cornerRadius}`;
-            pathData += ` L 0,${cornerRadius}`;
-            pathData += ` Q 0,0 ${cornerRadius},0 Z`;
-
-            return pathData;
-          })()}
+        <rect
+          x="0.5"
+          y="0.5"
+          width={Math.max(0, width - 1)}
+          height={Math.max(0, blockHeight - 1)}
+          rx={cornerRadius}
+          ry={cornerRadius}
           fill="none"
           stroke={(() => {
             const hex = loopColor.replace('#', '');
@@ -200,7 +158,7 @@ const LoopBlock = ({
         />
       </svg>
 
-      {/* Separator lines for loop repeats */}
+      {/* Separator lines with notches for loop repeats */}
       {(() => {
         const originalDuration = originalDurationRef.current || loop.duration;
         const currentDuration = loop.endTime - loop.startTime;
@@ -222,6 +180,8 @@ const LoopBlock = ({
 
         if (markers.length === 0) return null;
 
+        const notchSize = 4;
+
         return markers.map((markerTime, i) => {
           const x = (markerTime / currentDuration) * width;
 
@@ -231,18 +191,57 @@ const LoopBlock = ({
               className="absolute"
               style={{
                 left: `${x}px`,
-                top: '2px',
-                bottom: '2px',
+                top: 0,
+                bottom: 0,
                 width: '3px',
                 transform: 'translateX(-1.5px)',
-                backgroundColor: '#ffffff',
-                opacity: 0.7,
-                boxShadow: '0 0 6px #ffffff, 0 0 2px #ffffff',
-                borderRadius: '1px',
                 pointerEvents: 'none',
                 cursor: 'inherit'
               }}
-            />
+            >
+              {/* Top notch (triangle pointing down) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 0,
+                  height: 0,
+                  borderLeft: `${notchSize}px solid transparent`,
+                  borderRight: `${notchSize}px solid transparent`,
+                  borderTop: `${notchSize}px solid ${loopColor}60`,
+                }}
+              />
+              {/* White line */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '2px',
+                  bottom: '2px',
+                  left: 0,
+                  right: 0,
+                  backgroundColor: '#ffffff',
+                  opacity: 0.7,
+                  boxShadow: '0 0 6px #ffffff, 0 0 2px #ffffff',
+                  borderRadius: '1px',
+                }}
+              />
+              {/* Bottom notch (triangle pointing up) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 0,
+                  height: 0,
+                  borderLeft: `${notchSize}px solid transparent`,
+                  borderRight: `${notchSize}px solid transparent`,
+                  borderBottom: `${notchSize}px solid ${loopColor}60`,
+                }}
+              />
+            </div>
           );
         });
       })()}
