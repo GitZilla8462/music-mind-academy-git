@@ -214,7 +214,8 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
             </h2>
 
             <div className="flex gap-3 justify-center">
-              {modes.map(mode => (
+              {/* TEMPORARILY DISABLED: Partner/Trio modes - only showing Solo */}
+              {modes.filter(mode => mode.id === 'solo').map(mode => (
                 <button
                   key={mode.id}
                   onClick={() => handleModeSelect(mode.id)}
