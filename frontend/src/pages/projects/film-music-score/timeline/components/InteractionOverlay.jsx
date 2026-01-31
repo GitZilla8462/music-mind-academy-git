@@ -753,11 +753,10 @@ const InteractionOverlay = ({
     const snapResult = applySnapping(newStartTime, activeLoop.id);
     newStartTime = snapResult.time;
 
-    // Calculate track index using constants (more reliable than DOM queries)
-    // CHROMEBOOK FIX: DOM getBoundingClientRect returns viewport pixels,
-    // but our y coordinate is already zoom-corrected, causing ~1 track offset
-    const yRelativeToTracks = targetLoopTop - TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT;
-    const newTrackIndex = Math.floor(yRelativeToTracks / TIMELINE_CONSTANTS.TRACK_HEIGHT);
+    // Calculate track index based on cursor position (not loop position)
+    // This is more intuitive: the loop goes to whatever track the cursor is in
+    const cursorYRelativeToTracks = y - TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT;
+    const newTrackIndex = Math.floor(cursorYRelativeToTracks / TIMELINE_CONSTANTS.TRACK_HEIGHT);
 
     // Constrain values
     const loopDuration = activeLoop.endTime - activeLoop.startTime;
