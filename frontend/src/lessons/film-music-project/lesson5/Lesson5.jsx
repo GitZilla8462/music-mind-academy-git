@@ -73,18 +73,11 @@ const Lesson5 = () => {
   }, [currentStage]);
 
   // Mute audio in preview mode
+  // NOTE: We only mute HTML audio/video elements, NOT the AudioContext.
+  // Overriding window.AudioContext caused "different audio context" errors
+  // because it created new contexts instead of using Tone.js's shared context.
   React.useEffect(() => {
     if (isPreviewMode || isMuted) {
-      const OriginalAudioContext = window.AudioContext || window.webkitAudioContext;
-      if (OriginalAudioContext) {
-        window.AudioContext = function() {
-          const ctx = new OriginalAudioContext();
-          ctx.suspend();
-          return ctx;
-        };
-        window.webkitAudioContext = window.AudioContext;
-      }
-
       const muteEverything = () => {
         document.querySelectorAll('audio, video').forEach(el => {
           // Skip game audio elements (like Name That Loop) - they should play in preview

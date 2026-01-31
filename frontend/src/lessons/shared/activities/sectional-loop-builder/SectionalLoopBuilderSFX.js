@@ -1,17 +1,12 @@
 // File: /src/lessons/shared/activities/sectional-loop-builder/SectionalLoopBuilderSFX.js
 // Sound effects system for Epic Wildlife game (presentation view only)
+// Uses shared Tone.js audio context to avoid "different audio context" errors
 
-// Create and manage audio context
-let audioCtx = null;
+import { getSharedAudioContext } from '../../../../utils/sharedAudioContext';
 
+// Use the shared Tone.js audio context
 const getAudioContext = () => {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-  return audioCtx;
+  return getSharedAudioContext();
 };
 
 // Basic tone player
@@ -40,13 +35,11 @@ const playChord = (frequencies, duration, type = 'sine', volume = 0.2) => {
   });
 };
 
-// CHROMEBOOK MEMORY OPTIMIZATION: Close audio context when leaving activity
+// CHROMEBOOK MEMORY OPTIMIZATION: No-op since we use shared Tone.js context
+// The shared context should not be closed as it's used across the app
 export const closeAudioContext = () => {
-  if (audioCtx && audioCtx.state !== 'closed') {
-    audioCtx.close().catch(() => {}); // Ignore errors on close
-    audioCtx = null;
-    console.log('🧹 Section Safari audio context closed');
-  }
+  // No-op - shared context is managed by Tone.js
+  console.log('🧹 Section Safari cleanup (shared context remains open)');
 };
 
 // ============ SOUND EFFECTS ============

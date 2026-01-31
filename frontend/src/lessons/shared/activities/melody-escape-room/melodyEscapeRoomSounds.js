@@ -1,17 +1,12 @@
 // melody-escape-room/melodyEscapeRoomSounds.js - Sound effects using Web Audio API
 // No external audio files needed - generates sounds programmatically
+// Uses shared Tone.js audio context to avoid "different audio context" errors
 
-let audioCtx = null;
+import { getSharedAudioContext } from '../../../../utils/sharedAudioContext';
 
-// Lazy init audio context (must be after user interaction)
+// Use the shared Tone.js audio context
 const getAudioContext = () => {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-  return audioCtx;
+  return getSharedAudioContext();
 };
 
 // Play a tone with envelope

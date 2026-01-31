@@ -1,8 +1,10 @@
 // File: /lessons/shared/hooks/useTimerSound.js
 // Timer sound hook with Web Audio API chime and mute toggle
 // Persists mute preference in localStorage
+// Uses shared Tone.js audio context to avoid "different audio context" errors
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { getSharedAudioContext, resumeAudioContext } from '../../../utils/sharedAudioContext';
 
 const STORAGE_KEY = 'timer-sound-muted';
 
@@ -39,15 +41,11 @@ export const useTimerSound = () => {
   const toggleMute = useCallback(async () => {
     setIsMuted(prev => !prev);
 
-    // Prime the audio context on user interaction (this unlocks browser audio)
+    // Prime the shared audio context on user interaction (this unlocks browser audio)
     try {
-      if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
-        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioContextRef.current.state === 'suspended') {
-        await audioContextRef.current.resume();
-        console.log('🔊 Audio context unlocked by user interaction');
-      }
+      await resumeAudioContext();
+      audioContextRef.current = getSharedAudioContext();
+      console.log('🔊 Shared audio context unlocked by user interaction');
     } catch (e) {
       console.warn('Failed to prime audio context:', e);
     }
@@ -58,17 +56,10 @@ export const useTimerSound = () => {
     if (isMuted) return;
 
     try {
-      // Create audio context on demand
-      if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
-        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      }
-
-      const ctx = audioContextRef.current;
-
-      // Resume context if suspended (browser autoplay policy)
-      if (ctx.state === 'suspended') {
-        await ctx.resume();
-      }
+      // Use the shared Tone.js audio context
+      await resumeAudioContext();
+      const ctx = getSharedAudioContext();
+      audioContextRef.current = ctx;
 
       console.log('🔔 Playing timer sound, context state:', ctx.state);
 
@@ -116,12 +107,11 @@ export const useTimerSound = () => {
     }
   }, [isMuted]);
 
-  // Cleanup audio context on unmount
+  // Cleanup on unmount - don't close shared context, just clear ref
   useEffect(() => {
     return () => {
-      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-        audioContextRef.current.close().catch(() => {});
-      }
+      // Don't close the shared context - it's used across the app
+      audioContextRef.current = null;
     };
   }, []);
 

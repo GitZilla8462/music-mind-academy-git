@@ -4,6 +4,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Eye, EyeOff, Volume2, RotateCcw, ChevronRight, ChevronLeft, ArrowRight } from 'lucide-react';
+import { getSharedAudioContext } from '../../../../utils/sharedAudioContext';
 
 // Game theme songs configuration
 const GAME_THEMES = [
@@ -70,15 +71,18 @@ const NameThatGameActivity = ({ onComplete }) => {
   const currentSong = GAME_THEMES[currentSongIndex];
 
   // Cleanup audio on unmount
+  // NOTE: We don't close the audio context here because it's shared with Tone.js
   useEffect(() => {
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-        audioContextRef.current = null;
+      if (sourceNodeRef.current) {
+        try {
+          sourceNodeRef.current.disconnect();
+        } catch (e) {}
+        sourceNodeRef.current = null;
       }
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
@@ -120,9 +124,10 @@ const NameThatGameActivity = ({ onComplete }) => {
         audioRef.current = new Audio(currentSong.audioPath);
 
         // Use Web Audio API for volume > 1.0
+        // Use the shared Tone.js audio context to avoid "different audio context" errors
         if (currentSong.volume > 1.0) {
           if (!audioContextRef.current) {
-            audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+            audioContextRef.current = getSharedAudioContext();
           }
           sourceNodeRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
           gainNodeRef.current = audioContextRef.current.createGain();

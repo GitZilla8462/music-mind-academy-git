@@ -1,17 +1,12 @@
 // loop-lab/loopLabSounds.js - Sound effects using Web Audio API
 // No external audio files needed - generates sounds programmatically
+// Uses shared Tone.js audio context to avoid "different audio context" errors
 
-let audioCtx = null;
+import { getSharedAudioContext } from '../../../../utils/sharedAudioContext';
 
-// Lazy init audio context (must be after user interaction)
+// Use the shared Tone.js audio context
 const getAudioContext = () => {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-  return audioCtx;
+  return getSharedAudioContext();
 };
 
 // Play a tone with envelope
@@ -192,11 +187,9 @@ export const initAudio = () => {
   getAudioContext();
 };
 
-// CHROMEBOOK MEMORY OPTIMIZATION: Close audio context when leaving activity
+// CHROMEBOOK MEMORY OPTIMIZATION: No-op since we use shared Tone.js context
+// The shared context should not be closed as it's used across the app
 export const closeAudio = () => {
-  if (audioCtx && audioCtx.state !== 'closed') {
-    audioCtx.close().catch(() => {}); // Ignore errors on close
-    audioCtx = null;
-    console.log('🧹 Loop Lab audio context closed');
-  }
+  // No-op - shared context is managed by Tone.js
+  console.log('🧹 Loop Lab cleanup (shared context remains open)');
 };

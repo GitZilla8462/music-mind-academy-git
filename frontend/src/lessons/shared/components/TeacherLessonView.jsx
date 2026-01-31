@@ -2242,9 +2242,9 @@ const TeacherLessonView = ({
             </div>
           )}
 
-          {/* Floating Timer - Top Right (2x size) */}
+          {/* Floating Timer - Bottom Right (2x size) */}
           {timerVisible && (
-            <div className={`absolute top-4 right-4 z-50 backdrop-blur-sm rounded-2xl shadow-2xl p-4 min-w-[180px] transition-colors ${
+            <div className={`absolute bottom-4 right-4 z-50 backdrop-blur-sm rounded-2xl shadow-2xl p-4 min-w-[180px] transition-colors ${
               classroomTimer.timeRemaining === 0 && !classroomTimer.isRunning
                 ? 'bg-red-600 border-2 border-red-400 animate-pulse'
                 : 'bg-gray-900/95 border border-gray-700'
@@ -2339,7 +2339,7 @@ const TeacherLessonView = ({
           {!timerVisible && (
             <button
               onClick={() => setTimerVisible(true)}
-              className="absolute top-4 right-4 z-50 p-2 bg-gray-800/90 hover:bg-gray-700 text-gray-400 hover:text-white rounded-lg shadow-lg border border-gray-700 transition-colors"
+              className="absolute bottom-4 right-4 z-50 p-2 bg-gray-800/90 hover:bg-gray-700 text-gray-400 hover:text-white rounded-lg shadow-lg border border-gray-700 transition-colors"
               title="Show Timer"
             >
               <Clock size={20} />
