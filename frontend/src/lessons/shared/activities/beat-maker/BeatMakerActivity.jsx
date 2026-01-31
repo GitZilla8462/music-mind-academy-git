@@ -194,6 +194,7 @@ const BeatMakerActivity = ({ onComplete }) => {
 
   // Toggle a cell in the grid
   const toggleCell = (instrumentIndex, stepIndex) => {
+    if (isPlaying) stopPlayback();
     setActivePreset(null);
     setGrid(prev => {
       const newGrid = prev.map(row => [...row]);

@@ -417,6 +417,7 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
 
   // Toggle cell
   const toggleCell = (instrumentIndex, stepIndex) => {
+    if (isPlaying) stopPlayback();
     setGrid(prev => {
       const newGrid = prev.map(row => [...row]);
       newGrid[instrumentIndex][stepIndex] = !newGrid[instrumentIndex][stepIndex];
@@ -790,7 +791,7 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
   return (
     <div className="h-full flex flex-col bg-gray-900 text-white overflow-hidden">
       {/* Header Row - Title and Controls */}
-      <div className="flex-shrink-0 bg-gray-800 border-b border-gray-700 px-4 py-3">
+      <div className="flex-shrink-0 bg-gray-800 border-b border-gray-700 px-4 py-2">
         <div className="flex items-center justify-between gap-4">
           {/* Left: Title */}
           <h2 className="text-xl font-bold text-white">Build Your Beat</h2>
@@ -881,7 +882,7 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
       </div>
 
       {/* Mood Selector Row */}
-      <div className="flex-shrink-0 px-4 py-2 bg-gray-800/50 border-b border-gray-700">
+      <div className="flex-shrink-0 px-4 py-1.5 bg-gray-800/50 border-b border-gray-700">
         <div className="flex items-center gap-3">
           <span className="text-sm font-semibold text-gray-400">Select Mood:</span>
           <div className="flex items-center gap-2">
@@ -913,7 +914,7 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
       </div>
 
       {/* Grid Area - responsive sizing for Chromebook (1366px) and floating modal (900px) */}
-      <div className="flex-1 flex flex-col px-2 py-3 justify-center items-center overflow-x-auto overflow-y-auto">
+      <div className="flex-1 flex flex-col px-2 py-2 justify-center items-center overflow-x-auto overflow-y-auto">
         <div style={{ minWidth: steps === 16 ? '600px' : '800px', maxWidth: steps === 16 ? '800px' : '1100px', width: '100%' }}>
           {/* Beat Headers - uses same flex structure as grid for alignment */}
           <div className="flex items-end mb-2">
@@ -949,7 +950,7 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
         </div>
 
         {/* Grid rows - square cells */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5">
           {visibleInstruments.map((instrument) => {
             const instIndex = INSTRUMENTS.findIndex(i => i.id === instrument.id);
             const rowHasNotes = grid[instIndex]?.some(cell => cell);
@@ -1044,7 +1045,7 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
       </div>
 
       {/* Bottom Controls - Larger buttons */}
-      <div className="flex-shrink-0 bg-gray-800 border-t border-gray-700 px-4 py-3">
+      <div className="flex-shrink-0 bg-gray-800 border-t border-gray-700 px-4 py-2">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           {/* Play/Stop */}
           <button

@@ -364,6 +364,8 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0, lockedMood = null,
 
   // Toggle cell (one note per beat)
   const toggleCell = async (noteIndex, beatIndex) => {
+    if (isPlaying) stopPlayback();
+
     if (!audioReady) {
       await initializeAudio();
     }

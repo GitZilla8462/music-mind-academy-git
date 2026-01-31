@@ -3,13 +3,12 @@
 // Shows: Beat Maker, Melody Maker, Record Audio
 
 import React from 'react';
-import { Disc3, Piano, Mic, ChevronRight } from 'lucide-react';
+import { Disc3, Piano, ChevronRight } from 'lucide-react';
 
 const CreatorPanel = ({
   onOpenBeatMaker,
   onOpenMelodyMaker,
-  onOpenRecordAudio,
-  activeTool = null // 'beat-maker' | 'melody-maker' | 'record-audio' | null
+  activeTool = null // 'beat-maker' | 'melody-maker' | null
 }) => {
   const tools = [
     {
@@ -33,17 +32,6 @@ const CreatorPanel = ({
       hoverBg: 'hover:bg-purple-700',
       onClick: onOpenMelodyMaker,
       enabled: true
-    },
-    {
-      id: 'record-audio',
-      icon: Mic,
-      label: 'Record Audio',
-      description: 'Use your microphone',
-      color: 'green',
-      bgColor: 'bg-green-600',
-      hoverBg: 'hover:bg-green-700',
-      onClick: onOpenRecordAudio,
-      enabled: false // Coming soon
     }
   ];
 
