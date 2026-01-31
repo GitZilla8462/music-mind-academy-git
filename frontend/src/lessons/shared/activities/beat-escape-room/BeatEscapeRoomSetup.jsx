@@ -8,10 +8,8 @@ import { getAllThemes, getThemeAssets, getSharedAssets, THEMES } from './beatEsc
 import { getAllStudentWork, getStudentId, saveStudentWork } from '../../../../utils/studentWorkStorage';
 
 const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlaySavedRoom }) => {
-  // TEMPORARILY DISABLED: Partner mode - skip mode selection and go straight to theme
-  // To re-enable partner mode, change initial step back to 'mode' and selectedMode to null
-  const [step, setStep] = useState('theme'); // 'mode' | 'partner-role' | 'theme' | 'show-code' | 'join-to-create'
-  const [selectedMode, setSelectedMode] = useState('solo'); // Auto-select solo mode
+  const [step, setStep] = useState('mode'); // 'mode' | 'partner-role' | 'theme' | 'show-code' | 'join-to-create'
+  const [selectedMode, setSelectedMode] = useState(null);
   const [selectedTheme, setSelectedTheme] = useState(null);
   const [playerIndex, setPlayerIndex] = useState(0);
   const [joinCode, setJoinCode] = useState('');
@@ -136,18 +134,13 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
   };
 
   const handleBack = () => {
-    // TEMPORARILY DISABLED: Partner mode - no back navigation from theme since we skip mode selection
-    // To re-enable, restore the original back navigation logic
     if (step === 'theme') {
-      // Partner mode disabled - nowhere to go back to from theme
-      // Original code:
-      // if (selectedMode === 'partner' || selectedMode === 'trio') {
-      //   setStep('partner-role');
-      // } else {
-      //   setStep('mode');
-      //   setSelectedMode(null);
-      // }
-      return; // No back from theme in solo-only mode
+      if (selectedMode === 'partner' || selectedMode === 'trio') {
+        setStep('partner-role');
+      } else {
+        setStep('mode');
+        setSelectedMode(null);
+      }
     } else if (step === 'show-code') {
       // Can't go back from show-code - room is already created
       // Just go back to partner-role and clear the code
@@ -575,7 +568,7 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
     );
   }
 
-  // Step 3: Theme Selection (now the first step since partner mode is disabled)
+  // Step 3: Theme Selection
   return (
     <div
       className="h-full flex flex-col items-center justify-center p-4 relative overflow-auto"
@@ -588,30 +581,27 @@ const BeatEscapeRoomSetup = ({ onStartCreate, onJoinRoom, onJoinToCreate, onPlay
       {/* Dark overlay for readability */}
       <div className="absolute inset-0 bg-black/40 pointer-events-none" />
 
-      {/* TEMPORARILY DISABLED: Back button - no mode selection to go back to
+      {/* Back button */}
       <button
         onClick={handleBack}
         className="absolute top-4 left-4 text-gray-400 hover:text-white transition-colors flex items-center gap-2 z-10"
       >
         ← Back
       </button>
-      */}
 
       {/* Header */}
       <div className="text-center mb-6 relative z-10">
         <h1 className="text-3xl font-black text-white mb-2">
-          Beat Escape Room
+          Choose Your Theme
         </h1>
         <p className="text-base text-purple-200">
-          Choose a theme and create {MODES[selectedMode]?.totalLocks} beat locks!
+          {MODES[selectedMode]?.label} Mode - {MODES[selectedMode]?.totalLocks} Locks
         </p>
-        {/* TEMPORARILY DISABLED: Partner mode text
         {(selectedMode === 'partner' || selectedMode === 'trio') && (
           <p className="text-sm text-gray-400 mt-1">
             Your partner will use the same theme
           </p>
         )}
-        */}
       </div>
 
       {/* Loading indicator for partner mode */}
