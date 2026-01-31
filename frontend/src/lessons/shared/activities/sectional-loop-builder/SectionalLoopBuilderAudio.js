@@ -80,41 +80,89 @@ export const SONG_STRUCTURE = [
 
 export const SECTION_DURATION = 8000;
 
-// ============ FIXED SONG STRUCTURE ============
-// Using specific Heroic loops for consistent playback
-const FIXED_LOOPS = {
-  drums: '/projects/film-music-score/loops/Heroic Drums 1.m4a',
-  strings: '/projects/film-music-score/loops/Heroic Strings 1.m4a',
-  piano: '/projects/film-music-score/loops/Heroic Piano 1.m4a',
-  brass: '/projects/film-music-score/loops/Heroic Brass 2.m4a'
+// ============ RANDOMIZED SONG STRUCTURE ============
+// Randomly selects loops while ensuring no two of the same instrument type in one section
+
+// Store the current section loop names (updated when generateSongStructure is called)
+export let SECTION_LOOP_NAMES = {
+  intro: [],
+  a: [],
+  aPrime: [],
+  outro: []
 };
 
-// Fixed section structure with exact loops
-export const FIXED_SECTION_AUDIO = {
-  intro: [FIXED_LOOPS.drums, FIXED_LOOPS.strings],
-  a: [FIXED_LOOPS.drums, FIXED_LOOPS.strings, FIXED_LOOPS.piano],
-  aPrime: [FIXED_LOOPS.drums, FIXED_LOOPS.strings, FIXED_LOOPS.piano, FIXED_LOOPS.brass],
-  outro: [FIXED_LOOPS.drums]
+/**
+ * Helper: Extract display name from file path
+ * e.g., '/projects/film-music-score/loops/Heroic Drums 1.m4a' → 'Heroic Drums 1'
+ */
+const getLoopName = (filePath) => {
+  const fileName = filePath.split('/').pop();
+  return fileName.replace('.m4a', '').replace('.mp3', '');
 };
 
-// Display names for each section's loops
-export const SECTION_LOOP_NAMES = {
-  intro: ['Heroic Drums 1', 'Heroic Strings 1'],
-  a: ['Heroic Drums 1', 'Heroic Strings 1', 'Heroic Piano 1'],
-  aPrime: ['Heroic Drums 1', 'Heroic Strings 1', 'Heroic Piano 1', 'Heroic Brass 2'],
-  outro: ['Heroic Drums 1']
+/**
+ * Helper: Pick N random items from an array (Fisher-Yates shuffle, take first N)
+ */
+const pickRandom = (arr, n) => {
+  const shuffled = [...arr].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, n);
+};
+
+/**
+ * Helper: Pick random loops for a section
+ * @param {object} loopsByInstrument - Object mapping instrument type to array of loop paths
+ * @param {number} count - Number of loops/layers needed for this section
+ * @returns {string[]} - Array of loop file paths
+ */
+const pickRandomLoopsForSection = (loopsByInstrument, count) => {
+  // Get all available instrument types
+  const instrumentTypes = Object.keys(loopsByInstrument);
+
+  // Pick N random instrument types (no duplicates)
+  const selectedInstruments = pickRandom(instrumentTypes, count);
+
+  // For each selected instrument, pick one random loop from its array
+  const selectedLoops = selectedInstruments.map(instrument => {
+    const loops = loopsByInstrument[instrument];
+    return loops[Math.floor(Math.random() * loops.length)];
+  });
+
+  return selectedLoops;
 };
 
 // ============ HELPER: Generate full song structure ============
-// Now returns fixed structure instead of random
+// Randomly selects loops for each section, ensuring each section has different instrument types
 export const generateSongStructure = (mood) => {
-  console.log('🎵 Using fixed Heroic song structure');
-  console.log('🎵 INTRO layers:', FIXED_SECTION_AUDIO.intro);
-  console.log('🎵 A layers:', FIXED_SECTION_AUDIO.a);
-  console.log('🎵 A\' layers:', FIXED_SECTION_AUDIO.aPrime);
-  console.log('🎵 OUTRO layers:', FIXED_SECTION_AUDIO.outro);
+  // Always use Heroic loops
+  const loopsByInstrument = LOOPS_BY_MOOD.Heroic;
 
-  return FIXED_SECTION_AUDIO;
+  // Generate random loops for each section
+  // intro: 2 layers (2 different instruments)
+  // a: 3 layers (3 different instruments)
+  // aPrime: 4 layers (4 different instruments)
+  // outro: 1 layer (1 instrument)
+  const sectionAudio = {
+    intro: pickRandomLoopsForSection(loopsByInstrument, 2),
+    a: pickRandomLoopsForSection(loopsByInstrument, 3),
+    aPrime: pickRandomLoopsForSection(loopsByInstrument, 4),
+    outro: pickRandomLoopsForSection(loopsByInstrument, 1)
+  };
+
+  // Update the display names
+  SECTION_LOOP_NAMES = {
+    intro: sectionAudio.intro.map(getLoopName),
+    a: sectionAudio.a.map(getLoopName),
+    aPrime: sectionAudio.aPrime.map(getLoopName),
+    outro: sectionAudio.outro.map(getLoopName)
+  };
+
+  console.log('🎵 Generated RANDOMIZED Heroic song structure');
+  console.log('🎵 INTRO layers:', SECTION_LOOP_NAMES.intro);
+  console.log('🎵 A layers:', SECTION_LOOP_NAMES.a);
+  console.log("🎵 A' layers:", SECTION_LOOP_NAMES.aPrime);
+  console.log('🎵 OUTRO layers:', SECTION_LOOP_NAMES.outro);
+
+  return sectionAudio;
 };
 
 // ============ HELPER: Shuffle array ============
