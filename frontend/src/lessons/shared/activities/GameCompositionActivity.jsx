@@ -126,8 +126,24 @@ const detectVideoDuration = async (videoPath) => {
 
     const onError = (e) => {
       clearTimeout(timeout);
+      // Video error events store error info in e.target.error, not e.message
+      const videoError = e.target?.error;
+      const errorMessage = videoError
+        ? `Code ${videoError.code}: ${videoError.message || getVideoErrorMessage(videoError.code)}`
+        : 'Unknown error';
       cleanup();
-      reject(new Error(`Video load error: ${e.message || 'Unknown error'}`));
+      reject(new Error(`Video load error: ${errorMessage}`));
+    };
+
+    // Helper to translate video error codes
+    const getVideoErrorMessage = (code) => {
+      switch (code) {
+        case 1: return 'MEDIA_ERR_ABORTED - Fetching aborted by user';
+        case 2: return 'MEDIA_ERR_NETWORK - Network error';
+        case 3: return 'MEDIA_ERR_DECODE - Decoding error';
+        case 4: return 'MEDIA_ERR_SRC_NOT_SUPPORTED - Format not supported';
+        default: return 'Unknown error code';
+      }
     };
 
     video.addEventListener('loadedmetadata', onLoadedMetadata);
@@ -288,7 +304,7 @@ const GameCompositionActivity = ({
     }
   }, [isReflectionStage, reflectionCompleted, studentId, showReflection, viewingReflection]);
 
-  // Load previously selected video on mount - WITH detected duration
+  // Load previously selected video on mount - WITH detected duration (or fallback)
   useEffect(() => {
     const savedVideoSelection = getGameSelection();
     console.log('🎬 Loading saved video selection:', savedVideoSelection);
@@ -298,16 +314,22 @@ const GameCompositionActivity = ({
       console.log('🎬 Found video template:', videoTemplate);
 
       if (videoTemplate) {
-        if (videoDurations[videoTemplate.id]) {
+        const detectedDuration = videoDurations[videoTemplate.id];
+        // If detection is complete (not empty object) OR we have a duration, proceed
+        const detectionComplete = !detectingDurations && Object.keys(videoDurations).length > 0;
+
+        if (detectedDuration || detectionComplete) {
+          // Use detected duration or fallback to 150s (2:30)
+          const finalDuration = detectedDuration || 150;
           const video = {
             ...videoTemplate,
-            duration: videoDurations[videoTemplate.id]
+            duration: finalDuration
           };
           setSelectedVideo(video);
           setVideoDuration(video.duration);
           setShowVideoSelection(false);
           setIsLoadingVideo(false);
-          console.log('✅ Loaded saved video with detected duration:', video.title, 'Duration:', video.duration, 's');
+          console.log('✅ Loaded saved video with duration:', video.title, 'Duration:', video.duration, 's', detectedDuration ? '(detected)' : '(fallback)');
         } else {
           console.log('⏳ Waiting for duration detection to complete...');
           setIsLoadingVideo(true);
@@ -321,7 +343,7 @@ const GameCompositionActivity = ({
       console.log('ℹ️ No saved video selection found');
       setIsLoadingVideo(false);
     }
-  }, [videoDurations]);
+  }, [videoDurations, detectingDurations]);
 
   // AUTO-SAVE
   const compositionData = {
@@ -578,23 +600,24 @@ const GameCompositionActivity = ({
 
     const detectedDuration = videoDurations[video.id];
 
+    // Use detected duration, or fallback to 150s (2:30) if detection failed
+    const finalDuration = detectedDuration || 150;
+
     if (!detectedDuration) {
-      console.error('❌ Duration not available for video:', video.id);
-      alert('Video duration not loaded yet. Please wait a moment and try again.');
-      return;
+      console.warn('⚠️ Duration not detected for video:', video.id, '- using fallback duration:', finalDuration);
     }
 
     const videoWithDuration = {
       ...video,
-      duration: detectedDuration
+      duration: finalDuration
     };
 
     setSelectedVideo(videoWithDuration);
-    setVideoDuration(detectedDuration);
+    setVideoDuration(finalDuration);
     setShowVideoSelection(false);
     saveGameSelection(video.id, video.title);
 
-    console.log('✅ Video selected with detected duration:', videoWithDuration.title, 'Duration:', detectedDuration, 's');
+    console.log('✅ Video selected with duration:', videoWithDuration.title, 'Duration:', finalDuration, 's', detectedDuration ? '(detected)' : '(fallback)');
   };
 
   const handlePreviewVideo = (video) => {
