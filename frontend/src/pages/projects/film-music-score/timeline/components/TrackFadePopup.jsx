@@ -58,17 +58,25 @@ const TrackFadePopup = ({
 
   // Use portal to render at document body level, escaping any parent stacking contexts
   return createPortal(
-    <div
-      ref={popupRef}
-      className="fixed bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-3"
-      style={{
-        left: position?.x || 100,
-        top: position?.y || 100,
-        minWidth: '180px',
-        zIndex: 99999 // Very high z-index since we're at body level now
-      }}
-      onClick={(e) => e.stopPropagation()}
-    >
+    <>
+      {/* Invisible backdrop - click to close */}
+      <div
+        className="fixed inset-0"
+        style={{ zIndex: 99998 }}
+        onClick={onClose}
+      />
+      {/* Popup content */}
+      <div
+        ref={popupRef}
+        className="fixed bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-3"
+        style={{
+          left: position?.x || 100,
+          top: position?.y || 100,
+          minWidth: '180px',
+          zIndex: 99999 // Very high z-index since we're at body level now
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
       {/* Header */}
       <div className="text-xs font-medium text-gray-400 mb-2">
         Track Fades
@@ -141,7 +149,8 @@ const TrackFadePopup = ({
           Smooth
         </button>
       </div>
-    </div>,
+      </div>
+    </>,
     document.body
   );
 };
