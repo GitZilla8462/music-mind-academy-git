@@ -71,9 +71,9 @@ const generateCode = () => String(Math.floor(1000 + Math.random() * 9000));
 
 // Extract instrument name from file path (e.g., "/path/Heroic Bass 1.mp3" → "Bass")
 const getInstrumentFromPath = (filePath) => {
-  const fileName = filePath.split('/').pop().replace(/\.(mp3|wav)$/, '');
+  const fileName = filePath.split('/').pop().replace(/\.(mp3|wav|m4a)$/, '');
   // Remove mood prefix and number suffix, extract instrument
-  const instruments = ['Bass', 'Brass', 'Drums', 'Strings', 'Synth', 'Vocals', 'Piano', 'Guitar', 'Bells', 'Clarinet', 'Percussion', 'Keys', 'SynthLead'];
+  const instruments = ['Bass', 'Brass', 'Drums', 'Strings', 'Synth', 'Vocals', 'Piano', 'Guitar', 'Bells', 'Clarinet', 'Percussion', 'Keys', 'SynthLead', 'Vibraphone', 'Marimba', 'Glockenspiel'];
   for (const inst of instruments) {
     if (fileName.includes(inst)) return inst === 'SynthLead' ? 'Synth Lead' : inst;
   }
@@ -95,7 +95,10 @@ const getInstrumentEmoji = (instrument) => {
     'Bells': '🔔',
     'Clarinet': '🎵',
     'Percussion': '🥁',
-    'Keys': '🎹'
+    'Keys': '🎹',
+    'Vibraphone': '🎶',
+    'Marimba': '🪘',
+    'Glockenspiel': '🔔'
   };
   return emojiMap[instrument] || '🎵';
 };
@@ -115,7 +118,10 @@ const getInstrumentColor = (instrument) => {
     'Bells': '#FBBF24',
     'Clarinet': '#8B5CF6',
     'Percussion': '#DC2626',
-    'Keys': '#0EA5E9'
+    'Keys': '#0EA5E9',
+    'Vibraphone': '#22D3EE',
+    'Marimba': '#F472B6',
+    'Glockenspiel': '#FCD34D'
   };
   return colorMap[instrument] || '#6B7280';
 };

@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { getDatabase, ref, get, set, remove, onValue, update } from 'firebase/database';
-import { Users, UserPlus, Trash2, Mail, Calendar, Shield, ArrowLeft, RefreshCw, BarChart3, Clock, BookOpen, Play, Building2, GraduationCap, ChevronDown, ChevronUp, MessageSquare, Star, Download, DatabaseBackup, AlertTriangle } from 'lucide-react';
+import { Users, UserPlus, Trash2, Mail, Calendar, Shield, ArrowLeft, RefreshCw, BarChart3, Clock, BookOpen, Play, Building2, GraduationCap, ChevronDown, ChevronUp, MessageSquare, Star, Download, DatabaseBackup, AlertTriangle, Search, Filter, ArrowUpDown, Check, X, FileText } from 'lucide-react';
 import ErrorLogViewer from '../components/admin/ErrorLogViewer';
 import { getTeacherAnalytics, getPilotSessions, getPilotSummaryStats, subscribeToAnalytics } from '../firebase/analytics';
 import { SITE_TYPES } from '../firebase/approvedEmails';
@@ -53,6 +53,13 @@ const PilotAdminPage = () => {
   const [quickSurveys, setQuickSurveys] = useState([]);
   const [midPilotSurveys, setMidPilotSurveys] = useState([]);
   const [finalPilotSurveys, setFinalPilotSurveys] = useState([]);
+
+  // Teacher Analytics Pipeline state
+  const [analyticsSort, setAnalyticsSort] = useState({ column: 'lastActive', direction: 'desc' });
+  const [analyticsFilter, setAnalyticsFilter] = useState('all');
+  const [analyticsSearch, setAnalyticsSearch] = useState('');
+  const [expandedTeachers, setExpandedTeachers] = useState({});
+  const [teacherOutreach, setTeacherOutreach] = useState({});
 
   // Backfill state
   const [isBackfilling, setIsBackfilling] = useState(false);
@@ -171,6 +178,16 @@ const PilotAdminPage = () => {
       }
     });
 
+    // Listen to teacher outreach data
+    const outreachRef = ref(database, 'teacherOutreach');
+    const unsubOutreach = onValue(outreachRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setTeacherOutreach(snapshot.val());
+      } else {
+        setTeacherOutreach({});
+      }
+    });
+
     return () => {
       unsubAcademy();
       unsubEdu();
@@ -179,8 +196,28 @@ const PilotAdminPage = () => {
       unsubQuickSurveys();
       unsubMidPilot();
       unsubFinalPilot();
+      unsubOutreach();
     };
   }, [user, isAdmin, database]);
+
+  // Toggle outreach checkbox (emailed L3 or emailed Done)
+  const toggleOutreach = async (teacherEmail, field) => {
+    const emailKey = teacherEmail.toLowerCase().replace(/\./g, ',');
+    const outreachRef = ref(database, `teacherOutreach/${emailKey}`);
+
+    try {
+      const currentValue = teacherOutreach[emailKey]?.[field] || false;
+      const updates = {
+        [field]: !currentValue,
+        [`${field}At`]: !currentValue ? Date.now() : null,
+        email: teacherEmail
+      };
+      await update(outreachRef, updates);
+    } catch (err) {
+      console.error('Failed to update outreach:', err);
+      setError('Failed to update outreach status');
+    }
+  };
 
   // Add approved email
   const handleAddEmail = async (e) => {
@@ -1175,18 +1212,14 @@ const PilotAdminPage = () => {
           </div>
         )}
 
-        {/* Teacher Analytics */}
+        {/* Teacher Analytics - Pipeline View */}
         {activeTab === 'analytics' && (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <BarChart3 size={20} />
-                Teacher Progress
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">Click on a lesson cell to see session details</p>
-            </div>
-
             {(() => {
+              // Constants for "real class" threshold
+              const MIN_STUDENTS = 10;
+              const MIN_DURATION = 15 * 60 * 1000; // 15 minutes in ms
+
               // Build teacher lesson data from sessions
               const teacherLessonData = {};
 
@@ -1208,7 +1241,10 @@ const PilotAdminPage = () => {
                 if (!teacherLessonData[email]) {
                   teacherLessonData[email] = {
                     email,
-                    lessons: { 1: [], 2: [], 3: [], 4: [], 5: [] }
+                    lessons: { 1: [], 2: [], 3: [], 4: [], 5: [] },
+                    totalStudents: 0,
+                    totalSessions: 0,
+                    lastActive: 0
                   };
                 }
 
@@ -1220,169 +1256,427 @@ const PilotAdminPage = () => {
                   duration: session.duration || 0,
                   completed: session.completed || false
                 });
+
+                // Update totals
+                teacherLessonData[email].totalStudents += session.studentsJoined || 0;
+                teacherLessonData[email].totalSessions += 1;
+                if (session.startTime > teacherLessonData[email].lastActive) {
+                  teacherLessonData[email].lastActive = session.startTime;
+                }
               });
 
-              const teachers = Object.values(teacherLessonData).sort((a, b) =>
-                a.email.localeCompare(b.email)
+              // Helper to check if lesson is "completed" (real class)
+              const isLessonCompleted = (sessions) => {
+                return sessions.some(s =>
+                  s.completed && s.students >= MIN_STUDENTS && s.duration >= MIN_DURATION
+                );
+              };
+
+              // Calculate stage and survey status for each teacher
+              const teachers = Object.values(teacherLessonData).map(teacher => {
+                const emailKey = teacher.email.toLowerCase().replace(/\./g, ',');
+                const outreach = teacherOutreach[emailKey] || {};
+
+                // Check which lessons are completed
+                const l1Done = isLessonCompleted(teacher.lessons[1]);
+                const l2Done = isLessonCompleted(teacher.lessons[2]);
+                const l3Done = isLessonCompleted(teacher.lessons[3]);
+                const l4Done = isLessonCompleted(teacher.lessons[4]);
+                const l5Done = isLessonCompleted(teacher.lessons[5]);
+
+                // Determine stage
+                let stage = 'Signed Up';
+                if (l5Done) stage = 'Completed';
+                else if (l4Done) stage = 'Reached L4';
+                else if (l3Done) stage = 'Reached L3';
+                else if (l2Done) stage = 'Reached L2';
+                else if (l1Done) stage = 'Reached L1';
+                else if (teacher.totalSessions > 0) stage = 'Test Only';
+
+                // Check survey status
+                const hasL3Survey = midPilotSurveys.some(s =>
+                  s.teacherEmail?.toLowerCase() === teacher.email.toLowerCase() ||
+                  pilotSessions.some(ps =>
+                    ps.sessionCode === s.sessionCode &&
+                    ps.teacherEmail?.toLowerCase() === teacher.email.toLowerCase()
+                  )
+                );
+                const hasFinalSurvey = finalPilotSurveys.some(s =>
+                  s.teacherEmail?.toLowerCase() === teacher.email.toLowerCase() ||
+                  pilotSessions.some(ps =>
+                    ps.sessionCode === s.sessionCode &&
+                    ps.teacherEmail?.toLowerCase() === teacher.email.toLowerCase()
+                  )
+                );
+
+                return {
+                  ...teacher,
+                  stage,
+                  l1Done, l2Done, l3Done, l4Done, l5Done,
+                  hasL3Survey,
+                  hasFinalSurvey,
+                  emailedL3: outreach.emailedL3 || false,
+                  emailedL3At: outreach.emailedL3At,
+                  emailedDone: outreach.emailedDone || false,
+                  emailedDoneAt: outreach.emailedDoneAt
+                };
+              });
+
+              // Apply search filter
+              let filteredTeachers = teachers.filter(t =>
+                t.email.toLowerCase().includes(analyticsSearch.toLowerCase())
               );
 
-              if (teachers.length === 0) {
-                return (
-                  <div className="p-8 text-center text-gray-500">
-                    No teacher activity recorded yet.
-                  </div>
-                );
+              // Apply dropdown filter
+              if (analyticsFilter === 'notEmailedL3') {
+                filteredTeachers = filteredTeachers.filter(t => t.l3Done && !t.emailedL3);
+              } else if (analyticsFilter === 'notEmailedDone') {
+                filteredTeachers = filteredTeachers.filter(t => t.l5Done && !t.emailedDone);
+              } else if (analyticsFilter === 'missingL3Survey') {
+                filteredTeachers = filteredTeachers.filter(t => t.l3Done && !t.hasL3Survey);
+              } else if (analyticsFilter === 'missingFinalSurvey') {
+                filteredTeachers = filteredTeachers.filter(t => t.l5Done && !t.hasFinalSurvey);
               }
 
-              // Render lesson cell
-              const LessonCell = ({ sessions, lessonNum, teacherEmail }) => {
-                const [expanded, setExpanded] = useState(false);
+              // Apply sorting
+              const stageOrder = { 'Completed': 6, 'Reached L4': 5, 'Reached L3': 4, 'Reached L2': 3, 'Reached L1': 2, 'Test Only': 1, 'Signed Up': 0 };
+              filteredTeachers.sort((a, b) => {
+                let comparison = 0;
+                switch (analyticsSort.column) {
+                  case 'teacher':
+                    comparison = a.email.localeCompare(b.email);
+                    break;
+                  case 'stage':
+                    comparison = (stageOrder[b.stage] || 0) - (stageOrder[a.stage] || 0);
+                    break;
+                  case 'students':
+                    comparison = b.totalStudents - a.totalStudents;
+                    break;
+                  case 'sessions':
+                    comparison = b.totalSessions - a.totalSessions;
+                    break;
+                  case 'lastActive':
+                  default:
+                    comparison = b.lastActive - a.lastActive;
+                    break;
+                }
+                return analyticsSort.direction === 'asc' ? -comparison : comparison;
+              });
 
+              // Sortable header component
+              const SortHeader = ({ column, children, className = '' }) => (
+                <th
+                  className={`px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${className}`}
+                  onClick={() => {
+                    if (analyticsSort.column === column) {
+                      setAnalyticsSort({ column, direction: analyticsSort.direction === 'asc' ? 'desc' : 'asc' });
+                    } else {
+                      setAnalyticsSort({ column, direction: 'desc' });
+                    }
+                  }}
+                >
+                  <div className="flex items-center gap-1">
+                    {children}
+                    {analyticsSort.column === column && (
+                      <span className="text-blue-600">{analyticsSort.direction === 'asc' ? '↑' : '↓'}</span>
+                    )}
+                  </div>
+                </th>
+              );
+
+              // Lesson cell component
+              const LessonCell = ({ sessions, isCompleted }) => {
                 if (sessions.length === 0) {
-                  return (
-                    <td className="px-3 py-4 text-center">
-                      <span className="text-gray-300">—</span>
-                    </td>
-                  );
+                  return <td className="px-2 py-3 text-center text-gray-300">—</td>;
                 }
 
                 const totalStudents = sessions.reduce((sum, s) => sum + s.students, 0);
-                const totalTime = sessions.reduce((sum, s) => sum + s.duration, 0);
                 const sessionCount = sessions.length;
 
-                // Only count as "completed" if: completed + 10+ students + 15+ minutes
-                const MIN_STUDENTS = 10;
-                const MIN_DURATION = 15 * 60 * 1000; // 15 minutes in ms
-                const hasCompleted = sessions.some(s =>
-                  s.completed && s.students >= MIN_STUDENTS && s.duration >= MIN_DURATION
-                );
-
                 return (
-                  <td className="px-2 py-2 relative">
-                    <button
-                      onClick={() => setExpanded(!expanded)}
-                      className={`w-full px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                        hasCompleted
-                          ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                          : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                      }`}
-                    >
-                      <div className="flex items-center justify-center gap-1">
-                        {hasCompleted ? '✓' : '⏳'}
-                        <span>{totalStudents}</span>
-                        {sessionCount > 1 && (
-                          <span className="text-xs opacity-70">×{sessionCount}</span>
-                        )}
-                      </div>
-                      <div className="text-xs opacity-70 mt-0.5">
-                        {formatDuration(totalTime)}
-                      </div>
-                    </button>
-
-                    {/* Expanded dropdown */}
-                    {expanded && (
-                      <div className="absolute z-20 top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-xl p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-semibold text-gray-800">
-                            Lesson {lessonNum} Details
-                          </span>
-                          <button
-                            onClick={() => setExpanded(false)}
-                            className="text-gray-400 hover:text-gray-600"
-                          >
-                            ×
-                          </button>
-                        </div>
-                        <div className="text-xs text-gray-500 mb-2">
-                          {sessionCount} session{sessionCount > 1 ? 's' : ''} · {totalStudents} students · {formatDuration(totalTime)}
-                        </div>
-                        <div className="space-y-2 max-h-48 overflow-y-auto">
-                          {sessions
-                            .sort((a, b) => (b.date || 0) - (a.date || 0))
-                            .map((session, i) => (
-                              <div
-                                key={i}
-                                className={`p-2 rounded text-xs ${
-                                  session.completed ? 'bg-green-50' : 'bg-yellow-50'
-                                }`}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span className="font-medium">
-                                    {session.date ? new Date(session.date).toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric'
-                                    }) : 'Unknown'}
-                                  </span>
-                                  <span className={session.completed ? 'text-green-600' : 'text-yellow-600'}>
-                                    {session.completed ? '✓ Done' : '⏳ Partial'}
-                                  </span>
-                                </div>
-                                <div className="text-gray-500 mt-1">
-                                  {session.students} students · {formatDuration(session.duration)}
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
+                  <td className="px-2 py-3 text-center">
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
+                      isCompleted ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {isCompleted ? '✓' : '⚪'}
+                      {sessionCount > 1 && <span>×{sessionCount}</span>}
+                    </span>
                   </td>
                 );
               };
 
-              return (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
-                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">L1</th>
-                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">L2</th>
-                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24 bg-purple-50">L3</th>
-                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">L4</th>
-                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24 bg-amber-50">L5</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {teachers.map((teacher) => (
-                        <tr key={teacher.email} className="hover:bg-gray-50">
-                          <td className="px-4 py-3">
-                            <div className="font-medium text-gray-800 text-sm">
-                              {teacher.email.split('@')[0]}
-                            </div>
-                            <div className="text-xs text-gray-400">
-                              @{teacher.email.split('@')[1]}
-                            </div>
-                          </td>
-                          <LessonCell sessions={teacher.lessons[1]} lessonNum={1} teacherEmail={teacher.email} />
-                          <LessonCell sessions={teacher.lessons[2]} lessonNum={2} teacherEmail={teacher.email} />
-                          <LessonCell sessions={teacher.lessons[3]} lessonNum={3} teacherEmail={teacher.email} />
-                          <LessonCell sessions={teacher.lessons[4]} lessonNum={4} teacherEmail={teacher.email} />
-                          <LessonCell sessions={teacher.lessons[5]} lessonNum={5} teacherEmail={teacher.email} />
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              // Checkbox cell component
+              const CheckboxCell = ({ checked, onChange, disabled, timestamp }) => (
+                <td className="px-2 py-3 text-center">
+                  {disabled ? (
+                    <span className="text-gray-300">—</span>
+                  ) : (
+                    <div className="flex flex-col items-center">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onChange(); }}
+                        className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                          checked
+                            ? 'bg-blue-600 border-blue-600 text-white'
+                            : 'border-gray-300 hover:border-blue-400'
+                        }`}
+                      >
+                        {checked && <Check size={14} />}
+                      </button>
+                      {checked && timestamp && (
+                        <span className="text-[10px] text-gray-400 mt-0.5">
+                          {new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </td>
+              );
 
-                  {/* Legend */}
-                  <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center gap-4 text-xs text-gray-500">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded">✓ 25</span>
-                      <span>= Completed (10+ students, 15+ min)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded">⏳ 15</span>
-                      <span>= Test run / partial</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-300">—</span>
-                      <span>= Not started</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="bg-purple-50 px-2 py-1 rounded">L3</span>
-                      <span>= Survey needed</span>
+              // Survey status cell
+              const SurveyCell = ({ completed, eligible }) => (
+                <td className="px-2 py-3 text-center">
+                  {!eligible ? (
+                    <span className="text-gray-300">—</span>
+                  ) : completed ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                      <FileText size={12} /> ✓
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-700">
+                      <FileText size={12} /> Missing
+                    </span>
+                  )}
+                </td>
+              );
+
+              return (
+                <>
+                  {/* Header with filters */}
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div>
+                        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                          <BarChart3 size={20} />
+                          Teacher Pipeline
+                        </h2>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {filteredTeachers.length} teacher{filteredTeachers.length !== 1 ? 's' : ''}
+                          {analyticsFilter !== 'all' && ' (filtered)'}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3">
+                        {/* Search */}
+                        <div className="relative">
+                          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="text"
+                            placeholder="Search teachers..."
+                            value={analyticsSearch}
+                            onChange={(e) => setAnalyticsSearch(e.target.value)}
+                            className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-48"
+                          />
+                        </div>
+
+                        {/* Filter dropdown */}
+                        <div className="relative">
+                          <select
+                            value={analyticsFilter}
+                            onChange={(e) => setAnalyticsFilter(e.target.value)}
+                            className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+                          >
+                            <option value="all">All Teachers</option>
+                            <option value="notEmailedL3">Not Emailed L3</option>
+                            <option value="notEmailedDone">Not Emailed Done</option>
+                            <option value="missingL3Survey">Missing L3 Survey</option>
+                            <option value="missingFinalSurvey">Missing Final Survey</option>
+                          </select>
+                          <Filter size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+
+                  {/* Table */}
+                  {filteredTeachers.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500">
+                      {teachers.length === 0 ? 'No teacher activity recorded yet.' : 'No teachers match your filter.'}
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="w-8 px-2 py-3"></th>
+                            <SortHeader column="teacher">Teacher</SortHeader>
+                            <SortHeader column="stage">Stage</SortHeader>
+                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">L1<br/><span className="font-normal normal-case">Mood</span></th>
+                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">L2<br/><span className="font-normal normal-case">Inst</span></th>
+                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-purple-50">L3<br/><span className="font-normal normal-case">Text</span></th>
+                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">L4<br/><span className="font-normal normal-case">Form</span></th>
+                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-amber-50">L5<br/><span className="font-normal normal-case">Cap</span></th>
+                            <SortHeader column="students">Students</SortHeader>
+                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-purple-50">L3<br/>Survey</th>
+                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-purple-50">Emailed<br/>L3</th>
+                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-amber-50">Final<br/>Survey</th>
+                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-amber-50">Emailed<br/>Done</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {filteredTeachers.map((teacher) => {
+                            const isExpanded = expandedTeachers[teacher.email];
+
+                            return (
+                              <React.Fragment key={teacher.email}>
+                                <tr
+                                  className="hover:bg-gray-50 cursor-pointer"
+                                  onClick={() => setExpandedTeachers(prev => ({
+                                    ...prev,
+                                    [teacher.email]: !prev[teacher.email]
+                                  }))}
+                                >
+                                  <td className="px-2 py-3 text-center">
+                                    <ChevronDown
+                                      size={16}
+                                      className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                                    />
+                                  </td>
+                                  <td className="px-3 py-3">
+                                    <div className="font-medium text-gray-800 text-sm">
+                                      {teacher.email.split('@')[0]}
+                                    </div>
+                                    <div className="text-xs text-gray-400">
+                                      @{teacher.email.split('@')[1]}
+                                    </div>
+                                  </td>
+                                  <td className="px-3 py-3">
+                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                                      teacher.stage === 'Completed' ? 'bg-green-100 text-green-800' :
+                                      teacher.stage === 'Reached L3' || teacher.stage === 'Reached L4' ? 'bg-blue-100 text-blue-800' :
+                                      teacher.stage === 'Test Only' ? 'bg-gray-100 text-gray-600' :
+                                      'bg-yellow-100 text-yellow-800'
+                                    }`}>
+                                      {teacher.stage}
+                                    </span>
+                                  </td>
+                                  <LessonCell sessions={teacher.lessons[1]} isCompleted={teacher.l1Done} />
+                                  <LessonCell sessions={teacher.lessons[2]} isCompleted={teacher.l2Done} />
+                                  <LessonCell sessions={teacher.lessons[3]} isCompleted={teacher.l3Done} />
+                                  <LessonCell sessions={teacher.lessons[4]} isCompleted={teacher.l4Done} />
+                                  <LessonCell sessions={teacher.lessons[5]} isCompleted={teacher.l5Done} />
+                                  <td className="px-3 py-3 text-center font-medium text-gray-800">
+                                    {teacher.totalStudents}
+                                  </td>
+                                  <SurveyCell completed={teacher.hasL3Survey} eligible={teacher.l3Done} />
+                                  <CheckboxCell
+                                    checked={teacher.emailedL3}
+                                    onChange={() => toggleOutreach(teacher.email, 'emailedL3')}
+                                    disabled={!teacher.l3Done}
+                                    timestamp={teacher.emailedL3At}
+                                  />
+                                  <SurveyCell completed={teacher.hasFinalSurvey} eligible={teacher.l5Done} />
+                                  <CheckboxCell
+                                    checked={teacher.emailedDone}
+                                    onChange={() => toggleOutreach(teacher.email, 'emailedDone')}
+                                    disabled={!teacher.l5Done}
+                                    timestamp={teacher.emailedDoneAt}
+                                  />
+                                </tr>
+
+                                {/* Expanded row */}
+                                {isExpanded && (
+                                  <tr className="bg-gray-50">
+                                    <td colSpan={13} className="px-6 py-4">
+                                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {/* Summary */}
+                                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                                          <h4 className="font-medium text-gray-800 mb-2">Summary</h4>
+                                          <div className="space-y-1 text-sm text-gray-600">
+                                            <div>Total Sessions: <span className="font-medium">{teacher.totalSessions}</span></div>
+                                            <div>Total Students: <span className="font-medium">{teacher.totalStudents}</span></div>
+                                            <div>Last Active: <span className="font-medium">
+                                              {teacher.lastActive ? new Date(teacher.lastActive).toLocaleDateString('en-US', {
+                                                month: 'short', day: 'numeric', year: 'numeric'
+                                              }) : 'Never'}
+                                            </span></div>
+                                          </div>
+                                        </div>
+
+                                        {/* Session details per lesson */}
+                                        {[1, 2, 3, 4, 5].map(lessonNum => {
+                                          const sessions = teacher.lessons[lessonNum];
+                                          if (sessions.length === 0) return null;
+
+                                          const lessonNames = { 1: 'Mood', 2: 'Instrumentation', 3: 'Texture', 4: 'Form', 5: 'Capstone' };
+                                          const totalStudents = sessions.reduce((sum, s) => sum + s.students, 0);
+                                          const totalTime = sessions.reduce((sum, s) => sum + s.duration, 0);
+
+                                          return (
+                                            <div key={lessonNum} className="bg-white rounded-lg p-4 border border-gray-200">
+                                              <h4 className="font-medium text-gray-800 mb-2">
+                                                L{lessonNum}: {lessonNames[lessonNum]}
+                                                <span className="ml-2 text-xs font-normal text-gray-500">
+                                                  {sessions.length} session{sessions.length > 1 ? 's' : ''} · {totalStudents} students · {formatDuration(totalTime)}
+                                                </span>
+                                              </h4>
+                                              <div className="space-y-2 max-h-32 overflow-y-auto">
+                                                {sessions
+                                                  .sort((a, b) => (b.date || 0) - (a.date || 0))
+                                                  .map((session, i) => (
+                                                    <div key={i} className="flex items-center justify-between text-sm">
+                                                      <span className="text-gray-600">
+                                                        {session.date ? new Date(session.date).toLocaleDateString('en-US', {
+                                                          month: 'short', day: 'numeric'
+                                                        }) : 'Unknown'}
+                                                      </span>
+                                                      <span className="text-gray-500">
+                                                        {session.students} stu · {formatDuration(session.duration)}
+                                                      </span>
+                                                      <span className={session.completed && session.students >= MIN_STUDENTS ? 'text-green-600' : 'text-yellow-600'}>
+                                                        {session.completed && session.students >= MIN_STUDENTS ? '✓' : '⚪'}
+                                                      </span>
+                                                    </div>
+                                                  ))}
+                                              </div>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+
+                      {/* Legend */}
+                      <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded">✓</span>
+                          <span>= Taught (10+ students, 15+ min)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded">⚪</span>
+                          <span>= Test run</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-300">—</span>
+                          <span>= Not started</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-1 bg-purple-50 rounded">Purple</span>
+                          <span>= L3 milestone</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-1 bg-amber-50 rounded">Amber</span>
+                          <span>= L5 completion</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               );
             })()}
           </div>
