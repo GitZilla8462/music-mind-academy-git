@@ -21,8 +21,8 @@ const FloatingBeatMaker = ({
 }) => {
   // Default size - smaller for Chromebook (1366x768)
   const defaultSize = isChromebook
-    ? { width: 780, height: 560 }
-    : { width: 900, height: 650 };
+    ? { width: 880, height: 520 }
+    : { width: 900, height: 620 };
 
   const [size, setSize] = useState(defaultSize);
   const [position, setPosition] = useState({ x: 100, y: 20 });
