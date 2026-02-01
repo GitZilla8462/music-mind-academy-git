@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { createSession, getSessionData } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
+import TeacherHeader from '../components/teacher/TeacherHeader';
 
 // Early access emails for unreleased units
 const EARLY_ACCESS_EMAILS = ['robtaube90@gmail.com'];
@@ -52,7 +53,7 @@ function MusicClassroomResources() {
   const [sessionCodeInput, setSessionCodeInput] = useState('');
   const [isJoiningSession, setIsJoiningSession] = useState(false);
   const [sessionError, setSessionError] = useState('');
-  
+
   // Tutorial video modal state - COMMENTED OUT (outdated)
   // const [showTutorial, setShowTutorial] = useState(false);
   // const [videoKey, setVideoKey] = useState(0);
@@ -395,10 +396,9 @@ function MusicClassroomResources() {
 
   // MAIN DASHBOARD
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      backgroundColor: '#f7fafc',
-      padding: '20px'
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#f7fafc'
     }}>
       {/* Tutorial Video Modal - COMMENTED OUT (outdated)
       {showTutorial && (
@@ -480,43 +480,14 @@ function MusicClassroomResources() {
       )}
       */}
 
-      {/* Header */}
-      <div style={{ 
-        maxWidth: '800px', 
-        margin: '0 auto',
-        marginBottom: '24px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <h1 style={{ 
-          fontSize: '32px', 
-          fontWeight: 'bold',
-          color: '#1a202c'
-        }}>
-          {isCommercialMode ? 'Music Mind Academy' : 'Music Room Tools'}
-        </h1>
-        <button 
-          onClick={handleLogout}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#e53e3e',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontWeight: '600',
-            fontSize: '14px'
-          }}
-        >
-          Logout
-        </button>
-      </div>
+      {/* Shared Header */}
+      <TeacherHeader />
 
       {/* Content container */}
-      <div style={{ 
-        maxWidth: '600px', 
-        margin: '0 auto'
+      <div style={{
+        maxWidth: '600px',
+        margin: '0 auto',
+        padding: '24px 20px'
       }}>
         
         {/* Tutorial Button - COMMENTED OUT (outdated)

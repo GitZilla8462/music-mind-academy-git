@@ -1,236 +1,316 @@
 // Teacher Dashboard for Firebase-authenticated teachers
 // src/pages/FirebaseTeacherDashboard.jsx
+// Google Classroom-style: simple class cards, gradebook per-class
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
-import { getDatabase, ref, get } from 'firebase/database';
-import { LogOut, Plus, Users, BookOpen } from 'lucide-react';
+import { getTeacherClasses } from '../firebase/classes';
+import { getAllClassSubmissions } from '../firebase/grades';
+import {
+  Plus,
+  Users,
+  AlertCircle,
+  Play,
+  MoreVertical,
+  Pencil,
+  Trash2
+} from 'lucide-react';
+import CreateClassModal from '../components/teacher/CreateClassModal';
+import EditClassModal from '../components/teacher/EditClassModal';
+import DeleteClassModal from '../components/teacher/DeleteClassModal';
+import TeacherHeader from '../components/teacher/TeacherHeader';
 
 const FirebaseTeacherDashboard = () => {
   const navigate = useNavigate();
-  const { user, userData, signOut, loading } = useFirebaseAuth();
+  const { user, userData, loading } = useFirebaseAuth();
   const [classes, setClasses] = useState([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [classSubmissions, setClassSubmissions] = useState({});
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
-  // Fetch teacher's classes from Realtime Database
-  useEffect(() => {
-    const fetchClasses = async () => {
-      if (!user) return;
+  // Fetch teacher's classes
+  const fetchClasses = async () => {
+    if (!user) return;
 
-      try {
-        const database = getDatabase();
-        const classesRef = ref(database, `teacherClasses/${user.uid}`);
-        const snapshot = await get(classesRef);
-
-        if (snapshot.exists()) {
-          const classesData = [];
-          snapshot.forEach((child) => {
-            classesData.push({ id: child.key, ...child.val() });
-          });
-          setClasses(classesData);
-        } else {
-          setClasses([]);
-        }
-      } catch (error) {
-        console.error('Error fetching classes:', error);
-      } finally {
-        setLoadingClasses(false);
-      }
-    };
-
-    fetchClasses();
-  }, [user]);
-
-  const handleSignOut = async () => {
     try {
-      await signOut();
-      navigate('/');
+      const classesData = await getTeacherClasses(user.uid);
+      setClasses(classesData);
+
+      // Fetch pending submissions for each class with accounts mode
+      const submissionsMap = {};
+      for (const classItem of classesData) {
+        if (classItem.mode === 'accounts') {
+          try {
+            const submissions = await getAllClassSubmissions(classItem.id);
+            submissionsMap[classItem.id] = submissions;
+          } catch (err) {
+            console.error(`Error fetching submissions for ${classItem.id}:`, err);
+          }
+        }
+      }
+      setClassSubmissions(submissionsMap);
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error('Error fetching classes:', error);
+    } finally {
+      setLoadingClasses(false);
     }
   };
 
+  useEffect(() => {
+    fetchClasses();
+  }, [user]);
+
+  const handleClassCreated = () => {
+    fetchClasses();
+  };
+
+  const handleEditClick = (e, classItem) => {
+    e.stopPropagation();
+    setSelectedClass(classItem);
+    setShowEditModal(true);
+    setOpenMenuId(null);
+  };
+
+  const handleDeleteClick = (e, classItem) => {
+    e.stopPropagation();
+    setSelectedClass(classItem);
+    setShowDeleteModal(true);
+    setOpenMenuId(null);
+  };
+
+  const handleMenuToggle = (e, classId) => {
+    e.stopPropagation();
+    setOpenMenuId(openMenuId === classId ? null : classId);
+  };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    if (openMenuId) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openMenuId]);
+
+  // Get pending count for a specific class
+  const getPendingCount = (classId) => {
+    const subs = classSubmissions[classId];
+    if (!subs) return 0;
+    return subs.filter(s => s.status === 'pending').length;
+  };
+
+  // Calculate total pending for header notification
+  const totalPending = Object.values(classSubmissions).reduce((sum, subs) => {
+    return sum + (subs?.filter(s => s.status === 'pending')?.length || 0);
+  }, 0);
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-sky-500 flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-              </svg>
-            </div>
-            <span className="font-semibold text-xl text-gray-800">Music Mind Academy</span>
-          </div>
+    <div className="min-h-screen bg-gray-100">
+      <TeacherHeader pendingCount={totalPending} />
 
-          <div className="flex items-center gap-4">
-            {/* User Info */}
-            <div className="flex items-center gap-3">
-              {user?.photoURL ? (
-                <img
-                  src={user.photoURL}
-                  alt={user.displayName}
-                  className="w-10 h-10 rounded-full border-2 border-gray-200"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-                  {user?.displayName?.charAt(0) || 'T'}
-                </div>
-              )}
-              <div className="hidden md:block">
-                <div className="font-medium text-gray-800">{user?.displayName}</div>
-                <div className="text-sm text-gray-500">{user?.email}</div>
-              </div>
-            </div>
-
-            {/* Sign Out Button */}
-            <button
-              onClick={handleSignOut}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-            >
-              <LogOut size={18} />
-              <span className="hidden sm:inline">Sign Out</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome, {user?.displayName?.split(' ')[0] || 'Teacher'}!
-          </h1>
-          <p className="text-gray-600">
-            Manage your classes and assignments from your dashboard.
-          </p>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+        {/* Page Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">My Classes</h1>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+          >
+            <Plus size={18} />
+            Create Class
+          </button>
         </div>
 
-        {/* Pilot Status Banner */}
+        {/* Pilot Banner */}
         {userData?.isPilot && (
-          <div className="mb-6 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl p-4 flex items-center gap-3">
-            <span className="text-2xl">🎉</span>
-            <div>
-              <div className="font-semibold">Pilot Program Member</div>
-              <div className="text-sm text-purple-100">Thank you for being an early adopter!</div>
+          <div className="mb-6 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg px-4 py-3 flex items-center gap-3">
+            <span className="text-xl">🎉</span>
+            <div className="text-sm">
+              <span className="font-semibold">Pilot Program Member</span>
+              <span className="text-purple-100 ml-2">Thank you for being an early adopter!</span>
             </div>
           </div>
         )}
 
-        {/* Classes Section */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-          <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                <Users className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">My Classes</h2>
-                <p className="text-sm text-gray-500">{classes.length} {classes.length === 1 ? 'class' : 'classes'}</p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                // TODO: Implement create class modal
-                alert('Create Class feature coming soon!');
-              }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              <Plus size={18} />
-              Create Class
-            </button>
+        {/* Classes Grid */}
+        {loadingClasses ? (
+          <div className="flex justify-center py-16">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
           </div>
+        ) : classes.length === 0 ? (
+          /* Empty State - Two Paths */
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+            <div className="text-5xl mb-4">🎵</div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Welcome to Music Mind Academy</h2>
+            <p className="text-gray-600 mb-8 max-w-lg mx-auto">
+              How would you like to get started?
+            </p>
 
-          <div className="p-6">
-            {loadingClasses ? (
-              <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
-              </div>
-            ) : classes.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                  <BookOpen className="w-8 h-8 text-gray-400" />
+            <div className="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+              {/* Quick Start - Green outline to draw attention */}
+              <button
+                onClick={() => navigate('/music-classroom-resources')}
+                className="p-5 border-2 border-green-400 bg-green-50/50 rounded-xl text-left hover:border-green-500 hover:bg-green-50 transition-all group"
+              >
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mb-3 group-hover:bg-green-200">
+                  <Play className="w-5 h-5 text-green-600" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No classes yet</h3>
-                <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                  Create your first class to start assigning lessons and activities to your students.
+                <h3 className="font-semibold text-gray-900 mb-1">Start Teaching Now</h3>
+                <p className="text-sm text-gray-500 mb-3">
+                  Jump right in - no setup required.
                 </p>
+                <ul className="text-xs text-gray-400 space-y-1">
+                  <li>• Students join with a code</li>
+                  <li>• No student accounts needed</li>
+                  <li>• Work is not saved</li>
+                </ul>
+              </button>
+
+              {/* Create Class */}
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="p-5 border-2 border-gray-200 rounded-xl text-left hover:border-blue-400 hover:bg-blue-50 transition-all group"
+              >
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-3 group-hover:bg-blue-200">
+                  <Users className="w-5 h-5 text-blue-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">Create a Class</h3>
+                <p className="text-sm text-gray-500 mb-3">
+                  Set up once, then track everything.
+                </p>
+                <ul className="text-xs text-gray-400 space-y-1">
+                  <li>• Students get login PINs</li>
+                  <li>• Work saves automatically</li>
+                  <li>• Grade and give feedback</li>
+                </ul>
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Class Cards Grid */
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {classes.map((classItem) => {
+              const pendingCount = getPendingCount(classItem.id);
+
+              return (
                 <button
-                  onClick={() => {
-                    // TODO: Implement create class modal
-                    alert('Create Class feature coming soon!');
-                  }}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  key={classItem.id}
+                  onClick={() => navigate(`/teacher/class/${classItem.id}`)}
+                  className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all text-left group"
                 >
-                  <Plus size={18} />
-                  Create Your First Class
-                </button>
-              </div>
-            ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {classes.map((classItem) => (
-                  <div
-                    key={classItem.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
-                  >
-                    <h3 className="font-semibold text-gray-900 mb-1">{classItem.name}</h3>
-                    <p className="text-sm text-gray-500 mb-3">
+                  {/* Card Header - colored banner */}
+                  <div className="h-24 bg-gradient-to-r from-blue-500 to-indigo-500 px-4 py-3 flex flex-col justify-between group-hover:brightness-110 transition-all relative">
+                    <div className="flex items-start justify-between">
+                      <h3 className="font-semibold text-white text-lg truncate max-w-[140px]">
+                        {classItem.name}
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <span className="text-white/90 font-mono text-sm bg-white/20 px-2 py-0.5 rounded">
+                          {classItem.classCode || classItem.code || '----'}
+                        </span>
+                        {/* Kebab Menu */}
+                        <div className="relative">
+                          <button
+                            onClick={(e) => handleMenuToggle(e, classItem.id)}
+                            className="p-1 rounded-full hover:bg-white/20 transition-colors"
+                          >
+                            <MoreVertical size={18} className="text-white" />
+                          </button>
+                          {openMenuId === classItem.id && (
+                            <div className="absolute right-0 top-8 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 min-w-[120px]">
+                              <button
+                                onClick={(e) => handleEditClick(e, classItem)}
+                                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                              >
+                                <Pencil size={14} />
+                                Edit
+                              </button>
+                              <button
+                                onClick={(e) => handleDeleteClick(e, classItem)}
+                                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 size={14} />
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-white/80 text-sm">
                       {classItem.studentCount || 0} students
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                        {classItem.code || 'No code'}
-                      </span>
+                    </span>
+                  </div>
+
+                  {/* Card Body */}
+                  <div className="p-4">
+                    <div className="flex items-center justify-end">
+                      {pendingCount > 0 && (
+                        <span className="flex items-center gap-1 text-xs text-amber-600 font-medium">
+                          <AlertCircle size={14} />
+                          {pendingCount} to grade
+                        </span>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                </button>
+              );
+            })}
+
+            {/* Add Class Card */}
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="bg-white rounded-xl shadow-sm border-2 border-dashed border-gray-300 p-6 flex flex-col items-center justify-center text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all min-h-[180px]"
+            >
+              <Plus size={32} className="mb-2" />
+              <span className="font-medium">Create Class</span>
+            </button>
           </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="mt-8 grid md:grid-cols-3 gap-4">
-          <button
-            onClick={() => navigate('/music-loops-in-media')}
-            className="bg-white border border-gray-200 rounded-xl p-6 text-left hover:border-blue-300 hover:shadow-md transition-all group"
-          >
-            <div className="text-3xl mb-3">🎬</div>
-            <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-blue-600">Browse Lessons</h3>
-            <p className="text-sm text-gray-500">Explore available lessons and activities</p>
-          </button>
-
-          <button
-            onClick={() => window.open('https://docs.google.com/forms', '_blank')}
-            className="bg-white border border-gray-200 rounded-xl p-6 text-left hover:border-blue-300 hover:shadow-md transition-all group"
-          >
-            <div className="text-3xl mb-3">📝</div>
-            <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-blue-600">Feedback</h3>
-            <p className="text-sm text-gray-500">Share your thoughts and suggestions</p>
-          </button>
-
-          <button
-            onClick={() => window.open('mailto:rob@musicmindacademy.com', '_blank')}
-            className="bg-white border border-gray-200 rounded-xl p-6 text-left hover:border-blue-300 hover:shadow-md transition-all group"
-          >
-            <div className="text-3xl mb-3">💬</div>
-            <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-blue-600">Get Help</h3>
-            <p className="text-sm text-gray-500">Contact support for assistance</p>
-          </button>
-        </div>
+        )}
       </main>
+
+      {/* Create Class Modal */}
+      <CreateClassModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        teacherUid={user?.uid}
+        onClassCreated={handleClassCreated}
+      />
+
+      {/* Edit Class Modal */}
+      <EditClassModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedClass(null);
+        }}
+        classData={selectedClass}
+        onSave={fetchClasses}
+      />
+
+      {/* Delete Class Modal */}
+      <DeleteClassModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setSelectedClass(null);
+        }}
+        classData={selectedClass}
+        onDelete={fetchClasses}
+      />
     </div>
   );
 };

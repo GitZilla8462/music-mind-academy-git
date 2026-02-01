@@ -6,18 +6,103 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../firebase/config';
-import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play, ArrowLeft } from 'lucide-react';
+import { startClassSession } from '../firebase/classes';
+import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play, ArrowLeft, X } from 'lucide-react';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { logSessionCreated, logLessonVisit } from '../firebase/analytics';
+import StartSessionModal from '../components/teacher/StartSessionModal';
+import CreateClassModal from '../components/teacher/CreateClassModal';
+
+// First-time tutorial modal for teachers
+const TutorialModal = ({ onClose }) => {
+  const [dontShowAgain, setDontShowAgain] = useState(false);
+
+  const handleClose = () => {
+    if (dontShowAgain) {
+      localStorage.setItem('mma-tutorial-seen', 'true');
+    }
+    onClose();
+  };
+
+  const handleWatchVideo = () => {
+    window.open('/lessons/TutorialVideo.mp4', '_blank', 'width=1280,height=720,menubar=no,toolbar=no');
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-white">New to Music Mind Academy?</h2>
+          <button
+            onClick={handleClose}
+            className="text-white/80 hover:text-white transition-colors"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="px-6 py-5">
+          <p className="text-gray-700 text-lg mb-5">
+            Watch the tutorial video below to learn how to run a lesson!
+          </p>
+
+          {/* Watch Tutorial Button */}
+          <button
+            onClick={handleWatchVideo}
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-all mb-4"
+          >
+            <Play size={20} fill="currentColor" />
+            Watch: How to Run a Lesson (2 min)
+          </button>
+
+          {/* Don't show again checkbox */}
+          <label className="flex items-center gap-2 cursor-pointer text-gray-600 hover:text-gray-800">
+            <input
+              type="checkbox"
+              checked={dontShowAgain}
+              onChange={(e) => setDontShowAgain(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+            />
+            <span className="text-sm">Don't show this again</span>
+          </label>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+          <button
+            onClick={handleClose}
+            className="w-full bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors"
+          >
+            Got it, let's start!
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const MusicLoopsInMediaHub = () => {
   const navigate = useNavigate();
   const [creatingSession, setCreatingSession] = useState(null);
   const [expandedLessons, setExpandedLessons] = useState({});
   const [gettingStartedOpen, setGettingStartedOpen] = useState(false);
+  const [showStartModal, setShowStartModal] = useState(false);
+  const [showCreateClassModal, setShowCreateClassModal] = useState(false);
+  const [selectedLesson, setSelectedLesson] = useState(null);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   // Get authenticated teacher info
   const { user, signOut } = useFirebaseAuth();
+
+  // Show tutorial modal for first-time visitors
+  useEffect(() => {
+    const hasSeenTutorial = localStorage.getItem('mma-tutorial-seen') === 'true';
+    if (!hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+  }, []);
 
   // Default to teacher role - hub is for teachers
   const userRole = localStorage.getItem('classroom-user-role') || 'teacher';
@@ -49,35 +134,102 @@ const MusicLoopsInMediaHub = () => {
     }));
   };
 
-  const handleStartSession = async (lessonId, lessonRoute) => {
-    setCreatingSession(lessonId);
+  // Open the start session modal instead of immediately starting
+  const handleStartSession = (lesson) => {
+    setSelectedLesson(lesson);
+    setShowStartModal(true);
+  };
+
+  // Start session for a specific class (tracked)
+  // Uses the permanent class code instead of generating a new session code
+  const handleStartForClass = async (selectedClass) => {
+    if (!selectedLesson) return;
+
+    setCreatingSession(selectedLesson.id);
     try {
-      // Use authenticated teacher's UID if available, fallback to 'teacher'
+      // Start session on the class record (uses class code, not session code)
+      const classWithSession = await startClassSession(selectedClass.id, {
+        lessonId: selectedLesson.id,
+        lessonRoute: selectedLesson.route
+      });
+
+      // Log analytics - use classCode as sessionCode for class sessions
+      if (user?.uid) {
+        try {
+          await logSessionCreated(user.uid, user.email, {
+            sessionCode: classWithSession.classCode, // Use class code as session identifier
+            lessonId: selectedLesson.id,
+            lessonRoute: selectedLesson.route,
+            classId: selectedClass.id,
+            className: selectedClass.name,
+            isClassSession: true
+          });
+          await logLessonVisit(user.uid, user.email, selectedLesson.id);
+        } catch (analyticsError) {
+          console.warn('Analytics logging failed:', analyticsError);
+        }
+      }
+
+      setShowStartModal(false);
+      // Navigate with classId - students will use the class code to join
+      navigate(`${selectedLesson.route}?classId=${selectedClass.id}&role=teacher&classCode=${classWithSession.classCode}`);
+    } catch (error) {
+      console.error('Error starting class session:', error);
+      alert('Failed to start session. Please try again.');
+    } finally {
+      setCreatingSession(null);
+    }
+  };
+
+  // Start a quick session (not tracked)
+  const handleStartQuickSession = async () => {
+    if (!selectedLesson) return;
+
+    setCreatingSession(selectedLesson.id);
+    try {
       const teacherId = user?.uid || 'teacher';
-      const teacherEmail = user?.email || 'anonymous';
+      // Pass guest mode for quick sessions - no sign-in required
+      const code = await createSession(teacherId, selectedLesson.id, selectedLesson.route, {
+        classMode: 'guest'
+      });
 
-      const code = await createSession(teacherId, lessonId, lessonRoute);
-
-      // Log analytics for pilot tracking
+      // Log analytics
       if (user?.uid) {
         try {
           await logSessionCreated(user.uid, user.email, {
             sessionCode: code,
-            lessonId,
-            lessonRoute
+            lessonId: selectedLesson.id,
+            lessonRoute: selectedLesson.route,
+            isQuickSession: true
           });
-          await logLessonVisit(user.uid, user.email, lessonId);
+          await logLessonVisit(user.uid, user.email, selectedLesson.id);
         } catch (analyticsError) {
-          console.warn('Analytics logging failed (non-critical):', analyticsError);
+          console.warn('Analytics logging failed:', analyticsError);
         }
       }
 
-      // Use React Router navigate for instant client-side navigation (no page reload)
-      navigate(`${lessonRoute}?session=${code}&role=teacher`);
+      setShowStartModal(false);
+      navigate(`${selectedLesson.route}?session=${code}&role=teacher`);
     } catch (error) {
       console.error('Error creating session:', error);
       alert('Failed to create session. Please try again.');
+    } finally {
       setCreatingSession(null);
+    }
+  };
+
+  // Handle class creation from the modal
+  const handleCreateClassFromModal = () => {
+    setShowStartModal(false);
+    setShowCreateClassModal(true);
+  };
+
+  // After class is created, reopen the start modal
+  const handleClassCreated = () => {
+    setShowCreateClassModal(false);
+    // Reopen start modal so they can select the new class
+    if (selectedLesson) {
+      setShowStartModal(true);
     }
   };
 
@@ -457,7 +609,7 @@ const MusicLoopsInMediaHub = () => {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleStartSession(lesson.id, lesson.route);
+                                    handleStartSession(lesson);
                                   }}
                                   disabled={creatingSession === lesson.id}
                                   className={`font-semibold py-2.5 px-5 rounded-lg transition-colors flex items-center gap-2 text-base ${
@@ -652,6 +804,33 @@ const MusicLoopsInMediaHub = () => {
           </div>
         </div>
       </div>
+
+      {/* Start Session Modal */}
+      <StartSessionModal
+        isOpen={showStartModal}
+        onClose={() => {
+          setShowStartModal(false);
+          setSelectedLesson(null);
+        }}
+        lesson={selectedLesson}
+        teacherUid={user?.uid}
+        onStartForClass={handleStartForClass}
+        onStartQuickSession={handleStartQuickSession}
+        onCreateClass={handleCreateClassFromModal}
+      />
+
+      {/* Create Class Modal */}
+      <CreateClassModal
+        isOpen={showCreateClassModal}
+        onClose={() => setShowCreateClassModal(false)}
+        teacherUid={user?.uid}
+        onClassCreated={handleClassCreated}
+      />
+
+      {/* Tutorial Modal - shows for first-time visitors */}
+      {showTutorial && (
+        <TutorialModal onClose={() => setShowTutorial(false)} />
+      )}
       </div>
     </div>
     </>
