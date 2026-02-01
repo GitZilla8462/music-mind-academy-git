@@ -14,6 +14,17 @@ import * as XLSX from 'xlsx';
 // Your admin email(s) - only these can access this page
 const ADMIN_EMAILS = ['robtaube90@gmail.com', 'robtaube92@gmail.com'];
 
+// Emails to exclude from teacher analytics (test accounts, duplicates, never registered)
+const EXCLUDED_ANALYTICS_EMAILS = [
+  'abross0930@gmail.com',      // Reached L1, but never registered
+  'tshepard@ccsfw.org',        // Reached L1, never registered
+  'rencro123@gmail.com',       // Test Only, never registered
+  'lchiesa@fmschools.org',     // Test Only, never registered
+  'd.vasileska@gmail.com',     // Test Only, never registered
+  'afisher@theoaksacademy.org', // Test Only, never registered
+  'brandonvalerino@gmail.com', // Test Only, never registered (duplicate of bvalerino)
+];
+
 const PilotAdminPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useFirebaseAuth();
@@ -40,6 +51,9 @@ const PilotAdminPage = () => {
   const [batchNotes, setBatchNotes] = useState('');
   const [batchAdding, setBatchAdding] = useState(false);
 
+  // Teacher type for new additions
+  const [newTeacherType, setNewTeacherType] = useState('pilot');
+
   // Get current approved emails based on selected site
   const approvedEmails = selectedSite === SITE_TYPES.ACADEMY ? academyEmails : eduEmails;
 
@@ -60,6 +74,15 @@ const PilotAdminPage = () => {
   const [analyticsSearch, setAnalyticsSearch] = useState('');
   const [expandedTeachers, setExpandedTeachers] = useState({});
   const [teacherOutreach, setTeacherOutreach] = useState({});
+
+  // Approved emails sort state
+  const [approvedEmailsSort, setApprovedEmailsSort] = useState({ column: 'email', direction: 'asc' });
+  const [selectedEmails, setSelectedEmails] = useState({});
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
+  // Registered users selection state
+  const [selectedUsers, setSelectedUsers] = useState({});
+  const [bulkDeletingUsers, setBulkDeletingUsers] = useState(false);
 
   // Backfill state
   const [isBackfilling, setIsBackfilling] = useState(false);
@@ -82,7 +105,7 @@ const PilotAdminPage = () => {
         snapshot.forEach((child) => {
           emails.push({ id: child.key, ...child.val() });
         });
-        emails.sort((a, b) => (b.approvedAt || 0) - (a.approvedAt || 0));
+        emails.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
         setAcademyEmails(emails);
       } else {
         setAcademyEmails([]);
@@ -97,7 +120,7 @@ const PilotAdminPage = () => {
         snapshot.forEach((child) => {
           emails.push({ id: child.key, ...child.val() });
         });
-        emails.sort((a, b) => (b.approvedAt || 0) - (a.approvedAt || 0));
+        emails.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
         setEduEmails(emails);
       } else {
         setEduEmails([]);
@@ -124,7 +147,11 @@ const PilotAdminPage = () => {
     // Subscribe to analytics updates
     const unsubAnalytics = subscribeToAnalytics(({ stats, teachers, sessions }) => {
       setSummaryStats(stats);
-      setTeacherAnalytics(teachers);
+      // Filter out excluded emails from analytics
+      const filteredTeachers = teachers.filter(t =>
+        !EXCLUDED_ANALYTICS_EMAILS.includes(t.email?.toLowerCase())
+      );
+      setTeacherAnalytics(filteredTeachers);
       setPilotSessions(sessions);
     });
 
@@ -200,18 +227,24 @@ const PilotAdminPage = () => {
     };
   }, [user, isAdmin, database]);
 
-  // Toggle outreach checkbox (emailed L3 or emailed Done)
-  const toggleOutreach = async (teacherEmail, field) => {
+  // Toggle outreach checkbox or set value (emailed L3, emailed Done, teacherType, etc.)
+  const toggleOutreach = async (teacherEmail, field, explicitValue = null) => {
     const emailKey = teacherEmail.toLowerCase().replace(/\./g, ',');
     const outreachRef = ref(database, `teacherOutreach/${emailKey}`);
 
     try {
-      const currentValue = teacherOutreach[emailKey]?.[field] || false;
-      const updates = {
-        [field]: !currentValue,
-        [`${field}At`]: !currentValue ? Date.now() : null,
-        email: teacherEmail
-      };
+      let updates = { email: teacherEmail };
+
+      if (explicitValue !== null) {
+        // Set explicit value (e.g., teacherType dropdown)
+        updates[field] = explicitValue;
+      } else {
+        // Toggle boolean value
+        const currentValue = teacherOutreach[emailKey]?.[field] || false;
+        updates[field] = !currentValue;
+        updates[`${field}At`] = !currentValue ? Date.now() : null;
+      }
+
       await update(outreachRef, updates);
     } catch (err) {
       console.error('Failed to update outreach:', err);
@@ -240,8 +273,17 @@ const PilotAdminPage = () => {
         siteType: selectedSite
       });
 
+      // Also set teacher type in outreach tracking
+      const outreachRef = ref(database, `teacherOutreach/${emailKey}`);
+      await update(outreachRef, {
+        email: newEmail.toLowerCase().trim(),
+        teacherType: newTeacherType,
+        addedAt: Date.now()
+      });
+
       const siteName = selectedSite === SITE_TYPES.ACADEMY ? 'Music Mind Academy' : 'Music Room Tools';
-      setSuccess(`Added ${newEmail} to ${siteName}`);
+      const typeLabel = newTeacherType === 'purchased' ? 'Purchased' : 'Pilot';
+      setSuccess(`Added ${newEmail} to ${siteName} as ${typeLabel}`);
       setNewEmail('');
       setNewNotes('');
     } catch (err) {
@@ -297,11 +339,21 @@ const PilotAdminPage = () => {
           approvedBy: user.email,
           siteType: selectedSite
         });
+
+        // Also set teacher type in outreach tracking
+        const outreachRef = ref(database, `teacherOutreach/${emailKey}`);
+        await update(outreachRef, {
+          email: email,
+          teacherType: newTeacherType,
+          addedAt: Date.now()
+        });
+
         added++;
       }
 
       const siteName = selectedSite === SITE_TYPES.ACADEMY ? 'Music Mind Academy' : 'Music Room Tools';
-      setSuccess(`Added ${added} email${added !== 1 ? 's' : ''} to ${siteName}${skipped > 0 ? ` (${skipped} already existed)` : ''}`);
+      const typeLabel = newTeacherType === 'purchased' ? 'Purchased' : 'Pilot';
+      setSuccess(`Added ${added} ${typeLabel} email${added !== 1 ? 's' : ''} to ${siteName}${skipped > 0 ? ` (${skipped} already existed)` : ''}`);
       setBatchEmails('');
       setBatchNotes('');
       setShowBatchAdd(false);
@@ -324,6 +376,89 @@ const PilotAdminPage = () => {
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  // Bulk delete selected emails
+  const handleBulkDelete = async () => {
+    const selectedIds = Object.entries(selectedEmails).filter(([_, selected]) => selected).map(([id]) => id);
+    if (selectedIds.length === 0) return;
+
+    const siteName = selectedSite === SITE_TYPES.ACADEMY ? 'Music Mind Academy' : 'Music Room Tools';
+    if (!confirm(`Delete ${selectedIds.length} email(s) from ${siteName}?`)) return;
+
+    setBulkDeleting(true);
+    try {
+      for (const emailKey of selectedIds) {
+        const emailRef = ref(database, `approvedEmails/${selectedSite}/${emailKey}`);
+        await remove(emailRef);
+      }
+      setSuccess(`Removed ${selectedIds.length} email(s) from ${siteName}`);
+      setSelectedEmails({});
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
+  // Toggle select all emails
+  const toggleSelectAll = () => {
+    const allSelected = approvedEmails.every(item => selectedEmails[item.id]);
+    if (allSelected) {
+      setSelectedEmails({});
+    } else {
+      const newSelected = {};
+      approvedEmails.forEach(item => { newSelected[item.id] = true; });
+      setSelectedEmails(newSelected);
+    }
+  };
+
+  // Bulk delete selected users
+  const handleBulkDeleteUsers = async () => {
+    const selectedIds = Object.entries(selectedUsers).filter(([_, selected]) => selected).map(([id]) => id);
+    if (selectedIds.length === 0) return;
+
+    if (!confirm(`Delete ${selectedIds.length} user account(s)? They will no longer be able to log in.`)) return;
+
+    setBulkDeletingUsers(true);
+    try {
+      for (const oderId of selectedIds) {
+        const userRef = ref(database, `users/${oderId}`);
+        await remove(userRef);
+      }
+      setSuccess(`Removed ${selectedIds.length} user account(s)`);
+      setSelectedUsers({});
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBulkDeletingUsers(false);
+    }
+  };
+
+  // Toggle select all users
+  const toggleSelectAllUsers = () => {
+    const allSelected = registeredUsers.every(user => selectedUsers[user.id]);
+    if (allSelected) {
+      setSelectedUsers({});
+    } else {
+      const newSelected = {};
+      registeredUsers.forEach(user => { newSelected[user.id] = true; });
+      setSelectedUsers(newSelected);
+    }
+  };
+
+  // Get users not in approved emails (for easy selection)
+  const getUsersNotApproved = () => {
+    const approvedEmailSet = new Set(approvedEmails.map(e => e.email?.toLowerCase()));
+    return registeredUsers.filter(user => !approvedEmailSet.has(user.email?.toLowerCase()));
+  };
+
+  // Select only users not in approved emails
+  const selectUnapprovedUsers = () => {
+    const unapproved = getUsersNotApproved();
+    const newSelected = {};
+    unapproved.forEach(user => { newSelected[user.id] = true; });
+    setSelectedUsers(newSelected);
   };
 
   // Format date
@@ -948,8 +1083,9 @@ const PilotAdminPage = () => {
           </div>
 
           {!showBatchAdd ? (
-            <form onSubmit={handleAddEmail} className="flex flex-col md:flex-row gap-4">
+            <form onSubmit={handleAddEmail} className="flex flex-col md:flex-row gap-4 items-end">
               <div className="flex-1">
+                <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
                 <input
                   type="email"
                   value={newEmail}
@@ -960,13 +1096,27 @@ const PilotAdminPage = () => {
                 />
               </div>
               <div className="flex-1">
+                <label className="block text-xs font-medium text-gray-600 mb-1">Notes (optional)</label>
                 <input
                   type="text"
                   value={newNotes}
                   onChange={(e) => setNewNotes(e.target.value)}
-                  placeholder="Notes (optional) - e.g., School name, grade level"
+                  placeholder="School name, grade level"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                 />
+              </div>
+              <div className="w-32">
+                <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
+                <select
+                  value={newTeacherType}
+                  onChange={(e) => setNewTeacherType(e.target.value)}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium ${
+                    newTeacherType === 'purchased' ? 'text-green-700' : 'text-blue-700'
+                  }`}
+                >
+                  <option value="pilot">Pilot</option>
+                  <option value="purchased">Purchased</option>
+                </select>
               </div>
               <button
                 type="submit"
@@ -998,15 +1148,29 @@ const PilotAdminPage = () => {
                   {batchEmails.split(/[\s,;\n]+/).filter(e => e && e.includes('@')).length} email(s) detected
                 </p>
               </div>
-              <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex flex-col md:flex-row gap-4 items-end">
                 <div className="flex-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Notes for all (optional)</label>
                   <input
                     type="text"
                     value={batchNotes}
                     onChange={(e) => setBatchNotes(e.target.value)}
-                    placeholder="Notes for all emails (optional) - e.g., Winter 2025 cohort"
+                    placeholder="e.g., Winter 2025 cohort"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                   />
+                </div>
+                <div className="w-32">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
+                  <select
+                    value={newTeacherType}
+                    onChange={(e) => setNewTeacherType(e.target.value)}
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium ${
+                      newTeacherType === 'purchased' ? 'text-green-700' : 'text-blue-700'
+                    }`}
+                  >
+                    <option value="pilot">Pilot</option>
+                    <option value="purchased">Purchased</option>
+                  </select>
                 </div>
                 <button
                   type="submit"
@@ -1126,19 +1290,106 @@ const PilotAdminPage = () => {
               </div>
             ) : (
               <div className="divide-y divide-gray-100">
-                {approvedEmails.map((item) => (
-                  <div key={item.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-800">{item.email}</div>
-                      <div className="text-sm text-gray-500 flex items-center gap-4">
-                        <span className="flex items-center gap-1">
-                          <Calendar size={14} />
-                          {formatDate(item.approvedAt)}
-                        </span>
-                        {item.notes && <span>• {item.notes}</span>}
+                {/* Sort controls and bulk actions */}
+                <div className="px-6 py-2 bg-gray-50 flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={toggleSelectAll}
+                      className="px-2 py-1 rounded hover:bg-gray-200 flex items-center gap-1"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={approvedEmails.length > 0 && approvedEmails.every(item => selectedEmails[item.id])}
+                        onChange={toggleSelectAll}
+                        className="rounded"
+                      />
+                      <span>Select All</span>
+                    </button>
+                    {Object.values(selectedEmails).filter(Boolean).length > 0 && (
+                      <button
+                        onClick={handleBulkDelete}
+                        disabled={bulkDeleting}
+                        className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 flex items-center gap-1"
+                      >
+                        <Trash2 size={14} />
+                        Delete {Object.values(selectedEmails).filter(Boolean).length} Selected
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-gray-500 text-sm">Sort by:</label>
+                    <select
+                      value={`${approvedEmailsSort.column}-${approvedEmailsSort.direction}`}
+                      onChange={(e) => {
+                        const [column, direction] = e.target.value.split('-');
+                        setApprovedEmailsSort({ column, direction });
+                      }}
+                      className="px-2 py-1 border border-gray-300 rounded text-sm"
+                    >
+                      <option value="email-asc">Email (A-Z)</option>
+                      <option value="email-desc">Email (Z-A)</option>
+                      <option value="date-desc">Date (Newest)</option>
+                      <option value="date-asc">Date (Oldest)</option>
+                      <option value="status-desc">Status (Signed Up first)</option>
+                      <option value="status-asc">Status (Pending first)</option>
+                      <option value="type-desc">Type (Paid first)</option>
+                      <option value="type-asc">Type (Pilot first)</option>
+                    </select>
+                  </div>
+                </div>
+                {[...approvedEmails].sort((a, b) => {
+                  let comparison = 0;
+                  const aEmailKey = a.email?.toLowerCase().replace(/\./g, ',');
+                  const bEmailKey = b.email?.toLowerCase().replace(/\./g, ',');
+                  const aType = teacherOutreach[aEmailKey]?.teacherType || 'pilot';
+                  const bType = teacherOutreach[bEmailKey]?.teacherType || 'pilot';
+
+                  if (approvedEmailsSort.column === 'email') {
+                    comparison = (a.email || '').localeCompare(b.email || '');
+                  } else if (approvedEmailsSort.column === 'date') {
+                    comparison = (b.approvedAt || 0) - (a.approvedAt || 0);
+                  } else if (approvedEmailsSort.column === 'status') {
+                    const aSignedUp = registeredUsers.some(u => u.email?.toLowerCase() === a.email?.toLowerCase()) ? 1 : 0;
+                    const bSignedUp = registeredUsers.some(u => u.email?.toLowerCase() === b.email?.toLowerCase()) ? 1 : 0;
+                    comparison = bSignedUp - aSignedUp;
+                  } else if (approvedEmailsSort.column === 'type') {
+                    // purchased = 1, pilot = 0
+                    comparison = (bType === 'purchased' ? 1 : 0) - (aType === 'purchased' ? 1 : 0);
+                  }
+                  return approvedEmailsSort.direction === 'asc' ? comparison : -comparison;
+                }).map((item) => {
+                  const emailKey = item.email?.toLowerCase().replace(/\./g, ',');
+                  const teacherType = teacherOutreach[emailKey]?.teacherType || 'pilot';
+                  return (
+                  <div key={item.id} className={`px-6 py-4 flex items-center justify-between hover:bg-gray-50 ${selectedEmails[item.id] ? 'bg-red-50' : ''}`}>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={!!selectedEmails[item.id]}
+                        onChange={(e) => setSelectedEmails(prev => ({ ...prev, [item.id]: e.target.checked }))}
+                        className="rounded"
+                      />
+                      <div>
+                        <div className="font-medium text-gray-800">{item.email}</div>
+                        <div className="text-sm text-gray-500 flex items-center gap-4">
+                          <span className="flex items-center gap-1">
+                            <Calendar size={14} />
+                            {formatDate(item.approvedAt)}
+                          </span>
+                          {item.notes && <span>• {item.notes}</span>}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      {teacherType === 'purchased' ? (
+                        <span className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full">
+                          Paid
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">
+                          Pilot
+                        </span>
+                      )}
                       {registeredUsers.some(u => u.email?.toLowerCase() === item.email?.toLowerCase()) ? (
                         <span className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full">
                           Signed Up
@@ -1157,7 +1408,7 @@ const PilotAdminPage = () => {
                       </button>
                     </div>
                   </div>
-                ))}
+                );})}
               </div>
             )}
           </div>
@@ -1179,34 +1430,98 @@ const PilotAdminPage = () => {
               </div>
             ) : (
               <div className="divide-y divide-gray-100">
-                {registeredUsers.map((user) => (
-                  <div key={user.id} className="px-6 py-4 flex items-center gap-4 hover:bg-gray-50">
-                    {user.photoURL ? (
-                      <img src={user.photoURL} alt="" className="w-10 h-10 rounded-full" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-                        {user.displayName?.charAt(0) || '?'}
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-800">{user.displayName || 'Unknown'}</div>
-                      <div className="text-sm text-gray-500">{user.email}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-500">
-                        Joined: {formatDate(user.createdAt)}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Last login: {formatDate(user.lastLoginAt)}
-                      </div>
-                    </div>
-                    {user.isPilot && (
-                      <span className="px-3 py-1 bg-purple-100 text-purple-700 text-sm rounded-full">
-                        Pilot
-                      </span>
+                {/* Bulk actions toolbar */}
+                <div className="px-6 py-2 bg-gray-50 flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={toggleSelectAllUsers}
+                      className="px-2 py-1 rounded hover:bg-gray-200 flex items-center gap-1"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={registeredUsers.length > 0 && registeredUsers.every(user => selectedUsers[user.id])}
+                        onChange={toggleSelectAllUsers}
+                        className="rounded"
+                      />
+                      <span>Select All</span>
+                    </button>
+                    <button
+                      onClick={selectUnapprovedUsers}
+                      className="px-3 py-1 rounded bg-orange-100 text-orange-700 hover:bg-orange-200"
+                    >
+                      Select Not Approved ({getUsersNotApproved().length})
+                    </button>
+                    {Object.values(selectedUsers).filter(Boolean).length > 0 && (
+                      <button
+                        onClick={handleBulkDeleteUsers}
+                        disabled={bulkDeletingUsers}
+                        className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 flex items-center gap-1"
+                      >
+                        <Trash2 size={14} />
+                        Delete {Object.values(selectedUsers).filter(Boolean).length} Selected
+                      </button>
                     )}
                   </div>
-                ))}
+                </div>
+                {[...registeredUsers].sort((a, b) => {
+                  const aEmailKey = a.email?.toLowerCase().replace(/\./g, ',');
+                  const bEmailKey = b.email?.toLowerCase().replace(/\./g, ',');
+                  const aType = teacherOutreach[aEmailKey]?.teacherType || 'pilot';
+                  const bType = teacherOutreach[bEmailKey]?.teacherType || 'pilot';
+                  // Sort purchased first, then pilot
+                  return (bType === 'purchased' ? 1 : 0) - (aType === 'purchased' ? 1 : 0);
+                }).map((user) => {
+                  const isApproved = approvedEmails.some(e => e.email?.toLowerCase() === user.email?.toLowerCase());
+                  const emailKey = user.email?.toLowerCase().replace(/\./g, ',');
+                  const teacherType = teacherOutreach[emailKey]?.teacherType || 'pilot';
+                  return (
+                    <div key={user.id} className={`px-6 py-4 flex items-center gap-4 hover:bg-gray-50 ${selectedUsers[user.id] ? 'bg-red-50' : ''}`}>
+                      <input
+                        type="checkbox"
+                        checked={!!selectedUsers[user.id]}
+                        onChange={(e) => setSelectedUsers(prev => ({ ...prev, [user.id]: e.target.checked }))}
+                        className="rounded"
+                      />
+                      {user.photoURL ? (
+                        <img src={user.photoURL} alt="" className="w-10 h-10 rounded-full" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+                          {user.displayName?.charAt(0) || '?'}
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-800">{user.displayName || 'Unknown'}</div>
+                        <div className="text-sm text-gray-500">{user.email}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm text-gray-500">
+                          Joined: {formatDate(user.createdAt)}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Last login: {formatDate(user.lastLoginAt)}
+                        </div>
+                      </div>
+                      {teacherType === 'purchased' ? (
+                        <span className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full">
+                          Paid
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">
+                          Pilot
+                        </span>
+                      )}
+                      {isApproved ? (
+                        <span className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full">
+                          Approved
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full">
+                          Not Approved
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -1266,9 +1581,10 @@ const PilotAdminPage = () => {
               });
 
               // Helper to check if lesson is "completed" (real class)
+              // A real class = 10+ students AND 15+ minutes (regardless of whether session was formally ended)
               const isLessonCompleted = (sessions) => {
                 return sessions.some(s =>
-                  s.completed && s.students >= MIN_STUDENTS && s.duration >= MIN_DURATION
+                  s.students >= MIN_STUDENTS && s.duration >= MIN_DURATION
                 );
               };
 
@@ -1315,10 +1631,14 @@ const PilotAdminPage = () => {
                   l1Done, l2Done, l3Done, l4Done, l5Done,
                   hasL3Survey,
                   hasFinalSurvey,
+                  manualL3Survey: outreach.manualL3Survey || false,
+                  manualFinalSurvey: outreach.manualFinalSurvey || false,
                   emailedL3: outreach.emailedL3 || false,
                   emailedL3At: outreach.emailedL3At,
                   emailedDone: outreach.emailedDone || false,
-                  emailedDoneAt: outreach.emailedDoneAt
+                  emailedDoneAt: outreach.emailedDoneAt,
+                  teacherType: outreach.teacherType || 'pilot', // 'pilot' or 'purchased'
+                  pilotUnit: outreach.pilotUnit || '1' // Unit 1-6
                 };
               });
 
@@ -1328,29 +1648,81 @@ const PilotAdminPage = () => {
               );
 
               // Apply dropdown filter
-              if (analyticsFilter === 'notEmailedL3') {
+              if (analyticsFilter === 'pilotOnly') {
+                filteredTeachers = filteredTeachers.filter(t => t.teacherType === 'pilot');
+              } else if (analyticsFilter === 'purchasedOnly') {
+                filteredTeachers = filteredTeachers.filter(t => t.teacherType === 'purchased');
+              } else if (analyticsFilter === 'notEmailedL3') {
                 filteredTeachers = filteredTeachers.filter(t => t.l3Done && !t.emailedL3);
               } else if (analyticsFilter === 'notEmailedDone') {
                 filteredTeachers = filteredTeachers.filter(t => t.l5Done && !t.emailedDone);
               } else if (analyticsFilter === 'missingL3Survey') {
-                filteredTeachers = filteredTeachers.filter(t => t.l3Done && !t.hasL3Survey);
+                filteredTeachers = filteredTeachers.filter(t => t.l3Done && !t.hasL3Survey && !t.manualL3Survey);
               } else if (analyticsFilter === 'missingFinalSurvey') {
-                filteredTeachers = filteredTeachers.filter(t => t.l5Done && !t.hasFinalSurvey);
+                filteredTeachers = filteredTeachers.filter(t => t.l5Done && !t.hasFinalSurvey && !t.manualFinalSurvey);
               }
 
               // Apply sorting
               const stageOrder = { 'Completed': 6, 'Reached L4': 5, 'Reached L3': 4, 'Reached L2': 3, 'Reached L1': 2, 'Test Only': 1, 'Signed Up': 0 };
+              const typeOrder = { 'purchased': 1, 'pilot': 0 };
+
+              // Helper to get lesson completion score (for sorting)
+              const getLessonScore = (teacher, lessonNum) => {
+                const done = teacher[`l${lessonNum}Done`];
+                const sessions = teacher.lessons[lessonNum];
+                if (done) return 2; // Completed
+                if (sessions && sessions.length > 0) return 1; // Test only
+                return 0; // Not started
+              };
+
               filteredTeachers.sort((a, b) => {
                 let comparison = 0;
                 switch (analyticsSort.column) {
                   case 'teacher':
                     comparison = a.email.localeCompare(b.email);
                     break;
+                  case 'type':
+                    comparison = (typeOrder[b.teacherType] || 0) - (typeOrder[a.teacherType] || 0);
+                    break;
+                  case 'unit':
+                    comparison = (parseInt(a.pilotUnit) || 1) - (parseInt(b.pilotUnit) || 1);
+                    break;
                   case 'stage':
                     comparison = (stageOrder[b.stage] || 0) - (stageOrder[a.stage] || 0);
                     break;
+                  case 'l1':
+                    comparison = getLessonScore(b, 1) - getLessonScore(a, 1);
+                    break;
+                  case 'l2':
+                    comparison = getLessonScore(b, 2) - getLessonScore(a, 2);
+                    break;
+                  case 'l3':
+                    comparison = getLessonScore(b, 3) - getLessonScore(a, 3);
+                    break;
+                  case 'l4':
+                    comparison = getLessonScore(b, 4) - getLessonScore(a, 4);
+                    break;
+                  case 'l5':
+                    comparison = getLessonScore(b, 5) - getLessonScore(a, 5);
+                    break;
                   case 'students':
                     comparison = b.totalStudents - a.totalStudents;
+                    break;
+                  case 'l3Survey':
+                    const aL3Survey = (a.hasL3Survey || a.manualL3Survey) ? 1 : 0;
+                    const bL3Survey = (b.hasL3Survey || b.manualL3Survey) ? 1 : 0;
+                    comparison = bL3Survey - aL3Survey;
+                    break;
+                  case 'emailedL3':
+                    comparison = (b.emailedL3 ? 1 : 0) - (a.emailedL3 ? 1 : 0);
+                    break;
+                  case 'finalSurvey':
+                    const aFinalSurvey = (a.hasFinalSurvey || a.manualFinalSurvey) ? 1 : 0;
+                    const bFinalSurvey = (b.hasFinalSurvey || b.manualFinalSurvey) ? 1 : 0;
+                    comparison = bFinalSurvey - aFinalSurvey;
+                    break;
+                  case 'emailedDone':
+                    comparison = (b.emailedDone ? 1 : 0) - (a.emailedDone ? 1 : 0);
                     break;
                   case 'sessions':
                     comparison = b.totalSessions - a.totalSessions;
@@ -1364,9 +1736,9 @@ const PilotAdminPage = () => {
               });
 
               // Sortable header component
-              const SortHeader = ({ column, children, className = '' }) => (
+              const SortHeader = ({ column, children, className = '', center = false, bgColor = '' }) => (
                 <th
-                  className={`px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${className}`}
+                  className={`px-1 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 select-none whitespace-nowrap ${center ? 'text-center' : 'text-left'} ${bgColor} ${className}`}
                   onClick={() => {
                     if (analyticsSort.column === column) {
                       setAnalyticsSort({ column, direction: analyticsSort.direction === 'asc' ? 'desc' : 'asc' });
@@ -1375,7 +1747,7 @@ const PilotAdminPage = () => {
                     }
                   }}
                 >
-                  <div className="flex items-center gap-1">
+                  <div className={`flex items-center gap-1 ${center ? 'justify-center' : ''}`}>
                     {children}
                     {analyticsSort.column === column && (
                       <span className="text-blue-600">{analyticsSort.direction === 'asc' ? '↑' : '↓'}</span>
@@ -1387,67 +1759,51 @@ const PilotAdminPage = () => {
               // Lesson cell component
               const LessonCell = ({ sessions, isCompleted }) => {
                 if (sessions.length === 0) {
-                  return <td className="px-2 py-3 text-center text-gray-300">—</td>;
+                  return <td className="px-1 py-2 text-center text-gray-300">—</td>;
                 }
 
-                const totalStudents = sessions.reduce((sum, s) => sum + s.students, 0);
                 const sessionCount = sessions.length;
 
                 return (
-                  <td className="px-2 py-3 text-center">
-                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
+                  <td className="px-1 py-2 text-center">
+                    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium ${
                       isCompleted ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                     }`}>
-                      {isCompleted ? '✓' : '⚪'}
+                      {isCompleted ? '✓' : 'test'}
                       {sessionCount > 1 && <span>×{sessionCount}</span>}
                     </span>
                   </td>
                 );
               };
 
-              // Checkbox cell component
-              const CheckboxCell = ({ checked, onChange, disabled, timestamp }) => (
-                <td className="px-2 py-3 text-center">
-                  {disabled ? (
-                    <span className="text-gray-300">—</span>
-                  ) : (
-                    <div className="flex flex-col items-center">
+              // Simple toggle square - empty or green check
+              const ToggleCell = ({ checked, onChange, disabled }) => {
+                const handleClick = (e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  if (!disabled) onChange();
+                };
+
+                return (
+                  <td className="px-1 py-2 text-center" onClick={(e) => e.stopPropagation()}>
+                    {disabled ? (
+                      <span className="text-gray-300">—</span>
+                    ) : (
                       <button
-                        onClick={(e) => { e.stopPropagation(); onChange(); }}
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                        type="button"
+                        onClick={handleClick}
+                        className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all cursor-pointer ${
                           checked
-                            ? 'bg-blue-600 border-blue-600 text-white'
-                            : 'border-gray-300 hover:border-blue-400'
+                            ? 'bg-green-600 border-green-600 text-white'
+                            : 'border-gray-400 bg-white hover:border-green-500 hover:bg-green-50'
                         }`}
                       >
-                        {checked && <Check size={14} />}
+                        {checked && <Check size={16} strokeWidth={3} />}
                       </button>
-                      {checked && timestamp && (
-                        <span className="text-[10px] text-gray-400 mt-0.5">
-                          {new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </td>
-              );
-
-              // Survey status cell
-              const SurveyCell = ({ completed, eligible }) => (
-                <td className="px-2 py-3 text-center">
-                  {!eligible ? (
-                    <span className="text-gray-300">—</span>
-                  ) : completed ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
-                      <FileText size={12} /> ✓
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-700">
-                      <FileText size={12} /> Missing
-                    </span>
-                  )}
-                </td>
-              );
+                    )}
+                  </td>
+                );
+              };
 
               return (
                 <>
@@ -1457,7 +1813,7 @@ const PilotAdminPage = () => {
                       <div>
                         <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                           <BarChart3 size={20} />
-                          Teacher Pipeline
+                          Teacher Pilot
                         </h2>
                         <p className="text-sm text-gray-500 mt-1">
                           {filteredTeachers.length} teacher{filteredTeachers.length !== 1 ? 's' : ''}
@@ -1486,6 +1842,8 @@ const PilotAdminPage = () => {
                             className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
                           >
                             <option value="all">All Teachers</option>
+                            <option value="pilotOnly">Pilot Only</option>
+                            <option value="purchasedOnly">Purchased Only</option>
                             <option value="notEmailedL3">Not Emailed L3</option>
                             <option value="notEmailedDone">Not Emailed Done</option>
                             <option value="missingL3Survey">Missing L3 Survey</option>
@@ -1493,6 +1851,20 @@ const PilotAdminPage = () => {
                           </select>
                           <Filter size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                         </div>
+
+                        {/* Mark All as Pilot button */}
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`Mark all ${filteredTeachers.length} teachers as Pilot?`)) return;
+                            for (const teacher of filteredTeachers) {
+                              await toggleOutreach(teacher.email, 'teacherType', 'pilot');
+                            }
+                            setSuccess(`Marked ${filteredTeachers.length} teachers as Pilot`);
+                          }}
+                          className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200"
+                        >
+                          Mark All as Pilot
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -1503,23 +1875,25 @@ const PilotAdminPage = () => {
                       {teachers.length === 0 ? 'No teacher activity recorded yet.' : 'No teachers match your filter.'}
                     </div>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-gray-50">
+                    <div className="overflow-x-auto max-h-[70vh] overflow-y-auto">
+                      <table className="min-w-full text-sm">
+                        <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
                           <tr>
-                            <th className="w-8 px-2 py-3"></th>
-                            <SortHeader column="teacher">Teacher</SortHeader>
-                            <SortHeader column="stage">Stage</SortHeader>
-                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">L1<br/><span className="font-normal normal-case">Mood</span></th>
-                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">L2<br/><span className="font-normal normal-case">Inst</span></th>
-                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-purple-50">L3<br/><span className="font-normal normal-case">Text</span></th>
-                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">L4<br/><span className="font-normal normal-case">Form</span></th>
-                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-amber-50">L5<br/><span className="font-normal normal-case">Cap</span></th>
-                            <SortHeader column="students">Students</SortHeader>
-                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-purple-50">L3<br/>Survey</th>
-                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-purple-50">Emailed<br/>L3</th>
-                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-amber-50">Final<br/>Survey</th>
-                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-amber-50">Emailed<br/>Done</th>
+                            <th className="w-6 px-1 py-2 bg-gray-50"></th>
+                            <SortHeader column="teacher" bgColor="bg-gray-50">Teacher</SortHeader>
+                            <SortHeader column="type" center bgColor="bg-gray-50">Type</SortHeader>
+                            <SortHeader column="unit" center bgColor="bg-gray-50">Unit</SortHeader>
+                            <SortHeader column="stage" bgColor="bg-gray-50">Stage</SortHeader>
+                            <SortHeader column="l1" center bgColor="bg-gray-50">L1<br/><span className="font-normal normal-case">Mood</span></SortHeader>
+                            <SortHeader column="l2" center bgColor="bg-gray-50">L2<br/><span className="font-normal normal-case">Inst</span></SortHeader>
+                            <SortHeader column="l3" center bgColor="bg-purple-50">L3<br/><span className="font-normal normal-case">Text</span></SortHeader>
+                            <SortHeader column="l4" center bgColor="bg-gray-50">L4<br/><span className="font-normal normal-case">Form</span></SortHeader>
+                            <SortHeader column="l5" center bgColor="bg-amber-50">L5<br/><span className="font-normal normal-case">Cap</span></SortHeader>
+                            <SortHeader column="students" bgColor="bg-gray-50">Students</SortHeader>
+                            <SortHeader column="l3Survey" center bgColor="bg-purple-50">L3<br/>Survey</SortHeader>
+                            <SortHeader column="emailedL3" center bgColor="bg-purple-50">Emailed<br/>L3</SortHeader>
+                            <SortHeader column="finalSurvey" center bgColor="bg-amber-50">Final<br/>Survey</SortHeader>
+                            <SortHeader column="emailedDone" center bgColor="bg-amber-50">Emailed<br/>Done</SortHeader>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -1535,13 +1909,13 @@ const PilotAdminPage = () => {
                                     [teacher.email]: !prev[teacher.email]
                                   }))}
                                 >
-                                  <td className="px-2 py-3 text-center">
+                                  <td className="px-1 py-2 text-center">
                                     <ChevronDown
-                                      size={16}
+                                      size={14}
                                       className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                                     />
                                   </td>
-                                  <td className="px-3 py-3">
+                                  <td className="px-2 py-2">
                                     <div className="font-medium text-gray-800 text-sm">
                                       {teacher.email.split('@')[0]}
                                     </div>
@@ -1549,8 +1923,42 @@ const PilotAdminPage = () => {
                                       @{teacher.email.split('@')[1]}
                                     </div>
                                   </td>
-                                  <td className="px-3 py-3">
-                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                                  <td className="px-1 py-2 text-center" onClick={(e) => e.stopPropagation()}>
+                                    <select
+                                      value={teacher.teacherType}
+                                      onChange={(e) => {
+                                        e.stopPropagation();
+                                        toggleOutreach(teacher.email, 'teacherType', e.target.value);
+                                      }}
+                                      className={`px-1 py-0.5 rounded text-xs font-medium border-0 cursor-pointer ${
+                                        teacher.teacherType === 'purchased'
+                                          ? 'bg-green-100 text-green-800'
+                                          : 'bg-blue-100 text-blue-800'
+                                      }`}
+                                    >
+                                      <option value="pilot">Pilot</option>
+                                      <option value="purchased">Purchased</option>
+                                    </select>
+                                  </td>
+                                  <td className="px-1 py-2 text-center" onClick={(e) => e.stopPropagation()}>
+                                    <select
+                                      value={teacher.pilotUnit || '1'}
+                                      onChange={(e) => {
+                                        e.stopPropagation();
+                                        toggleOutreach(teacher.email, 'pilotUnit', e.target.value);
+                                      }}
+                                      className="px-1 py-0.5 rounded text-xs font-medium border-0 cursor-pointer bg-gray-100 text-gray-800"
+                                    >
+                                      <option value="1">U1</option>
+                                      <option value="2">U2</option>
+                                      <option value="3">U3</option>
+                                      <option value="4">U4</option>
+                                      <option value="5">U5</option>
+                                      <option value="6">U6</option>
+                                    </select>
+                                  </td>
+                                  <td className="px-1 py-2">
+                                    <span className={`inline-block px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
                                       teacher.stage === 'Completed' ? 'bg-green-100 text-green-800' :
                                       teacher.stage === 'Reached L3' || teacher.stage === 'Reached L4' ? 'bg-blue-100 text-blue-800' :
                                       teacher.stage === 'Test Only' ? 'bg-gray-100 text-gray-600' :
@@ -1564,29 +1972,35 @@ const PilotAdminPage = () => {
                                   <LessonCell sessions={teacher.lessons[3]} isCompleted={teacher.l3Done} />
                                   <LessonCell sessions={teacher.lessons[4]} isCompleted={teacher.l4Done} />
                                   <LessonCell sessions={teacher.lessons[5]} isCompleted={teacher.l5Done} />
-                                  <td className="px-3 py-3 text-center font-medium text-gray-800">
+                                  <td className="px-1 py-2 text-center font-medium text-gray-800">
                                     {teacher.totalStudents}
                                   </td>
-                                  <SurveyCell completed={teacher.hasL3Survey} eligible={teacher.l3Done} />
-                                  <CheckboxCell
+                                  <ToggleCell
+                                    checked={teacher.hasL3Survey || teacher.manualL3Survey}
+                                    onChange={() => toggleOutreach(teacher.email, 'manualL3Survey')}
+                                    disabled={!teacher.l3Done}
+                                  />
+                                  <ToggleCell
                                     checked={teacher.emailedL3}
                                     onChange={() => toggleOutreach(teacher.email, 'emailedL3')}
                                     disabled={!teacher.l3Done}
-                                    timestamp={teacher.emailedL3At}
                                   />
-                                  <SurveyCell completed={teacher.hasFinalSurvey} eligible={teacher.l5Done} />
-                                  <CheckboxCell
+                                  <ToggleCell
+                                    checked={teacher.hasFinalSurvey || teacher.manualFinalSurvey}
+                                    onChange={() => toggleOutreach(teacher.email, 'manualFinalSurvey')}
+                                    disabled={!teacher.l5Done}
+                                  />
+                                  <ToggleCell
                                     checked={teacher.emailedDone}
                                     onChange={() => toggleOutreach(teacher.email, 'emailedDone')}
                                     disabled={!teacher.l5Done}
-                                    timestamp={teacher.emailedDoneAt}
                                   />
                                 </tr>
 
                                 {/* Expanded row */}
                                 {isExpanded && (
                                   <tr className="bg-gray-50">
-                                    <td colSpan={13} className="px-6 py-4">
+                                    <td colSpan={15} className="px-6 py-4">
                                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         {/* Summary */}
                                         <div className="bg-white rounded-lg p-4 border border-gray-200">
@@ -1632,8 +2046,8 @@ const PilotAdminPage = () => {
                                                       <span className="text-gray-500">
                                                         {session.students} stu · {formatDuration(session.duration)}
                                                       </span>
-                                                      <span className={session.completed && session.students >= MIN_STUDENTS ? 'text-green-600' : 'text-yellow-600'}>
-                                                        {session.completed && session.students >= MIN_STUDENTS ? '✓' : '⚪'}
+                                                      <span className={session.students >= MIN_STUDENTS && session.duration >= MIN_DURATION ? 'text-green-600' : 'text-yellow-600'}>
+                                                        {session.students >= MIN_STUDENTS && session.duration >= MIN_DURATION ? '✓' : 'test'}
                                                       </span>
                                                     </div>
                                                   ))}
@@ -1654,24 +2068,20 @@ const PilotAdminPage = () => {
                       {/* Legend */}
                       <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center gap-4 text-xs text-gray-500">
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded">✓</span>
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">✓×3</span>
                           <span>= Taught (10+ students, 15+ min)</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded">⚪</span>
-                          <span>= Test run</span>
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">test×2</span>
+                          <span>= Test run only</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-gray-300">—</span>
                           <span>= Not started</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-1 bg-purple-50 rounded">Purple</span>
-                          <span>= L3 milestone</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-1 bg-amber-50 rounded">Amber</span>
-                          <span>= L5 completion</span>
+                          <span className="w-5 h-5 border-2 border-gray-400 rounded bg-white inline-block"></span>
+                          <span>= Click to mark emailed</span>
                         </div>
                       </div>
                     </div>
