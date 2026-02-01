@@ -4,6 +4,7 @@ import { ClassProvider } from './context/ClassContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SessionProvider } from './context/SessionContext';
 import { FirebaseAuthProvider } from './context/FirebaseAuthContext';
+import { StudentAuthProvider } from './context/StudentAuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Import styles - including snap guide styles
@@ -25,6 +26,7 @@ const PageLoader = () => (
 // LIGHTWEIGHT IMPORTS - Load immediately (small components)
 // ===========================================
 import FirebaseProtectedRoute from './components/FirebaseProtectedRoute';
+import StudentProtectedRoute from './components/shared/StudentProtectedRoute';
 import ErrorLogger from './components/ErrorLogger';
 
 // ===========================================
@@ -40,6 +42,8 @@ const TeacherLoginPage = React.lazy(() => import('./pages/TeacherLoginPage'));
 const StudentPrivacy = React.lazy(() => import('./pages/StudentPrivacy'));
 const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = React.lazy(() => import('./pages/TermsOfService'));
+const DataPrivacyAgreement = React.lazy(() => import('./pages/DataPrivacyAgreement'));
+const SecurityPractices = React.lazy(() => import('./pages/SecurityPractices'));
 
 // Dashboard pages
 const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
@@ -47,6 +51,16 @@ const TeacherDashboard = React.lazy(() => import('./pages/TeacherDashboard'));
 const StudentDashboard = React.lazy(() => import('./pages/StudentDashboard'));
 const FirebaseTeacherDashboard = React.lazy(() => import('./pages/FirebaseTeacherDashboard'));
 const PilotAdminPage = React.lazy(() => import('./pages/PilotAdminPage'));
+
+// Student Account pages (NEW)
+const StudentLogin = React.lazy(() => import('./pages/StudentLogin'));
+const StudentHome = React.lazy(() => import('./pages/StudentHome'));
+
+// Teacher Gradebook (NEW)
+const TeacherGradebook = React.lazy(() => import('./pages/TeacherGradebook'));
+
+// Class Detail Page (NEW)
+const ClassDetailPage = React.lazy(() => import('./pages/ClassDetailPage'));
 
 // Classroom and hub pages
 const MusicClassroomResources = React.lazy(() => import('./pages/MusicClassroomResources'));
@@ -270,6 +284,7 @@ const AppContent = () => {
   // IF CLASSROOM MODE (musicroomtools.org), SHOW ONLY CLASSROOM ROUTES
   if (isClassroomMode) {
     return (
+      <StudentAuthProvider>
       <SessionProvider>
         <Suspense fallback={<PageLoader />}>
         <Routes>
@@ -280,6 +295,8 @@ const AppContent = () => {
         <Route path="/student-privacy" element={<StudentPrivacy />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/dpa" element={<DataPrivacyAgreement />} />
+        <Route path="/security" element={<SecurityPractices />} />
 
         {/* Teacher login page for approved pilot teachers */}
         <Route path="/login" element={<TeacherLoginPage />} />
@@ -291,10 +308,24 @@ const AppContent = () => {
           </FirebaseProtectedRoute>
         } />
 
+        {/* Class Detail Page (NEW) */}
+        <Route path="/teacher/class/:classId" element={
+          <FirebaseProtectedRoute>
+            <ClassDetailPage />
+          </FirebaseProtectedRoute>
+        } />
+
         {/* Pilot program admin page */}
         <Route path="/admin/pilot" element={
           <FirebaseProtectedRoute>
             <PilotAdminPage />
+          </FirebaseProtectedRoute>
+        } />
+
+        {/* Teacher Gradebook (NEW) */}
+        <Route path="/teacher/gradebook/:classId" element={
+          <FirebaseProtectedRoute>
+            <TeacherGradebook />
           </FirebaseProtectedRoute>
         } />
 
@@ -363,7 +394,15 @@ const AppContent = () => {
         <Route path="/projects/video-selection" element={<VideoSelection showToast={showToast} />} />
         <Route path="/projects/music-composer/:videoId" element={<MusicComposer showToast={showToast} />} />
         <Route path="/projects/:projectId" element={<FilmMusicScoreMain showToast={showToast} />} />
-        
+
+        {/* Student Account Routes (NEW) */}
+        <Route path="/student-login" element={<StudentLogin />} />
+        <Route path="/student/home" element={
+          <StudentProtectedRoute>
+            <StudentHome />
+          </StudentProtectedRoute>
+        } />
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       </Suspense>
@@ -371,11 +410,13 @@ const AppContent = () => {
       {/* Error logger - red button for students */}
       <ErrorLogger />
       </SessionProvider>
+      </StudentAuthProvider>
     );
   }
 
   // COMMERCIAL SITE (musicmindacademy.com)
   return (
+    <StudentAuthProvider>
     <SessionProvider>
       <ClassProvider>
       <Suspense fallback={<PageLoader />}>
@@ -405,6 +446,8 @@ const AppContent = () => {
         <Route path="/student-privacy" element={<StudentPrivacy />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/dpa" element={<DataPrivacyAgreement />} />
+        <Route path="/security" element={<SecurityPractices />} />
 
         {/* Teacher login page for approved pilot teachers */}
         <Route path="/login" element={<TeacherLoginPage />} />
@@ -485,6 +528,13 @@ const AppContent = () => {
           </FirebaseProtectedRoute>
         } />
 
+        {/* Class Detail Page (NEW) */}
+        <Route path="/teacher/class/:classId" element={
+          <FirebaseProtectedRoute>
+            <ClassDetailPage />
+          </FirebaseProtectedRoute>
+        } />
+
         {/* Firebase-authenticated routes for pilot teachers */}
         <Route path="/music-classroom-resources" element={
           <FirebaseProtectedRoute>
@@ -511,17 +561,20 @@ const AppContent = () => {
           </FirebaseProtectedRoute>
         } />
 
+        {/* Teacher Gradebook (NEW) */}
+        <Route path="/teacher/gradebook/:classId" element={
+          <FirebaseProtectedRoute>
+            <TeacherGradebook />
+          </FirebaseProtectedRoute>
+        } />
+
         {/* Legacy teacher dashboard (backend auth) */}
         <Route path="/teacher/legacy-dashboard" element={
           <ProtectedRoute requiredRole="teacher">
             <TeacherDashboard showToast={showToast} />
           </ProtectedRoute>
         } />
-        <Route path="/teacher/class/:classId" element={
-          <ProtectedRoute requiredRole="teacher">
-            <ClassManagementPage showToast={showToast} />
-          </ProtectedRoute>
-        } />
+        {/* Legacy class management - commented out, using new ClassDetailPage instead */}
         <Route path="/teacher/edit-class/:classId" element={
           <ProtectedRoute requiredRole="teacher">
             <EditClassPage showToast={showToast} />
@@ -629,6 +682,14 @@ const AppContent = () => {
           </ProtectedRoute>
         } />
 
+        {/* Student Account Routes (NEW) */}
+        <Route path="/student-login" element={<StudentLogin />} />
+        <Route path="/student/home" element={
+          <StudentProtectedRoute>
+            <StudentHome />
+          </StudentProtectedRoute>
+        } />
+
         {/* Fallback route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -638,6 +699,7 @@ const AppContent = () => {
     {/* Error logger */}
     <ErrorLogger />
     </SessionProvider>
+    </StudentAuthProvider>
   );
 };
 

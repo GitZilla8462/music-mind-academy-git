@@ -13,6 +13,7 @@ import {
   updateStudentProgress,
   endSession as firebaseEndSession
 } from '../firebase/config';
+import { updateClassSessionStage, endClassSession, subscribeToClassSession } from '../firebase/classes';
 import { logger } from '../utils/UniversalLogger';
 import { logSessionEnded, logStageChange, logStudentJoined, updateSessionHeartbeat } from '../firebase/analytics';
 
@@ -233,49 +234,59 @@ export const SessionProvider = ({ children }) => {
   }, [sessionCode, userRole, sessionData?.teacherId]);
 
   // Firebase subscription with logging
+  // Supports both traditional sessions (sessionCode) and class-based sessions (classId)
   useEffect(() => {
-    if (!sessionCode) return;
+    // Need either sessionCode OR classId to subscribe
+    if (!sessionCode && !classId) return;
 
-    console.log('📡 Subscribing to session:', sessionCode);
+    const sessionIdentifier = sessionCode || classId;
+    const isClassSession = !sessionCode && !!classId;
+
+    console.log('📡 Subscribing to', isClassSession ? 'class session:' : 'session:', sessionIdentifier);
     setIsLoadingSession(true);
-    
+
     // Initialize logger if student is restoring from localStorage
     if (userRole === 'student' && userId && !logger.isInitialized) {
       console.log('🔄 Initializing logger from restored session');
       const studentName = localStorage.getItem('current-session-studentName') || userId;
       logger.init({
         studentId: userId,
-        sessionCode: sessionCode,
+        sessionCode: sessionIdentifier,
         lessonId: 'lesson1',
         studentName: studentName
       });
     }
-    
-    const unsubscribe = subscribeToSession(sessionCode, (data) => {
+
+    // Use class session subscription for class-based sessions
+    const unsubscribe = isClassSession
+      ? subscribeToClassSession(classId, handleSessionUpdate)
+      : subscribeToSession(sessionCode, handleSessionUpdate);
+
+    function handleSessionUpdate(data) {
       // ✅ FIX: Defer all setState calls to avoid "Cannot update component while rendering" error
       queueMicrotask(() => {
         setIsLoadingSession(false);
-        
+
         // ✅ IMPROVED: If session doesn't exist, clear storage and reset
         if (data === null && !isNormalEndRef.current) {
           if (prevStageRef.current) {
             // Session was active but disappeared unexpectedly
             console.error('🔴 CRITICAL: Session data became NULL unexpectedly!');
-            console.error('   Session code:', sessionCode);
+            console.error('   Session identifier:', sessionIdentifier);
             console.error('   Last stage:', prevStageRef.current);
-            
+
             if (userRole === 'student') {
-              logger.kick('Session data lost unexpectedly', { 
-                sessionCode,
+              logger.kick('Session data lost unexpectedly', {
+                sessionCode: sessionIdentifier,
                 lastStage: prevStageRef.current,
                 wasNormalEnd: false
               });
             }
           } else {
             // Session never existed or was already ended
-            console.log('📭 Session not found or already ended:', sessionCode);
+            console.log('📭 Session not found or already ended:', sessionIdentifier);
           }
-          
+
           // Auto-cleanup if session doesn't exist
           if (!hasAutoCleanedRef.current) {
             hasAutoCleanedRef.current = true;
@@ -288,24 +299,40 @@ export const SessionProvider = ({ children }) => {
           }
           return;
         }
-        
+
+        // For class sessions, check if session is not active (ended)
+        if (isClassSession && data && !data.active) {
+          console.log('📋 Class session ended or not active');
+          isNormalEndRef.current = true;
+
+          if (!hasAutoCleanedRef.current && userRole === 'student') {
+            hasAutoCleanedRef.current = true;
+            console.log('🧹 Auto-cleaning ended class session');
+
+            setTimeout(() => {
+              clearSessionStorage();
+            }, 2000);
+          }
+          return;
+        }
+
         // ✅ IMPROVED: Session ended normally - auto-cleanup for students
         if (data?.currentStage === 'ended') {
           console.log('📋 Session ended normally by teacher');
           isNormalEndRef.current = true;
-          
+
           // Auto-cleanup after a short delay (let UI show "session ended" message first)
           if (!hasAutoCleanedRef.current && userRole === 'student') {
             hasAutoCleanedRef.current = true;
             console.log('🧹 Auto-cleaning ended session (student will be redirected)');
-            
+
             setTimeout(() => {
               clearSessionStorage();
               // Note: The lesson component handles the redirect to /join
             }, 2000);
           }
         }
-        
+
         // Log stage changes (info only)
         if (data?.currentStage !== prevStageRef.current) {
           console.log('🎬 Stage changed:', {
@@ -313,27 +340,27 @@ export const SessionProvider = ({ children }) => {
             to: data?.currentStage,
             time: new Date().toLocaleTimeString()
           });
-          
+
           // Log stage transitions for students (info only, not errors)
           if (userRole === 'student' && data?.currentStage !== 'ended') {
             logger.stageChange(prevStageRef.current, data?.currentStage);
           }
-          
+
           prevStageRef.current = data?.currentStage;
         }
-        
+
         setSessionData(data);
-        setIsInSession(!!data);
-        
+        setIsInSession(!!data && (isClassSession ? data.active : true));
+
         if (data?.classId && !classId) {
           setClassId(data.classId);
           console.log('ClassId set from session data:', data.classId);
         }
       });
-    });
+    }
 
     return () => {
-      console.log('🔌 Unsubscribing from session:', sessionCode);
+      console.log('🔌 Unsubscribing from', isClassSession ? 'class session:' : 'session:', sessionIdentifier);
       setIsLoadingSession(false);
       unsubscribe();
     };
@@ -411,20 +438,59 @@ export const SessionProvider = ({ children }) => {
         console.log('⏭️ Student already joined, skipping re-join');
         return true;
       }
-      
+
       console.log('👤 Student joining session:', { code, studentId, studentName });
-      
+
       // First, fetch the session data to get the lessonRoute
       const { getDatabase, ref: dbRef, get } = await import('firebase/database');
       const db = getDatabase();
-      const sessionRef = dbRef(db, `sessions/${code}`);
-      const snapshot = await get(sessionRef);
-      
-      if (!snapshot.exists()) {
-        throw new Error('Session not found');
+
+      let sessionData = null;
+      let isClassSession = false;
+      let classIdForSession = null;
+
+      // Check if this is a class code (6-char: 2 letters + 4 numbers) or session code (4 digits)
+      const isClassCode = /^[A-Z]{2}\d{4}$/i.test(code);
+
+      if (isClassCode) {
+        // Look up class by class code
+        console.log('🏫 Detected class code, looking up class...');
+        const codeRef = dbRef(db, `classCodes/${code.toUpperCase()}`);
+        const codeSnapshot = await get(codeRef);
+
+        if (!codeSnapshot.exists()) {
+          throw new Error('Class not found');
+        }
+
+        const foundClassId = codeSnapshot.val();
+        const classRef = dbRef(db, `classes/${foundClassId}`);
+        const classSnapshot = await get(classRef);
+
+        if (!classSnapshot.exists()) {
+          throw new Error('Class not found');
+        }
+
+        const classData = classSnapshot.val();
+
+        if (!classData.currentSession?.active) {
+          throw new Error('No active session for this class');
+        }
+
+        sessionData = classData.currentSession;
+        isClassSession = true;
+        classIdForSession = foundClassId;
+        console.log('✅ Found class session:', { classId: foundClassId, lessonRoute: sessionData.lessonRoute });
+      } else {
+        // Traditional session code lookup
+        const sessionRef = dbRef(db, `sessions/${code}`);
+        const snapshot = await get(sessionRef);
+
+        if (!snapshot.exists()) {
+          throw new Error('Session not found');
+        }
+
+        sessionData = snapshot.val();
       }
-      
-      const sessionData = snapshot.val();
       
       // ✅ NEW: Check if session is already ended
       if (sessionData.currentStage === 'ended') {
@@ -433,11 +499,26 @@ export const SessionProvider = ({ children }) => {
       }
       
       const lessonRoute = sessionData.lessonRoute || sessionData.lessonId || '/lessons/film-music-project/lesson1';
-      
+
       console.log('📚 Session lesson route:', lessonRoute);
       console.log('📚 Full session data:', sessionData);
-      
-      await firebaseJoinSession(code, studentId, studentName || 'Student');
+
+      // Join the session - different path for class vs traditional sessions
+      if (isClassSession && classIdForSession) {
+        // For class sessions, write to classes/{classId}/currentSession/studentsJoined
+        const { set: dbSet } = await import('firebase/database');
+        const studentRef = dbRef(db, `classes/${classIdForSession}/currentSession/studentsJoined/${studentId}`);
+        await dbSet(studentRef, {
+          id: studentId,
+          name: studentName || 'Student',
+          joinedAt: Date.now(),
+          score: 0
+        });
+        console.log(`✅ Student ${studentName} joined class session ${classIdForSession}`);
+      } else {
+        // Traditional session
+        await firebaseJoinSession(code, studentId, studentName || 'Student');
+      }
 
       // ✅ Update analytics with new student count
       // Calculate count: existing students + 1 (this student)
@@ -448,6 +529,11 @@ export const SessionProvider = ({ children }) => {
       logStudentJoined(code, newCount).catch((err) => {
         console.warn('Analytics student count update failed (non-critical):', err);
       });
+
+      // Store classId if this is a class session
+      if (isClassSession && classIdForSession) {
+        setClassId(classIdForSession);
+      }
 
       setSessionCode(code);
       setUserRole('student');
@@ -475,10 +561,14 @@ export const SessionProvider = ({ children }) => {
       
       // ONLY navigate if we're NOT already on the correct page
       const currentPath = window.location.pathname;
-      
+
       if (!currentPath.includes(lessonRoute)) {
-        console.log('🚀 Navigating to:', `${lessonRoute}?session=${code}&role=student`);
-        window.location.href = `${lessonRoute}?session=${code}&role=student`;
+        // Use classId for class sessions, session code for traditional sessions
+        const navUrl = isClassSession && classIdForSession
+          ? `${lessonRoute}?classId=${classIdForSession}&role=student&classCode=${code}`
+          : `${lessonRoute}?session=${code}&role=student`;
+        console.log('🚀 Navigating to:', navUrl);
+        window.location.href = navUrl;
       } else {
         console.log('✅ Already on correct lesson page, no redirect needed');
       }
@@ -589,10 +679,21 @@ export const SessionProvider = ({ children }) => {
 
     try {
       console.log('➡️ Teacher advancing stage to:', stage);
-      await updateSessionStage(sessionCode, stage);
+
+      // Use class session update for class-based sessions, traditional for quick sessions
+      if (classId) {
+        await updateClassSessionStage(classId, stage);
+        console.log('✅ Updated class session stage:', stage);
+      } else if (sessionCode) {
+        await updateSessionStage(sessionCode, stage);
+      } else {
+        console.error('❌ No classId or sessionCode available to update stage');
+        return;
+      }
 
       // Log stage change for analytics (non-blocking)
-      logStageChange(sessionCode, stage).catch(() => {});
+      const analyticsCode = sessionCode || classId;
+      logStageChange(analyticsCode, stage).catch(() => {});
     } catch (error) {
       console.error('❌ Error updating stage:', error);
     }
@@ -623,7 +724,8 @@ export const SessionProvider = ({ children }) => {
     }
 
     try {
-      console.log('🛑 Teacher ending session normally:', sessionCode);
+      const sessionIdentifier = sessionCode || classId;
+      console.log('🛑 Teacher ending session normally:', sessionIdentifier);
       isNormalEndRef.current = true;
 
       // Log session analytics before ending
@@ -631,7 +733,7 @@ export const SessionProvider = ({ children }) => {
       const students = sessionData?.studentsJoined ? Object.keys(sessionData.studentsJoined).length : 0;
 
       try {
-        await logSessionEnded(sessionCode, lastStage, students);
+        await logSessionEnded(sessionIdentifier, lastStage, students);
         console.log('📊 Logged session end analytics');
       } catch (analyticsError) {
         console.warn('Analytics logging failed (non-critical):', analyticsError);
@@ -646,7 +748,14 @@ export const SessionProvider = ({ children }) => {
         lessonRoute = lessonRoute.split('?')[0];
       }
 
-      await firebaseEndSession(sessionCode);
+      // Use class session end for class-based sessions, traditional for quick sessions
+      if (classId) {
+        await endClassSession(classId);
+        console.log('✅ Ended class session:', classId);
+      } else if (sessionCode) {
+        await firebaseEndSession(sessionCode);
+      }
+
       leaveSession();
 
       // Navigate back to the hub page for film-music-project lessons
