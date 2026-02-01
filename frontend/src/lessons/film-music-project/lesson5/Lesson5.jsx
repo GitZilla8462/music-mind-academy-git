@@ -309,6 +309,7 @@ const Lesson5 = () => {
       <TeacherLessonView
         config={lesson5Config}
         sessionCode={sessionCode}
+        classCode={sessionMode.urlClassCode}
         lessonStages={lessonStages}
         getCurrentStage={getCurrentStage}
         setCurrentStage={setCurrentStage}

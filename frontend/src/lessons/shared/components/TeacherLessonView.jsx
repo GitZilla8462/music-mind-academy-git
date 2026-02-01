@@ -43,6 +43,7 @@ const PresentationContent = ({
   currentStage,
   currentStageData,
   sessionCode,
+  classCode, // For class-based sessions
   sessionData,
   lessonConfig,
   lessonBasePath,
@@ -51,6 +52,8 @@ const PresentationContent = ({
   goToNextStage, // callback to advance to next stage
   presentationZoom = 1 // zoom factor for scaling slides
 }) => {
+  // Display code: prefer classCode (permanent) over sessionCode (temporary)
+  const displayCode = classCode || sessionCode;
   const [LayerDetectiveLeaderboard, setLayerDetectiveLeaderboard] = useState(null);
   const [LayerDetectiveResults, setLayerDetectiveResults] = useState(null);
   const [LayerDetectiveClassDemo, setLayerDetectiveClassDemo] = useState(null);
@@ -143,7 +146,7 @@ const PresentationContent = ({
         {/* Code Display */}
         <div className="bg-white rounded-2xl px-12 py-8 mb-8">
           <div className="text-8xl md:text-9xl font-bold font-mono tracking-widest text-blue-600">
-            {sessionCode}
+            {displayCode}
           </div>
         </div>
         
@@ -606,6 +609,7 @@ const MiniPreview = ({ viewMode, sessionCode, currentStage, currentStageData, se
                 currentStage={currentStage}
                 currentStageData={currentStageData}
                 sessionCode={sessionCode}
+                classCode={classCode}
                 sessionData={sessionData}
                 lessonConfig={config}
                 lessonBasePath={config?.lessonPath}
@@ -1296,6 +1300,7 @@ const FinalPilotSurvey = ({
 const TeacherLessonView = ({
   config,
   sessionCode,
+  classCode, // For class-based sessions, show permanent class code instead of session code
   lessonStages,
   getCurrentStage,
   setCurrentStage,
@@ -1310,6 +1315,8 @@ const TeacherLessonView = ({
   resumeActivityTimer,
   resetActivityTimer
 }) => {
+  // Display code: prefer classCode (permanent) over sessionCode (temporary)
+  const displayCode = classCode || sessionCode;
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [expandedSections, setExpandedSections] = useState(new Set());
   const [viewMode, setViewMode] = useState('teacher'); // 'teacher' or 'student'
@@ -1581,10 +1588,10 @@ const TeacherLessonView = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentStage, lessonStages, showSaveModal]);
 
-  // Copy join code
+  // Copy join code (uses displayCode which prefers classCode over sessionCode)
   const copyJoinCode = async () => {
     try {
-      await navigator.clipboard.writeText(sessionCode);
+      await navigator.clipboard.writeText(displayCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -1843,7 +1850,7 @@ const TeacherLessonView = ({
                 <div className="text-slate-500 text-sm mb-1">{getJoinUrl()}</div>
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-3xl font-bold font-mono tracking-wider text-blue-600">
-                    {sessionCode}
+                    {displayCode}
                   </span>
                   <button
                     onClick={copyJoinCode}
@@ -2214,6 +2221,7 @@ const TeacherLessonView = ({
               currentStage={currentStage}
               currentStageData={currentStageData}
               sessionCode={sessionCode}
+              classCode={classCode}
               sessionData={sessionData}
               lessonConfig={config}
               lessonBasePath={config.lessonPath}

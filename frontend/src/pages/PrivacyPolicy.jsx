@@ -81,20 +81,11 @@ const PrivacyPolicy = () => {
               cursor: 'pointer'
             }}
           >
-            <div style={{
-              width: '40px',
-              height: '40px',
-              background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
-              borderRadius: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white'
-            }}>
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-              </svg>
-            </div>
+            <img
+              src="/MusicMindAcademyLogo.png"
+              alt="Music Mind Academy"
+              style={{ height: '40px', width: 'auto' }}
+            />
             <span style={{
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: '1.5rem',
@@ -140,7 +131,7 @@ const PrivacyPolicy = () => {
               Privacy Policy
             </h1>
             <p style={{ color: '#64748b', fontSize: '1rem' }}>
-              Last updated: January 2026
+              Last updated: February 2026
             </p>
           </div>
 
@@ -167,12 +158,28 @@ const PrivacyPolicy = () => {
           </ul>
 
           <h3>Information from Students</h3>
-          <p>We collect minimal information from students:</p>
+          <p>
+            Music Mind Academy offers <strong>two privacy modes</strong> that teachers choose when creating a class.
+            The data collected from students depends on the mode:
+          </p>
+
+          <p><strong>Classroom Mode (Zero PII):</strong></p>
           <ul>
-            <li><strong>Nickname:</strong> A name chosen by the student (e.g., "Wild Panda") - not linked to real identity</li>
-            <li><strong>Activity data:</strong> Scores and progress during active sessions</li>
+            <li><strong>Musical name:</strong> A name chosen by the student (e.g., "Forte") — not linked to real identity</li>
+            <li><strong>Activity data:</strong> Scores and progress during active sessions only</li>
+            <li>No real names, no emails, no accounts — session data is temporary</li>
           </ul>
-          <p>We do NOT collect student emails, real names, or any personally identifiable information.</p>
+
+          <p><strong>Student Accounts Mode (Persistent Accounts):</strong></p>
+          <ul>
+            <li><strong>Student name:</strong> From Google account or entered by teacher</li>
+            <li><strong>Student email:</strong> Only if using Google Sign-In</li>
+            <li><strong>Compositions, reflections, and scores:</strong> Saved persistently to student's account</li>
+          </ul>
+          <p>
+            For complete details on student data collection in both modes, see our{' '}
+            <a href="/student-privacy">Student Data Privacy</a> page.
+          </p>
 
           <h3>Information Collected Automatically</h3>
           <p>We do NOT use cookies, Google Analytics, or third-party tracking services. We do not collect:</p>
@@ -208,16 +215,30 @@ const PrivacyPolicy = () => {
             enterprise-grade security and is compliant with major security standards.
           </p>
           <p>
-            Student work (compositions) is stored locally on the student's device using browser
-            localStorage and is not transmitted to our servers unless explicitly shared.
+            <strong>Classroom Mode:</strong> Student work is stored locally on the student's device
+            and is not transmitted to our servers.
           </p>
-          <p>All data transmission uses HTTPS encryption.</p>
+          <p>
+            <strong>Student Accounts Mode:</strong> Student work is stored in Firebase/MongoDB Atlas
+            with encryption at rest (AES-256) and role-based access controls.
+          </p>
+          <p><strong>Security measures include:</strong></p>
+          <ul>
+            <li>All data transmission uses HTTPS/TLS 1.3 encryption</li>
+            <li>Student PINs are hashed using bcrypt before storage</li>
+            <li>Rate limiting prevents brute force attacks on PIN login (5 attempts per 15 minutes)</li>
+            <li>Firebase Security Rules enforce role-based access control</li>
+            <li>Teachers can only access data for their own classes</li>
+            <li>Students can only access their own work</li>
+          </ul>
+          <p>For complete security details, see our <a href="/security">Security Practices</a> page.</p>
 
           <h2>5. Data Retention</h2>
           <ul>
             <li><strong>Teacher accounts:</strong> Retained until the teacher requests deletion</li>
             <li><strong>Session data:</strong> Retained for teacher review; may be deleted upon request</li>
-            <li><strong>Student data:</strong> Session data is accessible during active sessions; compositions stored locally on student devices</li>
+            <li><strong>Classroom Mode student data:</strong> Temporary — exists only during active sessions</li>
+            <li><strong>Student Accounts Mode data:</strong> Retained while the student is enrolled; securely deleted within 60 days of account termination or upon request</li>
           </ul>
 
           <h2>6. Your Rights</h2>
@@ -236,13 +257,13 @@ const PrivacyPolicy = () => {
             We comply with the Children's Online Privacy Protection Act (COPPA) by:
           </p>
           <ul>
-            <li>Not collecting personal information from students</li>
-            <li>Not requiring student accounts or email addresses</li>
-            <li>Allowing students to participate using only self-chosen nicknames</li>
-            <li>Relying on teacher/school consent for classroom use</li>
+            <li><strong>Classroom Mode:</strong> No personal information collected — students participate using only self-chosen musical names</li>
+            <li><strong>Student Accounts Mode:</strong> Schools may consent on behalf of parents when the technology is used solely for an educational purpose (per FTC guidance)</li>
+            <li>Relying on teacher/school consent for classroom use in both modes</li>
+            <li>Allowing parents to review and request deletion of their child's data at any time</li>
           </ul>
           <p>
-            For more details, see our <a href="/student-privacy">Student Data Privacy</a> page.
+            For complete details, see our <a href="/student-privacy">Student Data Privacy</a> page.
           </p>
 
           <h2>8. Third-Party Services</h2>
@@ -280,6 +301,8 @@ const PrivacyPolicy = () => {
           }}>
             <a href="/student-privacy">Student Data Privacy</a>
             <a href="/terms">Terms of Service</a>
+            <a href="/dpa">Data Privacy Agreement</a>
+            <a href="/security">Security Practices</a>
             <a href="/">Home</a>
           </div>
         </div>

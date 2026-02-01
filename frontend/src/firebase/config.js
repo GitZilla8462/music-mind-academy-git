@@ -42,25 +42,33 @@ export const generateSessionCode = () => {
  * @param {string} teacherId - Teacher's ID
  * @param {string} lessonId - Lesson identifier (e.g., 'music-loops-lesson1')
  * @param {string} lessonRoute - Route to lesson (e.g., '/lessons/film-music-project/lesson2')
+ * @param {Object} options - Optional settings
+ * @param {string} options.classMode - 'guest' (no accounts) or 'accounts' (require sign-in)
+ * @param {string} options.classId - Class ID if using accounts mode
  * @returns {Promise<string>} Session code
  */
-export const createSession = async (teacherId, lessonId, lessonRoute) => {
+export const createSession = async (teacherId, lessonId, lessonRoute, options = {}) => {
   // ✅ DEBUG CODE ADDED HERE
   console.trace('🔍 CREATE SESSION CALLED FROM:');
-  console.log('📍 Parameters received:', { teacherId, lessonId, lessonRoute });
-  
+  console.log('📍 Parameters received:', { teacherId, lessonId, lessonRoute, options });
+
   // If lessonRoute is missing or wrong, log a warning
   if (!lessonRoute || lessonRoute.includes('lesson1')) {
     console.warn('⚠️ WARNING: Creating session without Lesson 2 route!');
   }
-  
+
   const sessionCode = generateSessionCode();
   const sessionRef = ref(database, `sessions/${sessionCode}`);
-  
+
+  // Default to guest mode for backwards compatibility
+  const { classMode = 'guest', classId = null } = options;
+
   const sessionData = {
     teacherId,
     lessonId,
     lessonRoute,
+    classMode,        // 'guest' or 'accounts'
+    classId,          // null for guest mode, class ID for accounts mode
     currentStage: 'join-code',
     createdAt: Date.now(),
     studentsJoined: {},

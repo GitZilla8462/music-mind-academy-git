@@ -157,11 +157,11 @@ const TeacherLoginPage = () => {
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <a href="/" className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradientColors} flex items-center justify-center`}>
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-              </svg>
-            </div>
+            <img
+              src="/MusicMindAcademyLogo.png"
+              alt="Music Mind Academy"
+              className="h-10 w-auto"
+            />
             <span className="text-xl font-bold text-slate-800">{siteName}</span>
           </a>
           <button

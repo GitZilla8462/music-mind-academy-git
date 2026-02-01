@@ -15,6 +15,7 @@
   "dependencies": {
     "@tonejs/midi": "^2.0.28",
     "axios": "^1.12.1",
+    "bcryptjs": "^3.0.3",
     "date-fns": "^4.1.0",
     "firebase": "^12.4.0",
     "lucide-react": "^0.510.0",

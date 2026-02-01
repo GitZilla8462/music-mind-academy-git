@@ -19,8 +19,10 @@ export const useSessionMode = () => {
   const urlSessionCode = searchParams.get('session');
   const urlRole = searchParams.get('role');
   const urlClassId = searchParams.get('classId');
+  const urlClassCode = searchParams.get('classCode'); // Permanent class code for display
   const isPreviewMode = searchParams.get('preview') === 'true';
-  const isSessionMode = !!(urlSessionCode && urlRole);
+  // Session can be via session code (quick) or classId (class-based)
+  const isSessionMode = !!((urlSessionCode || urlClassId) && urlRole);
 
   // Determine user permissions
   const isDevelopment = import.meta.env.DEV;
@@ -51,8 +53,14 @@ export const useSessionMode = () => {
             console.log('🆔 Created new persistent student ID:', studentId);
           }
           const studentName = localStorage.getItem('classroom-username') || 'Student';
-          joinSession(urlSessionCode, studentId, studentName);
-          console.log('Student joining session:', { urlSessionCode, studentId, studentName });
+          // Use classCode for class-based sessions, sessionCode for quick sessions
+          const codeToJoin = urlClassCode || urlSessionCode;
+          if (codeToJoin) {
+            joinSession(codeToJoin, studentId, studentName);
+            console.log('Student joining session:', { code: codeToJoin, studentId, studentName, isClassSession: !!urlClassCode });
+          } else {
+            console.warn('⚠️ No session code or class code found for student join');
+          }
         }
       }
 
@@ -68,6 +76,7 @@ export const useSessionMode = () => {
     urlSessionCode,
     urlRole,
     urlClassId,
+    urlClassCode, // Permanent class code for display on teacher's screen
     isPreviewMode,
     isTeacher,
     canAccessNavTools,

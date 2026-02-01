@@ -90,6 +90,11 @@ const StudentPrivacy = () => {
           border-color: #fcd34d;
         }
 
+        .highlight-box.purple {
+          background: #faf5ff;
+          border-color: #c4b5fd;
+        }
+
         .it-quick-ref {
           background: #1e293b;
           color: white;
@@ -162,25 +167,6 @@ const StudentPrivacy = () => {
           font-size: 0.875rem;
         }
 
-        .download-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          margin-top: 1rem;
-          padding: 0.75rem 1.25rem;
-          background: #3b82f6;
-          color: white;
-          border-radius: 8px;
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 0.875rem;
-          transition: background 0.2s;
-        }
-
-        .download-btn:hover {
-          background: #2563eb;
-        }
-
         .compliance-badges {
           display: flex;
           flex-wrap: wrap;
@@ -198,6 +184,58 @@ const StudentPrivacy = () => {
           border-radius: 8px;
           font-weight: 500;
           color: #334155;
+        }
+
+        .mode-card {
+          background: white;
+          border-radius: 12px;
+          padding: 1.5rem;
+          border: 2px solid #e2e8f0;
+        }
+
+        .mode-card.classroom {
+          border-color: #6ee7b7;
+        }
+
+        .mode-card.accounts {
+          border-color: #93c5fd;
+        }
+
+        .mode-card h3 {
+          margin-top: 0;
+        }
+
+        .mode-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+          margin: 1.5rem 0;
+        }
+
+        .pbor-right {
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 1.25rem;
+          margin-bottom: 1rem;
+        }
+
+        .pbor-right h4 {
+          font-weight: 600;
+          color: #1e293b;
+          margin-bottom: 0.5rem;
+          margin-top: 0;
+        }
+
+        .pbor-right p {
+          margin-bottom: 0;
+          font-size: 0.95rem;
+        }
+
+        @media (max-width: 768px) {
+          .mode-grid {
+            grid-template-columns: 1fr;
+          }
         }
 
         @media (max-width: 640px) {
@@ -238,20 +276,11 @@ const StudentPrivacy = () => {
               cursor: 'pointer'
             }}
           >
-            <div style={{
-              width: '40px',
-              height: '40px',
-              background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
-              borderRadius: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white'
-            }}>
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-              </svg>
-            </div>
+            <img
+              src="/MusicMindAcademyLogo.png"
+              alt="Music Mind Academy"
+              style={{ height: '40px', width: 'auto' }}
+            />
             <span style={{
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: '1.5rem',
@@ -297,7 +326,7 @@ const StudentPrivacy = () => {
               Student Data Privacy
             </h1>
             <p style={{ color: '#64748b', fontSize: '1rem' }}>
-              Last updated: January 2026 · For IT Administrators and School Districts
+              Last updated: February 2026 · For IT Administrators, School Districts, and Parents
             </p>
           </div>
 
@@ -306,20 +335,16 @@ const StudentPrivacy = () => {
             <h3>⚡ Quick Reference for IT Administrators</h3>
             <div className="it-grid">
               <div className="it-item">
-                <span className="it-item-label">Student PII Collected</span>
-                <span className="it-item-value no">NONE</span>
+                <span className="it-item-label">Two Privacy Modes</span>
+                <span className="it-item-value yes">YES</span>
               </div>
               <div className="it-item">
-                <span className="it-item-label">Student Accounts Required</span>
-                <span className="it-item-value no">NO</span>
-              </div>
-              <div className="it-item">
-                <span className="it-item-label">Student Email Required</span>
-                <span className="it-item-value no">NO</span>
+                <span className="it-item-label">Zero-PII Mode Available</span>
+                <span className="it-item-value yes">YES</span>
               </div>
               <div className="it-item">
                 <span className="it-item-label">Data Sold to Third Parties</span>
-                <span className="it-item-value no">NO</span>
+                <span className="it-item-value no">NEVER</span>
               </div>
               <div className="it-item">
                 <span className="it-item-label">Advertising</span>
@@ -330,6 +355,10 @@ const StudentPrivacy = () => {
                 <span className="it-item-value no">NO</span>
               </div>
               <div className="it-item">
+                <span className="it-item-label">Third-Party Tracking</span>
+                <span className="it-item-value no">NONE</span>
+              </div>
+              <div className="it-item">
                 <span className="it-item-label">FERPA Compliant</span>
                 <span className="it-item-value yes">YES</span>
               </div>
@@ -338,12 +367,28 @@ const StudentPrivacy = () => {
                 <span className="it-item-value yes">YES</span>
               </div>
               <div className="it-item">
+                <span className="it-item-label">NY Ed Law 2-d Compliant</span>
+                <span className="it-item-value yes">YES</span>
+              </div>
+              <div className="it-item">
                 <span className="it-item-label">DPA Available</span>
                 <span className="it-item-value yes">YES</span>
               </div>
               <div className="it-item">
-                <span className="it-item-label">District SSO/Clever/ClassLink</span>
-                <span className="it-item-value">NOT REQUIRED</span>
+                <span className="it-item-label">Encryption (Transit + Rest)</span>
+                <span className="it-item-value yes">YES</span>
+              </div>
+              <div className="it-item">
+                <span className="it-item-label">PIN Hashing (bcrypt)</span>
+                <span className="it-item-value yes">YES</span>
+              </div>
+              <div className="it-item">
+                <span className="it-item-label">Rate Limiting</span>
+                <span className="it-item-value yes">YES</span>
+              </div>
+              <div className="it-item">
+                <span className="it-item-label">Breach Notification</span>
+                <span className="it-item-value" style={{ color: '#93c5fd' }}>7 DAYS</span>
               </div>
             </div>
             <div className="it-domains">
@@ -354,19 +399,18 @@ const StudentPrivacy = () => {
                 <span className="it-domain">*.firebaseio.com</span>
               </div>
             </div>
-            <a href="/MusicMindAcademy_IT_Privacy_Summary.pdf" className="download-btn" download>
-              📄 Download IT Summary (PDF)
-            </a>
           </div>
 
-          {/* Quick Summary Box */}
+          {/* Summary Box */}
           <div className="highlight-box">
             <h3 style={{ marginTop: 0, color: '#065f46' }}>Summary</h3>
             <p style={{ marginBottom: 0 }}>
-              Music Mind Academy is designed with student privacy as a core principle. We collect <strong>no student emails</strong>,
-              require <strong>no student accounts</strong>, and students are identified only by <strong>randomly assigned nicknames</strong>.
-              Students don't type any identifying information. Student work saves locally on their own device.
-              We do not sell data, show ads, or use third-party tracking.
+              Music Mind Academy offers <strong>two privacy modes</strong> so teachers can choose the right level
+              of data collection for their classroom. <strong>Classroom Mode</strong> collects zero student
+              personally identifiable information — students join with a class code and pick a musical name.
+              <strong> Student Accounts Mode</strong> saves student work persistently and collects limited PII
+              (name, email, compositions). Both modes are fully compliant with FERPA, COPPA, and NY Ed Law 2-d.
+              We never sell data, show ads, or use third-party tracking.
             </p>
           </div>
 
@@ -374,13 +418,55 @@ const StudentPrivacy = () => {
           <div className="compliance-badges">
             <div className="compliance-badge">✓ FERPA Compliant</div>
             <div className="compliance-badge">✓ COPPA Compliant</div>
-            <div className="compliance-badge">✓ NY Ed Law 2-D Compliant</div>
+            <div className="compliance-badge">✓ NY Ed Law 2-d Compliant</div>
             <div className="compliance-badge">✓ No Ads</div>
             <div className="compliance-badge">✓ No Data Selling</div>
+            <div className="compliance-badge">✓ Encrypted at Rest + Transit</div>
           </div>
 
-          {/* What We Collect */}
-          <h2>What Student Data We Collect</h2>
+          {/* Two Modes */}
+          <h2>Two Privacy Modes</h2>
+          <p>
+            Teachers choose a privacy mode when creating each class. This gives teachers and districts
+            control over what student data is collected.
+          </p>
+
+          <div className="mode-grid">
+            <div className="mode-card classroom">
+              <h3 style={{ color: '#065f46' }}>🟢 Classroom Mode</h3>
+              <p style={{ fontWeight: 600, color: '#065f46', marginBottom: '0.75rem' }}>
+                Zero student PII collected
+              </p>
+              <ul style={{ fontSize: '0.95rem', paddingLeft: '1.25rem' }}>
+                <li>Students join with a class code</li>
+                <li>Students pick a musical name (e.g., "Forte")</li>
+                <li>No real names, no emails, no accounts</li>
+                <li>Work is session-based and temporary</li>
+                <li>No DPA required</li>
+              </ul>
+            </div>
+
+            <div className="mode-card accounts">
+              <h3 style={{ color: '#1e40af' }}>🔵 Student Accounts Mode</h3>
+              <p style={{ fontWeight: 600, color: '#1e40af', marginBottom: '0.75rem' }}>
+                Student PII collected for persistent progress
+              </p>
+              <ul style={{ fontSize: '0.95rem', paddingLeft: '1.25rem' }}>
+                <li>Students have persistent accounts</li>
+                <li>Compositions, reflections, and scores saved</li>
+                <li>Collects name and email (if Google Sign-In)</li>
+                <li>Teachers can add/edit student names for grading</li>
+                <li>Creates education records under FERPA</li>
+                <li>DPA available upon request</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Data Collection - Classroom Mode */}
+          <h2>Data Collected: Classroom Mode</h2>
+          <p>
+            In Classroom Mode, we collect <strong>no student personally identifiable information</strong>.
+          </p>
 
           <table className="data-table">
             <thead>
@@ -394,97 +480,130 @@ const StudentPrivacy = () => {
               <tr>
                 <td>Student Real Names</td>
                 <td style={{ color: '#16a34a', fontWeight: 600 }}>No</td>
-                <td>Never collected</td>
+                <td>Never collected in this mode</td>
               </tr>
               <tr>
                 <td>Student Email Addresses</td>
                 <td style={{ color: '#16a34a', fontWeight: 600 }}>No</td>
-                <td>Never collected</td>
+                <td>Never collected in this mode</td>
               </tr>
               <tr>
                 <td>Student Accounts/Logins</td>
                 <td style={{ color: '#16a34a', fontWeight: 600 }}>No</td>
-                <td>Not required - students join with class code only</td>
+                <td>Students join with class code only</td>
               </tr>
               <tr>
-                <td>Student Nicknames</td>
+                <td>Musical Name</td>
                 <td style={{ color: '#d97706', fontWeight: 600 }}>Yes</td>
-                <td>Randomly assigned nicknames (e.g., "Wild Panda") - not linked to real identity</td>
+                <td>Student-chosen musical name (e.g., "Forte") — not linked to real identity</td>
               </tr>
               <tr>
                 <td>Activity Scores/Progress</td>
-                <td style={{ color: '#d97706', fontWeight: 600 }}>Yes</td>
-                <td>Associated with nickname only, visible to teacher during session</td>
+                <td style={{ color: '#d97706', fontWeight: 600 }}>Session Only</td>
+                <td>Associated with musical name only, visible to teacher during session</td>
               </tr>
               <tr>
                 <td>Compositions/Work</td>
-                <td style={{ color: '#16a34a', fontWeight: 600 }}>Local Only</td>
-                <td>Saved to student's device (localStorage), not our servers</td>
+                <td style={{ color: '#d97706', fontWeight: 600 }}>Session Only</td>
+                <td>Temporary — not persisted after session ends</td>
               </tr>
             </tbody>
           </table>
 
-          <h3>Why Nicknames Are Not PII</h3>
+          {/* Data Collection - Student Accounts Mode */}
+          <h2>Data Collected: Student Accounts Mode</h2>
           <p>
-            Students are randomly assigned nicknames when joining a session (examples: "Wild Panda", "Music Star 123").
-            These nicknames are:
+            In Student Accounts Mode, we collect limited student PII necessary to provide persistent
+            educational accounts. This mode creates education records as defined by FERPA.
           </p>
-          <ul>
-            <li>Randomly generated by the system - students don't enter any information</li>
-            <li>Not linked to any real identity information</li>
-            <li>Not connected to email, school name, or any other identifier</li>
-            <li>Unable to be traced back to an actual individual without external information we don't collect</li>
-          </ul>
 
-          {/* What We Don't Do */}
-          <h2>What We Do NOT Do</h2>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Data Type</th>
+                <th>Collected?</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Student Name</td>
+                <td style={{ color: '#2563eb', fontWeight: 600 }}>Yes</td>
+                <td>From Google account or entered/imported by teacher to associate with grades and assignments</td>
+              </tr>
+              <tr>
+                <td>Student Email</td>
+                <td style={{ color: '#2563eb', fontWeight: 600 }}>If Google Sign-In</td>
+                <td>Only if student uses school Google Sign-In; not collected for class code login</td>
+              </tr>
+              <tr>
+                <td>Music Compositions</td>
+                <td style={{ color: '#2563eb', fontWeight: 600 }}>Yes</td>
+                <td>Saved persistently to student's account</td>
+              </tr>
+              <tr>
+                <td>Written Reflections</td>
+                <td style={{ color: '#2563eb', fontWeight: 600 }}>Yes</td>
+                <td>Star/star/wish format reflections on student work</td>
+              </tr>
+              <tr>
+                <td>Activity/Game Scores</td>
+                <td style={{ color: '#2563eb', fontWeight: 600 }}>Yes</td>
+                <td>Saved to student's account for teacher review</td>
+              </tr>
+              <tr>
+                <td>Session Timestamps</td>
+                <td style={{ color: '#2563eb', fontWeight: 600 }}>Yes</td>
+                <td>When the student accessed the platform</td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* What We Do NOT Do */}
+          <h2>What We Do NOT Do — In Either Mode</h2>
           <ul>
-            <li><strong>We do not sell student data</strong> - ever, to anyone</li>
-            <li><strong>We do not show advertisements</strong> to students</li>
+            <li><strong>We do not sell student data</strong> — ever, to anyone, for any reason</li>
+            <li><strong>We do not show advertisements</strong> to students or teachers</li>
             <li><strong>We do not use third-party tracking</strong> (no Google Analytics, no Facebook Pixel)</li>
-            <li><strong>We do not use cookies</strong> for tracking</li>
-            <li><strong>We do not share data with third parties</strong> for marketing</li>
-            <li><strong>We do not build student profiles</strong> for any purpose</li>
-            <li><strong>We do not use student data for AI training</strong></li>
+            <li><strong>We do not use cookies</strong> for tracking or marketing</li>
+            <li><strong>We do not share data with third parties</strong> for marketing or commercial purposes</li>
+            <li><strong>We do not build student profiles</strong> for non-educational purposes</li>
+            <li><strong>We do not use student data for AI training</strong> or machine learning</li>
+            <li><strong>We do not collect biometric data</strong>, location data, or social media information</li>
           </ul>
 
           {/* How It Works */}
           <h2>How Music Mind Academy Works</h2>
 
-          <h3>For Students</h3>
+          <h3>Classroom Mode — For Students</h3>
           <ol>
-            <li><strong>Teacher starts a session</strong> and gets a 6-character class code (e.g., "TIGER")</li>
+            <li><strong>Teacher creates a class</strong> in Classroom Mode and gets a class code</li>
             <li><strong>Students go to musicmindacademy.com</strong> and enter the class code</li>
-            <li><strong>Students are randomly assigned a nickname</strong> (e.g., "Piano Dreams") - no login required</li>
-            <li><strong>Students complete activities</strong> - work saves to their own device</li>
-            <li><strong>Session ends</strong> - student data is only accessible during active session</li>
+            <li><strong>Students pick a musical name</strong> (e.g., "Forte", "Treble Clef") — no login required</li>
+            <li><strong>Students complete activities</strong> — work exists for the session only</li>
+            <li><strong>Session ends</strong> — no persistent student data remains</li>
+          </ol>
+
+          <h3>Student Accounts Mode — For Students</h3>
+          <ol>
+            <li><strong>Teacher creates a class</strong> in Student Accounts Mode (requires school/district authorization)</li>
+            <li><strong>Teacher adds student names</strong> to seats (individually or bulk import from roster list)</li>
+            <li><strong>Students sign in</strong> via school Google account or class code + seat number + PIN</li>
+            <li><strong>Students complete activities</strong> — compositions, reflections, and scores are saved</li>
+            <li><strong>Students return anytime</strong> — work persists across sessions</li>
+            <li><strong>Teacher reviews work</strong> — can view student names with assignments and grades</li>
           </ol>
 
           <h3>For Teachers</h3>
           <p>
-            Teachers create accounts using Google or Microsoft sign-in. Teacher accounts store:
+            Teachers create accounts using Google sign-in. Teacher accounts store:
           </p>
           <ul>
-            <li>Email address (from Google/Microsoft OAuth)</li>
+            <li>Email address (from Google OAuth)</li>
             <li>Display name</li>
-            <li>Session history and usage analytics</li>
+            <li>School name</li>
+            <li>Classes created and session history</li>
           </ul>
-
-          {/* SSO and Rostering */}
-          <h2>Single Sign-On & Rostering</h2>
-          <p>
-            <strong>Current status:</strong> Music Mind Academy does not currently integrate with Clever, ClassLink,
-            or district SSO systems. Students join sessions via class codes without needing accounts or logins.
-          </p>
-          <p>
-            <strong>Teacher authentication:</strong> Teachers sign in via Google or Microsoft OAuth.
-            SAML/district SSO for teachers is not currently supported but may be added based on demand.
-          </p>
-          <p>
-            <strong>Why no SSO is needed:</strong> Because students never create accounts and join only with
-            class codes, there is no rostering or SSO requirement. This simplifies deployment and eliminates
-            the need for student data synchronization.
-          </p>
 
           {/* Data Subprocessors */}
           <h2>Data Subprocessors</h2>
@@ -502,20 +621,26 @@ const StudentPrivacy = () => {
             <tbody>
               <tr>
                 <td>Firebase (Google Cloud)</td>
-                <td>Database & Authentication</td>
-                <td>Teacher accounts, session data, student nicknames during active sessions</td>
+                <td>Authentication & Realtime Database</td>
+                <td>Teacher accounts, student accounts (when applicable), session data</td>
+                <td>United States</td>
+              </tr>
+              <tr>
+                <td>MongoDB Atlas</td>
+                <td>Database</td>
+                <td>Application data, student work (Student Accounts Mode)</td>
                 <td>United States</td>
               </tr>
               <tr>
                 <td>Vercel</td>
                 <td>Web hosting (frontend)</td>
-                <td>Static files only - no student data</td>
+                <td>Static files only — no student data</td>
                 <td>United States</td>
               </tr>
               <tr>
                 <td>Railway</td>
                 <td>Backend hosting</td>
-                <td>API requests - no persistent student data</td>
+                <td>API requests</td>
                 <td>United States</td>
               </tr>
             </tbody>
@@ -524,7 +649,7 @@ const StudentPrivacy = () => {
           <p><strong>We do NOT use:</strong> Google Analytics, Facebook Pixel, advertising networks,
           behavioral tracking, or any other third-party services that process student data.</p>
 
-          {/* Data Storage */}
+          {/* Data Storage and Security */}
           <h2>Data Storage and Security</h2>
 
           <table className="data-table">
@@ -537,14 +662,14 @@ const StudentPrivacy = () => {
             </thead>
             <tbody>
               <tr>
-                <td>Student compositions (drafts)</td>
-                <td>Student's device only (localStorage)</td>
-                <td>Student only</td>
-              </tr>
-              <tr>
-                <td>Student nicknames + scores</td>
+                <td>Classroom Mode — session data</td>
                 <td>Firebase (Google Cloud)</td>
                 <td>Teacher during active session</td>
+              </tr>
+              <tr>
+                <td>Student Accounts — compositions, reflections, scores</td>
+                <td>Firebase / MongoDB Atlas</td>
+                <td>Student (own work) and teacher (own students)</td>
               </tr>
               <tr>
                 <td>Teacher accounts</td>
@@ -556,30 +681,35 @@ const StudentPrivacy = () => {
 
           <h3>Security Measures</h3>
           <ul>
-            <li><strong>Encryption in transit:</strong> All data transmitted over HTTPS/TLS</li>
-            <li><strong>Firebase Security Rules:</strong> Database access restricted by role</li>
-            <li><strong>No persistent student identifiers:</strong> Students are not tracked across sessions</li>
-            <li><strong>Minimal data collection:</strong> We only collect what's necessary for the service to function</li>
-            <li><strong>No student data at rest:</strong> Student compositions save locally, not on our servers</li>
+            <li><strong>Encryption in transit:</strong> All data transmitted over HTTPS/TLS 1.3</li>
+            <li><strong>Encryption at rest:</strong> All stored data encrypted using AES-256 (Firebase and MongoDB Atlas default encryption)</li>
+            <li><strong>PIN hashing:</strong> Student PINs are hashed using bcrypt (industry-standard password hashing algorithm) before storage</li>
+            <li><strong>Rate limiting:</strong> PIN login attempts are limited to 5 per 15 minutes to prevent brute force attacks</li>
+            <li><strong>Access controls:</strong> Teachers can only access their own students' data; students can only access their own work</li>
+            <li><strong>Authentication required:</strong> All access to student records requires authentication</li>
+            <li><strong>Firebase Security Rules:</strong> Database access restricted by role with granular permissions</li>
+            <li><strong>Minimal data collection:</strong> We only collect what is necessary for the educational service</li>
+            <li><strong>No anonymous access:</strong> No unauthenticated access to student records in Student Accounts Mode</li>
           </ul>
 
           {/* Breach Notification */}
           <h2>Data Breach Response</h2>
           <p>
-            In the unlikely event of a data breach affecting student information, Music Mind Academy will:
+            In the event of a breach or unauthorized release of student personally identifiable information,
+            Music Mind Academy will:
           </p>
           <ul>
-            <li>Notify affected schools/districts within <strong>72 hours</strong> of discovery</li>
+            <li>Notify affected schools and districts within <strong>7 calendar days</strong> of discovery (per NY Education Law § 2-d)</li>
             <li>Provide details of what data was affected</li>
             <li>Outline remediation steps taken</li>
-            <li>Cooperate with any required state reporting obligations</li>
+            <li>Cooperate with schools, law enforcement, and any required state reporting obligations</li>
+            <li>Notify parents through the affected school in accordance with applicable law</li>
           </ul>
           <div className="highlight-box">
             <p style={{ marginBottom: 0 }}>
-              <strong>Note:</strong> Because we collect no student PII (no names, emails, or identifying information),
-              the risk of a meaningful student data breach is minimal. Even in a worst-case scenario,
-              exposed data would only include randomly-assigned nicknames like "Wild Panda" that cannot
-              be connected to real students.
+              <strong>Note:</strong> In Classroom Mode, no student personally identifiable information is collected or stored,
+              so the risk of a meaningful student data breach is minimal. Student Accounts Mode data is encrypted
+              at rest and in transit with role-based access controls.
             </p>
           </div>
 
@@ -588,39 +718,50 @@ const StudentPrivacy = () => {
 
           <h3>FERPA (Family Educational Rights and Privacy Act)</h3>
           <p>
-            Because we do not collect student education records or personally identifiable information,
-            FERPA's restrictions on disclosure do not apply in the traditional sense. However, we operate
-            as a "school official" with a legitimate educational interest when teachers use our platform,
-            and we limit data use to educational purposes only.
+            <strong>Classroom Mode:</strong> Because no student education records or personally identifiable
+            information are collected, FERPA's restrictions on disclosure do not apply in the traditional sense.
+          </p>
+          <p>
+            <strong>Student Accounts Mode:</strong> Student compositions, reflections, and scores constitute
+            education records under FERPA. Music Mind Academy operates as a "school official" with a legitimate
+            educational interest. We use student data only for the educational purposes specified in our agreements,
+            do not share student data with unauthorized third parties, and support parents' right to inspect and
+            review their child's education records.
           </p>
 
           <h3>COPPA (Children's Online Privacy Protection Act)</h3>
           <p>
-            COPPA requires parental consent before collecting personal information from children under 13.
-            Music Mind Academy does not collect personal information from students:
+            COPPA requires verifiable parental consent before collecting personal information from children under 13.
           </p>
-          <ul>
-            <li>No email addresses collected from students</li>
-            <li>No real names collected</li>
-            <li>Nicknames are not considered PII under COPPA as they cannot identify a specific child</li>
-            <li>Teacher consent (acting as agent of the school) covers classroom use</li>
-          </ul>
-
-          <h3>New York Education Law 2-D</h3>
           <p>
-            NY Ed Law 2-D protects student data from unauthorized disclosure and commercial use.
+            <strong>Classroom Mode:</strong> No student personal information is collected, so COPPA consent is not required.
+          </p>
+          <p>
+            <strong>Student Accounts Mode:</strong> Schools may consent on behalf of parents when
+            the technology is used solely for an educational purpose and for no other commercial purpose (per FTC guidance).
+            By enabling Student Accounts Mode, the teacher — acting as an authorized representative of their school —
+            provides consent on behalf of parents for the limited educational use described in this policy.
+            Parents retain the right to review and request deletion of their child's data at any time.
+          </p>
+
+          <h3>New York Education Law § 2-d</h3>
+          <p>
+            NY Education Law § 2-d is one of the strictest student privacy laws in the country.
             Music Mind Academy complies by:
           </p>
           <ul>
-            <li>Not selling or using student data for commercial purposes</li>
-            <li>Not sharing data with third parties for non-educational purposes</li>
-            <li>Limiting data collection to what's necessary for the educational service</li>
-            <li>Being willing to sign Data Privacy Agreements (DPAs) with districts that require them</li>
+            <li>Never selling or releasing student PII for any commercial or marketing purpose</li>
+            <li>Encrypting PII in transit (HTTPS/TLS) and at rest (AES-256)</li>
+            <li>Notifying affected schools within 7 calendar days of discovering a breach</li>
+            <li>Providing a Parents' Bill of Rights for Data Privacy and Security (see below)</li>
+            <li>Limiting access to PII to those who need it to provide the educational service</li>
+            <li>Being prepared to sign Data Privacy Agreements with NY districts</li>
+            <li>Supporting data return or secure destruction at end of contract</li>
           </ul>
 
-          {/* State DPA Status */}
+          {/* DPA Status */}
           <h2>Data Privacy Agreements by State</h2>
-          <p>Music Mind Academy has signed or is ready to sign DPAs in the following states:</p>
+          <p>Music Mind Academy has signed or is ready to sign Data Privacy Agreements:</p>
 
           <table className="data-table">
             <thead>
@@ -632,14 +773,14 @@ const StudentPrivacy = () => {
             </thead>
             <tbody>
               <tr>
-                <td>Ohio</td>
-                <td style={{ color: '#2563eb', fontWeight: 600 }}>Available</td>
-                <td>Ready to sign Ohio NDPA on request.</td>
+                <td>Wyoming</td>
+                <td style={{ color: '#16a34a', fontWeight: 600 }}>✓ Signed</td>
+                <td>DPA executed and active.</td>
               </tr>
               <tr>
                 <td>New York</td>
                 <td style={{ color: '#2563eb', fontWeight: 600 }}>Available</td>
-                <td>NY Ed Law 2-D compliant. DPA available on request.</td>
+                <td>NY Ed Law 2-d compliant. DPA available on request.</td>
               </tr>
               <tr>
                 <td>All Other States</td>
@@ -653,8 +794,8 @@ const StudentPrivacy = () => {
             <h3 style={{ marginTop: 0, color: '#1e40af' }}>Request a Data Privacy Agreement</h3>
             <p>
               If your district requires a signed Data Privacy Agreement (DPA), we are happy to work with you.
-              We can review and sign agreements that outline our commitment to protecting student data and
-              limiting its use to educational purposes only.
+              We can sign agreements compatible with the SDPC National Data Privacy Agreement (NDPA) framework
+              or your district's standard DPA template.
             </p>
             <p style={{ marginBottom: 0 }}>
               Contact us at <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a> to
@@ -679,37 +820,148 @@ const StudentPrivacy = () => {
 
           {/* Data Retention */}
           <h2>Data Retention</h2>
+
+          <h3>Classroom Mode</h3>
           <ul>
-            <li><strong>Student session data:</strong> Retained only during active session; accessible to teacher for review</li>
-            <li><strong>Student compositions (on device):</strong> Controlled by student; can be cleared by clearing browser data</li>
-            <li><strong>Teacher accounts:</strong> Retained until teacher requests deletion</li>
+            <li>Session data is temporary and exists only during the active session</li>
+            <li>No persistent student data is stored after a session ends</li>
+          </ul>
+
+          <h3>Student Accounts Mode</h3>
+          <ul>
+            <li><strong>During active use:</strong> Student data is retained and accessible to the teacher and student</li>
+            <li><strong>Teacher-initiated deletion:</strong> Teachers can delete individual students or entire classes and all associated data at any time</li>
+            <li><strong>Subscription cancellation:</strong> Student data is securely deleted within 60 days of account termination unless the teacher requests an export</li>
+            <li><strong>School/district request:</strong> Upon written request, we will return or securely destroy all student data within 30 days</li>
+            <li><strong>Inactive data:</strong> Data inactive for more than 2 years will be flagged for deletion with notice to the teacher</li>
           </ul>
 
           <h3>Data Deletion Requests</h3>
           <p>
-            To request deletion of any data, contact us at <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a>.
+            Teachers, parents, and districts may request deletion of student data at any time. Contact us at{' '}
+            <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a>.
             We will respond within 30 days.
           </p>
+
+          {/* Parents' Bill of Rights */}
+          <div id="parents-bill-of-rights" style={{ marginTop: '3rem' }}>
+            <h2 style={{ fontSize: '1.75rem' }}>Parents' Bill of Rights for Data Privacy and Security</h2>
+            <p style={{ fontStyle: 'italic', color: '#64748b' }}>
+              In accordance with New York Education Law § 2-d
+            </p>
+            <p>
+              Music Mind Academy is committed to protecting the privacy and security of student data.
+              The following rights are guaranteed to all parents and guardians:
+            </p>
+
+            <div className="pbor-right">
+              <h4>1. No Sale or Commercial Use of Student Data</h4>
+              <p>
+                Your child's personally identifiable information cannot be sold or released for any
+                commercial or marketing purpose. Music Mind Academy will never sell student data,
+                use it for advertising, or share it with third parties for commercial purposes.
+              </p>
+            </div>
+
+            <div className="pbor-right">
+              <h4>2. Right to Inspect and Review</h4>
+              <p>
+                You have the right to inspect and review the complete contents of your child's education
+                record as stored on the Music Mind Academy platform. To request a review, contact your
+                child's teacher or email us at{' '}
+                <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a>.
+                We will respond within 30 days.
+              </p>
+            </div>
+
+            <div className="pbor-right">
+              <h4>3. Data Is Protected by Law and Secured with Safeguards</h4>
+              <p>
+                State and federal laws — including FERPA, COPPA, and New York Education Law § 2-d — protect
+                the confidentiality of your child's personally identifiable information. Safeguards including
+                encryption in transit (HTTPS/TLS), encryption at rest (AES-256), role-based access controls,
+                and authentication are in place whenever data is stored or transferred.
+              </p>
+            </div>
+
+            <div className="pbor-right">
+              <h4>4. Right to Review Data Elements Collected</h4>
+              <p>
+                A complete list of all student data elements collected by Music Mind Academy is available
+                in the data collection tables above and in our{' '}
+                <a href="/privacy" style={{ color: '#2563eb' }}>Privacy Policy</a>.
+                A detailed list is also available for review upon request.
+              </p>
+            </div>
+
+            <div className="pbor-right">
+              <h4>5. Right to Have Complaints Addressed</h4>
+              <p>
+                You have the right to have complaints about possible breaches or unauthorized releases of
+                student data addressed. Complaints may be directed to:
+              </p>
+              <ul style={{ marginTop: '0.5rem', marginBottom: 0, fontSize: '0.95rem' }}>
+                <li>Music Mind Academy: <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a></li>
+                <li>Your school district's Data Privacy Officer</li>
+                <li>New York State Education Department Chief Privacy Officer, 89 Washington Avenue, Albany, NY 12234 — <a href="mailto:privacy@nysed.gov" style={{ color: '#2563eb' }}>privacy@nysed.gov</a></li>
+              </ul>
+            </div>
+
+            <div className="pbor-right">
+              <h4>6. Breach Notification</h4>
+              <p>
+                You will be notified in accordance with applicable laws and regulations if a breach or
+                unauthorized release of your child's personally identifiable information occurs. Music Mind
+                Academy will notify affected schools within 7 calendar days of discovery, and the school
+                will notify parents in accordance with their notification procedures and applicable law.
+              </p>
+            </div>
+
+            <div className="highlight-box purple">
+              <h3 style={{ marginTop: 0, color: '#6d28d9' }}>Your Right to Opt Out</h3>
+              <p>
+                If you do not wish your child's personally identifiable information to be collected,
+                contact your child's teacher to request removal from Student Accounts Mode. Your child
+                may still be able to participate in Classroom Mode, which collects no student personal information.
+              </p>
+              <p style={{ marginBottom: 0 }}>
+                You may also contact us directly at{' '}
+                <a href="mailto:rob@musicmindacademy.com" style={{ color: '#6d28d9' }}>rob@musicmindacademy.com</a>{' '}
+                to request deletion of your child's data.
+              </p>
+            </div>
+          </div>
 
           {/* FAQ */}
           <h2>Frequently Asked Questions</h2>
 
-          <h3>Can you identify individual students?</h3>
+          <h3>What is the difference between Classroom Mode and Student Accounts Mode?</h3>
           <p>
-            No. We only see randomly assigned nicknames like "Wild Panda." Without additional information
-            (which we don't collect), there is no way to connect a nickname to a real student.
+            In Classroom Mode, students join with a class code and pick a musical name — no real names,
+            no emails, no accounts. Work is session-based. In Student Accounts Mode, students have
+            persistent accounts where their compositions, reflections, and scores are saved across sessions.
+            Teachers choose the mode when creating each class.
           </p>
 
-          <h3>Do students need to create accounts?</h3>
+          <h3>Does my district need a DPA for Classroom Mode?</h3>
           <p>
-            No. Students join sessions using only a class code and are randomly assigned a nickname.
-            No registration, no email, no password, and students don't type any identifying information.
+            Because Classroom Mode collects no student personally identifiable information, a DPA is
+            typically not required. However, some districts may still want one as a matter of policy.
+            We are happy to sign a DPA for either mode.
           </p>
 
-          <h3>Is student work sent to your servers?</h3>
+          <h3>Can a teacher use Classroom Mode for some classes and Student Accounts Mode for others?</h3>
           <p>
-            Student compositions save to their own device (browser localStorage). Work is only sent to our
-            servers if a student explicitly chooses to share it, and even then it's associated only with their nickname.
+            Yes. The mode is set per class. A teacher could use Classroom Mode for one period and
+            Student Accounts Mode for another.
+          </p>
+
+          <h3>How do teachers add student names?</h3>
+          <p>
+            In Student Accounts Mode, teachers can add student names individually (click on a seat to edit)
+            or use the "Import Names" feature to paste a list of student names from their roster. This associates
+            student names with their seat numbers, allowing teachers to see "Johnny Smith - Assignment" instead
+            of just "Seat 1 - Assignment" when reviewing grades and student work.
           </p>
 
           <h3>Do you use AI or machine learning on student data?</h3>
@@ -719,29 +971,39 @@ const StudentPrivacy = () => {
 
           <h3>What third-party services do you use?</h3>
           <p>
-            We use Firebase (Google Cloud) for database and authentication, Vercel for frontend hosting,
-            and Railway for backend hosting. Teacher accounts authenticate via Google or Microsoft OAuth.
-            We do not use analytics services, advertising networks, or any other third-party services
-            that process student data.
+            We use Firebase (Google Cloud) for authentication and database, MongoDB Atlas for database,
+            Vercel for frontend hosting, and Railway for backend hosting. Teacher accounts authenticate
+            via Google OAuth. We do not use analytics services, advertising networks, or any other
+            third-party services that process student data for non-educational purposes.
           </p>
 
           <h3>Do you support Clever or ClassLink?</h3>
           <p>
-            Not currently. Because students don't need accounts (they join with class codes only),
-            SSO integration isn't necessary. Teachers sign in via Google or Microsoft OAuth.
+            Not currently. In Classroom Mode, students join with class codes only — no SSO needed. In
+            Student Accounts Mode, students can sign in via school Google accounts or class code + seat number.
+            SAML/district SSO may be added based on demand.
+          </p>
+
+          <h3>What happens to student data when a teacher cancels?</h3>
+          <p>
+            In Classroom Mode, there is no persistent student data to worry about. In Student Accounts Mode,
+            student data is securely deleted within 60 days of account termination. Teachers may request
+            a data export before cancellation. Schools and districts may request return or destruction of
+            data at any time.
           </p>
 
           <h3>What happens if there's a data breach?</h3>
           <p>
-            We will notify affected districts within 72 hours with details of what occurred and remediation steps.
-            However, because we don't collect student PII, the impact of any potential breach would be minimal —
-            exposed data would only include randomly-assigned nicknames that cannot identify real students.
+            We will notify affected schools within 7 calendar days of discovery, as required by NY Education
+            Law § 2-d. In Classroom Mode, the risk of a meaningful student data breach is minimal because
+            no PII is collected. In Student Accounts Mode, all data is encrypted at rest and in transit
+            with role-based access controls.
           </p>
 
           {/* Contact */}
           <h2>Contact Us</h2>
           <p>
-            For privacy questions, DPA requests, or data deletion requests:
+            For privacy questions, DPA requests, parental data review or deletion requests:
           </p>
           <p>
             <strong>Robert Taube</strong><br />
@@ -760,6 +1022,8 @@ const StudentPrivacy = () => {
           }}>
             <a href="/privacy" style={{ color: '#2563eb', textDecoration: 'none' }}>Privacy Policy</a>
             <a href="/terms" style={{ color: '#2563eb', textDecoration: 'none' }}>Terms of Service</a>
+            <a href="/dpa" style={{ color: '#2563eb', textDecoration: 'none' }}>Data Privacy Agreement</a>
+            <a href="/security" style={{ color: '#2563eb', textDecoration: 'none' }}>Security Practices</a>
             <a href="/" style={{ color: '#2563eb', textDecoration: 'none' }}>Home</a>
           </div>
         </div>

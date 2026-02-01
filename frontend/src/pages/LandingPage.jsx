@@ -964,11 +964,11 @@ const LandingPage = () => {
       <footer className="footer">
         <div className="footer-inner">
           <div className="footer-brand">
-            <div className="nav-logo" style={{ width: 32, height: 32, fontSize: 14 }}>
-              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-              </svg>
-            </div>
+            <img
+              src="/MusicMindAcademyLogo.png"
+              alt="Music Mind Academy"
+              style={{ height: '32px', width: 'auto' }}
+            />
             <span>Music Mind Academy</span>
           </div>
           <div className="footer-text">Made by a fellow music teacher in Central New York</div>

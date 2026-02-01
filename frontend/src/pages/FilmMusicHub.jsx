@@ -58,7 +58,10 @@ const FilmMusicHub = () => {
       const teacherId = user?.uid || 'teacher';
       const teacherEmail = user?.email || 'anonymous';
 
-      const code = await createSession(teacherId, lessonId, lessonRoute);
+      // Default to guest mode for developer hub (no class tracking)
+      const code = await createSession(teacherId, lessonId, lessonRoute, {
+        classMode: 'guest'
+      });
 
       // Log analytics for pilot tracking
       if (user?.uid) {

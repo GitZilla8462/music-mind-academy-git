@@ -81,20 +81,11 @@ const TermsOfService = () => {
               cursor: 'pointer'
             }}
           >
-            <div style={{
-              width: '40px',
-              height: '40px',
-              background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
-              borderRadius: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white'
-            }}>
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-              </svg>
-            </div>
+            <img
+              src="/MusicMindAcademyLogo.png"
+              alt="Music Mind Academy"
+              style={{ height: '40px', width: 'auto' }}
+            />
             <span style={{
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: '1.5rem',
@@ -140,80 +131,147 @@ const TermsOfService = () => {
               Terms of Service
             </h1>
             <p style={{ color: '#64748b', fontSize: '1rem' }}>
-              Last updated: January 2026
+              Last updated: February 2026
             </p>
           </div>
 
           <p>
-            Welcome to Music Mind Academy. These Terms of Service ("Terms") govern your use of our
-            website and services at musicmindacademy.com (the "Service"). By using our Service,
-            you agree to these Terms.
+            These Terms of Service ("Terms") govern your use of Music Mind Academy ("the Platform,"
+            "we," "us," or "our"), a web-based music education platform at musicmindacademy.com.
+            By creating an account or using the Platform, you agree to these Terms.
           </p>
 
           <h2>1. Acceptance of Terms</h2>
           <p>
-            By accessing or using Music Mind Academy, you agree to be bound by these Terms and our
-            <a href="/privacy"> Privacy Policy</a>. If you do not agree to these Terms, please do not use our Service.
+            By accessing or using Music Mind Academy, you agree to be bound by these Terms and our{' '}
+            <a href="/privacy">Privacy Policy</a>. If you do not agree to these Terms, please do not
+            use our Service.
           </p>
 
           <h2>2. Description of Service</h2>
           <p>
             Music Mind Academy is a web-based music education platform designed for middle school
-            general music classes. The Service includes:
+            general music classes. The Service includes interactive music composition activities,
+            a digital audio workstation (DAW), lesson content and teacher presentation materials,
+            classroom management tools, and student progress tracking.
           </p>
+          <p>The Platform offers two modes of use:</p>
           <ul>
-            <li>Interactive music composition activities</li>
-            <li>Digital Audio Workstation (DAW) tools</li>
-            <li>Lesson content and teacher presentation materials</li>
-            <li>Classroom session management tools</li>
-            <li>Student progress tracking</li>
+            <li><strong>Classroom Mode:</strong> Students participate using a class code and a self-selected
+            musical name. No student personally identifiable information is collected.</li>
+            <li><strong>Student Accounts Mode:</strong> Students have persistent accounts with saved work.
+            This mode collects student personally identifiable information and creates education records.</li>
           </ul>
 
           <h2>3. User Accounts</h2>
 
           <h3>Teacher Accounts</h3>
           <p>
-            Teachers may create accounts using Google or Microsoft sign-in. You are responsible for:
+            Teachers create accounts using Google sign-in. By creating a teacher account, you represent
+            that you are an educator or authorized school employee and that you are at least 18 years of age.
+            You are responsible for:
           </p>
           <ul>
-            <li>Maintaining the security of your account</li>
+            <li>Maintaining the security of your account credentials</li>
             <li>All activities that occur under your account</li>
             <li>Ensuring your use complies with your school or district policies</li>
           </ul>
 
-          <h3>Student Access</h3>
+          <h3>Student Access — Classroom Mode</h3>
           <p>
-            Students access the Service through session codes provided by their teacher. Students
-            do not create accounts and are not required to provide any personal information beyond
-            a self-chosen nickname.
+            In Classroom Mode, students access the Service by entering a class code provided by
+            their teacher and selecting a musical name. No student account is created and no personally
+            identifiable information is collected.
           </p>
 
-          <h2>4. Acceptable Use</h2>
-          <p>You agree NOT to:</p>
+          <h3>Student Access — Student Accounts Mode</h3>
+          <p>
+            In Student Accounts Mode, teachers create student accounts so that student work is
+            saved persistently. By enabling Student Accounts Mode, the teacher represents and warrants that:
+          </p>
           <ul>
-            <li>Use the Service for any unlawful purpose</li>
-            <li>Share content that is offensive, harmful, or inappropriate for educational settings</li>
-            <li>Attempt to gain unauthorized access to any part of the Service</li>
-            <li>Interfere with or disrupt the Service or servers</li>
-            <li>Use the Service to collect information about other users without their consent</li>
-            <li>Use automated means (bots, scrapers) to access the Service</li>
-            <li>Reverse engineer or attempt to extract source code from the Service</li>
+            <li>They have reviewed the Music Mind Academy <a href="/privacy">Privacy Policy</a></li>
+            <li>Their school or district has authorized the use of the Platform for student data collection,
+            including any required Data Privacy Agreement</li>
+            <li>They are authorized to consent on behalf of parents under COPPA for the educational
+            use of the Platform</li>
+            <li>They will not enter unnecessary personal information about students beyond what is
+            required for the educational service</li>
           </ul>
 
-          <h2>5. Content and Intellectual Property</h2>
+          <h2>4. Teacher Responsibilities</h2>
+          <p>As a teacher using the Platform, you agree to:</p>
+          <ul>
+            <li>Use the Platform solely for educational purposes</li>
+            <li>Ensure that student use of the Platform is supervised or directed as part of classroom instruction</li>
+            <li>Manage your class roster and remove students who are no longer in your class</li>
+            <li>Not share class codes publicly or with unauthorized individuals</li>
+            <li>Notify us promptly if you become aware of any unauthorized access to student data</li>
+            <li>Comply with your school or district's acceptable use policies and data privacy requirements</li>
+          </ul>
 
-          <h3>Our Content</h3>
+          <h2>5. Student Data Privacy</h2>
           <p>
-            Music Mind Academy owns or licenses all content provided through the Service, including
-            lessons, audio loops, images, and software. This content is protected by copyright and
-            other intellectual property laws.
+            We take student privacy seriously. Our complete data privacy practices are described
+            in our <a href="/privacy">Privacy Policy</a> and <a href="/student-privacy">Student Data
+            Privacy</a> page. Key commitments include:
+          </p>
+          <ul>
+            <li>We never sell student data</li>
+            <li>We never use student data for advertising or marketing</li>
+            <li>We collect only the minimum data necessary to provide the educational service</li>
+            <li>Student data is encrypted in transit and at rest</li>
+            <li>We comply with FERPA, COPPA, and New York Education Law § 2-d</li>
+            <li>Teachers can delete student data at any time</li>
+            <li>Parents can request review or deletion of their child's data</li>
+          </ul>
+
+          <h2>6. Data Privacy Agreements</h2>
+          <p>
+            Schools and districts may request a Data Privacy Agreement (DPA) before authorizing
+            teacher use of the Platform. We are prepared to execute Data Privacy Agreements including
+            agreements compatible with the Student Data Privacy Consortium (SDPC) National Data
+            Privacy Agreement (NDPA) framework or your district's standard DPA template.
+          </p>
+          <p>
+            To request a Data Privacy Agreement, contact:{' '}
+            <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a>
           </p>
 
-          <h3>User Content</h3>
+          <h2>7. Acceptable Use</h2>
+          <p>You agree NOT to:</p>
+          <ul>
+            <li>Use the Service for any purpose other than music education</li>
+            <li>Share content that is offensive, harmful, or inappropriate for educational settings</li>
+            <li>Attempt to gain unauthorized access to any part of the Service or other users' data</li>
+            <li>Interfere with or disrupt the Service or servers</li>
+            <li>Use automated means (bots, scrapers) to access the Service</li>
+            <li>Reverse engineer, decompile, or attempt to extract source code from the Service</li>
+            <li>Share your account credentials with others</li>
+            <li>Circumvent any access controls or security measures</li>
+          </ul>
+
+          <h2>8. Content and Intellectual Property</h2>
+
+          <h3>Platform Content</h3>
           <p>
-            Teachers and students may create content using our tools (compositions, reflections, etc.).
-            You retain ownership of content you create. By using the Service, you grant us a license
-            to host and display your content as necessary to provide the Service.
+            The Platform, including its design, software, audio loops, lesson content, and educational
+            materials, is owned by Music Mind Academy and protected by copyright and other intellectual
+            property laws. Your subscription grants you a limited, non-exclusive, non-transferable
+            license to use the Platform for classroom instruction during your active subscription period.
+          </p>
+
+          <h3>Student-Created Content</h3>
+          <p>
+            Music compositions, written reflections, and other content created by students using the
+            Platform belong to the student and their school. We claim no ownership of student-created
+            content. Upon request, we will provide exports of student-created content to the teacher or school.
+          </p>
+
+          <h3>Teacher-Created Content</h3>
+          <p>
+            Lesson plans, class configurations, and other content created by teachers using the
+            Platform belong to the teacher. We claim no ownership of teacher-created content.
           </p>
 
           <h3>Audio Loops License</h3>
@@ -223,74 +281,86 @@ const TermsOfService = () => {
             without separate licensing.
           </p>
 
-          <h2>6. Educational Use</h2>
+          <h2>9. Subscription and Payment</h2>
           <p>
-            Music Mind Academy is designed for educational purposes in K-12 school settings. Teachers
-            are responsible for ensuring their use complies with their school or district's policies
-            regarding educational technology.
-          </p>
-          <p>
-            If your district requires a Data Privacy Agreement (DPA), please contact us at
-            <a href="mailto:rob@musicmindacademy.com"> rob@musicmindacademy.com</a>.
-          </p>
-
-          <h2>7. Subscription and Payment</h2>
-          <p>
-            Music Mind Academy may offer free and paid subscription tiers. For paid subscriptions:
+            Access to Music Mind Academy requires a paid subscription. Subscription details, pricing,
+            and payment terms are presented at the time of purchase.
           </p>
           <ul>
+            <li>Subscriptions are billed annually unless otherwise specified</li>
             <li>Payment is due at the start of the subscription period</li>
-            <li>Subscriptions automatically renew unless canceled</li>
-            <li>Refunds are handled on a case-by-case basis</li>
+            <li>You may cancel your subscription at any time</li>
+            <li>Upon cancellation, you will retain access through the end of your current billing period</li>
+            <li>Refund requests within 30 days of purchase will be honored</li>
             <li>We reserve the right to change pricing with 30 days notice</li>
           </ul>
-
-          <h2>8. Disclaimer of Warranties</h2>
           <p>
-            THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND,
-            EITHER EXPRESS OR IMPLIED. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED,
-            ERROR-FREE, OR SECURE.
+            After your subscription expires, student data (Student Accounts Mode) will be handled
+            in accordance with our Privacy Policy — securely deleted within 60 days unless you
+            request an export.
           </p>
 
-          <h2>9. Limitation of Liability</h2>
+          <h2>10. Service Availability</h2>
+          <p>
+            We strive to keep the Platform available and reliable, but we do not guarantee
+            uninterrupted access. We may temporarily suspend the service for maintenance, updates,
+            or security reasons. We will make reasonable efforts to provide advance notice of
+            planned maintenance.
+          </p>
+
+          <h2>11. Disclaimer of Warranties</h2>
+          <p>
+            THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND,
+            EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF
+            MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. WE DO NOT
+            WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, ERROR-FREE, OR SECURE.
+          </p>
+
+          <h2>12. Limitation of Liability</h2>
           <p>
             TO THE MAXIMUM EXTENT PERMITTED BY LAW, MUSIC MIND ACADEMY SHALL NOT BE LIABLE FOR
             ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS
-            OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY.
+            OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY. OUR TOTAL LIABILITY
+            FOR ANY CLAIMS ARISING UNDER THESE TERMS SHALL NOT EXCEED THE AMOUNT YOU PAID FOR
+            YOUR SUBSCRIPTION IN THE 12 MONTHS PRECEDING THE CLAIM.
           </p>
 
-          <h2>10. Indemnification</h2>
+          <h2>13. Indemnification</h2>
           <p>
             You agree to indemnify and hold harmless Music Mind Academy and its owner from any
             claims, damages, or expenses arising from your use of the Service or violation of
             these Terms.
           </p>
 
-          <h2>11. Termination</h2>
+          <h2>14. Termination</h2>
           <p>
-            We may suspend or terminate your access to the Service at any time for violation of
-            these Terms or for any other reason. You may terminate your account at any time by
-            contacting us.
+            Either party may terminate these Terms at any time. You may terminate by canceling
+            your subscription and deleting your account. We may suspend or terminate your access
+            if you violate these Terms.
           </p>
+          <p>Upon termination:</p>
+          <ul>
+            <li>Your right to use the Platform ceases (or at the end of your billing period if you cancel)</li>
+            <li>Student data will be handled in accordance with our Privacy Policy</li>
+            <li>We will comply with any applicable Data Privacy Agreement regarding data return or destruction</li>
+            <li>Provisions of these Terms that by their nature should survive termination will survive</li>
+          </ul>
+
+          <h2>15. Changes to Terms</h2>
           <p>
-            Upon termination, your right to use the Service will cease immediately. Provisions
-            of these Terms that by their nature should survive termination will survive.
+            We may modify these Terms at any time. If we make material changes, we will notify
+            active users by email at least 30 days before the changes take effect. Continued use
+            of the Service after changes take effect constitutes acceptance of the modified Terms.
           </p>
 
-          <h2>12. Changes to Terms</h2>
-          <p>
-            We may modify these Terms at any time. We will notify users of significant changes
-            by posting a notice on our website. Your continued use of the Service after changes
-            are posted constitutes acceptance of the modified Terms.
-          </p>
-
-          <h2>13. Governing Law</h2>
+          <h2>16. Governing Law</h2>
           <p>
             These Terms are governed by the laws of the State of New York, United States,
-            without regard to conflict of law principles.
+            without regard to conflict of law principles. Any disputes arising under these
+            Terms shall be resolved in the courts of the State of New York.
           </p>
 
-          <h2>14. Contact Information</h2>
+          <h2>17. Contact Information</h2>
           <p>
             If you have questions about these Terms, please contact us:
           </p>
@@ -298,6 +368,10 @@ const TermsOfService = () => {
             <strong>Robert Taube</strong><br />
             Founder, Music Mind Academy<br />
             Email: <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a>
+          </p>
+          <p>
+            For data privacy questions specifically, see our{' '}
+            <a href="/student-privacy">Student Data Privacy</a> page.
           </p>
 
           {/* Footer Links */}
@@ -311,6 +385,8 @@ const TermsOfService = () => {
           }}>
             <a href="/privacy">Privacy Policy</a>
             <a href="/student-privacy">Student Data Privacy</a>
+            <a href="/dpa">Data Privacy Agreement</a>
+            <a href="/security">Security Practices</a>
             <a href="/">Home</a>
           </div>
         </div>

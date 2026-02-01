@@ -364,6 +364,7 @@ const Lesson1 = () => {
         <TeacherLessonView
           config={fmLesson1Config}
           sessionCode={sessionCode}
+          classCode={sessionMode.urlClassCode}
           lessonStages={lessonStages}
           getCurrentStage={getCurrentStage}
           setCurrentStage={setCurrentStage}
