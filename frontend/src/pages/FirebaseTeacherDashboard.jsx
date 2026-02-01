@@ -126,11 +126,12 @@ const FirebaseTeacherDashboard = () => {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">My Classes</h1>
           <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+            disabled
+            className="flex items-center gap-2 px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed font-medium text-sm"
           >
             <Plus size={18} />
             Create Class
+            <span className="text-xs bg-gray-400 text-white px-1.5 py-0.5 rounded ml-1">Soon</span>
           </button>
         </div>
 
@@ -179,105 +180,62 @@ const FirebaseTeacherDashboard = () => {
                 </ul>
               </button>
 
-              {/* Create Class */}
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="p-5 border-2 border-gray-200 rounded-xl text-left hover:border-blue-400 hover:bg-blue-50 transition-all group"
+              {/* Create Class - Coming Soon */}
+              <div
+                className="p-5 border-2 border-gray-200 rounded-xl text-left opacity-50 cursor-not-allowed relative"
               >
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-3 group-hover:bg-blue-200">
-                  <Users className="w-5 h-5 text-blue-600" />
+                <div className="absolute top-3 right-3 bg-gray-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                  Coming Soon
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Create a Class</h3>
-                <p className="text-sm text-gray-500 mb-3">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mb-3">
+                  <Users className="w-5 h-5 text-gray-400" />
+                </div>
+                <h3 className="font-semibold text-gray-500 mb-1">Create a Class</h3>
+                <p className="text-sm text-gray-400 mb-3">
                   Set up once, then track everything.
                 </p>
-                <ul className="text-xs text-gray-400 space-y-1">
+                <ul className="text-xs text-gray-300 space-y-1">
                   <li>• Students get login PINs</li>
                   <li>• Work saves automatically</li>
                   <li>• Grade and give feedback</li>
                 </ul>
-              </button>
+              </div>
             </div>
           </div>
         ) : (
-          /* Class Cards Grid */
+          /* Class Cards Grid - Disabled for now */
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {classes.map((classItem) => {
-              const pendingCount = getPendingCount(classItem.id);
+            {classes.map((classItem) => (
+              <div
+                key={classItem.id}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden opacity-50 cursor-not-allowed text-left relative"
+              >
+                <div className="absolute top-2 right-2 bg-gray-500 text-white text-xs px-2 py-0.5 rounded-full font-medium z-10">
+                  Coming Soon
+                </div>
+                {/* Card Header - greyed out */}
+                <div className="h-24 bg-gradient-to-r from-gray-400 to-gray-500 px-4 py-3 flex flex-col justify-between">
+                  <h3 className="font-semibold text-white text-lg truncate max-w-[140px]">
+                    {classItem.name}
+                  </h3>
+                  <span className="text-white/80 text-sm">
+                    {classItem.studentCount || 0} students
+                  </span>
+                </div>
+                <div className="p-4">
+                  <p className="text-xs text-gray-400">Class management coming soon</p>
+                </div>
+              </div>
+            ))}
 
-              return (
-                <button
-                  key={classItem.id}
-                  onClick={() => navigate(`/teacher/class/${classItem.id}`)}
-                  className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all text-left group"
-                >
-                  {/* Card Header - colored banner */}
-                  <div className="h-24 bg-gradient-to-r from-blue-500 to-indigo-500 px-4 py-3 flex flex-col justify-between group-hover:brightness-110 transition-all relative">
-                    <div className="flex items-start justify-between">
-                      <h3 className="font-semibold text-white text-lg truncate max-w-[140px]">
-                        {classItem.name}
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <span className="text-white/90 font-mono text-sm bg-white/20 px-2 py-0.5 rounded">
-                          {classItem.classCode || classItem.code || '----'}
-                        </span>
-                        {/* Kebab Menu */}
-                        <div className="relative">
-                          <button
-                            onClick={(e) => handleMenuToggle(e, classItem.id)}
-                            className="p-1 rounded-full hover:bg-white/20 transition-colors"
-                          >
-                            <MoreVertical size={18} className="text-white" />
-                          </button>
-                          {openMenuId === classItem.id && (
-                            <div className="absolute right-0 top-8 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 min-w-[120px]">
-                              <button
-                                onClick={(e) => handleEditClick(e, classItem)}
-                                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                              >
-                                <Pencil size={14} />
-                                Edit
-                              </button>
-                              <button
-                                onClick={(e) => handleDeleteClick(e, classItem)}
-                                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                              >
-                                <Trash2 size={14} />
-                                Delete
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <span className="text-white/80 text-sm">
-                      {classItem.studentCount || 0} students
-                    </span>
-                  </div>
-
-                  {/* Card Body */}
-                  <div className="p-4">
-                    <div className="flex items-center justify-end">
-                      {pendingCount > 0 && (
-                        <span className="flex items-center gap-1 text-xs text-amber-600 font-medium">
-                          <AlertCircle size={14} />
-                          {pendingCount} to grade
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-
-            {/* Add Class Card */}
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-white rounded-xl shadow-sm border-2 border-dashed border-gray-300 p-6 flex flex-col items-center justify-center text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all min-h-[180px]"
+            {/* Add Class Card - Disabled */}
+            <div
+              className="bg-white rounded-xl shadow-sm border-2 border-dashed border-gray-200 p-6 flex flex-col items-center justify-center text-gray-300 cursor-not-allowed min-h-[180px]"
             >
               <Plus size={32} className="mb-2" />
               <span className="font-medium">Create Class</span>
-            </button>
+              <span className="text-xs mt-1">Coming Soon</span>
+            </div>
           </div>
         )}
       </main>
