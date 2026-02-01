@@ -143,85 +143,39 @@ const StartSessionModal = ({
               </p>
             </div>
 
-            {/* Option 2: For My Class (RIGHT - Secondary) */}
-            <div className="border-2 border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors">
+            {/* Option 2: For My Class (RIGHT - Coming Soon) */}
+            <div className="border-2 border-gray-200 rounded-xl p-5 opacity-50 cursor-not-allowed relative">
+              <div className="absolute top-3 right-3 bg-gray-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                Coming Soon
+              </div>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <Users className="w-5 h-5 text-gray-400" />
                 </div>
-                <h3 className="font-semibold text-gray-900">For My Class</h3>
+                <h3 className="font-semibold text-gray-500">For My Class</h3>
               </div>
 
-              <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
+              <ul className="text-sm text-gray-400 space-y-1.5 mb-4">
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-0.5">•</span>
+                  <span className="text-gray-300 mt-0.5">•</span>
                   Students sign in with username + PIN
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-0.5">•</span>
+                  <span className="text-gray-300 mt-0.5">•</span>
                   Work saves to your gradebook
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-0.5">•</span>
+                  <span className="text-gray-300 mt-0.5">•</span>
                   You can grade and give feedback
                 </li>
               </ul>
 
-              {loadingClasses ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
-                </div>
-              ) : classes.length === 0 ? (
-                <button
-                  onClick={onCreateClass}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-blue-300 rounded-lg text-blue-600 hover:bg-blue-100 hover:border-blue-400 transition-colors font-medium"
-                >
-                  <Plus size={18} />
-                  Create a Class First
-                </button>
-              ) : (
-                <div className="space-y-3">
-                  {/* Class Dropdown */}
-                  <div className="relative">
-                    <select
-                      value={selectedClassId}
-                      onChange={(e) => setSelectedClassId(e.target.value)}
-                      className="w-full appearance-none px-4 py-2.5 pr-10 border border-gray-300 rounded-lg bg-white text-gray-900 font-medium focus:outline-none focus:border-blue-500 cursor-pointer"
-                    >
-                      <option value="">Select a class...</option>
-                      {classes.map((cls) => (
-                        <option key={cls.id} value={cls.id}>
-                          {cls.name}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                  </div>
-
-                  <button
-                    onClick={handleStartForClass}
-                    disabled={!selectedClassId || starting}
-                    className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {starting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Starting...
-                      </>
-                    ) : (
-                      'Start for Class'
-                    )}
-                  </button>
-
-                  {/* Link to create another class */}
-                  <button
-                    onClick={onCreateClass}
-                    className="w-full text-sm text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    + Create another class
-                  </button>
-                </div>
-              )}
+              <button
+                disabled
+                className="w-full px-4 py-2.5 bg-gray-300 text-gray-500 rounded-lg font-medium cursor-not-allowed"
+              >
+                Coming Soon
+              </button>
             </div>
           </div>
         </div>
