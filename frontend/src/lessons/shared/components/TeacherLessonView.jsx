@@ -244,6 +244,182 @@ const InstrumentFamilySlide = ({ title, familyColor, instruments, sound, facts, 
 };
 
 // ============================================
+// YOUTUBE CLIP COMPONENT
+// Embeds a YouTube video with start/end times
+// Uses YouTube IFrame API for precise control
+// ============================================
+const YouTubeClip = ({ videoId, startTime, endTime, title, subtitle, currentStage }) => {
+  const playerRef = useRef(null);
+  const containerRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const checkIntervalRef = useRef(null);
+
+  // Load YouTube IFrame API
+  useEffect(() => {
+    // Check if API is already loaded
+    if (window.YT && window.YT.Player) {
+      initPlayer();
+      return;
+    }
+
+    // Load the API
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    // Set up callback for when API is ready
+    window.onYouTubeIframeAPIReady = () => {
+      initPlayer();
+    };
+
+    return () => {
+      if (checkIntervalRef.current) {
+        clearInterval(checkIntervalRef.current);
+      }
+      if (playerRef.current) {
+        playerRef.current.destroy();
+      }
+    };
+  }, [currentStage]);
+
+  const initPlayer = () => {
+    if (playerRef.current) {
+      playerRef.current.destroy();
+    }
+
+    playerRef.current = new window.YT.Player(containerRef.current, {
+      videoId: videoId,
+      playerVars: {
+        start: startTime,
+        autoplay: 0,
+        controls: 0,
+        modestbranding: 1,
+        rel: 0,
+        showinfo: 0,
+        fs: 0
+      },
+      events: {
+        onReady: () => setIsReady(true),
+        onStateChange: (event) => {
+          if (event.data === window.YT.PlayerState.PLAYING) {
+            setIsPlaying(true);
+            // Start checking for end time
+            checkIntervalRef.current = setInterval(() => {
+              if (playerRef.current && playerRef.current.getCurrentTime) {
+                const currentTime = playerRef.current.getCurrentTime();
+                if (currentTime >= endTime) {
+                  playerRef.current.pauseVideo();
+                  playerRef.current.seekTo(startTime);
+                  setIsPlaying(false);
+                  clearInterval(checkIntervalRef.current);
+                }
+              }
+            }, 100);
+          } else if (event.data === window.YT.PlayerState.PAUSED || event.data === window.YT.PlayerState.ENDED) {
+            setIsPlaying(false);
+            if (checkIntervalRef.current) {
+              clearInterval(checkIntervalRef.current);
+            }
+          }
+        }
+      }
+    });
+  };
+
+  const handlePlayPause = () => {
+    if (!playerRef.current) return;
+
+    if (isPlaying) {
+      playerRef.current.pauseVideo();
+    } else {
+      playerRef.current.seekTo(startTime);
+      playerRef.current.playVideo();
+    }
+  };
+
+  const handleReplay = () => {
+    if (!playerRef.current) return;
+    playerRef.current.seekTo(startTime);
+    playerRef.current.playVideo();
+  };
+
+  return (
+    <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
+      {/* Title */}
+      <div className="text-center mb-6">
+        <h1 className="text-5xl font-bold text-white mb-2">{title}</h1>
+        {subtitle && <p className="text-2xl text-slate-300">{subtitle}</p>}
+      </div>
+
+      {/* Video Container */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="relative w-full max-w-4xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl">
+          <div ref={containerRef} className="absolute inset-0" />
+
+          {/* Overlay controls */}
+          {!isPlaying && isReady && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+              <button
+                onClick={handlePlayPause}
+                className="w-24 h-24 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all transform hover:scale-110 shadow-xl"
+              >
+                <Play size={48} className="text-white ml-2" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Control buttons */}
+      <div className="flex justify-center gap-4 mt-6">
+        <button
+          onClick={handlePlayPause}
+          disabled={!isReady}
+          className={`flex items-center gap-3 px-8 py-4 rounded-xl text-white font-semibold text-xl transition-all ${
+            !isReady
+              ? 'bg-slate-600 cursor-not-allowed'
+              : isPlaying
+              ? 'bg-red-600 hover:bg-red-700'
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
+        >
+          {isPlaying ? (
+            <>
+              <Pause size={28} />
+              Pause
+            </>
+          ) : (
+            <>
+              <Play size={28} />
+              Play Clip
+            </>
+          )}
+        </button>
+        <button
+          onClick={handleReplay}
+          disabled={!isReady}
+          className={`flex items-center gap-3 px-8 py-4 rounded-xl text-white font-semibold text-xl transition-all ${
+            !isReady
+              ? 'bg-slate-600 cursor-not-allowed'
+              : 'bg-purple-600 hover:bg-purple-700'
+          }`}
+        >
+          <RotateCcw size={28} />
+          Replay
+        </button>
+      </div>
+
+      {/* Attribution */}
+      <div className="text-center mt-4 text-slate-400 text-sm">
+        Video by Katy Adelson (CC BY) • youtube.com/watch?v={videoId}
+      </div>
+    </div>
+  );
+};
+
+// ============================================
 // PRESENTATION CONTENT COMPONENT
 // Renders the appropriate content based on stage
 // ============================================
@@ -269,6 +445,7 @@ const PresentationContent = ({
   const [SectionalLoopBuilderResults, setSectionalLoopBuilderResults] = useState(null);
   const [MoodMatchTeacherView, setMoodMatchTeacherView] = useState(null);
   const [VideoHookComparison, setVideoHookComparison] = useState(null);
+  const [StringFamilyShowcase, setStringFamilyShowcase] = useState(null);
   const [BeatBuilderDemo, setBeatBuilderDemo] = useState(null);
   const [NameThatGameActivity, setNameThatGameActivity] = useState(null);
   const [MelodyBuilderTeacherDemo, setMelodyBuilderTeacherDemo] = useState(null);
@@ -314,6 +491,11 @@ const PresentationContent = ({
     import('../../film-music-project/lesson4/components/VideoHookComparison')
       .then(module => setVideoHookComparison(() => module.default))
       .catch(() => console.log('Video Hook Comparison not available'));
+
+    // Listening Lab Lesson 1: String Family Showcase
+    import('../../listening-lab/lesson1/components/StringFamilyShowcase')
+      .then(module => setStringFamilyShowcase(() => module.default))
+      .catch(() => console.log('String Family Showcase not available'));
 
     // Lesson 4: Beat Builder Demo (Building a Beat)
     import('../../film-music-project/lesson4/components/BeatBuilderDemo')
@@ -486,6 +668,23 @@ const PresentationContent = ({
       );
     }
 
+    // String Family Showcase (Listening Lab Lesson 1) - Meet the String Instruments
+    if (type === 'string-family-showcase') {
+      if (!StringFamilyShowcase) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+            <div className="text-white text-2xl">Loading String Family Showcase...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <StringFamilyShowcase onAdvance={goToNextStage} />
+        </div>
+      );
+    }
+
     // Video Hook Comparison (Lesson 4) - No Music vs With Music
     if (type === 'video-comparison') {
       if (!VideoHookComparison) {
@@ -647,6 +846,22 @@ const PresentationContent = ({
           sound={sound}
           facts={facts}
           audioPath={audioPath}
+          currentStage={currentStage}
+        />
+      );
+    }
+
+    // YouTube Clip - embeds a YouTube video with start/end times
+    if (type === 'youtube-clip') {
+      const { videoId, startTime, endTime, title, subtitle } = currentStageData.presentationView;
+
+      return (
+        <YouTubeClip
+          videoId={videoId}
+          startTime={startTime}
+          endTime={endTime}
+          title={title}
+          subtitle={subtitle}
           currentStage={currentStage}
         />
       );

@@ -69,6 +69,9 @@ import KeyboardTutorialActivity from '../activities/keyboard-tutorial';
 import { GuessThatInstrumentActivity } from '../activities/guess-that-instrument';
 import { OrchestraLabActivity } from '../activities/orchestra-lab';
 
+// ✅ ADDED: String Detective for Lesson 1 (Strings & Dynamics)
+import { StringDetectiveActivity } from '../activities/string-detective';
+
 const ActivityRenderer = ({
   activity,
   onComplete,
@@ -527,6 +530,28 @@ const ActivityRenderer = ({
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: String Detective game (Listening Lab Lesson 1 - Strings & Dynamics)
+    case 'string-detective':
+      return (
+        <StringDetectiveActivity
+          key={`string-detective-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+        />
+      );
+
+    // ✅ ADDED: Dynamics Listening Map (Listening Lab Lesson 1)
+    // Uses the existing ListeningMapActivity with dynamics mode
+    case 'dynamics-listening-map':
+      return (
+        <ListeningMapActivity
+          key={`dynamics-listening-map-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+          mode="dynamics"
         />
       );
 
