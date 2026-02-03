@@ -758,12 +758,14 @@ export const SessionProvider = ({ children }) => {
 
       leaveSession();
 
-      // Navigate back to the hub page for film-music-project lessons
+      // Navigate back to the appropriate hub page based on lesson type
       setTimeout(() => {
         if (lessonRoute.includes('/lessons/film-music-project/')) {
           window.location.href = '/music-loops-in-media-hub';
+        } else if (lessonRoute.includes('/lessons/listening-lab/')) {
+          window.location.href = '/music-classroom-resources';
         } else {
-          window.location.href = lessonRoute;
+          window.location.href = '/music-classroom-resources';
         }
       }, 500);
 

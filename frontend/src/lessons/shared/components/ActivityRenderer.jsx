@@ -65,6 +65,10 @@ import LeitmotifDetectiveActivity from '../activities/leitmotif-detective';
 import MotifBuilderActivity from '../activities/motif-builder';
 import KeyboardTutorialActivity from '../activities/keyboard-tutorial';
 
+// ✅ ADDED: Unit 2 - The Listening Lab Activities
+import { GuessThatInstrumentActivity } from '../activities/guess-that-instrument';
+import { OrchestraLabActivity } from '../activities/orchestra-lab';
+
 const ActivityRenderer = ({
   activity,
   onComplete,
@@ -476,6 +480,50 @@ const ActivityRenderer = ({
       return (
         <MotifBuilderActivity
           key={`motif-builder-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ========================================
+    // UNIT 2 - THE LISTENING LAB ACTIVITIES
+    // ========================================
+
+    // ✅ ADDED: Guess That Instrument game (Listening Lab Lesson 1)
+    case 'guess-that-instrument':
+      return (
+        <GuessThatInstrumentActivity
+          key={`guess-that-instrument-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+        />
+      );
+
+    // ✅ ADDED: Orchestra Lab partner game (Listening Lab Lesson 1 - Bonus)
+    case 'orchestra-lab':
+      return (
+        <OrchestraLabActivity
+          key={`orchestra-lab-${activity.id}`}
+          onComplete={onComplete}
+        />
+      );
+
+    // ✅ ADDED: Listening Map for Instruments (Listening Lab Lesson 1)
+    case 'listening-map-instruments':
+      return (
+        <ListeningMapActivity
+          key={`listening-map-instruments-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Listening Lab Reflection (Unit 2 - all lessons)
+    case 'listening-lab-reflection':
+      return (
+        <TwoStarsAndAWishActivity
+          key={`listening-lab-reflection-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}

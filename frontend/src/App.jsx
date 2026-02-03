@@ -65,7 +65,9 @@ const ClassDetailPage = React.lazy(() => import('./pages/ClassDetailPage'));
 // Classroom and hub pages
 const MusicClassroomResources = React.lazy(() => import('./pages/MusicClassroomResources'));
 const MusicLoopsInMediaHub = React.lazy(() => import('./pages/MusicLoopsInMediaHub'));
+const ListeningLabHub = React.lazy(() => import('./pages/ListeningLabHub'));
 const FilmMusicHub = React.lazy(() => import('./pages/FilmMusicHub'));
+const CurriculumGuide = React.lazy(() => import('./pages/CurriculumGuide'));
 
 // Assignment/class management pages
 const CreateAssignmentPage = React.lazy(() => import('./pages/CreateAssignmentPage'));
@@ -92,6 +94,9 @@ const Lesson5 = React.lazy(() => import('./lessons/film-music-project/lesson5/Le
 
 // Film Music Unit Lessons (NEW - Leitmotif-based curriculum)
 const FMLesson1 = React.lazy(() => import('./lessons/film-music/lesson1/Lesson1'));
+
+// Listening Lab Unit Lessons (Unit 2 - Elements of Music)
+const ListeningLabLesson1 = React.lazy(() => import('./lessons/listening-lab/lesson1/Lesson1'));
 
 // Lesson plan PDFs
 const LessonPlanPDF = React.lazy(() => import('./lessons/film-music-project/lesson1/LessonPlanPDF'));
@@ -379,8 +384,17 @@ const AppContent = () => {
         {/* Music Classroom Resources - Unit selection page */}
         <Route path="/music-classroom-resources" element={<MusicClassroomResources />} />
 
+        {/* Curriculum Guide - Standards and scope & sequence */}
+        <Route path="/curriculum-guide" element={<CurriculumGuide />} />
+
         {/* Music Loops in Media Hub */}
         <Route path="/music-loops-in-media" element={<MusicLoopsInMediaHub />} />
+
+        {/* Listening Lab Hub (Unit 2) */}
+        <Route path="/listening-lab" element={<ListeningLabHub />} />
+
+        {/* Listening Lab Lessons (Unit 2) */}
+        <Route path="/lessons/listening-lab/lesson1" element={<ListeningLabLesson1 />} />
 
         {/* Film Music Hub - Coming Soon placeholder (early access) */}
         <Route path="/film-music-hub" element={
@@ -541,11 +555,26 @@ const AppContent = () => {
             <MusicClassroomResources />
           </FirebaseProtectedRoute>
         } />
+        <Route path="/curriculum-guide" element={
+          <FirebaseProtectedRoute>
+            <CurriculumGuide />
+          </FirebaseProtectedRoute>
+        } />
         <Route path="/music-loops-in-media-hub" element={
           <FirebaseProtectedRoute>
             <MusicLoopsInMediaHub />
           </FirebaseProtectedRoute>
         } />
+
+        {/* Listening Lab Hub (Unit 2) */}
+        <Route path="/listening-lab-hub" element={
+          <FirebaseProtectedRoute>
+            <ListeningLabHub />
+          </FirebaseProtectedRoute>
+        } />
+
+        {/* Listening Lab Lessons (Unit 2) */}
+        <Route path="/lessons/listening-lab/lesson1" element={<ListeningLabLesson1 />} />
 
         {/* Film Music Hub - Coming Soon placeholder (early access) */}
         <Route path="/film-music-hub" element={

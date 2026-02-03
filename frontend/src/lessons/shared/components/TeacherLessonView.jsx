@@ -36,6 +36,214 @@ import { getDatabase, ref, onValue, update } from 'firebase/database';
 import { useTimerSound } from '../hooks/useTimerSound';
 
 // ============================================
+// SLIDE WITH AUDIO COMPONENT
+// Displays a slide image with optional audio playback
+// ============================================
+const SlideWithAudio = ({ slidePath, audioPath, currentStage }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
+
+  // Cleanup audio on unmount or slide change
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
+    };
+  }, [currentStage]);
+
+  const toggleAudio = () => {
+    if (!audioPath) return;
+
+    if (isPlaying) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      setIsPlaying(false);
+    } else {
+      if (!audioRef.current) {
+        audioRef.current = new Audio(audioPath);
+        audioRef.current.onended = () => setIsPlaying(false);
+        audioRef.current.onerror = () => {
+          console.error('Failed to load audio:', audioPath);
+          setIsPlaying(false);
+        };
+      }
+      audioRef.current.play().catch(err => {
+        console.error('Audio play failed:', err);
+        setIsPlaying(false);
+      });
+      setIsPlaying(true);
+    }
+  };
+
+  return (
+    <div className="absolute inset-0 flex items-center justify-center bg-black">
+      <img
+        src={slidePath}
+        alt={currentStage}
+        className="max-w-full max-h-full w-auto h-auto object-contain"
+        onError={(e) => {
+          console.error('Failed to load slide:', slidePath);
+          e.target.style.display = 'none';
+        }}
+      />
+      {/* Audio play button - only show if audioPath is provided */}
+      {audioPath && (
+        <button
+          onClick={toggleAudio}
+          className={`absolute bottom-8 right-8 flex items-center gap-3 px-6 py-4 rounded-xl text-white font-semibold text-xl transition-all transform hover:scale-105 ${
+            isPlaying
+              ? 'bg-red-600 hover:bg-red-700'
+              : 'bg-purple-600 hover:bg-purple-700'
+          }`}
+        >
+          {isPlaying ? (
+            <>
+              <Pause size={28} />
+              Stop Audio
+            </>
+          ) : (
+            <>
+              <Play size={28} />
+              Play Sample
+            </>
+          )}
+        </button>
+      )}
+    </div>
+  );
+};
+
+// ============================================
+// INSTRUMENT FAMILY SLIDE COMPONENT
+// Displays instrument family info with audio player
+// ============================================
+const InstrumentFamilySlide = ({ title, familyColor, instruments, sound, facts, audioPath, currentStage }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
+
+  // Cleanup audio on unmount or slide change
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
+    };
+  }, [currentStage]);
+
+  const toggleAudio = () => {
+    if (!audioPath) return;
+
+    if (isPlaying) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      setIsPlaying(false);
+    } else {
+      if (!audioRef.current) {
+        audioRef.current = new Audio(audioPath);
+        audioRef.current.onended = () => setIsPlaying(false);
+        audioRef.current.onerror = () => {
+          console.error('Failed to load audio:', audioPath);
+          setIsPlaying(false);
+        };
+      }
+      audioRef.current.play().catch(err => {
+        console.error('Audio play failed:', err);
+        setIsPlaying(false);
+      });
+      setIsPlaying(true);
+    }
+  };
+
+  return (
+    <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-12">
+      {/* Title with color accent */}
+      <div className="text-center mb-8">
+        <h1 className="text-6xl font-bold text-white mb-2">{title}</h1>
+        <div
+          className="h-2 w-48 mx-auto rounded-full"
+          style={{ backgroundColor: familyColor }}
+        />
+      </div>
+
+      {/* Main content - two columns */}
+      <div className="flex-1 flex gap-12">
+        {/* Left column - Instruments and Sound */}
+        <div className="flex-1 flex flex-col justify-center">
+          {/* Instruments list */}
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-white mb-4">Instruments</h2>
+            <div className="flex flex-wrap gap-4">
+              {instruments.map((instrument, idx) => (
+                <div
+                  key={idx}
+                  className="px-6 py-3 rounded-xl text-2xl font-semibold text-white"
+                  style={{ backgroundColor: familyColor }}
+                >
+                  {instrument}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Sound description */}
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-white mb-4">Sound</h2>
+            <p className="text-2xl text-slate-300 leading-relaxed">{sound}</p>
+          </div>
+
+          {/* Audio player button */}
+          {audioPath && (
+            <button
+              onClick={toggleAudio}
+              className={`flex items-center gap-3 px-8 py-5 rounded-xl text-white font-semibold text-2xl transition-all transform hover:scale-105 w-fit ${
+                isPlaying
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-purple-600 hover:bg-purple-700'
+              }`}
+            >
+              {isPlaying ? (
+                <>
+                  <Pause size={32} />
+                  Stop Sample
+                </>
+              ) : (
+                <>
+                  <Play size={32} />
+                  Play Sample
+                </>
+              )}
+            </button>
+          )}
+        </div>
+
+        {/* Right column - Facts */}
+        <div className="flex-1 flex flex-col justify-center">
+          <h2 className="text-3xl font-bold text-white mb-6">Did You Know?</h2>
+          <ul className="space-y-6">
+            {facts.map((fact, idx) => (
+              <li key={idx} className="flex items-start gap-4">
+                <span
+                  className="text-3xl mt-1"
+                  style={{ color: familyColor }}
+                >
+                  •
+                </span>
+                <span className="text-2xl text-slate-200 leading-relaxed">{fact}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================
 // PRESENTATION CONTENT COMPONENT
 // Renders the appropriate content based on stage
 // ============================================
@@ -65,6 +273,7 @@ const PresentationContent = ({
   const [NameThatGameActivity, setNameThatGameActivity] = useState(null);
   const [MelodyBuilderTeacherDemo, setMelodyBuilderTeacherDemo] = useState(null);
   const [MelodyMysteryActivity, setMelodyMysteryActivity] = useState(null);
+  const [GuessThatInstrumentTeacherView, setGuessThatInstrumentTeacherView] = useState(null);
 
   // Get join URL based on site (defined early for use in join-code screen)
   const isProduction = window.location.hostname !== 'localhost';
@@ -125,6 +334,11 @@ const PresentationContent = ({
     import('../../shared/activities/melody-mystery/MelodyMysteryActivity')
       .then(module => setMelodyMysteryActivity(() => module.default))
       .catch(() => console.log('Melody Mystery Activity not available'));
+
+    // Unit 2 Listening Lab: Guess That Instrument Teacher View
+    import('../../shared/activities/guess-that-instrument/GuessThatInstrumentTeacherView')
+      .then(module => setGuessThatInstrumentTeacherView(() => module.default))
+      .catch(() => console.log('Guess That Instrument Teacher View not available'));
   }, []);
 
   // Join Code Screen
@@ -181,7 +395,7 @@ const PresentationContent = ({
 
   // Use presentationView from lesson config
   if (currentStageData?.presentationView) {
-    const { type, slidePath, videoPath, title } = currentStageData.presentationView;
+    const { type, slidePath, videoPath, title, audioPath } = currentStageData.presentationView;
 
     // Layer Detective Leaderboard
     if (type === 'layer-detective-leaderboard' && LayerDetectiveLeaderboard) {
@@ -247,6 +461,27 @@ const PresentationContent = ({
       return (
         <div className="absolute inset-0">
           <MoodMatchTeacherView onAdvanceLesson={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Unit 2 Listening Lab: Guess That Instrument Teacher View
+    if (type === 'guess-instrument-teacher') {
+      if (!GuessThatInstrumentTeacherView) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900">
+            <div className="text-white text-2xl">Loading Guess That Instrument...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <GuessThatInstrumentTeacherView
+            sessionCode={sessionCode}
+            sessionData={sessionData}
+            onAdvanceLesson={goToNextStage}
+          />
         </div>
       );
     }
@@ -400,6 +635,50 @@ const PresentationContent = ({
       );
     }
 
+    // Instrument Family Slide - shows instrument family info with audio player
+    if (type === 'instrument-family') {
+      const { title, familyColor, instruments, sound, facts, audioPath } = currentStageData.presentationView;
+
+      return (
+        <InstrumentFamilySlide
+          title={title}
+          familyColor={familyColor}
+          instruments={instruments}
+          sound={sound}
+          facts={facts}
+          audioPath={audioPath}
+          currentStage={currentStage}
+        />
+      );
+    }
+
+    // Activity Banner - shows a banner during student activities
+    if (type === 'activity-banner') {
+      const { title, subtitle } = currentStageData.presentationView;
+
+      return (
+        <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900">
+          {/* Student Activity Banner */}
+          <div className="w-full flex items-center justify-center py-6 bg-teal-600">
+            <span className="text-white font-bold text-4xl tracking-wide">
+              STUDENT ACTIVITY TIME
+            </span>
+          </div>
+          {/* Content */}
+          <div className="flex-1 flex flex-col items-center justify-center p-12">
+            <h1 className="text-7xl font-bold text-white mb-6 text-center">
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="text-3xl text-teal-200 text-center">
+                {subtitle}
+              </p>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     // Image Slide - shows image with text overlay for DAW intro slides
     if (type === 'image-slide') {
       const { imagePath } = currentStageData.presentationView;
@@ -479,20 +758,14 @@ const PresentationContent = ({
       );
     }
 
-    // Slide
+    // Slide (with optional audio)
     if (type === 'slide' && slidePath) {
       return (
-        <div className="absolute inset-0 flex items-center justify-center bg-black">
-          <img
-            src={slidePath}
-            alt={currentStage}
-            className="max-w-full max-h-full w-auto h-auto object-contain"
-            onError={(e) => {
-              console.error('Failed to load slide:', slidePath);
-              e.target.style.display = 'none';
-            }}
-          />
-        </div>
+        <SlideWithAudio
+          slidePath={slidePath}
+          audioPath={audioPath}
+          currentStage={currentStage}
+        />
       );
     }
 

@@ -1,33 +1,146 @@
 // File: /pages/MusicClassroomResources.jsx
-// UPDATED VERSION - Skips built-in login if user is already authenticated via Firebase
-// Works on both musicroomtools.org (edu) and musicmindacademy.com (commercial)
-// TUTORIAL VIDEO COMMENTED OUT - outdated
+// REDESIGNED: Clean, professional 6-unit grid without emojis
+// All 6 units visible without scrolling
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createSession, getSessionData } from '../firebase/config';
+import { getSessionData } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import TeacherHeader from '../components/teacher/TeacherHeader';
+import { Lock, ChevronRight, BookOpen } from 'lucide-react';
 
 // Early access emails for unreleased units
 const EARLY_ACCESS_EMAILS = ['robtaube90@gmail.com'];
 
+// 6-Unit Curriculum Data with learning objectives
+const CURRICULUM_UNITS = [
+  {
+    id: 1,
+    title: 'The Listening Lab',
+    subtitle: 'Elements of Music',
+    color: '#8b5cf6',
+    icon: '/images/assignments/curriculum/unit1-listening.png',
+    standardBadge: 'Responding',
+    lessonCount: 5,
+    duration: '6 weeks',
+    bullets: [
+      'Identify instruments by sound',
+      'Analyze dynamics, tempo & texture',
+      'Recognize form and structure'
+    ],
+    status: 'coming',
+    releaseDate: 'August 2026',
+    route: '/listening-lab',
+    routeCommercial: '/listening-lab-hub'
+  },
+  {
+    id: 2,
+    title: 'Music Around the World',
+    subtitle: 'Global Sounds & Cultures',
+    color: '#14b8a6',
+    icon: '/images/assignments/curriculum/unit2-world.png',
+    standardBadge: 'Connecting',
+    lessonCount: 5,
+    duration: '6 weeks',
+    bullets: [
+      'Explore music from 5 continents',
+      'Connect culture to musical choices',
+      'Compare instruments & traditions'
+    ],
+    status: 'coming',
+    releaseDate: 'August 2026',
+    route: null,
+    routeCommercial: null
+  },
+  {
+    id: 3,
+    title: 'Beat Lab',
+    subtitle: 'Rhythm & Groove',
+    color: '#ef4444',
+    icon: '/images/assignments/curriculum/unit3-beat.png',
+    standardBadge: 'Creating',
+    lessonCount: 5,
+    duration: '6 weeks',
+    bullets: [
+      'Create beats using loops',
+      'Layer rhythms across genres',
+      'Produce an original beat'
+    ],
+    status: 'coming',
+    releaseDate: 'August 2026',
+    route: null,
+    routeCommercial: null
+  },
+  {
+    id: 4,
+    title: 'Music for Media',
+    subtitle: 'Loop-Based Composition',
+    color: '#3b82f6',
+    icon: '/images/assignments/curriculum/unit4-media.png',
+    standardBadge: 'Creating',
+    lessonCount: 5,
+    duration: '6 weeks',
+    bullets: [
+      'Score video with loops',
+      'Build texture and layers',
+      'Create mood through music'
+    ],
+    status: 'pilot',
+    releaseDate: null,
+    route: '/music-loops-in-media',
+    routeCommercial: '/music-loops-in-media-hub'
+  },
+  {
+    id: 5,
+    title: 'Song Lab',
+    subtitle: 'Melody & Structure',
+    color: '#ec4899',
+    icon: '/images/assignments/curriculum/unit5-song.png',
+    standardBadge: 'Creating',
+    lessonCount: 5,
+    duration: '6 weeks',
+    bullets: [
+      'Create melodic hooks',
+      'Structure verse & chorus',
+      'Write an original song sketch'
+    ],
+    status: 'coming',
+    releaseDate: 'August 2026',
+    route: null,
+    routeCommercial: null
+  },
+  {
+    id: 6,
+    title: 'Film Music',
+    subtitle: 'Scoring the Story',
+    color: '#f59e0b',
+    icon: '/images/assignments/curriculum/unit6-film.png',
+    standardBadge: 'Creating & Performing',
+    lessonCount: 5,
+    duration: '6 weeks',
+    bullets: [
+      'Compose character themes',
+      'Play keyboard melodies',
+      'Score a complete film scene'
+    ],
+    status: 'coming',
+    releaseDate: 'August 2026',
+    route: '/film-music-hub',
+    routeCommercial: '/film-music-hub'
+  }
+];
+
 function MusicClassroomResources() {
   const navigate = useNavigate();
 
-  // Get legacy auth state (for commercial mode)
   const { isAuthenticated: legacyAuthenticated, user: legacyUser, logout: legacyLogout } = useAuth();
-
-  // Get Firebase auth state (for edu mode)
   const { isAuthenticated: firebaseAuthenticated, user: firebaseUser, signOut: firebaseSignOut } = useFirebaseAuth();
 
-  // Check if we're in edu mode (musicroomtools.org)
   const isEduMode = import.meta.env.VITE_SITE_MODE === 'edu';
   const isCommercialMode = !isEduMode;
-  
+
   const [loggedIn, setLoggedIn] = useState(() => {
-    // Initialize from localStorage synchronously to avoid flash of login page
     if (typeof window !== 'undefined') {
       return localStorage.getItem('classroom-logged-in') === 'true';
     }
@@ -35,54 +148,15 @@ function MusicClassroomResources() {
   });
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [savedComposition, setSavedComposition] = useState(null);
-  const [savedBonusComposition, setSavedBonusComposition] = useState(null);
-  const [savedReflection, setSavedReflection] = useState(null);
-  const [dawStats, setDawStats] = useState(null);
-  
-  // City composition state
-  const [savedCityComposition, setSavedCityComposition] = useState(null);
-  
-  // Epic Wildlife composition state
-  const [savedEpicWildlifeComposition, setSavedEpicWildlifeComposition] = useState(null);
-  
-  // Sound Garden state
-  const [savedSoundGarden, setSavedSoundGarden] = useState(null);
-  
-  // Session state
+
   const [sessionCodeInput, setSessionCodeInput] = useState('');
   const [isJoiningSession, setIsJoiningSession] = useState(false);
   const [sessionError, setSessionError] = useState('');
 
-  // Tutorial video modal state - COMMENTED OUT (outdated)
-  // const [showTutorial, setShowTutorial] = useState(false);
-  // const [videoKey, setVideoKey] = useState(0);
-  
-  // Get user role - check Firebase first, then localStorage
   const userRole = firebaseUser?.role || localStorage.getItem('classroom-user-role');
-
-  // Check if user has early access to unreleased units
   const userEmail = firebaseUser?.email || legacyUser?.email || '';
   const hasEarlyAccess = EARLY_ACCESS_EMAILS.includes(userEmail.toLowerCase());
 
-  // Handle opening tutorial - COMMENTED OUT (outdated)
-  // const handleOpenTutorial = () => {
-  //   if (window.Tone && window.Tone.context && window.Tone.context.state === 'running') {
-  //     window.Tone.context.suspend();
-  //   }
-  //   setVideoKey(prev => prev + 1);
-  //   setShowTutorial(true);
-  // };
-  
-  // Handle closing tutorial - COMMENTED OUT (outdated)
-  // const handleCloseTutorial = () => {
-  //   setShowTutorial(false);
-  //   if (window.Tone && window.Tone.context && window.Tone.context.state === 'suspended') {
-  //     window.Tone.context.resume();
-  //   }
-  // };
-
-  // For edu mode: use Firebase auth state
   useEffect(() => {
     if (isEduMode) {
       if (firebaseAuthenticated) {
@@ -97,10 +171,8 @@ function MusicClassroomResources() {
     }
   }, [isEduMode, firebaseAuthenticated, firebaseUser]);
 
-  // For commercial mode: check Firebase auth first, then legacy auth or localStorage
   useEffect(() => {
     if (isCommercialMode) {
-      // First check Firebase auth (pilot teachers)
       if (firebaseAuthenticated) {
         setLoggedIn(true);
         localStorage.setItem('classroom-logged-in', 'true');
@@ -141,14 +213,12 @@ function MusicClassroomResources() {
   };
 
   const handleLogout = async () => {
-    // For edu mode, use Firebase sign out
     if (isEduMode && firebaseSignOut) {
       await firebaseSignOut();
       navigate('/');
       return;
     }
 
-    // For commercial mode, check Firebase auth first, then legacy
     if (isCommercialMode) {
       if (firebaseAuthenticated && firebaseSignOut) {
         await firebaseSignOut();
@@ -162,23 +232,14 @@ function MusicClassroomResources() {
       }
     }
 
-    // Fallback: clear localStorage and redirect
     setLoggedIn(false);
     setUsername('');
     setPassword('');
-    setSavedComposition(null);
-    setSavedBonusComposition(null);
-    setSavedReflection(null);
-    setDawStats(null);
-    setSavedCityComposition(null);
-    setSavedEpicWildlifeComposition(null);
-    setSavedSoundGarden(null);
     localStorage.removeItem('classroom-logged-in');
     localStorage.removeItem('classroom-user-role');
     navigate('/');
   };
 
-  // STUDENT - Join a session and go to correct lesson
   const handleJoinSession = async () => {
     if (!sessionCodeInput || sessionCodeInput.length !== 4) {
       setSessionError('Please enter a 4-digit code');
@@ -190,7 +251,7 @@ function MusicClassroomResources() {
 
     try {
       const sessionData = await getSessionData(sessionCodeInput);
-      
+
       if (!sessionData) {
         setSessionError('Session not found. Check the code and try again.');
         setIsJoiningSession(false);
@@ -198,9 +259,6 @@ function MusicClassroomResources() {
       }
 
       const lessonRoute = sessionData.lessonRoute || '/lessons/film-music-project/lesson2';
-      
-      console.log(`Student joining session ${sessionCodeInput} at route: ${lessonRoute}`);
-      
       window.location.href = `${lessonRoute}?session=${sessionCodeInput}&role=student`;
     } catch (error) {
       console.error('Error joining session:', error);
@@ -209,98 +267,22 @@ function MusicClassroomResources() {
     }
   };
 
-  // Load ALL saved data from localStorage when logged in
-  useEffect(() => {
-    if (loggedIn) {
-      const savedComp = localStorage.getItem('school-beneath-composition');
-      if (savedComp) {
-        try {
-          setSavedComposition(JSON.parse(savedComp));
-        } catch (error) {
-          console.error('Error loading saved composition:', error);
-        }
-      }
-
-      const savedBonus = localStorage.getItem('school-beneath-bonus');
-      if (savedBonus) {
-        try {
-          setSavedBonusComposition(JSON.parse(savedBonus));
-        } catch (error) {
-          console.error('Error loading bonus composition:', error);
-        }
-      }
-
-      const savedRefl = localStorage.getItem('school-beneath-reflection');
-      if (savedRefl) {
-        try {
-          setSavedReflection(JSON.parse(savedRefl));
-        } catch (error) {
-          console.error('Error loading saved reflection:', error);
-        }
-      }
-
-      const stats = localStorage.getItem('lesson1-daw-stats');
-      if (stats) {
-        try {
-          setDawStats(JSON.parse(stats));
-        } catch (error) {
-          console.error('Error loading DAW stats:', error);
-        }
-      }
-      
-      // Load city composition
-      const studentId = localStorage.getItem('anonymous-student-id');
-      if (studentId) {
-        const cityKey = `city-composition-${studentId}`;
-        const savedCity = localStorage.getItem(cityKey);
-        if (savedCity) {
-          try {
-            const data = JSON.parse(savedCity);
-            setSavedCityComposition(data);
-            console.log('Loaded saved city composition:', data);
-          } catch (error) {
-            console.error('Error loading city composition:', error);
-          }
-        }
-        
-        // Load Sound Garden artwork
-        const soundGardenKey = `sound-garden-${studentId}`;
-        const savedGarden = localStorage.getItem(soundGardenKey);
-        if (savedGarden) {
-          try {
-            const data = JSON.parse(savedGarden);
-            setSavedSoundGarden(data);
-            console.log('Loaded saved Sound Garden:', data);
-          } catch (error) {
-            console.error('Error loading Sound Garden:', error);
-          }
-        }
-      }
-      
-      // Load Epic Wildlife composition
-      const savedEpicWildlife = localStorage.getItem('epic-wildlife-composition');
-      if (savedEpicWildlife) {
-        try {
-          const data = JSON.parse(savedEpicWildlife);
-          setSavedEpicWildlifeComposition(data);
-          console.log('Loaded saved Epic Wildlife composition:', data);
-        } catch (error) {
-          console.error('Error loading Epic Wildlife composition:', error);
-        }
-      }
+  const handleUnitClick = (unit) => {
+    if (unit.status === 'pilot' || unit.status === 'active') {
+      const route = isEduMode ? unit.route : unit.routeCommercial;
+      if (route) navigate(route);
+    } else if (hasEarlyAccess && unit.route) {
+      const route = isEduMode ? unit.route : unit.routeCommercial;
+      if (route) navigate(route);
     }
-  }, [loggedIn]);
+  };
 
-  // For edu mode: if not authenticated via Firebase, redirect to landing page
-  // For commercial mode: show the old login form as fallback
   if (!loggedIn) {
     if (isEduMode) {
-      // Edu mode requires Firebase auth - redirect to landing page
       navigate('/');
       return null;
     }
 
-    // Commercial mode fallback - show old login form
     return (
       <div style={{
         display: 'flex',
@@ -308,15 +290,10 @@ function MusicClassroomResources() {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        backgroundColor: '#f0f4f8'
+        backgroundColor: '#f8fafc'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <h1 style={{
-            fontSize: '48px',
-            fontWeight: 'bold',
-            color: '#1a202c',
-            marginBottom: '10px'
-          }}>
+          <h1 style={{ fontSize: '36px', fontWeight: '700', color: '#1e293b' }}>
             Music Mind Academy
           </h1>
         </div>
@@ -325,17 +302,13 @@ function MusicClassroomResources() {
           backgroundColor: 'white',
           padding: '40px',
           borderRadius: '12px',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          border: '1px solid #e2e8f0',
           width: '100%',
-          maxWidth: '400px'
+          maxWidth: '380px'
         }}>
-          <h2 style={{
-            fontSize: '24px',
-            fontWeight: '600',
-            marginBottom: '24px',
-            color: '#2d3748'
-          }}>
-            Classroom Login
+          <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '24px', color: '#1e293b' }}>
+            Sign In
           </h2>
 
           <input
@@ -346,11 +319,12 @@ function MusicClassroomResources() {
             onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
             style={{
               width: '100%',
-              padding: '12px',
-              marginBottom: '16px',
+              padding: '12px 14px',
+              marginBottom: '12px',
               borderRadius: '8px',
               border: '1px solid #e2e8f0',
-              fontSize: '16px'
+              fontSize: '15px',
+              outline: 'none'
             }}
           />
 
@@ -362,11 +336,12 @@ function MusicClassroomResources() {
             onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
             style={{
               width: '100%',
-              padding: '12px',
-              marginBottom: '24px',
+              padding: '12px 14px',
+              marginBottom: '20px',
               borderRadius: '8px',
               border: '1px solid #e2e8f0',
-              fontSize: '16px'
+              fontSize: '15px',
+              outline: 'none'
             }}
           />
 
@@ -374,20 +349,17 @@ function MusicClassroomResources() {
             onClick={handleLogin}
             style={{
               width: '100%',
-              padding: '14px',
-              backgroundColor: '#4299e1',
+              padding: '12px',
+              backgroundColor: '#3b82f6',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
-              fontSize: '16px',
+              fontSize: '15px',
               fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s'
+              cursor: 'pointer'
             }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#3182ce'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#4299e1'}
           >
-            Login
+            Sign In
           </button>
         </div>
       </div>
@@ -398,710 +370,350 @@ function MusicClassroomResources() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#f7fafc'
+      backgroundColor: '#f8fafc',
+      display: 'flex',
+      flexDirection: 'column'
     }}>
-      {/* Tutorial Video Modal - COMMENTED OUT (outdated)
-      {showTutorial && (
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.85)',
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px'
-          }}
-          onClick={handleCloseTutorial}
-        >
-          <div 
-            style={{
-              position: 'relative',
-              width: '100%',
-              maxWidth: '900px',
-              backgroundColor: '#000',
-              borderRadius: '12px',
-              overflow: 'hidden'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={handleCloseTutorial}
-              style={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                zIndex: 10,
-                backgroundColor: 'rgba(0,0,0,0.7)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '50%',
-                width: '40px',
-                height: '40px',
-                fontSize: '24px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              ×
-            </button>
-            
-            <video
-              key={videoKey}
-              controls
-              autoPlay
-              playsInline
-              preload="auto"
-              onSeeked={(e) => {
-                const video = e.target;
-                if (video.paused) {
-                  video.play().catch(() => {});
-                }
-              }}
-              onError={(e) => {
-                console.error('Video error:', e);
-              }}
-              style={{
-                width: '100%',
-                display: 'block'
-              }}
-            >
-              <source src="/lessons/film-music-project/Lesson Tutorial.mp4" type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-          </div>
-        </div>
-      )}
-      */}
-
-      {/* Shared Header */}
+      {/* Pulse animation for pilot unit */}
+      <style>{`
+        @keyframes pilot-pulse {
+          0%, 100% {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+          }
+          50% {
+            box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+          }
+        }
+        .pilot-card {
+          animation: pilot-pulse 3s ease-in-out infinite;
+        }
+      `}</style>
       <TeacherHeader />
 
-      {/* Content container */}
+      {/* Main Content - Fits viewport */}
       <div style={{
-        maxWidth: '600px',
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        maxWidth: '1400px',
+        width: '100%',
         margin: '0 auto',
-        padding: '24px 20px'
+        padding: '20px 24px'
       }}>
-        
-        {/* Tutorial Button - COMMENTED OUT (outdated)
-        {userRole === 'teacher' && (
-          <button
-            onClick={handleOpenTutorial}
-            style={{
-              width: '100%',
-              padding: '16px 24px',
-              marginBottom: '20px',
-              backgroundColor: '#f0f9ff',
-              border: '2px solid #0ea5e9',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '12px',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#e0f2fe';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#f0f9ff';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
-          >
-            <span style={{ fontSize: '24px' }}>🎬</span>
-            <span style={{ 
-              fontSize: '16px', 
-              fontWeight: '600', 
-              color: '#0369a1'
-            }}>
-              How to Run a Lesson
-            </span>
-            <span style={{ 
-              fontSize: '13px', 
-              color: '#0284c7',
-              backgroundColor: '#bae6fd',
-              padding: '4px 10px',
-              borderRadius: '20px'
-            }}>
-              Watch Tutorial
-            </span>
-          </button>
-        )}
-        */}
-        
-        {/* Student Join Session Area - Only for students */}
+
+        {/* Student Join Session */}
         {userRole === 'student' && (
           <div style={{
             backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '24px',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            marginBottom: '24px',
-            border: '2px solid #4299e1'
-          }}>
-            <div style={{
-              textAlign: 'center',
-              marginBottom: '16px',
-              fontSize: '16px',
-              fontWeight: '600',
-              color: '#2d3748'
-            }}>
-              👨‍🎓 Join a Live Session
-            </div>
-            
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <input
-                type="text"
-                placeholder="Enter 4-digit code"
-                value={sessionCodeInput}
-                onChange={(e) => setSessionCodeInput(e.target.value.toUpperCase())}
-                maxLength={4}
-                style={{
-                  flex: 1,
-                  padding: '14px',
-                  fontSize: '18px',
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                  borderRadius: '8px',
-                  border: '2px solid #4299e1',
-                  letterSpacing: '4px'
-                }}
-              />
-              <button
-                onClick={handleJoinSession}
-                disabled={isJoiningSession || sessionCodeInput.length !== 4}
-                style={{
-                  padding: '14px 24px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  backgroundColor: (isJoiningSession || sessionCodeInput.length !== 4) ? '#a0aec0' : '#48bb78',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: (isJoiningSession || sessionCodeInput.length !== 4) ? 'not-allowed' : 'pointer',
-                  transition: 'background-color 0.2s',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {isJoiningSession ? 'Joining...' : 'Join'}
-              </button>
-            </div>
-
-            {sessionError && (
-              <div style={{
-                marginTop: '12px',
-                padding: '12px',
-                backgroundColor: '#fed7d7',
-                color: '#742a2a',
-                borderRadius: '8px',
-                fontSize: '14px',
-                textAlign: 'center'
-              }}>
-                {sessionError}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Music for Media Unit Card - January Pilot */}
-        <div
-          onClick={() => navigate(isEduMode ? '/music-loops-in-media' : '/music-loops-in-media-hub')}
-          style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '0',
-            boxShadow: '0 2px 8px rgba(59, 130, 246, 0.15)',
-            border: '2px solid #3b82f6',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            overflow: 'hidden'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.25)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 2px 8px rgba(59, 130, 246, 0.15)';
-          }}
-        >
-          {/* Blue Pilot Header */}
-          <div style={{
-            backgroundColor: '#3b82f6',
-            color: 'white',
-            padding: '8px 16px',
-            fontSize: '13px',
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span>🚀</span>
-            January Pilot — Click to Start
-          </div>
-
-          <div style={{ padding: '24px' }}>
-          {/* Header Row */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
-            {/* Icon */}
-            <div style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0
-            }}>
-              <span style={{ fontSize: '28px' }}>🎬</span>
-            </div>
-
-            {/* Title & Meta */}
-            <div style={{ flex: 1 }}>
-              <h3 style={{
-                fontSize: '22px',
-                fontWeight: '700',
-                color: '#1e293b',
-                marginBottom: '4px'
-              }}>
-                Music for Media
-              </h3>
-              <p style={{
-                fontSize: '15px',
-                color: '#64748b',
-                marginBottom: '8px'
-              }}>
-                Create soundtracks for video — the way professionals do it.
-              </p>
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <span style={{
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  color: '#475569',
-                  backgroundColor: '#f1f5f9',
-                  padding: '4px 10px',
-                  borderRadius: '4px'
-                }}>
-                  5 Lessons
-                </span>
-                <span style={{
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  color: '#475569',
-                  backgroundColor: '#f1f5f9',
-                  padding: '4px 10px',
-                  borderRadius: '4px'
-                }}>
-                  ~40 min each
-                </span>
-                <span style={{
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  color: '#475569',
-                  backgroundColor: '#f1f5f9',
-                  padding: '4px 10px',
-                  borderRadius: '4px'
-                }}>
-                  Grades 6-8
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Lesson List */}
-          <div style={{
-            backgroundColor: '#f8fafc',
             borderRadius: '8px',
-            padding: '16px',
-            marginBottom: '16px'
-          }}>
-            <div style={{
-              fontSize: '12px',
-              fontWeight: '600',
-              color: '#64748b',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              marginBottom: '12px'
-            }}>
-              Unit Overview
-            </div>
-
-            {/* Lesson Items */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{
-                  width: '22px', height: '22px',
-                  borderRadius: '50%',
-                  backgroundColor: '#22c55e',
-                  color: 'white',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>1</span>
-                <span style={{ fontSize: '14px', color: '#334155' }}>
-                  <strong>Score the Adventure</strong> — Mood & Expression
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{
-                  width: '22px', height: '22px',
-                  borderRadius: '50%',
-                  backgroundColor: '#22c55e',
-                  color: 'white',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>2</span>
-                <span style={{ fontSize: '14px', color: '#334155' }}>
-                  <strong>City Soundscapes</strong> — Texture & Layering
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{
-                  width: '22px', height: '22px',
-                  borderRadius: '50%',
-                  backgroundColor: '#22c55e',
-                  color: 'white',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>3</span>
-                <span style={{ fontSize: '14px', color: '#334155' }}>
-                  <strong>Epic Wildlife</strong> — Form & Structure
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{
-                  width: '22px', height: '22px',
-                  borderRadius: '50%',
-                  backgroundColor: '#22c55e',
-                  color: 'white',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>4</span>
-                <span style={{ fontSize: '14px', color: '#334155' }}>
-                  <strong>Sports Highlight Reel</strong> — Rhythm & Beat
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{
-                  width: '22px', height: '22px',
-                  borderRadius: '50%',
-                  backgroundColor: '#22c55e',
-                  color: 'white',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>5</span>
-                <span style={{ fontSize: '14px', color: '#334155' }}>
-                  <strong>Game On!</strong> — Melody & Contour
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* CTA */}
-          <div style={{
+            padding: '16px 20px',
+            marginBottom: '16px',
+            border: '1px solid #e2e8f0',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between'
+            justifyContent: 'center',
+            gap: '12px'
           }}>
-            <span style={{ fontSize: '14px', color: '#2563eb', fontWeight: '600' }}>
-              View Lessons →
+            <span style={{ fontSize: '14px', fontWeight: '500', color: '#475569' }}>
+              Join a session:
             </span>
-          </div>
-          </div>
-        </div>
-
-        {/* Film Music Unit Card - Coming Soon */}
-        <div
-          onClick={() => hasEarlyAccess && navigate('/film-music-hub')}
-          style={{
-            backgroundColor: '#f8fafc',
-            borderRadius: '12px',
-            padding: '24px',
-            marginTop: '20px',
-            boxShadow: 'none',
-            border: '1px dashed #cbd5e1',
-            cursor: hasEarlyAccess ? 'pointer' : 'default',
-            transition: 'all 0.2s',
-            position: 'relative',
-            opacity: hasEarlyAccess ? 0.9 : 0.6
-          }}
-          onMouseEnter={(e) => {
-            if (hasEarlyAccess) {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (hasEarlyAccess) {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-            }
-          }}
-        >
-          {/* Coming Soon Badge - only show for non-early-access users */}
-          {!hasEarlyAccess && (
-            <div style={{
-              position: 'absolute',
-              top: '12px',
-              right: '12px',
-              backgroundColor: '#fef3c7',
-              color: '#92400e',
-              padding: '6px 12px',
-              borderRadius: '20px',
-              fontSize: '12px',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
-              <span>🔒</span>
-              Selected Pilot — May 2026
-            </div>
-          )}
-
-          {/* Header Row */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
-            {/* Icon */}
-            <div style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #f97316, #ea580c)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0
-            }}>
-              <span style={{ fontSize: '28px' }}>🎵</span>
-            </div>
-
-            {/* Title & Meta */}
-            <div style={{ flex: 1 }}>
-              <h3 style={{
-                fontSize: '22px',
-                fontWeight: '700',
-                color: '#1e293b',
-                marginBottom: '4px'
-              }}>
-                Film Music
-              </h3>
-              <p style={{
-                fontSize: '15px',
-                color: '#64748b',
-                marginBottom: '8px'
-              }}>
-                Explore the art of composing music for film and cinema.
-              </p>
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <span style={{
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  color: '#475569',
-                  backgroundColor: '#f1f5f9',
-                  padding: '4px 10px',
-                  borderRadius: '4px'
-                }}>
-                  Coming Soon
-                </span>
-                <span style={{
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  color: '#475569',
-                  backgroundColor: '#f1f5f9',
-                  padding: '4px 10px',
-                  borderRadius: '4px'
-                }}>
-                  Grades 6-8
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div style={{
-            backgroundColor: '#f8fafc',
-            borderRadius: '8px',
-            padding: '16px',
-            marginBottom: '16px'
-          }}>
-            <p style={{
-              fontSize: '14px',
-              color: '#64748b',
-              lineHeight: '1.6'
-            }}>
-              A new unit exploring film scoring techniques, musical storytelling, and how composers create emotional impact in movies. Stay tuned!
-            </p>
-          </div>
-
-          {/* CTA */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <span style={{
-              fontSize: '14px',
-              color: hasEarlyAccess ? '#3b82f6' : '#94a3b8',
-              fontWeight: '600'
-            }}>
-              {hasEarlyAccess ? 'Preview Unit →' : 'Selected Pilot — May 2026'}
-            </span>
-          </div>
-        </div>
-
-        {/* Saved Work Section */}
-        {userRole === 'student' && (savedCityComposition || savedSoundGarden || savedComposition || savedEpicWildlifeComposition) && (
-          <div style={{
-            marginTop: '24px',
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '24px',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-          }}>
-            <h3 style={{
-              fontSize: '18px',
-              fontWeight: '600',
-              color: '#2d3748',
-              marginBottom: '16px',
-              textAlign: 'center'
-            }}>
-              📁 Your Saved Work
-            </h3>
-
-            {/* Sound Garden */}
-            {savedSoundGarden && (
-              <div style={{
-                backgroundColor: '#f0fdf4',
-                borderRadius: '8px',
-                padding: '16px',
-                marginBottom: '12px',
-                border: '2px solid #86efac'
-              }}>
-                <div style={{ fontWeight: '600', color: '#166534', marginBottom: '8px' }}>
-                  🌱 Sound Garden Artwork
-                </div>
-                <div style={{ fontSize: '13px', color: '#15803d' }}>
-                  Saved {new Date(savedSoundGarden.savedAt).toLocaleDateString()}
-                </div>
-              </div>
-            )}
-
-            {/* City Composition */}
-            {savedCityComposition && (
-              <div style={{
-                backgroundColor: '#eff6ff',
-                borderRadius: '8px',
-                padding: '16px',
-                marginBottom: '12px',
-                border: '2px solid #93c5fd'
-              }}>
-                <div style={{ fontWeight: '600', color: '#1e40af', marginBottom: '8px' }}>
-                  🏙️ City Soundscape Composition
-                </div>
-                <div style={{ fontSize: '13px', color: '#1d4ed8' }}>
-                  {savedCityComposition.loopCount || 0} loops • Saved {new Date(savedCityComposition.savedAt).toLocaleDateString()}
-                </div>
-              </div>
-            )}
-
-            {/* Epic Wildlife Composition */}
-            {savedEpicWildlifeComposition && (
-              <div style={{
-                backgroundColor: '#ecfdf5',
-                borderRadius: '8px',
-                padding: '16px',
-                marginBottom: '12px',
-                border: '2px solid #6ee7b7'
-              }}>
-                <div style={{ fontWeight: '600', color: '#065f46', marginBottom: '8px' }}>
-                  🌍 Epic Wildlife Composition
-                </div>
-                <div style={{ fontSize: '13px', color: '#047857' }}>
-                  {savedEpicWildlifeComposition.loopCount || 0} loops • {savedEpicWildlifeComposition.sectionCount || 0} sections • Saved {new Date(savedEpicWildlifeComposition.savedAt).toLocaleDateString()}
-                </div>
-              </div>
-            )}
-
-            {/* Sports Composition */}
-            {savedComposition && (
-              <div style={{
-                backgroundColor: '#fef3c7',
-                borderRadius: '8px',
-                padding: '16px',
-                marginBottom: '12px',
-                border: '2px solid #fcd34d'
-              }}>
-                <div style={{ fontWeight: '600', color: '#92400e', marginBottom: '8px' }}>
-                  🏀 Sports Highlight Composition
-                </div>
-                <div style={{ fontSize: '13px', color: '#b45309' }}>
-                  {savedComposition.loopCount || 0} loops
-                </div>
-              </div>
-            )}
-
-            {/* Delete All Button */}
-            <button
-              onClick={() => {
-                if (window.confirm('Delete all saved work? This cannot be undone.')) {
-                  localStorage.removeItem('school-beneath-composition');
-                  localStorage.removeItem('school-beneath-bonus');
-                  localStorage.removeItem('school-beneath-reflection');
-                  localStorage.removeItem('lesson1-daw-stats');
-                  localStorage.removeItem('epic-wildlife-composition');
-                  localStorage.removeItem('epic-wildlife-bonus');
-                  localStorage.removeItem('epic-wildlife-reflection');
-                  const studentId = localStorage.getItem('anonymous-student-id');
-                  if (studentId) {
-                    localStorage.removeItem(`sound-garden-${studentId}`);
-                    localStorage.removeItem(`city-composition-${studentId}`);
-                    localStorage.removeItem(`listening-map-${studentId}`);
-                  }
-                  setSavedComposition(null);
-                  setSavedBonusComposition(null);
-                  setSavedReflection(null);
-                  setDawStats(null);
-                  setSavedSoundGarden(null);
-                  setSavedCityComposition(null);
-                  setSavedEpicWildlifeComposition(null);
-                  alert('All saved work deleted');
-                }
-              }}
+            <input
+              type="text"
+              placeholder="Code"
+              value={sessionCodeInput}
+              onChange={(e) => setSessionCodeInput(e.target.value.toUpperCase())}
+              maxLength={4}
               style={{
-                width: '100%',
-                marginTop: '12px',
-                padding: '12px',
+                width: '100px',
+                padding: '8px 12px',
+                fontSize: '16px',
+                fontWeight: '600',
+                textAlign: 'center',
+                borderRadius: '6px',
+                border: '1px solid #e2e8f0',
+                letterSpacing: '2px'
+              }}
+            />
+            <button
+              onClick={handleJoinSession}
+              disabled={isJoiningSession || sessionCodeInput.length !== 4}
+              style={{
+                padding: '8px 16px',
                 fontSize: '14px',
                 fontWeight: '600',
-                backgroundColor: '#fee2e2',
-                color: '#b91c1c',
-                border: '2px solid #fca5a5',
-                borderRadius: '8px',
-                cursor: 'pointer'
+                backgroundColor: (isJoiningSession || sessionCodeInput.length !== 4) ? '#e2e8f0' : '#3b82f6',
+                color: (isJoiningSession || sessionCodeInput.length !== 4) ? '#94a3b8' : 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: (isJoiningSession || sessionCodeInput.length !== 4) ? 'not-allowed' : 'pointer'
               }}
             >
-              🗑️ Delete All Saved Work
+              {isJoiningSession ? 'Joining...' : 'Join'}
             </button>
+            {sessionError && (
+              <span style={{ fontSize: '13px', color: '#dc2626' }}>{sessionError}</span>
+            )}
           </div>
         )}
+
+        {/* Header */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '20px'
+        }}>
+          <div>
+            <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b', marginBottom: '2px' }}>
+              Curriculum
+            </h1>
+            <p style={{ fontSize: '14px', color: '#64748b' }}>
+              6 units &bull; 30 lessons &bull; Full year &bull; Grades 6-8
+            </p>
+          </div>
+          <button
+            onClick={() => navigate('/curriculum-guide')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              backgroundColor: '#3b82f6',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: '500',
+              color: 'white',
+              cursor: 'pointer'
+            }}
+          >
+            <BookOpen size={15} />
+            Curriculum Guide
+          </button>
+        </div>
+
+        {/* 6-Unit Grid - 3x2 */}
+        <div style={{
+          flex: 1,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateRows: 'repeat(2, 1fr)',
+          gap: '16px',
+          minHeight: 0
+        }}>
+          {CURRICULUM_UNITS.map((unit) => {
+            const isClickable = unit.status === 'pilot' || unit.status === 'active' || (hasEarlyAccess && unit.route);
+            const isComingSoon = unit.status === 'coming';
+
+            return (
+              <div
+                key={unit.id}
+                className={unit.status === 'pilot' ? 'pilot-card' : ''}
+                onClick={() => handleUnitClick(unit)}
+                style={{
+                  backgroundColor: 'white',
+                  borderRadius: '10px',
+                  border: unit.status === 'pilot' ? `2px solid ${unit.color}` : '1px solid #e2e8f0',
+                  cursor: isClickable ? 'pointer' : 'default',
+                  opacity: isComingSoon && !hasEarlyAccess ? 0.7 : 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  transition: 'all 0.15s ease'
+                }}
+                onMouseEnter={(e) => {
+                  if (isClickable) {
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (isClickable) {
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }
+                }}
+              >
+                {/* Colored top bar */}
+                <div style={{
+                  height: '4px',
+                  backgroundColor: unit.color,
+                  opacity: isComingSoon && !hasEarlyAccess ? 0.4 : 1
+                }} />
+
+                {/* Card content */}
+                <div style={{
+                  flex: 1,
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  position: 'relative'
+                }}>
+                  {/* Icon in top-right */}
+                  {unit.icon && (
+                    <img
+                      src={unit.icon}
+                      alt=""
+                      style={{
+                        position: 'absolute',
+                        top: '12px',
+                        right: '12px',
+                        width: '72px',
+                        height: '72px',
+                        objectFit: 'contain',
+                        opacity: isComingSoon && !hasEarlyAccess ? 0.5 : 1
+                      }}
+                    />
+                  )}
+
+                  {/* Unit number and status */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '12px',
+                    paddingRight: '80px'
+                  }}>
+                    <span style={{
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: unit.color,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>
+                      Unit {unit.id}
+                    </span>
+                    {unit.status === 'pilot' && (
+                      <span style={{
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        color: 'white',
+                        backgroundColor: unit.color,
+                        padding: '3px 8px',
+                        borderRadius: '4px'
+                      }}>
+                        Pilot Unit
+                      </span>
+                    )}
+                    {isComingSoon && (
+                      <span style={{
+                        fontSize: '11px',
+                        fontWeight: '500',
+                        color: '#94a3b8',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}>
+                        <Lock size={11} />
+                        {unit.releaseDate}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Title */}
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    color: '#1e293b',
+                    marginBottom: '4px',
+                    lineHeight: '1.3',
+                    paddingRight: '80px'
+                  }}>
+                    {unit.title}
+                  </h3>
+
+                  {/* Subtitle */}
+                  <p style={{
+                    fontSize: '13px',
+                    color: '#64748b',
+                    marginBottom: '12px'
+                  }}>
+                    {unit.subtitle}
+                  </p>
+
+                  {/* Bullet points */}
+                  <ul style={{
+                    margin: 0,
+                    padding: 0,
+                    listStyle: 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}>
+                    {unit.bullets.map((bullet, idx) => (
+                      <li key={idx} style={{
+                        fontSize: '12px',
+                        color: '#64748b',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '6px'
+                      }}>
+                        <span style={{
+                          color: unit.color,
+                          fontWeight: '600',
+                          lineHeight: '1.4'
+                        }}>•</span>
+                        {bullet}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Standards badge */}
+                  {unit.standardBadge && (
+                    <div style={{
+                      marginTop: '12px'
+                    }}>
+                      <span style={{
+                        fontSize: '11px',
+                        fontWeight: '500',
+                        color: '#64748b',
+                        backgroundColor: '#f1f5f9',
+                        padding: '4px 10px',
+                        borderRadius: '12px',
+                        border: '1px solid #e2e8f0'
+                      }}>
+                        Standards: {unit.standardBadge}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Spacer */}
+                  <div style={{ flex: 1, minHeight: '8px' }} />
+
+                  {/* Footer */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingTop: '12px',
+                    borderTop: '1px solid #f1f5f9'
+                  }}>
+                    <span style={{
+                      fontSize: '13px',
+                      color: '#94a3b8'
+                    }}>
+                      {unit.lessonCount} lessons &bull; ~{unit.duration}
+                    </span>
+                    {isClickable && (
+                      <ChevronRight size={18} color={unit.color} />
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          marginTop: '16px',
+          textAlign: 'center',
+          padding: '12px',
+          fontSize: '13px',
+          color: '#94a3b8'
+        }}>
+          Full curriculum available August 2026 &bull; Currently piloting Unit 4
+        </div>
       </div>
     </div>
   );

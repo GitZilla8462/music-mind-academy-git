@@ -1,0 +1,141 @@
+{
+  "source": "Philharmonia Orchestra Sound Sample Library",
+  "url": "https://philharmonia.co.uk/resources/sound-samples/",
+  "license": "Free to use in commercial work",
+  "families": {
+    "strings": {
+      "name": "Strings",
+      "color": "#3B82F6",
+      "sampleFile": "families/strings-sample.mp3",
+      "instruments": ["violin", "viola", "cello", "bass"]
+    },
+    "woodwinds": {
+      "name": "Woodwinds",
+      "color": "#10B981",
+      "sampleFile": "families/woodwinds-sample.mp3",
+      "instruments": ["flute", "clarinet", "oboe", "bassoon"]
+    },
+    "brass": {
+      "name": "Brass",
+      "color": "#EF4444",
+      "sampleFile": "families/brass-sample.mp3",
+      "instruments": ["trumpet", "french-horn", "trombone", "tuba"]
+    },
+    "percussion": {
+      "name": "Percussion",
+      "color": "#F59E0B",
+      "sampleFile": "families/percussion-sample.mp3",
+      "instruments": ["timpani", "snare-drum", "bass-drum", "cymbals", "xylophone", "triangle"]
+    }
+  },
+  "instruments": {
+    "violin": {
+      "name": "Violin",
+      "family": "strings",
+      "audioFile": "strings/violin.mp3",
+      "description": "Bright, singing quality - highest-pitched string"
+    },
+    "viola": {
+      "name": "Viola",
+      "family": "strings",
+      "audioFile": "strings/viola.mp3",
+      "description": "Warmer and deeper than violin - alto voice"
+    },
+    "cello": {
+      "name": "Cello",
+      "family": "strings",
+      "audioFile": "strings/cello.mp3",
+      "description": "Rich, warm, deep - tenor/baritone voice"
+    },
+    "bass": {
+      "name": "Double Bass",
+      "family": "strings",
+      "audioFile": "strings/bass.mp3",
+      "description": "Lowest, deepest sound in string section"
+    },
+    "flute": {
+      "name": "Flute",
+      "family": "woodwinds",
+      "audioFile": "woodwinds/flute.mp3",
+      "description": "Bright, airy, breathy sound"
+    },
+    "clarinet": {
+      "name": "Clarinet",
+      "family": "woodwinds",
+      "audioFile": "woodwinds/clarinet.mp3",
+      "description": "Warm, woody, smooth tone"
+    },
+    "oboe": {
+      "name": "Oboe",
+      "family": "woodwinds",
+      "audioFile": "woodwinds/oboe.mp3",
+      "description": "Distinctive nasal, reedy sound"
+    },
+    "bassoon": {
+      "name": "Bassoon",
+      "family": "woodwinds",
+      "audioFile": "woodwinds/bassoon.mp3",
+      "description": "Deep, buzzy tone - bass of woodwinds"
+    },
+    "trumpet": {
+      "name": "Trumpet",
+      "family": "brass",
+      "audioFile": "brass/trumpet.mp3",
+      "description": "Bright, brilliant, piercing sound"
+    },
+    "french-horn": {
+      "name": "French Horn",
+      "family": "brass",
+      "audioFile": "brass/french-horn.mp3",
+      "description": "Warm, mellow, noble sound"
+    },
+    "trombone": {
+      "name": "Trombone",
+      "family": "brass",
+      "audioFile": "brass/trombone.mp3",
+      "description": "Bold, brassy - can slide between notes"
+    },
+    "tuba": {
+      "name": "Tuba",
+      "family": "brass",
+      "audioFile": "brass/tuba.mp3",
+      "description": "Deepest, richest brass sound"
+    },
+    "timpani": {
+      "name": "Timpani",
+      "family": "percussion",
+      "audioFile": "percussion/timpani.mp3",
+      "description": "Deep, resonant boom - tunable"
+    },
+    "snare-drum": {
+      "name": "Snare Drum",
+      "family": "percussion",
+      "audioFile": "percussion/snare-drum.mp3",
+      "description": "Sharp, crackling sound from wires"
+    },
+    "bass-drum": {
+      "name": "Bass Drum",
+      "family": "percussion",
+      "audioFile": "percussion/bass-drum.mp3",
+      "description": "Deep, powerful boom"
+    },
+    "cymbals": {
+      "name": "Cymbals",
+      "family": "percussion",
+      "audioFile": "percussion/cymbals.mp3",
+      "description": "Loud crash or sustained shimmer"
+    },
+    "xylophone": {
+      "name": "Xylophone",
+      "family": "percussion",
+      "audioFile": "percussion/xylophone.mp3",
+      "description": "Bright, wooden, bell-like tone"
+    },
+    "triangle": {
+      "name": "Triangle",
+      "family": "percussion",
+      "audioFile": "percussion/triangle.mp3",
+      "description": "Bright, shimmering, high-pitched ring"
+    }
+  }
+}
