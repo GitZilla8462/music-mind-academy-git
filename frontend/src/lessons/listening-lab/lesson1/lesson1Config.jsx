@@ -44,57 +44,45 @@ export const lessonSections = [
         duration: 1
       },
       {
-        id: 'opening-hook',
+        id: 'meet-string-family',
         type: 'discussion',
-        label: 'Sound Mystery',
-        description: 'Play Spring opening. "Where have you heard this before?" Connect to Grow a Garden.',
-        duration: 3
+        label: 'Meet the String Family',
+        description: 'Discussion: What do students already know about string instruments?',
+        duration: 2
+      },
+      {
+        id: 'string-family-definition',
+        type: 'summary',
+        label: 'String Family Definition',
+        description: 'Define string instruments and introduce the four orchestral strings.',
+        duration: 2
       },
       {
         id: 'string-family-showcase',
         type: 'activity',
-        label: 'Meet the Strings',
+        label: 'See & Hear the Strings',
         description: 'Watch and hear each string instrument: Violin → Viola → Cello → Bass.',
         duration: 5
       },
       {
-        id: 'dynamics-vocabulary',
+        id: 'dynamics-markings',
         type: 'summary',
-        label: 'Dynamics Vocabulary',
-        description: 'Teach pp, p, mp, mf, f, ff. Practice with hand levels (low=soft, high=loud).',
-        duration: 4
-      }
-    ]
-  },
-  {
-    id: 'practice',
-    title: '2. Practice',
-    subtitle: 'String Detective Game',
-    color: 'blue',
-    estimatedTime: 15,
-    stages: [
-      {
-        id: 'game-instructions',
-        type: 'summary',
-        label: 'Game Instructions',
-        description: 'Explain String Detective: identify the instrument AND the dynamic level.',
-        duration: 2
+        label: 'Dynamic Markings',
+        description: 'Teach pp, p, mp, mf, f, ff.',
+        duration: 3
       },
       {
-        id: 'string-detective',
-        type: 'activity',
-        label: '🎮 Unlock String Detective',
-        duration: 12,
-        hasTimer: false,
-        trackProgress: true,
-        description: 'CLASS GAME: Identify string instruments and their dynamics!',
-        bonusDescription: 'Bonus: Can you tell violin from viola?'
+        id: 'gradual-changes',
+        type: 'summary',
+        label: 'Gradual Changes',
+        description: 'Teach crescendo and decrescendo.',
+        duration: 2
       }
     ]
   },
   {
     id: 'active-listening',
-    title: '3. Active Listening',
+    title: '2. Active Listening',
     subtitle: 'Vivaldi\'s Spring',
     color: 'blue',
     estimatedTime: 8,
@@ -127,7 +115,7 @@ export const lessonSections = [
   },
   {
     id: 'create',
-    title: '4. Create',
+    title: '3. Create',
     subtitle: 'Dynamics Listening Map',
     color: 'blue',
     estimatedTime: 18,
@@ -153,7 +141,7 @@ export const lessonSections = [
   },
   {
     id: 'reflect',
-    title: '5. Reflect',
+    title: '4. Reflect',
     subtitle: 'Exit Ticket',
     color: 'blue',
     estimatedTime: 5,
@@ -195,18 +183,12 @@ export const lesson1Config = {
   activities: [
     {
       id: 1,
-      type: "string-detective",
-      title: "String Detective",
-      estimatedTime: "12 min"
-    },
-    {
-      id: 2,
       type: "dynamics-listening-map",
       title: "Dynamics Listening Map",
       estimatedTime: "15 min"
     },
     {
-      id: 3,
+      id: 2,
       type: "listening-lab-reflection",
       title: "Reflection",
       estimatedTime: "5 min"
@@ -247,8 +229,8 @@ export const lessonStages = [
           heading: 'Today We Will',
           bullets: [
             'Meet the STRING FAMILY (violin, viola, cello, bass)',
-            'Learn DYNAMIC markings (pp, p, mp, mf, f, ff)',
-            'Play STRING DETECTIVE',
+            'Learn DYNAMIC MARKINGS (pp, p, mp, mf, f, ff)',
+            'Learn about CRESCENDO and DECRESCENDO',
             'Create a DYNAMICS LISTENING MAP'
           ]
         }
@@ -260,27 +242,57 @@ export const lessonStages = [
     }
   },
   {
-    id: 'opening-hook',
-    label: 'Sound Mystery',
-    description: 'Play Spring opening without context. Connect to Grow a Garden.',
+    id: 'meet-string-family',
+    label: 'Meet the String Family',
+    description: 'Discussion: What do students already know about string instruments?',
     type: 'discussion',
-    duration: 3,
+    duration: 2,
     presentationView: {
       type: 'summary',
-      title: 'Sound Mystery',
-      subtitle: 'Where have you heard this before?',
+      title: 'Meet the String Family',
+      subtitle: 'Let\'s Talk About Strings!',
       bullets: [
-        '🎵 Teacher: Play the opening of "Spring" by Vivaldi',
-        'Where have you heard this music before?',
-        'What video games, movies, or shows use this?',
-        'What instruments do you hear?',
-        '🎮 Pop Culture: Grow a Garden (Roblox) - 10M+ players!'
+        'What string instruments do you know?',
+        'Do you know any facts about string instruments?',
+        'Do you play or know someone who plays a string instrument?'
+      ]
+    }
+  },
+  {
+    id: 'string-family-definition',
+    label: 'String Family Definition',
+    description: 'Define string instruments and introduce the four orchestral strings.',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'summary',
+      title: 'The String Family',
+      subtitle: 'Instruments That Make Sound with Vibrating Strings',
+      sections: [
+        {
+          heading: 'What is a String Instrument?',
+          bullets: [
+            'A string instrument makes sound when its strings vibrate',
+            'Players can bow the strings (with a stick called a bow) or pluck them',
+            'The body of the instrument amplifies the sound'
+          ]
+        },
+        {
+          heading: 'The Orchestral String Family',
+          bullets: [
+            'In the orchestra, we focus on four string instruments:',
+            '🎻 Violin - smallest, highest sound',
+            '🎻 Viola - slightly larger, warmer sound',
+            '🎻 Cello - large, rich sound',
+            '🎻 Double Bass - largest, deepest sound'
+          ]
+        }
       ]
     }
   },
   {
     id: 'string-family-showcase',
-    label: 'Meet the Strings',
+    label: 'See & Hear the Strings',
     description: 'Watch and hear each string instrument: Violin → Viola → Cello → Bass.',
     type: 'activity',
     duration: 5,
@@ -289,18 +301,18 @@ export const lessonStages = [
     }
   },
   {
-    id: 'dynamics-vocabulary',
-    label: 'Dynamics Vocabulary',
-    description: 'Teach dynamic markings: pp through ff, crescendo, decrescendo.',
+    id: 'dynamics-markings',
+    label: 'Dynamic Markings',
+    description: 'Teach dynamic markings: pp through ff.',
     type: 'summary',
-    duration: 4,
+    duration: 3,
     presentationView: {
       type: 'summary',
-      title: 'Dynamics: The Volume of Music',
-      subtitle: 'From Very Soft to Very Loud',
+      title: 'Dynamic Markings',
+      subtitle: 'The Volume of Music',
       sections: [
         {
-          heading: 'Dynamic Markings',
+          heading: 'From Soft to Loud',
           bullets: [
             'pp (pianissimo) = Very soft',
             'p (piano) = Soft',
@@ -311,69 +323,44 @@ export const lessonStages = [
           ]
         },
         {
-          heading: 'Gradual Changes',
+          heading: 'Remember',
           bullets: [
-            '📈 Crescendo (<) = Gradually getting LOUDER',
-            '📉 Decrescendo (>) = Gradually getting SOFTER'
-          ]
-        },
-        {
-          heading: 'Practice Activity',
-          bullets: [
-            'Show dynamics with your hands!',
-            '👇 LOW = Soft (piano)',
-            '✋ MIDDLE = Medium (mezzo)',
-            '🖐️ HIGH = Loud (forte)'
+            'Piano = Soft (think of playing piano keys gently)',
+            'Forte = Loud (think of a strong fortress)',
+            'Mezzo = Medium (in between)'
           ]
         }
       ]
     }
   },
   {
-    id: 'game-instructions',
-    label: 'Game Instructions',
-    description: 'Explain String Detective game rules.',
+    id: 'gradual-changes',
+    label: 'Gradual Changes',
+    description: 'Teach crescendo and decrescendo.',
     type: 'summary',
     duration: 2,
     presentationView: {
       type: 'summary',
-      title: 'String Detective',
-      subtitle: 'Can You Identify the Sound?',
+      title: 'Gradual Dynamic Changes',
+      subtitle: 'Getting Louder and Softer Over Time',
       sections: [
         {
-          heading: 'How to Play',
+          heading: 'Crescendo',
           bullets: [
-            '1. Listen to an audio clip',
-            '2. Identify WHICH STRING INSTRUMENT is playing',
-            '3. Identify the DYNAMIC LEVEL (soft, medium, or loud)',
-            '4. Answer quickly for bonus points!'
+            '📈 Crescendo = Gradually getting LOUDER',
+            'Symbol: < (opens up like getting bigger)',
+            'Example: Music builds from soft to loud'
           ]
         },
         {
-          heading: 'Tips',
+          heading: 'Decrescendo (Diminuendo)',
           bullets: [
-            'Violin = Highest, brightest',
-            'Viola = Slightly lower, warmer',
-            'Cello = Rich, singing',
-            'Bass = Deep, rumbling'
+            '📉 Decrescendo = Gradually getting SOFTER',
+            'Symbol: > (closes down like getting smaller)',
+            'Example: Music fades from loud to soft'
           ]
         }
       ]
-    }
-  },
-  {
-    id: 'string-detective',
-    label: '🎮 Unlock String Detective',
-    description: 'CLASS GAME: Identify string instruments and their dynamics!',
-    bonusDescription: 'Bonus: Can you tell violin from viola?',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: false,
-    duration: 12,
-    presentationView: {
-      type: 'activity-banner',
-      title: 'String Detective',
-      subtitle: 'Identify the instrument and dynamic level!'
     }
   },
   {
@@ -501,11 +488,11 @@ export const lessonStages = [
 export const getActivityForStage = (stage) => {
   const stageMap = {
     'welcome-intro': 'summary',
-    'opening-hook': 'discussion',
+    'meet-string-family': 'discussion',
+    'string-family-definition': 'summary',
     'string-family-showcase': 'string-family-showcase',
-    'dynamics-vocabulary': 'summary',
-    'game-instructions': 'summary',
-    'string-detective': 'string-detective',
+    'dynamics-markings': 'summary',
+    'gradual-changes': 'summary',
     'active-listening-intro': 'summary',
     'active-listening-spring': 'activity-banner',
     'dynamic-contrast': 'discussion',

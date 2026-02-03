@@ -15,6 +15,8 @@ const INSTRUMENT_CONFIGS = [
     color: '#3B82F6', // blue
     description: 'The highest voice in the string family',
     videoPath: '/lessons/listening-lab/lesson1/videos/violin-demo.mp4',
+    startTime: 134, // 2:14
+    endTime: 144,   // 2:24
     facts: ['Smallest string instrument', 'Plays the highest notes', 'Often plays the melody']
   },
   {
@@ -24,6 +26,8 @@ const INSTRUMENT_CONFIGS = [
     color: '#8B5CF6', // purple
     description: 'Slightly larger, with a warmer tone',
     videoPath: '/lessons/listening-lab/lesson1/videos/viola-demo.mp4',
+    startTime: 33,  // 0:33
+    endTime: 45,    // 0:45
     facts: ['Larger than a violin', 'Warmer, darker sound', 'Often plays harmony']
   },
   {
@@ -33,15 +37,19 @@ const INSTRUMENT_CONFIGS = [
     color: '#10B981', // emerald
     description: 'Rich and warm, like a singing voice',
     videoPath: '/lessons/listening-lab/lesson1/videos/cello-demo.mp4',
+    startTime: 253, // 4:13
+    endTime: 263,   // 4:23
     facts: ['Played sitting down', 'Rich, warm tone', 'Can play melody or bass']
   },
   {
     id: 'bass',
     name: 'Double Bass',
-    emoji: '🎸',
+    emoji: '🎻',
     color: '#EF4444', // red
     description: 'The deepest, most powerful sound',
     videoPath: '/lessons/listening-lab/lesson1/videos/bass-demo.mp4',
+    startTime: 13,  // 0:13
+    endTime: 23,    // 0:23
     facts: ['Largest string instrument', 'Provides the foundation', 'Players stand or use tall stool']
   }
 ];
@@ -77,18 +85,26 @@ const StringFamilyShowcase = ({ onAdvance }) => {
     console.error('Video load error:', e.target.error, 'for', config.videoPath);
   };
 
-  // Start video playback
+  // Start video playback at the configured start time
   const startPlayback = useCallback(async () => {
     if (!videoRef.current) return;
 
     try {
-      videoRef.current.currentTime = 0;
+      videoRef.current.currentTime = config.startTime;
       await videoRef.current.play();
       setPhase('playing');
     } catch (err) {
       console.error('Video playback error:', err);
     }
-  }, []);
+  }, [config.startTime]);
+
+  // Check if we've reached the end time
+  const handleTimeUpdate = useCallback(() => {
+    if (videoRef.current && videoRef.current.currentTime >= config.endTime) {
+      videoRef.current.pause();
+      handleVideoEnded();
+    }
+  }, [config.endTime, handleVideoEnded]);
 
   // Message timer effect
   useEffect(() => {
@@ -145,15 +161,16 @@ const StringFamilyShowcase = ({ onAdvance }) => {
   };
 
   return (
-    <div className="w-full h-screen relative bg-black">
+    <div className="w-full h-full relative bg-black">
       {/* Video element - always present but hidden when showing messages */}
       <video
         key={`video-${currentIndex}`}
         ref={videoRef}
-        className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${phase === 'playing' ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${phase === 'playing' ? 'opacity-100' : 'opacity-0'}`}
         onCanPlay={handleCanPlay}
         onLoadedData={handleCanPlay}
         onEnded={handleVideoEnded}
+        onTimeUpdate={handleTimeUpdate}
         onError={handleVideoError}
         playsInline
         preload="auto"
