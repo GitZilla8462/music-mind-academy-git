@@ -53,8 +53,15 @@ export const lessonSections = [
       {
         id: 'string-family-definition',
         type: 'summary',
-        label: 'String Family Definition',
-        description: 'Define string instruments and introduce the four orchestral strings.',
+        label: 'What is a String Instrument?',
+        description: 'Define what makes an instrument a string instrument.',
+        duration: 2
+      },
+      {
+        id: 'orchestral-strings',
+        type: 'summary',
+        label: 'Orchestral String Family',
+        description: 'Introduce the four orchestral string instruments.',
         duration: 2
       },
       {
@@ -82,33 +89,33 @@ export const lessonSections = [
   },
   {
     id: 'active-listening',
-    title: '2. Active Listening',
+    title: '2. Dynamics Dash',
     subtitle: 'Vivaldi\'s Spring',
     color: 'blue',
-    estimatedTime: 8,
+    estimatedTime: 12,
     stages: [
       {
-        id: 'active-listening-intro',
+        id: 'dynamics-dash-intro',
         type: 'summary',
-        label: 'Active Listening Instructions',
-        description: 'Students raise hands high when loud, low when soft.',
-        duration: 1
+        label: 'Dynamics Dash Instructions',
+        description: 'Explain the game: identify dynamics in Spring.',
+        duration: 2
       },
       {
-        id: 'active-listening-spring',
+        id: 'dynamics-dash',
         type: 'activity',
-        label: '🎵 Listen to Spring',
-        duration: 5,
+        label: '🎮 Unlock Dynamics Dash',
+        duration: 8,
         hasTimer: false,
-        trackProgress: false,
-        description: 'Listen to first 90 seconds. Students show dynamics with hand levels.',
-        bonusDescription: ''
+        trackProgress: true,
+        description: 'CLASS GAME: Identify dynamics in Vivaldi\'s Spring!',
+        bonusDescription: 'Listen carefully - can you hear the terraced dynamics?'
       },
       {
-        id: 'dynamic-contrast',
-        type: 'discussion',
-        label: 'Dynamic Contrast Discussion',
-        description: '"When did Vivaldi SURPRISE you with a sudden change?"',
+        id: 'dynamics-dash-results',
+        type: 'activity',
+        label: '🏆 Dynamics Dash Results',
+        description: 'View class leaderboard and celebrate top scorers.',
         duration: 2
       }
     ]
@@ -183,12 +190,18 @@ export const lesson1Config = {
   activities: [
     {
       id: 1,
+      type: "dynamics-dash",
+      title: "Dynamics Dash",
+      estimatedTime: "8 min"
+    },
+    {
+      id: 2,
       type: "dynamics-listening-map",
       title: "Dynamics Listening Map",
       estimatedTime: "15 min"
     },
     {
-      id: 2,
+      id: 3,
       type: "listening-lab-reflection",
       title: "Reflection",
       estimatedTime: "5 min"
@@ -260,33 +273,36 @@ export const lessonStages = [
   },
   {
     id: 'string-family-definition',
-    label: 'String Family Definition',
-    description: 'Define string instruments and introduce the four orchestral strings.',
+    label: 'What is a String Instrument?',
+    description: 'Define what makes an instrument a string instrument.',
     type: 'summary',
     duration: 2,
     presentationView: {
       type: 'summary',
-      title: 'The String Family',
+      title: 'What is a String Instrument?',
       subtitle: 'Instruments That Make Sound with Vibrating Strings',
-      sections: [
-        {
-          heading: 'What is a String Instrument?',
-          bullets: [
-            'A string instrument makes sound when its strings vibrate',
-            'Players can bow the strings (with a stick called a bow) or pluck them',
-            'The body of the instrument amplifies the sound'
-          ]
-        },
-        {
-          heading: 'The Orchestral String Family',
-          bullets: [
-            'In the orchestra, we focus on four string instruments:',
-            '🎻 Violin - smallest, highest sound',
-            '🎻 Viola - slightly larger, warmer sound',
-            '🎻 Cello - large, rich sound',
-            '🎻 Double Bass - largest, deepest sound'
-          ]
-        }
+      bullets: [
+        'A string instrument makes sound when its strings vibrate',
+        'Players can bow the strings (with a stick called a bow) or pluck them',
+        'The body of the instrument amplifies the sound'
+      ]
+    }
+  },
+  {
+    id: 'orchestral-strings',
+    label: 'Orchestral String Family',
+    description: 'Introduce the four orchestral string instruments.',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'summary',
+      title: 'The Orchestral String Family',
+      subtitle: 'Four Instruments We Will Focus On',
+      bullets: [
+        '🎻 Violin - smallest, highest sound',
+        '🎻 Viola - slightly larger, warmer sound',
+        '🎻 Cello - large, rich sound',
+        '🎻 Double Bass - largest, deepest sound'
       ]
     }
   },
@@ -310,26 +326,13 @@ export const lessonStages = [
       type: 'summary',
       title: 'Dynamic Markings',
       subtitle: 'The Volume of Music',
-      sections: [
-        {
-          heading: 'From Soft to Loud',
-          bullets: [
-            'pp (pianissimo) = Very soft',
-            'p (piano) = Soft',
-            'mp (mezzo piano) = Medium soft',
-            'mf (mezzo forte) = Medium loud',
-            'f (forte) = Loud',
-            'ff (fortissimo) = Very loud'
-          ]
-        },
-        {
-          heading: 'Remember',
-          bullets: [
-            'Piano = Soft (think of playing piano keys gently)',
-            'Forte = Loud (think of a strong fortress)',
-            'Mezzo = Medium (in between)'
-          ]
-        }
+      bullets: [
+        'pp (pianissimo) = Very soft',
+        'p (piano) = Soft',
+        'mp (mezzo piano) = Medium soft',
+        'mf (mezzo forte) = Medium loud',
+        'f (forte) = Loud',
+        'ff (fortissimo) = Very loud'
       ]
     }
   },
@@ -364,53 +367,61 @@ export const lessonStages = [
     }
   },
   {
-    id: 'active-listening-intro',
-    label: 'Active Listening Instructions',
-    description: 'Explain hand-level dynamics activity.',
+    id: 'dynamics-dash-intro',
+    label: 'Dynamics Dash Instructions',
+    description: 'Explain the Dynamics Dash game.',
     type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'summary',
-      title: 'Active Listening: Spring',
-      subtitle: 'Show the Dynamics with Your Hands!',
-      bullets: [
-        'As you listen, show the DYNAMIC LEVEL with your hands:',
-        '🖐️ HIGH = Loud (forte)',
-        '✋ MIDDLE = Medium (mezzo)',
-        '👇 LOW = Soft (piano)',
-        'Listen for SUDDEN CHANGES — Vivaldi loves to surprise us!'
-      ]
-    }
-  },
-  {
-    id: 'active-listening-spring',
-    label: '🎵 Listen to Spring',
-    description: 'Active listening with hand movements showing dynamics.',
-    type: 'activity',
-    hasTimer: false,
-    duration: 5,
-    presentationView: {
-      type: 'activity-banner',
-      title: 'Active Listening: Spring by Vivaldi',
-      subtitle: 'Show dynamics with your hands! (HIGH = loud, LOW = soft)'
-    }
-  },
-  {
-    id: 'dynamic-contrast',
-    label: 'Dynamic Contrast Discussion',
-    description: 'Discuss moments of dynamic surprise in Spring.',
-    type: 'discussion',
     duration: 2,
     presentationView: {
       type: 'summary',
-      title: 'Dynamic Contrast',
-      subtitle: 'The Element of Surprise',
-      bullets: [
-        'When did Vivaldi SURPRISE you with a sudden change?',
-        'Did you notice any CRESCENDOS (getting louder)?',
-        'Did you notice any DECRESCENDOS (getting softer)?',
-        'How did these dynamic changes make you FEEL?'
+      title: 'Dynamics Dash',
+      subtitle: 'Can You Identify the Dynamics?',
+      sections: [
+        {
+          heading: 'How to Play',
+          bullets: [
+            '1. Listen to a 6-second clip from Spring',
+            '2. Identify the DYNAMIC LEVEL (pp, p, mp, mf, f, ff)',
+            '3. Answer quickly for bonus points!',
+            '4. 9 questions total'
+          ]
+        },
+        {
+          heading: 'Remember',
+          bullets: [
+            'pp/p = Soft (piano)',
+            'mp/mf = Medium',
+            'f/ff = Loud (forte)'
+          ]
+        }
       ]
+    }
+  },
+  {
+    id: 'dynamics-dash',
+    label: '🎮 Unlock Dynamics Dash',
+    description: 'CLASS GAME: Identify dynamics in Vivaldi\'s Spring!',
+    bonusDescription: 'Listen for terraced dynamics!',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: false,
+    duration: 8,
+    presentationView: {
+      type: 'activity-banner',
+      title: 'Dynamics Dash',
+      subtitle: 'Identify the dynamics in Spring by Vivaldi!'
+    }
+  },
+  {
+    id: 'dynamics-dash-results',
+    label: '🏆 Dynamics Dash Results',
+    description: 'View class leaderboard and celebrate top scorers.',
+    type: 'activity',
+    duration: 2,
+    presentationView: {
+      type: 'activity-banner',
+      title: 'Dynamics Dash Results',
+      subtitle: 'Class Leaderboard'
     }
   },
   {
@@ -490,12 +501,13 @@ export const getActivityForStage = (stage) => {
     'welcome-intro': 'summary',
     'meet-string-family': 'discussion',
     'string-family-definition': 'summary',
+    'orchestral-strings': 'summary',
     'string-family-showcase': 'string-family-showcase',
     'dynamics-markings': 'summary',
     'gradual-changes': 'summary',
-    'active-listening-intro': 'summary',
-    'active-listening-spring': 'activity-banner',
-    'dynamic-contrast': 'discussion',
+    'dynamics-dash-intro': 'summary',
+    'dynamics-dash': 'dynamics-dash',
+    'dynamics-dash-results': 'dynamics-dash',
     'listening-map-instructions': 'summary',
     'dynamics-listening-map': 'dynamics-listening-map',
     'reflection': 'listening-lab-reflection'

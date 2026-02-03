@@ -72,6 +72,9 @@ import { OrchestraLabActivity } from '../activities/orchestra-lab';
 // ✅ ADDED: String Detective for Lesson 1 (Strings & Dynamics)
 import { StringDetectiveActivity } from '../activities/string-detective';
 
+// ✅ ADDED: Dynamics Dash for Lesson 1 (Strings & Dynamics)
+import { DynamicsDashActivity } from '../activities/dynamics-dash';
+
 const ActivityRenderer = ({
   activity,
   onComplete,
@@ -538,6 +541,16 @@ const ActivityRenderer = ({
       return (
         <StringDetectiveActivity
           key={`string-detective-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+        />
+      );
+
+    // ✅ ADDED: Dynamics Dash game (Listening Lab Lesson 1 - Strings & Dynamics)
+    case 'dynamics-dash':
+      return (
+        <DynamicsDashActivity
+          key={`dynamics-dash-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}
         />
