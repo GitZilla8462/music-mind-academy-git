@@ -763,7 +763,7 @@ export const SessionProvider = ({ children }) => {
         if (lessonRoute.includes('/lessons/film-music-project/')) {
           window.location.href = '/music-loops-in-media-hub';
         } else if (lessonRoute.includes('/lessons/listening-lab/')) {
-          window.location.href = '/music-classroom-resources';
+          window.location.href = '/listening-lab-hub';
         } else {
           window.location.href = '/music-classroom-resources';
         }
