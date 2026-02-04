@@ -81,3 +81,17 @@ export const calculateSpeedBonus = (timeInMs) => {
 
 export const BASE_POINTS = 10;
 export const TOTAL_QUESTIONS = 7;
+
+// Playback volume for each dynamic level (0.0 - 1.0)
+// Artificially scaled to exaggerate differences for teaching
+export const DYNAMIC_VOLUMES = {
+  'pp': 0.12,
+  'p':  0.28,
+  'mp': 0.45,
+  'mf': 0.65,
+  'f':  0.85,
+  'ff': 1.0,
+};
+
+// Helper: get volume for a dynamic symbol
+export const getVolumeForDynamic = (symbol) => DYNAMIC_VOLUMES[symbol] ?? 0.7;

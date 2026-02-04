@@ -323,17 +323,7 @@ export const lessonStages = [
     type: 'summary',
     duration: 3,
     presentationView: {
-      type: 'summary',
-      title: 'Dynamic Markings',
-      subtitle: 'The Volume of Music',
-      bullets: [
-        'pp (pianissimo) = Very soft',
-        'p (piano) = Soft',
-        'mp (mezzo piano) = Medium soft',
-        'mf (mezzo forte) = Medium loud',
-        'f (forte) = Loud',
-        'ff (fortissimo) = Very loud'
-      ]
+      type: 'dynamics-showcase'
     }
   },
   {
@@ -407,9 +397,7 @@ export const lessonStages = [
     hasTimer: false,
     duration: 8,
     presentationView: {
-      type: 'activity-banner',
-      title: 'Dynamics Dash',
-      subtitle: 'Identify the dynamics in Spring by Vivaldi!'
+      type: 'dynamics-dash-class-game'
     }
   },
   {
@@ -419,9 +407,7 @@ export const lessonStages = [
     type: 'activity',
     duration: 2,
     presentationView: {
-      type: 'activity-banner',
-      title: 'Dynamics Dash Results',
-      subtitle: 'Class Leaderboard'
+      type: 'dynamics-dash-results'
     }
   },
   {

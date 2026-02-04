@@ -74,6 +74,7 @@ import { StringDetectiveActivity } from '../activities/string-detective';
 
 // ✅ ADDED: Dynamics Dash for Lesson 1 (Strings & Dynamics)
 import { DynamicsDashActivity } from '../activities/dynamics-dash';
+import DynamicsDashStudentView from '../activities/dynamics-dash/DynamicsDashStudentView';
 
 const ActivityRenderer = ({
   activity,
@@ -547,7 +548,17 @@ const ActivityRenderer = ({
       );
 
     // ✅ ADDED: Dynamics Dash game (Listening Lab Lesson 1 - Strings & Dynamics)
+    // Uses synchronized student view in session mode, self-paced otherwise
     case 'dynamics-dash':
+      if (isSessionMode) {
+        return (
+          <DynamicsDashStudentView
+            key={`dynamics-dash-student-${activity.id}`}
+            onComplete={onComplete}
+            isSessionMode={isSessionMode}
+          />
+        );
+      }
       return (
         <DynamicsDashActivity
           key={`dynamics-dash-${activity.id}`}

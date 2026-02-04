@@ -451,6 +451,9 @@ const PresentationContent = ({
   const [MelodyBuilderTeacherDemo, setMelodyBuilderTeacherDemo] = useState(null);
   const [MelodyMysteryActivity, setMelodyMysteryActivity] = useState(null);
   const [GuessThatInstrumentTeacherView, setGuessThatInstrumentTeacherView] = useState(null);
+  const [DynamicsDashClassGame, setDynamicsDashClassGame] = useState(null);
+  const [DynamicsDashResults, setDynamicsDashResults] = useState(null);
+  const [DynamicsShowcase, setDynamicsShowcase] = useState(null);
 
   // Get join URL based on site (defined early for use in join-code screen)
   const isProduction = window.location.hostname !== 'localhost';
@@ -521,6 +524,21 @@ const PresentationContent = ({
     import('../../shared/activities/guess-that-instrument/GuessThatInstrumentTeacherView')
       .then(module => setGuessThatInstrumentTeacherView(() => module.default))
       .catch(() => console.log('Guess That Instrument Teacher View not available'));
+
+    // Unit 2 Listening Lab Lesson 1: Dynamics Dash Class Game
+    import('../../shared/activities/dynamics-dash/DynamicsDashClassGame')
+      .then(module => setDynamicsDashClassGame(() => module.default))
+      .catch(() => console.log('Dynamics Dash Class Game not available'));
+
+    // Unit 2 Listening Lab Lesson 1: Dynamics Dash Results
+    import('../../shared/activities/dynamics-dash/DynamicsDashResults')
+      .then(module => setDynamicsDashResults(() => module.default))
+      .catch(() => console.log('Dynamics Dash Results not available'));
+
+    // Unit 2 Listening Lab Lesson 1: Dynamics Showcase (interactive slide)
+    import('../../shared/activities/dynamics-dash/DynamicsShowcase')
+      .then(module => setDynamicsShowcase(() => module.default))
+      .catch(() => console.log('Dynamics Showcase not available'));
   }, []);
 
   // Join Code Screen
@@ -681,6 +699,57 @@ const PresentationContent = ({
       return (
         <div className="absolute inset-0">
           <StringFamilyShowcase onAdvance={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Dynamics Showcase (Listening Lab Lesson 1) - Interactive dynamic markings slide
+    if (type === 'dynamics-showcase') {
+      if (!DynamicsShowcase) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900">
+            <div className="text-white text-2xl">Loading Dynamics Showcase...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <DynamicsShowcase sessionData={sessionData} />
+        </div>
+      );
+    }
+
+    // Dynamics Dash Class Game (Listening Lab Lesson 1) - Teacher controls game
+    if (type === 'dynamics-dash-class-game') {
+      if (!DynamicsDashClassGame) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900">
+            <div className="text-white text-2xl">Loading Dynamics Dash...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <DynamicsDashClassGame sessionData={sessionData} onComplete={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Dynamics Dash Results (Listening Lab Lesson 1) - Show leaderboard
+    if (type === 'dynamics-dash-results') {
+      if (!DynamicsDashResults) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900">
+            <div className="text-white text-2xl">Loading Results...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <DynamicsDashResults sessionData={sessionData} />
         </div>
       );
     }
@@ -1050,7 +1119,7 @@ const PresentationContent = ({
 // MINI PREVIEW COMPONENT
 // Shows scaled-down live preview of opposite view
 // ============================================
-const MiniPreview = ({ viewMode, sessionCode, currentStage, currentStageData, sessionData, config, onSwitch }) => {
+const MiniPreview = ({ viewMode, sessionCode, classCode, currentStage, currentStageData, sessionData, config, onSwitch }) => {
   const getStudentUrl = () => {
     // Use current origin to handle any port in dev
     // passive=true disables navigation prevention hooks to avoid IPC flooding
@@ -2640,6 +2709,7 @@ const TeacherLessonView = ({
               <MiniPreview
                 viewMode={viewMode}
                 sessionCode={sessionCode}
+                classCode={classCode}
                 currentStage={currentStage}
                 currentStageData={currentStageData}
                 sessionData={sessionData}

@@ -229,10 +229,10 @@ const Lesson1 = () => {
       return (
         <>
           <ActivityRenderer
-            activityType={activityType}
+            activity={{ type: activityType, id: currentStage }}
             onComplete={handleSessionActivityComplete}
             sessionCode={sessionCode}
-            viewMode="student"
+            viewMode={false}
             isSessionMode={true}
             lessonConfig={lessonConfig}
             currentStage={currentStage}
@@ -299,9 +299,9 @@ const Lesson1 = () => {
   if (viewSavedMode || viewReflectionMode) {
     return (
       <ActivityRenderer
-        activityType={viewReflectionMode ? 'listening-lab-reflection' : 'listening-map-instruments'}
+        activity={{ type: viewReflectionMode ? 'listening-lab-reflection' : 'listening-map-instruments', id: 'saved-view' }}
         onComplete={() => navigate('/music-classroom-resources')}
-        viewMode="saved"
+        viewMode={true}
         isSessionMode={false}
         lessonConfig={lessonConfig}
       />
@@ -344,9 +344,9 @@ const Lesson1 = () => {
 
   return (
     <ActivityRenderer
-      activityType={currentActivity.type}
+      activity={{ type: currentActivity.type, id: currentActivity.id }}
       onComplete={lesson.handleActivityComplete}
-      viewMode="normal"
+      viewMode={false}
       isSessionMode={false}
       lessonConfig={lessonConfig}
       currentStage={currentActivity.type}

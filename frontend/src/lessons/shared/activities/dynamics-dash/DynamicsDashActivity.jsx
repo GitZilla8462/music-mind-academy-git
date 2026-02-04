@@ -8,7 +8,7 @@ import { Play, Pause, Trophy, Clock, RefreshCw } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, push, get, onValue } from 'firebase/database';
 import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
-import { AUDIO_PATH, DYNAMICS, QUESTIONS, calculateSpeedBonus, BASE_POINTS, TOTAL_QUESTIONS } from './dynamicsDashConfig';
+import { AUDIO_PATH, DYNAMICS, QUESTIONS, calculateSpeedBonus, BASE_POINTS, TOTAL_QUESTIONS, getVolumeForDynamic } from './dynamicsDashConfig';
 
 const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
   const { sessionCode, userId: contextUserId, currentStage } = useSession();
@@ -199,6 +199,7 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
     audioRef.current = audio;
 
     audio.currentTime = currentQuestion.startTime;
+    audio.volume = getVolumeForDynamic(currentQuestion.correctAnswer);
     audio.play().catch(err => {
       console.error('Audio playback error:', err);
       setIsPlaying(false);
@@ -229,6 +230,12 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
 
     const isCorrect = dynamicSymbol === currentQuestion.correctAnswer;
 
+    // Check if within one dynamic level for partial credit
+    const guessIndex = DYNAMICS.findIndex(d => d.symbol === dynamicSymbol);
+    const correctIndex = DYNAMICS.findIndex(d => d.symbol === currentQuestion.correctAnswer);
+    const difference = Math.abs(guessIndex - correctIndex);
+    const isPartialCredit = !isCorrect && difference === 1;
+
     let points = 0;
     let basePoints = 0;
     let speedBonus = 0;
@@ -237,11 +244,37 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
       basePoints = BASE_POINTS;
       speedBonus = calculateSpeedBonus(timeElapsed);
       points = basePoints + speedBonus;
-      setScore(prev => prev + points);
+    } else if (isPartialCredit) {
+      // Half points for being within one dynamic level
+      basePoints = Math.floor(BASE_POINTS / 2);
+      speedBonus = Math.floor(calculateSpeedBonus(timeElapsed) / 2);
+      points = basePoints + speedBonus;
+    }
+
+    // Calculate new score
+    const newScore = score + points;
+    if (points > 0) {
+      setScore(newScore);
+    }
+
+    // Save answer and score to Firebase in real-time (so teacher can track progress)
+    if (sessionCode && userId && !viewMode && !isPracticeMode) {
+      try {
+        const db = getDatabase();
+        update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+          dynamicsDashScore: newScore,
+          dynamicsDashAnswer: dynamicSymbol,
+          dynamicsDashAnswerTime: timeElapsed
+        });
+      } catch (err) {
+        console.error('Failed to save answer:', err);
+      }
     }
 
     setGuessResult({
       isCorrect,
+      isPartialCredit,
+      guessedAnswer: dynamicSymbol,
       points,
       basePoints,
       speedBonus,
@@ -573,7 +606,7 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
                 </button>
               </div>
 
-              {/* Dynamic buttons */}
+              {/* Dynamic buttons - symbol, term, meaning */}
               <div className="grid grid-cols-3 gap-2">
                 {DYNAMICS.map(d => (
                   <button
@@ -590,8 +623,9 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
                       color: hasPlayedAudio ? 'white' : '#9CA3AF'
                     }}
                   >
-                    <div className="text-2xl">{d.symbol}</div>
-                    <div className="text-xs">{d.meaning}</div>
+                    <div className="text-2xl font-bold">{d.symbol}</div>
+                    <div className="text-sm">{d.name}</div>
+                    <div className="text-xs opacity-90">({d.meaning.toLowerCase()})</div>
                   </button>
                 ))}
               </div>
@@ -606,19 +640,19 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
             <>
               {/* Answer revealed */}
               <div className="text-center mb-2">
-                <div className={`text-3xl mb-1 ${guessResult.isCorrect ? 'animate-bounce' : ''}`}>
-                  {guessResult.isCorrect ? '✅' : '❌'}
+                <div className={`text-3xl mb-1 ${guessResult.isCorrect ? 'animate-bounce' : guessResult.isPartialCredit ? 'animate-pulse' : ''}`}>
+                  {guessResult.isCorrect ? '✅' : guessResult.isPartialCredit ? '🎯' : '❌'}
                 </div>
                 <div className={`text-xl font-bold mb-1 ${
-                  guessResult.isCorrect ? 'text-green-600' : 'text-red-600'
+                  guessResult.isCorrect ? 'text-green-600' : guessResult.isPartialCredit ? 'text-yellow-600' : 'text-red-600'
                 }`}>
-                  {guessResult.isCorrect ? 'Correct!' : 'Not Quite!'}
+                  {guessResult.isCorrect ? 'Correct!' : guessResult.isPartialCredit ? 'Close!' : 'Not Quite!'}
                 </div>
 
-                {guessResult.isCorrect && guessResult.points ? (
+                {(guessResult.isCorrect || guessResult.isPartialCredit) && guessResult.points ? (
                   <div className="mb-2">
                     <div className="text-lg font-bold text-gray-900">
-                      +{guessResult.points} points!
+                      +{guessResult.points} points{guessResult.isPartialCredit ? ' (partial credit)' : ''}!
                     </div>
                     <div className="inline-block bg-gray-100 rounded-lg p-2 mt-1 text-left">
                       <div className="space-y-0.5 text-xs">
@@ -638,6 +672,18 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
                         )}
                       </div>
                     </div>
+                    {guessResult.isPartialCredit && (
+                      <div className="text-sm text-gray-700 mt-2">
+                        You said{' '}
+                        <span
+                          className="font-bold px-2 py-0.5 rounded text-white"
+                          style={{ backgroundColor: getDynamicInfo(guessResult.guessedAnswer)?.color }}
+                        >
+                          {guessResult.guessedAnswer}
+                        </span>
+                        {' '}— just one level off!
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-sm text-gray-700 mb-2">
