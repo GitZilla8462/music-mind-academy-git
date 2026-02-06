@@ -17,6 +17,7 @@ const INSTRUMENT_CONFIGS = [
     videoPath: '/lessons/listening-lab/lesson1/videos/violin-demo.mp4',
     startTime: 134, // 2:14
     endTime: 144,   // 2:24
+    volume: 0.8,
     facts: ['Smallest string instrument', 'Plays the highest notes', 'Often plays the melody']
   },
   {
@@ -28,6 +29,7 @@ const INSTRUMENT_CONFIGS = [
     videoPath: '/lessons/listening-lab/lesson1/videos/viola-demo.mp4',
     startTime: 33,  // 0:33
     endTime: 45,    // 0:45
+    volume: 0.8,
     facts: ['Larger than a violin', 'Warmer, darker sound', 'Often plays harmony']
   },
   {
@@ -39,6 +41,7 @@ const INSTRUMENT_CONFIGS = [
     videoPath: '/lessons/listening-lab/lesson1/videos/cello-demo.mp4',
     startTime: 253, // 4:13
     endTime: 263,   // 4:23
+    volume: 0.45,   // Reduced - cello example is too loud
     facts: ['Played sitting down', 'Rich, warm tone', 'Can play melody or bass']
   },
   {
@@ -50,6 +53,7 @@ const INSTRUMENT_CONFIGS = [
     videoPath: '/lessons/listening-lab/lesson1/videos/bass-demo.mp4',
     startTime: 13,  // 0:13
     endTime: 23,    // 0:23
+    volume: 0.8,
     facts: ['Largest string instrument', 'Provides the foundation', 'Players stand or use tall stool']
   }
 ];
@@ -91,12 +95,13 @@ const StringFamilyShowcase = ({ onAdvance }) => {
 
     try {
       videoRef.current.currentTime = config.startTime;
+      videoRef.current.volume = config.volume ?? 0.8;
       await videoRef.current.play();
       setPhase('playing');
     } catch (err) {
       console.error('Video playback error:', err);
     }
-  }, [config.startTime]);
+  }, [config.startTime, config.volume]);
 
   // Check if we've reached the end time
   const handleTimeUpdate = useCallback(() => {

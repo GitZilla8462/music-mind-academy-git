@@ -721,26 +721,21 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
   // ========================================================================
 
   return (
-    <div className={`h-full bg-gray-100 text-gray-800 flex flex-col ${expanded ? 'fixed inset-0 z-50' : ''}`}>
+    <div className={`h-screen bg-gray-100 text-gray-800 flex flex-col overflow-hidden ${expanded ? 'fixed inset-0 z-50' : ''}`}>
 
       {/* HEADER */}
-      <div className="h-16 px-4 flex items-center justify-between bg-white border-b border-gray-200 flex-shrink-0 shadow-sm">
+      <div className="h-12 px-4 flex items-center justify-between bg-white border-b border-gray-200 flex-shrink-0 shadow-sm">
         {/* Left: Title */}
         <div className="flex items-center gap-4">
-          <span className="text-xl font-bold text-gray-800">🎵 Listening Map Canvas</span>
+          <span className="text-base font-bold text-gray-800">🎵 Listening Map Canvas</span>
         </div>
 
         {/* Center: Song Title & Composer */}
         <div className="flex-1 flex justify-center items-center">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-gray-500 text-sm font-medium">Song:</span>
-              <span className="font-bold text-lg text-gray-900">{mapConfig.credits.title}</span>
-            </div>
-            <div className="flex items-center justify-center gap-2 mt-0.5">
-              <span className="text-gray-500 text-sm font-medium">Composer:</span>
-              <span className="font-semibold text-base text-gray-700">{mapConfig.credits.composer}</span>
-            </div>
+          <div className="text-center flex items-center gap-3">
+            <span className="font-bold text-sm text-gray-900">{mapConfig.credits.title}</span>
+            <span className="text-gray-400">—</span>
+            <span className="font-semibold text-sm text-gray-700">{mapConfig.credits.composer}</span>
           </div>
         </div>
 
@@ -882,22 +877,22 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
       </div>
 
       {/* TRANSPORT */}
-      <div className="h-14 px-4 flex items-center gap-3 bg-white border-t border-gray-200 flex-shrink-0 shadow-sm">
-        <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
-          <button onClick={audio.rewind} className="w-10 h-10 rounded-lg hover:bg-gray-200 text-gray-600 flex items-center justify-center" title="Rewind">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+      <div className="h-11 px-4 flex items-center gap-3 bg-white border-t border-gray-200 flex-shrink-0 shadow-sm">
+        <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-0.5">
+          <button onClick={audio.rewind} className="w-8 h-8 rounded-lg hover:bg-gray-200 text-gray-600 flex items-center justify-center" title="Rewind">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
           </button>
           <button onClick={audio.togglePlay}
-            className={`w-12 h-10 rounded-lg flex items-center justify-center ${audio.isPlaying ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
+            className={`w-10 h-8 rounded-lg flex items-center justify-center ${audio.isPlaying ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
             title={audio.isPlaying ? 'Pause' : 'Play'}>
             {audio.isPlaying ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
             ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             )}
           </button>
-          <button onClick={audio.stop} className="w-10 h-10 rounded-lg hover:bg-gray-200 text-gray-600 flex items-center justify-center" title="Stop">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z"/></svg>
+          <button onClick={audio.stop} className="w-8 h-8 rounded-lg hover:bg-gray-200 text-gray-600 flex items-center justify-center" title="Stop">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z"/></svg>
           </button>
         </div>
 

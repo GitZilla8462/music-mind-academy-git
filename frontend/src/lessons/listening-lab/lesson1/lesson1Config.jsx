@@ -73,7 +73,7 @@ export const lessonSections = [
       },
       {
         id: 'string-family-showcase',
-        type: 'activity',
+        type: 'summary',
         label: 'See & Hear the Strings',
         description: 'Watch and hear each string instrument: Violin → Viola → Cello → Bass.',
         duration: 5
@@ -169,11 +169,9 @@ export const lessonSections = [
     stages: [
       {
         id: 'reflection',
-        type: 'activity',
-        label: '🎮 Unlock Class Reflection',
+        type: 'discussion',
+        label: 'Class Reflection',
         duration: 5,
-        hasTimer: true,
-        trackProgress: true,
         description: 'Wrap up with three reflection questions.',
         bonusDescription: ''
       }
@@ -371,7 +369,7 @@ export const lessonStages = [
     id: 'string-family-showcase',
     label: 'See & Hear the Strings',
     description: 'Watch and hear each string instrument: Violin → Viola → Cello → Bass.',
-    type: 'activity',
+    type: 'summary',
     duration: 5,
     presentationView: {
       type: 'string-family-showcase'
@@ -492,11 +490,9 @@ export const lessonStages = [
   },
   {
     id: 'reflection',
-    label: '🎮 Unlock Class Reflection',
+    label: 'Class Reflection',
     description: 'Wrap up with three reflection questions.',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
+    type: 'discussion',
     duration: 5,
     presentationView: {
       type: 'summary',

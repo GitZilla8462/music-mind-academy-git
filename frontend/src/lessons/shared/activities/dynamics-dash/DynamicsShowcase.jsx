@@ -1,28 +1,37 @@
 // File: /src/lessons/shared/activities/dynamics-dash/DynamicsShowcase.jsx
 // Interactive Dynamics Showcase - Teacher presentation view
 // Steps through pp → ff one at a time with audio playback and visual highlighting
+// Flow: Direction text → Play button → Next button (no auto-play)
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, Pause, ChevronRight, Check, RotateCcw } from 'lucide-react';
 import { AUDIO_PATH, DYNAMICS, getVolumeForDynamic } from './dynamicsDashConfig';
 
+// Direction text shown BEFORE playing each dynamic
+const DIRECTION_TEXT = [
+  "Next, we will hear Pianissimo (pp) — Very Soft",
+  "Next, we will hear Piano (p) — Soft",
+  "Next, we will hear Mezzo Piano (mp) — Medium Soft",
+  "Next, we will hear Mezzo Forte (mf) — Medium Loud",
+  "Next, we will hear Forte (f) — Loud",
+  "Next, we will hear Fortissimo (ff) — Very Loud",
+];
+
 // Teacher speaking text for each phase of the showcase
 const TEACHER_SCRIPT = {
   intro: "Now we're going to hear all six dynamic markings. Dynamics tell us how loud or soft to play the music. We'll go from the softest all the way to the loudest. Listen carefully to how each one sounds different.",
   perDynamic: [
-    "Pianissimo — the softest dynamic. Written as two little p's. This is like a whisper in music. You have to really lean in to hear it. Listen...",
-    "Piano — soft, but not as quiet as pianissimo. One p. Think of how you'd talk in a library. Listen to how you can hear the melody more clearly now...",
-    "Mezzo piano — medium soft. \"Mezzo\" means \"medium\" in Italian. We're right in the middle-soft range now. It's comfortable — not straining to hear, not overwhelming. Listen...",
-    "Mezzo forte — medium loud. Still in the middle, but now leaning toward the loud side. This is probably the dynamic you hear most often in music. Listen to the energy pick up...",
-    "Forte — loud! One f. This is bold and confident. The musicians are really digging in now. You can feel the difference. Listen...",
-    "Fortissimo — the loudest dynamic! Two f's. This is full power — every instrument giving everything they've got. Listen to how much bigger this sounds...",
+    "Pianissimo — the softest dynamic. Written as two little p's. This is like a whisper in music. You have to really lean in to hear it.",
+    "Piano — soft, but not as quiet as pianissimo. One p. Think of how you'd talk in a library. Listen to how you can hear the melody more clearly now.",
+    "Mezzo piano — medium soft. \"Mezzo\" means \"medium\" in Italian. We're right in the middle-soft range now. It's comfortable — not straining to hear, not overwhelming.",
+    "Mezzo forte — medium loud. Still in the middle, but now leaning toward the loud side. This is probably the dynamic you hear most often in music. Listen to the energy pick up.",
+    "Forte — loud! One f. This is bold and confident. The musicians are really digging in now. You can feel the difference.",
+    "Fortissimo — the loudest dynamic! Two f's. This is full power — every instrument giving everything they've got. Listen to how much bigger this sounds.",
   ],
   outro: "Those are your six dynamic levels — from pianissimo to fortissimo. In a moment, you'll get to test your ears and see if you can identify them on your own!",
 };
 
 // Showcase clips - one per dynamic level, ordered pp → ff
-// Timestamps from Vivaldi's Spring that best represent each level
-// Volume is set via getVolumeForDynamic() from shared config
 const SHOWCASE_CLIPS = [
   { symbol: 'pp', startTime: 78, endTime: 84, description: 'Quiet strings after the storm' },
   { symbol: 'p',  startTime: 8,  endTime: 14, description: 'Gentle bird songs' },
@@ -34,6 +43,8 @@ const SHOWCASE_CLIPS = [
 
 const DynamicsShowcase = ({ sessionData }) => {
   const [currentIndex, setCurrentIndex] = useState(-1); // -1 = not started
+  const [hasPlayed, setHasPlayed] = useState(false); // whether current clip has been played at least once
+  const [clipFinished, setClipFinished] = useState(false); // clip done playing, show Next
   const [isPlaying, setIsPlaying] = useState(false);
   const [completedIndices, setCompletedIndices] = useState(new Set());
 
@@ -74,6 +85,8 @@ const DynamicsShowcase = ({ sessionData }) => {
     });
 
     setIsPlaying(true);
+    setHasPlayed(true);
+    setClipFinished(false);
 
     // Stop after clip duration
     const duration = (clip.endTime - clip.startTime) * 1000;
@@ -82,6 +95,7 @@ const DynamicsShowcase = ({ sessionData }) => {
         audioRef.current.pause();
       }
       setIsPlaying(false);
+      setClipFinished(true);
     }, duration);
   }, [stopAudio]);
 
@@ -94,13 +108,14 @@ const DynamicsShowcase = ({ sessionData }) => {
     }
   }, [isPlaying, currentIndex, stopAudio, playClipAtIndex]);
 
-  // Start: advance to first and play
+  // Start: advance to first dynamic (no auto-play - show direction first)
   const handleStart = useCallback(() => {
     setCurrentIndex(0);
-    playClipAtIndex(0);
-  }, [playClipAtIndex]);
+    setHasPlayed(false);
+    setClipFinished(false);
+  }, []);
 
-  // Next: mark current done, advance, and auto-play
+  // Next: mark current done, advance to next (no auto-play)
   const handleNext = useCallback(() => {
     stopAudio();
 
@@ -112,18 +127,20 @@ const DynamicsShowcase = ({ sessionData }) => {
     const nextIdx = currentIndex + 1;
     if (nextIdx < SHOWCASE_CLIPS.length) {
       setCurrentIndex(nextIdx);
-      // Auto-play next clip after a brief pause for the transition
-      setTimeout(() => playClipAtIndex(nextIdx), 400);
+      setHasPlayed(false);
+      setClipFinished(false);
     } else {
       // Mark last as completed
       setCompletedIndices(prev => new Set([...prev, currentIndex]));
     }
-  }, [currentIndex, stopAudio, playClipAtIndex]);
+  }, [currentIndex, stopAudio]);
 
   // Reset to start
   const handleReset = useCallback(() => {
     stopAudio();
     setCurrentIndex(-1);
+    setHasPlayed(false);
+    setClipFinished(false);
     setCompletedIndices(new Set());
   }, [stopAudio]);
 
@@ -136,6 +153,17 @@ const DynamicsShowcase = ({ sessionData }) => {
         <h1 className="text-6xl font-bold text-white mb-2">Dynamic Markings</h1>
         <p className="text-2xl text-purple-300 mb-0">The Volume of Music — from Very Soft to Very Loud</p>
       </div>
+
+      {/* Direction banner - shows what's coming next */}
+      {currentIndex >= 0 && !allDone && (
+        <div className="flex-shrink-0 max-w-3xl mx-auto w-full mb-3">
+          <div className="bg-yellow-500/20 border border-yellow-400/40 rounded-xl px-6 py-3">
+            <p className="text-2xl text-yellow-200 font-bold text-center">
+              {DIRECTION_TEXT[currentIndex]}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Teacher speaking text */}
       <div className="flex-shrink-0 max-w-4xl mx-auto w-full mb-4">
@@ -262,34 +290,41 @@ const DynamicsShowcase = ({ sessionData }) => {
         {/* Active dynamic */}
         {currentIndex >= 0 && !allDone && (
           <>
+            {/* Play button - highlighted when clip hasn't played yet */}
             <button
               onClick={togglePlay}
               className={`px-8 py-4 rounded-2xl text-2xl font-bold text-white flex items-center gap-3 hover:scale-105 transition-all ${
                 isPlaying
                   ? 'bg-gradient-to-r from-orange-500 to-red-500'
-                  : 'bg-gradient-to-r from-purple-500 to-blue-500'
+                  : !hasPlayed
+                    ? 'bg-gradient-to-r from-purple-500 to-blue-500 ring-4 ring-purple-400/50 animate-pulse'
+                    : 'bg-gradient-to-r from-purple-500 to-blue-500'
               }`}
             >
-              {isPlaying ? <><Pause size={28} /> Pause</> : <><Play size={28} /> Replay</>}
+              {isPlaying ? <><Pause size={28} /> Pause</> : <><Play size={28} /> {hasPlayed ? 'Replay' : 'Play'}</>}
             </button>
 
-            <button
-              onClick={handleNext}
-              className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-2xl text-2xl font-bold text-white flex items-center gap-3 hover:scale-105 transition-all"
-            >
-              {currentIndex < SHOWCASE_CLIPS.length - 1 ? (
-                <>Next <ChevronRight size={28} /></>
-              ) : (
-                <>Finish <Check size={28} /></>
-              )}
-            </button>
+            {/* Next button - only shows after clip finishes */}
+            {clipFinished && (
+              <button
+                onClick={handleNext}
+                className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-2xl text-2xl font-bold text-white flex items-center gap-3 hover:scale-105 transition-all"
+              >
+                {currentIndex < SHOWCASE_CLIPS.length - 1 ? (
+                  <>Next <ChevronRight size={28} /></>
+                ) : (
+                  <>Finish <Check size={28} /></>
+                )}
+              </button>
+            )}
           </>
         )}
 
         {/* All done */}
         {allDone && (
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col items-center gap-3">
             <span className="text-2xl text-green-400 font-bold">All dynamics covered!</span>
+            <span className="text-lg text-white/60">Click Next in the sidebar to advance to the next slide</span>
             <button
               onClick={handleReset}
               className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-lg font-medium text-white flex items-center gap-2 transition-all"
