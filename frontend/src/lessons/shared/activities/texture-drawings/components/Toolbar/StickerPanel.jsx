@@ -373,11 +373,9 @@ const AccordionSection = ({
       </button>
 
       {isOpen && (
-        <div style={{ 
-          padding: '12px', 
-          backgroundColor: '#f8fafc',
-          maxHeight: '400px',
-          overflowY: 'auto'
+        <div style={{
+          padding: '12px',
+          backgroundColor: '#f8fafc'
         }}>
           {Object.entries(data).map(([categoryKey, category]) => (
             <div key={categoryKey} style={{ marginBottom: '16px' }}>

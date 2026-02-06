@@ -12,7 +12,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Pause, Users, Trophy, Eye, RotateCcw, ChevronRight } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
-import { AUDIO_PATH, DYNAMICS, QUESTIONS, TOTAL_QUESTIONS, getVolumeForDynamic } from './dynamicsDashConfig';
+import { AUDIO_PATH, DYNAMICS, GRADUAL_DYNAMICS, QUESTIONS, TOTAL_QUESTIONS, getVolumeForDynamic } from './dynamicsDashConfig';
 
 // Shuffle helper
 const shuffleArray = (arr) => [...arr].sort(() => Math.random() - 0.5);
@@ -113,7 +113,9 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
     const audio = new Audio(AUDIO_PATH);
     audioRef.current = audio;
     audio.currentTime = question.startTime;
-    audio.volume = getVolumeForDynamic(question.correctAnswer);
+    // For gradual dynamics (crescendo/decrescendo), use natural volume so students hear the change
+    // For level questions, use artificial scaling to exaggerate differences
+    audio.volume = question.questionType === 'gradual' ? 0.7 : getVolumeForDynamic(question.correctAnswer);
 
     audio.play().catch(err => {
       console.error('Audio playback error:', err);
@@ -137,6 +139,7 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
       phase: 'guessing',
       currentQuestion,
       totalQuestions: shuffledQuestions.length,
+      questionType: question.questionType || 'level',
       isPlaying: true,
       playStartTime: Date.now()
     });
@@ -165,7 +168,8 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
     updateGame({
       phase: 'playing',
       currentQuestion: 0,
-      totalQuestions: shuffled.length
+      totalQuestions: shuffled.length,
+      questionType: shuffled[0]?.questionType || 'level'
     });
   }, [sessionCode, students, updateGame]);
 
@@ -183,10 +187,14 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
     students.forEach(s => {
       if (s.answer) {
         const isCorrect = s.answer === question.correctAnswer;
-        // Check for partial credit (within one level)
-        const guessIndex = DYNAMICS.findIndex(d => d.symbol === s.answer);
-        const correctIndex = DYNAMICS.findIndex(d => d.symbol === question.correctAnswer);
-        const isPartial = Math.abs(guessIndex - correctIndex) === 1;
+
+        // Check for partial credit (within one level) - only for level questions, not gradual
+        let isPartial = false;
+        if (!isCorrect && question.questionType !== 'gradual') {
+          const guessIndex = DYNAMICS.findIndex(d => d.symbol === s.answer);
+          const correctIndex = DYNAMICS.findIndex(d => d.symbol === question.correctAnswer);
+          isPartial = guessIndex >= 0 && correctIndex >= 0 && Math.abs(guessIndex - correctIndex) === 1;
+        }
 
         if (isCorrect) {
           correct++;
@@ -237,7 +245,8 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
       setCorrectCount(0);
       updateGame({
         phase: 'playing',
-        currentQuestion: nextIdx
+        currentQuestion: nextIdx,
+        questionType: shuffledQuestions[nextIdx]?.questionType || 'level'
       });
     }
   }, [sessionCode, students, currentQuestion, shuffledQuestions, updateGame, stopAudio]);
@@ -246,7 +255,12 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
   useEffect(() => () => stopAudio(), [stopAudio]);
 
   const question = shuffledQuestions[currentQuestion];
-  const correctDynamic = question ? DYNAMICS.find(d => d.symbol === question.correctAnswer) : null;
+  // Find the correct answer in either DYNAMICS or GRADUAL_DYNAMICS based on question type
+  const correctDynamic = question
+    ? (question.questionType === 'gradual'
+        ? GRADUAL_DYNAMICS.find(d => d.symbol === question.correctAnswer)
+        : DYNAMICS.find(d => d.symbol === question.correctAnswer))
+    : null;
 
   // Render
   return (
@@ -298,21 +312,40 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
               <div className="text-center">
                 <div className="text-6xl font-black mb-4">Question {currentQuestion + 1}</div>
                 <p className="text-2xl text-purple-200 mb-4">"{question.description}"</p>
-                <p className="text-xl text-white/70 mb-6">What is the dynamic level?</p>
+                <p className="text-xl text-white/70 mb-6">
+                  {question.questionType === 'gradual'
+                    ? 'Is this crescendo or decrescendo?'
+                    : 'What is the dynamic level?'}
+                </p>
 
-                {/* Dynamic options preview */}
-                <div className="grid grid-cols-6 gap-2 max-w-3xl mx-auto mb-8">
-                  {DYNAMICS.map(d => (
-                    <div
-                      key={d.symbol}
-                      className="p-3 rounded-xl text-center"
-                      style={{ backgroundColor: `${d.color}40`, borderColor: d.color, borderWidth: '2px' }}
-                    >
-                      <div className="text-3xl font-bold text-white">{d.symbol}</div>
-                      <div className="text-xs text-white/80">{d.meaning}</div>
-                    </div>
-                  ))}
-                </div>
+                {/* Dynamic options preview - show different options based on question type */}
+                {question.questionType === 'gradual' ? (
+                  <div className="flex gap-6 justify-center mb-8">
+                    {GRADUAL_DYNAMICS.map(d => (
+                      <div
+                        key={d.symbol}
+                        className="p-6 rounded-xl text-center min-w-[200px]"
+                        style={{ backgroundColor: `${d.color}40`, borderColor: d.color, borderWidth: '3px' }}
+                      >
+                        <div className="text-4xl font-bold text-white mb-2">{d.name}</div>
+                        <div className="text-lg text-white/80">{d.meaning}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-6 gap-2 max-w-3xl mx-auto mb-8">
+                    {DYNAMICS.map(d => (
+                      <div
+                        key={d.symbol}
+                        className="p-3 rounded-xl text-center"
+                        style={{ backgroundColor: `${d.color}40`, borderColor: d.color, borderWidth: '2px' }}
+                      >
+                        <div className="text-3xl font-bold text-white">{d.symbol}</div>
+                        <div className="text-xs text-white/80">{d.meaning}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <button
                   onClick={playAudio}
@@ -332,21 +365,40 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
               <div className="text-center">
                 <div className="text-5xl font-black mb-2">🎧 LISTEN!</div>
                 <p className="text-2xl text-yellow-300 mb-4">"{question.description}"</p>
-                <p className="text-xl text-white/70 mb-6">What dynamic level do you hear?</p>
+                <p className="text-xl text-white/70 mb-6">
+                  {question.questionType === 'gradual'
+                    ? 'Is this crescendo or decrescendo?'
+                    : 'What dynamic level do you hear?'}
+                </p>
 
-                {/* Dynamic options */}
-                <div className="grid grid-cols-6 gap-2 max-w-3xl mx-auto mb-6">
-                  {DYNAMICS.map(d => (
-                    <div
-                      key={d.symbol}
-                      className="p-3 rounded-xl text-center"
-                      style={{ backgroundColor: `${d.color}40`, borderColor: d.color, borderWidth: '2px' }}
-                    >
-                      <div className="text-3xl font-bold text-white">{d.symbol}</div>
-                      <div className="text-xs text-white/80">{d.meaning}</div>
-                    </div>
-                  ))}
-                </div>
+                {/* Dynamic options - show different options based on question type */}
+                {question.questionType === 'gradual' ? (
+                  <div className="flex gap-6 justify-center mb-6">
+                    {GRADUAL_DYNAMICS.map(d => (
+                      <div
+                        key={d.symbol}
+                        className="p-6 rounded-xl text-center min-w-[200px]"
+                        style={{ backgroundColor: `${d.color}40`, borderColor: d.color, borderWidth: '3px' }}
+                      >
+                        <div className="text-4xl font-bold text-white mb-2">{d.name}</div>
+                        <div className="text-lg text-white/80">{d.meaning}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-6 gap-2 max-w-3xl mx-auto mb-6">
+                    {DYNAMICS.map(d => (
+                      <div
+                        key={d.symbol}
+                        className="p-3 rounded-xl text-center"
+                        style={{ backgroundColor: `${d.color}40`, borderColor: d.color, borderWidth: '2px' }}
+                      >
+                        <div className="text-3xl font-bold text-white">{d.symbol}</div>
+                        <div className="text-xs text-white/80">{d.meaning}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {isPlaying && (
                   <div className="text-xl text-green-400 animate-pulse mb-4">🔊 Playing...</div>
@@ -385,14 +437,23 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
               <div className="text-center">
                 <div className="text-3xl text-white/80 mb-4">The answer is...</div>
 
-                {/* Answer display */}
+                {/* Answer display - different layout for gradual vs level */}
                 <div
                   className="rounded-3xl p-8 mb-6 max-w-md mx-auto"
                   style={{ backgroundColor: correctDynamic.color }}
                 >
-                  <div className="text-8xl font-black text-white mb-2">{correctDynamic.symbol}</div>
-                  <div className="text-3xl font-bold text-white/90">{correctDynamic.name}</div>
-                  <div className="text-2xl text-white/80">{correctDynamic.meaning}</div>
+                  {question.questionType === 'gradual' ? (
+                    <>
+                      <div className="text-6xl font-black text-white mb-2">{correctDynamic.name}</div>
+                      <div className="text-3xl text-white/80">{correctDynamic.meaning}</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-8xl font-black text-white mb-2">{correctDynamic.symbol}</div>
+                      <div className="text-3xl font-bold text-white/90">{correctDynamic.name}</div>
+                      <div className="text-2xl text-white/80">{correctDynamic.meaning}</div>
+                    </>
+                  )}
                 </div>
 
                 <div className="text-xl text-white/70 mb-6">

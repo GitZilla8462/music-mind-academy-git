@@ -358,6 +358,10 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
   const [draggedSticker, setDraggedSticker] = useState(null);
   const [dragPosition, setDragPosition] = useState(null);
 
+  // Playhead dragging state
+  const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false);
+  const canvasAreaRef = useRef(null);
+
   // UI
   const [expanded, setExpanded] = useState(false);
 
@@ -543,6 +547,62 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDraggingFromPanel, draggedSticker, stickerSize]);
+
+  // ========================================================================
+  // PLAYHEAD DRAG HANDLERS - drag to seek through audio
+  // ========================================================================
+
+  const handlePlayheadMouseDown = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingPlayhead(true);
+  }, []);
+
+  // Convert mouse position to audio time
+  const getTimeFromMousePosition = useCallback((clientX, clientY) => {
+    if (!canvasAreaRef.current) return null;
+
+    const rect = canvasAreaRef.current.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    // Determine which row based on Y position
+    const row = Math.floor(y / rowHeight);
+    const clampedRow = Math.max(0, Math.min(row, mapConfig.numRows - 1));
+
+    // Determine position within row based on X position
+    const xRatio = Math.max(0, Math.min(1, x / canvasWidth));
+
+    // Calculate total time
+    const timeInRow = xRatio * mapConfig.secondsPerRow;
+    const totalTime = (clampedRow * mapConfig.secondsPerRow) + timeInRow;
+
+    return Math.max(0, Math.min(totalTime, mapConfig.totalDuration));
+  }, [rowHeight, canvasWidth, mapConfig.numRows, mapConfig.secondsPerRow, mapConfig.totalDuration]);
+
+  // Global mouse handlers for playhead drag
+  useEffect(() => {
+    if (!isDraggingPlayhead) return;
+
+    const handleMouseMove = (e) => {
+      const newTime = getTimeFromMousePosition(e.clientX, e.clientY);
+      if (newTime !== null) {
+        audio.seekTo(newTime);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingPlayhead(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingPlayhead, getTimeFromMousePosition, audio]);
 
   // ✅ UPDATED: Save using editable data so it can be loaded and edited later
   // silent = true means don't show message (used by teacher save command)
@@ -749,7 +809,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
         )}
 
         {/* CANVAS */}
-        <div className="relative flex-1 overflow-hidden bg-white">
+        <div ref={canvasAreaRef} className="relative flex-1 overflow-hidden bg-white">
           {canvasWidth > 0 && canvasHeight > 0 && (
             <>
               <DrawingCanvas
@@ -772,10 +832,23 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
                 <div key={i} className="absolute left-0 right-0 h-px bg-gray-300 pointer-events-none" style={{ top: i * rowHeight, zIndex: 5 }} />
               ))}
 
-              <div className="absolute w-0.5 bg-red-500 pointer-events-none z-20"
-                style={{ height: rowHeight, top: playheadY, left: 0, transform: `translateX(${playheadX}px)`, willChange: 'transform', boxShadow: '0 0 8px rgba(239, 68, 68, 0.6)' }}>
-                <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 rounded-full" />
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 rounded-full" />
+              {/* Draggable Playhead */}
+              <div
+                className={`absolute w-1 bg-red-500 z-20 ${isDraggingPlayhead ? 'cursor-grabbing' : 'cursor-grab'}`}
+                style={{
+                  height: rowHeight,
+                  top: playheadY,
+                  left: 0,
+                  transform: `translateX(${playheadX - 2}px)`,
+                  willChange: 'transform',
+                  boxShadow: '0 0 8px rgba(239, 68, 68, 0.6)'
+                }}
+                onMouseDown={handlePlayheadMouseDown}
+              >
+                {/* Top handle - larger for easier grabbing */}
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-red-500 rounded-full cursor-grab hover:scale-110 transition-transform" />
+                {/* Bottom handle */}
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-red-500 rounded-full cursor-grab hover:scale-110 transition-transform" />
               </div>
 
               {/* ✅ NEW: Drop zone indicator when dragging */}

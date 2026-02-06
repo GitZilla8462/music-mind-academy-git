@@ -37,10 +37,17 @@ export const lessonSections = [
     estimatedTime: 12,
     stages: [
       {
-        id: 'welcome-intro',
+        id: 'agenda',
         type: 'summary',
-        label: 'Strings & Dynamics',
-        description: 'Introduce the lesson: Feel the Power of Soft and Loud.',
+        label: 'Agenda',
+        description: 'Show students what we will learn today.',
+        duration: 1
+      },
+      {
+        id: 'essential-question',
+        type: 'summary',
+        label: 'Essential Question',
+        description: 'Introduce the essential question and I Can statement.',
         duration: 1
       },
       {
@@ -125,24 +132,31 @@ export const lessonSections = [
     title: '3. Create',
     subtitle: 'Dynamics Listening Map',
     color: 'blue',
-    estimatedTime: 18,
+    estimatedTime: 15,
     stages: [
+      {
+        id: 'listening-map-intro',
+        type: 'summary',
+        label: 'Listening Map',
+        description: 'Introduce the listening map activity.',
+        duration: 1
+      },
       {
         id: 'listening-map-instructions',
         type: 'summary',
-        label: 'Listening Map Instructions',
-        description: 'Explain: circle instruments, mark dynamics (pp-ff), draw crescendo/decrescendo arrows.',
+        label: 'Listening Map Video',
+        description: 'Watch the introduction video.',
         duration: 2
       },
       {
         id: 'dynamics-listening-map',
         type: 'activity',
         label: '🎮 Unlock Dynamics Listening Map',
-        duration: 15,
+        duration: 12,
         hasTimer: true,
         trackProgress: true,
         description: 'STUDENTS WORK: Create a Dynamics Listening Map for Spring.',
-        bonusDescription: 'Bonus: Add tempo observations!'
+        bonusDescription: 'Early finishers add instruments, tempo, melody direction.'
       }
     ]
   },
@@ -156,12 +170,38 @@ export const lessonSections = [
       {
         id: 'reflection',
         type: 'activity',
-        label: '🎮 Unlock Reflection',
+        label: '🎮 Unlock Class Reflection',
         duration: 5,
         hasTimer: true,
         trackProgress: true,
-        description: '"The dynamics in Spring made me feel ___ because ___."',
+        description: 'Wrap up with three reflection questions.',
         bonusDescription: ''
+      }
+    ]
+  },
+  {
+    id: 'bonus',
+    title: '5. Bonus',
+    subtitle: 'Extra Activities',
+    color: 'purple',
+    estimatedTime: 15,
+    stages: [
+      {
+        id: 'bonus-intro',
+        type: 'summary',
+        label: 'Bonus Activities',
+        description: 'Extra activities for classes with additional time.',
+        duration: 1
+      },
+      {
+        id: 'strings-dynamics-lab',
+        type: 'activity',
+        label: '🎮 Unlock Strings & Dynamics Lab',
+        duration: 12,
+        hasTimer: false,
+        trackProgress: true,
+        description: 'Partner game: Pick an instrument and dynamic, partner guesses!',
+        bonusDescription: 'Can you identify the instrument AND the dynamic level?'
       }
     ]
   }
@@ -198,13 +238,20 @@ export const lesson1Config = {
       id: 2,
       type: "dynamics-listening-map",
       title: "Dynamics Listening Map",
-      estimatedTime: "15 min"
+      estimatedTime: "12 min"
     },
     {
       id: 3,
       type: "listening-lab-reflection",
       title: "Reflection",
       estimatedTime: "5 min"
+    },
+    {
+      id: 4,
+      type: "strings-dynamics-lab",
+      title: "Strings & Dynamics Lab",
+      estimatedTime: "12 min",
+      isBonus: true
     }
   ]
 };
@@ -220,9 +267,9 @@ export const lessonStages = [
     type: 'waiting'
   },
   {
-    id: 'welcome-intro',
-    label: 'Strings & Dynamics',
-    description: 'Introduce the lesson and essential question.',
+    id: 'agenda',
+    label: 'Agenda',
+    description: 'Show students what we will learn today.',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -230,14 +277,6 @@ export const lessonStages = [
       title: 'Strings & Dynamics',
       subtitle: 'Feel the Power of Soft and Loud',
       sections: [
-        {
-          heading: 'Essential Question',
-          bullets: ['How do dynamics (soft and loud) change the way music makes us feel?']
-        },
-        {
-          heading: 'I Can Statement',
-          bullets: ['I can identify string instruments and describe dynamics using proper musical terms.']
-        },
         {
           heading: 'Today We Will',
           bullets: [
@@ -252,6 +291,28 @@ export const lessonStages = [
         title: 'Spring',
         composer: 'Antonio Vivaldi'
       }
+    }
+  },
+  {
+    id: 'essential-question',
+    label: 'Essential Question',
+    description: 'Introduce the essential question and I Can statement.',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'summary',
+      title: 'Essential Question',
+      subtitle: '',
+      sections: [
+        {
+          heading: 'Essential Question',
+          bullets: ['How do dynamics (soft and loud) change the way music makes us feel?']
+        },
+        {
+          heading: 'I Can Statement',
+          bullets: ['I can identify string instruments and describe dynamics using proper musical terms.']
+        }
+      ]
     }
   },
   {
@@ -333,27 +394,7 @@ export const lessonStages = [
     type: 'summary',
     duration: 2,
     presentationView: {
-      type: 'summary',
-      title: 'Gradual Dynamic Changes',
-      subtitle: 'Getting Louder and Softer Over Time',
-      sections: [
-        {
-          heading: 'Crescendo',
-          bullets: [
-            '📈 Crescendo = Gradually getting LOUDER',
-            'Symbol: < (opens up like getting bigger)',
-            'Example: Music builds from soft to loud'
-          ]
-        },
-        {
-          heading: 'Decrescendo (Diminuendo)',
-          bullets: [
-            '📉 Decrescendo = Gradually getting SOFTER',
-            'Symbol: > (closes down like getting smaller)',
-            'Example: Music fades from loud to soft'
-          ]
-        }
-      ]
+      type: 'crescendo-decrescendo'
     }
   },
   {
@@ -411,72 +452,97 @@ export const lessonStages = [
     }
   },
   {
+    id: 'listening-map-intro',
+    label: 'Listening Map',
+    description: 'Introduce the listening map activity.',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'summary',
+      title: 'Listening Map',
+      subtitle: '',
+      bullets: [
+        'Next we will watch a 2 minute video'
+      ]
+    }
+  },
+  {
     id: 'listening-map-instructions',
-    label: 'Listening Map Instructions',
-    description: 'Explain how to create a Dynamics Listening Map.',
+    label: 'Listening Map Video',
+    description: 'Watch the introduction video for the listening map activity.',
     type: 'summary',
     duration: 2,
     presentationView: {
-      type: 'summary',
-      title: 'Dynamics Listening Map',
-      subtitle: 'Track What You Hear',
-      sections: [
-        {
-          heading: 'What to Mark',
-          bullets: [
-            '🎻 Circle STRING INSTRUMENTS when you hear them prominently',
-            '📊 Mark DYNAMIC LEVELS at key moments (pp, p, mf, f, ff)',
-            '📈 Draw CRESCENDO arrows where music builds',
-            '📉 Draw DECRESCENDO arrows where music fades'
-          ]
-        },
-        {
-          heading: 'Color Coding',
-          bullets: [
-            '🔵 Soft dynamics (pp, p) = Blue',
-            '🟡 Medium dynamics (mp, mf) = Yellow',
-            '🔴 Loud dynamics (f, ff) = Red'
-          ]
-        }
-      ]
+      type: 'video',
+      videoPath: '/lessons/videos/film-music-loop-project/Listening Map Introduction.mp4'
     }
   },
   {
     id: 'dynamics-listening-map',
     label: '🎮 Unlock Dynamics Listening Map',
     description: 'STUDENTS WORK: Create a Dynamics Listening Map for Spring.',
-    bonusDescription: 'Bonus: Add tempo observations!',
+    bonusDescription: 'Early finishers add instruments, tempo, melody direction.',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 15,
+    duration: 12,
     presentationView: {
-      type: 'activity-banner',
-      title: 'Dynamics Listening Map',
-      subtitle: 'Track the dynamics in Spring by Vivaldi'
+      type: 'dynamics-listening-map-directions'
     }
   },
   {
     id: 'reflection',
-    label: '🎮 Unlock Reflection',
-    description: 'Students reflect on how dynamics affected their experience.',
+    label: '🎮 Unlock Class Reflection',
+    description: 'Wrap up with three reflection questions.',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
     duration: 5,
     presentationView: {
       type: 'summary',
-      title: 'Reflect: Feel the Dynamics',
-      subtitle: 'Exit Ticket',
-      bullets: [
-        'Complete this sentence:',
-        '"The dynamics in Spring made me feel ___ because ___."',
-        '',
-        'Think about:',
-        '• Which dynamic moments stood out to you?',
-        '• How did soft vs. loud sections make you feel differently?',
-        '• What mood did the dynamic contrasts create?'
+      title: 'Class Reflection',
+      subtitle: '',
+      sections: [
+        {
+          heading: 'Wrap Up Questions',
+          bullets: [
+            '1. What is one dynamic marking you learned today?',
+            '2. How did the dynamics in Spring make you feel?',
+            '3. What was your favorite part of creating the listening map?'
+          ]
+        }
       ]
+    }
+  },
+  {
+    id: 'bonus-intro',
+    label: 'Bonus Activities',
+    description: 'Extra activities for classes with additional time.',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'summary',
+      title: 'Bonus Activities',
+      subtitle: 'Extra Time?',
+      bullets: [
+        'These activities are for classes with extra time.',
+        'Choose one or more to extend the lesson!'
+      ]
+    }
+  },
+  {
+    id: 'strings-dynamics-lab',
+    label: '🎮 Unlock Strings & Dynamics Lab',
+    description: 'Partner game: Pick an instrument and dynamic, partner guesses!',
+    bonusDescription: 'Can you identify the instrument AND the dynamic level?',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: false,
+    duration: 12,
+    presentationView: {
+      type: 'activity-banner',
+      title: 'Strings & Dynamics Lab',
+      subtitle: 'Partner up! One picks, one guesses.'
     }
   }
 ];
@@ -484,7 +550,8 @@ export const lessonStages = [
 // Helper function to map session stage to activity type
 export const getActivityForStage = (stage) => {
   const stageMap = {
-    'welcome-intro': 'summary',
+    'agenda': 'summary',
+    'essential-question': 'summary',
     'meet-string-family': 'discussion',
     'string-family-definition': 'summary',
     'orchestral-strings': 'summary',
@@ -494,9 +561,12 @@ export const getActivityForStage = (stage) => {
     'dynamics-dash-intro': 'summary',
     'dynamics-dash': 'dynamics-dash',
     'dynamics-dash-results': 'dynamics-dash',
+    'listening-map-intro': 'summary',
     'listening-map-instructions': 'summary',
     'dynamics-listening-map': 'dynamics-listening-map',
-    'reflection': 'listening-lab-reflection'
+    'reflection': 'listening-lab-reflection',
+    'bonus-intro': 'summary',
+    'strings-dynamics-lab': 'strings-dynamics-lab'
   };
   return stageMap[stage];
 };

@@ -76,6 +76,9 @@ import { StringDetectiveActivity } from '../activities/string-detective';
 import { DynamicsDashActivity } from '../activities/dynamics-dash';
 import DynamicsDashStudentView from '../activities/dynamics-dash/DynamicsDashStudentView';
 
+// ✅ ADDED: Strings & Dynamics Lab for Lesson 1 (Bonus Activity)
+import StringsDynamicsLabActivity from '../activities/strings-dynamics-lab/StringsDynamicsLabActivity';
+
 const ActivityRenderer = ({
   activity,
   onComplete,
@@ -576,6 +579,16 @@ const ActivityRenderer = ({
           onComplete={onComplete}
           isSessionMode={isSessionMode}
           mode="dynamics"
+        />
+      );
+
+    // ✅ ADDED: Strings & Dynamics Lab (Listening Lab Lesson 1 - Bonus)
+    // Partner game: one picks instrument + dynamic, partner guesses both
+    case 'strings-dynamics-lab':
+      return (
+        <StringsDynamicsLabActivity
+          key={`strings-dynamics-lab-${activity.id}`}
+          onComplete={onComplete}
         />
       );
 

@@ -8,7 +8,7 @@ import { Check, Trophy, Volume2 } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
-import { DYNAMICS } from './dynamicsDashConfig';
+import { DYNAMICS, GRADUAL_DYNAMICS } from './dynamicsDashConfig';
 
 // Scoring
 const SCORING = {
@@ -31,7 +31,8 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
   // Game state (synced from teacher)
   const [gamePhase, setGamePhase] = useState('waiting'); // waiting, playing, guessing, revealed, finished
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [totalQuestions, setTotalQuestions] = useState(7);
+  const [totalQuestions, setTotalQuestions] = useState(9);
+  const [questionType, setQuestionType] = useState('level'); // 'level' or 'gradual'
   const [correctAnswer, setCorrectAnswer] = useState(null);
   const [playStartTime, setPlayStartTime] = useState(null);
 
@@ -118,11 +119,16 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
 
     const unsubscribe = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
-      if (!data) return;
+      if (!data) {
+        // No game data yet - stay in waiting
+        setGamePhase('waiting');
+        return;
+      }
 
       setGamePhase(data.phase || 'waiting');
       setCurrentQuestion(data.currentQuestion || 0);
-      setTotalQuestions(data.totalQuestions || 7);
+      setTotalQuestions(data.totalQuestions || 9);
+      setQuestionType(data.questionType || 'level');
 
       // Handle phase changes
       if (data.phase === 'playing' || data.phase === 'guessing') {
@@ -184,10 +190,13 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
 
           const answer = selectedAnswerRef.current;
           const isCorrect = answer === data.correctAnswer;
-          // Check partial credit
-          const guessIdx = DYNAMICS.findIndex(d => d.symbol === answer);
-          const correctIdx = DYNAMICS.findIndex(d => d.symbol === data.correctAnswer);
-          const isPartial = !isCorrect && Math.abs(guessIdx - correctIdx) === 1;
+          // Check partial credit - only for level questions, not gradual
+          let isPartial = false;
+          if (!isCorrect && data.questionType !== 'gradual') {
+            const guessIdx = DYNAMICS.findIndex(d => d.symbol === answer);
+            const correctIdx = DYNAMICS.findIndex(d => d.symbol === data.correctAnswer);
+            isPartial = guessIdx >= 0 && correctIdx >= 0 && Math.abs(guessIdx - correctIdx) === 1;
+          }
 
           wasCorrectRef.current = isCorrect;
           setWasCorrect(isCorrect);
@@ -270,7 +279,9 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
     }
   };
 
-  const getDynamicInfo = (symbol) => DYNAMICS.find(d => d.symbol === symbol);
+  const getDynamicInfo = (symbol) => {
+    return DYNAMICS.find(d => d.symbol === symbol) || GRADUAL_DYNAMICS.find(d => d.symbol === symbol);
+  };
   const correctDynamic = correctAnswer ? getDynamicInfo(correctAnswer) : null;
   const selectedDynamic = selectedAnswer ? getDynamicInfo(selectedAnswer) : null;
 
@@ -348,8 +359,8 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
     );
   }
 
-  // ============ WAITING PHASE ============
-  if (gamePhase === 'waiting') {
+  // ============ WAITING PHASE (includes 'setup' - before teacher starts game) ============
+  if (gamePhase === 'waiting' || gamePhase === 'setup') {
     return (
       <div className="h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center p-6">
         <div className="text-center">
@@ -392,7 +403,9 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
       <div className="flex-1 flex flex-col items-center justify-center">
         {/* Question */}
         <h2 className="text-2xl font-bold text-white mb-4 text-center">
-          What is the dynamic level?
+          {questionType === 'gradual'
+            ? 'Crescendo or Decrescendo?'
+            : 'What is the dynamic level?'}
         </h2>
 
         {/* Audio indicator - listen to teacher's screen */}
@@ -400,24 +413,40 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
           <Volume2 size={40} className="text-white" />
         </div>
 
-        {/* Dynamic answer buttons */}
+        {/* Dynamic answer buttons - different options based on question type */}
         {gamePhase === 'guessing' && !answerSubmitted && (
           <>
             <p className="text-purple-200 text-sm mb-4">Listen to the main screen, then tap your answer:</p>
-            <div className="grid grid-cols-3 gap-3 w-full max-w-md">
-              {DYNAMICS.map(d => (
-                <button
-                  key={d.symbol}
-                  onClick={() => submitAnswer(d.symbol)}
-                  className="p-4 rounded-2xl text-center transition-all hover:scale-105 active:scale-95 text-white"
-                  style={{ backgroundColor: d.color }}
-                >
-                  <div className="text-3xl font-bold">{d.symbol}</div>
-                  <div className="text-sm">{d.name}</div>
-                  <div className="text-xs opacity-90">({d.meaning.toLowerCase()})</div>
-                </button>
-              ))}
-            </div>
+            {questionType === 'gradual' ? (
+              <div className="flex gap-4 w-full max-w-md justify-center">
+                {GRADUAL_DYNAMICS.map(d => (
+                  <button
+                    key={d.symbol}
+                    onClick={() => submitAnswer(d.symbol)}
+                    className="flex-1 p-6 rounded-2xl text-center transition-all hover:scale-105 active:scale-95 text-white"
+                    style={{ backgroundColor: d.color }}
+                  >
+                    <div className="text-2xl font-bold">{d.name}</div>
+                    <div className="text-sm opacity-90">{d.meaning}</div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-3 w-full max-w-md">
+                {DYNAMICS.map(d => (
+                  <button
+                    key={d.symbol}
+                    onClick={() => submitAnswer(d.symbol)}
+                    className="p-4 rounded-2xl text-center transition-all hover:scale-105 active:scale-95 text-white"
+                    style={{ backgroundColor: d.color }}
+                  >
+                    <div className="text-3xl font-bold">{d.symbol}</div>
+                    <div className="text-sm">{d.name}</div>
+                    <div className="text-xs opacity-90">({d.meaning.toLowerCase()})</div>
+                  </button>
+                ))}
+              </div>
+            )}
           </>
         )}
 
@@ -431,9 +460,13 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
                 className="inline-block px-6 py-2 rounded-full text-white font-bold text-2xl mb-2"
                 style={{ backgroundColor: selectedDynamic.color }}
               >
-                {selectedDynamic.symbol}
+                {questionType === 'gradual' ? selectedDynamic.name : selectedDynamic.symbol}
               </div>
-              <p className="text-purple-200 text-sm">{selectedDynamic.name} ({selectedDynamic.meaning.toLowerCase()})</p>
+              <p className="text-purple-200 text-sm">
+                {questionType === 'gradual'
+                  ? selectedDynamic.meaning
+                  : `${selectedDynamic.name} (${selectedDynamic.meaning.toLowerCase()})`}
+              </p>
               <p className="text-sm text-purple-300 mt-4">Waiting for teacher to reveal...</p>
             </div>
           </div>
@@ -468,9 +501,18 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
               className="rounded-2xl p-6 text-white"
               style={{ backgroundColor: correctDynamic.color }}
             >
-              <div className="text-5xl font-black mb-1">{correctDynamic.symbol}</div>
-              <div className="text-xl font-bold">{correctDynamic.name}</div>
-              <div className="text-lg opacity-90">{correctDynamic.meaning}</div>
+              {questionType === 'gradual' ? (
+                <>
+                  <div className="text-4xl font-black mb-1">{correctDynamic.name}</div>
+                  <div className="text-xl opacity-90">{correctDynamic.meaning}</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-5xl font-black mb-1">{correctDynamic.symbol}</div>
+                  <div className="text-xl font-bold">{correctDynamic.name}</div>
+                  <div className="text-lg opacity-90">{correctDynamic.meaning}</div>
+                </>
+              )}
             </div>
 
             <p className="text-purple-200 mt-4 text-sm">Waiting for next question...</p>
