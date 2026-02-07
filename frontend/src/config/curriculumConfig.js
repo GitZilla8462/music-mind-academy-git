@@ -12,6 +12,63 @@
 
 export const CURRICULUM = [
   {
+    id: 'listening-lab',
+    name: 'Listening Lab',
+    shortName: 'Listening Lab',
+    icon: '🎧',
+    color: 'purple',
+    lessons: [
+      {
+        id: 'll-lesson1',
+        name: 'Lesson 1: Strings & Dynamics',
+        shortName: 'Strings',
+        concept: 'String family and dynamic markings (Vivaldi - Spring)',
+        route: '/lessons/listening-lab/lesson1',
+        activities: [
+          { id: 'dynamics-dash', name: 'Dynamics Dash', type: 'game' },
+          { id: 'dynamics-listening-map', name: 'Dynamics Listening Map', type: 'composition' },
+          { id: 'll-lesson1-reflection', name: 'Reflection', type: 'reflection' }
+        ]
+      },
+      {
+        id: 'll-lesson2',
+        name: 'Lesson 2: Woodwinds & Tempo',
+        shortName: 'Woodwinds',
+        concept: 'Woodwind family and tempo markings (Brahms - Hungarian Dance No. 5)',
+        route: '/lessons/listening-lab/lesson2',
+        activities: [
+          { id: 'tempo-charades', name: 'Tempo Charades', type: 'game' },
+          { id: 'tempo-listening-map', name: 'Tempo Listening Map', type: 'composition' },
+          { id: 'll-lesson2-reflection', name: 'Reflection', type: 'reflection' }
+        ]
+      },
+      {
+        id: 'll-lesson3',
+        name: 'Lesson 3: Brass & Articulation',
+        shortName: 'Brass',
+        concept: 'Brass family and articulation',
+        route: null, // Not yet built
+        activities: []
+      },
+      {
+        id: 'll-lesson4',
+        name: 'Lesson 4: Percussion & Rhythm',
+        shortName: 'Percussion',
+        concept: 'Percussion family and rhythm patterns',
+        route: null,
+        activities: []
+      },
+      {
+        id: 'll-lesson5',
+        name: 'Lesson 5: Full Orchestra',
+        shortName: 'Orchestra',
+        concept: 'All families together',
+        route: null,
+        activities: []
+      }
+    ]
+  },
+  {
     id: 'film-music',
     name: 'Film Music for Media',
     shortName: 'Film Music',
@@ -78,63 +135,6 @@ export const CURRICULUM = [
           { id: 'game-composition', name: 'Game Composition', type: 'composition' },
           { id: 'fm-lesson5-reflection', name: 'Reflection', type: 'reflection' }
         ]
-      }
-    ]
-  },
-  {
-    id: 'listening-lab',
-    name: 'Listening Lab',
-    shortName: 'Listening Lab',
-    icon: '🎧',
-    color: 'purple',
-    lessons: [
-      {
-        id: 'll-lesson1',
-        name: 'Lesson 1: Strings & Dynamics',
-        shortName: 'Strings',
-        concept: 'String family and dynamic markings (Vivaldi - Spring)',
-        route: '/lessons/listening-lab/lesson1',
-        activities: [
-          { id: 'dynamics-dash', name: 'Dynamics Dash', type: 'game' },
-          { id: 'dynamics-listening-map', name: 'Dynamics Listening Map', type: 'composition' },
-          { id: 'll-lesson1-reflection', name: 'Reflection', type: 'reflection' }
-        ]
-      },
-      {
-        id: 'll-lesson2',
-        name: 'Lesson 2: Woodwinds & Tempo',
-        shortName: 'Woodwinds',
-        concept: 'Woodwind family and tempo markings (Brahms - Hungarian Dance No. 5)',
-        route: '/lessons/listening-lab/lesson2',
-        activities: [
-          { id: 'tempo-charades', name: 'Tempo Charades', type: 'game' },
-          { id: 'tempo-listening-map', name: 'Tempo Listening Map', type: 'composition' },
-          { id: 'll-lesson2-reflection', name: 'Reflection', type: 'reflection' }
-        ]
-      },
-      {
-        id: 'll-lesson3',
-        name: 'Lesson 3: Brass & Articulation',
-        shortName: 'Brass',
-        concept: 'Brass family and articulation',
-        route: null, // Not yet built
-        activities: []
-      },
-      {
-        id: 'll-lesson4',
-        name: 'Lesson 4: Percussion & Rhythm',
-        shortName: 'Percussion',
-        concept: 'Percussion family and rhythm patterns',
-        route: null,
-        activities: []
-      },
-      {
-        id: 'll-lesson5',
-        name: 'Lesson 5: Full Orchestra',
-        shortName: 'Orchestra',
-        concept: 'All families together',
-        route: null,
-        activities: []
       }
     ]
   }

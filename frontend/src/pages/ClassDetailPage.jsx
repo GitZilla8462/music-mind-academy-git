@@ -53,7 +53,7 @@ const ClassDetailPage = () => {
   const [codeCopied, setCodeCopied] = useState(false);
 
   // Accordion state: track expanded units and lessons separately
-  const [expandedUnits, setExpandedUnits] = useState([CURRICULUM[0]?.id]);
+  const [expandedUnits, setExpandedUnits] = useState([]);
   const [expandedLessons, setExpandedLessons] = useState([]);
 
   // Modal states

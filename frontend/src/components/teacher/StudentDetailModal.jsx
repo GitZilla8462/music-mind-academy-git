@@ -40,7 +40,7 @@ const StudentDetailModal = ({
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, submitted, graded, missing
-  const [expandedUnits, setExpandedUnits] = useState([CURRICULUM[0]?.id]);
+  const [expandedUnits, setExpandedUnits] = useState([]);
   const [expandedLessons, setExpandedLessons] = useState([]);
 
   // Get effective UID: Google UID if linked, otherwise seat-based ID
