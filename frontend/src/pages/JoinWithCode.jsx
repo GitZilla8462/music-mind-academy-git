@@ -1,18 +1,18 @@
 // File: /pages/JoinWithCode.jsx
-// JOIN PAGE - Handles both session codes (4 digits) and class codes (6 chars)
+// JOIN PAGE - Simple code entry for students
 // - 4-digit code: Quick/guest session - join directly
-// - 6-char code: Class session - show seat + PIN form
+// - 6-char code: Class session - show username + PIN form
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getSessionData } from '../firebase/config';
 import { getClassByCode, joinClassSession } from '../firebase/classes';
 import { verifyStudentPinByUsername } from '../firebase/enrollments';
-import { getStudentId, getAllStudentWork, migrateOldSaves } from '../utils/studentWorkStorage';
+import { getStudentId, migrateOldSaves } from '../utils/studentWorkStorage';
 import BeatEscapeRoomActivity from '../lessons/shared/activities/beat-escape-room/BeatEscapeRoomActivity';
 import MelodyMysteryActivity from '../lessons/shared/activities/melody-mystery/MelodyMysteryActivity';
 import { useStudentAuth } from '../context/StudentAuthContext';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, LogIn, ArrowLeft, Clock } from 'lucide-react';
 
 function JoinWithCode() {
   const navigate = useNavigate();
@@ -20,20 +20,17 @@ function JoinWithCode() {
 
   // Code input state
   const [code, setCode] = useState('');
-  const [codeType, setCodeType] = useState(null); // 'session' | 'class' | null
+  const [codeType, setCodeType] = useState(null); // 'class' | null
   const [isChecking, setIsChecking] = useState(false);
   const [error, setError] = useState('');
 
   // Class login state (shown after class code is detected)
   const [classData, setClassData] = useState(null);
-  const [username, setUsername] = useState(''); // Musical username like "tuba123"
+  const [noActiveSession, setNoActiveSession] = useState(false);
+  const [username, setUsername] = useState('');
   const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
-
-  // Saved work
-  const [studentId, setStudentId] = useState('');
-  const [savedWork, setSavedWork] = useState([]);
 
   // Student auth
   const { isAuthenticated, currentStudentInfo } = useStudentAuth();
@@ -51,10 +48,7 @@ function JoinWithCode() {
 
   useEffect(() => {
     const id = getStudentId();
-    setStudentId(id);
     migrateOldSaves(id);
-    const work = getAllStudentWork(id);
-    setSavedWork(work);
   }, []);
 
   // Auto-join for preview mode
@@ -113,6 +107,7 @@ function JoinWithCode() {
 
     setIsChecking(true);
     setError('');
+    setNoActiveSession(false);
 
     try {
       // Check if it's a 4-digit session code
@@ -143,12 +138,13 @@ function JoinWithCode() {
 
         // Check if class has an active session
         if (!classInfo.currentSession?.active) {
-          setError('No active session for this class. Ask your teacher to start the lesson.');
+          setClassData(classInfo);
+          setNoActiveSession(true);
           setIsChecking(false);
           return;
         }
 
-        // Show seat + PIN form
+        // Show username + PIN form
         setCodeType('class');
         setClassData(classInfo);
         setIsChecking(false);
@@ -156,7 +152,7 @@ function JoinWithCode() {
       }
 
       // Invalid format
-      setError('Enter a 4-digit session code or 6-character class code (like AB1234)');
+      setError('Enter a 4-digit session code or class code from your teacher');
       setIsChecking(false);
 
     } catch (err) {
@@ -192,7 +188,7 @@ function JoinWithCode() {
         name: result.studentName || result.username
       });
 
-      // Navigate to the lesson - include classCode for session joining
+      // Navigate to the lesson
       const lessonRoute = classData.currentSession.lessonRoute || '/lessons/film-music-project/lesson1';
       window.location.href = `${lessonRoute}?classId=${classData.id}&role=student&classCode=${classData.classCode}&seatId=${result.seatId}&username=${result.username}`;
 
@@ -207,497 +203,250 @@ function JoinWithCode() {
   const handleBackToCodeEntry = () => {
     setCodeType(null);
     setClassData(null);
+    setNoActiveSession(false);
     setUsername('');
     setPin('');
     setError('');
   };
 
-  const handleViewWork = (work) => {
-    if (work.viewRoute) {
-      navigate(work.viewRoute);
-    }
-  };
-
-  const formatDate = (isoString) => {
-    try {
-      return new Date(isoString).toLocaleString();
-    } catch {
-      return 'Unknown';
-    }
-  };
-
   // Preview mode loading screen
   if (isPreviewMode && urlCode) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        backgroundColor: '#1a202c',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white'
-      }}>
-        <div style={{ fontSize: '48px', marginBottom: '20px', animation: 'pulse 1.5s infinite' }}>🎵</div>
-        <div style={{ fontSize: '24px', fontWeight: '600', marginBottom: '10px' }}>
-          Loading Student View...
-        </div>
-        <div style={{ fontSize: '16px', color: '#a0aec0' }}>
-          Session: {urlCode}
-        </div>
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center text-gray-800">
+        <div className="text-5xl mb-5 animate-pulse">&#127925;</div>
+        <div className="text-2xl font-semibold mb-2">Loading Student View...</div>
+        <div className="text-gray-500">Session: {urlCode}</div>
         {error && (
-          <div style={{
-            marginTop: '20px',
-            padding: '12px 24px',
-            backgroundColor: '#fc8181',
-            color: '#742a2a',
-            borderRadius: '8px',
-            fontSize: '14px'
-          }}>
+          <div className="mt-5 px-6 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
             {error}
           </div>
         )}
-        <style>{`
-          @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.1); }
-          }
-        `}</style>
       </div>
     );
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#f7fafc',
-      padding: '20px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center'
-    }}>
-      {/* Title */}
-      <h1 style={{
-        fontSize: '32px',
-        fontWeight: 'bold',
-        color: '#1a202c',
-        marginBottom: '20px',
-        marginTop: '10px'
-      }}>
-        {siteName}
-      </h1>
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+      {/* Logo */}
+      <div className="text-center mb-8">
+        <img
+          src="/MusicMindAcademyLogo.png"
+          alt={siteName}
+          className="h-16 w-auto mx-auto mb-3"
+        />
+        <h1 className="text-2xl font-bold text-gray-800">{siteName}</h1>
+      </div>
 
-      <div style={{ maxWidth: '700px', width: '100%' }}>
-        <div style={{ height: '1px', backgroundColor: '#cbd5e0', marginBottom: '15px' }}></div>
-
-        {/* Show seat + PIN form if class code was entered */}
-        {codeType === 'class' && classData ? (
-          <div style={{
-            marginBottom: '20px',
-            backgroundColor: 'white',
-            padding: '20px',
-            borderRadius: '12px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
-            {/* Class info header */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              marginBottom: '16px',
-              paddingBottom: '16px',
-              borderBottom: '1px solid #e2e8f0'
-            }}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '10px',
-                backgroundColor: '#4299e1',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '24px'
-              }}>
-                🎵
+      {/* Main Card */}
+      <div className="w-full max-w-sm">
+        {/* No Active Session Message */}
+        {noActiveSession && classData ? (
+          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+            <div className="text-center mb-4">
+              <div className="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Clock className="w-7 h-7 text-amber-500" />
               </div>
-              <div>
-                <div style={{ fontSize: '18px', fontWeight: '700', color: '#1a202c' }}>
-                  {classData.name}
-                </div>
-                <div style={{ fontSize: '13px', color: '#718096' }}>
-                  Code: {classData.classCode}
-                </div>
-              </div>
+              <h2 className="text-xl font-semibold text-gray-800 mb-1">{classData.name}</h2>
+              <p className="text-gray-500 text-sm">No lesson is running right now.</p>
             </div>
 
-            {/* Username + PIN form */}
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#4a5568', marginBottom: '6px' }}>
-                Username
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value.toLowerCase())}
-                placeholder="e.g., tuba123"
-                maxLength={20}
-                autoCapitalize="off"
-                autoCorrect="off"
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  fontSize: '16px',
-                  borderRadius: '8px',
-                  border: '2px solid #e2e8f0',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#4299e1'}
-                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
-              />
-            </div>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#4a5568', marginBottom: '6px' }}>
-                PIN
-              </label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type={showPin ? 'text' : 'password'}
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                  placeholder="4-digit PIN"
-                  maxLength={4}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    paddingRight: '44px',
-                    fontSize: '16px',
-                    fontFamily: 'monospace',
-                    letterSpacing: '4px',
-                    borderRadius: '8px',
-                    border: '2px solid #e2e8f0',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = '#4299e1'}
-                  onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
-                  onKeyPress={(e) => e.key === 'Enter' && handleClassLogin()}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPin(!showPin)}
-                  style={{
-                    position: 'absolute',
-                    right: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: '#718096',
-                    padding: '4px'
-                  }}
-                >
-                  {showPin ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <div style={{
-                padding: '10px',
-                backgroundColor: '#fed7d7',
-                color: '#742a2a',
-                borderRadius: '8px',
-                fontSize: '13px',
-                textAlign: 'center',
-                marginBottom: '16px'
-              }}>
-                {error}
-              </div>
-            )}
+            <p className="text-gray-400 text-sm text-center mb-5">
+              Your teacher hasn't started a lesson yet. You can sign in to see your work and grades while you wait.
+            </p>
 
             <button
-              onClick={handleClassLogin}
-              disabled={isJoining || !username || !pin}
-              style={{
-                width: '100%',
-                padding: '14px',
-                fontSize: '16px',
-                fontWeight: '600',
-                backgroundColor: (isJoining || !username || !pin) ? '#cbd5e0' : '#48bb78',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: (isJoining || !username || !pin) ? 'not-allowed' : 'pointer',
-                marginBottom: '12px'
-              }}
+              onClick={() => navigate('/student-login')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 mb-3"
             >
-              {isJoining ? 'Joining...' : 'Join Class'}
+              <LogIn size={18} />
+              Sign In to My Account
             </button>
 
             <button
               onClick={handleBackToCodeEntry}
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '14px',
-                fontWeight: '500',
-                backgroundColor: 'transparent',
-                color: '#718096',
-                border: 'none',
-                cursor: 'pointer'
-              }}
+              className="w-full text-gray-400 hover:text-gray-600 text-sm py-2 transition-colors flex items-center justify-center gap-1"
             >
-              ← Back to code entry
+              <ArrowLeft size={14} />
+              Try a different code
             </button>
           </div>
-        ) : (
-          /* Code entry form */
-          <div style={{
-            marginBottom: '20px',
-            backgroundColor: '#f7fafc',
-            padding: '15px',
-            borderRadius: '8px',
-            border: '1px solid #e2e8f0'
-          }}>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: '700',
-              color: '#2d3748',
-              marginBottom: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
-              <span style={{ fontSize: '16px' }}>👉</span>
-              Enter Class Code
+        ) : codeType === 'class' && classData ? (
+          /* Username + PIN form for class session */
+          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+            {/* Class info header */}
+            <div className="flex items-center gap-3 mb-5 pb-4 border-b border-gray-100">
+              <div className="w-11 h-11 rounded-lg bg-blue-600 flex items-center justify-center text-xl text-white">
+                &#127925;
+              </div>
+              <div>
+                <div className="text-lg font-bold text-gray-800">{classData.name}</div>
+                <div className="text-xs text-gray-400">Code: {classData.classCode}</div>
+              </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: error ? '6px' : '0' }}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-600 text-sm font-medium mb-1.5">Username</label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''));
+                    setError('');
+                  }}
+                  placeholder="tuba123"
+                  maxLength={20}
+                  autoFocus
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-600 text-sm font-medium mb-1.5">PIN</label>
+                <div className="relative">
+                  <input
+                    type={showPin ? 'text' : 'password'}
+                    value={pin}
+                    onChange={(e) => {
+                      setPin(e.target.value.replace(/\D/g, ''));
+                      setError('');
+                    }}
+                    placeholder="1234"
+                    maxLength={4}
+                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg tracking-widest"
+                    onKeyDown={(e) => e.key === 'Enter' && username && pin && handleClassLogin()}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPin(!showPin)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPin ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm text-center">
+                  {error}
+                </div>
+              )}
+
+              <button
+                onClick={handleClassLogin}
+                disabled={isJoining || !username || !pin}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isJoining ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Joining...
+                  </>
+                ) : (
+                  'Join Class'
+                )}
+              </button>
+
+              <button
+                onClick={handleBackToCodeEntry}
+                className="w-full text-gray-400 hover:text-gray-600 text-sm py-1 transition-colors flex items-center justify-center gap-1"
+              >
+                <ArrowLeft size={14} />
+                Back
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Code entry - the main simple view */
+          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+            <div className="text-center mb-5">
+              <h2 className="text-xl font-semibold text-gray-800 mb-1">Enter your code</h2>
+              <p className="text-gray-500 text-sm">Your teacher will show the code on screen</p>
+            </div>
+
+            <div className="space-y-3">
               <input
                 type="text"
                 placeholder="CODE"
                 value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                onKeyPress={(e) => e.key === 'Enter' && handleCodeSubmit()}
-                maxLength={6}
-                style={{
-                  flex: 1,
-                  padding: '10px 12px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                  borderRadius: '6px',
-                  border: '2px solid #4299e1',
-                  letterSpacing: '3px',
-                  backgroundColor: 'white',
-                  outline: 'none'
+                onChange={(e) => {
+                  setCode(e.target.value.toUpperCase());
+                  setError('');
                 }}
+                onKeyDown={(e) => e.key === 'Enter' && code.length >= 4 && handleCodeSubmit()}
+                maxLength={6}
+                autoFocus
+                className="w-full bg-white border-2 border-gray-300 rounded-lg px-4 py-4 text-gray-800 text-center text-2xl font-bold tracking-[0.3em] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
+
               <button
                 onClick={handleCodeSubmit}
                 disabled={isChecking || code.length < 4}
-                style={{
-                  padding: '10px 20px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  backgroundColor: (isChecking || code.length < 4) ? '#cbd5e0' : '#48bb78',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: (isChecking || code.length < 4) ? 'not-allowed' : 'pointer',
-                  whiteSpace: 'nowrap',
-                  boxShadow: (isChecking || code.length < 4) ? 'none' : '0 2px 4px rgba(72,187,120,0.3)'
-                }}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-lg"
               >
-                {isChecking ? 'Checking...' : 'Join'}
+                {isChecking ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Checking...
+                  </span>
+                ) : (
+                  'Join'
+                )}
               </button>
-            </div>
 
-            {error && (
-              <div style={{
-                padding: '8px',
-                backgroundColor: '#fed7d7',
-                color: '#742a2a',
-                borderRadius: '6px',
-                fontSize: '12px',
-                textAlign: 'center',
-                marginTop: '6px'
-              }}>
-                {error}
-              </div>
-            )}
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm text-center">
+                  {error}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
-        {/* Student Account Access Banner - only show on code entry screen */}
-        {codeType !== 'class' && (
-          <>
-            {!isAuthenticated ? (
-              <div style={{
-                marginBottom: '15px',
-                padding: '12px 15px',
-                backgroundColor: '#f7fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '10px'
-              }}>
-                <div style={{ fontSize: '13px', color: '#4a5568' }}>
-                  <span style={{ fontWeight: '600' }}>Need to check grades or saved work?</span>
-                </div>
-                <button
-                  onClick={() => navigate('/student-login')}
-                  style={{
-                    padding: '6px 16px',
-                    fontSize: '12px',
-                    fontWeight: '600',
-                    backgroundColor: '#718096',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  Student Login
-                </button>
-              </div>
-            ) : (
-              <div style={{
-                marginBottom: '15px',
-                padding: '12px 15px',
-                backgroundColor: '#f0fff4',
-                border: '1px solid #9ae6b4',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '10px'
-              }}>
-                <div style={{ fontSize: '13px', color: '#276749' }}>
-                  <span style={{ fontWeight: '600' }}>Signed in as {currentStudentInfo?.displayName || 'Student'}</span>
-                </div>
+        {/* Sign In Link - always visible unless in class login flow */}
+        {codeType !== 'class' && !noActiveSession && (
+          <div className="mt-6 text-center">
+            {isAuthenticated ? (
+              <p className="text-gray-500 text-sm">
+                Signed in as <span className="text-gray-800 font-medium">{currentStudentInfo?.displayName}</span>
+                {' '}
                 <button
                   onClick={() => navigate('/student/home')}
-                  style={{
-                    padding: '6px 16px',
-                    fontSize: '12px',
-                    fontWeight: '600',
-                    backgroundColor: '#48bb78',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap'
-                  }}
+                  className="text-blue-600 hover:text-blue-700 font-medium"
                 >
-                  My Dashboard
+                  Go to Dashboard
                 </button>
-              </div>
-            )}
-
-            <div style={{ height: '1px', backgroundColor: '#cbd5e0', marginBottom: '15px' }}></div>
-
-            {/* Saved Work */}
-            {savedWork.length > 0 ? (
-              <>
-                <div style={{
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  color: '#2d3748',
-                  marginBottom: '10px'
-                }}>
-                  💾 Your Saved Work
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {savedWork.map((work) => (
-                    <div
-                      key={work.activityId}
-                      style={{
-                        backgroundColor: 'white',
-                        borderRadius: '8px',
-                        padding: '12px',
-                        border: '1px solid #e2e8f0',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                      }}
-                    >
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        marginBottom: '8px'
-                      }}>
-                        <div style={{ fontSize: '28px' }}>
-                          {work.emoji || '📁'}
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '14px', fontWeight: '600', color: '#2d3748' }}>
-                            {work.title || 'Untitled'}
-                          </div>
-                          {work.subtitle && (
-                            <div style={{ fontSize: '12px', color: '#718096' }}>
-                              {work.subtitle}
-                            </div>
-                          )}
-                          {work.category && (
-                            <div style={{ fontSize: '10px', color: '#a0aec0', marginTop: '2px' }}>
-                              {work.category}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div style={{ fontSize: '10px', color: '#a0aec0', marginBottom: '8px' }}>
-                        Saved {formatDate(work.lastSaved)}
-                      </div>
-
-                      <button
-                        onClick={() => handleViewWork(work)}
-                        style={{
-                          width: '100%',
-                          padding: '8px',
-                          backgroundColor: '#4299e1',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          fontSize: '13px',
-                          fontWeight: '600',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        👁️ View
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </>
+              </p>
             ) : (
-              <div style={{
-                backgroundColor: 'white',
-                borderRadius: '8px',
-                padding: '20px',
-                border: '1px solid #e2e8f0',
-                textAlign: 'center',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-              }}>
-                <div style={{ fontSize: '40px', marginBottom: '10px' }}>💾</div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#2d3748', marginBottom: '8px' }}>
-                  No Saved Work Yet
-                </div>
-                <div style={{ fontSize: '12px', color: '#718096', lineHeight: '1.5' }}>
-                  When you complete activities and click "Save", your work will appear here.<br/>
-                  You can return to this page anytime to view your saved work.
-                </div>
-              </div>
+              <p className="text-gray-500 text-sm">
+                Have an account?{' '}
+                <button
+                  onClick={() => navigate('/student-login')}
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Sign in
+                </button>
+              </p>
             )}
-          </>
+
+            <p className="text-gray-400 text-sm mt-2">
+              Are you a teacher?{' '}
+              <button
+                onClick={() => navigate('/login')}
+                className="text-blue-600 hover:text-blue-700"
+              >
+                Teacher login
+              </button>
+            </p>
+          </div>
         )}
       </div>
     </div>

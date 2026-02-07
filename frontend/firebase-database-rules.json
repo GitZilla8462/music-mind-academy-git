@@ -100,14 +100,21 @@
 
     "classes": {
       "$classId": {
-        ".read": "auth != null",
+        ".read": true,
         ".write": "auth != null && (!data.exists() || data.child('teacherUid').val() == auth.uid)"
       }
     },
 
     "classCodes": {
       "$code": {
-        ".read": "auth != null",
+        ".read": true,
+        ".write": "auth != null"
+      }
+    },
+
+    "usernames": {
+      "$username": {
+        ".read": true,
         ".write": "auth != null"
       }
     },
@@ -115,7 +122,10 @@
     "classRosters": {
       "$classId": {
         ".read": "auth != null && root.child('classes').child($classId).child('teacherUid').val() == auth.uid",
-        ".write": "auth != null && root.child('classes').child($classId).child('teacherUid').val() == auth.uid"
+        ".write": "auth != null && root.child('classes').child($classId).child('teacherUid').val() == auth.uid",
+        "$seatNumber": {
+          ".read": true
+        }
       }
     },
 

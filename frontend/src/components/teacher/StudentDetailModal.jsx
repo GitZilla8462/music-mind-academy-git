@@ -1,11 +1,12 @@
 // Student Detail Modal Component
 // src/components/teacher/StudentDetailModal.jsx
-// Shows all work from a single student - Google Classroom style
+// Shows all work from a single student, organized by Unit → Lesson → Activity
 
 import React, { useState, useEffect } from 'react';
 import {
   X,
   ChevronRight,
+  ChevronDown,
   Clock,
   CheckCircle2,
   AlertCircle,
@@ -13,38 +14,20 @@ import {
   FileText,
   Gamepad2,
   Play,
-  Loader2
+  Loader2,
+  Lock
 } from 'lucide-react';
 import { getStudentSubmissions } from '../../firebase/grades';
+import { CURRICULUM } from '../../config/curriculumConfig';
 
-// Lesson definitions
-const LESSONS = [
-  { id: 'lesson1', name: 'Lesson 1: Mood & Expression', activities: [
-    { id: 'mood-match', name: 'Mood Match Game', type: 'game', icon: Gamepad2 },
-    { id: 'adventure-composition', name: 'Adventure Composition', type: 'composition', icon: Music },
-    { id: 'reflection', name: 'Reflection', type: 'reflection', icon: FileText }
-  ]},
-  { id: 'lesson2', name: 'Lesson 2: Instrumentation', activities: [
-    { id: 'melody-escape', name: 'Melody Escape Room', type: 'game', icon: Gamepad2 },
-    { id: 'sports-composition', name: 'Sports Composition', type: 'composition', icon: Music },
-    { id: 'reflection', name: 'Reflection', type: 'reflection', icon: FileText }
-  ]},
-  { id: 'lesson3', name: 'Lesson 3: Texture & Layering', activities: [
-    { id: 'listening-map', name: 'Listening Map', type: 'game', icon: Gamepad2 },
-    { id: 'city-composition', name: 'City Composition', type: 'composition', icon: Music },
-    { id: 'reflection', name: 'Reflection', type: 'reflection', icon: FileText }
-  ]},
-  { id: 'lesson4', name: 'Lesson 4: Form & Structure', activities: [
-    { id: 'sectional-builder', name: 'Sectional Loop Builder', type: 'game', icon: Gamepad2 },
-    { id: 'wildlife-composition', name: 'Wildlife Composition', type: 'composition', icon: Music },
-    { id: 'reflection', name: 'Reflection', type: 'reflection', icon: FileText }
-  ]},
-  { id: 'lesson5', name: 'Lesson 5: Capstone', activities: [
-    { id: 'capstone-composition', name: 'Capstone Composition', type: 'composition', icon: Music },
-    { id: 'peer-critique', name: 'Peer Critique', type: 'reflection', icon: FileText },
-    { id: 'self-assessment', name: 'Self Assessment', type: 'reflection', icon: FileText }
-  ]}
-];
+const getActivityIcon = (type) => {
+  switch (type) {
+    case 'game': return Gamepad2;
+    case 'composition': return Music;
+    case 'reflection': return FileText;
+    default: return FileText;
+  }
+};
 
 const StudentDetailModal = ({
   isOpen,
@@ -57,18 +40,22 @@ const StudentDetailModal = ({
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, submitted, graded, missing
-  const [expandedLessons, setExpandedLessons] = useState(['lesson1', 'lesson2']);
+  const [expandedUnits, setExpandedUnits] = useState([CURRICULUM[0]?.id]);
+  const [expandedLessons, setExpandedLessons] = useState([]);
+
+  // Get effective UID: Google UID if linked, otherwise seat-based ID
+  const effectiveUid = student?.studentUid || (student?.seatNumber != null ? `seat-${student.seatNumber}` : null);
 
   useEffect(() => {
     const fetchSubmissions = async () => {
-      if (!student?.studentUid || !classId) {
+      if (!effectiveUid || !classId) {
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        const data = await getStudentSubmissions(classId, student.studentUid);
+        const data = await getStudentSubmissions(classId, effectiveUid);
         setSubmissions(data || []);
       } catch (err) {
         console.error('Error fetching student submissions:', err);
@@ -80,9 +67,17 @@ const StudentDetailModal = ({
     if (isOpen) {
       fetchSubmissions();
     }
-  }, [isOpen, student?.studentUid, classId]);
+  }, [isOpen, effectiveUid, classId]);
 
   if (!isOpen) return null;
+
+  const toggleUnit = (unitId) => {
+    setExpandedUnits(prev =>
+      prev.includes(unitId)
+        ? prev.filter(id => id !== unitId)
+        : [...prev, unitId]
+    );
+  };
 
   const toggleLesson = (lessonId) => {
     setExpandedLessons(prev =>
@@ -138,11 +133,21 @@ const StudentDetailModal = ({
     );
   };
 
-  // Calculate overall stats
-  const totalActivities = LESSONS.reduce((sum, l) => sum + l.activities.length, 0);
-  const submitted = submissions.filter(s => s.status === 'submitted' || s.status === 'graded').length;
-  const graded = submissions.filter(s => s.status === 'graded').length;
-  const pending = submissions.filter(s => s.status === 'submitted').length;
+  // Calculate overall stats across all units
+  let totalActivities = 0;
+  let submitted = 0;
+  let graded = 0;
+  let pending = 0;
+
+  CURRICULUM.forEach(unit => {
+    unit.lessons.forEach(lesson => {
+      totalActivities += lesson.activities.length;
+    });
+  });
+
+  submitted = submissions.filter(s => s.status === 'submitted' || s.status === 'graded').length;
+  graded = submissions.filter(s => s.status === 'graded').length;
+  pending = submissions.filter(s => s.status === 'submitted').length;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -158,7 +163,7 @@ const StudentDetailModal = ({
                 {student?.displayName || student?.name || `Student ${student?.seatNumber}`}
               </h2>
               <p className="text-sm text-gray-500">
-                Seat #{student?.seatNumber} • {submitted}/{totalActivities} activities complete
+                Seat #{student?.seatNumber} · {submitted}/{totalActivities} activities complete
               </p>
             </div>
           </div>
@@ -209,104 +214,175 @@ const StudentDetailModal = ({
             </div>
           ) : (
             <div className="space-y-4">
-              {LESSONS.map((lesson) => {
-                const isExpanded = expandedLessons.includes(lesson.id);
-                const lessonSubmissions = submissions.filter(s => s.lessonId === lesson.id);
-                const lessonGraded = lessonSubmissions.filter(s => s.status === 'graded').length;
-                const lessonPending = lessonSubmissions.filter(s => s.status === 'submitted').length;
+              {CURRICULUM.map((unit) => {
+                const isUnitExpanded = expandedUnits.includes(unit.id);
+
+                // Count submissions for this unit
+                let unitSubmitted = 0;
+                let unitPending = 0;
+                let unitGraded = 0;
+                unit.lessons.forEach(lesson => {
+                  lesson.activities.forEach(activity => {
+                    const sub = getSubmission(lesson.id, activity.id);
+                    if (sub?.status === 'submitted') { unitSubmitted++; unitPending++; }
+                    if (sub?.status === 'graded') { unitSubmitted++; unitGraded++; }
+                  });
+                });
 
                 return (
-                  <div key={lesson.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                    {/* Lesson Header */}
+                  <div key={unit.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                    {/* Unit Header */}
                     <button
-                      onClick={() => toggleLesson(lesson.id)}
+                      onClick={() => toggleUnit(unit.id)}
                       className="w-full px-4 py-3 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <ChevronRight
-                          size={18}
-                          className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                        />
-                        <span className="font-medium text-gray-900">{lesson.name}</span>
+                        {isUnitExpanded ? (
+                          <ChevronDown size={18} className="text-gray-400" />
+                        ) : (
+                          <ChevronRight size={18} className="text-gray-400" />
+                        )}
+                        <span className="mr-1">{unit.icon}</span>
+                        <span className="font-bold text-gray-900">{unit.name}</span>
                       </div>
                       <div className="flex items-center gap-2 text-xs">
-                        {lessonPending > 0 && (
+                        {unitPending > 0 && (
                           <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                            {lessonPending} pending
+                            {unitPending} pending
                           </span>
                         )}
-                        {lessonGraded > 0 && (
+                        {unitGraded > 0 && (
                           <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                            {lessonGraded} graded
+                            {unitGraded} graded
                           </span>
                         )}
                       </div>
                     </button>
 
-                    {/* Activities */}
-                    {isExpanded && (
-                      <div className="divide-y divide-gray-100">
-                        {lesson.activities.map((activity) => {
-                          const submission = getSubmission(lesson.id, activity.id);
-                          const Icon = activity.icon;
+                    {/* Unit Lessons */}
+                    {isUnitExpanded && (
+                      <div>
+                        {unit.lessons.map((lesson) => {
+                          const isLessonExpanded = expandedLessons.includes(lesson.id);
+                          const hasActivities = lesson.activities.length > 0;
+                          const isBuilt = !!lesson.route;
 
-                          // Apply filter
-                          if (filter === 'submitted' && submission?.status !== 'submitted') return null;
-                          if (filter === 'graded' && submission?.status !== 'graded') return null;
-                          if (filter === 'missing' && submission) return null;
+                          // Count for this lesson
+                          let lessonPending = 0;
+                          let lessonGraded = 0;
+                          lesson.activities.forEach(activity => {
+                            const sub = getSubmission(lesson.id, activity.id);
+                            if (sub?.status === 'submitted') lessonPending++;
+                            if (sub?.status === 'graded') lessonGraded++;
+                          });
 
                           return (
-                            <div
-                              key={activity.id}
-                              className="px-4 py-3 flex items-center justify-between hover:bg-gray-50"
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                                  activity.type === 'game' ? 'bg-purple-100' :
-                                  activity.type === 'composition' ? 'bg-blue-100' : 'bg-gray-100'
-                                }`}>
-                                  <Icon size={16} className={
-                                    activity.type === 'game' ? 'text-purple-600' :
-                                    activity.type === 'composition' ? 'text-blue-600' : 'text-gray-600'
-                                  } />
+                            <div key={lesson.id} className="border-t border-gray-100">
+                              {/* Lesson Header */}
+                              <button
+                                onClick={() => hasActivities && toggleLesson(lesson.id)}
+                                className={`w-full px-4 py-2.5 pl-10 flex items-center justify-between transition-colors ${
+                                  hasActivities ? 'hover:bg-gray-50 cursor-pointer' : 'cursor-default'
+                                } ${!isBuilt ? 'opacity-50' : ''}`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {hasActivities ? (
+                                    isLessonExpanded ? (
+                                      <ChevronDown size={14} className="text-gray-400" />
+                                    ) : (
+                                      <ChevronRight size={14} className="text-gray-400" />
+                                    )
+                                  ) : (
+                                    <Lock size={14} className="text-gray-300" />
+                                  )}
+                                  <span className="font-medium text-gray-900 text-sm">{lesson.name}</span>
                                 </div>
-                                <div>
-                                  <div className="font-medium text-gray-900 text-sm">
-                                    {activity.name}
-                                  </div>
-                                  <div className="text-xs text-gray-500 capitalize">
-                                    {activity.type}
-                                  </div>
+                                <div className="flex items-center gap-2 text-xs">
+                                  {!isBuilt && (
+                                    <span className="text-gray-400 italic">Coming soon</span>
+                                  )}
+                                  {lessonPending > 0 && (
+                                    <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+                                      {lessonPending} pending
+                                    </span>
+                                  )}
+                                  {lessonGraded > 0 && (
+                                    <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                                      {lessonGraded} graded
+                                    </span>
+                                  )}
                                 </div>
-                              </div>
+                              </button>
 
-                              <div className="flex items-center gap-3">
-                                {getStatusBadge(submission)}
+                              {/* Activities */}
+                              {isLessonExpanded && hasActivities && (
+                                <div className="divide-y divide-gray-100">
+                                  {lesson.activities.map((activity) => {
+                                    const submission = getSubmission(lesson.id, activity.id);
+                                    const Icon = getActivityIcon(activity.type);
 
-                                {submission && activity.type === 'composition' && (
-                                  <div className="flex items-center gap-1">
-                                    <button
-                                      onClick={() => onViewWork?.(student, lesson, activity, submission)}
-                                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                      title="View Work"
-                                    >
-                                      <Play size={16} />
-                                    </button>
-                                    <button
-                                      onClick={() => onGrade?.(student, lesson, activity, submission)}
-                                      className="px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                    >
-                                      {submission.status === 'graded' ? 'Edit Grade' : 'Grade'}
-                                    </button>
-                                  </div>
-                                )}
+                                    // Apply filter
+                                    if (filter === 'submitted' && submission?.status !== 'submitted') return null;
+                                    if (filter === 'graded' && submission?.status !== 'graded') return null;
+                                    if (filter === 'missing' && submission) return null;
 
-                                {submission && activity.type === 'game' && submission.autoScore && (
-                                  <span className="text-sm font-medium text-gray-700">
-                                    {submission.autoScore.points}/{submission.autoScore.maxPoints}
-                                  </span>
-                                )}
-                              </div>
+                                    return (
+                                      <div
+                                        key={activity.id}
+                                        className="px-4 py-3 pl-16 flex items-center justify-between hover:bg-gray-50"
+                                      >
+                                        <div className="flex items-center gap-3">
+                                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                            activity.type === 'game' ? 'bg-purple-100' :
+                                            activity.type === 'composition' ? 'bg-blue-100' : 'bg-gray-100'
+                                          }`}>
+                                            <Icon size={16} className={
+                                              activity.type === 'game' ? 'text-purple-600' :
+                                              activity.type === 'composition' ? 'text-blue-600' : 'text-gray-600'
+                                            } />
+                                          </div>
+                                          <div>
+                                            <div className="font-medium text-gray-900 text-sm">
+                                              {activity.name}
+                                            </div>
+                                            <div className="text-xs text-gray-500 capitalize">
+                                              {activity.type}
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                          {getStatusBadge(submission)}
+
+                                          {submission && activity.type === 'composition' && (
+                                            <div className="flex items-center gap-1">
+                                              <button
+                                                onClick={() => onViewWork?.(student, lesson, activity, submission)}
+                                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                                title="View Work"
+                                              >
+                                                <Play size={16} />
+                                              </button>
+                                              <button
+                                                onClick={() => onGrade?.(student, lesson, activity, submission)}
+                                                className="px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                              >
+                                                {submission.status === 'graded' ? 'Edit Grade' : 'Grade'}
+                                              </button>
+                                            </div>
+                                          )}
+
+                                          {submission && activity.type === 'game' && submission.autoScore && (
+                                            <span className="text-sm font-medium text-gray-700">
+                                              {submission.autoScore.points}/{submission.autoScore.maxPoints}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
                           );
                         })}

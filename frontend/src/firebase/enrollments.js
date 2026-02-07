@@ -32,10 +32,63 @@ export const generatePin = () => {
 };
 
 /**
- * Generate a unique musical username
+ * Check if a username is taken globally (across all classes)
+ *
+ * @param {string} username - Username to check
+ * @returns {Promise<boolean>} True if taken
+ */
+export const isUsernameTaken = async (username) => {
+  const usernameRef = ref(database, `usernames/${username.toLowerCase()}`);
+  const snapshot = await get(usernameRef);
+  return snapshot.exists();
+};
+
+/**
+ * Register a username in the global index
+ *
+ * @param {string} username - Username to register
+ * @param {string} classId - Class ID
+ * @param {number} seatNumber - Seat number
+ */
+export const registerUsername = async (username, classId, seatNumber) => {
+  await set(ref(database, `usernames/${username.toLowerCase()}`), {
+    classId,
+    seatNumber,
+    createdAt: Date.now()
+  });
+};
+
+/**
+ * Remove a username from the global index
+ *
+ * @param {string} username - Username to remove
+ */
+export const unregisterUsername = async (username) => {
+  if (username) {
+    await remove(ref(database, `usernames/${username.toLowerCase()}`));
+  }
+};
+
+/**
+ * Look up a student globally by username
+ *
+ * @param {string} username - Username to look up
+ * @returns {Promise<Object|null>} { classId, seatNumber } or null
+ */
+export const lookupUsername = async (username) => {
+  const usernameRef = ref(database, `usernames/${username.toLowerCase()}`);
+  const snapshot = await get(usernameRef);
+  if (snapshot.exists()) {
+    return snapshot.val();
+  }
+  return null;
+};
+
+/**
+ * Generate a unique musical username (globally unique across all classes)
  * Format: {instrument}{3-digits} e.g., "tuba123", "flute456"
  *
- * @param {string} classId - Class ID to check for uniqueness
+ * @param {string} classId - Class ID (for local set check)
  * @param {Set} existingUsernames - Set of usernames already in use (optional)
  * @returns {Promise<string>} Unique username
  */
@@ -48,11 +101,11 @@ export const generateMusicalUsername = async (classId, existingUsernames = new S
     const number = Math.floor(100 + Math.random() * 900); // 100-999
     const username = `${instrument}${number}`;
 
-    // Check if already in the provided set
+    // Check local set first (fast)
     if (!existingUsernames.has(username)) {
-      // Also check if it exists in the class (in case set is incomplete)
-      const existingSeat = await getSeatByUsername(classId, username);
-      if (!existingSeat) {
+      // Check global index
+      const taken = await isUsernameTaken(username);
+      if (!taken) {
         return username;
       }
     }
@@ -129,14 +182,14 @@ export const addSeatToRoster = async (classId, seatData) => {
     addedAt: Date.now()
   };
 
-  // Store seat in roster and hashed PIN separately for verification
+  // Store seat in roster, hashed PIN, and register username globally
   await Promise.all([
     set(seatRef, fullSeatData),
-    // Store hashed PIN in public path for verification
     set(ref(database, `pinHashes/${classId}/${seatNumber}`), {
       hash: hashedPin,
       updatedAt: Date.now()
-    })
+    }),
+    registerUsername(username, classId, seatNumber)
   ]);
 
   // Update student count
@@ -212,6 +265,11 @@ export const bulkAddSeats = async (classId, count, startFrom = 1, displayNames =
     await set(ref(database, path), data);
   }
 
+  // Register all usernames globally
+  for (const seat of createdSeats) {
+    await registerUsername(seat.username, classId, seat.seatNumber);
+  }
+
   // Update student count
   await updateClassStudentCount(classId, existingRoster.length + count);
 
@@ -282,12 +340,21 @@ export const updateSeat = async (classId, seatNumber, updates) => {
  * @returns {string} New username
  */
 export const regenerateUsername = async (classId, seatNumber) => {
+  // Get old username to unregister
+  const seat = await getSeat(classId, seatNumber);
+  if (seat?.username) {
+    await unregisterUsername(seat.username);
+  }
+
   const newUsername = await generateMusicalUsername(classId);
 
-  await update(ref(database, `classRosters/${classId}/${seatNumber}`), {
-    username: newUsername,
-    updatedAt: Date.now()
-  });
+  await Promise.all([
+    update(ref(database, `classRosters/${classId}/${seatNumber}`), {
+      username: newUsername,
+      updatedAt: Date.now()
+    }),
+    registerUsername(newUsername, classId, seatNumber)
+  ]);
 
   console.log(`Regenerated username for seat ${seatNumber}: ${newUsername}`);
   return newUsername;
@@ -355,10 +422,14 @@ export const resetSeatPin = async (classId, seatNumber) => {
  * @param {number} seatNumber - Seat number
  */
 export const removeSeat = async (classId, seatNumber) => {
+  // Get seat data first to unregister username
+  const seat = await getSeat(classId, seatNumber);
+
   await Promise.all([
     remove(ref(database, `classRosters/${classId}/${seatNumber}`)),
     remove(ref(database, `pinHashes/${classId}/${seatNumber}`)),
-    remove(ref(database, `pinLoginAttempts/${classId}/${seatNumber}`))
+    remove(ref(database, `pinLoginAttempts/${classId}/${seatNumber}`)),
+    seat?.username ? unregisterUsername(seat.username) : Promise.resolve()
   ]);
 
   // Update student count
@@ -698,4 +769,79 @@ export const migrateUnhashedPins = async (classId) => {
   }
 
   console.log(`PIN migration complete for class ${classId}`);
+};
+
+/**
+ * Verify a student by username + PIN (global lookup, no class code needed)
+ *
+ * @param {string} username - Student's username (e.g., "tuba123")
+ * @param {string} pin - PIN to verify
+ * @returns {Object} { success, error, classId, seatNumber, username, studentName, classCode, className }
+ */
+export const verifyStudentGlobal = async (username, pin) => {
+  // Look up username in global index
+  const usernameData = await lookupUsername(username);
+
+  if (!usernameData) {
+    return {
+      success: false,
+      error: 'Username not found. Check your login card and try again.'
+    };
+  }
+
+  const { classId, seatNumber } = usernameData;
+
+  // Verify the PIN
+  const verifyResult = await verifyPin(classId, seatNumber, pin);
+
+  if (!verifyResult.valid) {
+    return {
+      success: false,
+      error: verifyResult.error
+    };
+  }
+
+  // Get seat and class info
+  const seat = await getSeat(classId, seatNumber);
+  const classRef = ref(database, `classes/${classId}`);
+  const classSnapshot = await get(classRef);
+  const classData = classSnapshot.exists() ? classSnapshot.val() : null;
+
+  return {
+    success: true,
+    classId,
+    seatId: `seat-${seatNumber}`,
+    seatNumber,
+    username: seat?.username || username,
+    studentName: seat?.displayName || seat?.username || username,
+    studentUid: seat?.studentUid,
+    classCode: classData?.classCode,
+    className: classData?.name,
+    teacherUid: classData?.teacherUid
+  };
+};
+
+/**
+ * Register usernames for an existing class that was created before global usernames.
+ * Run this once per class to backfill the global index.
+ *
+ * @param {string} classId - Class ID
+ * @returns {number} Number of usernames registered
+ */
+export const backfillUsernameIndex = async (classId) => {
+  const roster = await getClassRoster(classId);
+  let count = 0;
+
+  for (const seat of roster) {
+    if (seat.username) {
+      const existing = await lookupUsername(seat.username);
+      if (!existing) {
+        await registerUsername(seat.username, classId, seat.seatNumber);
+        count++;
+      }
+    }
+  }
+
+  console.log(`Backfilled ${count} usernames for class ${classId}`);
+  return count;
 };

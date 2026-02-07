@@ -129,11 +129,10 @@ export const StudentAuthProvider = ({ children }) => {
     }
   };
 
-  // Sign in with PIN (Class Code + Seat + PIN)
+  // Sign in with PIN (Class Code + Seat + PIN) - legacy seat number method
   const signInWithPin = async (classCode, seatNumber, pin) => {
     setError(null);
     try {
-      // Get the class by code
       const classData = await getClassByCode(classCode.toUpperCase());
 
       if (!classData) {
@@ -144,29 +143,26 @@ export const StudentAuthProvider = ({ children }) => {
         throw new Error('This class does not support student accounts. Ask your teacher for help.');
       }
 
-      // Verify the PIN (now returns { valid, error, rateLimitStatus })
       const pinResult = await verifyPin(classData.id, parseInt(seatNumber), pin);
 
       if (!pinResult.valid) {
         throw new Error(pinResult.error || 'Invalid PIN. Please check your seat number and PIN.');
       }
 
-      // Get seat info
       const seat = await getSeat(classData.id, parseInt(seatNumber));
 
-      // Create PIN session
       const session = {
         classId: classData.id,
         classCode: classData.classCode,
         className: classData.name,
         seatNumber: parseInt(seatNumber),
         displayName: seat.displayName,
+        username: seat.username,
         teacherUid: classData.teacherUid,
         createdAt: Date.now(),
         expiresAt: Date.now() + PIN_SESSION_EXPIRY
       };
 
-      // Save to localStorage
       localStorage.setItem(PIN_SESSION_KEY, JSON.stringify(session));
       setPinSession(session);
 
@@ -174,6 +170,41 @@ export const StudentAuthProvider = ({ children }) => {
       return session;
     } catch (err) {
       console.error('PIN Sign-In error:', err);
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  // Sign in with just username + PIN (global lookup, no class code needed)
+  const signInWithUsername = async (username, pin) => {
+    setError(null);
+    try {
+      const { verifyStudentGlobal } = await import('../firebase/enrollments');
+      const result = await verifyStudentGlobal(username.toLowerCase().trim(), pin);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Invalid username or PIN.');
+      }
+
+      const session = {
+        classId: result.classId,
+        classCode: result.classCode,
+        className: result.className,
+        seatNumber: result.seatNumber,
+        displayName: result.studentName,
+        username: result.username,
+        teacherUid: result.teacherUid,
+        createdAt: Date.now(),
+        expiresAt: Date.now() + PIN_SESSION_EXPIRY
+      };
+
+      localStorage.setItem(PIN_SESSION_KEY, JSON.stringify(session));
+      setPinSession(session);
+
+      console.log('Username Sign-In successful:', session.displayName);
+      return session;
+    } catch (err) {
+      console.error('Username Sign-In error:', err);
       setError(err.message);
       throw err;
     }
@@ -238,6 +269,7 @@ export const StudentAuthProvider = ({ children }) => {
     isPartialAuth: !!student && !studentData, // Signed in but no student record yet
     signInWithGoogle,
     signInWithPin,
+    signInWithUsername,
     signOut
   };
 

@@ -53,6 +53,9 @@ const GradeEntryModal = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
+  // Get effective UID: Google UID if linked, otherwise seat-based ID
+  const effectiveUid = student?.studentUid || (student?.seatNumber != null ? `seat-${student.seatNumber}` : null);
+
   // Reset form when modal opens with new student/lesson
   useEffect(() => {
     setGradeType(currentGrade?.type || 'points');
@@ -62,7 +65,7 @@ const GradeEntryModal = ({
     setSelectedFeedback(currentGrade?.quickFeedback || []);
     setFeedback(currentGrade?.feedback || '');
     setError(null);
-  }, [currentGrade, student?.studentUid, lesson?.id]);
+  }, [currentGrade, effectiveUid, lesson?.id]);
 
   const toggleFeedback = (id) => {
     setSelectedFeedback(prev =>
@@ -103,13 +106,13 @@ const GradeEntryModal = ({
 
       const result = await gradeSubmission(
         classId,
-        student.studentUid,
+        effectiveUid,
         lesson.id,
         gradeData,
         user.uid
       );
 
-      onSave(student.studentUid, lesson.id, result);
+      onSave(effectiveUid, lesson.id, result);
     } catch (err) {
       console.error('Error saving grade:', err);
       setError(err.message);

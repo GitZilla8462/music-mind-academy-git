@@ -186,28 +186,29 @@ export const deleteClass = async (classId) => {
   const classData = await getClassById(classId);
   if (!classData) throw new Error('Class not found');
 
+  // Get roster to clean up global username index
+  const { getClassRoster, unregisterUsername } = await import('./enrollments');
+  const roster = await getClassRoster(classId);
+
+  // Remove usernames from global index
+  await Promise.all(
+    roster.filter(s => s.username).map(s => unregisterUsername(s.username))
+  );
+
   // IMPORTANT: Delete roster, grades, and submissions FIRST
   // because their Firebase rules check that the class exists to verify teacher ownership
   await Promise.all([
-    // Remove class roster (must happen while class still exists for permission check)
     remove(ref(database, `classRosters/${classId}`)),
-    // Remove PIN hashes
     remove(ref(database, `pinHashes/${classId}`)),
-    // Remove PIN login attempts
     remove(ref(database, `pinLoginAttempts/${classId}`)),
-    // Remove grades for this class
     remove(ref(database, `grades/${classId}`)),
-    // Remove submissions for this class
     remove(ref(database, `submissions/${classId}`))
   ]);
 
   // THEN delete the class itself and related lookups
   await Promise.all([
-    // Remove main class
     remove(ref(database, `classes/${classId}`)),
-    // Remove from teacher's list
     remove(ref(database, `teacherClasses/${classData.teacherUid}/${classId}`)),
-    // Remove class code lookup
     remove(ref(database, `classCodes/${classData.classCode}`))
   ]);
 

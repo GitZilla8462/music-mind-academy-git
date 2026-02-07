@@ -1,6 +1,7 @@
 // Class Detail Page
 // src/pages/ClassDetailPage.jsx
 // Google Classroom-style: click into a class to see students, grades, work
+// Uses CURRICULUM config for Unit → Lesson → Activity organization
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
@@ -8,6 +9,7 @@ import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { getClassById } from '../firebase/classes';
 import { getClassRoster } from '../firebase/enrollments';
 import { getAllClassSubmissions, getClassGrades } from '../firebase/grades';
+import { CURRICULUM, getLessonById } from '../config/curriculumConfig';
 import {
   ArrowLeft,
   Users,
@@ -18,6 +20,7 @@ import {
   Clock,
   CheckCircle2,
   ChevronRight,
+  ChevronDown,
   UserPlus,
   Music,
   Gamepad2,
@@ -26,37 +29,14 @@ import {
   CreditCard,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Lock
 } from 'lucide-react';
 import TeacherHeader from '../components/teacher/TeacherHeader';
 import RosterManager from '../components/teacher/RosterManager';
 import StudentDetailModal from '../components/teacher/StudentDetailModal';
 import GradeEntryModal from '../components/teacher/GradeEntryModal';
 import PrintableLoginCards from '../components/teacher/PrintableLoginCards';
-
-// Lesson definitions
-const LESSONS = [
-  { id: 'lesson1', name: 'Lesson 1: Mood & Expression', activities: [
-    { id: 'mood-match', name: 'Mood Match Game', type: 'game' },
-    { id: 'adventure-composition', name: 'Adventure Composition', type: 'composition' },
-    { id: 'lesson1-reflection', name: 'Reflection', type: 'reflection' }
-  ]},
-  { id: 'lesson2', name: 'Lesson 2: Instrumentation', activities: [
-    { id: 'melody-escape', name: 'Melody Escape Room', type: 'game' },
-    { id: 'sports-composition', name: 'Sports Composition', type: 'composition' },
-    { id: 'lesson2-reflection', name: 'Reflection', type: 'reflection' }
-  ]},
-  { id: 'lesson3', name: 'Lesson 3: Texture & Layering', activities: [
-    { id: 'listening-map', name: 'Listening Map', type: 'game' },
-    { id: 'city-composition', name: 'City Composition', type: 'composition' },
-    { id: 'lesson3-reflection', name: 'Reflection', type: 'reflection' }
-  ]},
-  { id: 'lesson4', name: 'Lesson 4: Form & Structure', activities: [
-    { id: 'sectional-builder', name: 'Sectional Loop Builder', type: 'game' },
-    { id: 'wildlife-composition', name: 'Wildlife Composition', type: 'composition' },
-    { id: 'lesson4-reflection', name: 'Reflection', type: 'reflection' }
-  ]}
-];
 
 const ClassDetailPage = () => {
   const { classId } = useParams();
@@ -71,7 +51,10 @@ const ClassDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('students');
   const [codeCopied, setCodeCopied] = useState(false);
-  const [expandedLessons, setExpandedLessons] = useState(['lesson1']);
+
+  // Accordion state: track expanded units and lessons separately
+  const [expandedUnits, setExpandedUnits] = useState([CURRICULUM[0]?.id]);
+  const [expandedLessons, setExpandedLessons] = useState([]);
 
   // Modal states
   const [showRosterManager, setShowRosterManager] = useState(false);
@@ -86,11 +69,9 @@ const ClassDetailPage = () => {
   useEffect(() => {
     if (searchParams.get('print') === 'true' && roster.length > 0) {
       setShowPrintCards(true);
-      // Clear the param so it doesn't reopen on refresh
       setSearchParams({}, { replace: true });
     }
   }, [searchParams, roster.length, setSearchParams]);
-
 
   // Fetch all class data
   useEffect(() => {
@@ -108,7 +89,6 @@ const ClassDetailPage = () => {
         const rosterData = await getClassRoster(classId);
         setRoster(rosterData || []);
 
-        // Always fetch submissions and grades
         const [subs, gradesData] = await Promise.all([
           getAllClassSubmissions(classId),
           getClassGrades(classId)
@@ -147,6 +127,10 @@ const ClassDetailPage = () => {
     setGrades(gradesData || {});
   };
 
+  const getEffectiveUid = (student) => {
+    return student.studentUid || `seat-${student.seatNumber}`;
+  };
+
   const getStudentStatus = (studentUid) => {
     const studentSubs = submissions.filter(s => s.studentUid === studentUid);
     const pending = studentSubs.filter(s => s.status === 'pending' || s.status === 'submitted').length;
@@ -163,6 +147,44 @@ const ClassDetailPage = () => {
       graded: activitySubs.filter(s => s.status === 'graded').length,
       pending: activitySubs.filter(s => s.status === 'submitted').length
     };
+  };
+
+  // Get aggregate stats for an entire lesson
+  const getLessonStats = (lesson) => {
+    let submitted = 0;
+    let pending = 0;
+    let graded = 0;
+    lesson.activities.forEach(activity => {
+      const stats = getActivityStats(lesson.id, activity.id);
+      submitted += stats.submitted;
+      pending += stats.pending;
+      graded += stats.graded;
+    });
+    return { submitted, pending, graded };
+  };
+
+  // Get aggregate stats for an entire unit
+  const getUnitStats = (unit) => {
+    let submitted = 0;
+    let pending = 0;
+    let graded = 0;
+    let lessonsWithSubmissions = 0;
+    unit.lessons.forEach(lesson => {
+      const stats = getLessonStats(lesson);
+      submitted += stats.submitted;
+      pending += stats.pending;
+      graded += stats.graded;
+      if (stats.submitted > 0) lessonsWithSubmissions++;
+    });
+    return { submitted, pending, graded, lessonsWithSubmissions };
+  };
+
+  const toggleUnit = (unitId) => {
+    setExpandedUnits(prev =>
+      prev.includes(unitId)
+        ? prev.filter(id => id !== unitId)
+        : [...prev, unitId]
+    );
   };
 
   const toggleLesson = (lessonId) => {
@@ -186,6 +208,23 @@ const ClassDetailPage = () => {
   };
 
   const totalPending = submissions.filter(s => s.status === 'pending' || s.status === 'submitted').length;
+
+  const getActivityIcon = (type) => {
+    switch (type) {
+      case 'game': return Gamepad2;
+      case 'composition': return Music;
+      case 'reflection': return FileText;
+      default: return FileText;
+    }
+  };
+
+  // For Grades tab: look up lesson/activity from curriculum config
+  const findLessonAndActivity = (lessonId, activityId) => {
+    const lesson = getLessonById(lessonId);
+    if (!lesson) return { lesson: { id: lessonId, name: lessonId }, activity: null };
+    const activity = lesson.activities.find(a => a.id === activityId) || null;
+    return { lesson, activity };
+  };
 
   if (authLoading || loading) {
     return (
@@ -211,14 +250,16 @@ const ClassDetailPage = () => {
     );
   }
 
-  const getActivityIcon = (type) => {
-    switch (type) {
-      case 'game': return Gamepad2;
-      case 'composition': return Music;
-      case 'reflection': return FileText;
-      default: return FileText;
-    }
+  // Color mapping for unit accent colors
+  const unitColorMap = {
+    blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', headerBg: 'bg-blue-500', headerText: 'text-white', pill: 'bg-blue-100 text-blue-700' },
+    purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', headerBg: 'bg-purple-500', headerText: 'text-white', pill: 'bg-purple-100 text-purple-700' },
+    green: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', headerBg: 'bg-green-500', headerText: 'text-white', pill: 'bg-green-100 text-green-700' },
+    orange: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', headerBg: 'bg-orange-500', headerText: 'text-white', pill: 'bg-orange-100 text-orange-700' },
+    teal: { bg: 'bg-teal-50', border: 'border-teal-200', text: 'text-teal-700', headerBg: 'bg-teal-500', headerText: 'text-white', pill: 'bg-teal-100 text-teal-700' },
   };
+
+  const getUnitColors = (color) => unitColorMap[color] || unitColorMap.blue;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -244,7 +285,6 @@ const ClassDetailPage = () => {
             </div>
 
             <div className="text-right">
-              {/* Start Lesson Button */}
               <button
                 onClick={() => navigate('/music-classroom-resources')}
                 className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-lg font-semibold shadow-lg transition-colors"
@@ -253,7 +293,6 @@ const ClassDetailPage = () => {
                 Start Lesson
               </button>
 
-              {/* Join Code - smaller, below button */}
               <button
                 onClick={handleCopyCode}
                 className="flex items-center gap-1.5 mt-2 text-white/70 hover:text-white text-sm transition-colors mx-auto"
@@ -326,7 +365,7 @@ const ClassDetailPage = () => {
 
       {/* Tab Content */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-        {/* Students Tab */}
+        {/* ==================== Students Tab ==================== */}
         {activeTab === 'students' && (
           <div>
             <div className="flex items-center justify-between mb-4">
@@ -414,7 +453,8 @@ const ClassDetailPage = () => {
                         return 0;
                       })
                       .map((student, index) => {
-                        const status = getStudentStatus(student.studentUid);
+                        const effectiveUid = getEffectiveUid(student);
+                        const status = getStudentStatus(effectiveUid);
 
                         return (
                           <tr
@@ -481,98 +521,170 @@ const ClassDetailPage = () => {
           </div>
         )}
 
-        {/* Classwork Tab */}
+        {/* ==================== Classwork Tab ==================== */}
         {activeTab === 'classwork' && (
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">
                 Classwork
               </h2>
+              {totalPending > 0 && (
+                <span className="text-sm text-amber-600 font-medium">
+                  {totalPending} total to grade
+                </span>
+              )}
             </div>
 
             <div className="space-y-4">
-              {LESSONS.map((lesson) => {
-                const isExpanded = expandedLessons.includes(lesson.id);
-                let lessonSubmitted = 0;
-                let lessonPending = 0;
-
-                lesson.activities.forEach(activity => {
-                  const stats = getActivityStats(lesson.id, activity.id);
-                  lessonSubmitted += stats.submitted;
-                  lessonPending += stats.pending;
-                });
+              {CURRICULUM.map((unit) => {
+                const isUnitExpanded = expandedUnits.includes(unit.id);
+                const unitStats = getUnitStats(unit);
+                const colors = getUnitColors(unit.color);
+                const builtLessons = unit.lessons.filter(l => l.route).length;
 
                 return (
-                  <div key={lesson.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <div key={unit.id} className="rounded-xl border border-gray-200 overflow-hidden bg-white">
+                    {/* Unit Header */}
                     <button
-                      onClick={() => toggleLesson(lesson.id)}
+                      onClick={() => toggleUnit(unit.id)}
                       className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <ChevronRight
-                          size={20}
-                          className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                        />
-                        <span className="font-semibold text-gray-900">{lesson.name}</span>
+                        {isUnitExpanded ? (
+                          <ChevronDown size={20} className="text-gray-400" />
+                        ) : (
+                          <ChevronRight size={20} className="text-gray-400" />
+                        )}
+                        <span className="text-lg mr-1">{unit.icon}</span>
+                        <div className="text-left">
+                          <div className="font-bold text-gray-900">{unit.name}</div>
+                          <div className="text-xs text-gray-500">
+                            {builtLessons}/{unit.lessons.length} lessons
+                            {unitStats.lessonsWithSubmissions > 0 && (
+                              <span> · {unitStats.lessonsWithSubmissions} taught</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                       <div className="flex items-center gap-3 text-sm">
-                        {lessonPending > 0 && (
-                          <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                            {lessonPending} to grade
+                        {unitStats.pending > 0 && (
+                          <span className="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full font-medium">
+                            {unitStats.pending} to grade
                           </span>
                         )}
-                        <span className="text-gray-500">
-                          {lessonSubmitted} submitted
-                        </span>
+                        {unitStats.submitted > 0 && (
+                          <span className="text-gray-500">
+                            {unitStats.submitted} submitted
+                          </span>
+                        )}
                       </div>
                     </button>
 
-                    {isExpanded && (
-                      <div className="border-t border-gray-100 divide-y divide-gray-100">
-                        {lesson.activities.map((activity) => {
-                          const stats = getActivityStats(lesson.id, activity.id);
-                          const Icon = getActivityIcon(activity.type);
+                    {/* Expanded Unit: Show Lessons */}
+                    {isUnitExpanded && (
+                      <div className="border-t border-gray-100">
+                        {unit.lessons.map((lesson) => {
+                          const isLessonExpanded = expandedLessons.includes(lesson.id);
+                          const lessonStats = getLessonStats(lesson);
+                          const isBuilt = !!lesson.route;
+                          const hasActivities = lesson.activities.length > 0;
 
                           return (
-                            <div
-                              key={activity.id}
-                              className="px-4 py-3 pl-12 flex items-center justify-between hover:bg-gray-50"
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                                  activity.type === 'game' ? 'bg-purple-100' :
-                                  activity.type === 'composition' ? 'bg-blue-100' : 'bg-gray-100'
-                                }`}>
-                                  <Icon size={16} className={
-                                    activity.type === 'game' ? 'text-purple-600' :
-                                    activity.type === 'composition' ? 'text-blue-600' : 'text-gray-600'
-                                  } />
+                            <div key={lesson.id} className="border-b border-gray-50 last:border-b-0">
+                              {/* Lesson Header */}
+                              <button
+                                onClick={() => hasActivities && toggleLesson(lesson.id)}
+                                className={`w-full px-4 py-3 pl-10 flex items-center justify-between transition-colors ${
+                                  hasActivities ? 'hover:bg-gray-50 cursor-pointer' : 'cursor-default'
+                                } ${!isBuilt ? 'opacity-50' : ''}`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  {hasActivities ? (
+                                    isLessonExpanded ? (
+                                      <ChevronDown size={16} className="text-gray-400" />
+                                    ) : (
+                                      <ChevronRight size={16} className="text-gray-400" />
+                                    )
+                                  ) : (
+                                    <Lock size={16} className="text-gray-300" />
+                                  )}
+                                  <div className="text-left">
+                                    <div className="font-semibold text-gray-900 text-sm">{lesson.name}</div>
+                                    <div className="text-xs text-gray-500">{lesson.concept}</div>
+                                  </div>
                                 </div>
-                                <div>
-                                  <div className="font-medium text-gray-900">{activity.name}</div>
-                                  <div className="text-xs text-gray-500 capitalize">{activity.type}</div>
+                                <div className="flex items-center gap-3 text-sm">
+                                  {!isBuilt && (
+                                    <span className="text-xs text-gray-400 italic">Coming soon</span>
+                                  )}
+                                  {lessonStats.pending > 0 && (
+                                    <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs font-medium">
+                                      {lessonStats.pending} to grade
+                                    </span>
+                                  )}
+                                  {lessonStats.submitted > 0 && (
+                                    <span className="text-xs text-gray-500">
+                                      {lessonStats.submitted} submitted
+                                    </span>
+                                  )}
+                                  {isBuilt && lessonStats.submitted === 0 && (
+                                    <span className="text-xs text-gray-400">No submissions</span>
+                                  )}
                                 </div>
-                              </div>
+                              </button>
 
-                              <div className="flex items-center gap-4 text-sm">
-                                <span className="text-gray-500">
-                                  {stats.submitted}/{roster.length} submitted
-                                </span>
-                                {stats.pending > 0 && (
-                                  <span className="flex items-center gap-1 text-amber-600">
-                                    <Clock size={14} />
-                                    {stats.pending} pending
-                                  </span>
-                                )}
-                                {activity.type === 'composition' && (
-                                  <button
-                                    onClick={() => navigate(`/teacher/gradebook/${classId}?activity=${activity.id}`)}
-                                    className="text-blue-600 hover:text-blue-700 font-medium"
-                                  >
-                                    Grade All →
-                                  </button>
-                                )}
-                              </div>
+                              {/* Expanded Lesson: Show Activities */}
+                              {isLessonExpanded && hasActivities && (
+                                <div className="bg-gray-50/50 divide-y divide-gray-100">
+                                  {lesson.activities.map((activity) => {
+                                    const stats = getActivityStats(lesson.id, activity.id);
+                                    const Icon = getActivityIcon(activity.type);
+
+                                    return (
+                                      <div
+                                        key={activity.id}
+                                        className="px-4 py-3 pl-20 flex items-center justify-between hover:bg-gray-50"
+                                      >
+                                        <div className="flex items-center gap-3">
+                                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                            activity.type === 'game' ? 'bg-purple-100' :
+                                            activity.type === 'composition' ? 'bg-blue-100' : 'bg-gray-100'
+                                          }`}>
+                                            <Icon size={16} className={
+                                              activity.type === 'game' ? 'text-purple-600' :
+                                              activity.type === 'composition' ? 'text-blue-600' : 'text-gray-600'
+                                            } />
+                                          </div>
+                                          <div>
+                                            <div className="font-medium text-gray-900 text-sm">{activity.name}</div>
+                                            <div className="text-xs text-gray-500 capitalize">{activity.type}</div>
+                                          </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-4 text-sm">
+                                          <span className="text-gray-500 text-xs">
+                                            {stats.submitted}/{roster.length} submitted
+                                          </span>
+                                          {stats.pending > 0 && (
+                                            <span className="flex items-center gap-1 text-amber-600 text-xs">
+                                              <Clock size={12} />
+                                              {stats.pending} pending
+                                            </span>
+                                          )}
+                                          {activity.type === 'composition' && (
+                                            <button
+                                              onClick={() => navigate(`/teacher/gradebook/${classId}?activity=${activity.id}`)}
+                                              className="text-blue-600 hover:text-blue-700 font-medium text-xs"
+                                            >
+                                              Grade All →
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
                           );
                         })}
@@ -585,7 +697,7 @@ const ClassDetailPage = () => {
           </div>
         )}
 
-        {/* Grades Tab */}
+        {/* ==================== Grades Tab ==================== */}
         {activeTab === 'grades' && (
           <div>
             <div className="flex items-center justify-between mb-4">
@@ -620,9 +732,8 @@ const ClassDetailPage = () => {
                   .filter(s => s.status === 'submitted' || s.status === 'pending')
                   .slice(0, 10)
                   .map((submission) => {
-                    const student = roster.find(r => r.studentUid === submission.studentUid);
-                    const lesson = LESSONS.find(l => l.id === submission.lessonId);
-                    const activity = lesson?.activities.find(a => a.id === submission.activityId);
+                    const student = roster.find(r => getEffectiveUid(r) === submission.studentUid);
+                    const { lesson, activity } = findLessonAndActivity(submission.lessonId, submission.activityId);
 
                     return (
                       <div
@@ -640,6 +751,9 @@ const ClassDetailPage = () => {
                               </div>
                               <div className="text-sm text-gray-500">
                                 {activity?.name || lesson?.name || 'Assignment'}
+                                {lesson?.unitName && (
+                                  <span className="text-gray-400"> · {lesson.unitName}</span>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -719,7 +833,6 @@ const ClassDetailPage = () => {
           student={selectedStudent}
           classId={classId}
           onViewWork={(student, lesson, activity, submission) => {
-            // Could open a work viewer here
             console.log('View work:', { student, lesson, activity, submission });
           }}
           onGrade={(student, lesson, activity, submission) => {
@@ -738,7 +851,7 @@ const ClassDetailPage = () => {
           lesson={gradeModalData.lesson}
           activity={gradeModalData.activity}
           classId={classId}
-          currentGrade={grades[gradeModalData.student?.studentUid]?.[gradeModalData.lesson?.id]}
+          currentGrade={grades[gradeModalData.student ? getEffectiveUid(gradeModalData.student) : null]?.[gradeModalData.lesson?.id]}
           submission={gradeModalData.submission}
           onSave={handleGradeSaved}
         />

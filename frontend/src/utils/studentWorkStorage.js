@@ -5,10 +5,14 @@
 
 import {
   saveStudentWork as saveToFirebase,
+  submitStudentWork as submitToFirebase,
   loadStudentWork as loadFromFirebase,
   getAllStudentWork as getAllFromFirebase,
   deleteStudentWork as deleteFromFirebase
 } from '../firebase/studentWork';
+import { getActivityToLessonMap } from '../config/curriculumConfig';
+
+const PIN_SESSION_KEY = 'student-pin-session';
 
 /**
  * Get the current student ID (creates one if needed)
@@ -23,6 +27,32 @@ export const getStudentId = () => {
 };
 
 /**
+ * Auto-detect class auth info from PIN session in localStorage.
+ * Returns { uid, classId } if student is in an active class session, null otherwise.
+ */
+const getClassAuthInfo = () => {
+  try {
+    const saved = localStorage.getItem(PIN_SESSION_KEY);
+    if (!saved) return null;
+
+    const session = JSON.parse(saved);
+
+    // Check if session is expired
+    if (session.expiresAt && session.expiresAt < Date.now()) return null;
+
+    if (!session.classId || session.seatNumber == null) return null;
+
+    return {
+      uid: `seat-${session.seatNumber}`,
+      classId: session.classId,
+      displayName: session.displayName || `Seat ${session.seatNumber}`
+    };
+  } catch {
+    return null;
+  }
+};
+
+/**
  * Parse activity ID into lesson and activity components
  * e.g., 'lesson2-sports-composition' -> { lessonId: 'lesson2', activityId: 'sports-composition' }
  */
@@ -33,18 +63,8 @@ const parseActivityId = (activityId) => {
     return { lessonId: lessonMatch[1], activityId: lessonMatch[2] };
   }
 
-  // Activity-to-lesson mapping for activities without lesson prefix
-  const activityLessonMap = {
-    'sports-composition': 'lesson2',
-    'city-composition': 'lesson3',
-    'epic-wildlife-composition': 'lesson4',
-    'school-beneath': 'lesson1',
-    'adventure-composition': 'lesson1',
-    'mood-match-game': 'lesson1',
-    'listening-map': 'lesson3',
-    'sectional-loop-builder': 'lesson4'
-  };
-
+  // Dynamic activity-to-lesson mapping from curriculum config
+  const activityLessonMap = getActivityToLessonMap();
   const lessonId = activityLessonMap[activityId] || 'unknown';
   return { lessonId, activityId };
 };
@@ -92,16 +112,29 @@ export const saveStudentWork = (activityId, options, studentId = null, authInfo 
   localStorage.setItem(key, JSON.stringify(saveData));
   console.log(`💾 Saved student work to localStorage: ${key}`, saveData);
 
-  // If authenticated, also save to Firebase (fire and forget)
-  if (authInfo?.uid) {
+  // Auto-detect class auth if not explicitly provided
+  const effectiveAuth = authInfo || getClassAuthInfo();
+
+  // If authenticated (explicitly or via PIN session), sync to Firebase
+  if (effectiveAuth?.uid) {
     const { lessonId, activityId: parsedActivityId } = parseActivityId(activityId);
-    saveToFirebase(authInfo.uid, authInfo.classId || 'unassigned', lessonId, parsedActivityId, {
+    saveToFirebase(effectiveAuth.uid, effectiveAuth.classId || 'unassigned', lessonId, parsedActivityId, {
       type: options.type || 'composition',
       title: options.title,
       emoji: options.emoji || '📁',
       data: options.data
-    }).then(() => {
+    }).then(async () => {
       console.log(`☁️ Synced to Firebase: ${activityId}`);
+
+      // Auto-submit to teacher if in a class session
+      if (effectiveAuth.classId) {
+        try {
+          await submitToFirebase(effectiveAuth.uid, lessonId, parsedActivityId, effectiveAuth.classId);
+          console.log(`📤 Auto-submitted to teacher: ${activityId}`);
+        } catch (err) {
+          console.error(`❌ Auto-submit failed for ${activityId}:`, err);
+        }
+      }
     }).catch((err) => {
       console.error(`❌ Firebase sync failed for ${activityId}:`, err);
     });
