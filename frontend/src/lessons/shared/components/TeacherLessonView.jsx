@@ -571,29 +571,50 @@ const PresentationContent = ({
       ? Object.keys(sessionData.studentsJoined).length 
       : 0;
 
+    const isClassSession = !!classCode;
+
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-white p-8">
-        {/* Join Instructions */}
-        <div className="text-center mb-8">
-          <div className="text-slate-400 text-xl mb-2">Join at</div>
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            {joinUrl}
-          </h1>
-        </div>
-        
-        {/* Code Display */}
-        <div className="bg-white rounded-2xl px-12 py-8 mb-8">
-          <div className="text-8xl md:text-9xl font-bold font-mono tracking-widest text-blue-600">
-            {displayCode}
-          </div>
-        </div>
-        
+        {isClassSession ? (
+          /* Class session: tell students to sign in */
+          <>
+            <div className="text-center mb-8">
+              <div className="text-slate-400 text-xl mb-2">Go to</div>
+              <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+                {joinUrl}
+              </h1>
+            </div>
+
+            <div className="bg-white rounded-2xl px-12 py-8 mb-8 text-center">
+              <div className="text-4xl md:text-5xl font-bold text-slate-800 mb-2">
+                Sign in with your username & PIN
+              </div>
+            </div>
+          </>
+        ) : (
+          /* Quick session: show 4-digit code */
+          <>
+            <div className="text-center mb-8">
+              <div className="text-slate-400 text-xl mb-2">Join at</div>
+              <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+                {joinUrl}
+              </h1>
+            </div>
+
+            <div className="bg-white rounded-2xl px-12 py-8 mb-8">
+              <div className="text-8xl md:text-9xl font-bold font-mono tracking-widest text-blue-600">
+                {displayCode}
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Student Count */}
         <div className="flex items-center gap-3 text-2xl text-slate-300">
           <Users size={28} />
           <span>
-            {studentCount === 0 
-              ? 'Waiting for students...' 
+            {studentCount === 0
+              ? 'Waiting for students...'
               : `${studentCount} student${studentCount !== 1 ? 's' : ''} joined`
             }
           </span>

@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getSessionData } from '../firebase/config';
-import { getClassByCode, joinClassSession } from '../firebase/classes';
+import { getClassByCode, getClassSessionByCode, joinClassSession } from '../firebase/classes';
 import { verifyStudentPinByUsername } from '../firebase/enrollments';
 import { getStudentId, migrateOldSaves } from '../utils/studentWorkStorage';
 import BeatEscapeRoomActivity from '../lessons/shared/activities/beat-escape-room/BeatEscapeRoomActivity';
@@ -33,7 +33,11 @@ function JoinWithCode() {
   const [isJoining, setIsJoining] = useState(false);
 
   // Student auth
-  const { isAuthenticated, currentStudentInfo } = useStudentAuth();
+  const { isAuthenticated, isPinAuth, pinSession, currentStudentInfo } = useStudentAuth();
+
+  // Active class session state (for logged-in students)
+  const [activeSession, setActiveSession] = useState(null); // { classData, lessonRoute }
+  const [checkingSession, setCheckingSession] = useState(false);
 
   // Preview mode params
   const isPreviewMode = searchParams.get('preview') === 'true';
@@ -50,6 +54,30 @@ function JoinWithCode() {
     const id = getStudentId();
     migrateOldSaves(id);
   }, []);
+
+  // Check for active session when PIN-authenticated student visits /join
+  useEffect(() => {
+    if (!isPinAuth || !pinSession?.classCode) return;
+
+    const checkActiveSession = async () => {
+      setCheckingSession(true);
+      try {
+        const classData = await getClassSessionByCode(pinSession.classCode);
+        if (classData?.currentSession?.active) {
+          setActiveSession({ classData });
+        } else {
+          setActiveSession(null);
+        }
+      } catch (err) {
+        console.error('Error checking class session:', err);
+        setActiveSession(null);
+      } finally {
+        setCheckingSession(false);
+      }
+    };
+
+    checkActiveSession();
+  }, [isPinAuth, pinSession?.classCode]);
 
   // Auto-join for preview mode
   useEffect(() => {
@@ -195,6 +223,27 @@ function JoinWithCode() {
     } catch (err) {
       console.error('Error joining class:', err);
       setError('Failed to join. Please try again.');
+      setIsJoining(false);
+    }
+  };
+
+  // Handle joining active class session (for logged-in students)
+  const handleJoinActiveSession = async () => {
+    if (!activeSession?.classData || !pinSession) return;
+
+    setIsJoining(true);
+    try {
+      const seatId = `seat-${pinSession.seatNumber}`;
+      await joinClassSession(activeSession.classData.id, seatId, {
+        seatNumber: pinSession.seatNumber,
+        name: pinSession.displayName || pinSession.username
+      });
+
+      const lessonRoute = activeSession.classData.currentSession.lessonRoute || '/lessons/film-music-project/lesson1';
+      window.location.href = `${lessonRoute}?classId=${activeSession.classData.id}&role=student&classCode=${activeSession.classData.classCode}&seatId=${seatId}&username=${pinSession.username}`;
+    } catch (err) {
+      console.error('Error joining session:', err);
+      setError('Failed to join lesson. Please try again.');
       setIsJoining(false);
     }
   };
@@ -364,20 +413,58 @@ function JoinWithCode() {
         ) : (
           /* Two equal options side by side: Student Login (left) + Quick Join (right) */
           <div className="grid grid-cols-2 gap-4 items-start">
-            {/* Left: Student Login */}
+            {/* Left: Student Login / Join Lesson */}
             <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200 flex flex-col">
-              <div className="text-center mb-4">
-                <h2 className="text-lg font-semibold text-gray-800 mb-1">Student Login</h2>
-                <p className="text-gray-500 text-sm">Sign in to see your work and grades</p>
-              </div>
+              {isPinAuth && activeSession ? (
+                /* Logged in + active session → Join Lesson */
+                <>
+                  <div className="text-center mb-4">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-1">Welcome back, {currentStudentInfo?.displayName}</h2>
+                    <p className="text-gray-500 text-sm">{pinSession?.className}</p>
+                  </div>
 
-              <div className="flex-1" />
+                  <div className="flex-1" />
 
-              {isAuthenticated ? (
-                <div className="text-center">
-                  <p className="text-gray-600 text-sm mb-3">
-                    Signed in as <span className="text-gray-800 font-semibold">{currentStudentInfo?.displayName}</span>
-                  </p>
+                  <button
+                    onClick={handleJoinActiveSession}
+                    disabled={isJoining}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isJoining ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Joining...
+                      </>
+                    ) : (
+                      <>
+                        <LogIn size={18} />
+                        Join Lesson
+                      </>
+                    )}
+                  </button>
+
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm text-center mt-3">
+                      {error}
+                    </div>
+                  )}
+                </>
+              ) : isPinAuth && !checkingSession && !activeSession ? (
+                /* Logged in but no active session */
+                <>
+                  <div className="text-center mb-4">
+                    <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Clock className="w-6 h-6 text-amber-500" />
+                    </div>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-1">Hi, {currentStudentInfo?.displayName}</h2>
+                    <p className="text-gray-500 text-sm">No lesson is running right now</p>
+                  </div>
+
+                  <div className="flex-1" />
+
                   <button
                     onClick={() => navigate('/student/home')}
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2"
@@ -385,15 +472,57 @@ function JoinWithCode() {
                     <LogIn size={18} />
                     Go to Dashboard
                   </button>
-                </div>
+                </>
+              ) : isAuthenticated && !isPinAuth ? (
+                /* Google auth (not PIN) */
+                <>
+                  <div className="text-center mb-4">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-1">Student Login</h2>
+                    <p className="text-gray-500 text-sm">Sign in to see your work and grades</p>
+                  </div>
+
+                  <div className="flex-1" />
+
+                  <div className="text-center">
+                    <p className="text-gray-600 text-sm mb-3">
+                      Signed in as <span className="text-gray-800 font-semibold">{currentStudentInfo?.displayName}</span>
+                    </p>
+                    <button
+                      onClick={() => navigate('/student/home')}
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2"
+                    >
+                      <LogIn size={18} />
+                      Go to Dashboard
+                    </button>
+                  </div>
+                </>
               ) : (
-                <button
-                  onClick={() => navigate('/student-login')}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2"
-                >
-                  <LogIn size={18} />
-                  Sign In
-                </button>
+                /* Not authenticated */
+                <>
+                  <div className="text-center mb-4">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-1">Student Login</h2>
+                    <p className="text-gray-500 text-sm">Sign in to see your work and grades</p>
+                  </div>
+
+                  <div className="flex-1" />
+
+                  {checkingSession ? (
+                    <div className="flex items-center justify-center gap-2 text-gray-500 py-3.5">
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => navigate('/student-login')}
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2"
+                    >
+                      <LogIn size={18} />
+                      Sign In
+                    </button>
+                  )}
+                </>
               )}
             </div>
 
