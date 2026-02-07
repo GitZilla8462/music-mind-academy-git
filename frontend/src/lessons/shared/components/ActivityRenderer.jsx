@@ -630,23 +630,23 @@ const ActivityRenderer = ({
           isSessionMode={isSessionMode}
           config={{
             audioFile: '/audio/classical/brahms-hungarian-dance-5.mp3',
-            totalDuration: 180,
+            totalDuration: 173,
             numRows: 6,
-            secondsPerRow: 30,
+            secondsPerRow: 29,
             rows: [
-              { id: 'row1', name: '0:00 - 0:30', color: '#3b82f6', emoji: '1️⃣' },
-              { id: 'row2', name: '0:30 - 1:00', color: '#8b5cf6', emoji: '2️⃣' },
-              { id: 'row3', name: '1:00 - 1:30', color: '#ec4899', emoji: '3️⃣' },
-              { id: 'row4', name: '1:30 - 2:00', color: '#f59e0b', emoji: '4️⃣' },
-              { id: 'row5', name: '2:00 - 2:30', color: '#10b981', emoji: '5️⃣' },
-              { id: 'row6', name: '2:30 - 3:00', color: '#ef4444', emoji: '6️⃣' }
+              { id: 'row1', name: '0:00 - 0:29', color: '#3b82f6', emoji: '1️⃣' },
+              { id: 'row2', name: '0:29 - 0:58', color: '#8b5cf6', emoji: '2️⃣' },
+              { id: 'row3', name: '0:58 - 1:27', color: '#ec4899', emoji: '3️⃣' },
+              { id: 'row4', name: '1:27 - 1:56', color: '#f59e0b', emoji: '4️⃣' },
+              { id: 'row5', name: '1:56 - 2:24', color: '#10b981', emoji: '5️⃣' },
+              { id: 'row6', name: '2:24 - 2:53', color: '#ef4444', emoji: '6️⃣' }
             ],
             credits: {
-              title: 'Hungarian Dance No. 5',
+              title: 'Hungarian Dance No. 5, WoO 1',
               composer: 'Johannes Brahms',
-              performer: 'Public Domain Recording',
+              performer: 'Netfocus Universal Sound Library',
               license: 'Public Domain',
-              source: 'Musopen.org'
+              source: 'Internet Archive'
             },
             availableTabs: ['instruments', 'dynamics', 'tempo', 'emojis']
           }}

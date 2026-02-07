@@ -1,12 +1,12 @@
 // File: WoodwindFamilyShowcase.jsx
 // Teacher presentation: Auto-sequence through woodwind family instruments
-// Shows message screens between instruments, plays audio clip for each
-// Pattern based on StringFamilyShowcase from Lesson 1 (adapted for audio-only)
+// Shows message screens between instruments, plays video clip for each
+// Pattern based on StringFamilyShowcase from Lesson 1
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, RotateCcw } from 'lucide-react';
 
-// Woodwind instrument configurations with audio files
+// Woodwind instrument configurations with video files
 const INSTRUMENT_CONFIGS = [
   {
     id: 'flute',
@@ -14,7 +14,9 @@ const INSTRUMENT_CONFIGS = [
     emoji: '\uD83C\uDFB5',
     color: '#3B82F6', // blue
     description: 'The highest voice in the woodwind family',
-    audioPath: '/audio/orchestra-samples/woodwinds/flute/flute-demo.mp3',
+    videoPath: '/lessons/listening-lab/lesson2/videos/flute-demo.mp4',
+    startTime: 90,  // 1:30
+    endTime: 100,   // 1:40
     volume: 0.8,
     facts: ['No reed \u2014 sound made by blowing across the mouthhole', 'Made of metal, not wood!', 'Plays the highest notes in the woodwind family']
   },
@@ -24,7 +26,9 @@ const INSTRUMENT_CONFIGS = [
     emoji: '\uD83C\uDFB5',
     color: '#8B5CF6', // purple
     description: 'A double reed with a piercing, nasal tone',
-    audioPath: '/audio/orchestra-samples/woodwinds/oboe/oboe-demo.mp3',
+    videoPath: '/lessons/listening-lab/lesson2/videos/oboe-demo.mp4',
+    startTime: 8,   // 0:08
+    endTime: 18,    // 0:18
     volume: 0.8,
     facts: ['Uses a double reed \u2014 two thin pieces of cane', 'Tunes the entire orchestra', 'Distinctive nasal, piercing sound']
   },
@@ -34,7 +38,9 @@ const INSTRUMENT_CONFIGS = [
     emoji: '\uD83C\uDFB5',
     color: '#10B981', // emerald
     description: 'Warm and smooth, with the widest range',
-    audioPath: '/audio/orchestra-samples/woodwinds/clarinet/clarinet-demo.mp3',
+    videoPath: '/lessons/listening-lab/lesson2/videos/clarinet-demo.mp4',
+    startTime: 192, // 3:12
+    endTime: 202,   // 3:22
     volume: 0.8,
     facts: ['Uses a single reed', 'Widest range of any woodwind', 'Can sound warm or bright']
   },
@@ -44,7 +50,9 @@ const INSTRUMENT_CONFIGS = [
     emoji: '\uD83C\uDFB5',
     color: '#EF4444', // red
     description: 'The deepest, richest woodwind sound',
-    audioPath: '/audio/orchestra-samples/woodwinds/bassoon/bassoon-demo.mp3',
+    videoPath: '/lessons/listening-lab/lesson2/videos/bassoon-demo.mp4',
+    startTime: 528, // 8:48
+    endTime: 538,   // 8:58
     volume: 0.8,
     facts: ['Uses a double reed, like the oboe', 'Lowest standard orchestral woodwind', 'Over 8 feet of tubing folded into its body']
   }
@@ -55,14 +63,14 @@ const MESSAGE_DURATION = 2500; // How long to show "Let's hear the..." message
 const WoodwindFamilyShowcase = ({ onAdvance }) => {
   const [phase, setPhase] = useState('intro'); // intro, message, playing, next, done
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [audioReady, setAudioReady] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const [messageTimerDone, setMessageTimerDone] = useState(false);
 
-  const audioRef = useRef(null);
+  const videoRef = useRef(null);
   const config = INSTRUMENT_CONFIGS[currentIndex];
 
-  // Handle audio ended
-  const handleAudioEnded = useCallback(() => {
+  // Handle video ended
+  const handleVideoEnded = useCallback(() => {
     if (currentIndex < INSTRUMENT_CONFIGS.length - 1) {
       setPhase('next');
     } else {
@@ -70,29 +78,38 @@ const WoodwindFamilyShowcase = ({ onAdvance }) => {
     }
   }, [currentIndex]);
 
-  // Handle audio can play through
-  const handleCanPlayThrough = useCallback(() => {
-    console.log('Audio ready for:', config.name);
-    setAudioReady(true);
-  }, [config.name]);
+  // Handle video can play
+  const handleCanPlay = () => {
+    console.log('Video ready for:', config.name);
+    setVideoReady(true);
+  };
 
-  // Handle audio error
-  const handleAudioError = useCallback((e) => {
-    console.error('Audio load error:', e.target.error, 'for', config.audioPath);
-  }, [config.audioPath]);
+  // Handle video error
+  const handleVideoError = (e) => {
+    console.error('Video load error:', e.target.error, 'for', config.videoPath);
+  };
 
-  // Start audio playback
+  // Start video playback at the configured start time
   const startPlayback = useCallback(async () => {
-    if (!audioRef.current) return;
+    if (!videoRef.current) return;
 
     try {
-      audioRef.current.volume = config.volume ?? 0.8;
-      await audioRef.current.play();
+      videoRef.current.currentTime = config.startTime;
+      videoRef.current.volume = config.volume ?? 0.8;
+      await videoRef.current.play();
       setPhase('playing');
     } catch (err) {
-      console.error('Audio playback error:', err);
+      console.error('Video playback error:', err);
     }
-  }, [config.volume]);
+  }, [config.startTime, config.volume]);
+
+  // Check if we've reached the end time
+  const handleTimeUpdate = useCallback(() => {
+    if (videoRef.current && videoRef.current.currentTime >= config.endTime) {
+      videoRef.current.pause();
+      handleVideoEnded();
+    }
+  }, [config.endTime, handleVideoEnded]);
 
   // Message timer effect
   useEffect(() => {
@@ -104,15 +121,15 @@ const WoodwindFamilyShowcase = ({ onAdvance }) => {
         setMessageTimerDone(true);
       }, MESSAGE_DURATION);
 
-      // Check if audio is already ready (might have loaded during intro)
-      if (audioRef.current && audioRef.current.readyState >= 4) {
-        setAudioReady(true);
+      // Check if video is already ready (might have loaded during intro)
+      if (videoRef.current && videoRef.current.readyState >= 3) {
+        setVideoReady(true);
       }
     } else if (phase === 'next') {
       timer = setTimeout(() => {
         if (currentIndex < INSTRUMENT_CONFIGS.length - 1) {
           setCurrentIndex(prev => prev + 1);
-          setAudioReady(false);
+          setVideoReady(false);
           setMessageTimerDone(false);
           setPhase('message');
         }
@@ -124,23 +141,13 @@ const WoodwindFamilyShowcase = ({ onAdvance }) => {
     };
   }, [phase, currentIndex]);
 
-  // When message timer is done AND audio is ready, start playing
+  // When message timer is done AND video is ready, start playing
   useEffect(() => {
-    if (phase === 'message' && messageTimerDone && audioReady) {
+    if (phase === 'message' && messageTimerDone && videoReady) {
       console.log('Starting playback for:', config.name);
       startPlayback();
     }
-  }, [phase, messageTimerDone, audioReady, startPlayback, config.name]);
-
-  // Clean up audio on unmount
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-      }
-    };
-  }, []);
+  }, [phase, messageTimerDone, videoReady, startPlayback, config.name]);
 
   // Teacher starts the sequence
   const handleStart = () => {
@@ -149,26 +156,30 @@ const WoodwindFamilyShowcase = ({ onAdvance }) => {
 
   // Restart everything
   const handleRestart = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
+    if (videoRef.current) {
+      videoRef.current.pause();
     }
     setCurrentIndex(0);
-    setAudioReady(false);
+    setVideoReady(false);
     setMessageTimerDone(false);
     setPhase('intro');
   };
 
   return (
     <div className="w-full h-full relative bg-black">
-      {/* Audio element - always present but hidden */}
-      <audio
-        key={`audio-${currentIndex}`}
-        ref={audioRef}
-        onCanPlayThrough={handleCanPlayThrough}
-        onEnded={handleAudioEnded}
-        onError={handleAudioError}
+      {/* Video element - always present but hidden when showing messages */}
+      <video
+        key={`video-${currentIndex}`}
+        ref={videoRef}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${phase === 'playing' ? 'opacity-100' : 'opacity-0'}`}
+        onCanPlay={handleCanPlay}
+        onLoadedData={handleCanPlay}
+        onEnded={handleVideoEnded}
+        onTimeUpdate={handleTimeUpdate}
+        onError={handleVideoError}
+        playsInline
         preload="auto"
-        src={config.audioPath}
+        src={config.videoPath}
       />
 
       {/* INTRO SCREEN */}
@@ -179,7 +190,7 @@ const WoodwindFamilyShowcase = ({ onAdvance }) => {
               Meet the Woodwind Family
             </h1>
             <div className="text-3xl text-white/90 mb-10 leading-relaxed">
-              <p className="mb-6">Let's hear each instrument!</p>
+              <p className="mb-6">Let's see and hear each instrument!</p>
               <div className="flex justify-center gap-6 mb-8">
                 {INSTRUMENT_CONFIGS.map((inst) => (
                   <div
@@ -223,8 +234,8 @@ const WoodwindFamilyShowcase = ({ onAdvance }) => {
             <p className="text-3xl text-white/90 font-medium">
               {config.description}
             </p>
-            {!audioReady && (
-              <p className="mt-8 text-2xl text-white/60">Loading audio...</p>
+            {!videoReady && (
+              <p className="mt-8 text-2xl text-white/60">Loading video...</p>
             )}
           </div>
         </div>
@@ -291,108 +302,61 @@ const WoodwindFamilyShowcase = ({ onAdvance }) => {
                 className="flex items-center gap-3 px-8 py-6 bg-slate-700 hover:bg-slate-600 rounded-2xl text-white font-bold text-2xl transition-all"
               >
                 <RotateCcw size={28} />
-                Listen Again
+                Watch Again
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* AUDIO PLAYING SCREEN - Instrument card with audio visualization */}
+      {/* VIDEO PLAYING OVERLAY */}
       {phase === 'playing' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900">
-          {/* Centered instrument card */}
-          <div className="flex flex-col items-center">
-            {/* Instrument badge */}
-            <div
-              className="px-10 py-5 rounded-full flex items-center gap-4 text-white font-black text-4xl shadow-2xl mb-10"
-              style={{
-                backgroundColor: config.color,
-                boxShadow: `0 0 50px ${config.color}`
-              }}
-            >
-              <span className="text-5xl">{config.emoji}</span>
-              {config.name}
-            </div>
-
-            {/* Audio visualization bars */}
-            <div className="flex items-end justify-center gap-2 mb-10 h-32">
-              {[0, 1, 2, 3, 4, 5].map((i) => (
-                <div
-                  key={i}
-                  className="w-4 rounded-full"
-                  style={{
-                    backgroundColor: config.color,
-                    height: '100%',
-                    animation: `audioBar 1.2s ease-in-out ${i * 0.15}s infinite`,
-                    opacity: 0.85
-                  }}
-                />
-              ))}
-            </div>
-
-            {/* Facts */}
-            <div className="flex flex-col gap-4 mb-10">
-              {config.facts.map((fact, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-3 text-2xl text-white/90"
-                >
-                  <div
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: config.color }}
-                  />
-                  {fact}
-                </div>
-              ))}
-            </div>
-
-            {/* Progress dots */}
-            <div className="flex items-center gap-5">
-              {INSTRUMENT_CONFIGS.map((inst, idx) => (
-                <div
-                  key={inst.id}
-                  className="flex flex-col items-center gap-2"
-                >
-                  <div
-                    className="w-8 h-8 rounded-full transition-all flex items-center justify-center text-lg"
-                    style={{
-                      backgroundColor: idx === currentIndex
-                        ? inst.color
-                        : idx < currentIndex
-                          ? '#10b981'
-                          : 'rgba(255,255,255,0.3)',
-                      transform: idx === currentIndex ? 'scale(1.3)' : 'scale(1)',
-                      boxShadow: idx === currentIndex ? `0 0 20px ${inst.color}` : 'none'
-                    }}
-                  >
-                    {idx < currentIndex && '\u2713'}
-                  </div>
-                  <span
-                    className="text-sm font-bold transition-all"
-                    style={{
-                      color: idx === currentIndex ? inst.color : 'rgba(255,255,255,0.5)'
-                    }}
-                  >
-                    {inst.name}
-                  </span>
-                </div>
-              ))}
-            </div>
+        <>
+          {/* Instrument badge - top center */}
+          <div
+            className="absolute top-8 left-1/2 -translate-x-1/2 px-10 py-5 rounded-full flex items-center gap-4 text-white font-black text-4xl shadow-2xl"
+            style={{
+              backgroundColor: config.color,
+              boxShadow: `0 0 50px ${config.color}`
+            }}
+          >
+            <span className="text-5xl">{config.emoji}</span>
+            {config.name}
           </div>
 
-          {/* CSS animation for audio bars */}
-          <style>{`
-            @keyframes audioBar {
-              0%, 100% {
-                transform: scaleY(0.3);
-              }
-              50% {
-                transform: scaleY(1);
-              }
-            }
-          `}</style>
-        </div>
+          {/* Progress dots - bottom center */}
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-5">
+            {INSTRUMENT_CONFIGS.map((inst, idx) => (
+              <div
+                key={inst.id}
+                className="flex flex-col items-center gap-2"
+              >
+                <div
+                  className="w-8 h-8 rounded-full transition-all flex items-center justify-center text-lg"
+                  style={{
+                    backgroundColor: idx === currentIndex
+                      ? inst.color
+                      : idx < currentIndex
+                        ? '#10b981'
+                        : 'rgba(255,255,255,0.3)',
+                    transform: idx === currentIndex ? 'scale(1.3)' : 'scale(1)',
+                    boxShadow: idx === currentIndex ? `0 0 20px ${inst.color}` : 'none'
+                  }}
+                >
+                  {idx < currentIndex && '\u2713'}
+                </div>
+                <span
+                  className="text-sm font-bold transition-all"
+                  style={{
+                    color: idx === currentIndex ? inst.color : 'rgba(255,255,255,0.5)'
+                  }}
+                >
+                  {inst.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

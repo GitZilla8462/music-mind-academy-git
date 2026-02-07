@@ -1,10 +1,16 @@
 // File: /src/lessons/shared/activities/tempo-charades/TempoShowcase.jsx
 // Interactive Tempo Showcase - Teacher presentation view
-// Steps through Largo → Presto one at a time with visual metronome and speed highlighting
-// Flow: Direction text → Play button → Next button (no auto-play)
+// Steps through Largo → Presto one at a time with visual metronome AND audio demo
+// Uses Brahms Hungarian Dance No. 5 at different playback rates to demonstrate each tempo
+// The piece is naturally ~138 BPM (Allegro), so we adjust playbackRate for each tempo
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, Pause, ChevronRight, Check, RotateCcw } from 'lucide-react';
+
+const NATURAL_BPM = 138; // The Brahms piece is naturally Allegro (~138 BPM)
+const AUDIO_FILE = '/audio/classical/brahms-hungarian-dance-5.mp3';
+const AUDIO_START = 0;    // Start from the famous opening theme
+const AUDIO_CLIP_BEATS = 8; // Play 8 beats worth at each tempo
 
 const TEMPOS = [
   { symbol: 'Largo', name: 'Largo', meaning: 'Very Slow', bpm: 50, color: '#93C5FD', emoji: '\u{1F40C}' },
@@ -25,18 +31,16 @@ const DIRECTION_TEXT = [
 
 // Teacher speaking text for each phase of the showcase
 const TEACHER_SCRIPT = {
-  intro: "Now we're going to learn five tempo markings. Tempo tells us how fast or slow to play the music. We'll go from the slowest all the way to the fastest. Watch how each tempo feels different.",
+  intro: "Now we're going to learn five tempo markings. Tempo tells us how fast or slow to play the music. We'll go from the slowest all the way to the fastest. You'll hear the same Brahms melody at each speed!",
   perTempo: [
-    "Largo \u2014 the slowest tempo. Think of a heavy, plodding walk through deep snow. Everything moves in slow motion. Watch the metronome \u2014 you could count to two between each beat.",
-    "Adagio \u2014 slow and relaxed. Like a calm walk in a garden. Still gentle, but you can feel a steady pulse. Think of a lullaby or a quiet sunset.",
-    "Andante \u2014 walking speed. This is comfortable and natural. Imagine walking to class \u2014 not rushing, not dragging. Most people's heartbeat is around this speed.",
-    "Allegro \u2014 fast and lively! Now we're picking up energy. Think of running to recess or an exciting chase scene. The music has real momentum.",
-    "Presto \u2014 the fastest tempo! Everything is racing. Think of a car chase or the finale of a fireworks show. Musicians have to be incredibly skilled to play this fast.",
+    "Largo \u2014 the slowest tempo. Listen to how the melody stretches out and feels heavy, almost like slow motion. You could count to two between each beat.",
+    "Adagio \u2014 slow and relaxed. The melody is still gentle but you can feel a steady pulse now. Think of a calm walk in a garden.",
+    "Andante \u2014 walking speed. This is comfortable and natural. Like walking to class \u2014 not rushing, not dragging.",
+    "Allegro \u2014 fast and lively! THIS is the original speed of Brahms' piece. The music has real energy and momentum now.",
+    "Presto \u2014 the fastest tempo! Everything is racing. Listen to how the same melody sounds completely different at this speed!",
   ],
-  outro: "Those are your five tempo markings \u2014 from Largo to Presto. In a moment, you'll get to act them out in Tempo Charades!",
+  outro: "Those are your five tempo markings \u2014 from Largo to Presto. You heard the SAME melody at five different speeds! In a moment, you'll get to act them out in Tempo Charades!",
 };
-
-const BEATS_TO_PLAY = 8;
 
 const TempoShowcase = ({ sessionData }) => {
   const [currentIndex, setCurrentIndex] = useState(-1); // -1 = not started
@@ -46,14 +50,23 @@ const TempoShowcase = ({ sessionData }) => {
   const [completedIndices, setCompletedIndices] = useState(new Set());
   const [beatCount, setBeatCount] = useState(0);
 
+  const audioRef = useRef(null);
   const beatTimer = useRef(null);
   const beatCountRef = useRef(0);
+  const clipEndTimer = useRef(null);
 
-  // Stop metronome helper
-  const stopMetronome = useCallback(() => {
+  // Stop metronome and audio
+  const stopDemo = useCallback(() => {
     if (beatTimer.current) {
       clearInterval(beatTimer.current);
       beatTimer.current = null;
+    }
+    if (clipEndTimer.current) {
+      clearTimeout(clipEndTimer.current);
+      clipEndTimer.current = null;
+    }
+    if (audioRef.current) {
+      audioRef.current.pause();
     }
     setIsDemoing(false);
     setBeatCount(0);
@@ -61,61 +74,83 @@ const TempoShowcase = ({ sessionData }) => {
   }, []);
 
   // Cleanup on unmount
-  useEffect(() => () => stopMetronome(), [stopMetronome]);
+  useEffect(() => () => stopDemo(), [stopDemo]);
 
-  // Start metronome for a given index
-  const startMetronome = useCallback((idx) => {
+  // Start demo for a given index (metronome + audio)
+  const startDemo = useCallback((idx) => {
     const tempo = TEMPOS[idx];
     if (!tempo) return;
 
-    stopMetronome();
+    stopDemo();
 
+    const playbackRate = tempo.bpm / NATURAL_BPM;
     const intervalMs = 60000 / tempo.bpm;
+    const clipDurationMs = AUDIO_CLIP_BEATS * intervalMs;
+
     beatCountRef.current = 0;
     setBeatCount(0);
     setIsDemoing(true);
     setHasPlayed(true);
     setDemoFinished(false);
 
+    // Start audio at modified playback rate
+    if (audioRef.current) {
+      audioRef.current.currentTime = AUDIO_START;
+      audioRef.current.playbackRate = playbackRate;
+      audioRef.current.volume = 0.7;
+      audioRef.current.play().catch(err => console.error('Audio play error:', err));
+    }
+
     // Immediately trigger beat 1
     beatCountRef.current = 1;
     setBeatCount(1);
 
+    // Visual metronome beats
     beatTimer.current = setInterval(() => {
       beatCountRef.current += 1;
       const currentBeat = beatCountRef.current;
       setBeatCount(currentBeat);
 
-      if (currentBeat >= BEATS_TO_PLAY) {
+      if (currentBeat >= AUDIO_CLIP_BEATS) {
         clearInterval(beatTimer.current);
         beatTimer.current = null;
-        setIsDemoing(false);
-        setDemoFinished(true);
       }
     }, intervalMs);
-  }, [stopMetronome]);
+
+    // Stop everything after clip duration
+    clipEndTimer.current = setTimeout(() => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      if (beatTimer.current) {
+        clearInterval(beatTimer.current);
+        beatTimer.current = null;
+      }
+      setIsDemoing(false);
+      setDemoFinished(true);
+    }, clipDurationMs);
+  }, [stopDemo]);
 
   // Play/pause toggle
   const togglePlay = useCallback(() => {
     if (isDemoing) {
-      stopMetronome();
+      stopDemo();
     } else {
-      startMetronome(currentIndex);
+      startDemo(currentIndex);
     }
-  }, [isDemoing, currentIndex, stopMetronome, startMetronome]);
+  }, [isDemoing, currentIndex, stopDemo, startDemo]);
 
-  // Start: advance to first tempo (no auto-play - show direction first)
+  // Start: advance to first tempo
   const handleStart = useCallback(() => {
     setCurrentIndex(0);
     setHasPlayed(false);
     setDemoFinished(false);
   }, []);
 
-  // Next: mark current done, advance to next (no auto-play)
+  // Next: mark current done, advance to next
   const handleNext = useCallback(() => {
-    stopMetronome();
+    stopDemo();
 
-    // Mark current as completed
     if (currentIndex >= 0) {
       setCompletedIndices(prev => new Set([...prev, currentIndex]));
     }
@@ -126,19 +161,18 @@ const TempoShowcase = ({ sessionData }) => {
       setHasPlayed(false);
       setDemoFinished(false);
     } else {
-      // Mark last as completed
       setCompletedIndices(prev => new Set([...prev, currentIndex]));
     }
-  }, [currentIndex, stopMetronome]);
+  }, [currentIndex, stopDemo]);
 
   // Reset to start
   const handleReset = useCallback(() => {
-    stopMetronome();
+    stopDemo();
     setCurrentIndex(-1);
     setHasPlayed(false);
     setDemoFinished(false);
     setCompletedIndices(new Set());
-  }, [stopMetronome]);
+  }, [stopDemo]);
 
   const allDone = completedIndices.size === TEMPOS.length;
 
@@ -148,6 +182,9 @@ const TempoShowcase = ({ sessionData }) => {
 
   return (
     <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-8 overflow-hidden">
+      {/* Hidden audio element */}
+      <audio ref={audioRef} src={AUDIO_FILE} preload="auto" />
+
       {/* Keyframes for metronome pulse */}
       <style>{`
         @keyframes metronomePulse {
@@ -244,10 +281,10 @@ const TempoShowcase = ({ sessionData }) => {
                   {t.meaning}
                 </div>
 
-                {/* BPM - only on active */}
+                {/* BPM + playback rate - only on active */}
                 {isActive && (
                   <div className="text-lg text-white/70 mt-1 font-semibold">
-                    {t.bpm} BPM
+                    {t.bpm} BPM ({(t.bpm / NATURAL_BPM).toFixed(2)}x speed)
                   </div>
                 )}
 
@@ -267,7 +304,7 @@ const TempoShowcase = ({ sessionData }) => {
                 {/* Beat counter - only on active while demoing */}
                 {isActive && isDemoing && (
                   <div className="text-sm text-white/50 mt-2">
-                    Beat {beatCount} / {BEATS_TO_PLAY}
+                    Beat {beatCount} / {AUDIO_CLIP_BEATS}
                   </div>
                 )}
               </div>
