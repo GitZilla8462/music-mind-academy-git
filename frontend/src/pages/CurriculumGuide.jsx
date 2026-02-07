@@ -14,7 +14,7 @@ const CURRICULUM_DATA = {
     grades: '6-8',
     totalUnits: 6,
     totalLessons: 30,
-    duration: 'Full Year (~36 weeks)',
+    duration: '5 lessons per unit',
     description: 'A standards-aligned curriculum that takes students from listening and responding to creating and performing. Students progress through six units, building skills in critical listening, cultural awareness, rhythm creation, media composition, songwriting, and film scoring.'
   },
   units: [
@@ -25,7 +25,7 @@ const CURRICULUM_DATA = {
       icon: '🎧',
       color: '#8b5cf6',
       focus: 'Responding',
-      duration: '~6 weeks',
+      duration: '~40 min per lesson',
       overview: 'Students develop critical listening skills by identifying instruments, dynamics, texture, and form in orchestral and popular music.',
       essentialQuestion: 'How do the elements of music work together to create meaning and emotion?',
       standards: {
@@ -55,7 +55,7 @@ const CURRICULUM_DATA = {
       icon: '🌍',
       color: '#14b8a6',
       focus: 'Connecting',
-      duration: '~6 weeks',
+      duration: '~40 min per lesson',
       overview: 'Students explore music traditions from Africa, Asia, Latin America, and beyond, discovering how culture shapes musical expression.',
       essentialQuestion: 'How does music reflect the people and places that create it?',
       standards: {
@@ -85,7 +85,7 @@ const CURRICULUM_DATA = {
       icon: '🥁',
       color: '#ef4444',
       focus: 'Creating',
-      duration: '~6 weeks',
+      duration: '~40 min per lesson',
       overview: 'Students create original beats using loops and discover how rhythm drives music across genres from hip-hop to EDM.',
       essentialQuestion: 'How does rhythm make us move and feel?',
       standards: {
@@ -115,7 +115,7 @@ const CURRICULUM_DATA = {
       icon: '🎬',
       color: '#3b82f6',
       focus: 'Creating',
-      duration: '~6 weeks',
+      duration: '~40 min per lesson',
       overview: 'Students create soundtracks for video using loops, learning how music creates mood, texture, form, and energy in media.',
       essentialQuestion: 'How does music enhance visual storytelling?',
       standards: {
@@ -146,7 +146,7 @@ const CURRICULUM_DATA = {
       icon: '🎵',
       color: '#ec4899',
       focus: 'Creating + Performing',
-      duration: '~6 weeks',
+      duration: '~40 min per lesson',
       overview: 'Students explore song form (verse, chorus, bridge) and create melodic ideas using digital tools.',
       essentialQuestion: 'What makes a song memorable?',
       standards: {
@@ -176,7 +176,7 @@ const CURRICULUM_DATA = {
       icon: '🎼',
       color: '#f59e0b',
       focus: 'Creating + Performing',
-      duration: '~6 weeks',
+      duration: '~40 min per lesson',
       overview: 'Students score original compositions to narrative video scenes using keyboard, applying all musical elements to create professional film music.',
       essentialQuestion: 'How do composers use music to tell stories?',
       standards: {
@@ -785,7 +785,7 @@ function CurriculumGuide() {
                 Scope & Sequence
               </h2>
               <p style={{ fontSize: '15px', color: '#64748b', marginBottom: '24px' }}>
-                A suggested pacing guide for the full school year. Each unit is designed for approximately 6 weeks.
+                A suggested pacing guide for the full school year. Each lesson is approximately 40 minutes.
               </p>
 
               {/* Timeline */}

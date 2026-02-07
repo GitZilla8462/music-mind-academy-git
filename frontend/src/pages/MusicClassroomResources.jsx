@@ -23,14 +23,14 @@ const CURRICULUM_UNITS = [
     icon: '/images/assignments/curriculum/unit1-listening.png',
     standardBadge: 'Responding',
     lessonCount: 5,
-    duration: '6 weeks',
+    duration: '~40 min per lesson',
     bullets: [
       'Identify instruments by sound',
       'Analyze dynamics, tempo & texture',
       'Recognize form and structure'
     ],
-    status: 'coming',
-    releaseDate: 'August 2026',
+    status: 'pilot',
+    releaseDate: null,
     route: '/listening-lab',
     routeCommercial: '/listening-lab-hub'
   },
@@ -42,7 +42,7 @@ const CURRICULUM_UNITS = [
     icon: '/images/assignments/curriculum/unit2-world.png',
     standardBadge: 'Connecting',
     lessonCount: 5,
-    duration: '6 weeks',
+    duration: '~40 min per lesson',
     bullets: [
       'Explore music from 5 continents',
       'Connect culture to musical choices',
@@ -61,7 +61,7 @@ const CURRICULUM_UNITS = [
     icon: '/images/assignments/curriculum/unit3-beat.png',
     standardBadge: 'Creating',
     lessonCount: 5,
-    duration: '6 weeks',
+    duration: '~40 min per lesson',
     bullets: [
       'Create beats using loops',
       'Layer rhythms across genres',
@@ -80,7 +80,7 @@ const CURRICULUM_UNITS = [
     icon: '/images/assignments/curriculum/unit4-media.png',
     standardBadge: 'Creating',
     lessonCount: 5,
-    duration: '6 weeks',
+    duration: '~40 min per lesson',
     bullets: [
       'Score video with loops',
       'Build texture and layers',
@@ -99,7 +99,7 @@ const CURRICULUM_UNITS = [
     icon: '/images/assignments/curriculum/unit5-song.png',
     standardBadge: 'Creating',
     lessonCount: 5,
-    duration: '6 weeks',
+    duration: '~40 min per lesson',
     bullets: [
       'Create melodic hooks',
       'Structure verse & chorus',
@@ -118,7 +118,7 @@ const CURRICULUM_UNITS = [
     icon: '/images/assignments/curriculum/unit6-film.png',
     standardBadge: 'Creating & Performing',
     lessonCount: 5,
-    duration: '6 weeks',
+    duration: '~40 min per lesson',
     bullets: [
       'Compose character themes',
       'Play keyboard melodies',
@@ -692,7 +692,7 @@ function MusicClassroomResources() {
                       fontSize: '13px',
                       color: '#94a3b8'
                     }}>
-                      {unit.lessonCount} lessons &bull; ~{unit.duration}
+                      {unit.lessonCount} lessons &bull; {unit.duration}
                     </span>
                     {isClickable && (
                       <ChevronRight size={18} color={unit.color} />
@@ -712,7 +712,7 @@ function MusicClassroomResources() {
           fontSize: '13px',
           color: '#94a3b8'
         }}>
-          Full curriculum available August 2026 &bull; Currently piloting Unit 4
+          Full curriculum available August 2026 &bull; Currently piloting Units 1 & 4
         </div>
       </div>
     </div>
