@@ -427,9 +427,15 @@ const StickerPanel = ({
   stickerSize = 56,
   onSizeChange,
   isOpen = true,
-  onDragStart  // ✅ NEW: callback when drag starts
+  onDragStart,  // ✅ NEW: callback when drag starts
+  availableTabs = null  // ✅ NEW: array of tab IDs to show (null = show all)
 }) => {
   const [openSection, setOpenSection] = useState(null);
+
+  // Filter tabs if availableTabs is provided
+  const visibleTabs = availableTabs
+    ? STICKER_TABS.filter(tab => availableTabs.includes(tab.id))
+    : STICKER_TABS;
 
   const toggleSection = (sectionId) => {
     setOpenSection(openSection === sectionId ? null : sectionId);
@@ -477,7 +483,7 @@ const StickerPanel = ({
         overflowY: 'auto',
         padding: '12px'
       }}>
-        {STICKER_TABS.map((tab) => (
+        {visibleTabs.map((tab) => (
           <AccordionSection
             key={tab.id}
             tabId={tab.id}

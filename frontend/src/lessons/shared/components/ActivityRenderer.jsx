@@ -575,14 +575,16 @@ const ActivityRenderer = ({
       );
 
     // ✅ ADDED: Dynamics Listening Map (Listening Lab Lesson 1)
-    // Uses the existing ListeningMapActivity with dynamics mode
+    // Only shows instruments + dynamics + emojis stickers (slow release)
     case 'dynamics-listening-map':
       return (
         <ListeningMapActivity
           key={`dynamics-listening-map-${activity.id}`}
           onComplete={onComplete}
           isSessionMode={isSessionMode}
-          mode="dynamics"
+          config={{
+            availableTabs: ['instruments', 'dynamics', 'emojis']
+          }}
         />
       );
 
@@ -645,7 +647,8 @@ const ActivityRenderer = ({
               performer: 'Public Domain Recording',
               license: 'Public Domain',
               source: 'Musopen.org'
-            }
+            },
+            availableTabs: ['instruments', 'dynamics', 'tempo', 'emojis']
           }}
         />
       );

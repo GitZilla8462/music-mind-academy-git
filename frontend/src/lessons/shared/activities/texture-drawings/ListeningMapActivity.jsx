@@ -782,7 +782,8 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
             stickerSize={stickerSize}
             onSizeChange={setStickerSize}
             isOpen={showStickerPanel}
-            onDragStart={handlePanelDragStart}  // ✅ NEW: Pass drag handler
+            onDragStart={handlePanelDragStart}
+            availableTabs={mapConfig.availableTabs || null}
           />
         )}
 
