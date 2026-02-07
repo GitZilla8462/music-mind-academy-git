@@ -19,6 +19,10 @@ export const ViolinIcon = ({ size = 48 }) => (
   <PngIcon src="/icons/instruments/violin.png" alt="Violin" size={size} />
 );
 
+export const ViolaIcon = ({ size = 48 }) => (
+  <PngIcon src="/icons/instruments/viola.png" alt="Viola" size={size} />
+);
+
 export const CelloIcon = ({ size = 48 }) => (
   <PngIcon src="/icons/instruments/cello.png" alt="Cello" size={size} />
 );
@@ -54,6 +58,10 @@ export const OboeIcon = ({ size = 48 }) => (
 
 export const SaxophoneIcon = ({ size = 48 }) => (
   <PngIcon src="/icons/instruments/saxophone.png" alt="Saxophone" size={size} />
+);
+
+export const BassoonIcon = ({ size = 48 }) => (
+  <PngIcon src="/icons/instruments/bassoon.png" alt="Bassoon" size={size} />
 );
 
 // Brass Instruments
@@ -115,6 +123,7 @@ export const TambourineIcon = ({ size = 48 }) => (
 export const INSTRUMENT_ICONS = {
   // Strings
   'violin': ViolinIcon,
+  'viola': ViolaIcon,
   'cello': CelloIcon,
   'upright-bass': UprightBassIcon,
   'harp': HarpIcon,
@@ -126,7 +135,8 @@ export const INSTRUMENT_ICONS = {
   'clarinet': ClarinetIcon,
   'oboe': OboeIcon,
   'saxophone': SaxophoneIcon,
-  
+  'bassoon': BassoonIcon,
+
   // Brass
   'trumpet': TrumpetIcon,
   'trombone': TromboneIcon,

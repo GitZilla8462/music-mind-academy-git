@@ -20,6 +20,7 @@ export const INSTRUMENTS = {
     name: 'Strings',
     items: [
       { id: 'violin', name: 'Violin', render: 'svg' },
+      { id: 'viola', name: 'Viola', render: 'svg' },
       { id: 'cello', name: 'Cello', render: 'svg' },
       { id: 'upright-bass', name: 'Upright Bass', render: 'svg' },
       { id: 'harp', name: 'Harp', render: 'svg' },
@@ -40,6 +41,7 @@ export const INSTRUMENTS = {
       { id: 'flute', name: 'Flute', render: 'svg' },
       { id: 'clarinet', name: 'Clarinet', render: 'svg' },
       { id: 'oboe', name: 'Oboe', render: 'svg' },
+      { id: 'bassoon', name: 'Bassoon', render: 'svg' },
       { id: 'saxophone', name: 'Saxophone', render: 'svg' },
     ]
   },
