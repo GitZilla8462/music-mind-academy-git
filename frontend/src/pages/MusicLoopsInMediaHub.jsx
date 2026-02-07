@@ -486,19 +486,19 @@ const MusicLoopsInMediaHub = () => {
               <ol className="mt-5 space-y-4 text-lg text-slate-700">
                 <li className="flex items-start gap-4">
                   <span className="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center text-base font-semibold">1</span>
-                  <span className="pt-0.5">Click <strong className="text-slate-900">"Start Session"</strong> on any lesson</span>
+                  <span className="pt-0.5">Click <strong className="text-slate-900">"Start Lesson"</strong> on any lesson</span>
                 </li>
                 <li className="flex items-start gap-4">
                   <span className="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center text-base font-semibold">2</span>
-                  <span className="pt-0.5">Students go to <strong className="text-sky-600">{joinUrl}</strong> and enter the code</span>
+                  <span className="pt-0.5">Choose <strong className="text-slate-900">"Quick Session"</strong> (no accounts needed) or <strong className="text-slate-900">"For My Class"</strong> (tracks student work)</span>
                 </li>
                 <li className="flex items-start gap-4">
                   <span className="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center text-base font-semibold">3</span>
-                  <span className="pt-0.5">Click through slides (or use arrow keys)</span>
+                  <span className="pt-0.5">Students go to <strong className="text-sky-600">{joinUrl}</strong> and enter the code or sign in</span>
                 </li>
                 <li className="flex items-start gap-4">
                   <span className="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center text-base font-semibold">4</span>
-                  <span className="pt-0.5">Click <strong className="text-slate-900">"Unlock"</strong> to start activities</span>
+                  <span className="pt-0.5">Click through slides (or use arrow keys) — click <strong className="text-slate-900">"Unlock"</strong> to start activities</span>
                 </li>
                 <li className="flex items-start gap-4">
                   <span className="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center text-base font-semibold">5</span>

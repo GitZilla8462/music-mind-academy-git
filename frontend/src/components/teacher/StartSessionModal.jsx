@@ -143,39 +143,81 @@ const StartSessionModal = ({
               </p>
             </div>
 
-            {/* Option 2: For My Class (RIGHT - Coming Soon) */}
-            <div className="border-2 border-gray-200 rounded-xl p-5 opacity-50 cursor-not-allowed relative">
-              <div className="absolute top-3 right-3 bg-gray-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-                Coming Soon
-              </div>
+            {/* Option 2: For My Class (RIGHT) */}
+            <div className="border-2 border-blue-200 bg-blue-50/50 rounded-xl p-5 hover:border-blue-400 transition-colors">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-gray-400" />
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Users className="w-5 h-5 text-blue-600" />
                 </div>
-                <h3 className="font-semibold text-gray-500">For My Class</h3>
+                <div>
+                  <h3 className="font-semibold text-gray-900">For My Class</h3>
+                  <span className="text-xs text-blue-600 font-medium">Track student work</span>
+                </div>
               </div>
 
-              <ul className="text-sm text-gray-400 space-y-1.5 mb-4">
+              <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
                 <li className="flex items-start gap-2">
-                  <span className="text-gray-300 mt-0.5">•</span>
+                  <span className="text-blue-500 mt-0.5">•</span>
                   Students sign in with username + PIN
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-gray-300 mt-0.5">•</span>
+                  <span className="text-blue-500 mt-0.5">•</span>
                   Work saves to your gradebook
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-gray-300 mt-0.5">•</span>
+                  <span className="text-blue-500 mt-0.5">•</span>
                   You can grade and give feedback
                 </li>
               </ul>
 
-              <button
-                disabled
-                className="w-full px-4 py-2.5 bg-gray-300 text-gray-500 rounded-lg font-medium cursor-not-allowed"
-              >
-                Coming Soon
-              </button>
+              {loadingClasses ? (
+                <div className="flex items-center justify-center gap-2 text-sm text-gray-500 py-3">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Loading classes...
+                </div>
+              ) : classes.length === 0 ? (
+                <button
+                  onClick={onCreateClass}
+                  className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <Plus size={18} />
+                  Create a Class
+                </button>
+              ) : (
+                <>
+                  <select
+                    value={selectedClassId}
+                    onChange={(e) => setSelectedClassId(e.target.value)}
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-800 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select a class...</option>
+                    {classes.map((cls) => (
+                      <option key={cls.id} value={cls.id}>{cls.name}</option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={handleStartForClass}
+                    disabled={starting || !selectedClassId}
+                    className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {starting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Starting...
+                      </>
+                    ) : (
+                      <>
+                        <Users size={18} />
+                        Start for Class
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
+
+              <p className="text-xs text-gray-500 text-center mt-3">
+                Work saves to your gradebook
+              </p>
             </div>
           </div>
         </div>

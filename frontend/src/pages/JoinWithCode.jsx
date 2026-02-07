@@ -238,7 +238,7 @@ function JoinWithCode() {
       </div>
 
       {/* Main Card */}
-      <div className="w-full max-w-sm">
+      <div className={`w-full ${(!codeType && !noActiveSession) ? 'max-w-2xl' : 'max-w-sm'}`}>
         {/* No Active Session Message */}
         {noActiveSession && classData ? (
           <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
@@ -362,82 +362,95 @@ function JoinWithCode() {
             </div>
           </div>
         ) : (
-          /* Code entry - the main simple view */
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-            <div className="text-center mb-5">
-              <h2 className="text-xl font-semibold text-gray-800 mb-1">Enter your code</h2>
-              <p className="text-gray-500 text-sm">Your teacher will show the code on screen</p>
+          /* Two equal options side by side: Student Login (left) + Quick Join (right) */
+          <div className="grid grid-cols-2 gap-4 items-start">
+            {/* Left: Student Login */}
+            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200 flex flex-col">
+              <div className="text-center mb-4">
+                <h2 className="text-lg font-semibold text-gray-800 mb-1">Student Login</h2>
+                <p className="text-gray-500 text-sm">Sign in to see your work and grades</p>
+              </div>
+
+              <div className="flex-1" />
+
+              {isAuthenticated ? (
+                <div className="text-center">
+                  <p className="text-gray-600 text-sm mb-3">
+                    Signed in as <span className="text-gray-800 font-semibold">{currentStudentInfo?.displayName}</span>
+                  </p>
+                  <button
+                    onClick={() => navigate('/student/home')}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2"
+                  >
+                    <LogIn size={18} />
+                    Go to Dashboard
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => navigate('/student-login')}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2"
+                >
+                  <LogIn size={18} />
+                  Sign In
+                </button>
+              )}
             </div>
 
-            <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="CODE"
-                value={code}
-                onChange={(e) => {
-                  setCode(e.target.value.toUpperCase());
-                  setError('');
-                }}
-                onKeyDown={(e) => e.key === 'Enter' && code.length >= 4 && handleCodeSubmit()}
-                maxLength={6}
-                autoFocus
-                className="w-full bg-white border-2 border-gray-300 rounded-lg px-4 py-4 text-gray-800 text-center text-2xl font-bold tracking-[0.3em] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
+            {/* Right: Quick Join */}
+            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+              <div className="text-center mb-4">
+                <h2 className="text-lg font-semibold text-gray-800 mb-1">Start Lesson</h2>
+                <p className="text-gray-500 text-sm">Your teacher will show the code on screen</p>
+              </div>
 
-              <button
-                onClick={handleCodeSubmit}
-                disabled={isChecking || code.length < 4}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-              >
-                {isChecking ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Checking...
-                  </span>
-                ) : (
-                  'Join'
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="CODE"
+                  value={code}
+                  onChange={(e) => {
+                    setCode(e.target.value.toUpperCase());
+                    setError('');
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && code.length >= 4 && handleCodeSubmit()}
+                  maxLength={6}
+                  autoFocus
+                  className="w-full bg-white border-2 border-gray-300 rounded-lg px-4 py-4 text-gray-800 text-center text-2xl font-bold tracking-[0.3em] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+
+                <button
+                  onClick={handleCodeSubmit}
+                  disabled={isChecking || code.length < 4}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                >
+                  {isChecking ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Checking...
+                    </span>
+                  ) : (
+                    'Join'
+                  )}
+                </button>
+
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm text-center">
+                    {error}
+                  </div>
                 )}
-              </button>
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm text-center">
-                  {error}
-                </div>
-              )}
+              </div>
             </div>
           </div>
         )}
 
-        {/* Sign In Link - always visible unless in class login flow */}
+        {/* Teacher link - always visible unless in class login flow */}
         {codeType !== 'class' && !noActiveSession && (
-          <div className="mt-6 text-center">
-            {isAuthenticated ? (
-              <p className="text-gray-500 text-sm">
-                Signed in as <span className="text-gray-800 font-medium">{currentStudentInfo?.displayName}</span>
-                {' '}
-                <button
-                  onClick={() => navigate('/student/home')}
-                  className="text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Go to Dashboard
-                </button>
-              </p>
-            ) : (
-              <p className="text-gray-500 text-sm">
-                Have an account?{' '}
-                <button
-                  onClick={() => navigate('/student-login')}
-                  className="text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Sign in
-                </button>
-              </p>
-            )}
-
-            <p className="text-gray-400 text-sm mt-2">
+          <div className="mt-4 text-center">
+            <p className="text-gray-400 text-sm">
               Are you a teacher?{' '}
               <button
                 onClick={() => navigate('/login')}
