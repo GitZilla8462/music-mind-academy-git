@@ -97,6 +97,7 @@ const FMLesson1 = React.lazy(() => import('./lessons/film-music/lesson1/Lesson1'
 
 // Listening Lab Unit Lessons (Unit 2 - Elements of Music)
 const ListeningLabLesson1 = React.lazy(() => import('./lessons/listening-lab/lesson1/Lesson1'));
+const ListeningLabLesson2 = React.lazy(() => import('./lessons/listening-lab/lesson2/Lesson2'));
 
 // Lesson plan PDFs
 const LessonPlanPDF = React.lazy(() => import('./lessons/film-music-project/lesson1/LessonPlanPDF'));
@@ -395,6 +396,7 @@ const AppContent = () => {
 
         {/* Listening Lab Lessons (Unit 2) */}
         <Route path="/lessons/listening-lab/lesson1" element={<ListeningLabLesson1 />} />
+        <Route path="/lessons/listening-lab/lesson2" element={<ListeningLabLesson2 />} />
 
         {/* Film Music Hub - Coming Soon placeholder (early access) */}
         <Route path="/film-music-hub" element={
@@ -575,6 +577,7 @@ const AppContent = () => {
 
         {/* Listening Lab Lessons (Unit 2) */}
         <Route path="/lessons/listening-lab/lesson1" element={<ListeningLabLesson1 />} />
+        <Route path="/lessons/listening-lab/lesson2" element={<ListeningLabLesson2 />} />
 
         {/* Film Music Hub - Coming Soon placeholder (early access) */}
         <Route path="/film-music-hub" element={

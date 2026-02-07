@@ -186,32 +186,33 @@ const ListeningLabHub = () => {
         { title: 'Orchestra Lab', description: 'Partner game: Pick sounds, guess instruments', time: 10, activityType: 'orchestra-lab', isBonus: true, isPartnerActivity: true }
       ]
     },
-    // Lesson 2: Volume & Speed
+    // Lesson 2: Woodwinds & Tempo
     {
       id: 'listening-lab-lesson2',
       number: 2,
-      icon: '📊',
-      title: 'Volume & Speed',
-      concept: 'Dynamics & Tempo',
-      essentialQuestion: 'How do volume and speed affect the energy of music?',
+      icon: '🎵',
+      title: 'Woodwinds & Tempo',
+      concept: 'Instrument Families & Speed',
+      essentialQuestion: 'How does the speed of music change how it makes us feel?',
       color: 'from-blue-500 to-cyan-600',
       route: '/lessons/listening-lab/lesson2',
-      available: false,
+      available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students learn dynamic levels (pp to ff) and tempo terms (adagio to presto), then create an energy graph tracking changes over time.',
+      inThisLesson: 'Students meet the woodwind family (flute, oboe, clarinet, bassoon), learn tempo markings (Largo to Presto), and create a Tempo Listening Map for Brahms\'s Hungarian Dance No. 5.',
       studentsWill: [
-        'Identify dynamic levels (pp, p, mp, mf, f, ff)',
-        'Recognize tempo markings (adagio, andante, allegro, presto)',
-        'Create an energy graph showing dynamic and tempo changes'
+        'Identify woodwind instruments by sight and sound',
+        'Define tempo markings (Largo, Adagio, Andante, Allegro, Presto)',
+        'Identify tempo changes (accelerando, ritardando) in music',
+        'Create a Tempo Listening Map for Hungarian Dance No. 5'
       ],
       activities: [
-        { title: 'Introduction', description: 'What are dynamics and tempo?', time: 4 },
-        { title: 'Dynamic Levels', description: 'From pianissimo to fortissimo', time: 4 },
-        { title: 'Tempo Terms', description: 'From adagio to presto', time: 4 },
-        { title: 'Changes Over Time', description: 'Crescendo, decrescendo, accelerando, ritardando', time: 4 },
-        { title: 'Dynamics & Tempo Challenge', description: 'Class game: Identify volume and speed!', time: 10, activityType: 'dynamics-tempo-game' },
-        { title: 'Listening Map #2', description: 'Create an energy graph (In the Hall of the Mountain King)', time: 15, activityType: 'listening-map-energy' },
-        { title: 'Reflection', description: 'How did changes affect the energy?', time: 5, activityType: 'listening-lab-reflection' }
+        { title: 'Meet the Woodwinds', description: 'See and hear flute, oboe, clarinet, bassoon', time: 5 },
+        { title: 'Tempo Markings', description: 'Learn Largo, Adagio, Andante, Allegro, Presto', time: 3 },
+        { title: 'Tempo Charades', description: 'Act out tempo terms for the class to guess!', time: 8, activityType: 'tempo-charades' },
+        { title: 'Small Group Charades', description: 'Everyone gets a turn to act and guess', time: 10, activityType: 'tempo-charades-small-group' },
+        { title: 'Active Listening', description: 'Listen to Hungarian Dance No. 5 by Brahms', time: 4 },
+        { title: 'Tempo Listening Map', description: 'Map the tempo changes you hear', time: 8, activityType: 'tempo-listening-map' },
+        { title: 'Reflection', description: 'What tempo terms will you remember?', time: 3, activityType: 'listening-lab-reflection' }
       ]
     },
     // Lesson 3: Thick or Thin

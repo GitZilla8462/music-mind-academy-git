@@ -454,6 +454,10 @@ const PresentationContent = ({
   const [DynamicsDashClassGame, setDynamicsDashClassGame] = useState(null);
   const [DynamicsDashResults, setDynamicsDashResults] = useState(null);
   const [DynamicsShowcase, setDynamicsShowcase] = useState(null);
+  const [WoodwindFamilyShowcase, setWoodwindFamilyShowcase] = useState(null);
+  const [TempoShowcase, setTempoShowcase] = useState(null);
+  const [TempoCharadesTeacherGame, setTempoCharadesTeacherGame] = useState(null);
+  const [TempoCharadesResults, setTempoCharadesResults] = useState(null);
 
   // Get join URL based on site (defined early for use in join-code screen)
   const isProduction = window.location.hostname !== 'localhost';
@@ -539,6 +543,26 @@ const PresentationContent = ({
     import('../../shared/activities/dynamics-dash/DynamicsShowcase')
       .then(module => setDynamicsShowcase(() => module.default))
       .catch(() => console.log('Dynamics Showcase not available'));
+
+    // Unit 2 Listening Lab Lesson 2: Woodwind Family Showcase
+    import('../../listening-lab/lesson2/components/WoodwindFamilyShowcase')
+      .then(module => setWoodwindFamilyShowcase(() => module.default))
+      .catch(() => console.log('Woodwind Family Showcase not available'));
+
+    // Unit 2 Listening Lab Lesson 2: Tempo Showcase (interactive slide)
+    import('../../shared/activities/tempo-charades/TempoShowcase')
+      .then(module => setTempoShowcase(() => module.default))
+      .catch(() => console.log('Tempo Showcase not available'));
+
+    // Unit 2 Listening Lab Lesson 2: Tempo Charades Teacher Game
+    import('../../shared/activities/tempo-charades/TempoCharadesTeacherGame')
+      .then(module => setTempoCharadesTeacherGame(() => module.default))
+      .catch(() => console.log('Tempo Charades Teacher Game not available'));
+
+    // Unit 2 Listening Lab Lesson 2: Tempo Charades Results
+    import('../../shared/activities/tempo-charades/TempoCharadesResults')
+      .then(module => setTempoCharadesResults(() => module.default))
+      .catch(() => console.log('Tempo Charades Results not available'));
   }, []);
 
   // Join Code Screen
@@ -851,6 +875,323 @@ const PresentationContent = ({
       return (
         <div className="absolute inset-0">
           <DynamicsDashResults sessionData={sessionData} />
+        </div>
+      );
+    }
+
+    // Woodwind Family Showcase (Listening Lab Lesson 2) - Meet the Woodwind Instruments
+    if (type === 'woodwind-showcase') {
+      if (!WoodwindFamilyShowcase) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-slate-900">
+            <div className="text-white text-2xl">Loading Woodwind Family Showcase...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <WoodwindFamilyShowcase onAdvance={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Tempo Showcase (Listening Lab Lesson 2) - Interactive tempo markings slide
+    if (type === 'tempo-showcase') {
+      if (!TempoShowcase) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900">
+            <div className="text-white text-2xl">Loading Tempo Showcase...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <TempoShowcase sessionData={sessionData} />
+        </div>
+      );
+    }
+
+    // Tempo Changes slide (Listening Lab Lesson 2) - Accelerando & Ritardando
+    if (type === 'tempo-changes') {
+      const TempoChangesSlide = () => {
+        const [activeDemo, setActiveDemo] = React.useState(null); // 'accel' | 'rit' | null
+        const animationRef = React.useRef(null);
+
+        React.useEffect(() => {
+          return () => {
+            if (animationRef.current) clearTimeout(animationRef.current);
+          };
+        }, []);
+
+        const startDemo = (type) => {
+          if (activeDemo === type) {
+            setActiveDemo(null);
+            if (animationRef.current) clearTimeout(animationRef.current);
+            return;
+          }
+          setActiveDemo(type);
+          // Auto-stop after 5 seconds
+          animationRef.current = setTimeout(() => setActiveDemo(null), 5000);
+        };
+
+        return (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-8">
+            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-8 lg:mb-12">Tempo Changes</h1>
+
+            <div className="flex gap-12 lg:gap-24">
+              {/* Accelerando */}
+              <div className="flex flex-col items-center">
+                <div className="text-3xl lg:text-4xl font-bold text-green-300 mb-4">Accelerando</div>
+                <div className="text-6xl mb-4">🚀</div>
+                {/* Speed dots - getting closer together */}
+                <div className="w-64 h-12 mb-4 flex items-center justify-center gap-1">
+                  {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+                    <div
+                      key={i}
+                      className={`rounded-full bg-green-400 transition-all duration-300 ${
+                        activeDemo === 'accel' ? 'animate-bounce' : ''
+                      }`}
+                      style={{
+                        width: '12px',
+                        height: '12px',
+                        marginRight: `${Math.max(2, 16 - i * 2)}px`,
+                        animationDelay: activeDemo === 'accel' ? `${i * 80}ms` : '0ms'
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="text-xl lg:text-2xl text-white mb-4">Gradually getting <span className="text-green-400 font-bold">FASTER</span></div>
+                <div className="text-lg text-white/60 mb-4 italic">"accel."</div>
+                <button
+                  onClick={() => startDemo('accel')}
+                  className={`px-6 py-3 rounded-xl text-lg font-bold flex items-center gap-2 transition-all ${
+                    activeDemo === 'accel'
+                      ? 'bg-green-500 text-white'
+                      : 'bg-white/20 text-white hover:bg-white/30'
+                  }`}
+                >
+                  {activeDemo === 'accel' ? '⏹ Stop' : '▶ See Example'}
+                </button>
+              </div>
+
+              {/* Ritardando */}
+              <div className="flex flex-col items-center">
+                <div className="text-3xl lg:text-4xl font-bold text-red-300 mb-4">Ritardando</div>
+                <div className="text-6xl mb-4">🛑</div>
+                {/* Speed dots - getting farther apart */}
+                <div className="w-64 h-12 mb-4 flex items-center justify-center gap-1">
+                  {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+                    <div
+                      key={i}
+                      className={`rounded-full bg-red-400 transition-all duration-300 ${
+                        activeDemo === 'rit' ? 'animate-bounce' : ''
+                      }`}
+                      style={{
+                        width: '12px',
+                        height: '12px',
+                        marginRight: `${Math.max(2, 2 + i * 2)}px`,
+                        animationDelay: activeDemo === 'rit' ? `${i * 120}ms` : '0ms'
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="text-xl lg:text-2xl text-white mb-4">Gradually getting <span className="text-red-400 font-bold">SLOWER</span></div>
+                <div className="text-lg text-white/60 mb-4 italic">"rit."</div>
+                <button
+                  onClick={() => startDemo('rit')}
+                  className={`px-6 py-3 rounded-xl text-lg font-bold flex items-center gap-2 transition-all ${
+                    activeDemo === 'rit'
+                      ? 'bg-red-500 text-white'
+                      : 'bg-white/20 text-white hover:bg-white/30'
+                  }`}
+                >
+                  {activeDemo === 'rit' ? '⏹ Stop' : '▶ See Example'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      return <TempoChangesSlide />;
+    }
+
+    // Tempo Charades Teacher Game (Listening Lab Lesson 2) - Teacher controls game
+    if (type === 'tempo-charades-teacher-game') {
+      if (!TempoCharadesTeacherGame) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900">
+            <div className="text-white text-2xl">Loading Tempo Charades...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <TempoCharadesTeacherGame sessionData={sessionData} onComplete={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Tempo Charades Results (Listening Lab Lesson 2) - Show leaderboard
+    if (type === 'tempo-charades-results') {
+      if (!TempoCharadesResults) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900">
+            <div className="text-white text-2xl">Loading Results...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <TempoCharadesResults sessionData={sessionData} />
+        </div>
+      );
+    }
+
+    // Active Listening Audio Player (Listening Lab Lesson 2) - Hungarian Dance No. 5
+    if (type === 'active-listening-play') {
+      const ActiveListeningSlide = () => {
+        const [isPlaying, setIsPlaying] = React.useState(false);
+        const audioRef = React.useRef(null);
+
+        const { audioPath, title: pieceTitle, composer } = currentStageData.presentationView;
+
+        React.useEffect(() => {
+          return () => {
+            if (audioRef.current) {
+              audioRef.current.pause();
+              audioRef.current.src = '';
+            }
+          };
+        }, []);
+
+        const togglePlay = () => {
+          if (isPlaying) {
+            if (audioRef.current) audioRef.current.pause();
+            setIsPlaying(false);
+          } else {
+            if (!audioRef.current) {
+              audioRef.current = new Audio(audioPath);
+              audioRef.current.onended = () => setIsPlaying(false);
+              audioRef.current.onerror = () => setIsPlaying(false);
+            }
+            audioRef.current.play().catch(() => setIsPlaying(false));
+            setIsPlaying(true);
+          }
+        };
+
+        return (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-amber-900 via-orange-900 to-slate-900 p-8">
+            <div className="text-8xl mb-6">🎵</div>
+            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-4">{pieceTitle}</h1>
+            <p className="text-3xl text-amber-200 mb-2">{composer}</p>
+            <p className="text-xl text-white/60 mb-10">Show the tempo with your hands: fast = fast tempo, slow = slow tempo</p>
+            <button
+              onClick={togglePlay}
+              className={`px-12 py-6 rounded-2xl text-3xl font-bold text-white flex items-center gap-4 transition-all hover:scale-105 ${
+                isPlaying
+                  ? 'bg-gradient-to-r from-red-500 to-orange-500'
+                  : 'bg-gradient-to-r from-amber-500 to-orange-500'
+              }`}
+            >
+              {isPlaying ? (
+                <><Pause size={36} /> Pause</>
+              ) : (
+                <><Play size={36} /> Play</>
+              )}
+            </button>
+            {isPlaying && (
+              <div className="mt-8 flex gap-2">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-3 bg-amber-400 rounded-full animate-bounce"
+                    style={{
+                      height: `${20 + Math.random() * 30}px`,
+                      animationDelay: `${i * 150}ms`,
+                      animationDuration: '0.6s'
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      return <ActiveListeningSlide />;
+    }
+
+    // Tempo Listening Map Directions (Listening Lab Lesson 2) - directions on main board
+    if (type === 'tempo-listening-map-directions') {
+      return (
+        <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900">
+          {/* Student Activity Banner */}
+          <div className="w-full flex items-center justify-center py-3 bg-teal-600 flex-shrink-0">
+            <span className="text-white font-bold text-2xl lg:text-3xl tracking-wide">
+              STUDENT ACTIVITY TIME
+            </span>
+          </div>
+
+          {/* Title Section */}
+          <div className="text-center pt-4 lg:pt-6 flex-shrink-0">
+            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-2">
+              Tempo Listening Map
+            </h1>
+            <div className="text-2xl lg:text-3xl text-teal-200">
+              Hungarian Dance No. 5 by Johannes Brahms
+            </div>
+          </div>
+
+          {/* Directions Below */}
+          <div className="flex-1 flex items-start justify-center p-4 lg:p-6 pt-6 lg:pt-8">
+            <div className="flex gap-6 lg:gap-10 max-w-6xl w-full">
+              {/* Your Task */}
+              <div className="flex-1 bg-white/10 rounded-2xl p-6 lg:p-8 backdrop-blur-sm">
+                <h2 className="text-3xl lg:text-4xl font-bold text-teal-300 mb-5">Your Task</h2>
+                <ol className="space-y-4 text-2xl lg:text-3xl text-white">
+                  <li className="flex gap-4">
+                    <span className="text-teal-400 font-bold">1.</span>
+                    <span>Press <strong className="text-teal-300">PLAY</strong> and listen</span>
+                  </li>
+                  <li className="flex gap-4">
+                    <span className="text-teal-400 font-bold">2.</span>
+                    <span>Mark <strong className="text-teal-300">tempo changes</strong> with colors</span>
+                  </li>
+                  <li className="flex gap-4">
+                    <span className="text-teal-400 font-bold">3.</span>
+                    <span>Draw <strong className="text-teal-300">accel./rit.</strong> arrows</span>
+                  </li>
+                </ol>
+              </div>
+
+              {/* Color Guide */}
+              <div className="flex-1 bg-white/10 rounded-2xl p-6 lg:p-8 backdrop-blur-sm">
+                <h2 className="text-3xl lg:text-4xl font-bold text-amber-300 mb-5">Color Guide</h2>
+                <ul className="space-y-4 text-2xl lg:text-3xl text-white/90">
+                  <li className="flex gap-4 items-center">
+                    <span className="w-8 h-8 rounded-full bg-blue-500 flex-shrink-0"></span>
+                    <span><strong>Blue</strong> = Slow (Largo, Adagio)</span>
+                  </li>
+                  <li className="flex gap-4 items-center">
+                    <span className="w-8 h-8 rounded-full bg-yellow-400 flex-shrink-0"></span>
+                    <span><strong>Yellow</strong> = Medium (Andante)</span>
+                  </li>
+                  <li className="flex gap-4 items-center">
+                    <span className="w-8 h-8 rounded-full bg-red-500 flex-shrink-0"></span>
+                    <span><strong>Red</strong> = Fast (Allegro, Presto)</span>
+                  </li>
+                </ul>
+                <div className="mt-6 p-4 bg-green-500/20 border border-green-400/40 rounded-xl">
+                  <p className="text-xl text-green-300 font-bold">Bonus: Circle moments where you hear the clarinet!</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       );
     }

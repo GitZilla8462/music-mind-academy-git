@@ -79,6 +79,10 @@ import DynamicsDashStudentView from '../activities/dynamics-dash/DynamicsDashStu
 // ✅ ADDED: Strings & Dynamics Lab for Lesson 1 (Bonus Activity)
 import StringsDynamicsLabActivity from '../activities/strings-dynamics-lab/StringsDynamicsLabActivity';
 
+// ✅ ADDED: Tempo Charades for Lesson 2 (Woodwinds & Tempo)
+import TempoCharadesStudentView from '../activities/tempo-charades/TempoCharadesStudentView';
+import TempoCharadesSmallGroup from '../activities/tempo-charades/TempoCharadesSmallGroup';
+
 const ActivityRenderer = ({
   activity,
   onComplete,
@@ -589,6 +593,71 @@ const ActivityRenderer = ({
         <StringsDynamicsLabActivity
           key={`strings-dynamics-lab-${activity.id}`}
           onComplete={onComplete}
+        />
+      );
+
+    // ✅ ADDED: Tempo Charades (Listening Lab Lesson 2 - Woodwinds & Tempo)
+    // Synchronized student view in session mode
+    case 'tempo-charades':
+      return (
+        <TempoCharadesStudentView
+          key={`tempo-charades-student-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Tempo Charades Small Group (Listening Lab Lesson 2)
+    // Students form groups and take turns acting/guessing
+    case 'tempo-charades-small-group':
+      return (
+        <TempoCharadesSmallGroup
+          key={`tempo-charades-small-group-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Tempo Listening Map (Listening Lab Lesson 2)
+    // Uses the existing ListeningMapActivity with Brahms audio and tempo config
+    case 'tempo-listening-map':
+      return (
+        <ListeningMapActivity
+          key={`tempo-listening-map-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+          config={{
+            audioFile: '/audio/classical/brahms-hungarian-dance-5.mp3',
+            totalDuration: 180,
+            numRows: 6,
+            secondsPerRow: 30,
+            rows: [
+              { id: 'row1', name: '0:00 - 0:30', color: '#3b82f6', emoji: '1️⃣' },
+              { id: 'row2', name: '0:30 - 1:00', color: '#8b5cf6', emoji: '2️⃣' },
+              { id: 'row3', name: '1:00 - 1:30', color: '#ec4899', emoji: '3️⃣' },
+              { id: 'row4', name: '1:30 - 2:00', color: '#f59e0b', emoji: '4️⃣' },
+              { id: 'row5', name: '2:00 - 2:30', color: '#10b981', emoji: '5️⃣' },
+              { id: 'row6', name: '2:30 - 3:00', color: '#ef4444', emoji: '6️⃣' }
+            ],
+            credits: {
+              title: 'Hungarian Dance No. 5',
+              composer: 'Johannes Brahms',
+              performer: 'Public Domain Recording',
+              license: 'Public Domain',
+              source: 'Musopen.org'
+            }
+          }}
+        />
+      );
+
+    // ✅ ADDED: Listening Lab Lesson 2 Reflection
+    case 'listening-lab-lesson2-reflection':
+      return (
+        <TwoStarsAndAWishActivity
+          key={`listening-lab-lesson2-reflection-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
         />
       );
 
