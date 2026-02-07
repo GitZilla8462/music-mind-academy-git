@@ -609,18 +609,33 @@ const PresentationContent = ({
             </div>
           </>
         ) : (
-          /* Quick session: show 4-digit code */
+          /* Quick session: show visual mockup with code */
           <>
+            {/* Label */}
+            <div className="mb-6">
+              <span className="bg-emerald-600 text-white text-lg font-semibold px-5 py-2 rounded-full">
+                Quick Session — No Accounts Needed
+              </span>
+            </div>
+
             <div className="text-center mb-8">
-              <div className="text-slate-400 text-xl mb-2">Join at</div>
-              <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+              <div className="text-slate-400 text-xl mb-2">Go to</div>
+              <h1 className="text-5xl md:text-6xl font-bold text-white">
                 {joinUrl}
               </h1>
             </div>
 
-            <div className="bg-white rounded-2xl px-12 py-8 mb-8">
-              <div className="text-8xl md:text-9xl font-bold font-mono tracking-widest text-blue-600">
-                {displayCode}
+            {/* Visual mockup of the Start Lesson card */}
+            <div className="bg-white rounded-2xl p-8 mb-8 text-center shadow-lg" style={{ minWidth: '340px' }}>
+              <div className="text-sm font-semibold text-slate-500 mb-1">Start Lesson</div>
+              <div className="text-xs text-slate-400 mb-4">Your teacher will show the code on screen</div>
+              <div className="bg-gray-100 border-2 border-gray-300 rounded-lg py-4 px-6 mb-4">
+                <div className="text-6xl md:text-7xl font-bold font-mono tracking-widest text-blue-600">
+                  {displayCode}
+                </div>
+              </div>
+              <div className="bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg text-lg">
+                Join
               </div>
             </div>
           </>
@@ -2983,9 +2998,14 @@ const TeacherLessonView = ({
                 </div>
               </div>
             ) : classCode ? (
-              /* Class session sidebar — no code needed */
+              /* Class session sidebar — directions + student count */
               <>
-                <div className="flex items-center gap-2 text-slate-600 text-sm">
+                <div className="text-xs text-slate-500 mb-2 space-y-1">
+                  <div><span className="font-semibold text-slate-700">1.</span> Go to <span className="font-semibold text-blue-600">{getJoinUrl()}</span></div>
+                  <div><span className="font-semibold text-slate-700">2.</span> Click <span className="font-semibold text-purple-600">Sign In</span></div>
+                  <div><span className="font-semibold text-slate-700">3.</span> Click <span className="font-semibold text-emerald-600">Join Class</span></div>
+                </div>
+                <div className="flex items-center gap-2 text-slate-600 text-sm pt-2 border-t border-slate-100">
                   <Users size={16} />
                   <span>{studentCount} student{studentCount !== 1 ? 's' : ''} joined</span>
                 </div>
