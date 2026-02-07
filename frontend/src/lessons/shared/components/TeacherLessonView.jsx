@@ -2972,15 +2972,26 @@ const TeacherLessonView = ({
                 >
                   <PanelLeft size={18} />
                 </button>
-                <div className="text-xs font-bold text-blue-600 writing-mode-vertical">
-                  {sessionCode}
-                </div>
+                {!classCode && (
+                  <div className="text-xs font-bold text-blue-600 writing-mode-vertical">
+                    {sessionCode}
+                  </div>
+                )}
                 <div className="flex items-center justify-center text-slate-500">
                   <Users size={14} />
                   <span className="text-xs ml-1">{studentCount}</span>
                 </div>
               </div>
+            ) : classCode ? (
+              /* Class session sidebar — no code needed */
+              <>
+                <div className="flex items-center gap-2 text-slate-600 text-sm">
+                  <Users size={16} />
+                  <span>{studentCount} student{studentCount !== 1 ? 's' : ''} joined</span>
+                </div>
+              </>
             ) : (
+              /* Quick session sidebar — show code */
               <>
                 <div className="text-slate-500 text-sm mb-1">{getJoinUrl()}</div>
                 <div className="flex items-center gap-2 mb-3">
@@ -2990,8 +3001,8 @@ const TeacherLessonView = ({
                   <button
                     onClick={copyJoinCode}
                     className={`p-1.5 rounded-lg transition-colors ${
-                      copied 
-                        ? 'bg-emerald-100 text-emerald-600' 
+                      copied
+                        ? 'bg-emerald-100 text-emerald-600'
                         : 'hover:bg-slate-100 text-slate-400'
                     }`}
                     title={copied ? 'Copied!' : 'Copy code'}
