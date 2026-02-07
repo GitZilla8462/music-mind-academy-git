@@ -6,16 +6,26 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudentAuth } from '../context/StudentAuthContext';
 import { getStudentEnrollments } from '../firebase/students';
+import { getClassSessionByCode, joinClassSession } from '../firebase/classes';
+import { LogOut, Play, FileText, Award, BookOpen, FolderHeart } from 'lucide-react';
 import StudentWorkList from '../components/student/StudentWorkList';
 import StudentGradesList from '../components/student/StudentGradesList';
+import StudentPortfolio from '../components/student/StudentPortfolio';
 
 const StudentHome = () => {
   const navigate = useNavigate();
-  const { student, studentData, pinSession, currentStudentInfo, isGoogleAuth, isPinAuth, signOut } = useStudentAuth();
+  const { student, pinSession, currentStudentInfo, isGoogleAuth, isPinAuth, signOut } = useStudentAuth();
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('work');
+  const [activeSession, setActiveSession] = useState(null);
+  const [joiningClass, setJoiningClass] = useState(false);
 
-  // Fetch student's enrolled classes (only for Google auth)
+  // Check which site we're on
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+  const siteName = isEduSite ? 'Music Room Tools' : 'Music Mind Academy';
+
+  // Fetch student's enrolled classes
   useEffect(() => {
     const fetchEnrollments = async () => {
       if (isGoogleAuth && student?.uid) {
@@ -26,7 +36,6 @@ const StudentHome = () => {
           console.error('Error fetching enrollments:', err);
         }
       } else if (isPinAuth && pinSession) {
-        // For PIN auth, they're enrolled in the class they logged into
         setEnrollments([{
           classId: pinSession.classId,
           className: pinSession.className,
@@ -39,152 +48,236 @@ const StudentHome = () => {
     fetchEnrollments();
   }, [student?.uid, isGoogleAuth, isPinAuth, pinSession]);
 
+  // Check for active class session (PIN auth students)
+  useEffect(() => {
+    if (!isPinAuth || !pinSession?.classCode) return;
+
+    const checkSession = async () => {
+      try {
+        const classData = await getClassSessionByCode(pinSession.classCode);
+        if (classData?.currentSession?.active) {
+          setActiveSession({ classData });
+        }
+      } catch (err) {
+        console.error('Error checking class session:', err);
+      }
+    };
+
+    checkSession();
+  }, [isPinAuth, pinSession?.classCode]);
+
+  const handleJoinClass = async () => {
+    if (!activeSession?.classData || !pinSession) return;
+
+    setJoiningClass(true);
+    try {
+      const seatId = `seat-${pinSession.seatNumber}`;
+      await joinClassSession(activeSession.classData.id, seatId, {
+        seatNumber: pinSession.seatNumber,
+        name: pinSession.displayName || pinSession.username
+      });
+
+      const lessonRoute = activeSession.classData.currentSession?.lessonRoute || '/lessons/film-music-project/lesson1';
+      window.location.href = `${lessonRoute}?classId=${activeSession.classData.id}&role=student&classCode=${activeSession.classData.classCode}&seatId=${seatId}&username=${pinSession.username}`;
+    } catch (err) {
+      console.error('Error joining class:', err);
+      setJoiningClass(false);
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/student-login');
   };
 
-  const handleJoinLiveSession = () => {
-    navigate('/join');
-  };
+  const tabs = [
+    { id: 'work', label: 'My Work', icon: FileText },
+    { id: 'portfolio', label: 'Portfolio', icon: FolderHeart },
+    ...(isPinAuth ? [{ id: 'grades', label: 'Grades', icon: Award }] : []),
+    { id: 'classes', label: 'Classes', icon: BookOpen },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img
-              src="/MusicMindAcademyLogo.png"
-              alt="Music Mind Academy"
-              className="h-10 w-auto"
-            />
-            <span className="text-xl font-bold text-gray-800">Music Mind Academy</span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            {currentStudentInfo?.photoURL && (
+    <div className="min-h-screen bg-gray-100">
+      {/* Header — matches TeacherHeader pattern */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-14">
+            {/* Logo + Site Name */}
+            <div className="flex items-center gap-2">
               <img
-                src={currentStudentInfo.photoURL}
-                alt=""
-                className="w-8 h-8 rounded-full"
+                src="/MusicMindAcademyLogo.png"
+                alt="Music Mind Academy"
+                className="h-8 w-auto"
               />
-            )}
-            <div className="text-right">
-              <span className="text-gray-700 block font-medium">{currentStudentInfo?.displayName}</span>
-              {isPinAuth && (
-                <span className="text-xs text-gray-400">Seat {currentStudentInfo?.seatNumber}</span>
-              )}
+              <span className="font-semibold text-gray-900 hidden sm:block">{siteName}</span>
             </div>
-            <button
-              onClick={handleSignOut}
-              className="text-gray-400 hover:text-gray-600 transition-colors text-sm"
-            >
-              Sign Out
-            </button>
+
+            {/* Navigation Tabs */}
+            <nav className="flex items-center">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    activeTab === tab.id
+                      ? 'text-blue-600 bg-blue-50'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+
+            {/* Right side — user info + sign out */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                {currentStudentInfo?.photoURL ? (
+                  <img
+                    src={currentStudentInfo.photoURL}
+                    alt=""
+                    className="w-8 h-8 rounded-full"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
+                    {currentStudentInfo?.displayName?.charAt(0) || 'S'}
+                  </div>
+                )}
+                <span className="text-sm text-gray-700 font-medium hidden md:block max-w-[120px] truncate">
+                  {currentStudentInfo?.displayName?.split(' ')[0]}
+                </span>
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Sign out"
+              >
+                <LogOut size={18} />
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Welcome back, {currentStudentInfo?.displayName?.split(' ')[0] || 'Student'}!
-          </h1>
-          <p className="text-gray-500">
-            {isPinAuth ? `You're signed in to ${currentStudentInfo?.className}` : "Here's your music learning dashboard"}
-          </p>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {/* Join Live Session */}
-          <button
-            onClick={handleJoinLiveSession}
-            className="bg-blue-600 hover:bg-blue-700 rounded-xl p-6 text-left transition-all group shadow-md hover:shadow-lg"
-          >
-            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2">Join Live Session</h3>
-            <p className="text-white/70">Enter a class code to join your teacher's lesson</p>
-          </button>
-
-        </div>
-
-        {/* My Work Section */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-semibold text-gray-800">My Work</h2>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+        {/* Welcome row */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Welcome back, {currentStudentInfo?.displayName?.split(' ')[0] || 'Student'}
+            </h1>
+            {isPinAuth && currentStudentInfo?.className && (
+              <p className="text-sm text-gray-500 mt-0.5">{currentStudentInfo.className}</p>
+            )}
           </div>
-          <StudentWorkList />
         </div>
 
-        {/* My Grades Section (only for PIN auth) */}
-        {isPinAuth && (
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        {/* Join Class banner — big and obvious when active session exists */}
+        {activeSession ? (
+          <button
+            onClick={handleJoinClass}
+            disabled={joiningClass}
+            className="w-full mb-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl p-5 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+          >
+            {joiningClass ? (
+              <>
+                <svg className="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
+                <span className="text-xl font-bold">Joining...</span>
+              </>
+            ) : (
+              <>
+                <Play size={24} fill="white" />
+                <span className="text-xl font-bold">Join Class</span>
+              </>
+            )}
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate('/join')}
+            className="w-full mb-6 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-xl p-4 transition-all flex items-center justify-center gap-2"
+          >
+            <Play size={18} />
+            <span className="text-sm font-medium">Join a Session</span>
+          </button>
+        )}
+
+        {/* Tab Content */}
+        {activeTab === 'work' && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
+                <FileText size={18} className="text-blue-600" />
               </div>
-              <h2 className="text-xl font-semibold text-gray-800">My Grades</h2>
+              <h2 className="text-lg font-semibold text-gray-900">My Work</h2>
+            </div>
+            <StudentWorkList />
+          </div>
+        )}
+
+        {activeTab === 'portfolio' && (
+          <StudentPortfolio />
+        )}
+
+        {activeTab === 'grades' && isPinAuth && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-9 h-9 bg-green-50 rounded-lg flex items-center justify-center">
+                <Award size={18} className="text-green-600" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">My Grades</h2>
             </div>
             <StudentGradesList />
           </div>
         )}
 
-        {/* My Classes Section */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">My Classes</h2>
-
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
-            </div>
-          ) : enrollments.length > 0 ? (
-            <div className="grid md:grid-cols-2 gap-4">
-              {enrollments.map((enrollment) => (
-                <div
-                  key={enrollment.classId}
-                  className="bg-gray-50 rounded-lg p-4 flex items-center gap-4 border border-gray-200"
-                >
-                  <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-800">{enrollment.className || 'Music Class'}</h3>
-                    <p className="text-sm text-gray-500">Seat {enrollment.seatNumber}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
+        {activeTab === 'classes' && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center">
+                <BookOpen size={18} className="text-purple-600" />
               </div>
-              <p className="text-gray-500 mb-4">You haven't joined any classes yet</p>
-              <p className="text-gray-400 text-sm">
-                Your teacher will give you a class code to join, or you can join a live session above.
-              </p>
+              <h2 className="text-lg font-semibold text-gray-900">My Classes</h2>
             </div>
-          )}
-        </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
+              </div>
+            ) : enrollments.length > 0 ? (
+              <div className="grid sm:grid-cols-2 gap-3">
+                {enrollments.map((enrollment) => (
+                  <div
+                    key={enrollment.classId}
+                    className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center flex-shrink-0">
+                      <BookOpen size={18} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900">{enrollment.className || 'Music Class'}</h3>
+                      <p className="text-sm text-gray-500">Seat {enrollment.seatNumber}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <BookOpen size={24} className="text-gray-400" />
+                </div>
+                <p className="text-gray-500 mb-1">No classes yet</p>
+                <p className="text-gray-400 text-sm">
+                  Your teacher will give you a class code to join.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );

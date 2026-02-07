@@ -239,7 +239,7 @@ function JoinWithCode() {
         name: pinSession.displayName || pinSession.username
       });
 
-      const lessonRoute = activeSession.classData.currentSession.lessonRoute || '/lessons/film-music-project/lesson1';
+      const lessonRoute = activeSession.classData.currentSession?.lessonRoute || '/lessons/film-music-project/lesson1';
       window.location.href = `${lessonRoute}?classId=${activeSession.classData.id}&role=student&classCode=${activeSession.classData.classCode}&seatId=${seatId}&username=${pinSession.username}`;
     } catch (err) {
       console.error('Error joining session:', err);

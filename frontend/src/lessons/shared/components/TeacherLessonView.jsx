@@ -576,7 +576,7 @@ const PresentationContent = ({
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-white p-8">
         {isClassSession ? (
-          /* Class session: tell students to sign in */
+          /* Class session: show visual mockup of what students will see */
           <>
             <div className="text-center mb-8">
               <div className="text-slate-400 text-xl mb-2">Go to</div>
@@ -585,9 +585,26 @@ const PresentationContent = ({
               </h1>
             </div>
 
-            <div className="bg-white rounded-2xl px-12 py-8 mb-8 text-center">
-              <div className="text-4xl md:text-5xl font-bold text-slate-800 mb-2">
-                Sign in with your username & PIN
+            {/* Visual mockup of the Student Login card */}
+            <div className="flex items-center gap-8 mb-8">
+              {/* Step 1: Click Sign In */}
+              <div className="bg-white rounded-2xl p-8 text-center shadow-lg" style={{ minWidth: '280px' }}>
+                <div className="text-sm font-semibold text-slate-500 mb-1">Student Login</div>
+                <div className="text-xs text-slate-400 mb-5">Sign in to see your work and grades</div>
+                <div className="bg-purple-600 text-white font-semibold py-3 px-8 rounded-lg text-lg">
+                  Sign In
+                </div>
+              </div>
+
+              {/* Arrow */}
+              <div className="text-slate-500 text-4xl font-bold">→</div>
+
+              {/* Step 2: Click Join Class */}
+              <div className="bg-emerald-600 rounded-2xl p-8 text-center shadow-lg" style={{ minWidth: '280px' }}>
+                <div className="text-emerald-100 text-sm mb-3">Then click</div>
+                <div className="bg-white text-emerald-700 font-bold py-3 px-8 rounded-lg text-xl flex items-center justify-center gap-2">
+                  ▶ Join Class
+                </div>
               </div>
             </div>
           </>
