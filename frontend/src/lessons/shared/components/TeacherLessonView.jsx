@@ -918,22 +918,52 @@ const PresentationContent = ({
       const TempoChangesSlide = () => {
         const [activeDemo, setActiveDemo] = React.useState(null); // 'accel' | 'rit' | null
         const animationRef = React.useRef(null);
+        const audioRef = React.useRef(null);
+        const audioTimerRef = React.useRef(null);
+
+        const CLIPS = {
+          rit: { start: 55, end: 65 },    // 0:55–1:05 — ritardando into slow C section
+          accel: { start: 140, end: 153 }, // 2:20–2:33 — accelerando racing to the finish
+        };
 
         React.useEffect(() => {
           return () => {
             if (animationRef.current) clearTimeout(animationRef.current);
+            if (audioTimerRef.current) clearTimeout(audioTimerRef.current);
+            if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
           };
         }, []);
 
+        const stopDemo = () => {
+          setActiveDemo(null);
+          if (animationRef.current) clearTimeout(animationRef.current);
+          if (audioTimerRef.current) clearTimeout(audioTimerRef.current);
+          if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+        };
+
         const startDemo = (type) => {
           if (activeDemo === type) {
-            setActiveDemo(null);
-            if (animationRef.current) clearTimeout(animationRef.current);
+            stopDemo();
             return;
           }
+          stopDemo();
           setActiveDemo(type);
-          // Auto-stop after 5 seconds
-          animationRef.current = setTimeout(() => setActiveDemo(null), 5000);
+
+          // Play Brahms clip
+          const clip = CLIPS[type];
+          const audio = new Audio('/audio/classical/brahms-hungarian-dance-5.mp3');
+          audioRef.current = audio;
+          audio.currentTime = clip.start;
+          audio.volume = 0.7;
+          audio.play().catch(err => console.error('Audio error:', err));
+
+          const duration = (clip.end - clip.start) * 1000;
+          audioTimerRef.current = setTimeout(() => {
+            if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+          }, duration);
+
+          // Auto-stop animation after clip
+          animationRef.current = setTimeout(() => setActiveDemo(null), duration);
         };
 
         return (
@@ -972,7 +1002,7 @@ const PresentationContent = ({
                       : 'bg-white/20 text-white hover:bg-white/30'
                   }`}
                 >
-                  {activeDemo === 'accel' ? '⏹ Stop' : '▶ See Example'}
+                  {activeDemo === 'accel' ? '⏹ Stop' : '▶ Hear Example'}
                 </button>
               </div>
 
@@ -1007,7 +1037,7 @@ const PresentationContent = ({
                       : 'bg-white/20 text-white hover:bg-white/30'
                   }`}
                 >
-                  {activeDemo === 'rit' ? '⏹ Stop' : '▶ See Example'}
+                  {activeDemo === 'rit' ? '⏹ Stop' : '▶ Hear Example'}
                 </button>
               </div>
             </div>
