@@ -4,7 +4,7 @@
 // Auto-saves on blur/Enter. Teacher can override rubric-calculated grade anytime.
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Check, ChevronDown, ChevronRight, Loader2, Settings, Plus, Minus, Trash2, BookOpen } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Loader2, Settings, Plus, Minus, Trash2, BookOpen, Trophy } from 'lucide-react';
 import { gradeSubmission } from '../../firebase/grades';
 import { saveRubricTemplate, getRubricTemplates, deleteRubricTemplate } from '../../firebase/rubrics';
 import { useFirebaseAuth } from '../../context/FirebaseAuthContext';
@@ -20,10 +20,10 @@ const QUICK_FEEDBACK = [
 
 // Performance levels — percentage of each criterion's max points
 const LEVELS = [
-  { title: 'Gold', pct: 1.0, color: 'bg-yellow-500 text-white ring-yellow-300' },
-  { title: 'Silver', pct: 0.75, color: 'bg-gray-400 text-white ring-gray-300' },
-  { title: 'Bronze', pct: 0.5, color: 'bg-amber-700 text-white ring-amber-400' },
-  { title: 'Grey', pct: 0.25, color: 'bg-gray-300 text-gray-600 ring-gray-200' }
+  { title: 'Gold', pct: 1.0, color: 'bg-yellow-500 text-white ring-yellow-300', iconColor: '#eab308' },
+  { title: 'Silver', pct: 0.75, color: 'bg-gray-400 text-white ring-gray-300', iconColor: '#9ca3af' },
+  { title: 'Bronze', pct: 0.5, color: 'bg-amber-700 text-white ring-amber-400', iconColor: '#b45309' },
+  { title: 'Black', pct: 0.25, color: 'bg-gray-900 text-white ring-gray-600', iconColor: '#111827' }
 ];
 
 const DEFAULT_CRITERIA = [
@@ -328,12 +328,12 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
           <div className="p-3">
             {!editingRubric ? (
               <div className="space-y-1">
-                {/* Header row */}
+                {/* Header row with trophy icons */}
                 <div className="flex items-center gap-1">
                   <div className="w-20 flex-shrink-0" />
                   {LEVELS.map((level, i) => (
-                    <div key={i} className="flex-1 text-[9px] text-center text-gray-400 font-medium">
-                      {level.title}
+                    <div key={i} className="flex-1 flex justify-center">
+                      <Trophy size={12} style={{ color: level.iconColor }} />
                     </div>
                   ))}
                   <div className="w-16 flex-shrink-0" />
