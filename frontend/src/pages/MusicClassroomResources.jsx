@@ -409,9 +409,8 @@ function MusicClassroomResources() {
       `}</style>
       <TeacherHeader />
 
-      {/* Main Content - Fits viewport */}
+      {/* Main Content */}
       <div style={{
-        flex: 1,
         display: 'flex',
         flexDirection: 'column',
         maxWidth: '1400px',
@@ -513,12 +512,9 @@ function MusicClassroomResources() {
 
         {/* Unit Grid */}
         <div style={{
-          flex: 1,
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '16px',
-          minHeight: 0,
-          alignContent: 'start'
+          gap: '16px'
         }}>
           {CURRICULUM_UNITS.map((unit) => {
             const isClickable = unit.status === 'pilot' || unit.status === 'active' || (hasEarlyAccess && unit.route);
