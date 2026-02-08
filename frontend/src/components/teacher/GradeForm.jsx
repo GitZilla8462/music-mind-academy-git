@@ -20,10 +20,10 @@ const QUICK_FEEDBACK = [
 
 // Performance levels — percentage of each criterion's max points
 const LEVELS = [
-  { title: 'Excellent', pct: 1.0, color: 'bg-green-600 text-white ring-green-300' },
-  { title: 'Proficient', pct: 0.75, color: 'bg-blue-600 text-white ring-blue-300' },
-  { title: 'Developing', pct: 0.5, color: 'bg-amber-500 text-white ring-amber-300' },
-  { title: 'Beginning', pct: 0.25, color: 'bg-red-500 text-white ring-red-300' }
+  { title: 'Gold', pct: 1.0, color: 'bg-yellow-500 text-white ring-yellow-300' },
+  { title: 'Silver', pct: 0.75, color: 'bg-gray-400 text-white ring-gray-300' },
+  { title: 'Bronze', pct: 0.5, color: 'bg-amber-700 text-white ring-amber-400' },
+  { title: 'Grey', pct: 0.25, color: 'bg-gray-300 text-gray-600 ring-gray-200' }
 ];
 
 const DEFAULT_CRITERIA = [
@@ -333,7 +333,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
                   <div className="w-20 flex-shrink-0" />
                   {LEVELS.map((level, i) => (
                     <div key={i} className="flex-1 text-[9px] text-center text-gray-400 font-medium">
-                      {4 - i}
+                      {level.title}
                     </div>
                   ))}
                   <div className="w-16 flex-shrink-0" />
@@ -346,6 +346,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
                       {criterion.name || `Criterion ${idx + 1}`}
                     </div>
                     {LEVELS.map((level, levelIdx) => {
+                      const levelPts = getLevelPoints(levelIdx);
                       const isSelected = criterion.selectedLevel === levelIdx;
                       return (
                         <button
@@ -357,7 +358,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
                               : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                           }`}
                         >
-                          {4 - levelIdx}
+                          {levelPts}
                         </button>
                       );
                     })}
