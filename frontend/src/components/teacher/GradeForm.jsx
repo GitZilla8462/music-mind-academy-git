@@ -327,59 +327,69 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
         {showRubric && (
           <div className="p-3">
             {!editingRubric ? (
-              <div className="space-y-3">
-                {/* Criteria with level buttons */}
+              <div className="space-y-1">
+                {/* Header row with level names */}
+                <div className="flex items-center gap-1">
+                  <div className="w-20 flex-shrink-0" />
+                  {LEVELS.map((level, i) => (
+                    <div key={i} className="flex-1 text-[9px] text-center text-gray-400 uppercase tracking-wide">
+                      {level.title.slice(0, 3)}
+                    </div>
+                  ))}
+                  <div className="w-16 flex-shrink-0" />
+                </div>
+
+                {/* Criterion rows */}
                 {criteria.map((criterion, idx) => (
-                  <div key={idx}>
-                    <div className="text-xs font-medium text-gray-600 mb-1.5">
+                  <div key={idx} className="flex items-center gap-1">
+                    <div className="w-20 flex-shrink-0 text-[11px] font-medium text-gray-600 truncate">
                       {criterion.name || `Criterion ${idx + 1}`}
                     </div>
-                    <div className="flex gap-1">
-                      {LEVELS.map((level, levelIdx) => {
-                        const levelPts = getLevelPoints(levelIdx);
-                        const isSelected = criterion.selectedLevel === levelIdx;
-                        return (
+                    {LEVELS.map((level, levelIdx) => {
+                      const levelPts = getLevelPoints(levelIdx);
+                      const isSelected = criterion.selectedLevel === levelIdx;
+                      return (
+                        <button
+                          key={levelIdx}
+                          onClick={() => selectLevel(idx, levelIdx)}
+                          className={`flex-1 py-1 rounded text-center text-[11px] font-bold transition-all ${
+                            isSelected
+                              ? `${level.color} ring-1 ring-offset-1`
+                              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          }`}
+                        >
+                          {levelPts}
+                        </button>
+                      );
+                    })}
+                    <div className="w-16 flex-shrink-0 flex items-center justify-end gap-0.5">
+                      {criterion.selectedLevel !== null && (
+                        <>
                           <button
-                            key={levelIdx}
-                            onClick={() => selectLevel(idx, levelIdx)}
-                            className={`flex-1 py-1.5 px-1 rounded text-center transition-all ${
-                              isSelected
-                                ? `${level.color} ring-2 ring-offset-1`
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
+                            onClick={() => adjustCriterionPoints(idx, -1)}
+                            className="w-4 h-4 flex items-center justify-center rounded bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
                           >
-                            <div className="text-xs font-bold">{levelPts}</div>
-                            <div className="text-[10px] leading-tight opacity-80">{level.title}</div>
+                            <Minus size={8} />
                           </button>
-                        );
-                      })}
+                          <span className="text-[11px] font-bold text-gray-700 tabular-nums w-5 text-center">
+                            {getCriterionPoints(criterion)}
+                          </span>
+                          <button
+                            onClick={() => adjustCriterionPoints(idx, 1)}
+                            className="w-4 h-4 flex items-center justify-center rounded bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
+                          >
+                            <Plus size={8} />
+                          </button>
+                        </>
+                      )}
                     </div>
-                    {criterion.selectedLevel !== null && (
-                      <div className="flex items-center justify-end gap-1.5 mt-1">
-                        <button
-                          onClick={() => adjustCriterionPoints(idx, -1)}
-                          className="w-5 h-5 flex items-center justify-center rounded bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors"
-                        >
-                          <Minus size={10} />
-                        </button>
-                        <span className="text-xs font-bold text-gray-700 tabular-nums w-6 text-center">
-                          {getCriterionPoints(criterion)}
-                        </span>
-                        <button
-                          onClick={() => adjustCriterionPoints(idx, 1)}
-                          className="w-5 h-5 flex items-center justify-center rounded bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors"
-                        >
-                          <Plus size={10} />
-                        </button>
-                      </div>
-                    )}
                   </div>
                 ))}
 
                 {/* Rubric total */}
-                <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
-                  <span className="text-xs text-gray-500">Rubric total</span>
-                  <span className="text-sm font-bold text-gray-800">
+                <div className="pt-1.5 mt-1 border-t border-gray-100 flex items-center justify-between">
+                  <span className="text-[11px] text-gray-400">Total</span>
+                  <span className="text-xs font-bold text-gray-800 tabular-nums">
                     {rubricTotal !== null ? rubricTotal : '--'} / {maxPoints}
                   </span>
                 </div>
