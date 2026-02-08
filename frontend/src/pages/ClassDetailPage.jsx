@@ -8,7 +8,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { getClassById } from '../firebase/classes';
 import { getClassRoster } from '../firebase/enrollments';
-import { getAllClassSubmissions, getClassGrades } from '../firebase/grades';
+import { getAllClassSubmissions, getClassGrades, gradeSubmission } from '../firebase/grades';
 import { CURRICULUM, getLessonById } from '../config/curriculumConfig';
 import {
   ArrowLeft,
@@ -30,13 +30,17 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Lock
+  Lock,
+  Loader2,
+  Download
 } from 'lucide-react';
 import TeacherHeader from '../components/teacher/TeacherHeader';
 import RosterManager from '../components/teacher/RosterManager';
 import StudentDetailModal from '../components/teacher/StudentDetailModal';
 import GradeEntryModal from '../components/teacher/GradeEntryModal';
+import ActivityGradingView from '../components/teacher/ActivityGradingView';
 import PrintableLoginCards from '../components/teacher/PrintableLoginCards';
+import { seedDynamicsListeningMap } from '../utils/seedTestSubmissions';
 
 const ClassDetailPage = () => {
   const { classId } = useParams();
@@ -61,6 +65,7 @@ const ClassDetailPage = () => {
   const [showPrintCards, setShowPrintCards] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [gradeModalData, setGradeModalData] = useState(null);
+  const [activityGradingData, setActivityGradingData] = useState(null);
 
   // Sorting state: 'name-asc', 'name-desc', 'seat-asc', 'seat-desc'
   const [sortBy, setSortBy] = useState('seat-asc');
@@ -203,8 +208,92 @@ const ClassDetailPage = () => {
         [lessonId]: gradeData
       }
     }));
-    setGradeModalData(null);
+    // Don't close modals here — auto-save calls this frequently.
+    // Modals have their own close buttons.
     refreshData();
+  };
+
+  // Quick grade on Students tab
+  const [quickGradeActivity, setQuickGradeActivity] = useState(null); // { lessonId, activityId, lessonName, activityName, activityType }
+  const [quickGradeMaxPoints, setQuickGradeMaxPoints] = useState('100');
+  const [quickGradeInputs, setQuickGradeInputs] = useState({});
+  const [quickGradeSaving, setQuickGradeSaving] = useState({});
+  const [quickGradeSaved, setQuickGradeSaved] = useState({});
+
+  // Build list of all activities that have at least one submission
+  const allActivitiesWithSubs = [];
+  CURRICULUM.forEach(unit => {
+    unit.lessons.forEach(lesson => {
+      if (!lesson.route) return;
+      lesson.activities.forEach(activity => {
+        const hasSubs = submissions.some(s => s.lessonId === lesson.id && s.activityId === activity.id);
+        if (hasSubs) {
+          allActivitiesWithSubs.push({
+            lessonId: lesson.id,
+            activityId: activity.id,
+            lessonName: lesson.name,
+            activityName: activity.name,
+            activityType: activity.type,
+            label: `${activity.name} (${lesson.name})`
+          });
+        }
+      });
+    });
+  });
+
+  const initQuickGrade = (activityInfo) => {
+    if (!activityInfo) {
+      setQuickGradeActivity(null);
+      setQuickGradeInputs({});
+      return;
+    }
+    setQuickGradeActivity(activityInfo);
+    const initial = {};
+    let detectedMax = null;
+    roster.forEach(student => {
+      const uid = getEffectiveUid(student);
+      const grade = grades[uid]?.[activityInfo.lessonId];
+      if (grade?.points !== undefined) {
+        initial[uid] = grade.points.toString();
+        if (grade.maxPoints && !detectedMax) detectedMax = grade.maxPoints.toString();
+      }
+    });
+    setQuickGradeInputs(initial);
+    if (detectedMax) setQuickGradeMaxPoints(detectedMax);
+    setQuickGradeSaving({});
+    setQuickGradeSaved({});
+  };
+
+  const saveQuickGrade = async (studentUid) => {
+    if (!quickGradeActivity) return;
+    const value = quickGradeInputs[studentUid];
+    if (!value || value.trim() === '') return;
+    const pts = parseInt(value, 10);
+    if (isNaN(pts)) return;
+    const maxPts = parseInt(quickGradeMaxPoints, 10) || 100;
+
+    setQuickGradeSaving(prev => ({ ...prev, [studentUid]: true }));
+    setQuickGradeSaved(prev => ({ ...prev, [studentUid]: false }));
+    try {
+      const gradeData = {
+        type: 'points',
+        points: pts,
+        maxPoints: maxPts,
+        grade: `${pts}/${maxPts}`,
+        quickFeedback: grades[studentUid]?.[quickGradeActivity.lessonId]?.quickFeedback || [],
+        feedback: grades[studentUid]?.[quickGradeActivity.lessonId]?.feedback || null,
+        activityId: quickGradeActivity.activityId,
+        activityType: quickGradeActivity.activityType || 'composition'
+      };
+      const result = await gradeSubmission(classId, studentUid, quickGradeActivity.lessonId, gradeData, user.uid);
+      handleGradeSaved(studentUid, quickGradeActivity.lessonId, result);
+      setQuickGradeSaved(prev => ({ ...prev, [studentUid]: true }));
+      setTimeout(() => setQuickGradeSaved(prev => ({ ...prev, [studentUid]: false })), 2000);
+    } catch (err) {
+      console.error('Error saving quick grade:', err);
+    } finally {
+      setQuickGradeSaving(prev => ({ ...prev, [studentUid]: false }));
+    }
   };
 
   const totalPending = submissions.filter(s => s.status === 'pending' || s.status === 'submitted').length;
@@ -280,6 +369,8 @@ const ClassDetailPage = () => {
             <div>
               <h1 className="text-2xl font-bold text-white mb-1">{classData.name}</h1>
               <div className="flex items-center gap-3 text-white/80 text-sm">
+                <span>Gradebook</span>
+                <span>·</span>
                 <span>{roster.length} students</span>
               </div>
             </div>
@@ -370,7 +461,7 @@ const ClassDetailPage = () => {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">
-                Students ({roster.length})
+                Roster ({roster.length})
               </h2>
               <div className="flex items-center gap-2">
                 {roster.length > 0 && (
@@ -413,17 +504,6 @@ const ClassDetailPage = () => {
                     <tr>
                       <th
                         className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none"
-                        onClick={() => setSortBy(sortBy === 'name-asc' ? 'name-desc' : 'name-asc')}
-                      >
-                        <span className="flex items-center gap-1">
-                          Student
-                          {sortBy === 'name-asc' ? <ArrowUp size={12} /> :
-                           sortBy === 'name-desc' ? <ArrowDown size={12} /> :
-                           <ArrowUpDown size={12} className="text-gray-300" />}
-                        </span>
-                      </th>
-                      <th
-                        className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none"
                         onClick={() => setSortBy(sortBy === 'seat-asc' ? 'seat-desc' : 'seat-asc')}
                       >
                         <span className="flex items-center gap-1">
@@ -433,11 +513,22 @@ const ClassDetailPage = () => {
                            <ArrowUpDown size={12} className="text-gray-300" />}
                         </span>
                       </th>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                        Status
+                      <th
+                        className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none"
+                        onClick={() => setSortBy(sortBy === 'name-asc' ? 'name-desc' : 'name-asc')}
+                      >
+                        <span className="flex items-center gap-1">
+                          Student
+                          {sortBy === 'name-asc' ? <ArrowUp size={12} /> :
+                           sortBy === 'name-desc' ? <ArrowDown size={12} /> :
+                           <ArrowUpDown size={12} className="text-gray-300" />}
+                        </span>
                       </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                        Actions
+                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                        Username
+                      </th>
+                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                        PIN
                       </th>
                     </tr>
                   </thead>
@@ -452,68 +543,33 @@ const ClassDetailPage = () => {
                         if (sortBy === 'seat-desc') return b.seatNumber - a.seatNumber;
                         return 0;
                       })
-                      .map((student, index) => {
-                        const effectiveUid = getEffectiveUid(student);
-                        const status = getStudentStatus(effectiveUid);
-
-                        return (
-                          <tr
-                            key={student.seatNumber || index}
-                            className="hover:bg-gray-50 cursor-pointer"
-                            onClick={() => setSelectedStudent(student)}
-                          >
-                            <td className="px-4 py-3">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-medium text-blue-600">
-                                  {(student.displayName || student.name || 'S').charAt(0).toUpperCase()}
-                                </div>
-                                <div>
-                                  <div className="font-medium text-gray-900">
-                                    {student.displayName || student.name || `Student ${student.seatNumber}`}
-                                  </div>
-                                  {student.username && (
-                                    <div className="text-xs text-blue-500 font-mono">{student.username}</div>
-                                  )}
-                                </div>
+                      .map((student, index) => (
+                        <tr
+                          key={student.seatNumber || index}
+                          className="hover:bg-gray-50 cursor-pointer"
+                          onClick={() => setSelectedStudent(student)}
+                        >
+                          <td className="px-4 py-3 text-sm text-gray-600 w-16">
+                            #{student.seatNumber}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-medium text-blue-600">
+                                {(student.displayName || student.name || 'S').charAt(0).toUpperCase()}
                               </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-600">
-                              #{student.seatNumber}
-                            </td>
-                            <td className="px-4 py-3">
-                              {status && status.total > 0 ? (
-                                <div className="flex items-center gap-3 text-sm">
-                                  {status.pending > 0 && (
-                                    <span className="flex items-center gap-1 text-amber-600">
-                                      <Clock size={14} />
-                                      {status.pending} pending
-                                    </span>
-                                  )}
-                                  {status.graded > 0 && (
-                                    <span className="flex items-center gap-1 text-green-600">
-                                      <CheckCircle2 size={14} />
-                                      {status.graded} graded
-                                    </span>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-sm text-gray-400">No submissions</span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3 text-right">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedStudent(student);
-                                }}
-                                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                              >
-                                View Work →
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
+                              <span className="font-medium text-gray-900">
+                                {student.displayName || student.name || `Student ${student.seatNumber}`}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm font-mono text-gray-600">
+                            {student.username || '--'}
+                          </td>
+                          <td className="px-4 py-3 text-sm font-mono font-semibold text-gray-900">
+                            {student.pin || '--'}
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
@@ -528,11 +584,30 @@ const ClassDetailPage = () => {
               <h2 className="text-lg font-semibold text-gray-900">
                 Classwork
               </h2>
-              {totalPending > 0 && (
-                <span className="text-sm text-amber-600 font-medium">
-                  {totalPending} total to grade
-                </span>
-              )}
+              <div className="flex items-center gap-3">
+                {totalPending > 0 && (
+                  <span className="text-sm text-amber-600 font-medium">
+                    {totalPending} total to grade
+                  </span>
+                )}
+                {/* TEMP: Seed test data button - remove after testing */}
+                <button
+                  onClick={async () => {
+                    if (roster.length === 0) { alert('Add students to roster first'); return; }
+                    try {
+                      const count = await seedDynamicsListeningMap(classId, roster);
+                      alert(`Seeded ${count} submissions! Refreshing...`);
+                      window.location.reload();
+                    } catch (err) {
+                      alert('Seed error: ' + err.message);
+                      console.error('Seed error:', err);
+                    }
+                  }}
+                  className="px-3 py-2 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium"
+                >
+                  Seed Test Data
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -643,7 +718,14 @@ const ClassDetailPage = () => {
                                     return (
                                       <div
                                         key={activity.id}
-                                        className="px-4 py-3 pl-20 flex items-center justify-between hover:bg-gray-50"
+                                        className="px-4 py-3 pl-20 flex items-center justify-between hover:bg-gray-50 cursor-pointer"
+                                        onClick={() => setActivityGradingData({
+                                          lessonId: lesson.id,
+                                          activityId: activity.id,
+                                          lessonName: lesson.name,
+                                          activityName: activity.name,
+                                          activityType: activity.type
+                                        })}
                                       >
                                         <div className="flex items-center gap-3">
                                           <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
@@ -656,7 +738,9 @@ const ClassDetailPage = () => {
                                             } />
                                           </div>
                                           <div>
-                                            <div className="font-medium text-gray-900 text-sm">{activity.name}</div>
+                                            <div className="font-medium text-gray-900 text-sm hover:text-blue-600 transition-colors">
+                                              {activity.name}
+                                            </div>
                                             <div className="text-xs text-gray-500 capitalize">{activity.type}</div>
                                           </div>
                                         </div>
@@ -670,14 +754,6 @@ const ClassDetailPage = () => {
                                               <Clock size={12} />
                                               {stats.pending} pending
                                             </span>
-                                          )}
-                                          {activity.type === 'composition' && (
-                                            <button
-                                              onClick={() => navigate(`/teacher/gradebook/${classId}?activity=${activity.id}`)}
-                                              className="text-blue-600 hover:text-blue-700 font-medium text-xs"
-                                            >
-                                              Grade All →
-                                            </button>
                                           )}
                                         </div>
                                       </div>
@@ -698,108 +774,142 @@ const ClassDetailPage = () => {
         )}
 
         {/* ==================== Grades Tab ==================== */}
-        {activeTab === 'grades' && (
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Grades
-                {totalPending > 0 && (
-                  <span className="ml-2 text-sm font-normal text-amber-600">
-                    ({totalPending} need grading)
+        {activeTab === 'grades' && (() => {
+          // Build lesson columns from CURRICULUM (only built lessons)
+          const gradebookLessons = CURRICULUM.flatMap(unit =>
+            unit.lessons
+              .filter(l => l.activities.length > 0)
+              .map(l => ({ id: l.id, name: l.shortName || l.name, unitIcon: unit.icon, unitName: unit.shortName }))
+          );
+
+          const totalGraded = Object.values(grades).reduce((sum, studentGrades) => sum + Object.keys(studentGrades).length, 0);
+
+          // Grade color helper
+          const getGradeColor = (points, maxPoints) => {
+            const pct = Math.round((points / maxPoints) * 100);
+            if (pct >= 80) return 'text-green-700';
+            if (pct >= 60) return 'text-blue-700';
+            if (pct >= 40) return 'text-amber-700';
+            return 'text-red-700';
+          };
+
+          // CSV export
+          const exportCSV = () => {
+            const headers = ['Student Name', 'Seat', ...gradebookLessons.map(l => `${l.unitIcon} ${l.name}`)];
+            const rows = roster.map(student => {
+              const uid = getEffectiveUid(student);
+              const name = student.displayName || `Seat ${student.seatNumber}`;
+              const lessonGrades = gradebookLessons.map(l => {
+                const g = grades[uid]?.[l.id];
+                if (!g) return '';
+                if (g.points !== undefined && g.maxPoints) return `${g.points}/${g.maxPoints}`;
+                return g.grade || '';
+              });
+              return [name, student.seatNumber, ...lessonGrades];
+            });
+
+            const csv = [headers, ...rows].map(row =>
+              row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+            ).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${classData?.name || 'grades'}-gradebook.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+          };
+
+          return (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Grades
+                  <span className="ml-2 text-sm font-normal text-gray-500">
+                    {totalGraded} graded
+                    {totalPending > 0 && (
+                      <span className="text-amber-600 ml-1">· {totalPending} pending</span>
+                    )}
                   </span>
-                )}
-              </h2>
-              <button
-                onClick={() => navigate(`/teacher/gradebook/${classId}`)}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors"
-              >
-                <ClipboardList size={16} />
-                Full Gradebook
-              </button>
-            </div>
-
-            {submissions.length === 0 ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-                <ClipboardList className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <h3 className="font-medium text-gray-900 mb-1">No submissions yet</h3>
-                <p className="text-sm text-gray-500">
-                  Student work will appear here when they submit assignments.
-                </p>
+                </h2>
+                <button
+                  onClick={exportCSV}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <Download size={16} />
+                  Export CSV
+                </button>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {submissions
-                  .filter(s => s.status === 'submitted' || s.status === 'pending')
-                  .slice(0, 10)
-                  .map((submission) => {
-                    const student = roster.find(r => getEffectiveUid(r) === submission.studentUid);
-                    const { lesson, activity } = findLessonAndActivity(submission.lessonId, submission.activityId);
 
-                    return (
-                      <div
-                        key={submission.id || `${submission.studentUid}-${submission.lessonId}-${submission.activityId}`}
-                        className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-sm transition-shadow"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                              <Clock className="w-5 h-5 text-amber-600" />
-                            </div>
-                            <div>
-                              <div className="font-medium text-gray-900">
-                                {student?.displayName || student?.name || 'Unknown Student'}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {activity?.name || lesson?.name || 'Assignment'}
-                                {lesson?.unitName && (
-                                  <span className="text-gray-400"> · {lesson.unitName}</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full font-medium">
-                              Needs grading
-                            </span>
-                            <button
-                              onClick={() => setGradeModalData({
-                                student,
-                                lesson,
-                                activity,
-                                submission
-                              })}
-                              className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            >
-                              Grade
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                {submissions.filter(s => s.status === 'submitted' || s.status === 'pending').length > 10 && (
-                  <button
-                    onClick={() => navigate(`/teacher/gradebook/${classId}`)}
-                    className="w-full py-3 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    View all submissions →
-                  </button>
-                )}
-
-                {submissions.filter(s => s.status === 'submitted' || s.status === 'pending').length === 0 && (
-                  <div className="bg-green-50 rounded-xl border border-green-200 p-6 text-center">
-                    <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto mb-2" />
-                    <h3 className="font-medium text-green-800 mb-1">All caught up!</h3>
-                    <p className="text-sm text-green-600">
-                      No submissions need grading right now.
-                    </p>
+              {/* Pending submissions banner */}
+              {totalPending > 0 && (
+                <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-amber-800">
+                    <Clock size={16} />
+                    <span>{totalPending} submission{totalPending !== 1 ? 's' : ''} need grading</span>
                   </div>
-                )}
+                </div>
+              )}
+
+              {/* Gradebook Table */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200">
+                        <th className="text-left p-3 font-medium text-gray-700 sticky left-0 bg-gray-50 z-10 min-w-[160px]">
+                          Student
+                        </th>
+                        {gradebookLessons.map(l => (
+                          <th key={l.id} className="p-3 font-medium text-gray-700 text-center min-w-[90px]">
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs">{l.unitIcon}</span>
+                              <span className="text-xs leading-tight">{l.name}</span>
+                            </div>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {roster.map(student => {
+                        const uid = getEffectiveUid(student);
+                        return (
+                          <tr key={student.seatNumber} className="hover:bg-gray-50">
+                            <td className="p-3 font-medium text-gray-900 sticky left-0 bg-white z-10">
+                              {student.displayName || `Seat ${student.seatNumber}`}
+                            </td>
+                            {gradebookLessons.map(l => {
+                              const g = grades[uid]?.[l.id];
+                              const sub = submissions.find(s => s.studentUid === uid && s.lessonId === l.id);
+                              const isPending = sub && (sub.status === 'pending' || sub.status === 'submitted');
+
+                              return (
+                                <td key={l.id} className="p-3 text-center">
+                                  {g && g.points !== undefined && g.maxPoints ? (
+                                    <span className={`font-bold tabular-nums ${getGradeColor(g.points, g.maxPoints)}`}>
+                                      {g.points}/{g.maxPoints}
+                                    </span>
+                                  ) : g?.grade ? (
+                                    <span className="font-bold text-gray-700">{g.grade}</span>
+                                  ) : isPending ? (
+                                    <Clock size={14} className="text-amber-500 mx-auto" />
+                                  ) : (
+                                    <span className="text-gray-300">--</span>
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          );
+        })()}
       </main>
 
       {/* Roster Manager Modal */}
@@ -833,7 +943,14 @@ const ClassDetailPage = () => {
           student={selectedStudent}
           classId={classId}
           onViewWork={(student, lesson, activity, submission) => {
-            console.log('View work:', { student, lesson, activity, submission });
+            setSelectedStudent(null);
+            setActivityGradingData({
+              lessonId: lesson.id,
+              activityId: activity.id,
+              lessonName: lesson.name,
+              activityName: activity.name,
+              activityType: activity.type
+            });
           }}
           onGrade={(student, lesson, activity, submission) => {
             setSelectedStudent(null);
@@ -854,6 +971,26 @@ const ClassDetailPage = () => {
           currentGrade={grades[gradeModalData.student ? getEffectiveUid(gradeModalData.student) : null]?.[gradeModalData.lesson?.id]}
           submission={gradeModalData.submission}
           onSave={handleGradeSaved}
+        />
+      )}
+
+      {/* Activity Grading View (SpeedGrader) */}
+      {activityGradingData && (
+        <ActivityGradingView
+          isOpen={!!activityGradingData}
+          onClose={() => setActivityGradingData(null)}
+          classId={classId}
+          lessonId={activityGradingData.lessonId}
+          activityId={activityGradingData.activityId}
+          lessonName={activityGradingData.lessonName}
+          activityName={activityGradingData.activityName}
+          activityType={activityGradingData.activityType}
+          roster={roster}
+          submissions={submissions}
+          grades={grades}
+          onGradeSaved={(studentUid, lessonId, gradeData) => {
+            handleGradeSaved(studentUid, lessonId, gradeData);
+          }}
         />
       )}
 

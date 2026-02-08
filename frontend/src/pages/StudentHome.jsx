@@ -7,10 +7,11 @@ import { useNavigate } from 'react-router-dom';
 import { useStudentAuth } from '../context/StudentAuthContext';
 import { getStudentEnrollments } from '../firebase/students';
 import { getClassSessionByCode, joinClassSession } from '../firebase/classes';
-import { LogOut, Play, FileText, Award, BookOpen, FolderHeart } from 'lucide-react';
+import { LogOut, Play, FileText, Award, BookOpen, FolderHeart, ClipboardList } from 'lucide-react';
 import StudentWorkList from '../components/student/StudentWorkList';
 import StudentGradesList from '../components/student/StudentGradesList';
 import StudentPortfolio from '../components/student/StudentPortfolio';
+import StudentClasswork from '../components/student/StudentClasswork';
 
 const StudentHome = () => {
   const navigate = useNavigate();
@@ -93,7 +94,10 @@ const StudentHome = () => {
   const tabs = [
     { id: 'work', label: 'My Work', icon: FileText },
     { id: 'portfolio', label: 'Portfolio', icon: FolderHeart },
-    ...(isPinAuth ? [{ id: 'grades', label: 'Grades', icon: Award }] : []),
+    ...(isPinAuth ? [
+      { id: 'classwork', label: 'Classwork', icon: ClipboardList },
+      { id: 'grades', label: 'Grades', icon: Award },
+    ] : []),
     { id: 'classes', label: 'Classes', icon: BookOpen },
   ];
 
@@ -221,6 +225,18 @@ const StudentHome = () => {
 
         {activeTab === 'portfolio' && (
           <StudentPortfolio />
+        )}
+
+        {activeTab === 'classwork' && isPinAuth && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center">
+                <ClipboardList size={18} className="text-indigo-600" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">My Classwork</h2>
+            </div>
+            <StudentClasswork />
+          </div>
         )}
 
         {activeTab === 'grades' && isPinAuth && (

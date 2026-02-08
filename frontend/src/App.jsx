@@ -110,6 +110,7 @@ const PresentationView = React.lazy(() => import('./components/PresentationView'
 const SessionStartPage = React.lazy(() => import('./pages/SessionStartPage'));
 const JoinWithCode = React.lazy(() => import('./pages/JoinWithCode'));
 const CompositionViewer = React.lazy(() => import('./pages/CompositionViewer'));
+const PublicPortfolio = React.lazy(() => import('./pages/PublicPortfolio'));
 
 // Debug and admin tools
 const FirebaseSessionInspector = React.lazy(() => import('./components/FirebaseSessionInspector'));
@@ -358,7 +359,10 @@ const AppContent = () => {
         
         {/* Composition Viewer - View shared compositions */}
         <Route path="/view-composition/:shareCode" element={<CompositionViewer />} />
-        
+
+        {/* Public Student Portfolio - No auth required */}
+        <Route path="/portfolio/:shareToken" element={<PublicPortfolio />} />
+
         {/* Session Start Page - Shows session code before starting lesson */}
         <Route path="/session-start" element={<SessionStartPage />} />
         
@@ -491,7 +495,10 @@ const AppContent = () => {
         
         {/* Composition Viewer */}
         <Route path="/view-composition/:shareCode" element={<CompositionViewer />} />
-        
+
+        {/* Public Student Portfolio - No auth required */}
+        <Route path="/portfolio/:shareToken" element={<PublicPortfolio />} />
+
         {/* Session Start Page */}
         <Route path="/session-start" element={<SessionStartPage />} />
         

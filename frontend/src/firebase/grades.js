@@ -22,9 +22,9 @@ export const gradeSubmission = async (classId, studentUid, lessonId, gradeData, 
   const gradeRef = ref(database, `grades/${classId}/${studentUid}/${lessonId}`);
   const now = Date.now();
 
+  // Store all grade fields (type, points, maxPoints, rubricCategories, quickFeedback, etc.)
   const gradeRecord = {
-    grade: gradeData.grade,
-    feedback: gradeData.feedback || null,
+    ...gradeData,
     gradedAt: now,
     gradedBy: teacherUid,
     updatedAt: now
@@ -32,16 +32,19 @@ export const gradeSubmission = async (classId, studentUid, lessonId, gradeData, 
 
   await set(gradeRef, gradeRecord);
 
+  // Build a display-friendly grade value for the submission record
+  const gradeDisplay = gradeData.grade || null;
+
   // Also update the submission record to mark it as graded
   const submissionRef = ref(database, `submissions/${classId}/${lessonId}/${studentUid}`);
   await update(submissionRef, {
     status: 'graded',
-    grade: gradeData.grade,
+    grade: gradeDisplay,
     feedback: gradeData.feedback || null,
     gradedAt: now
   });
 
-  console.log(`Graded: ${studentUid} lesson ${lessonId} = ${gradeData.grade}`);
+  console.log(`Graded: ${studentUid} lesson ${lessonId} = ${gradeDisplay}`);
   return gradeRecord;
 };
 

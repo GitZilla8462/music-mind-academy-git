@@ -172,6 +172,13 @@
       }
     },
 
+    "rubrics": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+
     "grades": {
       "$classId": {
         ".read": "auth != null && root.child('classes').child($classId).child('teacherUid').val() == auth.uid",

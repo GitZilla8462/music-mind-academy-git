@@ -9,18 +9,22 @@ import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { getClassById } from '../firebase/classes';
 import { getClassRoster } from '../firebase/enrollments';
 import { getAllClassSubmissions, getClassGrades } from '../firebase/grades';
+import { CURRICULUM } from '../config/curriculumConfig';
 import GradebookTable from '../components/teacher/GradebookTable';
 import GradeEntryModal from '../components/teacher/GradeEntryModal';
 import StudentWorkViewer from '../components/teacher/StudentWorkViewer';
 
-// Lesson definitions for the gradebook columns
-const LESSONS = [
-  { id: 'lesson1', name: 'Mood & Expression', shortName: 'L1' },
-  { id: 'lesson2', name: 'Instrumentation', shortName: 'L2' },
-  { id: 'lesson3', name: 'Texture & Layering', shortName: 'L3' },
-  { id: 'lesson4', name: 'Form & Structure', shortName: 'L4' },
-  { id: 'lesson5', name: 'Capstone', shortName: 'L5' }
-];
+// Build lesson columns from CURRICULUM (only lessons with activities)
+const LESSONS = CURRICULUM.flatMap(unit =>
+  unit.lessons
+    .filter(l => l.activities.length > 0)
+    .map(l => ({
+      id: l.id,
+      name: l.shortName || l.name,
+      shortName: `${unit.icon} ${l.shortName || l.name}`,
+      unitName: unit.shortName
+    }))
+);
 
 const TeacherGradebook = () => {
   const { classId } = useParams();

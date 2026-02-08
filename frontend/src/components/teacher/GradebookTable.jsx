@@ -22,7 +22,7 @@ const GradeCell = ({ student, lesson, submission, grade, onOpenGrade, onViewWork
     return 'bg-gray-800';
   };
 
-  // Determine grade color
+  // Determine grade color for letter grades
   const getGradeColor = (gradeValue) => {
     const colors = {
       A: 'text-green-400',
@@ -34,11 +34,26 @@ const GradeCell = ({ student, lesson, submission, grade, onOpenGrade, onViewWork
     return colors[gradeValue] || 'text-gray-400';
   };
 
+  // Points-based grade color
+  const getPointsColor = (points, maxPoints) => {
+    const pct = Math.round((points / maxPoints) * 100);
+    if (pct >= 80) return 'text-green-400';
+    if (pct >= 60) return 'text-blue-400';
+    if (pct >= 40) return 'text-yellow-400';
+    return 'text-red-400';
+  };
+
+  const isPoints = hasGrade && grade.points !== undefined && grade.maxPoints;
+
   return (
     <td className={`border border-gray-700 p-2 ${getBgColor()}`}>
       <div className="flex flex-col items-center gap-1">
         {/* Grade display */}
-        {hasGrade ? (
+        {hasGrade && isPoints ? (
+          <span className={`text-sm font-bold tabular-nums ${getPointsColor(grade.points, grade.maxPoints)}`}>
+            {grade.points}/{grade.maxPoints}
+          </span>
+        ) : hasGrade ? (
           <span className={`text-xl font-bold ${getGradeColor(grade.grade)}`}>
             {grade.grade}
           </span>
@@ -131,7 +146,7 @@ const GradebookTable = ({
           <tbody>
             {roster.map((student) => {
               // For PIN-based students, use the seat-based UID
-              const studentUid = student.studentUid || `pin-${student.classId}-${student.seatNumber}`;
+              const studentUid = student.studentUid || `seat-${student.seatNumber}`;
 
               return (
                 <tr key={student.seatNumber} className="hover:bg-gray-700/30">

@@ -61,7 +61,7 @@ const StudentWorkList = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+        <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
       </div>
     );
   }
@@ -69,11 +69,11 @@ const StudentWorkList = () => {
   if (work.length === 0) {
     return (
       <div className="text-center py-8">
-        <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-          <FileText className="w-8 h-8 text-gray-500" />
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <FileText className="w-8 h-8 text-gray-400" />
         </div>
-        <p className="text-gray-400 mb-2">No saved work yet</p>
-        <p className="text-gray-500 text-sm">
+        <p className="text-gray-500 mb-2">No saved work yet</p>
+        <p className="text-gray-400 text-sm">
           Your compositions and activities will appear here after you save them.
         </p>
       </div>
@@ -85,7 +85,7 @@ const StudentWorkList = () => {
       {work.map((item, index) => (
         <div
           key={item.activityId || index}
-          className="bg-gray-700 rounded-lg p-4 hover:bg-gray-650 transition-colors"
+          className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors border border-gray-200"
         >
           <div className="flex items-start gap-3">
             {/* Emoji/Icon */}
@@ -97,12 +97,12 @@ const StudentWorkList = () => {
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <h4 className="font-medium text-white truncate">{item.title}</h4>
+                  <h4 className="font-medium text-gray-800 truncate">{item.title}</h4>
                   {item.subtitle && (
-                    <p className="text-sm text-gray-400">{item.subtitle}</p>
+                    <p className="text-sm text-gray-500">{item.subtitle}</p>
                   )}
                   {item.category && (
-                    <span className="inline-block mt-1 text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded">
+                    <span className="inline-block mt-1 text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded">
                       {item.category}
                     </span>
                   )}
@@ -111,17 +111,17 @@ const StudentWorkList = () => {
                 {/* Status Badge */}
                 <div className="flex-shrink-0">
                   {item.status === 'submitted' ? (
-                    <span className="flex items-center gap-1 text-xs bg-yellow-900/50 text-yellow-400 px-2 py-1 rounded">
+                    <span className="flex items-center gap-1 text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-1 rounded">
                       <Clock className="w-3 h-3" />
                       Submitted
                     </span>
                   ) : item.status === 'graded' ? (
-                    <span className="flex items-center gap-1 text-xs bg-green-900/50 text-green-400 px-2 py-1 rounded">
+                    <span className="flex items-center gap-1 text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-1 rounded">
                       <CheckCircle className="w-3 h-3" />
                       Graded
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 text-xs bg-gray-600 text-gray-300 px-2 py-1 rounded">
+                    <span className="flex items-center gap-1 text-xs bg-gray-100 text-gray-500 border border-gray-200 px-2 py-1 rounded">
                       Draft
                     </span>
                   )}
@@ -130,7 +130,7 @@ const StudentWorkList = () => {
 
               {/* Last saved */}
               {item.lastSaved && (
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-400 mt-2">
                   Last saved: {formatDate(item.lastSaved)}
                 </p>
               )}
@@ -140,7 +140,7 @@ const StudentWorkList = () => {
             {item.viewRoute && (
               <button
                 onClick={() => handleViewWork(item)}
-                className="p-2 text-gray-400 hover:text-white hover:bg-gray-600 rounded transition-colors flex-shrink-0"
+                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors flex-shrink-0"
                 title="View work"
               >
                 <ExternalLink className="w-5 h-5" />
