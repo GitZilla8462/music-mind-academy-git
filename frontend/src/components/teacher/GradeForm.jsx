@@ -328,12 +328,12 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
           <div className="p-3">
             {!editingRubric ? (
               <div className="space-y-1">
-                {/* Header row with level names */}
+                {/* Header row */}
                 <div className="flex items-center gap-1">
                   <div className="w-20 flex-shrink-0" />
                   {LEVELS.map((level, i) => (
-                    <div key={i} className="flex-1 text-[9px] text-center text-gray-400 uppercase tracking-wide">
-                      {level.title.slice(0, 3)}
+                    <div key={i} className="flex-1 text-[9px] text-center text-gray-400 font-medium">
+                      {4 - i}
                     </div>
                   ))}
                   <div className="w-16 flex-shrink-0" />
@@ -346,7 +346,6 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
                       {criterion.name || `Criterion ${idx + 1}`}
                     </div>
                     {LEVELS.map((level, levelIdx) => {
-                      const levelPts = getLevelPoints(levelIdx);
                       const isSelected = criterion.selectedLevel === levelIdx;
                       return (
                         <button
@@ -358,7 +357,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
                               : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                           }`}
                         >
-                          {levelPts}
+                          {4 - levelIdx}
                         </button>
                       );
                     })}
