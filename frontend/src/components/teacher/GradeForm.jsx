@@ -4,7 +4,7 @@
 // Auto-saves on blur/Enter. Teacher can override rubric-calculated grade anytime.
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Check, ChevronDown, ChevronRight, Loader2, Settings, Plus, Trash2, BookOpen } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Loader2, Settings, Plus, Minus, Trash2, BookOpen } from 'lucide-react';
 import { gradeSubmission } from '../../firebase/grades';
 import { saveRubricTemplate, getRubricTemplates, deleteRubricTemplate } from '../../firebase/rubrics';
 import { useFirebaseAuth } from '../../context/FirebaseAuthContext';
@@ -45,7 +45,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
 
   // Rubric state
   const [showRubric, setShowRubric] = useState(false);
-  const [criteria, setCriteria] = useState(DEFAULT_CRITERIA.map(c => ({ ...c, selectedLevel: null })));
+  const [criteria, setCriteria] = useState(DEFAULT_CRITERIA.map(c => ({ ...c, selectedLevel: null, pointsOverride: null })));
   const [editingRubric, setEditingRubric] = useState(false);
 
   // Templates
@@ -82,11 +82,12 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
     if (g?.rubricCriteria?.length) {
       setCriteria(g.rubricCriteria.map(c => ({
         name: c.name,
-        selectedLevel: c.selectedLevel ?? null
+        selectedLevel: c.selectedLevel ?? null,
+        pointsOverride: c.pointsOverride ?? null
       })));
       setShowRubric(true);
     } else {
-      setCriteria(DEFAULT_CRITERIA.map(c => ({ ...c, selectedLevel: null })));
+      setCriteria(DEFAULT_CRITERIA.map(c => ({ ...c, selectedLevel: null, pointsOverride: null })));
     }
 
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -115,14 +116,21 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
     return Math.round(perCriterion * LEVELS[levelIdx].pct);
   }, [maxPoints, criteria.length]);
 
+  // Get effective points for a criterion (override or calculated from level)
+  const getCriterionPoints = useCallback((c) => {
+    if (c.selectedLevel === null) return 0;
+    if (c.pointsOverride !== null) return c.pointsOverride;
+    const maxPts = parseInt(maxPoints, 10) || 100;
+    const perCriterion = maxPts / criteria.length;
+    return Math.round(perCriterion * LEVELS[c.selectedLevel].pct);
+  }, [maxPoints, criteria.length]);
+
   // Calculate rubric total
   const getRubricTotal = useCallback((crit) => {
     const allScored = crit.every(c => c.selectedLevel !== null);
     if (!allScored) return null;
-    const maxPts = parseInt(maxPoints, 10) || 100;
-    const perCriterion = maxPts / crit.length;
-    return crit.reduce((sum, c) => sum + Math.round(perCriterion * LEVELS[c.selectedLevel].pct), 0);
-  }, [maxPoints]);
+    return crit.reduce((sum, c) => sum + getCriterionPoints(c), 0);
+  }, [getCriterionPoints]);
 
   // Auto-save
   const doSave = useCallback(async (overrides = {}) => {
@@ -145,10 +153,13 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
         grade: `${pts}/${maxPts}`,
         quickFeedback: currentFeedback,
         feedback: currentComment || null,
-        rubricCriteria: currentCriteria.map((c, i) => ({
+        rubricCriteria: currentCriteria.map((c) => ({
           name: c.name,
           selectedLevel: c.selectedLevel,
-          levelPoints: c.selectedLevel !== null ? Math.round((maxPts / currentCriteria.length) * LEVELS[c.selectedLevel].pct) : 0
+          pointsOverride: c.pointsOverride ?? null,
+          levelPoints: c.selectedLevel !== null
+            ? (c.pointsOverride !== null ? c.pointsOverride : Math.round((maxPts / currentCriteria.length) * LEVELS[c.selectedLevel].pct))
+            : 0
         })),
         activityId: activity?.id || null,
         activityType: activity?.type || 'composition'
@@ -193,7 +204,30 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
   // Rubric level click → fill points → save
   const selectLevel = (criterionIdx, levelIdx) => {
     const newCriteria = criteria.map((c, i) =>
-      i === criterionIdx ? { ...c, selectedLevel: levelIdx } : c
+      i === criterionIdx ? { ...c, selectedLevel: levelIdx, pointsOverride: null } : c
+    );
+    setCriteria(newCriteria);
+
+    const total = getRubricTotal(newCriteria);
+    if (total !== null) {
+      setPoints(total.toString());
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      doSave({ points: total.toString(), criteria: newCriteria });
+    }
+  };
+
+  // +/- adjustment on a criterion
+  const adjustCriterionPoints = (criterionIdx, delta) => {
+    const c = criteria[criterionIdx];
+    if (c.selectedLevel === null) return;
+    const currentPts = getCriterionPoints(c);
+    const newPts = Math.max(0, currentPts + delta);
+    const maxPts = parseInt(maxPoints, 10) || 100;
+    const perCriterion = Math.round(maxPts / criteria.length);
+    const clamped = Math.min(newPts, perCriterion);
+
+    const newCriteria = criteria.map((cr, i) =>
+      i === criterionIdx ? { ...cr, pointsOverride: clamped } : cr
     );
     setCriteria(newCriteria);
 
@@ -212,7 +246,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
 
   const addCriterion = () => {
     if (criteria.length >= 6) return;
-    setCriteria(prev => [...prev, { name: '', selectedLevel: null }]);
+    setCriteria(prev => [...prev, { name: '', selectedLevel: null, pointsOverride: null }]);
   };
 
   const removeCriterion = (idx) => {
@@ -236,7 +270,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
   };
 
   const loadTemplate = (template) => {
-    setCriteria(template.categories.map(c => ({ name: c.name, selectedLevel: null })));
+    setCriteria(template.categories.map(c => ({ name: c.name, selectedLevel: null, pointsOverride: null })));
     setShowTemplates(false);
   };
 
@@ -320,6 +354,25 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
                         );
                       })}
                     </div>
+                    {criterion.selectedLevel !== null && (
+                      <div className="flex items-center justify-end gap-1.5 mt-1">
+                        <button
+                          onClick={() => adjustCriterionPoints(idx, -1)}
+                          className="w-5 h-5 flex items-center justify-center rounded bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors"
+                        >
+                          <Minus size={10} />
+                        </button>
+                        <span className="text-xs font-bold text-gray-700 tabular-nums w-6 text-center">
+                          {getCriterionPoints(criterion)}
+                        </span>
+                        <button
+                          onClick={() => adjustCriterionPoints(idx, 1)}
+                          className="w-5 h-5 flex items-center justify-center rounded bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors"
+                        >
+                          <Plus size={10} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
 
