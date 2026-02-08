@@ -73,19 +73,6 @@ const EditClassModal = ({ isOpen, onClose, classData, onSave }) => {
             />
           </div>
 
-          {/* Class Code (read-only) */}
-          <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Class Code
-            </label>
-            <div className="px-4 py-2 bg-gray-100 rounded-lg font-mono text-gray-600">
-              {classData?.classCode || classData?.code || '----'}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Class codes cannot be changed
-            </p>
-          </div>
-
           {/* Error */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm">

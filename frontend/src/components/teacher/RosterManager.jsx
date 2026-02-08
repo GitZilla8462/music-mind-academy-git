@@ -37,7 +37,7 @@ import {
 } from '../../firebase/enrollments';
 import PrintableLoginCards from './PrintableLoginCards';
 
-const RosterManager = ({ classId, className, classCode, onClose }) => {
+const RosterManager = ({ classId, className, onClose }) => {
   const [roster, setRoster] = useState([]);
   const [loading, setLoading] = useState(true);
   const [addingSeats, setAddingSeats] = useState(false);
@@ -333,7 +333,7 @@ const RosterManager = ({ classId, className, classCode, onClose }) => {
   // Copy roster to clipboard
   const handleCopyRoster = async () => {
     const printable = await getPrintableRoster(classId);
-    const text = `Class: ${className}\nClass Code: ${classCode}\n\nName\tUsername\tPIN\n` +
+    const text = `Class: ${className}\n\nName\tUsername\tPIN\n` +
       printable.map(s => `${s.displayName}\t${s.username}\t${s.pin}`).join('\n');
 
     navigator.clipboard.writeText(text);
@@ -393,8 +393,6 @@ const RosterManager = ({ classId, className, classCode, onClose }) => {
             <div>
               <h2 className="text-xl font-semibold text-gray-900">{className}</h2>
               <p className="text-sm text-gray-500">
-                Class Code: <span className="font-mono font-bold">{classCode}</span>
-                <span className="mx-2">•</span>
                 {roster.length} student{roster.length !== 1 ? 's' : ''}
               </p>
             </div>
@@ -697,7 +695,6 @@ const RosterManager = ({ classId, className, classCode, onClose }) => {
         <PrintableLoginCards
           roster={roster}
           className={className}
-          classCode={classCode}
           onClose={() => setShowPrintableCards(false)}
         />
       )}

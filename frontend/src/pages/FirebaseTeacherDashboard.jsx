@@ -234,8 +234,8 @@ const FirebaseTeacherDashboard = () => {
                   </div>
                   <div className="p-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500 font-mono">
-                        Code: {classItem.classCode}
+                      <span className="text-xs text-gray-500">
+                        {classItem.studentCount || 0} students
                       </span>
                       <span className="text-xs text-blue-600 font-medium">
                         View Class →

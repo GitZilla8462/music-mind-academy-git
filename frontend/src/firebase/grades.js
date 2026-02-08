@@ -209,6 +209,35 @@ export const getAllClassSubmissions = async (classId) => {
 };
 
 /**
+ * Delete all submissions and grades for a specific activity in a class
+ *
+ * @param {string} classId - Class ID
+ * @param {string} lessonId - Lesson ID
+ * @param {string} activityId - Activity ID
+ * @returns {number} Number of submissions deleted
+ */
+export const deleteActivitySubmissions = async (classId, lessonId, activityId) => {
+  const submissionsRef = ref(database, `submissions/${classId}/${lessonId}`);
+  const snapshot = await get(submissionsRef);
+
+  if (!snapshot.exists()) return 0;
+
+  let deleted = 0;
+  const data = snapshot.val();
+
+  for (const studentUid of Object.keys(data)) {
+    const sub = data[studentUid];
+    if (sub.activityId === activityId) {
+      await remove(ref(database, `submissions/${classId}/${lessonId}/${studentUid}`));
+      await remove(ref(database, `grades/${classId}/${studentUid}/${lessonId}`));
+      deleted++;
+    }
+  }
+
+  return deleted;
+};
+
+/**
  * Get pending submissions count for a class
  *
  * @param {string} classId - Class ID

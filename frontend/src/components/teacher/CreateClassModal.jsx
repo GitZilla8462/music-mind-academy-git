@@ -102,7 +102,7 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated }) => {
       .map(seat => `${seat.displayName}\t${seat.username}\t${seat.pin}`)
       .join('\n');
 
-    const fullText = `Class: ${className}\nClass Code: ${createdClass?.classCode}\n\nName\tUsername\tPIN\n${rosterText}`;
+    const fullText = `Class: ${className}\n\nName\tUsername\tPIN\n${rosterText}`;
 
     navigator.clipboard.writeText(fullText);
     setCopied(true);
@@ -268,15 +268,12 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated }) => {
             {step === 3 && createdClass && (
               <div className="space-y-4">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-green-700 mb-2">
+                  <div className="flex items-center gap-2 text-green-700">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     <span className="font-medium">Class created successfully!</span>
                   </div>
-                  <p className="text-green-600 text-sm">
-                    Class Code: <span className="font-mono font-bold text-lg">{createdClass.classCode}</span>
-                  </p>
                 </div>
 
                 {createdSeats.length > 0 && (

@@ -1,24 +1,20 @@
 // Class Detail Page
 // src/pages/ClassDetailPage.jsx
-// Google Classroom-style: click into a class to see students, grades, work
-// Uses CURRICULUM config for Unit → Lesson → Activity organization
+// Google Classroom-style: Students | Classwork | Grades
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { getClassById } from '../firebase/classes';
 import { getClassRoster } from '../firebase/enrollments';
-import { getAllClassSubmissions, getClassGrades, gradeSubmission } from '../firebase/grades';
-import { CURRICULUM, getLessonById } from '../config/curriculumConfig';
+import { getAllClassSubmissions, getClassGrades, deleteActivitySubmissions } from '../firebase/grades';
+import { CURRICULUM } from '../config/curriculumConfig';
 import {
   ArrowLeft,
   Users,
   ClipboardList,
   BookOpen,
-  Copy,
-  Check,
   Clock,
-  CheckCircle2,
   ChevronRight,
   ChevronDown,
   UserPlus,
@@ -30,9 +26,8 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Lock,
-  Loader2,
-  Download
+  Download,
+  Trash2
 } from 'lucide-react';
 import TeacherHeader from '../components/teacher/TeacherHeader';
 import RosterManager from '../components/teacher/RosterManager';
@@ -40,7 +35,21 @@ import StudentDetailModal from '../components/teacher/StudentDetailModal';
 import GradeEntryModal from '../components/teacher/GradeEntryModal';
 import ActivityGradingView from '../components/teacher/ActivityGradingView';
 import PrintableLoginCards from '../components/teacher/PrintableLoginCards';
-import { seedDynamicsListeningMap } from '../utils/seedTestSubmissions';
+
+const getActivityIcon = (type) => {
+  switch (type) {
+    case 'game': return Gamepad2;
+    case 'composition': return Music;
+    case 'reflection': return FileText;
+    default: return FileText;
+  }
+};
+
+// Unit styling to match MusicClassroomResources page
+const UNIT_STYLE = {
+  'listening-lab': { number: 1, title: 'The Listening Lab', color: '#8b5cf6' },
+  'film-music':    { number: 4, title: 'Music for Media',   color: '#3b82f6' },
+};
 
 const ClassDetailPage = () => {
   const { classId } = useParams();
@@ -54,11 +63,10 @@ const ClassDetailPage = () => {
   const [grades, setGrades] = useState({});
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('students');
-  const [codeCopied, setCodeCopied] = useState(false);
-
-  // Accordion state: track expanded units and lessons separately
   const [expandedUnits, setExpandedUnits] = useState([]);
-  const [expandedLessons, setExpandedLessons] = useState([]);
+
+  // Students tab sorting
+  const [sortBy, setSortBy] = useState('seat-asc');
 
   // Modal states
   const [showRosterManager, setShowRosterManager] = useState(false);
@@ -66,9 +74,6 @@ const ClassDetailPage = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [gradeModalData, setGradeModalData] = useState(null);
   const [activityGradingData, setActivityGradingData] = useState(null);
-
-  // Sorting state: 'name-asc', 'name-desc', 'seat-asc', 'seat-desc'
-  const [sortBy, setSortBy] = useState('seat-asc');
 
   // Handle URL parameter for auto-opening print cards
   useEffect(() => {
@@ -110,15 +115,6 @@ const ClassDetailPage = () => {
     fetchData();
   }, [classId, user, navigate]);
 
-  const handleCopyCode = () => {
-    const code = classData?.classCode || classData?.code;
-    if (code) {
-      navigator.clipboard.writeText(code);
-      setCodeCopied(true);
-      setTimeout(() => setCodeCopied(false), 2000);
-    }
-  };
-
   const refreshData = async () => {
     if (!classId) return;
     const rosterData = await getClassRoster(classId);
@@ -136,52 +132,14 @@ const ClassDetailPage = () => {
     return student.studentUid || `seat-${student.seatNumber}`;
   };
 
-  const getStudentStatus = (studentUid) => {
-    const studentSubs = submissions.filter(s => s.studentUid === studentUid);
-    const pending = studentSubs.filter(s => s.status === 'pending' || s.status === 'submitted').length;
-    const graded = studentSubs.filter(s => s.status === 'graded').length;
-    return { pending, graded, total: studentSubs.length };
-  };
-
   const getActivityStats = (lessonId, activityId) => {
     const activitySubs = submissions.filter(s =>
       s.lessonId === lessonId && s.activityId === activityId
     );
     return {
       submitted: activitySubs.filter(s => s.status === 'submitted' || s.status === 'graded').length,
-      graded: activitySubs.filter(s => s.status === 'graded').length,
       pending: activitySubs.filter(s => s.status === 'submitted').length
     };
-  };
-
-  // Get aggregate stats for an entire lesson
-  const getLessonStats = (lesson) => {
-    let submitted = 0;
-    let pending = 0;
-    let graded = 0;
-    lesson.activities.forEach(activity => {
-      const stats = getActivityStats(lesson.id, activity.id);
-      submitted += stats.submitted;
-      pending += stats.pending;
-      graded += stats.graded;
-    });
-    return { submitted, pending, graded };
-  };
-
-  // Get aggregate stats for an entire unit
-  const getUnitStats = (unit) => {
-    let submitted = 0;
-    let pending = 0;
-    let graded = 0;
-    let lessonsWithSubmissions = 0;
-    unit.lessons.forEach(lesson => {
-      const stats = getLessonStats(lesson);
-      submitted += stats.submitted;
-      pending += stats.pending;
-      graded += stats.graded;
-      if (stats.submitted > 0) lessonsWithSubmissions++;
-    });
-    return { submitted, pending, graded, lessonsWithSubmissions };
   };
 
   const toggleUnit = (unitId) => {
@@ -189,14 +147,6 @@ const ClassDetailPage = () => {
       prev.includes(unitId)
         ? prev.filter(id => id !== unitId)
         : [...prev, unitId]
-    );
-  };
-
-  const toggleLesson = (lessonId) => {
-    setExpandedLessons(prev =>
-      prev.includes(lessonId)
-        ? prev.filter(id => id !== lessonId)
-        : [...prev, lessonId]
     );
   };
 
@@ -208,112 +158,20 @@ const ClassDetailPage = () => {
         [lessonId]: gradeData
       }
     }));
-    // Don't close modals here — auto-save calls this frequently.
-    // Modals have their own close buttons.
     refreshData();
   };
 
-  // Quick grade on Students tab
-  const [quickGradeActivity, setQuickGradeActivity] = useState(null); // { lessonId, activityId, lessonName, activityName, activityType }
-  const [quickGradeMaxPoints, setQuickGradeMaxPoints] = useState('100');
-  const [quickGradeInputs, setQuickGradeInputs] = useState({});
-  const [quickGradeSaving, setQuickGradeSaving] = useState({});
-  const [quickGradeSaved, setQuickGradeSaved] = useState({});
-
-  // Build list of all activities that have at least one submission
-  const allActivitiesWithSubs = [];
-  CURRICULUM.forEach(unit => {
-    unit.lessons.forEach(lesson => {
-      if (!lesson.route) return;
-      lesson.activities.forEach(activity => {
-        const hasSubs = submissions.some(s => s.lessonId === lesson.id && s.activityId === activity.id);
-        if (hasSubs) {
-          allActivitiesWithSubs.push({
-            lessonId: lesson.id,
-            activityId: activity.id,
-            lessonName: lesson.name,
-            activityName: activity.name,
-            activityType: activity.type,
-            label: `${activity.name} (${lesson.name})`
-          });
-        }
-      });
-    });
-  });
-
-  const initQuickGrade = (activityInfo) => {
-    if (!activityInfo) {
-      setQuickGradeActivity(null);
-      setQuickGradeInputs({});
-      return;
-    }
-    setQuickGradeActivity(activityInfo);
-    const initial = {};
-    let detectedMax = null;
-    roster.forEach(student => {
-      const uid = getEffectiveUid(student);
-      const grade = grades[uid]?.[activityInfo.lessonId];
-      if (grade?.points !== undefined) {
-        initial[uid] = grade.points.toString();
-        if (grade.maxPoints && !detectedMax) detectedMax = grade.maxPoints.toString();
-      }
-    });
-    setQuickGradeInputs(initial);
-    if (detectedMax) setQuickGradeMaxPoints(detectedMax);
-    setQuickGradeSaving({});
-    setQuickGradeSaved({});
-  };
-
-  const saveQuickGrade = async (studentUid) => {
-    if (!quickGradeActivity) return;
-    const value = quickGradeInputs[studentUid];
-    if (!value || value.trim() === '') return;
-    const pts = parseInt(value, 10);
-    if (isNaN(pts)) return;
-    const maxPts = parseInt(quickGradeMaxPoints, 10) || 100;
-
-    setQuickGradeSaving(prev => ({ ...prev, [studentUid]: true }));
-    setQuickGradeSaved(prev => ({ ...prev, [studentUid]: false }));
+  const handleDeleteActivity = async (lessonId, activityId, activityName) => {
+    if (!window.confirm(`Delete all submissions for "${activityName}"? This cannot be undone.`)) return;
     try {
-      const gradeData = {
-        type: 'points',
-        points: pts,
-        maxPoints: maxPts,
-        grade: `${pts}/${maxPts}`,
-        quickFeedback: grades[studentUid]?.[quickGradeActivity.lessonId]?.quickFeedback || [],
-        feedback: grades[studentUid]?.[quickGradeActivity.lessonId]?.feedback || null,
-        activityId: quickGradeActivity.activityId,
-        activityType: quickGradeActivity.activityType || 'composition'
-      };
-      const result = await gradeSubmission(classId, studentUid, quickGradeActivity.lessonId, gradeData, user.uid);
-      handleGradeSaved(studentUid, quickGradeActivity.lessonId, result);
-      setQuickGradeSaved(prev => ({ ...prev, [studentUid]: true }));
-      setTimeout(() => setQuickGradeSaved(prev => ({ ...prev, [studentUid]: false })), 2000);
+      await deleteActivitySubmissions(classId, lessonId, activityId);
+      await refreshData();
     } catch (err) {
-      console.error('Error saving quick grade:', err);
-    } finally {
-      setQuickGradeSaving(prev => ({ ...prev, [studentUid]: false }));
+      console.error('Error deleting activity submissions:', err);
     }
   };
 
   const totalPending = submissions.filter(s => s.status === 'pending' || s.status === 'submitted').length;
-
-  const getActivityIcon = (type) => {
-    switch (type) {
-      case 'game': return Gamepad2;
-      case 'composition': return Music;
-      case 'reflection': return FileText;
-      default: return FileText;
-    }
-  };
-
-  // For Grades tab: look up lesson/activity from curriculum config
-  const findLessonAndActivity = (lessonId, activityId) => {
-    const lesson = getLessonById(lessonId);
-    if (!lesson) return { lesson: { id: lessonId, name: lessonId }, activity: null };
-    const activity = lesson.activities.find(a => a.id === activityId) || null;
-    return { lesson, activity };
-  };
 
   if (authLoading || loading) {
     return (
@@ -339,65 +197,41 @@ const ClassDetailPage = () => {
     );
   }
 
-  // Color mapping for unit accent colors
-  const unitColorMap = {
-    blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', headerBg: 'bg-blue-500', headerText: 'text-white', pill: 'bg-blue-100 text-blue-700' },
-    purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', headerBg: 'bg-purple-500', headerText: 'text-white', pill: 'bg-purple-100 text-purple-700' },
-    green: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', headerBg: 'bg-green-500', headerText: 'text-white', pill: 'bg-green-100 text-green-700' },
-    orange: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', headerBg: 'bg-orange-500', headerText: 'text-white', pill: 'bg-orange-100 text-orange-700' },
-    teal: { bg: 'bg-teal-50', border: 'border-teal-200', text: 'text-teal-700', headerBg: 'bg-teal-500', headerText: 'text-white', pill: 'bg-teal-100 text-teal-700' },
-  };
-
-  const getUnitColors = (color) => unitColorMap[color] || unitColorMap.blue;
+  // Tabs config
+  const tabs = [
+    { id: 'students', label: 'Students', icon: Users },
+    { id: 'classwork', label: 'Classwork', icon: BookOpen },
+    { id: 'grades', label: 'Grades', icon: ClipboardList, badge: totalPending },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-100">
       <TeacherHeader pendingCount={totalPending} />
 
-      {/* Class Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-indigo-500">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+      {/* Class Header — clean white */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
           <button
             onClick={() => navigate('/teacher/dashboard')}
-            className="flex items-center gap-1 text-white/80 hover:text-white mb-4 text-sm"
+            className="flex items-center gap-1 text-gray-500 hover:text-gray-700 mb-3 text-sm"
           >
             <ArrowLeft size={16} />
-            Back to Classes
+            Classes
           </button>
 
-          <div className="flex items-start justify-between">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">{classData.name}</h1>
-              <div className="flex items-center gap-3 text-white/80 text-sm">
-                <span>Gradebook</span>
-                <span>·</span>
-                <span>{roster.length} students</span>
-              </div>
+              <h1 className="text-2xl font-bold text-gray-900">{classData.name}</h1>
+              <p className="text-sm text-gray-500 mt-1">{roster.length} students</p>
             </div>
 
-            <div className="text-right">
-              <button
-                onClick={() => navigate('/music-classroom-resources')}
-                className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-lg font-semibold shadow-lg transition-colors"
-              >
-                <Play size={18} fill="currentColor" />
-                Start Lesson
-              </button>
-
-              <button
-                onClick={handleCopyCode}
-                className="flex items-center gap-1.5 mt-2 text-white/70 hover:text-white text-sm transition-colors mx-auto"
-              >
-                <span className="font-mono font-medium">
-                  Code: {classData.classCode || classData.code || '----'}
-                </span>
-                {codeCopied ? (
-                  <Check size={14} />
-                ) : (
-                  <Copy size={14} />
-                )}
-              </button>
-            </div>
+            <button
+              onClick={() => navigate('/music-classroom-resources')}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+            >
+              <Play size={16} fill="currentColor" />
+              Start Lesson
+            </button>
           </div>
         </div>
       </div>
@@ -406,56 +240,34 @@ const ClassDetailPage = () => {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <nav className="flex gap-1">
-            <button
-              onClick={() => setActiveTab('students')}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'students'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <Users size={16} />
-                Students
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('classwork')}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'classwork'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <BookOpen size={16} />
-                Classwork
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('grades')}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'grades'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <ClipboardList size={16} />
-                Grades
-                {totalPending > 0 && (
-                  <span className="bg-amber-100 text-amber-700 text-xs px-1.5 py-0.5 rounded-full">
-                    {totalPending}
-                  </span>
-                )}
-              </span>
-            </button>
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <tab.icon size={16} />
+                  {tab.label}
+                  {tab.badge > 0 && (
+                    <span className="bg-amber-100 text-amber-700 text-xs px-1.5 py-0.5 rounded-full">
+                      {tab.badge}
+                    </span>
+                  )}
+                </span>
+              </button>
+            ))}
           </nav>
         </div>
       </div>
 
       {/* Tab Content */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+
         {/* ==================== Students Tab ==================== */}
         {activeTab === 'students' && (
           <div>
@@ -488,7 +300,7 @@ const ClassDetailPage = () => {
                 <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                 <h3 className="font-medium text-gray-900 mb-1">No students yet</h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  Add students to your roster or share the join code.
+                  Add students to your roster or share the class code.
                 </p>
                 <button
                   onClick={() => setShowRosterManager(true)}
@@ -503,7 +315,7 @@ const ClassDetailPage = () => {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th
-                        className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none"
+                        className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none w-16"
                         onClick={() => setSortBy(sortBy === 'seat-asc' ? 'seat-desc' : 'seat-asc')}
                       >
                         <span className="flex items-center gap-1">
@@ -581,210 +393,159 @@ const ClassDetailPage = () => {
         {activeTab === 'classwork' && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Classwork
-              </h2>
-              <div className="flex items-center gap-3">
-                {totalPending > 0 && (
-                  <span className="text-sm text-amber-600 font-medium">
-                    {totalPending} total to grade
-                  </span>
-                )}
-                {/* TEMP: Seed test data button - remove after testing */}
-                <button
-                  onClick={async () => {
-                    if (roster.length === 0) { alert('Add students to roster first'); return; }
-                    try {
-                      const count = await seedDynamicsListeningMap(classId, roster);
-                      alert(`Seeded ${count} submissions! Refreshing...`);
-                      window.location.reload();
-                    } catch (err) {
-                      alert('Seed error: ' + err.message);
-                      console.error('Seed error:', err);
-                    }
-                  }}
-                  className="px-3 py-2 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium"
-                >
-                  Seed Test Data
-                </button>
-              </div>
+              <h2 className="text-lg font-semibold text-gray-900">Classwork</h2>
+              {totalPending > 0 && (
+                <span className="text-sm text-amber-600 font-medium">
+                  {totalPending} to grade
+                </span>
+              )}
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               {CURRICULUM.map((unit) => {
-                const isUnitExpanded = expandedUnits.includes(unit.id);
-                const unitStats = getUnitStats(unit);
-                const colors = getUnitColors(unit.color);
-                const builtLessons = unit.lessons.filter(l => l.route).length;
+                const isExpanded = expandedUnits.includes(unit.id);
+
+                // Only include activities that have at least one submission
+                const unitActivities = [];
+                let unitPending = 0;
+                unit.lessons.forEach(lesson => {
+                  if (!lesson.route || lesson.activities.length === 0) return;
+                  lesson.activities.forEach(activity => {
+                    const stats = getActivityStats(lesson.id, activity.id);
+                    if (stats.submitted > 0) {
+                      unitActivities.push({ ...activity, lesson, stats });
+                      unitPending += stats.pending;
+                    }
+                  });
+                });
+
+                // Hide units with no submissions at all
+                if (unitActivities.length === 0) return null;
+
+                const style = UNIT_STYLE[unit.id] || { number: null, title: unit.name, color: '#6b7280' };
 
                 return (
-                  <div key={unit.id} className="rounded-xl border border-gray-200 overflow-hidden bg-white">
-                    {/* Unit Header */}
+                  <div key={unit.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                    {/* Colored top bar */}
+                    <div className="h-1" style={{ backgroundColor: style.color }} />
+
+                    {/* Topic Header */}
                     <button
                       onClick={() => toggleUnit(unit.id)}
-                      className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                      className="w-full px-4 py-3.5 flex items-center justify-between hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        {isUnitExpanded ? (
-                          <ChevronDown size={20} className="text-gray-400" />
+                        {isExpanded ? (
+                          <ChevronDown size={18} style={{ color: style.color }} />
                         ) : (
-                          <ChevronRight size={20} className="text-gray-400" />
+                          <ChevronRight size={18} style={{ color: style.color }} />
                         )}
-                        <span className="text-lg mr-1">{unit.icon}</span>
-                        <div className="text-left">
-                          <div className="font-bold text-gray-900">{unit.name}</div>
-                          <div className="text-xs text-gray-500">
-                            {builtLessons}/{unit.lessons.length} lessons
-                            {unitStats.lessonsWithSubmissions > 0 && (
-                              <span> · {unitStats.lessonsWithSubmissions} taught</span>
-                            )}
-                          </div>
+                        <div>
+                          {style.number && (
+                            <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: style.color }}>
+                              Unit {style.number}
+                            </div>
+                          )}
+                          <div className="font-bold text-gray-900 text-left">{style.title}</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        {unitStats.pending > 0 && (
-                          <span className="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full font-medium">
-                            {unitStats.pending} to grade
-                          </span>
-                        )}
-                        {unitStats.submitted > 0 && (
-                          <span className="text-gray-500">
-                            {unitStats.submitted} submitted
-                          </span>
-                        )}
-                      </div>
+                      {unitPending > 0 && (
+                        <span className="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                          {unitPending} to grade
+                        </span>
+                      )}
                     </button>
 
-                    {/* Expanded Unit: Show Lessons */}
-                    {isUnitExpanded && (
-                      <div className="border-t border-gray-100">
-                        {unit.lessons.map((lesson) => {
-                          const isLessonExpanded = expandedLessons.includes(lesson.id);
-                          const lessonStats = getLessonStats(lesson);
-                          const isBuilt = !!lesson.route;
-                          const hasActivities = lesson.activities.length > 0;
+                    {/* Flat activity list */}
+                    {isExpanded && (
+                      <div className="border-t border-gray-100 divide-y divide-gray-50">
+                        {unitActivities.map(({ lesson, stats, ...activity }) => {
+                            const Icon = getActivityIcon(activity.type);
 
-                          return (
-                            <div key={lesson.id} className="border-b border-gray-50 last:border-b-0">
-                              {/* Lesson Header */}
-                              <button
-                                onClick={() => hasActivities && toggleLesson(lesson.id)}
-                                className={`w-full px-4 py-3 pl-10 flex items-center justify-between transition-colors ${
-                                  hasActivities ? 'hover:bg-gray-50 cursor-pointer' : 'cursor-default'
-                                } ${!isBuilt ? 'opacity-50' : ''}`}
+                            return (
+                              <div
+                                key={`${lesson.id}-${activity.id}`}
+                                className="px-4 py-3 pl-12 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-colors"
+                                onClick={() => setActivityGradingData({
+                                  lessonId: lesson.id,
+                                  activityId: activity.id,
+                                  lessonName: lesson.name,
+                                  activityName: activity.name,
+                                  activityType: activity.type
+                                })}
                               >
                                 <div className="flex items-center gap-3">
-                                  {hasActivities ? (
-                                    isLessonExpanded ? (
-                                      <ChevronDown size={16} className="text-gray-400" />
-                                    ) : (
-                                      <ChevronRight size={16} className="text-gray-400" />
-                                    )
-                                  ) : (
-                                    <Lock size={16} className="text-gray-300" />
-                                  )}
-                                  <div className="text-left">
-                                    <div className="font-semibold text-gray-900 text-sm">{lesson.name}</div>
-                                    <div className="text-xs text-gray-500">{lesson.concept}</div>
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                    activity.type === 'game' ? 'bg-purple-100' :
+                                    activity.type === 'composition' ? 'bg-blue-100' : 'bg-gray-100'
+                                  }`}>
+                                    <Icon size={16} className={
+                                      activity.type === 'game' ? 'text-purple-600' :
+                                      activity.type === 'composition' ? 'text-blue-600' : 'text-gray-600'
+                                    } />
+                                  </div>
+                                  <div>
+                                    <div className="font-medium text-gray-900 text-sm">
+                                      {activity.name}
+                                    </div>
+                                    <div className="text-xs text-gray-400">
+                                      {lesson.shortName || lesson.name}
+                                    </div>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-3 text-sm">
-                                  {!isBuilt && (
-                                    <span className="text-xs text-gray-400 italic">Coming soon</span>
-                                  )}
-                                  {lessonStats.pending > 0 && (
-                                    <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs font-medium">
-                                      {lessonStats.pending} to grade
+
+                                <div className="flex items-center gap-3 text-xs">
+                                  <span className="text-gray-400">
+                                    {stats.submitted}/{roster.length}
+                                  </span>
+                                  {stats.pending > 0 && (
+                                    <span className="flex items-center gap-1 text-amber-600">
+                                      <Clock size={12} />
+                                      {stats.pending}
                                     </span>
                                   )}
-                                  {lessonStats.submitted > 0 && (
-                                    <span className="text-xs text-gray-500">
-                                      {lessonStats.submitted} submitted
-                                    </span>
-                                  )}
-                                  {isBuilt && lessonStats.submitted === 0 && (
-                                    <span className="text-xs text-gray-400">No submissions</span>
-                                  )}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteActivity(lesson.id, activity.id, activity.name);
+                                    }}
+                                    className="p-1 text-gray-300 hover:text-red-500 transition-colors"
+                                    title="Delete all submissions"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
                                 </div>
-                              </button>
-
-                              {/* Expanded Lesson: Show Activities */}
-                              {isLessonExpanded && hasActivities && (
-                                <div className="bg-gray-50/50 divide-y divide-gray-100">
-                                  {lesson.activities.map((activity) => {
-                                    const stats = getActivityStats(lesson.id, activity.id);
-                                    const Icon = getActivityIcon(activity.type);
-
-                                    return (
-                                      <div
-                                        key={activity.id}
-                                        className="px-4 py-3 pl-20 flex items-center justify-between hover:bg-gray-50 cursor-pointer"
-                                        onClick={() => setActivityGradingData({
-                                          lessonId: lesson.id,
-                                          activityId: activity.id,
-                                          lessonName: lesson.name,
-                                          activityName: activity.name,
-                                          activityType: activity.type
-                                        })}
-                                      >
-                                        <div className="flex items-center gap-3">
-                                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                                            activity.type === 'game' ? 'bg-purple-100' :
-                                            activity.type === 'composition' ? 'bg-blue-100' : 'bg-gray-100'
-                                          }`}>
-                                            <Icon size={16} className={
-                                              activity.type === 'game' ? 'text-purple-600' :
-                                              activity.type === 'composition' ? 'text-blue-600' : 'text-gray-600'
-                                            } />
-                                          </div>
-                                          <div>
-                                            <div className="font-medium text-gray-900 text-sm hover:text-blue-600 transition-colors">
-                                              {activity.name}
-                                            </div>
-                                            <div className="text-xs text-gray-500 capitalize">{activity.type}</div>
-                                          </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-4 text-sm">
-                                          <span className="text-gray-500 text-xs">
-                                            {stats.submitted}/{roster.length} submitted
-                                          </span>
-                                          {stats.pending > 0 && (
-                                            <span className="flex items-center gap-1 text-amber-600 text-xs">
-                                              <Clock size={12} />
-                                              {stats.pending} pending
-                                            </span>
-                                          )}
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                              </div>
+                            );
+                          })}
                       </div>
                     )}
                   </div>
                 );
               })}
+
+              {/* Empty state when no submissions exist */}
+              {submissions.length === 0 && (
+                <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+                  <ClipboardList className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <h3 className="font-medium text-gray-900 mb-1">No submissions yet</h3>
+                  <p className="text-sm text-gray-500">
+                    Assignments will appear here once students submit work.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
 
         {/* ==================== Grades Tab ==================== */}
         {activeTab === 'grades' && (() => {
-          // Build lesson columns from CURRICULUM (only built lessons)
           const gradebookLessons = CURRICULUM.flatMap(unit =>
             unit.lessons
               .filter(l => l.activities.length > 0)
-              .map(l => ({ id: l.id, name: l.shortName || l.name, unitIcon: unit.icon, unitName: unit.shortName }))
+              .map(l => ({ ...l, unitIcon: unit.icon }))
           );
 
-          const totalGraded = Object.values(grades).reduce((sum, studentGrades) => sum + Object.keys(studentGrades).length, 0);
-
-          // Grade color helper
           const getGradeColor = (points, maxPoints) => {
             const pct = Math.round((points / maxPoints) * 100);
             if (pct >= 80) return 'text-green-700';
@@ -793,9 +554,13 @@ const ClassDetailPage = () => {
             return 'text-red-700';
           };
 
-          // CSV export
+          // Find first gradable activity for a lesson (for clickable cells)
+          const getFirstActivity = (lesson) => {
+            return lesson.activities.find(a => a.type === 'composition') || lesson.activities[0] || null;
+          };
+
           const exportCSV = () => {
-            const headers = ['Student Name', 'Seat', ...gradebookLessons.map(l => `${l.unitIcon} ${l.name}`)];
+            const headers = ['Student Name', 'Seat', ...gradebookLessons.map(l => `${l.unitIcon} ${l.shortName || l.name}`)];
             const rows = roster.map(student => {
               const uid = getEffectiveUid(student);
               const name = student.displayName || `Seat ${student.seatNumber}`;
@@ -824,15 +589,7 @@ const ClassDetailPage = () => {
           return (
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Grades
-                  <span className="ml-2 text-sm font-normal text-gray-500">
-                    {totalGraded} graded
-                    {totalPending > 0 && (
-                      <span className="text-amber-600 ml-1">· {totalPending} pending</span>
-                    )}
-                  </span>
-                </h2>
+                <h2 className="text-lg font-semibold text-gray-900">Grades</h2>
                 <button
                   onClick={exportCSV}
                   className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
@@ -842,17 +599,6 @@ const ClassDetailPage = () => {
                 </button>
               </div>
 
-              {/* Pending submissions banner */}
-              {totalPending > 0 && (
-                <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-amber-800">
-                    <Clock size={16} />
-                    <span>{totalPending} submission{totalPending !== 1 ? 's' : ''} need grading</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Gradebook Table */}
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -865,7 +611,7 @@ const ClassDetailPage = () => {
                           <th key={l.id} className="p-3 font-medium text-gray-700 text-center min-w-[90px]">
                             <div className="flex flex-col items-center">
                               <span className="text-xs">{l.unitIcon}</span>
-                              <span className="text-xs leading-tight">{l.name}</span>
+                              <span className="text-xs leading-tight">{l.shortName || l.name}</span>
                             </div>
                           </th>
                         ))}
@@ -883,9 +629,25 @@ const ClassDetailPage = () => {
                               const g = grades[uid]?.[l.id];
                               const sub = submissions.find(s => s.studentUid === uid && s.lessonId === l.id);
                               const isPending = sub && (sub.status === 'pending' || sub.status === 'submitted');
+                              const firstActivity = getFirstActivity(l);
+                              const isClickable = (isPending || g) && firstActivity;
 
                               return (
-                                <td key={l.id} className="p-3 text-center">
+                                <td
+                                  key={l.id}
+                                  className={`p-3 text-center ${isClickable ? 'cursor-pointer hover:bg-blue-50 transition-colors' : ''}`}
+                                  onClick={() => {
+                                    if (isClickable) {
+                                      setActivityGradingData({
+                                        lessonId: l.id,
+                                        activityId: firstActivity.id,
+                                        lessonName: l.name,
+                                        activityName: firstActivity.name,
+                                        activityType: firstActivity.type
+                                      });
+                                    }
+                                  }}
+                                >
                                   {g && g.points !== undefined && g.maxPoints ? (
                                     <span className={`font-bold tabular-nums ${getGradeColor(g.points, g.maxPoints)}`}>
                                       {g.points}/{g.maxPoints}
@@ -912,12 +674,11 @@ const ClassDetailPage = () => {
         })()}
       </main>
 
-      {/* Roster Manager Modal */}
+      {/* ==================== Modals ==================== */}
       {showRosterManager && (
         <RosterManager
           classId={classId}
           className={classData.name}
-          classCode={classData.classCode || classData.code}
           onClose={() => {
             setShowRosterManager(false);
             refreshData();
@@ -925,17 +686,14 @@ const ClassDetailPage = () => {
         />
       )}
 
-      {/* Print Login Cards Modal */}
       {showPrintCards && roster.length > 0 && (
         <PrintableLoginCards
           roster={roster}
           className={classData.name}
-          classCode={classData.classCode || classData.code}
           onClose={() => setShowPrintCards(false)}
         />
       )}
 
-      {/* Student Detail Modal */}
       {selectedStudent && (
         <StudentDetailModal
           isOpen={!!selectedStudent}
@@ -959,7 +717,6 @@ const ClassDetailPage = () => {
         />
       )}
 
-      {/* Grade Entry Modal */}
       {gradeModalData && (
         <GradeEntryModal
           isOpen={!!gradeModalData}
@@ -974,7 +731,6 @@ const ClassDetailPage = () => {
         />
       )}
 
-      {/* Activity Grading View (SpeedGrader) */}
       {activityGradingData && (
         <ActivityGradingView
           isOpen={!!activityGradingData}
@@ -993,7 +749,6 @@ const ClassDetailPage = () => {
           }}
         />
       )}
-
     </div>
   );
 };

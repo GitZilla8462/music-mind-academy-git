@@ -5,7 +5,7 @@
 import React from 'react';
 import { Printer, X } from 'lucide-react';
 
-const PrintableLoginCards = ({ roster, className, classCode, onClose }) => {
+const PrintableLoginCards = ({ roster, className, onClose }) => {
   const handlePrint = () => {
     window.print();
   };
@@ -155,13 +155,6 @@ const PrintableLoginCards = ({ roster, className, classCode, onClose }) => {
                   {/* Login Info */}
                   <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                     <div>
-                      <div className="text-xs text-gray-500 uppercase tracking-wide">Class Code</div>
-                      <div className="font-mono font-bold text-xl text-blue-600 tracking-wider">
-                        {classCode}
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-gray-200">
                       <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Username</div>
                       <div className="font-mono font-bold text-2xl text-gray-900 tracking-wide text-center py-1">
                         {student.username || `seat${student.seatNumber}`}
@@ -178,7 +171,7 @@ const PrintableLoginCards = ({ roster, className, classCode, onClose }) => {
 
                   {/* Instructions */}
                   <div className="mt-4 text-xs text-gray-500 text-center">
-                    Go to <span className="font-medium text-gray-700">musicmindacademy.com</span> → Enter code → Enter username & PIN
+                    Go to <span className="font-medium text-gray-700">musicmindacademy.com</span> → Enter username & PIN
                   </div>
                 </div>
               ))}
