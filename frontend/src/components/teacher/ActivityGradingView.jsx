@@ -17,6 +17,9 @@ import { gradeSubmission } from '../../firebase/grades';
 import { useFirebaseAuth } from '../../context/FirebaseAuthContext';
 import GradeForm from './GradeForm';
 
+// Must match GradeForm LEVELS pct values
+const LEVELS_PCT = [1.0, 0.75, 0.5, 0.25];
+
 const getStatusDot = (student) => {
   if (!student.submission) return 'bg-gray-300';
   if (student.submission.status === 'graded') return 'bg-green-500';
@@ -202,6 +205,50 @@ const ActivityGradingView = ({
     }
   };
 
+  // Apply rubric criteria change to all graded students
+  const handleCriteriaChanged = async (newCriteriaNames) => {
+    const maxPts = parseInt(assignmentMaxPoints, 10) || 100;
+
+    for (const student of studentData) {
+      if (!student.grade || student.uid === currentStudent?.uid) continue;
+
+      const oldCriteria = student.grade.rubricCriteria || [];
+      // Map new criteria names onto existing scores (by index)
+      const updatedCriteria = newCriteriaNames.map((c, i) => ({
+        name: c.name,
+        selectedLevel: oldCriteria[i]?.selectedLevel ?? null,
+        pointsOverride: oldCriteria[i]?.pointsOverride ?? null,
+        levelPoints: oldCriteria[i]?.levelPoints ?? 0
+      }));
+
+      // Recalculate points
+      let total = 0;
+      const allScored = updatedCriteria.every(c => c.selectedLevel !== null);
+      if (allScored) {
+        const perCriterion = maxPts / updatedCriteria.length;
+        total = updatedCriteria.reduce((sum, c) => {
+          if (c.pointsOverride !== null) return sum + c.pointsOverride;
+          return sum + Math.round(perCriterion * LEVELS_PCT[c.selectedLevel]);
+        }, 0);
+      } else {
+        total = student.grade.points ?? 0;
+      }
+
+      try {
+        const gradeData = {
+          ...student.grade,
+          rubricCriteria: updatedCriteria,
+          points: total,
+          grade: `${total}/${maxPts}`
+        };
+        await gradeSubmission(classId, student.uid, lessonId, gradeData, user.uid);
+        handleGradeSaved(student.uid, lessonId, gradeData);
+      } catch (err) {
+        console.error(`Error updating rubric for ${student.uid}:`, err);
+      }
+    }
+  };
+
   // ========================
   // SpeedGrader View
   // ========================
@@ -309,6 +356,7 @@ const ActivityGradingView = ({
               onSave={handleGradeSaved}
               maxPointsProp={assignmentMaxPoints}
               onMaxPointsChange={handleMaxPointsChange}
+              onCriteriaChanged={handleCriteriaChanged}
             />
 
             {/* Next Student Button */}

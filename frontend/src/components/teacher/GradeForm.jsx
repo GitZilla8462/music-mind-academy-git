@@ -33,7 +33,7 @@ const DEFAULT_CRITERIA = [
   { name: 'Completion' }
 ];
 
-const GradeForm = ({ student, lesson, activity, classId, currentGrade, submission, onSave, compact = false, maxPointsProp, onMaxPointsChange }) => {
+const GradeForm = ({ student, lesson, activity, classId, currentGrade, submission, onSave, compact = false, maxPointsProp, onMaxPointsChange, onCriteriaChanged }) => {
   const { user } = useFirebaseAuth();
   const effectiveUid = student?.studentUid || (student?.seatNumber != null ? `seat-${student.seatNumber}` : null);
 
@@ -47,6 +47,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
   const [showRubric, setShowRubric] = useState(false);
   const [criteria, setCriteria] = useState(DEFAULT_CRITERIA.map(c => ({ ...c, selectedLevel: null, pointsOverride: null })));
   const [editingRubric, setEditingRubric] = useState(false);
+  const [criteriaBeforeEdit, setCriteriaBeforeEdit] = useState(null);
 
   // Templates
   const [savedRubrics, setSavedRubrics] = useState([]);
@@ -254,6 +255,32 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
     setCriteria(prev => prev.filter((_, i) => i !== idx));
   };
 
+  // Start editing — snapshot criteria
+  const startEditingRubric = () => {
+    setCriteriaBeforeEdit(criteria.map(c => ({ ...c })));
+    setEditingRubric(true);
+  };
+
+  // Finish editing — check if criteria changed, confirm, propagate
+  const finishEditingRubric = () => {
+    setEditingRubric(false);
+
+    if (!criteriaBeforeEdit) return;
+
+    // Check if criteria names or count changed
+    const changed =
+      criteria.length !== criteriaBeforeEdit.length ||
+      criteria.some((c, i) => c.name !== criteriaBeforeEdit[i]?.name);
+
+    if (changed && onCriteriaChanged) {
+      if (window.confirm('Apply this rubric change to every student for this assignment?')) {
+        onCriteriaChanged(criteria.map(c => ({ name: c.name })));
+      }
+    }
+
+    setCriteriaBeforeEdit(null);
+  };
+
   // Template save/load
   const handleSaveTemplate = async () => {
     if (!rubricName.trim()) return;
@@ -270,8 +297,14 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
   };
 
   const loadTemplate = (template) => {
-    setCriteria(template.categories.map(c => ({ name: c.name, selectedLevel: null, pointsOverride: null })));
+    const newCriteria = template.categories.map(c => ({ name: c.name, selectedLevel: null, pointsOverride: null }));
+    setCriteria(newCriteria);
     setShowTemplates(false);
+    if (onCriteriaChanged) {
+      if (window.confirm('Apply this rubric template to every student for this assignment?')) {
+        onCriteriaChanged(newCriteria.map(c => ({ name: c.name })));
+      }
+    }
   };
 
   const rubricTotal = getRubricTotal(criteria);
@@ -397,7 +430,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
                 {/* Edit / Templates links */}
                 <div className="flex items-center gap-3 pt-1">
                   <button
-                    onClick={() => setEditingRubric(true)}
+                    onClick={startEditingRubric}
                     className="text-[11px] text-gray-400 hover:text-gray-600 flex items-center gap-1"
                   >
                     <Settings size={10} />
@@ -490,7 +523,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
                 </div>
 
                 <button
-                  onClick={() => setEditingRubric(false)}
+                  onClick={finishEditingRubric}
                   className="w-full py-1.5 bg-gray-100 hover:bg-gray-200 rounded text-xs font-medium text-gray-700 mt-1"
                 >
                   Done editing
