@@ -144,7 +144,7 @@ const CURRICULUM_UNITS = [
       'Create an album release package'
     ],
     status: 'coming',
-    releaseDate: 'August 2026',
+    releaseDate: 'January 2027',
     route: null,
     routeCommercial: null
   }
