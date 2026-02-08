@@ -183,8 +183,44 @@ const ActivityGradingView = ({
     onGradeSaved(studentUid, lessonId, gradeData);
   };
 
-  const handleMaxPointsChange = (val) => {
-    if (val) setAssignmentMaxPoints(val);
+  const handleMaxPointsChange = async (val) => {
+    if (!val) return;
+    const newMax = parseInt(val, 10);
+    if (isNaN(newMax) || newMax <= 0) return;
+    setAssignmentMaxPoints(val);
+
+    // Re-save all other graded students with the new maxPoints
+    for (const student of studentData) {
+      if (!student.grade || student.uid === currentStudent?.uid) continue;
+
+      const oldGrade = student.grade;
+      let newPoints = oldGrade.points ?? 0;
+
+      // Recalculate from rubric if present
+      if (oldGrade.rubricCriteria?.length) {
+        const perCriterion = newMax / oldGrade.rubricCriteria.length;
+        const allScored = oldGrade.rubricCriteria.every(c => c.selectedLevel !== null);
+        if (allScored) {
+          newPoints = oldGrade.rubricCriteria.reduce((sum, c) => {
+            if (c.pointsOverride !== null && c.pointsOverride !== undefined) return sum + c.pointsOverride;
+            return sum + Math.round(perCriterion * LEVELS_PCT[c.selectedLevel]);
+          }, 0);
+        }
+      }
+
+      try {
+        const gradeData = {
+          ...oldGrade,
+          maxPoints: newMax,
+          points: newPoints,
+          grade: `${newPoints}/${newMax}`
+        };
+        await gradeSubmission(classId, student.uid, lessonId, gradeData, user.uid);
+        handleGradeSaved(student.uid, lessonId, gradeData);
+      } catch (err) {
+        console.error(`Error updating max points for ${student.uid}:`, err);
+      }
+    }
   };
 
   const handleSidebarScore = async (studentUid, pts) => {
