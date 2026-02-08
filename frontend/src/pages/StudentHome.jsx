@@ -6,9 +6,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudentAuth } from '../context/StudentAuthContext';
 import { getStudentEnrollments } from '../firebase/students';
-import { getClassSessionByCode, joinClassSession } from '../firebase/classes';
-import { LogOut, Play, FileText, Award, BookOpen, FolderHeart, ClipboardList } from 'lucide-react';
-import StudentWorkList from '../components/student/StudentWorkList';
+import { getClassSessionByCode, joinClassSession, subscribeToClassSession } from '../firebase/classes';
+import { LogOut, Play, Award, BookOpen, FolderHeart, ClipboardList } from 'lucide-react';
 import StudentGradesList from '../components/student/StudentGradesList';
 import StudentPortfolio from '../components/student/StudentPortfolio';
 import StudentClasswork from '../components/student/StudentClasswork';
@@ -18,7 +17,7 @@ const StudentHome = () => {
   const { student, pinSession, currentStudentInfo, isGoogleAuth, isPinAuth, signOut } = useStudentAuth();
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('work');
+  const [activeTab, setActiveTab] = useState('classwork');
   const [activeSession, setActiveSession] = useState(null);
   const [joiningClass, setJoiningClass] = useState(false);
 
@@ -49,23 +48,26 @@ const StudentHome = () => {
     fetchEnrollments();
   }, [student?.uid, isGoogleAuth, isPinAuth, pinSession]);
 
-  // Check for active class session (PIN auth students)
+  // Real-time listener for active class session (PIN auth students)
   useEffect(() => {
-    if (!isPinAuth || !pinSession?.classCode) return;
+    if (!isPinAuth || !pinSession?.classId) return;
 
-    const checkSession = async () => {
-      try {
-        const classData = await getClassSessionByCode(pinSession.classCode);
-        if (classData?.currentSession?.active) {
-          setActiveSession({ classData });
-        }
-      } catch (err) {
-        console.error('Error checking class session:', err);
+    const unsubscribe = subscribeToClassSession(pinSession.classId, (sessionData) => {
+      if (sessionData?.active) {
+        setActiveSession({
+          classData: {
+            id: pinSession.classId,
+            classCode: pinSession.classCode,
+            currentSession: sessionData
+          }
+        });
+      } else {
+        setActiveSession(null);
       }
-    };
+    });
 
-    checkSession();
-  }, [isPinAuth, pinSession?.classCode]);
+    return () => unsubscribe();
+  }, [isPinAuth, pinSession?.classId, pinSession?.classCode]);
 
   const handleJoinClass = async () => {
     if (!activeSession?.classData || !pinSession) return;
@@ -92,10 +94,9 @@ const StudentHome = () => {
   };
 
   const tabs = [
-    { id: 'work', label: 'My Work', icon: FileText },
+    { id: 'classwork', label: 'Classwork', icon: ClipboardList },
     { id: 'portfolio', label: 'Portfolio', icon: FolderHeart },
     ...(isPinAuth ? [
-      { id: 'classwork', label: 'Classwork', icon: ClipboardList },
       { id: 'grades', label: 'Grades', icon: Award },
     ] : []),
     { id: 'classes', label: 'Classes', icon: BookOpen },
@@ -211,23 +212,7 @@ const StudentHome = () => {
         )}
 
         {/* Tab Content */}
-        {activeTab === 'work' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
-                <FileText size={18} className="text-blue-600" />
-              </div>
-              <h2 className="text-lg font-semibold text-gray-900">My Work</h2>
-            </div>
-            <StudentWorkList />
-          </div>
-        )}
-
-        {activeTab === 'portfolio' && (
-          <StudentPortfolio />
-        )}
-
-        {activeTab === 'classwork' && isPinAuth && (
+        {activeTab === 'classwork' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
             <div className="flex items-center gap-2.5 mb-4">
               <div className="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center">
@@ -237,6 +222,10 @@ const StudentHome = () => {
             </div>
             <StudentClasswork />
           </div>
+        )}
+
+        {activeTab === 'portfolio' && (
+          <StudentPortfolio />
         )}
 
         {activeTab === 'grades' && isPinAuth && (
