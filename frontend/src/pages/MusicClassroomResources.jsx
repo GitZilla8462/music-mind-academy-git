@@ -483,7 +483,7 @@ function MusicClassroomResources() {
         }}>
           <div>
             <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b', marginBottom: '2px' }}>
-              Curriculum
+              General Music Curriculum
             </h1>
             <p style={{ fontSize: '14px', color: '#64748b' }}>
               7 units &bull; 35 lessons &bull; Full year &bull; Grades 6-8
