@@ -128,6 +128,25 @@ const CURRICULUM_UNITS = [
     releaseDate: 'August 2026',
     route: '/film-music-hub',
     routeCommercial: '/film-music-hub'
+  },
+  {
+    id: 7,
+    title: 'The Production Studio',
+    subtitle: 'Music Industry & Collaboration',
+    color: '#f97316',
+    icon: '/images/assignments/curriculum/unit7-production.png',
+    standardBadge: 'Creating & Connecting',
+    lessonCount: 5,
+    duration: '~35 min per lesson',
+    bullets: [
+      'Collaborate in music industry roles',
+      'Produce an original group track',
+      'Create an album release package'
+    ],
+    status: 'coming',
+    releaseDate: 'August 2026',
+    route: null,
+    routeCommercial: null
   }
 ];
 

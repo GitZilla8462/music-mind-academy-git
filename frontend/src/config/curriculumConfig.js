@@ -137,10 +137,72 @@ export const CURRICULUM = [
         ]
       }
     ]
+  },
+  {
+    id: 'production-studio',
+    name: 'The Production Studio',
+    shortName: 'Production Studio',
+    icon: '🎛️',
+    color: 'orange',
+    lessons: [
+      {
+        id: 'ps-lesson1',
+        name: 'Lesson 1: Meet the Industry',
+        shortName: 'Industry',
+        concept: 'Music careers and collaboration roles',
+        route: null, // Not yet built
+        activities: [
+          { id: 'credit-detective', name: 'Credit Detective', type: 'game' },
+          { id: 'studio-contract', name: 'Studio Contract', type: 'reflection' }
+        ]
+      },
+      {
+        id: 'ps-lesson2',
+        name: 'Lesson 2: The Creative Brief',
+        shortName: 'Brief',
+        concept: 'Genre, mood, audience, and artistic intent',
+        route: null,
+        activities: [
+          { id: 'creative-brief', name: 'Creative Brief', type: 'composition' },
+          { id: 'reference-track-picker', name: 'Reference Track Picker', type: 'game' }
+        ]
+      },
+      {
+        id: 'ps-lesson3',
+        name: 'Lesson 3: Studio Session',
+        shortName: 'Studio',
+        concept: 'Arrangement, feedback, and revision',
+        route: null,
+        activities: [
+          { id: 'studio-composition', name: 'Studio Composition', type: 'composition' },
+          { id: 'ar-feedback', name: 'A&R Feedback', type: 'reflection' }
+        ]
+      },
+      {
+        id: 'ps-lesson4',
+        name: 'Lesson 4: Mix & Brand',
+        shortName: 'Mix',
+        concept: 'Mixing fundamentals and music branding',
+        route: null,
+        activities: [
+          { id: 'final-mix', name: 'Final Mix', type: 'composition' },
+          { id: 'album-art', name: 'Album Art Creator', type: 'composition' },
+          { id: 'composer-notes', name: 'Composer Notes', type: 'reflection' }
+        ]
+      },
+      {
+        id: 'ps-lesson5',
+        name: 'Lesson 5: Release Day',
+        shortName: 'Release',
+        concept: 'Presentation, evaluation, and celebration',
+        route: null,
+        activities: [
+          { id: 'album-release', name: 'Album Release Package', type: 'composition' },
+          { id: 'ps-lesson5-reflection', name: 'Unit Reflection', type: 'reflection' }
+        ]
+      }
+    ]
   }
-  // Future units can be added here:
-  // { id: 'world-music', name: 'World Music', ... },
-  // { id: 'songwriting', name: 'Songwriting', ... },
 ];
 
 
