@@ -138,7 +138,10 @@ export const SessionProvider = ({ children }) => {
     return localStorage.getItem('current-session-userId') || null;
   });
   
-  const [classId, setClassId] = useState(null);
+  const [classId, setClassId] = useState(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('classId') || null;
+  });
   const [sessionData, setSessionData] = useState(null);
   const [isInSession, setIsInSession] = useState(false);
   const [isLoadingSession, setIsLoadingSession] = useState(false);
@@ -292,6 +295,7 @@ export const SessionProvider = ({ children }) => {
             hasAutoCleanedRef.current = true;
             console.log('🧹 Auto-cleaning invalid session from storage');
             clearSessionStorage();
+            prevStageRef.current = null;
             setSessionCode(null);
             setUserRole(null);
             setUserId(null);
@@ -533,9 +537,12 @@ export const SessionProvider = ({ children }) => {
       // Store classId if this is a class session
       if (isClassSession && classIdForSession) {
         setClassId(classIdForSession);
+        // Don't set sessionCode for class sessions — use classId subscription path instead
+        // Clear any stale session code from localStorage to prevent restore conflicts
+        localStorage.removeItem('current-session-code');
+      } else {
+        setSessionCode(code);
       }
-
-      setSessionCode(code);
       setUserRole('student');
       setUserId(studentId);
       setIsInSession(true);

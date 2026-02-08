@@ -3,7 +3,7 @@
 // Students answer on their devices, teacher controls the pace and plays audio
 // No audio playback on student side - just 6 dynamic buttons
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Check, Trophy, Volume2 } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get } from 'firebase/database';
@@ -19,8 +19,21 @@ const SCORING = {
 };
 
 const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
-  const { sessionCode, userId: contextUserId } = useSession();
+  const { sessionCode, classId, userId: contextUserId } = useSession();
   const userId = contextUserId || localStorage.getItem('current-session-userId');
+
+  // Compute Firebase paths based on session type (class-based vs quick session)
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/dynamicsDash`;
+    if (sessionCode) return `sessions/${sessionCode}/dynamicsDash`;
+    return null;
+  }, [classId, sessionCode]);
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
 
   // Player info
   const [playerName, setPlayerName] = useState('');
@@ -69,9 +82,9 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
       const emoji = getPlayerEmoji(userId);
       let name;
 
-      if (sessionCode) {
+      if (studentsPath) {
         try {
-          const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+          const studentsRef = ref(db, studentsPath);
           const snapshot = await get(studentsRef);
           const studentsData = snapshot.val() || {};
           const existingNames = Object.entries(studentsData)
@@ -91,8 +104,8 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
       setPlayerEmoji(emoji);
 
       // Save player info to Firebase
-      if (sessionCode) {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+      if (studentsPath) {
+        update(ref(db, `${studentsPath}/${userId}`), {
           playerName: name,
           playerColor: color,
           playerEmoji: emoji
@@ -101,7 +114,7 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
     };
 
     assignPlayerName();
-  }, [userId, sessionCode]);
+  }, [userId, studentsPath]);
 
   // Keep refs in sync with state
   useEffect(() => { scoreRef.current = score; }, [score]);
@@ -112,10 +125,10 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
 
   // Listen for game state updates from teacher
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!gamePath) return;
 
     const db = getDatabase();
-    const gameRef = ref(db, `sessions/${sessionCode}/dynamicsDash`);
+    const gameRef = ref(db, gamePath);
 
     const unsubscribe = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
@@ -166,8 +179,8 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
       // Handle finished - restore score from Firebase if component remounted
       if (data.phase === 'finished') {
         const effectiveUserId = userId || localStorage.getItem('current-session-userId');
-        if (effectiveUserId && scoreRef.current === 0) {
-          get(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}/dynamicsDashScore`))
+        if (effectiveUserId && scoreRef.current === 0 && studentsPath) {
+          get(ref(db, `${studentsPath}/${effectiveUserId}/dynamicsDashScore`))
             .then(snap => {
               const fbScore = snap.val() || 0;
               if (fbScore > 0) {
@@ -220,8 +233,8 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
 
           // Update Firebase
           const effectiveUserId = userId || localStorage.getItem('current-session-userId');
-          if (sessionCode && effectiveUserId) {
-            update(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}`), {
+          if (studentsPath && effectiveUserId) {
+            update(ref(db, `${studentsPath}/${effectiveUserId}`), {
               dynamicsDashScore: newScore
             });
           }
@@ -230,14 +243,14 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode, userId]);
+  }, [gamePath, studentsPath, userId]);
 
   // Listen for leaderboard
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!studentsPath) return;
 
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsPath);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -259,7 +272,7 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode, userId]);
+  }, [studentsPath, userId]);
 
   // Submit answer
   const submitAnswer = (dynamicSymbol) => {
@@ -270,9 +283,9 @@ const DynamicsDashStudentView = ({ onComplete, isSessionMode = true }) => {
     setAnswerSubmitted(true);
 
     // Send to Firebase so teacher can track
-    if (sessionCode && userId) {
+    if (studentsPath && userId) {
       const db = getDatabase();
-      update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `${studentsPath}/${userId}`), {
         dynamicsDashAnswer: dynamicSymbol,
         dynamicsDashAnswerTime: Date.now()
       });

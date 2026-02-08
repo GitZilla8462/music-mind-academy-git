@@ -1,6 +1,8 @@
 // Dev tools - only active in development mode
 // Usage: Type `devTools.clearAll()` in browser console
 
+import { getDatabase, ref, get, remove } from 'firebase/database';
+
 const isDev = import.meta.env.DEV;
 
 const devTools = {
@@ -79,16 +81,51 @@ const devTools = {
     window.location.reload();
   },
 
+  // Clean orphaned submissions for a class
+  cleanSubmissions: async (classId) => {
+    if (!classId) {
+      console.log('Usage: devTools.cleanSubmissions("classId")');
+      return;
+    }
+    const db = getDatabase();
+    const subsRef = ref(db, `submissions/${classId}`);
+    const snapshot = await get(subsRef);
+    if (!snapshot.exists()) {
+      console.log('No submissions found for this class.');
+      return;
+    }
+    const data = snapshot.val();
+    let cleaned = 0;
+    for (const lessonId of Object.keys(data)) {
+      const lessonSubs = data[lessonId];
+      for (const studentUid of Object.keys(lessonSubs)) {
+        const sub = lessonSubs[studentUid];
+        console.log(`  📋 ${lessonId}/${studentUid}: status=${sub.status}, activity=${sub.activityId}`);
+      }
+      if (lessonId === 'unknown') {
+        await remove(ref(db, `submissions/${classId}/unknown`));
+        cleaned += Object.keys(lessonSubs).length;
+        console.log(`  🗑️ Removed ${Object.keys(lessonSubs).length} orphaned submissions under "unknown"`);
+      }
+    }
+    if (cleaned === 0) {
+      console.log('No orphaned submissions found. Listed all above.');
+    } else {
+      console.log(`✅ Cleaned ${cleaned} orphaned submissions. Refresh the page.`);
+    }
+  },
+
   // Help
   help: () => {
     const help = `
 🛠️ Dev Tools Commands:
-  devTools.clearAll()        - Clear all localStorage
-  devTools.clearLessons()    - Clear only lesson data (keeps auth)
-  devTools.clearAndRefresh() - Clear all and reload page
-  devTools.list()            - List all localStorage items
-  devTools.clearPattern('x') - Clear items matching pattern
-  devTools.help()            - Show this help
+  devTools.clearAll()              - Clear all localStorage
+  devTools.clearLessons()          - Clear only lesson data (keeps auth)
+  devTools.clearAndRefresh()       - Clear all and reload page
+  devTools.list()                  - List all localStorage items
+  devTools.clearPattern('x')       - Clear items matching pattern
+  devTools.cleanSubmissions('id')  - Clean orphaned Firebase submissions
+  devTools.help()                  - Show this help
     `;
     console.log(help);
     return help;

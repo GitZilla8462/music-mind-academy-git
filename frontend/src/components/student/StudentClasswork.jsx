@@ -3,6 +3,7 @@
 // Google Classroom-style view: all activities by unit/lesson with status + grades
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Loader2,
   ChevronDown,
@@ -14,10 +15,15 @@ import {
   Gamepad2,
   MessageSquare,
   BookOpen,
+  Trash2,
+  AlertTriangle,
+  Eye,
 } from 'lucide-react';
 import { useStudentAuth } from '../../context/StudentAuthContext';
 import { getStudentGrades, getStudentSubmissions } from '../../firebase/grades';
 import { CURRICULUM } from '../../config/curriculumConfig';
+import { getDatabase, ref, remove } from 'firebase/database';
+import { clearAllCompositionSaves, getStudentId } from '../../utils/studentWorkStorage';
 
 // Quick feedback labels (matches GradeForm)
 const FEEDBACK_LABELS = {
@@ -55,16 +61,19 @@ const formatDate = (timestamp) => {
 };
 
 const StudentClasswork = () => {
+  const navigate = useNavigate();
   const { isAuthenticated, currentStudentInfo, isPinAuth } = useStudentAuth();
   const [grades, setGrades] = useState({});
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedActivity, setExpandedActivity] = useState(null);
   const [collapsedUnits, setCollapsedUnits] = useState({});
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // { lessonId, activityId, activityName }
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!isAuthenticated || !isPinAuth || !currentStudentInfo?.classId) {
+      if (!isAuthenticated || !currentStudentInfo?.classId) {
         setLoading(false);
         return;
       }
@@ -72,6 +81,8 @@ const StudentClasswork = () => {
       try {
         const seatUid = `seat-${currentStudentInfo.seatNumber}`;
         const pinUid = `pin-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}`;
+
+        console.log('📋 Classwork fetch:', { classId: currentStudentInfo.classId, seatUid, pinUid });
 
         // Fetch grades — try seat UID first, then pin UID
         let gradesData = await getStudentGrades(currentStudentInfo.classId, seatUid);
@@ -82,8 +93,10 @@ const StudentClasswork = () => {
 
         // Fetch submissions — try seat UID first, then pin UID
         let subs = await getStudentSubmissions(currentStudentInfo.classId, seatUid);
+        console.log('📋 Submissions (seat):', subs);
         if (!subs || subs.length === 0) {
           subs = await getStudentSubmissions(currentStudentInfo.classId, pinUid);
+          console.log('📋 Submissions (pin):', subs);
         }
         setSubmissions(subs || []);
       } catch (error) {
@@ -102,6 +115,54 @@ const StudentClasswork = () => {
 
   const toggleActivity = (key) => {
     setExpandedActivity(expandedActivity === key ? null : key);
+  };
+
+  // Delete all data for an assignment
+  const handleDeleteWork = async () => {
+    if (!deleteConfirm || !currentStudentInfo?.classId) return;
+    setDeleting(true);
+
+    const { lessonId, activityId } = deleteConfirm;
+    const classId = currentStudentInfo.classId;
+    const seatUid = `seat-${currentStudentInfo.seatNumber}`;
+    const pinUid = `pin-${classId}-${currentStudentInfo.seatNumber}`;
+    const db = getDatabase();
+
+    try {
+      // 1. Delete submissions (try both UID formats)
+      await remove(ref(db, `submissions/${classId}/${lessonId}/${seatUid}`)).catch(() => {});
+      await remove(ref(db, `submissions/${classId}/${lessonId}/${pinUid}`)).catch(() => {});
+
+      // 2. Delete grades (try both UID formats)
+      await remove(ref(db, `grades/${classId}/${seatUid}/${lessonId}`)).catch(() => {});
+      await remove(ref(db, `grades/${classId}/${pinUid}/${lessonId}`)).catch(() => {});
+
+      // 3. Delete studentWork from Firebase (try both UID formats)
+      const workKey = `${lessonId}-${activityId}`;
+      await remove(ref(db, `studentWork/${seatUid}/${workKey}`)).catch(() => {});
+      await remove(ref(db, `studentWork/${pinUid}/${workKey}`)).catch(() => {});
+
+      // 4. Clear all localStorage saves
+      const studentId = getStudentId();
+      clearAllCompositionSaves(activityId, studentId);
+      clearAllCompositionSaves(workKey, studentId);
+
+      // 5. Remove from local state
+      setSubmissions(prev => prev.filter(s => !(s.lessonId === lessonId && s.activityId === activityId)));
+      setGrades(prev => {
+        const next = { ...prev };
+        delete next[lessonId];
+        return next;
+      });
+      setExpandedActivity(null);
+
+      console.log(`🗑️ Deleted all data for ${lessonId}/${activityId}`);
+    } catch (err) {
+      console.error('Error deleting work:', err);
+    } finally {
+      setDeleting(false);
+      setDeleteConfirm(null);
+    }
   };
 
   // Get submission for an activity
@@ -153,10 +214,26 @@ const StudentClasswork = () => {
     );
   }
 
-  // Filter to units with built lessons (have activities)
-  const activeUnits = CURRICULUM.filter(unit =>
-    unit.lessons.some(l => l.activities.length > 0)
-  );
+  // Check if a student has a submission for a given activity
+  const hasSubmission = (lessonId, activityId) => {
+    return submissions.some(s => s.lessonId === lessonId && s.activityId === activityId);
+  };
+
+  // Filter: only compositions, only built lessons (with routes), only with submissions
+  const activeUnits = CURRICULUM.map(unit => {
+    const filteredLessons = unit.lessons
+      .filter(l => l.route) // only built lessons
+      .map(lesson => ({
+        ...lesson,
+        activities: lesson.activities.filter(a =>
+          a.type === 'composition' && hasSubmission(lesson.id, a.id)
+        )
+      }))
+      .filter(l => l.activities.length > 0); // only lessons with visible activities
+
+    if (filteredLessons.length === 0) return null;
+    return { ...unit, lessons: filteredLessons };
+  }).filter(Boolean);
 
   if (activeUnits.length === 0) {
     return (
@@ -166,7 +243,7 @@ const StudentClasswork = () => {
         </div>
         <p className="text-gray-500 mb-2">No assignments yet</p>
         <p className="text-gray-400 text-sm">
-          Your assignments will appear here when your teacher assigns them.
+          Your assignments will appear here after you complete activities in class.
         </p>
       </div>
     );
@@ -176,7 +253,7 @@ const StudentClasswork = () => {
     <div className="space-y-6">
       {activeUnits.map(unit => {
         const isCollapsed = collapsedUnits[unit.id];
-        const activeLessons = unit.lessons.filter(l => l.activities.length > 0);
+        const activeLessons = unit.lessons;
 
         return (
           <div key={unit.id}>
@@ -331,15 +408,55 @@ const StudentClasswork = () => {
                                     </div>
                                   )}
 
-                                  {/* Dates */}
-                                  <div className="flex items-center gap-4 text-xs text-gray-400">
-                                    {sub?.submittedAt && (
-                                      <span>Submitted {formatDate(sub.submittedAt)}</span>
-                                    )}
-                                    {grade?.gradedAt && (
-                                      <span>Graded {formatDate(grade.gradedAt)}</span>
-                                    )}
+                                  {/* Dates + Delete */}
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4 text-xs text-gray-400">
+                                      {sub?.submittedAt && (
+                                        <span>Submitted {formatDate(sub.submittedAt)}</span>
+                                      )}
+                                      {grade?.gradedAt && (
+                                        <span>Graded {formatDate(grade.gradedAt)}</span>
+                                      )}
+                                    </div>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setDeleteConfirm({ lessonId: lesson.id, activityId: activity.id, activityName: activity.name });
+                                      }}
+                                      className="flex items-center gap-1 px-2 py-1 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                                    >
+                                      <Trash2 size={12} />
+                                      Delete
+                                    </button>
                                   </div>
+
+                                  {/* View Work / Edit & Resubmit */}
+                                  {lesson.route && (
+                                    <div className="flex items-center gap-2 pt-1">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          navigate(`${lesson.route}?view=saved`);
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                      >
+                                        <Eye size={13} />
+                                        View My Work
+                                      </button>
+                                      {status === 'graded' && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate(`${lesson.route}?view=saved&resubmit=true`);
+                                          }}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                                        >
+                                          <PenLine size={13} />
+                                          Edit & Resubmit
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -354,6 +471,55 @@ const StudentClasswork = () => {
           </div>
         );
       })}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <AlertTriangle size={20} className="text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Delete Assignment?</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-1">
+              This will permanently delete <strong>{deleteConfirm.activityName}</strong> and all its data:
+            </p>
+            <ul className="text-sm text-gray-500 mb-5 ml-4 list-disc space-y-0.5">
+              <li>Your saved work</li>
+              <li>Your submission</li>
+              <li>Any grades and feedback</li>
+            </ul>
+            <p className="text-xs text-red-600 font-medium mb-4">This cannot be undone.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                disabled={deleting}
+                className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteWork}
+                disabled={deleting}
+                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={14} />
+                    Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

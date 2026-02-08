@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Loader2,
   Image,
+  RotateCcw,
 } from 'lucide-react';
 import { getStudentWorkForTeacher } from '../../firebase/studentWork';
 import { gradeSubmission } from '../../firebase/grades';
@@ -22,6 +23,7 @@ const LEVELS_PCT = [1.0, 0.75, 0.5, 0.25];
 
 const getStatusDot = (student) => {
   if (!student.submission) return 'bg-gray-300';
+  if (student.submission.resubmittedAt && student.submission.status !== 'graded') return 'bg-blue-500';
   if (student.submission.status === 'graded') return 'bg-green-500';
   return 'bg-amber-500';
 };
@@ -54,6 +56,9 @@ const SidebarRow = ({ student, idx, isSelected, onSelect, maxPoints, onScoreSave
       <span className={`flex-1 min-w-0 truncate text-xs ${isSelected ? 'font-medium text-blue-900' : 'text-gray-700'}`}>
         {student.displayName || `Seat ${student.seatNumber}`}
       </span>
+      {student.submission?.resubmittedAt && student.submission.status !== 'graded' && (
+        <RotateCcw size={11} className="text-blue-500 flex-shrink-0" title={`Resubmitted${student.submission.resubmitCount ? ` (${student.submission.resubmitCount}x)` : ''}`} />
+      )}
       <div className="flex items-center flex-shrink-0" onClick={(e) => e.stopPropagation()}>
         <input
           type="number"
@@ -90,6 +95,7 @@ const ActivityGradingView = ({
   const [workCache, setWorkCache] = useState({});
   const [loadingWork, setLoadingWork] = useState(false);
   const [assignmentMaxPoints, setAssignmentMaxPoints] = useState('100');
+  const [showGridLines, setShowGridLines] = useState(true);
   const sidebarRef = useRef(null);
 
   // Build enriched student list with submission/grade data for this activity
@@ -102,9 +108,10 @@ const ActivityGradingView = ({
     return { ...student, uid, submission, grade };
   });
 
-  const submittedCount = studentData.filter(s => s.submission?.status === 'submitted' || s.submission?.status === 'graded').length;
+  const submittedCount = studentData.filter(s => s.submission?.status === 'submitted' || s.submission?.status === 'pending' || s.submission?.status === 'graded').length;
   const gradedCount = studentData.filter(s => s.submission?.status === 'graded').length;
-  const pendingCount = studentData.filter(s => s.submission?.status === 'submitted').length;
+  const pendingCount = studentData.filter(s => s.submission?.status === 'submitted' || s.submission?.status === 'pending').length;
+  const resubmitCount = studentData.filter(s => s.submission?.resubmittedAt && s.submission?.status !== 'graded').length;
 
   const currentStudent = studentData[selectedIndex];
 
@@ -314,6 +321,9 @@ const ActivityGradingView = ({
           {pendingCount > 0 && (
             <span className="text-amber-600 ml-1">({pendingCount} pending)</span>
           )}
+          {resubmitCount > 0 && (
+            <span className="text-blue-600 ml-1">({resubmitCount} resubmitted)</span>
+          )}
         </div>
 
         <div className="flex-1 flex items-center justify-center gap-3">
@@ -422,12 +432,33 @@ const ActivityGradingView = ({
             </div>
           ) : currentImage ? (
             <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
-                <img
-                  src={currentImage}
-                  alt={`${currentStudent.displayName}'s work`}
-                  className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
-                />
+              <div className="flex-1 flex items-center justify-center p-6 overflow-auto">
+                <div className="grid rounded-lg shadow-lg overflow-hidden" style={{ maxWidth: '100%', maxHeight: 'calc(100vh - 10rem)' }}>
+                  <img
+                    src={currentImage}
+                    alt={`${currentStudent.displayName}'s work`}
+                    className="w-full h-auto block"
+                    style={{ gridArea: '1 / 1', maxHeight: 'calc(100vh - 10rem)' }}
+                  />
+                  {/* Grid lines overlay - same grid cell as image, guaranteed same size */}
+                  {showGridLines && currentWork?.data?.numRows > 1 && (
+                    <div className="relative pointer-events-none" style={{ gridArea: '1 / 1' }}>
+                      {Array.from({ length: currentWork.data.numRows - 1 }, (_, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            position: 'absolute',
+                            left: 0,
+                            right: 0,
+                            top: `${((i + 1) / currentWork.data.numRows) * 100}%`,
+                            height: '1px',
+                            backgroundColor: 'rgba(156, 163, 175, 0.5)'
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               {/* Metadata bar */}
               <div className="px-4 py-2 bg-gray-900/50 text-gray-300 text-xs flex items-center gap-4">
@@ -436,6 +467,24 @@ const ActivityGradingView = ({
                 )}
                 {currentWork?.data?.composer && (
                   <span>by {currentWork.data.composer}</span>
+                )}
+                {currentWork?.data?.numRows > 1 && (
+                  <button
+                    onClick={() => setShowGridLines(!showGridLines)}
+                    className={`px-2 py-1 rounded text-xs transition-colors ${
+                      showGridLines
+                        ? 'bg-gray-600 text-white'
+                        : 'bg-gray-700/50 text-gray-400 hover:text-gray-300'
+                    }`}
+                  >
+                    {showGridLines ? 'Hide' : 'Show'} Grid
+                  </button>
+                )}
+                {currentStudent.submission.resubmittedAt && (
+                  <span className="flex items-center gap-1 text-blue-400">
+                    <RotateCcw size={11} />
+                    Resubmitted{currentStudent.submission.resubmitCount ? ` (${currentStudent.submission.resubmitCount}x)` : ''}
+                  </span>
                 )}
                 {currentStudent.submission.submittedAt && (
                   <span className="ml-auto">

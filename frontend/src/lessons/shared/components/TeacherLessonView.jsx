@@ -1716,7 +1716,7 @@ const MiniPreview = ({ viewMode, sessionCode, classCode, currentStage, currentSt
   const getStudentUrl = () => {
     // Use current origin to handle any port in dev
     // passive=true disables navigation prevention hooks to avoid IPC flooding
-    return `${window.location.origin}/join?code=${sessionCode}&preview=true&passive=true`;
+    return `${window.location.origin}/join?code=${classCode || sessionCode}&preview=true&passive=true`;
   };
 
   return (
@@ -2853,7 +2853,7 @@ const TeacherLessonView = ({
 
   // Check if current stage is a saveable activity (composition or listening map)
   const isSaveableActivity = currentStageData?.type === 'activity' &&
-    (currentStageData?.id?.includes('composition') || currentStageData?.id === 'listening-map');
+    (currentStageData?.id?.includes('composition') || currentStageData?.id?.includes('listening-map'));
 
   // Send save command to all students via Firebase
   const sendSaveCommand = async () => {
@@ -3409,7 +3409,7 @@ const TeacherLessonView = ({
                 </span>
               </div>
               <iframe
-                src={`${window.location.origin}/join?code=${sessionCode}&preview=true&passive=true`}
+                src={`${window.location.origin}/join?code=${classCode || sessionCode}&preview=true&passive=true`}
                 className="absolute top-10 left-0 w-full h-[calc(100%-40px)] border-none"
                 title="Student View Preview"
                 allow="autoplay"

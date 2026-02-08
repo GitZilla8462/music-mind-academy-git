@@ -580,6 +580,7 @@ const ActivityRenderer = ({
       return (
         <ListeningMapActivity
           key={`dynamics-listening-map-${activity.id}`}
+          activityId="dynamics-listening-map"
           onComplete={onComplete}
           isSessionMode={isSessionMode}
           config={{
@@ -626,6 +627,7 @@ const ActivityRenderer = ({
       return (
         <ListeningMapActivity
           key={`tempo-listening-map-${activity.id}`}
+          activityId="tempo-listening-map"
           onComplete={onComplete}
           isSessionMode={isSessionMode}
           config={{

@@ -32,7 +32,7 @@ import { INSTRUMENT_ICONS } from './config/InstrumentIcons';
 import { useSession } from '../../../../context/SessionContext';
 
 // Storage - Use generic system so it appears on Join page
-import { saveStudentWork, loadStudentWork } from '../../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, loadStudentWorkAsync, getClassAuthInfo } from '../../../../utils/studentWorkStorage';
 
 // ============================================================================
 // CONFIG
@@ -324,7 +324,7 @@ const DragGhost = ({ sticker, position, size }) => {
 // MAIN COMPONENT
 // ============================================================================
 
-const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMode = false }) => {
+const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMode = false, activityId = 'listening-map' }) => {
   const mapConfig = { ...LISTENING_MAP_CONFIG, ...config };
   if (audioFile) mapConfig.audioFile = audioFile;
 
@@ -414,28 +414,42 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
     }
   }, [containerSize.width, containerSize.height]);
 
-  // ✅ LOAD SAVED WORK ON MOUNT
+  // ✅ LOAD SAVED WORK ON MOUNT - tries localStorage first, then Firebase
   useEffect(() => {
     if (!studentId || !canvasReady || hasLoadedRef.current) return;
-    
-    console.log('🎨 Checking for saved listening map...');
-    
-    const savedWork = loadStudentWork('listening-map', studentId);
-    
-    if (savedWork && savedWork.data?.editableData) {
-      console.log('📂 Found saved listening map, restoring...');
-      
-      // Use loadState to restore stickers and canvas
-      if (canvasRef.current?.loadState) {
-        canvasRef.current.loadState(savedWork.data.editableData);
-        console.log('✅ Listening map restored!');
+
+    const loadWork = async () => {
+      console.log('🎨 Checking for saved listening map...');
+
+      // Try localStorage first (fast, synchronous)
+      let savedWork = loadStudentWork(activityId, studentId);
+
+      // If not in localStorage, try Firebase (for students viewing from a different session)
+      if (!savedWork?.data?.editableData) {
+        const authInfo = getClassAuthInfo();
+        if (authInfo?.uid) {
+          console.log('🔍 Not in localStorage, trying Firebase...');
+          savedWork = await loadStudentWorkAsync(activityId, authInfo, studentId);
+        }
       }
-      
-      hasLoadedRef.current = true;
-    } else {
-      console.log('ℹ️ No saved listening map found');
-      hasLoadedRef.current = true;
-    }
+
+      if (savedWork && savedWork.data?.editableData) {
+        console.log('📂 Found saved listening map, restoring...');
+
+        // Use loadState to restore stickers and canvas
+        if (canvasRef.current?.loadState) {
+          canvasRef.current.loadState(savedWork.data.editableData);
+          console.log('✅ Listening map restored!');
+        }
+
+        hasLoadedRef.current = true;
+      } else {
+        console.log('ℹ️ No saved listening map found');
+        hasLoadedRef.current = true;
+      }
+    };
+
+    loadWork();
   }, [studentId, canvasReady]);
 
   // Dimensions
@@ -618,12 +632,12 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
 
       if (editableData) {
         // Save using the generic system so it appears on Join page
-        saveStudentWork('listening-map', {
+        saveStudentWork(activityId, {
           title: mapConfig.credits.title,
           emoji: '🗺️',
-          viewRoute: '/lessons/film-music-project/lesson2?view=listening-map',  // ✅ Go back into activity
-          subtitle: `${mapConfig.numRows} rows • Vivaldi`,
-          category: 'Film Music Project',
+          viewRoute: null,
+          subtitle: `${mapConfig.numRows} rows`,
+          category: 'Listening Map',
           data: {
             editableData,  // ✅ Stickers + canvas - for loading back into activity
             imageData,     // Flat image - for thumbnail/preview

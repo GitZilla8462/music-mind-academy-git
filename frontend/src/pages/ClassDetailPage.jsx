@@ -7,7 +7,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { getClassById } from '../firebase/classes';
 import { getClassRoster } from '../firebase/enrollments';
-import { getAllClassSubmissions, getClassGrades, deleteActivitySubmissions } from '../firebase/grades';
+import { getAllClassSubmissions, getClassGrades, deleteActivitySubmissions, deleteGrade } from '../firebase/grades';
 import { CURRICULUM } from '../config/curriculumConfig';
 import {
   ArrowLeft,
@@ -27,7 +27,9 @@ import {
   ArrowUp,
   ArrowDown,
   Download,
-  Trash2
+  Trash2,
+  AlertTriangle,
+  Loader2
 } from 'lucide-react';
 import TeacherHeader from '../components/teacher/TeacherHeader';
 import RosterManager from '../components/teacher/RosterManager';
@@ -75,6 +77,8 @@ const ClassDetailPage = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [gradeModalData, setGradeModalData] = useState(null);
   const [activityGradingData, setActivityGradingData] = useState(null);
+  const [deleteGradeConfirm, setDeleteGradeConfirm] = useState(null); // { studentUid, studentName, lessonId, lessonName }
+  const [deletingGrade, setDeletingGrade] = useState(false);
 
   // Handle URL parameter for auto-opening print cards
   useEffect(() => {
@@ -138,8 +142,8 @@ const ClassDetailPage = () => {
       s.lessonId === lessonId && s.activityId === activityId
     );
     return {
-      submitted: activitySubs.filter(s => s.status === 'submitted' || s.status === 'graded').length,
-      pending: activitySubs.filter(s => s.status === 'submitted').length
+      submitted: activitySubs.filter(s => s.status === 'submitted' || s.status === 'pending' || s.status === 'graded').length,
+      pending: activitySubs.filter(s => s.status === 'submitted' || s.status === 'pending').length
     };
   };
 
@@ -172,6 +176,39 @@ const ClassDetailPage = () => {
     }
   };
 
+  const handleDeleteGrade = async () => {
+    if (!deleteGradeConfirm) return;
+    setDeletingGrade(true);
+
+    const { studentUid, lessonId } = deleteGradeConfirm;
+
+    try {
+      await deleteGrade(classId, studentUid, lessonId);
+
+      // Also remove the submission record
+      const { getDatabase, ref, remove } = await import('firebase/database');
+      const db = getDatabase();
+      await remove(ref(db, `submissions/${classId}/${lessonId}/${studentUid}`)).catch(() => {});
+
+      // Also try deleting studentWork
+      const lesson = CURRICULUM.flatMap(u => u.lessons).find(l => l.id === lessonId);
+      if (lesson) {
+        const firstActivity = lesson.activities.find(a => a.type === 'composition') || lesson.activities[0];
+        if (firstActivity) {
+          const workKey = `${lessonId}-${firstActivity.id}`;
+          await remove(ref(db, `studentWork/${studentUid}/${workKey}`)).catch(() => {});
+        }
+      }
+
+      await refreshData();
+    } catch (err) {
+      console.error('Error deleting grade:', err);
+    } finally {
+      setDeletingGrade(false);
+      setDeleteGradeConfirm(null);
+    }
+  };
+
   const totalPending = submissions.filter(s => s.status === 'pending' || s.status === 'submitted').length;
 
   if (authLoading || loading) {
@@ -201,7 +238,7 @@ const ClassDetailPage = () => {
   // Tabs config
   const tabs = [
     { id: 'students', label: 'Students', icon: Users },
-    { id: 'classwork', label: 'Classwork', icon: BookOpen },
+    { id: 'classwork', label: 'Classwork', icon: BookOpen, badge: totalPending },
     { id: 'grades', label: 'Grades', icon: ClipboardList, badge: totalPending },
   ];
 
@@ -541,11 +578,21 @@ const ClassDetailPage = () => {
 
         {/* ==================== Grades Tab ==================== */}
         {activeTab === 'grades' && (() => {
-          const gradebookLessons = CURRICULUM.flatMap(unit =>
+          const allLessons = CURRICULUM.flatMap(unit =>
             unit.lessons
               .filter(l => l.activities.length > 0)
               .map(l => ({ ...l, unitIcon: unit.icon }))
           );
+
+          // Only show lessons that have at least one submission or grade
+          const gradebookLessons = allLessons.filter(l => {
+            const hasSubmission = submissions.some(s => s.lessonId === l.id);
+            const hasGrade = roster.some(student => {
+              const uid = getEffectiveUid(student);
+              return grades[uid]?.[l.id];
+            });
+            return hasSubmission || hasGrade;
+          });
 
           const getGradeColor = (points, maxPoints) => {
             const pct = Math.round((points / maxPoints) * 100);
@@ -586,6 +633,21 @@ const ClassDetailPage = () => {
             a.click();
             URL.revokeObjectURL(url);
           };
+
+          if (gradebookLessons.length === 0) {
+            return (
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Grades</h2>
+                <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+                  <ClipboardList className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <h3 className="font-medium text-gray-900 mb-1">No grades yet</h3>
+                  <p className="text-sm text-gray-500">
+                    Grades will appear here once students submit work in class.
+                  </p>
+                </div>
+              </div>
+            );
+          }
 
           return (
             <div>
@@ -633,10 +695,13 @@ const ClassDetailPage = () => {
                               const firstActivity = getFirstActivity(l);
                               const isClickable = (isPending || g) && firstActivity;
 
+                              const hasData = g || isPending;
+                              const studentName = student.displayName || `Seat ${student.seatNumber}`;
+
                               return (
                                 <td
                                   key={l.id}
-                                  className={`p-3 text-center ${isClickable ? 'cursor-pointer hover:bg-blue-50 transition-colors' : ''}`}
+                                  className={`p-3 text-center relative group ${isClickable ? 'cursor-pointer hover:bg-blue-50 transition-colors' : ''}`}
                                   onClick={() => {
                                     if (isClickable) {
                                       setActivityGradingData({
@@ -659,6 +724,23 @@ const ClassDetailPage = () => {
                                     <Clock size={14} className="text-amber-500 mx-auto" />
                                   ) : (
                                     <span className="text-gray-300">--</span>
+                                  )}
+                                  {hasData && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setDeleteGradeConfirm({
+                                          studentUid: uid,
+                                          studentName,
+                                          lessonId: l.id,
+                                          lessonName: l.shortName || l.name
+                                        });
+                                      }}
+                                      className="absolute top-1 right-1 p-0.5 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                                      title="Delete grade"
+                                    >
+                                      <Trash2 size={11} />
+                                    </button>
                                   )}
                                 </td>
                               );
@@ -749,6 +831,55 @@ const ClassDetailPage = () => {
             handleGradeSaved(studentUid, lessonId, gradeData);
           }}
         />
+      )}
+
+      {/* Delete Grade Confirmation Modal */}
+      {deleteGradeConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <AlertTriangle size={20} className="text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Delete Grade?</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-1">
+              This will permanently delete the grade for <strong>{deleteGradeConfirm.studentName}</strong> on <strong>{deleteGradeConfirm.lessonName}</strong>:
+            </p>
+            <ul className="text-sm text-gray-500 mb-5 ml-4 list-disc space-y-0.5">
+              <li>Grade and rubric scores</li>
+              <li>Feedback</li>
+              <li>Student submission record</li>
+            </ul>
+            <p className="text-xs text-red-600 font-medium mb-4">This cannot be undone.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteGradeConfirm(null)}
+                disabled={deletingGrade}
+                className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteGrade}
+                disabled={deletingGrade}
+                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {deletingGrade ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={14} />
+                    Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

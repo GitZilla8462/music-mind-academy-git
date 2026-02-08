@@ -111,21 +111,74 @@ export const submitStudentWork = async (studentUid, lessonId, activityId, classI
     submittedAt: now
   });
 
-  // Also create a submission record for the teacher to see
+  // Check if a previous submission exists (detect resubmission)
   const submissionRef = ref(database, `submissions/${classId}/${lessonId}/${studentUid}`);
-  await set(submissionRef, {
-    studentUid,
-    lessonId,
-    activityId,
-    workKey,
-    title: workData.title,
+  const existingSnap = await get(submissionRef);
+  const existing = existingSnap.exists() ? existingSnap.val() : null;
+  const isResubmission = existing && (existing.status === 'graded' || existing.resubmittedAt);
+
+  if (isResubmission) {
+    // Resubmission — preserve history, mark as resubmitted
+    const resubmitCount = (existing.resubmitCount || 0) + 1;
+    await update(submissionRef, {
+      status: 'pending',
+      submittedAt: now,
+      resubmittedAt: now,
+      resubmitCount
+    });
+    console.log(`Resubmitted work: ${workKey} for student ${studentUid} (attempt ${resubmitCount + 1})`);
+  } else {
+    // First submission
+    await set(submissionRef, {
+      studentUid,
+      lessonId,
+      activityId,
+      workKey,
+      title: workData.title,
+      submittedAt: now,
+      status: 'pending',
+      grade: null,
+      feedback: null
+    });
+    console.log(`Submitted work: ${workKey} for student ${studentUid}`);
+  }
+};
+
+/**
+ * Resubmit student work (after teacher has graded and student edits)
+ * Updates submission status back to pending so teacher knows to re-review
+ *
+ * @param {string} studentUid - Student's Firebase UID
+ * @param {string} lessonId - Lesson ID
+ * @param {string} activityId - Activity ID
+ * @param {string} classId - Class ID
+ */
+export const resubmitStudentWork = async (studentUid, lessonId, activityId, classId) => {
+  const workKey = `${lessonId}-${activityId}`;
+  const workRef = ref(database, `studentWork/${studentUid}/${workKey}`);
+  const now = Date.now();
+
+  // Update work status
+  await update(workRef, {
+    status: 'submitted',
     submittedAt: now,
-    status: 'pending', // pending, graded
-    grade: null,
-    feedback: null
+    updatedAt: now
   });
 
-  console.log(`Submitted work: ${workKey} for student ${studentUid}`);
+  // Update submission record — set back to pending, track resubmission
+  const submissionRef = ref(database, `submissions/${classId}/${lessonId}/${studentUid}`);
+  const snapshot = await get(submissionRef);
+  const existing = snapshot.exists() ? snapshot.val() : {};
+  const resubmitCount = (existing.resubmitCount || 0) + 1;
+
+  await update(submissionRef, {
+    status: 'pending',
+    submittedAt: now,
+    resubmittedAt: now,
+    resubmitCount
+  });
+
+  console.log(`Resubmitted work: ${workKey} for student ${studentUid} (attempt ${resubmitCount + 1})`);
 };
 
 /**

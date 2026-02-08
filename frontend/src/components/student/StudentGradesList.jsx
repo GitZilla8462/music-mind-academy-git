@@ -3,10 +3,11 @@
 // Displays grades grouped by unit → lesson, handles points-based and letter grades
 
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Award, Loader2, BookOpen, ChevronDown, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { MessageSquare, Award, Loader2, BookOpen, ChevronDown, ChevronRight, Eye, PenLine } from 'lucide-react';
 import { useStudentAuth } from '../../context/StudentAuthContext';
 import { getStudentGrades } from '../../firebase/grades';
-import { CURRICULUM } from '../../config/curriculumConfig';
+import { CURRICULUM, getActivityById, getLessonById } from '../../config/curriculumConfig';
 
 // Quick feedback labels (matches GradeForm)
 const FEEDBACK_LABELS = {
@@ -49,6 +50,7 @@ const formatDate = (timestamp) => {
 };
 
 const StudentGradesList = () => {
+  const navigate = useNavigate();
   const { isAuthenticated, currentStudentInfo, isPinAuth } = useStudentAuth();
   const [grades, setGrades] = useState({});
   const [loading, setLoading] = useState(true);
@@ -144,7 +146,12 @@ const StudentGradesList = () => {
                   >
                     <div className="flex items-center gap-3">
                       <BookOpen className="w-5 h-5 text-gray-400" />
-                      <span className="font-medium text-gray-800">{lesson.shortName || lesson.name}</span>
+                      <span className="font-medium text-gray-800">
+                        {(() => {
+                          const activity = grade.activityId ? getActivityById(lesson.id, grade.activityId) : null;
+                          return activity ? activity.name : (lesson.shortName || lesson.name);
+                        })()}
+                      </span>
                       {isExpanded
                         ? <ChevronDown size={16} className="text-gray-400" />
                         : <ChevronRight size={16} className="text-gray-400" />
@@ -242,6 +249,26 @@ const StudentGradesList = () => {
                           <p className="text-xs text-gray-400">
                             Graded on {formatDate(grade.gradedAt)}
                           </p>
+                        )}
+
+                        {/* View Work / Edit & Resubmit */}
+                        {lesson.route && (
+                          <div className="flex items-center gap-2 pt-1">
+                            <button
+                              onClick={() => navigate(`${lesson.route}?view=saved`)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                            >
+                              <Eye size={13} />
+                              View My Work
+                            </button>
+                            <button
+                              onClick={() => navigate(`${lesson.route}?view=saved&resubmit=true`)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                            >
+                              <PenLine size={13} />
+                              Edit & Resubmit
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>

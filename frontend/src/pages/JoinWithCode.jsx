@@ -81,9 +81,16 @@ function JoinWithCode() {
 
   // Auto-join for preview mode
   useEffect(() => {
-    if (isPreviewMode && urlCode && urlCode.length === 4) {
+    if (!isPreviewMode || !urlCode) return;
+
+    if (urlCode.length === 4) {
+      // 4-digit session code
       console.log('Preview mode detected, auto-joining session:', urlCode);
       handleAutoJoin(urlCode);
+    } else if (/^[A-Z]{2}\d{4}$/.test(urlCode)) {
+      // 6-char class code - look up class and join its active session
+      console.log('Preview mode detected, auto-joining class session:', urlCode);
+      handleClassPreviewJoin(urlCode);
     }
   }, [isPreviewMode, urlCode]);
 
@@ -107,7 +114,7 @@ function JoinWithCode() {
     );
   }
 
-  // Auto-join for preview mode
+  // Auto-join for preview mode (4-digit session code)
   const handleAutoJoin = async (sessionCode) => {
     try {
       const sessionData = await getSessionData(sessionCode);
@@ -120,6 +127,23 @@ function JoinWithCode() {
       window.location.href = `${lessonRoute}?session=${sessionCode}&role=student&preview=true${passiveParam}`;
     } catch (err) {
       console.error('Preview mode error:', err);
+      setError('Failed to load preview');
+    }
+  };
+
+  // Auto-join for preview mode (6-char class code)
+  const handleClassPreviewJoin = async (classCode) => {
+    try {
+      const classInfo = await getClassByCode(classCode);
+      if (!classInfo || !classInfo.currentSession?.active) {
+        setError('No active session');
+        return;
+      }
+      const lessonRoute = classInfo.currentSession.lessonRoute || '/lessons/film-music-project/lesson1';
+      const passiveParam = isPassiveMode ? '&passive=true' : '';
+      window.location.href = `${lessonRoute}?classId=${classInfo.id}&classCode=${classCode}&role=student&preview=true${passiveParam}`;
+    } catch (err) {
+      console.error('Preview mode class join error:', err);
       setError('Failed to load preview');
     }
   };

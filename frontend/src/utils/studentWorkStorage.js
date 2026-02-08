@@ -30,7 +30,7 @@ export const getStudentId = () => {
  * Auto-detect class auth info from PIN session in localStorage.
  * Returns { uid, classId } if student is in an active class session, null otherwise.
  */
-const getClassAuthInfo = () => {
+export const getClassAuthInfo = () => {
   try {
     const saved = localStorage.getItem(PIN_SESSION_KEY);
     if (!saved) return null;

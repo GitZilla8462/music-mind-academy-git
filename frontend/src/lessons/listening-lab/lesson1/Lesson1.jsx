@@ -299,9 +299,9 @@ const Lesson1 = () => {
   if (viewSavedMode || viewReflectionMode) {
     return (
       <ActivityRenderer
-        activity={{ type: viewReflectionMode ? 'listening-lab-reflection' : 'listening-map-instruments', id: 'saved-view' }}
-        onComplete={() => navigate('/music-classroom-resources')}
-        viewMode={true}
+        activity={{ type: viewReflectionMode ? 'listening-lab-reflection' : 'dynamics-listening-map', id: 'saved-view' }}
+        onComplete={() => navigate(-1)}
+        viewMode={false}
         isSessionMode={false}
         lessonConfig={lessonConfig}
       />

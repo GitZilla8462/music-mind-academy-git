@@ -1,19 +1,27 @@
 // File: /src/lessons/shared/activities/dynamics-dash/DynamicsDashResults.jsx
 // Dynamics Dash - Results Leaderboard (Teacher Presentation View)
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Trophy } from 'lucide-react';
 import { getDatabase, ref, onValue } from 'firebase/database';
+import { useSession } from '../../../../context/SessionContext';
 
 const DynamicsDashResults = ({ sessionData }) => {
-  const sessionCode = sessionData?.sessionCode || new URLSearchParams(window.location.search).get('session');
+  const { sessionCode: contextSessionCode, classId } = useSession();
+  const sessionCode = contextSessionCode || sessionData?.sessionCode || new URLSearchParams(window.location.search).get('session');
   const [leaderboard, setLeaderboard] = useState([]);
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
 
   // Subscribe to students for leaderboard
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!studentsPath) return;
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsPath);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -30,7 +38,7 @@ const DynamicsDashResults = ({ sessionData }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode]);
+  }, [studentsPath]);
 
   const getRankEmoji = (rank) => {
     if (rank === 1) return '🥇';

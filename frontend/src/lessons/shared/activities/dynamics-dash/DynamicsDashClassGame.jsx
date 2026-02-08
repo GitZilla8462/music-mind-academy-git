@@ -9,9 +9,10 @@
 // 4. Revealed - Show correct answer
 // 5. Next/Finished
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Play, Pause, Users, Trophy, Eye, RotateCcw, ChevronRight } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { useSession } from '../../../../context/SessionContext';
 import { AUDIO_PATH, DYNAMICS, GRADUAL_DYNAMICS, QUESTIONS, TOTAL_QUESTIONS, getVolumeForDynamic } from './dynamicsDashConfig';
 
 // Shuffle helper
@@ -30,7 +31,22 @@ const ActivityBanner = () => (
 );
 
 const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
-  const sessionCode = sessionData?.sessionCode || new URLSearchParams(window.location.search).get('session');
+  const { sessionCode: contextSessionCode, classId } = useSession();
+  // For quick sessions, sessionCode comes from session data or URL. For class sessions, use classId.
+  const sessionCode = contextSessionCode || sessionData?.sessionCode || new URLSearchParams(window.location.search).get('session');
+
+  // Compute Firebase paths based on session type
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/dynamicsDash`;
+    if (sessionCode) return `sessions/${sessionCode}/dynamicsDash`;
+    return null;
+  }, [classId, sessionCode]);
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
 
   // Game state
   const [gamePhase, setGamePhase] = useState('setup'); // setup, playing, guessing, revealed, finished
@@ -53,16 +69,16 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
-    if (!sessionCode) return;
+    if (!gamePath) return;
     const db = getDatabase();
-    update(ref(db, `sessions/${sessionCode}/dynamicsDash`), data);
-  }, [sessionCode]);
+    update(ref(db, gamePath), data);
+  }, [gamePath]);
 
   // Firebase: Subscribe to students
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!studentsPath) return;
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsPath);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -82,7 +98,7 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode]);
+  }, [studentsPath]);
 
   // Stop audio helper
   const stopAudio = useCallback(() => {
@@ -155,10 +171,10 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
     setCorrectCount(0);
 
     // Reset student answers and scores
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           dynamicsDashAnswer: null,
           dynamicsDashScore: 0
         }).catch(err => console.error(`Failed to reset student ${s.id}:`, err));
@@ -171,7 +187,7 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
       totalQuestions: shuffled.length,
       questionType: shuffled[0]?.questionType || 'level'
     });
-  }, [sessionCode, students, updateGame]);
+  }, [studentsPath, students, updateGame]);
 
   // Reveal answer
   const reveal = useCallback(() => {
@@ -225,10 +241,10 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
     stopAudio();
 
     // Clear student answers
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           dynamicsDashAnswer: null
         }).catch(err => console.error(`Failed to clear answer for ${s.id}:`, err));
       });
@@ -249,7 +265,7 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
         questionType: shuffledQuestions[nextIdx]?.questionType || 'level'
       });
     }
-  }, [sessionCode, students, currentQuestion, shuffledQuestions, updateGame, stopAudio]);
+  }, [studentsPath, students, currentQuestion, shuffledQuestions, updateGame, stopAudio]);
 
   // Cleanup on unmount
   useEffect(() => () => stopAudio(), [stopAudio]);
