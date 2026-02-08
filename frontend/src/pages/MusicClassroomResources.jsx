@@ -487,7 +487,7 @@ function MusicClassroomResources() {
               Curriculum
             </h1>
             <p style={{ fontSize: '14px', color: '#64748b' }}>
-              6 units &bull; 30 lessons &bull; Full year &bull; Grades 6-8
+              7 units &bull; 35 lessons &bull; Full year &bull; Grades 6-8
             </p>
           </div>
           <button
@@ -511,14 +511,14 @@ function MusicClassroomResources() {
           </button>
         </div>
 
-        {/* 6-Unit Grid - 3x2 */}
+        {/* Unit Grid */}
         <div style={{
           flex: 1,
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
-          gridTemplateRows: 'repeat(2, 1fr)',
           gap: '16px',
-          minHeight: 0
+          minHeight: 0,
+          alignContent: 'start'
         }}>
           {CURRICULUM_UNITS.map((unit) => {
             const isClickable = unit.status === 'pilot' || unit.status === 'active' || (hasEarlyAccess && unit.route);
@@ -534,7 +534,7 @@ function MusicClassroomResources() {
                   borderRadius: '10px',
                   border: unit.status === 'pilot' ? `2px solid ${unit.color}` : '1px solid #e2e8f0',
                   cursor: isClickable ? 'pointer' : 'default',
-                  opacity: isComingSoon && !hasEarlyAccess ? 0.7 : 1,
+                  opacity: isComingSoon && !hasEarlyAccess ? 0.85 : 1,
                   display: 'flex',
                   flexDirection: 'column',
                   overflow: 'hidden',
@@ -643,8 +643,8 @@ function MusicClassroomResources() {
 
                   {/* Subtitle */}
                   <p style={{
-                    fontSize: '13px',
-                    color: '#64748b',
+                    fontSize: '14px',
+                    color: '#475569',
                     marginBottom: '12px'
                   }}>
                     {unit.subtitle}
@@ -661,8 +661,8 @@ function MusicClassroomResources() {
                   }}>
                     {unit.bullets.map((bullet, idx) => (
                       <li key={idx} style={{
-                        fontSize: '12px',
-                        color: '#64748b',
+                        fontSize: '13px',
+                        color: '#475569',
                         display: 'flex',
                         alignItems: 'flex-start',
                         gap: '6px'
@@ -683,9 +683,9 @@ function MusicClassroomResources() {
                       marginTop: '12px'
                     }}>
                       <span style={{
-                        fontSize: '11px',
+                        fontSize: '12px',
                         fontWeight: '500',
-                        color: '#64748b',
+                        color: '#475569',
                         backgroundColor: '#f1f5f9',
                         padding: '4px 10px',
                         borderRadius: '12px',
@@ -709,7 +709,7 @@ function MusicClassroomResources() {
                   }}>
                     <span style={{
                       fontSize: '13px',
-                      color: '#94a3b8'
+                      color: '#64748b'
                     }}>
                       {unit.lessonCount} lessons &bull; {unit.duration}
                     </span>
@@ -731,7 +731,7 @@ function MusicClassroomResources() {
           fontSize: '13px',
           color: '#94a3b8'
         }}>
-          Full curriculum available August 2026 &bull; Currently piloting Units 1 & 4
+          Full curriculum available August 2026 &bull; Currently piloting Units 1 &amp; 4
         </div>
       </div>
     </div>
