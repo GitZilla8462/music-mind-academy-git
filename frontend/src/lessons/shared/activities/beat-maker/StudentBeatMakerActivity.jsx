@@ -253,6 +253,7 @@ const TeacherBeatTutorial = () => {
     );
 
     sequenceRef.current.start(0);
+    Tone.Transport.position = 0;
     Tone.Transport.start('+0.05');
     setIsPlaying(true);
   }, [isPlaying, tutorialStep, createSynths, stopPlayback]);
@@ -566,6 +567,7 @@ const StudentBeatMakerActivity = ({
 
     previewSequenceRef.current.loop = true;
     previewSequenceRef.current.start(0);
+    Tone.Transport.position = 0;
     Tone.Transport.start('+0.05');
     setPlayingBeatId(beat.id);
   }, [playingBeatId, stopPreview, createPreviewSynths]);

@@ -12,9 +12,12 @@ const ErrorLogger = () => {
     // Capture console.error
     const originalError = console.error;
     console.error = function(...args) {
-      const message = args.map(arg => 
-        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-      ).join(' ');
+      const message = args.map(arg => {
+        if (typeof arg === 'object') {
+          try { return JSON.stringify(arg); } catch { return '[Object]'; }
+        }
+        return String(arg);
+      }).join(' ');
       
       // Only show critical errors with these keywords
       if (message.includes('🔴') || 

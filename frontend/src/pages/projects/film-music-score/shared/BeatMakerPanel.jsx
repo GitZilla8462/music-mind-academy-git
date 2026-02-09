@@ -563,6 +563,7 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
     );
 
     sequenceRef.current.start(0);
+    Tone.Transport.position = 0;
     Tone.Transport.start('+0.05');
     setIsPlaying(true);
     console.log('▶️ Playback started (real-time synthesis)');
