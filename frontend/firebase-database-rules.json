@@ -18,7 +18,10 @@
         "$studentId": {
           ".read": "auth != null",
           ".write": true,
-          ".indexOn": ["timestamp", "type"]
+          ".indexOn": ["timestamp", "type"],
+          "$logId": {
+            ".validate": "newData.hasChildren(['type', 'timestamp']) && newData.child('type').isString() && newData.child('type').val().length < 50 && newData.child('timestamp').isNumber()"
+          }
         }
       }
     },
@@ -26,7 +29,10 @@
     "all-problems": {
       ".read": "auth != null",
       ".write": true,
-      ".indexOn": ["timestamp", "date", "type", "sessionCode", "resolved"]
+      ".indexOn": ["timestamp", "date", "type", "sessionCode", "resolved"],
+      "$problemId": {
+        ".validate": "newData.hasChildren(['type', 'timestamp']) && newData.child('type').isString() && newData.child('type').val().length < 50 && newData.child('timestamp').isNumber()"
+      }
     },
 
     "compositions": {
@@ -80,7 +86,7 @@
     },
 
     "teacherOutreach": {
-      ".read": true,
+      ".read": "auth != null && (auth.token.email == 'robtaube90@gmail.com' || auth.token.email == 'robtaube92@gmail.com')",
       ".write": "auth != null && (auth.token.email == 'robtaube90@gmail.com' || auth.token.email == 'robtaube92@gmail.com')"
     },
 
