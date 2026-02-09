@@ -186,8 +186,7 @@ const TermsOfService = () => {
           </p>
           <ul>
             <li>They have reviewed the {siteName} <a href="/privacy">Privacy Policy</a></li>
-            <li>Their school or district has authorized the use of the Platform for student data collection,
-            including any required Data Privacy Agreement</li>
+            <li>Their school or district has authorized the use of the Platform for student data collection{!isEduSite && ', including any required Data Privacy Agreement'}</li>
             <li>They are authorized to consent on behalf of parents under COPPA for the educational
             use of the Platform</li>
             <li>They will not enter unnecessary personal information about students beyond what is
@@ -231,18 +230,20 @@ const TermsOfService = () => {
             our <a href="/student-privacy">Student Data Privacy</a> page.
           </p>
 
-          <h2>6. Data Privacy Agreements</h2>
-          <p>
-            Schools and districts may request a Data Privacy Agreement (DPA) before authorizing
-            teacher use of the Platform. We are prepared to execute Data Privacy Agreements including
-            agreements compatible with the Student Data Privacy Consortium (SDPC) National Data
-            Privacy Agreement (NDPA) framework or your district's standard DPA template.
-          </p>
           {!isEduSite && (
-            <p>
-              To request a Data Privacy Agreement, contact:{' '}
-              <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a>
-            </p>
+            <>
+              <h2>6. Data Privacy Agreements</h2>
+              <p>
+                Schools and districts may request a Data Privacy Agreement (DPA) before authorizing
+                teacher use of the Platform. We are prepared to execute Data Privacy Agreements including
+                agreements compatible with the Student Data Privacy Consortium (SDPC) National Data
+                Privacy Agreement (NDPA) framework or your district's standard DPA template.
+              </p>
+              <p>
+                To request a Data Privacy Agreement, contact:{' '}
+                <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a>
+              </p>
+            </>
           )}
 
           <h2>7. Acceptable Use</h2>
@@ -349,7 +350,9 @@ const TermsOfService = () => {
           <ul>
             <li>Your right to use the Platform ceases (or at the end of your billing period if you cancel)</li>
             <li>Student data will be handled in accordance with our Privacy Policy</li>
-            <li>We will comply with any applicable Data Privacy Agreement regarding data return or destruction</li>
+            {!isEduSite && (
+              <li>We will comply with any applicable Data Privacy Agreement regarding data return or destruction</li>
+            )}
             <li>Provisions of these Terms that by their nature should survive termination will survive</li>
           </ul>
 

@@ -306,7 +306,7 @@ const EduLandingPage = () => {
                 </div>
                 <div>
                   <div className="font-semibold text-slate-800">No Data Selling or Ads</div>
-                  <div className="text-sm text-slate-600">No tracking, no third parties, DPA available</div>
+                  <div className="text-sm text-slate-600">No tracking, no third parties, no data selling</div>
                 </div>
               </div>
             </div>

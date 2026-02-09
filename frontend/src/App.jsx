@@ -302,7 +302,6 @@ const AppContent = () => {
         <Route path="/student-privacy" element={<StudentPrivacy />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
-        <Route path="/dpa" element={<DataPrivacyAgreement />} />
         <Route path="/security" element={<SecurityPractices />} />
 
         {/* Teacher login page for approved pilot teachers */}

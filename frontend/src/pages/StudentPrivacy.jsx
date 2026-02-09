@@ -334,10 +334,12 @@ const StudentPrivacy = () => {
                 <span className="it-item-label">NY Ed Law 2-d Compliant</span>
                 <span className="it-item-value yes">YES</span>
               </div>
-              <div className="it-item">
-                <span className="it-item-label">DPA Available</span>
-                <span className="it-item-value yes">YES</span>
-              </div>
+              {!isEduSite && (
+                <div className="it-item">
+                  <span className="it-item-label">DPA Available</span>
+                  <span className="it-item-value yes">YES</span>
+                </div>
+              )}
               <div className="it-item">
                 <span className="it-item-label">Encryption (Transit + Rest)</span>
                 <span className="it-item-value yes">YES</span>
@@ -382,41 +384,41 @@ const StudentPrivacy = () => {
             </p>
           </div>
 
-          {/* DPA Callout */}
-          <div className="highlight-box blue">
-            <h3 style={{ marginTop: 0, color: '#1e40af', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              Data Privacy Agreement (DPA)
-            </h3>
-            <p>
-              We are ready to sign a Data Privacy Agreement with your district. Our standard DPA is
-              compatible with the SDPC National Data Privacy Agreement (NDPA) framework. You can also
-              send us your district's own DPA template.
-            </p>
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              <a
-                href="/dpa"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  background: '#1e40af',
-                  color: 'white',
-                  padding: '0.6rem 1.25rem',
-                  borderRadius: '8px',
-                  textDecoration: 'none',
-                  fontWeight: 500,
-                  fontSize: '0.95rem'
-                }}
-              >
-                View & Download DPA →
-              </a>
-              {!isEduSite && (
+          {/* DPA Callout — MMA site only */}
+          {!isEduSite && (
+            <div className="highlight-box blue">
+              <h3 style={{ marginTop: 0, color: '#1e40af', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                Data Privacy Agreement (DPA)
+              </h3>
+              <p>
+                We are ready to sign a Data Privacy Agreement with your district. Our standard DPA is
+                compatible with the SDPC National Data Privacy Agreement (NDPA) framework. You can also
+                send us your district's own DPA template.
+              </p>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <a
+                  href="/dpa"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    background: '#1e40af',
+                    color: 'white',
+                    padding: '0.6rem 1.25rem',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    fontWeight: 500,
+                    fontSize: '0.95rem'
+                  }}
+                >
+                  View & Download DPA →
+                </a>
                 <span style={{ color: '#475569', fontSize: '0.9rem' }}>
                   or email <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a> to request a signed copy
                 </span>
-              )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Compliance Badges */}
           <div className="compliance-badges">
@@ -611,8 +613,7 @@ const StudentPrivacy = () => {
           <p>
             {siteName} complies with NY Ed Law 2-d by never selling or releasing student PII
             for commercial purposes, encrypting all PII in transit and at rest, notifying affected schools
-            within 7 days of a breach, providing a Parents' Bill of Rights, and being prepared to sign
-            Data Privacy Agreements with NY districts.
+            within 7 days of a breach{!isEduSite && ', being prepared to sign Data Privacy Agreements with NY districts'}, and providing a Parents' Bill of Rights.
           </p>
 
           {/* Data Retention */}
@@ -621,7 +622,9 @@ const StudentPrivacy = () => {
             <li><strong>During active use:</strong> Student data is retained and accessible to the teacher and student</li>
             <li><strong>Account termination:</strong> Student data is securely deleted within <strong>60 days</strong> unless the teacher requests an export</li>
             <li><strong>Deletion requests:</strong> Teachers, parents, and districts may request deletion of student data at any time</li>
-            <li><strong>DPA available:</strong> We are happy to sign a Data Privacy Agreement with your district upon request</li>
+            {!isEduSite && (
+              <li><strong>DPA available:</strong> We are happy to sign a Data Privacy Agreement with your district upon request</li>
+            )}
           </ul>
 
           {/* Parents' Bill of Rights */}
@@ -701,14 +704,18 @@ const StudentPrivacy = () => {
           {/* FAQ */}
           <h2>Frequently Asked Questions</h2>
 
-          <h3>Does my district need a DPA?</h3>
-          <p>
-            We are happy to sign a Data Privacy Agreement with your district. We can sign agreements
-            compatible with the SDPC National Data Privacy Agreement (NDPA) framework or your district's
-            standard DPA template.{!isEduSite && (<> Contact us at{' '}
-            <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a> to
-            discuss DPA requirements.</>)}
-          </p>
+          {!isEduSite && (
+            <>
+              <h3>Does my district need a DPA?</h3>
+              <p>
+                We are happy to sign a Data Privacy Agreement with your district. We can sign agreements
+                compatible with the SDPC National Data Privacy Agreement (NDPA) framework or your district's
+                standard DPA template. Contact us at{' '}
+                <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a> to
+                discuss DPA requirements.
+              </p>
+            </>
+          )}
 
           <h3>Do you use AI on student data?</h3>
           <p>
