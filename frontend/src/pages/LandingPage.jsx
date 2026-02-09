@@ -917,7 +917,7 @@ const LandingPage = () => {
                 <div className="privacy-check">✓</div>
                 <div className="privacy-item-text">
                   <h4>Zero-PII Option</h4>
-                  <p>Classroom Mode: class code + musical name, no real names</p>
+                  <p>Classroom Mode: students join by class code, no real names</p>
                 </div>
               </div>
               <div className="privacy-item">

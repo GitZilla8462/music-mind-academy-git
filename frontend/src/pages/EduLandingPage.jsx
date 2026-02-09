@@ -282,7 +282,7 @@ const EduLandingPage = () => {
                 </div>
                 <div>
                   <div className="font-semibold text-slate-800">Zero-PII Option</div>
-                  <div className="text-sm text-slate-600">Classroom Mode: class code + musical name, no real names</div>
+                  <div className="text-sm text-slate-600">Classroom Mode: students join by class code, no real names</div>
                 </div>
               </div>
 
