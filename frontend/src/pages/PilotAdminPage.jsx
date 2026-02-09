@@ -512,6 +512,27 @@ const PilotAdminPage = () => {
       return Math.round(ms / 60000);
     };
 
+    // Compute active teaching time from stage times (sum of all stage durations)
+    const getActiveTimeMins = (stageTimes) => {
+      if (!stageTimes || typeof stageTimes !== 'object') return 0;
+      return Math.round(Object.values(stageTimes).reduce((sum, time) => sum + (time || 0), 0) / 60000);
+    };
+
+    // Determine if a session was a real class (not just a test)
+    const isRealClass = (session) => {
+      const activeMin = getActiveTimeMins(session.stageTimes);
+      const stageCount = session.stageTimes ? Object.keys(session.stageTimes).length : 0;
+      // Real class: at least 10 min active time AND moved through 3+ stages
+      return activeMin >= 10 && stageCount >= 3;
+    };
+
+    // Compute summary stats from sessions using active time
+    const realClassSessions = pilotSessions.filter(s => isRealClass(s));
+    const totalActiveMinutes = pilotSessions.reduce((sum, s) => sum + getActiveTimeMins(s.stageTimes), 0);
+    const avgActiveTime = realClassSessions.length > 0
+      ? Math.round(realClassSessions.reduce((sum, s) => sum + getActiveTimeMins(s.stageTimes), 0) / realClassSessions.length)
+      : 0;
+
     // Sheet 1: Summary Stats
     const summaryData = [
       ['Music Mind Academy Pilot Program Report'],
@@ -521,15 +542,17 @@ const PilotAdminPage = () => {
       ['Academy Approved Emails', academyEmails.length],
       ['Edu Approved Emails', eduEmails.length],
       ['Registered Users', registeredUsers.length],
-      ['Total Sessions', summaryStats?.totalSessions || 0],
-      ['Avg Session Duration (min)', durationMins(summaryStats?.avgSessionDuration)],
+      ['Total Sessions', pilotSessions.length],
+      ['Real Classes (10+ min, 3+ stages)', realClassSessions.length],
+      ['Avg Active Teaching Time (min)', avgActiveTime],
       ['Most Popular Lesson', summaryStats?.mostPopularLesson || 'N/A'],
       ['Return Rate (%)', summaryStats?.retentionRate || 0],
       [''],
-      ['⚠️ DATA NOTE'],
-      ['Student counts before Jan 10, 2025 are inflated due to a bug where page refreshes'],
-      ['created duplicate student entries. This was fixed on Jan 10, 2025.'],
-      ['Affected sessions show ~20-40x actual student counts (e.g., 1,372 shown vs ~60 actual).'],
+      ['⚠️ DATA NOTES'],
+      ['"Active Time" = sum of tracked stage durations (reliable). "Wall Clock" = session start to end (unreliable — teachers often forget to end).'],
+      ['"Real Class" = session with 10+ min active time AND 3+ stages visited (filters out quick tests).'],
+      ['Student counts before Jan 10, 2025 are inflated due to a duplicate-on-refresh bug. Fixed Jan 10, 2025.'],
+      ['Student count race condition fixed Feb 9, 2025 (atomic increments). Older sessions may show 0 incorrectly.'],
     ];
     const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
     XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
@@ -552,37 +575,37 @@ const PilotAdminPage = () => {
       }
       teacherLessonData[email].lessons[lessonNum].push({
         students: session.studentsJoined || 0,
-        duration: session.duration || 0,
-        completed: session.completed || false,
+        activeTime: getActiveTimeMins(session.stageTimes),
+        realClass: isRealClass(session),
         date: session.startTime
       });
     });
 
-    const teacherRows = [['Teacher Email', 'L1 Sessions', 'L1 Students', 'L1 Time (min)', 'L1 Completed',
-      'L2 Sessions', 'L2 Students', 'L2 Time (min)', 'L2 Completed',
-      'L3 Sessions', 'L3 Students', 'L3 Time (min)', 'L3 Completed',
-      'L4 Sessions', 'L4 Students', 'L4 Time (min)', 'L4 Completed',
-      'L5 Sessions', 'L5 Students', 'L5 Time (min)', 'L5 Completed',
-      'Total Sessions', 'Total Students', 'Total Time (min)']];
+    const teacherRows = [['Teacher Email', 'L1 Real Classes', 'L1 Students', 'L1 Active Time (min)', 'L1 Taught',
+      'L2 Real Classes', 'L2 Students', 'L2 Active Time (min)', 'L2 Taught',
+      'L3 Real Classes', 'L3 Students', 'L3 Active Time (min)', 'L3 Taught',
+      'L4 Real Classes', 'L4 Students', 'L4 Active Time (min)', 'L4 Taught',
+      'L5 Real Classes', 'L5 Students', 'L5 Active Time (min)', 'L5 Taught',
+      'Total Real Classes', 'Total Students', 'Total Active Time (min)']];
 
     Object.values(teacherLessonData).forEach(teacher => {
       const row = [teacher.email];
-      let totalSessions = 0, totalStudents = 0, totalTime = 0;
+      let totalRealClasses = 0, totalStudents = 0, totalActiveTime = 0;
 
       [1, 2, 3, 4, 5].forEach(lessonNum => {
         const sessions = teacher.lessons[lessonNum];
-        const sessionCount = sessions.length;
+        const realClasses = sessions.filter(s => s.realClass).length;
         const students = sessions.reduce((sum, s) => sum + s.students, 0);
-        const time = sessions.reduce((sum, s) => sum + s.duration, 0);
-        const completed = sessions.some(s => s.completed && s.students >= 10 && s.duration >= 15 * 60000);
+        const activeTime = sessions.reduce((sum, s) => sum + s.activeTime, 0);
+        const taught = realClasses > 0;
 
-        row.push(sessionCount, students, durationMins(time), completed ? 'Yes' : 'No');
-        totalSessions += sessionCount;
+        row.push(realClasses, students, activeTime, taught ? 'Yes' : 'No');
+        totalRealClasses += realClasses;
         totalStudents += students;
-        totalTime += time;
+        totalActiveTime += activeTime;
       });
 
-      row.push(totalSessions, totalStudents, durationMins(totalTime));
+      row.push(totalRealClasses, totalStudents, totalActiveTime);
       teacherRows.push(row);
     });
 
@@ -590,8 +613,8 @@ const PilotAdminPage = () => {
     XLSX.utils.book_append_sheet(workbook, teacherSheet, 'Teacher Progress');
 
     // Sheet 3: All Sessions
-    const sessionRows = [['Session Code', 'Teacher Email', 'Lesson', 'Start Time', 'Duration (min)',
-      'Students Joined', 'Completed', 'Last Stage', 'Stage Times']];
+    const sessionRows = [['Session Code', 'Teacher Email', 'Lesson', 'Start Time', 'Active Time (min)',
+      'Wall Clock (min)', 'Students Joined', 'Real Class', 'Completed', 'Last Stage', 'Stage Times']];
 
     pilotSessions.forEach(session => {
       const stageTimes = session.stageTimes
@@ -603,8 +626,10 @@ const PilotAdminPage = () => {
         session.teacherEmail || '',
         getLessonName(session.lessonId, session.lessonRoute),
         excelDate(session.startTime),
+        getActiveTimeMins(session.stageTimes),
         durationMins(session.duration),
         session.studentsJoined || 0,
+        isRealClass(session) ? 'Yes' : 'No',
         session.completed ? 'Yes' : 'No',
         session.lastStage || '',
         stageTimes

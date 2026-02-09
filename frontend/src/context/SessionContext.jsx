@@ -524,13 +524,8 @@ export const SessionProvider = ({ children }) => {
         await firebaseJoinSession(code, studentId, studentName || 'Student');
       }
 
-      // ✅ Update analytics with new student count
-      // Calculate count: existing students + 1 (this student)
-      const existingCount = sessionData.studentsJoined
-        ? Object.keys(sessionData.studentsJoined).length
-        : 0;
-      const newCount = existingCount + 1;
-      logStudentJoined(code, newCount).catch((err) => {
+      // ✅ Update analytics with atomic increment
+      logStudentJoined(code).catch((err) => {
         console.warn('Analytics student count update failed (non-critical):', err);
       });
 
@@ -624,12 +619,8 @@ export const SessionProvider = ({ children }) => {
       
       await firebaseJoinSession(code, studentId, musicalName);
 
-      // ✅ Update analytics with new student count
-      const existingCount = sessionData.studentsJoined
-        ? Object.keys(sessionData.studentsJoined).length
-        : 0;
-      const newCount = existingCount + 1;
-      logStudentJoined(code, newCount).catch((err) => {
+      // ✅ Update analytics with atomic increment
+      logStudentJoined(code).catch((err) => {
         console.warn('Analytics student count update failed (non-critical):', err);
       });
 

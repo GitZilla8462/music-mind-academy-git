@@ -1,7 +1,7 @@
 // Teacher analytics tracking for pilot program
 // src/firebase/analytics.js
 
-import { getDatabase, ref, get, set, update, push, onValue } from 'firebase/database';
+import { getDatabase, ref, get, set, update, push, onValue, increment } from 'firebase/database';
 
 const database = getDatabase();
 
@@ -114,14 +114,18 @@ export const logSessionEnded = async (sessionCode, lastStage, studentsJoined) =>
   const endTime = Date.now();
   const duration = endTime - startTime;
 
-  // Update session record
-  await update(sessionRef, {
+  // Update session record — don't overwrite studentsJoined if already set by atomic increments
+  const updateData = {
     endTime,
     duration,
     lastStage,
-    studentsJoined: studentsJoined || 0,
     completed: lastStage === 'conclusion' || lastStage === 'ended'
-  });
+  };
+  // Only write studentsJoined if the current value is 0 and the caller has a count
+  if (studentsJoined && (!sessionData.studentsJoined || sessionData.studentsJoined === 0)) {
+    updateData.studentsJoined = studentsJoined;
+  }
+  await update(sessionRef, updateData);
 
   // Update teacher's total time
   if (sessionData.teacherUid) {
@@ -186,14 +190,14 @@ export const logStageChange = async (sessionCode, newStage) => {
 };
 
 /**
- * Update student count for a session
+ * Atomically increment student count for a session
  */
-export const logStudentJoined = async (sessionCode, studentCount) => {
+export const logStudentJoined = async (sessionCode) => {
   if (!sessionCode) return;
 
   const sessionRef = ref(database, `pilotSessions/${sessionCode}`);
   await update(sessionRef, {
-    studentsJoined: studentCount
+    studentsJoined: increment(1)
   });
 };
 
