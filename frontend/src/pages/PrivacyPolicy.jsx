@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
 
   return (
     <div style={{
@@ -81,18 +82,20 @@ const PrivacyPolicy = () => {
               cursor: 'pointer'
             }}
           >
-            <img
-              src="/MusicMindAcademyLogo.png"
-              alt="Music Mind Academy"
-              style={{ height: '40px', width: 'auto' }}
-            />
+            {!isEduSite && (
+              <img
+                src="/MusicMindAcademyLogo.png"
+                alt="Music Mind Academy"
+                style={{ height: '40px', width: 'auto' }}
+              />
+            )}
             <span style={{
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: '1.5rem',
               fontWeight: 700,
               color: '#1e293b'
             }}>
-              Music Mind Academy
+              {isEduSite ? 'Music Room Tools' : 'Music Mind Academy'}
             </span>
           </div>
           <button
@@ -163,14 +166,14 @@ const PrivacyPolicy = () => {
             The data collected from students depends on the mode:
           </p>
 
-          <p><strong>Classroom Mode (Zero PII):</strong></p>
+          <p><strong>Quick Join (Zero PII):</strong></p>
           <ul>
             <li><strong>Musical name:</strong> A name chosen by the student (e.g., "Forte") — not linked to real identity</li>
             <li><strong>Activity data:</strong> Scores and progress during active sessions only</li>
             <li>No real names, no emails, no accounts — session data is temporary</li>
           </ul>
 
-          <p><strong>Student Accounts Mode (Persistent Accounts):</strong></p>
+          <p><strong>Classroom Mode (Persistent Accounts):</strong></p>
           <ul>
             <li><strong>Student name:</strong> From Google account or entered by teacher</li>
             <li><strong>Student email:</strong> Only if using Google Sign-In</li>
@@ -200,7 +203,7 @@ const PrivacyPolicy = () => {
             <li>Communicate with teachers about their accounts</li>
           </ul>
           <p>
-            <strong>FERPA Designation:</strong> When operating in Student Accounts Mode, Music Mind Academy
+            <strong>FERPA Designation:</strong> When operating in Classroom Mode, Music Mind Academy
             functions as a "school official" with a legitimate educational interest under FERPA (20 U.S.C. § 1232g).
             We use student education records solely for the educational purposes authorized by the school,
             and we do not redisclose education records to any third party except as authorized by FERPA or
@@ -234,11 +237,11 @@ const PrivacyPolicy = () => {
             enterprise-grade security and is compliant with major security standards.
           </p>
           <p>
-            <strong>Classroom Mode:</strong> Student work is stored locally on the student's device
+            <strong>Quick Join:</strong> Student work is stored locally on the student's device
             and is not transmitted to our servers.
           </p>
           <p>
-            <strong>Student Accounts Mode:</strong> Student work is stored in Firebase/MongoDB Atlas
+            <strong>Classroom Mode:</strong> Student work is stored in Firebase/MongoDB Atlas
             with encryption at rest (AES-256) and role-based access controls.
           </p>
           <p><strong>Security measures include:</strong></p>
@@ -256,8 +259,8 @@ const PrivacyPolicy = () => {
           <ul>
             <li><strong>Teacher accounts:</strong> Retained until the teacher requests deletion</li>
             <li><strong>Session data:</strong> Retained for teacher review; may be deleted upon request</li>
-            <li><strong>Classroom Mode student data:</strong> Temporary — exists only during active sessions</li>
-            <li><strong>Student Accounts Mode data:</strong> Retained while the student is enrolled; securely deleted within 60 days of account termination or upon request</li>
+            <li><strong>Quick Join student data:</strong> Temporary — exists only during active sessions</li>
+            <li><strong>Classroom Mode data:</strong> Retained while the student is enrolled; securely deleted within 60 days of account termination or upon request</li>
           </ul>
 
           <h2>6. Your Rights</h2>
@@ -268,7 +271,9 @@ const PrivacyPolicy = () => {
             <li><strong>Deletion:</strong> Request deletion of your data</li>
             <li><strong>Portability:</strong> Request your data in a portable format</li>
           </ul>
-          <p>To exercise these rights, contact us at <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a>.</p>
+          {!isEduSite && (
+            <p>To exercise these rights, contact us at <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a>.</p>
+          )}
 
           <h2>7. Children's Privacy & COPPA Compliance</h2>
           <p>
@@ -276,19 +281,21 @@ const PrivacyPolicy = () => {
             including children under 13. We comply with the Children's Online Privacy Protection Act (COPPA) by:
           </p>
           <ul>
-            <li><strong>Classroom Mode:</strong> No personal information collected — students participate using only self-chosen musical names</li>
-            <li><strong>Student Accounts Mode:</strong> Schools may consent on behalf of parents when the technology is used solely for an educational purpose and for no other commercial purpose (per FTC guidance on school consent under COPPA)</li>
+            <li><strong>Quick Join:</strong> No personal information collected — students participate using only self-chosen musical names</li>
+            <li><strong>Classroom Mode:</strong> Schools may consent on behalf of parents when the technology is used solely for an educational purpose and for no other commercial purpose (per FTC guidance on school consent under COPPA)</li>
             <li>Relying on teacher/school consent for classroom use in both modes</li>
             <li>Allowing parents to review and request deletion of their child's data at any time</li>
-            <li><strong>No direct child sign-up:</strong> Students cannot create accounts independently. Student Accounts
+            <li><strong>No direct child sign-up:</strong> Students cannot create accounts independently. Classroom
             Mode requires a teacher to create the class and add students. Students access the platform only through
             teacher-created class codes or teacher-provisioned accounts.</li>
           </ul>
           <p>
             <strong>Parental Consent Revocation:</strong> Parents may revoke consent for the collection of their
-            child's data at any time by contacting their child's teacher or emailing us
-            at <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a>. Upon revocation, we will
-            delete the child's data within 30 days. The student may still participate in Classroom Mode, which
+            child's data at any time by contacting their child's teacher{!isEduSite && (
+              <> or emailing us
+            at <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a></>
+            )}. Upon revocation, we will
+            delete the child's data within 30 days. The student may still participate in Quick Join, which
             collects no personal information.
           </p>
           <p>
@@ -334,13 +341,17 @@ const PrivacyPolicy = () => {
             acceptance of the updated policy.
           </p>
 
-          <h2>11. Contact Us</h2>
-          <p>If you have questions about this Privacy Policy, please contact us:</p>
-          <p>
-            <strong>Robert Taube</strong><br />
-            Founder, Music Mind Academy<br />
-            Email: <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a>
-          </p>
+          {!isEduSite && (
+            <>
+              <h2>11. Contact Us</h2>
+              <p>If you have questions about this Privacy Policy, please contact us:</p>
+              <p>
+                <strong>Robert Taube</strong><br />
+                Founder, Music Mind Academy<br />
+                Email: <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a>
+              </p>
+            </>
+          )}
 
           {/* Footer Links */}
           <div style={{

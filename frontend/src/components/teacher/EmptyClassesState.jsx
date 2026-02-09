@@ -43,7 +43,7 @@ const EmptyClassesState = ({ onCreateClass, onBrowseLessons }) => {
               <Play className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900">Quick Start</h4>
+              <h4 className="font-semibold text-gray-900">Quick Join</h4>
               <span className="text-xs text-green-600 font-medium">No setup needed</span>
             </div>
           </div>
@@ -61,7 +61,7 @@ const EmptyClassesState = ({ onCreateClass, onBrowseLessons }) => {
             </li>
             <li className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-green-500" />
-              Zero PII collected
+              No student data collected
             </li>
           </ul>
           <button

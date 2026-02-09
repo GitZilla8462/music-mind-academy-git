@@ -257,8 +257,8 @@ const SecurityPractices = () => {
           <h3>Data Minimization</h3>
           <p>We practice data minimization principles:</p>
           <ul>
-            <li>Classroom Mode collects zero student personally identifiable information</li>
-            <li>Student Accounts Mode collects only the minimum data necessary for the educational service</li>
+            <li>Quick Join collects zero student personally identifiable information</li>
+            <li>Classroom Mode collects only the minimum data necessary for the educational service</li>
             <li>We do not collect biometric data, precise location, or social media information</li>
             <li>Temporary session data is automatically deleted after sessions end</li>
           </ul>
@@ -413,8 +413,8 @@ const SecurityPractices = () => {
 
           <h3>Retention Periods</h3>
           <ul>
-            <li><strong>Classroom Mode:</strong> Session data is temporary and deleted after the session ends</li>
-            <li><strong>Student Accounts Mode:</strong> Data retained during active enrollment, deleted within
+            <li><strong>Quick Join:</strong> Session data is temporary and deleted after the session ends</li>
+            <li><strong>Classroom Mode:</strong> Data retained during active enrollment, deleted within
             60 days of account termination or upon request</li>
             <li><strong>Teacher Accounts:</strong> Data retained until the teacher requests deletion</li>
             <li><strong>Inactive Data:</strong> Data inactive for 2+ years is flagged for deletion with notice</li>

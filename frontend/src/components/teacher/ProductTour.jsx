@@ -51,7 +51,7 @@ const TOUR_STEPS = [
   {
     id: 'class-management',
     title: 'Create Classes (Optional)',
-    description: 'Want to track student progress and give grades? Create a class in "Student Accounts" mode. Students can save their work and you\'ll have a gradebook.',
+    description: 'Want to track student progress and give grades? Create a class in "Classroom Mode." Students log in to save their work and you\'ll have a gradebook.',
     icon: Users,
     iconBg: 'bg-indigo-100',
     iconColor: 'text-indigo-600',

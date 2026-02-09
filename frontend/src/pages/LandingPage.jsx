@@ -737,7 +737,7 @@ const LandingPage = () => {
 
             <ul className="hero-bullets">
               <li><span className="check">✓</span> Works on Chromebooks - no downloads</li>
-              <li><span className="check">✓</span> Two privacy modes - zero-PII or student accounts</li>
+              <li><span className="check">✓</span> Two modes - Quick Join or Classroom Mode</li>
               <li><span className="check">✓</span> Ready to teach tomorrow - no planning</li>
             </ul>
 
@@ -909,22 +909,22 @@ const LandingPage = () => {
               <div className="privacy-item">
                 <div className="privacy-check">✓</div>
                 <div className="privacy-item-text">
-                  <h4>Two Privacy Modes</h4>
-                  <p>Teachers choose zero-PII or student accounts per class</p>
+                  <h4>Two Session Modes</h4>
+                  <p>Teachers choose Quick Join or Classroom Mode per class</p>
                 </div>
               </div>
               <div className="privacy-item">
                 <div className="privacy-check">✓</div>
                 <div className="privacy-item-text">
-                  <h4>Zero-PII Option</h4>
-                  <p>Classroom Mode: students join by class code, no real names</p>
+                  <h4>Quick Join</h4>
+                  <p>Students join by class code, no accounts or real names needed</p>
                 </div>
               </div>
               <div className="privacy-item">
                 <div className="privacy-check">✓</div>
                 <div className="privacy-item-text">
-                  <h4>Student Accounts Option</h4>
-                  <p>Persistent compositions, grading, and progress tracking</p>
+                  <h4>Classroom Mode</h4>
+                  <p>Students log in to save work, get grades, and track progress</p>
                 </div>
               </div>
               <div className="privacy-item">

@@ -50,7 +50,7 @@ const ONBOARDING_TASKS = [
   {
     id: 'review-help',
     title: 'Review the help guide',
-    description: 'Learn about Classroom vs Student Accounts modes',
+    description: 'Learn about Quick Join vs Classroom Mode',
     icon: ClipboardCheck,
     action: 'open-help',
     helpText: 'Understand the two ways to use the platform'

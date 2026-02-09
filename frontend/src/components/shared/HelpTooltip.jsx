@@ -93,11 +93,11 @@ const HelpTooltip = ({
 // Pre-defined help content for common features
 export const HELP_CONTENT = {
   classroomMode: {
-    title: 'Classroom Mode',
+    title: 'Quick Join',
     text: 'Students join with a 4-digit code. No accounts needed. Work is not saved between sessions. Best for one-time use or demonstrations.'
   },
   accountsMode: {
-    title: 'Student Accounts Mode',
+    title: 'Classroom Mode',
     text: 'Students log in with a PIN or Google account. Their work is saved automatically. You can view submissions and enter grades in the Gradebook.'
   },
   sessionCode: {
@@ -110,7 +110,7 @@ export const HELP_CONTENT = {
   },
   gradebook: {
     title: 'Gradebook',
-    text: 'View all student submissions, enter grades (A-F), and provide written feedback. Only available for classes in Student Accounts mode.'
+    text: 'View all student submissions, enter grades (A-F), and provide written feedback. Only available for classes in Classroom Mode.'
   },
   roster: {
     title: 'Class Roster',

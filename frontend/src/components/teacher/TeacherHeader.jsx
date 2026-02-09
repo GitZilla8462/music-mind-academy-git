@@ -151,8 +151,8 @@ const TeacherHeader = ({ pendingCount = 0 }) => {
               <div className="bg-blue-50 rounded-lg p-4 text-sm">
                 <p className="font-medium text-blue-900 mb-2">Two ways to use the platform:</p>
                 <ul className="text-blue-800 space-y-1">
-                  <li><strong>Classroom Mode:</strong> Students join with a 4-digit code. No accounts needed.</li>
-                  <li><strong>Student Accounts:</strong> Track progress, save work, and give grades.</li>
+                  <li><strong>Quick Join:</strong> Students join with a 4-digit code. No accounts needed.</li>
+                  <li><strong>Classroom Mode:</strong> Students log in to save work, get grades, and track progress.</li>
                 </ul>
               </div>
 

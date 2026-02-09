@@ -1,6 +1,6 @@
 // Class Mode Selector Component
 // src/components/teacher/ClassModeSelector.jsx
-// Allows teachers to choose between Classroom Mode and Student Accounts Mode
+// Allows teachers to choose between Quick Join and Classroom Mode
 
 import React from 'react';
 import { Users, UserCheck } from 'lucide-react';
@@ -13,7 +13,7 @@ const ClassModeSelector = ({ value, onChange }) => {
       </label>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Classroom Mode */}
+        {/* Quick Join */}
         <button
           type="button"
           onClick={() => onChange('classroom')}
@@ -38,8 +38,8 @@ const ClassModeSelector = ({ value, onChange }) => {
               <Users className={`w-5 h-5 ${value === 'classroom' ? 'text-white' : 'text-gray-500'}`} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Classroom Mode</h3>
-              <span className="text-xs text-green-600 font-medium">Recommended</span>
+              <h3 className="font-semibold text-gray-900">Quick Join</h3>
+              <span className="text-xs text-green-600 font-medium">No Accounts Needed</span>
             </div>
           </div>
 
@@ -60,7 +60,7 @@ const ClassModeSelector = ({ value, onChange }) => {
           </ul>
         </button>
 
-        {/* Student Accounts Mode */}
+        {/* Classroom Mode */}
         <button
           type="button"
           onClick={() => onChange('accounts')}
@@ -85,13 +85,13 @@ const ClassModeSelector = ({ value, onChange }) => {
               <UserCheck className={`w-5 h-5 ${value === 'accounts' ? 'text-white' : 'text-gray-500'}`} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Student Accounts</h3>
-              <span className="text-xs text-blue-600 font-medium">Persistent Data</span>
+              <h3 className="font-semibold text-gray-900">Classroom Mode</h3>
+              <span className="text-xs text-blue-600 font-medium">Saved Work & Grades</span>
             </div>
           </div>
 
           <p className="text-sm text-gray-600 mb-3">
-            Students have accounts with saved work, grades, and feedback across sessions.
+            Students log in to save work, get grades, and track progress across sessions.
           </p>
 
           <ul className="text-xs text-gray-500 space-y-1">
@@ -114,14 +114,13 @@ const ClassModeSelector = ({ value, onChange }) => {
       }`}>
         {value === 'classroom' ? (
           <p>
-            <strong>Classroom Mode:</strong> Best for quick activities where you don't need to track
+            <strong>Quick Join:</strong> Best for quick activities where you don't need to track
             individual student progress over time. Students join anonymously with a class code.
           </p>
         ) : (
           <p>
-            <strong>Student Accounts Mode:</strong> Best when you want to track student work, assign grades,
-            and provide feedback. Students sign in with Google or a class code + PIN. Requires school
-            authorization for student data collection.
+            <strong>Classroom Mode:</strong> Best when you want to track student work, assign grades,
+            and provide feedback. Students sign in with Google or a class code + PIN.
           </p>
         )}
       </div>

@@ -295,13 +295,13 @@ const DataPrivacyAgreement = () => {
             the Provider to access the following Student Data:
           </p>
 
-          <h3>Classroom Mode (Zero PII Option)</h3>
+          <h3>Quick Join Mode (No Accounts)</h3>
           <ul>
             <li>Student-selected musical pseudonym only (no real names)</li>
             <li>Session-based activity scores (temporary, not retained)</li>
           </ul>
 
-          <h3>Student Accounts Mode</h3>
+          <h3>Classroom Mode</h3>
           <ul>
             <li>Student first and last name (from Google Sign-In or teacher entry)</li>
             <li>Student email address (if using Google Sign-In)</li>
@@ -410,8 +410,8 @@ const DataPrivacyAgreement = () => {
             described in the Service Agreement, subject to the following:
           </p>
           <ul>
-            <li><strong>Classroom Mode:</strong> Session data is temporary and not retained after the session ends</li>
-            <li><strong>Student Accounts Mode:</strong> Data is retained during active enrollment and for 60 days
+            <li><strong>Quick Join:</strong> Session data is temporary and not retained after the session ends</li>
+            <li><strong>Classroom Mode:</strong> Data is retained during active enrollment and for 60 days
             following account termination</li>
           </ul>
 
@@ -515,8 +515,8 @@ const DataPrivacyAgreement = () => {
             <thead>
               <tr>
                 <th>Data Element</th>
+                <th>Quick Join</th>
                 <th>Classroom Mode</th>
-                <th>Student Accounts Mode</th>
               </tr>
             </thead>
             <tbody>

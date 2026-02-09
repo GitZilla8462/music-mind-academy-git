@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 
 const StudentPrivacy = () => {
   const navigate = useNavigate();
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
 
   return (
     <div style={{
@@ -276,18 +277,20 @@ const StudentPrivacy = () => {
               cursor: 'pointer'
             }}
           >
-            <img
-              src="/MusicMindAcademyLogo.png"
-              alt="Music Mind Academy"
-              style={{ height: '40px', width: 'auto' }}
-            />
+            {!isEduSite && (
+              <img
+                src="/MusicMindAcademyLogo.png"
+                alt="Music Mind Academy"
+                style={{ height: '40px', width: 'auto' }}
+              />
+            )}
             <span style={{
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: '1.5rem',
               fontWeight: 700,
               color: '#1e293b'
             }}>
-              Music Mind Academy
+              {isEduSite ? 'Music Room Tools' : 'Music Mind Academy'}
             </span>
           </div>
           <button
@@ -335,11 +338,11 @@ const StudentPrivacy = () => {
             <h3>⚡ Quick Reference for IT Administrators</h3>
             <div className="it-grid">
               <div className="it-item">
-                <span className="it-item-label">Two Privacy Modes</span>
+                <span className="it-item-label">Two Session Modes</span>
                 <span className="it-item-value yes">YES</span>
               </div>
               <div className="it-item">
-                <span className="it-item-label">Zero-PII Mode Available</span>
+                <span className="it-item-label">Quick Join Mode Available</span>
                 <span className="it-item-value yes">YES</span>
               </div>
               <div className="it-item">
@@ -410,10 +413,10 @@ const StudentPrivacy = () => {
           <div className="highlight-box">
             <h3 style={{ marginTop: 0, color: '#065f46' }}>Summary</h3>
             <p style={{ marginBottom: 0 }}>
-              Music Mind Academy offers <strong>two privacy modes</strong> so teachers can choose the right level
-              of data collection for their classroom. <strong>Classroom Mode</strong> collects zero student
+              Music Mind Academy offers <strong>two session modes</strong> so teachers can choose the right level
+              of data collection for their classroom. <strong>Quick Join</strong> collects zero student
               personally identifiable information — students join with a class code and pick a musical name.
-              <strong> Student Accounts Mode</strong> saves student work persistently and collects limited PII
+              <strong> Classroom Mode</strong> saves student work persistently and collects limited PII
               (name, email, compositions). Both modes are fully compliant with FERPA, COPPA, and NY Ed Law 2-d.
               We never sell data, show ads, or use third-party tracking.
             </p>
@@ -430,7 +433,7 @@ const StudentPrivacy = () => {
           </div>
 
           {/* Two Modes */}
-          <h2>Two Privacy Modes</h2>
+          <h2>Two Session Modes</h2>
           <p>
             Teachers choose a privacy mode when creating each class. This gives teachers and districts
             control over what student data is collected.
@@ -438,7 +441,7 @@ const StudentPrivacy = () => {
 
           <div className="mode-grid">
             <div className="mode-card classroom">
-              <h3 style={{ color: '#065f46' }}>🟢 Classroom Mode</h3>
+              <h3 style={{ color: '#065f46' }}>🟢 Quick Join</h3>
               <p style={{ fontWeight: 600, color: '#065f46', marginBottom: '0.75rem' }}>
                 Zero student PII collected
               </p>
@@ -452,7 +455,7 @@ const StudentPrivacy = () => {
             </div>
 
             <div className="mode-card accounts">
-              <h3 style={{ color: '#1e40af' }}>🔵 Student Accounts Mode</h3>
+              <h3 style={{ color: '#1e40af' }}>🔵 Classroom Mode</h3>
               <p style={{ fontWeight: 600, color: '#1e40af', marginBottom: '0.75rem' }}>
                 Student PII collected for persistent progress
               </p>
@@ -467,10 +470,10 @@ const StudentPrivacy = () => {
             </div>
           </div>
 
-          {/* Data Collection - Classroom Mode */}
-          <h2>Data Collected: Classroom Mode</h2>
+          {/* Data Collection - Quick Join */}
+          <h2>Data Collected: Quick Join</h2>
           <p>
-            In Classroom Mode, we collect <strong>no student personally identifiable information</strong>.
+            In Quick Join, we collect <strong>no student personally identifiable information</strong>.
           </p>
 
           <table className="data-table">
@@ -515,10 +518,10 @@ const StudentPrivacy = () => {
             </tbody>
           </table>
 
-          {/* Data Collection - Student Accounts Mode */}
-          <h2>Data Collected: Student Accounts Mode</h2>
+          {/* Data Collection - Classroom Mode */}
+          <h2>Data Collected: Classroom Mode</h2>
           <p>
-            In Student Accounts Mode, we collect limited student PII necessary to provide persistent
+            In Classroom Mode, we collect limited student PII necessary to provide persistent
             educational accounts. This mode creates education records as defined by FERPA.
           </p>
 
@@ -580,18 +583,18 @@ const StudentPrivacy = () => {
           {/* How It Works */}
           <h2>How Music Mind Academy Works</h2>
 
-          <h3>Classroom Mode — For Students</h3>
+          <h3>Quick Join — For Students</h3>
           <ol>
-            <li><strong>Teacher creates a class</strong> in Classroom Mode and gets a class code</li>
+            <li><strong>Teacher creates a class</strong> in Quick Join and gets a class code</li>
             <li><strong>Students go to musicmindacademy.com</strong> and enter the class code</li>
             <li><strong>Students pick a musical name</strong> (e.g., "Forte", "Treble Clef") — no login required</li>
             <li><strong>Students complete activities</strong> — work exists for the session only</li>
             <li><strong>Session ends</strong> — no persistent student data remains</li>
           </ol>
 
-          <h3>Student Accounts Mode — For Students</h3>
+          <h3>Classroom Mode — For Students</h3>
           <ol>
-            <li><strong>Teacher creates a class</strong> in Student Accounts Mode (requires school/district authorization)</li>
+            <li><strong>Teacher creates a class</strong> in Classroom Mode (requires school/district authorization)</li>
             <li><strong>Teacher adds student names</strong> to seats (individually or bulk import from roster list)</li>
             <li><strong>Students sign in</strong> via school Google account or class code + seat number + PIN</li>
             <li><strong>Students complete activities</strong> — compositions, reflections, and scores are saved</li>
@@ -633,7 +636,7 @@ const StudentPrivacy = () => {
               <tr>
                 <td>MongoDB Atlas</td>
                 <td>Database</td>
-                <td>Application data, student work (Student Accounts Mode)</td>
+                <td>Application data, student work (Classroom Mode)</td>
                 <td>United States</td>
               </tr>
               <tr>
@@ -667,12 +670,12 @@ const StudentPrivacy = () => {
             </thead>
             <tbody>
               <tr>
-                <td>Classroom Mode — session data</td>
+                <td>Quick Join — session data</td>
                 <td>Firebase (Google Cloud)</td>
                 <td>Teacher during active session</td>
               </tr>
               <tr>
-                <td>Student Accounts — compositions, reflections, scores</td>
+                <td>Classroom Mode — compositions, reflections, scores</td>
                 <td>Firebase / MongoDB Atlas</td>
                 <td>Student (own work) and teacher (own students)</td>
               </tr>
@@ -694,7 +697,7 @@ const StudentPrivacy = () => {
             <li><strong>Authentication required:</strong> All access to student records requires authentication</li>
             <li><strong>Firebase Security Rules:</strong> Database access restricted by role with granular permissions</li>
             <li><strong>Minimal data collection:</strong> We only collect what is necessary for the educational service</li>
-            <li><strong>No anonymous access:</strong> No unauthenticated access to student records in Student Accounts Mode</li>
+            <li><strong>No anonymous access:</strong> No unauthenticated access to student records in Classroom Mode</li>
           </ul>
 
           {/* Breach Notification */}
@@ -712,8 +715,8 @@ const StudentPrivacy = () => {
           </ul>
           <div className="highlight-box">
             <p style={{ marginBottom: 0 }}>
-              <strong>Note:</strong> In Classroom Mode, no student personally identifiable information is collected or stored,
-              so the risk of a meaningful student data breach is minimal. Student Accounts Mode data is encrypted
+              <strong>Note:</strong> In Quick Join, no student personally identifiable information is collected or stored,
+              so the risk of a meaningful student data breach is minimal. Classroom Mode data is encrypted
               at rest and in transit with role-based access controls.
             </p>
           </div>
@@ -723,11 +726,11 @@ const StudentPrivacy = () => {
 
           <h3>FERPA (Family Educational Rights and Privacy Act)</h3>
           <p>
-            <strong>Classroom Mode:</strong> Because no student education records or personally identifiable
+            <strong>Quick Join:</strong> Because no student education records or personally identifiable
             information are collected, FERPA's restrictions on disclosure do not apply in the traditional sense.
           </p>
           <p>
-            <strong>Student Accounts Mode:</strong> Student compositions, reflections, and scores constitute
+            <strong>Classroom Mode:</strong> Student compositions, reflections, and scores constitute
             education records under FERPA. Music Mind Academy operates as a "school official" with a legitimate
             educational interest under 34 CFR § 99.31(a)(1). We use student data only for the educational purposes
             specified in our agreements and do not redisclose education records to any third party except to our
@@ -735,8 +738,8 @@ const StudentPrivacy = () => {
           </p>
           <p>
             <strong>Parental Rights Under FERPA:</strong> Parents have the right to inspect and review their
-            child's education records. To request access, contact your child's teacher or email us
-            at <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a>.
+            child's education records. To request access, contact your child's teacher{!isEduSite && (<> or email us
+            at <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a></>)}.
             We will provide access within <strong>45 days</strong> of receiving the request. Records can be
             provided as a digital export (JSON or PDF format). Parents may also request correction of inaccurate
             records or deletion of their child's data.
@@ -747,12 +750,12 @@ const StudentPrivacy = () => {
             COPPA requires verifiable parental consent before collecting personal information from children under 13.
           </p>
           <p>
-            <strong>Classroom Mode:</strong> No student personal information is collected, so COPPA consent is not required.
+            <strong>Quick Join:</strong> No student personal information is collected, so COPPA consent is not required.
           </p>
           <p>
-            <strong>Student Accounts Mode:</strong> Schools may consent on behalf of parents when
+            <strong>Classroom Mode:</strong> Schools may consent on behalf of parents when
             the technology is used solely for an educational purpose and for no other commercial purpose (per FTC guidance).
-            By enabling Student Accounts Mode, the teacher — acting as an authorized representative of their school —
+            By enabling Classroom Mode, the teacher — acting as an authorized representative of their school —
             provides consent on behalf of parents for the limited educational use described in this policy.
             Parents retain the right to review and request deletion of their child's data at any time.
           </p>
@@ -767,12 +770,14 @@ const StudentPrivacy = () => {
             their child's data at any time by:
           </p>
           <ol>
-            <li>Contacting their child's teacher to request removal from Student Accounts Mode</li>
-            <li>Or emailing <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a> directly</li>
+            <li>Contacting their child's teacher to request removal from Classroom Mode</li>
+            {!isEduSite && (
+              <li>Or emailing <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a> directly</li>
+            )}
           </ol>
           <p>
             Upon revocation, we will delete the child's data within <strong>30 days</strong> and provide written
-            confirmation. The student may continue participating in Classroom Mode, which collects no personal information.
+            confirmation. The student may continue participating in Quick Join, which collects no personal information.
           </p>
           <p>
             <strong>OAuth Permissions:</strong> When students sign in via Google, we request only basic profile
@@ -828,15 +833,17 @@ const StudentPrivacy = () => {
 
           <div className="highlight-box blue">
             <h3 style={{ marginTop: 0, color: '#1e40af' }}>Request a Data Privacy Agreement</h3>
-            <p>
+            <p style={{ marginBottom: 0 }}>
               If your district requires a signed Data Privacy Agreement (DPA), we are happy to work with you.
               We can sign agreements compatible with the SDPC National Data Privacy Agreement (NDPA) framework
               or your district's standard DPA template.
             </p>
-            <p style={{ marginBottom: 0 }}>
-              Contact us at <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a> to
-              discuss DPA requirements.
-            </p>
+            {!isEduSite && (
+              <p style={{ marginBottom: 0 }}>
+                Contact us at <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a> to
+                discuss DPA requirements.
+              </p>
+            )}
           </div>
 
           {/* IT Whitelist Box */}
@@ -861,13 +868,13 @@ const StudentPrivacy = () => {
           {/* Data Retention */}
           <h2>Data Retention</h2>
 
-          <h3>Classroom Mode</h3>
+          <h3>Quick Join</h3>
           <ul>
             <li>Session data is temporary and exists only during the active session</li>
             <li>No persistent student data is stored after a session ends</li>
           </ul>
 
-          <h3>Student Accounts Mode</h3>
+          <h3>Classroom Mode</h3>
           <ul>
             <li><strong>During active use:</strong> Student data is retained and accessible to the teacher and student</li>
             <li><strong>Teacher-initiated deletion:</strong> Teachers can delete individual students or entire classes and all associated data at any time</li>
@@ -882,9 +889,9 @@ const StudentPrivacy = () => {
           </p>
           <ol>
             <li><strong>Teachers:</strong> Delete students or entire classes directly from the platform dashboard, or email us</li>
-            <li><strong>Parents:</strong> Contact your child's teacher, or email us at{' '}
-            <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a></li>
-            <li><strong>Districts:</strong> Send a written request to <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a></li>
+            <li><strong>Parents:</strong> Contact your child's teacher{!isEduSite && (<>, or email us at{' '}
+            <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a></>)}</li>
+            <li><strong>Districts:</strong> Send a written request{!isEduSite && (<> to <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a></>)} to request deletion</li>
           </ol>
           <p>
             We will acknowledge deletion requests within <strong>5 business days</strong> and complete deletion within{' '}
@@ -926,8 +933,8 @@ const StudentPrivacy = () => {
               <p>
                 You have the right to inspect and review the complete contents of your child's education
                 record as stored on the Music Mind Academy platform. To request a review, contact your
-                child's teacher or email us at{' '}
-                <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a>.
+                child's teacher{!isEduSite && (<> or email us at{' '}
+                <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a></>)}.
                 We will respond within 30 days.
               </p>
             </div>
@@ -959,7 +966,9 @@ const StudentPrivacy = () => {
                 student data addressed. Complaints may be directed to:
               </p>
               <ul style={{ marginTop: '0.5rem', marginBottom: 0, fontSize: '0.95rem' }}>
-                <li>Music Mind Academy: <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a></li>
+                {!isEduSite && (
+                  <li>Music Mind Academy: <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a></li>
+                )}
                 <li>Your school district's Data Privacy Officer</li>
                 <li>New York State Education Department Chief Privacy Officer, 89 Washington Avenue, Albany, NY 12234 — <a href="mailto:privacy@nysed.gov" style={{ color: '#2563eb' }}>privacy@nysed.gov</a></li>
               </ul>
@@ -979,44 +988,46 @@ const StudentPrivacy = () => {
               <h3 style={{ marginTop: 0, color: '#6d28d9' }}>Your Right to Opt Out</h3>
               <p>
                 If you do not wish your child's personally identifiable information to be collected,
-                contact your child's teacher to request removal from Student Accounts Mode. Your child
-                may still be able to participate in Classroom Mode, which collects no student personal information.
+                contact your child's teacher to request removal from Classroom Mode. Your child
+                may still be able to participate in Quick Join, which collects no student personal information.
               </p>
-              <p style={{ marginBottom: 0 }}>
-                You may also contact us directly at{' '}
-                <a href="mailto:rob@musicmindacademy.com" style={{ color: '#6d28d9' }}>rob@musicmindacademy.com</a>{' '}
-                to request deletion of your child's data.
-              </p>
+              {!isEduSite && (
+                <p style={{ marginBottom: 0 }}>
+                  You may also contact us directly at{' '}
+                  <a href="mailto:rob@musicmindacademy.com" style={{ color: '#6d28d9' }}>rob@musicmindacademy.com</a>{' '}
+                  to request deletion of your child's data.
+                </p>
+              )}
             </div>
           </div>
 
           {/* FAQ */}
           <h2>Frequently Asked Questions</h2>
 
-          <h3>What is the difference between Classroom Mode and Student Accounts Mode?</h3>
+          <h3>What is the difference between Quick Join and Classroom Mode?</h3>
           <p>
-            In Classroom Mode, students join with a class code and pick a musical name — no real names,
-            no emails, no accounts. Work is session-based. In Student Accounts Mode, students have
+            In Quick Join, students join with a class code and pick a musical name — no real names,
+            no emails, no accounts. Work is session-based. In Classroom Mode, students have
             persistent accounts where their compositions, reflections, and scores are saved across sessions.
             Teachers choose the mode when creating each class.
           </p>
 
-          <h3>Does my district need a DPA for Classroom Mode?</h3>
+          <h3>Does my district need a DPA for Quick Join?</h3>
           <p>
-            Because Classroom Mode collects no student personally identifiable information, a DPA is
+            Because Quick Join collects no student personally identifiable information, a DPA is
             typically not required. However, some districts may still want one as a matter of policy.
             We are happy to sign a DPA for either mode.
           </p>
 
-          <h3>Can a teacher use Classroom Mode for some classes and Student Accounts Mode for others?</h3>
+          <h3>Can a teacher use Quick Join for some classes and Classroom Mode for others?</h3>
           <p>
-            Yes. The mode is set per class. A teacher could use Classroom Mode for one period and
-            Student Accounts Mode for another.
+            Yes. The mode is set per class. A teacher could use Quick Join for one period and
+            Classroom Mode for another.
           </p>
 
           <h3>How do teachers add student names?</h3>
           <p>
-            In Student Accounts Mode, teachers can add student names individually (click on a seat to edit)
+            In Classroom Mode, teachers can add student names individually (click on a seat to edit)
             or use the "Import Names" feature to paste a list of student names from their roster. This associates
             student names with their seat numbers, allowing teachers to see "Johnny Smith - Assignment" instead
             of just "Seat 1 - Assignment" when reviewing grades and student work.
@@ -1037,14 +1048,14 @@ const StudentPrivacy = () => {
 
           <h3>Do you support Clever or ClassLink?</h3>
           <p>
-            Not currently. In Classroom Mode, students join with class codes only — no SSO needed. In
-            Student Accounts Mode, students can sign in via school Google accounts or class code + seat number.
+            Not currently. In Quick Join, students join with class codes only — no SSO needed. In
+            Classroom Mode, students can sign in via school Google accounts or class code + seat number.
             SAML/district SSO may be added based on demand.
           </p>
 
           <h3>What happens to student data when a teacher cancels?</h3>
           <p>
-            In Classroom Mode, there is no persistent student data to worry about. In Student Accounts Mode,
+            In Quick Join, there is no persistent student data to worry about. In Classroom Mode,
             student data is securely deleted within 60 days of account termination. Teachers may request
             a data export before cancellation. Schools and districts may request return or destruction of
             data at any time.
@@ -1053,8 +1064,8 @@ const StudentPrivacy = () => {
           <h3>What happens if there's a data breach?</h3>
           <p>
             We will notify affected schools within 7 calendar days of discovery, as required by NY Education
-            Law § 2-d. In Classroom Mode, the risk of a meaningful student data breach is minimal because
-            no PII is collected. In Student Accounts Mode, all data is encrypted at rest and in transit
+            Law § 2-d. In Quick Join, the risk of a meaningful student data breach is minimal because
+            no PII is collected. In Classroom Mode, all data is encrypted at rest and in transit
             with role-based access controls.
           </p>
 
@@ -1063,11 +1074,13 @@ const StudentPrivacy = () => {
           <p>
             For privacy questions, DPA requests, parental data review or deletion requests:
           </p>
-          <p>
-            <strong>Robert Taube</strong><br />
-            Founder, Music Mind Academy<br />
-            Email: <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a>
-          </p>
+          {!isEduSite && (
+            <p>
+              <strong>Robert Taube</strong><br />
+              Founder, Music Mind Academy<br />
+              Email: <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a>
+            </p>
+          )}
 
           {/* Footer Links */}
           <div style={{

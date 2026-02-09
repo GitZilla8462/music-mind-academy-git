@@ -269,8 +269,8 @@ const EduLandingPage = () => {
                   </svg>
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-800">Two Privacy Modes</div>
-                  <div className="text-sm text-slate-600">Teachers choose zero-PII or student accounts per class</div>
+                  <div className="font-semibold text-slate-800">Two Session Modes</div>
+                  <div className="text-sm text-slate-600">Teachers choose Quick Join or Classroom Mode per class</div>
                 </div>
               </div>
 
@@ -281,8 +281,8 @@ const EduLandingPage = () => {
                   </svg>
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-800">Zero-PII Option</div>
-                  <div className="text-sm text-slate-600">Classroom Mode: students join by class code, no real names</div>
+                  <div className="font-semibold text-slate-800">Quick Join</div>
+                  <div className="text-sm text-slate-600">Students join by class code, no accounts or real names needed</div>
                 </div>
               </div>
 
@@ -293,8 +293,8 @@ const EduLandingPage = () => {
                   </svg>
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-800">Student Accounts Option</div>
-                  <div className="text-sm text-slate-600">Persistent compositions, grading, and progress tracking</div>
+                  <div className="font-semibold text-slate-800">Classroom Mode</div>
+                  <div className="text-sm text-slate-600">Students log in to save work, get grades, and track progress</div>
                 </div>
               </div>
 

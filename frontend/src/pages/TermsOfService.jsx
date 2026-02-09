@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 
 const TermsOfService = () => {
   const navigate = useNavigate();
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
 
   return (
     <div style={{
@@ -81,18 +82,20 @@ const TermsOfService = () => {
               cursor: 'pointer'
             }}
           >
-            <img
-              src="/MusicMindAcademyLogo.png"
-              alt="Music Mind Academy"
-              style={{ height: '40px', width: 'auto' }}
-            />
+            {!isEduSite && (
+              <img
+                src="/MusicMindAcademyLogo.png"
+                alt="Music Mind Academy"
+                style={{ height: '40px', width: 'auto' }}
+              />
+            )}
             <span style={{
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: '1.5rem',
               fontWeight: 700,
               color: '#1e293b'
             }}>
-              Music Mind Academy
+              {isEduSite ? 'Music Room Tools' : 'Music Mind Academy'}
             </span>
           </div>
           <button
@@ -157,9 +160,9 @@ const TermsOfService = () => {
           </p>
           <p>The Platform offers two modes of use:</p>
           <ul>
-            <li><strong>Classroom Mode:</strong> Students participate using a class code and a self-selected
+            <li><strong>Quick Join:</strong> Students participate using a class code and a self-selected
             musical name. No student personally identifiable information is collected.</li>
-            <li><strong>Student Accounts Mode:</strong> Students have persistent accounts with saved work.
+            <li><strong>Classroom Mode:</strong> Students have persistent accounts with saved work.
             This mode collects student personally identifiable information and creates education records.</li>
           </ul>
 
@@ -177,17 +180,17 @@ const TermsOfService = () => {
             <li>Ensuring your use complies with your school or district policies</li>
           </ul>
 
-          <h3>Student Access — Classroom Mode</h3>
+          <h3>Student Access — Quick Join</h3>
           <p>
-            In Classroom Mode, students access the Service by entering a class code provided by
+            In Quick Join, students access the Service by entering a class code provided by
             their teacher and selecting a musical name. No student account is created and no personally
             identifiable information is collected.
           </p>
 
-          <h3>Student Access — Student Accounts Mode</h3>
+          <h3>Student Access — Classroom Mode</h3>
           <p>
-            In Student Accounts Mode, teachers create student accounts so that student work is
-            saved persistently. By enabling Student Accounts Mode, the teacher represents and warrants that:
+            In Classroom Mode, teachers create student accounts so that student work is
+            saved persistently. By enabling Classroom Mode, the teacher represents and warrants that:
           </p>
           <ul>
             <li>They have reviewed the Music Mind Academy <a href="/privacy">Privacy Policy</a></li>
@@ -222,7 +225,7 @@ const TermsOfService = () => {
             <li>We collect only the minimum data necessary to provide the educational service</li>
             <li>Student data is encrypted in transit (TLS 1.3) and at rest (AES-256)</li>
             <li>We comply with FERPA, COPPA, and New York Education Law § 2-d</li>
-            <li>In Student Accounts Mode, we operate as a "school official" under FERPA with a legitimate educational interest</li>
+            <li>In Classroom Mode, we operate as a "school official" under FERPA with a legitimate educational interest</li>
             <li>We do not redisclose education records except to our subprocessors or as authorized by FERPA</li>
             <li>Teachers can delete student data at any time</li>
             <li>Parents can request review or deletion of their child's data</li>
@@ -243,10 +246,12 @@ const TermsOfService = () => {
             agreements compatible with the Student Data Privacy Consortium (SDPC) National Data
             Privacy Agreement (NDPA) framework or your district's standard DPA template.
           </p>
-          <p>
-            To request a Data Privacy Agreement, contact:{' '}
-            <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a>
-          </p>
+          {!isEduSite && (
+            <p>
+              To request a Data Privacy Agreement, contact:{' '}
+              <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a>
+            </p>
+          )}
 
           <h2>7. Acceptable Use</h2>
           <p>You agree NOT to:</p>
@@ -305,7 +310,7 @@ const TermsOfService = () => {
             <li>We reserve the right to change pricing with 30 days notice</li>
           </ul>
           <p>
-            After your subscription expires, student data (Student Accounts Mode) will be handled
+            After your subscription expires, student data (Classroom Mode) will be handled
             in accordance with our Privacy Policy — securely deleted within 60 days unless you
             request an export.
           </p>
@@ -370,15 +375,19 @@ const TermsOfService = () => {
             Terms shall be resolved in the courts of the State of New York.
           </p>
 
-          <h2>17. Contact Information</h2>
-          <p>
-            If you have questions about these Terms, please contact us:
-          </p>
-          <p>
-            <strong>Robert Taube</strong><br />
-            Founder, Music Mind Academy<br />
-            Email: <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a>
-          </p>
+          {!isEduSite && (
+            <>
+              <h2>17. Contact Information</h2>
+              <p>
+                If you have questions about these Terms, please contact us:
+              </p>
+              <p>
+                <strong>Robert Taube</strong><br />
+                Founder, Music Mind Academy<br />
+                Email: <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a>
+              </p>
+            </>
+          )}
           <p>
             For data privacy questions specifically, see our{' '}
             <a href="/student-privacy">Student Data Privacy</a> page.
