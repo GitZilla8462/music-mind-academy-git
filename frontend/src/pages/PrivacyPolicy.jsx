@@ -141,7 +141,7 @@ const PrivacyPolicy = () => {
           <p>
             Music Mind Academy ("we", "us", or "our") is committed to protecting your privacy.
             This Privacy Policy explains how we collect, use, and protect information when you use
-            our website and services at musicmindacademy.com.
+            our website and services at {isEduSite ? 'musicroomtools.org' : 'musicmindacademy.com'}.
           </p>
 
           <p>
@@ -161,26 +161,18 @@ const PrivacyPolicy = () => {
           </ul>
 
           <h3>Information from Students</h3>
-          <p>
-            Music Mind Academy offers <strong>two privacy modes</strong> that teachers choose when creating a class.
-            The data collected from students depends on the mode:
-          </p>
-
-          <p><strong>Quick Join (Zero PII):</strong></p>
-          <ul>
-            <li><strong>Musical name:</strong> A name chosen by the student (e.g., "Forte") — not linked to real identity</li>
-            <li><strong>Activity data:</strong> Scores and progress during active sessions only</li>
-            <li>No real names, no emails, no accounts — session data is temporary</li>
-          </ul>
-
-          <p><strong>Classroom Mode (Persistent Accounts):</strong></p>
+          <p>When students use Music Mind Academy through their teacher's class, we collect:</p>
           <ul>
             <li><strong>Student name:</strong> From Google account or entered by teacher</li>
             <li><strong>Student email:</strong> Only if using Google Sign-In</li>
-            <li><strong>Compositions, reflections, and scores:</strong> Saved persistently to student's account</li>
+            <li><strong>Compositions, reflections, and scores:</strong> Saved to the student's account</li>
           </ul>
           <p>
-            For complete details on student data collection in both modes, see our{' '}
+            Teachers can also run Quick Join sessions where students participate with just a class code
+            and musical name — no personal information collected.
+          </p>
+          <p>
+            For complete details on student data collection, see our{' '}
             <a href="/student-privacy">Student Data Privacy</a> page.
           </p>
 
@@ -203,7 +195,7 @@ const PrivacyPolicy = () => {
             <li>Communicate with teachers about their accounts</li>
           </ul>
           <p>
-            <strong>FERPA Designation:</strong> When operating in Classroom Mode, Music Mind Academy
+            <strong>FERPA Designation:</strong> Music Mind Academy
             functions as a "school official" with a legitimate educational interest under FERPA (20 U.S.C. § 1232g).
             We use student education records solely for the educational purposes authorized by the school,
             and we do not redisclose education records to any third party except as authorized by FERPA or
@@ -233,16 +225,13 @@ const PrivacyPolicy = () => {
 
           <h2>4. Data Storage and Security</h2>
           <p>
-            Teacher account data is stored in Firebase (Google Cloud Platform), which provides
-            enterprise-grade security and is compliant with major security standards.
+            Teacher and student data is stored in Firebase (Google Cloud Platform) and MongoDB Atlas,
+            which provide enterprise-grade security and are compliant with major security standards.
+            All student work is encrypted at rest (AES-256) with role-based access controls.
           </p>
           <p>
-            <strong>Quick Join:</strong> Student work is stored locally on the student's device
-            and is not transmitted to our servers.
-          </p>
-          <p>
-            <strong>Classroom Mode:</strong> Student work is stored in Firebase/MongoDB Atlas
-            with encryption at rest (AES-256) and role-based access controls.
+            Quick Join session data is stored locally on the student's device and is not transmitted
+            to our servers.
           </p>
           <p><strong>Security measures include:</strong></p>
           <ul>
@@ -253,14 +242,13 @@ const PrivacyPolicy = () => {
             <li>Teachers can only access data for their own classes</li>
             <li>Students can only access their own work</li>
           </ul>
-          <p>For complete security details, see our <a href="/security">Security Practices</a> page.</p>
+          <p>For complete security details, see our <a href="/student-privacy">Student Data Privacy</a> page.</p>
 
           <h2>5. Data Retention</h2>
           <ul>
             <li><strong>Teacher accounts:</strong> Retained until the teacher requests deletion</li>
-            <li><strong>Session data:</strong> Retained for teacher review; may be deleted upon request</li>
-            <li><strong>Quick Join student data:</strong> Temporary — exists only during active sessions</li>
-            <li><strong>Classroom Mode data:</strong> Retained while the student is enrolled; securely deleted within 60 days of account termination or upon request</li>
+            <li><strong>Student data:</strong> Retained while the student is enrolled; securely deleted within 60 days of account termination or upon request</li>
+            <li><strong>Session data:</strong> Temporary — exists only during active sessions</li>
           </ul>
 
           <h2>6. Your Rights</h2>
@@ -281,12 +269,11 @@ const PrivacyPolicy = () => {
             including children under 13. We comply with the Children's Online Privacy Protection Act (COPPA) by:
           </p>
           <ul>
-            <li><strong>Quick Join:</strong> No personal information collected — students participate using only self-chosen musical names</li>
-            <li><strong>Classroom Mode:</strong> Schools may consent on behalf of parents when the technology is used solely for an educational purpose and for no other commercial purpose (per FTC guidance on school consent under COPPA)</li>
-            <li>Relying on teacher/school consent for classroom use in both modes</li>
+            <li>Schools may consent on behalf of parents when the technology is used solely for an educational purpose and for no other commercial purpose (per FTC guidance on school consent under COPPA)</li>
+            <li>Quick Join sessions collect no personal information — students participate using only self-chosen musical names</li>
             <li>Allowing parents to review and request deletion of their child's data at any time</li>
-            <li><strong>No direct child sign-up:</strong> Students cannot create accounts independently. Classroom
-            Mode requires a teacher to create the class and add students. Students access the platform only through
+            <li><strong>No direct child sign-up:</strong> Students cannot create accounts independently. A teacher
+            must create the class and add students. Students access the platform only through
             teacher-created class codes or teacher-provisioned accounts.</li>
           </ul>
           <p>
@@ -295,7 +282,7 @@ const PrivacyPolicy = () => {
               <> or emailing us
             at <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a></>
             )}. Upon revocation, we will
-            delete the child's data within 30 days. The student may still participate in Quick Join, which
+            delete the child's data within 30 days. The student may still participate without an account, which
             collects no personal information.
           </p>
           <p>
@@ -330,7 +317,7 @@ const PrivacyPolicy = () => {
             we will notify affected schools and districts within <strong>7 calendar days</strong> of
             discovery, in accordance with NY Education Law § 2-d. The notification will include a
             description of the incident, the types of data affected, and the remediation steps taken.
-            For complete details, see our <a href="/security">Security Practices</a> page.
+            For complete details, see our <a href="/student-privacy">Student Data Privacy</a> page.
           </p>
 
           <h2>10. Changes to This Policy</h2>
@@ -364,8 +351,6 @@ const PrivacyPolicy = () => {
           }}>
             <a href="/student-privacy">Student Data Privacy</a>
             <a href="/terms">Terms of Service</a>
-            <a href="/dpa">Data Privacy Agreement</a>
-            <a href="/security">Security Practices</a>
             <a href="/">Home</a>
           </div>
         </div>

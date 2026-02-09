@@ -302,11 +302,13 @@ function JoinWithCode() {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       {/* Logo */}
       <div className="text-center mb-8">
-        <img
-          src="/MusicMindAcademyLogo.png"
-          alt={siteName}
-          className="h-16 w-auto mx-auto mb-3"
-        />
+        {!isEduSite && (
+          <img
+            src="/MusicMindAcademyLogo.png"
+            alt={siteName}
+            className="h-16 w-auto mx-auto mb-3"
+          />
+        )}
         <h1 className="text-2xl font-bold text-gray-800">{siteName}</h1>
       </div>
 

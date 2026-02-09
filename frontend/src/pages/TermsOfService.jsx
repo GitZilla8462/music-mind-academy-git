@@ -140,7 +140,7 @@ const TermsOfService = () => {
 
           <p>
             These Terms of Service ("Terms") govern your use of Music Mind Academy ("the Platform,"
-            "we," "us," or "our"), a web-based music education platform at musicmindacademy.com.
+            "we," "us," or "our"), a web-based music education platform at {isEduSite ? 'musicroomtools.org' : 'musicmindacademy.com'}.
             By creating an account or using the Platform, you agree to these Terms.
           </p>
 
@@ -153,18 +153,11 @@ const TermsOfService = () => {
 
           <h2>2. Description of Service</h2>
           <p>
-            Music Mind Academy is a web-based music education platform designed for middle school
-            general music classes. The Service includes interactive music composition activities,
-            a digital audio workstation (DAW), lesson content and teacher presentation materials,
-            classroom management tools, and student progress tracking.
+            Music Mind Academy is a web-based music education platform. Students log in to create
+            music compositions, complete activities, and save their work. Teachers manage lessons,
+            track progress, and enter grades. Teachers can also run Quick Join sessions where
+            students participate with just a class code — no accounts needed.
           </p>
-          <p>The Platform offers two modes of use:</p>
-          <ul>
-            <li><strong>Quick Join:</strong> Students participate using a class code and a self-selected
-            musical name. No student personally identifiable information is collected.</li>
-            <li><strong>Classroom Mode:</strong> Students have persistent accounts with saved work.
-            This mode collects student personally identifiable information and creates education records.</li>
-          </ul>
 
           <h2>3. User Accounts</h2>
 
@@ -180,17 +173,15 @@ const TermsOfService = () => {
             <li>Ensuring your use complies with your school or district policies</li>
           </ul>
 
-          <h3>Student Access — Quick Join</h3>
+          <h3>Student Access</h3>
           <p>
-            In Quick Join, students access the Service by entering a class code provided by
-            their teacher and selecting a musical name. No student account is created and no personally
-            identifiable information is collected.
+            Students access the platform by signing in with a school Google account or a class
+            code + PIN. Their work is saved persistently. Teachers can also run Quick Join sessions
+            where students join with just a class code and a musical name — no account is created
+            and no personal information is collected.
           </p>
-
-          <h3>Student Access — Classroom Mode</h3>
           <p>
-            In Classroom Mode, teachers create student accounts so that student work is
-            saved persistently. By enabling Classroom Mode, the teacher represents and warrants that:
+            By creating student accounts, the teacher represents and warrants that:
           </p>
           <ul>
             <li>They have reviewed the Music Mind Academy <a href="/privacy">Privacy Policy</a></li>
@@ -225,7 +216,7 @@ const TermsOfService = () => {
             <li>We collect only the minimum data necessary to provide the educational service</li>
             <li>Student data is encrypted in transit (TLS 1.3) and at rest (AES-256)</li>
             <li>We comply with FERPA, COPPA, and New York Education Law § 2-d</li>
-            <li>In Classroom Mode, we operate as a "school official" under FERPA with a legitimate educational interest</li>
+            <li>We operate as a "school official" under FERPA with a legitimate educational interest</li>
             <li>We do not redisclose education records except to our subprocessors or as authorized by FERPA</li>
             <li>Teachers can delete student data at any time</li>
             <li>Parents can request review or deletion of their child's data</li>
@@ -236,7 +227,7 @@ const TermsOfService = () => {
             In the event of a breach or unauthorized release of student personally identifiable information,
             we will notify affected schools and districts within <strong>7 calendar days</strong> of discovery,
             in accordance with NY Education Law § 2-d. For complete incident response details, see
-            our <a href="/security">Security Practices</a> page.
+            our <a href="/student-privacy">Student Data Privacy</a> page.
           </p>
 
           <h2>6. Data Privacy Agreements</h2>
@@ -310,7 +301,7 @@ const TermsOfService = () => {
             <li>We reserve the right to change pricing with 30 days notice</li>
           </ul>
           <p>
-            After your subscription expires, student data (Classroom Mode) will be handled
+            After your subscription expires, student data will be handled
             in accordance with our Privacy Policy — securely deleted within 60 days unless you
             request an export.
           </p>
@@ -404,8 +395,6 @@ const TermsOfService = () => {
           }}>
             <a href="/privacy">Privacy Policy</a>
             <a href="/student-privacy">Student Data Privacy</a>
-            <a href="/dpa">Data Privacy Agreement</a>
-            <a href="/security">Security Practices</a>
             <a href="/">Home</a>
           </div>
         </div>

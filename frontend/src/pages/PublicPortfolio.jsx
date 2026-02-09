@@ -11,6 +11,7 @@ import StaticTimelinePreview from '../components/shared/StaticTimelinePreview';
 
 const PublicPortfolio = () => {
   const { shareToken } = useParams();
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
   const [portfolio, setPortfolio] = useState(null);
   const [studentUid, setStudentUid] = useState(null);
   const [workItems, setWorkItems] = useState([]);
@@ -154,12 +155,14 @@ const PublicPortfolio = () => {
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <img
-              src="/MusicMindAcademyLogo.png"
-              alt="Music Mind Academy"
-              className="h-7 w-auto"
-            />
-            <span className="text-sm text-gray-400 font-medium">Music Mind Academy</span>
+            {!isEduSite && (
+              <img
+                src="/MusicMindAcademyLogo.png"
+                alt="Music Mind Academy"
+                className="h-7 w-auto"
+              />
+            )}
+            <span className="text-sm text-gray-400 font-medium">{isEduSite ? 'Music Room Tools' : 'Music Mind Academy'}</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">
             {portfolio?.title || 'My Music Portfolio'}
@@ -269,7 +272,7 @@ const PublicPortfolio = () => {
         {/* Footer */}
         <div className="text-center mt-6 pb-8">
           <p className="text-xs text-gray-400">
-            Made with Music Mind Academy
+            Made with {isEduSite ? 'Music Room Tools' : 'Music Mind Academy'}
           </p>
         </div>
       </main>

@@ -23,6 +23,7 @@ import TeacherHeader from '../components/teacher/TeacherHeader';
 
 const FirebaseTeacherDashboard = () => {
   const navigate = useNavigate();
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
   const { user, userData, loading } = useFirebaseAuth();
   const [classes, setClasses] = useState([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
@@ -154,7 +155,7 @@ const FirebaseTeacherDashboard = () => {
           /* Empty State - Two Paths */
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
             <div className="text-5xl mb-4">🎵</div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Welcome to Music Mind Academy</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Welcome to {isEduSite ? 'Music Room Tools' : 'Music Mind Academy'}</h2>
             <p className="text-gray-600 mb-8 max-w-lg mx-auto">
               How would you like to get started?
             </p>

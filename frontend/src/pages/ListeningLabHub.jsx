@@ -673,19 +673,21 @@ const ListeningLabHub = () => {
       </div>
 
       {/* FOOTER HELP LINKS */}
-      <div className="border-t border-slate-200 bg-white mt-8">
-        <div className="max-w-5xl mx-auto px-8 py-8">
-          <div className="flex items-center justify-center text-base text-slate-600">
-            <span>Need help?</span>
-            <a
-              href="mailto:rob@musicmindacademy.com"
-              className="ml-2 text-violet-600 hover:text-violet-700 font-medium"
-            >
-              rob@musicmindacademy.com
-            </a>
+      {!isEduSite && (
+        <div className="border-t border-slate-200 bg-white mt-8">
+          <div className="max-w-5xl mx-auto px-8 py-8">
+            <div className="flex items-center justify-center text-base text-slate-600">
+              <span>Need help?</span>
+              <a
+                href="mailto:rob@musicmindacademy.com"
+                className="ml-2 text-violet-600 hover:text-violet-700 font-medium"
+              >
+                rob@musicmindacademy.com
+              </a>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Start Session Modal */}
       <StartSessionModal

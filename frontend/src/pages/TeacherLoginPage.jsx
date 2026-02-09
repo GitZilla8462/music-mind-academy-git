@@ -62,7 +62,7 @@ const TeacherLoginPage = () => {
             // User opened link on different device, needs to enter email
             setNeedsEmailForMagicLink(true);
           } else if (err.code === 'auth/not-approved') {
-            setError("Your email is not registered for access. Contact rob@musicmindacademy.com");
+            setError("Your email is not registered for access. Contact your administrator");
           } else {
             setError(err.message || 'Failed to complete sign-in. Please try again.');
           }
@@ -91,7 +91,7 @@ const TeacherLoginPage = () => {
     } catch (err) {
       console.error('Sign-in failed:', err);
       if (err.code === 'auth/not-approved') {
-        setError("Your email is not registered for access. Contact rob@musicmindacademy.com");
+        setError("Your email is not registered for access. Contact your administrator");
       } else {
         setError(err.message || 'Sign-in failed. Please try again.');
       }
@@ -113,7 +113,7 @@ const TeacherLoginPage = () => {
     } catch (err) {
       console.error('Failed to send magic link:', err);
       if (err.code === 'auth/not-approved') {
-        setError("This email is not registered. Contact rob@musicmindacademy.com");
+        setError("This email is not registered. Contact your administrator");
       } else {
         setError(err.message || 'Failed to send login link. Please try again.');
       }
@@ -135,7 +135,7 @@ const TeacherLoginPage = () => {
     } catch (err) {
       console.error('Magic link completion failed:', err);
       if (err.code === 'auth/not-approved') {
-        setError("Your email is not registered for access. Contact rob@musicmindacademy.com");
+        setError("Your email is not registered for access. Contact your administrator");
       } else {
         setError(err.message || 'Failed to complete sign-in. Please try again.');
       }
@@ -157,11 +157,13 @@ const TeacherLoginPage = () => {
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <a href="/" className="flex items-center gap-3">
-            <img
-              src="/MusicMindAcademyLogo.png"
-              alt="Music Mind Academy"
-              className="h-10 w-auto"
-            />
+            {!isEduSite && (
+              <img
+                src="/MusicMindAcademyLogo.png"
+                alt="Music Mind Academy"
+                className="h-10 w-auto"
+              />
+            )}
             <span className="text-xl font-bold text-slate-800">{siteName}</span>
           </a>
           <button
@@ -352,14 +354,16 @@ const TeacherLoginPage = () => {
           </div>
 
           {/* Help Text */}
-          <div className="mt-6 text-center">
-            <p className="text-slate-500 text-sm">
-              Having trouble? Email{' '}
-              <a href="mailto:rob@musicmindacademy.com" className={`${accentColor} hover:underline`}>
-                rob@musicmindacademy.com
-              </a>
-            </p>
-          </div>
+          {!isEduSite && (
+            <div className="mt-6 text-center">
+              <p className="text-slate-500 text-sm">
+                Having trouble? Email{' '}
+                <a href="mailto:rob@musicmindacademy.com" className={`${accentColor} hover:underline`}>
+                  rob@musicmindacademy.com
+                </a>
+              </p>
+            </div>
+          )}
         </div>
       </main>
 

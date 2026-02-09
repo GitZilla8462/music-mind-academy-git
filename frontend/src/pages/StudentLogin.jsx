@@ -10,6 +10,7 @@ import { Eye, EyeOff, LogIn } from 'lucide-react';
 
 const StudentLogin = () => {
   const navigate = useNavigate();
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
   const [searchParams] = useSearchParams();
   const { isAuthenticated, currentStudentInfo, loading: authLoading, signInWithGoogle, signInWithUsername } = useStudentAuth();
 
@@ -100,11 +101,13 @@ const StudentLogin = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       {/* Logo and Title */}
       <div className="text-center mb-6">
-        <img
-          src="/MusicMindAcademyLogo.png"
-          alt="Music Mind Academy"
-          className="h-16 w-auto mx-auto mb-4"
-        />
+        {!isEduSite && (
+          <img
+            src="/MusicMindAcademyLogo.png"
+            alt="Music Mind Academy"
+            className="h-16 w-auto mx-auto mb-4"
+          />
+        )}
         <h1 className="text-3xl font-bold text-gray-800 mb-1">Student Login</h1>
         <p className="text-gray-500">
           {isFromSession

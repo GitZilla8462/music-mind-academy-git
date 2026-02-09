@@ -8,6 +8,7 @@ import { Shield, Lock, Eye, Server, Users, AlertTriangle, CheckCircle, FileText 
 
 const SecurityPractices = () => {
   const navigate = useNavigate();
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
 
   return (
     <div style={{
@@ -134,18 +135,20 @@ const SecurityPractices = () => {
               cursor: 'pointer'
             }}
           >
-            <img
-              src="/MusicMindAcademyLogo.png"
-              alt="Music Mind Academy"
-              style={{ height: '40px', width: 'auto' }}
-            />
+            {!isEduSite && (
+              <img
+                src="/MusicMindAcademyLogo.png"
+                alt="Music Mind Academy"
+                style={{ height: '40px', width: 'auto' }}
+              />
+            )}
             <span style={{
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: '1.5rem',
               fontWeight: 700,
               color: '#1e293b'
             }}>
-              Music Mind Academy
+              {isEduSite ? 'Music Room Tools' : 'Music Mind Academy'}
             </span>
           </div>
           <button
@@ -447,18 +450,22 @@ const SecurityPractices = () => {
             <li>Cooperation with school/district security assessments and audits</li>
           </ul>
 
-          <h2>8. Contact Information</h2>
-          <p>
-            For security questions, to report a security concern, or to request documentation of our
-            security practices:
-          </p>
-          <div className="security-card">
-            <p style={{ marginBottom: '0.5rem' }}><strong>Robert Taube</strong></p>
-            <p style={{ marginBottom: '0.5rem' }}>Founder & Privacy Officer, Music Mind Academy</p>
-            <p style={{ marginBottom: 0 }}>
-              Email: <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a>
-            </p>
-          </div>
+          {!isEduSite && (
+            <>
+              <h2>8. Contact Information</h2>
+              <p>
+                For security questions, to report a security concern, or to request documentation of our
+                security practices:
+              </p>
+              <div className="security-card">
+                <p style={{ marginBottom: '0.5rem' }}><strong>Robert Taube</strong></p>
+                <p style={{ marginBottom: '0.5rem' }}>Founder & Privacy Officer, Music Mind Academy</p>
+                <p style={{ marginBottom: 0 }}>
+                  Email: <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a>
+                </p>
+              </div>
+            </>
+          )}
 
           <p style={{ marginTop: '2rem', fontSize: '0.9rem', color: '#64748b' }}>
             This security practices document is reviewed and updated at least annually, or when there are
@@ -478,7 +485,6 @@ const SecurityPractices = () => {
             <a href="/privacy" style={{ color: '#2563eb', textDecoration: 'none' }}>Privacy Policy</a>
             <a href="/student-privacy" style={{ color: '#2563eb', textDecoration: 'none' }}>Student Data Privacy</a>
             <a href="/terms" style={{ color: '#2563eb', textDecoration: 'none' }}>Terms of Service</a>
-            <a href="/dpa" style={{ color: '#2563eb', textDecoration: 'none' }}>Data Privacy Agreement</a>
             <a href="/" style={{ color: '#2563eb', textDecoration: 'none' }}>Home</a>
           </div>
         </div>

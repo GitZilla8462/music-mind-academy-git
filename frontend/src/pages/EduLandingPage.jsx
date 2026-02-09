@@ -401,8 +401,6 @@ const EduLandingPage = () => {
             <a href="/privacy" className="hover:text-violet-600 transition-colors">Privacy Policy</a>
             <a href="/student-privacy" className="hover:text-violet-600 transition-colors">Student Data Privacy</a>
             <a href="/terms" className="hover:text-violet-600 transition-colors">Terms of Service</a>
-            <a href="/dpa" className="hover:text-violet-600 transition-colors">Data Privacy Agreement</a>
-            <a href="/security" className="hover:text-violet-600 transition-colors">Security Practices</a>
           </div>
         </div>
       </footer>

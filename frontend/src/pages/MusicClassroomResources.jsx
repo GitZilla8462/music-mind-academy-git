@@ -152,6 +152,7 @@ const CURRICULUM_UNITS = [
 
 function MusicClassroomResources() {
   const navigate = useNavigate();
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
 
   const { isAuthenticated: legacyAuthenticated, user: legacyUser, logout: legacyLogout } = useAuth();
   const { isAuthenticated: firebaseAuthenticated, user: firebaseUser, signOut: firebaseSignOut } = useFirebaseAuth();
@@ -313,7 +314,7 @@ function MusicClassroomResources() {
       }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <h1 style={{ fontSize: '36px', fontWeight: '700', color: '#1e293b' }}>
-            Music Mind Academy
+            {isEduSite ? 'Music Room Tools' : 'Music Mind Academy'}
           </h1>
         </div>
 

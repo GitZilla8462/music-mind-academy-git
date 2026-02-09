@@ -6,6 +6,7 @@ import React from 'react';
 import { Printer, X } from 'lucide-react';
 
 const PrintableLoginCards = ({ roster, className, onClose }) => {
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
   const handlePrint = () => {
     window.print();
   };
@@ -133,13 +134,15 @@ const PrintableLoginCards = ({ roster, className, onClose }) => {
                 <div key={student.seatNumber} className="login-card">
                   {/* Card Header */}
                   <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
-                    <img
-                      src="/MusicMindAcademyLogo.png"
-                      alt="Music Mind Academy"
-                      style={{ height: '32px', width: 'auto' }}
-                    />
+                    {!isEduSite && (
+                      <img
+                        src="/MusicMindAcademyLogo.png"
+                        alt="Music Mind Academy"
+                        style={{ height: '32px', width: 'auto' }}
+                      />
+                    )}
                     <div>
-                      <div className="font-semibold text-gray-900 text-sm">Music Mind Academy</div>
+                      <div className="font-semibold text-gray-900 text-sm">{isEduSite ? 'Music Room Tools' : 'Music Mind Academy'}</div>
                       <div className="text-xs text-gray-500">{className}</div>
                     </div>
                   </div>

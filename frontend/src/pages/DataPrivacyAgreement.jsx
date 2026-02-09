@@ -8,6 +8,7 @@ import { Download, Mail, CheckCircle, FileText } from 'lucide-react';
 
 const DataPrivacyAgreement = () => {
   const navigate = useNavigate();
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
   const [showContactForm, setShowContactForm] = useState(false);
 
   const currentDate = new Date().toLocaleDateString('en-US', {
@@ -128,18 +129,20 @@ const DataPrivacyAgreement = () => {
               cursor: 'pointer'
             }}
           >
-            <img
-              src="/MusicMindAcademyLogo.png"
-              alt="Music Mind Academy"
-              style={{ height: '40px', width: 'auto' }}
-            />
+            {!isEduSite && (
+              <img
+                src="/MusicMindAcademyLogo.png"
+                alt="Music Mind Academy"
+                style={{ height: '40px', width: 'auto' }}
+              />
+            )}
             <span style={{
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: '1.5rem',
               fontWeight: 700,
               color: '#1e293b'
             }}>
-              Music Mind Academy
+              {isEduSite ? 'Music Room Tools' : 'Music Mind Academy'}
             </span>
           </div>
           <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -208,37 +211,39 @@ const DataPrivacyAgreement = () => {
           </div>
 
           {/* Request Box */}
-          <div className="no-print" style={{
-            background: '#eff6ff',
-            border: '1px solid #93c5fd',
-            borderRadius: '8px',
-            padding: '1.25rem',
-            marginBottom: '2rem'
-          }}>
-            <h3 style={{ margin: '0 0 0.5rem 0', color: '#1e40af' }}>Request a Signed DPA</h3>
-            <p style={{ margin: '0 0 1rem 0', color: '#1e40af', fontSize: '0.95rem' }}>
-              To request a signed Data Privacy Agreement for your school or district, contact us with
-              your district name, state, and any specific requirements.
-            </p>
-            <a
-              href="mailto:rob@musicmindacademy.com?subject=DPA%20Request&body=District%20Name:%0AState:%0AContact%20Name:%0ASpecial%20Requirements:%0A"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                background: '#1e40af',
-                color: 'white',
-                padding: '0.75rem 1.25rem',
-                borderRadius: '8px',
-                textDecoration: 'none',
-                fontWeight: 500,
-                fontSize: '0.95rem'
-              }}
-            >
-              <Mail size={18} />
-              Request DPA: rob@musicmindacademy.com
-            </a>
-          </div>
+          {!isEduSite && (
+            <div className="no-print" style={{
+              background: '#eff6ff',
+              border: '1px solid #93c5fd',
+              borderRadius: '8px',
+              padding: '1.25rem',
+              marginBottom: '2rem'
+            }}>
+              <h3 style={{ margin: '0 0 0.5rem 0', color: '#1e40af' }}>Request a Signed DPA</h3>
+              <p style={{ margin: '0 0 1rem 0', color: '#1e40af', fontSize: '0.95rem' }}>
+                To request a signed Data Privacy Agreement for your school or district, contact us with
+                your district name, state, and any specific requirements.
+              </p>
+              <a
+                href="mailto:rob@musicmindacademy.com?subject=DPA%20Request&body=District%20Name:%0AState:%0AContact%20Name:%0ASpecial%20Requirements:%0A"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  background: '#1e40af',
+                  color: 'white',
+                  padding: '0.75rem 1.25rem',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontWeight: 500,
+                  fontSize: '0.95rem'
+                }}
+              >
+                <Mail size={18} />
+                Request DPA: rob@musicmindacademy.com
+              </a>
+            </div>
+          )}
 
           {/* Agreement Body */}
           <div className="dpa-section">
@@ -441,7 +446,7 @@ const DataPrivacyAgreement = () => {
             <li>The Provider will make available to the LEA, upon request, documentation of its data privacy and
             security practices</li>
             <li>The Provider will cooperate with reasonable LEA audits of its compliance with this DPA</li>
-            <li>The Provider maintains a public Student Data Privacy page at musicmindacademy.com/student-privacy</li>
+            <li>The Provider maintains a public Student Data Privacy page at {isEduSite ? 'musicroomtools.org' : 'musicmindacademy.com'}/student-privacy</li>
           </ul>
 
           <h2>Article IX: Term and Termination</h2>
@@ -563,10 +568,14 @@ const DataPrivacyAgreement = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
             <div className="dpa-section">
               <h3 style={{ marginTop: 0 }}>Provider Contact</h3>
-              <p style={{ marginBottom: '0.25rem' }}><strong>Music Mind Academy</strong></p>
+              <p style={{ marginBottom: '0.25rem' }}><strong>{isEduSite ? 'Music Room Tools' : 'Music Mind Academy'}</strong></p>
               <p style={{ marginBottom: '0.25rem' }}>Attn: Robert Taube, Privacy Officer</p>
-              <p style={{ marginBottom: '0.25rem' }}>Email: rob@musicmindacademy.com</p>
-              <p style={{ marginBottom: 0 }}>Website: musicmindacademy.com</p>
+              {!isEduSite && (
+                <>
+                  <p style={{ marginBottom: '0.25rem' }}>Email: rob@musicmindacademy.com</p>
+                  <p style={{ marginBottom: 0 }}>Website: musicmindacademy.com</p>
+                </>
+              )}
             </div>
             <div className="dpa-section">
               <h3 style={{ marginTop: 0 }}>LEA Contact</h3>
@@ -589,7 +598,6 @@ const DataPrivacyAgreement = () => {
             <a href="/privacy" style={{ color: '#2563eb', textDecoration: 'none' }}>Privacy Policy</a>
             <a href="/student-privacy" style={{ color: '#2563eb', textDecoration: 'none' }}>Student Data Privacy</a>
             <a href="/terms" style={{ color: '#2563eb', textDecoration: 'none' }}>Terms of Service</a>
-            <a href="/security" style={{ color: '#2563eb', textDecoration: 'none' }}>Security Practices</a>
             <a href="/" style={{ color: '#2563eb', textDecoration: 'none' }}>Home</a>
           </div>
         </div>

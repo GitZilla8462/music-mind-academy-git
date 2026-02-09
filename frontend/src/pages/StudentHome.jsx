@@ -110,11 +110,13 @@ const StudentHome = () => {
           <div className="flex items-center justify-between h-14">
             {/* Logo + Site Name */}
             <div className="flex items-center gap-2">
-              <img
-                src="/MusicMindAcademyLogo.png"
-                alt="Music Mind Academy"
-                className="h-8 w-auto"
-              />
+              {!isEduSite && (
+                <img
+                  src="/MusicMindAcademyLogo.png"
+                  alt="Music Mind Academy"
+                  className="h-8 w-auto"
+                />
+              )}
               <span className="font-semibold text-gray-900 hidden sm:block">{siteName}</span>
             </div>
 

@@ -249,6 +249,7 @@ const CURRICULUM_DATA = {
 
 function CurriculumGuide() {
   const navigate = useNavigate();
+  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
   const [activeTab, setActiveTab] = useState('overview');
 
   const { overview, units, standards } = CURRICULUM_DATA;
@@ -936,7 +937,7 @@ function CurriculumGuide() {
       }}>
         <p style={{ fontSize: '14px', color: '#64748b' }}>
           Full curriculum available <strong>August 2026</strong>.
-          Questions? Contact <a href="mailto:rob@musicmindacademy.com" style={{ color: '#3b82f6' }}>rob@musicmindacademy.com</a>
+          {!isEduSite && <>Questions? Contact <a href="mailto:rob@musicmindacademy.com" style={{ color: '#3b82f6' }}>rob@musicmindacademy.com</a></>}
         </p>
       </div>
     </div>
