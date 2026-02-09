@@ -158,7 +158,7 @@ const PrivacyPolicy = () => {
             <li><strong>Email address:</strong> From Google or Microsoft sign-in</li>
             <li><strong>Display name:</strong> From your Google or Microsoft account</li>
             <li><strong>Profile photo:</strong> From your Google or Microsoft account (optional)</li>
-            <li><strong>Usage data:</strong> Session history, lessons used, number of students joined</li>
+            <li><strong>Usage data:</strong> Session history, lessons used, number of students joined, session duration</li>
           </ul>
 
           <h3>Information from Students</h3>
