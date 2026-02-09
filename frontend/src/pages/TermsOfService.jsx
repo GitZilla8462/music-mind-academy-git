@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 const TermsOfService = () => {
   const navigate = useNavigate();
   const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+  const siteName = isEduSite ? 'Music Room Tools' : 'Music Mind Academy';
 
   return (
     <div style={{
@@ -139,21 +140,21 @@ const TermsOfService = () => {
           </div>
 
           <p>
-            These Terms of Service ("Terms") govern your use of Music Mind Academy ("the Platform,"
+            These Terms of Service ("Terms") govern your use of {siteName} ("the Platform,"
             "we," "us," or "our"), a web-based music education platform at {isEduSite ? 'musicroomtools.org' : 'musicmindacademy.com'}.
             By creating an account or using the Platform, you agree to these Terms.
           </p>
 
           <h2>1. Acceptance of Terms</h2>
           <p>
-            By accessing or using Music Mind Academy, you agree to be bound by these Terms and our{' '}
+            By accessing or using {siteName}, you agree to be bound by these Terms and our{' '}
             <a href="/privacy">Privacy Policy</a>. If you do not agree to these Terms, please do not
             use our Service.
           </p>
 
           <h2>2. Description of Service</h2>
           <p>
-            Music Mind Academy is a web-based music education platform. Students log in to create
+            {siteName} is a web-based music education platform. Students log in to create
             music compositions, complete activities, and save their work. Teachers manage lessons,
             track progress, and enter grades. Teachers can also run Quick Join sessions where
             students participate with just a class code — no accounts needed.
@@ -175,8 +176,8 @@ const TermsOfService = () => {
 
           <h3>Student Access</h3>
           <p>
-            Students access the platform by signing in with a school Google account or a class
-            code + PIN. Their work is saved persistently. Teachers can also run Quick Join sessions
+            Students access the platform by signing in with a musical username and PIN.
+            Their work is saved persistently. Teachers can also run Quick Join sessions
             where students join with just a class code and a musical name — no account is created
             and no personal information is collected.
           </p>
@@ -184,7 +185,7 @@ const TermsOfService = () => {
             By creating student accounts, the teacher represents and warrants that:
           </p>
           <ul>
-            <li>They have reviewed the Music Mind Academy <a href="/privacy">Privacy Policy</a></li>
+            <li>They have reviewed the {siteName} <a href="/privacy">Privacy Policy</a></li>
             <li>Their school or district has authorized the use of the Platform for student data collection,
             including any required Data Privacy Agreement</li>
             <li>They are authorized to consent on behalf of parents under COPPA for the educational
@@ -214,7 +215,7 @@ const TermsOfService = () => {
             <li>We never sell student data</li>
             <li>We never use student data for advertising or marketing</li>
             <li>We collect only the minimum data necessary to provide the educational service</li>
-            <li>Student data is encrypted in transit (TLS 1.3) and at rest (AES-256)</li>
+            <li>Student data is encrypted in transit (TLS 1.2+) and at rest (AES-256)</li>
             <li>We comply with FERPA, COPPA, and New York Education Law § 2-d</li>
             <li>We operate as a "school official" under FERPA with a legitimate educational interest</li>
             <li>We do not redisclose education records except to our subprocessors or as authorized by FERPA</li>
@@ -262,7 +263,7 @@ const TermsOfService = () => {
           <h3>Platform Content</h3>
           <p>
             The Platform, including its design, software, audio loops, lesson content, and educational
-            materials, is owned by Music Mind Academy and protected by copyright and other intellectual
+            materials, is owned by {siteName} and protected by copyright and other intellectual
             property laws. Your subscription grants you a limited, non-exclusive, non-transferable
             license to use the Platform for classroom instruction during your active subscription period.
           </p>
@@ -282,14 +283,14 @@ const TermsOfService = () => {
 
           <h3>Audio Loops License</h3>
           <p>
-            Audio loops provided in Music Mind Academy are licensed for educational use within our
-            platform. They may not be extracted, downloaded, or used outside of Music Mind Academy
+            Audio loops provided in {siteName} are licensed for educational use within our
+            platform. They may not be extracted, downloaded, or used outside of {siteName}
             without separate licensing.
           </p>
 
           <h2>9. Subscription and Payment</h2>
           <p>
-            Access to Music Mind Academy requires a paid subscription. Subscription details, pricing,
+            Access to {siteName} requires a paid subscription. Subscription details, pricing,
             and payment terms are presented at the time of purchase.
           </p>
           <ul>
@@ -333,7 +334,7 @@ const TermsOfService = () => {
 
           <h2>13. Indemnification</h2>
           <p>
-            You agree to indemnify and hold harmless Music Mind Academy and its owner from any
+            You agree to indemnify and hold harmless {siteName} and its owner from any
             claims, damages, or expenses arising from your use of the Service or violation of
             these Terms.
           </p>

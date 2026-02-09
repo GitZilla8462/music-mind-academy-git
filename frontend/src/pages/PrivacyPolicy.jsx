@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
   const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+  const siteName = isEduSite ? 'Music Room Tools' : 'Music Mind Academy';
 
   return (
     <div style={{
@@ -139,7 +140,7 @@ const PrivacyPolicy = () => {
           </div>
 
           <p>
-            Music Mind Academy ("we", "us", or "our") is committed to protecting your privacy.
+            {siteName} ("we", "us", or "our") is committed to protecting your privacy.
             This Privacy Policy explains how we collect, use, and protect information when you use
             our website and services at {isEduSite ? 'musicroomtools.org' : 'musicmindacademy.com'}.
           </p>
@@ -161,10 +162,10 @@ const PrivacyPolicy = () => {
           </ul>
 
           <h3>Information from Students</h3>
-          <p>When students use Music Mind Academy through their teacher's class, we collect:</p>
+          <p>When students use {siteName} through their teacher's class, we collect:</p>
           <ul>
-            <li><strong>Student name:</strong> From Google account or entered by teacher</li>
-            <li><strong>Student email:</strong> Only if using Google Sign-In</li>
+            <li><strong>Student display name:</strong> Entered by teacher (e.g., first name or seat number)</li>
+            <li><strong>Musical username:</strong> System-generated (e.g., "tuba123") — not personally identifiable</li>
             <li><strong>Compositions, reflections, and scores:</strong> Saved to the student's account</li>
           </ul>
           <p>
@@ -195,7 +196,7 @@ const PrivacyPolicy = () => {
             <li>Communicate with teachers about their accounts</li>
           </ul>
           <p>
-            <strong>FERPA Designation:</strong> Music Mind Academy
+            <strong>FERPA Designation:</strong> {siteName}
             functions as a "school official" with a legitimate educational interest under FERPA (20 U.S.C. § 1232g).
             We use student education records solely for the educational purposes authorized by the school,
             and we do not redisclose education records to any third party except as authorized by FERPA or
@@ -235,8 +236,8 @@ const PrivacyPolicy = () => {
           </p>
           <p><strong>Security measures include:</strong></p>
           <ul>
-            <li>All data transmission uses HTTPS/TLS 1.3 encryption</li>
-            <li>Student PINs are hashed using bcrypt before storage</li>
+            <li>All data transmission uses HTTPS/TLS 1.2+ encryption</li>
+            <li>Student PINs are hashed using bcrypt for login verification; plaintext PINs are stored in a teacher-only protected path for printing login cards</li>
             <li>Rate limiting prevents brute force attacks on PIN login (5 attempts per 15 minutes)</li>
             <li>Firebase Security Rules enforce role-based access control</li>
             <li>Teachers can only access data for their own classes</li>
@@ -265,7 +266,7 @@ const PrivacyPolicy = () => {
 
           <h2>7. Children's Privacy & COPPA Compliance</h2>
           <p>
-            Music Mind Academy is designed for use in educational settings with students of all ages,
+            {siteName} is designed for use in educational settings with students of all ages,
             including children under 13. We comply with the Children's Online Privacy Protection Act (COPPA) by:
           </p>
           <ul>
@@ -286,9 +287,8 @@ const PrivacyPolicy = () => {
             collects no personal information.
           </p>
           <p>
-            <strong>OAuth Permissions:</strong> When students sign in via Google, we request only basic profile
-            information (name and email address). We do not request access to Google Drive, Gmail, Calendar, or
-            any other Google services.
+            <strong>Student Authentication:</strong> Students sign in using a musical username (e.g., "tuba123")
+            and a 4-digit PIN. No email address or Google account is required for students.
           </p>
           <p>
             For complete details, see our <a href="/student-privacy">Student Data Privacy</a> page.
@@ -299,7 +299,7 @@ const PrivacyPolicy = () => {
           <ul>
             <li><strong>Firebase (Google Cloud):</strong> Database and authentication — SOC 2, ISO 27001, FedRAMP authorized, COPPA compliant</li>
             <li><strong>MongoDB Atlas:</strong> Database — SOC 2 Type II, ISO 27001 certified</li>
-            <li><strong>Google OAuth:</strong> Teacher and student sign-in — requests only basic profile (name, email)</li>
+            <li><strong>Google OAuth:</strong> Teacher sign-in only — requests only basic profile (name, email)</li>
             <li><strong>Microsoft OAuth:</strong> Teacher sign-in — requests only basic profile (name, email)</li>
             <li><strong>Google Fonts:</strong> Web fonts loaded from fonts.googleapis.com (no user data is sent to Google through this service)</li>
             <li><strong>Vercel:</strong> Frontend web hosting — serves static files only, no student data processed</li>

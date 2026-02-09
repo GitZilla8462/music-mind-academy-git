@@ -10,7 +10,7 @@ import { getAllStudentWorkAsync } from '../../utils/studentWorkStorage';
 
 const StudentWorkList = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, currentStudentInfo, isGoogleAuth, isPinAuth } = useStudentAuth();
+  const { isAuthenticated, currentStudentInfo, isPinAuth } = useStudentAuth();
   const [work, setWork] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,10 +22,7 @@ const StudentWorkList = () => {
       }
 
       try {
-        // Get auth info based on auth method
-        const authInfo = isGoogleAuth
-          ? { uid: currentStudentInfo.uid }
-          : isPinAuth
+        const authInfo = isPinAuth
           ? { uid: `pin-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}` }
           : null;
 
@@ -39,7 +36,7 @@ const StudentWorkList = () => {
     };
 
     fetchWork();
-  }, [isAuthenticated, currentStudentInfo, isGoogleAuth, isPinAuth]);
+  }, [isAuthenticated, currentStudentInfo, isPinAuth]);
 
   const handleViewWork = (item) => {
     if (item.viewRoute) {

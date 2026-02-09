@@ -9,6 +9,7 @@ import { Shield, Lock, Eye, Server, Users, AlertTriangle, CheckCircle, FileText 
 const SecurityPractices = () => {
   const navigate = useNavigate();
   const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+  const siteName = isEduSite ? 'Music Room Tools' : 'Music Mind Academy';
 
   return (
     <div style={{
@@ -198,7 +199,7 @@ const SecurityPractices = () => {
           <div className="highlight-box">
             <h3 style={{ marginTop: 0, color: '#065f46' }}>Overview</h3>
             <p style={{ marginBottom: 0 }}>
-              Music Mind Academy maintains a comprehensive security program designed to protect student and teacher data.
+              {siteName} maintains a comprehensive security program designed to protect student and teacher data.
               This document describes our security practices in accordance with FERPA, COPPA (2025 amendments), and
               NY Education Law § 2-d requirements for written security programs.
             </p>
@@ -209,7 +210,7 @@ const SecurityPractices = () => {
             <div className="security-card" style={{ borderLeft: '4px solid #16a34a' }}>
               <h3><Lock size={20} style={{ color: '#16a34a' }} /> Encryption</h3>
               <ul className="check-list" style={{ marginBottom: 0 }}>
-                <li><CheckCircle size={16} className="check-icon" /> TLS 1.3 in transit</li>
+                <li><CheckCircle size={16} className="check-icon" /> TLS 1.2+ in transit</li>
                 <li><CheckCircle size={16} className="check-icon" /> AES-256 at rest</li>
                 <li><CheckCircle size={16} className="check-icon" /> HTTPS required</li>
               </ul>
@@ -248,7 +249,7 @@ const SecurityPractices = () => {
           <h3>Encryption Standards</h3>
           <p>All student and teacher data is protected by encryption both in transit and at rest:</p>
           <ul>
-            <li><strong>Data in Transit:</strong> All communications use TLS 1.3 encryption.
+            <li><strong>Data in Transit:</strong> All communications use TLS 1.2+ encryption.
             HTTPS is enforced for all connections. HTTP Strict Transport Security (HSTS) headers are enabled.</li>
             <li><strong>Data at Rest:</strong> All stored data is encrypted using AES-256 encryption through our
             cloud providers (Firebase and MongoDB Atlas). Encryption keys are managed by the cloud providers
@@ -272,8 +273,8 @@ const SecurityPractices = () => {
           <ul>
             <li><strong>Teacher Authentication:</strong> Teachers authenticate via Google OAuth or Microsoft OAuth,
             leveraging the security of these enterprise identity providers including their MFA requirements.</li>
-            <li><strong>Student Authentication:</strong> Students authenticate via school Google accounts (OAuth)
-            or PIN-based login (class code + seat number + 4-digit PIN). PIN sessions expire after 8 hours.</li>
+            <li><strong>Student Authentication:</strong> Students authenticate via musical username (e.g., "tuba123")
+            + 4-digit PIN. PIN sessions expire after 8 hours.</li>
             <li><strong>PIN Security:</strong> Student PINs are hashed using bcrypt (industry-standard password hashing)
             before storage. Plaintext PINs are never stored in publicly accessible locations.</li>
             <li><strong>Rate Limiting:</strong> PIN login attempts are rate-limited to prevent brute force attacks.
@@ -322,7 +323,7 @@ const SecurityPractices = () => {
           <h2>3. Infrastructure Security</h2>
 
           <h3>Cloud Providers</h3>
-          <p>Music Mind Academy uses enterprise-grade cloud providers with strong security certifications:</p>
+          <p>{siteName} uses enterprise-grade cloud providers with strong security certifications:</p>
 
           <div className="security-card">
             <h3><Server size={20} /> Firebase (Google Cloud Platform)</h3>
@@ -433,7 +434,7 @@ const SecurityPractices = () => {
           <h2>7. Compliance and Auditing</h2>
 
           <h3>Regulatory Compliance</h3>
-          <p>Music Mind Academy maintains compliance with:</p>
+          <p>{siteName} maintains compliance with:</p>
           <ul>
             <li>Family Educational Rights and Privacy Act (FERPA)</li>
             <li>Children's Online Privacy Protection Act (COPPA), including 2025 amendments</li>

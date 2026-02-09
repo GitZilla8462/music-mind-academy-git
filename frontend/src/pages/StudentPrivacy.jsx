@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 const StudentPrivacy = () => {
   const navigate = useNavigate();
   const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+  const siteName = isEduSite ? 'Music Room Tools' : 'Music Mind Academy';
 
   return (
     <div style={{
@@ -342,7 +343,7 @@ const StudentPrivacy = () => {
                 <span className="it-item-value yes">YES</span>
               </div>
               <div className="it-item">
-                <span className="it-item-label">PIN Hashing (bcrypt)</span>
+                <span className="it-item-label">PIN Security (bcrypt + protected)</span>
                 <span className="it-item-value yes">YES</span>
               </div>
               <div className="it-item">
@@ -373,12 +374,48 @@ const StudentPrivacy = () => {
           <div className="highlight-box">
             <h3 style={{ marginTop: 0, color: '#065f46' }}>Summary</h3>
             <p style={{ marginBottom: 0 }}>
-              Music Mind Academy is a web-based music education platform for middle school classrooms.
-              Students log in with a school Google account or a class code + PIN to save their compositions,
+              {siteName} is a web-based music education platform for middle school classrooms.
+              Students log in with a musical username and PIN to save their compositions,
               reflections, and scores. We collect only what's needed for the educational service. We never
               sell data, show ads, or use third-party tracking. Teachers can also run quick sessions where
               students join with just a code and musical name — no accounts, no data collected.
             </p>
+          </div>
+
+          {/* DPA Callout */}
+          <div className="highlight-box blue">
+            <h3 style={{ marginTop: 0, color: '#1e40af', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              Data Privacy Agreement (DPA)
+            </h3>
+            <p>
+              We are ready to sign a Data Privacy Agreement with your district. Our standard DPA is
+              compatible with the SDPC National Data Privacy Agreement (NDPA) framework. You can also
+              send us your district's own DPA template.
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <a
+                href="/dpa"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  background: '#1e40af',
+                  color: 'white',
+                  padding: '0.6rem 1.25rem',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontWeight: 500,
+                  fontSize: '0.95rem'
+                }}
+              >
+                View & Download DPA →
+              </a>
+              {!isEduSite && (
+                <span style={{ color: '#475569', fontSize: '0.9rem' }}>
+                  or email <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a> to request a signed copy
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Compliance Badges */}
@@ -407,12 +444,12 @@ const StudentPrivacy = () => {
             </thead>
             <tbody>
               <tr>
-                <td>Student Name</td>
-                <td>From Google account or entered by teacher</td>
+                <td>Student Display Name</td>
+                <td>Entered by teacher (e.g., first name or seat number) — not required to be a real name</td>
               </tr>
               <tr>
-                <td>Student Email</td>
-                <td>Only if using Google Sign-In</td>
+                <td>Musical Username</td>
+                <td>System-generated (e.g., "tuba123") — not personally identifiable</td>
               </tr>
               <tr>
                 <td>Music Compositions</td>
@@ -459,8 +496,13 @@ const StudentPrivacy = () => {
 
           {/* How It Works */}
           <h2>How It Works for Students</h2>
+          <p>
+            Students do not create their own accounts. Teachers set up their class and the system
+            generates a unique musical username (e.g., "tuba123", "flute456") and a 4-digit PIN
+            for each student. Teachers print login cards with these credentials.
+          </p>
           <ol>
-            <li><strong>Sign in</strong> via school Google account or class code + seat number + PIN</li>
+            <li><strong>Sign in</strong> with their musical username + PIN</li>
             <li><strong>Complete activities</strong> — compositions, reflections, and games</li>
             <li><strong>Work is saved</strong> to the student's account automatically</li>
             <li><strong>Teacher reviews</strong> student work, grades assignments, and provides feedback</li>
@@ -474,12 +516,21 @@ const StudentPrivacy = () => {
 
           <h3>Security Measures</h3>
           <ul>
-            <li><strong>Encryption in transit:</strong> All data transmitted over HTTPS/TLS 1.3</li>
+            <li><strong>Encryption in transit:</strong> All data transmitted over HTTPS/TLS 1.2+</li>
             <li><strong>Encryption at rest:</strong> AES-256 encryption (Firebase and MongoDB Atlas)</li>
-            <li><strong>PIN hashing:</strong> Student PINs hashed using bcrypt before storage</li>
+            <li><strong>PIN security:</strong> Student PINs are hashed using bcrypt for verification; plaintext PINs are stored in a teacher-only protected path so teachers can print login cards</li>
             <li><strong>Rate limiting:</strong> PIN login attempts limited to 5 per 15 minutes</li>
             <li><strong>Access controls:</strong> Role-based access — teachers see only their own students; students see only their own work</li>
             <li><strong>Firebase Security Rules:</strong> Database access restricted by role with granular permissions</li>
+          </ul>
+
+          <h3>Authentication</h3>
+          <ul>
+            <li><strong>Teacher authentication:</strong> Google or Microsoft OAuth, leveraging enterprise identity providers and their MFA requirements</li>
+            <li><strong>Student authentication:</strong> Musical username (e.g., "tuba123") + 4-digit PIN. Students cannot create accounts independently.</li>
+            <li><strong>PIN protection:</strong> PINs are hashed with bcrypt (cost factor 10) for verification. Plaintext PINs are stored in a teacher-only protected database path for printing login cards.</li>
+            <li><strong>Session expiry:</strong> Student PIN sessions automatically expire after 8 hours</li>
+            <li><strong>Brute force protection:</strong> After 5 failed PIN attempts, the account locks for 15 minutes. Teachers can reset PINs to unlock immediately.</li>
           </ul>
 
           <h3>Subprocessors</h3>
@@ -489,7 +540,7 @@ const StudentPrivacy = () => {
                 <th>Service</th>
                 <th>Purpose</th>
                 <th>Data Processed</th>
-                <th>Location</th>
+                <th>Certifications</th>
               </tr>
             </thead>
             <tbody>
@@ -497,44 +548,45 @@ const StudentPrivacy = () => {
                 <td>Firebase (Google Cloud)</td>
                 <td>Authentication & Realtime Database</td>
                 <td>Teacher accounts, student accounts, session data</td>
-                <td>United States</td>
+                <td>SOC 1/2/3, ISO 27001, FedRAMP, COPPA</td>
               </tr>
               <tr>
                 <td>MongoDB Atlas</td>
                 <td>Database</td>
                 <td>Application data, student work</td>
-                <td>United States</td>
+                <td>SOC 2 Type II, ISO 27001</td>
               </tr>
               <tr>
                 <td>Vercel</td>
                 <td>Web hosting (frontend)</td>
                 <td>Static files only — no student data</td>
-                <td>United States</td>
+                <td>SOC 2 Type II</td>
               </tr>
               <tr>
                 <td>Railway</td>
                 <td>Backend hosting</td>
                 <td>API requests</td>
-                <td>United States</td>
+                <td>—</td>
               </tr>
             </tbody>
           </table>
+          <p style={{ fontSize: '0.9rem', color: '#64748b' }}>
+            All data is stored in United States data centers. Cloud provider compliance reports are available upon request.
+          </p>
 
           <p><strong>We do NOT use:</strong> Google Analytics, Facebook Pixel, advertising networks,
           behavioral tracking, or any other third-party services that process student data.</p>
 
-          {/* Data Breach Response */}
-          <h2>Data Breach Response</h2>
+          <h3>Incident Response</h3>
           <p>
-            In the event of a breach or unauthorized release of student personally identifiable information,
-            Music Mind Academy will:
+            In the event of a breach or unauthorized release of student personally identifiable information:
           </p>
-          <ul>
-            <li>Notify affected schools and districts within <strong>7 calendar days</strong> of discovery</li>
-            <li>Provide details of what data was affected</li>
-            <li>Outline remediation steps taken</li>
-            <li>Cooperate with schools, law enforcement, and any required state reporting obligations</li>
-          </ul>
+          <ol>
+            <li><strong>Containment (0-24 hours):</strong> Isolate affected systems, preserve evidence, assess scope</li>
+            <li><strong>Assessment (24-72 hours):</strong> Determine what data was affected, identify root cause</li>
+            <li><strong>Notification (within 7 days):</strong> Notify affected schools and districts within 7 calendar days of discovery, as required by NY Education Law § 2-d</li>
+            <li><strong>Remediation (ongoing):</strong> Fix the vulnerability, implement additional controls, provide written report</li>
+          </ol>
 
           {/* Legal Compliance */}
           <h2>Legal Compliance</h2>
@@ -542,7 +594,7 @@ const StudentPrivacy = () => {
           <h3>FERPA (Family Educational Rights and Privacy Act)</h3>
           <p>
             Student compositions, reflections, and scores constitute education records under FERPA.
-            Music Mind Academy operates as a "school official" with a legitimate educational interest
+            {siteName} operates as a "school official" with a legitimate educational interest
             under 34 CFR § 99.31(a)(1). We use student data only for the educational purposes specified
             in our agreements and do not redisclose education records to any third party except to our
             subprocessors as necessary to provide the service.
@@ -557,7 +609,7 @@ const StudentPrivacy = () => {
 
           <h3>New York Education Law § 2-d</h3>
           <p>
-            Music Mind Academy complies with NY Ed Law 2-d by never selling or releasing student PII
+            {siteName} complies with NY Ed Law 2-d by never selling or releasing student PII
             for commercial purposes, encrypting all PII in transit and at rest, notifying affected schools
             within 7 days of a breach, providing a Parents' Bill of Rights, and being prepared to sign
             Data Privacy Agreements with NY districts.
@@ -632,7 +684,7 @@ const StudentPrivacy = () => {
               <h4>6. Breach Notification</h4>
               <p>
                 You will be notified in accordance with applicable laws if a breach or unauthorized release
-                of your child's personally identifiable information occurs. Music Mind Academy will notify
+                of your child's personally identifiable information occurs. {siteName} will notify
                 affected schools within 7 calendar days of discovery.
               </p>
             </div>

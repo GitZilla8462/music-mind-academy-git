@@ -98,7 +98,7 @@ export const HELP_CONTENT = {
   },
   accountsMode: {
     title: 'Classroom Mode',
-    text: 'Students log in with a PIN or Google account. Their work is saved automatically. You can view submissions and enter grades in the Gradebook.'
+    text: 'Students log in with a username and PIN. Their work is saved automatically. You can view submissions and enter grades in the Gradebook.'
   },
   sessionCode: {
     title: 'Session Code',
@@ -114,7 +114,7 @@ export const HELP_CONTENT = {
   },
   roster: {
     title: 'Class Roster',
-    text: 'Manage which students are in your class. Add students with seat numbers and PINs for login, or let them use Google Sign-In.'
+    text: 'Manage which students are in your class. Add students with usernames and PINs for login.'
   }
 };
 

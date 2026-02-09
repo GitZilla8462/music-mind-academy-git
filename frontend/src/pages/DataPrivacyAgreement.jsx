@@ -9,6 +9,7 @@ import { Download, Mail, CheckCircle, FileText } from 'lucide-react';
 const DataPrivacyAgreement = () => {
   const navigate = useNavigate();
   const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+  const siteName = isEduSite ? 'Music Room Tools' : 'Music Mind Academy';
   const [showContactForm, setShowContactForm] = useState(false);
 
   const currentDate = new Date().toLocaleDateString('en-US', {
@@ -252,12 +253,12 @@ const DataPrivacyAgreement = () => {
               Between<br />
               <span style={{ color: '#2563eb' }}>______________________ School District</span> ("LEA")<br />
               and<br />
-              <span style={{ color: '#2563eb' }}>Music Mind Academy</span> ("Provider")
+              <span style={{ color: '#2563eb' }}>{siteName}</span> ("Provider")
             </p>
 
             <p>
               This Data Privacy Agreement ("DPA") is entered into on <span style={{ color: '#2563eb' }}>__________</span> by
-              and between the Local Education Agency identified above ("LEA") and Music Mind Academy ("Provider")
+              and between the Local Education Agency identified above ("LEA") and {siteName} ("Provider")
               for the purpose of establishing privacy protections for student data in connection with the Provider's
               educational technology services.
             </p>
@@ -308,8 +309,8 @@ const DataPrivacyAgreement = () => {
 
           <h3>Classroom Mode</h3>
           <ul>
-            <li>Student first and last name (from Google Sign-In or teacher entry)</li>
-            <li>Student email address (if using Google Sign-In)</li>
+            <li>Student display name (entered by teacher)</li>
+            <li>Musical username (system-generated, e.g., "tuba123")</li>
             <li>Student musical compositions and written reflections</li>
             <li>Activity and game scores</li>
             <li>Session timestamps</li>
@@ -346,7 +347,7 @@ const DataPrivacyAgreement = () => {
           <h3>C. Security Safeguards</h3>
           <p>The Provider agrees to implement and maintain the following security measures:</p>
           <ul>
-            <li>Encryption of Student Data in transit using TLS 1.3/HTTPS</li>
+            <li>Encryption of Student Data in transit using TLS 1.2+/HTTPS</li>
             <li>Encryption of Student Data at rest using AES-256 encryption</li>
             <li>Password/PIN hashing using bcrypt (OWASP recommended algorithm)</li>
             <li>Rate limiting to prevent brute force attacks (5 attempts per 15 minutes)</li>
@@ -496,7 +497,7 @@ const DataPrivacyAgreement = () => {
               <div>
                 <p style={{ fontWeight: 600, marginBottom: '0.5rem' }}>PROVIDER</p>
                 <p style={{ padding: '0.5rem 0', marginBottom: '0.25rem' }}>
-                  Company: Music Mind Academy
+                  Company: {siteName}
                 </p>
                 <p style={{ padding: '0.5rem 0', marginBottom: '0.25rem' }}>
                   Authorized Representative: Robert Taube
@@ -526,19 +527,14 @@ const DataPrivacyAgreement = () => {
             </thead>
             <tbody>
               <tr>
-                <td>Student Real Name</td>
+                <td>Student Display Name</td>
                 <td style={{ color: '#16a34a' }}>Not Collected</td>
-                <td>Collected (from Google or teacher)</td>
+                <td>Entered by teacher (e.g., first name)</td>
               </tr>
               <tr>
-                <td>Student Email</td>
+                <td>Musical Username</td>
                 <td style={{ color: '#16a34a' }}>Not Collected</td>
-                <td>Collected if using Google Sign-In</td>
-              </tr>
-              <tr>
-                <td>Musical Pseudonym</td>
-                <td>Student-selected</td>
-                <td>Optional</td>
+                <td>System-generated (e.g., "tuba123")</td>
               </tr>
               <tr>
                 <td>Music Compositions</td>

@@ -24,7 +24,7 @@ const SubmitWorkButton = ({
   onSubmitSuccess,
   onSubmitError
 }) => {
-  const { isAuthenticated, currentStudentInfo, isGoogleAuth, isPinAuth } = useStudentAuth();
+  const { isAuthenticated, currentStudentInfo, isPinAuth } = useStudentAuth();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(null);
@@ -34,14 +34,8 @@ const SubmitWorkButton = ({
     return null;
   }
 
-  // Get the appropriate classId and uid based on auth method
   const getAuthInfo = () => {
-    if (isGoogleAuth) {
-      return {
-        uid: currentStudentInfo.uid,
-        classId: 'unassigned' // Google auth students may not have a specific class
-      };
-    } else if (isPinAuth) {
+    if (isPinAuth) {
       return {
         uid: `pin-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}`,
         classId: currentStudentInfo.classId
@@ -120,7 +114,7 @@ export const SubmitWorkButtonCompact = ({
   onSubmitSuccess,
   onSubmitError
 }) => {
-  const { isAuthenticated, currentStudentInfo, isGoogleAuth, isPinAuth } = useStudentAuth();
+  const { isAuthenticated, currentStudentInfo, isPinAuth } = useStudentAuth();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -129,12 +123,7 @@ export const SubmitWorkButtonCompact = ({
   }
 
   const getAuthInfo = () => {
-    if (isGoogleAuth) {
-      return {
-        uid: currentStudentInfo.uid,
-        classId: 'unassigned'
-      };
-    } else if (isPinAuth) {
+    if (isPinAuth) {
       return {
         uid: `pin-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}`,
         classId: currentStudentInfo.classId

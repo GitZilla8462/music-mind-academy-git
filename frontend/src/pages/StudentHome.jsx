@@ -5,7 +5,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudentAuth } from '../context/StudentAuthContext';
-import { getStudentEnrollments } from '../firebase/students';
 import { getClassSessionByCode, joinClassSession, subscribeToClassSession } from '../firebase/classes';
 import { LogOut, Play, Award, BookOpen, FolderHeart, ClipboardList } from 'lucide-react';
 import StudentGradesList from '../components/student/StudentGradesList';
@@ -14,7 +13,7 @@ import StudentClasswork from '../components/student/StudentClasswork';
 
 const StudentHome = () => {
   const navigate = useNavigate();
-  const { student, pinSession, currentStudentInfo, isGoogleAuth, isPinAuth, signOut } = useStudentAuth();
+  const { pinSession, currentStudentInfo, isPinAuth, signOut } = useStudentAuth();
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('classwork');
@@ -27,26 +26,15 @@ const StudentHome = () => {
 
   // Fetch student's enrolled classes
   useEffect(() => {
-    const fetchEnrollments = async () => {
-      if (isGoogleAuth && student?.uid) {
-        try {
-          const data = await getStudentEnrollments(student.uid);
-          setEnrollments(data);
-        } catch (err) {
-          console.error('Error fetching enrollments:', err);
-        }
-      } else if (isPinAuth && pinSession) {
-        setEnrollments([{
-          classId: pinSession.classId,
-          className: pinSession.className,
-          seatNumber: pinSession.seatNumber
-        }]);
-      }
-      setLoading(false);
-    };
-
-    fetchEnrollments();
-  }, [student?.uid, isGoogleAuth, isPinAuth, pinSession]);
+    if (isPinAuth && pinSession) {
+      setEnrollments([{
+        classId: pinSession.classId,
+        className: pinSession.className,
+        seatNumber: pinSession.seatNumber
+      }]);
+    }
+    setLoading(false);
+  }, [isPinAuth, pinSession]);
 
   // Real-time listener for active class session (PIN auth students)
   useEffect(() => {
@@ -140,17 +128,9 @@ const StudentHome = () => {
             {/* Right side — user info + sign out */}
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2">
-                {currentStudentInfo?.photoURL ? (
-                  <img
-                    src={currentStudentInfo.photoURL}
-                    alt=""
-                    className="w-8 h-8 rounded-full"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
+                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
                     {currentStudentInfo?.displayName?.charAt(0) || 'S'}
                   </div>
-                )}
                 <span className="text-sm text-gray-700 font-medium hidden md:block max-w-[120px] truncate">
                   {currentStudentInfo?.displayName?.split(' ')[0]}
                 </span>

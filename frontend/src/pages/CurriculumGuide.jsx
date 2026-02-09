@@ -369,7 +369,7 @@ function CurriculumGuide() {
               boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
             }}>
               <h1 style={{ fontSize: '32px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>
-                {overview.title}
+                {isEduSite ? 'Music Room Tools Curriculum' : overview.title}
               </h1>
               <p style={{ fontSize: '18px', color: '#64748b', marginBottom: '24px' }}>
                 {overview.subtitle}
