@@ -28,7 +28,7 @@ const INSTRUMENT_CONFIGS = [
     description: 'A double reed with a piercing, nasal tone',
     videoPath: '/lessons/listening-lab/lesson2/videos/oboe-demo.mp4',
     startTime: 8,   // 0:08
-    endTime: 18,    // 0:18
+    endTime: 17,    // 0:17
     volume: 0.8,
     facts: ['Uses a double reed \u2014 two thin pieces of cane', 'Tunes the entire orchestra', 'Distinctive nasal, piercing sound']
   },
@@ -312,9 +312,9 @@ const WoodwindFamilyShowcase = ({ onAdvance }) => {
       {/* VIDEO PLAYING OVERLAY */}
       {phase === 'playing' && (
         <>
-          {/* Instrument badge - top center */}
+          {/* Instrument badge - top left */}
           <div
-            className="absolute top-8 left-1/2 -translate-x-1/2 px-10 py-5 rounded-full flex items-center gap-4 text-white font-black text-4xl shadow-2xl"
+            className="absolute top-8 left-8 px-10 py-5 rounded-full flex items-center gap-4 text-white font-black text-4xl shadow-2xl"
             style={{
               backgroundColor: config.color,
               boxShadow: `0 0 50px ${config.color}`

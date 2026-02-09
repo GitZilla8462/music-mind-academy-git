@@ -1,23 +1,27 @@
 // File: /src/lessons/shared/activities/tempo-charades/TempoShowcase.jsx
 // Interactive Tempo Showcase - Teacher presentation view
 // Steps through Largo → Presto one at a time with visual metronome AND audio demo
-// Uses Brahms Hungarian Dance No. 5 at different playback rates to demonstrate each tempo
-// The piece is naturally ~138 BPM (Allegro), so we adjust playbackRate for each tempo
+// Uses real recordings at natural tempo for Largo, Adagio, and Andante,
+// and Brahms Hungarian Dance No. 5 (naturally ~138 BPM) with playback rate adjustment for Allegro/Presto
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, Pause, ChevronRight, Check, RotateCcw } from 'lucide-react';
 
-const NATURAL_BPM = 138; // The Brahms piece is naturally Allegro (~138 BPM)
-const AUDIO_FILE = '/audio/classical/brahms-hungarian-dance-5.mp3';
-const AUDIO_START = 0;    // Start from the famous opening theme
+const BRAHMS_FILE = '/audio/classical/brahms-hungarian-dance-5.mp3';
+const BRAHMS_NATURAL_BPM = 138;
 const AUDIO_CLIP_BEATS = 8; // Play 8 beats worth at each tempo
 
 const TEMPOS = [
-  { symbol: 'Largo', name: 'Largo', meaning: 'Very Slow', bpm: 50, color: '#93C5FD', emoji: '\u{1F40C}' },
-  { symbol: 'Adagio', name: 'Adagio', meaning: 'Slow, Relaxed', bpm: 72, color: '#60A5FA', emoji: '\u{1F422}' },
-  { symbol: 'Andante', name: 'Andante', meaning: 'Walking Speed', bpm: 92, color: '#FCD34D', emoji: '\u{1F6B6}' },
-  { symbol: 'Allegro', name: 'Allegro', meaning: 'Fast, Lively', bpm: 138, color: '#FBBF24', emoji: '\u{1F3C3}' },
-  { symbol: 'Presto', name: 'Presto', meaning: 'Very Fast', bpm: 184, color: '#EF4444', emoji: '\u26A1' },
+  { symbol: 'Largo', name: 'Largo', meaning: 'Very Slow', bpm: 50, color: '#93C5FD', emoji: '\u{1F40C}',
+    audio: '/audio/classical/dvorak-new-world-largo.mp3', naturalBpm: 50, piece: 'Dvorak \u2014 New World Symphony' },
+  { symbol: 'Adagio', name: 'Adagio', meaning: 'Slow, Relaxed', bpm: 72, color: '#60A5FA', emoji: '\u{1F422}',
+    audio: '/audio/classical/beethoven-moonlight-sonata-adagio.mp3', naturalBpm: 72, piece: 'Beethoven \u2014 Moonlight Sonata' },
+  { symbol: 'Andante', name: 'Andante', meaning: 'Walking Speed', bpm: 92, color: '#FCD34D', emoji: '\u{1F6B6}',
+    audio: '/audio/classical/grieg-morning-mood.mp3', naturalBpm: 92, piece: 'Grieg \u2014 Morning Mood' },
+  { symbol: 'Allegro', name: 'Allegro', meaning: 'Fast, Lively', bpm: 138, color: '#FBBF24', emoji: '\u{1F3C3}',
+    audio: BRAHMS_FILE, naturalBpm: BRAHMS_NATURAL_BPM, piece: 'Brahms \u2014 Hungarian Dance No. 5' },
+  { symbol: 'Presto', name: 'Presto', meaning: 'Very Fast', bpm: 184, color: '#EF4444', emoji: '\u26A1',
+    audio: BRAHMS_FILE, naturalBpm: BRAHMS_NATURAL_BPM, piece: 'Brahms \u2014 Hungarian Dance No. 5' },
 ];
 
 // Direction text shown BEFORE playing each tempo
@@ -31,15 +35,15 @@ const DIRECTION_TEXT = [
 
 // Teacher speaking text for each phase of the showcase
 const TEACHER_SCRIPT = {
-  intro: "Now we're going to learn five tempo markings. Tempo tells us how fast or slow to play the music. We'll go from the slowest all the way to the fastest. You'll hear the same Brahms melody at each speed!",
+  intro: "Now we're going to learn five tempo markings. Tempo tells us how fast or slow to play the music. We'll go from the slowest all the way to the fastest. You'll hear real pieces of music written at each tempo!",
   perTempo: [
-    "Largo \u2014 the slowest tempo. Listen to how the melody stretches out and feels heavy, almost like slow motion. You could count to two between each beat.",
-    "Adagio \u2014 slow and relaxed. The melody is still gentle but you can feel a steady pulse now. Think of a calm walk in a garden.",
-    "Andante \u2014 walking speed. This is comfortable and natural. Like walking to class \u2014 not rushing, not dragging.",
+    "Largo \u2014 the slowest tempo. This is the famous English horn melody from Dvorak's New World Symphony. Listen to how much space there is between each beat.",
+    "Adagio \u2014 slow and relaxed. This is the opening of Beethoven's Moonlight Sonata. You can feel a steady pulse, but it's still calm and gentle.",
+    "Andante \u2014 walking speed. This is Grieg's Morning Mood \u2014 picture the sun rising over the mountains. Comfortable and natural, like walking to class.",
     "Allegro \u2014 fast and lively! THIS is the original speed of Brahms' piece. The music has real energy and momentum now.",
-    "Presto \u2014 the fastest tempo! Everything is racing. Listen to how the same melody sounds completely different at this speed!",
+    "Presto \u2014 the fastest tempo! Same Brahms melody, but everything is racing. Listen to how different it feels at this speed!",
   ],
-  outro: "Those are your five tempo markings \u2014 from Largo to Presto. You heard the SAME melody at five different speeds! In a moment, you'll get to act them out in Tempo Charades!",
+  outro: "Those are your five tempo markings \u2014 from Largo to Presto. Each tempo gives music a completely different feeling! In a moment, you'll get to act them out in Tempo Charades!",
 };
 
 const TempoShowcase = ({ sessionData }) => {
@@ -83,7 +87,7 @@ const TempoShowcase = ({ sessionData }) => {
 
     stopDemo();
 
-    const playbackRate = tempo.bpm / NATURAL_BPM;
+    const playbackRate = tempo.bpm / tempo.naturalBpm;
     const intervalMs = 60000 / tempo.bpm;
     const clipDurationMs = AUDIO_CLIP_BEATS * intervalMs;
 
@@ -93,9 +97,13 @@ const TempoShowcase = ({ sessionData }) => {
     setHasPlayed(true);
     setDemoFinished(false);
 
-    // Start audio at modified playback rate
+    // Start audio - switch source if needed, set playback rate
     if (audioRef.current) {
-      audioRef.current.currentTime = AUDIO_START;
+      if (audioRef.current.getAttribute('src') !== tempo.audio) {
+        audioRef.current.src = tempo.audio;
+        audioRef.current.load();
+      }
+      audioRef.current.currentTime = 0;
       audioRef.current.playbackRate = playbackRate;
       audioRef.current.volume = 0.7;
       audioRef.current.play().catch(err => console.error('Audio play error:', err));
@@ -183,7 +191,7 @@ const TempoShowcase = ({ sessionData }) => {
   return (
     <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-8 overflow-hidden">
       {/* Hidden audio element */}
-      <audio ref={audioRef} src={AUDIO_FILE} preload="auto" />
+      <audio ref={audioRef} preload="auto" />
 
       {/* Keyframes for metronome pulse */}
       <style>{`
@@ -281,10 +289,11 @@ const TempoShowcase = ({ sessionData }) => {
                   {t.meaning}
                 </div>
 
-                {/* BPM + playback rate - only on active */}
+                {/* BPM + piece name - only on active */}
                 {isActive && (
-                  <div className="text-lg text-white/70 mt-1 font-semibold">
-                    {t.bpm} BPM ({(t.bpm / NATURAL_BPM).toFixed(2)}x speed)
+                  <div className="text-lg text-white/70 mt-1 font-semibold text-center">
+                    {t.bpm} BPM
+                    <div className="text-sm text-white/50">{t.piece}</div>
                   </div>
                 )}
 
@@ -340,6 +349,14 @@ const TempoShowcase = ({ sessionData }) => {
           <span>Fastest</span>
         </div>
       </div>
+
+      {/* Now Playing label - visible during playback */}
+      {currentIndex >= 0 && !allDone && isDemoing && (
+        <div className="flex-shrink-0 text-center mb-2">
+          <span className="text-white/40 text-sm">Now Playing: </span>
+          <span className="text-white/70 text-sm font-medium">{TEMPOS[currentIndex].piece}</span>
+        </div>
+      )}
 
       {/* Controls */}
       <div className="flex-shrink-0 flex items-center justify-center gap-4">
@@ -399,6 +416,13 @@ const TempoShowcase = ({ sessionData }) => {
             </button>
           </div>
         )}
+      </div>
+
+      {/* Attribution */}
+      <div className="flex-shrink-0 text-center mt-2">
+        <p className="text-white/20 text-xs">
+          Audio: Musopen.org (Public Domain / CC) &mdash; DuPage Symphony, Paul Pitman, Musopen Symphony
+        </p>
       </div>
     </div>
   );
