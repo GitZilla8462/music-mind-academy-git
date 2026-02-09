@@ -250,36 +250,77 @@ export const getPendingSubmissionsCount = async (classId) => {
 
 /**
  * Get all submissions for a specific student in a class
+ * Teachers read the whole class; students read only their own entries.
  *
  * @param {string} classId - Class ID
  * @param {string} studentUid - Student's UID
  * @returns {Array} Array of student's submissions
  */
 export const getStudentSubmissions = async (classId, studentUid) => {
-  const submissionsRef = ref(database, `submissions/${classId}`);
-  const snapshot = await get(submissionsRef);
+  try {
+    // Try class-level read (works for teachers who have class-level permission)
+    const submissionsRef = ref(database, `submissions/${classId}`);
+    const snapshot = await get(submissionsRef);
 
-  if (!snapshot.exists()) return [];
+    if (!snapshot.exists()) return [];
 
-  const submissions = [];
-  const data = snapshot.val();
+    const submissions = [];
+    const data = snapshot.val();
 
-  // Iterate through lessons
-  for (const lessonId of Object.keys(data)) {
-    const lessonSubmissions = data[lessonId];
-
-    // Check if this student has a submission for this lesson
-    if (lessonSubmissions[studentUid]) {
-      submissions.push({
-        ...lessonSubmissions[studentUid],
-        lessonId,
-        studentUid
-      });
+    for (const lessonId of Object.keys(data)) {
+      const lessonSubmissions = data[lessonId];
+      if (lessonSubmissions[studentUid]) {
+        submissions.push({
+          ...lessonSubmissions[studentUid],
+          lessonId,
+          studentUid
+        });
+      }
     }
+
+    submissions.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
+    return submissions;
+  } catch {
+    // Student doesn't have class-level permission — read their own work keys
+    // to discover which lessons they've submitted to, then read each individually
+    const submissions = [];
+
+    try {
+      const workRef = ref(database, `studentWork/${studentUid}`);
+      const workSnap = await get(workRef);
+
+      if (workSnap.exists()) {
+        const workData = workSnap.val();
+        // Extract unique lessonIds from work keys (format: "lessonId-activityId")
+        const lessonIds = new Set();
+        for (const workKey of Object.keys(workData)) {
+          const lessonId = workData[workKey]?.lessonId || workKey.split('-').slice(0, -1).join('-') || 'unknown';
+          lessonIds.add(lessonId);
+        }
+        // Also check common lesson ID patterns
+        lessonIds.add('unknown');
+
+        for (const lessonId of lessonIds) {
+          try {
+            const subRef = ref(database, `submissions/${classId}/${lessonId}/${studentUid}`);
+            const subSnap = await get(subRef);
+            if (subSnap.exists()) {
+              submissions.push({
+                ...subSnap.val(),
+                lessonId,
+                studentUid
+              });
+            }
+          } catch {
+            // Skip lessons we can't access
+          }
+        }
+      }
+    } catch {
+      // If studentWork read also fails, return empty
+    }
+
+    submissions.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
+    return submissions;
   }
-
-  // Sort by submission time (newest first)
-  submissions.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
-
-  return submissions;
 };
