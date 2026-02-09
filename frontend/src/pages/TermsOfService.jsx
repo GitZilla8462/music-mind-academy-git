@@ -220,11 +220,21 @@ const TermsOfService = () => {
             <li>We never sell student data</li>
             <li>We never use student data for advertising or marketing</li>
             <li>We collect only the minimum data necessary to provide the educational service</li>
-            <li>Student data is encrypted in transit and at rest</li>
+            <li>Student data is encrypted in transit (TLS 1.3) and at rest (AES-256)</li>
             <li>We comply with FERPA, COPPA, and New York Education Law § 2-d</li>
+            <li>In Student Accounts Mode, we operate as a "school official" under FERPA with a legitimate educational interest</li>
+            <li>We do not redisclose education records except to our subprocessors or as authorized by FERPA</li>
             <li>Teachers can delete student data at any time</li>
             <li>Parents can request review or deletion of their child's data</li>
           </ul>
+
+          <h3>Data Breach Notification</h3>
+          <p>
+            In the event of a breach or unauthorized release of student personally identifiable information,
+            we will notify affected schools and districts within <strong>7 calendar days</strong> of discovery,
+            in accordance with NY Education Law § 2-d. For complete incident response details, see
+            our <a href="/security">Security Practices</a> page.
+          </p>
 
           <h2>6. Data Privacy Agreements</h2>
           <p>

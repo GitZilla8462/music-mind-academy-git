@@ -199,15 +199,34 @@ const PrivacyPolicy = () => {
             <li>Improve our services and develop new features</li>
             <li>Communicate with teachers about their accounts</li>
           </ul>
+          <p>
+            <strong>FERPA Designation:</strong> When operating in Student Accounts Mode, Music Mind Academy
+            functions as a "school official" with a legitimate educational interest under FERPA (20 U.S.C. § 1232g).
+            We use student education records solely for the educational purposes authorized by the school,
+            and we do not redisclose education records to any third party except as authorized by FERPA or
+            with written parental consent.
+          </p>
 
           <h2>3. How We Share Information</h2>
           <p>We do NOT sell, rent, or share personal information with third parties for marketing purposes.</p>
           <p>We may share information only in the following circumstances:</p>
           <ul>
-            <li><strong>Service providers:</strong> We use Firebase (Google Cloud) for database and authentication services</li>
-            <li><strong>Legal requirements:</strong> If required by law or to protect our rights</li>
-            <li><strong>Business transfers:</strong> In connection with a merger, acquisition, or sale of assets</li>
+            <li><strong>Service providers:</strong> We use Firebase (Google Cloud) and MongoDB Atlas for database and
+            authentication services. These subprocessors are contractually bound to protect data and are listed on
+            our <a href="/student-privacy">Student Data Privacy</a> page.</li>
+            <li><strong>Legal requirements:</strong> If required by law, subpoena, or court order, or to protect
+            the safety of students, teachers, or the public</li>
+            <li><strong>Business transfers:</strong> In the event of a merger, acquisition, or sale of assets,
+            student data protections will remain in effect. We will notify affected schools and districts at least
+            30 days before any transfer of student data to a successor entity. The successor must agree to honor
+            the terms of existing Data Privacy Agreements and this Privacy Policy, or student data will be securely
+            deleted before transfer.</li>
           </ul>
+          <p>
+            <strong>No Redisclosure:</strong> We do not redisclose student education records or personally identifiable
+            information from education records to any third party, except to our subprocessors as described above
+            or as otherwise authorized by FERPA.
+          </p>
 
           <h2>4. Data Storage and Security</h2>
           <p>
@@ -251,17 +270,32 @@ const PrivacyPolicy = () => {
           </ul>
           <p>To exercise these rights, contact us at <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a>.</p>
 
-          <h2>7. Children's Privacy</h2>
+          <h2>7. Children's Privacy & COPPA Compliance</h2>
           <p>
-            Music Mind Academy is designed for use in educational settings with students of all ages.
-            We comply with the Children's Online Privacy Protection Act (COPPA) by:
+            Music Mind Academy is designed for use in educational settings with students of all ages,
+            including children under 13. We comply with the Children's Online Privacy Protection Act (COPPA) by:
           </p>
           <ul>
             <li><strong>Classroom Mode:</strong> No personal information collected — students participate using only self-chosen musical names</li>
-            <li><strong>Student Accounts Mode:</strong> Schools may consent on behalf of parents when the technology is used solely for an educational purpose (per FTC guidance)</li>
+            <li><strong>Student Accounts Mode:</strong> Schools may consent on behalf of parents when the technology is used solely for an educational purpose and for no other commercial purpose (per FTC guidance on school consent under COPPA)</li>
             <li>Relying on teacher/school consent for classroom use in both modes</li>
             <li>Allowing parents to review and request deletion of their child's data at any time</li>
+            <li><strong>No direct child sign-up:</strong> Students cannot create accounts independently. Student Accounts
+            Mode requires a teacher to create the class and add students. Students access the platform only through
+            teacher-created class codes or teacher-provisioned accounts.</li>
           </ul>
+          <p>
+            <strong>Parental Consent Revocation:</strong> Parents may revoke consent for the collection of their
+            child's data at any time by contacting their child's teacher or emailing us
+            at <a href="mailto:rob@musicmindacademy.com">rob@musicmindacademy.com</a>. Upon revocation, we will
+            delete the child's data within 30 days. The student may still participate in Classroom Mode, which
+            collects no personal information.
+          </p>
+          <p>
+            <strong>OAuth Permissions:</strong> When students sign in via Google, we request only basic profile
+            information (name and email address). We do not request access to Google Drive, Gmail, Calendar, or
+            any other Google services.
+          </p>
           <p>
             For complete details, see our <a href="/student-privacy">Student Data Privacy</a> page.
           </p>
@@ -269,20 +303,38 @@ const PrivacyPolicy = () => {
           <h2>8. Third-Party Services</h2>
           <p>We use the following third-party services:</p>
           <ul>
-            <li><strong>Firebase (Google Cloud):</strong> Database and authentication</li>
-            <li><strong>Google OAuth:</strong> Teacher sign-in option</li>
-            <li><strong>Microsoft OAuth:</strong> Teacher sign-in option</li>
+            <li><strong>Firebase (Google Cloud):</strong> Database and authentication — SOC 2, ISO 27001, FedRAMP authorized, COPPA compliant</li>
+            <li><strong>MongoDB Atlas:</strong> Database — SOC 2 Type II, ISO 27001 certified</li>
+            <li><strong>Google OAuth:</strong> Teacher and student sign-in — requests only basic profile (name, email)</li>
+            <li><strong>Microsoft OAuth:</strong> Teacher sign-in — requests only basic profile (name, email)</li>
+            <li><strong>Google Fonts:</strong> Web fonts loaded from fonts.googleapis.com (no user data is sent to Google through this service)</li>
+            <li><strong>Vercel:</strong> Frontend web hosting — serves static files only, no student data processed</li>
+            <li><strong>Railway:</strong> Backend API hosting — processes API requests</li>
           </ul>
           <p>We do NOT use Google Analytics, Facebook Pixel, or any advertising or tracking services.</p>
-
-          <h2>9. Changes to This Policy</h2>
           <p>
-            We may update this Privacy Policy from time to time. We will notify users of significant
-            changes by posting a notice on our website. Your continued use of our services after
-            changes are posted constitutes acceptance of the updated policy.
+            All subprocessors store data in United States data centers. For complete subprocessor details,
+            see our <a href="/student-privacy">Student Data Privacy</a> page.
           </p>
 
-          <h2>10. Contact Us</h2>
+          <h2>9. Data Breach Notification</h2>
+          <p>
+            In the event of a breach or unauthorized release of personally identifiable information,
+            we will notify affected schools and districts within <strong>7 calendar days</strong> of
+            discovery, in accordance with NY Education Law § 2-d. The notification will include a
+            description of the incident, the types of data affected, and the remediation steps taken.
+            For complete details, see our <a href="/security">Security Practices</a> page.
+          </p>
+
+          <h2>10. Changes to This Policy</h2>
+          <p>
+            We may update this Privacy Policy from time to time. We will notify users of material
+            changes by email and by posting a notice on our website at least 30 days before the changes
+            take effect. Your continued use of our services after changes are posted constitutes
+            acceptance of the updated policy.
+          </p>
+
+          <h2>11. Contact Us</h2>
           <p>If you have questions about this Privacy Policy, please contact us:</p>
           <p>
             <strong>Robert Taube</strong><br />

@@ -87,7 +87,7 @@ export const addApprovedEmail = async (email, siteType = SITE_TYPES.ACADEMY, not
     siteType
   });
 
-  console.log(`Approved email for ${siteType}: ${email.toLowerCase().trim()}`);
+  console.log(`Approved email for ${siteType}`);
   return true;
 };
 
@@ -106,7 +106,7 @@ export const removeApprovedEmail = async (email, siteType = SITE_TYPES.ACADEMY) 
   const emailRef = ref(database, `approvedEmails/${siteType}/${emailKey}`);
 
   await remove(emailRef);
-  console.log(`Removed email from ${siteType}: ${email.toLowerCase().trim()}`);
+  console.log(`Removed email from ${siteType}`);
   return true;
 };
 

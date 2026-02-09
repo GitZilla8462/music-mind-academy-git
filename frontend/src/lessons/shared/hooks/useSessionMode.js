@@ -57,7 +57,7 @@ export const useSessionMode = () => {
           const codeToJoin = urlClassCode || urlSessionCode;
           if (codeToJoin) {
             joinSession(codeToJoin, studentId, studentName);
-            console.log('Student joining session:', { code: codeToJoin, studentId, studentName, isClassSession: !!urlClassCode });
+            console.log('Student joining session');
           } else {
             console.warn('⚠️ No session code or class code found for student join');
           }

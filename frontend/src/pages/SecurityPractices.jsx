@@ -245,7 +245,7 @@ const SecurityPractices = () => {
           <h3>Encryption Standards</h3>
           <p>All student and teacher data is protected by encryption both in transit and at rest:</p>
           <ul>
-            <li><strong>Data in Transit:</strong> All communications use TLS 1.2 or higher (TLS 1.3 preferred).
+            <li><strong>Data in Transit:</strong> All communications use TLS 1.3 encryption.
             HTTPS is enforced for all connections. HTTP Strict Transport Security (HSTS) headers are enabled.</li>
             <li><strong>Data at Rest:</strong> All stored data is encrypted using AES-256 encryption through our
             cloud providers (Firebase and MongoDB Atlas). Encryption keys are managed by the cloud providers

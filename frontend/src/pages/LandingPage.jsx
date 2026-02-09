@@ -49,15 +49,15 @@ const activities = [
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
+  const [showPilotModal, setShowPilotModal] = useState(false);
 
   const handleJoinPilot = () => {
-    setShowWaitlistModal(true);
+    setShowPilotModal(true);
   };
 
   const handleContinueToForm = () => {
     window.open(PILOT_FORM_URL, '_blank');
-    setShowWaitlistModal(false);
+    setShowPilotModal(false);
   };
 
   const handleTeacherLogin = () => {
@@ -714,7 +714,7 @@ const LandingPage = () => {
               Teacher Login
             </button>
             <button onClick={handleJoinPilot} className="btn btn-primary">
-              Join the Waitlist
+              Join the Pilot
             </button>
           </div>
         </div>
@@ -726,7 +726,7 @@ const LandingPage = () => {
           <div className="hero-content">
             <div className="hero-badge">
               <span className="hero-badge-dot"></span>
-              January pilot full — Join the waitlist
+              March–June pilot — Spots available
             </div>
             <h1>
               No-Prep Music Lessons That <span className="hero-highlight">Actually Engage</span> Middle Schoolers
@@ -737,15 +737,15 @@ const LandingPage = () => {
 
             <ul className="hero-bullets">
               <li><span className="check">✓</span> Works on Chromebooks - no downloads</li>
-              <li><span className="check">✓</span> Students login with class code - no accounts</li>
+              <li><span className="check">✓</span> Two privacy modes - zero-PII or student accounts</li>
               <li><span className="check">✓</span> Ready to teach tomorrow - no planning</li>
             </ul>
 
             <div className="hero-cta">
               <button onClick={handleJoinPilot} className="btn-hero">
-                Join the Waitlist
+                Join the Pilot
               </button>
-              <span className="hero-note">Next pilot: March – June 2026</span>
+              <span className="hero-note">Free pilot: March – June 2026</span>
             </div>
           </div>
 
@@ -888,7 +888,7 @@ const LandingPage = () => {
                 <div className="step-number">4</div>
                 <div className="step-content">
                   <h3>Built-in Reflection</h3>
-                  <p>Each lesson ends with guided reflection. No accounts needed.</p>
+                  <p>Each lesson ends with guided reflection and self-assessment.</p>
                 </div>
               </div>
             </div>
@@ -909,29 +909,29 @@ const LandingPage = () => {
               <div className="privacy-item">
                 <div className="privacy-check">✓</div>
                 <div className="privacy-item-text">
-                  <h4>No student accounts</h4>
-                  <p>Join with class code and nickname</p>
+                  <h4>Two Privacy Modes</h4>
+                  <p>Teachers choose zero-PII or student accounts per class</p>
                 </div>
               </div>
               <div className="privacy-item">
                 <div className="privacy-check">✓</div>
                 <div className="privacy-item-text">
-                  <h4>No emails collected</h4>
-                  <p>We never ask for personal info</p>
+                  <h4>Zero-PII Option</h4>
+                  <p>Classroom Mode: class code + musical name, no real names</p>
                 </div>
               </div>
               <div className="privacy-item">
                 <div className="privacy-check">✓</div>
                 <div className="privacy-item-text">
-                  <h4>Work saves locally</h4>
-                  <p>Compositions stay on their device</p>
+                  <h4>Student Accounts Option</h4>
+                  <p>Persistent compositions, grading, and progress tracking</p>
                 </div>
               </div>
               <div className="privacy-item">
                 <div className="privacy-check">✓</div>
                 <div className="privacy-item-text">
-                  <h4>Zero PII</h4>
-                  <p>Nothing to report, nothing to breach</p>
+                  <h4>No Data Selling or Ads</h4>
+                  <p>No tracking, no third parties, DPA available</p>
                 </div>
               </div>
             </div>
@@ -947,16 +947,14 @@ const LandingPage = () => {
 
       {/* Final CTA */}
       <section className="final-cta">
-        <h2>January Pilot is Full!</h2>
+        <h2>Join the March–June Pilot</h2>
         <p>
-          Join the waitlist for March – June 2026.
+          Try Music Mind Academy free with your classes this spring.
           <br />
-          Waitlist applicants get priority access before new applications open.
-          <br />
-          <span style={{ opacity: 0.8, fontSize: '0.9em' }}>I'll email you when spots open up.</span>
+          Spots are limited — apply now to get started.
         </p>
         <button onClick={handleJoinPilot} className="btn-hero">
-          Join the Waitlist
+          Apply Now
         </button>
       </section>
 
@@ -977,12 +975,14 @@ const LandingPage = () => {
             <a href="/privacy" style={{ color: '#60a5fa', textDecoration: 'none' }}>Privacy Policy</a>
             <a href="/student-privacy" style={{ color: '#60a5fa', textDecoration: 'none' }}>Student Data Privacy</a>
             <a href="/terms" style={{ color: '#60a5fa', textDecoration: 'none' }}>Terms of Service</a>
+            <a href="/dpa" style={{ color: '#60a5fa', textDecoration: 'none' }}>Data Privacy Agreement</a>
+            <a href="/security" style={{ color: '#60a5fa', textDecoration: 'none' }}>Security Practices</a>
           </div>
         </div>
       </footer>
 
-      {/* Waitlist Modal */}
-      {showWaitlistModal && (
+      {/* Pilot Application Modal */}
+      {showPilotModal && (
         <div
           style={{
             position: 'fixed',
@@ -994,7 +994,7 @@ const LandingPage = () => {
             zIndex: 1000,
             padding: '1rem'
           }}
-          onClick={() => setShowWaitlistModal(false)}
+          onClick={() => setShowPilotModal(false)}
         >
           <div
             style={{
@@ -1008,12 +1008,12 @@ const LandingPage = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📋</div>
+              <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🎵</div>
               <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.5rem' }}>
-                Join the Waitlist
+                Join the Pilot
               </h2>
               <p style={{ color: '#64748b', fontSize: '1rem' }}>
-                The January pilot is full, but you can join the waitlist for our next round.
+                Try Music Mind Academy free with your classes this spring.
               </p>
             </div>
 
@@ -1027,22 +1027,22 @@ const LandingPage = () => {
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                   <span style={{ fontSize: '1.25rem' }}>📅</span>
                   <div>
-                    <div style={{ fontWeight: 600, color: '#1e293b' }}>Next pilot window</div>
+                    <div style={{ fontWeight: 600, color: '#1e293b' }}>Pilot window</div>
                     <div style={{ color: '#64748b', fontSize: '0.9rem' }}>March – June 2026</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                  <span style={{ fontSize: '1.25rem' }}>🆓</span>
+                  <div>
+                    <div style={{ fontWeight: 600, color: '#1e293b' }}>100% free</div>
+                    <div style={{ color: '#64748b', fontSize: '0.9rem' }}>No cost during the pilot program</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                   <span style={{ fontSize: '1.25rem' }}>📧</span>
                   <div>
                     <div style={{ fontWeight: 600, color: '#1e293b' }}>What happens next</div>
-                    <div style={{ color: '#64748b', fontSize: '0.9rem' }}>I'll email you when spots open up</div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ fontSize: '1.25rem' }}>⭐</span>
-                  <div>
-                    <div style={{ fontWeight: 600, color: '#1e293b' }}>Priority access</div>
-                    <div style={{ color: '#64748b', fontSize: '0.9rem' }}>Waitlist applicants get first access before new applications open</div>
+                    <div style={{ color: '#64748b', fontSize: '0.9rem' }}>Fill out the form and I'll get you set up</div>
                   </div>
                 </div>
               </div>
@@ -1066,10 +1066,10 @@ const LandingPage = () => {
                 onMouseOver={(e) => e.target.style.backgroundColor = '#2563eb'}
                 onMouseOut={(e) => e.target.style.backgroundColor = '#3b82f6'}
               >
-                Continue to Waitlist Form →
+                Continue to Application →
               </button>
               <button
-                onClick={() => setShowWaitlistModal(false)}
+                onClick={() => setShowPilotModal(false)}
                 style={{
                   width: '100%',
                   padding: '0.75rem 1.5rem',

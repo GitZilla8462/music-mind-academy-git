@@ -395,8 +395,13 @@ const StudentPrivacy = () => {
               <div className="it-domains-title">Domains to Whitelist:</div>
               <div className="it-domain-list">
                 <span className="it-domain">musicmindacademy.com</span>
+                <span className="it-domain">musicroomtools.org</span>
                 <span className="it-domain">*.firebaseapp.com</span>
                 <span className="it-domain">*.firebaseio.com</span>
+                <span className="it-domain">accounts.google.com</span>
+                <span className="it-domain">login.microsoftonline.com</span>
+                <span className="it-domain">fonts.googleapis.com</span>
+                <span className="it-domain">fonts.gstatic.com</span>
               </div>
             </div>
           </div>
@@ -724,9 +729,17 @@ const StudentPrivacy = () => {
           <p>
             <strong>Student Accounts Mode:</strong> Student compositions, reflections, and scores constitute
             education records under FERPA. Music Mind Academy operates as a "school official" with a legitimate
-            educational interest. We use student data only for the educational purposes specified in our agreements,
-            do not share student data with unauthorized third parties, and support parents' right to inspect and
-            review their child's education records.
+            educational interest under 34 CFR § 99.31(a)(1). We use student data only for the educational purposes
+            specified in our agreements and do not redisclose education records to any third party except to our
+            subprocessors as necessary to provide the service, or as otherwise authorized by FERPA.
+          </p>
+          <p>
+            <strong>Parental Rights Under FERPA:</strong> Parents have the right to inspect and review their
+            child's education records. To request access, contact your child's teacher or email us
+            at <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a>.
+            We will provide access within <strong>45 days</strong> of receiving the request. Records can be
+            provided as a digital export (JSON or PDF format). Parents may also request correction of inaccurate
+            records or deletion of their child's data.
           </p>
 
           <h3>COPPA (Children's Online Privacy Protection Act)</h3>
@@ -742,6 +755,29 @@ const StudentPrivacy = () => {
             By enabling Student Accounts Mode, the teacher — acting as an authorized representative of their school —
             provides consent on behalf of parents for the limited educational use described in this policy.
             Parents retain the right to review and request deletion of their child's data at any time.
+          </p>
+          <p>
+            <strong>No Direct Child Sign-Up:</strong> Students cannot create accounts independently.
+            Student accounts are created only through teacher-provisioned classes. Students access the
+            platform either through a teacher-provided class code or through a teacher-provisioned seat
+            with a PIN. This ensures that school consent is always obtained before any student data is collected.
+          </p>
+          <p>
+            <strong>Parental Consent Revocation:</strong> Parents may revoke consent for the collection of
+            their child's data at any time by:
+          </p>
+          <ol>
+            <li>Contacting their child's teacher to request removal from Student Accounts Mode</li>
+            <li>Or emailing <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a> directly</li>
+          </ol>
+          <p>
+            Upon revocation, we will delete the child's data within <strong>30 days</strong> and provide written
+            confirmation. The student may continue participating in Classroom Mode, which collects no personal information.
+          </p>
+          <p>
+            <strong>OAuth Permissions:</strong> When students sign in via Google, we request only basic profile
+            information (name and email address). We do not request access to Google Drive, Gmail, Google Calendar,
+            or any other Google services.
           </p>
 
           <h3>New York Education Law § 2-d</h3>
@@ -808,13 +844,17 @@ const StudentPrivacy = () => {
             <h3 style={{ marginTop: 0, color: '#1e40af' }}>For IT Administrators: Domains to Whitelist</h3>
             <p>To allow Music Mind Academy on your school network, whitelist these domains:</p>
             <ul style={{ marginBottom: '0.5rem' }}>
-              <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>musicmindacademy.com</code></li>
-              <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>*.firebaseapp.com</code></li>
-              <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>*.firebaseio.com</code></li>
+              <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>musicmindacademy.com</code> — main platform</li>
+              <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>musicroomtools.org</code> — free educational site</li>
+              <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>*.firebaseapp.com</code> — database and authentication</li>
+              <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>*.firebaseio.com</code> — realtime database</li>
+              <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>accounts.google.com</code> — Google Sign-In (teacher and student login)</li>
+              <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>login.microsoftonline.com</code> — Microsoft Sign-In (teacher login)</li>
+              <li><code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>fonts.googleapis.com</code> / <code style={{ background: '#e0e7ff', padding: '2px 6px', borderRadius: '4px' }}>fonts.gstatic.com</code> — Google Fonts</li>
             </ul>
             <p style={{ marginBottom: 0, fontSize: '0.9rem', color: '#475569' }}>
               All traffic uses <strong>HTTPS (port 443)</strong>. No special ports or protocols required.
-              If your school uses Google Workspace, Firebase domains may already be allowed.
+              If your school uses Google Workspace, Firebase and Google domains may already be allowed.
             </p>
           </div>
 
@@ -838,9 +878,27 @@ const StudentPrivacy = () => {
 
           <h3>Data Deletion Requests</h3>
           <p>
-            Teachers, parents, and districts may request deletion of student data at any time. Contact us at{' '}
-            <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a>.
-            We will respond within 30 days.
+            Teachers, parents, and districts may request deletion of student data at any time:
+          </p>
+          <ol>
+            <li><strong>Teachers:</strong> Delete students or entire classes directly from the platform dashboard, or email us</li>
+            <li><strong>Parents:</strong> Contact your child's teacher, or email us at{' '}
+            <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a></li>
+            <li><strong>Districts:</strong> Send a written request to <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a></li>
+          </ol>
+          <p>
+            We will acknowledge deletion requests within <strong>5 business days</strong> and complete deletion within{' '}
+            <strong>30 days</strong>. Written confirmation of deletion is available upon request.
+          </p>
+
+          {/* Company Acquisition */}
+          <h2>Business Transfers</h2>
+          <p>
+            In the event of a merger, acquisition, or sale of Music Mind Academy's assets, all student data
+            protections described in this policy and in any active Data Privacy Agreements will remain in
+            effect. We will notify affected schools and districts at least <strong>30 days</strong> before
+            any transfer of student data to a successor entity. The successor must agree to honor existing
+            privacy commitments, or student data will be securely deleted before transfer.
           </p>
 
           {/* Parents' Bill of Rights */}

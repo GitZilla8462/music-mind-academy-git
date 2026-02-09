@@ -203,7 +203,7 @@ const DataPrivacyAgreement = () => {
               Standard Data Privacy Agreement for School Districts
             </p>
             <p style={{ opacity: 0.7, margin: '0.5rem 0 0 0', fontSize: '0.9rem' }}>
-              Compatible with SDPC National Data Privacy Agreement (NDPA) Framework
+              Compatible with SDPC National Data Privacy Agreement (NDPA) Framework · Template version: February 2026
             </p>
           </div>
 

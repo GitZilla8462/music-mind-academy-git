@@ -443,7 +443,7 @@ export const SessionProvider = ({ children }) => {
         return true;
       }
 
-      console.log('👤 Student joining session:', { code, studentId, studentName });
+      console.log('Student joining session');
 
       // First, fetch the session data to get the lessonRoute
       const { getDatabase, ref: dbRef, get } = await import('firebase/database');
@@ -518,7 +518,7 @@ export const SessionProvider = ({ children }) => {
           joinedAt: Date.now(),
           score: 0
         });
-        console.log(`✅ Student ${studentName} joined class session ${classIdForSession}`);
+        console.log('Student joined class session');
       } else {
         // Traditional session
         await firebaseJoinSession(code, studentId, studentName || 'Student');
@@ -595,7 +595,7 @@ export const SessionProvider = ({ children }) => {
         return true;
       }
       
-      console.log('🎵 Student joining with musical name:', { code, studentId });
+      console.log('Student joining with musical name');
       
       const { getDatabase, ref: dbRef, get } = await import('firebase/database');
       const db = getDatabase();

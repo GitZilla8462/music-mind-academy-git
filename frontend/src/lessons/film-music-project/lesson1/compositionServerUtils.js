@@ -37,7 +37,7 @@ export const autoSaveComposition = (compositionData, activityType, studentName) 
     
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existingSaves));
     
-    console.log(`✅ Auto-saved locally for ${studentName} - ${activityType}`);
+    console.log(`Auto-saved locally for ${activityType}`);
     return { success: true, lastSaved: existingSaves[saveKey].lastSaved };
   } catch (error) {
     console.error('❌ Auto-save failed:', error);
@@ -58,7 +58,7 @@ export const loadAutoSavedComposition = (activityType, studentName) => {
     
     const saved = existingSaves[saveKey];
     if (saved) {
-      console.log(`✅ Loaded auto-save for ${studentName} - ${activityType}`);
+      console.log(`Loaded auto-save for ${activityType}`);
       return saved;
     }
     
@@ -104,7 +104,7 @@ export const deleteAutoSave = (activityType, studentName) => {
     delete existingSaves[saveKey];
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existingSaves));
     
-    console.log(`✅ Deleted auto-save for ${studentName} - ${activityType}`);
+    console.log(`Deleted auto-save for ${activityType}`);
     return true;
   } catch (error) {
     console.error('❌ Failed to delete auto-save:', error);

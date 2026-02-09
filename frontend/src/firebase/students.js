@@ -24,7 +24,7 @@ export const getOrCreateStudent = async (googleUser) => {
       lastLoginAt: Date.now()
     });
 
-    console.log('Student logged in:', googleUser.email);
+    console.log('Student logged in');
     return { ...snapshot.val(), uid: googleUser.uid };
   } else {
     // New student - create document
@@ -39,7 +39,7 @@ export const getOrCreateStudent = async (googleUser) => {
     };
 
     await set(studentRef, studentData);
-    console.log('New student created:', googleUser.email);
+    console.log('New student created');
 
     return studentData;
   }

@@ -120,7 +120,7 @@ export const StudentAuthProvider = ({ children }) => {
       const data = await getOrCreateStudent(firebaseUser);
       setStudentData(data);
 
-      console.log('Student Sign-In successful:', firebaseUser.email);
+      console.log('Student Sign-In successful');
       return { user: firebaseUser, studentData: data };
     } catch (err) {
       console.error('Student Sign-In error:', err);
@@ -166,7 +166,7 @@ export const StudentAuthProvider = ({ children }) => {
       localStorage.setItem(PIN_SESSION_KEY, JSON.stringify(session));
       setPinSession(session);
 
-      console.log('PIN Sign-In successful:', session.displayName);
+      console.log('PIN Sign-In successful');
       return session;
     } catch (err) {
       console.error('PIN Sign-In error:', err);
@@ -201,7 +201,7 @@ export const StudentAuthProvider = ({ children }) => {
       localStorage.setItem(PIN_SESSION_KEY, JSON.stringify(session));
       setPinSession(session);
 
-      console.log('Username Sign-In successful:', session.displayName);
+      console.log('Username Sign-In successful');
       return session;
     } catch (err) {
       console.error('Username Sign-In error:', err);

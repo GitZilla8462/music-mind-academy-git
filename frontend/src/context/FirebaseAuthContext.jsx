@@ -47,7 +47,7 @@ export const FirebaseAuthProvider = ({ children }) => {
 
           if (!approved) {
             // User's email was removed from approved list
-            console.log('⚠️ User no longer approved, signing out:', firebaseUser.email);
+            console.log('User no longer approved, signing out');
             await firebaseSignOut(auth);
             setUser(null);
             setUserData(null);
@@ -90,7 +90,7 @@ export const FirebaseAuthProvider = ({ children }) => {
 
         const notApprovedError = new Error("Your email hasn't been approved for the pilot yet. Please apply through our form and wait for approval.");
         notApprovedError.code = 'auth/not-approved';
-        console.log('⚠️ Email not approved:', firebaseUser.email);
+        console.log('Email not approved');
         throw notApprovedError;
       }
 
@@ -103,7 +103,7 @@ export const FirebaseAuthProvider = ({ children }) => {
         console.warn('Analytics tracking failed (non-critical):', err.message);
       });
 
-      console.log('✅ Google Sign-In successful:', firebaseUser.email);
+      console.log('Google Sign-In successful');
       return { user: firebaseUser, userData: data };
     } catch (err) {
       console.error('❌ Google Sign-In error:', err);
@@ -130,7 +130,7 @@ export const FirebaseAuthProvider = ({ children }) => {
 
         const notApprovedError = new Error("Your email is not registered for access. Contact rob@musicmindacademy.com");
         notApprovedError.code = 'auth/not-approved';
-        console.log('⚠️ Email not approved:', firebaseUser.email);
+        console.log('Email not approved');
         throw notApprovedError;
       }
 
@@ -143,7 +143,7 @@ export const FirebaseAuthProvider = ({ children }) => {
         console.warn('Analytics tracking failed (non-critical):', err.message);
       });
 
-      console.log('✅ Microsoft Sign-In successful:', firebaseUser.email);
+      console.log('Microsoft Sign-In successful');
       return { user: firebaseUser, userData: data };
     } catch (err) {
       console.error('❌ Microsoft Sign-In error:', err);
@@ -237,7 +237,7 @@ export const FirebaseAuthProvider = ({ children }) => {
         console.warn('Analytics tracking failed (non-critical):', err.message);
       });
 
-      console.log('✅ Magic link Sign-In successful:', firebaseUser.email);
+      console.log('Magic link Sign-In successful');
       return { user: firebaseUser, userData: data };
     } catch (err) {
       console.error('❌ Magic link Sign-In error:', err);

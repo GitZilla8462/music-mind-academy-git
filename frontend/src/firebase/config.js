@@ -149,7 +149,7 @@ export const joinSession = async (sessionCode, studentId, studentName) => {
       score: 0 // ✅ Initialize score at 0
     });
     
-    console.log(`✅ Student ${studentName} joined session ${sessionCode}`);
+    console.log('Student joined session');
   } catch (error) {
     console.error('❌ Error joining session:', error);
     throw error;

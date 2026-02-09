@@ -196,7 +196,7 @@ export const addSeatToRoster = async (classId, seatData) => {
   const roster = await getClassRoster(classId);
   await updateClassStudentCount(classId, roster.length);
 
-  console.log(`Added seat ${seatNumber} (${username}) to class ${classId}`);
+  console.log(`Added seat ${seatNumber} to class`);
   return fullSeatData;
 };
 
@@ -356,7 +356,7 @@ export const regenerateUsername = async (classId, seatNumber) => {
     registerUsername(newUsername, classId, seatNumber)
   ]);
 
-  console.log(`Regenerated username for seat ${seatNumber}: ${newUsername}`);
+  console.log(`Regenerated username for seat ${seatNumber}`);
   return newUsername;
 };
 
@@ -461,7 +461,7 @@ export const linkStudentToSeat = async (classId, seatNumber, studentUid) => {
     role: 'student'
   });
 
-  console.log(`Linked student ${studentUid} to seat ${seatNumber} in class ${classId}`);
+  console.log(`Linked student to seat ${seatNumber}`);
 };
 
 /**

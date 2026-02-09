@@ -167,7 +167,7 @@ const EduLandingPage = () => {
           </button>
 
           <p className="text-slate-500 text-sm mt-4">
-            Teachers sign in with Google. No account required for students.
+            Teachers sign in with Google. Students join with a class code or student account.
           </p>
         </div>
       </section>
@@ -269,11 +269,11 @@ const EduLandingPage = () => {
                   </svg>
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-800">No student accounts</div>
-                  <div className="text-sm text-slate-600">Students join with a class code and pick any nickname</div>
+                  <div className="font-semibold text-slate-800">Two Privacy Modes</div>
+                  <div className="text-sm text-slate-600">Teachers choose zero-PII or student accounts per class</div>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                   <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -281,11 +281,11 @@ const EduLandingPage = () => {
                   </svg>
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-800">No emails collected</div>
-                  <div className="text-sm text-slate-600">We never ask students for personal information</div>
+                  <div className="font-semibold text-slate-800">Zero-PII Option</div>
+                  <div className="text-sm text-slate-600">Classroom Mode: class code + musical name, no real names</div>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                   <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -293,11 +293,11 @@ const EduLandingPage = () => {
                   </svg>
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-800">Work saves locally</div>
-                  <div className="text-sm text-slate-600">Student compositions stay on their device only</div>
+                  <div className="font-semibold text-slate-800">Student Accounts Option</div>
+                  <div className="text-sm text-slate-600">Persistent compositions, grading, and progress tracking</div>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                   <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -305,8 +305,8 @@ const EduLandingPage = () => {
                   </svg>
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-800">Zero PII</div>
-                  <div className="text-sm text-slate-600">Nothing to report, nothing to breach</div>
+                  <div className="font-semibold text-slate-800">No Data Selling or Ads</div>
+                  <div className="text-sm text-slate-600">No tracking, no third parties, DPA available</div>
                 </div>
               </div>
             </div>
@@ -397,10 +397,12 @@ const EduLandingPage = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-6 text-sm text-slate-500">
+          <div className="flex items-center gap-6 text-sm text-slate-500 flex-wrap justify-center">
             <a href="/privacy" className="hover:text-violet-600 transition-colors">Privacy Policy</a>
             <a href="/student-privacy" className="hover:text-violet-600 transition-colors">Student Data Privacy</a>
             <a href="/terms" className="hover:text-violet-600 transition-colors">Terms of Service</a>
+            <a href="/dpa" className="hover:text-violet-600 transition-colors">Data Privacy Agreement</a>
+            <a href="/security" className="hover:text-violet-600 transition-colors">Security Practices</a>
           </div>
         </div>
       </footer>
