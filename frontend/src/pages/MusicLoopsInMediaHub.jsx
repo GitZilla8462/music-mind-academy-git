@@ -13,6 +13,8 @@ import { logSessionCreated, logLessonVisit } from '../firebase/analytics';
 import StartSessionModal from '../components/teacher/StartSessionModal';
 import CreateClassModal from '../components/teacher/CreateClassModal';
 
+const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+
 // First-time tutorial modal for teachers
 const TutorialModal = ({ onClose }) => {
   const [dontShowAgain, setDontShowAgain] = useState(false);
@@ -108,7 +110,6 @@ const MusicLoopsInMediaHub = () => {
   const userRole = localStorage.getItem('classroom-user-role') || 'teacher';
 
   // Check site mode for correct join URL
-  const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
   const joinUrl = isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join';
 
   // Check localStorage for Getting Started section state
