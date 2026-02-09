@@ -377,10 +377,11 @@ const StudentPrivacy = () => {
             <h3 style={{ marginTop: 0, color: '#065f46' }}>Summary</h3>
             <p style={{ marginBottom: 0 }}>
               {siteName} is a web-based music education platform for middle school classrooms.
-              Students log in with a musical username and PIN to save their compositions,
-              reflections, and scores. We collect only what's needed for the educational service. We never
+              Students log in with a system-generated username and PIN to save their compositions,
+              reflections, and scores. Teachers view student work and enter grades through a built-in gradebook.
+              We collect only what's needed for the educational service. We never
               sell data, show ads, or use third-party tracking. Teachers can also run quick sessions where
-              students join with just a code and musical name — no accounts, no data collected.
+              students join with just a class code — no accounts, no data collected.
             </p>
           </div>
 
@@ -455,15 +456,15 @@ const StudentPrivacy = () => {
               </tr>
               <tr>
                 <td>Music Compositions</td>
-                <td>Saved to student's account</td>
+                <td>Saved to student's account; visible to teacher in gradebook</td>
               </tr>
               <tr>
                 <td>Written Reflections</td>
-                <td>Star/star/wish format</td>
+                <td>Star/star/wish format; visible to teacher in gradebook</td>
               </tr>
               <tr>
                 <td>Activity/Game Scores</td>
-                <td>Saved for teacher review</td>
+                <td>Visible to teacher in gradebook for grading and feedback</td>
               </tr>
               <tr>
                 <td>Session Timestamps</td>
@@ -476,8 +477,8 @@ const StudentPrivacy = () => {
           <div className="highlight-box blue">
             <h3 style={{ marginTop: 0, color: '#1e40af' }}>Quick Join Sessions</h3>
             <p style={{ marginBottom: 0 }}>
-              Teachers can also run sessions using Quick Join, where students join with a class code
-              and choose a musical name (e.g., "Forte"). In Quick Join, no student personally identifiable
+              Teachers can also run sessions using Quick Join, where students join with just a class code.
+              In Quick Join, no student personally identifiable
               information is collected — no real names, no emails, no accounts. Work exists only for
               the duration of the session.
             </p>
@@ -507,7 +508,7 @@ const StudentPrivacy = () => {
             <li><strong>Sign in</strong> with their musical username + PIN</li>
             <li><strong>Complete activities</strong> — compositions, reflections, and games</li>
             <li><strong>Work is saved</strong> to the student's account automatically</li>
-            <li><strong>Teacher reviews</strong> student work, grades assignments, and provides feedback</li>
+            <li><strong>Teacher reviews</strong> student work in the gradebook — views compositions, enters grades, and provides written feedback</li>
           </ol>
 
           {/* Data Storage and Security */}

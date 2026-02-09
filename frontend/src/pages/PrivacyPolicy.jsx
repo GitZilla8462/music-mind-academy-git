@@ -169,8 +169,7 @@ const PrivacyPolicy = () => {
             <li><strong>Compositions, reflections, and scores:</strong> Saved to the student's account</li>
           </ul>
           <p>
-            Teachers can also run Quick Join sessions where students participate with just a class code
-            and musical name — no personal information collected.
+            Teachers can also run Quick Join sessions where students participate with just a class code — no personal information collected.
           </p>
           <p>
             For complete details on student data collection, see our{' '}
@@ -192,6 +191,7 @@ const PrivacyPolicy = () => {
             <li>Provide and maintain our educational services</li>
             <li>Allow teachers to manage classroom sessions</li>
             <li>Display student progress to teachers during sessions</li>
+            <li>Provide a teacher gradebook where teachers can view student work, enter grades, and give feedback</li>
             <li>Improve our services and develop new features</li>
             <li>Communicate with teachers about their accounts</li>
           </ul>
@@ -271,7 +271,7 @@ const PrivacyPolicy = () => {
           </p>
           <ul>
             <li>Schools may consent on behalf of parents when the technology is used solely for an educational purpose and for no other commercial purpose (per FTC guidance on school consent under COPPA)</li>
-            <li>Quick Join sessions collect no personal information — students participate using only self-chosen musical names</li>
+            <li>Quick Join sessions collect no personal information — students participate using only a class code</li>
             <li>Allowing parents to review and request deletion of their child's data at any time</li>
             <li><strong>No direct child sign-up:</strong> Students cannot create accounts independently. A teacher
             must create the class and add students. Students access the platform only through

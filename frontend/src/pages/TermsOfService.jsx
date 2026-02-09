@@ -176,10 +176,10 @@ const TermsOfService = () => {
 
           <h3>Student Access</h3>
           <p>
-            Students access the platform by signing in with a musical username and PIN.
-            Their work is saved persistently. Teachers can also run Quick Join sessions
-            where students join with just a class code and a musical name — no account is created
-            and no personal information is collected.
+            Students access the platform by signing in with a system-generated username and PIN.
+            Their work is saved persistently and visible to the teacher through a built-in gradebook.
+            Teachers can also run Quick Join sessions where students join with just a class code — no
+            account is created and no personal information is collected.
           </p>
           <p>
             By creating student accounts, the teacher represents and warrants that:
