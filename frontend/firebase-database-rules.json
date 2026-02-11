@@ -42,6 +42,13 @@
       }
     },
 
+    "partnerGames": {
+      "$code": {
+        ".read": true,
+        ".write": true
+      }
+    },
+
     "reflections": {
       "$sessionCode": {
         "$studentId": {

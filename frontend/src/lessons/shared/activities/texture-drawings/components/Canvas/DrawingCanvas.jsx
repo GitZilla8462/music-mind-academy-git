@@ -32,6 +32,53 @@ import React, {
 import { INSTRUMENT_ICONS } from '../../config/InstrumentIcons';
 
 // ============================================================================
+// INSTRUMENT IMAGE PATHS & CACHE (for canvas rendering)
+// ============================================================================
+
+const INSTRUMENT_IMAGE_PATHS = {
+  'violin': '/icons/instruments/violin.png',
+  'viola': '/icons/instruments/viola.png',
+  'cello': '/icons/instruments/cello.png',
+  'upright-bass': '/icons/instruments/upright-bass.png',
+  'harp': '/icons/instruments/harp.png',
+  'acoustic-guitar': '/icons/instruments/acoustic-guitar.png',
+  'electric-guitar': '/icons/instruments/electric-guitar.png',
+  'flute': '/icons/instruments/flute.png',
+  'clarinet': '/icons/instruments/clarinet.png',
+  'oboe': '/icons/instruments/oboe.png',
+  'saxophone': '/icons/instruments/saxophone.png',
+  'bassoon': '/icons/instruments/bassoon.png',
+  'trumpet': '/icons/instruments/trumpet.png',
+  'trombone': '/icons/instruments/trombone.png',
+  'french-horn': '/icons/instruments/french-horn.png',
+  'tuba': '/icons/instruments/tuba.png',
+  'piano': '/icons/instruments/piano.png',
+  'synthesizer': '/icons/instruments/synthesizer.png',
+  'drums': '/icons/instruments/drumsset.png',
+  'snare-drum': '/icons/instruments/snare-drum.png',
+  'timpani': '/icons/instruments/timpani.png',
+  'xylophone': '/icons/instruments/xylophone.png',
+  'cymbals': '/icons/instruments/cymbals.png',
+  'triangle': '/icons/instruments/triangle.png',
+  'tambourine': '/icons/instruments/tambourine.png',
+};
+
+const imageCache = new Map();
+
+const loadImage = (url) => {
+  if (imageCache.has(url)) return imageCache.get(url);
+  const promise = new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+  imageCache.set(url, promise);
+  return promise;
+};
+
+// ============================================================================
 // CONSTANTS
 // ============================================================================
 
@@ -1077,31 +1124,44 @@ const DrawingCanvas = forwardRef(({
   // EXPORT - ✅ FIXED: Now renders stickers onto canvas
   // ========================================================================
   
-  const toDataURL = useCallback(() => {
+  const toDataURL = useCallback(async () => {
+    // Pre-load all instrument images needed by stickers
+    const instrumentStickers = stickers.filter(s => s.data?.render === 'svg' && s.data?.id);
+    const uniqueIds = [...new Set(instrumentStickers.map(s => s.data.id))];
+    const imageEntries = await Promise.all(
+      uniqueIds.map(async (id) => {
+        const path = INSTRUMENT_IMAGE_PATHS[id];
+        if (!path) return [id, null];
+        const img = await loadImage(path);
+        return [id, img];
+      })
+    );
+    const loadedImages = Object.fromEntries(imageEntries);
+
     const composite = document.createElement('canvas');
     composite.width = width;
     composite.height = height;
     const ctx = composite.getContext('2d');
-    
+
     // 1. Draw the base canvas (drawings, background)
     if (drawingCanvasRef.current) {
       ctx.drawImage(drawingCanvasRef.current, 0, 0);
     }
-    
+
     // 2. Draw each sticker onto the composite canvas
     stickers.forEach(sticker => {
       const { x, y, rotation, scale, data } = sticker;
       const baseSize = data?.size || 56;
       const size = baseSize * scale;
       const stickerColor = data?.color || '#000000';
-      
+
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate((rotation * Math.PI) / 180);
-      
+
       const render = data?.render;
       const symbol = data?.symbol || '🎵';
-      
+
       // Text dynamics (pp, ff, etc.)
       if (render === 'text') {
         ctx.font = `italic bold ${size * 0.6}px "Times New Roman", Georgia, serif`;
@@ -1201,14 +1261,23 @@ const DrawingCanvas = forwardRef(({
         ctx.textBaseline = 'middle';
         ctx.fillText(symbol, 0, 0);
       }
-      // SVG instrument icons - these are trickier, draw as placeholder
-      else if (render === 'svg') {
-        // For PNG/SVG icons, we'd need to load the image async
-        // For now, draw a placeholder or the emoji fallback
-        ctx.font = `${size * 0.7}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('🎵', 0, 0);
+      // SVG instrument icons - draw the actual PNG (preserve aspect ratio)
+      else if (render === 'svg' && data?.id) {
+        const img = loadedImages[data.id];
+        if (img) {
+          const aspect = img.naturalWidth / img.naturalHeight;
+          let drawW, drawH;
+          if (aspect >= 1) {
+            // Wider than tall
+            drawW = size;
+            drawH = size / aspect;
+          } else {
+            // Taller than wide
+            drawH = size;
+            drawW = size * aspect;
+          }
+          ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+        }
       }
       // Default: emoji
       else {
@@ -1217,10 +1286,10 @@ const DrawingCanvas = forwardRef(({
         ctx.textBaseline = 'middle';
         ctx.fillText(symbol, 0, 0);
       }
-      
+
       ctx.restore();
     });
-    
+
     return composite.toDataURL();
   }, [width, height, stickers]);
   

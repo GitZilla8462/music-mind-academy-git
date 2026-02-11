@@ -314,9 +314,9 @@ const StringFamilyShowcase = ({ onAdvance }) => {
       {/* VIDEO PLAYING OVERLAY */}
       {phase === 'playing' && (
         <>
-          {/* Instrument badge - top center */}
+          {/* Instrument badge - top left */}
           <div
-            className="absolute top-8 left-1/2 -translate-x-1/2 px-10 py-5 rounded-full flex items-center gap-4 text-white font-black text-4xl shadow-2xl"
+            className="absolute top-8 left-8 px-10 py-5 rounded-full flex items-center gap-4 text-white font-black text-4xl shadow-2xl"
             style={{
               backgroundColor: config.color,
               boxShadow: `0 0 50px ${config.color}`

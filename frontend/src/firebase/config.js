@@ -567,4 +567,93 @@ export const hasStudentVoted = async (sessionCode, loopId, studentId) => {
   }
 };
 
+// ==========================================
+// PARTNER GAME FUNCTIONS (Strings & Dynamics Lab)
+// ==========================================
+
+// Helper: partner games stored under sessions/ with pg- prefix to avoid collisions
+const partnerGamePath = (code) => `sessions/pg-${code}`;
+
+/**
+ * Create a new partner game. Returns { code, playerId }.
+ */
+export const createPartnerGame = async (playerName, totalRounds = 8) => {
+  const code = generateSessionCode();
+  const gameRef = ref(database, partnerGamePath(code));
+
+  // Check for collision
+  const existing = await get(gameRef);
+  if (existing.exists()) {
+    // Extremely rare - just generate again
+    return createPartnerGame(playerName, totalRounds);
+  }
+
+  const playerId = `p_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+
+  await set(gameRef, {
+    createdAt: Date.now(),
+    player1: { id: playerId, name: playerName },
+    player2: null,
+    round: 0,
+    totalRounds,
+    builder: 1,
+    phase: 'waiting',
+    selection: null,
+    guess: null,
+    playCount: 0,
+    scores: { p1: 0, p2: 0 },
+    streaks: { p1: 0, p2: 0 },
+    roundResult: null
+  });
+
+  return { code, playerId };
+};
+
+/**
+ * Join an existing partner game as player 2. Returns { playerId } or null if invalid.
+ */
+export const joinPartnerGame = async (code, playerName) => {
+  const gameRef = ref(database, partnerGamePath(code));
+  const snapshot = await get(gameRef);
+
+  if (!snapshot.exists()) return null;
+  const data = snapshot.val();
+  if (data.player2) return null; // game full
+
+  const playerId = `p_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+
+  await update(gameRef, {
+    player2: { id: playerId, name: playerName },
+    phase: 'rules'
+  });
+
+  return { playerId };
+};
+
+/**
+ * Subscribe to partner game state changes. Returns unsubscribe function.
+ */
+export const subscribeToPartnerGame = (code, callback) => {
+  const gameRef = ref(database, partnerGamePath(code));
+  return onValue(gameRef, (snapshot) => {
+    callback(snapshot.val());
+  });
+};
+
+/**
+ * Update partner game state.
+ */
+export const updatePartnerGame = async (code, updates) => {
+  const gameRef = ref(database, partnerGamePath(code));
+  await update(gameRef, { ...updates, updatedAt: Date.now() });
+};
+
+/**
+ * Delete a partner game.
+ */
+export const deletePartnerGame = async (code) => {
+  const gameRef = ref(database, partnerGamePath(code));
+  await remove(gameRef);
+};
+
 export default database;

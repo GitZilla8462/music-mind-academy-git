@@ -621,15 +621,15 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
 
   // ✅ UPDATED: Save using editable data so it can be loaded and edited later
   // silent = true means don't show message (used by teacher save command)
-  const handleManualSave = useCallback((silent = false) => {
+  const handleManualSave = useCallback(async (silent = false) => {
     if (isSavingRef.current || !studentId || !canvasRef.current) return;
     isSavingRef.current = true;
 
     try {
       // Get editable data (stickers + canvas drawing)
       const editableData = canvasRef.current.getEditableData?.();
-      // Also get flat image for preview/thumbnail
-      const imageData = canvasRef.current.toDataURL?.();
+      // Also get flat image for preview/thumbnail (async to render instrument PNGs)
+      const imageData = await canvasRef.current.toDataURL?.();
 
       if (editableData) {
         // Save using the generic system so it appears on Join page
@@ -737,17 +737,21 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
 
   // Capture canvas snapshot and enter presentation mode
   const enterPresentationMode = useCallback(() => {
-    const imageData = canvasRef.current?.toDataURL?.();
-    if (imageData) {
-      setPresentationMode(imageData);
-    }
+    canvasRef.current?.deselectAll?.();
+    // Small delay to let deselection render before capturing snapshot
+    setTimeout(async () => {
+      const imageData = await canvasRef.current?.toDataURL?.();
+      if (imageData) {
+        setPresentationMode(imageData);
+      }
+    }, 50);
   }, []);
 
   return (
     <>
     {/* PRESENTATION MODE - overlay on top, canvas stays mounted underneath */}
     {presentationMode && (
-      <div className="h-screen bg-black flex flex-col overflow-hidden fixed inset-0 z-50">
+      <div className="h-screen bg-black flex flex-col overflow-hidden fixed inset-0" style={{ zIndex: 9999 }}>
         <div className="h-10 px-4 flex items-center justify-between bg-gray-900 flex-shrink-0">
           <span className="text-sm font-bold text-white">My Listening Map</span>
           <button
@@ -974,12 +978,6 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
           <span className="text-xs text-gray-500 font-medium">{brushSize}px</span>
         </div>
 
-        {onComplete && (
-          <button onClick={() => { audio.stop(); onComplete(); }}
-            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium">
-            Done ✓
-          </button>
-        )}
       </div>
 
       {/* ✅ NEW: Floating ghost sticker while dragging from panel */}

@@ -1,11 +1,11 @@
 // File: /src/lessons/shared/components/StudentActivityTimer.jsx
 // Floating timer for students during activities
 // Receives countdown time from Firebase (set by teacher)
-// Includes minimize/expand toggle
+// Includes minimize/expand toggle and drag-to-reposition
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getDatabase, ref, onValue } from 'firebase/database';
-import { Clock, Minimize2, Maximize2 } from 'lucide-react';
+import { Clock, Minimize2, Maximize2, GripHorizontal } from 'lucide-react';
 import { useTimerSound } from '../hooks/useTimerSound';
 
 const StudentActivityTimer = ({ sessionCode }) => {
@@ -14,6 +14,12 @@ const StudentActivityTimer = ({ sessionCode }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const lastFirebaseTime = useRef(null);
   const lastFirebaseActive = useRef(null);
+
+  // Drag state
+  const [position, setPosition] = useState(null); // null = default CSS position (top-4 right-4)
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef(null);
+  const timerRef = useRef(null);
 
   // Timer sound hook (plays chime when timer ends)
   const { isMuted, toggleMute, playTimerEndSound } = useTimerSound();
@@ -72,6 +78,56 @@ const StudentActivityTimer = ({ sessionCode }) => {
     return () => clearInterval(interval);
   }, [timerActive, countdownTime, playTimerEndSound]);
 
+  // Drag handlers
+  const handlePointerDown = useCallback((e) => {
+    // Don't start drag on button clicks
+    if (e.target.closest('button')) return;
+
+    const el = timerRef.current;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+
+    // If this is the first drag, initialize position from current rendered location
+    const currentX = rect.left;
+    const currentY = rect.top;
+
+    dragStartRef.current = {
+      pointerX: e.clientX,
+      pointerY: e.clientY,
+      elemX: currentX,
+      elemY: currentY,
+    };
+
+    setIsDragging(true);
+    el.setPointerCapture(e.pointerId);
+  }, []);
+
+  const handlePointerMove = useCallback((e) => {
+    if (!isDragging || !dragStartRef.current) return;
+
+    const dx = e.clientX - dragStartRef.current.pointerX;
+    const dy = e.clientY - dragStartRef.current.pointerY;
+
+    let newX = dragStartRef.current.elemX + dx;
+    let newY = dragStartRef.current.elemY + dy;
+
+    // Clamp to viewport
+    const el = timerRef.current;
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      newX = Math.max(0, Math.min(newX, window.innerWidth - rect.width));
+      newY = Math.max(0, Math.min(newY, window.innerHeight - rect.height));
+    }
+
+    setPosition({ x: newX, y: newY });
+  }, [isDragging]);
+
+  const handlePointerUp = useCallback(() => {
+    setIsDragging(false);
+    dragStartRef.current = null;
+  }, []);
+
   // Don't render if no active timer
   if (!timerActive && countdownTime <= 0) {
     return null;
@@ -81,11 +137,25 @@ const StudentActivityTimer = ({ sessionCode }) => {
   const isUrgent = countdownTime <= 60;
   const isWarning = countdownTime <= 30;
 
+  // Style: use absolute positioning when dragged, otherwise default fixed top-right
+  const positionStyle = position
+    ? { position: 'fixed', left: position.x, top: position.y, right: 'auto' }
+    : {};
+
+  const dragProps = {
+    ref: timerRef,
+    onPointerDown: handlePointerDown,
+    onPointerMove: handlePointerMove,
+    onPointerUp: handlePointerUp,
+    style: { ...positionStyle, cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'none' },
+  };
+
   // Minimized view - just a small icon with time
   if (isMinimized) {
     return (
       <div
-        className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-3 py-2 rounded-full shadow-lg border transition-all ${
+        {...dragProps}
+        className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-3 py-2 rounded-full shadow-lg border select-none ${
           isWarning
             ? 'bg-red-600 border-red-500 text-white'
             : isUrgent
@@ -118,7 +188,10 @@ const StudentActivityTimer = ({ sessionCode }) => {
   // Expanded view - full timer display
   return (
     <div
-      className={`fixed top-4 right-4 z-50 rounded-xl shadow-2xl border backdrop-blur-sm transition-all ${
+      {...dragProps}
+      className={`fixed top-4 right-4 z-50 rounded-xl shadow-2xl border backdrop-blur-sm select-none ${
+        isDragging ? '' : 'transition-all'
+      } ${
         isWarning
           ? 'bg-red-600/95 border-red-500'
           : isUrgent
@@ -126,9 +199,10 @@ const StudentActivityTimer = ({ sessionCode }) => {
           : 'bg-gray-800/95 border-gray-700'
       }`}
     >
-      {/* Header with mute and minimize buttons */}
+      {/* Drag handle + header */}
       <div className="flex items-center justify-between px-4 pt-3 pb-1">
         <div className="flex items-center gap-2 text-white/80 text-sm font-medium">
+          <GripHorizontal size={16} className="opacity-50" />
           <Clock size={16} />
           <span>Time Remaining</span>
         </div>
