@@ -409,6 +409,13 @@ const DrawingCanvas = forwardRef(({
     saveToHistory();
   }, [width, height, instruments.length]);
   
+  // Clear selection when a new sticker is picked from the panel (entering placement mode)
+  useEffect(() => {
+    if (selectedSticker) {
+      setSelectedStickerIds(new Set());
+    }
+  }, [selectedSticker]);
+
   // Update selected stickers' color when color changes
   useEffect(() => {
     if (selectedStickerIds.size > 0 && color) {
@@ -641,13 +648,13 @@ const DrawingCanvas = forwardRef(({
     
     setStickers(prev => [...prev, newSticker]);
     setNextStickerId(prev => prev + 1);
-    setSelectedStickerIds(new Set([newSticker.id]));
-    
+    setSelectedStickerIds(new Set());
+
     onStickerPlaced?.();
-    
+
     setTimeout(saveToHistory, 50);
   };
-  
+
   // ✅ NEW: Place sticker at specific canvas coordinates (for drag-drop)
   const placeStickerAt = useCallback((stickerData, canvasX, canvasY, size = 56) => {
     const newSticker = {
@@ -663,10 +670,10 @@ const DrawingCanvas = forwardRef(({
         color: color
       }
     };
-    
+
     setStickers(prev => [...prev, newSticker]);
     setNextStickerId(prev => prev + 1);
-    setSelectedStickerIds(new Set([newSticker.id]));
+    setSelectedStickerIds(new Set());
     
     setTimeout(saveToHistory, 50);
     

@@ -364,6 +364,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
 
   // UI
   const [expanded, setExpanded] = useState(false);
+  const [presentationMode, setPresentationMode] = useState(false); // false or image data string
 
   // Save
   const [saveMessage, setSaveMessage] = useState(null);
@@ -734,7 +735,38 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
   // RENDER
   // ========================================================================
 
+  // Capture canvas snapshot and enter presentation mode
+  const enterPresentationMode = useCallback(() => {
+    const imageData = canvasRef.current?.toDataURL?.();
+    if (imageData) {
+      setPresentationMode(imageData);
+    }
+  }, []);
+
   return (
+    <>
+    {/* PRESENTATION MODE - overlay on top, canvas stays mounted underneath */}
+    {presentationMode && (
+      <div className="h-screen bg-black flex flex-col overflow-hidden fixed inset-0 z-50">
+        <div className="h-10 px-4 flex items-center justify-between bg-gray-900 flex-shrink-0">
+          <span className="text-sm font-bold text-white">My Listening Map</span>
+          <button
+            onClick={() => setPresentationMode(false)}
+            className="px-4 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors"
+          >
+            ✕ Exit Presentation
+          </button>
+        </div>
+        <div className="flex-1 flex items-center justify-center p-4">
+          <img
+            src={presentationMode}
+            alt="My Listening Map"
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+          />
+        </div>
+      </div>
+    )}
+
     <div className={`h-screen bg-gray-100 text-gray-800 flex flex-col overflow-hidden ${expanded ? 'fixed inset-0 z-50' : ''}`}>
 
       {/* HEADER */}
@@ -772,6 +804,12 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
               className={`w-8 h-8 rounded-md flex items-center justify-center text-sm ${canRedo ? 'text-gray-600 hover:bg-gray-200' : 'text-gray-300 cursor-not-allowed'}`}
               title="Redo">↪️</button>
           </div>
+
+          <button onClick={enterPresentationMode}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
+            title="Present your map full screen">
+            📺 Present
+          </button>
 
           <button onClick={() => setExpanded(!expanded)}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100"
@@ -966,6 +1004,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
         </div>
       )}
     </div>
+    </>
   );
 };
 

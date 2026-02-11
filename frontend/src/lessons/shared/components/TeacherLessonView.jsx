@@ -842,23 +842,23 @@ const PresentationContent = ({
 
         return (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-8">
-            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-8 lg:mb-12">Gradual Dynamic Changes</h1>
+            <h1 className="text-6xl lg:text-8xl font-bold text-white mb-8 lg:mb-12">Gradual Dynamic Changes</h1>
 
-            <div className="flex gap-12 lg:gap-24">
+            <div className="flex gap-16 lg:gap-32">
               {/* Crescendo */}
               <div className="flex flex-col items-center">
-                <div className="text-3xl lg:text-4xl font-bold text-purple-300 mb-4">Crescendo</div>
+                <div className="text-4xl lg:text-5xl font-bold text-purple-300 mb-5">Crescendo</div>
                 {/* Wedge symbol opening right - two lines only */}
-                <div className="w-48 lg:w-64 h-16 lg:h-20 mb-4 flex items-center">
+                <div className="w-56 lg:w-80 h-20 lg:h-24 mb-5 flex items-center">
                   <svg viewBox="0 0 200 60" className="w-full h-full">
                     <polyline points="0,30 200,5" fill="none" stroke="#93C5FD" strokeWidth="4" strokeLinecap="round" />
                     <polyline points="0,30 200,55" fill="none" stroke="#93C5FD" strokeWidth="4" strokeLinecap="round" />
                   </svg>
                 </div>
-                <div className="text-xl lg:text-2xl text-white mb-4">Gradually getting <span className="text-green-400 font-bold">LOUDER</span></div>
+                <div className="text-2xl lg:text-3xl text-white mb-5">Gradually getting <span className="text-green-400 font-bold">LOUDER</span></div>
                 <button
                   onClick={() => playClip('crescendo', 131, 137)}
-                  className={`px-6 py-3 rounded-xl text-lg font-bold flex items-center gap-2 transition-all ${
+                  className={`px-8 py-4 rounded-xl text-xl lg:text-2xl font-bold flex items-center gap-3 transition-all ${
                     playingClip === 'crescendo'
                       ? 'bg-green-500 text-white'
                       : 'bg-white/20 text-white hover:bg-white/30'
@@ -870,18 +870,18 @@ const PresentationContent = ({
 
               {/* Decrescendo */}
               <div className="flex flex-col items-center">
-                <div className="text-3xl lg:text-4xl font-bold text-purple-300 mb-4">Decrescendo</div>
+                <div className="text-4xl lg:text-5xl font-bold text-purple-300 mb-5">Decrescendo</div>
                 {/* Wedge symbol opening left - two lines only */}
-                <div className="w-48 lg:w-64 h-16 lg:h-20 mb-4 flex items-center">
+                <div className="w-56 lg:w-80 h-20 lg:h-24 mb-5 flex items-center">
                   <svg viewBox="0 0 200 60" className="w-full h-full">
                     <polyline points="0,5 200,30" fill="none" stroke="#F87171" strokeWidth="4" strokeLinecap="round" />
                     <polyline points="0,55 200,30" fill="none" stroke="#F87171" strokeWidth="4" strokeLinecap="round" />
                   </svg>
                 </div>
-                <div className="text-xl lg:text-2xl text-white mb-4">Gradually getting <span className="text-red-400 font-bold">SOFTER</span></div>
+                <div className="text-2xl lg:text-3xl text-white mb-5">Gradually getting <span className="text-red-400 font-bold">SOFTER</span></div>
                 <button
                   onClick={() => playClip('decrescendo', 64, 69)}
-                  className={`px-6 py-3 rounded-xl text-lg font-bold flex items-center gap-2 transition-all ${
+                  className={`px-8 py-4 rounded-xl text-xl lg:text-2xl font-bold flex items-center gap-3 transition-all ${
                     playingClip === 'decrescendo'
                       ? 'bg-red-500 text-white'
                       : 'bg-white/20 text-white hover:bg-white/30'
@@ -1375,15 +1375,15 @@ const PresentationContent = ({
       const { title, subtitle, bullets, sections } = currentStageData.presentationView;
 
       return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-6 lg:p-12">
-          {/* Title - scales from 5xl on small to 8xl on large */}
-          <h1 className="text-5xl md:text-6xl lg:text-8xl font-bold text-white mb-2 lg:mb-4 text-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-6 lg:p-10">
+          {/* Title */}
+          <h1 className="text-6xl lg:text-8xl font-bold text-white mb-3 lg:mb-5 text-center">
             {title}
           </h1>
 
           {/* Subtitle (if provided) */}
           {subtitle && (
-            <p className="text-2xl md:text-3xl lg:text-4xl text-purple-300 mb-6 lg:mb-10 text-center">
+            <p className="text-3xl lg:text-5xl text-purple-300 mb-6 lg:mb-10 text-center">
               {subtitle}
             </p>
           )}
@@ -1393,12 +1393,12 @@ const PresentationContent = ({
 
           {/* Simple bullets (if provided) */}
           {bullets && bullets.length > 0 && (
-            <div className="max-w-5xl w-full px-4">
+            <div className="max-w-6xl w-full px-4">
               <ul className="space-y-4 lg:space-y-6">
                 {bullets.map((bullet, index) => (
                   <li key={index} className="flex items-start gap-3 lg:gap-4">
-                    <span className="text-purple-400 text-3xl lg:text-5xl mt-0.5 lg:mt-1">•</span>
-                    <span className="text-2xl md:text-3xl lg:text-4xl text-slate-200 leading-snug lg:leading-relaxed">{bullet}</span>
+                    <span className="text-purple-400 text-4xl lg:text-5xl mt-0.5">•</span>
+                    <span className="text-3xl lg:text-4xl text-slate-200 leading-snug lg:leading-relaxed">{bullet}</span>
                   </li>
                 ))}
               </ul>
@@ -1410,14 +1410,16 @@ const PresentationContent = ({
             <div className="max-w-6xl w-full px-4">
               {sections.map((section, sectionIndex) => (
                 <div key={sectionIndex} className="mb-5 lg:mb-8">
-                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-purple-400 mb-3 lg:mb-6">
-                    {section.heading}
-                  </h2>
-                  <ul className="space-y-2 lg:space-y-4 pl-2 lg:pl-4">
+                  {section.heading && (
+                    <h2 className="text-4xl lg:text-6xl font-bold text-purple-400 mb-3 lg:mb-6">
+                      {section.heading}
+                    </h2>
+                  )}
+                  <ul className="space-y-3 lg:space-y-5 pl-2 lg:pl-4">
                     {section.bullets.map((bullet, bulletIndex) => (
-                      <li key={bulletIndex} className="flex items-start gap-2 lg:gap-3">
-                        <span className="text-purple-400 text-2xl lg:text-3xl mt-0.5">•</span>
-                        <span className="text-xl md:text-2xl lg:text-3xl text-slate-200 leading-snug">{bullet}</span>
+                      <li key={bulletIndex} className="flex items-start gap-2 lg:gap-4">
+                        <span className="text-purple-400 text-3xl lg:text-4xl mt-0.5">•</span>
+                        <span className="text-2xl lg:text-4xl text-slate-200 leading-snug">{bullet}</span>
                       </li>
                     ))}
                   </ul>
@@ -1470,17 +1472,17 @@ const PresentationContent = ({
         <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900">
           {/* Student Activity Banner */}
           <div className="w-full flex items-center justify-center py-6 bg-teal-600">
-            <span className="text-white font-bold text-4xl tracking-wide">
+            <span className="text-white font-bold text-4xl lg:text-5xl tracking-wide">
               STUDENT ACTIVITY TIME
             </span>
           </div>
           {/* Content */}
           <div className="flex-1 flex flex-col items-center justify-center p-12">
-            <h1 className="text-7xl font-bold text-white mb-6 text-center">
+            <h1 className="text-7xl lg:text-8xl font-bold text-white mb-6 text-center">
               {title}
             </h1>
             {subtitle && (
-              <p className="text-3xl text-teal-200 text-center">
+              <p className="text-3xl lg:text-4xl text-teal-200 text-center">
                 {subtitle}
               </p>
             )}
@@ -1494,29 +1496,29 @@ const PresentationContent = ({
       return (
         <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900">
           {/* Student Activity Banner */}
-          <div className="w-full flex items-center justify-center py-3 bg-teal-600 flex-shrink-0">
-            <span className="text-white font-bold text-2xl lg:text-3xl tracking-wide">
+          <div className="w-full flex items-center justify-center py-4 bg-teal-600 flex-shrink-0">
+            <span className="text-white font-bold text-3xl lg:text-4xl tracking-wide">
               STUDENT ACTIVITY TIME
             </span>
           </div>
 
           {/* Title Section */}
-          <div className="text-center pt-4 lg:pt-6 flex-shrink-0">
-            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-2">
+          <div className="text-center pt-5 lg:pt-8 flex-shrink-0">
+            <h1 className="text-6xl lg:text-8xl font-bold text-white mb-2">
               Dynamics Listening Map
             </h1>
-            <div className="text-2xl lg:text-3xl text-teal-200">
+            <div className="text-3xl lg:text-4xl text-teal-200">
               Spring by Antonio Vivaldi • 12 minutes
             </div>
           </div>
 
           {/* Directions Below */}
           <div className="flex-1 flex items-start justify-center p-4 lg:p-6 pt-6 lg:pt-8">
-            <div className="flex gap-6 lg:gap-10 max-w-6xl w-full">
+            <div className="flex gap-6 lg:gap-10 max-w-7xl w-full">
               {/* Your Task */}
               <div className="flex-1 bg-white/10 rounded-2xl p-6 lg:p-8 backdrop-blur-sm">
-                <h2 className="text-3xl lg:text-4xl font-bold text-teal-300 mb-5">Your Task</h2>
-                <ol className="space-y-4 text-2xl lg:text-3xl text-white">
+                <h2 className="text-4xl lg:text-5xl font-bold text-teal-300 mb-5">Your Task</h2>
+                <ol className="space-y-5 text-3xl lg:text-4xl text-white">
                   <li className="flex gap-4">
                     <span className="text-teal-400 font-bold">1.</span>
                     <span>Press <strong className="text-teal-300">PLAY</strong> and listen</span>
@@ -1534,8 +1536,8 @@ const PresentationContent = ({
 
               {/* Finished Early */}
               <div className="flex-1 bg-white/10 rounded-2xl p-6 lg:p-8 backdrop-blur-sm">
-                <h2 className="text-3xl lg:text-4xl font-bold text-green-400 mb-5">Finished Early?</h2>
-                <ul className="space-y-4 text-2xl lg:text-3xl text-white/90">
+                <h2 className="text-4xl lg:text-5xl font-bold text-green-400 mb-5">Finished Early?</h2>
+                <ul className="space-y-5 text-3xl lg:text-4xl text-white/90">
                   <li className="flex gap-4">
                     <span className="text-green-400">•</span>
                     <span>Circle string instruments</span>
@@ -1549,6 +1551,11 @@ const PresentationContent = ({
                     <span>Draw melody direction</span>
                   </li>
                 </ul>
+                <div className="mt-6 pt-4 border-t border-white/20">
+                  <p className="text-2xl lg:text-3xl text-teal-300">
+                    📺 Click <strong>Present</strong> in the top bar to show your map full screen!
+                  </p>
+                </div>
               </div>
             </div>
           </div>

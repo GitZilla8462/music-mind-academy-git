@@ -186,10 +186,10 @@ const StringFamilyShowcase = ({ onAdvance }) => {
       {phase === 'intro' && (
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-slate-900">
           <div className="text-center px-8">
-            <h1 className="text-7xl font-black text-white mb-8 tracking-tight">
+            <h1 className="text-7xl lg:text-8xl font-black text-white mb-8 tracking-tight">
               Meet the String Family
             </h1>
-            <div className="text-3xl text-white/90 mb-10 leading-relaxed">
+            <div className="text-3xl lg:text-4xl text-white/90 mb-10 leading-relaxed">
               <p className="mb-6">Let's see and hear each instrument!</p>
               <div className="flex justify-center gap-6 mb-8">
                 {INSTRUMENT_CONFIGS.map((inst) => (
@@ -198,8 +198,8 @@ const StringFamilyShowcase = ({ onAdvance }) => {
                     className="flex flex-col items-center gap-2 px-6 py-4 rounded-xl"
                     style={{ backgroundColor: `${inst.color}40` }}
                   >
-                    <span className="text-5xl">{inst.emoji}</span>
-                    <span className="text-xl font-bold" style={{ color: inst.color }}>
+                    <span className="text-6xl">{inst.emoji}</span>
+                    <span className="text-2xl font-bold" style={{ color: inst.color }}>
                       {inst.name}
                     </span>
                   </div>
@@ -272,7 +272,7 @@ const StringFamilyShowcase = ({ onAdvance }) => {
       {phase === 'done' && (
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
           <div className="text-center">
-            <h2 className="text-6xl font-black text-white mb-8">
+            <h2 className="text-7xl lg:text-8xl font-black text-white mb-8">
               The String Family!
             </h2>
             <div className="flex justify-center gap-8 mb-12">
@@ -282,12 +282,12 @@ const StringFamilyShowcase = ({ onAdvance }) => {
                   className="flex flex-col items-center gap-3 px-8 py-6 rounded-2xl"
                   style={{ backgroundColor: inst.color }}
                 >
-                  <span className="text-6xl">{inst.emoji}</span>
-                  <span className="text-2xl font-bold text-white">{inst.name}</span>
+                  <span className="text-7xl">{inst.emoji}</span>
+                  <span className="text-3xl font-bold text-white">{inst.name}</span>
                 </div>
               ))}
             </div>
-            <p className="text-3xl text-white/80 mb-10">
+            <p className="text-3xl lg:text-4xl text-white/80 mb-10">
               From <span className="text-blue-400 font-bold">highest</span> to{' '}
               <span className="text-red-400 font-bold">lowest</span>:
               Violin → Viola → Cello → Bass

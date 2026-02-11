@@ -150,15 +150,15 @@ const DynamicsShowcase = ({ sessionData }) => {
     <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-8 overflow-hidden">
       {/* Title */}
       <div className="text-center mb-4 flex-shrink-0">
-        <h1 className="text-6xl font-bold text-white mb-2">Dynamic Markings</h1>
-        <p className="text-2xl text-purple-300 mb-0">The Volume of Music — from Very Soft to Very Loud</p>
+        <h1 className="text-7xl lg:text-8xl font-bold text-white mb-2">Dynamic Markings</h1>
+        <p className="text-3xl lg:text-4xl text-purple-300 mb-0">The Volume of Music — from Very Soft to Very Loud</p>
       </div>
 
       {/* Direction banner - shows what's coming next */}
       {currentIndex >= 0 && !allDone && (
-        <div className="flex-shrink-0 max-w-3xl mx-auto w-full mb-3">
+        <div className="flex-shrink-0 max-w-4xl mx-auto w-full mb-3">
           <div className="bg-yellow-500/20 border border-yellow-400/40 rounded-xl px-6 py-3">
-            <p className="text-2xl text-yellow-200 font-bold text-center">
+            <p className="text-3xl text-yellow-200 font-bold text-center">
               {DIRECTION_TEXT[currentIndex]}
             </p>
           </div>
@@ -166,9 +166,9 @@ const DynamicsShowcase = ({ sessionData }) => {
       )}
 
       {/* Teacher speaking text */}
-      <div className="flex-shrink-0 max-w-4xl mx-auto w-full mb-4">
+      <div className="flex-shrink-0 max-w-5xl mx-auto w-full mb-4">
         <div className="bg-white/5 border border-white/10 rounded-xl px-6 py-3">
-          <p className="text-lg text-purple-100 leading-relaxed italic text-center">
+          <p className="text-xl text-purple-100 leading-relaxed italic text-center">
             {currentIndex === -1 && TEACHER_SCRIPT.intro}
             {currentIndex >= 0 && !allDone && TEACHER_SCRIPT.perDynamic[currentIndex]}
             {allDone && TEACHER_SCRIPT.outro}
@@ -214,7 +214,7 @@ const DynamicsShowcase = ({ sessionData }) => {
                 {/* Symbol */}
                 <div
                   className={`font-black transition-all duration-500 ${
-                    isActive ? 'text-7xl mb-3' : 'text-4xl mb-1'
+                    isActive ? 'text-8xl mb-3' : 'text-5xl mb-1'
                   }`}
                   style={{ color: isActive || isCompleted ? d.color : 'rgba(255,255,255,0.6)' }}
                 >
@@ -223,14 +223,14 @@ const DynamicsShowcase = ({ sessionData }) => {
 
                 {/* Name */}
                 <div className={`font-bold text-white transition-all duration-500 ${
-                  isActive ? 'text-2xl mb-1' : 'text-sm'
+                  isActive ? 'text-3xl mb-1' : 'text-base'
                 }`}>
                   {d.name}
                 </div>
 
                 {/* Meaning */}
                 <div className={`text-white/80 transition-all duration-500 ${
-                  isActive ? 'text-lg' : 'text-xs'
+                  isActive ? 'text-xl' : 'text-sm'
                 }`}>
                   {d.meaning}
                 </div>
@@ -269,7 +269,7 @@ const DynamicsShowcase = ({ sessionData }) => {
             );
           })}
         </div>
-        <div className="flex justify-between text-sm text-white/50 mt-1 px-2 max-w-[380px] mx-auto">
+        <div className="flex justify-between text-base text-white/50 mt-1 px-2 max-w-[420px] mx-auto">
           <span>Softest</span>
           <span>Loudest</span>
         </div>
@@ -304,27 +304,30 @@ const DynamicsShowcase = ({ sessionData }) => {
               {isPlaying ? <><Pause size={28} /> Pause</> : <><Play size={28} /> {hasPlayed ? 'Replay' : 'Play'}</>}
             </button>
 
-            {/* Next button - only shows after clip finishes */}
-            {clipFinished && (
-              <button
-                onClick={handleNext}
-                className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-2xl text-2xl font-bold text-white flex items-center gap-3 hover:scale-105 transition-all"
-              >
-                {currentIndex < SHOWCASE_CLIPS.length - 1 ? (
-                  <>Next <ChevronRight size={28} /></>
-                ) : (
-                  <>Finish <Check size={28} /></>
-                )}
-              </button>
-            )}
+            {/* Next button - greyed out until clip finishes, then turns green */}
+            <button
+              onClick={handleNext}
+              disabled={!clipFinished}
+              className={`px-8 py-4 rounded-2xl text-2xl font-bold text-white flex items-center gap-3 transition-all ${
+                clipFinished
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 hover:scale-105 cursor-pointer'
+                  : 'bg-gray-600/50 opacity-40 cursor-not-allowed'
+              }`}
+            >
+              {currentIndex < SHOWCASE_CLIPS.length - 1 ? (
+                <>Next <ChevronRight size={28} /></>
+              ) : (
+                <>Finish <Check size={28} /></>
+              )}
+            </button>
           </>
         )}
 
         {/* All done */}
         {allDone && (
           <div className="flex flex-col items-center gap-3">
-            <span className="text-2xl text-green-400 font-bold">All dynamics covered!</span>
-            <span className="text-lg text-white/60">Click Next in the sidebar to advance to the next slide</span>
+            <span className="text-3xl text-green-400 font-bold">All dynamics covered!</span>
+            <span className="text-xl text-white/60">Click Next in the sidebar to advance to the next slide</span>
             <button
               onClick={handleReset}
               className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-lg font-medium text-white flex items-center gap-2 transition-all"

@@ -429,6 +429,36 @@ export const dynamicsListeningMapContent = {
 };
 
 // ========================================
+// 6b. SHARE & PAIR CONTENT
+// ========================================
+export const shareAndPairContent = {
+  title: 'Share & Pair',
+  subtitle: 'Show your Listening Map to a partner!',
+  icon: '🤝',
+  prompts: [
+    {
+      number: 1,
+      label: 'Mood',
+      question: 'What MOOD did the dynamics create?',
+      hint: 'Exciting, calm, dramatic, peaceful?'
+    },
+    {
+      number: 2,
+      label: 'Biggest Change',
+      question: 'Where did you mark the BIGGEST dynamic change?',
+      hint: 'Point to it on your map!'
+    },
+    {
+      number: 3,
+      label: 'Surprise',
+      question: 'What SURPRISED you about the dynamics in Spring?',
+      hint: 'A sudden change? A crescendo? A soft moment?'
+    }
+  ],
+  teacherNote: 'Give students 2 minutes to share with a partner. Encourage them to use Presentation View to show their maps.'
+};
+
+// ========================================
 // 7. VOCABULARY FOR THIS LESSON
 // ========================================
 export const vocabulary = [

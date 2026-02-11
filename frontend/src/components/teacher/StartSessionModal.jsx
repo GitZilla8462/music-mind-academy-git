@@ -143,14 +143,14 @@ const StartSessionModal = ({
               </p>
             </div>
 
-            {/* Option 2: For My Class (RIGHT) */}
+            {/* Option 2: Classroom Mode (RIGHT) */}
             <div className="border-2 border-blue-200 bg-blue-50/50 rounded-xl p-5 hover:border-blue-400 transition-colors">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                   <Users className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">For My Class</h3>
+                  <h3 className="font-semibold text-gray-900">Classroom Mode</h3>
                   <span className="text-xs text-blue-600 font-medium">Track student work</span>
                 </div>
               </div>

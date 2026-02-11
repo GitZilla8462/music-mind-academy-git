@@ -438,7 +438,7 @@ function JoinWithCode() {
           </div>
         ) : (
           /* Two equal options side by side: Student Login (left) + Quick Join (right) */
-          <div className="grid grid-cols-2 gap-4 items-start">
+          <div className="grid grid-cols-2 gap-4 items-stretch">
             {/* Left: Student Login / Join Lesson */}
             <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200 flex flex-col">
               {isPinAuth && activeSession ? (
@@ -454,7 +454,7 @@ function JoinWithCode() {
                   <button
                     onClick={handleJoinActiveSession}
                     disabled={isJoining}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isJoining ? (
                       <>
@@ -493,7 +493,7 @@ function JoinWithCode() {
 
                   <button
                     onClick={() => navigate('/student/home')}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2"
+                    className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2"
                   >
                     <LogIn size={18} />
                     Go to Dashboard
@@ -503,7 +503,7 @@ function JoinWithCode() {
                 /* Google auth (not PIN) */
                 <>
                   <div className="text-center mb-4">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-1">Student Login</h2>
+                    <h2 className="text-lg font-semibold text-blue-800 mb-1">Classroom Mode</h2>
                     <p className="text-gray-500 text-sm">Sign in to see your work and grades</p>
                   </div>
 
@@ -515,7 +515,7 @@ function JoinWithCode() {
                     </p>
                     <button
                       onClick={() => navigate('/student/home')}
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2"
+                      className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2"
                     >
                       <LogIn size={18} />
                       Go to Dashboard
@@ -526,7 +526,7 @@ function JoinWithCode() {
                 /* Not authenticated */
                 <>
                   <div className="text-center mb-4">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-1">Student Login</h2>
+                    <h2 className="text-lg font-semibold text-blue-800 mb-1">Classroom Mode</h2>
                     <p className="text-gray-500 text-sm">Sign in to see your work and grades</p>
                   </div>
 
@@ -542,7 +542,7 @@ function JoinWithCode() {
                   ) : (
                     <button
                       onClick={() => navigate('/student-login')}
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2"
+                      className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2"
                     >
                       <LogIn size={18} />
                       Sign In
@@ -552,10 +552,10 @@ function JoinWithCode() {
               )}
             </div>
 
-            {/* Right: Quick Join */}
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+            {/* Right: Quick Session */}
+            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200 flex flex-col">
               <div className="text-center mb-4">
-                <h2 className="text-lg font-semibold text-gray-800 mb-1">Start Lesson</h2>
+                <h2 className="text-lg font-semibold text-emerald-800 mb-1">Quick Session</h2>
                 <p className="text-gray-500 text-sm">Your teacher will show the code on screen</p>
               </div>
 
@@ -571,13 +571,13 @@ function JoinWithCode() {
                   onKeyDown={(e) => e.key === 'Enter' && code.length >= 4 && handleCodeSubmit()}
                   maxLength={6}
                   autoFocus
-                  className="w-full bg-white border-2 border-gray-300 rounded-lg px-4 py-4 text-gray-800 text-center text-2xl font-bold tracking-[0.3em] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full bg-white border-2 border-gray-300 rounded-lg px-4 py-4 text-gray-800 text-center text-2xl font-bold tracking-[0.3em] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 />
 
                 <button
                   onClick={handleCodeSubmit}
                   disabled={isChecking || code.length < 4}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                  className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-lg"
                 >
                   {isChecking ? (
                     <span className="flex items-center justify-center gap-2">

@@ -310,18 +310,22 @@ const AccordionSection = ({
 
   return (
     <div style={{
-      marginBottom: '8px',
       borderRadius: '12px',
       overflow: 'hidden',
       backgroundColor: '#ffffff',
       border: '1px solid #e2e8f0',
-      boxShadow: isOpen ? '0 4px 12px rgba(0,0,0,0.1)' : 'none'
+      boxShadow: isOpen ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
+      flexShrink: isOpen ? 1 : 0,
+      flexGrow: isOpen ? 1 : 0,
+      minHeight: 0,
+      display: 'flex',
+      flexDirection: 'column'
     }}>
       <button
         onClick={onToggle}
         style={{
           width: '100%',
-          padding: '14px 16px',
+          padding: '8px 12px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -329,20 +333,18 @@ const AccordionSection = ({
           border: 'none',
           borderBottom: isOpen ? '1px solid #e2e8f0' : 'none',
           cursor: 'pointer',
-          position: isOpen ? 'sticky' : 'relative',
-          top: 0,
-          zIndex: 10
+          flexShrink: 0
         }}
       >
         <span style={{
-          fontSize: '15px',
+          fontSize: '13px',
           fontWeight: '700',
           color: '#1e293b',
           display: 'flex',
           alignItems: 'center',
-          gap: '8px'
+          gap: '6px'
         }}>
-          <span style={{ fontSize: '20px' }}>{icon}</span>
+          <span style={{ fontSize: '16px' }}>{icon}</span>
           {title}
         </span>
 
@@ -353,7 +355,7 @@ const AccordionSection = ({
         }}>
           {current && !isOpen && (
             <span style={{
-              fontSize: '14px',
+              fontSize: '12px',
               color: '#64748b',
               display: 'flex',
               alignItems: 'center',
@@ -363,7 +365,7 @@ const AccordionSection = ({
             </span>
           )}
           <span style={{
-            fontSize: '14px',
+            fontSize: '12px',
             color: '#94a3b8',
             fontWeight: '600'
           }}>
@@ -375,7 +377,10 @@ const AccordionSection = ({
       {isOpen && (
         <div style={{
           padding: '12px',
-          backgroundColor: '#f8fafc'
+          backgroundColor: '#f8fafc',
+          flex: 1,
+          overflowY: 'auto',
+          minHeight: 0
         }}>
           {Object.entries(data).map(([categoryKey, category]) => (
             <div key={categoryKey} style={{ marginBottom: '16px' }}>
@@ -401,7 +406,7 @@ const AccordionSection = ({
                     key={`${item.symbol}-${item.name}-${index}`}
                     item={item}
                     isSelected={
-                      selectedSticker?.symbol === item.symbol && 
+                      selectedSticker?.symbol === item.symbol &&
                       selectedSticker?.name === item.name
                     }
                     onClick={onSelect}
@@ -477,11 +482,14 @@ const StickerPanel = ({
         </div>
       </div>
 
-      {/* Sections - Scrollable */}
+      {/* Sections - flex layout so open section fills remaining space */}
       <div style={{
         flex: 1,
-        overflowY: 'auto',
-        padding: '12px'
+        overflow: 'hidden',
+        padding: '12px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px'
       }}>
         {visibleTabs.map((tab) => (
           <AccordionSection

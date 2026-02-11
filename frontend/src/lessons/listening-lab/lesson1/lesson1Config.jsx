@@ -157,6 +157,14 @@ export const lessonSections = [
         trackProgress: true,
         description: 'STUDENTS WORK: Create a Dynamics Listening Map for Spring.',
         bonusDescription: 'Early finishers add instruments, tempo, melody direction.'
+      },
+      {
+        id: 'share-and-pair',
+        type: 'activity',
+        label: 'Share & Pair',
+        description: 'Students share their listening maps with a partner.',
+        duration: 2,
+        hasTimer: true
       }
     ]
   },
@@ -489,6 +497,35 @@ export const lessonStages = [
     }
   },
   {
+    id: 'share-and-pair',
+    label: 'Share & Pair',
+    description: 'Students share their listening maps with a partner.',
+    type: 'activity',
+    hasTimer: true,
+    duration: 2,
+    presentationView: {
+      type: 'summary',
+      title: 'Share & Pair',
+      subtitle: 'Share Your Listening Map with a Partner!',
+      sections: [
+        {
+          heading: 'Share These 3 Things',
+          bullets: [
+            '1. What MOOD did the dynamics create? (exciting, calm, dramatic?)',
+            '2. Where did you mark the BIGGEST dynamic change?',
+            '3. What SURPRISED you about the dynamics in Spring?'
+          ]
+        },
+        {
+          heading: '',
+          bullets: [
+            'Tap "Presentation View" on your Chromebook to show your map!'
+          ]
+        }
+      ]
+    }
+  },
+  {
     id: 'reflection',
     label: 'Class Reflection',
     description: 'Wrap up with three reflection questions.',
@@ -560,6 +597,7 @@ export const getActivityForStage = (stage) => {
     'listening-map-intro': 'summary',
     'listening-map-instructions': 'summary',
     'dynamics-listening-map': 'dynamics-listening-map',
+    'share-and-pair': 'dynamics-listening-map',
     'reflection': 'listening-lab-reflection',
     'bonus-intro': 'summary',
     'strings-dynamics-lab': 'strings-dynamics-lab'
