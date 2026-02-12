@@ -9,19 +9,17 @@ import { Play, Pause, ChevronRight, Check, RotateCcw } from 'lucide-react';
 
 const BRAHMS_FILE = '/audio/classical/brahms-hungarian-dance-5.mp3';
 const BRAHMS_NATURAL_BPM = 138;
-const AUDIO_CLIP_BEATS = 8; // Play 8 beats worth at each tempo
-
 const TEMPOS = [
   { symbol: 'Largo', name: 'Largo', meaning: 'Very Slow', bpm: 50, color: '#93C5FD', emoji: '\u{1F40C}',
-    audio: '/audio/classical/dvorak-new-world-largo.mp3', naturalBpm: 50, piece: 'Dvorak \u2014 New World Symphony' },
+    audio: '/audio/classical/dvorak-new-world-largo.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, duration: 10, piece: 'Dvorak \u2014 New World Symphony' },
   { symbol: 'Adagio', name: 'Adagio', meaning: 'Slow, Relaxed', bpm: 72, color: '#60A5FA', emoji: '\u{1F422}',
-    audio: '/audio/classical/beethoven-moonlight-sonata-adagio.mp3', naturalBpm: 72, piece: 'Beethoven \u2014 Moonlight Sonata' },
+    audio: '/audio/classical/beethoven-moonlight-sonata-adagio.mp3', naturalBpm: 72, startTime: 4.5, volume: 2.0, duration: 10, piece: 'Beethoven \u2014 Moonlight Sonata' },
   { symbol: 'Andante', name: 'Andante', meaning: 'Walking Speed', bpm: 92, color: '#FCD34D', emoji: '\u{1F6B6}',
-    audio: '/audio/classical/grieg-morning-mood.mp3', naturalBpm: 92, piece: 'Grieg \u2014 Morning Mood' },
+    audio: '/audio/classical/grieg-morning-mood.mp3', naturalBpm: 92, startTime: 0, volume: 0.7, duration: 10, piece: 'Grieg \u2014 Morning Mood' },
   { symbol: 'Allegro', name: 'Allegro', meaning: 'Fast, Lively', bpm: 138, color: '#FBBF24', emoji: '\u{1F3C3}',
-    audio: BRAHMS_FILE, naturalBpm: BRAHMS_NATURAL_BPM, piece: 'Brahms \u2014 Hungarian Dance No. 5' },
+    audio: BRAHMS_FILE, naturalBpm: BRAHMS_NATURAL_BPM, startTime: 0, volume: 0.7, duration: 10, piece: 'Brahms \u2014 Hungarian Dance No. 5' },
   { symbol: 'Presto', name: 'Presto', meaning: 'Very Fast', bpm: 184, color: '#EF4444', emoji: '\u26A1',
-    audio: BRAHMS_FILE, naturalBpm: BRAHMS_NATURAL_BPM, piece: 'Brahms \u2014 Hungarian Dance No. 5' },
+    audio: BRAHMS_FILE, naturalBpm: BRAHMS_NATURAL_BPM, startTime: 0, volume: 0.7, duration: 13, piece: 'Brahms \u2014 Hungarian Dance No. 5' },
 ];
 
 // Direction text shown BEFORE playing each tempo
@@ -43,7 +41,7 @@ const TEACHER_SCRIPT = {
     "Allegro \u2014 fast and lively! THIS is the original speed of Brahms' piece. The music has real energy and momentum now.",
     "Presto \u2014 the fastest tempo! Same Brahms melody, but everything is racing. Listen to how different it feels at this speed!",
   ],
-  outro: "Those are your five tempo markings \u2014 from Largo to Presto. Each tempo gives music a completely different feeling! In a moment, you'll get to act them out in Tempo Charades!",
+  outro: "Those are your five tempo markings \u2014 from Largo to Presto. Each tempo gives music a completely different feeling! In a moment, you'll get to test your ears in Tempo Detective!",
 };
 
 const TempoShowcase = ({ sessionData }) => {
@@ -52,19 +50,29 @@ const TempoShowcase = ({ sessionData }) => {
   const [demoFinished, setDemoFinished] = useState(false); // demo done, show Next
   const [isDemoing, setIsDemoing] = useState(false); // metronome animation active
   const [completedIndices, setCompletedIndices] = useState(new Set());
-  const [beatCount, setBeatCount] = useState(0);
 
   const audioRef = useRef(null);
-  const beatTimer = useRef(null);
-  const beatCountRef = useRef(0);
   const clipEndTimer = useRef(null);
+  const audioCtxRef = useRef(null);
+  const gainNodeRef = useRef(null);
+  const sourceNodeRef = useRef(null);
 
-  // Stop metronome and audio
-  const stopDemo = useCallback(() => {
-    if (beatTimer.current) {
-      clearInterval(beatTimer.current);
-      beatTimer.current = null;
+  // Set up Web Audio API gain node for volume boost beyond 1.0
+  const ensureAudioContext = useCallback(() => {
+    if (audioCtxRef.current) return;
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    audioCtxRef.current = ctx;
+    gainNodeRef.current = ctx.createGain();
+    gainNodeRef.current.connect(ctx.destination);
+    // Connect the <audio> element to the gain node
+    if (audioRef.current) {
+      sourceNodeRef.current = ctx.createMediaElementSource(audioRef.current);
+      sourceNodeRef.current.connect(gainNodeRef.current);
     }
+  }, []);
+
+  // Stop audio
+  const stopDemo = useCallback(() => {
     if (clipEndTimer.current) {
       clearTimeout(clipEndTimer.current);
       clipEndTimer.current = null;
@@ -73,8 +81,6 @@ const TempoShowcase = ({ sessionData }) => {
       audioRef.current.pause();
     }
     setIsDemoing(false);
-    setBeatCount(0);
-    beatCountRef.current = 0;
   }, []);
 
   // Cleanup on unmount
@@ -88,55 +94,39 @@ const TempoShowcase = ({ sessionData }) => {
     stopDemo();
 
     const playbackRate = tempo.bpm / tempo.naturalBpm;
-    const intervalMs = 60000 / tempo.bpm;
-    const clipDurationMs = AUDIO_CLIP_BEATS * intervalMs;
 
-    beatCountRef.current = 0;
-    setBeatCount(0);
     setIsDemoing(true);
     setHasPlayed(true);
     setDemoFinished(false);
 
     // Start audio - switch source if needed, set playback rate
     if (audioRef.current) {
+      ensureAudioContext();
+      if (audioCtxRef.current?.state === 'suspended') {
+        audioCtxRef.current.resume();
+      }
       if (audioRef.current.getAttribute('src') !== tempo.audio) {
         audioRef.current.src = tempo.audio;
         audioRef.current.load();
       }
-      audioRef.current.currentTime = 0;
+      audioRef.current.currentTime = tempo.startTime || 0;
       audioRef.current.playbackRate = playbackRate;
-      audioRef.current.volume = 0.7;
+      audioRef.current.volume = 1.0;
+      // Use gain node for volume (supports values > 1.0 for boost)
+      if (gainNodeRef.current) {
+        gainNodeRef.current.gain.value = tempo.volume ?? 0.7;
+      }
       audioRef.current.play().catch(err => console.error('Audio play error:', err));
     }
 
-    // Immediately trigger beat 1
-    beatCountRef.current = 1;
-    setBeatCount(1);
-
-    // Visual metronome beats
-    beatTimer.current = setInterval(() => {
-      beatCountRef.current += 1;
-      const currentBeat = beatCountRef.current;
-      setBeatCount(currentBeat);
-
-      if (currentBeat >= AUDIO_CLIP_BEATS) {
-        clearInterval(beatTimer.current);
-        beatTimer.current = null;
-      }
-    }, intervalMs);
-
-    // Stop everything after clip duration
+    // Stop after clip duration
     clipEndTimer.current = setTimeout(() => {
       if (audioRef.current) {
         audioRef.current.pause();
       }
-      if (beatTimer.current) {
-        clearInterval(beatTimer.current);
-        beatTimer.current = null;
-      }
       setIsDemoing(false);
       setDemoFinished(true);
-    }, clipDurationMs);
+    }, (tempo.duration || 10) * 1000);
   }, [stopDemo]);
 
   // Play/pause toggle
@@ -310,12 +300,6 @@ const TempoShowcase = ({ sessionData }) => {
                   </div>
                 )}
 
-                {/* Beat counter - only on active while demoing */}
-                {isActive && isDemoing && (
-                  <div className="text-sm text-white/50 mt-2">
-                    Beat {beatCount} / {AUDIO_CLIP_BEATS}
-                  </div>
-                )}
               </div>
             );
           })}

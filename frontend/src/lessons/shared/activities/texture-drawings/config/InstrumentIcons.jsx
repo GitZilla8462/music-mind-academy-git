@@ -7,10 +7,10 @@
 
 // Helper component for PNG icons
 const PngIcon = ({ src, alt, size = 48 }) => (
-  <img 
-    src={src} 
-    alt={alt} 
-    style={{ width: size, height: size, objectFit: 'contain' }} 
+  <img
+    src={src}
+    alt={alt}
+    style={{ width: size, height: size, objectFit: 'contain' }}
   />
 );
 

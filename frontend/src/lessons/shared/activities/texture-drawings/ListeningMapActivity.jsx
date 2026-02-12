@@ -358,6 +358,9 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
   const [draggedSticker, setDraggedSticker] = useState(null);
   const [dragPosition, setDragPosition] = useState(null);
 
+  // Answer key
+  const [answerKeySaved, setAnswerKeySaved] = useState(false);
+
   // Playhead dragging state
   const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false);
   const canvasAreaRef = useRef(null);
@@ -754,12 +757,32 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
       <div className="h-screen bg-black flex flex-col overflow-hidden fixed inset-0" style={{ zIndex: 9999 }}>
         <div className="h-10 px-4 flex items-center justify-between bg-gray-900 flex-shrink-0">
           <span className="text-sm font-bold text-white">My Listening Map</span>
-          <button
-            onClick={() => setPresentationMode(false)}
-            className="px-4 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors"
-          >
-            ✕ Exit Presentation
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                // Download the presentation image as a PNG
+                const link = document.createElement('a');
+                link.download = `${activityId || 'listening-map'}-answer-key.png`;
+                link.href = presentationMode;
+                link.click();
+                setAnswerKeySaved(true);
+                setTimeout(() => setAnswerKeySaved(false), 2000);
+              }}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                answerKeySaved
+                  ? 'bg-green-600 text-white'
+                  : 'bg-blue-600 hover:bg-blue-500 text-white'
+              }`}
+            >
+              {answerKeySaved ? 'Exported!' : 'Export Answer Key'}
+            </button>
+            <button
+              onClick={() => setPresentationMode(false)}
+              className="px-4 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              ✕ Exit Presentation
+            </button>
+          </div>
         </div>
         <div className="flex-1 flex items-center justify-center p-4">
           <img
@@ -880,7 +903,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
                 onStickerPlaced={handleStickerPlaced}
               />
 
-              {[1, 2, 3].map((i) => (
+              {Array.from({ length: mapConfig.numRows - 1 }, (_, i) => i + 1).map((i) => (
                 <div key={i} className="absolute left-0 right-0 h-px bg-gray-300 pointer-events-none" style={{ top: i * rowHeight, zIndex: 5 }} />
               ))}
 
@@ -966,8 +989,8 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
         </div>
 
         <div className="flex-1 h-3 bg-gray-200 rounded-full cursor-pointer overflow-hidden relative" onClick={handleProgressClick}>
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="absolute top-0 bottom-0 w-px bg-gray-400 z-10" style={{ left: `${(i / 4) * 100}%` }} />
+          {Array.from({ length: mapConfig.numRows - 1 }, (_, i) => i + 1).map((i) => (
+            <div key={i} className="absolute top-0 bottom-0 w-px bg-gray-400 z-10" style={{ left: `${(i / mapConfig.numRows) * 100}%` }} />
           ))}
           <div className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400" style={{ width: `${(audio.currentTime / audio.duration) * 100}%` }} />
         </div>

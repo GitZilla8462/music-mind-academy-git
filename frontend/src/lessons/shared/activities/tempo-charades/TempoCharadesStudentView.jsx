@@ -1,14 +1,14 @@
-// File: /src/lessons/shared/activities/tempo-charades/TempoCharadesStudentView.jsx
-// Tempo Charades - Student View (syncs with teacher's class game)
-// Students answer on their devices, teacher controls the pace
-// No audio playback on student side - just 7 tempo buttons
+// File: TempoCharadesStudentView.jsx
+// Tempo Detective - Student View (syncs with teacher's class game)
+// Students listen to audio on teacher's speakers, then guess the tempo on their device
+// 5 tempo buttons showing Italian term + BPM
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Check, Trophy } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
-import { TEMPO_TERMS, SCORING, calculateSpeedBonus } from './tempoCharadesConfig';
+import { TEMPO_OPTIONS, SCORING, calculateSpeedBonus, getTempoBySymbol } from './tempoCharadesConfig';
 
 const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
   const { sessionCode, userId: contextUserId } = useSession();
@@ -21,7 +21,7 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
   const [score, setScore] = useState(0);
 
   // Game state (synced from teacher)
-  const [gamePhase, setGamePhase] = useState('waiting'); // waiting, showing, guessing, revealed, finished
+  const [gamePhase, setGamePhase] = useState('waiting');
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(10);
   const [correctAnswer, setCorrectAnswer] = useState(null);
@@ -42,7 +42,7 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
   // Track which question we've already scored
   const scoredQuestionRef = useRef(-1);
 
-  // Refs to avoid stale closures in Firebase onValue callback
+  // Refs to avoid stale closures
   const scoreRef = useRef(0);
   const currentQuestionRef = useRef(0);
   const selectedAnswerRef = useRef(null);
@@ -80,7 +80,6 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
       setPlayerColor(color);
       setPlayerEmoji(emoji);
 
-      // Save player info to Firebase
       if (sessionCode) {
         update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
           playerName: name,
@@ -93,7 +92,7 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     assignPlayerName();
   }, [userId, sessionCode]);
 
-  // Keep refs in sync with state
+  // Keep refs in sync
   useEffect(() => { scoreRef.current = score; }, [score]);
   useEffect(() => { currentQuestionRef.current = currentQuestion; }, [currentQuestion]);
   useEffect(() => { selectedAnswerRef.current = selectedAnswer; }, [selectedAnswer]);
@@ -110,7 +109,6 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     const unsubscribe = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
       if (!data) {
-        // No game data yet - stay in waiting
         setGamePhase('waiting');
         return;
       }
@@ -119,9 +117,8 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
       setCurrentQuestion(data.currentQuestion || 0);
       setTotalQuestions(data.totalQuestions || 10);
 
-      // Handle phase changes
-      if (data.phase === 'showing' || data.phase === 'guessing') {
-        // New game starting - reset score when on question 0
+      if (data.phase === 'playing' || data.phase === 'guessing') {
+        // Reset score when new game starts
         if (data.currentQuestion === 0 && scoredQuestionRef.current === -1 && scoreRef.current > 0) {
           scoreRef.current = 0;
           setScore(0);
@@ -143,14 +140,13 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
           setCorrectAnswer(null);
         }
 
-        // When teacher starts guessing phase, students can answer
         if (data.phase === 'guessing' && data.playStartTime) {
           playStartTimeRef.current = data.playStartTime;
           setPlayStartTime(data.playStartTime);
         }
       }
 
-      // Handle finished - restore score from Firebase if component remounted
+      // Restore score from Firebase if remounted
       if (data.phase === 'finished') {
         const effectiveUserId = userId || localStorage.getItem('current-session-userId');
         if (effectiveUserId && scoreRef.current === 0) {
@@ -195,7 +191,6 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
           scoreRef.current = newScore;
           setScore(newScore);
 
-          // Update Firebase
           const effectiveUserId = userId || localStorage.getItem('current-session-userId');
           if (sessionCode && effectiveUserId) {
             update(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}`), {
@@ -246,7 +241,6 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     setSelectedAnswer(tempoSymbol);
     setAnswerSubmitted(true);
 
-    // Send to Firebase so teacher can track
     if (sessionCode && userId) {
       const db = getDatabase();
       update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
@@ -256,19 +250,11 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     }
   };
 
-  const getTempoInfo = (symbol) => {
-    return TEMPO_TERMS.find(t => t.symbol === symbol);
-  };
-  const correctTempo = correctAnswer ? getTempoInfo(correctAnswer) : null;
-  const selectedTempo = selectedAnswer ? getTempoInfo(selectedAnswer) : null;
-
-  // Separate tempo markings from tempo changes
-  const tempoMarkings = TEMPO_TERMS.filter(t => t.symbol !== 'accel.' && t.symbol !== 'rit.');
-  const tempoChanges = TEMPO_TERMS.filter(t => t.symbol === 'accel.' || t.symbol === 'rit.');
+  const correctTempo = correctAnswer ? getTempoBySymbol(correctAnswer) : null;
+  const selectedTempo = selectedAnswer ? getTempoBySymbol(selectedAnswer) : null;
 
   // ============ FINISHED PHASE ============
   if (gamePhase === 'finished') {
-    // Use Firebase-sourced score from leaderboard as fallback if local state was reset
     const myLeaderboardEntry = leaderboard.find(s => s.id === userId);
     const displayScore = score > 0 ? score : (myLeaderboardEntry?.score ?? score);
 
@@ -340,13 +326,17 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     );
   }
 
-  // ============ WAITING PHASE (includes 'setup' - before teacher starts game) ============
-  if (gamePhase === 'waiting' || gamePhase === 'setup') {
+  // ============ WAITING / SETUP / PLAYING PHASE ============
+  if (gamePhase === 'waiting' || gamePhase === 'setup' || gamePhase === 'playing') {
     return (
       <div className="h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center p-6">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Tempo Charades</h1>
-          <p className="text-xl text-purple-200 mb-8">Waiting for teacher to start...</p>
+          <h1 className="text-4xl font-bold text-white mb-4">
+            {'\u{1F50D}'} Tempo Detective
+          </h1>
+          <p className="text-xl text-purple-200 mb-8">
+            {gamePhase === 'playing' ? 'Listen to the clip on the main screen...' : 'Waiting for teacher to start...'}
+          </p>
 
           <div className="bg-white/10 rounded-2xl p-6 inline-block">
             <span className="text-4xl mb-2 block">{playerEmoji}</span>
@@ -357,7 +347,7 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     );
   }
 
-  // ============ SHOWING / GUESSING / REVEALED PHASES ============
+  // ============ GUESSING / REVEALED PHASES ============
   return (
     <div className="h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex flex-col p-4">
       {/* Header */}
@@ -382,47 +372,30 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center">
-        {/* Question */}
         <h2 className="text-2xl font-bold text-white mb-4 text-center">
-          What tempo is the actor performing?
+          What tempo was that?
         </h2>
 
-        {/* Actor icon */}
+        {/* Headphones icon */}
         <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4 bg-gradient-to-br from-purple-500 to-blue-500">
-          <span className="text-4xl">{'\u{1F3AD}'}</span>
+          <span className="text-4xl">{'\u{1F50D}'}</span>
         </div>
 
-        {/* Tempo answer buttons */}
+        {/* Tempo answer buttons - 5 options with BPM */}
         {gamePhase === 'guessing' && !answerSubmitted && (
           <>
-            <p className="text-purple-200 text-sm mb-4">Watch the actor, then tap your answer:</p>
-            {/* Top row: 5 tempo markings */}
-            <div className="grid grid-cols-5 gap-2 w-full max-w-lg mb-3">
-              {tempoMarkings.map(t => (
+            <p className="text-purple-200 text-sm mb-4">Tap your answer:</p>
+            <div className="grid grid-cols-5 gap-2 w-full max-w-lg">
+              {TEMPO_OPTIONS.map(t => (
                 <button
                   key={t.symbol}
                   onClick={() => submitAnswer(t.symbol)}
-                  className="p-3 rounded-2xl text-center transition-all hover:scale-105 active:scale-95 text-white"
-                  style={{ backgroundColor: t.color }}
+                  className="py-4 px-2 rounded-2xl text-center transition-all hover:scale-105 active:scale-95 text-white"
+                  style={{ backgroundColor: t.color, minHeight: '100px' }}
                 >
-                  <div className="text-xl mb-1">{t.emoji}</div>
+                  <div className="text-2xl mb-1">{t.emoji}</div>
                   <div className="text-sm font-bold">{t.symbol}</div>
-                  <div className="text-xs opacity-90">({t.meaning.toLowerCase()})</div>
-                </button>
-              ))}
-            </div>
-            {/* Bottom row: 2 tempo changes */}
-            <div className="flex gap-3 w-full max-w-md justify-center">
-              {tempoChanges.map(t => (
-                <button
-                  key={t.symbol}
-                  onClick={() => submitAnswer(t.symbol)}
-                  className="flex-1 p-4 rounded-2xl text-center transition-all hover:scale-105 active:scale-95 text-white"
-                  style={{ backgroundColor: t.color }}
-                >
-                  <div className="text-xl mb-1">{t.emoji}</div>
-                  <div className="text-lg font-bold">{t.name}</div>
-                  <div className="text-sm opacity-90">{t.meaning}</div>
+                  <div className="text-xs opacity-90 font-semibold">{t.bpm} BPM</div>
                 </button>
               ))}
             </div>
@@ -439,11 +412,8 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
                 className="inline-block px-6 py-2 rounded-full text-white font-bold text-2xl mb-2"
                 style={{ backgroundColor: selectedTempo.color }}
               >
-                {selectedTempo.emoji} {selectedTempo.symbol}
+                {selectedTempo.emoji} {selectedTempo.symbol} — {selectedTempo.bpm} BPM
               </div>
-              <p className="text-purple-200 text-sm">
-                {selectedTempo.name} ({selectedTempo.meaning.toLowerCase()})
-              </p>
               <p className="text-sm text-purple-300 mt-4">Waiting for teacher to reveal...</p>
             </div>
           </div>
@@ -474,19 +444,11 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
             >
               <div className="text-4xl mb-1">{correctTempo.emoji}</div>
               <div className="text-4xl font-black mb-1">{correctTempo.symbol}</div>
-              <div className="text-xl font-bold">{correctTempo.name}</div>
+              <div className="text-2xl font-bold">{correctTempo.bpm} BPM</div>
               <div className="text-lg opacity-90">{correctTempo.meaning}</div>
             </div>
 
             <p className="text-purple-200 mt-4 text-sm">Waiting for next round...</p>
-          </div>
-        )}
-
-        {/* Showing - waiting for actor to get ready */}
-        {gamePhase === 'showing' && (
-          <div className="text-center">
-            <p className="text-xl text-purple-200">The actor is getting ready...</p>
-            <p className="text-sm text-purple-300 mt-2">Watch the main screen</p>
           </div>
         )}
       </div>

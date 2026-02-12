@@ -1,5 +1,5 @@
 // File: /src/lessons/shared/activities/tempo-charades/TempoCharadesResults.jsx
-// Tempo Charades - Results Leaderboard (Teacher Presentation View)
+// Tempo Detective - Results Leaderboard (Teacher Presentation View)
 
 import React, { useState, useEffect } from 'react';
 import { Trophy } from 'lucide-react';
@@ -48,7 +48,7 @@ const TempoCharadesResults = ({ sessionData }) => {
       {/* Header */}
       <div className="text-center py-6">
         <div className="text-6xl mb-4">{'\u{1F3C6}'}</div>
-        <h1 className="text-5xl font-black mb-2">Tempo Charades Results</h1>
+        <h1 className="text-5xl font-black mb-2">Tempo Detective Results</h1>
         <p className="text-2xl text-white/70">Congratulations to all players!</p>
       </div>
 

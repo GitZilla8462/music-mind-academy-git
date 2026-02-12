@@ -1,18 +1,18 @@
-// File: /src/lessons/shared/activities/tempo-charades/TempoCharadesTeacherGame.jsx
-// Tempo Charades - Teacher Presentation View (Class Game)
-// A volunteer acts out a tempo term, the class guesses which tempo it is
+// File: TempoCharadesTeacherGame.jsx
+// Tempo Detective - Teacher Presentation View (Class Game)
+// A clip plays at a specific tempo, the class guesses which tempo it is
 //
 // PHASES:
 // 1. Setup - Show "Start Game"
-// 2. Showing - Teacher sees term + hint privately, main display says "actor is getting ready"
-// 3. Guessing - Actor is performing, students answer on devices
+// 2. Playing - Audio clip plays at target tempo, metronome animation
+// 3. Guessing - Students answer on devices
 // 4. Revealed - Show correct answer
 // 5. Finished - Final scores
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Play, Users, Trophy, Eye, RotateCcw, ChevronRight, EyeOff } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Play, Pause, Users, Trophy, Eye, ChevronRight, Headphones } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
-import { TEMPO_TERMS, QUESTIONS, TOTAL_QUESTIONS, SCORING, shuffleArray, calculateSpeedBonus } from './tempoCharadesConfig';
+import { TEMPO_OPTIONS, AUDIO_CLIPS, CLIP_DURATION, SCORING, generateQuestions, getTempoBySymbol, calculateSpeedBonus } from './tempoCharadesConfig';
 
 // Student Activity Banner
 const ActivityBanner = () => (
@@ -30,12 +30,17 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
   const sessionCode = sessionData?.sessionCode || new URLSearchParams(window.location.search).get('session');
 
   // Game state
-  const [gamePhase, setGamePhase] = useState('setup'); // setup, showing, guessing, revealed, finished
-  const [shuffledQuestions, setShuffledQuestions] = useState([]);
+  const [gamePhase, setGamePhase] = useState('setup'); // setup, playing, guessing, revealed, finished
+  const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
 
-  // Teacher secret overlay
-  const [showSecret, setShowSecret] = useState(false);
+  // Audio
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
+  const audioCtxRef = useRef(null);
+  const gainNodeRef = useRef(null);
+  const sourceNodeRef = useRef(null);
+  const clipEndTimer = useRef(null);
 
   // Students
   const [students, setStudents] = useState([]);
@@ -45,6 +50,34 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
   // Reveal state
   const [correctCount, setCorrectCount] = useState(0);
   const [scoreChanges, setScoreChanges] = useState({});
+
+  // Web Audio API setup for volume > 1.0
+  const ensureAudioContext = useCallback(() => {
+    if (audioCtxRef.current) return;
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    audioCtxRef.current = ctx;
+    gainNodeRef.current = ctx.createGain();
+    gainNodeRef.current.connect(ctx.destination);
+    if (audioRef.current) {
+      sourceNodeRef.current = ctx.createMediaElementSource(audioRef.current);
+      sourceNodeRef.current.connect(gainNodeRef.current);
+    }
+  }, []);
+
+  // Stop audio
+  const stopAudio = useCallback(() => {
+    if (clipEndTimer.current) {
+      clearTimeout(clipEndTimer.current);
+      clipEndTimer.current = null;
+    }
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    setIsPlaying(false);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => () => stopAudio(), [stopAudio]);
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
@@ -79,13 +112,49 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
     return () => unsubscribe();
   }, [sessionCode]);
 
+  // Play audio clip at target tempo
+  const playClip = useCallback((question) => {
+    if (!audioRef.current || !question) return;
+
+    stopAudio();
+    ensureAudioContext();
+
+    if (audioCtxRef.current?.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
+
+    const currentSrc = audioRef.current.getAttribute('src');
+    if (currentSrc !== question.clipAudio) {
+      audioRef.current.src = question.clipAudio;
+      audioRef.current.load();
+    }
+
+    audioRef.current.currentTime = question.clipStartTime;
+    audioRef.current.playbackRate = question.playbackRate;
+    audioRef.current.volume = 1.0;
+
+    if (gainNodeRef.current) {
+      gainNodeRef.current.gain.value = question.clipVolume ?? 0.7;
+    }
+
+    audioRef.current.play().catch(err => console.error('Audio play error:', err));
+    setIsPlaying(true);
+
+    // Stop after clip duration
+    clipEndTimer.current = setTimeout(() => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      setIsPlaying(false);
+    }, CLIP_DURATION * 1000);
+  }, [stopAudio, ensureAudioContext]);
+
   // Start game
   const startGame = useCallback(() => {
-    const shuffled = shuffleArray(QUESTIONS);
-    setShuffledQuestions(shuffled);
+    const newQuestions = generateQuestions(10);
+    setQuestions(newQuestions);
     setCurrentQuestion(0);
-    setGamePhase('showing');
-    setShowSecret(true);
+    setGamePhase('playing');
     setScoreChanges({});
     setCorrectCount(0);
 
@@ -101,40 +170,49 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
     }
 
     updateGame({
-      phase: 'showing',
+      phase: 'playing',
       currentQuestion: 0,
-      totalQuestions: shuffled.length,
+      totalQuestions: newQuestions.length,
       correctAnswer: null,
       playStartTime: null
     });
-  }, [sessionCode, students, updateGame]);
 
-  // Teacher has shown the term to the volunteer, now start guessing
-  const startGuessing = useCallback(() => {
-    setShowSecret(false);
+    // Play the first clip
+    setTimeout(() => playClip(newQuestions[0]), 300);
+  }, [sessionCode, students, updateGame, playClip]);
+
+  // Open guessing (after clip plays)
+  const openGuessing = useCallback(() => {
     setGamePhase('guessing');
 
     updateGame({
       phase: 'guessing',
       currentQuestion,
-      totalQuestions: shuffledQuestions.length,
+      totalQuestions: questions.length,
       playStartTime: Date.now()
     });
-  }, [currentQuestion, shuffledQuestions, updateGame]);
+  }, [currentQuestion, questions, updateGame]);
+
+  // Replay clip during guessing
+  const replayClip = useCallback(() => {
+    const question = questions[currentQuestion];
+    if (question) {
+      playClip(question);
+    }
+  }, [questions, currentQuestion, playClip]);
 
   // Reveal answer
   const reveal = useCallback(() => {
-    const question = shuffledQuestions[currentQuestion];
+    stopAudio();
+    const question = questions[currentQuestion];
     if (!question) return;
 
-    // Calculate who was correct
     const changes = {};
     let correct = 0;
 
     students.forEach(s => {
       if (s.answer) {
         const isCorrect = s.answer === question.correctAnswer;
-
         if (isCorrect) {
           correct++;
           changes[s.id] = { isCorrect: true };
@@ -150,12 +228,11 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
     setCorrectCount(correct);
     setGamePhase('revealed');
 
-    // Broadcast to students
     updateGame({
       phase: 'revealed',
       correctAnswer: question.correctAnswer
     });
-  }, [shuffledQuestions, currentQuestion, students, updateGame]);
+  }, [stopAudio, questions, currentQuestion, students, updateGame]);
 
   // Next question
   const nextQuestion = useCallback(() => {
@@ -170,84 +247,60 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
     }
 
     const nextIdx = currentQuestion + 1;
-    if (nextIdx >= shuffledQuestions.length) {
+    if (nextIdx >= questions.length) {
       setGamePhase('finished');
       updateGame({ phase: 'finished' });
     } else {
       setCurrentQuestion(nextIdx);
-      setGamePhase('showing');
-      setShowSecret(true);
+      setGamePhase('playing');
       setScoreChanges({});
       setCorrectCount(0);
+
       updateGame({
-        phase: 'showing',
+        phase: 'playing',
         currentQuestion: nextIdx,
         correctAnswer: null,
         playStartTime: null
       });
+
+      // Play the next clip
+      setTimeout(() => playClip(questions[nextIdx]), 300);
     }
-  }, [sessionCode, students, currentQuestion, shuffledQuestions, updateGame]);
+  }, [sessionCode, students, currentQuestion, questions, updateGame, playClip]);
 
-  const question = shuffledQuestions[currentQuestion];
-  const correctTempo = question
-    ? TEMPO_TERMS.find(t => t.symbol === question.correctAnswer)
-    : null;
+  const question = questions[currentQuestion];
+  const correctTempo = question ? getTempoBySymbol(question.correctAnswer) : null;
 
-  // Render
+  // Compute metronome pulse duration
+  const currentBpm = question?.correctBpm || 92;
+  const pulseDuration = `${60 / currentBpm}s`;
+
   return (
     <div className="min-h-screen h-full flex flex-col bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white overflow-hidden">
       {/* Student Activity Banner */}
       <ActivityBanner />
 
-      {/* Teacher Secret Overlay */}
-      {showSecret && gamePhase === 'showing' && question && correctTempo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-8">
-          <div className="bg-gray-900 rounded-3xl p-10 max-w-lg w-full text-center border-4 border-red-500">
-            <div className="flex items-center justify-center gap-2 mb-6">
-              <EyeOff size={28} className="text-red-400" />
-              <span className="text-xl font-bold text-red-400 uppercase tracking-wide">
-                Secret - Don't show the class!
-              </span>
-              <EyeOff size={28} className="text-red-400" />
-            </div>
+      {/* Hidden audio element */}
+      <audio ref={audioRef} preload="auto" />
 
-            <div className="text-lg text-white/60 mb-2">Round {currentQuestion + 1} of {shuffledQuestions.length}</div>
-
-            <div
-              className="text-7xl font-black mb-4"
-              style={{ color: correctTempo.color }}
-            >
-              {correctTempo.emoji} {correctTempo.symbol}
-            </div>
-
-            <div className="text-2xl font-bold text-white mb-1">{correctTempo.name}</div>
-            <div className="text-xl text-white/70 mb-6">{correctTempo.meaning}</div>
-
-            <div className="bg-yellow-500/20 border border-yellow-400/40 rounded-xl px-6 py-4 mb-8">
-              <p className="text-sm font-bold text-yellow-300 uppercase mb-1">Acting Hint</p>
-              <p className="text-xl text-yellow-100">{question.hint}</p>
-            </div>
-
-            <button
-              onClick={startGuessing}
-              className="px-10 py-5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-3 mx-auto"
-            >
-              <Play size={32} /> Ready? Start Guessing!
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Metronome pulse keyframes */}
+      <style>{`
+        @keyframes metronomePulse {
+          0%, 100% { transform: scale(1); opacity: 0.6; }
+          50% { transform: scale(1.4); opacity: 1; }
+        }
+      `}</style>
 
       {/* Main content */}
       <div className="flex-1 p-4 overflow-hidden flex flex-col min-h-0">
         {/* Header */}
         <div className="flex items-center justify-between mb-3 flex-shrink-0">
           <div className="flex items-center gap-4">
-            <span className="text-5xl">{'\u{1F3AD}'}</span>
-            <h1 className="text-4xl font-bold">Tempo Charades</h1>
+            <span className="text-5xl">{'\u{1F50D}'}</span>
+            <h1 className="text-4xl font-bold">Tempo Detective</h1>
             {gamePhase !== 'setup' && gamePhase !== 'finished' && (
               <span className="bg-white/10 px-4 py-2 rounded-full text-xl">
-                Q{currentQuestion + 1} / {shuffledQuestions.length}
+                Q{currentQuestion + 1} / {questions.length}
               </span>
             )}
           </div>
@@ -265,9 +318,9 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
             {/* Setup */}
             {gamePhase === 'setup' && (
               <div className="text-center">
-                <div className="text-9xl mb-6">{'\u{1F3AD}'}</div>
-                <h2 className="text-5xl font-bold mb-4">Tempo Charades</h2>
-                <p className="text-2xl text-white/70 mb-8">A volunteer acts out a tempo - the class guesses!</p>
+                <div className="text-9xl mb-6">{'\u{1F50D}'}</div>
+                <h2 className="text-5xl font-bold mb-4">Tempo Detective</h2>
+                <p className="text-2xl text-white/70 mb-8">Listen to a clip and guess the tempo!</p>
                 <button
                   onClick={startGame}
                   className="px-10 py-5 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-2xl text-3xl font-bold hover:scale-105 transition-all flex items-center gap-3 mx-auto"
@@ -277,15 +330,30 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
               </div>
             )}
 
-            {/* Showing - waiting for teacher to show term to volunteer */}
-            {gamePhase === 'showing' && question && (
+            {/* Playing - audio clip playing, metronome animation */}
+            {gamePhase === 'playing' && question && (
               <div className="text-center">
-                <div className="text-6xl font-black mb-4">Round {currentQuestion + 1}</div>
-                <p className="text-2xl text-purple-200 mb-6">The actor is getting ready...</p>
+                <div className="text-5xl font-black mb-2">
+                  <Headphones size={48} className="inline mr-3" />
+                  LISTEN!
+                </div>
+                <p className="text-2xl text-purple-200 mb-6">Round {currentQuestion + 1} — What tempo is this?</p>
+
+                {/* Metronome pulse */}
+                {isPlaying && (
+                  <div className="flex items-center justify-center mb-6">
+                    <div
+                      className="w-24 h-24 rounded-full bg-purple-400"
+                      style={{
+                        animation: `metronomePulse ${pulseDuration} ease-in-out infinite`,
+                      }}
+                    />
+                  </div>
+                )}
 
                 {/* Tempo options preview */}
-                <div className="grid grid-cols-5 gap-2 max-w-3xl mx-auto mb-4">
-                  {TEMPO_TERMS.filter(t => t.symbol !== 'accel.' && t.symbol !== 'rit.').map(t => (
+                <div className="grid grid-cols-5 gap-3 max-w-3xl mx-auto mb-6">
+                  {TEMPO_OPTIONS.map(t => (
                     <div
                       key={t.symbol}
                       className="p-3 rounded-xl text-center"
@@ -293,43 +361,49 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
                     >
                       <div className="text-2xl mb-1">{t.emoji}</div>
                       <div className="text-xl font-bold text-white">{t.symbol}</div>
-                      <div className="text-xs text-white/80">{t.meaning}</div>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-2 max-w-xl mx-auto mb-6 justify-center">
-                  {TEMPO_TERMS.filter(t => t.symbol === 'accel.' || t.symbol === 'rit.').map(t => (
-                    <div
-                      key={t.symbol}
-                      className="p-3 rounded-xl text-center min-w-[200px]"
-                      style={{ backgroundColor: `${t.color}40`, borderColor: t.color, borderWidth: '2px' }}
-                    >
-                      <div className="text-2xl mb-1">{t.emoji}</div>
-                      <div className="text-xl font-bold text-white">{t.name}</div>
-                      <div className="text-xs text-white/80">{t.meaning}</div>
+                      <div className="text-sm text-white/80">{t.bpm} BPM</div>
                     </div>
                   ))}
                 </div>
 
-                <button
-                  onClick={() => setShowSecret(true)}
-                  className="px-10 py-5 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-2xl text-3xl font-bold hover:scale-105 transition-all flex items-center gap-3 mx-auto"
-                >
-                  <EyeOff size={40} /> Show Term to Actor
-                </button>
+                {/* Controls */}
+                <div className="flex gap-4 justify-center">
+                  {isPlaying ? (
+                    <button
+                      onClick={stopAudio}
+                      className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl text-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
+                    >
+                      <Pause size={28} /> Stop
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => playClip(question)}
+                      className="px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl text-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
+                    >
+                      <Play size={28} /> Replay
+                    </button>
+                  )}
+                  <button
+                    onClick={openGuessing}
+                    className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl text-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
+                  >
+                    <Eye size={28} /> Open Guessing
+                  </button>
+                </div>
               </div>
             )}
 
-            {/* Guessing - actor is performing, students answering */}
+            {/* Guessing - students answering on devices */}
             {gamePhase === 'guessing' && question && (
               <div className="text-center">
-                <div className="text-5xl font-black mb-2">{'\u{1F3AD}'} WATCH!</div>
-                <p className="text-2xl text-yellow-300 mb-4">What tempo is the actor performing?</p>
-                <p className="text-xl text-white/70 mb-6">Students - submit your answer on your device!</p>
+                <div className="text-5xl font-black mb-2">
+                  {'\u{1F50D}'} What Tempo Was That?
+                </div>
+                <p className="text-xl text-white/70 mb-6">Students — submit your answer on your device!</p>
 
                 {/* Tempo options */}
-                <div className="grid grid-cols-5 gap-2 max-w-3xl mx-auto mb-4">
-                  {TEMPO_TERMS.filter(t => t.symbol !== 'accel.' && t.symbol !== 'rit.').map(t => (
+                <div className="grid grid-cols-5 gap-3 max-w-3xl mx-auto mb-6">
+                  {TEMPO_OPTIONS.map(t => (
                     <div
                       key={t.symbol}
                       className="p-3 rounded-xl text-center"
@@ -337,20 +411,7 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
                     >
                       <div className="text-2xl mb-1">{t.emoji}</div>
                       <div className="text-xl font-bold text-white">{t.symbol}</div>
-                      <div className="text-xs text-white/80">{t.meaning}</div>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-2 max-w-xl mx-auto mb-6 justify-center">
-                  {TEMPO_TERMS.filter(t => t.symbol === 'accel.' || t.symbol === 'rit.').map(t => (
-                    <div
-                      key={t.symbol}
-                      className="p-3 rounded-xl text-center min-w-[200px]"
-                      style={{ backgroundColor: `${t.color}40`, borderColor: t.color, borderWidth: '2px' }}
-                    >
-                      <div className="text-2xl mb-1">{t.emoji}</div>
-                      <div className="text-xl font-bold text-white">{t.name}</div>
-                      <div className="text-xs text-white/80">{t.meaning}</div>
+                      <div className="text-sm text-white/80">{t.bpm} BPM</div>
                     </div>
                   ))}
                 </div>
@@ -364,10 +425,10 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
                 {/* Control buttons */}
                 <div className="flex gap-4 justify-center">
                   <button
-                    onClick={() => setShowSecret(true)}
+                    onClick={replayClip}
                     className="px-6 py-3 rounded-2xl text-xl font-bold flex items-center gap-2 bg-gray-600 hover:bg-gray-700"
                   >
-                    <EyeOff size={24} /> Show Hint Again
+                    <Play size={24} /> Replay Clip
                   </button>
                   <button
                     onClick={reveal}
@@ -390,7 +451,7 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
                 >
                   <div className="text-6xl mb-2">{correctTempo.emoji}</div>
                   <div className="text-6xl font-black text-white mb-2">{correctTempo.symbol}</div>
-                  <div className="text-3xl font-bold text-white/90">{correctTempo.name}</div>
+                  <div className="text-3xl font-bold text-white/90">{correctTempo.bpm} BPM</div>
                   <div className="text-2xl text-white/80">{correctTempo.meaning}</div>
                 </div>
 
@@ -402,7 +463,7 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
                   onClick={nextQuestion}
                   className="px-10 py-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-2 mx-auto"
                 >
-                  {currentQuestion >= shuffledQuestions.length - 1 ? (
+                  {currentQuestion >= questions.length - 1 ? (
                     <>Finish <Trophy size={28} /></>
                   ) : (
                     <>Next Round <ChevronRight size={28} /></>

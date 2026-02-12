@@ -95,32 +95,32 @@ export const lessonSections = [
   },
   {
     id: 'tempo-charades-whole-class',
-    title: '2. Tempo Charades (Whole Class)',
-    subtitle: 'Act Out the Tempo',
+    title: '2. Tempo Detective (Whole Class)',
+    subtitle: 'Listen & Guess the Tempo',
     color: 'blue',
     estimatedTime: 8,
     stages: [
       {
         id: 'tempo-charades-intro',
         type: 'summary',
-        label: 'Tempo Charades Instructions',
-        description: 'Explain the game: act out tempo terms for the class to guess.',
+        label: 'Tempo Detective Instructions',
+        description: 'Explain the game: listen to clips and guess the tempo.',
         duration: 1
       },
       {
         id: 'tempo-charades-teacher-game',
         type: 'activity',
-        label: '🎮 Unlock Tempo Charades',
+        label: '🎮 Unlock Tempo Detective',
         duration: 7,
         hasTimer: false,
         trackProgress: true,
-        description: 'CLASS GAME: Act out tempo terms for the class to guess!',
-        bonusDescription: 'Can you act out accelerando and ritardando?'
+        description: 'CLASS GAME: Listen to clips and guess the tempo!',
+        bonusDescription: 'Can you hear the difference between Largo and Presto?'
       },
       {
         id: 'tempo-charades-results',
         type: 'activity',
-        label: '🏆 Tempo Charades Results',
+        label: '🏆 Tempo Detective Results',
         description: 'View class results and celebrate top scorers.',
         duration: 1
       }
@@ -128,7 +128,7 @@ export const lessonSections = [
   },
   {
     id: 'tempo-charades-small-groups',
-    title: '3. Tempo Charades (Small Groups)',
+    title: '3. Tempo Detective (Small Groups)',
     subtitle: 'Everyone Gets a Turn',
     color: 'blue',
     estimatedTime: 10,
@@ -137,25 +137,18 @@ export const lessonSections = [
         id: 'small-group-instructions',
         type: 'summary',
         label: 'Small Group Instructions',
-        description: 'Explain how to play Tempo Charades in small groups.',
+        description: 'Explain how to play Tempo Detective in small groups.',
         duration: 1
       },
       {
         id: 'small-group-game',
         type: 'activity',
-        label: '🎮 Unlock Small Group Charades',
+        label: '🎮 Unlock Small Group Detective',
         duration: 9,
         hasTimer: false,
         trackProgress: true,
-        description: 'SMALL GROUPS: Take turns acting and guessing tempo terms!',
-        bonusDescription: 'Everyone gets a turn to be the actor!'
-      },
-      {
-        id: 'small-group-results',
-        type: 'summary',
-        label: 'Great Work! Let\'s Listen',
-        description: 'Transition to active listening section.',
-        duration: 1
+        description: 'SMALL GROUPS: Take turns picking tempos and guessing!',
+        bonusDescription: 'Everyone gets a turn to be the picker!'
       }
     ]
   },
@@ -166,27 +159,6 @@ export const lessonSections = [
     color: 'blue',
     estimatedTime: 12,
     stages: [
-      {
-        id: 'active-listening-intro',
-        type: 'summary',
-        label: 'Hungarian Dance No. 5',
-        description: 'Introduce Brahms and the piece.',
-        duration: 1
-      },
-      {
-        id: 'active-listening-play',
-        type: 'summary',
-        label: 'Listen: Hungarian Dance No. 5',
-        description: 'Play the piece — students watch main screen and show tempo with hands.',
-        duration: 3
-      },
-      {
-        id: 'tempo-contrast-discussion',
-        type: 'discussion',
-        label: 'Tempo Surprises',
-        description: 'Discussion: What tempo changes did you notice?',
-        duration: 2
-      },
       {
         id: 'listening-map-instructions',
         type: 'summary',
@@ -248,13 +220,13 @@ export const lesson2Config = {
     {
       id: 1,
       type: "tempo-charades",
-      title: "Tempo Charades (Whole Class)",
+      title: "Tempo Detective (Whole Class)",
       estimatedTime: "7 min"
     },
     {
       id: 2,
       type: "tempo-charades-small-group",
-      title: "Tempo Charades (Small Groups)",
+      title: "Tempo Detective (Small Groups)",
       estimatedTime: "9 min"
     },
     {
@@ -299,7 +271,7 @@ export const lessonStages = [
             'Meet the WOODWIND FAMILY (flute, oboe, clarinet, bassoon)',
             'Learn TEMPO MARKINGS (Largo, Adagio, Andante, Allegro, Presto)',
             'Learn about ACCELERANDO and RITARDANDO',
-            'Play TEMPO CHARADES',
+            'Play TEMPO DETECTIVE',
             'Create a TEMPO LISTENING MAP'
           ]
         }
@@ -417,32 +389,32 @@ export const lessonStages = [
   },
   {
     id: 'tempo-charades-intro',
-    label: 'Tempo Charades Instructions',
-    description: 'Explain the Tempo Charades game.',
+    label: 'Tempo Detective Instructions',
+    description: 'Explain the Tempo Detective game.',
     type: 'summary',
     duration: 1,
     presentationView: {
       type: 'summary',
-      title: 'Tempo Charades',
-      subtitle: 'Can You Act Out the Tempo?',
+      title: 'Tempo Detective',
+      subtitle: 'Can You Hear the Tempo?',
       sections: [
         {
           heading: 'How to Play',
           bullets: [
-            '1. One person comes to the front and acts out a tempo',
-            '2. The class guesses which tempo term it is',
+            '1. Listen to a music clip playing at a specific tempo',
+            '2. Guess which tempo term matches what you hear',
             '3. Fastest correct answer gets the most points!',
-            '4. No talking, no sounds \u2014 movement only!'
+            '4. Listen carefully \u2014 each clip is only 8 seconds!'
           ]
         },
         {
           heading: 'Remember',
           bullets: [
-            'Largo/Adagio = Slow',
-            'Andante = Walking',
-            'Allegro/Presto = Fast',
-            'Accelerando = Getting faster',
-            'Ritardando = Getting slower'
+            'Largo (50 BPM) = Very Slow',
+            'Adagio (72 BPM) = Slow, Relaxed',
+            'Andante (92 BPM) = Walking Speed',
+            'Allegro (138 BPM) = Fast, Lively',
+            'Presto (184 BPM) = Very Fast'
           ]
         }
       ]
@@ -450,9 +422,9 @@ export const lessonStages = [
   },
   {
     id: 'tempo-charades-teacher-game',
-    label: '🎮 Unlock Tempo Charades',
-    description: 'CLASS GAME: Act out tempo terms for the class to guess!',
-    bonusDescription: 'Can you act out accelerando and ritardando?',
+    label: '🎮 Unlock Tempo Detective',
+    description: 'CLASS GAME: Listen to clips and guess the tempo!',
+    bonusDescription: 'Can you hear the difference between Largo and Presto?',
     hasProgress: true,
     type: 'activity',
     hasTimer: false,
@@ -463,7 +435,7 @@ export const lessonStages = [
   },
   {
     id: 'tempo-charades-results',
-    label: '🏆 Tempo Charades Results',
+    label: '🏆 Tempo Detective Results',
     description: 'View class results and celebrate top scorers.',
     type: 'activity',
     duration: 1,
@@ -474,21 +446,21 @@ export const lessonStages = [
   {
     id: 'small-group-instructions',
     label: 'Small Group Instructions',
-    description: 'Explain how to play Tempo Charades in small groups.',
+    description: 'Explain how to play Tempo Detective in small groups.',
     type: 'summary',
     duration: 1,
     presentationView: {
       type: 'summary',
-      title: 'Tempo Charades: Small Groups',
+      title: 'Tempo Detective: Small Groups',
       subtitle: 'Everyone Gets a Turn!',
       sections: [
         {
           heading: 'Instructions',
           bullets: [
-            'Get into groups of 3\u20134',
+            'Get into groups of 3\u20135',
             'Join your group with a shared code',
-            'Take turns being the actor \u2014 the game will tell you when it\'s your turn',
-            'Everyone else guesses on their Chromebook'
+            'Take turns being the picker \u2014 the game will tell you when it\'s your turn',
+            'The picker chooses a tempo, everyone listens to the clip, then guessers pick the tempo'
           ]
         }
       ]
@@ -496,99 +468,17 @@ export const lessonStages = [
   },
   {
     id: 'small-group-game',
-    label: '🎮 Unlock Small Group Charades',
-    description: 'SMALL GROUPS: Take turns acting and guessing tempo terms!',
-    bonusDescription: 'Everyone gets a turn to be the actor!',
+    label: '🎮 Unlock Small Group Detective',
+    description: 'SMALL GROUPS: Take turns picking tempos and guessing!',
+    bonusDescription: 'Everyone gets a turn to be the picker!',
     hasProgress: true,
     type: 'activity',
     hasTimer: false,
     duration: 9,
     presentationView: {
       type: 'activity-banner',
-      title: 'Tempo Charades: Small Groups',
-      subtitle: 'Group up! Take turns acting and guessing.'
-    }
-  },
-  {
-    id: 'small-group-results',
-    label: 'Great Work! Let\'s Listen',
-    description: 'Transition to active listening section.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'summary',
-      title: 'Great Work! Let\'s Listen.',
-      subtitle: '',
-      sections: [
-        {
-          heading: 'Up Next',
-          bullets: [
-            'Now that you know your tempo terms, let\'s hear a composer use them',
-            'Listen for: fast, slow, speeding up, slowing down',
-            'Can you identify the woodwinds?'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'active-listening-intro',
-    label: 'Hungarian Dance No. 5',
-    description: 'Introduce Brahms and the piece.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'summary',
-      title: 'Active Listening: Hungarian Dance No. 5',
-      subtitle: '',
-      sections: [
-        {
-          heading: 'About This Piece',
-          bullets: [
-            'Composer: Johannes Brahms (1833\u20131897, German)',
-            'One of 21 Hungarian Dances inspired by Roma (Gypsy) music',
-            'This is the most famous one!'
-          ]
-        },
-        {
-          heading: 'As You Listen',
-          bullets: [
-            'Show the tempo with your hands: move fast = fast tempo, move slow = slow tempo',
-            'Listen for sudden changes \u2014 Brahms loves to surprise you!'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'active-listening-play',
-    label: 'Listen: Hungarian Dance No. 5',
-    description: 'Play the piece \u2014 students watch main screen and show tempo with hands.',
-    type: 'summary',
-    duration: 3,
-    presentationView: {
-      type: 'active-listening-play',
-      audioPath: '/audio/classical/brahms-hungarian-dance-5.mp3',
-      title: 'Hungarian Dance No. 5',
-      composer: 'Johannes Brahms'
-    }
-  },
-  {
-    id: 'tempo-contrast-discussion',
-    label: 'Tempo Surprises',
-    description: 'Discussion: What tempo changes did you notice?',
-    type: 'discussion',
-    duration: 2,
-    presentationView: {
-      type: 'summary',
-      title: 'Tempo Surprises',
-      subtitle: 'What Did You Notice?',
-      bullets: [
-        'Where did Brahms surprise you with a tempo change?',
-        'How did the slow sections feel compared to the fast sections?',
-        'Did you hear any accelerando or ritardando?',
-        'Did anyone notice the clarinet during the slow part?'
-      ]
+      title: 'Tempo Detective: Small Groups',
+      subtitle: 'Group up! Take turns picking and guessing.'
     }
   },
   {
@@ -667,10 +557,6 @@ export const getActivityForStage = (stage) => {
     'tempo-charades-results': 'tempo-charades',
     'small-group-instructions': 'summary',
     'small-group-game': 'tempo-charades-small-group',
-    'small-group-results': 'summary',
-    'active-listening-intro': 'summary',
-    'active-listening-play': 'summary',
-    'tempo-contrast-discussion': 'discussion',
     'listening-map-instructions': 'summary',
     'tempo-listening-map': 'tempo-listening-map',
     'reflection': 'discussion'

@@ -1,30 +1,25 @@
-// Tempo Charades Configuration
-// Teacher-led class game: volunteer acts out tempo, class guesses
+// Tempo Detective Configuration
+// Audio-based tempo identification game
+// A clip plays at a specific tempo, students guess which tempo it is
 
-// 7 tempo terms (5 markings + 2 changes)
-export const TEMPO_TERMS = [
-  { symbol: 'Largo', name: 'Largo', meaning: 'Very Slow', color: '#93C5FD', emoji: '\u{1F40C}', hint: 'Move like you are walking through deep snow or thick mud' },
-  { symbol: 'Adagio', name: 'Adagio', meaning: 'Slow, Relaxed', color: '#60A5FA', emoji: '\u{1F422}', hint: 'Move like you are taking a peaceful, lazy stroll' },
-  { symbol: 'Andante', name: 'Andante', meaning: 'Walking Speed', color: '#FCD34D', emoji: '\u{1F6B6}', hint: 'Walk at a normal, comfortable pace' },
-  { symbol: 'Allegro', name: 'Allegro', meaning: 'Fast, Lively', color: '#FBBF24', emoji: '\u{1F3C3}', hint: 'Move like you are late for class and jogging down the hallway' },
-  { symbol: 'Presto', name: 'Presto', meaning: 'Very Fast', color: '#EF4444', emoji: '\u26A1', hint: 'Move as fast as you can \u2014 like a race!' },
-  { symbol: 'accel.', name: 'Accelerando', meaning: 'Getting Faster', color: '#4ADE80', emoji: '\u{1F680}', hint: 'Start slow and gradually speed up your movements' },
-  { symbol: 'rit.', name: 'Ritardando', meaning: 'Getting Slower', color: '#F87171', emoji: '\u{1F6D1}', hint: 'Start fast and gradually slow down to a stop' },
+// 5 tempo options (always shown with BPM)
+export const TEMPO_OPTIONS = [
+  { symbol: 'Largo', bpm: 50, color: '#93C5FD', emoji: '\u{1F40C}', meaning: 'Very Slow' },
+  { symbol: 'Adagio', bpm: 72, color: '#60A5FA', emoji: '\u{1F422}', meaning: 'Slow, Relaxed' },
+  { symbol: 'Andante', bpm: 92, color: '#FCD34D', emoji: '\u{1F6B6}', meaning: 'Walking Speed' },
+  { symbol: 'Allegro', bpm: 138, color: '#FBBF24', emoji: '\u{1F3C3}', meaning: 'Fast, Lively' },
+  { symbol: 'Presto', bpm: 184, color: '#EF4444', emoji: '\u26A1', meaning: 'Very Fast' },
 ];
 
-// 10 rounds for the class game
-export const QUESTIONS = [
-  { id: 1, correctAnswer: 'Andante', hint: 'Walk at a normal, comfortable pace' },
-  { id: 2, correctAnswer: 'Presto', hint: 'Move as fast as you can \u2014 like a race!' },
-  { id: 3, correctAnswer: 'Largo', hint: 'Move like you are walking through deep snow' },
-  { id: 4, correctAnswer: 'Allegro', hint: 'Move like you are jogging to catch the bus' },
-  { id: 5, correctAnswer: 'accel.', hint: 'Start slow and gradually speed up' },
-  { id: 6, correctAnswer: 'Adagio', hint: 'Move like you are taking a peaceful stroll' },
-  { id: 7, correctAnswer: 'rit.', hint: 'Start fast and gradually slow down to a stop' },
-  { id: 8, correctAnswer: 'Presto', hint: 'Sprint in place as fast as you can!' },
-  { id: 9, correctAnswer: 'Largo', hint: 'Move in ultra slow motion' },
-  { id: 10, correctAnswer: 'Allegro', hint: 'Dance around quickly and energetically' },
+// Audio clips with natural BPM (playbackRate = targetBpm / naturalBpm)
+export const AUDIO_CLIPS = [
+  { audio: '/audio/classical/dvorak-new-world-largo.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Dvo\u0159\u00e1k' },
+  { audio: '/audio/classical/beethoven-moonlight-sonata-adagio.mp3', naturalBpm: 72, startTime: 4.5, volume: 2.0, label: 'Beethoven' },
+  { audio: '/audio/classical/grieg-morning-mood.mp3', naturalBpm: 92, startTime: 0, volume: 0.7, label: 'Grieg' },
+  { audio: '/audio/classical/brahms-hungarian-dance-5.mp3', naturalBpm: 138, startTime: 0, volume: 0.7, label: 'Brahms' },
 ];
+
+export const CLIP_DURATION = 8; // seconds
 
 export const SCORING = {
   correct: 10,
@@ -37,7 +32,7 @@ export const TOTAL_QUESTIONS = 10;
 // Shuffle helper
 export const shuffleArray = (arr) => [...arr].sort(() => Math.random() - 0.5);
 
-// Calculate speed bonus
+// Calculate speed bonus (same tiers as Layer Detective)
 export const calculateSpeedBonus = (timeInMs) => {
   const seconds = timeInMs / 1000;
   if (seconds < 2) return 10;
@@ -47,3 +42,38 @@ export const calculateSpeedBonus = (timeInMs) => {
   if (seconds < 10) return 2;
   return 0;
 };
+
+// Generate questions: pair random clips with random target tempos
+// Ensures variety - each tempo appears twice in 10 questions
+export const generateQuestions = (count = 10) => {
+  // Each tempo appears exactly twice
+  const tempoPool = [...TEMPO_OPTIONS, ...TEMPO_OPTIONS];
+  const shuffledTempos = shuffleArray(tempoPool).slice(0, count);
+
+  return shuffledTempos.map((tempo, idx) => {
+    // Pick a random clip for this question
+    const clipIndex = Math.floor(Math.random() * AUDIO_CLIPS.length);
+    const clip = AUDIO_CLIPS[clipIndex];
+    const playbackRate = tempo.bpm / clip.naturalBpm;
+
+    return {
+      id: idx + 1,
+      correctAnswer: tempo.symbol,
+      correctBpm: tempo.bpm,
+      clipIndex,
+      playbackRate,
+      clipAudio: clip.audio,
+      clipStartTime: clip.startTime,
+      clipVolume: clip.volume,
+      clipLabel: clip.label,
+    };
+  });
+};
+
+// Get tempo info by symbol
+export const getTempoBySymbol = (symbol) => {
+  return TEMPO_OPTIONS.find(t => t.symbol === symbol) || null;
+};
+
+// Keep TEMPO_TERMS export for backward compatibility (TempoShowcase uses it indirectly)
+export const TEMPO_TERMS = TEMPO_OPTIONS;

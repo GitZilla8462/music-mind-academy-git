@@ -18,6 +18,7 @@ const INSTRUMENT_CONFIGS = [
     startTime: 90,  // 1:30
     endTime: 100,   // 1:40
     volume: 0.8,
+    credit: 'Performed by Angeliki Sousoura',
     facts: ['No reed \u2014 sound made by blowing across the mouthhole', 'Made of metal, not wood!', 'Plays the highest notes in the woodwind family']
   },
   {
@@ -30,6 +31,7 @@ const INSTRUMENT_CONFIGS = [
     startTime: 8,   // 0:08
     endTime: 17,    // 0:17
     volume: 0.8,
+    credit: 'Performed by Aaron Hill',
     facts: ['Uses a double reed \u2014 two thin pieces of cane', 'Tunes the entire orchestra', 'Distinctive nasal, piercing sound']
   },
   {
@@ -42,6 +44,7 @@ const INSTRUMENT_CONFIGS = [
     startTime: 192, // 3:12
     endTime: 202,   // 3:22
     volume: 0.8,
+    credit: 'Performed by Kyrill Rybakov',
     facts: ['Uses a single reed', 'Widest range of any woodwind', 'Can sound warm or bright']
   },
   {
@@ -54,6 +57,7 @@ const INSTRUMENT_CONFIGS = [
     startTime: 528, // 8:48
     endTime: 538,   // 8:58
     volume: 0.8,
+    credit: 'Performed by Wang Shao Jung',
     facts: ['Uses a double reed, like the oboe', 'Lowest standard orchestral woodwind', 'Over 8 feet of tubing folded into its body']
   }
 ];
@@ -322,6 +326,11 @@ const WoodwindFamilyShowcase = ({ onAdvance }) => {
           >
             <span className="text-5xl">{config.emoji}</span>
             {config.name}
+          </div>
+
+          {/* Performer credit - bottom left */}
+          <div className="absolute bottom-10 left-8 px-4 py-2 rounded-lg bg-black/60 text-white text-lg font-medium">
+            {config.credit}
           </div>
 
           {/* Progress dots - bottom center */}

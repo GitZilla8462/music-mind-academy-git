@@ -644,7 +644,7 @@ const ActivityRenderer = ({
               { id: 'row6', name: '2:24 - 2:53', color: '#ef4444', emoji: '6️⃣' }
             ],
             credits: {
-              title: 'Hungarian Dance No. 5, WoO 1',
+              title: 'Hungarian Dance No. 5',
               composer: 'Johannes Brahms',
               performer: 'Netfocus Universal Sound Library',
               license: 'Public Domain',
