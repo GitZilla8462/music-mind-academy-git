@@ -14,7 +14,8 @@ import { TEMPO_OPTIONS, AUDIO_CLIPS, CLIP_DURATION, shuffleArray, calculateSpeed
 const TOTAL_ROUNDS = 10;
 const AUTO_ADVANCE_DELAY = 3000;
 const TRANSITION_DELAY = 2000;
-const GUESS_TIMEOUT = 15000;
+const ANSWER_TIME = 20000; // 20s to answer after clip finishes
+const GUESS_TIMEOUT = (CLIP_DURATION * 1000) + ANSWER_TIME;
 
 const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
   const { sessionCode, userId: contextUserId } = useSession();
@@ -50,9 +51,13 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
   const [answerLocked, setAnswerLocked] = useState(false);
   const [error, setError] = useState('');
   const [guessedCount, setGuessedCount] = useState(0);
+  const [countdown, setCountdown] = useState(null);
 
   // Track used clips per tempo so we cycle through all 4 before repeating
   const usedClipsRef = useRef({});
+
+  // Track which round we've already started audio for (prevents restarts)
+  const playedRoundRef = useRef(-1);
 
   // Audio
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
@@ -299,9 +304,12 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
       setAnswers(data.answers || {});
       setRoundStartTime(data.roundStartTime || null);
 
-      // Store clip info for audio playback
+      // Store clip info for audio playback (only update if values changed)
       if (data.clipIndex !== undefined && data.playbackRate !== undefined) {
-        setClipInfo({ clipIndex: data.clipIndex, playbackRate: data.playbackRate });
+        setClipInfo(prev => {
+          if (prev && prev.clipIndex === data.clipIndex && prev.playbackRate === data.playbackRate) return prev;
+          return { clipIndex: data.clipIndex, playbackRate: data.playbackRate };
+        });
       }
 
       // Count guesses
@@ -323,20 +331,45 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
     listenersRef.current.push(membersUnsub, gameUnsub);
   }, [getGroupPath, userId]);
 
-  // ============ AUTO-PLAY AUDIO ON LISTENING PHASE ============
+  // ============ AUTO-PLAY AUDIO ON GUESSING PHASE ============
 
   useEffect(() => {
-    if (gamePhase === 'listening' && clipInfo && !isPicker) {
-      // Small delay for Firebase sync, then play
+    if (gamePhase === 'guessing' && clipInfo && !isPicker && playedRoundRef.current !== currentRound) {
+      playedRoundRef.current = currentRound;
       const timer = setTimeout(() => {
         playClipFromInfo(clipInfo);
       }, 500);
       return () => clearTimeout(timer);
     }
-    if (gamePhase !== 'listening') {
+    if (gamePhase !== 'guessing') {
       stopAudio();
+      playedRoundRef.current = -1;
     }
-  }, [gamePhase, clipInfo, isPicker, playClipFromInfo, stopAudio]);
+  }, [gamePhase, clipInfo, isPicker, currentRound, playClipFromInfo, stopAudio]);
+
+  // ============ COUNTDOWN TIMER ============
+
+  useEffect(() => {
+    if (gamePhase !== 'guessing' || !roundStartTime) {
+      setCountdown(null);
+      return;
+    }
+
+    const tick = () => {
+      const elapsed = Date.now() - roundStartTime;
+      const answerStart = CLIP_DURATION * 1000; // countdown starts after clip finishes
+      if (elapsed < answerStart) {
+        setCountdown(null); // clip still playing
+      } else {
+        const remaining = Math.max(0, Math.ceil((GUESS_TIMEOUT - elapsed) / 1000));
+        setCountdown(remaining);
+      }
+    };
+
+    tick();
+    const interval = setInterval(tick, 500);
+    return () => clearInterval(interval);
+  }, [gamePhase, roundStartTime]);
 
   // ============ AUTO-REVEAL LOGIC ============
 
@@ -420,21 +453,12 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
     const playbackRate = 1.0;
 
     await update(ref(db, `${getGroupPath(groupCode)}/game`), {
-      phase: 'listening',
+      phase: 'guessing',
       selectedTempo: tempoSymbol,
       clipIndex,
       playbackRate,
       answers: null,
-      roundStartTime: null
-    });
-  };
-
-  const openGuessing = async () => {
-    const db = getDatabase();
-    await update(ref(db, `${getGroupPath(groupCode)}/game`), {
-      phase: 'guessing',
-      roundStartTime: Date.now(),
-      answers: null
+      roundStartTime: Date.now()
     });
   };
 
@@ -568,6 +592,25 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
     });
   };
 
+  const leaveGroup = () => {
+    stopAudio();
+    listenersRef.current.forEach(unsub => unsub());
+    listenersRef.current = [];
+    if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+    if (guessTimeoutRef.current) clearTimeout(guessTimeoutRef.current);
+    setHasJoinedGroup(false);
+    setGroupCode('');
+    setGroupCodeInput('');
+    setIsCreator(false);
+    setGamePhase('lobby');
+    setMembers({});
+    setMyScore(0);
+    setClipInfo(null);
+    setSelectedAnswer(null);
+    setAnswerLocked(false);
+    usedClipsRef.current = {};
+  };
+
   const getMember = (id) => members[id] || { name: 'Player', color: '#666', emoji: '' };
 
   // ============ RENDER: JOIN SCREEN ============
@@ -622,6 +665,7 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
               <p className="text-red-200 text-sm">{error}</p>
             </div>
           )}
+
         </div>
       </div>
     );
@@ -685,6 +729,13 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
         ) : (
           <p className="text-purple-300 text-lg">Waiting for group creator to start...</p>
         )}
+
+        <button
+          onClick={leaveGroup}
+          className="mt-6 text-purple-300 hover:text-white text-sm py-2 transition-colors"
+        >
+          Leave Group
+        </button>
       </div>
     );
   }
@@ -741,71 +792,6 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
     );
   }
 
-  // ============ RENDER: LISTENING PHASE ============
-
-  if (gamePhase === 'listening') {
-    if (isPicker) {
-      const pickedTempo = selectedTempo ? getTempoBySymbol(selectedTempo) : null;
-      return (
-        <div className="h-screen bg-gradient-to-br from-amber-950 via-orange-900 to-red-950 flex flex-col items-center justify-center p-4">
-          <audio ref={audioRef} preload="auto" />
-          <div className="max-w-md w-full text-center">
-            <div className="text-xs text-amber-300/70 font-mono mb-2">Group {groupCode} | Round {currentRound + 1}/{TOTAL_ROUNDS}</div>
-
-            <Headphones size={48} className="mx-auto text-amber-400 mb-3" />
-            <h2 className="text-2xl font-bold text-amber-300 mb-4">Your group is listening...</h2>
-
-            {pickedTempo && (
-              <div className="bg-white/10 rounded-xl p-4 mb-6 border border-white/20">
-                <p className="text-sm text-amber-200 mb-2">You picked:</p>
-                <div className="text-4xl mb-1">{pickedTempo.emoji}</div>
-                <div className="text-2xl font-black" style={{ color: pickedTempo.color }}>
-                  {pickedTempo.symbol} — {pickedTempo.bpm} BPM
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={openGuessing}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-4 rounded-xl font-bold text-xl transition-all flex items-center justify-center gap-2"
-            >
-              Open Guessing
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    // Guesser: listening to audio
-    return (
-      <div className="h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 flex flex-col items-center justify-center p-4">
-        <audio ref={audioRef} preload="auto" />
-        <div className="text-xs text-purple-300/70 font-mono mb-4">Group {groupCode} | Round {currentRound + 1}/{TOTAL_ROUNDS}</div>
-
-        <Headphones size={64} className="text-purple-400 mb-4" />
-        <h2 className="text-3xl font-bold text-white mb-2">Listen!</h2>
-        <p className="text-lg text-purple-200 mb-6">What tempo is this clip?</p>
-
-        {isPlayingAudio && (
-          <div className="bg-purple-500/30 rounded-xl px-6 py-3 mb-4">
-            <p className="text-purple-200 font-semibold">Playing...</p>
-          </div>
-        )}
-
-        {!isPlayingAudio && clipInfo && (
-          <button
-            onClick={() => playClipFromInfo(clipInfo)}
-            className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 mb-4"
-          >
-            <Play size={20} /> Replay
-          </button>
-        )}
-
-        <p className="text-purple-300 text-sm">Guessing will open soon...</p>
-      </div>
-    );
-  }
-
   // ============ RENDER: GUESSING PHASE ============
 
   if (gamePhase === 'guessing') {
@@ -836,6 +822,11 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
                 <span className="text-3xl font-bold text-amber-400">{guessedCount}</span>
                 <span className="text-white/70"> / {nonPickerCount} guessed</span>
               </p>
+              {countdown !== null && (
+                <p className={`text-sm font-bold mt-2 ${countdown <= 5 ? 'text-red-400' : 'text-amber-300/70'}`}>
+                  {countdown}s remaining
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -857,6 +848,11 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
 
         <div className="text-center mb-3">
           <p className="text-lg text-white font-semibold">What tempo was that?</p>
+          {countdown !== null && !answerLocked && (
+            <p className={`text-sm font-bold mt-1 ${countdown <= 5 ? 'text-red-400' : 'text-purple-300'}`}>
+              {countdown}s remaining
+            </p>
+          )}
         </div>
 
         {answerLocked && (
@@ -1064,13 +1060,22 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
             })}
           </div>
 
-          <button
-            onClick={playAgain}
-            className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 mx-auto"
-          >
-            <RotateCcw size={20} />
-            Play Again
-          </button>
+          <div className="flex flex-col gap-3 w-full">
+            <button
+              onClick={playAgain}
+              className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2"
+            >
+              <RotateCcw size={20} />
+              Play Again
+            </button>
+            <button
+              onClick={leaveGroup}
+              className="w-full bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2"
+            >
+              <Users size={18} />
+              Join New Game
+            </button>
+          </div>
         </div>
       </div>
     );
