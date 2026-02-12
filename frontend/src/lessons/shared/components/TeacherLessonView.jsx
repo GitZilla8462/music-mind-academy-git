@@ -1643,6 +1643,32 @@ const PresentationContent = ({
       );
     }
 
+    // Tempo Answer Key - shows answer key image with explanatory text
+    if (type === 'tempo-answer-key') {
+      return (
+        <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800">
+          {/* Header text */}
+          <div className="flex-shrink-0 text-center pt-6 pb-3 px-8">
+            <h1 className="text-4xl lg:text-5xl font-bold text-white mb-3">Answer Key</h1>
+            <p className="text-xl lg:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
+              This piece is mostly <span className="text-red-400 font-semibold">Allegro</span> and <span className="text-blue-400 font-semibold">Adagio</span> with
+              some <span className="text-green-400 font-semibold">Andante</span>, <span className="text-gray-200 font-semibold">accel.</span>,
+              and <span className="text-orange-400 font-semibold">Presto</span> at the end.
+              Tempo is subjective — there are many correct ways to label this piece!
+            </p>
+          </div>
+          {/* Answer key image */}
+          <div className="flex-1 flex items-center justify-center px-8 pb-6">
+            <img
+              src="/lessons/listening-lab/lesson2/slides/tempo-answer-key.png"
+              alt="Tempo Listening Map Answer Key"
+              className="max-w-full max-h-full object-contain rounded-xl shadow-2xl border border-gray-700"
+            />
+          </div>
+        </div>
+      );
+    }
+
     // Slide (with optional audio)
     if (type === 'slide' && slidePath) {
       return (

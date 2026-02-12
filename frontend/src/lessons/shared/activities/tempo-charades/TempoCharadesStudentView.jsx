@@ -326,8 +326,8 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     );
   }
 
-  // ============ WAITING / SETUP / PLAYING PHASE ============
-  if (gamePhase === 'waiting' || gamePhase === 'setup' || gamePhase === 'playing') {
+  // ============ WAITING / SETUP PHASE ============
+  if (gamePhase === 'waiting' || gamePhase === 'setup') {
     return (
       <div className="h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center p-6">
         <div className="text-center">
@@ -335,7 +335,7 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
             {'\u{1F50D}'} Tempo Detective
           </h1>
           <p className="text-xl text-purple-200 mb-8">
-            {gamePhase === 'playing' ? 'Listen to the clip on the main screen...' : 'Waiting for teacher to start...'}
+            Waiting for teacher to start...
           </p>
 
           <div className="bg-white/10 rounded-2xl p-6 inline-block">

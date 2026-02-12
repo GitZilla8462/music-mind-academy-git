@@ -4,10 +4,9 @@
 //
 // PHASES:
 // 1. Setup - Show "Start Game"
-// 2. Playing - Audio clip plays at target tempo, metronome animation
-// 3. Guessing - Students answer on devices
-// 4. Revealed - Show correct answer
-// 5. Finished - Final scores
+// 2. Guessing - Audio clip plays, students answer on devices simultaneously
+// 3. Revealed - Show correct answer
+// 4. Finished - Final scores
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Play, Pause, Users, Trophy, Eye, ChevronRight, Headphones } from 'lucide-react';
@@ -30,7 +29,7 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
   const sessionCode = sessionData?.sessionCode || new URLSearchParams(window.location.search).get('session');
 
   // Game state
-  const [gamePhase, setGamePhase] = useState('setup'); // setup, playing, guessing, revealed, finished
+  const [gamePhase, setGamePhase] = useState('setup'); // setup, guessing, revealed, finished
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
 
@@ -154,7 +153,7 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
     const newQuestions = generateQuestions(10);
     setQuestions(newQuestions);
     setCurrentQuestion(0);
-    setGamePhase('playing');
+    setGamePhase('guessing');
     setScoreChanges({});
     setCorrectCount(0);
 
@@ -170,30 +169,18 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
     }
 
     updateGame({
-      phase: 'playing',
+      phase: 'guessing',
       currentQuestion: 0,
       totalQuestions: newQuestions.length,
       correctAnswer: null,
-      playStartTime: null
+      playStartTime: Date.now()
     });
 
     // Play the first clip
     setTimeout(() => playClip(newQuestions[0]), 300);
   }, [sessionCode, students, updateGame, playClip]);
 
-  // Open guessing (after clip plays)
-  const openGuessing = useCallback(() => {
-    setGamePhase('guessing');
-
-    updateGame({
-      phase: 'guessing',
-      currentQuestion,
-      totalQuestions: questions.length,
-      playStartTime: Date.now()
-    });
-  }, [currentQuestion, questions, updateGame]);
-
-  // Replay clip during guessing
+  // Replay clip
   const replayClip = useCallback(() => {
     const question = questions[currentQuestion];
     if (question) {
@@ -252,15 +239,15 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
       updateGame({ phase: 'finished' });
     } else {
       setCurrentQuestion(nextIdx);
-      setGamePhase('playing');
+      setGamePhase('guessing');
       setScoreChanges({});
       setCorrectCount(0);
 
       updateGame({
-        phase: 'playing',
+        phase: 'guessing',
         currentQuestion: nextIdx,
         correctAnswer: null,
-        playStartTime: null
+        playStartTime: Date.now()
       });
 
       // Play the next clip
@@ -271,10 +258,6 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
   const question = questions[currentQuestion];
   const correctTempo = question ? getTempoBySymbol(question.correctAnswer) : null;
 
-  // Compute metronome pulse duration
-  const currentBpm = question?.correctBpm || 92;
-  const pulseDuration = `${60 / currentBpm}s`;
-
   return (
     <div className="min-h-screen h-full flex flex-col bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white overflow-hidden">
       {/* Student Activity Banner */}
@@ -282,14 +265,6 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
 
       {/* Hidden audio element */}
       <audio ref={audioRef} preload="auto" />
-
-      {/* Metronome pulse keyframes */}
-      <style>{`
-        @keyframes metronomePulse {
-          0%, 100% { transform: scale(1); opacity: 0.6; }
-          50% { transform: scale(1.4); opacity: 1; }
-        }
-      `}</style>
 
       {/* Main content */}
       <div className="flex-1 p-4 overflow-hidden flex flex-col min-h-0">
@@ -330,79 +305,17 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
               </div>
             )}
 
-            {/* Playing - audio clip playing, metronome animation */}
-            {gamePhase === 'playing' && question && (
+            {/* Guessing - clip plays and students answer simultaneously */}
+            {gamePhase === 'guessing' && question && (
               <div className="text-center">
                 <div className="text-5xl font-black mb-2">
                   <Headphones size={48} className="inline mr-3" />
                   LISTEN!
                 </div>
-                <p className="text-2xl text-purple-200 mb-6">Round {currentQuestion + 1} — What tempo is this?</p>
-
-                {/* Metronome pulse */}
-                {isPlaying && (
-                  <div className="flex items-center justify-center mb-6">
-                    <div
-                      className="w-24 h-24 rounded-full bg-purple-400"
-                      style={{
-                        animation: `metronomePulse ${pulseDuration} ease-in-out infinite`,
-                      }}
-                    />
-                  </div>
-                )}
+                <p className="text-2xl text-purple-200 mb-4">Round {currentQuestion + 1} — What tempo is this?</p>
 
                 {/* Tempo options preview */}
-                <div className="grid grid-cols-5 gap-3 max-w-3xl mx-auto mb-6">
-                  {TEMPO_OPTIONS.map(t => (
-                    <div
-                      key={t.symbol}
-                      className="p-3 rounded-xl text-center"
-                      style={{ backgroundColor: `${t.color}40`, borderColor: t.color, borderWidth: '2px' }}
-                    >
-                      <div className="text-2xl mb-1">{t.emoji}</div>
-                      <div className="text-xl font-bold text-white">{t.symbol}</div>
-                      <div className="text-sm text-white/80">{t.bpm} BPM</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Controls */}
-                <div className="flex gap-4 justify-center">
-                  {isPlaying ? (
-                    <button
-                      onClick={stopAudio}
-                      className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl text-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
-                    >
-                      <Pause size={28} /> Stop
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => playClip(question)}
-                      className="px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl text-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
-                    >
-                      <Play size={28} /> Replay
-                    </button>
-                  )}
-                  <button
-                    onClick={openGuessing}
-                    className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl text-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
-                  >
-                    <Eye size={28} /> Open Guessing
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Guessing - students answering on devices */}
-            {gamePhase === 'guessing' && question && (
-              <div className="text-center">
-                <div className="text-5xl font-black mb-2">
-                  {'\u{1F50D}'} What Tempo Was That?
-                </div>
-                <p className="text-xl text-white/70 mb-6">Students — submit your answer on your device!</p>
-
-                {/* Tempo options */}
-                <div className="grid grid-cols-5 gap-3 max-w-3xl mx-auto mb-6">
+                <div className="grid grid-cols-5 gap-3 max-w-3xl mx-auto mb-4">
                   {TEMPO_OPTIONS.map(t => (
                     <div
                       key={t.symbol}
@@ -417,19 +330,28 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
                 </div>
 
                 {/* Answer count */}
-                <div className="bg-white/10 rounded-2xl px-6 py-3 inline-block mb-6">
+                <div className="bg-white/10 rounded-2xl px-6 py-3 inline-block mb-4">
                   <span className="text-4xl font-black text-green-400">{lockedCount}</span>
                   <span className="text-xl text-white/70"> / {students.length} answered</span>
                 </div>
 
-                {/* Control buttons */}
+                {/* Controls */}
                 <div className="flex gap-4 justify-center">
-                  <button
-                    onClick={replayClip}
-                    className="px-6 py-3 rounded-2xl text-xl font-bold flex items-center gap-2 bg-gray-600 hover:bg-gray-700"
-                  >
-                    <Play size={24} /> Replay Clip
-                  </button>
+                  {isPlaying ? (
+                    <button
+                      onClick={stopAudio}
+                      className="px-6 py-3 rounded-2xl text-xl font-bold flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:scale-105 transition-all"
+                    >
+                      <Pause size={24} /> Stop
+                    </button>
+                  ) : (
+                    <button
+                      onClick={replayClip}
+                      className="px-6 py-3 rounded-2xl text-xl font-bold flex items-center gap-2 bg-gray-600 hover:bg-gray-700"
+                    >
+                      <Play size={24} /> Replay Clip
+                    </button>
+                  )}
                   <button
                     onClick={reveal}
                     className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl text-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all"

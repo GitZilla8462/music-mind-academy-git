@@ -127,37 +127,11 @@ export const lessonSections = [
     ]
   },
   {
-    id: 'tempo-charades-small-groups',
-    title: '3. Tempo Detective (Small Groups)',
-    subtitle: 'Everyone Gets a Turn',
-    color: 'blue',
-    estimatedTime: 10,
-    stages: [
-      {
-        id: 'small-group-instructions',
-        type: 'summary',
-        label: 'Small Group Instructions',
-        description: 'Explain how to play Tempo Detective in small groups.',
-        duration: 1
-      },
-      {
-        id: 'small-group-game',
-        type: 'activity',
-        label: '🎮 Unlock Small Group Detective',
-        duration: 9,
-        hasTimer: false,
-        trackProgress: true,
-        description: 'SMALL GROUPS: Take turns picking tempos and guessing!',
-        bonusDescription: 'Everyone gets a turn to be the picker!'
-      }
-    ]
-  },
-  {
     id: 'active-listening',
-    title: '4. Active Listening + Listening Map',
+    title: '3. Tempo Listening Map',
     subtitle: 'Hungarian Dance No. 5',
     color: 'blue',
-    estimatedTime: 12,
+    estimatedTime: 14,
     stages: [
       {
         id: 'listening-map-instructions',
@@ -175,12 +149,26 @@ export const lessonSections = [
         trackProgress: true,
         description: 'STUDENTS WORK: Create a Tempo Listening Map for Hungarian Dance No. 5.',
         bonusDescription: 'Bonus: Circle moments where you hear the clarinet!'
+      },
+      {
+        id: 'share-and-pair',
+        type: 'activity',
+        label: 'Share & Pair',
+        description: 'Students share their listening maps with a partner.',
+        duration: 2,
+        hasTimer: true
+      },
+      {
+        id: 'tempo-answer-key',
+        type: 'summary',
+        label: 'Answer Key',
+        duration: 2
       }
     ]
   },
   {
     id: 'reflect',
-    title: '5. Reflection',
+    title: '4. Reflection',
     subtitle: 'Exit Ticket',
     color: 'blue',
     estimatedTime: 3,
@@ -192,6 +180,39 @@ export const lessonSections = [
         duration: 3,
         description: 'Wrap up with three reflection questions.',
         bonusDescription: ''
+      }
+    ]
+  },
+  {
+    id: 'bonus',
+    title: '5. Bonus',
+    subtitle: 'Extra Activities',
+    color: 'purple',
+    estimatedTime: 12,
+    stages: [
+      {
+        id: 'bonus-intro',
+        type: 'summary',
+        label: 'Lesson Complete!',
+        description: 'Lesson is complete. Bonus activity if time allows.',
+        duration: 1
+      },
+      {
+        id: 'small-group-instructions',
+        type: 'summary',
+        label: 'Small Group Instructions',
+        description: 'Explain how to play Tempo Detective in small groups.',
+        duration: 1
+      },
+      {
+        id: 'small-group-game',
+        type: 'activity',
+        label: '🎮 Unlock Small Group Detective',
+        duration: 10,
+        hasTimer: false,
+        trackProgress: true,
+        description: 'SMALL GROUPS: Take turns picking tempos and guessing!',
+        bonusDescription: 'Everyone gets a turn to be the picker!'
       }
     ]
   }
@@ -227,7 +248,8 @@ export const lesson2Config = {
       id: 2,
       type: "tempo-charades-small-group",
       title: "Tempo Detective (Small Groups)",
-      estimatedTime: "9 min"
+      estimatedTime: "10 min",
+      isBonus: true
     },
     {
       id: 3,
@@ -444,6 +466,36 @@ export const lessonStages = [
     }
   },
   {
+    id: 'bonus-intro',
+    label: 'Lesson Complete!',
+    description: 'Lesson is complete. Bonus activity if time allows.',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'summary',
+      title: 'Lesson Complete!',
+      subtitle: 'Great work today!',
+      sections: [
+        {
+          heading: 'What We Learned',
+          bullets: [
+            'The four orchestral woodwinds: Flute, Oboe, Clarinet, Bassoon',
+            'Five tempo markings: Largo, Adagio, Andante, Allegro, Presto',
+            'Tempo changes: Accelerando and Ritardando',
+            'How to create a Tempo Listening Map'
+          ]
+        },
+        {
+          heading: 'Bonus Activity',
+          bullets: [
+            'The following activity is a BONUS if you have extra time.',
+            'Tempo Detective: Small Groups \u2014 everyone gets a turn!'
+          ]
+        }
+      ]
+    }
+  },
+  {
     id: 'small-group-instructions',
     label: 'Small Group Instructions',
     description: 'Explain how to play Tempo Detective in small groups.',
@@ -457,7 +509,7 @@ export const lessonStages = [
         {
           heading: 'Instructions',
           bullets: [
-            'Get into groups of 3\u20135',
+            'Get into groups of 2\u20135 (you can start with just 2 \u2014 others can join later!)',
             'Join your group with a shared code',
             'Take turns being the picker \u2014 the game will tell you when it\'s your turn',
             'The picker chooses a tempo, everyone listens to the clip, then guessers pick the tempo'
@@ -518,6 +570,35 @@ export const lessonStages = [
     }
   },
   {
+    id: 'share-and-pair',
+    label: 'Share & Pair',
+    description: 'Students share their listening maps with a partner.',
+    type: 'activity',
+    hasTimer: true,
+    duration: 2,
+    presentationView: {
+      type: 'summary',
+      title: 'Share & Pair',
+      subtitle: 'Share Your Listening Map with a Partner!',
+      sections: [
+        {
+          heading: 'Share These 3 Things',
+          bullets: [
+            '1. What TEMPO CHANGES did you notice? (fast to slow, slow to fast?)',
+            '2. Where did you mark the BIGGEST tempo change?',
+            '3. What SURPRISED you about the tempo in Hungarian Dance No. 5?'
+          ]
+        },
+        {
+          heading: '',
+          bullets: [
+            'Tap "Presentation View" on your Chromebook to show your map!'
+          ]
+        }
+      ]
+    }
+  },
+  {
     id: 'reflection',
     label: 'Class Reflection',
     description: 'Wrap up with three reflection questions.',
@@ -538,6 +619,16 @@ export const lessonStages = [
         }
       ]
     }
+  },
+  {
+    id: 'tempo-answer-key',
+    label: 'Answer Key',
+    description: 'Show the answer key for the Tempo Listening Map.',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'tempo-answer-key'
+    }
   }
 ];
 
@@ -555,11 +646,14 @@ export const getActivityForStage = (stage) => {
     'tempo-charades-intro': 'summary',
     'tempo-charades-teacher-game': 'tempo-charades',
     'tempo-charades-results': 'tempo-charades',
-    'small-group-instructions': 'summary',
-    'small-group-game': 'tempo-charades-small-group',
     'listening-map-instructions': 'summary',
     'tempo-listening-map': 'tempo-listening-map',
-    'reflection': 'discussion'
+    'share-and-pair': 'tempo-listening-map',
+    'reflection': 'discussion',
+    'tempo-answer-key': 'summary',
+    'bonus-intro': 'summary',
+    'small-group-instructions': 'summary',
+    'small-group-game': 'tempo-charades-small-group'
   };
   return stageMap[stage];
 };

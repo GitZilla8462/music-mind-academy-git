@@ -892,6 +892,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
                 width={canvasWidth}
                 height={canvasHeight}
                 instruments={mapConfig.rows}
+                numRows={mapConfig.numRows}
                 tool={tool}
                 color={color}
                 brushSize={brushSize}

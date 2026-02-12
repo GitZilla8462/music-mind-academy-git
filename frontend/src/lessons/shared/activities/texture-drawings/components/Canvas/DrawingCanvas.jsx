@@ -392,6 +392,7 @@ const DrawingCanvas = forwardRef(({
   width,
   height,
   instruments = [],
+  numRows = 1,
   tool = 'hand',
   color = '#000000',
   brushSize = 16,
@@ -1290,8 +1291,22 @@ const DrawingCanvas = forwardRef(({
       ctx.restore();
     });
 
+    // 3. Draw row divider lines
+    if (numRows > 1) {
+      const rowHeight = height / numRows;
+      ctx.strokeStyle = '#d1d5db'; // gray-300
+      ctx.lineWidth = 1;
+      for (let i = 1; i < numRows; i++) {
+        const y = Math.round(i * rowHeight) + 0.5;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+    }
+
     return composite.toDataURL();
-  }, [width, height, stickers]);
+  }, [width, height, stickers, numRows]);
   
   // ========================================================================
   // LOAD STATE - For restoring saved work

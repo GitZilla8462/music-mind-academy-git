@@ -51,6 +51,9 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
   const [error, setError] = useState('');
   const [guessedCount, setGuessedCount] = useState(0);
 
+  // Track used clips per tempo so we cycle through all 4 before repeating
+  const usedClipsRef = useRef({});
+
   // Audio
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const audioRef = useRef(null);
@@ -401,10 +404,20 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
     const tempo = getTempoBySymbol(tempoSymbol);
     if (!tempo) return;
 
-    // Pick a random clip
-    const clipIndex = Math.floor(Math.random() * AUDIO_CLIPS.length);
-    const clip = AUDIO_CLIPS[clipIndex];
-    const playbackRate = tempo.bpm / clip.naturalBpm;
+    // Pick a clip whose natural BPM matches — cycle through all 4 before repeating
+    const allMatching = AUDIO_CLIPS
+      .map((clip, i) => ({ clip, index: i }))
+      .filter(({ clip }) => clip.naturalBpm === tempo.bpm);
+    const used = usedClipsRef.current[tempo.bpm] || [];
+    let available = allMatching.filter(({ index }) => !used.includes(index));
+    if (available.length === 0) {
+      usedClipsRef.current[tempo.bpm] = [];
+      available = allMatching;
+    }
+    const pick = shuffleArray(available)[0];
+    usedClipsRef.current[tempo.bpm] = [...(usedClipsRef.current[tempo.bpm] || []), pick.index];
+    const clipIndex = pick.index;
+    const playbackRate = 1.0;
 
     await update(ref(db, `${getGroupPath(groupCode)}/game`), {
       phase: 'listening',

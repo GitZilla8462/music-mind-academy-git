@@ -11,12 +11,38 @@ export const TEMPO_OPTIONS = [
   { symbol: 'Presto', bpm: 184, color: '#EF4444', emoji: '\u26A1', meaning: 'Very Fast' },
 ];
 
-// Audio clips with natural BPM (playbackRate = targetBpm / naturalBpm)
+// Pre-trimmed 8-second clips (4 per song, 5 songs = 20 clips)
+// Each song's naturalBpm matches one tempo category — clips always play at natural speed
 export const AUDIO_CLIPS = [
-  { audio: '/audio/classical/dvorak-new-world-largo.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Dvo\u0159\u00e1k' },
-  { audio: '/audio/classical/beethoven-moonlight-sonata-adagio.mp3', naturalBpm: 72, startTime: 4.5, volume: 2.0, label: 'Beethoven' },
-  { audio: '/audio/classical/grieg-morning-mood.mp3', naturalBpm: 92, startTime: 0, volume: 0.7, label: 'Grieg' },
-  { audio: '/audio/classical/brahms-hungarian-dance-5.mp3', naturalBpm: 138, startTime: 0, volume: 0.7, label: 'Brahms' },
+  // Dvořák — New World Symphony, Largo (~50 BPM)
+  { audio: '/audio/classical/dvorak-largo-1.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Dvořák' },
+  { audio: '/audio/classical/dvorak-largo-2.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Dvořák' },
+  { audio: '/audio/classical/dvorak-largo-3.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Dvořák' },
+  { audio: '/audio/classical/dvorak-largo-4.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Dvořák' },
+
+  // Beethoven — Moonlight Sonata, 1st mvt (~72 BPM)
+  { audio: '/audio/classical/beethoven-moonlight-1.mp3', naturalBpm: 72, startTime: 0, volume: 2.0, label: 'Beethoven' },
+  { audio: '/audio/classical/beethoven-moonlight-2.mp3', naturalBpm: 72, startTime: 0, volume: 2.0, label: 'Beethoven' },
+  { audio: '/audio/classical/beethoven-moonlight-3.mp3', naturalBpm: 72, startTime: 0, volume: 2.0, label: 'Beethoven' },
+  { audio: '/audio/classical/beethoven-moonlight-4.mp3', naturalBpm: 72, startTime: 0, volume: 2.0, label: 'Beethoven' },
+
+  // Grieg — Morning Mood (~92 BPM)
+  { audio: '/audio/classical/grieg-morning-1.mp3', naturalBpm: 92, startTime: 0, volume: 0.7, label: 'Grieg' },
+  { audio: '/audio/classical/grieg-morning-2.mp3', naturalBpm: 92, startTime: 0, volume: 0.7, label: 'Grieg' },
+  { audio: '/audio/classical/grieg-morning-3.mp3', naturalBpm: 92, startTime: 0, volume: 0.7, label: 'Grieg' },
+  { audio: '/audio/classical/grieg-morning-4.mp3', naturalBpm: 92, startTime: 0, volume: 0.7, label: 'Grieg' },
+
+  // Brahms — Hungarian Dance No. 5 (~138 BPM, A-section clips)
+  { audio: '/audio/classical/brahms-hungarian-1.mp3', naturalBpm: 138, startTime: 0, volume: 0.7, label: 'Brahms' },
+  { audio: '/audio/classical/brahms-hungarian-2.mp3', naturalBpm: 138, startTime: 0, volume: 0.7, label: 'Brahms' },
+  { audio: '/audio/classical/brahms-hungarian-3.mp3', naturalBpm: 138, startTime: 0, volume: 0.7, label: 'Brahms' },
+  { audio: '/audio/classical/brahms-hungarian-4.mp3', naturalBpm: 138, startTime: 0, volume: 0.7, label: 'Brahms' },
+
+  // Vivaldi — Summer Presto (~184 BPM)
+  { audio: '/audio/classical/vivaldi-summer-presto-1.mp3', naturalBpm: 184, startTime: 0, volume: 0.7, label: 'Vivaldi' },
+  { audio: '/audio/classical/vivaldi-summer-presto-2.mp3', naturalBpm: 184, startTime: 0, volume: 0.7, label: 'Vivaldi' },
+  { audio: '/audio/classical/vivaldi-summer-presto-3.mp3', naturalBpm: 184, startTime: 0, volume: 0.7, label: 'Vivaldi' },
+  { audio: '/audio/classical/vivaldi-summer-presto-4.mp3', naturalBpm: 184, startTime: 0, volume: 0.7, label: 'Vivaldi' },
 ];
 
 export const CLIP_DURATION = 8; // seconds
@@ -43,29 +69,43 @@ export const calculateSpeedBonus = (timeInMs) => {
   return 0;
 };
 
-// Generate questions: pair random clips with random target tempos
-// Ensures variety - each tempo appears twice in 10 questions
+// Generate questions: each tempo appears twice, clips match their natural tempo
+// No playbackRate adjustment — each clip plays at its real speed
+// Cycles through all 4 clips per tempo before repeating any
 export const generateQuestions = (count = 10) => {
   // Each tempo appears exactly twice
   const tempoPool = [...TEMPO_OPTIONS, ...TEMPO_OPTIONS];
   const shuffledTempos = shuffleArray(tempoPool).slice(0, count);
 
+  // Pre-shuffle clips for each tempo so we cycle through all 4 before repeating
+  const clipQueues = {};
+  TEMPO_OPTIONS.forEach(t => {
+    clipQueues[t.bpm] = shuffleArray(
+      AUDIO_CLIPS.map((clip, i) => ({ clip, index: i })).filter(({ clip }) => clip.naturalBpm === t.bpm)
+    );
+  });
+
   return shuffledTempos.map((tempo, idx) => {
-    // Pick a random clip for this question
-    const clipIndex = Math.floor(Math.random() * AUDIO_CLIPS.length);
-    const clip = AUDIO_CLIPS[clipIndex];
-    const playbackRate = tempo.bpm / clip.naturalBpm;
+    const queue = clipQueues[tempo.bpm];
+    // Take the next clip; if we've used all 4, reshuffle and start over
+    if (queue.length === 0) {
+      clipQueues[tempo.bpm] = shuffleArray(
+        AUDIO_CLIPS.map((clip, i) => ({ clip, index: i })).filter(({ clip }) => clip.naturalBpm === tempo.bpm)
+      );
+      queue.push(...clipQueues[tempo.bpm]);
+    }
+    const pick = queue.shift();
 
     return {
       id: idx + 1,
       correctAnswer: tempo.symbol,
       correctBpm: tempo.bpm,
-      clipIndex,
-      playbackRate,
-      clipAudio: clip.audio,
-      clipStartTime: clip.startTime,
-      clipVolume: clip.volume,
-      clipLabel: clip.label,
+      clipIndex: pick.index,
+      playbackRate: 1.0,
+      clipAudio: pick.clip.audio,
+      clipStartTime: pick.clip.startTime,
+      clipVolume: pick.clip.volume,
+      clipLabel: pick.clip.label,
     };
   });
 };
