@@ -251,176 +251,44 @@ const StickerItem = ({ item, isSelected, onClick, onDragStart }) => {
 };
 
 // ============================================================================
-// ACCORDION SECTION
+// TAB ICON BUTTON
 // ============================================================================
 
-const AccordionSection = ({ 
-  tabId, 
-  icon, 
-  title, 
-  data, 
-  isOpen, 
-  onToggle, 
-  selectedSticker, 
-  onSelect,
-  onDragStart
-}) => {
-  const getCurrentSelection = () => {
-    for (const category of Object.values(data)) {
-      const found = category.items.find(item => {
-        if (item.id && selectedSticker?.id) {
-          return item.id === selectedSticker.id;
-        }
-        if (item.symbol && selectedSticker?.symbol) {
-          return item.symbol === selectedSticker.symbol && item.name === selectedSticker.name;
-        }
-        return item.name === selectedSticker?.name;
-      });
-      if (found) return found;
-    }
-    return null;
-  };
-
-  const current = getCurrentSelection();
-
-  const renderPreview = (item) => {
-    if (item.render === 'svg' && item.id) {
-      const IconComponent = INSTRUMENT_ICONS[item.id];
-      if (IconComponent) {
-        return <IconComponent size={20} />;
-      }
-    }
-    if (item.render === 'form-label') {
-      return (
-        <div style={{
-          width: 20,
-          height: 20,
-          borderRadius: '50%',
-          backgroundColor: '#3b82f6',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#fff' }}>{item.symbol}</span>
-        </div>
-      );
-    }
-    return <span>{item.symbol}</span>;
-  };
-
-  return (
-    <div style={{
-      borderRadius: '12px',
-      overflow: 'hidden',
-      backgroundColor: '#ffffff',
-      border: '1px solid #e2e8f0',
-      boxShadow: isOpen ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
-      flexShrink: isOpen ? 1 : 0,
-      flexGrow: isOpen ? 1 : 0,
-      minHeight: 0,
+const TabButton = ({ tab, isActive, onClick }) => (
+  <button
+    onClick={onClick}
+    title={tab.name}
+    style={{
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '2px',
+      padding: '6px 2px',
+      flex: 1,
+      border: 'none',
+      borderBottom: isActive ? '2px solid #3b82f6' : '2px solid transparent',
+      backgroundColor: isActive ? '#eff6ff' : 'transparent',
+      cursor: 'pointer',
+      borderRadius: '6px 6px 0 0',
+      transition: 'all 0.15s ease',
+      minWidth: 0,
+    }}
+  >
+    <span style={{ fontSize: '18px', lineHeight: 1 }}>{tab.icon}</span>
+    <span style={{
+      fontSize: '9px',
+      fontWeight: isActive ? '800' : '600',
+      color: isActive ? '#1d4ed8' : '#64748b',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      maxWidth: '100%',
     }}>
-      <button
-        onClick={onToggle}
-        style={{
-          width: '100%',
-          padding: '8px 12px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          backgroundColor: isOpen ? '#f1f5f9' : '#ffffff',
-          border: 'none',
-          borderBottom: isOpen ? '1px solid #e2e8f0' : 'none',
-          cursor: 'pointer',
-          flexShrink: 0
-        }}
-      >
-        <span style={{
-          fontSize: '13px',
-          fontWeight: '700',
-          color: '#1e293b',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px'
-        }}>
-          <span style={{ fontSize: '16px' }}>{icon}</span>
-          {title}
-        </span>
-
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          {current && !isOpen && (
-            <span style={{
-              fontSize: '12px',
-              color: '#64748b',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
-            }}>
-              {renderPreview(current)}
-            </span>
-          )}
-          <span style={{
-            fontSize: '12px',
-            color: '#94a3b8',
-            fontWeight: '600'
-          }}>
-            {isOpen ? '▲' : '▼'}
-          </span>
-        </div>
-      </button>
-
-      {isOpen && (
-        <div style={{
-          padding: '12px',
-          backgroundColor: '#f8fafc',
-          flex: 1,
-          overflowY: 'auto',
-          minHeight: 0
-        }}>
-          {Object.entries(data).map(([categoryKey, category]) => (
-            <div key={categoryKey} style={{ marginBottom: '16px' }}>
-              <div style={{
-                fontSize: '11px',
-                fontWeight: '800',
-                color: '#64748b',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                marginBottom: '10px',
-                paddingLeft: '4px'
-              }}>
-                {category.name}
-              </div>
-
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '8px'
-              }}>
-                {category.items.map((item, index) => (
-                  <StickerItem
-                    key={`${item.symbol}-${item.name}-${index}`}
-                    item={item}
-                    isSelected={
-                      selectedSticker?.symbol === item.symbol &&
-                      selectedSticker?.name === item.name
-                    }
-                    onClick={onSelect}
-                    onDragStart={onDragStart}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+      {tab.name}
+    </span>
+  </button>
+);
 
 // ============================================================================
 // MAIN PANEL
@@ -432,19 +300,21 @@ const StickerPanel = ({
   stickerSize = 56,
   onSizeChange,
   isOpen = true,
-  onDragStart,  // ✅ NEW: callback when drag starts
-  availableTabs = null  // ✅ NEW: array of tab IDs to show (null = show all)
+  onDragStart,
+  availableTabs = null
 }) => {
-  const [openSection, setOpenSection] = useState(null);
+  const [activeTabId, setActiveTabId] = useState(null);
 
   // Filter tabs if availableTabs is provided
   const visibleTabs = availableTabs
     ? STICKER_TABS.filter(tab => availableTabs.includes(tab.id))
     : STICKER_TABS;
 
-  const toggleSection = (sectionId) => {
-    setOpenSection(openSection === sectionId ? null : sectionId);
-  };
+  // Default to first tab
+  const currentTabId = activeTabId && visibleTabs.some(t => t.id === activeTabId)
+    ? activeTabId
+    : visibleTabs[0]?.id;
+  const activeTab = visibleTabs.find(t => t.id === currentTabId);
 
   if (!isOpen) return null;
 
@@ -459,175 +329,83 @@ const StickerPanel = ({
       overflow: 'hidden',
       flexShrink: 0
     }}>
-      {/* Header */}
+      {/* Tab bar — all categories visible at once */}
       <div style={{
-        padding: '14px 16px',
+        display: 'flex',
         borderBottom: '1px solid #e2e8f0',
         backgroundColor: '#ffffff',
-        flexShrink: 0
-      }}>
-        <span style={{
-          fontSize: '16px',
-          fontWeight: '800',
-          color: '#1e293b'
-        }}>
-          🎵 Stickers
-        </span>
-        <div style={{
-          fontSize: '10px',
-          color: '#94a3b8',
-          marginTop: '2px'
-        }}>
-          Click to select • Drag to place
-        </div>
-      </div>
-
-      {/* Sections - flex layout so open section fills remaining space */}
-      <div style={{
-        flex: 1,
-        overflow: 'hidden',
-        padding: '12px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px'
+        flexShrink: 0,
+        padding: '4px 4px 0',
       }}>
         {visibleTabs.map((tab) => (
-          <AccordionSection
+          <TabButton
             key={tab.id}
-            tabId={tab.id}
-            icon={tab.icon}
-            title={tab.name}
-            data={tab.data}
-            isOpen={openSection === tab.id}
-            onToggle={() => toggleSection(tab.id)}
-            selectedSticker={selectedSticker}
-            onSelect={onStickerSelect}
-            onDragStart={onDragStart}
+            tab={tab}
+            isActive={currentTabId === tab.id}
+            onClick={() => setActiveTabId(tab.id)}
           />
         ))}
       </div>
 
-      {/* Size Control */}
+      {/* Items grid for active tab */}
       <div style={{
-        padding: '14px 16px',
-        backgroundColor: '#ffffff',
-        borderTop: '1px solid #e2e8f0',
-        flexShrink: 0
+        flex: 1,
+        overflowY: 'auto',
+        padding: '12px',
+        minHeight: 0,
       }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          <span style={{
-            fontSize: '12px',
-            fontWeight: '700',
-            color: '#64748b'
-          }}>
-            SIZE
-          </span>
-          
-          <div style={{
-            flex: 1,
-            position: 'relative',
-            height: '24px',
-            display: 'flex',
-            alignItems: 'center'
-          }}>
+        {activeTab && Object.entries(activeTab.data).map(([categoryKey, category]) => (
+          <div key={categoryKey} style={{ marginBottom: '16px' }}>
             <div style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              height: '6px',
-              backgroundColor: '#cbd5e1',
-              borderRadius: '3px'
-            }} />
-            
-            <div style={{
-              position: 'absolute',
-              left: 0,
-              width: `${((stickerSize - 32) / (96 - 32)) * 100}%`,
-              height: '6px',
-              backgroundColor: '#3b82f6',
-              borderRadius: '3px'
-            }} />
-            
-            <input
-              type="range"
-              min="32"
-              max="96"
-              value={stickerSize}
-              onChange={(e) => onSizeChange?.(parseInt(e.target.value))}
-              style={{
-                position: 'absolute',
-                width: '100%',
-                height: '24px',
-                opacity: 0,
-                cursor: 'pointer',
-                zIndex: 2
-              }}
-            />
-            
-            <div style={{
-              position: 'absolute',
-              left: `calc(${((stickerSize - 32) / (96 - 32)) * 100}% - 8px)`,
-              width: '16px',
-              height: '16px',
-              backgroundColor: '#3b82f6',
-              borderRadius: '50%',
-              border: '2px solid #ffffff',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-              pointerEvents: 'none'
-            }} />
-          </div>
-          
-          <div style={{
-            width: '48px',
-            height: '48px',
-            backgroundColor: '#f1f5f9',
-            borderRadius: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: '2px solid #e2e8f0'
-          }}>
-            {selectedSticker?.render === 'svg' && selectedSticker?.id ? (
-              (() => {
-                const IconComponent = INSTRUMENT_ICONS[selectedSticker.id];
-                return IconComponent ? <IconComponent size={32} /> : <span>🎵</span>;
-              })()
-            ) : selectedSticker?.render === 'form-label' ? (
-              <div style={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                backgroundColor: '#3b82f6',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff' }}>
-                  {selectedSticker.symbol}
-                </span>
-              </div>
-            ) : (
-              <span style={{ fontSize: `${Math.min(stickerSize * 0.5, 32)}px` }}>
-                {selectedSticker?.symbol || '🎵'}
-              </span>
-            )}
-          </div>
-        </div>
+              fontSize: '11px',
+              fontWeight: '800',
+              color: '#64748b',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              marginBottom: '10px',
+              paddingLeft: '4px'
+            }}>
+              {category.name}
+            </div>
 
-        {selectedSticker && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '8px'
+            }}>
+              {category.items.map((item, index) => (
+                <StickerItem
+                  key={`${item.symbol || item.id}-${item.name}-${index}`}
+                  item={item}
+                  isSelected={
+                    (item.id && selectedSticker?.id && item.id === selectedSticker.id) ||
+                    (item.symbol && selectedSticker?.symbol === item.symbol && selectedSticker?.name === item.name)
+                  }
+                  onClick={onStickerSelect}
+                  onDragStart={onDragStart}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Selected sticker info */}
+      {selectedSticker && (
+        <div style={{
+          padding: '10px 16px',
+          backgroundColor: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          flexShrink: 0,
+          textAlign: 'center',
+        }}>
           <div style={{
-            marginTop: '10px',
-            textAlign: 'center',
-            padding: '8px',
+            padding: '6px',
             backgroundColor: '#dbeafe',
             borderRadius: '8px'
           }}>
             <span style={{
-              fontSize: '14px',
+              fontSize: '13px',
               fontWeight: '700',
               color: '#1e40af'
             }}>
@@ -635,17 +413,17 @@ const StickerPanel = ({
             </span>
             {selectedSticker.meaning && (
               <span style={{
-                fontSize: '12px',
+                fontSize: '11px',
                 color: '#3b82f6',
                 display: 'block',
-                marginTop: '2px'
+                marginTop: '1px'
               }}>
                 {selectedSticker.meaning}
               </span>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

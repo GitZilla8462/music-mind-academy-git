@@ -5,10 +5,17 @@
 import React, { useState, useEffect } from 'react';
 
 const ErrorLogger = () => {
+  // Don't render inside preview iframes (teacher's mini student preview)
+  const isPreview = typeof window !== 'undefined' && (
+    new URLSearchParams(window.location.search).get('passive') === 'true' ||
+    new URLSearchParams(window.location.search).get('preview') === 'true'
+  );
+
   const [logs, setLogs] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    if (isPreview) return;
     // Capture console.error
     const originalError = console.error;
     console.error = function(...args) {
@@ -62,7 +69,7 @@ const ErrorLogger = () => {
     }
   }, [logs]);
 
-  if (logs.length === 0) return null;
+  if (isPreview || logs.length === 0) return null;
 
   // Get session code from URL if available
   const urlParams = new URLSearchParams(window.location.search);

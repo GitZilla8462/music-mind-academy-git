@@ -83,6 +83,22 @@ import StringsDynamicsLabActivity from '../activities/strings-dynamics-lab/Strin
 import TempoCharadesStudentView from '../activities/tempo-charades/TempoCharadesStudentView';
 import TempoCharadesSmallGroup from '../activities/tempo-charades/TempoCharadesSmallGroup';
 
+// ✅ ADDED: Section Spotter for Lesson 4 (Form & Structure)
+import SectionSpotterStudentView from '../activities/section-spotter/SectionSpotterStudentView';
+
+// ✅ ADDED: Rondo Form Game for Lesson 3 (Brass & Form)
+import RondoFormGameStudent from '../activities/rondo-form-game/RondoFormGameStudent';
+
+// ✅ ADDED: Listening Journey for Lesson 4 (Form & Structure)
+import ListeningJourney from '../activities/listening-journey';
+
+// ✅ ADDED: Name That Element review game (Listening Lab Lesson 4 - Review)
+import NameThatElementStudentView from '../activities/name-that-element/NameThatElementStudentView';
+
+// ✅ ADDED: Capstone activities (Listening Lab Lesson 4)
+import CapstonePieceSelection from '../activities/capstone/CapstonePieceSelection';
+import CapstonePlanning from '../activities/capstone/CapstonePlanning';
+
 const ActivityRenderer = ({
   activity,
   onComplete,
@@ -660,6 +676,154 @@ const ActivityRenderer = ({
       return (
         <TwoStarsAndAWishActivity
           key={`listening-lab-lesson2-reflection-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Form Listening Map (Listening Lab Lesson 3)
+    // Uses the existing ListeningMapActivity with Mouret Rondeau audio and form config
+    case 'form-listening-map':
+      return (
+        <ListeningMapActivity
+          key={`form-listening-map-${activity.id}`}
+          activityId="form-listening-map"
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+          config={{
+            audioFile: '/audio/classical/mouret-rondeau.mp3',
+            totalDuration: 120,
+            numRows: 7,
+            secondsPerRow: 17,
+            rows: [
+              { id: 'row1', name: 'A (0:00 - 0:17)', color: '#3b82f6', emoji: '🔵' },
+              { id: 'row2', name: 'B (0:17 - 0:33)', color: '#ef4444', emoji: '🔴' },
+              { id: 'row3', name: 'A (0:33 - 0:50)', color: '#3b82f6', emoji: '🔵' },
+              { id: 'row4', name: 'C (0:50 - 1:08)', color: '#10b981', emoji: '🟢' },
+              { id: 'row5', name: 'A (1:08 - 1:25)', color: '#3b82f6', emoji: '🔵' },
+              { id: 'row6', name: 'D (1:25 - 1:42)', color: '#f59e0b', emoji: '🟡' },
+              { id: 'row7', name: 'A (1:42 - 2:00)', color: '#3b82f6', emoji: '🔵' }
+            ],
+            credits: {
+              title: 'Fanfare-Rondeau',
+              composer: 'Jean-Joseph Mouret',
+              performer: 'Public Domain Recording',
+              license: 'Public Domain',
+              source: 'IMSLP / Musopen'
+            },
+            availableTabs: ['instruments', 'dynamics', 'tempo', 'form', 'emojis']
+          }}
+        />
+      );
+
+    // ✅ ADDED: Listening Lab Lesson 3 Reflection
+    case 'listening-lab-lesson3-reflection':
+      return (
+        <TwoStarsAndAWishActivity
+          key={`listening-lab-lesson3-reflection-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Rondo Form Game for Lesson 3 (Brass & Form)
+    case 'rondo-form-game':
+      return (
+        <RondoFormGameStudent
+          key={`rondo-form-game-student-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Section Spotter for Lessons 3 & 4 (Form)
+    case 'section-spotter':
+      return (
+        <SectionSpotterStudentView
+          key={`section-spotter-student-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Listening Journey for Lesson 4 (Form & Structure)
+    case 'listening-journey':
+      return (
+        <ListeningJourney
+          key={`listening-journey-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+          pieceConfig={activity.pieceConfig || null}
+        />
+      );
+
+    // ✅ ADDED: Listening Lab Lesson 4 Reflection
+    case 'listening-lab-lesson4-reflection':
+      return (
+        <TwoStarsAndAWishActivity
+          key={`listening-lab-lesson4-reflection-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Name That Element review game (Listening Lab Lesson 4 - Review)
+    // Students see answer buttons synced to teacher's game via Firebase
+    case 'name-that-element':
+      return (
+        <NameThatElementStudentView
+          key={`name-that-element-student-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Capstone Piece Selection (Listening Lab Lesson 4)
+    // Students browse 5 pieces, listen to previews, and select one
+    case 'capstone-piece-selection':
+      return (
+        <CapstonePieceSelection
+          key={`capstone-piece-selection-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Capstone Planning (Listening Lab Lesson 4)
+    // Students sketch a plan for their Listening Journey sections
+    case 'capstone-planning':
+      return (
+        <CapstonePlanning
+          key={`capstone-planning-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Gallery Circle (Listening Lab Lesson 5)
+    // Students watch shared journeys — mostly teacher-driven from main screen
+    case 'gallery-circle':
+      return (
+        <div
+          key={`gallery-circle-${activity.id}`}
+          className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white p-8"
+        >
+          <div className="text-8xl mb-6">🎪</div>
+          <h1 className="text-5xl font-bold mb-4">Gallery Circle</h1>
+          <p className="text-2xl text-white/70 mb-2">Watch the main screen</p>
+          <p className="text-xl text-white/50">Your classmates are sharing their Listening Journeys!</p>
+        </div>
+      );
+
+    // ✅ ADDED: Listening Lab Lesson 5 Reflection / Exit Ticket
+    case 'listening-lab-lesson5-reflection':
+      return (
+        <TwoStarsAndAWishActivity
+          key={`listening-lab-lesson5-reflection-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}

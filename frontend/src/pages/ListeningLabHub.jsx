@@ -215,84 +215,85 @@ const ListeningLabHub = () => {
         { title: 'Reflection', description: 'What tempo terms will you remember?', time: 3, activityType: 'listening-lab-reflection' }
       ]
     },
-    // Lesson 3: Thick or Thin
+    // Lesson 3: Brass, Percussion & Form
     {
       id: 'listening-lab-lesson3',
       number: 3,
-      icon: '🥪',
-      title: 'Thick or Thin',
-      concept: 'Texture & Layers',
-      essentialQuestion: 'How does the number of musical layers change what we hear and feel?',
+      icon: '🎺',
+      title: 'Brass, Percussion & Form',
+      concept: 'Instrument Families & Rondo',
+      essentialQuestion: 'How does recognizing patterns and sections help us understand music?',
       color: 'from-emerald-500 to-green-600',
       route: '/lessons/listening-lab/lesson3',
-      available: false,
+      available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students learn about musical texture (monophonic, homophonic, polyphonic), count layers, and track texture changes in a Listening Map.',
+      inThisLesson: 'Students meet the brass and percussion families, learn about musical form (how sections are organized with letters), and discover rondo form (ABACADA) in Mouret\'s Fanfare-Rondeau from 1729.',
       studentsWill: [
-        'Identify texture types (monophonic, homophonic, polyphonic)',
-        'Count musical layers and recognize solo vs. tutti',
-        'Create a Listening Map tracking texture changes'
+        'Identify brass instruments by sight and sound (trumpet, French horn, trombone, tuba)',
+        'Identify percussion instruments and distinguish pitched from unpitched',
+        'Label sections of music using letters (A, B, C, D) and recognize rondo form',
+        'Create a Form Listening Map tracking section changes in the Mouret Rondeau'
       ],
       activities: [
-        { title: 'Introduction', description: 'What is musical texture?', time: 4 },
-        { title: 'Texture Types', description: 'Monophonic, homophonic, polyphonic', time: 6 },
-        { title: 'Solo vs. Tutti', description: 'One player vs. everyone together', time: 3 },
-        { title: 'Thick or Thin Challenge', description: 'Class game: Identify texture and count layers!', time: 10, activityType: 'texture-game' },
-        { title: 'Listening Map #3', description: 'Track texture changes and layer entries', time: 15, activityType: 'listening-map-texture' },
-        { title: 'Reflection', description: 'What texture type did you hear most?', time: 5, activityType: 'listening-lab-reflection' }
+        { title: 'Hook: Have You Heard This?', description: 'Play the fanfare — it\'s almost 300 years old!', time: 2 },
+        { title: 'Meet the Brass', description: 'Trumpet, French horn, trombone, tuba', time: 4 },
+        { title: 'Meet the Percussion', description: 'Timpani, snare, bass drum, cymbals', time: 3 },
+        { title: 'What is Form?', description: 'Sections, letters, and the rondo pattern', time: 4 },
+        { title: 'Section Spotter', description: 'Class game: Identify A, B, C, D sections!', time: 8, activityType: 'section-spotter' },
+        { title: 'Form Listening Map', description: 'Map the ABACADA form with color-coding', time: 10, activityType: 'form-listening-map' },
+        { title: 'Capstone Preview', description: 'Preview 5 pieces for next lesson', time: 3 },
+        { title: 'Reflection', description: 'What form patterns did you discover?', time: 2, activityType: 'listening-lab-lesson3-reflection' }
       ]
     },
-    // Lesson 4: Section Spotter
+    // Lesson 4: Review + Start Capstone
     {
       id: 'listening-lab-lesson4',
       number: 4,
-      icon: '🔤',
-      title: 'Section Spotter',
-      concept: 'Form & Structure',
-      essentialQuestion: 'How does recognizing patterns and sections help us understand music?',
+      icon: '🎮',
+      title: 'Review + Start Capstone',
+      concept: 'Putting It All Together',
+      essentialQuestion: 'How do dynamics, tempo, and form work together to create meaning in music?',
       color: 'from-orange-500 to-amber-600',
       route: '/lessons/listening-lab/lesson4',
-      available: false,
+      available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students learn to identify musical sections (A, B) and common forms (ABA, binary, rondo), then map the structure of a piece.',
+      inThisLesson: 'Students play "Name That Element" to review dynamics, tempo, and form, then choose a classical masterwork and begin building their capstone Listening Journey.',
       studentsWill: [
-        'Identify A and B sections in music',
-        'Recognize common forms (ABA, binary, rondo)',
-        'Create a Listening Map showing musical form'
+        'Review dynamics, tempo, and form concepts from Lessons 1-3',
+        'Select a capstone piece and identify its key musical features',
+        'Plan and begin building a Listening Journey that shows dynamics, tempo, and form'
       ],
       activities: [
-        { title: 'Introduction', description: 'What is musical form?', time: 3 },
-        { title: 'A and B Sections', description: 'How sections repeat, contrast, and return', time: 5 },
-        { title: 'Common Forms', description: 'Binary, ternary, rondo explained', time: 5 },
-        { title: 'Section Spotter Challenge', description: 'Class game: Identify the form!', time: 12, activityType: 'section-spotter-game' },
-        { title: 'Listening Map #4', description: 'Map the form of Turkish March', time: 15, activityType: 'listening-map-form' },
-        { title: 'Reflection', description: 'What form patterns did you discover?', time: 5, activityType: 'listening-lab-reflection' }
+        { title: 'Name That Element', description: 'Rapid-fire review: dynamics, tempo, or form?', time: 8, activityType: 'name-that-element' },
+        { title: 'Capstone Introduction', description: 'See the Listening Journey project for the first time', time: 3 },
+        { title: 'Pick Your Piece', description: 'Choose from 5 classical masterworks', time: 5, activityType: 'capstone-piece-selection' },
+        { title: 'Plan Your Journey', description: 'Map out sections, dynamics, and tempo', time: 5, activityType: 'capstone-planning' },
+        { title: 'Build Your Journey', description: 'Start creating your Listening Journey!', time: 15, activityType: 'listening-journey' }
       ]
     },
-    // Lesson 5: The Full Picture
+    // Lesson 5: Work Time + Gallery Circle
     {
       id: 'listening-lab-lesson5',
       number: 5,
-      icon: '🎓',
-      title: 'The Full Picture',
-      concept: 'Putting It All Together',
-      essentialQuestion: 'How do composers combine musical elements to create meaning and emotion?',
+      icon: '🎪',
+      title: 'Work Time + Gallery Circle',
+      concept: 'Finish & Share',
+      essentialQuestion: 'How do dynamics, tempo, and form work together to create meaning in music?',
       color: 'from-pink-500 to-rose-600',
       route: '/lessons/listening-lab/lesson5',
-      available: false,
+      available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students apply all four skills (timbre, dynamics/tempo, texture, form) to analyze a complete piece and create a comprehensive Listening Map.',
+      inThisLesson: 'Students finish building their Listening Journey, share their work in a Gallery Circle, and complete a unit reflection exit ticket.',
       studentsWill: [
-        'Apply all listening skills to a single piece',
-        'Create a comprehensive Listening Map covering all elements',
-        'Reflect on how elements work together to create meaning'
+        'Finish building a Listening Journey that demonstrates dynamics, tempo, and form',
+        'Share your journey with classmates and explain your musical choices',
+        'Reflect on what you learned about listening to music across the unit'
       ],
       activities: [
-        { title: 'Quick Review', description: 'Rapid-fire review of all four elements', time: 5 },
-        { title: 'Ultimate Music Detective', description: 'Mixed questions from all lessons!', time: 12, activityType: 'ultimate-music-detective' },
-        { title: 'Select Your Piece', description: 'Choose from teacher-provided options', time: 2 },
-        { title: 'Listening Map #5', description: 'Comprehensive analysis - all elements', time: 20, activityType: 'listening-map-comprehensive' },
-        { title: 'Written Reflection', description: 'How do elements create meaning?', time: 8, activityType: 'listening-lab-final-reflection' }
+        { title: 'Quick Check-In', description: 'Where did you leave off? What do you need?', time: 2 },
+        { title: 'Work Time', description: 'Finish and polish your Listening Journey', time: 20, activityType: 'listening-journey' },
+        { title: 'Gallery Circle', description: 'Share journeys with the class', time: 9, activityType: 'gallery-circle' },
+        { title: 'Exit Ticket', description: 'Unit reflection — what did you learn?', time: 5, activityType: 'listening-lab-lesson5-reflection' }
       ]
     }
   ];

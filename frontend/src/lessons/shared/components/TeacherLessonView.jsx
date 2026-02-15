@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   ChevronDown,
+  ChevronUp,
   ChevronRight,
   ChevronLeft,
   Check,
@@ -458,6 +459,14 @@ const PresentationContent = ({
   const [TempoShowcase, setTempoShowcase] = useState(null);
   const [TempoCharadesTeacherGame, setTempoCharadesTeacherGame] = useState(null);
   const [TempoCharadesResults, setTempoCharadesResults] = useState(null);
+  const [SectionSpotterTeacherGame, setSectionSpotterTeacherGame] = useState(null);
+  const [SectionSpotterResults, setSectionSpotterResults] = useState(null);
+  const [BrassFamilyShowcase, setBrassFamilyShowcase] = useState(null);
+  const [PercussionFamilyShowcase, setPercussionFamilyShowcase] = useState(null);
+  const [NameThatElementTeacherGame, setNameThatElementTeacherGame] = useState(null);
+  const [CapstonePieceSelectionTeacher, setCapstonePieceSelectionTeacher] = useState(null);
+  const [RondoFormGameTeacher, setRondoFormGameTeacher] = useState(null);
+  const [RondoFormGameResults, setRondoFormGameResults] = useState(null);
 
 
   // Get join URL based on site (defined early for use in join-code screen)
@@ -564,6 +573,46 @@ const PresentationContent = ({
     import('../../shared/activities/tempo-charades/TempoCharadesResults')
       .then(module => setTempoCharadesResults(() => module.default))
       .catch(() => console.log('Tempo Charades Results not available'));
+
+    // Unit 2 Listening Lab Lesson 4: Section Spotter Teacher Game
+    import('../../shared/activities/section-spotter/SectionSpotterTeacherGame')
+      .then(module => setSectionSpotterTeacherGame(() => module.default))
+      .catch(() => console.log('Section Spotter Teacher Game not available'));
+
+    // Unit 2 Listening Lab Lesson 4: Section Spotter Results
+    import('../../shared/activities/section-spotter/SectionSpotterResults')
+      .then(module => setSectionSpotterResults(() => module.default))
+      .catch(() => console.log('Section Spotter Results not available'));
+
+    // Unit 2 Listening Lab Lesson 3: Rondo Form Game
+    import('../../shared/activities/rondo-form-game/RondoFormGameTeacher')
+      .then(module => setRondoFormGameTeacher(() => module.default))
+      .catch(() => console.log('Rondo Form Game Teacher not available'));
+
+    // Unit 2 Listening Lab Lesson 3: Rondo Form Game Results
+    import('../../shared/activities/rondo-form-game/RondoFormGameResults')
+      .then(module => setRondoFormGameResults(() => module.default))
+      .catch(() => console.log('Rondo Form Game Results not available'));
+
+    // Unit 2 Listening Lab Lesson 3: Brass Family Showcase
+    import('../../listening-lab/lesson3/components/BrassFamilyShowcase')
+      .then(module => setBrassFamilyShowcase(() => module.default))
+      .catch(() => console.log('Brass Family Showcase not available'));
+
+    // Unit 2 Listening Lab Lesson 3: Percussion Family Showcase
+    import('../../listening-lab/lesson3/components/PercussionFamilyShowcase')
+      .then(module => setPercussionFamilyShowcase(() => module.default))
+      .catch(() => console.log('Percussion Family Showcase not available'));
+
+    // Unit 2 Listening Lab Lesson 4: Name That Element Teacher Game
+    import('../../shared/activities/name-that-element/NameThatElementTeacherGame')
+      .then(module => setNameThatElementTeacherGame(() => module.default))
+      .catch(() => console.log('Name That Element Teacher Game not available'));
+
+    // Unit 2 Listening Lab Lesson 4: Capstone Piece Selection Teacher View
+    import('../../shared/activities/capstone/CapstonePieceSelectionTeacher')
+      .then(module => setCapstonePieceSelectionTeacher(() => module.default))
+      .catch(() => console.log('Capstone Piece Selection Teacher not available'));
   }, []);
 
   // Join Code Screen
@@ -1134,6 +1183,361 @@ const PresentationContent = ({
           <TempoCharadesResults sessionData={sessionData} />
         </div>
       );
+    }
+
+    // Section Spotter Teacher Game (Listening Lab Lessons 3 & 4) - Teacher controls game
+    if (type === 'section-spotter-teacher-game') {
+      if (!SectionSpotterTeacherGame) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-900 via-amber-900 to-yellow-900">
+            <div className="text-white text-2xl">Loading Section Spotter...</div>
+          </div>
+        );
+      }
+
+      const ssPieceId = currentStageData?.presentationView?.pieceId || 'fur-elise';
+
+      return (
+        <div className="absolute inset-0">
+          <SectionSpotterTeacherGame sessionData={sessionData} onComplete={goToNextStage} pieceId={ssPieceId} />
+        </div>
+      );
+    }
+
+    // Section Spotter Results (Listening Lab Lesson 4) - Show leaderboard
+    if (type === 'section-spotter-results') {
+      if (!SectionSpotterResults) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-900 via-amber-900 to-yellow-900">
+            <div className="text-white text-2xl">Loading Results...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <SectionSpotterResults sessionData={sessionData} />
+        </div>
+      );
+    }
+
+    // Rondo Form Game Teacher (Listening Lab Lesson 3) - Guided listening + 3-round game
+    if (type === 'rondo-form-game-teacher') {
+      if (!RondoFormGameTeacher) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-violet-900">
+            <div className="text-white text-2xl">Loading Rondo Form Game...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <RondoFormGameTeacher sessionData={sessionData} onComplete={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Rondo Form Game Results (Listening Lab Lesson 3) - Show leaderboard
+    if (type === 'rondo-form-game-results') {
+      if (!RondoFormGameResults) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-violet-900">
+            <div className="text-white text-2xl">Loading Results...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <RondoFormGameResults sessionData={sessionData} />
+        </div>
+      );
+    }
+
+    // Brass Family Showcase (Listening Lab Lesson 3) - Auto-sequence through brass instruments
+    if (type === 'brass-showcase') {
+      if (!BrassFamilyShowcase) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-amber-900 via-orange-900 to-red-900">
+            <div className="text-white text-2xl">Loading Brass Showcase...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <BrassFamilyShowcase onAdvance={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Percussion Family Showcase (Listening Lab Lesson 3) - Auto-sequence through percussion instruments
+    if (type === 'percussion-showcase') {
+      if (!PercussionFamilyShowcase) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900">
+            <div className="text-white text-2xl">Loading Percussion Showcase...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <PercussionFamilyShowcase onAdvance={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Form Answer Key (Listening Lab Lesson 3) - Mouret Rondeau ABACADA answer key
+    if (type === 'form-answer-key') {
+      const FormAnswerKeySlide = () => {
+        const mouretSections = [
+          { label: 'A', color: '#3B82F6', name: 'Fanfare', instruments: 'Trumpets + Timpani', dynamics: 'Forte' },
+          { label: 'B', color: '#EF4444', name: 'Episode 1', instruments: 'Strings + Oboes', dynamics: 'Mezzo-piano' },
+          { label: 'A', color: '#3B82F6', name: 'Fanfare Returns', instruments: 'Trumpets + Timpani', dynamics: 'Forte' },
+          { label: 'C', color: '#10B981', name: 'Episode 2', instruments: 'Strings + Oboes', dynamics: 'Mezzo-piano' },
+          { label: 'A', color: '#3B82F6', name: 'Fanfare Again', instruments: 'Trumpets + Timpani', dynamics: 'Forte' },
+          { label: 'D', color: '#F59E0B', name: 'Episode 3', instruments: 'Strings + Oboes', dynamics: 'Mezzo-piano' },
+          { label: 'A', color: '#3B82F6', name: 'Final Fanfare', instruments: 'Full Ensemble', dynamics: 'Fortissimo' },
+        ];
+
+        return (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
+            <h2 className="text-5xl font-black text-white mb-2">Answer Key</h2>
+            <p className="text-2xl text-gray-400 mb-6">Fanfare-Rondeau — Mouret</p>
+
+            {/* Form pattern */}
+            <div className="flex gap-2 mb-6">
+              {mouretSections.map((s, idx) => (
+                <div
+                  key={idx}
+                  className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl font-black text-white shadow-lg"
+                  style={{ backgroundColor: s.color }}
+                >
+                  {s.label}
+                </div>
+              ))}
+            </div>
+
+            <p className="text-3xl font-bold text-amber-300 mb-6">RONDO — ABACADA</p>
+
+            {/* Section details */}
+            <div className="grid grid-cols-7 gap-2 max-w-5xl w-full">
+              {mouretSections.map((s, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-xl p-3 text-center text-white"
+                  style={{ backgroundColor: `${s.color}30`, borderColor: s.color, borderWidth: '2px' }}
+                >
+                  <div className="text-xl font-black mb-1" style={{ color: s.color }}>{s.label}</div>
+                  <div className="text-xs font-bold mb-1">{s.name}</div>
+                  <div className="text-xs text-white/70">{s.instruments}</div>
+                  <div className="text-xs text-white/50">{s.dynamics}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      };
+
+      return <FormAnswerKeySlide />;
+    }
+
+    // Form Listening Map Directions (Listening Lab Lesson 3) - shown on teacher screen while students work
+    if (type === 'form-listening-map-directions') {
+      const FormListeningMapDirectionsSlide = () => (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-blue-900 to-slate-900 p-8">
+          <h2 className="text-5xl font-black text-white mb-3">Form Listening Map</h2>
+          <p className="text-2xl text-blue-300 mb-8">Mouret: Fanfare-Rondeau</p>
+
+          <div className="grid grid-cols-2 gap-6 max-w-3xl w-full mb-8">
+            <div className="bg-white/10 rounded-2xl p-6">
+              <h3 className="text-2xl font-bold text-white mb-4">Color Code</h3>
+              <div className="space-y-3">
+                {[
+                  { label: 'A — Fanfare', color: '#3B82F6', emoji: '🔵' },
+                  { label: 'B — Episode 1', color: '#EF4444', emoji: '🔴' },
+                  { label: 'C — Episode 2', color: '#10B981', emoji: '🟢' },
+                  { label: 'D — Episode 3', color: '#F59E0B', emoji: '🟡' },
+                ].map((s) => (
+                  <div key={s.label} className="flex items-center gap-3">
+                    <span className="text-2xl">{s.emoji}</span>
+                    <span className="text-lg font-bold text-white">{s.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-white/10 rounded-2xl p-6">
+              <h3 className="text-2xl font-bold text-white mb-4">What to Mark</h3>
+              <div className="space-y-3 text-lg text-white/90">
+                <p>🔤 Label each section (A, B, C, D)</p>
+                <p>🎺 Mark instruments you hear</p>
+                <p>📢 Note the dynamics (loud/soft)</p>
+                <p>💾 Save when you're done!</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-amber-500/20 rounded-2xl px-6 py-4">
+            <p className="text-xl text-amber-300 font-bold">Students are working on their Chromebooks!</p>
+          </div>
+        </div>
+      );
+
+      return <FormListeningMapDirectionsSlide />;
+    }
+
+    // Rondo Showcase (Listening Lab Lessons 3 & 4) - Interactive rondo form visualization
+    if (type === 'rondo-showcase') {
+      const RondoShowcaseSlide = () => {
+        // Use sections from presentationView config if available, otherwise default to Fur Elise ABACA
+        const sections = currentStageData?.presentationView?.sections || [
+          { label: 'A', color: '#3B82F6', name: 'Main Theme', desc: 'Gentle, famous melody' },
+          { label: 'B', color: '#EF4444', name: 'Contrast', desc: 'Bright, hopeful' },
+          { label: 'A', color: '#3B82F6', name: 'Return', desc: 'Melody comes back' },
+          { label: 'C', color: '#10B981', name: 'New Material', desc: 'Dramatic, stormy' },
+          { label: 'A', color: '#3B82F6', name: 'Final Return', desc: 'Home again' },
+        ];
+        const rondoPieceTitle = currentStageData?.presentationView?.pieceTitle;
+        const hasMany = sections.length > 5;
+        const blockSize = hasMany ? 'w-20 h-20 text-4xl' : 'w-24 h-24 text-5xl';
+
+        // Collect unique episode letters for the description
+        const episodes = [...new Set(sections.filter(s => s.label !== 'A').map(s => s.label))];
+
+        return (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8">
+            <h2 className="text-5xl font-black text-white mb-2">Meet the Rondo</h2>
+            <p className="text-2xl text-gray-400 mb-2">A keeps coming back!</p>
+            {rondoPieceTitle && <p className="text-xl text-amber-400 mb-6">{rondoPieceTitle}</p>}
+            {!rondoPieceTitle && <div className="mb-6" />}
+
+            <div className="flex gap-3 mb-8">
+              {sections.map((s, idx) => (
+                <div key={idx} className="flex flex-col items-center">
+                  <div
+                    className={`${blockSize} rounded-2xl flex items-center justify-center font-black text-white mb-2 shadow-lg`}
+                    style={{ backgroundColor: s.color }}
+                  >
+                    {s.label}
+                  </div>
+                  <div className="text-white font-bold text-sm">{s.name}</div>
+                  <div className="text-gray-400 text-xs max-w-20 text-center">{s.desc}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-white/10 rounded-2xl p-6 max-w-2xl">
+              <p className="text-xl text-white mb-2"><span className="font-bold">Rondo</span> = A section keeps RETURNING between contrasting sections</p>
+              <p className="text-lg text-gray-300">Think of A as the <span className="font-bold text-blue-400">chorus</span> of a song — it comes back again and again!</p>
+              <p className="text-lg text-gray-300 mt-2">{episodes.join(', ')} {episodes.length === 1 ? 'is' : 'are'} like <span className="font-bold text-red-400">{episodes.length === 1 ? 'a verse' : 'verses'}</span> — different each time.</p>
+            </div>
+          </div>
+        );
+      };
+
+      return <RondoShowcaseSlide />;
+    }
+
+    // Name That Element Teacher Game (Listening Lab Lesson 4 - Review)
+    if (type === 'name-that-element-teacher-game') {
+      if (!NameThatElementTeacherGame) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900">
+            <div className="text-white text-2xl">Loading Name That Element...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <NameThatElementTeacherGame sessionData={sessionData} onComplete={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Journey Demo (Listening Lab Lesson 4 - Capstone Introduction)
+    if (type === 'journey-demo') {
+      const JourneyDemoSlide = () => (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 p-8">
+          <div className="text-8xl mb-6">🎬</div>
+          <h1 className="text-6xl font-black text-white mb-4">Listening Journey Demo</h1>
+          <p className="text-2xl text-white/70 mb-8">Watch what the finished project looks like!</p>
+          <div className="bg-white/10 backdrop-blur rounded-2xl p-8 max-w-3xl text-center">
+            <p className="text-xl text-white/90 mb-4">
+              A character walks through different worlds that change with the music:
+            </p>
+            <div className="flex justify-center gap-6 mb-6">
+              <div className="px-6 py-3 bg-red-500/30 rounded-xl text-white font-bold">
+                <span className="text-2xl block">📢</span>
+                Dynamics = Brightness
+              </div>
+              <div className="px-6 py-3 bg-purple-500/30 rounded-xl text-white font-bold">
+                <span className="text-2xl block">⏱️</span>
+                Tempo = Speed
+              </div>
+              <div className="px-6 py-3 bg-blue-500/30 rounded-xl text-white font-bold">
+                <span className="text-2xl block">🔤</span>
+                Form = Scenes
+              </div>
+            </div>
+            <p className="text-lg text-white/60">
+              Teacher: Show your pre-made example now, or describe the tool
+            </p>
+          </div>
+        </div>
+      );
+      return <JourneyDemoSlide />;
+    }
+
+    // Piece Selection Teacher View (Listening Lab Lesson 4)
+    if (type === 'piece-selection-teacher') {
+      if (!CapstonePieceSelectionTeacher) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-amber-900 via-orange-900 to-red-900">
+            <div className="text-white text-2xl">Loading Piece Selection...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <CapstonePieceSelectionTeacher sessionData={sessionData} />
+        </div>
+      );
+    }
+
+    // Gallery Circle Teacher View (Listening Lab Lesson 5)
+    if (type === 'gallery-circle-teacher') {
+      const GalleryCircleTeacherSlide = () => (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 p-8">
+          <div className="text-8xl mb-6">🎪</div>
+          <h1 className="text-7xl font-black text-white mb-4">Gallery Circle</h1>
+          <p className="text-3xl text-white/70 mb-8">Time to share your Listening Journeys!</p>
+          <div className="bg-white/10 backdrop-blur rounded-2xl p-8 max-w-3xl">
+            <div className="space-y-4 text-xl text-white/90">
+              <p className="flex items-center gap-3">
+                <span className="text-3xl">🎬</span>
+                Project student journeys on the big screen
+              </p>
+              <p className="flex items-center gap-3">
+                <span className="text-3xl">🎵</span>
+                Listen to the music while watching the visuals
+              </p>
+              <p className="flex items-center gap-3">
+                <span className="text-3xl">⭐</span>
+                After each: "What musical element did you notice?"
+              </p>
+              <p className="flex items-center gap-3">
+                <span className="text-3xl">👏</span>
+                Celebrate creative choices!
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+      return <GalleryCircleTeacherSlide />;
     }
 
     // Active Listening Audio Player (Listening Lab Lesson 2) - Hungarian Dance No. 5
@@ -1768,9 +2172,9 @@ const MiniPreview = ({ viewMode, sessionCode, classCode, currentStage, currentSt
           </>
         )}
       </div>
-      <div 
+      <div
         className="relative rounded-lg overflow-hidden border-2 border-slate-200 bg-slate-900 cursor-pointer hover:border-blue-400 transition-colors"
-        style={{ height: '120px' }}
+        style={{ height: '80px' }}
         onClick={onSwitch}
         title={`Click to switch to ${viewMode === 'teacher' ? 'Student' : 'Teacher'} View`}
       >
@@ -2506,7 +2910,7 @@ const TeacherLessonView = ({
   const [viewMode, setViewMode] = useState('teacher'); // 'teacher' or 'student'
   const [copied, setCopied] = useState(false);
   const [sessionData, setSessionData] = useState(null);
-  const [timerVisible, setTimerVisible] = useState(false);
+  const [timerVisible, setTimerVisible] = useState(true);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [pendingStageId, setPendingStageId] = useState(null); // Track stage to navigate to after save
   const [isSavingAll, setIsSavingAll] = useState(false);
@@ -2522,7 +2926,7 @@ const TeacherLessonView = ({
 
   // Resizable panel state
   const [sidebarWidth, setSidebarWidth] = useState(280);
-  const [bottomPanelHeight, setBottomPanelHeight] = useState(180);
+  const [bottomPanelHeight, setBottomPanelHeight] = useState(300);
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
   const [isResizingBottom, setIsResizingBottom] = useState(false);
   const resizeStartY = useRef(0);
@@ -2726,8 +3130,8 @@ const TeacherLessonView = ({
     }
   }, [currentStage, config.lessonSections]);
 
-  // Auto-show/hide timer based on stage type
-  // Timer is shown for activities with hasTimer: true, hidden otherwise
+  // Auto-configure timer for timed activities
+  // Timer stays visible by default; auto-expands and sets duration for timed stages
   useEffect(() => {
     if (!currentStageData) return;
 
@@ -2746,10 +3150,8 @@ const TeacherLessonView = ({
         isRunning: false,
         isPaused: false
       }));
-    } else {
-      // Auto-minimize timer when navigating to non-timed stages
-      setTimerVisible(false);
     }
+    // Don't auto-hide — let the user control minimizing
   }, [currentStageData]);
 
   // Keyboard navigation - uses goToNextStage to trigger save modal for composition activities
@@ -3322,6 +3724,96 @@ const TeacherLessonView = ({
               className="border-t border-slate-200 p-3 overflow-y-auto flex-shrink-0"
               style={{ height: `${bottomPanelHeight}px` }}
             >
+              {/* Timer */}
+              {timerVisible ? (
+                <div className={`rounded-xl p-3 mb-3 transition-colors ${
+                  classroomTimer.timeRemaining === 0 && !classroomTimer.isRunning
+                    ? 'bg-red-100 border border-red-300 animate-pulse'
+                    : classroomTimer.isRunning
+                      ? 'bg-blue-50 border border-blue-200'
+                      : 'bg-slate-100 border border-slate-200'
+                }`}>
+                  <div className={`text-2xl font-bold font-mono text-center mb-2 ${
+                    classroomTimer.timeRemaining === 0 && !classroomTimer.isRunning
+                      ? 'text-red-600'
+                      : classroomTimer.isRunning
+                        ? classroomTimer.timeRemaining <= 60
+                          ? 'text-red-500'
+                          : 'text-blue-600'
+                        : 'text-slate-700'
+                  }`}>
+                    {classroomTimer.timeRemaining === 0 ? "TIME'S UP!" : formatClassroomTime(classroomTimer.timeRemaining)}
+                  </div>
+                  <div className="flex items-center justify-center gap-1">
+                    <button
+                      onClick={() => adjustClassroomTime(-1)}
+                      disabled={classroomTimer.presetMinutes <= 1 || classroomTimer.isRunning}
+                      className={`p-1.5 rounded-lg transition-colors ${
+                        classroomTimer.presetMinutes <= 1 || classroomTimer.isRunning
+                          ? 'text-slate-300 cursor-not-allowed'
+                          : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'
+                      }`}
+                      title="-1 min"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <button
+                      onClick={classroomTimer.isRunning ? pauseClassroomTimer : startClassroomTimer}
+                      className={`p-2 rounded-lg transition-colors ${
+                        classroomTimer.isRunning
+                          ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                      }`}
+                      title={classroomTimer.isRunning ? 'Pause' : 'Start'}
+                    >
+                      {classroomTimer.isRunning ? <Pause size={18} /> : <Play size={18} />}
+                    </button>
+                    <button
+                      onClick={() => adjustClassroomTime(1)}
+                      disabled={classroomTimer.presetMinutes >= 60 || classroomTimer.isRunning}
+                      className={`p-1.5 rounded-lg transition-colors ${
+                        classroomTimer.presetMinutes >= 60 || classroomTimer.isRunning
+                          ? 'text-slate-300 cursor-not-allowed'
+                          : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'
+                      }`}
+                      title="+1 min"
+                    >
+                      <Plus size={16} />
+                    </button>
+                    <button
+                      onClick={resetClassroomTimer}
+                      className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-200 transition-colors"
+                      title="Reset"
+                    >
+                      <RotateCcw size={16} />
+                    </button>
+                    <button
+                      onClick={toggleMute}
+                      className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-200 transition-colors"
+                      title={isMuted ? 'Unmute timer sound' : 'Mute timer sound'}
+                    >
+                      {isMuted ? '🔇' : '🔔'}
+                    </button>
+                    <button
+                      onClick={() => setTimerVisible(false)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors"
+                      title="Minimize timer"
+                    >
+                      <ChevronUp size={16} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setTimerVisible(true)}
+                  className="w-full flex items-center justify-center gap-2 py-1.5 mb-3 rounded-lg bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors text-sm font-medium"
+                >
+                  <Clock size={14} />
+                  <span>Timer</span>
+                  <ChevronDown size={14} />
+                </button>
+              )}
+
               {/* Teacher/Student View Toggle */}
               <div className="flex bg-slate-100 rounded-lg p-1 mb-3">
                 <button
@@ -3451,109 +3943,7 @@ const TeacherLessonView = ({
             </div>
           )}
 
-          {/* Floating Timer - Bottom Right (2x size) */}
-          {timerVisible && (
-            <div className={`absolute bottom-4 right-4 z-50 backdrop-blur-sm rounded-2xl shadow-2xl p-4 min-w-[180px] transition-colors ${
-              classroomTimer.timeRemaining === 0 && !classroomTimer.isRunning
-                ? 'bg-red-600 border-2 border-red-400 animate-pulse'
-                : 'bg-gray-900/95 border border-gray-700'
-            }`}>
-              {/* Timer Display */}
-              <div className={`text-4xl font-bold font-mono text-center mb-2 ${
-                classroomTimer.timeRemaining === 0 && !classroomTimer.isRunning
-                  ? 'text-white'
-                  : classroomTimer.isRunning
-                    ? classroomTimer.timeRemaining <= 60
-                      ? 'text-red-400'
-                      : 'text-white'
-                    : 'text-gray-300'
-              }`}>
-                {classroomTimer.timeRemaining === 0 ? "TIME'S UP!" : formatClassroomTime(classroomTimer.timeRemaining)}
-              </div>
-
-              {/* Controls Row */}
-              <div className="flex items-center justify-center gap-1">
-                {/* Minus 1 min */}
-                <button
-                  onClick={() => adjustClassroomTime(-1)}
-                  disabled={classroomTimer.presetMinutes <= 1 || classroomTimer.isRunning}
-                  className={`p-2 rounded-lg transition-colors ${
-                    classroomTimer.presetMinutes <= 1 || classroomTimer.isRunning
-                      ? 'text-gray-600 cursor-not-allowed'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                  }`}
-                  title="-1 min"
-                >
-                  <Minus size={20} />
-                </button>
-
-                {/* Play/Pause */}
-                <button
-                  onClick={classroomTimer.isRunning ? pauseClassroomTimer : startClassroomTimer}
-                  className={`p-3 rounded-lg transition-colors ${
-                    classroomTimer.isRunning
-                      ? 'bg-amber-500 hover:bg-amber-600 text-white'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  }`}
-                  title={classroomTimer.isRunning ? 'Pause' : 'Start'}
-                >
-                  {classroomTimer.isRunning ? <Pause size={24} /> : <Play size={24} />}
-                </button>
-
-                {/* Plus 1 min */}
-                <button
-                  onClick={() => adjustClassroomTime(1)}
-                  disabled={classroomTimer.presetMinutes >= 60 || classroomTimer.isRunning}
-                  className={`p-2 rounded-lg transition-colors ${
-                    classroomTimer.presetMinutes >= 60 || classroomTimer.isRunning
-                      ? 'text-gray-600 cursor-not-allowed'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                  }`}
-                  title="+1 min"
-                >
-                  <Plus size={20} />
-                </button>
-
-                {/* Reset */}
-                <button
-                  onClick={resetClassroomTimer}
-                  className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
-                  title="Reset"
-                >
-                  <RotateCcw size={20} />
-                </button>
-
-                {/* Mute/Unmute Sound */}
-                <button
-                  onClick={toggleMute}
-                  className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
-                  title={isMuted ? 'Unmute timer sound' : 'Mute timer sound'}
-                >
-                  {isMuted ? '🔇' : '🔔'}
-                </button>
-
-                {/* Minimize */}
-                <button
-                  onClick={() => setTimerVisible(false)}
-                  className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
-                  title="Minimize timer"
-                >
-                  <Minimize2 size={20} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Floating Timer Toggle Button - when timer is hidden */}
-          {!timerVisible && (
-            <button
-              onClick={() => setTimerVisible(true)}
-              className="absolute bottom-4 right-4 z-50 p-2 bg-gray-800/90 hover:bg-gray-700 text-gray-400 hover:text-white rounded-lg shadow-lg border border-gray-700 transition-colors"
-              title="Show Timer"
-            >
-              <Clock size={20} />
-            </button>
-          )}
+          {/* Timer removed from here — now in sidebar above teacher/student toggle */}
         </div>
       </div>
 

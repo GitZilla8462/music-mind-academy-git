@@ -98,6 +98,9 @@ const FMLesson1 = React.lazy(() => import('./lessons/film-music/lesson1/Lesson1'
 // Listening Lab Unit Lessons (Unit 2 - Elements of Music)
 const ListeningLabLesson1 = React.lazy(() => import('./lessons/listening-lab/lesson1/Lesson1'));
 const ListeningLabLesson2 = React.lazy(() => import('./lessons/listening-lab/lesson2/Lesson2'));
+const ListeningLabLesson3 = React.lazy(() => import('./lessons/listening-lab/lesson3/Lesson3'));
+const ListeningLabLesson4 = React.lazy(() => import('./lessons/listening-lab/lesson4/Lesson4'));
+const ListeningLabLesson5 = React.lazy(() => import('./lessons/listening-lab/lesson5/Lesson5'));
 
 // Lesson plan PDFs
 const LessonPlanPDF = React.lazy(() => import('./lessons/film-music-project/lesson1/LessonPlanPDF'));
@@ -400,6 +403,9 @@ const AppContent = () => {
         {/* Listening Lab Lessons (Unit 2) */}
         <Route path="/lessons/listening-lab/lesson1" element={<ListeningLabLesson1 />} />
         <Route path="/lessons/listening-lab/lesson2" element={<ListeningLabLesson2 />} />
+        <Route path="/lessons/listening-lab/lesson3" element={<ListeningLabLesson3 />} />
+        <Route path="/lessons/listening-lab/lesson4" element={<ListeningLabLesson4 />} />
+        <Route path="/lessons/listening-lab/lesson5" element={<ListeningLabLesson5 />} />
 
         {/* Film Music Hub - Coming Soon placeholder (early access) */}
         <Route path="/film-music-hub" element={
@@ -584,6 +590,9 @@ const AppContent = () => {
         {/* Listening Lab Lessons (Unit 2) */}
         <Route path="/lessons/listening-lab/lesson1" element={<ListeningLabLesson1 />} />
         <Route path="/lessons/listening-lab/lesson2" element={<ListeningLabLesson2 />} />
+        <Route path="/lessons/listening-lab/lesson3" element={<ListeningLabLesson3 />} />
+        <Route path="/lessons/listening-lab/lesson4" element={<ListeningLabLesson4 />} />
+        <Route path="/lessons/listening-lab/lesson5" element={<ListeningLabLesson5 />} />
 
         {/* Film Music Hub - Coming Soon placeholder (early access) */}
         <Route path="/film-music-hub" element={
