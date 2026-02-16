@@ -5,6 +5,7 @@ import React from 'react';
 import ParallaxEnvironment from './ParallaxEnvironment';
 import SpriteCharacterRenderer from './SpriteCharacterRenderer';
 import WeatherOverlay from './WeatherOverlay';
+import { lastDragEndTime } from './StickerOverlay';
 
 const JourneyViewport = ({
   section,
@@ -40,6 +41,8 @@ const JourneyViewport = ({
 
   const handleClick = (e) => {
     if (!onViewportClick) return;
+    // Suppress click if a sticker drag/resize just ended (prevents accidental placement)
+    if (Date.now() - lastDragEndTime < 200) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;

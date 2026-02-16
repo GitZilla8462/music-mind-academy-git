@@ -164,7 +164,20 @@ export const SECTION_LABELS = [
 // LISTENING JOURNEY ANIMATOR CONFIG
 // Built from the CAPSTONE_PIECES entry in lesson4Config
 // ========================================
-export const MOUNTAIN_KING_JOURNEY_CONFIG = buildPieceConfig(getPieceById('mountain-king'));
+export const MOUNTAIN_KING_JOURNEY_CONFIG = (() => {
+  const base = buildPieceConfig(getPieceById('mountain-king'));
+  return {
+    ...base,
+    hideScenes: true,
+    defaultTab: 'dynamics',
+    defaultSections: base.defaultSections.map(s => ({
+      ...s,
+      scene: 'night-mountain',
+      sky: 'night',
+      ground: 'rock',
+    })),
+  };
+})();
 
 // ========================================
 // SECTION-BASED GROUPING FOR TEACHER CONTROL
@@ -243,7 +256,7 @@ export const lessonSections = [
     title: '3. Listening Journey Animator',
     subtitle: 'Introduction',
     color: 'blue',
-    estimatedTime: 4,
+    estimatedTime: 14,
     stages: [
       {
         id: 'animator-intro-video',
@@ -254,10 +267,19 @@ export const lessonSections = [
       },
       {
         id: 'animator-directions',
-        type: 'summary',
+        type: 'activity',
         label: 'Animator Directions',
-        duration: 2,
-        description: 'Show what students will do today and over the next classes.'
+        duration: 10,
+        hasTimer: true,
+        trackProgress: true,
+        description: 'Students focus on placing dynamic markings in the Listening Journey Animator.'
+      },
+      {
+        id: 'lesson-complete',
+        type: 'summary',
+        label: 'Lesson Complete!',
+        description: 'Lesson is complete. Review what we learned.',
+        duration: 1
       }
     ]
   },
@@ -269,10 +291,10 @@ export const lessonSections = [
     estimatedTime: 12,
     stages: [
       {
-        id: 'bonus-intro',
+        id: 'bonus-activity-intro',
         type: 'summary',
-        label: 'Lesson Complete!',
-        description: 'Lesson is complete. Bonus activity if time allows.',
+        label: 'Bonus Activity',
+        description: 'Bonus activity if time allows.',
         duration: 1
       },
       {
@@ -477,18 +499,19 @@ export const lessonStages = [
   {
     id: 'animator-directions',
     label: 'Animator Directions',
-    description: 'Show what students will do today and over the next classes.',
-    type: 'summary',
-    duration: 2,
+    description: 'Students focus on placing dynamic markings in the Listening Journey Animator.',
+    type: 'activity',
+    duration: 10,
+    hasTimer: true,
     presentationView: {
       type: 'journey-animator-directions',
       pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG,
     }
   },
   {
-    id: 'bonus-intro',
+    id: 'lesson-complete',
     label: 'Lesson Complete!',
-    description: 'Lesson is complete. Bonus activity if time allows.',
+    description: 'Lesson is complete. Review what we learned.',
     type: 'summary',
     duration: 1,
     presentationView: {
@@ -516,6 +539,25 @@ export const lessonStages = [
     }
   },
   {
+    id: 'bonus-activity-intro',
+    label: 'Bonus Activity',
+    description: 'Bonus activity if time allows.',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'summary',
+      title: 'Bonus Activity',
+      sections: [
+        {
+          bullets: [
+            'The following activity is a BONUS if you have extra time.',
+            'Four Corners \u2014 review everything from Lessons 1-3!'
+          ]
+        }
+      ]
+    }
+  },
+  {
     id: 'four-corners-instructions',
     label: 'Four Corners Instructions',
     description: 'Explain how to play Four Corners.',
@@ -534,15 +576,6 @@ export const lessonStages = [
             '3. Move to the corner you think is correct!',
             '4. You can also tap your answer on your Chromebook',
             '5. Teacher reveals the correct answer'
-          ]
-        },
-        {
-          heading: 'Corners',
-          bullets: [
-            '\uD83D\uDD35 Front Left = Answer A',
-            '\uD83D\uDD34 Front Right = Answer B',
-            '\uD83D\uDFE2 Back Left = Answer C',
-            '\uD83D\uDFE1 Back Right = Answer D'
           ]
         }
       ]
@@ -574,8 +607,9 @@ export const getActivityForStage = (stage) => {
     // 'section-spotter': 'section-spotter',
     'planning-intro': 'summary',
     'animator-intro-video': 'video',
-    'animator-directions': 'summary',
-    'bonus-intro': 'summary',
+    'animator-directions': 'listening-journey',
+    'lesson-complete': 'summary',
+    'bonus-activity-intro': 'summary',
     'four-corners-instructions': 'summary',
     'four-corners-game': 'four-corners'
   };

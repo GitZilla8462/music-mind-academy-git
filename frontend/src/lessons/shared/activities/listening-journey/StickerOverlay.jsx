@@ -6,6 +6,9 @@ import { INSTRUMENT_ICONS } from '../texture-drawings/config/InstrumentIcons';
 
 let _nextItemId = Date.now();
 
+// Timestamp of last drag/resize end — viewport click suppresses placement if too recent
+export let lastDragEndTime = 0;
+
 const renderStickerContent = (item, scale = 1) => {
   const renderType = item.render || 'emoji';
   const s = scale;
@@ -27,7 +30,7 @@ const renderStickerContent = (item, scale = 1) => {
             fontStyle: 'italic',
             fontWeight: 'bold',
             fontSize: `${28 * s}px`,
-            color: '#ffffff',
+            color: '#000000',
           }}
         >
           {item.icon}
@@ -42,7 +45,7 @@ const renderStickerContent = (item, scale = 1) => {
             fontFamily: '"Times New Roman", Times, serif',
             fontStyle: 'italic',
             fontSize: `${22 * s}px`,
-            color: '#ffffff',
+            color: '#000000',
           }}
         >
           {item.icon}
@@ -52,14 +55,14 @@ const renderStickerContent = (item, scale = 1) => {
     case 'crescendo':
       return (
         <svg width={48 * s} height={24 * s} viewBox="0 0 48 24">
-          <path d="M2 12 L46 2 M2 12 L46 22" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <path d="M2 12 L46 2 M2 12 L46 22" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </svg>
       );
 
     case 'decrescendo':
       return (
         <svg width={48 * s} height={24 * s} viewBox="0 0 48 24">
-          <path d="M2 2 L46 12 M2 22 L46 12" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <path d="M2 2 L46 12 M2 22 L46 12" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </svg>
       );
 
@@ -67,7 +70,7 @@ const renderStickerContent = (item, scale = 1) => {
       return (
         <span
           className="drop-shadow-lg"
-          style={{ fontFamily: '"Noto Music", "Symbola", serif', fontSize: `${32 * s}px`, color: '#ffffff' }}
+          style={{ fontFamily: '"Noto Music", "Symbola", serif', fontSize: `${32 * s}px`, color: '#000000' }}
         >
           {item.icon}
         </span>
@@ -77,7 +80,7 @@ const renderStickerContent = (item, scale = 1) => {
       return (
         <span
           className="drop-shadow-lg"
-          style={{ fontFamily: 'Arial, sans-serif', fontWeight: 'bold', fontSize: `${36 * s}px`, color: '#ffffff' }}
+          style={{ fontFamily: 'Arial, sans-serif', fontWeight: 'bold', fontSize: `${36 * s}px`, color: '#000000' }}
         >
           {item.icon}
         </span>
@@ -118,15 +121,20 @@ const cleanupDrag = (ref) => {
   }
 };
 
-const StickerItem = ({ item, visible, scrollOffsetX, isSelected, onSelect, onUpdateItem, isBuildMode }) => {
+const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, onSelect, onUpdateItem, isBuildMode }) => {
   const { position, type } = item;
   const scale = item.scale || 1;
   const adjustedX = position.x + (scrollOffsetX || 0);
   const interactive = isBuildMode && visible;
   const dragRef = useRef(null);
+  const resizeRef = useRef(null);
 
-  // Always clean up drag listeners on unmount
+  // Always clean up drag/resize listeners on unmount (hooks must run before any early return)
   useEffect(() => () => cleanupDrag(dragRef), []);
+  useEffect(() => () => cleanupDrag(resizeRef), []);
+
+  // Cull off-screen stickers (skip rendering entirely)
+  if (!isSelected && (adjustedX < -0.3 || adjustedX > 1.3)) return null;
 
   const handleMouseDown = (e) => {
     if (!interactive) return;
@@ -160,6 +168,7 @@ const StickerItem = ({ item, visible, scrollOffsetX, isSelected, onSelect, onUpd
     };
 
     const onUp = () => {
+      lastDragEndTime = Date.now();
       cleanupDrag(dragRef);
     };
 
@@ -167,11 +176,6 @@ const StickerItem = ({ item, visible, scrollOffsetX, isSelected, onSelect, onUpd
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
   };
-
-  const resizeRef = useRef(null);
-
-  // Clean up resize listeners on unmount
-  useEffect(() => () => cleanupDrag(resizeRef), []);
 
   const handleResizeDown = (e) => {
     e.stopPropagation();
@@ -188,6 +192,7 @@ const StickerItem = ({ item, visible, scrollOffsetX, isSelected, onSelect, onUpd
     };
 
     const onUp = () => {
+      lastDragEndTime = Date.now();
       cleanupDrag(resizeRef);
     };
 
@@ -203,6 +208,7 @@ const StickerItem = ({ item, visible, scrollOffsetX, isSelected, onSelect, onUpd
         left: `${adjustedX * 100}%`,
         top: `${position.y * 100}%`,
         transform: 'translate(-50%, -50%)',
+        willChange: 'transform',
         display: visible ? 'inline-block' : 'none',
         width: 'fit-content',
       }}
@@ -242,35 +248,28 @@ const StickerItem = ({ item, visible, scrollOffsetX, isSelected, onSelect, onUpd
   );
 };
 
+// Memoize StickerItem — only re-renders when its own props change
+const StickerItem = React.memo(StickerItemInner);
+
 const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem, onUpdateItem, onAddItem, onSwitchToSelect, rawScrollOffset = 0, selectedItemId, onSelectItem, isBuildMode = false }) => {
   return (
     <>
       {items.map((item) => {
         const startTime = item.timestamp;
         const endTime = startTime + (item.duration || 999);
-        const visible = currentTime >= startTime && currentTime < endTime;
+        const visible = true;
 
         // Compute drift since sticker was placed (negative = scrolls left with background)
         const drift = item.placedAtOffset != null
           ? -(rawScrollOffset - item.placedAtOffset)
           : 0;
 
-        // Entry animation: slide from right edge to click position at constant speed
-        // Only animate in presentation/fullscreen — build mode shows stickers at their position
-        const ENTRY_DURATION = 3.0;
-        const timeSinceEntry = currentTime - startTime;
-        let entryOffset = 0;
-        if (item.entryOffsetX && !isBuildMode && timeSinceEntry >= 0 && timeSinceEntry < ENTRY_DURATION) {
-          const progress = timeSinceEntry / ENTRY_DURATION;
-          entryOffset = item.entryOffsetX * (1 - progress);
-        }
-
         return (
           <StickerItem
             key={item.id}
             item={item}
             visible={visible}
-            scrollOffsetX={drift + entryOffset}
+            scrollOffsetX={drift}
             isSelected={selectedItemId === item.id}
             onSelect={onSelectItem}
             onUpdateItem={onUpdateItem}

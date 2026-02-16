@@ -43,8 +43,8 @@ export const CAPSTONE_PIECES = [
     keyFeatures: ['ABA ternary form — statement, contrast, return', 'Pizzicato strings create sneaky atmosphere in A', 'Brass enters in B section with increased tempo', 'A\' return features full orchestra, ff, accelerando to presto'],
     sections: [
       { id: 1, label: 'A', sectionLabel: 'Sneaky Start', startTime: 0, endTime: 59, color: '#3B82F6', defaultDynamics: 'pp', defaultTempo: 'andante' },
-      { id: 2, label: 'B', sectionLabel: 'Building Energy', startTime: 59, endTime: 104, color: '#EF4444', defaultDynamics: 'mf', defaultTempo: 'moderato' },
-      { id: 3, label: 'A\'', sectionLabel: 'Explosive Return', startTime: 104, endTime: 150, color: '#3B82F6', defaultDynamics: 'ff', defaultTempo: 'presto' }
+      { id: 2, label: 'B', sectionLabel: 'Building Energy', startTime: 59, endTime: 101, color: '#EF4444', defaultDynamics: 'mf', defaultTempo: 'moderato' },
+      { id: 3, label: 'A\'', sectionLabel: 'Explosive Return', startTime: 101, endTime: 150, color: '#3B82F6', defaultDynamics: 'ff', defaultTempo: 'presto' }
     ]
   },
   {

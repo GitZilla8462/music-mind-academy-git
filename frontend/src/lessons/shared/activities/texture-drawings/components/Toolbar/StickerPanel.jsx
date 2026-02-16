@@ -301,16 +301,17 @@ const StickerPanel = ({
   onSizeChange,
   isOpen = true,
   onDragStart,
-  availableTabs = null
+  availableTabs = null,
+  defaultTab = null
 }) => {
-  const [activeTabId, setActiveTabId] = useState(null);
+  const [activeTabId, setActiveTabId] = useState(defaultTab);
 
   // Filter tabs if availableTabs is provided
   const visibleTabs = availableTabs
     ? STICKER_TABS.filter(tab => availableTabs.includes(tab.id))
     : STICKER_TABS;
 
-  // Default to first tab
+  // Default to defaultTab if provided, otherwise first tab
   const currentTabId = activeTabId && visibleTabs.some(t => t.id === activeTabId)
     ? activeTabId
     : visibleTabs[0]?.id;
@@ -320,7 +321,7 @@ const StickerPanel = ({
 
   return (
     <div style={{
-      width: '240px',
+      width: '100%',
       backgroundColor: '#f8fafc',
       borderRight: '1px solid #e2e8f0',
       display: 'flex',

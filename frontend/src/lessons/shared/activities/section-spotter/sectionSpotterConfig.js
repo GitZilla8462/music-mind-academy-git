@@ -58,8 +58,8 @@ export const MOUNTAIN_KING_SECTION_OPTIONS = [
 // NOTE: Timestamps are approximate for a ~2:30 recording.
 export const MOUNTAIN_KING_SECTIONS = [
   { id: 1, section: 'A', startTime: 0, endTime: 59, label: 'Sneaky Start', description: 'Pizzicato strings and bassoons — quiet and mysterious' },
-  { id: 2, section: 'B', startTime: 59, endTime: 104, label: 'Building Energy', description: 'Brass enters, tempo increases, theme goes up a 5th' },
-  { id: 3, section: 'A', startTime: 104, endTime: 150, label: 'Explosive Return', description: 'Full orchestra, tremolo strings, ff dynamics, accelerando to presto' },
+  { id: 2, section: 'B', startTime: 59, endTime: 101, label: 'Building Energy', description: 'Brass enters, tempo increases, theme goes up a 5th' },
+  { id: 3, section: 'A', startTime: 101, endTime: 150, label: 'Explosive Return', description: 'Full orchestra, tremolo strings, ff dynamics, accelerando to presto' },
 ];
 
 // ========================================

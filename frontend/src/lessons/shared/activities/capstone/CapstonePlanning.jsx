@@ -3,7 +3,7 @@
 // White paper worksheet, 2-column layout, inline dropdown blanks.
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Check, Save, Play, Square } from 'lucide-react';
+import { Check, Save, Play, Square, Plus, ChevronDown } from 'lucide-react';
 import { getPieceById } from '../../../listening-lab/lesson4/lesson4Config';
 
 const SELECTION_STORAGE_KEY = 'listening-lab-lesson4-selected-piece';
@@ -82,12 +82,12 @@ const Blank = ({ value, onChange, options, placeholder }) => (
   <select
     value={value || ''}
     onChange={(e) => onChange(e.target.value)}
-    className={`inline bg-transparent border-b-2 text-[11px] leading-tight px-0.5 py-0 focus:border-blue-500 focus:outline-none appearance-none cursor-pointer mx-0.5 transition-colors ${
-      value ? 'border-gray-300 text-gray-900 font-semibold hover:border-blue-400' : 'border-gray-200 text-gray-400 hover:border-gray-400'
+    className={`inline bg-transparent border-b-2 text-sm leading-tight px-0.5 py-0 focus:border-blue-500 focus:outline-none appearance-none cursor-pointer mx-0.5 transition-colors ${
+      value ? 'border-gray-400 text-gray-900 font-semibold hover:border-blue-400' : 'border-gray-300 text-gray-400 hover:border-gray-400'
     }`}
     style={{
-      width: value ? `${Math.max(50, (options.find(o => o.value === value)?.label.length || 8) * 6.5 + 16)}px` : `${Math.max(50, (placeholder?.length || 8) * 5.5 + 12)}px`,
-      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+      width: value ? `${Math.max(55, (options.find(o => o.value === value)?.label.length || 8) * 7.5 + 18)}px` : `${Math.max(55, (placeholder?.length || 8) * 6.5 + 14)}px`,
+      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'right 1px center',
     }}
@@ -104,12 +104,12 @@ const FlatSelect = ({ value, onChange, options, taken, placeholder }) => {
     <select
       value={value || ''}
       onChange={(e) => onChange(e.target.value)}
-      className={`inline bg-transparent border-b-2 text-[11px] leading-tight px-0.5 py-0 focus:border-blue-500 focus:outline-none appearance-none cursor-pointer mx-0.5 transition-colors ${
-        value ? 'border-gray-300 text-gray-900 font-semibold hover:border-blue-400' : 'border-gray-200 text-gray-400 hover:border-gray-400'
+      className={`inline bg-transparent border-b-2 text-sm leading-tight px-0.5 py-0 focus:border-blue-500 focus:outline-none appearance-none cursor-pointer mx-0.5 transition-colors ${
+        value ? 'border-gray-400 text-gray-900 font-semibold hover:border-blue-400' : 'border-gray-300 text-gray-400 hover:border-gray-400'
       }`}
       style={{
-        width: `${Math.max(50, ((value ? (options.find(o => o.value === value)?.label || value) : (placeholder || 'select...')).length) * 6.5 + 16)}px`,
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+        width: `${Math.max(55, ((value ? (options.find(o => o.value === value)?.label || value) : (placeholder || 'select...')).length) * 7.5 + 18)}px`,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'right 1px center',
       }}
@@ -134,7 +134,7 @@ const MultiSelectSentence = ({ items, onChange, options, prefix, suffix }) => {
   const canAddMore = options.length > items.length;
 
   return (
-    <span className={`transition-colors ${hasAny ? 'text-gray-700' : 'text-gray-300'}`}>
+    <span className={`transition-colors ${hasAny ? 'text-gray-900' : 'text-gray-400'}`}>
       {prefix}
       {items.map((item, idx) => {
         const isLast = idx === items.length - 1;
@@ -167,12 +167,12 @@ const InstrumentSelect = ({ value, onChange, taken, placeholder }) => {
     <select
       value={value || ''}
       onChange={(e) => onChange(e.target.value)}
-      className={`inline bg-transparent border-b-2 text-[11px] leading-tight px-0.5 py-0 focus:border-blue-500 focus:outline-none appearance-none cursor-pointer mx-0.5 transition-colors ${
-        value ? 'border-gray-300 text-gray-900 font-semibold hover:border-blue-400' : 'border-gray-200 text-gray-400 hover:border-gray-400'
+      className={`inline bg-transparent border-b-2 text-sm leading-tight px-0.5 py-0 focus:border-blue-500 focus:outline-none appearance-none cursor-pointer mx-0.5 transition-colors ${
+        value ? 'border-gray-400 text-gray-900 font-semibold hover:border-blue-400' : 'border-gray-300 text-gray-400 hover:border-gray-400'
       }`}
       style={{
-        width: `${Math.max(50, ((value || placeholder || 'select...').length) * 6.5 + 16)}px`,
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+        width: `${Math.max(55, ((value || placeholder || 'select...').length) * 7.5 + 18)}px`,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'right 1px center',
       }}
@@ -205,7 +205,7 @@ const InstrumentSentence = ({ instruments, onChange }) => {
   const canAddMore = ALL_INSTRUMENTS.length > instruments.length;
 
   return (
-    <span className={`transition-colors ${hasAny ? 'text-gray-700' : 'text-gray-300'}`}>
+    <span className={`transition-colors ${hasAny ? 'text-gray-900' : 'text-gray-400'}`}>
       I can also hear{' '}
       {instruments.map((inst, idx) => {
         const isLast = idx === instruments.length - 1;
@@ -228,6 +228,38 @@ const InstrumentSentence = ({ instruments, onChange }) => {
       )}
       .
     </span>
+  );
+};
+
+// ============ COLLAPSIBLE INSTRUMENTS ============
+const CollapsibleInstruments = ({ instruments, onChange }) => {
+  const [expanded, setExpanded] = useState(instruments.length > 0);
+  const hasAny = instruments.length > 0;
+
+  if (!expanded) {
+    return (
+      <button
+        onClick={() => setExpanded(true)}
+        className="inline-flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded-full text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
+      >
+        <Plus size={12} />
+        {hasAny ? `Specific instruments (${instruments.length})` : 'Add specific instruments'}
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-0.5 flex items-start gap-1">
+      <button
+        onClick={() => setExpanded(false)}
+        className="shrink-0 mt-0.5 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <ChevronDown size={14} />
+      </button>
+      <span className="text-sm text-gray-900">
+        <InstrumentSentence instruments={instruments} onChange={onChange} />
+      </span>
+    </div>
   );
 };
 
@@ -295,18 +327,18 @@ const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null }
 
           {/* Header — compact */}
           <div className="text-center mb-3 shrink-0">
-            <p className="text-[9px] text-gray-400 uppercase tracking-[0.2em]">Listening Lab — Capstone Project</p>
-            <h1 className="text-lg font-bold text-gray-900 leading-tight mt-0.5">Plan Your Journey</h1>
-            <h2 className="text-sm text-gray-500 italic">{piece.title}</h2>
-            <p className="text-[10px] text-gray-400 mt-0.5">
+            <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em]">Listening Lab — Capstone Project</p>
+            <h1 className="text-xl font-bold text-gray-900 leading-tight mt-0.5">Plan Your Journey</h1>
+            <h2 className="text-base text-gray-600 italic">{piece.title}</h2>
+            <p className="text-xs text-gray-400 mt-0.5">
               {piece.composer} ({piece.year}) &nbsp;&bull;&nbsp; Form: {piece.formLetters} &nbsp;&bull;&nbsp; {piece.duration}
             </p>
           </div>
 
           <div className="border-t border-gray-200 mb-3 shrink-0" />
 
-          <p className="text-[10px] text-gray-400 mb-3 shrink-0">
-            <strong className="text-gray-500">Directions:</strong> Listen to each section. Fill in the blanks to describe what you hear. This will guide your Listening Journey.
+          <p className="text-xs text-gray-500 mb-3 shrink-0">
+            <strong className="text-gray-600">Directions:</strong> Listen to each section. Fill in the blanks to describe what you hear. This will guide your Listening Journey.
           </p>
 
           {/* Sections — single column, top to bottom */}
@@ -332,33 +364,33 @@ const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null }
                   style={isHighlighted ? { border: `3px solid ${section.color}`, boxShadow: `0 0 0 3px ${section.color}30, 0 0 24px ${section.color}15` } : {}}
                 >
                   {/* Section heading + paragraph on same block */}
-                  <div className="flex items-center gap-2 mb-0.5">
+                  <div className="flex items-center gap-2 mb-1">
                     <span
-                      className="px-2 py-0.5 rounded text-white text-[11px] font-bold shrink-0"
+                      className="px-2.5 py-0.5 rounded text-white text-sm font-bold shrink-0"
                       style={{ backgroundColor: section.color }}
                     >
                       {section.label}
                     </span>
-                    <h3 className="text-[12px] font-bold text-gray-900">
+                    <h3 className="text-sm font-bold text-gray-900">
                       Section {section.label}
                     </h3>
-                    <span className="text-[9px] text-gray-400">
+                    <span className="text-xs text-gray-400">
                       {fmt(section.startTime)}–{fmt(section.endTime)}
                     </span>
                     <button
                       onClick={() => playSection(section.id, section.startTime, section.endTime)}
-                      className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold ml-auto shrink-0 transition-colors ${
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ml-auto shrink-0 transition-colors ${
                         playing ? 'bg-red-100 text-red-600' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
                       }`}
                     >
                       {playing
-                        ? <><Square size={7} fill="currentColor" /> Stop</>
-                        : <><Play size={7} fill="currentColor" /> Listen</>
+                        ? <><Square size={10} fill="currentColor" /> Stop</>
+                        : <><Play size={10} fill="currentColor" /> Listen</>
                       }
                     </button>
                   </div>
 
-                  <div className="text-[11px] text-gray-700 leading-[2] pl-1">
+                  <div className="text-sm text-gray-900 leading-[2] pl-1">
                     <p>
                       <MultiSelectSentence
                         items={dynamics}
@@ -383,12 +415,12 @@ const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null }
                         prefix="The instrument families I hear are "
                         suffix="."
                       />
-                      {' '}
-                      <InstrumentSentence
-                        instruments={instruments}
-                        onChange={(arr) => set(section.id, 'instruments', arr)}
-                      />
                     </p>
+                    {/* Collapsible specific instruments */}
+                    <CollapsibleInstruments
+                      instruments={instruments}
+                      onChange={(arr) => set(section.id, 'instruments', arr)}
+                    />
                   </div>
                 </div>
               );
@@ -398,21 +430,21 @@ const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null }
       </div>
 
       {/* Bottom bar */}
-      <div className="bg-white border-t border-gray-200 py-2 px-4 shrink-0 flex items-center justify-end gap-3">
+      <div className="bg-white border-t border-gray-200 py-3 px-6 shrink-0 flex items-center justify-end gap-3">
         <button
           onClick={save}
-          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
             isSaved ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
           }`}
         >
-          {isSaved ? <Check size={12} /> : <Save size={12} />}
+          {isSaved ? <Check size={16} /> : <Save size={16} />}
           {isSaved ? 'Saved' : 'Save'}
         </button>
         <button
           onClick={done}
-          className="flex items-center gap-1.5 px-5 py-1.5 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700"
+          className="flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold text-white bg-blue-600 hover:bg-blue-700"
         >
-          <Check size={12} /> Done
+          <Check size={16} /> Done
         </button>
       </div>
     </div>

@@ -33,6 +33,7 @@ const useJourneyPlayback = (audioSrc, totalDuration, sections, volume = 1.0) => 
         if (audio.paused) return; // event handler will sync state
         const time = Math.min(audio.currentTime, totalDurationRef.current);
         setCurrentTime(time);
+
         if (time >= totalDurationRef.current) {
           audio.pause();
           audio.currentTime = 0;

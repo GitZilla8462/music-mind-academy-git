@@ -10,8 +10,8 @@ import { useSession } from '../../../context/SessionContext';
 export const useSessionMode = () => {
   const location = useLocation();
   const { user } = useAuth();
-  const { user: firebaseUser } = useFirebaseAuth();
-  const { startSession, joinSession, getCurrentStage } = useSession();
+  const { user: firebaseUser, loading: firebaseAuthLoading } = useFirebaseAuth();
+  const { startSession, joinSession, getCurrentStage, sessionCode: activeSessionCode, userRole: activeRole } = useSession();
 
   const [sessionMode, setSessionMode] = useState(false);
   const [sessionInitialized, setSessionInitialized] = useState(false);
@@ -25,8 +25,12 @@ export const useSessionMode = () => {
   const isPreviewMode = searchParams.get('preview') === 'true';
 
   // Verify teacher role: must have Firebase auth (Google/Microsoft sign-in)
+  // Wait for Firebase auth to finish loading before downgrading teacher role
   const isVerifiedTeacher = !!firebaseUser;
-  const urlRole = requestedRole === 'teacher' && !isVerifiedTeacher ? 'student' : requestedRole;
+  const authReady = !firebaseAuthLoading;
+  const urlRole = (!authReady && requestedRole === 'teacher')
+    ? 'teacher'  // Trust the URL role while auth is still loading
+    : (requestedRole === 'teacher' && !isVerifiedTeacher ? 'student' : requestedRole);
 
   // Session can be via session code (quick) or classId (class-based)
   const isSessionMode = !!((urlSessionCode || urlClassId) && urlRole);
@@ -38,14 +42,19 @@ export const useSessionMode = () => {
   const isTeacher = user?.role === 'teacher' || classroomRole === 'teacher' || isVerifiedTeacher;
   const canAccessNavTools = isTeacher || isDevelopment;
 
-  // Initialize session on mount if session params exist
+  // Initialize session on mount if session params exist (wait for auth to be ready)
   useEffect(() => {
-    if (isSessionMode && !sessionInitialized) {
+    if (isSessionMode && !sessionInitialized && authReady) {
       console.log('Session mode detected:', { urlSessionCode, urlRole, urlClassId, isPreviewMode });
 
+      // Skip if SessionContext already restored this session from URL params
+      const alreadyActive = activeSessionCode === urlSessionCode && activeRole === urlRole;
+
       if (urlRole === 'teacher' && isVerifiedTeacher) {
-        startSession(urlSessionCode, 'teacher', urlClassId);
-        console.log('Teacher session started:', { sessionCode: urlSessionCode, classId: urlClassId });
+        if (!alreadyActive) {
+          startSession(urlSessionCode, 'teacher', urlClassId);
+          console.log('Teacher session started:', { sessionCode: urlSessionCode, classId: urlClassId });
+        }
       } else if (urlRole === 'student' || (requestedRole === 'teacher' && !isVerifiedTeacher)) {
         // Skip joining as a student if this is preview mode (teacher's preview panel)
         // Preview mode should only observe, not add to student count
@@ -74,7 +83,7 @@ export const useSessionMode = () => {
       setSessionMode(true);
       setSessionInitialized(true);
     }
-  }, [isSessionMode, sessionInitialized, urlSessionCode, urlRole, urlClassId, isPreviewMode, startSession, joinSession]);
+  }, [isSessionMode, sessionInitialized, authReady, urlSessionCode, urlRole, urlClassId, isPreviewMode, startSession, joinSession]);
 
   return {
     sessionMode,

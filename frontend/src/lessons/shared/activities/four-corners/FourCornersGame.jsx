@@ -449,19 +449,6 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
                 <p className="text-2xl text-white/70 mb-2">Listen to the sound, then move to the corner with the right answer!</p>
                 <p className="text-xl text-white/50 mb-6">Each question plays a sound clip</p>
 
-                {/* Corner preview */}
-                <div className="grid grid-cols-2 gap-4 max-w-lg mx-auto mb-8">
-                  {Object.entries(CORNERS).map(([key, corner]) => (
-                    <div
-                      key={key}
-                      className={`px-6 py-4 rounded-2xl text-center bg-gradient-to-br ${corner.bgClass}`}
-                    >
-                      <div className="text-3xl font-black">{key}</div>
-                      <div className="text-lg font-medium opacity-90">{corner.label}</div>
-                    </div>
-                  ))}
-                </div>
-
                 <p className="text-xl text-white/50 mb-8">12 questions &middot; Dynamics, Tempo, Woodwinds & Brass</p>
 
                 <button

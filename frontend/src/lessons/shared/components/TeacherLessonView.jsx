@@ -472,6 +472,8 @@ const PresentationContent = ({
   const [CapstonePlanning, setCapstonePlanning] = useState(null);
   const [ListeningJourney, setListeningJourney] = useState(null);
 
+  // Persist animator directions dismissed state across re-renders
+  const animatorDirDismissedRef = useRef(false);
 
   // Get join URL based on site (defined early for use in join-code screen)
   const isProduction = window.location.hostname !== 'localhost';
@@ -1314,8 +1316,8 @@ const PresentationContent = ({
     if (type === 'journey-planner-directions') {
       const MOUNTAIN_KING_SECTIONS = [
         { label: 'A', name: 'Sneaky Start', startTime: 0, endTime: 59, color: '#3B82F6', desc: 'Pizzicato strings + bassoons, pp, andante' },
-        { label: 'B', name: 'Building Energy', startTime: 59, endTime: 104, color: '#EF4444', desc: 'Brass enters, tempo increases, mf' },
-        { label: 'A\'', name: 'Explosive Return', startTime: 104, endTime: 150, color: '#3B82F6', desc: 'Full orchestra, ff, presto' },
+        { label: 'B', name: 'Building Energy', startTime: 59, endTime: 101, color: '#EF4444', desc: 'Brass enters, tempo increases, mf' },
+        { label: 'A\'', name: 'Explosive Return', startTime: 101, endTime: 150, color: '#3B82F6', desc: 'Full orchestra, ff, presto' },
       ];
       const AUDIO_PATH = '/audio/classical/grieg-mountain-king.mp3';
 
@@ -1426,25 +1428,8 @@ const PresentationContent = ({
 
         return (
           <div className="absolute inset-0 flex bg-white">
-            {/* Left 60% — CapstonePlanning always visible, with section highlight during playback */}
-            <div className="w-[60%] h-full overflow-y-auto relative">
-              <div style={{ zoom: 1.8 }} className="origin-top-left min-h-full">
-                {CapstonePlanning ? (
-                  <CapstonePlanning
-                    onComplete={() => {}}
-                    isSessionMode={false}
-                    highlightSection={isPlaybackPhase ? MOUNTAIN_KING_SECTIONS[activeSectionIdx].label : null}
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-screen bg-gray-100">
-                    <p className="text-gray-400">Loading planner...</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right 40% — Teacher directions (Epic Wildlife green/teal scheme) */}
-            <div className="w-[40%] h-full bg-white border-l-2 border-green-200 flex flex-col">
+            {/* Left 40% — Teacher directions (Epic Wildlife green/teal scheme) */}
+            <div className="w-[40%] h-full bg-white border-r-2 border-green-200 flex flex-col">
               {/* Header */}
               <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-5 py-4 shrink-0 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1539,6 +1524,21 @@ const PresentationContent = ({
                 )}
               </div>
             </div>
+
+            {/* Right 60% — CapstonePlanning always visible, with section highlight during playback */}
+            <div className="w-[60%] h-full relative bg-gray-100 overflow-hidden">
+              {CapstonePlanning ? (
+                <CapstonePlanning
+                  onComplete={() => {}}
+                  isSessionMode={false}
+                  highlightSection={isPlaybackPhase ? MOUNTAIN_KING_SECTIONS[activeSectionIdx].label : null}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full bg-gray-100">
+                  <p className="text-gray-400">Loading planner...</p>
+                </div>
+              )}
+            </div>
           </div>
         );
       };
@@ -1552,188 +1552,13 @@ const PresentationContent = ({
 
     // Journey Animator Directions (Listening Lab Lesson 3) - Live animator + floating draggable overlay
     if (type === 'journey-animator-directions') {
-      const AnimatorDirectionsOverlay = () => {
-        const [showOverlay, setShowOverlay] = useState(true);
-        const [dirStep, setDirStep] = useState(0);
-
-        // Dragging state
-        const [pos, setPos] = useState({ x: 40, y: 40 });
-        const dragRef = useRef(null);
-        const offsetRef = useRef({ x: 0, y: 0 });
-        const isDragging = useRef(false);
-
-        const handleMouseDown = useCallback((e) => {
-          if (e.target.closest('button')) return;
-          isDragging.current = true;
-          const rect = dragRef.current.getBoundingClientRect();
-          offsetRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-          e.preventDefault();
-        }, []);
-
-        useEffect(() => {
-          const handleMouseMove = (e) => {
-            if (!isDragging.current) return;
-            setPos({
-              x: e.clientX - offsetRef.current.x,
-              y: e.clientY - offsetRef.current.y,
-            });
-          };
-          const handleMouseUp = () => { isDragging.current = false; };
-          window.addEventListener('mousemove', handleMouseMove);
-          window.addEventListener('mouseup', handleMouseUp);
-          return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
-          };
-        }, []);
-
-        const directions = [
-          {
-            title: 'Your Job',
-            icon: '\uD83D\uDDFA\uFE0F',
-            color: 'emerald',
-            items: [
-              <>You just identified the <span className="font-bold text-white">ABA form</span> of Mountain King</>,
-              <>Now <span className="font-bold text-white">BUILD</span> your Listening Journey animation!</>,
-              <>For each section, choose <span className="font-bold text-amber-300">dynamics</span>, <span className="font-bold text-emerald-300">tempo</span>, <span className="font-bold text-purple-300">instruments</span>, and <span className="font-bold text-sky-300">backgrounds</span></>,
-            ],
-          },
-          {
-            title: 'How to Use the Animator',
-            icon: '\uD83C\uDFA8',
-            color: 'purple',
-            items: [
-              <>Click on a <span className="font-bold text-white">section (A, B, A&apos;)</span> to edit it</>,
-              <>Use the panels on the left to set <span className="font-bold text-amber-300">dynamics</span>, <span className="font-bold text-emerald-300">tempo</span>, and <span className="font-bold text-purple-300">instruments</span></>,
-              <>Choose a <span className="font-bold text-sky-300">background scene</span> and add <span className="font-bold text-pink-300">stickers</span> to decorate</>,
-            ],
-          },
-          {
-            title: 'Tips',
-            icon: '\uD83D\uDCA1',
-            color: 'amber',
-            items: [
-              <>Press <span className="font-bold text-white">Play</span> to preview your animation with the music</>,
-              <>You can go back and change things any time</>,
-              <>Make each section look and feel different — show how the music changes!</>,
-            ],
-          },
-        ];
-
-        const colorMap = { emerald: { bg: 'bg-emerald-500/15', border: 'border-emerald-500/30', dot: 'bg-emerald-400', text: 'text-emerald-300' }, purple: { bg: 'bg-purple-500/15', border: 'border-purple-500/30', dot: 'bg-purple-400', text: 'text-purple-300' }, amber: { bg: 'bg-amber-500/15', border: 'border-amber-500/30', dot: 'bg-amber-400', text: 'text-amber-300' } };
-        const dir = directions[dirStep];
-        const c = colorMap[dir.color];
-
-        return (
-          <div className="absolute inset-0">
-            {/* Live ListeningJourney behind everything */}
-            <div className="absolute inset-0">
-              {ListeningJourney ? (
-                <ListeningJourney
-                  onComplete={() => {}}
-                  viewMode={false}
-                  isSessionMode={false}
-                  pieceConfig={pieceConfig || null}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full bg-gray-900">
-                  <p className="text-gray-400 text-xl">Loading Listening Journey...</p>
-                </div>
-              )}
-            </div>
-
-            {/* Floating draggable overlay */}
-            {showOverlay && (
-              <div
-                ref={dragRef}
-                onMouseDown={handleMouseDown}
-                className="fixed z-50 w-[420px] bg-gray-900/95 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl cursor-move select-none"
-                style={{ left: pos.x, top: pos.y }}
-              >
-                {/* Drag handle / header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-                  <div className="flex items-center gap-2">
-                    <div className="text-2xl">{dir.icon}</div>
-                    <h3 className="text-lg font-bold text-white">{dir.title}</h3>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {/* Step dots */}
-                    <div className="flex gap-1.5 mr-2">
-                      {directions.map((_, i) => (
-                        <div
-                          key={i}
-                          className={`w-2 h-2 rounded-full transition-all ${
-                            i === dirStep ? 'bg-white scale-125' : i < dirStep ? 'bg-white/50' : 'bg-white/25'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <button
-                      onClick={() => setShowOverlay(false)}
-                      className="w-7 h-7 rounded-full bg-white/10 hover:bg-red-500/80 flex items-center justify-center transition-colors"
-                    >
-                      <X size={14} className="text-white" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Direction content */}
-                <div className={`mx-3 my-3 ${c.bg} ${c.border} border rounded-xl p-4`}>
-                  <ul className="space-y-2.5">
-                    {dir.items.map((item, i) => (
-                      <li key={i} className="text-sm text-slate-200 leading-relaxed flex items-start gap-2">
-                        <span className={`w-1.5 h-1.5 rounded-full ${c.dot} mt-1.5 flex-shrink-0`} />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Navigation */}
-                <div className="flex items-center justify-between px-4 py-3 border-t border-white/10">
-                  <button
-                    onClick={() => setDirStep(Math.max(0, dirStep - 1))}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-1 ${
-                      dirStep === 0 ? 'opacity-0 pointer-events-none' : 'text-gray-300 hover:bg-white/10'
-                    }`}
-                  >
-                    <ChevronLeft size={14} /> Back
-                  </button>
-                  {dirStep < directions.length - 1 ? (
-                    <button
-                      onClick={() => setDirStep(dirStep + 1)}
-                      className="bg-white/20 hover:bg-white/30 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-1"
-                    >
-                      Next <ChevronRight size={14} />
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setShowOverlay(false)}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-1"
-                    >
-                      <Check size={14} /> Got it!
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Re-open overlay button (when dismissed) */}
-            {!showOverlay && (
-              <button
-                onClick={() => setShowOverlay(true)}
-                className="fixed z-50 bottom-6 right-6 bg-gray-900/90 backdrop-blur-sm border border-white/20 text-white px-4 py-2.5 rounded-xl shadow-lg hover:bg-gray-800 transition-all flex items-center gap-2 text-sm font-semibold"
-              >
-                <HelpCircle size={16} /> Show Directions
-              </button>
-            )}
-          </div>
-        );
-      };
-
       return (
         <div className="absolute inset-0">
-          <AnimatorDirectionsOverlay />
+          <AnimatorDirectionsOverlay
+            ListeningJourneyComponent={ListeningJourney}
+            pieceConfig={pieceConfig}
+            dismissedRef={animatorDirDismissedRef}
+          />
         </div>
       );
     }
@@ -3383,6 +3208,187 @@ const FinalPilotSurvey = ({
     </div>
   );
 };
+
+// ============================================
+// ANIMATOR DIRECTIONS OVERLAY (stable component to prevent remounting)
+// ============================================
+const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, pieceConfig, dismissedRef }) => {
+  const [showOverlay, setShowOverlay] = useState(!dismissedRef.current);
+  const [dirStep, setDirStep] = useState(0);
+
+  // Dragging state - null means centered (not yet dragged)
+  const [pos, setPos] = useState(null);
+  const dragRef = useRef(null);
+  const offsetRef = useRef({ x: 0, y: 0 });
+  const isDragging = useRef(false);
+
+  const handleMouseDown = useCallback((e) => {
+    if (e.target.closest('button')) return;
+    isDragging.current = true;
+    const rect = dragRef.current.getBoundingClientRect();
+    offsetRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    if (pos === null) {
+      setPos({ x: rect.left, y: rect.top });
+    }
+    e.preventDefault();
+  }, [pos]);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isDragging.current) return;
+      setPos({
+        x: e.clientX - offsetRef.current.x,
+        y: e.clientY - offsetRef.current.y,
+      });
+    };
+    const handleMouseUp = () => { isDragging.current = false; };
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  const directions = [
+    {
+      title: 'Your Job',
+      icon: '\uD83D\uDDFA\uFE0F',
+      items: [
+        <>Focus on placing as many <span className="font-bold text-amber-600">dynamic markings</span> on the screen as you can</>,
+        <>Click on each <span className="font-bold text-gray-900">section (A, B, A&apos;)</span> and drag dynamics stickers to show how loud or soft the music is</>,
+        <>If you have time, add <span className="font-bold text-emerald-700">tempos</span>, <span className="font-bold text-pink-600">emojis</span>, or <span className="font-bold text-purple-700">instruments</span> too!</>,
+      ],
+    },
+    {
+      title: 'How to Use the Animator',
+      icon: '\uD83C\uDFA8',
+      items: [
+        <>Click on a <span className="font-bold text-gray-900">section (A, B, A&apos;)</span> in the timeline to edit it</>,
+        <>Drag <span className="font-bold text-amber-600">dynamic markings</span> from the sticker panel onto the scene</>,
+        <>Press <span className="font-bold text-gray-900">Play</span> to hear the music and see your stickers appear</>,
+      ],
+    },
+    {
+      title: 'Tips',
+      icon: '\uD83D\uDCA1',
+      items: [
+        <>Think about how the dynamics <span className="font-bold text-gray-900">change between sections</span> — A is quiet, B gets louder, A&apos; is very loud!</>,
+        <>You can go back and change things any time</>,
+        <>Make each section look different — show how the music changes!</>,
+      ],
+    },
+  ];
+
+  const dir = directions[dirStep];
+  const c = { outer: 'bg-green-700 border-green-500', header: 'border-green-600', bg: 'bg-white', border: 'border-green-300', dot: 'bg-green-600', itemText: 'text-gray-900', nav: 'border-green-600', navBack: 'text-green-100 hover:bg-green-600', navNext: 'bg-white/20 hover:bg-white/30 text-white' };
+
+  return (
+    <div className="absolute inset-0">
+      {/* Live ListeningJourney behind everything */}
+      <div className="absolute inset-0">
+        {ListeningJourneyComponent ? (
+          <ListeningJourneyComponent
+            onComplete={() => {}}
+            viewMode={false}
+            isSessionMode={false}
+            pieceConfig={pieceConfig || null}
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full bg-gray-900">
+            <p className="text-gray-400 text-xl">Loading Listening Journey...</p>
+          </div>
+        )}
+      </div>
+
+      {/* Floating draggable overlay - centered in presentation area until dragged */}
+      {showOverlay && (
+        <div
+          ref={dragRef}
+          onMouseDown={handleMouseDown}
+          className={`z-50 w-[420px] ${c.outer} backdrop-blur-md rounded-2xl border shadow-2xl cursor-move select-none ${pos === null ? 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' : 'fixed'}`}
+          style={pos !== null ? { left: pos.x, top: pos.y } : undefined}
+        >
+          {/* Drag handle / header */}
+          <div className={`flex items-center justify-between px-4 py-3 border-b ${c.header}`}>
+            <div className="flex items-center gap-2">
+              <div className="text-2xl">{dir.icon}</div>
+              <h3 className="text-lg font-bold text-white">{dir.title}</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Step dots */}
+              <div className="flex gap-1.5 mr-2">
+                {directions.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      i === dirStep ? 'bg-white scale-125' : i < dirStep ? 'bg-white/50' : 'bg-white/25'
+                    }`}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={() => { dismissedRef.current = true; setShowOverlay(false); }}
+                className="w-7 h-7 rounded-full bg-white/10 hover:bg-red-500/80 flex items-center justify-center transition-colors"
+              >
+                <X size={14} className="text-white" />
+              </button>
+            </div>
+          </div>
+
+          {/* Direction content */}
+          <div className={`mx-3 my-3 ${c.bg} ${c.border} border rounded-xl p-4`}>
+            <ul className="space-y-2.5">
+              {dir.items.map((item, i) => (
+                <li key={i} className={`text-sm ${c.itemText || 'text-slate-200'} leading-relaxed flex items-start gap-2`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${c.dot} mt-1.5 flex-shrink-0`} />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Navigation */}
+          <div className={`flex items-center justify-between px-4 py-3 border-t ${c.nav}`}>
+            <button
+              onClick={() => setDirStep(Math.max(0, dirStep - 1))}
+              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-1 ${
+                dirStep === 0 ? 'opacity-0 pointer-events-none' : c.navBack
+              }`}
+            >
+              <ChevronLeft size={14} /> Back
+            </button>
+            {dirStep < directions.length - 1 ? (
+              <button
+                onClick={() => setDirStep(dirStep + 1)}
+                className="bg-white/20 hover:bg-white/30 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-1"
+              >
+                Next <ChevronRight size={14} />
+              </button>
+            ) : (
+              <button
+                onClick={() => { dismissedRef.current = true; setShowOverlay(false); }}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-1"
+              >
+                <Check size={14} /> Got it!
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Re-open overlay button (when dismissed) */}
+      {!showOverlay && (
+        <button
+          onClick={() => { dismissedRef.current = false; setShowOverlay(true); }}
+          className="fixed z-50 bottom-6 right-6 bg-gray-900/90 backdrop-blur-sm border border-white/20 text-white px-4 py-2.5 rounded-xl shadow-lg hover:bg-gray-800 transition-all flex items-center gap-2 text-sm font-semibold"
+        >
+          <HelpCircle size={16} /> Show Directions
+        </button>
+      )}
+    </div>
+  );
+});
 
 // ============================================
 // MAIN COMPONENT

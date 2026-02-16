@@ -29,6 +29,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const totalDuration = pieceConfig?.totalDuration || TOTAL_DURATION;
   const storageKey = pieceConfig?.storageKey || 'listening-journey';
   const presetMode = pieceConfig?.presetMode || false;
+  const hideScenes = pieceConfig?.hideScenes || false;
+  const defaultTab = pieceConfig?.defaultTab || null;
   // ── State ──────────────────────────────────────────────────────────
   const [sections, setSections] = useState(() => {
     const saved = loadStudentWork(storageKey);
@@ -63,13 +65,13 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     return null;
   });
 
-  const [editMode, setEditMode] = useState('select'); // 'select' | 'sticker' | 'text'
+  const [editMode, setEditMode] = useState(defaultTab ? 'sticker' : 'select'); // 'select' | 'sticker' | 'text'
   const [saveStatus, setSaveStatus] = useState(null);
   const [selectedSticker, setSelectedSticker] = useState(null);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [showTextEditor, setShowTextEditor] = useState(false);
   const [textEditorPosition, setTextEditorPosition] = useState(null);
-  const [leftPanelTab, setLeftPanelTab] = useState('movement'); // 'stickers' | 'movement' | 'text'
+  const [leftPanelTab, setLeftPanelTab] = useState(defaultTab ? 'stickers' : 'movement'); // 'stickers' | 'movement' | 'text'
 
   // App mode: build (editor), present (animation + essay), fullscreen (animation only)
   const [appMode, setAppMode] = useState('build'); // 'build' | 'present' | 'fullscreen'
@@ -251,6 +253,9 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     // Deselect any selected sticker (sticker clicks stopPropagation before reaching here)
     setSelectedItemId(null);
 
+    // Only allow placement in build mode
+    if (appMode !== 'build') return;
+
     if (editMode === 'sticker' && selectedSticker) {
       // Sticker visible from now until end of piece (scrolls off screen naturally)
       const startTime = currentTime;
@@ -274,7 +279,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       setTextEditorPosition(pos);
       setShowTextEditor(true);
     }
-  }, [editMode, selectedSticker, currentTime, rawMidgroundOffset, sections, totalDuration]);
+  }, [appMode, editMode, selectedSticker, currentTime, rawMidgroundOffset, sections, totalDuration]);
 
   const handleAddTextItem = useCallback((textData) => {
     setItems(prev => [...prev, {
@@ -309,7 +314,10 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     setItems(prev => [...prev, item]);
   }, []);
 
-  // ── Keyboard shortcuts (spacebar, delete) ─────────────────────────
+  // ── Clipboard for copy/paste ──────────────────────────────────────
+  const clipboardRef = React.useRef(null);
+
+  // ── Keyboard shortcuts (spacebar, delete, copy/paste) ─────────────
   React.useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -322,10 +330,32 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         handleRemoveItem(selectedItemId);
         setSelectedItemId(null);
       }
+      // Ctrl+C / Cmd+C — copy selected sticker
+      if ((e.ctrlKey || e.metaKey) && e.code === 'KeyC' && selectedItemId) {
+        e.preventDefault();
+        const item = items.find(i => i.id === selectedItemId);
+        if (item) clipboardRef.current = item;
+      }
+      // Ctrl+V / Cmd+V — paste copied sticker with slight offset
+      if ((e.ctrlKey || e.metaKey) && e.code === 'KeyV' && clipboardRef.current) {
+        e.preventDefault();
+        const src = clipboardRef.current;
+        const newItem = {
+          ...src,
+          id: _nextSectionId++,
+          position: { x: Math.min(src.position.x + 0.03, 0.95), y: Math.min(src.position.y + 0.03, 0.95) },
+          timestamp: currentTime,
+          duration: totalDuration - currentTime,
+          placedAtOffset: rawMidgroundOffset,
+          _placedWallTime: performance.now(),
+        };
+        setItems(prev => [...prev, newItem]);
+        setSelectedItemId(newItem.id);
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [togglePlay, selectedItemId, handleRemoveItem]);
+  }, [togglePlay, selectedItemId, handleRemoveItem, items, currentTime, totalDuration, rawMidgroundOffset]);
 
   // ── Section picker ─────────────────────────────────────────────────
 
@@ -446,7 +476,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
       {/* Floating controls for presentation & fullscreen */}
       {(isFullscreen || isPresent) && (
-        <div className="absolute top-3 right-3 z-50 flex items-center gap-2">
+        <div className="absolute bottom-3 right-3 z-50 flex items-center gap-2">
           <button
             onClick={rewind}
             className="p-2 rounded-lg bg-black/50 hover:bg-black/70 text-white/60 hover:text-white transition-colors"
@@ -506,6 +536,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                 <StickerPanelWrapper
                   selectedSticker={selectedSticker}
                   onStickerSelect={setSelectedSticker}
+                  defaultTab={defaultTab}
                 />
               )}
 
@@ -672,6 +703,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           onUpdateItem={handleUpdateItem}
           onRemoveItem={handleRemoveItem}
           presetMode={presetMode}
+          hideScenes={hideScenes}
           onAssignScene={(sectionIndex, sceneId) => {
             setSections(prev => {
               const updated = [...prev];
@@ -716,7 +748,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
 // ── Sticker Panel Wrapper ──────────────────────────────────────────
 // Lazy wrapper to avoid importing the large StickerPanel unless needed
-const StickerPanelWrapper = ({ selectedSticker, onStickerSelect }) => {
+const StickerPanelWrapper = ({ selectedSticker, onStickerSelect, defaultTab = null }) => {
   const [StickerPanel, setStickerPanel] = useState(null);
   const [stickerSize, setStickerSize] = useState(56);
 
@@ -743,6 +775,7 @@ const StickerPanelWrapper = ({ selectedSticker, onStickerSelect }) => {
       onSizeChange={setStickerSize}
       isOpen={true}
       availableTabs={['instruments', 'dynamics', 'tempo', 'form', 'emojis']}
+      defaultTab={defaultTab}
     />
   );
 };

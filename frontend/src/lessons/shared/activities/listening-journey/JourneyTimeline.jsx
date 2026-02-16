@@ -349,6 +349,7 @@ const JourneyTimeline = ({
   onUpdateItem,
   onRemoveItem,
   presetMode = false,
+  hideScenes = false,
   onAssignScene,
   onClearScene
 }) => {
@@ -472,7 +473,7 @@ const JourneyTimeline = ({
   return (
     <div className="flex flex-col gap-1.5">
       {/* Scene palette row */}
-      <div className="flex items-center gap-1.5">
+      {!hideScenes && <div className="flex items-center gap-1.5">
         <span className="text-[10px] text-white/40 font-bold uppercase w-12 flex-shrink-0">Scenes</span>
         <div className="flex gap-1.5 overflow-x-auto pb-0.5">
           {ENVIRONMENTS.map(env => (
@@ -495,7 +496,7 @@ const JourneyTimeline = ({
             />
           ))}
         </div>
-      </div>
+      </div>}
 
       {/* Timeline: transport left, tracks right */}
       <div className="flex gap-2 items-start">
