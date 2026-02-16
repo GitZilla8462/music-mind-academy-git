@@ -21,7 +21,7 @@ const INSTRUMENT_CONFIGS = [
     endTime: 9999,
     volume: 0.8,
     credit: 'Michael Venti — Elliott Carter: Eight Pieces for Four Timpani (Saëta), via Daniel Más (CC BY)',
-    facts: ['PITCHED — can play specific notes', 'Pedal changes pitch by tightening the drumhead', 'Stars in the Mouret Rondeau alongside the trumpets!']
+    facts: ['PITCHED — can play specific notes', 'Pedal changes pitch by tightening the drumhead', 'Powerful moments in Mountain King\'s dramatic climax!']
   },
   {
     id: 'xylophone',

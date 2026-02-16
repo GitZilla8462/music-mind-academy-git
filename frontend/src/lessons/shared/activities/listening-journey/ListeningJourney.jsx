@@ -66,6 +66,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const [editMode, setEditMode] = useState('select'); // 'select' | 'sticker' | 'text'
   const [saveStatus, setSaveStatus] = useState(null);
   const [selectedSticker, setSelectedSticker] = useState(null);
+  const [selectedItemId, setSelectedItemId] = useState(null);
   const [showTextEditor, setShowTextEditor] = useState(false);
   const [textEditorPosition, setTextEditorPosition] = useState(null);
   const [leftPanelTab, setLeftPanelTab] = useState('movement'); // 'stickers' | 'movement' | 'text'
@@ -96,18 +97,6 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   } = useJourneyPlayback(audioPath, totalDuration, sections, audioVolume);
 
   const { midgroundOffset, foregroundOffset, rawMidgroundOffset } = useParallaxScroll(currentTime, sections);
-
-  // ── Spacebar toggle play ─────────────────────────────────────────
-  React.useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-        e.preventDefault();
-        togglePlay();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [togglePlay]);
 
   // Active section — always derived from playhead position
   const activeSectionIndex = useMemo(() => {
@@ -228,13 +217,15 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   const handleSave = useCallback(() => {
     const authInfo = getClassAuthInfo();
+    // Strip ephemeral _placedWallTime so loaded stickers get entry animation on replay
+    const cleanItems = items.map(({ _placedWallTime, ...rest }) => rest);
     saveStudentWork(storageKey, {
       title: 'Listening Journey',
       emoji: '\uD83C\uDFAD',
       viewRoute: '/lessons/listening-lab/lesson4?view=saved',
       subtitle: `${sections.length} sections`,
       category: 'Listening Lab',
-      data: { sections, character, items, guideData, essayData }
+      data: { sections, character, items: cleanItems, guideData, essayData }
     }, null, authInfo);
     setSaveStatus('saved');
     setTimeout(() => setSaveStatus(null), 2000);
@@ -257,6 +248,9 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   // ── Sticker / text placement ───────────────────────────────────────
 
   const handleViewportClick = useCallback((pos) => {
+    // Deselect any selected sticker (sticker clicks stopPropagation before reaching here)
+    setSelectedItemId(null);
+
     if (editMode === 'sticker' && selectedSticker) {
       // Sticker visible from now until end of piece (scrolls off screen naturally)
       const startTime = currentTime;
@@ -315,6 +309,24 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     setItems(prev => [...prev, item]);
   }, []);
 
+  // ── Keyboard shortcuts (spacebar, delete) ─────────────────────────
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        togglePlay();
+      }
+      if ((e.code === 'Delete' || e.code === 'Backspace') && selectedItemId) {
+        e.preventDefault();
+        handleRemoveItem(selectedItemId);
+        setSelectedItemId(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [togglePlay, selectedItemId, handleRemoveItem]);
+
   // ── Section picker ─────────────────────────────────────────────────
 
   const handleOpenPicker = useCallback((sectionIndex, track, rect) => {
@@ -343,6 +355,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   const handleSwitchLeftTab = useCallback((tab) => {
     setLeftPanelTab(tab);
+    setSelectedItemId(null);
     if (tab === 'stickers') {
       setEditMode('sticker');
     } else if (tab === 'text') {
@@ -527,7 +540,6 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                         { id: 'none', icon: <CloudOff size={14} />, label: 'Clear' },
                         { id: 'rain', icon: <CloudRain size={14} />, label: 'Rain' },
                         { id: 'snow', icon: <CloudSnow size={14} />, label: 'Snow' },
-                        { id: 'wind', icon: <Wind size={14} />, label: 'Wind' },
                       ].map(w => (
                         <button
                           key={w.id}
@@ -614,6 +626,9 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
               onAddItem={handleAddItem}
               onSwitchToSelect={() => setEditMode('select')}
               rawScrollOffset={rawMidgroundOffset}
+              selectedItemId={selectedItemId}
+              onSelectItem={setSelectedItemId}
+              isBuildMode={isBuild}
             />
           </JourneyViewport>
         </div>
@@ -632,6 +647,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             sections={sections}
             guideData={guideData}
             pieceTitle={pieceConfig?.title}
+            character={character}
+            items={items}
           />
         )}
       </div>

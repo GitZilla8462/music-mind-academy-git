@@ -90,6 +90,22 @@ const ENVIRONMENTS = [
       { src: '/images/parallax/city/road.png', speed: 0.75 },
     ],
   },
+  {
+    id: 'plain-white',
+    name: 'White',
+    icon: '\u2B1C',
+    type: 'color',
+    backgroundColor: '#FFFFFF',
+    layers: [],
+  },
+  {
+    id: 'plain-black',
+    name: 'Black',
+    icon: '\u2B1B',
+    type: 'color',
+    backgroundColor: '#000000',
+    layers: [],
+  },
 ];
 
 export const getEnvironmentById = (id) => ENVIRONMENTS.find(e => e.id === id) || ENVIRONMENTS[0];

@@ -19,7 +19,7 @@ const INSTRUMENT_CONFIGS = [
     endTime: 9999,
     volume: 0.8,
     credit: 'Esteban Batallán — Haydn Trumpet Concerto, Real Filharmonía de Galicia (CC BY)',
-    facts: ['Highest-pitched brass instrument', 'Uses three valves to change notes', 'The star of the Mouret Rondeau!']
+    facts: ['Highest-pitched brass instrument', 'Uses three valves to change notes', 'Featured in Mountain King\'s explosive finale!']
   },
   {
     id: 'french-horn',
@@ -327,8 +327,8 @@ const BrassFamilyShowcase = ({ onAdvance }) => {
             {config.name}
           </div>
 
-          {/* Performer credit - bottom left */}
-          <div className="absolute bottom-10 left-8 px-4 py-2 rounded-lg bg-black/60 text-white text-lg font-medium">
+          {/* Performer credit - bottom left, max width so it wraps and stays out of the way */}
+          <div className="absolute bottom-10 left-8 max-w-sm px-4 py-2 rounded-lg bg-black/60 text-white text-sm font-medium leading-snug">
             {config.credit}
           </div>
 

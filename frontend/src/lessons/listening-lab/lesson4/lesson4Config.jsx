@@ -1,17 +1,16 @@
 // File: /lessons/listening-lab/lesson4/lesson4Config.jsx
-// Lesson 4: Review + Start Capstone
-// "Putting It All Together"
-// Students review dynamics, tempo, and form, then begin their capstone Listening Journey
+// Lesson 4: Percussion & Review
+// "Instrument Families & Review"
+// Students meet the percussion family, review L1-L3 concepts, continue Listening Journey
 //
 // ========================================
 // CURRICULUM NOTES
 // ========================================
-// This is the first of two capstone lessons. Students:
-// - Review all three concepts from L1-L3 (dynamics, tempo, form)
-// - Play "Name That Element" rapid-fire review game
-// - Learn about the Listening Journey project
-// - Pick their capstone piece from 5 options
-// - Plan and begin building their Listening Journey
+// Students:
+// - Meet the percussion family (pitched vs. unpitched)
+// - Review dynamics, tempo, and form from L1-L3
+// - Continue building their Listening Journey (worktime)
+// - Bonus: Play "Name That Element" rapid-fire review game
 //
 // ========================================
 // AUDIO CREDITS
@@ -39,14 +38,13 @@ export const CAPSTONE_PIECES = [
     previewPath: '/audio/classical/grieg-mountain-king-preview.mp3',
     color: '#10B981',
     emoji: '🏔️',
-    form: 'Through-composed (builds continuously)',
-    formLetters: 'A-A\'-A\'\'-A\'\'\'',
-    keyFeatures: ['Dramatic crescendo from pp to ff', 'Accelerando from andante to presto', 'Same melody repeats with growing intensity'],
+    form: 'Ternary (ABA)',
+    formLetters: 'A-B-A\'',
+    keyFeatures: ['ABA ternary form — statement, contrast, return', 'Pizzicato strings create sneaky atmosphere in A', 'Brass enters in B section with increased tempo', 'A\' return features full orchestra, ff, accelerando to presto'],
     sections: [
-      { id: 1, label: 'A', sectionLabel: 'Sneaky Start', startTime: 0, endTime: 37, color: '#3B82F6', defaultDynamics: 'pp', defaultTempo: 'andante' },
-      { id: 2, label: 'A\'', sectionLabel: 'Getting Louder', startTime: 37, endTime: 75, color: '#8B5CF6', defaultDynamics: 'mp', defaultTempo: 'moderato' },
-      { id: 3, label: 'A\'\'', sectionLabel: 'Building Up', startTime: 75, endTime: 112, color: '#F59E0B', defaultDynamics: 'f', defaultTempo: 'allegro' },
-      { id: 4, label: 'A\'\'\'', sectionLabel: 'Explosive Finale', startTime: 112, endTime: 150, color: '#EF4444', defaultDynamics: 'ff', defaultTempo: 'presto' }
+      { id: 1, label: 'A', sectionLabel: 'Sneaky Start', startTime: 0, endTime: 59, color: '#3B82F6', defaultDynamics: 'pp', defaultTempo: 'andante' },
+      { id: 2, label: 'B', sectionLabel: 'Building Energy', startTime: 59, endTime: 104, color: '#EF4444', defaultDynamics: 'mf', defaultTempo: 'moderato' },
+      { id: 3, label: 'A\'', sectionLabel: 'Explosive Return', startTime: 104, endTime: 150, color: '#3B82F6', defaultDynamics: 'ff', defaultTempo: 'presto' }
     ]
   },
   {
@@ -197,19 +195,77 @@ export const REVIEW_ELEMENTS = {
 // ========================================
 export const lessonSections = [
   {
-    id: 'review',
-    title: '1. Quick Review',
-    subtitle: 'Name That Element',
+    id: 'percussion',
+    title: '1. Percussion',
+    subtitle: 'Meet the Percussion',
     color: 'blue',
-    estimatedTime: 10,
+    estimatedTime: 6,
     stages: [
       {
         id: 'welcome-intro',
         type: 'summary',
-        label: 'Review + Start Capstone',
-        description: 'Welcome back! Today we review everything and start our capstone project.',
+        label: 'Percussion & Review',
+        description: 'Welcome! Today: percussion family, review, and Listening Journey worktime.',
         duration: 1
       },
+      {
+        id: 'percussion-definition',
+        type: 'summary',
+        label: 'Pitched vs. Unpitched',
+        description: 'Define percussion: pitched (timpani) vs unpitched (snare, bass drum, cymbals).',
+        duration: 2
+      },
+      {
+        id: 'percussion-showcase',
+        type: 'summary',
+        label: 'See & Hear Percussion',
+        description: 'Watch and hear each percussion instrument.',
+        duration: 4
+      }
+    ]
+  },
+  {
+    id: 'review',
+    title: '2. Review',
+    subtitle: 'Dynamics, Tempo & Form',
+    color: 'blue',
+    estimatedTime: 4,
+    stages: [
+      {
+        id: 'review-slides',
+        type: 'summary',
+        label: 'Quick Review',
+        description: 'Recap dynamics, tempo, and form concepts from Lessons 1-3.',
+        duration: 4
+      }
+    ]
+  },
+  {
+    id: 'worktime',
+    title: '3. Listening Journey Worktime',
+    subtitle: 'Build Your Journey',
+    color: 'blue',
+    estimatedTime: 20,
+    stages: [
+      {
+        id: 'build-time',
+        type: 'activity',
+        label: 'Build Your Journey',
+        duration: 20,
+        hasTimer: true,
+        trackProgress: true,
+        description: 'Students continue building their Listening Journey.',
+        bonusDescription: 'Match backgrounds, tempo, and dynamics to what you hear!'
+      }
+    ]
+  },
+  {
+    id: 'bonus-game',
+    title: '4. Bonus Game',
+    subtitle: 'Name That Element',
+    color: 'blue',
+    estimatedTime: 10,
+    stages: [
       {
         id: 'review-game-intro',
         type: 'summary',
@@ -220,90 +276,12 @@ export const lessonSections = [
       {
         id: 'review-game',
         type: 'activity',
-        label: '🎮 Name That Element',
+        label: 'Name That Element',
         duration: 8,
         hasTimer: false,
         trackProgress: true,
         description: 'CLASS GAME: Rapid-fire review — dynamics, tempo, or form?',
         bonusDescription: 'Speed bonus for fast answers!'
-      }
-    ]
-  },
-  {
-    id: 'capstone-intro',
-    title: '2. Capstone Introduction',
-    subtitle: 'The Listening Journey',
-    color: 'blue',
-    estimatedTime: 10,
-    stages: [
-      {
-        id: 'capstone-explanation',
-        type: 'summary',
-        label: 'Your Capstone Project',
-        description: 'Explain the Listening Journey: build a visual world that shows what you hear.',
-        duration: 3
-      },
-      {
-        id: 'journey-demo',
-        type: 'summary',
-        label: 'Listening Journey Demo',
-        description: 'Show a teacher-made example. Students see the finished product for the first time.',
-        duration: 2
-      },
-      {
-        id: 'piece-selection',
-        type: 'activity',
-        label: '🎵 Pick Your Piece',
-        duration: 5,
-        hasTimer: false,
-        trackProgress: true,
-        description: 'Students officially pick their capstone piece from 5 options.',
-        bonusDescription: 'Listen to preview clips before you decide!'
-      }
-    ]
-  },
-  {
-    id: 'planning',
-    title: '3. Plan & Build',
-    subtitle: 'Listening Journey',
-    color: 'blue',
-    estimatedTime: 20,
-    stages: [
-      {
-        id: 'planning-phase',
-        type: 'activity',
-        label: '📋 Plan Your Journey',
-        duration: 5,
-        hasTimer: true,
-        trackProgress: true,
-        description: 'Students sketch a plan: sections, dynamics, tempo for each part of their piece.',
-        bonusDescription: 'Reference your listening maps from L1-L3!'
-      },
-      {
-        id: 'build-time',
-        type: 'activity',
-        label: '🎮 Build Your Journey',
-        duration: 15,
-        hasTimer: true,
-        trackProgress: true,
-        description: 'Students open the Listening Journey builder and start creating.',
-        bonusDescription: 'Match backgrounds, tempo, and dynamics to what you hear!'
-      }
-    ]
-  },
-  {
-    id: 'wrap-up',
-    title: '4. Save & Preview',
-    subtitle: 'Save Your Progress',
-    color: 'blue',
-    estimatedTime: 2,
-    stages: [
-      {
-        id: 'save-preview',
-        type: 'summary',
-        label: 'Save Your Work',
-        description: 'Students save their progress. Reminder: tomorrow you finish and share!',
-        duration: 2
       }
     ]
   }
@@ -312,40 +290,33 @@ export const lessonSections = [
 export const lesson4Config = {
   id: 'listening-lab-lesson4',
   lessonPath: '/lessons/listening-lab/lesson4',
-  title: "Review + Start Capstone",
-  subtitle: "Putting It All Together",
-  featuredPiece: null, // Students choose their own piece
+  title: "Percussion & Review",
+  subtitle: "Instrument Families & Review",
+  featuredPiece: null,
   learningObjectives: [
+    "Identify percussion instruments and distinguish pitched from unpitched",
     "Review dynamics, tempo, and form concepts from Lessons 1-3",
-    "Understand the Listening Journey capstone project",
-    "Select a capstone piece and identify its key musical features",
-    "Plan and begin building a Listening Journey that shows dynamics, tempo, and form"
+    "Continue building a Listening Journey that shows dynamics, tempo, and form"
   ],
   lessonSections,
   activities: [
     {
       id: 1,
-      type: "name-that-element",
-      title: "Name That Element (Review Game)",
-      estimatedTime: "8 min"
+      type: "percussion-showcase",
+      title: "Meet the Percussion Family",
+      estimatedTime: "4 min"
     },
     {
       id: 2,
-      type: "capstone-piece-selection",
-      title: "Pick Your Piece",
-      estimatedTime: "5 min"
+      type: "listening-journey",
+      title: "Listening Journey Worktime",
+      estimatedTime: "20 min"
     },
     {
       id: 3,
-      type: "capstone-planning",
-      title: "Plan Your Journey",
-      estimatedTime: "5 min"
-    },
-    {
-      id: 4,
-      type: "listening-journey",
-      title: "Build Your Listening Journey",
-      estimatedTime: "15 min"
+      type: "name-that-element",
+      title: "Name That Element (Bonus Game)",
+      estimatedTime: "8 min"
     }
   ]
 };
@@ -362,26 +333,110 @@ export const lessonStages = [
   },
   {
     id: 'welcome-intro',
-    label: 'Review + Start Capstone',
-    description: 'Welcome back! Today we review and start the capstone.',
+    label: 'Percussion & Review',
+    description: 'Welcome! Today: percussion family, review, and Listening Journey worktime.',
     type: 'summary',
     duration: 1,
     presentationView: {
       type: 'summary',
-      title: 'Review + Start Capstone',
-      subtitle: 'Putting It All Together',
+      title: 'Percussion & Review',
+      subtitle: 'Instrument Families & Review',
       sections: [
         {
           heading: 'Today\'s Plan',
           bullets: [
-            '🎮 QUICK REVIEW — Name That Element game (dynamics, tempo, form)',
-            '🎬 CAPSTONE INTRO — See the Listening Journey project',
-            '🎵 PICK YOUR PIECE — Choose from 5 classical masterworks',
-            '📋 PLAN — Map out your sections, dynamics, and tempo',
-            '🏗️ BUILD — Start creating your Listening Journey!'
+            '🥁 PERCUSSION — Meet the percussion family (pitched vs. unpitched)',
+            '📝 REVIEW — Quick recap of dynamics, tempo, and form',
+            '🏗️ WORKTIME — Continue building your Listening Journey',
+            '🎮 BONUS — Name That Element game!'
           ]
         }
       ]
+    }
+  },
+  {
+    id: 'percussion-definition',
+    label: 'Pitched vs. Unpitched',
+    description: 'Define percussion: pitched (timpani) vs unpitched (snare, bass drum, cymbals).',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'summary',
+      title: 'The Percussion Family',
+      subtitle: 'Instruments you strike, shake, or scrape',
+      sections: [
+        {
+          heading: 'Two Types of Percussion',
+          bullets: [
+            'PITCHED — can play specific notes (timpani, xylophone, marimba)',
+            'UNPITCHED — no specific pitch, just rhythm and color (snare drum, bass drum, cymbals)',
+            'Percussion instruments are played by striking, shaking, or scraping'
+          ]
+        }
+      ]
+    }
+  },
+  {
+    id: 'percussion-showcase',
+    label: 'See & Hear Percussion',
+    description: 'Watch and hear each percussion instrument.',
+    type: 'summary',
+    duration: 4,
+    presentationView: {
+      type: 'percussion-showcase'
+    }
+  },
+  {
+    id: 'review-slides',
+    label: 'Quick Review',
+    description: 'Recap dynamics, tempo, and form from Lessons 1-3.',
+    type: 'summary',
+    duration: 4,
+    presentationView: {
+      type: 'summary',
+      title: 'Quick Review',
+      subtitle: 'What have we learned so far?',
+      sections: [
+        {
+          heading: 'Dynamics (Lesson 1)',
+          bullets: [
+            'How LOUD or SOFT the music is',
+            'pp → p → mp → mf → f → ff',
+            'Crescendo (getting louder) & Decrescendo (getting softer)'
+          ]
+        },
+        {
+          heading: 'Tempo (Lesson 2)',
+          bullets: [
+            'How FAST or SLOW the music moves',
+            'Largo → Adagio → Andante → Allegro → Presto',
+            'Accelerando (speeding up) & Ritardando (slowing down)'
+          ]
+        },
+        {
+          heading: 'Form (Lesson 3)',
+          bullets: [
+            'The BLUEPRINT of a piece — sections labeled with letters',
+            'Ternary form: ABA (statement, contrast, return)',
+            'Mountain King: A (sneaky) → B (building) → A\' (explosive)'
+          ]
+        }
+      ]
+    }
+  },
+  {
+    id: 'build-time',
+    label: 'Build Your Journey',
+    description: 'Students continue building their Listening Journey.',
+    bonusDescription: 'Match backgrounds, tempo, and dynamics to what you hear!',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: true,
+    duration: 20,
+    presentationView: {
+      type: 'activity-banner',
+      title: 'Listening Journey Worktime',
+      subtitle: 'Continue building — show what you hear!'
     }
   },
   {
@@ -408,9 +463,9 @@ export const lessonStages = [
         {
           heading: 'The Three Elements',
           bullets: [
-            '📢 DYNAMICS — How loud or soft? (p, f, crescendo, decrescendo)',
-            '⏱️ TEMPO — How fast or slow? (allegro, adagio, accelerando)',
-            '🔤 FORM — What section? (A section, B section, rondo, refrain)'
+            'DYNAMICS — How loud or soft? (p, f, crescendo, decrescendo)',
+            'TEMPO — How fast or slow? (allegro, adagio, accelerando)',
+            'FORM — What section? (A section, B section, ternary, rondo)'
           ]
         }
       ]
@@ -418,7 +473,7 @@ export const lessonStages = [
   },
   {
     id: 'review-game',
-    label: '🎮 Name That Element',
+    label: 'Name That Element',
     description: 'CLASS GAME: Rapid-fire review of dynamics, tempo, and form.',
     bonusDescription: 'Speed bonus for fast answers!',
     hasProgress: true,
@@ -428,119 +483,6 @@ export const lessonStages = [
     presentationView: {
       type: 'name-that-element-teacher-game'
     }
-  },
-  {
-    id: 'capstone-explanation',
-    label: 'Your Capstone Project',
-    description: 'Explain the Listening Journey project.',
-    type: 'summary',
-    duration: 3,
-    presentationView: {
-      type: 'summary',
-      title: 'Your Capstone Project',
-      subtitle: 'The Listening Journey',
-      sections: [
-        {
-          heading: 'What You\'ll Build',
-          bullets: [
-            'A visual world that shows what you HEAR in a piece of music',
-            'Your character walks through scenes that change with the music',
-            'When dynamics change → the world gets brighter or darker',
-            'When tempo changes → your character speeds up or slows down',
-            'When the form changes → the scene transforms!'
-          ]
-        },
-        {
-          heading: 'You\'ll Show All Three Elements',
-          bullets: [
-            '📢 DYNAMICS — brightness, size, intensity of the world',
-            '⏱️ TEMPO — speed of your character\'s movement',
-            '🔤 FORM — different backgrounds for different sections'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'journey-demo',
-    label: 'Listening Journey Demo',
-    description: 'Show a teacher-made example.',
-    type: 'summary',
-    duration: 2,
-    presentationView: {
-      type: 'journey-demo'
-    }
-  },
-  {
-    id: 'piece-selection',
-    label: '🎵 Pick Your Piece',
-    description: 'Students pick their capstone piece.',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: false,
-    duration: 5,
-    presentationView: {
-      type: 'piece-selection-teacher'
-    }
-  },
-  {
-    id: 'planning-phase',
-    label: '📋 Plan Your Journey',
-    description: 'Students sketch a plan for their Listening Journey.',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 5,
-    presentationView: {
-      type: 'activity-banner',
-      title: 'Planning Phase',
-      subtitle: 'Map out your sections, dynamics, and tempo before you build!'
-    }
-  },
-  {
-    id: 'build-time',
-    label: '🎮 Build Your Journey',
-    description: 'Students open the Listening Journey builder.',
-    bonusDescription: 'Match backgrounds, tempo, and dynamics to what you hear!',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 15,
-    presentationView: {
-      type: 'activity-banner',
-      title: 'Build Time!',
-      subtitle: 'Create your Listening Journey — show what you hear!'
-    }
-  },
-  {
-    id: 'save-preview',
-    label: 'Save Your Work',
-    description: 'Save progress. Tomorrow: finish and share!',
-    type: 'summary',
-    duration: 2,
-    presentationView: {
-      type: 'summary',
-      title: 'Save Your Work!',
-      subtitle: '',
-      sections: [
-        {
-          heading: 'Before You Close',
-          bullets: [
-            '💾 Click SAVE in the Listening Journey builder',
-            'Your progress is saved automatically — but double-check!',
-            'Tomorrow: 20 more minutes to finish, then we SHARE'
-          ]
-        },
-        {
-          heading: 'Coming Tomorrow',
-          bullets: [
-            '🏗️ 20 minutes of build time to polish your journey',
-            '🎪 Gallery Circle — share your journey with the class!',
-            '⭐ Unit reflection — what did you learn?'
-          ]
-        }
-      ]
-    }
   }
 ];
 
@@ -548,14 +490,12 @@ export const lessonStages = [
 export const getActivityForStage = (stage) => {
   const stageMap = {
     'welcome-intro': 'summary',
-    'review-game-intro': 'summary',
-    'review-game': 'name-that-element',
-    'capstone-explanation': 'summary',
-    'journey-demo': 'summary',
-    'piece-selection': 'capstone-piece-selection',
-    'planning-phase': 'capstone-planning',
+    'percussion-definition': 'summary',
+    'percussion-showcase': 'summary',
+    'review-slides': 'summary',
     'build-time': 'listening-journey',
-    'save-preview': 'summary'
+    'review-game-intro': 'summary',
+    'review-game': 'name-that-element'
   };
   return stageMap[stage];
 };

@@ -9,7 +9,7 @@ import { Monitor, Video, Gamepad2, Trophy, Clock } from 'lucide-react';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
 // Config
-import { lesson3Config, lessonStages, getActivityForStage, MOURET_JOURNEY_CONFIG } from './lesson3Config';
+import { lesson3Config, lessonStages, getActivityForStage, MOUNTAIN_KING_JOURNEY_CONFIG } from './lesson3Config';
 
 // Hooks
 import { useLesson } from '../../shared/hooks/useLesson';
@@ -229,7 +229,7 @@ const Lesson3 = () => {
       return (
         <>
           <ActivityRenderer
-            activity={{ type: activityType, id: currentStage, ...(activityType === 'listening-journey' ? { pieceConfig: MOURET_JOURNEY_CONFIG } : {}) }}
+            activity={{ type: activityType, id: currentStage, ...(activityType === 'listening-journey' ? { pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG } : {}) }}
             onComplete={handleSessionActivityComplete}
             sessionCode={sessionCode}
             viewMode={false}
@@ -344,7 +344,7 @@ const Lesson3 = () => {
 
   return (
     <ActivityRenderer
-      activity={{ type: currentActivity.type, id: currentActivity.id, ...(currentActivity.type === 'listening-journey' ? { pieceConfig: MOURET_JOURNEY_CONFIG } : {}) }}
+      activity={{ type: currentActivity.type, id: currentActivity.id, ...(currentActivity.type === 'listening-journey' ? { pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG } : {}) }}
       onComplete={lesson.handleActivityComplete}
       viewMode={false}
       isSessionMode={false}

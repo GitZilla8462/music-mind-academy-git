@@ -7,6 +7,13 @@ import { getEnvironmentById } from './config/environments';
 const ParallaxEnvironment = ({ sceneId, midgroundOffset = 0 }) => {
   const env = getEnvironmentById(sceneId);
 
+  // Plain color background — no layers or sky image
+  if (env.type === 'color') {
+    return (
+      <div className="absolute inset-0" style={{ backgroundColor: env.backgroundColor }} />
+    );
+  }
+
   return (
     <div className="absolute inset-0 overflow-hidden">
       {/* Sky image — static, fills viewport */}

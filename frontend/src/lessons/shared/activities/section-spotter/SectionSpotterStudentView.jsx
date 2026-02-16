@@ -1,13 +1,15 @@
 // File: SectionSpotterStudentView.jsx
-// Section Spotter - Student View (syncs with teacher's class game)
-// Students listen to audio on teacher's speakers, then tap A, B, or C on their device
+// Section Spotter - Student View (Q&A format)
+// Syncs with teacher's game. Students answer questions about dynamics, instruments, and tempo.
+// 3 rounds (Section A, B, A'), 3 questions per round.
+// No audio on student side — teacher plays audio on main screen.
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Check, Trophy } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
-import { SCORING, calculateSpeedBonus, getSectionByLabel, getPieceConfig } from './sectionSpotterConfig';
+import { QA_SCORING, calculateQASpeedBonus } from './sectionSpotterConfig';
 
 const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
   const { sessionCode, userId: contextUserId } = useSession();
@@ -16,19 +18,15 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
   // Player info
   const [playerName, setPlayerName] = useState('');
   const [playerColor, setPlayerColor] = useState('#3B82F6');
-  const [playerEmoji, setPlayerEmoji] = useState('🎵');
+  const [playerEmoji, setPlayerEmoji] = useState('\uD83C\uDFB5');
   const [score, setScore] = useState(0);
 
   // Game state (synced from teacher)
   const [gamePhase, setGamePhase] = useState('waiting');
+  const [currentRound, setCurrentRound] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [totalQuestions, setTotalQuestions] = useState(6);
-  const [correctAnswer, setCorrectAnswer] = useState(null);
-  const [playStartTime, setPlayStartTime] = useState(null);
-  const [gamePieceId, setGamePieceId] = useState('fur-elise');
-
-  // Derive section options from the piece the teacher selected
-  const sectionOptions = getPieceConfig(gamePieceId).sectionOptions;
+  const [questionData, setQuestionData] = useState(null);
+  const [questionStartTime, setQuestionStartTime] = useState(null);
 
   // Student's answer
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -37,20 +35,22 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
   // Results
   const [wasCorrect, setWasCorrect] = useState(null);
   const [earnedPoints, setEarnedPoints] = useState(0);
+  const [revealedAnswer, setRevealedAnswer] = useState(null);
+  const [revealedLabel, setRevealedLabel] = useState(null);
+  const [revealedExplanation, setRevealedExplanation] = useState(null);
 
-  // Leaderboard for results
+  // Leaderboard for finished phase
   const [leaderboard, setLeaderboard] = useState([]);
   const [myRank, setMyRank] = useState(null);
 
-  // Track which question we've already scored
-  const scoredQuestionRef = useRef(-1);
+  // Track scored questions to avoid double-scoring
+  const scoredKeyRef = useRef('');
 
   // Refs to avoid stale closures
   const scoreRef = useRef(0);
-  const currentQuestionRef = useRef(0);
   const selectedAnswerRef = useRef(null);
   const wasCorrectRef = useRef(null);
-  const playStartTimeRef = useRef(null);
+  const questionStartTimeRef = useRef(null);
 
   // Generate player name on mount
   useEffect(() => {
@@ -97,10 +97,9 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
 
   // Keep refs in sync
   useEffect(() => { scoreRef.current = score; }, [score]);
-  useEffect(() => { currentQuestionRef.current = currentQuestion; }, [currentQuestion]);
   useEffect(() => { selectedAnswerRef.current = selectedAnswer; }, [selectedAnswer]);
   useEffect(() => { wasCorrectRef.current = wasCorrect; }, [wasCorrect]);
-  useEffect(() => { playStartTimeRef.current = playStartTime; }, [playStartTime]);
+  useEffect(() => { questionStartTimeRef.current = questionStartTime; }, [questionStartTime]);
 
   // Listen for game state updates from teacher
   useEffect(() => {
@@ -116,42 +115,109 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
         return;
       }
 
-      setGamePhase(data.phase || 'waiting');
-      setCurrentQuestion(data.currentQuestion || 0);
-      setTotalQuestions(data.totalQuestions || 6);
-      if (data.pieceId) setGamePieceId(data.pieceId);
+      const phase = data.phase || 'waiting';
+      const round = data.currentRound || 0;
+      const qIdx = data.currentQuestion || 0;
 
-      if (data.phase === 'playing' || data.phase === 'guessing') {
-        // Reset score when new game starts
-        if (data.currentQuestion === 0 && scoredQuestionRef.current === -1 && scoreRef.current > 0) {
-          scoreRef.current = 0;
-          setScore(0);
-        }
-        if (data.currentQuestion === 0 && currentQuestionRef.current !== 0) {
-          scoreRef.current = 0;
-          setScore(0);
-          scoredQuestionRef.current = -1;
-        }
+      setGamePhase(phase);
+      setCurrentRound(round);
+      setCurrentQuestion(qIdx);
 
-        // New question - reset answers
-        if (data.currentQuestion !== currentQuestionRef.current) {
-          selectedAnswerRef.current = null;
+      // Question phase — receive question data
+      if (phase === 'question') {
+        const qKey = `${round}-${qIdx}`;
+
+        // New question — reset answer state
+        if (data.questionData && scoredKeyRef.current !== qKey) {
+          // Only reset if this is a genuinely new question
+          if (selectedAnswerRef.current !== null || wasCorrectRef.current !== null) {
+            // We had a previous answer — this means a new question arrived
+          }
+          setQuestionData(data.questionData);
           setSelectedAnswer(null);
+          selectedAnswerRef.current = null;
           setAnswerSubmitted(false);
-          wasCorrectRef.current = null;
           setWasCorrect(null);
+          wasCorrectRef.current = null;
           setEarnedPoints(0);
-          setCorrectAnswer(null);
-        }
+          setRevealedAnswer(null);
+          setRevealedLabel(null);
+          setRevealedExplanation(null);
 
-        if (data.phase === 'guessing' && data.playStartTime) {
-          playStartTimeRef.current = data.playStartTime;
-          setPlayStartTime(data.playStartTime);
+          if (data.questionStartTime) {
+            questionStartTimeRef.current = data.questionStartTime;
+            setQuestionStartTime(data.questionStartTime);
+          }
         }
       }
 
-      // Restore score from Firebase if remounted
-      if (data.phase === 'finished') {
+      // Listening phase — students watch main screen
+      if (phase === 'listening') {
+        setQuestionData(null);
+        setSelectedAnswer(null);
+        selectedAnswerRef.current = null;
+        setAnswerSubmitted(false);
+        setWasCorrect(null);
+        wasCorrectRef.current = null;
+        setEarnedPoints(0);
+        setRevealedAnswer(null);
+
+        // Reset score when new game starts (round 0, question 0)
+        if (round === 0 && qIdx === 0 && scoreRef.current > 0) {
+          scoreRef.current = 0;
+          setScore(0);
+          scoredKeyRef.current = '';
+        }
+      }
+
+      // Between-rounds — just wait
+      if (phase === 'between-rounds') {
+        setQuestionData(null);
+      }
+
+      // Revealed — score the answer
+      if (phase === 'revealed' && data.revealedAnswer) {
+        setRevealedAnswer(data.revealedAnswer);
+        setRevealedLabel(data.revealedLabel || null);
+        setRevealedExplanation(data.revealedExplanation || null);
+
+        const qKey = `${round}-${qIdx}`;
+        if (selectedAnswerRef.current && wasCorrectRef.current === null && scoredKeyRef.current !== qKey) {
+          scoredKeyRef.current = qKey;
+
+          const answer = selectedAnswerRef.current;
+          const isCorrect = answer === data.revealedAnswer;
+
+          wasCorrectRef.current = isCorrect;
+          setWasCorrect(isCorrect);
+
+          let points = 0;
+          if (isCorrect) {
+            points = QA_SCORING.correct;
+            points += calculateQASpeedBonus(Date.now(), questionStartTimeRef.current || Date.now());
+          }
+
+          setEarnedPoints(points);
+          const newScore = scoreRef.current + points;
+          scoreRef.current = newScore;
+          setScore(newScore);
+
+          // Update Firebase
+          const effectiveUserId = userId || localStorage.getItem('current-session-userId');
+          if (sessionCode && effectiveUserId) {
+            update(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}`), {
+              sectionSpotterScore: newScore
+            });
+          }
+        } else if (!selectedAnswerRef.current && wasCorrectRef.current === null && scoredKeyRef.current !== qKey) {
+          // No answer submitted
+          scoredKeyRef.current = qKey;
+          setWasCorrect(false);
+        }
+      }
+
+      // Finished — restore score if remounted
+      if (phase === 'finished') {
         const effectiveUserId = userId || localStorage.getItem('current-session-userId');
         if (effectiveUserId && scoreRef.current === 0) {
           get(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}/sectionSpotterScore`))
@@ -163,42 +229,6 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
               }
             })
             .catch(() => {});
-        }
-      }
-
-      // Handle reveal
-      if (data.phase === 'revealed' && data.correctAnswer) {
-        setCorrectAnswer(data.correctAnswer);
-
-        const questionNum = data.currentQuestion || 0;
-
-        if (selectedAnswerRef.current && wasCorrectRef.current === null && scoredQuestionRef.current !== questionNum) {
-          scoredQuestionRef.current = questionNum;
-
-          const answer = selectedAnswerRef.current;
-          const isCorrect = answer === data.correctAnswer;
-
-          wasCorrectRef.current = isCorrect;
-          setWasCorrect(isCorrect);
-
-          let points = 0;
-          if (isCorrect) {
-            points = SCORING.correct;
-            const answerTime = Date.now() - (playStartTimeRef.current || Date.now());
-            points += calculateSpeedBonus(answerTime);
-          }
-
-          setEarnedPoints(points);
-          const newScore = scoreRef.current + points;
-          scoreRef.current = newScore;
-          setScore(newScore);
-
-          const effectiveUserId = userId || localStorage.getItem('current-session-userId');
-          if (sessionCode && effectiveUserId) {
-            update(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}`), {
-              sectionSpotterScore: newScore
-            });
-          }
         }
       }
     });
@@ -220,7 +250,7 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
         name: s.playerName || s.displayName || 'Student',
         score: s.sectionSpotterScore || 0,
         playerColor: s.playerColor || '#3B82F6',
-        playerEmoji: s.playerEmoji || '🎵'
+        playerEmoji: s.playerEmoji || '\uD83C\uDFB5'
       }));
 
       const sorted = [...list].sort((a, b) => b.score - a.score);
@@ -236,41 +266,48 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
   }, [sessionCode, userId]);
 
   // Submit answer
-  const submitAnswer = (sectionLabel) => {
-    if (answerSubmitted || gamePhase !== 'guessing') return;
+  const submitAnswer = (optionId) => {
+    if (answerSubmitted || gamePhase !== 'question') return;
 
-    selectedAnswerRef.current = sectionLabel;
-    setSelectedAnswer(sectionLabel);
+    selectedAnswerRef.current = optionId;
+    setSelectedAnswer(optionId);
     setAnswerSubmitted(true);
 
     if (sessionCode && userId) {
       const db = getDatabase();
       update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
-        sectionSpotterAnswer: sectionLabel,
+        sectionSpotterAnswer: optionId,
         sectionSpotterAnswerTime: Date.now()
       });
     }
   };
 
-  const correctSection = correctAnswer ? getSectionByLabel(correctAnswer, sectionOptions) : null;
-  const selectedSection = selectedAnswer ? getSectionByLabel(selectedAnswer, sectionOptions) : null;
+  // Get selected option label
+  const getOptionLabel = (optionId) => {
+    if (!questionData?.options) return optionId;
+    const opt = questionData.options.find(o => o.id === optionId);
+    return opt?.label || optionId;
+  };
+
+  // Round labels
+  const roundLabels = ['Section A', 'Section B', "Section A'"];
+
+  const getRankEmoji = (rank) => {
+    if (rank === 1) return '\uD83E\uDD47';
+    if (rank === 2) return '\uD83E\uDD48';
+    if (rank === 3) return '\uD83E\uDD49';
+    return `#${rank}`;
+  };
 
   // ============ FINISHED PHASE ============
   if (gamePhase === 'finished') {
     const myLeaderboardEntry = leaderboard.find(s => s.id === userId);
     const displayScore = score > 0 ? score : (myLeaderboardEntry?.score ?? score);
 
-    const getRankEmoji = (rank) => {
-      if (rank === 1) return '🥇';
-      if (rank === 2) return '🥈';
-      if (rank === 3) return '🥉';
-      return `#${rank}`;
-    };
-
     return (
       <div className="h-screen bg-gradient-to-br from-orange-900 via-amber-900 to-yellow-900 flex items-center justify-center p-4 overflow-auto">
         <div className="text-center max-w-md w-full">
-          <div className="text-6xl mb-4">🏆</div>
+          <div className="text-6xl mb-4">{'\uD83C\uDFC6'}</div>
 
           <div
             className="inline-flex flex-col items-center px-8 py-4 rounded-2xl mb-4 shadow-lg"
@@ -307,7 +344,7 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
                   }`}
                 >
                   <span className="w-6 text-center font-bold text-sm text-white">
-                    {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
+                    {idx === 0 ? '\uD83E\uDD47' : idx === 1 ? '\uD83E\uDD48' : idx === 2 ? '\uD83E\uDD49' : `#${idx + 1}`}
                   </span>
                   <div
                     className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
@@ -328,32 +365,43 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
     );
   }
 
-  // ============ WAITING / SETUP PHASE ============
-  if (gamePhase === 'waiting' || gamePhase === 'setup') {
+  // ============ WAITING / SETUP / LISTENING / BETWEEN-ROUNDS ============
+  if (gamePhase === 'waiting' || gamePhase === 'setup' || gamePhase === 'listening' || gamePhase === 'between-rounds') {
     return (
       <div className="h-screen bg-gradient-to-br from-orange-900 via-amber-900 to-yellow-900 flex items-center justify-center p-6">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-white mb-4">
-            🔤 Section Spotter
+            {'\uD83D\uDD0D'} Section Spotter
           </h1>
-          <p className="text-xl text-amber-200 mb-8">
-            Waiting for teacher to start...
-          </p>
+
+          {gamePhase === 'listening' ? (
+            <>
+              <p className="text-2xl text-amber-200 mb-2">{roundLabels[currentRound]}</p>
+              <p className="text-xl text-white/70 mb-8">{'\uD83C\uDFA7'} Listen to the main screen...</p>
+            </>
+          ) : gamePhase === 'between-rounds' ? (
+            <p className="text-xl text-amber-200 mb-8">Getting ready for the next section...</p>
+          ) : (
+            <p className="text-xl text-amber-200 mb-8">Waiting for teacher to start...</p>
+          )}
 
           <div className="bg-white/10 rounded-2xl p-6 inline-block">
             <span className="text-4xl mb-2 block">{playerEmoji}</span>
             <div className="text-2xl font-bold" style={{ color: playerColor }}>{playerName}</div>
+            {score > 0 && (
+              <div className="text-lg text-yellow-300 mt-2">{score} points</div>
+            )}
           </div>
         </div>
       </div>
     );
   }
 
-  // ============ GUESSING / REVEALED PHASES ============
+  // ============ QUESTION / REVEALED PHASES ============
   return (
     <div className="h-screen bg-gradient-to-br from-orange-900 via-amber-900 to-yellow-900 flex flex-col p-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold text-white"
@@ -363,7 +411,7 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
           </div>
           <div>
             <div className="text-lg font-bold" style={{ color: playerColor }}>{playerName}</div>
-            <div className="text-sm text-amber-200">Section {currentQuestion + 1}/{totalQuestions}</div>
+            <div className="text-sm text-amber-200">{roundLabels[currentRound]} — Q{currentQuestion + 1}/3</div>
           </div>
         </div>
         <div className="bg-white/10 px-4 py-2 rounded-xl">
@@ -374,63 +422,69 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center">
-        <h2 className="text-2xl font-bold text-white mb-4 text-center">
-          Which section is this?
-        </h2>
 
-        {/* Listen icon */}
-        <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4 bg-gradient-to-br from-orange-500 to-amber-500">
-          <span className="text-4xl">🔤</span>
-        </div>
-
-        {/* Section answer buttons - 3 large options */}
-        {gamePhase === 'guessing' && !answerSubmitted && (
+        {/* QUESTION — show answer buttons */}
+        {gamePhase === 'question' && questionData && !answerSubmitted && (
           <>
+            {/* Category badge */}
+            <div
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-lg font-bold mb-3"
+              style={{ backgroundColor: questionData.categoryColor }}
+            >
+              <span className="text-xl">{questionData.categoryEmoji}</span>
+              {questionData.category}
+            </div>
+
+            <h2 className="text-2xl font-bold text-white mb-4 text-center px-2">
+              {questionData.question}
+            </h2>
+
             <p className="text-amber-200 text-sm mb-4">Tap your answer:</p>
-            <div className={`grid ${sectionOptions.length <= 3 ? 'grid-cols-3' : 'grid-cols-4'} gap-4 w-full max-w-lg`}>
-              {sectionOptions.map(s => (
+
+            <div className={`grid ${questionData.options.length <= 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-3 w-full max-w-lg`}>
+              {questionData.options.map(opt => (
                 <button
-                  key={s.label}
-                  onClick={() => submitAnswer(s.label)}
-                  className="py-6 px-4 rounded-2xl text-center transition-all hover:scale-105 active:scale-95 text-white"
-                  style={{ backgroundColor: s.color, minHeight: '120px' }}
+                  key={opt.id}
+                  onClick={() => submitAnswer(opt.id)}
+                  className="py-5 px-4 rounded-2xl text-center transition-all hover:scale-105 active:scale-95 text-white bg-white/15 border-2 border-white/30 hover:bg-white/25"
+                  style={{ minHeight: '70px' }}
                 >
-                  <div className="text-5xl font-black mb-2">{s.label}</div>
-                  <div className="text-sm font-bold opacity-90">{s.description}</div>
+                  <div className="text-xl font-bold">{opt.label}</div>
                 </button>
               ))}
             </div>
           </>
         )}
 
-        {/* Answer submitted - waiting for reveal */}
-        {gamePhase === 'guessing' && answerSubmitted && selectedSection && (
+        {/* Answer submitted — waiting for reveal */}
+        {gamePhase === 'question' && answerSubmitted && (
           <div className="text-center">
             <div className="bg-white/20 rounded-2xl p-8 inline-block">
               <Check size={48} className="mx-auto text-green-400 mb-4" />
               <p className="text-xl text-white font-bold mb-2">Answer Submitted!</p>
-              <div
-                className="inline-block px-8 py-3 rounded-full text-white font-bold text-3xl mb-2"
-                style={{ backgroundColor: selectedSection.color }}
-              >
-                {selectedSection.emoji} Section {selectedSection.label}
+              <div className="inline-block px-6 py-2 rounded-full text-white font-bold text-2xl mb-2 bg-white/20">
+                {getOptionLabel(selectedAnswer)}
               </div>
               <p className="text-sm text-amber-300 mt-4">Waiting for teacher to reveal...</p>
             </div>
           </div>
         )}
 
-        {/* Revealed */}
-        {gamePhase === 'revealed' && correctSection && (
+        {/* REVEALED — show result */}
+        {gamePhase === 'revealed' && (
           <div className="text-center w-full max-w-md">
-            {wasCorrect ? (
+            {wasCorrect === true ? (
               <div className="bg-green-500/30 rounded-2xl p-6 mb-4">
                 <p className="text-3xl font-bold text-green-400 mb-2">Correct!</p>
-                <p className="text-xl text-white">+{earnedPoints} points{earnedPoints > SCORING.correct ? ' (speed bonus!)' : ''}</p>
+                <p className="text-xl text-white">
+                  +{earnedPoints} points
+                  {earnedPoints > QA_SCORING.correct ? ' (speed bonus!)' : ''}
+                </p>
               </div>
-            ) : wasCorrect === false ? (
+            ) : wasCorrect === false && selectedAnswer ? (
               <div className="bg-red-500/30 rounded-2xl p-6 mb-4">
                 <p className="text-3xl font-bold text-red-400 mb-2">Not quite!</p>
+                <p className="text-lg text-white/80">You answered: {getOptionLabel(selectedAnswer)}</p>
               </div>
             ) : (
               <div className="bg-gray-500/30 rounded-2xl p-6 mb-4">
@@ -439,15 +493,19 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
             )}
 
             {/* Show correct answer */}
-            <div
-              className="rounded-2xl p-6 text-white"
-              style={{ backgroundColor: correctSection.color }}
-            >
-              <div className="text-6xl font-black mb-1">{correctSection.label}</div>
-              <div className="text-2xl font-bold">{correctSection.description}</div>
-            </div>
+            {revealedLabel && (
+              <div
+                className="rounded-2xl p-5 text-white mb-2"
+                style={{ backgroundColor: questionData?.categoryColor || '#3B82F6' }}
+              >
+                <div className="text-2xl font-black mb-1">{revealedLabel}</div>
+                {revealedExplanation && (
+                  <div className="text-base text-white/90">{revealedExplanation}</div>
+                )}
+              </div>
+            )}
 
-            <p className="text-amber-200 mt-4 text-sm">Waiting for next section...</p>
+            <p className="text-amber-200 mt-4 text-sm">Waiting for next question...</p>
           </div>
         )}
       </div>

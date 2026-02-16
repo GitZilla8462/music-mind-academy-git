@@ -95,6 +95,9 @@ import ListeningJourney from '../activities/listening-journey';
 // ✅ ADDED: Name That Element review game (Listening Lab Lesson 4 - Review)
 import NameThatElementStudentView from '../activities/name-that-element/NameThatElementStudentView';
 
+// ✅ ADDED: Four Corners review game (Listening Lab Lesson 3 - Bonus)
+import FourCornersStudentView from '../activities/four-corners/FourCornersStudentView';
+
 // ✅ ADDED: Capstone activities (Listening Lab Lesson 4)
 import CapstonePieceSelection from '../activities/capstone/CapstonePieceSelection';
 import CapstonePlanning from '../activities/capstone/CapstonePlanning';
@@ -683,7 +686,7 @@ const ActivityRenderer = ({
       );
 
     // ✅ ADDED: Form Listening Map (Listening Lab Lesson 3)
-    // Uses the existing ListeningMapActivity with Mouret Rondeau audio and form config
+    // Uses the existing ListeningMapActivity with Mountain King audio and ABA form config
     case 'form-listening-map':
       return (
         <ListeningMapActivity
@@ -692,22 +695,19 @@ const ActivityRenderer = ({
           onComplete={onComplete}
           isSessionMode={isSessionMode}
           config={{
-            audioFile: '/audio/classical/mouret-rondeau.mp3',
-            totalDuration: 120,
-            numRows: 7,
-            secondsPerRow: 17,
+            audioFile: '/audio/classical/grieg-mountain-king.mp3',
+            volume: 0.3,
+            totalDuration: 150,
+            numRows: 3,
+            secondsPerRow: 50,
             rows: [
-              { id: 'row1', name: 'A (0:00 - 0:17)', color: '#3b82f6', emoji: '🔵' },
-              { id: 'row2', name: 'B (0:17 - 0:33)', color: '#ef4444', emoji: '🔴' },
-              { id: 'row3', name: 'A (0:33 - 0:50)', color: '#3b82f6', emoji: '🔵' },
-              { id: 'row4', name: 'C (0:50 - 1:08)', color: '#10b981', emoji: '🟢' },
-              { id: 'row5', name: 'A (1:08 - 1:25)', color: '#3b82f6', emoji: '🔵' },
-              { id: 'row6', name: 'D (1:25 - 1:42)', color: '#f59e0b', emoji: '🟡' },
-              { id: 'row7', name: 'A (1:42 - 2:00)', color: '#3b82f6', emoji: '🔵' }
+              { id: 'row1', name: 'A — Sneaky Start (0:00 - 0:59)', color: '#3b82f6', emoji: '🔵' },
+              { id: 'row2', name: 'B — Building Energy (0:59 - 1:44)', color: '#ef4444', emoji: '🔴' },
+              { id: 'row3', name: 'A\' — Explosive Return (1:44 - 2:30)', color: '#3b82f6', emoji: '🔵' }
             ],
             credits: {
-              title: 'Fanfare-Rondeau',
-              composer: 'Jean-Joseph Mouret',
+              title: 'In the Hall of the Mountain King',
+              composer: 'Edvard Grieg',
               performer: 'Public Domain Recording',
               license: 'Public Domain',
               source: 'IMSLP / Musopen'
@@ -777,6 +777,17 @@ const ActivityRenderer = ({
       return (
         <NameThatElementStudentView
           key={`name-that-element-student-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Four Corners review game (Listening Lab Lesson 3 - Bonus)
+    // Students see 4 corner buttons synced to teacher's game via Firebase
+    case 'four-corners':
+      return (
+        <FourCornersStudentView
+          key={`four-corners-student-${activity.id}`}
           onComplete={onComplete}
           isSessionMode={isSessionMode}
         />

@@ -1,25 +1,27 @@
 // File: /lessons/listening-lab/lesson3/lesson3Config.jsx
 // Lesson 3: Brass & Form
 // "Music Has a Blueprint"
-// Featured Piece: Fanfare-Rondeau by Jean-Joseph Mouret (1729)
+// Featured Piece: In the Hall of the Mountain King by Edvard Grieg (1875)
 //
 // ========================================
 // CURRICULUM NOTES
 // ========================================
 // Students learn:
 // - Instruments of the brass family (trumpet, French horn, trombone, tuba)
-// - Musical form: how sections are labeled with letters (A, B, C, D)
-// - Rondo form (ABACADA) in Mouret's Rondeau
-// - Listen and mark form sections on a Listening Map canvas
+// - Musical form: how sections are labeled with letters (A, B)
+// - Ternary form (ABA) in Grieg's Mountain King
+// - Listen and identify form sections in the Section Spotter game
 // - Use the Listening Journey Animator to visualize form sections
 //
 // ========================================
 // AUDIO CREDITS (Public Domain)
 // ========================================
-// Mouret "Fanfare-Rondeau" from Suite de Symphonies No. 1 (1729)
-// Public domain — composed for Louis XIV at the Palace of Versailles
-// Known as the PBS Masterpiece Theatre theme
+// Grieg "In the Hall of the Mountain King" from Peer Gynt Suite No. 1, Op. 46 (1875)
+// Public domain — composed for Ibsen's play "Peer Gynt"
+// One of the most recognizable classical pieces in the world
 // ========================================
+
+import { buildPieceConfig, getPieceById } from '../lesson4/lesson4Config';
 
 export const LESSON_PROGRESS_KEY = 'listening-lab-lesson3-progress';
 export const LESSON_TIMER_KEY = 'listening-lab-lesson3-timer';
@@ -154,45 +156,15 @@ export const FORM_TYPES = [
 ];
 
 export const SECTION_LABELS = [
-  { label: 'A', color: '#3B82F6', description: 'Refrain — the bold brass fanfare that keeps coming back', emoji: '🔵' },
-  { label: 'B', color: '#EF4444', description: 'Episode 1 — lighter, strings and oboes take over', emoji: '🔴' },
-  { label: 'C', color: '#10B981', description: 'Episode 2 — different contrasting material', emoji: '🟢' },
-  { label: 'D', color: '#F59E0B', description: 'Episode 3 — yet another new idea', emoji: '🟡' }
-];
-
-// Mouret Rondeau section timestamps
-// NOTE: Timestamps are approximate for the 2:15 recording (La Loge Olympique, Internet Archive).
-// Robert should verify and fine-tune against the actual recording.
-export const MOURET_RONDEAU_SECTIONS = [
-  { id: 1, section: 'A', startTime: 0, endTime: 19, label: 'Fanfare', description: 'Grand brass fanfare — trumpets and timpani, bold and regal' },
-  { id: 2, section: 'B', startTime: 19, endTime: 38, label: 'Episode 1', description: 'Lighter texture — strings and oboes, softer dynamics' },
-  { id: 3, section: 'A', startTime: 38, endTime: 57, label: 'Fanfare Returns', description: 'The brass fanfare comes back — unmistakable' },
-  { id: 4, section: 'C', startTime: 57, endTime: 76, label: 'Episode 2', description: 'New contrasting material — different from B' },
-  { id: 5, section: 'A', startTime: 76, endTime: 95, label: 'Fanfare Again', description: 'The fanfare returns once more' },
-  { id: 6, section: 'D', startTime: 95, endTime: 114, label: 'Episode 3', description: 'Yet another new idea — the last contrasting episode' },
-  { id: 7, section: 'A', startTime: 114, endTime: 135, label: 'Final Fanfare', description: 'Triumphant close — the fanfare one last time' }
+  { label: 'A', color: '#3B82F6', description: 'Sneaky Theme — pizzicato strings and bassoons, quiet and mysterious', emoji: '🔵' },
+  { label: 'B', color: '#EF4444', description: 'Building Energy — brass enters, tempo increases, louder dynamics', emoji: '🔴' }
 ];
 
 // ========================================
 // LISTENING JOURNEY ANIMATOR CONFIG
-// Section times are pre-set; students customize visuals (backgrounds, tempos)
+// Built from the CAPSTONE_PIECES entry in lesson4Config
 // ========================================
-export const MOURET_JOURNEY_CONFIG = {
-  audioPath: '/audio/classical/mouret-rondeau.mp3',
-  totalDuration: 135, // ~2:15
-  storageKey: 'listening-journey-mouret',
-  title: 'Fanfare-Rondeau — Jean-Joseph Mouret',
-  presetMode: true, // Sections are locked — students only change visuals
-  defaultSections: [
-    { id: 1, label: 'A', sectionLabel: 'Fanfare', startTime: 0, endTime: 19, color: '#3B82F6', sky: null, scene: null, ground: null },
-    { id: 2, label: 'B', sectionLabel: 'Episode 1', startTime: 19, endTime: 38, color: '#EF4444', sky: null, scene: null, ground: null },
-    { id: 3, label: 'A', sectionLabel: 'Fanfare Returns', startTime: 38, endTime: 57, color: '#3B82F6', sky: null, scene: null, ground: null },
-    { id: 4, label: 'C', sectionLabel: 'Episode 2', startTime: 57, endTime: 76, color: '#10B981', sky: null, scene: null, ground: null },
-    { id: 5, label: 'A', sectionLabel: 'Fanfare Again', startTime: 76, endTime: 95, color: '#3B82F6', sky: null, scene: null, ground: null },
-    { id: 6, label: 'D', sectionLabel: 'Episode 3', startTime: 95, endTime: 114, color: '#F59E0B', sky: null, scene: null, ground: null },
-    { id: 7, label: 'A', sectionLabel: 'Final Fanfare', startTime: 114, endTime: 135, color: '#3B82F6', sky: null, scene: null, ground: null }
-  ]
-};
+export const MOUNTAIN_KING_JOURNEY_CONFIG = buildPieceConfig(getPieceById('mountain-king'));
 
 // ========================================
 // SECTION-BASED GROUPING FOR TEACHER CONTROL
@@ -233,7 +205,7 @@ export const lessonSections = [
     title: '2. What is Form?',
     subtitle: 'Sections & Letters',
     color: 'blue',
-    estimatedTime: 4,
+    estimatedTime: 14,
     stages: [
       {
         id: 'what-is-form',
@@ -243,77 +215,82 @@ export const lessonSections = [
         duration: 2
       },
       {
-        id: 'meet-the-rondo',
+        id: 'meet-ternary-form',
         type: 'summary',
-        label: 'Meet the Rondo',
-        description: 'Rondo = A keeps returning. Pattern: ABACADA.',
+        label: 'Meet Ternary Form',
+        description: 'Ternary = ABA. Statement, contrast, return.',
         duration: 2
+      },
+      {
+        id: 'planning-intro',
+        type: 'summary',
+        label: 'Plan Your Journey',
+        description: 'Explain the Listening Journey planner. Students describe what they hear in each section.',
+        duration: 2
+      }
+      // {
+      //   id: 'section-spotter',
+      //   type: 'activity',
+      //   label: 'Section Spotter',
+      //   duration: 10,
+      //   trackProgress: true,
+      //   description: 'Listen to each Mountain King section. Answer questions about dynamics, instruments, and tempo.'
+      // }
+    ]
+  },
+  {
+    id: 'animator-intro',
+    title: '3. Listening Journey Animator',
+    subtitle: 'Introduction',
+    color: 'blue',
+    estimatedTime: 4,
+    stages: [
+      {
+        id: 'animator-intro-video',
+        type: 'video',
+        label: 'Intro to Animator',
+        duration: 2,
+        description: 'Watch a video introducing the Listening Journey Animator.'
+      },
+      {
+        id: 'animator-directions',
+        type: 'summary',
+        label: 'Animator Directions',
+        duration: 2,
+        description: 'Show what students will do today and over the next classes.'
       }
     ]
   },
   {
-    id: 'rondo-form-game',
-    title: '3. Rondo Form Game',
-    subtitle: 'Identify the Form',
-    color: 'blue',
+    id: 'bonus',
+    title: '4. Bonus',
+    subtitle: 'Extra Activities',
+    color: 'purple',
     estimatedTime: 12,
     stages: [
       {
-        id: 'rondo-form-game',
+        id: 'bonus-intro',
+        type: 'summary',
+        label: 'Lesson Complete!',
+        description: 'Lesson is complete. Bonus activity if time allows.',
+        duration: 1
+      },
+      {
+        id: 'four-corners-instructions',
+        type: 'summary',
+        label: 'Four Corners Instructions',
+        description: 'Explain how to play Four Corners.',
+        duration: 1
+      },
+      {
+        id: 'four-corners-game',
         type: 'activity',
-        label: 'Rondo Form Game',
+        label: '\uD83C\uDFAE Unlock Four Corners',
         duration: 10,
         hasTimer: false,
         trackProgress: true,
-        description: 'Guided listening → Round 1: Arrange the Form → Round 2: Name That Section → Round 3: Full Puzzle'
-      },
-      {
-        id: 'rondo-form-results',
-        type: 'summary',
-        label: 'Results',
-        description: 'Show the Rondo Form Game leaderboard.',
-        duration: 2
-      }
-    ]
-  },
-  {
-    id: 'listening-journey',
-    title: '4. Listening Journey Animator',
-    subtitle: 'Make It Visual',
-    color: 'blue',
-    estimatedTime: 14,
-    stages: [
-      {
-        id: 'journey-intro',
-        type: 'summary',
-        label: 'Listening Journey Animator Intro',
-        description: 'Introduce the Listening Journey Animator. Students get the correct section times — their job is to make each section look and feel different.',
-        duration: 2
-      },
-      {
-        id: 'listening-journey-animator',
-        type: 'activity',
-        label: 'Listening Journey Animator',
-        duration: 10,
-        hasTimer: true,
-        trackProgress: true,
-        description: 'STUDENTS WORK: Customize backgrounds and tempos for each section of the Mouret Rondeau.'
-      }
-    ]
-  },
-  {
-    id: 'reflect',
-    title: '5. Reflection',
-    subtitle: 'Wrap Up',
-    color: 'blue',
-    estimatedTime: 2,
-    stages: [
-      {
-        id: 'reflection',
-        type: 'discussion',
-        label: 'Class Reflection',
-        duration: 2,
-        description: 'Wrap up with reflection questions about form and brass.'
+        description: 'CLASS GAME: Move to a corner to answer review questions!',
+        bonusDescription: 'Review dynamics, tempo, woodwinds, and brass!'
       }
     ]
   }
@@ -325,39 +302,32 @@ export const lesson3Config = {
   title: "Brass & Form",
   subtitle: "Music Has a Blueprint",
   featuredPiece: {
-    title: "Fanfare-Rondeau",
-    composer: "Jean-Joseph Mouret",
-    form: "Rondo (ABACADA)",
-    year: 1729,
-    duration: "~2 min",
-    audioPath: "/audio/classical/mouret-rondeau.mp3"
+    title: "In the Hall of the Mountain King",
+    composer: "Edvard Grieg",
+    form: "Ternary (ABA)",
+    year: 1875,
+    duration: "~2:30",
+    audioPath: "/audio/classical/grieg-mountain-king.mp3"
   },
   learningObjectives: [
     "Identify brass instruments by sight and sound (trumpet, French horn, trombone, tuba)",
-    "Define musical form and label sections using letters (A, B, C, D)",
-    "Recognize rondo form (ABACADA) in Mouret's Rondeau",
-    "Identify form sections by ear in the Section Spotter game",
-    "Use the Listening Journey Animator to visualize form"
+    "Define musical form and label sections using letters (A, B)",
+    "Recognize ternary form (ABA) in Grieg's Mountain King",
+    "Identify dynamics, instruments, and tempo in each section of Mountain King"
   ],
   lessonSections,
   activities: [
+    // {
+    //   id: 1,
+    //   type: "section-spotter",
+    //   title: "Section Spotter — Mountain King",
+    //   estimatedTime: "10 min"
+    // },
     {
       id: 1,
-      type: "rondo-form-game",
-      title: "Rondo Form Game — 3 Rounds",
-      estimatedTime: "10 min"
-    },
-    {
-      id: 2,
-      type: "listening-journey",
-      title: "Listening Journey Animator",
-      estimatedTime: "10 min"
-    },
-    {
-      id: 3,
-      type: "listening-lab-lesson3-reflection",
-      title: "Reflection",
-      estimatedTime: "2 min"
+      type: "animator-intro",
+      title: "Intro to Listening Journey Animator",
+      estimatedTime: "4 min"
     }
   ]
 };
@@ -388,15 +358,15 @@ export const lessonStages = [
           bullets: [
             'Meet the BRASS FAMILY (trumpet, French horn, trombone, tuba)',
             'Learn what MUSICAL FORM is — how composers organize music',
-            'Discover RONDO form (ABACADA) in a piece from 1729!',
+            'Discover TERNARY form (ABA) in a piece from 1875!',
             'Play SECTION SPOTTER to identify the form by ear',
-            'Create a LISTENING JOURNEY ANIMATOR'
+            'PLAN your Listening Journey — describe what you hear!'
           ]
         }
       ],
       featuredPiece: {
-        title: 'Fanfare-Rondeau',
-        composer: 'Jean-Joseph Mouret (1729)'
+        title: 'In the Hall of the Mountain King',
+        composer: 'Edvard Grieg (1875)'
       }
     }
   },
@@ -431,7 +401,7 @@ export const lessonStages = [
   {
     id: 'what-is-form',
     label: 'What is Form?',
-    description: 'Define musical form. A, B, C, D section labels.',
+    description: 'Define musical form. A, B section labels.',
     type: 'summary',
     duration: 2,
     presentationView: {
@@ -449,117 +419,146 @@ export const lessonStages = [
             'If A comes back again = still A!',
             'Another new thing = C, then D, etc.'
           ]
+        }
+      ]
+    }
+  },
+  {
+    id: 'meet-ternary-form',
+    label: 'Meet Ternary Form',
+    description: 'Explain Ternary form (ABA).',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'ternary-showcase',
+      pieceTitle: 'In the Hall of the Mountain King',
+      composer: 'Grieg',
+      sections: [
+        { label: 'A', color: '#3B82F6', name: 'Sneaky Start', desc: 'Pizzicato strings + bassoons, pp' },
+        { label: 'B', color: '#EF4444', name: 'Building Energy', desc: 'Brass enters, tempo increases' },
+        { label: 'A\'', color: '#3B82F6', name: 'Explosive Return', desc: 'Full orchestra, ff, presto' }
+      ]
+    }
+  },
+  // {
+  //   id: 'section-spotter',
+  //   label: 'Section Spotter',
+  //   description: 'Listen to each Mountain King section. Answer questions about dynamics, instruments, and tempo.',
+  //   type: 'activity',
+  //   duration: 10,
+  //   presentationView: {
+  //     type: 'section-spotter-teacher-game',
+  //     pieceId: 'mountain-king'
+  //   }
+  // },
+  {
+    id: 'planning-intro',
+    label: 'Plan Your Journey',
+    description: 'Explain the Listening Journey planner.',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'journey-planner-directions',
+    }
+  },
+  {
+    id: 'animator-intro-video',
+    label: 'Intro to Animator',
+    description: 'Watch a video introducing the Listening Journey Animator.',
+    type: 'video',
+    duration: 2,
+    presentationView: {
+      type: 'youtube-clip',
+      videoId: 'PLACEHOLDER',
+      title: 'Introduction to the Listening Journey Animator',
+      subtitle: 'See how to build your animated listening journey'
+    }
+  },
+  {
+    id: 'animator-directions',
+    label: 'Animator Directions',
+    description: 'Show what students will do today and over the next classes.',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'journey-animator-directions',
+      pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG,
+    }
+  },
+  {
+    id: 'bonus-intro',
+    label: 'Lesson Complete!',
+    description: 'Lesson is complete. Bonus activity if time allows.',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'summary',
+      title: 'Lesson Complete!',
+      subtitle: 'Great work today!',
+      sections: [
+        {
+          heading: 'What We Learned',
+          bullets: [
+            'The four orchestral brass instruments: Trumpet, French Horn, Trombone, Tuba',
+            'Musical form: how sections are labeled with letters (A, B)',
+            'Ternary form (ABA) in Grieg\'s Mountain King',
+            'How to identify dynamics, instruments, and tempo in each section'
+          ]
         },
         {
-          heading: 'Think of it like a chorus in a song',
+          heading: 'Bonus Activity',
           bullets: [
-            'The chorus keeps coming back between verses',
-            'In classical music, when the A section keeps returning, that\'s called a RONDO'
+            'The following activity is a BONUS if you have extra time.',
+            'Four Corners \u2014 review everything from Lessons 1-3!'
           ]
         }
       ]
     }
   },
   {
-    id: 'meet-the-rondo',
-    label: 'Meet the Rondo',
-    description: 'Explain Rondo form (ABACADA).',
+    id: 'four-corners-instructions',
+    label: 'Four Corners Instructions',
+    description: 'Explain how to play Four Corners.',
     type: 'summary',
-    duration: 2,
+    duration: 1,
     presentationView: {
-      type: 'rondo-showcase',
-      pieceTitle: 'Fanfare-Rondeau',
-      composer: 'Mouret',
+      type: 'summary',
+      title: 'Four Corners',
+      subtitle: 'Move to the Right Corner!',
       sections: [
-        { label: 'A', color: '#3B82F6', name: 'Fanfare', desc: 'Bold brass + timpani' },
-        { label: 'B', color: '#EF4444', name: 'Episode 1', desc: 'Lighter — strings & oboes' },
-        { label: 'A', color: '#3B82F6', name: 'Fanfare Returns', desc: 'Brass comes back!' },
-        { label: 'C', color: '#10B981', name: 'Episode 2', desc: 'New contrasting material' },
-        { label: 'A', color: '#3B82F6', name: 'Fanfare Again', desc: 'The familiar fanfare' },
-        { label: 'D', color: '#F59E0B', name: 'Episode 3', desc: 'Last new idea' },
-        { label: 'A', color: '#3B82F6', name: 'Final Fanfare', desc: 'Triumphant close' }
+        {
+          heading: 'How to Play',
+          bullets: [
+            '1. A question appears on the screen with 4 possible answers',
+            '2. Each answer is in a CORNER of the screen \u2014 matching a corner of the room',
+            '3. Move to the corner you think is correct!',
+            '4. You can also tap your answer on your Chromebook',
+            '5. Teacher reveals the correct answer'
+          ]
+        },
+        {
+          heading: 'Corners',
+          bullets: [
+            '\uD83D\uDD35 Front Left = Answer A',
+            '\uD83D\uDD34 Front Right = Answer B',
+            '\uD83D\uDFE2 Back Left = Answer C',
+            '\uD83D\uDFE1 Back Right = Answer D'
+          ]
+        }
       ]
     }
   },
   {
-    id: 'rondo-form-game',
-    label: 'Rondo Form Game',
-    description: 'Guided listening + 3-round game: Arrange the Form, Name That Section, Full Puzzle.',
+    id: 'four-corners-game',
+    label: '\uD83C\uDFAE Unlock Four Corners',
+    description: 'CLASS GAME: Move to a corner to answer review questions!',
+    bonusDescription: 'Review dynamics, tempo, woodwinds, and brass!',
     hasProgress: true,
     type: 'activity',
     hasTimer: false,
     duration: 10,
     presentationView: {
-      type: 'rondo-form-game-teacher'
-    }
-  },
-  {
-    id: 'rondo-form-results',
-    label: 'Results',
-    description: 'Show the Rondo Form Game leaderboard.',
-    type: 'summary',
-    duration: 2,
-    presentationView: {
-      type: 'rondo-form-game-results'
-    }
-  },
-  {
-    id: 'journey-intro',
-    label: 'Listening Journey Animator Intro',
-    description: 'Introduce the Listening Journey Animator activity.',
-    type: 'summary',
-    duration: 2,
-    presentationView: {
-      type: 'summary',
-      title: 'Listening Journey Animator',
-      subtitle: 'Make Each Section Come Alive!',
-      sections: [
-        {
-          heading: 'Your Job',
-          bullets: [
-            'You now know the form: A – B – A – C – A – D – A',
-            'The section times are already set for you',
-            'YOUR job: make each section LOOK and FEEL different!',
-            'Choose different BACKGROUNDS for each section',
-            'Set different TEMPOS for the character animation',
-            'When you\'re done, watch your journey play with the music!'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'listening-journey-animator',
-    label: 'Listening Journey Animator',
-    description: 'Students customize backgrounds and tempos for each section of the Rondeau.',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 10,
-    presentationView: {
-      type: 'listening-journey-directions'
-    }
-  },
-  {
-    id: 'reflection',
-    label: 'Class Reflection',
-    description: 'Wrap up with reflection questions about form and brass.',
-    type: 'discussion',
-    duration: 2,
-    presentationView: {
-      type: 'summary',
-      title: 'Class Reflection',
-      subtitle: '',
-      sections: [
-        {
-          heading: 'Reflect on Today\'s Lesson',
-          bullets: [
-            '1. The form of the Mouret Rondeau is ______ (use letters).',
-            '2. I knew the A section was back because I heard ______.',
-            '3. The brass instrument I found most interesting was ______ because ______.'
-          ]
-        }
-      ]
+      type: 'four-corners-game'
     }
   }
 ];
@@ -571,12 +570,14 @@ export const getActivityForStage = (stage) => {
     'brass-family-definition': 'summary',
     'brass-family-showcase': 'summary',
     'what-is-form': 'summary',
-    'meet-the-rondo': 'summary',
-    'rondo-form-game': 'rondo-form-game',
-    'rondo-form-results': 'summary',
-    'journey-intro': 'summary',
-    'listening-journey-animator': 'listening-journey',
-    'reflection': 'discussion'
+    'meet-ternary-form': 'summary',
+    // 'section-spotter': 'section-spotter',
+    'planning-intro': 'summary',
+    'animator-intro-video': 'video',
+    'animator-directions': 'summary',
+    'bonus-intro': 'summary',
+    'four-corners-instructions': 'summary',
+    'four-corners-game': 'four-corners'
   };
   return stageMap[stage];
 };
@@ -592,8 +593,7 @@ export const VOCABULARY = [
   { term: 'Tuba', definition: 'Lowest brass instrument, provides the bass foundation' },
   { term: 'Form', definition: 'The overall structure or blueprint of a piece of music' },
   { term: 'Section', definition: 'A distinct part of a piece with its own musical character' },
-  { term: 'Rondo', definition: 'Form where A returns between contrasting episodes (ABACADA)' },
-  { term: 'Episode', definition: 'A contrasting section between returns of the A theme' },
-  { term: 'Refrain', definition: 'The recurring section that keeps coming back (the A in a rondo)' },
-  { term: 'Contrast', definition: 'When something sounds noticeably different from what came before' }
+  { term: 'Ternary', definition: 'A three-part form: A (statement), B (contrast), A (return) — ABA' },
+  { term: 'Contrast', definition: 'When something sounds noticeably different from what came before' },
+  { term: 'Return', definition: 'When a section comes back after contrasting material' }
 ];

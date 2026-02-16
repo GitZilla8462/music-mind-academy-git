@@ -49,7 +49,9 @@ export const SCENE_GROUND_MAP = {
   spaceStation: 'rock',
   'night-mountain': 'rock',
   'dark-forest': 'grass',
-  'autumn-forest': 'grass'
+  'autumn-forest': 'grass',
+  'plain-white': 'none',
+  'plain-black': 'none',
 };
 
 export const getGroundTypeById = (id) => GROUND_TYPES.find(g => g.id === id) || GROUND_TYPES[0];

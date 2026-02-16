@@ -1,16 +1,15 @@
 // File: /lessons/listening-lab/lesson5/lesson5Config.jsx
-// Lesson 5: Work Time + Gallery Circle
+// Lesson 5: Worktime + Presentation
 // "Finish & Share"
-// Students finish building their Listening Journey and share with classmates
+// Students finish building their Listening Journey and present to the class
 //
 // ========================================
 // CURRICULUM NOTES
 // ========================================
-// This is the second of two capstone lessons. Students:
+// Students:
 // - Quick check-in on progress
-// - 18-20 minutes of build time to polish their Listening Journey
-// - Gallery Circle: structured sharing with the class
-// - Unit reflection / exit ticket
+// - ~23 minutes of build time to finish their Listening Journey
+// - Gallery Circle: share journeys with the class
 //
 // ========================================
 
@@ -22,11 +21,11 @@ export const LESSON_TIMER_KEY = 'listening-lab-lesson5-timer';
 // ========================================
 export const lessonSections = [
   {
-    id: 'check-in',
-    title: '1. Quick Check-In',
-    subtitle: 'Where Are You?',
+    id: 'worktime',
+    title: '1. Listening Journey Worktime',
+    subtitle: 'Finish Your Journey',
     color: 'blue',
-    estimatedTime: 2,
+    estimatedTime: 25,
     stages: [
       {
         id: 'welcome-back',
@@ -34,21 +33,12 @@ export const lessonSections = [
         label: 'Welcome Back',
         description: 'Quick check-in: Where did you leave off? What do you need to finish?',
         duration: 2
-      }
-    ]
-  },
-  {
-    id: 'work-time',
-    title: '2. Work Time',
-    subtitle: 'Finish Your Journey',
-    color: 'blue',
-    estimatedTime: 20,
-    stages: [
+      },
       {
         id: 'build-time',
         type: 'activity',
-        label: '🎮 Finish Your Journey',
-        duration: 20,
+        label: 'Finish Your Journey',
+        duration: 23,
         hasTimer: true,
         trackProgress: true,
         description: 'Students polish their Listening Journey. Final build session!',
@@ -57,11 +47,11 @@ export const lessonSections = [
     ]
   },
   {
-    id: 'gallery',
-    title: '3. Gallery Circle',
+    id: 'presentation',
+    title: '2. Presentation',
     subtitle: 'Share & Celebrate',
     color: 'blue',
-    estimatedTime: 10,
+    estimatedTime: 12,
     stages: [
       {
         id: 'gallery-intro',
@@ -73,29 +63,11 @@ export const lessonSections = [
       {
         id: 'gallery-sharing',
         type: 'activity',
-        label: '🎪 Gallery Circle',
-        duration: 9,
+        label: 'Gallery Circle',
+        duration: 11,
         hasTimer: true,
         trackProgress: false,
         description: 'Students share their Listening Journeys. Class watches and gives feedback.'
-      }
-    ]
-  },
-  {
-    id: 'reflection',
-    title: '4. Unit Reflection',
-    subtitle: 'What Did You Learn?',
-    color: 'blue',
-    estimatedTime: 5,
-    stages: [
-      {
-        id: 'exit-ticket',
-        type: 'activity',
-        label: '📝 Exit Ticket',
-        duration: 5,
-        hasTimer: true,
-        trackProgress: true,
-        description: 'Students reflect on what they learned across all 5 lessons.'
       }
     ]
   }
@@ -104,13 +76,12 @@ export const lessonSections = [
 export const lesson5Config = {
   id: 'listening-lab-lesson5',
   lessonPath: '/lessons/listening-lab/lesson5',
-  title: "Work Time + Gallery Circle",
+  title: "Worktime + Presentation",
   subtitle: "Finish & Share",
   featuredPiece: null,
   learningObjectives: [
     "Finish building a Listening Journey that demonstrates dynamics, tempo, and form",
-    "Share your journey with classmates and explain your musical choices",
-    "Reflect on what you learned about listening to music across the entire unit"
+    "Share your journey with classmates and explain your musical choices"
   ],
   lessonSections,
   activities: [
@@ -118,19 +89,13 @@ export const lesson5Config = {
       id: 1,
       type: "listening-journey",
       title: "Finish Your Listening Journey",
-      estimatedTime: "20 min"
+      estimatedTime: "23 min"
     },
     {
       id: 2,
       type: "gallery-circle",
       title: "Gallery Circle",
-      estimatedTime: "9 min"
-    },
-    {
-      id: 3,
-      type: "listening-lab-lesson5-reflection",
-      title: "Unit Reflection / Exit Ticket",
-      estimatedTime: "5 min"
+      estimatedTime: "11 min"
     }
   ]
 };
@@ -148,7 +113,7 @@ export const lessonStages = [
   {
     id: 'welcome-back',
     label: 'Welcome Back',
-    description: 'Quick check-in on progress from yesterday.',
+    description: 'Quick check-in on progress.',
     type: 'summary',
     duration: 2,
     presentationView: {
@@ -159,9 +124,8 @@ export const lessonStages = [
         {
           heading: 'Today\'s Plan',
           bullets: [
-            '🏗️ WORK TIME — 20 minutes to finish your Listening Journey',
-            '🎪 GALLERY CIRCLE — Share your journey with the class',
-            '📝 EXIT TICKET — Reflect on what you learned this unit'
+            '🏗️ WORKTIME — Finish your Listening Journey',
+            '🎪 PRESENTATION — Share your journey with the class'
           ]
         },
         {
@@ -177,13 +141,13 @@ export const lessonStages = [
   },
   {
     id: 'build-time',
-    label: '🎮 Finish Your Journey',
+    label: 'Finish Your Journey',
     description: 'Final build session — polish your Listening Journey.',
     bonusDescription: 'Make sure dynamics, tempo, and form all match the music!',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 20,
+    duration: 23,
     presentationView: {
       type: 'activity-banner',
       title: 'Work Time!',
@@ -204,18 +168,18 @@ export const lessonStages = [
         {
           heading: 'How It Works',
           bullets: [
-            '🎬 We\'ll project 4-5 journeys on the big screen',
-            '👀 Watch the character walk through each world',
-            '🎵 Listen — can you hear the dynamics, tempo, and form?',
-            '⭐ After each, we\'ll share one thing we noticed'
+            'We\'ll project 4-5 journeys on the big screen',
+            'Watch the character walk through each world',
+            'Listen — can you hear the dynamics, tempo, and form?',
+            'After each, we\'ll share one thing we noticed'
           ]
         },
         {
           heading: 'Be a Great Audience',
           bullets: [
-            '👂 Listen carefully to the music AND watch the visuals',
-            '💡 Think: What musical element stands out most?',
-            '👏 Celebrate creative choices — every journey is unique!'
+            'Listen carefully to the music AND watch the visuals',
+            'Think: What musical element stands out most?',
+            'Celebrate creative choices — every journey is unique!'
           ]
         }
       ]
@@ -223,27 +187,13 @@ export const lessonStages = [
   },
   {
     id: 'gallery-sharing',
-    label: '🎪 Gallery Circle',
+    label: 'Gallery Circle',
     description: 'Students share their Listening Journeys with the class.',
     type: 'activity',
     hasTimer: true,
-    duration: 9,
+    duration: 11,
     presentationView: {
       type: 'gallery-circle-teacher',
-    }
-  },
-  {
-    id: 'exit-ticket',
-    label: '📝 Exit Ticket',
-    description: 'Students reflect on what they learned this unit.',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 5,
-    presentationView: {
-      type: 'activity-banner',
-      title: 'Exit Ticket',
-      subtitle: 'What did you learn about listening to music?'
     }
   }
 ];
@@ -254,8 +204,7 @@ export const getActivityForStage = (stage) => {
     'welcome-back': 'summary',
     'build-time': 'listening-journey',
     'gallery-intro': 'summary',
-    'gallery-sharing': 'gallery-circle',
-    'exit-ticket': 'listening-lab-lesson5-reflection'
+    'gallery-sharing': 'gallery-circle'
   };
   return stageMap[stage];
 };

@@ -1,7 +1,7 @@
 // Renders sticker/text items that scroll with the parallax background
-// No selection UI — delete stickers via timeline
+// Supports selection, drag-to-move, and resize in build mode
 
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { INSTRUMENT_ICONS } from '../texture-drawings/config/InstrumentIcons';
 
 let _nextItemId = Date.now();
@@ -109,16 +109,96 @@ const renderStickerContent = (item, scale = 1) => {
   }
 };
 
-const StickerItem = ({ item, visible, scrollOffsetX }) => {
+// Helper: clean up any active drag listeners stored in a ref
+const cleanupDrag = (ref) => {
+  if (ref.current) {
+    window.removeEventListener('mousemove', ref.current.onMove);
+    window.removeEventListener('mouseup', ref.current.onUp);
+    ref.current = null;
+  }
+};
+
+const StickerItem = ({ item, visible, scrollOffsetX, isSelected, onSelect, onUpdateItem, isBuildMode }) => {
   const { position, type } = item;
   const scale = item.scale || 1;
-
-  // Stickers scroll with the background
   const adjustedX = position.x + (scrollOffsetX || 0);
+  const interactive = isBuildMode && visible;
+  const dragRef = useRef(null);
+
+  // Always clean up drag listeners on unmount
+  useEffect(() => () => cleanupDrag(dragRef), []);
+
+  const handleMouseDown = (e) => {
+    if (!interactive) return;
+    e.stopPropagation();
+    e.preventDefault(); // prevent browser text-selection / image-drag
+
+    onSelect(item.id);
+
+    // Safety: clear any leftover drag from a previous interaction
+    cleanupDrag(dragRef);
+
+    const startMouseX = e.clientX;
+    const startMouseY = e.clientY;
+    const startPosX = position.x;
+    const startPosY = position.y;
+    const viewport = e.currentTarget.closest('[data-viewport="true"]');
+    if (!viewport) return;
+    const rect = viewport.getBoundingClientRect();
+    let dragging = false;
+
+    const onMove = (me) => {
+      me.preventDefault();
+      if (!dragging && Math.abs(me.clientX - startMouseX) + Math.abs(me.clientY - startMouseY) > 3) {
+        dragging = true;
+      }
+      if (dragging) {
+        const dx = (me.clientX - startMouseX) / rect.width;
+        const dy = (me.clientY - startMouseY) / rect.height;
+        onUpdateItem(item.id, { position: { x: startPosX + dx, y: startPosY + dy } });
+      }
+    };
+
+    const onUp = () => {
+      cleanupDrag(dragRef);
+    };
+
+    dragRef.current = { onMove, onUp };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
+  const resizeRef = useRef(null);
+
+  // Clean up resize listeners on unmount
+  useEffect(() => () => cleanupDrag(resizeRef), []);
+
+  const handleResizeDown = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    cleanupDrag(resizeRef);
+
+    const startY = e.clientY;
+    const startScale = scale;
+
+    const onMove = (me) => {
+      me.preventDefault();
+      const dy = me.clientY - startY;
+      onUpdateItem(item.id, { scale: Math.max(0.5, Math.min(5, startScale + dy / 60)) });
+    };
+
+    const onUp = () => {
+      cleanupDrag(resizeRef);
+    };
+
+    resizeRef.current = { onMove, onUp };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
 
   return (
     <div
-      className="absolute z-30 pointer-events-none"
+      className={`absolute z-30 select-none ${interactive ? 'cursor-grab' : 'pointer-events-none'}`}
       style={{
         left: `${adjustedX * 100}%`,
         top: `${position.y * 100}%`,
@@ -126,7 +206,14 @@ const StickerItem = ({ item, visible, scrollOffsetX }) => {
         display: visible ? 'inline-block' : 'none',
         width: 'fit-content',
       }}
+      onMouseDown={handleMouseDown}
+      onClick={(e) => { if (interactive) e.stopPropagation(); }}
     >
+      {/* Selection ring */}
+      {isSelected && (
+        <div className="absolute -inset-1.5 border-2 border-blue-400 rounded-lg bg-blue-400/10 pointer-events-none" />
+      )}
+
       {type === 'sticker' && renderStickerContent(item, scale)}
 
       {type === 'text' && (
@@ -143,11 +230,19 @@ const StickerItem = ({ item, visible, scrollOffsetX }) => {
           {item.content}
         </div>
       )}
+
+      {/* Resize handle — green square at bottom-right */}
+      {isSelected && (
+        <div
+          className="absolute -bottom-2 -right-2 w-4 h-4 bg-green-500 border-2 border-white rounded-sm cursor-nwse-resize z-40 pointer-events-auto"
+          onMouseDown={handleResizeDown}
+        />
+      )}
     </div>
   );
 };
 
-const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem, onUpdateItem, onAddItem, onSwitchToSelect, rawScrollOffset = 0 }) => {
+const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem, onUpdateItem, onAddItem, onSwitchToSelect, rawScrollOffset = 0, selectedItemId, onSelectItem, isBuildMode = false }) => {
   return (
     <>
       {items.map((item) => {
@@ -161,12 +256,11 @@ const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem,
           : 0;
 
         // Entry animation: slide from right edge to click position at constant speed
-        // Skip animation for freshly placed stickers (within 3s wall-clock of placement)
+        // Only animate in presentation/fullscreen — build mode shows stickers at their position
         const ENTRY_DURATION = 3.0;
-        const justPlaced = item._placedWallTime && (performance.now() - item._placedWallTime) < 3000;
         const timeSinceEntry = currentTime - startTime;
         let entryOffset = 0;
-        if (item.entryOffsetX && !justPlaced && timeSinceEntry >= 0 && timeSinceEntry < ENTRY_DURATION) {
+        if (item.entryOffsetX && !isBuildMode && timeSinceEntry >= 0 && timeSinceEntry < ENTRY_DURATION) {
           const progress = timeSinceEntry / ENTRY_DURATION;
           entryOffset = item.entryOffsetX * (1 - progress);
         }
@@ -177,6 +271,10 @@ const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem,
             item={item}
             visible={visible}
             scrollOffsetX={drift + entryOffset}
+            isSelected={selectedItemId === item.id}
+            onSelect={onSelectItem}
+            onUpdateItem={onUpdateItem}
+            isBuildMode={isBuildMode}
           />
         );
       })}

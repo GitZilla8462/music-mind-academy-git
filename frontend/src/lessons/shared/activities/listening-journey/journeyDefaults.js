@@ -103,6 +103,8 @@ export const SCENE_SKY_MAP = {
   'dark-forest': 'golden-hour',
   'autumn-forest': 'golden-hour',
   'city': 'clear-day',
+  'plain-white': 'clear-day',
+  'plain-black': 'night',
 };
 
 // Section color palette (cycles through)

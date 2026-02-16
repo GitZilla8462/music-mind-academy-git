@@ -155,35 +155,31 @@ const ListeningLabHub = () => {
   };
 
   const lessons = [
-    // Lesson 1: Meet the Orchestra
+    // Lesson 1: Strings & Dynamics
     {
       id: 'listening-lab-lesson1',
       number: 1,
       icon: '🎻',
-      title: 'Meet the Orchestra',
-      concept: 'Instruments & Timbre',
-      essentialQuestion: 'How does the sound of an instrument affect the mood of the music?',
+      title: 'Strings & Dynamics',
+      concept: 'Instrument Families & Dynamics',
+      essentialQuestion: 'How does playing soft or loud change the way music makes us feel?',
       color: 'from-violet-500 to-purple-600',
       route: '/lessons/listening-lab/lesson1',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students learn to identify the four instrument families by sound, play Guess That Instrument with the class, and create their first Listening Map.',
+      inThisLesson: 'Students meet the string family (violin, viola, cello, double bass), learn dynamic markings (pp to ff, crescendo, decrescendo), play Dynamics Dash with Vivaldi\'s Spring, and create a Dynamics Listening Map.',
       studentsWill: [
-        'Identify instruments by their sound (strings, woodwinds, brass, percussion)',
-        'Describe how different instruments contribute to the mood of a piece',
-        'Create a Listening Map tracking instrument entries over time'
+        'Identify string instruments by sight and sound (violin, viola, cello, double bass)',
+        'Define dynamic markings (pp, p, mp, mf, f, ff) and gradual changes (crescendo, decrescendo)',
+        'Create a Dynamics Listening Map tracking dynamic changes in Vivaldi\'s Spring'
       ],
       activities: [
-        { title: 'Opening Hook', description: 'What instruments do you hear?', time: 3 },
-        { title: 'String Family', description: 'Listen to violin, viola, cello, bass', time: 2 },
-        { title: 'Woodwind Family', description: 'Listen to flute, clarinet, oboe, bassoon', time: 2 },
-        { title: 'Brass Family', description: 'Listen to trumpet, horn, trombone, tuba', time: 2 },
-        { title: 'Percussion Family', description: 'Listen to timpani, snare, cymbals, more', time: 2 },
-        { title: 'Guess That Instrument', description: 'Class game: Identify instruments by ear!', time: 12, activityType: 'guess-that-instrument' },
-        { title: 'Listening Map Tutorial', description: 'Learn how to use the Listening Map', time: 3 },
-        { title: 'Listening Map #1', description: 'Track instrument families in a piece', time: 15, activityType: 'listening-map-instruments' },
-        { title: 'Reflection', description: 'Which instrument was easiest/hardest to identify?', time: 5, activityType: 'listening-lab-reflection' },
-        { title: 'Orchestra Lab', description: 'Partner game: Pick sounds, guess instruments', time: 10, activityType: 'orchestra-lab', isBonus: true, isPartnerActivity: true }
+        { title: 'Meet the String Family', description: 'See and hear violin, viola, cello, double bass', time: 5 },
+        { title: 'Dynamic Markings', description: 'Learn pp, p, mp, mf, f, ff + crescendo & decrescendo', time: 5 },
+        { title: 'Dynamics Dash', description: 'Class game: Identify dynamics in Vivaldi\'s Spring!', time: 12, activityType: 'dynamics-dash' },
+        { title: 'Dynamics Listening Map', description: 'Map the dynamics you hear in Spring', time: 15, activityType: 'dynamics-listening-map' },
+        { title: 'Reflection', description: 'What dynamics were easiest/hardest to hear?', time: 5, activityType: 'listening-lab-reflection' },
+        { title: 'Strings & Dynamics Lab', description: 'Partner game: Pick sounds, guess dynamics', time: 12, activityType: 'strings-dynamics-lab', isBonus: true, isPartnerActivity: true }
       ]
     },
     // Lesson 2: Woodwinds & Tempo
@@ -198,102 +194,95 @@ const ListeningLabHub = () => {
       route: '/lessons/listening-lab/lesson2',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students meet the woodwind family (flute, oboe, clarinet, bassoon), learn tempo markings (Largo to Presto), and create a Tempo Listening Map for Brahms\'s Hungarian Dance No. 5.',
+      inThisLesson: 'Students meet the woodwind family (flute, oboe, clarinet, bassoon), learn tempo markings (Largo to Presto) and tempo changes (accelerando, ritardando), play Tempo Detective with the whole class, and create a Tempo Listening Map for Brahms\'s Hungarian Dance No. 5.',
       studentsWill: [
-        'Identify woodwind instruments by sight and sound',
+        'Identify woodwind instruments by sight and sound (flute, oboe, clarinet, bassoon)',
         'Define tempo markings (Largo, Adagio, Andante, Allegro, Presto)',
         'Identify tempo changes (accelerando, ritardando) in music',
         'Create a Tempo Listening Map for Hungarian Dance No. 5'
       ],
       activities: [
         { title: 'Meet the Woodwinds', description: 'See and hear flute, oboe, clarinet, bassoon', time: 5 },
-        { title: 'Tempo Markings', description: 'Learn Largo, Adagio, Andante, Allegro, Presto', time: 3 },
-        { title: 'Tempo Charades', description: 'Act out tempo terms for the class to guess!', time: 8, activityType: 'tempo-charades' },
-        { title: 'Small Group Charades', description: 'Everyone gets a turn to act and guess', time: 10, activityType: 'tempo-charades-small-group' },
-        { title: 'Active Listening', description: 'Listen to Hungarian Dance No. 5 by Brahms', time: 4 },
-        { title: 'Tempo Listening Map', description: 'Map the tempo changes you hear', time: 8, activityType: 'tempo-listening-map' },
-        { title: 'Reflection', description: 'What tempo terms will you remember?', time: 3, activityType: 'listening-lab-reflection' }
+        { title: 'Tempo Markings', description: 'Learn Largo, Adagio, Andante, Allegro, Presto + accelerando & ritardando', time: 5 },
+        { title: 'Tempo Detective (Whole Class)', description: 'Class game: Listen to clips and guess the tempo!', time: 8, activityType: 'tempo-charades' },
+        { title: 'Tempo Listening Map', description: 'Map the tempo changes in Hungarian Dance No. 5', time: 8, activityType: 'tempo-listening-map' },
+        { title: 'Reflection', description: 'What tempo terms will you remember?', time: 3, activityType: 'listening-lab-reflection' },
+        { title: 'Tempo Detective (Small Groups)', description: 'Everyone gets a turn to pick and guess!', time: 10, activityType: 'tempo-charades-small-group', isBonus: true }
       ]
     },
-    // Lesson 3: Brass, Percussion & Form
+    // Lesson 3: Brass & Form
     {
       id: 'listening-lab-lesson3',
       number: 3,
       icon: '🎺',
-      title: 'Brass, Percussion & Form',
-      concept: 'Instrument Families & Rondo',
+      title: 'Brass & Form',
+      concept: 'Instrument Families & Ternary Form',
       essentialQuestion: 'How does recognizing patterns and sections help us understand music?',
       color: 'from-emerald-500 to-green-600',
       route: '/lessons/listening-lab/lesson3',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students meet the brass and percussion families, learn about musical form (how sections are organized with letters), and discover rondo form (ABACADA) in Mouret\'s Fanfare-Rondeau from 1729.',
+      inThisLesson: 'Students meet the brass family (trumpet, French horn, trombone, tuba), learn about musical form and how sections are labeled with letters, discover ternary form (ABA) in Grieg\'s In the Hall of the Mountain King, and listen to each section identifying dynamics, instruments, and tempo.',
       studentsWill: [
         'Identify brass instruments by sight and sound (trumpet, French horn, trombone, tuba)',
-        'Identify percussion instruments and distinguish pitched from unpitched',
-        'Label sections of music using letters (A, B, C, D) and recognize rondo form',
-        'Create a Form Listening Map tracking section changes in the Mouret Rondeau'
+        'Define musical form and label sections using letters (A, B)',
+        'Recognize ternary form (ABA) in Grieg\'s Mountain King',
+        'Identify dynamics, instruments, and tempo in each section of Mountain King'
       ],
       activities: [
-        { title: 'Hook: Have You Heard This?', description: 'Play the fanfare — it\'s almost 300 years old!', time: 2 },
-        { title: 'Meet the Brass', description: 'Trumpet, French horn, trombone, tuba', time: 4 },
-        { title: 'Meet the Percussion', description: 'Timpani, snare, bass drum, cymbals', time: 3 },
-        { title: 'What is Form?', description: 'Sections, letters, and the rondo pattern', time: 4 },
-        { title: 'Section Spotter', description: 'Class game: Identify A, B, C, D sections!', time: 8, activityType: 'section-spotter' },
-        { title: 'Form Listening Map', description: 'Map the ABACADA form with color-coding', time: 10, activityType: 'form-listening-map' },
-        { title: 'Capstone Preview', description: 'Preview 5 pieces for next lesson', time: 3 },
-        { title: 'Reflection', description: 'What form patterns did you discover?', time: 2, activityType: 'listening-lab-lesson3-reflection' }
+        { title: 'Meet the Brass Family', description: 'See and hear trumpet, French horn, trombone, tuba', time: 6 },
+        { title: 'What is Form?', description: 'Sections, letters, and ternary form (ABA)', time: 4 },
+        { title: 'Section Spotter', description: 'Listen to each section — identify dynamics, instruments, and tempo', time: 10 },
+        { title: 'Reflection', description: 'What form patterns did you discover?', time: 2, activityType: 'listening-lab-lesson3-reflection' },
+        { title: 'Four Corners', description: 'Move to corners to answer review questions!', time: 10, activityType: 'four-corners', isBonus: true }
       ]
     },
-    // Lesson 4: Review + Start Capstone
+    // Lesson 4: Percussion & Review
     {
       id: 'listening-lab-lesson4',
       number: 4,
-      icon: '🎮',
-      title: 'Review + Start Capstone',
-      concept: 'Putting It All Together',
+      icon: '🥁',
+      title: 'Percussion & Review',
+      concept: 'Instrument Families & Review',
       essentialQuestion: 'How do dynamics, tempo, and form work together to create meaning in music?',
       color: 'from-orange-500 to-amber-600',
       route: '/lessons/listening-lab/lesson4',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students play "Name That Element" to review dynamics, tempo, and form, then choose a classical masterwork and begin building their capstone Listening Journey.',
+      inThisLesson: 'Students meet the percussion family (pitched vs. unpitched), review dynamics, tempo, and form from Lessons 1-3, continue building their Listening Journey, and play Name That Element as a bonus game.',
       studentsWill: [
+        'Identify percussion instruments and distinguish pitched from unpitched',
         'Review dynamics, tempo, and form concepts from Lessons 1-3',
-        'Select a capstone piece and identify its key musical features',
-        'Plan and begin building a Listening Journey that shows dynamics, tempo, and form'
+        'Continue building a Listening Journey that shows dynamics, tempo, and form'
       ],
       activities: [
-        { title: 'Name That Element', description: 'Rapid-fire review: dynamics, tempo, or form?', time: 8, activityType: 'name-that-element' },
-        { title: 'Capstone Introduction', description: 'See the Listening Journey project for the first time', time: 3 },
-        { title: 'Pick Your Piece', description: 'Choose from 5 classical masterworks', time: 5, activityType: 'capstone-piece-selection' },
-        { title: 'Plan Your Journey', description: 'Map out sections, dynamics, and tempo', time: 5, activityType: 'capstone-planning' },
-        { title: 'Build Your Journey', description: 'Start creating your Listening Journey!', time: 15, activityType: 'listening-journey' }
+        { title: 'Meet the Percussion Family', description: 'Pitched vs. unpitched percussion instruments', time: 4 },
+        { title: 'Quick Review', description: 'Recap dynamics, tempo, and form from L1-L3', time: 4 },
+        { title: 'Listening Journey Worktime', description: 'Continue building your Listening Journey', time: 20, activityType: 'listening-journey' },
+        { title: 'Name That Element', description: 'Bonus: Rapid-fire review game!', time: 8, activityType: 'name-that-element', isBonus: true }
       ]
     },
-    // Lesson 5: Work Time + Gallery Circle
+    // Lesson 5: Worktime + Presentation
     {
       id: 'listening-lab-lesson5',
       number: 5,
       icon: '🎪',
-      title: 'Work Time + Gallery Circle',
+      title: 'Worktime + Presentation',
       concept: 'Finish & Share',
       essentialQuestion: 'How do dynamics, tempo, and form work together to create meaning in music?',
       color: 'from-pink-500 to-rose-600',
       route: '/lessons/listening-lab/lesson5',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students finish building their Listening Journey, share their work in a Gallery Circle, and complete a unit reflection exit ticket.',
+      inThisLesson: 'Students finish building their Listening Journey and share their work in a Gallery Circle presentation.',
       studentsWill: [
         'Finish building a Listening Journey that demonstrates dynamics, tempo, and form',
-        'Share your journey with classmates and explain your musical choices',
-        'Reflect on what you learned about listening to music across the unit'
+        'Share your journey with classmates and explain your musical choices'
       ],
       activities: [
-        { title: 'Quick Check-In', description: 'Where did you leave off? What do you need?', time: 2 },
-        { title: 'Work Time', description: 'Finish and polish your Listening Journey', time: 20, activityType: 'listening-journey' },
-        { title: 'Gallery Circle', description: 'Share journeys with the class', time: 9, activityType: 'gallery-circle' },
-        { title: 'Exit Ticket', description: 'Unit reflection — what did you learn?', time: 5, activityType: 'listening-lab-lesson5-reflection' }
+        { title: 'Welcome Back', description: 'Quick check-in on progress', time: 2 },
+        { title: 'Listening Journey Worktime', description: 'Finish and polish your Listening Journey', time: 23, activityType: 'listening-journey' },
+        { title: 'Gallery Circle', description: 'Share journeys with the class', time: 11, activityType: 'gallery-circle' }
       ]
     }
   ];

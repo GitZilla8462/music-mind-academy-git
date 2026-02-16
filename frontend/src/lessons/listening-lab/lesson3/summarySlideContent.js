@@ -1,7 +1,7 @@
 // File: /src/lessons/listening-lab/lesson3/summarySlideContent.js
 // All instructional text and content for Lesson 3 - Brass, Percussion & Form
 // "Music Has a Blueprint"
-// Featured Piece: Fanfare-Rondeau by Jean-Joseph Mouret (1729)
+// Featured Piece: In the Hall of the Mountain King by Edvard Grieg (1875)
 
 // ========================================
 // 1. SLIDE CONTENT FOR PRESENTATION VIEW
@@ -14,8 +14,8 @@ export const summarySlides = {
     essentialQuestion: 'How does recognizing patterns and sections help us understand music?',
     iCanStatements: [
       'I can identify brass and percussion instruments by sight and sound.',
-      'I can label sections of music using letters (A, B, C, D).',
-      'I can recognize rondo form (ABACADA) when I hear it.'
+      'I can label sections of music using letters (A, B).',
+      'I can recognize ternary form (ABA) when I hear it.'
     ]
   },
 
@@ -56,7 +56,7 @@ export const summarySlides = {
       'All use lip buzzing into a mouthpiece — different tubing lengths create different pitches',
       'From high to low: Trumpet → French Horn → Trombone → Tuba'
     ],
-    teacherNote: 'Play short clips of each instrument. The Mouret Rondeau features trumpets prominently — connect what they hear in the clips to what they heard in the hook.'
+    teacherNote: 'Play short clips of each instrument. Mountain King features brass prominently in the B and A\' sections — connect what they hear in the clips to what they\'ll hear in the piece.'
   },
 
   // Slide 4 - Percussion Family
@@ -83,8 +83,8 @@ export const summarySlides = {
         ]
       }
     ],
-    keyPoint: 'Percussion instruments produce sound by being struck, shaken, or scraped. In the Mouret Rondeau, listen for the timpani — it punctuates the brass fanfare like an exclamation point!',
-    teacherNote: 'Quick overview — this completes all four instrument families (strings L1, woodwinds L2, brass + percussion L3). The timpani is the star percussion instrument in the Mouret.'
+    keyPoint: 'Percussion instruments produce sound by being struck, shaken, or scraped. In Mountain King, listen for the timpani and cymbals — they drive the explosive climax!',
+    teacherNote: 'Quick overview — this completes all four instrument families (strings L1, woodwinds L2, brass + percussion L3). The timpani and cymbals are key to the dramatic ending of Mountain King.'
   },
 
   // Slide 5 - What is Form?
@@ -96,9 +96,7 @@ export const summarySlides = {
     analogy: 'Think of it like a song: the chorus keeps coming back between verses. In classical music, we use letters to label sections.',
     letterLabels: [
       { letter: 'A', meaning: 'The first section you hear', color: '#3B82F6' },
-      { letter: 'B', meaning: 'Something new and different', color: '#EF4444' },
-      { letter: 'C', meaning: 'Yet another new idea', color: '#10B981' },
-      { letter: 'D', meaning: 'Still another contrast', color: '#F59E0B' }
+      { letter: 'B', meaning: 'Something new and different', color: '#EF4444' }
     ],
     classDemo: {
       instruction: 'Quick class demo: Teacher claps a 4-beat rhythm pattern.',
@@ -112,28 +110,24 @@ export const summarySlides = {
     teacherNote: 'Keep this quick and kinesthetic. The clapping demo makes it concrete before moving to the listening example.'
   },
 
-  // Slide 6 - Meet the Rondo
-  meetTheRondo: {
-    title: 'Meet the Rondo',
-    subtitle: 'The A Section Keeps Coming Home',
+  // Slide 6 - Meet Ternary Form
+  meetTernaryForm: {
+    title: 'Meet Ternary Form',
+    subtitle: 'Statement — Contrast — Return',
     icon: '🔁',
-    definition: 'A Rondo is a form where the A section keeps returning with different material (episodes) in between.',
-    pattern: 'A – B – A – C – A – D – A',
+    definition: 'Ternary form has three parts: A (statement), B (contrast), and A returns at the end.',
+    pattern: 'A – B – A\'',
     explanation: [
-      'A = the brass fanfare (the refrain — it always comes back)',
-      'B, C, D = episodes (contrasting sections with different instruments and mood)',
-      'The A section is like home base — no matter where the music goes, it always returns'
+      'A = the main theme (sneaky pizzicato strings in Mountain King)',
+      'B = contrasting section (brass enters, tempo increases, louder dynamics)',
+      'A\' = the return — the same theme comes back, but often changed (full orchestra, ff, presto!)'
     ],
-    mouretBreakdown: [
-      { section: 'A', description: 'Bold brass fanfare — trumpets + timpani', color: '#3B82F6' },
-      { section: 'B', description: 'Lighter — strings and oboes', color: '#EF4444' },
-      { section: 'A', description: 'Fanfare returns!', color: '#3B82F6' },
-      { section: 'C', description: 'Different episode — new contrast', color: '#10B981' },
-      { section: 'A', description: 'Fanfare again!', color: '#3B82F6' },
-      { section: 'D', description: 'Third episode — yet another idea', color: '#F59E0B' },
-      { section: 'A', description: 'Final fanfare — triumphant close', color: '#3B82F6' }
+    mountainKingBreakdown: [
+      { section: 'A', description: 'Sneaky Start — pizzicato strings + bassoons, pp, andante', color: '#3B82F6' },
+      { section: 'B', description: 'Building Energy — brass enters, tempo increases, mf', color: '#EF4444' },
+      { section: 'A\'', description: 'Explosive Return — full orchestra, ff, accelerando to presto', color: '#3B82F6' }
     ],
-    teacherNote: 'Walk through the form on the board. When you get to the first "A returns," pause and ask: "What should happen next?" Students should predict the fanfare. This builds anticipation and demonstrates comprehension.'
+    teacherNote: 'Walk through the ABA form. Emphasize that A\' is the SAME theme but transformed — louder, faster, full orchestra. Ask: "What do you think the troll\'s mountain hall sounds like when Peer Gynt is running away?"'
   },
 
   // Slide 7 - Section Spotter Instructions
@@ -142,23 +136,21 @@ export const summarySlides = {
     subtitle: 'Can You Hear the Sections?',
     icon: '🎮',
     howToPlay: [
-      '1. Listen to the Rondeau play section by section',
-      '2. When each section plays, tap A, B, C, or D on your Chromebook',
-      '3. Hear the brass fanfare? That\'s A — tap it!',
-      '4. Something lighter with strings? Could be B, C, or D!',
+      '1. Listen to Mountain King play section by section',
+      '2. When each section plays, tap A or B on your Chromebook',
+      '3. Hear sneaky pizzicato strings? That\'s A — tap it!',
+      '4. Brass enters and it gets louder? That\'s B!',
       '5. Fastest correct answer gets bonus points!'
     ],
     tips: [
-      { section: 'A', tip: 'Bold brass fanfare — trumpets and timpani', emoji: '🔵' },
-      { section: 'B', tip: 'First episode — lighter, strings/oboes', emoji: '🔴' },
-      { section: 'C', tip: 'Second episode — different from B', emoji: '🟢' },
-      { section: 'D', tip: 'Third episode — yet another contrast', emoji: '🟡' }
+      { section: 'A', tip: 'Sneaky pizzicato strings + bassoons, quiet', emoji: '🔵' },
+      { section: 'B', tip: 'Brass enters, tempo increases, louder', emoji: '🔴' }
     ],
     scoring: [
       { action: 'Correct section', points: '+10' },
       { action: 'Speed bonus', points: '+1 to +5' }
     ],
-    teacherNote: 'Students will hear the full piece played section by section. They identify each section in real time. The A sections should get easier each time — by the fourth return, every student should nail it.'
+    teacherNote: 'Students will hear the full piece played section by section. They identify each section in real time. The A\' return should be recognizable — same melody but now full orchestra, ff, presto.'
   },
 
   // Slide 8 - Listening Map Instructions
@@ -167,19 +159,17 @@ export const summarySlides = {
     subtitle: 'Track the Sections You Hear',
     icon: '🗺️',
     whatToMark: [
-      '🔵 Blue = A section (brass fanfare)',
-      '🔴 Red = B section (first episode)',
-      '🟢 Green = C section (second episode)',
-      '🟡 Yellow = D section (third episode)',
+      '🔵 Blue = A section (sneaky pizzicato strings)',
+      '🔴 Red = B section (brass enters, building energy)',
       '🎺 Label INSTRUMENTS you hear in each section',
       '🎵 Mark DYNAMICS (loud vs. soft) in each section'
     ],
     tips: [
-      'The A sections should all look similar — same color!',
-      'The episodes (B, C, D) should look different from A and from each other',
+      'The A sections should look similar — same color!',
+      'The B section should look different from A',
       'Use dynamics from Lesson 1 and instruments from all lessons'
     ],
-    teacherNote: 'This is the third listening map — students now have dynamics (L1), tempo (L2), AND form (L3) tools. The map should clearly show the ABACADA structure with color-coding.'
+    teacherNote: 'This is the third listening map — students now have dynamics (L1), tempo (L2), AND form (L3) tools. The map should clearly show the ABA structure with color-coding.'
   },
 
   // Slide 9 - Capstone Preview
@@ -234,14 +224,14 @@ export const summarySlides = {
     subtitle: 'Exit Ticket',
     icon: '⭐',
     prompts: [
-      'The form of the Mouret Rondeau is ______ (use letters).',
-      'I knew the A section was back because I heard ______.',
+      'The form of Mountain King is ______ (use letters).',
+      'I knew the A section returned because I heard ______.',
       'The brass/percussion instrument I found most interesting was ______ because ______.'
     ],
     thinkAbout: [
-      'How many times did the A section return?',
-      'What made the episodes (B, C, D) sound different from A?',
-      'How is form like a chorus and verses in a pop song?'
+      'How did the A section change when it returned as A\'?',
+      'What made the B section sound different from A?',
+      'How does ternary form create a satisfying ending by returning to A?'
     ],
     teacherNote: 'Text input on Chromebook. Responses save to student portfolio.'
   }
@@ -262,7 +252,7 @@ export const brassInstruments = [
     facts: [
       'Highest-pitched brass instrument',
       'Uses three valves to change notes',
-      'The star of the Mouret Rondeau!'
+      'Featured in Mountain King\'s explosive finale!'
     ]
   },
   {
@@ -325,7 +315,7 @@ export const percussionInstruments = [
     facts: [
       'PITCHED — can play specific notes',
       'Pedal changes pitch by tightening the drumhead',
-      'Stars in the Mouret Rondeau alongside the trumpets!'
+      'Powerful moments in Mountain King\'s dramatic climax!'
     ]
   },
   {
@@ -385,10 +375,8 @@ export const formVocabulary = {
     { name: 'Rondo', structure: 'ABACADA', description: 'A keeps returning between episodes', color: '#F59E0B' }
   ],
   sectionLabels: [
-    { letter: 'A', name: 'Refrain', description: 'The main theme that keeps coming back', color: '#3B82F6', emoji: '🔵' },
-    { letter: 'B', name: 'Episode 1', description: 'First contrasting section', color: '#EF4444', emoji: '🔴' },
-    { letter: 'C', name: 'Episode 2', description: 'Second contrasting section', color: '#10B981', emoji: '🟢' },
-    { letter: 'D', name: 'Episode 3', description: 'Third contrasting section', color: '#F59E0B', emoji: '🟡' }
+    { letter: 'A', name: 'Statement', description: 'The main theme — sneaky pizzicato strings', color: '#3B82F6', emoji: '🔵' },
+    { letter: 'B', name: 'Contrast', description: 'Different material — brass enters, tempo increases', color: '#EF4444', emoji: '🔴' }
   ]
 };
 
@@ -408,34 +396,34 @@ export const vocabulary = [
   { term: 'Timpani', definition: 'Large pitched drums — the "thunder" of the orchestra' },
   { term: 'Form', definition: 'The overall structure or blueprint of a piece of music' },
   { term: 'Section', definition: 'A distinct part of a piece with its own musical character' },
-  { term: 'Rondo', definition: 'Form where A returns between contrasting episodes (ABACADA)' },
-  { term: 'Refrain', definition: 'The recurring A section that keeps coming back' },
-  { term: 'Episode', definition: 'A contrasting section between returns of the refrain' }
+  { term: 'Ternary', definition: 'A three-part form: A (statement), B (contrast), A (return) — ABA' },
+  { term: 'Contrast', definition: 'When something sounds noticeably different from what came before' },
+  { term: 'Return', definition: 'When the A section comes back after the contrasting B section' }
 ];
 
 // ========================================
 // 6. FEATURED PIECE INFO
 // ========================================
 export const featuredPiece = {
-  title: 'Fanfare-Rondeau',
-  composer: 'Jean-Joseph Mouret',
-  year: '1729',
-  origin: 'French Baroque — composed for Louis XIV at the Palace of Versailles',
-  duration: '~2 min',
-  audioPath: '/audio/classical/mouret-rondeau.mp3',
-  description: 'A textbook rondo featuring trumpets and timpani. Written in 1729, it became famous as the PBS Masterpiece Theatre theme. The brass fanfare is instantly recognizable and returns four times between contrasting episodes.',
+  title: 'In the Hall of the Mountain King',
+  composer: 'Edvard Grieg',
+  year: '1875',
+  origin: 'Norwegian Romantic — composed for Henrik Ibsen\'s play "Peer Gynt"',
+  duration: '~2:30',
+  audioPath: '/audio/classical/grieg-mountain-king.mp3',
+  description: 'A masterpiece of building tension in ternary (ABA) form. The sneaky pizzicato theme starts quiet and slow, then transforms into a thundering orchestral explosion. Grieg himself called it something "that stinks of cow dung" — but audiences have loved it for 150 years!',
   formFeatures: [
-    'Clear ABACADA rondo form — the A section returns four times',
-    'Bold brass fanfare (A) contrasts with lighter episodes (B, C, D)',
-    'Trumpets and timpani dominate the A sections',
-    'Episodes feature strings and oboes with softer dynamics'
+    'Clear ABA ternary form — statement, contrast, return',
+    'A section: pizzicato strings + bassoons, pp, andante',
+    'B section: brass enters, tempo increases, mf dynamics',
+    'A\' return: full orchestra, ff, accelerando to presto — the same theme, now explosive'
   ],
-  funFact: 'This piece is older than the United States! It was composed 47 years before the Declaration of Independence.',
+  funFact: 'Grieg actually didn\'t like this piece! He wrote in a letter: "I literally can\'t bear to listen to it because it absolutely reeks of cow dung." But it became one of the most famous classical pieces ever written.',
   popCultureAppearances: [
-    'PBS Masterpiece Theatre theme (since 1971)',
-    'Civilization video game series',
-    'Weddings and formal ceremonies',
-    'Little Einsteins (PBS Kids)'
+    'The Social Network (movie)',
+    'Countless TV shows, commercials, and video games',
+    'Used in horror movies for building tension',
+    'One of the most-streamed classical pieces on Spotify'
   ]
 };
 
@@ -446,7 +434,7 @@ export const reflectionActivity = {
   steps: {
     teacherInstruction: {
       title: 'Time to Reflect!',
-      text: 'Think about how form, brass, and percussion worked together in the Mouret Rondeau.',
+      text: 'Think about how form, brass, and percussion worked together in Mountain King.',
       voiceText: 'Time to reflect on your learning!'
     }
   },
@@ -454,23 +442,23 @@ export const reflectionActivity = {
   selfReflection: {
     prompt1: {
       title: 'Musical Form',
-      question: 'The form of the Mouret Rondeau is ______ (use letters).',
+      question: 'The form of Mountain King is ______ (use letters).',
       voiceText: 'What form did you hear?',
       options: [
-        'ABACADA — the fanfare kept coming back!',
-        'ABACA — I heard A return between contrasting sections',
-        'ABA — I noticed A come back once',
+        'ABA — the sneaky theme came back at the end!',
+        'AB — I heard two different sections',
+        'ABC — I heard three different sections',
         'Custom...'
       ]
     },
     prompt2: {
       title: 'Hearing the A Section',
-      question: 'I knew the A section was back because I heard ______.',
+      question: 'I knew the A section returned because I heard ______.',
       voiceText: 'How did you know A was returning?',
       options: [
-        'The bold brass trumpets playing the fanfare',
-        'The timpani joining back in with a big sound',
-        'The music getting louder and more powerful',
+        'The same sneaky melody but now with full orchestra',
+        'The music getting much louder and faster',
+        'The pizzicato theme coming back in a new way',
         'The same melody I heard at the beginning',
         'Custom...'
       ]
@@ -482,7 +470,7 @@ export const reflectionActivity = {
       options: [
         'The trumpet — its bright, commanding sound was exciting',
         'The French horn — its warm, noble tone was beautiful',
-        'The timpani — it made the fanfare feel powerful',
+        'The timpani — it made the climax feel powerful',
         'The trombone — I liked that it uses a slide',
         'Custom...'
       ]
@@ -494,8 +482,8 @@ export const reflectionActivity = {
 // 8. REFLECTION PROMPTS (SIMPLE)
 // ========================================
 export const reflectionPrompts = [
-  'The form of the Mouret Rondeau is ______ (use letters).',
-  'I knew the A section was back because I heard ______.',
+  'The form of Mountain King is ______ (use letters).',
+  'I knew the A section returned because I heard ______.',
   'The brass/percussion instrument I found most interesting was ______ because ______.'
 ];
 
@@ -505,12 +493,12 @@ export const reflectionPrompts = [
 export const formListeningMapContent = {
   instructions: {
     title: 'Form Listening Map',
-    subtitle: 'Track the Sections in the Mouret Rondeau',
-    overview: 'Listen to the Fanfare-Rondeau by Mouret and map the sections you hear. Color-code each section!',
+    subtitle: 'Track the Sections in Mountain King',
+    overview: 'Listen to In the Hall of the Mountain King by Grieg and map the sections you hear. Color-code each section!',
     featuredPiece: {
-      title: 'Fanfare-Rondeau',
-      composer: 'Jean-Joseph Mouret',
-      audioPath: '/audio/classical/mouret-rondeau.mp3'
+      title: 'In the Hall of the Mountain King',
+      composer: 'Edvard Grieg',
+      audioPath: '/audio/classical/grieg-mountain-king.mp3'
     },
     mainSteps: [
       {
@@ -523,13 +511,13 @@ export const formListeningMapContent = {
         step: 2,
         icon: '🔤',
         title: 'Label each section',
-        description: 'Mark A, B, C, or D as each section plays'
+        description: 'Mark A or B as each section plays'
       },
       {
         step: 3,
         icon: '🎨',
         title: 'Color-code the sections',
-        description: 'Blue = A, Red = B, Green = C, Yellow = D'
+        description: 'Blue = A, Red = B'
       },
       {
         step: 4,
@@ -547,17 +535,15 @@ export const formListeningMapContent = {
   },
 
   colorGuide: [
-    { section: 'A (Fanfare)', color: '#3B82F6', tip: 'Blue for the bold brass fanfare — the refrain' },
-    { section: 'B (Episode 1)', color: '#EF4444', tip: 'Red for the first contrasting episode' },
-    { section: 'C (Episode 2)', color: '#10B981', tip: 'Green for the second contrasting episode' },
-    { section: 'D (Episode 3)', color: '#F59E0B', tip: 'Yellow for the third contrasting episode' }
+    { section: 'A (Sneaky Theme)', color: '#3B82F6', tip: 'Blue for the pizzicato strings — quiet and mysterious' },
+    { section: 'B (Building Energy)', color: '#EF4444', tip: 'Red for when brass enters and tempo increases' }
   ],
 
   reflectionQuestions: [
-    'How many times did the A section (fanfare) return?',
-    'Which episode (B, C, or D) sounded the most different from A?',
-    'What instruments dominated the A sections?',
-    'How did the dynamics change between A sections and episodes?',
+    'How did the A section change when it returned as A\'?',
+    'What made the B section sound different from A?',
+    'What instruments dominated the A\' section?',
+    'How did the dynamics change across the three sections?',
     'Can you draw the form pattern using letters?'
   ]
 };

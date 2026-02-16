@@ -11,36 +11,32 @@ const PLAN_STORAGE_KEY = 'listening-lab-lesson4-capstone-plan';
 
 // ============ OPTIONS ============
 const DYNAMICS_OPTIONS = [
-  { value: '', label: 'select...' },
   { value: 'pp', label: 'pianissimo (pp)' },
   { value: 'p', label: 'piano (p)' },
   { value: 'mp', label: 'mezzo piano (mp)' },
   { value: 'mf', label: 'mezzo forte (mf)' },
   { value: 'f', label: 'forte (f)' },
   { value: 'ff', label: 'fortissimo (ff)' },
+  { value: 'crescendo', label: 'crescendo' },
+  { value: 'decrescendo', label: 'decrescendo' },
 ];
 
 const TEMPO_OPTIONS = [
-  { value: '', label: 'select...' },
   { value: 'largo', label: 'Largo' },
   { value: 'adagio', label: 'Adagio' },
   { value: 'andante', label: 'Andante' },
   { value: 'moderato', label: 'Moderato' },
   { value: 'allegro', label: 'Allegro' },
   { value: 'presto', label: 'Presto' },
+  { value: 'accelerando', label: 'accelerando' },
+  { value: 'ritardando', label: 'ritardando' },
 ];
 
 const FAMILY_OPTIONS = [
-  { value: '', label: 'select...' },
   { value: 'strings', label: 'Strings' },
   { value: 'woodwinds', label: 'Woodwinds' },
   { value: 'brass', label: 'Brass' },
   { value: 'percussion', label: 'Percussion' },
-  { value: 'strings-woodwinds', label: 'Strings & Woodwinds' },
-  { value: 'strings-brass', label: 'Strings & Brass' },
-  { value: 'woodwinds-brass', label: 'Woodwinds & Brass' },
-  { value: 'strings-woodwinds-brass', label: 'Strings, Woodwinds & Brass' },
-  { value: 'full-orchestra', label: 'Full Orchestra' },
 ];
 
 const INSTRUMENTS_BY_FAMILY = [
@@ -99,6 +95,70 @@ const Blank = ({ value, onChange, options, placeholder }) => (
     {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
   </select>
 );
+
+// ============ FLAT MULTI-SELECT DROPDOWN ============
+const FlatSelect = ({ value, onChange, options, taken, placeholder }) => {
+  const excluded = new Set(taken.filter(v => v !== value));
+  const available = options.filter(o => !excluded.has(o.value));
+  return (
+    <select
+      value={value || ''}
+      onChange={(e) => onChange(e.target.value)}
+      className={`inline bg-transparent border-b-2 text-[11px] leading-tight px-0.5 py-0 focus:border-blue-500 focus:outline-none appearance-none cursor-pointer mx-0.5 transition-colors ${
+        value ? 'border-gray-300 text-gray-900 font-semibold hover:border-blue-400' : 'border-gray-200 text-gray-400 hover:border-gray-400'
+      }`}
+      style={{
+        width: `${Math.max(50, ((value ? (options.find(o => o.value === value)?.label || value) : (placeholder || 'select...')).length) * 6.5 + 16)}px`,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'right 1px center',
+      }}
+    >
+      <option value="">{value ? 'remove' : (placeholder || 'select...')}</option>
+      {available.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+    </select>
+  );
+};
+
+// ============ MULTI-SELECT SENTENCE ============
+const MultiSelectSentence = ({ items, onChange, options, prefix, suffix }) => {
+  const hasAny = items.length > 0;
+
+  const handleChange = (index, newVal) => {
+    const updated = [...items];
+    if (newVal === '') { updated.splice(index, 1); } else { updated[index] = newVal; }
+    onChange(updated);
+  };
+
+  const handleAdd = (newVal) => { if (newVal) onChange([...items, newVal]); };
+  const canAddMore = options.length > items.length;
+
+  return (
+    <span className={`transition-colors ${hasAny ? 'text-gray-700' : 'text-gray-300'}`}>
+      {prefix}
+      {items.map((item, idx) => {
+        const isLast = idx === items.length - 1;
+        const isSecondToLast = idx === items.length - 2;
+        return (
+          <span key={idx}>
+            <FlatSelect value={item} onChange={(v) => handleChange(idx, v)} options={options} taken={items} placeholder={options.find(o => o.value === item)?.label || item} />
+            {!isLast && items.length === 2 && isSecondToLast && ' and '}
+            {!isLast && items.length > 2 && isSecondToLast && ', and '}
+            {!isLast && !isSecondToLast && ', '}
+          </span>
+        );
+      })}
+      {canAddMore && (
+        <>
+          {hasAny && items.length === 1 && ' and '}
+          {hasAny && items.length > 1 && ', and '}
+          <FlatSelect value="" onChange={handleAdd} options={options} taken={items} placeholder={hasAny ? 'add more...' : 'select...'} />
+        </>
+      )}
+      {suffix}
+    </span>
+  );
+};
 
 // ============ GROUPED INSTRUMENT SELECT ============
 const InstrumentSelect = ({ value, onChange, taken, placeholder }) => {
@@ -172,7 +232,7 @@ const InstrumentSentence = ({ instruments, onChange }) => {
 };
 
 // ============ MAIN ============
-const CapstonePlanning = ({ onComplete, isSessionMode }) => {
+const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null }) => {
   const [piece, setPiece] = useState(null);
   const [plans, setPlans] = useState({});
   const [isSaved, setIsSaved] = useState(false);
@@ -186,7 +246,7 @@ const CapstonePlanning = ({ onComplete, isSessionMode }) => {
       if (!p) return;
       setPiece(p);
       const d = {};
-      p.sections.forEach(s => { d[s.id] = { dynamics: '', tempo: '', families: '', instruments: [] }; });
+      p.sections.forEach(s => { d[s.id] = { dynamics: [], tempo: [], families: [], instruments: [] }; });
       const saved = localStorage.getItem(PLAN_STORAGE_KEY);
       if (saved) {
         const sp = JSON.parse(saved);
@@ -195,6 +255,10 @@ const CapstonePlanning = ({ onComplete, isSessionMode }) => {
             if (d[sid]) {
               const merged = { ...d[sid], ...sp.sections[sid] };
               if (!Array.isArray(merged.instruments)) merged.instruments = [];
+              // Backward compat: convert old string values to arrays
+              if (typeof merged.dynamics === 'string') merged.dynamics = merged.dynamics ? [merged.dynamics] : [];
+              if (typeof merged.tempo === 'string') merged.tempo = merged.tempo ? [merged.tempo] : [];
+              if (typeof merged.families === 'string') merged.families = merged.families ? [merged.families] : [];
               d[sid] = merged;
             }
           });
@@ -251,9 +315,22 @@ const CapstonePlanning = ({ onComplete, isSessionMode }) => {
               const plan = plans[section.id] || {};
               const playing = playingSection === section.id;
               const instruments = Array.isArray(plan.instruments) ? plan.instruments : [];
+              const dynamics = Array.isArray(plan.dynamics) ? plan.dynamics : [];
+              const tempos = Array.isArray(plan.tempo) ? plan.tempo : [];
+              const families = Array.isArray(plan.families) ? plan.families : (plan.families ? [plan.families] : []);
+
+              const isHighlighted = highlightSection === section.id || highlightSection === section.label;
 
               return (
-                <div key={section.id} className="shrink-0">
+                <div
+                  key={section.id}
+                  className={`shrink-0 rounded-lg transition-all duration-300 ${
+                    isHighlighted
+                      ? 'bg-yellow-50 p-2 -mx-2'
+                      : highlightSection != null ? 'opacity-30 p-2 -mx-2' : ''
+                  }`}
+                  style={isHighlighted ? { border: `3px solid ${section.color}`, boxShadow: `0 0 0 3px ${section.color}30, 0 0 24px ${section.color}15` } : {}}
+                >
                   {/* Section heading + paragraph on same block */}
                   <div className="flex items-center gap-2 mb-0.5">
                     <span
@@ -283,12 +360,30 @@ const CapstonePlanning = ({ onComplete, isSessionMode }) => {
 
                   <div className="text-[11px] text-gray-700 leading-[2] pl-1">
                     <p>
-                      In this section, the dynamics I hear are
-                      <Blank value={plan.dynamics} onChange={v => set(section.id, 'dynamics', v)} options={DYNAMICS_OPTIONS} placeholder="select..." />
-                      and the tempo I hear is
-                      <Blank value={plan.tempo} onChange={v => set(section.id, 'tempo', v)} options={TEMPO_OPTIONS} placeholder="select..." />.
-                      The instrument families I hear are
-                      <Blank value={plan.families} onChange={v => set(section.id, 'families', v)} options={FAMILY_OPTIONS} placeholder="select..." />.{' '}
+                      <MultiSelectSentence
+                        items={dynamics}
+                        onChange={(arr) => set(section.id, 'dynamics', arr)}
+                        options={DYNAMICS_OPTIONS}
+                        prefix="In this section, the dynamics I hear are "
+                        suffix=""
+                      />
+                      {' '}and{' '}
+                      <MultiSelectSentence
+                        items={tempos}
+                        onChange={(arr) => set(section.id, 'tempo', arr)}
+                        options={TEMPO_OPTIONS}
+                        prefix="the tempo I hear is "
+                        suffix="."
+                      />
+                      {' '}
+                      <MultiSelectSentence
+                        items={families}
+                        onChange={(arr) => set(section.id, 'families', arr)}
+                        options={FAMILY_OPTIONS}
+                        prefix="The instrument families I hear are "
+                        suffix="."
+                      />
+                      {' '}
                       <InstrumentSentence
                         instruments={instruments}
                         onChange={(arr) => set(section.id, 'instruments', arr)}
