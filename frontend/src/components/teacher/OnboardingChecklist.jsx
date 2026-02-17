@@ -42,7 +42,7 @@ const ONBOARDING_TASKS = [
   {
     id: 'explore-lessons',
     title: 'Browse available lessons',
-    description: 'Explore the Music for Media curriculum',
+    description: 'Explore The Loop Lab curriculum',
     icon: BookOpen,
     action: 'browse-lessons',
     helpText: '5 lessons covering mood, texture, form, and more'

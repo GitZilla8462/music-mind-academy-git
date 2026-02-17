@@ -343,7 +343,7 @@ const FilmMusicHub = () => {
             <div className="px-6 pb-6 border-t border-orange-100">
               <div className="mt-5 grid grid-cols-2 gap-6">
                 <div>
-                  <h3 className="font-semibold text-slate-800 mb-3">Music for Media (Current)</h3>
+                  <h3 className="font-semibold text-slate-800 mb-3">The Loop Lab (Current)</h3>
                   <ul className="space-y-2 text-slate-600">
                     <li className="flex items-start gap-2">
                       <span className="text-slate-400">•</span>

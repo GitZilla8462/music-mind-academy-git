@@ -12,14 +12,45 @@ const CURRICULUM_DATA = {
     title: 'Music Mind Academy Curriculum',
     subtitle: 'A Complete Middle School General Music Curriculum',
     grades: '6-8',
-    totalUnits: 6,
-    totalLessons: 30,
+    totalUnits: 7,
+    totalLessons: 35,
     duration: '5 lessons per unit',
-    description: 'A standards-aligned curriculum that takes students from listening and responding to creating and performing. Students progress through six units, building skills in critical listening, cultural awareness, rhythm creation, media composition, songwriting, and film scoring.'
+    description: 'A standards-aligned curriculum that takes students from listening and responding to creating and performing. Students progress through seven units, building skills in media composition, critical listening, cultural awareness, rhythm creation, songwriting, and film scoring.'
   },
   units: [
     {
       id: 1,
+      title: 'The Loop Lab',
+      subtitle: 'Loop-Based Composition',
+      icon: '🎬',
+      color: '#3b82f6',
+      focus: 'Creating',
+      duration: '~40 min per lesson',
+      overview: 'Students create soundtracks for video using loops, learning how music creates mood, texture, form, and energy in media.',
+      essentialQuestion: 'How does music enhance visual storytelling?',
+      standards: {
+        primary: ['MU:Cr1.1', 'MU:Cr2.1', 'MU:Cn10.0'],
+        description: 'Creating and Connecting standards - composing for purpose'
+      },
+      iCanStatements: [
+        'I can select loops that match the mood of a video',
+        'I can layer loops to create texture and interest',
+        'I can organize music into sections that follow video structure',
+        'I can use rhythm and beat to match video energy',
+        'I can explain my musical choices using music vocabulary'
+      ],
+      portfolioPiece: 'Video Soundtrack Composition',
+      lessons: [
+        { num: 1, title: 'Score the Adventure', concept: 'Mood & Expression' },
+        { num: 2, title: 'City Soundscapes', concept: 'Texture & Layering' },
+        { num: 3, title: 'Epic Wildlife', concept: 'Form & Structure' },
+        { num: 4, title: 'Sports Highlight Reel', concept: 'Rhythm & Beat' },
+        { num: 5, title: 'Game On!', concept: 'Melody & Contour' }
+      ],
+      status: 'pilot'
+    },
+    {
+      id: 2,
       title: 'The Listening Lab',
       subtitle: 'Elements of Music',
       icon: '🎧',
@@ -49,7 +80,7 @@ const CURRICULUM_DATA = {
       ]
     },
     {
-      id: 2,
+      id: 3,
       title: 'Music Around the World',
       subtitle: 'Global Sounds & Cultures',
       icon: '🌍',
@@ -79,7 +110,7 @@ const CURRICULUM_DATA = {
       ]
     },
     {
-      id: 3,
+      id: 4,
       title: 'Beat Lab',
       subtitle: 'Rhythm & Groove',
       icon: '🥁',
@@ -107,37 +138,6 @@ const CURRICULUM_DATA = {
         { num: 4, title: 'Remix Culture', concept: 'Sampling & Loops' },
         { num: 5, title: 'Your Beat Drop', concept: 'Original Creation' }
       ]
-    },
-    {
-      id: 4,
-      title: 'Music for Media',
-      subtitle: 'Loop-Based Composition',
-      icon: '🎬',
-      color: '#3b82f6',
-      focus: 'Creating',
-      duration: '~40 min per lesson',
-      overview: 'Students create soundtracks for video using loops, learning how music creates mood, texture, form, and energy in media.',
-      essentialQuestion: 'How does music enhance visual storytelling?',
-      standards: {
-        primary: ['MU:Cr1.1', 'MU:Cr2.1', 'MU:Cn10.0'],
-        description: 'Creating and Connecting standards - composing for purpose'
-      },
-      iCanStatements: [
-        'I can select loops that match the mood of a video',
-        'I can layer loops to create texture and interest',
-        'I can organize music into sections that follow video structure',
-        'I can use rhythm and beat to match video energy',
-        'I can explain my musical choices using music vocabulary'
-      ],
-      portfolioPiece: 'Video Soundtrack Composition',
-      lessons: [
-        { num: 1, title: 'Score the Adventure', concept: 'Mood & Expression' },
-        { num: 2, title: 'City Soundscapes', concept: 'Texture & Layering' },
-        { num: 3, title: 'Epic Wildlife', concept: 'Form & Structure' },
-        { num: 4, title: 'Sports Highlight Reel', concept: 'Rhythm & Beat' },
-        { num: 5, title: 'Game On!', concept: 'Melody & Contour' }
-      ],
-      status: 'pilot'
     },
     {
       id: 5,
@@ -210,7 +210,7 @@ const CURRICULUM_DATA = {
         { code: 'Cr2', name: 'Plan & Make', description: 'Select and develop musical ideas' },
         { code: 'Cr3', name: 'Evaluate & Refine', description: 'Evaluate and refine work' }
       ],
-      coveredIn: [3, 4, 5, 6]
+      coveredIn: [1, 4, 5, 6]
     },
     performing: {
       code: 'Performing (Pr)',
@@ -232,7 +232,7 @@ const CURRICULUM_DATA = {
         { code: 'Re8', name: 'Analyze', description: 'Analyze music using appropriate vocabulary' },
         { code: 'Re9', name: 'Interpret', description: 'Support interpretations with evidence' }
       ],
-      coveredIn: [1, 2]
+      coveredIn: [2, 3]
     },
     connecting: {
       code: 'Connecting (Cn)',
@@ -242,7 +242,7 @@ const CURRICULUM_DATA = {
         { code: 'Cn10', name: 'Synthesize', description: 'Synthesize knowledge to create music' },
         { code: 'Cn11', name: 'Relate', description: 'Relate music to culture, history, and context' }
       ],
-      coveredIn: [2, 4, 6]
+      coveredIn: [1, 3, 6]
     }
   }
 };

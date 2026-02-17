@@ -77,7 +77,7 @@ export const CURRICULUM = [
   },
   {
     id: 'film-music',
-    name: 'Film Music for Media',
+    name: 'The Loop Lab',
     shortName: 'Film Music',
     icon: '🎬',
     color: 'blue',

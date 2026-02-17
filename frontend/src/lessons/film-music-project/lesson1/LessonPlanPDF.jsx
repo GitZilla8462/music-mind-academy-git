@@ -377,7 +377,7 @@ const LessonPlanPDF = () => {
 
         {/* Footer */}
         <div className="border-t-2 border-gray-300 pt-4 mt-8 text-center text-sm text-gray-500">
-          <p>🎬 Score the Adventure - Lesson 1 of Music for Media Unit</p>
+          <p>🎬 Score the Adventure - Lesson 1 of The Loop Lab</p>
           <p>Music Mind Academy © 2024</p>
         </div>
       </div>

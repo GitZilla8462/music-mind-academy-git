@@ -8,15 +8,34 @@ import { getSessionData } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import TeacherHeader from '../components/teacher/TeacherHeader';
-import { Lock, ChevronRight, BookOpen } from 'lucide-react';
+import { ChevronRight, BookOpen } from 'lucide-react';
 
 // Early access emails for unreleased units
 const EARLY_ACCESS_EMAILS = ['robtaube90@gmail.com'];
 
-// 6-Unit Curriculum Data with learning objectives
+// 7-Unit Curriculum Data with learning objectives
 const CURRICULUM_UNITS = [
   {
     id: 1,
+    title: 'The Loop Lab',
+    subtitle: 'Loop-Based Composition',
+    color: '#3b82f6',
+    icon: '/images/assignments/curriculum/unit4-media.png',
+    standardBadge: 'Creating',
+    lessonCount: 5,
+    duration: '~40 min per lesson',
+    bullets: [
+      'Score video using loops & layers',
+      'Explore mood, texture & form',
+      'Create beats and melodies'
+    ],
+    status: 'pilot',
+    releaseDate: null,
+    route: '/music-loops-in-media',
+    routeCommercial: '/music-loops-in-media-hub'
+  },
+  {
+    id: 2,
     title: 'The Listening Lab',
     subtitle: 'Elements of Music',
     color: '#8b5cf6',
@@ -30,12 +49,12 @@ const CURRICULUM_UNITS = [
       'Recognize form and structure'
     ],
     status: 'pilot',
-    releaseDate: null,
+    releaseDate: 'March 15th',
     route: '/listening-lab',
     routeCommercial: '/listening-lab-hub'
   },
   {
-    id: 2,
+    id: 3,
     title: 'Music Around the World',
     subtitle: 'Global Sounds & Cultures',
     color: '#14b8a6',
@@ -48,13 +67,13 @@ const CURRICULUM_UNITS = [
       'Connect culture to musical choices',
       'Compare instruments & traditions'
     ],
-    status: 'coming',
-    releaseDate: 'August 2026',
+    status: 'preview',
+    releaseDate: 'April 15th',
     route: null,
     routeCommercial: null
   },
   {
-    id: 3,
+    id: 4,
     title: 'Beat Lab',
     subtitle: 'Rhythm & Groove',
     color: '#ef4444',
@@ -67,29 +86,10 @@ const CURRICULUM_UNITS = [
       'Layer rhythms across genres',
       'Produce an original beat'
     ],
-    status: 'coming',
-    releaseDate: 'August 2026',
+    status: 'preview',
+    releaseDate: 'May 15th',
     route: null,
     routeCommercial: null
-  },
-  {
-    id: 4,
-    title: 'Music for Media',
-    subtitle: 'Loop-Based Composition',
-    color: '#3b82f6',
-    icon: '/images/assignments/curriculum/unit4-media.png',
-    standardBadge: 'Creating',
-    lessonCount: 5,
-    duration: '~40 min per lesson',
-    bullets: [
-      'Score video with loops',
-      'Build texture and layers',
-      'Create mood through music'
-    ],
-    status: 'pilot',
-    releaseDate: null,
-    route: '/music-loops-in-media',
-    routeCommercial: '/music-loops-in-media-hub'
   },
   {
     id: 5,
@@ -105,8 +105,8 @@ const CURRICULUM_UNITS = [
       'Structure verse & chorus',
       'Write an original song sketch'
     ],
-    status: 'coming',
-    releaseDate: 'August 2026',
+    status: 'preview',
+    releaseDate: 'September 1st',
     route: null,
     routeCommercial: null
   },
@@ -124,8 +124,8 @@ const CURRICULUM_UNITS = [
       'Play keyboard melodies',
       'Score a complete film scene'
     ],
-    status: 'coming',
-    releaseDate: 'August 2026',
+    status: 'preview',
+    releaseDate: 'September 1st',
     route: '/film-music-hub',
     routeCommercial: '/film-music-hub'
   },
@@ -143,8 +143,8 @@ const CURRICULUM_UNITS = [
       'Produce an original group track',
       'Create an album release package'
     ],
-    status: 'coming',
-    releaseDate: 'January 2027',
+    status: 'preview',
+    releaseDate: 'September 1st',
     route: null,
     routeCommercial: null
   }
@@ -288,7 +288,7 @@ function MusicClassroomResources() {
   };
 
   const handleUnitClick = (unit) => {
-    if (unit.status === 'pilot' || unit.status === 'active') {
+    if (unit.status === 'pilot' || unit.status === 'active' || unit.status === 'preview') {
       const route = isEduMode ? unit.route : unit.routeCommercial;
       if (route) navigate(route);
     } else if (hasEarlyAccess && unit.route) {
@@ -394,44 +394,69 @@ function MusicClassroomResources() {
       display: 'flex',
       flexDirection: 'column'
     }}>
-      {/* Pulse animation for pilot unit */}
+      {/* Card animations + responsive styles */}
       <style>{`
         @keyframes pilot-pulse {
-          0%, 100% {
-            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
-          }
-          50% {
-            box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
-          }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+          50% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
         }
-        .pilot-card {
-          animation: pilot-pulse 3s ease-in-out infinite;
+        .active-pilot-card {
+          animation: pilot-pulse 2.5s ease-in-out infinite;
+          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
+        }
+
+        /* Responsive: Main content */
+        .mcr-content { max-width: 1400px; width: 100%; margin: 0 auto; padding: 20px 24px; }
+        .mcr-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 12px; }
+        .mcr-join-bar { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        .mcr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .mcr-card-body { flex: 1; padding: 20px; display: flex; flex-direction: column; position: relative; }
+        .mcr-card-icon { position: absolute; top: 12px; right: 12px; width: 72px; height: 72px; object-fit: contain; }
+        .mcr-unit-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-right: 80px; }
+        .mcr-card-title { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 4px; line-height: 1.3; padding-right: 80px; }
+        .mcr-badge-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+        @media (max-width: 1024px) {
+          .mcr-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+          .mcr-content { padding: 16px; }
+          .mcr-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+          .mcr-card-body { padding: 16px; }
+          .mcr-card-icon { width: 52px; height: 52px; top: 10px; right: 10px; }
+          .mcr-unit-row { padding-right: 60px; }
+          .mcr-card-title { padding-right: 60px; font-size: 16px; }
+          .mcr-header { flex-wrap: wrap; }
+        }
+        @media (max-width: 540px) {
+          .mcr-content { padding: 12px; }
+          .mcr-grid { grid-template-columns: 1fr; gap: 10px; }
+          .mcr-card-body { padding: 16px; }
+          .mcr-card-icon { width: 48px; height: 48px; top: 8px; right: 8px; }
+          .mcr-unit-row { padding-right: 54px; }
+          .mcr-card-title { padding-right: 54px; font-size: 16px; }
+          .mcr-header h1 { font-size: 20px !important; }
+          .mcr-badge-row { gap: 4px; }
+          .mcr-join-bar { flex-direction: column; gap: 8px; }
+          .mcr-join-bar input, .mcr-join-bar button { min-height: 44px; }
         }
       `}</style>
       <TeacherHeader />
 
       {/* Main Content */}
-      <div style={{
+      <div className="mcr-content" style={{
         display: 'flex',
-        flexDirection: 'column',
-        maxWidth: '1400px',
-        width: '100%',
-        margin: '0 auto',
-        padding: '20px 24px'
+        flexDirection: 'column'
       }}>
 
         {/* Student Join Session */}
         {userRole === 'student' && (
-          <div style={{
+          <div className="mcr-join-bar" style={{
             backgroundColor: 'white',
             borderRadius: '8px',
             padding: '16px 20px',
             marginBottom: '16px',
-            border: '1px solid #e2e8f0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px'
+            border: '1px solid #e2e8f0'
           }}>
             <span style={{ fontSize: '14px', fontWeight: '500', color: '#475569' }}>
               Join a session:
@@ -476,14 +501,9 @@ function MusicClassroomResources() {
         )}
 
         {/* Header */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '20px'
-        }}>
+        <div className="mcr-header">
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b', marginBottom: '2px' }}>
+            <h1 className="mcr-header" style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b', marginBottom: '2px' }}>
               General Music Curriculum
             </h1>
             <p style={{ fontSize: '14px', color: '#64748b' }}>
@@ -512,26 +532,27 @@ function MusicClassroomResources() {
         </div>
 
         {/* Unit Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '16px'
-        }}>
+        <div className="mcr-grid">
           {CURRICULUM_UNITS.map((unit) => {
-            const isClickable = unit.status === 'pilot' || unit.status === 'active' || (hasEarlyAccess && unit.route);
-            const isComingSoon = unit.status === 'coming';
+            const isActivePilot = unit.status === 'pilot' && !unit.releaseDate;
+            const isUpcomingPilot = unit.status === 'pilot' && unit.releaseDate;
+            const isClickable = unit.status === 'pilot' || unit.status === 'active' || unit.status === 'preview' || (hasEarlyAccess && unit.route);
+            const isPreview = unit.status === 'preview';
+
+            const cardClass = isActivePilot ? 'active-pilot-card' : '';
+            const cardOpacity = isActivePilot ? 1 : isUpcomingPilot ? 1 : isPreview ? 0.8 : 1;
 
             return (
               <div
                 key={unit.id}
-                className={unit.status === 'pilot' ? 'pilot-card' : ''}
+                className={cardClass}
                 onClick={() => handleUnitClick(unit)}
                 style={{
-                  backgroundColor: 'white',
+                  backgroundColor: isUpcomingPilot ? '#faf5ff' : 'white',
                   borderRadius: '10px',
-                  border: unit.status === 'pilot' ? `2px solid ${unit.color}` : '1px solid #e2e8f0',
+                  border: isActivePilot ? `2px solid ${unit.color}` : isUpcomingPilot ? `1px solid ${unit.color}40` : '1px solid #e2e8f0',
                   cursor: isClickable ? 'pointer' : 'default',
-                  opacity: isComingSoon && !hasEarlyAccess ? 0.85 : 1,
+                  opacity: cardOpacity,
                   display: 'flex',
                   flexDirection: 'column',
                   overflow: 'hidden',
@@ -539,7 +560,9 @@ function MusicClassroomResources() {
                 }}
                 onMouseEnter={(e) => {
                   if (isClickable) {
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                    e.currentTarget.style.boxShadow = isActivePilot
+                      ? '0 8px 24px rgba(59, 130, 246, 0.25)'
+                      : '0 4px 12px rgba(0,0,0,0.1)';
                     e.currentTarget.style.transform = 'translateY(-2px)';
                   }
                 }}
@@ -552,44 +575,25 @@ function MusicClassroomResources() {
               >
                 {/* Colored top bar */}
                 <div style={{
-                  height: '4px',
+                  height: isActivePilot ? '5px' : isUpcomingPilot ? '4px' : '3px',
                   backgroundColor: unit.color,
-                  opacity: isComingSoon && !hasEarlyAccess ? 0.4 : 1
+                  opacity: isPreview ? 0.4 : 1
                 }} />
 
                 {/* Card content */}
-                <div style={{
-                  flex: 1,
-                  padding: '20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  position: 'relative'
-                }}>
+                <div className="mcr-card-body">
                   {/* Icon in top-right */}
                   {unit.icon && (
                     <img
                       src={unit.icon}
                       alt=""
-                      style={{
-                        position: 'absolute',
-                        top: '12px',
-                        right: '12px',
-                        width: '72px',
-                        height: '72px',
-                        objectFit: 'contain',
-                        opacity: isComingSoon && !hasEarlyAccess ? 0.5 : 1
-                      }}
+                      className="mcr-card-icon"
+                      style={{ opacity: isPreview ? 0.5 : 1 }}
                     />
                   )}
 
                   {/* Unit number and status */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '12px',
-                    paddingRight: '80px'
-                  }}>
+                  <div className="mcr-unit-row">
                     <span style={{
                       fontSize: '12px',
                       fontWeight: '600',
@@ -599,42 +603,56 @@ function MusicClassroomResources() {
                     }}>
                       Unit {unit.id}
                     </span>
-                    {unit.status === 'pilot' && (
-                      <span style={{
-                        fontSize: '11px',
-                        fontWeight: '600',
-                        color: 'white',
-                        backgroundColor: unit.color,
-                        padding: '3px 8px',
-                        borderRadius: '4px'
-                      }}>
-                        Pilot Unit
-                      </span>
-                    )}
-                    {isComingSoon && (
-                      <span style={{
-                        fontSize: '11px',
-                        fontWeight: '500',
-                        color: '#94a3b8',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}>
-                        <Lock size={11} />
-                        {unit.releaseDate}
-                      </span>
-                    )}
+                    <div className="mcr-badge-row">
+                      {isActivePilot && (
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          color: 'white',
+                          backgroundColor: '#16a34a',
+                          padding: '3px 10px',
+                          borderRadius: '4px',
+                          letterSpacing: '0.3px'
+                        }}>
+                          Pilot Now
+                        </span>
+                      )}
+                      {isUpcomingPilot && (
+                        <>
+                          <span style={{
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            color: 'white',
+                            backgroundColor: unit.color,
+                            padding: '3px 10px',
+                            borderRadius: '4px',
+                            letterSpacing: '0.3px'
+                          }}>
+                            Pilot Soon
+                          </span>
+                          <span style={{
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            color: unit.color
+                          }}>
+                            Unlocks {unit.releaseDate}
+                          </span>
+                        </>
+                      )}
+                      {isPreview && unit.releaseDate && (
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          color: '#94a3b8'
+                        }}>
+                          Unlocks {unit.releaseDate}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Title */}
-                  <h3 style={{
-                    fontSize: '18px',
-                    fontWeight: '700',
-                    color: '#1e293b',
-                    marginBottom: '4px',
-                    lineHeight: '1.3',
-                    paddingRight: '80px'
-                  }}>
+                  <h3 className="mcr-card-title">
                     {unit.title}
                   </h3>
 
@@ -710,9 +728,20 @@ function MusicClassroomResources() {
                     }}>
                       {unit.lessonCount} lessons &bull; {unit.duration}
                     </span>
-                    {isClickable && (
+                    {isActivePilot ? (
+                      <span style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        color: unit.color
+                      }}>
+                        Start Teaching <ChevronRight size={16} />
+                      </span>
+                    ) : isClickable ? (
                       <ChevronRight size={18} color={unit.color} />
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -728,7 +757,7 @@ function MusicClassroomResources() {
           fontSize: '13px',
           color: '#94a3b8'
         }}>
-          Full curriculum available August 2026 &bull; Currently piloting Units 1 &amp; 4
+          Full curriculum rolling out through 2026 &bull; Currently piloting Units 1 &amp; 2
         </div>
       </div>
     </div>

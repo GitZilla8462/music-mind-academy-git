@@ -50,7 +50,7 @@ const getActivityIcon = (type) => {
 // Unit styling to match MusicClassroomResources page
 const UNIT_STYLE = {
   'listening-lab':     { number: 1, title: 'The Listening Lab',     color: '#8b5cf6' },
-  'film-music':        { number: 4, title: 'Music for Media',       color: '#3b82f6' },
+  'film-music':        { number: 1, title: 'The Loop Lab',           color: '#3b82f6' },
   'production-studio': { number: 7, title: 'The Production Studio', color: '#f97316' },
 };
 

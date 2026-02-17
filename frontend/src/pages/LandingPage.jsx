@@ -671,6 +671,9 @@ const LandingPage = () => {
           .hero h1 {
             font-size: 2rem;
           }
+          .hero {
+            padding: 2rem 1.25rem 3rem;
+          }
           .activities-grid {
             grid-template-columns: repeat(2, 1fr);
           }
@@ -692,6 +695,96 @@ const LandingPage = () => {
             gap: 1rem;
             text-align: center;
           }
+          .nav-buttons {
+            gap: 0.5rem;
+          }
+          .nav-brand-text {
+            font-size: 1.25rem;
+          }
+          .section-header h2 {
+            font-size: 1.5rem;
+          }
+        }
+
+        @media (max-width: 540px) {
+          .hero h1 {
+            font-size: 1.625rem;
+          }
+          .hero-subtitle {
+            font-size: 1rem;
+          }
+          .hero-bullets li {
+            font-size: 0.9rem;
+          }
+          .btn-hero {
+            padding: 0.875rem 1.5rem;
+            font-size: 0.9rem;
+            width: 100%;
+            text-align: center;
+          }
+          .nav-inner {
+            padding: 0.75rem 1rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+          }
+          .nav-brand-text {
+            font-size: 1.1rem;
+          }
+          .nav-buttons {
+            width: 100%;
+            justify-content: stretch;
+          }
+          .nav-buttons .btn {
+            flex: 1;
+            text-align: center;
+            padding: 0.625rem 0.5rem;
+            font-size: 0.8rem;
+            min-height: 44px;
+          }
+          .activities-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+          }
+          .activity-content {
+            padding: 0.75rem;
+          }
+          .activity-image {
+            height: 90px;
+          }
+          .stats-inner {
+            gap: 1.25rem;
+            justify-content: space-around;
+          }
+          .stat-number {
+            font-size: 1.5rem;
+          }
+          .stat-label {
+            font-size: 0.75rem;
+          }
+          .section-header h2 {
+            font-size: 1.375rem;
+          }
+          .section-header p {
+            font-size: 1rem;
+          }
+          .activities {
+            padding: 2.5rem 1rem;
+          }
+          .includes {
+            padding: 2.5rem 1rem;
+          }
+        }
+
+        @media (max-width: 380px) {
+          .hero h1 {
+            font-size: 1.5rem;
+          }
+          .nav-brand-text {
+            display: none;
+          }
+          .activities-grid {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
 
@@ -706,7 +799,7 @@ const LandingPage = () => {
             />
             <span className="nav-brand-text">Music Mind Academy</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div className="nav-buttons" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
             <button onClick={handleJoinClass} className="btn btn-join">
               Join Class
             </button>

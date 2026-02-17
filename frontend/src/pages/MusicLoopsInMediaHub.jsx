@@ -1,5 +1,5 @@
 // File: /pages/MusicLoopsInMediaHub.jsx
-// Music for Media Unit - Hub page for all lessons
+// The Loop Lab Unit - Hub page for all lessons
 // Updated: Added Getting Started banner and unit cards grid
 // Updated: Added analytics tracking for pilot program
 
@@ -451,9 +451,9 @@ const MusicLoopsInMediaHub = () => {
             <span className="text-4xl">🎬</span>
           </div>
           <div>
-            <h2 className="text-4xl font-bold text-slate-900">Music for Media</h2>
+            <h2 className="text-4xl font-bold text-slate-900">The Loop Lab</h2>
             <p className="text-xl text-slate-600 mt-1">
-              Create soundtracks for video — the way professionals do it.
+              Create soundtracks for video using loops — the way professionals do it.
             </p>
           </div>
         </div>

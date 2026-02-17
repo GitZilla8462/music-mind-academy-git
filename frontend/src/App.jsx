@@ -394,7 +394,7 @@ const AppContent = () => {
         {/* Curriculum Guide - Standards and scope & sequence */}
         <Route path="/curriculum-guide" element={<CurriculumGuide />} />
 
-        {/* Music Loops in Media Hub */}
+        {/* The Loop Lab Hub */}
         <Route path="/music-loops-in-media" element={<MusicLoopsInMediaHub />} />
 
         {/* Listening Lab Hub (Unit 2) */}
@@ -542,7 +542,7 @@ const AppContent = () => {
           </ProtectedRoute>
         } />
         
-        {/* Music Loops in Media Hub - for teachers (legacy backend auth) */}
+        {/* The Loop Lab Hub - for teachers (legacy backend auth) */}
         <Route path="/music-loops-in-media" element={
           <ProtectedRoute requiredRole="teacher">
             <MusicLoopsInMediaHub />
