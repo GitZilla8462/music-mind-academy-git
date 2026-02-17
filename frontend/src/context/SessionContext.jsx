@@ -397,6 +397,46 @@ export const SessionProvider = ({ children }) => {
     };
   }, [sessionCode, sessionData, userRole]);
   
+  // Monitor teacher heartbeat — if teacher's browser has been closed for 1 hour, end session for students
+  const HEARTBEAT_STALE_MS = 60 * 60 * 1000; // 1 hour
+  useEffect(() => {
+    if (!sessionCode || userRole !== 'student' || !sessionData) return;
+    if (isNormalEndRef.current) return;
+
+    const checkHeartbeat = () => {
+      const lastHB = sessionData?.lastHeartbeat;
+      if (!lastHB) return; // no heartbeat field yet — teacher hasn't sent one
+      const elapsed = Date.now() - lastHB;
+      if (elapsed > HEARTBEAT_STALE_MS) {
+        console.log(`⏰ Teacher heartbeat stale (${Math.round(elapsed / 60000)} min) — ending session for student`);
+        isNormalEndRef.current = true;
+        if (!hasAutoCleanedRef.current) {
+          hasAutoCleanedRef.current = true;
+          clearSessionStorage();
+          setSessionCode(null);
+          setUserRole(null);
+          setUserId(null);
+          setIsInSession(false);
+        }
+      }
+    };
+
+    // Check on mount and every 5 minutes (very low overhead)
+    checkHeartbeat();
+    const interval = setInterval(checkHeartbeat, 5 * 60 * 1000);
+
+    // Also check when tab becomes visible (Chromebook wakes up)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') checkHeartbeat();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [sessionCode, userRole, sessionData]);
+
   // Monitor if session data disappears AFTER being loaded (ignore initial null and normal ends)
   useEffect(() => {
     if (isLoadingSession) return;

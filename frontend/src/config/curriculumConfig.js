@@ -44,27 +44,35 @@ export const CURRICULUM = [
       },
       {
         id: 'll-lesson3',
-        name: 'Lesson 3: Brass & Articulation',
-        shortName: 'Brass',
-        concept: 'Brass family and articulation',
-        route: null, // Not yet built
-        activities: []
+        name: 'Lesson 3: Brass, Percussion & Form',
+        shortName: 'Brass & Form',
+        concept: 'Brass/percussion families and ternary form',
+        route: '/lessons/listening-lab/lesson3',
+        activities: [
+          { id: 'listening-journey-mountain-king', name: 'Listening Journey', type: 'composition' },
+          { id: 'll-lesson3-reflection', name: 'Reflection', type: 'reflection' }
+        ]
       },
       {
         id: 'll-lesson4',
-        name: 'Lesson 4: Percussion & Rhythm',
-        shortName: 'Percussion',
-        concept: 'Percussion family and rhythm patterns',
-        route: null,
-        activities: []
+        name: 'Lesson 4: Form & Structure',
+        shortName: 'Form',
+        concept: 'Musical form — rondo and ternary',
+        route: '/lessons/listening-lab/lesson4',
+        activities: [
+          { id: 'listening-journey-fur-elise', name: 'Listening Journey', type: 'composition' },
+          { id: 'll-lesson4-reflection', name: 'Reflection', type: 'reflection' }
+        ]
       },
       {
         id: 'll-lesson5',
         name: 'Lesson 5: Full Orchestra',
         shortName: 'Orchestra',
         concept: 'All families together',
-        route: null,
-        activities: []
+        route: '/lessons/listening-lab/lesson5',
+        activities: [
+          { id: 'll-lesson5-reflection', name: 'Reflection', type: 'reflection' }
+        ]
       }
     ]
   },

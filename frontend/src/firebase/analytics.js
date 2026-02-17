@@ -468,6 +468,10 @@ export const updateSessionHeartbeat = async (sessionCode, teacherUid) => {
         duration: duration // Update duration based on heartbeat
       });
 
+      // Also write heartbeat to live session so students can detect teacher absence
+      const liveSessionRef = ref(database, `sessions/${sessionCode}`);
+      update(liveSessionRef, { lastHeartbeat: now }).catch(() => {});
+
       // Also update teacher's total time
       if (teacherUid) {
         const teacherRef = ref(database, `teacherAnalytics/${teacherUid}`);

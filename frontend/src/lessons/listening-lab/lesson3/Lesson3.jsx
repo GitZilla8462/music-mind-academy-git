@@ -299,7 +299,7 @@ const Lesson3 = () => {
   if (viewSavedMode || viewReflectionMode) {
     return (
       <ActivityRenderer
-        activity={{ type: viewReflectionMode ? 'listening-lab-lesson3-reflection' : 'form-listening-map', id: 'saved-view' }}
+        activity={{ type: viewReflectionMode ? 'listening-lab-lesson3-reflection' : 'listening-journey', id: 'saved-view', pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG }}
         onComplete={() => navigate('/music-classroom-resources')}
         viewMode={true}
         isSessionMode={false}

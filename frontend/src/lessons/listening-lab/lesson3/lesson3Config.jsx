@@ -172,6 +172,7 @@ export const MOUNTAIN_KING_JOURNEY_CONFIG = (() => {
     hideScenes: true,
     hideMovement: true,
     defaultTab: 'dynamics',
+    viewRoute: '/lessons/listening-lab/lesson3?view=saved',
     defaultCharacter: CHARACTER_OPTIONS.find(c => c.id === 'dog'),
     defaultSections: base.defaultSections.map(s => ({
       ...s,
