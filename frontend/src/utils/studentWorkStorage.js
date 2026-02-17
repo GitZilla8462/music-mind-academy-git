@@ -15,15 +15,38 @@ import { getActivityToLessonMap } from '../config/curriculumConfig';
 const PIN_SESSION_KEY = 'student-pin-session';
 
 /**
- * Get the current student ID (creates one if needed)
+ * Get the current student ID.
+ * If student is logged in via PIN, returns a seat-based ID so saves are per-student
+ * (important on shared Chromebooks). Otherwise falls back to a persistent anonymous ID.
  */
 export const getStudentId = () => {
+  // Prefer seat-based ID when PIN session is active (shared Chromebook safety)
+  try {
+    const pinSession = localStorage.getItem(PIN_SESSION_KEY);
+    if (pinSession) {
+      const session = JSON.parse(pinSession);
+      if (session.classId && session.seatNumber != null &&
+          (!session.expiresAt || session.expiresAt > Date.now())) {
+        return `seat-${session.classId}-${session.seatNumber}`;
+      }
+    }
+  } catch { /* fall through */ }
+
+  // Fallback: anonymous ID
   let id = localStorage.getItem('anonymous-student-id');
   if (!id) {
     id = `Student-${Math.floor(100000 + Math.random() * 900000)}`;
     localStorage.setItem('anonymous-student-id', id);
   }
   return id;
+};
+
+/**
+ * Get the anonymous student ID (always returns the anonymous one, ignoring PIN session).
+ * Used as a fallback key when loading data that may have been saved before PIN login.
+ */
+const getAnonymousStudentId = () => {
+  return localStorage.getItem('anonymous-student-id');
 };
 
 /**
@@ -53,10 +76,19 @@ export const getClassAuthInfo = () => {
 };
 
 /**
- * Parse activity ID into lesson and activity components
- * e.g., 'lesson2-sports-composition' -> { lessonId: 'lesson2', activityId: 'sports-composition' }
+ * Parse activity ID into lesson and activity components.
+ * Normalizes piece-specific Listening Journey IDs (e.g., 'listening-journey-mountain-king')
+ * to the generic 'listening-journey' activity under ll-lesson5 (the gradable checkpoint).
+ *
+ * @param {string} activityId - Raw activity/storage key
+ * @returns {{ lessonId: string, activityId: string }}
  */
-const parseActivityId = (activityId) => {
+export const parseActivityId = (activityId) => {
+  // Normalize all Listening Journey piece variants → single gradable activity under L5
+  if (activityId.startsWith('listening-journey-')) {
+    return { lessonId: 'll-lesson5', activityId: 'listening-journey' };
+  }
+
   // Check for lesson prefix patterns
   const lessonMatch = activityId.match(/^(lesson\d+)-(.+)$/);
   if (lessonMatch) {
@@ -158,13 +190,31 @@ export const loadStudentWork = (activityId, studentId = null) => {
   if (saved) {
     try {
       const data = JSON.parse(saved);
-      console.log(`📂 Loaded student work from localStorage: ${key}`, data);
+      console.log(`📂 Loaded student work: ${key}`);
       return data;
     } catch (error) {
       console.error(`Error loading student work: ${key}`, error);
-      return null;
     }
   }
+
+  // Fallback: check anonymous ID key (data saved before PIN login)
+  const anonId = getAnonymousStudentId();
+  if (anonId && anonId !== id) {
+    const anonKey = `mma-saved-${anonId}-${activityId}`;
+    const anonSaved = localStorage.getItem(anonKey);
+    if (anonSaved) {
+      try {
+        const data = JSON.parse(anonSaved);
+        console.log(`📂 Loaded student work (migrated from anonymous): ${anonKey}`);
+        // Migrate: save under the seat-based key so future loads are fast
+        localStorage.setItem(key, anonSaved);
+        return data;
+      } catch (error) {
+        console.error(`Error loading student work: ${anonKey}`, error);
+      }
+    }
+  }
+
   return null;
 };
 
@@ -244,15 +294,38 @@ export const getAllStudentWork = (studentId = null) => {
   const id = studentId || getStudentId();
   const prefix = `mma-saved-${id}-`;
   const savedWork = [];
+  const seenActivityIds = new Set();
 
+  // Scan primary prefix (seat-based or anonymous)
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (key && key.startsWith(prefix)) {
       try {
         const data = JSON.parse(localStorage.getItem(key));
         savedWork.push(data);
+        if (data.activityId) seenActivityIds.add(data.activityId);
       } catch (error) {
         console.error(`Error parsing saved work: ${key}`, error);
+      }
+    }
+  }
+
+  // Also scan anonymous prefix as fallback (data saved before PIN login)
+  const anonId = getAnonymousStudentId();
+  if (anonId && anonId !== id) {
+    const anonPrefix = `mma-saved-${anonId}-`;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(anonPrefix)) {
+        try {
+          const data = JSON.parse(localStorage.getItem(key));
+          if (data.activityId && !seenActivityIds.has(data.activityId)) {
+            savedWork.push(data);
+            seenActivityIds.add(data.activityId);
+          }
+        } catch (error) {
+          console.error(`Error parsing saved work: ${key}`, error);
+        }
       }
     }
   }
@@ -260,7 +333,7 @@ export const getAllStudentWork = (studentId = null) => {
   // Sort by lastSaved (newest first)
   savedWork.sort((a, b) => new Date(b.lastSaved) - new Date(a.lastSaved));
 
-  console.log(`📚 Found ${savedWork.length} saved work items in localStorage for ${id}`);
+  console.log(`📚 Found ${savedWork.length} saved work items in localStorage`);
   return savedWork;
 };
 
@@ -325,7 +398,13 @@ export const getAllStudentWorkAsync = async (authInfo, studentId = null) => {
 export const hasStudentWork = (activityId, studentId = null) => {
   const id = studentId || getStudentId();
   const key = `mma-saved-${id}-${activityId}`;
-  return localStorage.getItem(key) !== null;
+  if (localStorage.getItem(key) !== null) return true;
+  // Fallback: check anonymous ID
+  const anonId = getAnonymousStudentId();
+  if (anonId && anonId !== id) {
+    return localStorage.getItem(`mma-saved-${anonId}-${activityId}`) !== null;
+  }
+  return false;
 };
 
 /**

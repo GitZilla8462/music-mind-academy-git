@@ -151,6 +151,7 @@ export const buildPieceConfig = (piece) => {
     volume: piece.volume || 1.0,
     totalDuration: lastSection?.endTime || 150,
     storageKey: `listening-journey-${piece.id}`,
+    viewRoute: '/lessons/listening-lab/lesson5?view=saved',
     title: `${piece.title} — ${piece.composer}`,
     presetMode: true,
     defaultSections: piece.sections.map(s => ({

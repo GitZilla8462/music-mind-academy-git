@@ -49,7 +49,6 @@ export const CURRICULUM = [
         concept: 'Brass/percussion families and ternary form',
         route: '/lessons/listening-lab/lesson3',
         activities: [
-          { id: 'listening-journey-mountain-king', name: 'Listening Journey', type: 'composition' },
           { id: 'll-lesson3-reflection', name: 'Reflection', type: 'reflection' }
         ]
       },
@@ -60,7 +59,6 @@ export const CURRICULUM = [
         concept: 'Musical form — rondo and ternary',
         route: '/lessons/listening-lab/lesson4',
         activities: [
-          { id: 'listening-journey-fur-elise', name: 'Listening Journey', type: 'composition' },
           { id: 'll-lesson4-reflection', name: 'Reflection', type: 'reflection' }
         ]
       },
@@ -68,9 +66,10 @@ export const CURRICULUM = [
         id: 'll-lesson5',
         name: 'Lesson 5: Full Orchestra',
         shortName: 'Orchestra',
-        concept: 'All families together',
+        concept: 'All families together — capstone project',
         route: '/lessons/listening-lab/lesson5',
         activities: [
+          { id: 'listening-journey', name: 'Listening Journey', type: 'composition' },
           { id: 'll-lesson5-reflection', name: 'Reflection', type: 'reflection' }
         ]
       }

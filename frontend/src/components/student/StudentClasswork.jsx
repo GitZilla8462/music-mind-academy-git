@@ -23,7 +23,7 @@ import { useStudentAuth } from '../../context/StudentAuthContext';
 import { getStudentGrades, getStudentSubmissions } from '../../firebase/grades';
 import { CURRICULUM } from '../../config/curriculumConfig';
 import { getDatabase, ref, remove } from 'firebase/database';
-import { clearAllCompositionSaves, getStudentId } from '../../utils/studentWorkStorage';
+import { clearAllCompositionSaves, getStudentId, getAllStudentWork, saveStudentWork, parseActivityId } from '../../utils/studentWorkStorage';
 
 // Quick feedback labels (matches GradeForm)
 const FEEDBACK_LABELS = {
@@ -98,6 +98,37 @@ const StudentClasswork = () => {
           subs = await getStudentSubmissions(currentStudentInfo.classId, pinUid);
           console.log('📋 Submissions (pin):', subs);
         }
+        // Merge localStorage-saved work as fallback for items not yet in Firebase
+        const localWork = getAllStudentWork();
+        const existingKeys = new Set((subs || []).map(s => `${s.lessonId}::${s.activityId}`));
+
+        for (const item of localWork) {
+          // Use parseActivityId to normalize (e.g., listening-journey-mountain-king → ll-lesson5 + listening-journey)
+          const { lessonId, activityId: mappedActivityId } = parseActivityId(item.activityId);
+          if (lessonId !== 'unknown' && !existingKeys.has(`${lessonId}::${mappedActivityId}`)) {
+            subs.push({
+              lessonId,
+              activityId: mappedActivityId,
+              studentUid: seatUid,
+              status: 'pending',
+              submittedAt: item.lastSaved ? new Date(item.lastSaved).getTime() : Date.now(),
+              source: 'local'
+            });
+            existingKeys.add(`${lessonId}::${mappedActivityId}`);
+
+            // Retroactively sync to Firebase now that student is authenticated
+            saveStudentWork(item.activityId, {
+              title: item.title,
+              emoji: item.emoji,
+              viewRoute: item.viewRoute,
+              subtitle: item.subtitle,
+              category: item.category,
+              data: item.data
+            }, null, { uid: seatUid, classId: currentStudentInfo.classId });
+          }
+        }
+        console.log('📋 Submissions (merged):', subs);
+
         setSubmissions(subs || []);
       } catch (error) {
         console.error('Error fetching classwork data:', error);

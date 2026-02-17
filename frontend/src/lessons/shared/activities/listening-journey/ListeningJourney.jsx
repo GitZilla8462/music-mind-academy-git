@@ -37,10 +37,13 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const hideMovement = pieceConfig?.hideMovement || false;
   const defaultTab = pieceConfig?.defaultTab || null;
   // ── State ──────────────────────────────────────────────────────────
+  // Load saved data ONCE (instead of 6 separate localStorage parses)
+  const [savedSnapshot] = useState(() => loadStudentWork(storageKey));
+  const savedData = savedSnapshot?.data;
+
   const [sections, setSections] = useState(() => {
-    const saved = loadStudentWork(storageKey);
-    if (saved?.data?.sections?.length > 0) {
-      return saved.data.sections.map(s => ({
+    if (savedData?.sections?.length > 0) {
+      return savedData.sections.map(s => ({
         ...s,
         sky: s.sky || 'clear-day',
         scene: s.scene || (presetMode ? null : 'forest'),
@@ -59,17 +62,10 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     return []; // Start empty — user builds by adding scenes
   });
 
-  const [items, setItems] = useState(() => {
-    const saved = loadStudentWork(storageKey);
-    return saved?.data?.items || [];
-  });
+  const [items, setItems] = useState(() => savedData?.items || []);
 
   const defaultCharacter = pieceConfig?.defaultCharacter || null;
-  const [character, setCharacter] = useState(() => {
-    const saved = loadStudentWork(storageKey);
-    if (saved?.data?.character) return saved.data.character;
-    return defaultCharacter;
-  });
+  const [character, setCharacter] = useState(() => savedData?.character || defaultCharacter);
 
   const [editMode, setEditMode] = useState(defaultTab ? 'sticker' : 'select'); // 'select' | 'sticker' | 'text'
   const [saveStatus, setSaveStatus] = useState(null);
@@ -85,25 +81,19 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const [brushColor, setBrushColor] = useState('#ffffff');
   const [brushSize, setBrushSize] = useState(8);
   const drawingCanvasRef = React.useRef(null);
-  const [initialDrawingData] = useState(() => {
-    const saved = loadStudentWork(storageKey);
-    return saved?.data?.drawingData || null;
-  });
+  const [initialDrawingData] = useState(() => savedData?.drawingData || null);
 
   // App mode: build (editor), present (animation + essay), fullscreen (animation only)
   const [appMode, setAppMode] = useState('build'); // 'build' | 'present' | 'fullscreen'
 
   // Planning guide checklist state (per-section items)
-  const [guideData, setGuideData] = useState(() => {
-    const saved = loadStudentWork(storageKey);
-    return saved?.data?.guideData || {};
-  });
+  const [guideData, setGuideData] = useState(() => savedData?.guideData || {});
 
   // Essay writing state
-  const [essayData, setEssayData] = useState(() => {
-    const saved = loadStudentWork(storageKey);
-    return saved?.data?.essayData || {};
-  });
+  const [essayData, setEssayData] = useState(() => savedData?.essayData || {});
+
+  // Reset confirmation state
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   // Section picker state
   const [pickerState, setPickerState] = useState(null); // { sectionIndex, track, rect }
@@ -449,14 +439,68 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const isFullscreen = appMode === 'fullscreen';
 
   return (
-    <div className="h-full flex flex-col bg-gray-900 text-white overflow-hidden">
+    <div className="h-screen flex flex-col bg-gray-900 text-white overflow-hidden">
       {/* Header — hidden in fullscreen */}
       {!isFullscreen && (
         <div className="flex items-center justify-between px-4 py-1.5 bg-black/30 border-b border-white/10 flex-shrink-0 flex-nowrap overflow-hidden">
-          <div className="flex items-center gap-2 min-w-0 mr-2">
-            <h1 className="text-sm font-bold whitespace-nowrap">Listening Journey</h1>
-            <span className="text-[11px] text-white/50 truncate">{pieceConfig?.title || 'Hungarian Dance No. 5 - Brahms'}</span>
+          {/* Left: Title + Color tools + Sprites */}
+          <div className="flex items-center gap-1.5 min-w-0">
+            <h1 className="text-sm font-bold whitespace-nowrap mr-1">Listening Journey</h1>
+            <span className="text-[11px] text-white/50 truncate mr-1">{pieceConfig?.title || 'Hungarian Dance No. 5 - Brahms'}</span>
+
+            <div className="w-px h-6 bg-white/20 mx-1" />
+
+            {/* Color tools (inline) */}
+            {isBuild && (
+              <>
+                {[
+                  { id: 'brush', icon: '\uD83D\uDD8C\uFE0F' },
+                  { id: 'pencil', icon: '\u270F\uFE0F' },
+                  { id: 'eraser', icon: '\u2B1C' },
+                ].map(t => (
+                  <button
+                    key={t.id}
+                    onClick={() => { setDrawingTool(drawingTool === t.id ? null : t.id); clearSelection(); }}
+                    className={`w-7 h-7 rounded-md flex items-center justify-center text-xs transition-all ${
+                      drawingTool === t.id
+                        ? 'bg-blue-500 shadow-lg shadow-blue-500/30'
+                        : 'bg-white/10 hover:bg-white/20 text-white/60'
+                    }`}
+                    title={t.id}
+                  >
+                    {t.icon}
+                  </button>
+                ))}
+
+                {DRAW_COLORS.map(c => (
+                  <button
+                    key={c}
+                    onClick={() => setBrushColor(c)}
+                    className="w-4 h-4 rounded-full transition-transform hover:scale-110 flex-shrink-0"
+                    style={{
+                      backgroundColor: c,
+                      border: brushColor === c ? '2px solid #3b82f6' : '1px solid rgba(255,255,255,0.3)',
+                    }}
+                  />
+                ))}
+
+                <button
+                  onClick={() => drawingCanvasRef.current?.undo()}
+                  className="w-7 h-7 rounded-md flex items-center justify-center bg-white/10 hover:bg-white/20 text-white/60 text-xs transition-all"
+                  title="Undo drawing"
+                >
+                  {'\u21A9'}
+                </button>
+
+                <div className="w-px h-6 bg-white/20 mx-1" />
+              </>
+            )}
+
+            {/* Character selector (sprites) */}
+            <CharacterSelector selectedId={character?.id} onSelect={setCharacter} />
           </div>
+
+          {/* Right: Build/Present + Reset + Save */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
             {/* Mode switcher */}
             <div className="flex bg-white/5 rounded-lg p-0.5">
@@ -488,19 +532,32 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
             <div className="w-px h-6 bg-white/20 mx-1" />
 
-            {/* Character selector */}
-            <CharacterSelector selectedId={character?.id} onSelect={setCharacter} />
-
-            <div className="w-px h-6 bg-white/20 mx-1" />
-
-            {/* Reset */}
-            <button
-              onClick={handleReset}
-              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 transition-colors"
-              title="Clear all sections"
-            >
-              <RotateCcw size={14} />
-            </button>
+            {/* Reset with confirmation */}
+            {showResetConfirm ? (
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] text-red-400 font-semibold whitespace-nowrap">Are you sure?</span>
+                <button
+                  onClick={() => { handleReset(); setShowResetConfirm(false); }}
+                  className="px-2 py-1 rounded-md bg-red-500 hover:bg-red-600 text-white text-[11px] font-bold transition-colors"
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white/70 text-[11px] font-bold transition-colors"
+                >
+                  No
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowResetConfirm(true)}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 text-[11px] font-semibold transition-colors"
+                title="Reset all work"
+              >
+                <RotateCcw size={12} /> Reset
+              </button>
+            )}
 
             {/* Save */}
             <button
@@ -683,69 +740,6 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
         {/* Viewport (center) */}
         <div className={`flex-1 ${isFullscreen ? 'p-0' : 'p-3'} min-w-0 flex flex-col`}>
-          {/* Drawing toolbar */}
-          {isBuild && (
-            <div className="flex items-center gap-1.5 px-2 py-1 bg-black/40 rounded-lg mb-1.5 flex-shrink-0">
-              {[
-                { id: 'brush', icon: '\uD83D\uDD8C\uFE0F', label: 'Brush' },
-                { id: 'pencil', icon: '\u270F\uFE0F', label: 'Pencil' },
-                { id: 'eraser', icon: '\u2B1C', label: 'Eraser' },
-              ].map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => { setDrawingTool(drawingTool === t.id ? null : t.id); clearSelection(); }}
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all ${
-                    drawingTool === t.id
-                      ? 'bg-blue-500 shadow-lg shadow-blue-500/30'
-                      : 'bg-white/10 hover:bg-white/20 text-white/60'
-                  }`}
-                  title={t.label}
-                >
-                  {t.icon}
-                </button>
-              ))}
-
-              <div className="w-px h-5 bg-white/20 mx-0.5" />
-
-              {DRAW_SIZES.map(s => (
-                <button
-                  key={s}
-                  onClick={() => setBrushSize(s)}
-                  className={`w-7 h-7 rounded-md flex items-center justify-center transition-all ${
-                    brushSize === s ? 'bg-white/20' : 'hover:bg-white/10'
-                  }`}
-                  title={`${s}px`}
-                >
-                  <div className="rounded-full" style={{ width: Math.min(s, 20), height: Math.min(s, 20), backgroundColor: brushSize === s ? '#3b82f6' : '#9ca3af' }} />
-                </button>
-              ))}
-
-              <div className="w-px h-5 bg-white/20 mx-0.5" />
-
-              {DRAW_COLORS.map(c => (
-                <button
-                  key={c}
-                  onClick={() => setBrushColor(c)}
-                  className="w-5 h-5 rounded-full transition-transform hover:scale-110 flex-shrink-0"
-                  style={{
-                    backgroundColor: c,
-                    border: brushColor === c ? '2px solid #3b82f6' : '1px solid rgba(255,255,255,0.3)',
-                  }}
-                />
-              ))}
-
-              <div className="w-px h-5 bg-white/20 mx-0.5" />
-
-              <button
-                onClick={() => drawingCanvasRef.current?.undo()}
-                className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/10 hover:bg-white/20 text-white/60 text-sm transition-all"
-                title="Undo drawing"
-              >
-                {'\u21A9'}
-              </button>
-            </div>
-          )}
-
           <div className="flex-1 min-h-0">
             <JourneyViewport
               section={activeSection}
