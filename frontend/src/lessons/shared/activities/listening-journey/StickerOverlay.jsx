@@ -12,13 +12,14 @@ export let lastDragEndTime = 0;
 const renderStickerContent = (item, scale = 1) => {
   const renderType = item.render || 'emoji';
   const s = scale;
+  const c = item.color || '#000000';
 
   switch (renderType) {
     case 'svg': {
       const IconComponent = INSTRUMENT_ICONS[item.icon];
       return IconComponent
-        ? <IconComponent size={48 * s} />
-        : <span style={{ fontSize: `${30 * s}px` }}>{item.icon}</span>;
+        ? <IconComponent size={48 * s} color={c} />
+        : <span style={{ fontSize: `${30 * s}px`, color: c }}>{item.icon}</span>;
     }
 
     case 'text':
@@ -30,7 +31,7 @@ const renderStickerContent = (item, scale = 1) => {
             fontStyle: 'italic',
             fontWeight: 'bold',
             fontSize: `${28 * s}px`,
-            color: '#000000',
+            color: c,
           }}
         >
           {item.icon}
@@ -45,7 +46,7 @@ const renderStickerContent = (item, scale = 1) => {
             fontFamily: '"Times New Roman", Times, serif',
             fontStyle: 'italic',
             fontSize: `${22 * s}px`,
-            color: '#000000',
+            color: c,
           }}
         >
           {item.icon}
@@ -55,14 +56,14 @@ const renderStickerContent = (item, scale = 1) => {
     case 'crescendo':
       return (
         <svg width={48 * s} height={24 * s} viewBox="0 0 48 24">
-          <path d="M2 12 L46 2 M2 12 L46 22" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <path d="M2 12 L46 2 M2 12 L46 22" stroke={c} strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </svg>
       );
 
     case 'decrescendo':
       return (
         <svg width={48 * s} height={24 * s} viewBox="0 0 48 24">
-          <path d="M2 2 L46 12 M2 22 L46 12" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <path d="M2 2 L46 12 M2 22 L46 12" stroke={c} strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </svg>
       );
 
@@ -70,7 +71,7 @@ const renderStickerContent = (item, scale = 1) => {
       return (
         <span
           className="drop-shadow-lg"
-          style={{ fontFamily: '"Noto Music", "Symbola", serif', fontSize: `${32 * s}px`, color: '#000000' }}
+          style={{ fontFamily: '"Noto Music", "Symbola", serif', fontSize: `${32 * s}px`, color: c }}
         >
           {item.icon}
         </span>
@@ -80,7 +81,7 @@ const renderStickerContent = (item, scale = 1) => {
       return (
         <span
           className="drop-shadow-lg"
-          style={{ fontFamily: 'Arial, sans-serif', fontWeight: 'bold', fontSize: `${36 * s}px`, color: '#000000' }}
+          style={{ fontFamily: 'Arial, sans-serif', fontWeight: 'bold', fontSize: `${36 * s}px`, color: c }}
         >
           {item.icon}
         </span>
@@ -89,8 +90,8 @@ const renderStickerContent = (item, scale = 1) => {
     case 'form-label':
       return (
         <div
-          className="rounded-full bg-blue-500 flex items-center justify-center shadow-lg"
-          style={{ width: `${40 * s}px`, height: `${40 * s}px` }}
+          className="rounded-full flex items-center justify-center shadow-lg"
+          style={{ width: `${40 * s}px`, height: `${40 * s}px`, backgroundColor: c }}
         >
           <span className="text-white font-bold" style={{ fontSize: `${18 * s}px` }}>{item.icon}</span>
         </div>
@@ -98,14 +99,14 @@ const renderStickerContent = (item, scale = 1) => {
 
     case 'form-text':
       return (
-        <div className="rounded-lg bg-yellow-400 shadow-lg" style={{ padding: `${4 * s}px ${12 * s}px` }}>
-          <span className="text-black font-bold" style={{ fontSize: `${14 * s}px` }}>{item.icon}</span>
+        <div className="rounded-lg shadow-lg" style={{ padding: `${4 * s}px ${12 * s}px`, backgroundColor: c }}>
+          <span className="text-white font-bold" style={{ fontSize: `${14 * s}px` }}>{item.icon}</span>
         </div>
       );
 
     default:
       return (
-        <span className="select-none drop-shadow-lg" style={{ fontSize: `${30 * s}px` }} title={item.name}>
+        <span className="select-none drop-shadow-lg" style={{ fontSize: `${30 * s}px`, color: c }} title={item.name}>
           {item.icon}
         </span>
       );
@@ -121,7 +122,7 @@ const cleanupDrag = (ref) => {
   }
 };
 
-const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, onSelect, onUpdateItem, isBuildMode }) => {
+const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSelected, onSelect, onUpdateItem, isBuildMode }) => {
   const { position, type } = item;
   const scale = item.scale || 1;
   const adjustedX = position.x + (scrollOffsetX || 0);
@@ -251,12 +252,11 @@ const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, onSelect, 
 // Memoize StickerItem — only re-renders when its own props change
 const StickerItem = React.memo(StickerItemInner);
 
-const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem, onUpdateItem, onAddItem, onSwitchToSelect, rawScrollOffset = 0, selectedItemId, onSelectItem, isBuildMode = false }) => {
+const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem, onUpdateItem, onAddItem, onSwitchToSelect, rawScrollOffset = 0, selectedItemIds = new Set(), onSelectItem, isBuildMode = false }) => {
+  const singleSelected = selectedItemIds.size === 1;
   return (
     <>
       {items.map((item) => {
-        const startTime = item.timestamp;
-        const endTime = startTime + (item.duration || 999);
         const visible = true;
 
         // Compute drift since sticker was placed (negative = scrolls left with background)
@@ -270,7 +270,8 @@ const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem,
             item={item}
             visible={visible}
             scrollOffsetX={drift}
-            isSelected={selectedItemId === item.id}
+            isSelected={selectedItemIds.has(item.id)}
+            isSingleSelected={singleSelected}
             onSelect={onSelectItem}
             onUpdateItem={onUpdateItem}
             isBuildMode={isBuildMode}

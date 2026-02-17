@@ -22,6 +22,7 @@
 // ========================================
 
 import { buildPieceConfig, getPieceById } from '../lesson4/lesson4Config';
+import { CHARACTER_OPTIONS } from '../../shared/activities/listening-journey/journeyDefaults';
 
 export const LESSON_PROGRESS_KEY = 'listening-lab-lesson3-progress';
 export const LESSON_TIMER_KEY = 'listening-lab-lesson3-timer';
@@ -169,7 +170,9 @@ export const MOUNTAIN_KING_JOURNEY_CONFIG = (() => {
   return {
     ...base,
     hideScenes: true,
+    hideMovement: true,
     defaultTab: 'dynamics',
+    defaultCharacter: CHARACTER_OPTIONS.find(c => c.id === 'dog'),
     defaultSections: base.defaultSections.map(s => ({
       ...s,
       scene: 'night-mountain',
@@ -253,26 +256,26 @@ export const lessonSections = [
   },
   {
     id: 'animator-intro',
-    title: '3. Listening Journey Animator',
-    subtitle: 'Introduction',
+    title: '3. Listening Journey',
+    subtitle: 'Build Your Journey',
     color: 'blue',
     estimatedTime: 14,
     stages: [
       {
         id: 'animator-intro-video',
         type: 'video',
-        label: 'Intro to Animator',
+        label: 'Intro to Listening Journey',
         duration: 2,
-        description: 'Watch a video introducing the Listening Journey Animator.'
+        description: 'Watch a video introducing the Listening Journey.'
       },
       {
         id: 'animator-directions',
         type: 'activity',
-        label: 'Animator Directions',
+        label: 'Listening Journey Directions',
         duration: 10,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students focus on placing dynamic markings in the Listening Journey Animator.'
+        description: 'Students focus on placing dynamic markings in the Listening Journey.'
       },
       {
         id: 'lesson-complete',
@@ -348,7 +351,7 @@ export const lesson3Config = {
     {
       id: 1,
       type: "animator-intro",
-      title: "Intro to Listening Journey Animator",
+      title: "Intro to Listening Journey",
       estimatedTime: "4 min"
     }
   ]
@@ -485,21 +488,21 @@ export const lessonStages = [
   },
   {
     id: 'animator-intro-video',
-    label: 'Intro to Animator',
-    description: 'Watch a video introducing the Listening Journey Animator.',
+    label: 'Intro to Listening Journey',
+    description: 'Watch a video introducing the Listening Journey.',
     type: 'video',
     duration: 2,
     presentationView: {
       type: 'youtube-clip',
       videoId: 'PLACEHOLDER',
-      title: 'Introduction to the Listening Journey Animator',
-      subtitle: 'See how to build your animated listening journey'
+      title: 'Introduction to the Listening Journey',
+      subtitle: 'See how to build your Listening Journey'
     }
   },
   {
     id: 'animator-directions',
-    label: 'Animator Directions',
-    description: 'Students focus on placing dynamic markings in the Listening Journey Animator.',
+    label: 'Listening Journey Directions',
+    description: 'Students focus on placing dynamic markings in the Listening Journey.',
     type: 'activity',
     duration: 10,
     hasTimer: true,

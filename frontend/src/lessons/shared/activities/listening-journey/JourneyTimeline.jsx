@@ -77,13 +77,15 @@ const PresetPlaceholder = ({ section, totalDuration, isActive, isSelected, onDro
           </div>
         </div>
         {/* X button to clear scene */}
-        <button
-          onClick={(e) => { e.stopPropagation(); onClear(); }}
-          className="absolute top-1 right-1 w-5 h-5 bg-black/60 hover:bg-red-500 rounded-full text-white text-[10px] flex items-center justify-center opacity-0 group-hover/clip:opacity-100 transition-all z-20"
-          title="Remove scene"
-        >
-          &times;
-        </button>
+        {onClear && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onClear(); }}
+            className="absolute top-1 right-1 w-5 h-5 bg-black/60 hover:bg-red-500 rounded-full text-white text-[10px] flex items-center justify-center opacity-0 group-hover/clip:opacity-100 transition-all z-20"
+            title="Remove scene"
+          >
+            &times;
+          </button>
+        )}
       </div>
     );
   }
@@ -116,7 +118,7 @@ const PresetPlaceholder = ({ section, totalDuration, isActive, isSelected, onDro
   );
 };
 
-const ClipBlock = ({ section, totalDuration, isActive, onClick, onRemove }) => {
+const ClipBlock = ({ section, totalDuration, isActive, onClick, onRemove = null }) => {
   const startPct = (section.startTime / totalDuration) * 100;
   const widthPct = ((section.endTime - section.startTime) / totalDuration) * 100;
   const sky = getSkyMoodById(section.sky);
@@ -151,13 +153,15 @@ const ClipBlock = ({ section, totalDuration, isActive, onClick, onRemove }) => {
       <div className="absolute top-0 right-0 w-1 h-full bg-white/0 group-hover/clip:bg-white/20 transition-colors" />
 
       {/* Remove button */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onRemove(); }}
-        className="absolute top-1 right-1 w-5 h-5 bg-black/60 hover:bg-red-500 rounded-full text-white text-[10px] flex items-center justify-center opacity-0 group-hover/clip:opacity-100 transition-all z-20"
-        title="Remove"
-      >
-        &times;
-      </button>
+      {onRemove && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          className="absolute top-1 right-1 w-5 h-5 bg-black/60 hover:bg-red-500 rounded-full text-white text-[10px] flex items-center justify-center opacity-0 group-hover/clip:opacity-100 transition-all z-20"
+          title="Remove"
+        >
+          &times;
+        </button>
+      )}
     </div>
   );
 };
@@ -594,7 +598,7 @@ const JourneyTimeline = ({
                       totalDuration={totalDuration}
                       isActive={idx === activeIndex}
                       onClick={(e) => handleClipClick(idx, e)}
-                      onRemove={() => onRemoveSection(idx)}
+                      onRemove={onRemoveSection ? () => onRemoveSection(idx) : null}
                     />
                   ))
                 )}

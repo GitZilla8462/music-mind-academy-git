@@ -47,8 +47,11 @@ export const TOOL_INFO = {
 
 export const DEFAULT_TOOL = TOOL_TYPES.HAND;
 
+export const getToolById = (id) => TOOL_INFO[id] || null;
+
 export default {
   TOOL_TYPES,
   TOOL_INFO,
-  DEFAULT_TOOL
+  DEFAULT_TOOL,
+  getToolById
 };

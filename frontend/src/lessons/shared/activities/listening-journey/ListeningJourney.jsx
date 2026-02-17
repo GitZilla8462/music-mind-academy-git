@@ -10,6 +10,7 @@ import EssayPanel from './EssayPanel';
 import JourneyViewport from './JourneyViewport';
 import JourneyTimeline from './JourneyTimeline';
 import StickerOverlay from './StickerOverlay';
+import DrawingOverlay from './DrawingOverlay';
 import SectionPicker from './SectionPicker';
 import TextOverlayEditor from './TextOverlayEditor';
 import CharacterSelector from './CharacterSelector';
@@ -22,6 +23,9 @@ import { saveStudentWork, loadStudentWork, getClassAuthInfo } from '../../../../
 
 let _nextSectionId = Date.now();
 
+const DRAW_COLORS = ['#ffffff', '#000000', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#6b7280'];
+const DRAW_SIZES = [4, 8, 16, 24, 32];
+
 const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false, pieceConfig = null }) => {
   // If pieceConfig is provided, use it instead of defaults
   const audioPath = pieceConfig?.audioPath || AUDIO_PATH;
@@ -30,6 +34,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const storageKey = pieceConfig?.storageKey || 'listening-journey';
   const presetMode = pieceConfig?.presetMode || false;
   const hideScenes = pieceConfig?.hideScenes || false;
+  const hideMovement = pieceConfig?.hideMovement || false;
   const defaultTab = pieceConfig?.defaultTab || null;
   // ── State ──────────────────────────────────────────────────────────
   const [sections, setSections] = useState(() => {
@@ -59,19 +64,31 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     return saved?.data?.items || [];
   });
 
+  const defaultCharacter = pieceConfig?.defaultCharacter || null;
   const [character, setCharacter] = useState(() => {
     const saved = loadStudentWork(storageKey);
     if (saved?.data?.character) return saved.data.character;
-    return null;
+    return defaultCharacter;
   });
 
   const [editMode, setEditMode] = useState(defaultTab ? 'sticker' : 'select'); // 'select' | 'sticker' | 'text'
   const [saveStatus, setSaveStatus] = useState(null);
   const [selectedSticker, setSelectedSticker] = useState(null);
-  const [selectedItemId, setSelectedItemId] = useState(null);
+  const [selectedItemIds, setSelectedItemIds] = useState(new Set());
+  const [marquee, setMarquee] = useState(null);
   const [showTextEditor, setShowTextEditor] = useState(false);
   const [textEditorPosition, setTextEditorPosition] = useState(null);
   const [leftPanelTab, setLeftPanelTab] = useState(defaultTab ? 'stickers' : 'movement'); // 'stickers' | 'movement' | 'text'
+
+  // Drawing tool state
+  const [drawingTool, setDrawingTool] = useState(null); // null | 'brush' | 'pencil' | 'eraser'
+  const [brushColor, setBrushColor] = useState('#ffffff');
+  const [brushSize, setBrushSize] = useState(8);
+  const drawingCanvasRef = React.useRef(null);
+  const [initialDrawingData] = useState(() => {
+    const saved = loadStudentWork(storageKey);
+    return saved?.data?.drawingData || null;
+  });
 
   // App mode: build (editor), present (animation + essay), fullscreen (animation only)
   const [appMode, setAppMode] = useState('build'); // 'build' | 'present' | 'fullscreen'
@@ -221,13 +238,14 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     const authInfo = getClassAuthInfo();
     // Strip ephemeral _placedWallTime so loaded stickers get entry animation on replay
     const cleanItems = items.map(({ _placedWallTime, ...rest }) => rest);
+    const drawingData = drawingCanvasRef.current?.getDataURL() || null;
     saveStudentWork(storageKey, {
       title: 'Listening Journey',
       emoji: '\uD83C\uDFAD',
-      viewRoute: '/lessons/listening-lab/lesson4?view=saved',
+      viewRoute: pieceConfig?.viewRoute || '/lessons/listening-lab/lesson4?view=saved',
       subtitle: `${sections.length} sections`,
       category: 'Listening Lab',
-      data: { sections, character, items: cleanItems, guideData, essayData }
+      data: { sections, character, items: cleanItems, guideData, essayData, drawingData }
     }, null, authInfo);
     setSaveStatus('saved');
     setTimeout(() => setSaveStatus(null), 2000);
@@ -245,13 +263,18 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     setCharacter(null);
     setItems([]);
     setEditMode('select');
+    setDrawingTool(null);
+    drawingCanvasRef.current?.clear();
   }, [presetMode, pieceConfig]);
 
   // ── Sticker / text placement ───────────────────────────────────────
 
+  const selectItem = useCallback((id) => setSelectedItemIds(new Set(id != null ? [id] : [])), []);
+  const clearSelection = useCallback(() => setSelectedItemIds(new Set()), []);
+
   const handleViewportClick = useCallback((pos) => {
-    // Deselect any selected sticker (sticker clicks stopPropagation before reaching here)
-    setSelectedItemId(null);
+    // Deselect any selected stickers
+    if (selectedItemIds.size > 0) clearSelection();
 
     // Only allow placement in build mode
     if (appMode !== 'build') return;
@@ -279,7 +302,23 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       setTextEditorPosition(pos);
       setShowTextEditor(true);
     }
-  }, [appMode, editMode, selectedSticker, currentTime, rawMidgroundOffset, sections, totalDuration]);
+  }, [appMode, editMode, selectedSticker, selectedItemIds, clearSelection, currentTime, rawMidgroundOffset, sections, totalDuration]);
+
+  // ── Marquee drag-to-select ──────────────────────────────────────────
+  const handleMarqueeEnd = useCallback((rect) => {
+    const minX = Math.min(rect.startX, rect.endX);
+    const maxX = Math.max(rect.startX, rect.endX);
+    const minY = Math.min(rect.startY, rect.endY);
+    const maxY = Math.max(rect.startY, rect.endY);
+    const hits = items.filter(item => {
+      const px = item.position.x;
+      const py = item.position.y;
+      return px >= minX && px <= maxX && py >= minY && py <= maxY;
+    });
+    if (hits.length > 0) {
+      setSelectedItemIds(new Set(hits.map(h => h.id)));
+    }
+  }, [items]);
 
   const handleAddTextItem = useCallback((textData) => {
     setItems(prev => [...prev, {
@@ -316,6 +355,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   // ── Clipboard for copy/paste ──────────────────────────────────────
   const clipboardRef = React.useRef(null);
+  const pasteCountRef = React.useRef(0);
 
   // ── Keyboard shortcuts (spacebar, delete, copy/paste) ─────────────
   React.useEffect(() => {
@@ -325,37 +365,43 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         e.preventDefault();
         togglePlay();
       }
-      if ((e.code === 'Delete' || e.code === 'Backspace') && selectedItemId) {
+      if ((e.code === 'Delete' || e.code === 'Backspace') && selectedItemIds.size > 0) {
         e.preventDefault();
-        handleRemoveItem(selectedItemId);
-        setSelectedItemId(null);
+        setItems(prev => prev.filter(i => !selectedItemIds.has(i.id)));
+        clearSelection();
       }
-      // Ctrl+C / Cmd+C — copy selected sticker
-      if ((e.ctrlKey || e.metaKey) && e.code === 'KeyC' && selectedItemId) {
+      // Ctrl+C / Cmd+C — copy first selected sticker
+      if ((e.ctrlKey || e.metaKey) && e.code === 'KeyC' && selectedItemIds.size > 0) {
         e.preventDefault();
-        const item = items.find(i => i.id === selectedItemId);
-        if (item) clipboardRef.current = item;
+        const firstId = [...selectedItemIds][0];
+        const item = items.find(i => i.id === firstId);
+        if (item) {
+          clipboardRef.current = item;
+          pasteCountRef.current = 0;
+        }
       }
-      // Ctrl+V / Cmd+V — paste copied sticker with slight offset
+      // Ctrl+V / Cmd+V — paste copied sticker, each paste offsets further down-right
       if ((e.ctrlKey || e.metaKey) && e.code === 'KeyV' && clipboardRef.current) {
         e.preventDefault();
+        pasteCountRef.current++;
         const src = clipboardRef.current;
+        const offset = 0.03 * pasteCountRef.current;
         const newItem = {
           ...src,
           id: _nextSectionId++,
-          position: { x: Math.min(src.position.x + 0.03, 0.95), y: Math.min(src.position.y + 0.03, 0.95) },
+          position: { x: Math.min(src.position.x + offset, 0.95), y: Math.min(src.position.y + offset, 0.95) },
           timestamp: currentTime,
           duration: totalDuration - currentTime,
           placedAtOffset: rawMidgroundOffset,
           _placedWallTime: performance.now(),
         };
         setItems(prev => [...prev, newItem]);
-        setSelectedItemId(newItem.id);
+        setSelectedItemIds(new Set([newItem.id]));
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [togglePlay, selectedItemId, handleRemoveItem, items, currentTime, totalDuration, rawMidgroundOffset]);
+  }, [togglePlay, selectedItemIds, clearSelection, items, currentTime, totalDuration, rawMidgroundOffset]);
 
   // ── Section picker ─────────────────────────────────────────────────
 
@@ -385,7 +431,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   const handleSwitchLeftTab = useCallback((tab) => {
     setLeftPanelTab(tab);
-    setSelectedItemId(null);
+    setDrawingTool(null);
+    clearSelection();
     if (tab === 'stickers') {
       setEditMode('sticker');
     } else if (tab === 'text') {
@@ -402,7 +449,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const isFullscreen = appMode === 'fullscreen';
 
   return (
-    <div className="h-screen flex flex-col bg-gray-900 text-white overflow-hidden">
+    <div className="h-full flex flex-col bg-gray-900 text-white overflow-hidden">
       {/* Header — hidden in fullscreen */}
       {!isFullscreen && (
         <div className="flex items-center justify-between px-4 py-1.5 bg-black/30 border-b border-white/10 flex-shrink-0 flex-nowrap overflow-hidden">
@@ -512,7 +559,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             <div className="flex border-b border-white/10 flex-shrink-0">
               {[
                 { id: 'stickers', icon: <Sticker size={13} />, label: 'Stickers' },
-                { id: 'movement', icon: <Wind size={13} />, label: 'Movement' },
+                ...(!hideMovement ? [{ id: 'movement', icon: <Wind size={13} />, label: 'Movement' }] : []),
                 { id: 'text', icon: <Type size={13} />, label: 'Text' },
               ].map(tab => (
                 <button
@@ -635,33 +682,110 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         )}
 
         {/* Viewport (center) */}
-        <div className={`flex-1 ${isFullscreen ? 'p-0' : 'p-3'} min-w-0`}>
-          <JourneyViewport
-            section={activeSection}
-            character={character}
-            isPlaying={isPlaying}
-            midgroundOffset={midgroundOffset}
-            foregroundOffset={foregroundOffset}
-            items={items}
-            currentTime={currentTime}
-            onViewportClick={handleViewportClick}
-            editMode={isBuild ? editMode : 'select'}
-          >
-            <StickerOverlay
+        <div className={`flex-1 ${isFullscreen ? 'p-0' : 'p-3'} min-w-0 flex flex-col`}>
+          {/* Drawing toolbar */}
+          {isBuild && (
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-black/40 rounded-lg mb-1.5 flex-shrink-0">
+              {[
+                { id: 'brush', icon: '\uD83D\uDD8C\uFE0F', label: 'Brush' },
+                { id: 'pencil', icon: '\u270F\uFE0F', label: 'Pencil' },
+                { id: 'eraser', icon: '\u2B1C', label: 'Eraser' },
+              ].map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => { setDrawingTool(drawingTool === t.id ? null : t.id); clearSelection(); }}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all ${
+                    drawingTool === t.id
+                      ? 'bg-blue-500 shadow-lg shadow-blue-500/30'
+                      : 'bg-white/10 hover:bg-white/20 text-white/60'
+                  }`}
+                  title={t.label}
+                >
+                  {t.icon}
+                </button>
+              ))}
+
+              <div className="w-px h-5 bg-white/20 mx-0.5" />
+
+              {DRAW_SIZES.map(s => (
+                <button
+                  key={s}
+                  onClick={() => setBrushSize(s)}
+                  className={`w-7 h-7 rounded-md flex items-center justify-center transition-all ${
+                    brushSize === s ? 'bg-white/20' : 'hover:bg-white/10'
+                  }`}
+                  title={`${s}px`}
+                >
+                  <div className="rounded-full" style={{ width: Math.min(s, 20), height: Math.min(s, 20), backgroundColor: brushSize === s ? '#3b82f6' : '#9ca3af' }} />
+                </button>
+              ))}
+
+              <div className="w-px h-5 bg-white/20 mx-0.5" />
+
+              {DRAW_COLORS.map(c => (
+                <button
+                  key={c}
+                  onClick={() => setBrushColor(c)}
+                  className="w-5 h-5 rounded-full transition-transform hover:scale-110 flex-shrink-0"
+                  style={{
+                    backgroundColor: c,
+                    border: brushColor === c ? '2px solid #3b82f6' : '1px solid rgba(255,255,255,0.3)',
+                  }}
+                />
+              ))}
+
+              <div className="w-px h-5 bg-white/20 mx-0.5" />
+
+              <button
+                onClick={() => drawingCanvasRef.current?.undo()}
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/10 hover:bg-white/20 text-white/60 text-sm transition-all"
+                title="Undo drawing"
+              >
+                {'\u21A9'}
+              </button>
+            </div>
+          )}
+
+          <div className="flex-1 min-h-0">
+            <JourneyViewport
+              section={activeSection}
+              character={character}
+              isPlaying={isPlaying}
+              midgroundOffset={midgroundOffset}
+              foregroundOffset={foregroundOffset}
               items={items}
               currentTime={currentTime}
-              isPlaying={isPlaying}
-              editMode={isBuild ? editMode : 'select'}
-              onRemoveItem={handleRemoveItem}
-              onUpdateItem={handleUpdateItem}
-              onAddItem={handleAddItem}
-              onSwitchToSelect={() => setEditMode('select')}
-              rawScrollOffset={rawMidgroundOffset}
-              selectedItemId={selectedItemId}
-              onSelectItem={setSelectedItemId}
+              onViewportClick={drawingTool ? undefined : handleViewportClick}
+              editMode={isBuild && !drawingTool ? editMode : 'select'}
               isBuildMode={isBuild}
-            />
-          </JourneyViewport>
+              marquee={marquee}
+              onMarqueeChange={setMarquee}
+              onMarqueeEnd={handleMarqueeEnd}
+            >
+              <DrawingOverlay
+                ref={drawingCanvasRef}
+                isActive={isBuild && !!drawingTool}
+                tool={drawingTool || 'brush'}
+                color={brushColor}
+                brushSize={brushSize}
+                initialData={initialDrawingData}
+              />
+              <StickerOverlay
+                items={items}
+                currentTime={currentTime}
+                isPlaying={isPlaying}
+                editMode={isBuild && !drawingTool ? editMode : 'select'}
+                onRemoveItem={handleRemoveItem}
+                onUpdateItem={handleUpdateItem}
+                onAddItem={handleAddItem}
+                onSwitchToSelect={() => setEditMode('select')}
+                rawScrollOffset={rawMidgroundOffset}
+                selectedItemIds={selectedItemIds}
+                onSelectItem={selectItem}
+                isBuildMode={isBuild && !drawingTool}
+              />
+            </JourneyViewport>
+          </div>
         </div>
 
         {/* Right panel — Planning Guide (build) or Essay (present) */}
@@ -697,7 +821,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           onRewind={rewind}
           onOpenPicker={handleOpenPicker}
           onAddScene={handleAddScene}
-          onRemoveSection={handleRemoveSection}
+          onRemoveSection={hideScenes ? null : handleRemoveSection}
           onResizeBoundary={handleResizeBoundary}
           onExtendLastEdge={handleExtendLastEdge}
           onUpdateItem={handleUpdateItem}
@@ -713,7 +837,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
               return updated;
             });
           }}
-          onClearScene={(sectionIndex) => {
+          onClearScene={hideScenes ? null : (sectionIndex) => {
             setSections(prev => {
               const updated = [...prev];
               updated[sectionIndex] = { ...updated[sectionIndex], scene: null, sky: null, ground: null };

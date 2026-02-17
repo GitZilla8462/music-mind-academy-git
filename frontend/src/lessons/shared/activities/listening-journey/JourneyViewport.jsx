@@ -1,7 +1,6 @@
 // Composes all layers: ParallaxEnvironment (includes sky) -> Weather -> Character -> overlays
-// For image-based environments, ParallaxEnvironment handles everything (sky + layers)
 
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import ParallaxEnvironment from './ParallaxEnvironment';
 import SpriteCharacterRenderer from './SpriteCharacterRenderer';
 import WeatherOverlay from './WeatherOverlay';
@@ -17,8 +16,14 @@ const JourneyViewport = ({
   currentTime = 0,
   onViewportClick,
   editMode,
+  isBuildMode,
+  marquee,
+  onMarqueeChange,
+  onMarqueeEnd,
   children,
 }) => {
+  const dragRef = useRef(null);
+
   if (!section || !section.scene) {
     const sectionInfo = section?.label ? `${section.label} Section — ${section.sectionLabel}` : null;
     return (
@@ -43,11 +48,66 @@ const JourneyViewport = ({
     if (!onViewportClick) return;
     // Suppress click if a sticker drag/resize just ended (prevents accidental placement)
     if (Date.now() - lastDragEndTime < 200) return;
+    // Suppress click if marquee just finished (prevents placement after drag-select)
+    if (dragRef.current?.wasMarquee) {
+      dragRef.current.wasMarquee = false;
+      return;
+    }
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
     onViewportClick({ x, y });
   };
+
+  const handleMouseDown = (e) => {
+    if (!isBuildMode || !onMarqueeChange) return;
+    // Only start marquee on left-click on the viewport itself (not on stickers)
+    if (e.button !== 0) return;
+    if (e.target.closest('.z-30')) return; // clicked on a sticker
+
+    const vpEl = e.currentTarget;
+    const rect = vpEl.getBoundingClientRect();
+    const startX = (e.clientX - rect.left) / rect.width;
+    const startY = (e.clientY - rect.top) / rect.height;
+
+    let dragged = false;
+
+    const onMove = (me) => {
+      const cx = (me.clientX - rect.left) / rect.width;
+      const cy = (me.clientY - rect.top) / rect.height;
+      if (!dragged && (Math.abs(me.clientX - e.clientX) + Math.abs(me.clientY - e.clientY)) > 5) {
+        dragged = true;
+      }
+      if (dragged) {
+        onMarqueeChange({ startX, startY, endX: cx, endY: cy });
+      }
+    };
+
+    const onUp = (me) => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      if (dragged) {
+        const cx = (me.clientX - rect.left) / rect.width;
+        const cy = (me.clientY - rect.top) / rect.height;
+        if (onMarqueeEnd) onMarqueeEnd({ startX, startY, endX: cx, endY: cy });
+        onMarqueeChange(null);
+        // Flag so the subsequent click event is suppressed
+        dragRef.current = { wasMarquee: true };
+      }
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
+  // Marquee rectangle rendering
+  const marqueeStyle = marquee ? (() => {
+    const left = Math.min(marquee.startX, marquee.endX) * 100;
+    const top = Math.min(marquee.startY, marquee.endY) * 100;
+    const width = Math.abs(marquee.endX - marquee.startX) * 100;
+    const height = Math.abs(marquee.endY - marquee.startY) * 100;
+    return { left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `${height}%` };
+  })() : null;
 
   return (
     <div
@@ -56,6 +116,7 @@ const JourneyViewport = ({
         editMode === 'sticker' || editMode === 'text' ? 'cursor-crosshair' : ''
       }`}
       onClick={handleClick}
+      onMouseDown={handleMouseDown}
     >
       {/* Scene container — overflow-hidden clips environment/character to viewport */}
       <div className="absolute inset-0 overflow-hidden rounded-2xl">
@@ -93,6 +154,14 @@ const JourneyViewport = ({
       <div className="absolute inset-0 overflow-hidden rounded-2xl">
         {children}
       </div>
+
+      {/* Marquee selection rectangle */}
+      {marqueeStyle && (
+        <div
+          className="absolute border-2 border-blue-400 bg-blue-400/15 rounded-sm pointer-events-none z-40"
+          style={marqueeStyle}
+        />
+      )}
     </div>
   );
 };

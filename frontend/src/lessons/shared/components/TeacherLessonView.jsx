@@ -1380,7 +1380,7 @@ const PresentationContent = ({
                     <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">•</span><span>You just identified the <span className="font-bold text-gray-900">ABA form</span> of Mountain King</span></li>
                     <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">•</span><span>Now <span className="font-bold text-gray-900">PLAN</span> your Listening Journey by describing each section</span></li>
                     <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">•</span><span>Listen to each section and fill in: <span className="font-bold text-amber-600">DYNAMICS</span>, <span className="font-bold text-emerald-600">TEMPO</span>, and <span className="font-bold text-purple-600">INSTRUMENTS</span></span></li>
-                    <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">•</span><span>This plan will guide you when you build your Listening Journey Animator!</span></li>
+                    <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">•</span><span>This plan will guide you when you build your Listening Journey!</span></li>
                   </ul>
                 </div>
               </div>
@@ -3261,7 +3261,7 @@ const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, piece
       ],
     },
     {
-      title: 'How to Use the Animator',
+      title: 'How to Use the Listening Journey',
       icon: '\uD83C\uDFA8',
       items: [
         <>Click on a <span className="font-bold text-gray-900">section (A, B, A&apos;)</span> in the timeline to edit it</>,
@@ -3281,7 +3281,7 @@ const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, piece
   ];
 
   const dir = directions[dirStep];
-  const c = { outer: 'bg-green-700 border-green-500', header: 'border-green-600', bg: 'bg-white', border: 'border-green-300', dot: 'bg-green-600', itemText: 'text-gray-900', nav: 'border-green-600', navBack: 'text-green-100 hover:bg-green-600', navNext: 'bg-white/20 hover:bg-white/30 text-white' };
+  const c = { outer: 'bg-white border-gray-200', header: 'border-gray-200', bg: 'bg-gray-50', border: 'border-gray-200', dot: 'bg-gray-800', itemText: 'text-gray-900', nav: 'border-gray-200', navBack: 'text-gray-600 hover:bg-gray-100', navNext: 'bg-gray-800 hover:bg-gray-900 text-white' };
 
   return (
     <div className="absolute inset-0">
@@ -3306,14 +3306,14 @@ const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, piece
         <div
           ref={dragRef}
           onMouseDown={handleMouseDown}
-          className={`z-50 w-[420px] ${c.outer} backdrop-blur-md rounded-2xl border shadow-2xl cursor-move select-none ${pos === null ? 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' : 'fixed'}`}
+          className={`z-50 w-[420px] ${c.outer} backdrop-blur-md rounded-2xl border shadow-2xl cursor-move select-none ${pos === null ? 'absolute top-4 left-4' : 'fixed'}`}
           style={pos !== null ? { left: pos.x, top: pos.y } : undefined}
         >
           {/* Drag handle / header */}
           <div className={`flex items-center justify-between px-4 py-3 border-b ${c.header}`}>
             <div className="flex items-center gap-2">
               <div className="text-2xl">{dir.icon}</div>
-              <h3 className="text-lg font-bold text-white">{dir.title}</h3>
+              <h3 className="text-lg font-bold text-gray-900">{dir.title}</h3>
             </div>
             <div className="flex items-center gap-2">
               {/* Step dots */}
@@ -3322,16 +3322,16 @@ const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, piece
                   <div
                     key={i}
                     className={`w-2 h-2 rounded-full transition-all ${
-                      i === dirStep ? 'bg-white scale-125' : i < dirStep ? 'bg-white/50' : 'bg-white/25'
+                      i === dirStep ? 'bg-gray-800 scale-125' : i < dirStep ? 'bg-gray-400' : 'bg-gray-300'
                     }`}
                   />
                 ))}
               </div>
               <button
                 onClick={() => { dismissedRef.current = true; setShowOverlay(false); }}
-                className="w-7 h-7 rounded-full bg-white/10 hover:bg-red-500/80 flex items-center justify-center transition-colors"
+                className="w-7 h-7 rounded-full bg-gray-100 hover:bg-red-500 flex items-center justify-center transition-colors group"
               >
-                <X size={14} className="text-white" />
+                <X size={14} className="text-gray-500 group-hover:text-white" />
               </button>
             </div>
           </div>
@@ -3361,14 +3361,14 @@ const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, piece
             {dirStep < directions.length - 1 ? (
               <button
                 onClick={() => setDirStep(dirStep + 1)}
-                className="bg-white/20 hover:bg-white/30 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-1"
+                className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-1"
               >
                 Next <ChevronRight size={14} />
               </button>
             ) : (
               <button
                 onClick={() => { dismissedRef.current = true; setShowOverlay(false); }}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-1"
+                className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-1"
               >
                 <Check size={14} /> Got it!
               </button>
@@ -3381,9 +3381,9 @@ const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, piece
       {!showOverlay && (
         <button
           onClick={() => { dismissedRef.current = false; setShowOverlay(true); }}
-          className="fixed z-50 bottom-6 right-6 bg-gray-900/90 backdrop-blur-sm border border-white/20 text-white px-4 py-2.5 rounded-xl shadow-lg hover:bg-gray-800 transition-all flex items-center gap-2 text-sm font-semibold"
+          className="absolute z-50 top-2 left-2 bg-white hover:bg-gray-100 text-gray-600 hover:text-gray-900 px-1 py-0.5 rounded-sm shadow-lg border border-gray-200 transition-colors flex items-center gap-0.5 text-[9px] font-medium"
         >
-          <HelpCircle size={16} /> Show Directions
+          <HelpCircle size={9} /> Directions
         </button>
       )}
     </div>
