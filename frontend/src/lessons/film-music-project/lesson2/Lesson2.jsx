@@ -431,8 +431,7 @@ const Lesson2Content = () => {
     }
 
     // Standard activity rendering
-    const displayStage = currentStage === 'reflection' ? 'city-composition' : currentStage;
-    const activityType = getActivityForStage(displayStage);
+    const activityType = getActivityForStage(currentStage);
 
     const activity = lesson2Config.activities.find(a => a.type === activityType);
 

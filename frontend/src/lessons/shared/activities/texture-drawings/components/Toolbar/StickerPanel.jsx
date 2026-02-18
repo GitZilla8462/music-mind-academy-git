@@ -321,7 +321,8 @@ const StickerPanel = ({
 
   return (
     <div style={{
-      width: '100%',
+      width: 240,
+      minWidth: 240,
       backgroundColor: '#f8fafc',
       borderRight: '1px solid #e2e8f0',
       display: 'flex',

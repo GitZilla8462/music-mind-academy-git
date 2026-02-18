@@ -27,12 +27,12 @@ const SpritePreview = ({ char }) => {
 
 const CharacterSelector = ({ selectedId, onSelect }) => {
   return (
-    <div className="flex gap-2 flex-wrap">
+    <div className="flex gap-1 flex-nowrap">
       {CHARACTER_OPTIONS.map((char) => (
         <button
           key={char.id}
           onClick={() => onSelect(char.type === 'none' ? null : char)}
-          className={`flex flex-col items-center p-2 rounded-xl transition-all ${
+          className={`flex flex-col items-center p-1 rounded-lg transition-all flex-shrink-0 ${
             (char.type === 'none' ? !selectedId : selectedId === char.id)
               ? 'bg-white/20 ring-2 ring-white scale-105'
               : 'bg-white/5 hover:bg-white/10'

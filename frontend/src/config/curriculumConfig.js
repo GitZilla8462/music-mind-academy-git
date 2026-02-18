@@ -12,70 +12,6 @@
 
 export const CURRICULUM = [
   {
-    id: 'listening-lab',
-    name: 'Listening Lab',
-    shortName: 'Listening Lab',
-    icon: '🎧',
-    color: 'purple',
-    lessons: [
-      {
-        id: 'll-lesson1',
-        name: 'Lesson 1: Strings & Dynamics',
-        shortName: 'Strings',
-        concept: 'String family and dynamic markings (Vivaldi - Spring)',
-        route: '/lessons/listening-lab/lesson1',
-        activities: [
-          { id: 'dynamics-dash', name: 'Dynamics Dash', type: 'game' },
-          { id: 'dynamics-listening-map', name: 'Dynamics Listening Map', type: 'composition' },
-          { id: 'll-lesson1-reflection', name: 'Reflection', type: 'reflection' }
-        ]
-      },
-      {
-        id: 'll-lesson2',
-        name: 'Lesson 2: Woodwinds & Tempo',
-        shortName: 'Woodwinds',
-        concept: 'Woodwind family and tempo markings (Brahms - Hungarian Dance No. 5)',
-        route: '/lessons/listening-lab/lesson2',
-        activities: [
-          { id: 'tempo-charades', name: 'Tempo Charades', type: 'game' },
-          { id: 'tempo-listening-map', name: 'Tempo Listening Map', type: 'composition' },
-          { id: 'll-lesson2-reflection', name: 'Reflection', type: 'reflection' }
-        ]
-      },
-      {
-        id: 'll-lesson3',
-        name: 'Lesson 3: Brass, Percussion & Form',
-        shortName: 'Brass & Form',
-        concept: 'Brass/percussion families and ternary form',
-        route: '/lessons/listening-lab/lesson3',
-        activities: [
-          { id: 'll-lesson3-reflection', name: 'Reflection', type: 'reflection' }
-        ]
-      },
-      {
-        id: 'll-lesson4',
-        name: 'Lesson 4: Form & Structure',
-        shortName: 'Form',
-        concept: 'Musical form — rondo and ternary',
-        route: '/lessons/listening-lab/lesson4',
-        activities: [
-          { id: 'll-lesson4-reflection', name: 'Reflection', type: 'reflection' }
-        ]
-      },
-      {
-        id: 'll-lesson5',
-        name: 'Lesson 5: Full Orchestra',
-        shortName: 'Orchestra',
-        concept: 'All families together — capstone project',
-        route: '/lessons/listening-lab/lesson5',
-        activities: [
-          { id: 'listening-journey', name: 'Listening Journey', type: 'composition' },
-          { id: 'll-lesson5-reflection', name: 'Reflection', type: 'reflection' }
-        ]
-      }
-    ]
-  },
-  {
     id: 'film-music',
     name: 'The Loop Lab',
     shortName: 'Film Music',
@@ -84,14 +20,12 @@ export const CURRICULUM = [
     lessons: [
       {
         id: 'fm-lesson1',
-        name: 'Lesson 1: Leitmotif & Character',
-        shortName: 'Leitmotif',
-        concept: 'How composers give characters identity through melody',
-        route: '/lessons/film-music/lesson1',
+        name: 'Lesson 1: Score the Adventure',
+        shortName: 'Mood',
+        concept: 'How music affects emotion — mood & expression',
+        route: '/lessons/film-music-project/lesson1',
         activities: [
-          { id: 'keyboard-tutorial', name: 'Keyboard Practice', type: 'game' },
-          { id: 'leitmotif-detective', name: 'Leitmotif Detective', type: 'game' },
-          { id: 'motif-builder', name: 'Motif Builder', type: 'composition' },
+          { id: 'adventure-composition', name: 'Score the Adventure', type: 'composition' },
           { id: 'fm-lesson1-reflection', name: 'Reflection', type: 'reflection' }
         ]
       },
@@ -141,6 +75,67 @@ export const CURRICULUM = [
           { id: 'melody-maker-activity', name: 'Build Your Melody', type: 'game' },
           { id: 'game-composition', name: 'Game Composition', type: 'composition' },
           { id: 'fm-lesson5-reflection', name: 'Reflection', type: 'reflection' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'listening-lab',
+    name: 'Listening Lab',
+    shortName: 'Listening Lab',
+    icon: '🎧',
+    color: 'purple',
+    lessons: [
+      {
+        id: 'll-lesson1',
+        name: 'Lesson 1: Strings & Dynamics',
+        shortName: 'Strings',
+        concept: 'String family and dynamic markings (Vivaldi - Spring)',
+        route: '/lessons/listening-lab/lesson1',
+        activities: [
+          { id: 'dynamics-dash', name: 'Dynamics Dash', type: 'game' },
+          { id: 'dynamics-listening-map', name: 'Dynamics Listening Map', type: 'composition' }
+        ]
+      },
+      {
+        id: 'll-lesson2',
+        name: 'Lesson 2: Woodwinds & Tempo',
+        shortName: 'Woodwinds',
+        concept: 'Woodwind family and tempo markings (Brahms - Hungarian Dance No. 5)',
+        route: '/lessons/listening-lab/lesson2',
+        activities: [
+          { id: 'tempo-charades', name: 'Tempo Charades', type: 'game' },
+          { id: 'tempo-listening-map', name: 'Tempo Listening Map', type: 'composition' }
+        ]
+      },
+      {
+        id: 'll-lesson3',
+        name: 'Lesson 3: Brass, Percussion & Form',
+        shortName: 'Brass & Form',
+        concept: 'Brass/percussion families and ternary form',
+        route: '/lessons/listening-lab/lesson3',
+        activities: [
+          { id: 'listening-journey', name: 'Listening Journey (Draft)', type: 'composition' }
+        ]
+      },
+      {
+        id: 'll-lesson4',
+        name: 'Lesson 4: Form & Structure',
+        shortName: 'Form',
+        concept: 'Musical form — rondo and ternary',
+        route: '/lessons/listening-lab/lesson4',
+        activities: [
+          { id: 'listening-journey', name: 'Listening Journey (Draft)', type: 'composition' }
+        ]
+      },
+      {
+        id: 'll-lesson5',
+        name: 'Lesson 5: Full Orchestra',
+        shortName: 'Orchestra',
+        concept: 'All families together — capstone project',
+        route: '/lessons/listening-lab/lesson5',
+        activities: [
+          { id: 'listening-journey', name: 'Listening Journey (Capstone)', type: 'composition' }
         ]
       }
     ]

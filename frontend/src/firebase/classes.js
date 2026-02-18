@@ -280,6 +280,18 @@ export const startClassSession = async (classId, sessionData) => {
     updatedAt: Date.now()
   });
 
+  // Record this lesson as "conducted" for the class (used to filter classwork)
+  // Non-blocking — don't let this fail the session start
+  try {
+    await set(ref(database, `conductedLessons/${classId}/${lessonId}`), {
+      firstConductedAt: Date.now(),
+      lessonRoute
+    });
+    console.log(`✅ conductedLessons written: ${classId}/${lessonId}`);
+  } catch (err) {
+    console.warn('❌ Could not record conducted lesson:', err.message);
+  }
+
   console.log(`✅ Started session for class ${classData.name} | Lesson: ${lessonId}`);
 
   return {
@@ -385,4 +397,23 @@ export const subscribeToClassSession = (classId, callback) => {
   });
 
   return unsubscribe;
+};
+
+/**
+ * Get the set of lesson IDs that have been conducted for a class.
+ * Used to filter classwork/grades to only show lessons that actually happened.
+ *
+ * @param {string} classId - Class ID
+ * @returns {Set<string>} Set of lesson IDs
+ */
+export const getConductedLessons = async (classId) => {
+  let snapshot;
+  try {
+    snapshot = await get(ref(database, `conductedLessons/${classId}`));
+  } catch (err) {
+    console.warn('Could not read conducted lessons (deploy Firebase rules):', err.message);
+    return new Set();
+  }
+  if (!snapshot.exists()) return new Set();
+  return new Set(Object.keys(snapshot.val()));
 };

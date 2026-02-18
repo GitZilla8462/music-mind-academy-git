@@ -22,7 +22,7 @@ import { useTimerSound } from '../hooks/useTimerSound';
 import LoopLab from './loop-lab/LoopLabActivity';
 import { useSession } from '../../../context/SessionContext';
 import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson2/lesson2StorageUtils';
-import { clearAllCompositionSaves } from '../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, clearAllCompositionSaves } from '../../../utils/studentWorkStorage';
 
 const CITY_COMPOSITION_DEADLINE = 10 * 60 * 1000; // 10 minutes
 
@@ -478,7 +478,26 @@ const CityCompositionActivity = ({
     
     // Set saving flag
     isSavingRef.current = true;
-    
+
+    // Use saveStudentWork for Firebase sync + Join page compatibility
+    saveStudentWork('city-composition', {
+      title: selectedVideo.title || 'City Soundscape',
+      emoji: selectedVideo.emoji || '🏙️',
+      viewRoute: '/lessons/film-music-project/lesson2?view=saved',
+      subtitle: `${placedLoops.length} loops`,
+      category: 'Film Music Project',
+      data: {
+        placedLoops,
+        videoDuration,
+        videoId: selectedVideo.id,
+        videoTitle: selectedVideo.title,
+        videoPath: selectedVideo.videoPath,
+        videoEmoji: selectedVideo.emoji,
+        timestamp: Date.now()
+      }
+    }, studentId);
+
+    // Also keep the legacy localStorage save for backward compatibility
     const saveKey = `city-composition-${studentId}`;
     const saveData = {
       composition: {
@@ -492,7 +511,6 @@ const CityCompositionActivity = ({
       },
       lastSaved: new Date().toISOString()
     };
-    
     localStorage.setItem(saveKey, JSON.stringify(saveData));
     console.log('💾 Manual save complete:', saveKey, saveData);
     

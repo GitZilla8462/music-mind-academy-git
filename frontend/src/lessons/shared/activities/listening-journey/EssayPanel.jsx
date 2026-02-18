@@ -39,12 +39,15 @@ const buildParagraph = (section, idx, guideData, character, items) => {
 
   // Musical observations from planning guide
   const guideItems = guideData?.[idx];
-  const checkedNotes = guideItems
-    ? guideItems.filter(i => i.checked).map(i => i.text)
-    : [];
-  const customNotes = guideItems
-    ? guideItems.filter(i => typeof i.id === 'number').map(i => i.text)
-    : [];
+  let checkedNotes = [];
+  let customNotes = [];
+  if (Array.isArray(guideItems)) {
+    checkedNotes = guideItems.filter(i => i.checked).map(i => i.text);
+    customNotes = guideItems.filter(i => typeof i.id === 'number').map(i => i.text);
+  } else if (guideItems && typeof guideItems === 'object') {
+    // Object format: { dynamics: "...", instruments: "...", mood: "..." }
+    checkedNotes = Object.values(guideItems).filter(v => typeof v === 'string' && v);
+  }
 
   // Count stickers in this section's time range
   const sectionStickers = items
@@ -114,7 +117,7 @@ const buildParagraph = (section, idx, guideData, character, items) => {
 
 const EssayPanel = ({ sections, guideData, pieceTitle, character, items }) => {
   return (
-    <div className="w-[340px] flex-shrink-0 bg-gray-800 flex flex-col items-center py-4 px-3 overflow-y-auto">
+    <div className="w-52 sm:w-64 lg:w-[340px] flex-shrink-0 bg-gray-800 flex flex-col items-center py-2 sm:py-4 px-2 sm:px-3 overflow-y-auto">
       {/* White paper */}
       <div
         className="w-full bg-white rounded-sm flex flex-col overflow-y-auto"
@@ -125,7 +128,7 @@ const EssayPanel = ({ sections, guideData, pieceTitle, character, items }) => {
         }}
       >
         {/* Paper content */}
-        <div className="px-8 py-6 flex-1">
+        <div className="px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6 flex-1">
           {/* Title */}
           <h1 className="text-center text-lg font-bold text-gray-900 mb-1">
             Listening Journey
@@ -154,7 +157,7 @@ const EssayPanel = ({ sections, guideData, pieceTitle, character, items }) => {
         </div>
 
         {/* Paper footer */}
-        <div className="px-8 py-3 border-t border-gray-100 mt-auto">
+        <div className="px-4 sm:px-6 lg:px-8 py-2 sm:py-3 border-t border-gray-100 mt-auto">
           <p className="text-[9px] text-gray-300 text-center">
             Listening Journey · Music Mind Academy
           </p>

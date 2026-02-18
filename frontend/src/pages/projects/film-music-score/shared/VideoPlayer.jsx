@@ -6,7 +6,7 @@
 // FIXED: Added debouncing to prevent double-click issues
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Play, Maximize2 } from 'lucide-react';
+import { Play } from 'lucide-react';
 
 // Debounce time for play/pause toggle (prevents double-click issues)
 const PLAY_PAUSE_DEBOUNCE_MS = 300;
@@ -156,17 +156,17 @@ const VideoPlayer = ({
         )}
       </div>
 
-      {/* Full Screen Preview Button */}
+      {/* Present Button */}
       {onFullScreenClick && (
         <button
           onClick={(e) => {
             e.stopPropagation();
             onFullScreenClick();
           }}
-          className="absolute top-4 right-4 p-2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white rounded z-10 transition-colors"
-          title="Full Screen Preview"
+          className="absolute top-4 right-4 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 backdrop-blur-sm text-white text-sm font-medium rounded z-10 transition-colors"
+          title="Present composition"
         >
-          <Maximize2 size={18} />
+          Present
         </button>
       )}
 

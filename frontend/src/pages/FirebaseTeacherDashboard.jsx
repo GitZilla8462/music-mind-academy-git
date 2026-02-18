@@ -14,7 +14,8 @@ import {
   Play,
   MoreVertical,
   Pencil,
-  Trash2
+  Trash2,
+  GripVertical
 } from 'lucide-react';
 import CreateClassModal from '../components/teacher/CreateClassModal';
 import EditClassModal from '../components/teacher/EditClassModal';
@@ -33,6 +34,72 @@ const FirebaseTeacherDashboard = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [dragOverId, setDragOverId] = useState(null);
+  const dragItemRef = React.useRef(null);
+
+  // Class ordering — persisted to localStorage
+  const getOrderKey = () => user ? `class-order-${user.uid}` : null;
+
+  const getOrderedClasses = (classList) => {
+    const key = getOrderKey();
+    if (!key) return classList;
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) || '[]');
+      if (saved.length === 0) return classList;
+      const ordered = [];
+      for (const id of saved) {
+        const found = classList.find(c => c.id === id);
+        if (found) ordered.push(found);
+      }
+      // Append any new classes not in saved order
+      for (const c of classList) {
+        if (!ordered.find(o => o.id === c.id)) ordered.push(c);
+      }
+      return ordered;
+    } catch { return classList; }
+  };
+
+  const saveOrder = (orderedClasses) => {
+    const key = getOrderKey();
+    if (key) {
+      localStorage.setItem(key, JSON.stringify(orderedClasses.map(c => c.id)));
+    }
+  };
+
+  const handleDragStart = (e, classId) => {
+    dragItemRef.current = classId;
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e, classId) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (classId !== dragOverId) setDragOverId(classId);
+  };
+
+  const handleDrop = (e, targetId) => {
+    e.preventDefault();
+    setDragOverId(null);
+    const sourceId = dragItemRef.current;
+    if (!sourceId || sourceId === targetId) return;
+
+    const ordered = getOrderedClasses(classes);
+    const sourceIdx = ordered.findIndex(c => c.id === sourceId);
+    const targetIdx = ordered.findIndex(c => c.id === targetId);
+    if (sourceIdx === -1 || targetIdx === -1) return;
+
+    const reordered = [...ordered];
+    const [moved] = reordered.splice(sourceIdx, 1);
+    reordered.splice(targetIdx, 0, moved);
+    saveOrder(reordered);
+    setClasses([...classes]); // trigger re-render
+    dragItemRef.current = null;
+  };
+
+  const handleDragEnd = () => {
+    setDragOverId(null);
+    dragItemRef.current = null;
+  };
 
   // Fetch teacher's classes
   const fetchClasses = async () => {
@@ -99,17 +166,6 @@ const FirebaseTeacherDashboard = () => {
   }, [openMenuId]);
 
   // Get pending count for a specific class
-  const getPendingCount = (classId) => {
-    const subs = classSubmissions[classId];
-    if (!subs) return 0;
-    return subs.filter(s => s.status === 'pending').length;
-  };
-
-  // Calculate total pending for header notification
-  const totalPending = Object.values(classSubmissions).reduce((sum, subs) => {
-    return sum + (subs?.filter(s => s.status === 'pending')?.length || 0);
-  }, 0);
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -120,7 +176,7 @@ const FirebaseTeacherDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <TeacherHeader pendingCount={totalPending} />
+      <TeacherHeader />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
         {/* Page Header */}
@@ -202,79 +258,63 @@ const FirebaseTeacherDashboard = () => {
           </div>
         ) : (
           /* Class Cards Grid - Disabled for now */
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {classes.map((classItem) => {
-              const pendingCount = getPendingCount(classItem.id);
+          <div className="space-y-2 max-w-2xl">
+            {getOrderedClasses(classes).map((classItem) => {
+              const isDragTarget = dragOverId === classItem.id && dragItemRef.current !== classItem.id;
 
               return (
-                <button
+                <div
                   key={classItem.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, classItem.id)}
+                  onDragOver={(e) => handleDragOver(e, classItem.id)}
+                  onDragLeave={() => setDragOverId(null)}
+                  onDrop={(e) => handleDrop(e, classItem.id)}
+                  onDragEnd={handleDragEnd}
                   onClick={() => navigate(`/teacher/class/${classItem.id}`)}
-                  className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden text-left hover:shadow-md transition-shadow relative"
+                  className={`bg-white rounded-lg border flex items-center hover:shadow-sm transition-all cursor-pointer group ${
+                    isDragTarget ? 'border-blue-400 bg-blue-50/30' : 'border-gray-200'
+                  }`}
                 >
-                  {pendingCount > 0 && (
-                    <div className="absolute top-2 right-2 bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full font-medium z-10">
-                      {pendingCount} to grade
-                    </div>
-                  )}
-                  <div className="h-24 bg-gradient-to-r from-blue-500 to-indigo-500 px-4 py-3 flex flex-col justify-between">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-white text-lg truncate max-w-[180px]">
+                  {/* Color accent */}
+                  <div className="w-1.5 self-stretch bg-blue-500 rounded-l-lg flex-shrink-0" />
+
+                  {/* Drag handle */}
+                  <div className="px-2 flex-shrink-0 cursor-grab active:cursor-grabbing">
+                    <GripVertical size={16} className="text-gray-300" />
+                  </div>
+
+                  {/* Class info */}
+                  <div className="flex-1 py-3 pr-3 flex items-center justify-between min-w-0">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-gray-900 text-sm">
                         {classItem.name}
                       </h3>
-                      <button
-                        onClick={(e) => handleMenuToggle(e, classItem.id)}
-                        className="text-white/70 hover:text-white p-1 rounded"
-                      >
-                        <MoreVertical size={16} />
-                      </button>
-                    </div>
-                    <span className="text-white/80 text-sm">
-                      {classItem.studentCount || 0} students
-                    </span>
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-400">
                         {classItem.studentCount || 0} students
                       </span>
-                      <span className="text-xs text-blue-600 font-medium">
-                        View Class →
-                      </span>
                     </div>
-                  </div>
 
-                  {/* Dropdown Menu */}
-                  {openMenuId === classItem.id && (
-                    <div className="absolute top-12 right-2 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20 min-w-[140px]">
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-3">
                       <button
-                        onClick={(e) => handleEditClick(e, classItem)}
-                        className="w-full px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        onClick={(e) => { e.stopPropagation(); handleEditClick(e, classItem); }}
+                        className="p-1.5 rounded text-gray-300 hover:text-blue-600 hover:bg-blue-50 opacity-0 group-hover:opacity-100 transition-all"
+                        title="Edit class"
                       >
                         <Pencil size={14} />
-                        Edit
                       </button>
                       <button
-                        onClick={(e) => handleDeleteClick(e, classItem)}
-                        className="w-full px-3 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteClick(e, classItem); }}
+                        className="p-1.5 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                        title="Delete class"
                       >
                         <Trash2 size={14} />
-                        Delete
                       </button>
                     </div>
-                  )}
-                </button>
+                  </div>
+                </div>
               );
             })}
-
-            {/* Add Class Card */}
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-white rounded-xl shadow-sm border-2 border-dashed border-gray-300 p-6 flex flex-col items-center justify-center text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors cursor-pointer min-h-[180px]"
-            >
-              <Plus size={32} className="mb-2" />
-              <span className="font-medium">Create Class</span>
-            </button>
           </div>
         )}
       </main>

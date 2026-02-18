@@ -136,6 +136,8 @@ const devTools = {
 export const initDevTools = () => {
   if (isDev) {
     window.devTools = devTools;
+    // Lazy-load fake data generator
+    import('./generateFakeStudentData.js').catch(() => {});
     console.log('🛠️ Dev tools loaded. Type devTools.help() for commands.');
   }
 };

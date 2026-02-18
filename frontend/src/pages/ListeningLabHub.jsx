@@ -157,7 +157,7 @@ const ListeningLabHub = () => {
   const lessons = [
     // Lesson 1: Strings & Dynamics
     {
-      id: 'listening-lab-lesson1',
+      id: 'll-lesson1',
       number: 1,
       icon: '🎻',
       title: 'Strings & Dynamics',
@@ -184,7 +184,7 @@ const ListeningLabHub = () => {
     },
     // Lesson 2: Woodwinds & Tempo
     {
-      id: 'listening-lab-lesson2',
+      id: 'll-lesson2',
       number: 2,
       icon: '🎵',
       title: 'Woodwinds & Tempo',
@@ -212,7 +212,7 @@ const ListeningLabHub = () => {
     },
     // Lesson 3: Brass & Form
     {
-      id: 'listening-lab-lesson3',
+      id: 'll-lesson3',
       number: 3,
       icon: '🎺',
       title: 'Brass & Form',
@@ -239,7 +239,7 @@ const ListeningLabHub = () => {
     },
     // Lesson 4: Percussion & Review
     {
-      id: 'listening-lab-lesson4',
+      id: 'll-lesson4',
       number: 4,
       icon: '🥁',
       title: 'Percussion & Review',
@@ -264,7 +264,7 @@ const ListeningLabHub = () => {
     },
     // Lesson 5: Worktime + Presentation
     {
-      id: 'listening-lab-lesson5',
+      id: 'll-lesson5',
       number: 5,
       icon: '🎪',
       title: 'Worktime + Presentation',

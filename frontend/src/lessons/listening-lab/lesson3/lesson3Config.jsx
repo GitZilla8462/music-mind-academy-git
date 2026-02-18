@@ -169,6 +169,7 @@ export const MOUNTAIN_KING_JOURNEY_CONFIG = (() => {
   const base = buildPieceConfig(getPieceById('mountain-king'));
   return {
     ...base,
+    lessonId: 'll-lesson3',
     hideScenes: true,
     hideMovement: true,
     defaultTab: 'dynamics',
@@ -240,10 +241,11 @@ export const lessonSections = [
       },
       {
         id: 'planning-intro',
-        type: 'summary',
+        type: 'activity',
         label: 'Plan Your Journey',
-        description: 'Explain the Listening Journey planner. Students describe what they hear in each section.',
-        duration: 2
+        description: 'Students fill in their Capstone Plan worksheet — dynamics, tempo, and instruments for each section.',
+        duration: 5,
+        trackProgress: true
       }
       // {
       //   id: 'section-spotter',
@@ -480,9 +482,9 @@ export const lessonStages = [
   {
     id: 'planning-intro',
     label: 'Plan Your Journey',
-    description: 'Explain the Listening Journey planner.',
-    type: 'summary',
-    duration: 2,
+    description: 'Students fill in their Capstone Plan worksheet.',
+    type: 'activity',
+    duration: 5,
     presentationView: {
       type: 'journey-planner-directions',
     }
@@ -609,7 +611,7 @@ export const getActivityForStage = (stage) => {
     'what-is-form': 'summary',
     'meet-ternary-form': 'summary',
     // 'section-spotter': 'section-spotter',
-    'planning-intro': 'summary',
+    'planning-intro': 'capstone-planning',
     'animator-intro-video': 'video',
     'animator-directions': 'listening-journey',
     'lesson-complete': 'summary',

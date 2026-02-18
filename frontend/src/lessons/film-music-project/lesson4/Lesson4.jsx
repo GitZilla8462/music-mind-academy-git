@@ -276,9 +276,7 @@ const Lesson4 = () => {
     }
     
     // Student viewing active activity
-    // For reflection-activity, use the same activity type mapping (sports-composition-activity)
-    const displayStage = currentStage === 'reflection-activity' ? 'sports-composition' : currentStage;
-    const activityType = getActivityForStage(displayStage);
+    const activityType = getActivityForStage(currentStage);
 
     const activity = lesson4Config.activities.find(a => a.type === activityType);
     

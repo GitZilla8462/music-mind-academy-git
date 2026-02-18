@@ -225,7 +225,8 @@ export const lesson1Config = {
       id: 4,
       type: "two-stars-wish",
       title: "Reflection Activity",
-      estimatedTime: "5 min"
+      estimatedTime: "5 min",
+      activityId: "fm-lesson1-reflection"
     }
   ]
 };
@@ -392,8 +393,13 @@ export const lessonStages = [
     hasTimer: true,
     duration: 12,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson1/slides/12.svg'
+      type: 'composition-workspace',
+      title: 'Score the Adventure',
+      instruction: 'Pick a mood. Score the drone footage with 5+ loops.',
+      bonusTip: 'Bonus: Build intensity — start quiet and get louder!',
+      videos: [
+        { emoji: '🏔️', title: 'Nature Drone Footage', path: '/lessons/film-music-project/lesson1/NatureDroneFootage.mp4' }
+      ]
     }
   },
   {

@@ -211,7 +211,8 @@ export const lesson5Config = {
       id: 4,
       type: "two-stars-and-a-wish",
       title: "Melody Spotlight",
-      estimatedTime: "3 min"
+      estimatedTime: "3 min",
+      activityId: "fm-lesson5-reflection"
     }
   ]
 };
@@ -331,8 +332,15 @@ export const lessonStages = [
     trackProgress: true,
     duration: 12,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson5/slides/6-activity-compose.svg'
+      type: 'composition-workspace',
+      title: 'Score the Game',
+      instruction: 'Combine your melody with loops to score the game.',
+      bonusTip: 'Make your melody match the action!',
+      videos: [
+        { emoji: '🌻', title: 'Grow A Garden', path: '/lessons/film-music-project/GrowAGarden.mp4' },
+        { emoji: '⛏️', title: 'Minecraft', path: '/lessons/film-music-project/MinecraftGameplay.mp4' },
+        { emoji: '📦', title: 'Unpacking', path: '/lessons/film-music-project/Unpacking.mp4' }
+      ]
     }
   },
   {

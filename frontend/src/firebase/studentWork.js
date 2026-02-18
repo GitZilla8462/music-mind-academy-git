@@ -111,8 +111,9 @@ export const submitStudentWork = async (studentUid, lessonId, activityId, classI
     submittedAt: now
   });
 
-  // Check if a previous submission exists (detect resubmission)
-  const submissionRef = ref(database, `submissions/${classId}/${lessonId}/${studentUid}`);
+  // Path: submissions/{classId}/{lessonId}/{activityId}/{studentUid}
+  // Each activity gets its own submission slot per student
+  const submissionRef = ref(database, `submissions/${classId}/${lessonId}/${activityId}/${studentUid}`);
   const existingSnap = await get(submissionRef);
   const existing = existingSnap.exists() ? existingSnap.val() : null;
   const isResubmission = existing && (existing.status === 'graded' || existing.resubmittedAt);
@@ -166,7 +167,7 @@ export const resubmitStudentWork = async (studentUid, lessonId, activityId, clas
   });
 
   // Update submission record — set back to pending, track resubmission
-  const submissionRef = ref(database, `submissions/${classId}/${lessonId}/${studentUid}`);
+  const submissionRef = ref(database, `submissions/${classId}/${lessonId}/${activityId}/${studentUid}`);
   const snapshot = await get(submissionRef);
   const existing = snapshot.exists() ? snapshot.val() : {};
   const resubmitCount = (existing.resubmitCount || 0) + 1;
@@ -196,10 +197,19 @@ export const getClassSubmissions = async (classId, lessonId) => {
 
   const submissions = [];
   snapshot.forEach((child) => {
-    submissions.push({
-      studentUid: child.key,
-      ...child.val()
-    });
+    const val = child.val();
+    if (val && val.submittedAt) {
+      // Old format: key is studentUid directly
+      submissions.push({ studentUid: child.key, ...val });
+    } else if (val && typeof val === 'object') {
+      // New format: key is activityId, children are studentUids
+      const activityId = child.key;
+      Object.entries(val).forEach(([studentUid, subData]) => {
+        if (subData && subData.submittedAt) {
+          submissions.push({ studentUid, activityId, ...subData });
+        }
+      });
+    }
   });
 
   // Sort by submission time

@@ -269,8 +269,7 @@ const Lesson5 = () => {
     }
 
     // Student viewing active activity
-    const displayStage = currentStage === 'reflection-activity' ? 'game-composition' : currentStage;
-    const activityType = getActivityForStage(displayStage);
+    const activityType = getActivityForStage(currentStage);
 
     const activity = lesson5Config.activities.find(a => a.type === activityType);
 

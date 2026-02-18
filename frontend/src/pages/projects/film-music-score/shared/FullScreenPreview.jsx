@@ -1,5 +1,5 @@
 // FullScreenPreview.jsx - Full screen presentation mode
-// Shows loop blocks on left, video on right, simple transport controls at bottom
+// Shows video on top, loop blocks below, transport controls at bottom
 
 import React, { useEffect, useCallback, useRef } from 'react';
 import { X, Play, Pause, RotateCcw, SkipBack, SkipForward, Volume2 } from 'lucide-react';
@@ -97,7 +97,8 @@ const FullScreenPreview = ({
 
   // Determine total tracks (at least show used tracks, max 8)
   const totalTracks = Math.max(4, Math.max(...trackIndices) + 1, 8);
-  const trackHeight = 32; // Height of each track row in pixels
+  const trackHeight = 36;
+  const trackLabelWidth = 64;
 
   if (!isOpen) return null;
 
@@ -106,153 +107,125 @@ const FullScreenPreview = ({
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 z-10 p-2 bg-gray-800 hover:bg-gray-700 rounded-full text-white transition-colors"
+        className="absolute top-3 right-3 z-10 p-2 bg-gray-800 hover:bg-gray-700 rounded-full text-white transition-colors"
         title="Close (Esc)"
       >
-        <X size={24} />
+        <X size={22} />
       </button>
 
-      {/* Main content - loops left, video right */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left side - Loop blocks (35%) */}
-        <div className="w-[35%] bg-gray-900 flex flex-col border-r border-gray-700">
-          {/* Timeline header with time markers */}
-          <div className="h-6 bg-gray-800 border-b border-gray-700 flex items-center px-2">
-            <span className="text-xs text-gray-500">0:00</span>
-            <div className="flex-1" />
-            <span className="text-xs text-gray-500">{formatTime(duration)}</span>
+      {/* Top: Video */}
+      <div className="flex-shrink-0 bg-black flex items-center justify-center" style={{ height: '45%' }}>
+        {videoUrl ? (
+          <video
+            ref={videoRef}
+            src={videoUrl}
+            className="h-full w-full object-contain"
+            playsInline
+            preload="auto"
+            style={{ pointerEvents: 'none' }}
+          />
+        ) : (
+          <div className="text-gray-500 text-center">
+            <Play size={48} className="mx-auto mb-2 opacity-50" />
+            <p>No video selected</p>
           </div>
+        )}
+      </div>
 
-          {/* Loop blocks area */}
-          <div className="flex-1 relative overflow-hidden">
-            {/* Track rows background */}
-            {Array.from({ length: totalTracks }).map((_, i) => (
-              <div
-                key={i}
-                className={`absolute left-0 right-0 border-b border-gray-800 ${
-                  i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-900/50'
-                }`}
-                style={{
-                  top: i * trackHeight,
-                  height: trackHeight
-                }}
-              />
-            ))}
+      {/* Middle: Loop track lanes */}
+      <div className="flex-1 bg-gray-900 border-t border-gray-700 flex flex-col overflow-hidden">
+        {/* Timeline header (thin divider) */}
+        <div className="h-1 bg-gray-800 border-b border-gray-700 flex-shrink-0" />
 
-            {/* Loop blocks */}
-            {placedLoops.map((loop) => {
-              const leftPercent = (loop.startTime / duration) * 100;
-              const widthPercent = ((loop.endTime - loop.startTime) / duration) * 100;
-
-              return (
-                <div
-                  key={loop.id}
-                  className="absolute rounded overflow-hidden"
-                  style={{
-                    left: `${leftPercent}%`,
-                    width: `${widthPercent}%`,
-                    top: loop.trackIndex * trackHeight + 2,
-                    height: trackHeight - 4,
-                    backgroundColor: loop.color || '#3b82f6',
-                    opacity: 0.9
-                  }}
-                >
-                  <div className="px-1 py-0.5 text-[10px] text-white truncate font-medium">
-                    {loop.name}
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Playhead */}
+        {/* Track rows + loop blocks */}
+        <div className="flex-1 relative overflow-hidden">
+          {/* Track row backgrounds */}
+          {Array.from({ length: totalTracks }).map((_, i) => (
             <div
-              className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10 pointer-events-none"
-              style={{ left: `${playheadPercent}%` }}
+              key={i}
+              className={`absolute left-0 right-0 border-b border-gray-800 flex ${
+                i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-900/50'
+              }`}
+              style={{ top: i * trackHeight, height: trackHeight }}
             >
-              <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 rounded-full" />
-            </div>
-          </div>
-
-          {/* Mini scrubber */}
-          <div
-            className="h-8 bg-gray-800 border-t border-gray-700 cursor-pointer relative"
-            onClick={handleTimelineClick}
-          >
-            <div className="absolute inset-2 bg-gray-700 rounded overflow-hidden">
               <div
-                className="h-full bg-blue-600 transition-all duration-100"
-                style={{ width: `${playheadPercent}%` }}
-              />
+                className="flex-shrink-0 flex items-center px-2 border-r border-gray-700 bg-gray-800/30"
+                style={{ width: trackLabelWidth }}
+              >
+                <span className="text-[10px] text-gray-500 truncate">Track {i + 1}</span>
+              </div>
             </div>
-          </div>
-        </div>
+          ))}
 
-        {/* Right side - Video (65%) */}
-        <div className="w-[65%] bg-black flex items-center justify-center p-4">
-          {videoUrl ? (
-            <video
-              ref={videoRef}
-              src={videoUrl}
-              className="max-h-full max-w-full object-contain"
-              playsInline
-              preload="auto"
-              style={{ pointerEvents: 'none' }}
-            />
-          ) : (
-            <div className="text-gray-500 text-center">
-              <Play size={48} className="mx-auto mb-2 opacity-50" />
-              <p>No video selected</p>
-            </div>
-          )}
+          {/* Loop blocks */}
+          {placedLoops.map((loop) => {
+            const leftPercent = (loop.startTime / duration) * 100;
+            const widthPercent = ((loop.endTime - loop.startTime) / duration) * 100;
+            // Scale percentages to account for track label width
+            const trackAreaPercent = (1 - trackLabelWidth / window.innerWidth) * 100;
+
+            return (
+              <div
+                key={loop.id}
+                className="absolute rounded overflow-hidden"
+                style={{
+                  left: `calc(${trackLabelWidth}px + ${leftPercent * trackAreaPercent / 100}%)`,
+                  width: `${widthPercent * trackAreaPercent / 100}%`,
+                  top: loop.trackIndex * trackHeight + 3,
+                  height: trackHeight - 6,
+                  backgroundColor: loop.color || '#3b82f6',
+                  opacity: 0.9
+                }}
+              >
+                <div className="px-1.5 py-0.5 text-[10px] text-white truncate font-medium">
+                  {loop.name}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Playhead — no transition for smooth rAF-driven movement */}
+          <div
+            className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10 pointer-events-none"
+            style={{ left: `calc(${trackLabelWidth}px + ${playheadPercent * (1 - trackLabelWidth / window.innerWidth)}%)`, willChange: 'left' }}
+          >
+            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 rounded-full" />
+          </div>
         </div>
       </div>
 
-      {/* Bottom transport controls */}
-      <div className="h-16 bg-gray-800 border-t border-gray-700 flex items-center justify-center gap-3 px-6">
-        {/* Restart */}
-        <button
-          onClick={onRestart}
-          className="p-2.5 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
-          title="Restart"
-        >
-          <RotateCcw size={18} />
+      {/* Bottom: Transport controls */}
+      <div className="flex-shrink-0 h-14 bg-gray-800 border-t border-gray-700 flex items-center justify-center gap-3 px-6">
+        <button onClick={onRestart} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors" title="Restart">
+          <RotateCcw size={16} />
         </button>
-
-        {/* Skip Back 5s */}
-        <button
-          onClick={handleSkipBack}
-          className="p-2.5 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
-          title="Back 5 seconds"
-        >
-          <SkipBack size={18} />
+        <button onClick={handleSkipBack} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors" title="Back 5 seconds">
+          <SkipBack size={16} />
         </button>
-
-        {/* Play/Pause */}
         <button
           onClick={isPlaying ? onPause : onPlay}
-          className="p-4 bg-blue-600 hover:bg-blue-500 rounded-full text-white transition-colors"
+          className="p-3 bg-blue-600 hover:bg-blue-500 rounded-full text-white transition-colors"
           title={isPlaying ? 'Pause' : 'Play'}
         >
-          {isPlaying ? <Pause size={28} /> : <Play size={28} className="ml-1" />}
+          {isPlaying ? <Pause size={24} /> : <Play size={24} className="ml-0.5" />}
+        </button>
+        <button onClick={handleSkipForward} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors" title="Forward 5 seconds">
+          <SkipForward size={16} />
         </button>
 
-        {/* Skip Forward 5s */}
-        <button
-          onClick={handleSkipForward}
-          className="p-2.5 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
-          title="Forward 5 seconds"
+        {/* Timeline scrubber */}
+        <div
+          className="flex-1 max-w-md mx-3 h-2 bg-gray-700 rounded cursor-pointer relative"
+          onClick={handleTimelineClick}
         >
-          <SkipForward size={18} />
-        </button>
-
-        {/* Time display */}
-        <div className="text-white font-mono text-base mx-4">
-          {formatTime(currentTime)} / {formatTime(duration)}
+          <div
+            className="h-full bg-blue-600 rounded"
+            style={{ width: `${playheadPercent}%` }}
+          />
         </div>
 
-        {/* Volume control */}
-        <div className="flex items-center gap-2 ml-4">
-          <Volume2 size={20} className="text-gray-400" />
+        <div className="flex items-center gap-2 ml-2">
+          <Volume2 size={16} className="text-gray-400" />
           <input
             type="range"
             min="0"
@@ -260,7 +233,7 @@ const FullScreenPreview = ({
             step="0.05"
             value={volume ?? 0.7}
             onChange={(e) => onVolumeChange?.(parseFloat(e.target.value))}
-            className="w-24 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+            className="w-20 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
             title={`Volume: ${Math.round((volume ?? 0.7) * 100)}%`}
           />
         </div>

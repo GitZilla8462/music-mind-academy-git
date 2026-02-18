@@ -2,7 +2,7 @@
 // Timeline starts EMPTY — user drags/clicks scenes to build, then resizes & decorates
 // Stickers are time-pinned: only visible when the playhead is at their timestamp
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Save, RotateCcw, Sticker, Type, Moon, Sun, CloudRain, CloudSnow, Wind, CloudOff, Hammer, Presentation, Maximize, Minimize, Play, Pause, SkipBack } from 'lucide-react';
 import PlanningGuide from './PlanningGuide';
 import EssayPanel from './EssayPanel';
@@ -20,6 +20,8 @@ import { MOVEMENT_TYPES } from './characterAnimations';
 import { AUDIO_PATH, TOTAL_DURATION, CHARACTER_OPTIONS, SCENE_SKY_MAP, SECTION_COLORS } from './journeyDefaults';
 import { SCENE_GROUND_MAP } from './config/groundTypes';
 import { saveStudentWork, loadStudentWork, getClassAuthInfo } from '../../../../utils/studentWorkStorage';
+import { useSession } from '../../../../context/SessionContext';
+import { getDatabase, ref, onValue } from 'firebase/database';
 
 let _nextSectionId = Date.now();
 
@@ -94,6 +96,15 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   // Reset confirmation state
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  // Teacher save command listener
+  const { sessionCode } = useSession();
+  const lastSaveCommandRef = useRef(null);
+  const componentMountTimeRef = useRef(Date.now());
+  const [teacherSaveToast, setTeacherSaveToast] = useState(false);
+
+  // Scrubbing state (for sprite animation during timeline drag)
+  const [isScrubbing, setIsScrubbing] = useState(false);
 
   // Section picker state
   const [pickerState, setPickerState] = useState(null); // { sectionIndex, track, rect }
@@ -235,11 +246,44 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       viewRoute: pieceConfig?.viewRoute || '/lessons/listening-lab/lesson4?view=saved',
       subtitle: `${sections.length} sections`,
       category: 'Listening Lab',
-      data: { sections, character, items: cleanItems, guideData, essayData, drawingData }
+      lessonId: pieceConfig?.lessonId || null,
+      data: { sections, character, items: cleanItems, guideData, essayData, drawingData, audioPath, audioVolume, pieceTitle: pieceConfig?.title || null }
     }, null, authInfo);
     setSaveStatus('saved');
     setTimeout(() => setSaveStatus(null), 2000);
-  }, [sections, character, items, guideData, essayData]);
+  }, [sections, character, items, guideData, essayData, audioPath, audioVolume, storageKey, pieceConfig]);
+
+  // Listen for teacher's "Save All & Continue" command from Firebase
+  useEffect(() => {
+    if (!sessionCode || !isSessionMode || viewMode) return;
+
+    const db = getDatabase();
+    const saveCommandRef = ref(db, `sessions/${sessionCode}/saveCommand`);
+
+    const unsubscribe = onValue(saveCommandRef, (snapshot) => {
+      const saveCommand = snapshot.val();
+      if (!saveCommand) return;
+
+      // Only process save commands issued AFTER this component mounted
+      if (saveCommand <= componentMountTimeRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        return;
+      }
+
+      if (saveCommand !== lastSaveCommandRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        console.log('💾 Teacher save command received for listening journey!');
+
+        if (sections.length > 0) {
+          handleSave();
+          setTeacherSaveToast(true);
+          setTimeout(() => setTeacherSaveToast(false), 3000);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [sessionCode, isSessionMode, viewMode, sections, handleSave]);
 
   const handleReset = useCallback(() => {
     if (presetMode && pieceConfig?.defaultSections) {
@@ -442,13 +486,13 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     <div className="h-screen flex flex-col bg-gray-900 text-white overflow-hidden">
       {/* Header — hidden in fullscreen */}
       {!isFullscreen && (
-        <div className="flex items-center justify-between px-4 py-1.5 bg-black/30 border-b border-white/10 flex-shrink-0 flex-nowrap overflow-hidden">
+        <div className="flex items-center justify-between px-2 sm:px-4 py-1 sm:py-1.5 bg-black/30 border-b border-white/10 flex-shrink-0 flex-nowrap overflow-hidden">
           {/* Left: Title + Color tools + Sprites */}
-          <div className="flex items-center gap-1.5 min-w-0">
-            <h1 className="text-sm font-bold whitespace-nowrap mr-1">Listening Journey</h1>
-            <span className="text-[11px] text-white/50 truncate mr-1">{pieceConfig?.title || 'Hungarian Dance No. 5 - Brahms'}</span>
+          <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
+            <h1 className="text-xs sm:text-sm font-bold whitespace-nowrap mr-1">Listening Journey</h1>
+            <span className="text-[10px] sm:text-[11px] text-white/50 truncate mr-1 hidden sm:inline">{pieceConfig?.title || 'Hungarian Dance No. 5 - Brahms'}</span>
 
-            <div className="w-px h-6 bg-white/20 mx-1" />
+            <div className="w-px h-5 sm:h-6 bg-white/20 mx-0.5 sm:mx-1" />
 
             {/* Color tools (inline) */}
             {isBuild && (
@@ -461,7 +505,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                   <button
                     key={t.id}
                     onClick={() => { setDrawingTool(drawingTool === t.id ? null : t.id); clearSelection(); }}
-                    className={`w-7 h-7 rounded-md flex items-center justify-center text-xs transition-all ${
+                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center text-xs transition-all ${
                       drawingTool === t.id
                         ? 'bg-blue-500 shadow-lg shadow-blue-500/30'
                         : 'bg-white/10 hover:bg-white/20 text-white/60'
@@ -476,7 +520,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                   <button
                     key={c}
                     onClick={() => setBrushColor(c)}
-                    className="w-4 h-4 rounded-full transition-transform hover:scale-110 flex-shrink-0"
+                    className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full transition-transform hover:scale-110 flex-shrink-0"
                     style={{
                       backgroundColor: c,
                       border: brushColor === c ? '2px solid #3b82f6' : '1px solid rgba(255,255,255,0.3)',
@@ -486,13 +530,13 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
                 <button
                   onClick={() => drawingCanvasRef.current?.undo()}
-                  className="w-7 h-7 rounded-md flex items-center justify-center bg-white/10 hover:bg-white/20 text-white/60 text-xs transition-all"
+                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center bg-white/10 hover:bg-white/20 text-white/60 text-xs transition-all"
                   title="Undo drawing"
                 >
                   {'\u21A9'}
                 </button>
 
-                <div className="w-px h-6 bg-white/20 mx-1" />
+                <div className="w-px h-5 sm:h-6 bg-white/20 mx-0.5 sm:mx-1" />
               </>
             )}
 
@@ -501,28 +545,28 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           </div>
 
           {/* Right: Build/Present + Reset + Save */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
             {/* Mode switcher */}
             <div className="flex bg-white/5 rounded-lg p-0.5">
               <button
                 onClick={() => setAppMode('build')}
-                className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold transition-colors ${
+                className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md text-[10px] sm:text-[11px] font-bold transition-colors ${
                   isBuild ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60'
                 }`}
               >
-                <Hammer size={12} /> Build
+                <Hammer size={12} /> <span className="hidden sm:inline">Build</span>
               </button>
               <button
                 onClick={() => setAppMode('present')}
-                className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold transition-colors ${
+                className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md text-[10px] sm:text-[11px] font-bold transition-colors ${
                   isPresent ? 'bg-orange-500 text-white' : 'text-white/40 hover:text-white/60'
                 }`}
               >
-                <Presentation size={12} /> Present
+                <Presentation size={12} /> <span className="hidden sm:inline">Present</span>
               </button>
               <button
                 onClick={() => setAppMode('fullscreen')}
-                className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold transition-colors ${
+                className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md text-[10px] sm:text-[11px] font-bold transition-colors ${
                   isFullscreen ? 'bg-blue-500 text-white' : 'text-white/40 hover:text-white/60'
                 }`}
               >
@@ -530,21 +574,21 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
               </button>
             </div>
 
-            <div className="w-px h-6 bg-white/20 mx-1" />
+            <div className="w-px h-5 sm:h-6 bg-white/20 mx-0.5 sm:mx-1" />
 
             {/* Reset with confirmation */}
             {showResetConfirm ? (
               <div className="flex items-center gap-1">
-                <span className="text-[11px] text-red-400 font-semibold whitespace-nowrap">Are you sure?</span>
+                <span className="text-[10px] sm:text-[11px] text-red-400 font-semibold whitespace-nowrap">Sure?</span>
                 <button
                   onClick={() => { handleReset(); setShowResetConfirm(false); }}
-                  className="px-2 py-1 rounded-md bg-red-500 hover:bg-red-600 text-white text-[11px] font-bold transition-colors"
+                  className="px-1.5 sm:px-2 py-1 rounded-md bg-red-500 hover:bg-red-600 text-white text-[10px] sm:text-[11px] font-bold transition-colors"
                 >
                   Yes
                 </button>
                 <button
                   onClick={() => setShowResetConfirm(false)}
-                  className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white/70 text-[11px] font-bold transition-colors"
+                  className="px-1.5 sm:px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white/70 text-[10px] sm:text-[11px] font-bold transition-colors"
                 >
                   No
                 </button>
@@ -552,10 +596,10 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             ) : (
               <button
                 onClick={() => setShowResetConfirm(true)}
-                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 text-[11px] font-semibold transition-colors"
+                className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 text-[10px] sm:text-[11px] font-semibold transition-colors"
                 title="Reset all work"
               >
-                <RotateCcw size={12} /> Reset
+                <RotateCcw size={12} /> <span className="hidden sm:inline">Reset</span>
               </button>
             )}
 
@@ -563,7 +607,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             <button
               onClick={handleSave}
               disabled={sections.length === 0}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-colors ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-colors ${
                 saveStatus === 'saved'
                   ? 'bg-green-500 text-white'
                   : sections.length === 0
@@ -611,7 +655,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       <div className="flex-1 flex min-h-0">
         {/* Left panel — only in build mode */}
         {isBuild && (
-          <div className="w-56 flex-shrink-0 bg-black/20 border-r border-white/10 flex flex-col overflow-hidden">
+          <div className="w-40 sm:w-48 lg:w-56 flex-shrink-0 bg-black/20 border-r border-white/10 flex flex-col overflow-hidden">
             {/* Tab bar */}
             <div className="flex border-b border-white/10 flex-shrink-0">
               {[
@@ -739,12 +783,12 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         )}
 
         {/* Viewport (center) */}
-        <div className={`flex-1 ${isFullscreen ? 'p-0' : 'p-3'} min-w-0 flex flex-col`}>
+        <div className={`flex-1 ${isFullscreen ? 'p-0' : 'p-1.5 sm:p-2 lg:p-3'} min-w-0 flex flex-col`}>
           <div className="flex-1 min-h-0">
             <JourneyViewport
               section={activeSection}
               character={character}
-              isPlaying={isPlaying}
+              isPlaying={isPlaying || isScrubbing}
               midgroundOffset={midgroundOffset}
               foregroundOffset={foregroundOffset}
               items={items}
@@ -803,7 +847,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       </div>
 
       {/* Timeline + transport (bottom) — hidden in fullscreen */}
-      {!isFullscreen && <div className="px-4 py-3 bg-black/30 border-t border-white/10">
+      {!isFullscreen && <div className="px-2 py-1.5 sm:px-3 sm:py-2 lg:px-4 lg:py-3 bg-black/30 border-t border-white/10">
         <JourneyTimeline
           sections={sections}
           items={items}
@@ -831,6 +875,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
               return updated;
             });
           }}
+          onScrubChange={setIsScrubbing}
           onClearScene={hideScenes ? null : (sectionIndex) => {
             setSections(prev => {
               const updated = [...prev];
@@ -859,6 +904,13 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           onAdd={handleAddTextItem}
           onClose={() => { setShowTextEditor(false); setTextEditorPosition(null); }}
         />
+      )}
+
+      {/* Teacher save toast */}
+      {teacherSaveToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg text-sm font-semibold animate-bounce">
+          Teacher saved your work!
+        </div>
       )}
     </div>
   );

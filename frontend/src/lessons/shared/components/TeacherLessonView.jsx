@@ -29,9 +29,12 @@ import {
   PanelLeft,
   Video,
   SkipForward,
+  SkipBack,
+  Volume2,
   Star,
   X,
-  MessageSquare
+  MessageSquare,
+  Presentation
 } from 'lucide-react';
 import { saveSurveyResponse, saveMidPilotSurvey, saveFinalPilotSurvey } from '../../../firebase/analytics';
 import { getDatabase, ref, onValue, update } from 'firebase/database';
@@ -472,6 +475,21 @@ const PresentationContent = ({
   const [CapstonePlanning, setCapstonePlanning] = useState(null);
   const [ListeningJourney, setListeningJourney] = useState(null);
 
+  // Composition present mode (video + DAW tracks fullscreen)
+  const [compositionPresentMode, setCompositionPresentMode] = useState(false);
+  const compositionVideoRef = useRef(null);
+  const [compositionPlaying, setCompositionPlaying] = useState(false);
+  const [compositionTime, setCompositionTime] = useState(0);
+  const [compositionDuration, setCompositionDuration] = useState(60);
+  const [compositionVolume, setCompositionVolume] = useState(0.7);
+
+  // Reset present mode when stage changes
+  useEffect(() => {
+    setCompositionPresentMode(false);
+    setCompositionPlaying(false);
+    setCompositionTime(0);
+  }, [currentStage]);
+
   // Persist animator directions dismissed state across re-renders
   const animatorDirDismissedRef = useRef(false);
 
@@ -636,85 +654,71 @@ const PresentationContent = ({
       .catch(() => console.log('Capstone Piece Selection Teacher not available'));
   }, []);
 
-  // Join Code Screen
+  // Join Code Screen — mirrors the student /join page styling
   if (currentStage === 'locked' || currentStage === 'join-code') {
-    const studentCount = sessionData?.studentsJoined 
-      ? Object.keys(sessionData.studentsJoined).length 
+    const studentCount = sessionData?.studentsJoined
+      ? Object.keys(sessionData.studentsJoined).length
       : 0;
 
     const isClassSession = !!classCode;
+    const siteName = isEduSite ? 'Music Room Tools' : 'Music Mind Academy';
 
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-white p-8">
-        {isClassSession ? (
-          /* Class session: show visual mockup of what students will see */
-          <>
-            <div className="text-center mb-8">
-              <div className="text-slate-400 text-xl mb-2">Go to</div>
-              <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-                {joinUrl}
-              </h1>
-            </div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-8">
+        {/* Logo + URL */}
+        <div className="text-center mb-6">
+          {!isEduSite && (
+            <img
+              src="/MusicMindAcademyLogo.png"
+              alt={siteName}
+              className="h-14 w-auto mx-auto mb-2"
+            />
+          )}
+          <h1 className="text-2xl font-bold text-gray-800 mb-1">{siteName}</h1>
+          <div className="text-gray-400 text-lg">
+            Go to <span className="font-semibold text-gray-700">{joinUrl}</span>
+          </div>
+        </div>
 
-            {/* Visual mockup of the Student Login card */}
-            <div className="flex items-center gap-8 mb-8">
-              {/* Step 1: Click Sign In */}
-              <div className="bg-white rounded-2xl p-8 text-center shadow-lg" style={{ minWidth: '280px' }}>
-                <div className="text-sm font-semibold text-slate-500 mb-1">Student Login</div>
-                <div className="text-xs text-slate-400 mb-5">Sign in to see your work and grades</div>
-                <div className="bg-purple-600 text-white font-semibold py-3 px-8 rounded-lg text-lg">
-                  Sign In
-                </div>
+        {/* Single card matching student /join page styling */}
+        <div className="w-full max-w-sm mb-8">
+          {isClassSession ? (
+            /* Classroom Mode (blue) */
+            <div className="bg-white rounded-xl shadow-md p-7 border border-gray-200 flex flex-col">
+              <div className="text-center mb-5">
+                <h2 className="text-xl font-semibold text-blue-800 mb-1">Classroom Mode</h2>
+                <p className="text-gray-500 text-sm">Sign in to see your work and grades</p>
               </div>
 
-              {/* Arrow */}
-              <div className="text-slate-500 text-4xl font-bold">→</div>
-
-              {/* Step 2: Click Join Class */}
-              <div className="bg-emerald-600 rounded-2xl p-8 text-center shadow-lg" style={{ minWidth: '280px' }}>
-                <div className="text-emerald-100 text-sm mb-3">Then click</div>
-                <div className="bg-white text-emerald-700 font-bold py-3 px-8 rounded-lg text-xl flex items-center justify-center gap-2">
-                  ▶ Join Class
-                </div>
+              <div className="bg-blue-700 text-white font-semibold py-3.5 px-4 rounded-lg text-lg text-center">
+                Sign In
               </div>
             </div>
-          </>
-        ) : (
-          /* Quick session: show visual mockup with code */
-          <>
-            {/* Label */}
-            <div className="mb-6">
-              <span className="bg-emerald-600 text-white text-lg font-semibold px-5 py-2 rounded-full">
-                Quick Session — No Accounts Needed
-              </span>
-            </div>
+          ) : (
+            /* Quick Session (green) */
+            <div className="bg-white rounded-xl shadow-md p-7 border border-gray-200 flex flex-col">
+              <div className="text-center mb-5">
+                <h2 className="text-xl font-semibold text-emerald-800 mb-1">Quick Session</h2>
+                <p className="text-gray-500 text-sm">Your teacher will show the code on screen</p>
+              </div>
 
-            <div className="text-center mb-8">
-              <div className="text-slate-400 text-xl mb-2">Go to</div>
-              <h1 className="text-5xl md:text-6xl font-bold text-white">
-                {joinUrl}
-              </h1>
-            </div>
-
-            {/* Visual mockup of the Start Lesson card */}
-            <div className="bg-white rounded-2xl p-8 mb-8 text-center shadow-lg" style={{ minWidth: '340px' }}>
-              <div className="text-sm font-semibold text-slate-500 mb-1">Start Lesson</div>
-              <div className="text-xs text-slate-400 mb-4">Your teacher will show the code on screen</div>
-              <div className="bg-gray-100 border-2 border-gray-300 rounded-lg py-4 px-6 mb-4">
-                <div className="text-6xl md:text-7xl font-bold font-mono tracking-widest text-blue-600">
-                  {displayCode}
+              <div className="mb-3">
+                <div className="bg-white border-2 border-gray-300 rounded-lg py-4 px-4 text-center">
+                  <div className="text-5xl font-bold font-mono tracking-[0.3em] text-gray-800">
+                    {displayCode}
+                  </div>
                 </div>
               </div>
-              <div className="bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg text-lg">
+              <div className="bg-emerald-700 text-white font-semibold py-3.5 px-4 rounded-lg text-lg text-center">
                 Join
               </div>
             </div>
-          </>
-        )}
+          )}
+        </div>
 
         {/* Student Count */}
-        <div className="flex items-center gap-3 text-2xl text-slate-300">
-          <Users size={28} />
+        <div className="flex items-center gap-3 text-xl text-gray-500">
+          <Users size={24} />
           <span>
             {studentCount === 0
               ? 'Waiting for students...'
@@ -2193,6 +2197,229 @@ const PresentationContent = ({
           subtitle={subtitle}
           currentStage={currentStage}
         />
+      );
+    }
+
+    // Composition Workspace - two modes:
+    // 1. Default: student iframe showing actual DAW (what teacher always sees)
+    // 2. Present mode: video on top, DAW track visualization + playback controls
+    if (type === 'composition-workspace') {
+      const { title, instruction, videos = [], bonusTip } = currentStageData.presentationView;
+      const previewVideo = videos[0]?.path || null;
+
+      // Format time as M:SS
+      const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+      };
+
+      // --- PRESENT MODE: video + DAW tracks + transport controls ---
+      if (compositionPresentMode) {
+        const decorativeLoops = [
+          { track: 0, left: 2, width: 22, color: '#3b82f6', name: 'Drums' },
+          { track: 0, left: 26, width: 22, color: '#3b82f6', name: 'Drums' },
+          { track: 0, left: 50, width: 22, color: '#3b82f6', name: 'Drums' },
+          { track: 0, left: 74, width: 22, color: '#3b82f6', name: 'Drums' },
+          { track: 1, left: 2, width: 46, color: '#8b5cf6', name: 'Bass' },
+          { track: 1, left: 50, width: 46, color: '#8b5cf6', name: 'Bass' },
+          { track: 2, left: 26, width: 46, color: '#10b981', name: 'Synth Pad' },
+          { track: 2, left: 74, width: 22, color: '#10b981', name: 'Synth Pad' },
+          { track: 3, left: 2, width: 22, color: '#f59e0b', name: 'Melody' },
+          { track: 3, left: 50, width: 46, color: '#f59e0b', name: 'Melody' },
+          { track: 4, left: 26, width: 22, color: '#ef4444', name: 'Piano' },
+          { track: 4, left: 74, width: 22, color: '#ef4444', name: 'Piano' },
+          { track: 5, left: 50, width: 22, color: '#06b6d4', name: 'Strings' },
+          { track: 5, left: 74, width: 22, color: '#06b6d4', name: 'Strings' },
+          { track: 6, left: 74, width: 22, color: '#ec4899', name: 'FX' },
+        ];
+        const totalTracks = 8;
+        const trackHeight = 36;
+        const playheadPercent = compositionDuration > 0 ? (compositionTime / compositionDuration) * 100 : 0;
+
+        const handleVideoTimeUpdate = () => {
+          const video = compositionVideoRef.current;
+          if (video) {
+            setCompositionTime(video.currentTime);
+            setCompositionDuration(video.duration || 60);
+          }
+        };
+
+        const handlePlayPause = () => {
+          const video = compositionVideoRef.current;
+          if (!video) return;
+          if (compositionPlaying) {
+            video.pause();
+            setCompositionPlaying(false);
+          } else {
+            video.play().catch(() => {});
+            setCompositionPlaying(true);
+          }
+        };
+
+        const handleRestart = () => {
+          const video = compositionVideoRef.current;
+          if (!video) return;
+          video.currentTime = 0;
+          setCompositionTime(0);
+        };
+
+        const handleSkip = (delta) => {
+          const video = compositionVideoRef.current;
+          if (!video) return;
+          video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + delta));
+        };
+
+        const handleTimelineClick = (e) => {
+          const video = compositionVideoRef.current;
+          if (!video) return;
+          const rect = e.currentTarget.getBoundingClientRect();
+          const percent = (e.clientX - rect.left) / rect.width;
+          video.currentTime = percent * (video.duration || 60);
+        };
+
+        return (
+          <div className="absolute inset-0 flex flex-col bg-gray-950">
+            {/* Close present mode button */}
+            <button
+              onClick={() => { setCompositionPresentMode(false); setCompositionPlaying(false); }}
+              className="absolute top-3 right-3 z-20 p-2 bg-gray-800 hover:bg-gray-700 rounded-full text-white transition-colors"
+              title="Exit Present Mode"
+            >
+              <X size={20} />
+            </button>
+
+            {/* Top: Video area */}
+            <div className="flex-shrink-0 bg-black flex items-center justify-center" style={{ height: '42%' }}>
+              {previewVideo ? (
+                <video
+                  ref={compositionVideoRef}
+                  src={previewVideo}
+                  playsInline
+                  onTimeUpdate={handleVideoTimeUpdate}
+                  onLoadedMetadata={(e) => setCompositionDuration(e.target.duration)}
+                  onEnded={() => setCompositionPlaying(false)}
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <div className="text-white/20 text-2xl">No video preview</div>
+              )}
+            </div>
+
+            {/* Middle: DAW-style track lanes */}
+            <div className="flex-1 flex flex-col bg-gray-900 border-t border-gray-700 overflow-hidden">
+              {/* Track lanes */}
+              <div className="flex-1 relative overflow-hidden">
+                {Array.from({ length: totalTracks }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`absolute left-0 right-0 border-b border-gray-800 flex ${
+                      i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-900/50'
+                    }`}
+                    style={{ top: i * trackHeight, height: trackHeight }}
+                  >
+                    <div className="w-16 flex-shrink-0 flex items-center px-2 border-r border-gray-700 bg-gray-800/30">
+                      <span className="text-[10px] text-gray-500 truncate">Track {i + 1}</span>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Decorative loop blocks */}
+                {decorativeLoops.map((loop, idx) => (
+                  <div
+                    key={idx}
+                    className="absolute rounded overflow-hidden"
+                    style={{
+                      left: `calc(64px + ${loop.left}%)`,
+                      width: `${loop.width * 0.88}%`,
+                      top: loop.track * trackHeight + 3,
+                      height: trackHeight - 6,
+                      backgroundColor: loop.color,
+                      opacity: 0.85
+                    }}
+                  >
+                    <div className="px-1.5 py-0.5 text-[10px] text-white truncate font-medium">{loop.name}</div>
+                    <div className="absolute inset-x-0 bottom-0 h-2.5 flex items-end gap-px px-1 opacity-30">
+                      {Array.from({ length: 20 }).map((_, j) => (
+                        <div key={j} className="flex-1 bg-white rounded-t" style={{ height: `${20 + Math.sin(j * 0.8 + idx) * 60 + 20}%` }} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Playhead - synced to video time */}
+                <div
+                  className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10 pointer-events-none transition-all duration-100"
+                  style={{ left: `calc(64px + ${playheadPercent * 0.88}%)` }}
+                >
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 rounded-full" />
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom: Transport controls */}
+            <div className="flex-shrink-0 h-14 bg-gray-800 border-t border-gray-700 flex items-center justify-center gap-3 px-6">
+              <button onClick={handleRestart} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors" title="Restart">
+                <RotateCcw size={16} />
+              </button>
+              <button onClick={() => handleSkip(-5)} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors" title="Back 5s">
+                <SkipBack size={16} />
+              </button>
+              <button onClick={handlePlayPause} className="p-3 bg-blue-600 hover:bg-blue-500 rounded-full text-white transition-colors" title={compositionPlaying ? 'Pause' : 'Play'}>
+                {compositionPlaying ? <Pause size={22} /> : <Play size={22} className="ml-0.5" />}
+              </button>
+              <button onClick={() => handleSkip(5)} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors" title="Forward 5s">
+                <SkipForward size={16} />
+              </button>
+
+              {/* Timeline scrubber */}
+              <div className="flex-1 max-w-md mx-3 h-2 bg-gray-700 rounded cursor-pointer relative" onClick={handleTimelineClick}>
+                <div className="h-full bg-blue-600 rounded transition-all duration-100" style={{ width: `${playheadPercent}%` }} />
+              </div>
+
+              <span className="text-white font-mono text-sm min-w-[80px]">
+                {formatTime(compositionTime)} / {formatTime(compositionDuration)}
+              </span>
+
+              <div className="flex items-center gap-2 ml-2">
+                <Volume2 size={16} className="text-gray-400" />
+                <input
+                  type="range" min="0" max="1" step="0.05"
+                  value={compositionVolume}
+                  onChange={(e) => {
+                    const vol = parseFloat(e.target.value);
+                    setCompositionVolume(vol);
+                    if (compositionVideoRef.current) compositionVideoRef.current.volume = vol;
+                  }}
+                  className="w-20 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // --- DEFAULT MODE: student iframe (the actual DAW) + Present button ---
+      return (
+        <div className="absolute inset-0 bg-gray-900">
+          {/* Student DAW via iframe */}
+          <iframe
+            src={`${window.location.origin}/join?code=${displayCode}&preview=true&passive=true`}
+            className="absolute inset-0 w-full h-full border-none"
+            title="Student DAW View"
+            allow="autoplay"
+          />
+
+          {/* Present button - floating in bottom-right */}
+          <button
+            onClick={() => setCompositionPresentMode(true)}
+            className="absolute bottom-4 right-4 z-10 flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow-lg transition-colors"
+            title="Present: Video + DAW view"
+          >
+            <Presentation size={18} />
+            <span>Present</span>
+          </button>
+        </div>
       );
     }
 
@@ -3795,9 +4022,10 @@ const TeacherLessonView = ({
     return () => clearInterval(interval);
   }, [classroomTimer.isRunning, playTimerEndSound]);
 
-  // Check if current stage is a saveable activity (composition or listening map)
+  // Check if current stage is a saveable activity (composition, listening map, or listening journey)
   const isSaveableActivity = currentStageData?.type === 'activity' &&
-    (currentStageData?.id?.includes('composition') || currentStageData?.id?.includes('listening-map'));
+    (currentStageData?.id?.includes('composition') || currentStageData?.id?.includes('listening-map') ||
+     currentStageData?.id === 'animator-directions' || currentStageData?.id === 'build-time');
 
   // Send save command to all students via Firebase
   const sendSaveCommand = async () => {
@@ -4476,7 +4704,7 @@ const TeacherLessonView = ({
               ) : (
                 <>
                   <p className="text-gray-700 text-lg mb-2">
-                    All student compositions will be saved automatically.
+                    All student work will be saved automatically.
                   </p>
                   <p className="text-gray-500 text-sm">
                     Students will see their work on the Join page.

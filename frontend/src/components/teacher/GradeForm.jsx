@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Check, ChevronDown, ChevronRight, Loader2, Settings, Plus, Minus, Trash2, BookOpen, Trophy } from 'lucide-react';
-import { gradeSubmission } from '../../firebase/grades';
+import { gradeSubmission, deleteGrade } from '../../firebase/grades';
 import { saveRubricTemplate, getRubricTemplates, deleteRubricTemplate } from '../../firebase/rubrics';
 import { useFirebaseAuth } from '../../context/FirebaseAuthContext';
 
@@ -33,6 +33,26 @@ const DEFAULT_CRITERIA = [
   { name: 'Completion' }
 ];
 
+const LOOP_LAB_CRITERIA = [
+  { name: 'Mood' },
+  { name: 'Layering' },
+  { name: 'Structure' },
+  { name: 'Creativity' }
+];
+
+const LISTENING_LAB_CRITERIA = [
+  { name: 'Accuracy' },
+  { name: 'Vocabulary' },
+  { name: 'Completeness' },
+  { name: 'Effort' }
+];
+
+const getDefaultCriteria = (lessonId) => {
+  if (lessonId?.startsWith('fm-')) return LOOP_LAB_CRITERIA;
+  if (lessonId?.startsWith('ll-')) return LISTENING_LAB_CRITERIA;
+  return DEFAULT_CRITERIA;
+};
+
 const GradeForm = ({ student, lesson, activity, classId, currentGrade, submission, onSave, compact = false, maxPointsProp, onMaxPointsChange, onCriteriaChanged }) => {
   const { user } = useFirebaseAuth();
   const effectiveUid = student?.studentUid || (student?.seatNumber != null ? `seat-${student.seatNumber}` : null);
@@ -45,7 +65,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
 
   // Rubric state
   const [showRubric, setShowRubric] = useState(false);
-  const [criteria, setCriteria] = useState(DEFAULT_CRITERIA.map(c => ({ ...c, selectedLevel: null, pointsOverride: null })));
+  const [criteria, setCriteria] = useState(getDefaultCriteria(lesson?.id).map(c => ({ ...c, selectedLevel: null, pointsOverride: null })));
   const [editingRubric, setEditingRubric] = useState(false);
   const [criteriaBeforeEdit, setCriteriaBeforeEdit] = useState(null);
 
@@ -88,7 +108,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
       })));
       setShowRubric(true);
     } else {
-      setCriteria(DEFAULT_CRITERIA.map(c => ({ ...c, selectedLevel: null, pointsOverride: null })));
+      setCriteria(getDefaultCriteria(lesson?.id).map(c => ({ ...c, selectedLevel: null, pointsOverride: null })));
     }
 
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -178,6 +198,27 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
     }
   }, [points, maxPoints, criteria, selectedFeedback, comment, effectiveUid, classId, lesson, activity, user, onSave]);
 
+  // Clear grade entirely (make ungraded)
+  const handleClearGrade = useCallback(async () => {
+    if (!effectiveUid) return;
+    setSaving(true);
+    try {
+      await deleteGrade(classId, effectiveUid, lesson.id);
+      setPoints('');
+      setSelectedFeedback([]);
+      setComment('');
+      setCriteria(prev => prev.map(c => ({ ...c, selectedLevel: null, pointsOverride: null })));
+      setSaved(true);
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+      savedTimerRef.current = setTimeout(() => setSaved(false), 2000);
+      onSave(effectiveUid, lesson.id, null);
+    } catch (err) {
+      console.error('Error clearing grade:', err);
+    } finally {
+      setSaving(false);
+    }
+  }, [effectiveUid, classId, lesson, onSave]);
+
   // Points blur → save
   const handlePointsBlur = () => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -261,7 +302,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
     setEditingRubric(true);
   };
 
-  // Finish editing — check if criteria changed, confirm, propagate
+  // Finish editing — check if criteria changed, confirm, propagate, save current student
   const finishEditingRubric = () => {
     setEditingRubric(false);
 
@@ -272,9 +313,22 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
       criteria.length !== criteriaBeforeEdit.length ||
       criteria.some((c, i) => c.name !== criteriaBeforeEdit[i]?.name);
 
-    if (changed && onCriteriaChanged) {
-      if (window.confirm('Apply this rubric change to every student for this assignment?')) {
-        onCriteriaChanged(criteria.map(c => ({ name: c.name })));
+    if (changed) {
+      // Recalculate and save current student's grade with updated criteria
+      const total = getRubricTotal(criteria);
+      if (total !== null) {
+        setPoints(total.toString());
+        doSave({ points: total.toString(), criteria });
+      } else if (points) {
+        // Criteria changed but not all scored — still save the new criteria structure
+        doSave({ criteria });
+      }
+
+      // Propagate to other students
+      if (onCriteriaChanged) {
+        if (window.confirm('Apply this rubric change to every student for this assignment?')) {
+          onCriteriaChanged(criteria.map(c => ({ name: c.name })));
+        }
       }
     }
 
@@ -339,6 +393,15 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
         <div className="flex items-center gap-1 ml-1">
           {saving && <Loader2 size={16} className="text-blue-500 animate-spin" />}
           {saved && <Check size={16} className="text-green-500" />}
+          {currentGrade?.points != null && !saving && (
+            <button
+              onClick={handleClearGrade}
+              className="p-1 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+              title="Clear grade"
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
         </div>
       </div>
 

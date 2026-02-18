@@ -12,7 +12,6 @@
         }
       }
     },
-
     "session-logs": {
       "$sessionCode": {
         "$studentId": {
@@ -25,7 +24,6 @@
         }
       }
     },
-
     "all-problems": {
       ".read": "auth != null",
       ".write": true,
@@ -34,21 +32,18 @@
         ".validate": "newData.hasChildren(['type', 'timestamp']) && newData.child('type').isString() && newData.child('type').val().length < 50 && newData.child('timestamp').isNumber()"
       }
     },
-
     "compositions": {
       "$shareCode": {
         ".read": true,
         ".write": true
       }
     },
-
     "partnerGames": {
       "$code": {
         ".read": true,
         ".write": true
       }
     },
-
     "reflections": {
       "$sessionCode": {
         "$studentId": {
@@ -57,12 +52,10 @@
         }
       }
     },
-
     "approvedEmails": {
       ".read": "auth != null",
       ".write": "auth != null && (auth.token.email == 'robtaube90@gmail.com' || auth.token.email == 'robtaube92@gmail.com')"
     },
-
     "users": {
       ".read": "auth != null && (auth.token.email == 'robtaube90@gmail.com' || auth.token.email == 'robtaube92@gmail.com')",
       ".write": "auth != null && (auth.token.email == 'robtaube90@gmail.com' || auth.token.email == 'robtaube92@gmail.com')",
@@ -71,14 +64,12 @@
         ".write": "auth != null && auth.uid == $uid"
       }
     },
-
     "teacherClasses": {
       "$uid": {
         ".read": "auth != null && auth.uid == $uid",
         ".write": "auth != null && auth.uid == $uid"
       }
     },
-
     "teacherAnalytics": {
       ".read": "auth != null && (auth.token.email == 'robtaube90@gmail.com' || auth.token.email == 'robtaube92@gmail.com')",
       "$uid": {
@@ -86,31 +77,26 @@
         ".write": "auth != null && auth.uid == $uid"
       }
     },
-
     "pilotSessions": {
       ".read": "auth != null",
       ".write": "auth != null"
     },
-
     "teacherOutreach": {
       ".read": "auth != null && (auth.token.email == 'robtaube90@gmail.com' || auth.token.email == 'robtaube92@gmail.com')",
       ".write": "auth != null && (auth.token.email == 'robtaube90@gmail.com' || auth.token.email == 'robtaube92@gmail.com')"
     },
-
     "teachers": {
       "$uid": {
         ".read": "auth != null && auth.uid == $uid",
         ".write": "auth != null && auth.uid == $uid"
       }
     },
-
     "students": {
       "$uid": {
         ".read": "auth != null && auth.uid == $uid",
         ".write": "auth != null && auth.uid == $uid"
       }
     },
-
     "classes": {
       "$classId": {
         ".read": true,
@@ -129,21 +115,18 @@
         }
       }
     },
-
     "classCodes": {
       "$code": {
         ".read": true,
         ".write": "auth != null"
       }
     },
-
     "usernames": {
       "$username": {
         ".read": true,
         ".write": "auth != null"
       }
     },
-
     "classRosters": {
       "$classId": {
         ".read": "auth != null && root.child('classes').child($classId).child('teacherUid').val() == auth.uid",
@@ -153,7 +136,6 @@
         }
       }
     },
-
     "pinHashes": {
       "$classId": {
         ".read": "auth != null && root.child('classes').child($classId).child('teacherUid').val() == auth.uid",
@@ -164,7 +146,6 @@
         }
       }
     },
-
     "pinLoginAttempts": {
       "$classId": {
         ".read": "auth != null && root.child('classes').child($classId).child('teacherUid').val() == auth.uid",
@@ -175,14 +156,12 @@
         }
       }
     },
-
     "studentEnrollments": {
       "$studentUid": {
         ".read": "auth != null && auth.uid == $studentUid",
         ".write": "auth != null && (auth.uid == $studentUid || root.child('teachers').child(auth.uid).exists())"
       }
     },
-
     "studentWork": {
       "$studentUid": {
         ".read": "auth != null && (auth.uid == $studentUid || root.child('teachers').child(auth.uid).exists())",
@@ -193,7 +172,6 @@
         }
       }
     },
-
     "submissions": {
       "$classId": {
         ".read": "auth != null && root.child('classes').child($classId).child('teacherUid').val() == auth.uid",
@@ -206,21 +184,18 @@
         }
       }
     },
-
     "rubrics": {
       "$uid": {
         ".read": "auth != null && auth.uid == $uid",
         ".write": "auth != null && auth.uid == $uid"
       }
     },
-
     "answerKeys": {
       "$uid": {
         ".read": "auth != null && auth.uid == $uid",
         ".write": "auth != null && auth.uid == $uid"
       }
     },
-
     "grades": {
       "$classId": {
         ".read": "auth != null && root.child('classes').child($classId).child('teacherUid').val() == auth.uid",
@@ -230,7 +205,6 @@
         }
       }
     },
-
     "conductedLessons": {
       "$classId": {
         ".read": true,

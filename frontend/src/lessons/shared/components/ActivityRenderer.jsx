@@ -247,6 +247,7 @@ const ActivityRenderer = ({
       return (
         <TwoStarsAndAWishActivity
           key={`reflection-${activity.id}`}
+          activityId={activity.activityId || null}
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}
@@ -326,6 +327,7 @@ const ActivityRenderer = ({
           title="Score the Adventure"
           videoPath="/lessons/film-music-project/lesson1/NatureDroneFootage.mp4"
           storageKey="adventure-composition"
+          reflectionActivityId="fm-lesson1-reflection"
         />
       );
 
@@ -557,6 +559,7 @@ const ActivityRenderer = ({
       return (
         <TwoStarsAndAWishActivity
           key={`listening-lab-reflection-${activity.id}`}
+          activityId="ll-lesson1-reflection"
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}
@@ -679,6 +682,7 @@ const ActivityRenderer = ({
       return (
         <TwoStarsAndAWishActivity
           key={`listening-lab-lesson2-reflection-${activity.id}`}
+          activityId="ll-lesson2-reflection"
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}
@@ -722,6 +726,7 @@ const ActivityRenderer = ({
       return (
         <TwoStarsAndAWishActivity
           key={`listening-lab-lesson3-reflection-${activity.id}`}
+          activityId="ll-lesson3-reflection"
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}
@@ -765,6 +770,7 @@ const ActivityRenderer = ({
       return (
         <TwoStarsAndAWishActivity
           key={`listening-lab-lesson4-reflection-${activity.id}`}
+          activityId="ll-lesson4-reflection"
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}
@@ -835,6 +841,7 @@ const ActivityRenderer = ({
       return (
         <TwoStarsAndAWishActivity
           key={`listening-lab-lesson5-reflection-${activity.id}`}
+          activityId="ll-lesson5-reflection"
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}

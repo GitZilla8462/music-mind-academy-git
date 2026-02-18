@@ -35,8 +35,20 @@ export const gradeSubmission = async (classId, studentUid, lessonId, gradeData, 
   // Build a display-friendly grade value for the submission record
   const gradeDisplay = gradeData.grade || null;
 
-  // Also update the submission record to mark it as graded
-  const submissionRef = ref(database, `submissions/${classId}/${lessonId}/${studentUid}`);
+  // Update submission record — try new path first (with activityId), fall back to old path
+  const actId = gradeData.activityId;
+  const newRef = actId ? ref(database, `submissions/${classId}/${lessonId}/${actId}/${studentUid}`) : null;
+  const oldRef = ref(database, `submissions/${classId}/${lessonId}/${studentUid}`);
+
+  // Check new path first, then old path
+  let submissionRef = oldRef;
+  if (newRef) {
+    const newSnap = await get(newRef);
+    if (newSnap.exists()) {
+      submissionRef = newRef;
+    }
+  }
+
   await update(submissionRef, {
     status: 'graded',
     grade: gradeDisplay,
@@ -190,15 +202,22 @@ export const getAllClassSubmissions = async (classId) => {
 
   // Iterate through lessons
   for (const lessonId of Object.keys(data)) {
-    const lessonSubmissions = data[lessonId];
+    const lessonData = data[lessonId];
 
-    // Iterate through students
-    for (const studentUid of Object.keys(lessonSubmissions)) {
-      submissions.push({
-        ...lessonSubmissions[studentUid],
-        lessonId,
-        studentUid
-      });
+    for (const key of Object.keys(lessonData)) {
+      const val = lessonData[key];
+      if (val && val.submittedAt) {
+        // Old format: key is studentUid directly
+        submissions.push({ ...val, lessonId, studentUid: key });
+      } else if (val && typeof val === 'object') {
+        // New format: key is activityId, children are studentUids
+        for (const studentUid of Object.keys(val)) {
+          const subData = val[studentUid];
+          if (subData && subData.submittedAt) {
+            submissions.push({ ...subData, lessonId, studentUid, activityId: key });
+          }
+        }
+      }
     }
   }
 
@@ -257,70 +276,75 @@ export const getPendingSubmissionsCount = async (classId) => {
  * @returns {Array} Array of student's submissions
  */
 export const getStudentSubmissions = async (classId, studentUid) => {
+  const submissions = [];
+
   try {
-    // Try class-level read (works for teachers who have class-level permission)
+    // Try class-level read first (works for teachers who have class-level permission)
     const submissionsRef = ref(database, `submissions/${classId}`);
     const snapshot = await get(submissionsRef);
 
-    if (!snapshot.exists()) return [];
+    if (snapshot.exists()) {
+      const data = snapshot.val();
 
-    const submissions = [];
-    const data = snapshot.val();
+      for (const lessonId of Object.keys(data)) {
+        const lessonData = data[lessonId];
 
-    for (const lessonId of Object.keys(data)) {
-      const lessonSubmissions = data[lessonId];
-      if (lessonSubmissions[studentUid]) {
-        submissions.push({
-          ...lessonSubmissions[studentUid],
-          lessonId,
-          studentUid
-        });
+        for (const key of Object.keys(lessonData)) {
+          const val = lessonData[key];
+          if (key === studentUid && val && val.submittedAt) {
+            // Old format: key is studentUid directly
+            submissions.push({ ...val, lessonId, studentUid });
+          } else if (val && typeof val === 'object' && val[studentUid]?.submittedAt) {
+            // New format: key is activityId, check for studentUid underneath
+            submissions.push({ ...val[studentUid], lessonId, activityId: key, studentUid });
+          }
+        }
       }
     }
-
-    submissions.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
-    return submissions;
   } catch {
-    // Student doesn't have class-level permission — read their own work keys
-    // to discover which lessons they've submitted to, then read each individually
-    const submissions = [];
+    // Class-level read failed (permission denied for students) — use per-activity reads
+    // Iterate over all known activities from curriculum config and try each specific path
+    const { CURRICULUM } = await import('../config/curriculumConfig');
 
-    try {
-      const workRef = ref(database, `studentWork/${studentUid}`);
-      const workSnap = await get(workRef);
+    for (const unit of CURRICULUM) {
+      for (const lesson of unit.lessons) {
+        if (!lesson.route) continue; // skip unbuilt lessons
 
-      if (workSnap.exists()) {
-        const workData = workSnap.val();
-        // Extract unique lessonIds from work keys (format: "lessonId-activityId")
-        const lessonIds = new Set();
-        for (const workKey of Object.keys(workData)) {
-          const lessonId = workData[workKey]?.lessonId || workKey.split('-').slice(0, -1).join('-') || 'unknown';
-          lessonIds.add(lessonId);
-        }
-        // Also check common lesson ID patterns
-        lessonIds.add('unknown');
-
-        for (const lessonId of lessonIds) {
+        for (const activity of lesson.activities) {
           try {
-            const subRef = ref(database, `submissions/${classId}/${lessonId}/${studentUid}`);
+            // New format: submissions/{classId}/{lessonId}/{activityId}/{studentUid}
+            const subRef = ref(database, `submissions/${classId}/${lesson.id}/${activity.id}/${studentUid}`);
             const subSnap = await get(subRef);
             if (subSnap.exists()) {
               submissions.push({
                 ...subSnap.val(),
-                lessonId,
+                lessonId: lesson.id,
+                activityId: activity.id,
                 studentUid
               });
             }
           } catch {
-            // Skip lessons we can't access
+            // Skip paths we can't access
           }
         }
-      }
-    } catch {
-      // If studentWork read also fails, return empty
-    }
 
-    submissions.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
-    return submissions;
+        // Also try old format: submissions/{classId}/{lessonId}/{studentUid}
+        try {
+          const oldRef = ref(database, `submissions/${classId}/${lesson.id}/${studentUid}`);
+          const oldSnap = await get(oldRef);
+          if (oldSnap.exists()) {
+            const val = oldSnap.val();
+            if (val?.submittedAt) {
+              submissions.push({ ...val, lessonId: lesson.id, studentUid });
+            }
+          }
+        } catch {
+          // Skip
+        }
+      }
+    }
   }
+
+  submissions.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
+  return submissions;
 };

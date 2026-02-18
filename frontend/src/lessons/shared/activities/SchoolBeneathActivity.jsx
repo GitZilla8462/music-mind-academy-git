@@ -1,7 +1,7 @@
 // File: SchoolBeneathActivity.jsx
 // File: SchoolBeneathActivity.jsx
 // SIMPLIFIED VERSION - All loops + sound effects from start, no submit button, reflection modal on teacher command
-// âœ… UPDATED: Added "View My Reflection & Composition" functionality
+// ✅ UPDATED: Added "View My Reflection & Composition" functionality
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -38,7 +38,8 @@ const SchoolBeneathActivity = ({
   // Customizable props for different compositions
   title = 'The School Beneath',
   videoPath = '/lessons/videos/film-music-loop-project/SchoolMystery.mp4',
-  storageKey = 'school-beneath'
+  storageKey = 'school-beneath',
+  reflectionActivityId = null
 }) => {
   const navigate = useNavigate();
 
@@ -52,16 +53,16 @@ const SchoolBeneathActivity = ({
   const componentMountTimeRef = useRef(Date.now());
   const isResettingRef = useRef(false); // Prevents unmount auto-save during reset
   const [teacherSaveToast, setTeacherSaveToast] = useState(false);
-  
+
   // Reflection flow states
   const [showReflection, setShowReflection] = useState(false);
   const [reflectionCompleted, setReflectionCompleted] = useState(false);
-  const [viewingReflection, setViewingReflection] = useState(false); // âœ… NEW: For viewing completed reflection
+  const [viewingReflection, setViewingReflection] = useState(false); // ✅ NEW: For viewing completed reflection
   const [showBonusGame, setShowBonusGame] = useState(false);
-  
+
   // Student ID
   const [studentId, setStudentId] = useState('');
-  
+
   // Initialize student ID
   useEffect(() => {
     let id = localStorage.getItem('anonymous-student-id');
@@ -70,10 +71,10 @@ const SchoolBeneathActivity = ({
       localStorage.setItem('anonymous-student-id', id);
     }
     setStudentId(id);
-    console.log('ðŸ” Student ID:', id);
+    console.log('🔑 Student ID:', id);
   }, []);
-  
-  // âœ… NEW: Check if reflection is already completed on mount
+
+  // ✅ NEW: Check if reflection is already completed on mount
   useEffect(() => {
     const savedReflection = localStorage.getItem(`${storageKey}-reflection`);
     if (savedReflection) {
@@ -81,14 +82,14 @@ const SchoolBeneathActivity = ({
         const data = JSON.parse(savedReflection);
         if (data.submittedAt) {
           setReflectionCompleted(true);
-          console.log('âœ… Found completed reflection on mount');
+          console.log('✅ Found completed reflection on mount');
         }
       } catch (error) {
         console.error('Error loading reflection:', error);
       }
     }
   }, [storageKey]);
-  
+
   // Composition state
   const [placedLoops, setPlacedLoops] = useState([]);
   const [resetKey, setResetKey] = useState(0); // Used to force DAW remount on reset
@@ -107,13 +108,13 @@ const SchoolBeneathActivity = ({
   // ============================================================================
   // AUTO-SAVE
   // ============================================================================
-  
+
   const compositionData = {
     placedLoops,
     videoDuration,
     timestamp: Date.now()
   };
-  
+
   const { lastSaved, isSaving, hasSavedWork, loadSavedWork } = useAutoSave(
     studentId,
     storageKey,
@@ -293,20 +294,20 @@ const SchoolBeneathActivity = ({
     console.log('ℹ️ No saved work found');
     hasLoadedRef.current = true;
   }, [studentId, viewMode, storageKey]);
-  
+
   // ============================================================================
   // REFLECTION DETECTION
   // ============================================================================
-  
+
   useEffect(() => {
-    console.log('ðŸ” Reflection Check:', {
+    console.log('🔍 Reflection Check:', {
       isReflectionStage,
       reflectionCompleted,
       studentId,
       showReflection,
       viewingReflection
     });
-    
+
     // Show reflection when teacher advances to reflection stage
     // Only show if:
     // - Not already showing the reflection modal
@@ -314,31 +315,31 @@ const SchoolBeneathActivity = ({
     // - Not viewing the bonus game
     // - Have a valid student ID
     if (isReflectionStage && !showReflection && !viewingReflection && !reflectionCompleted && !showBonusGame && studentId) {
-      console.log('âœ… Showing reflection modal');
+      console.log('✅ Showing reflection modal');
       setShowReflection(true);
     }
   }, [isReflectionStage, reflectionCompleted, studentId, showReflection, viewingReflection, showBonusGame]);
-  
+
   // ============================================================================
-  // âœ… NEW: REFLECTION VIEW HANDLERS
+  // ✅ NEW: REFLECTION VIEW HANDLERS
   // ============================================================================
-  
+
   const handleViewReflection = () => {
-    console.log('ðŸ‘€ Opening reflection in view mode');
+    console.log('👀 Opening reflection in view mode');
     setViewingReflection(true);
     setShowReflection(true);
   };
-  
+
   const handleCloseReflectionView = () => {
-    console.log('âŒ Closing reflection view');
+    console.log('❌ Closing reflection view');
     setViewingReflection(false);
     setShowReflection(false);
   };
-  
+
   // ============================================================================
   // TIMER (self-guided mode only)
   // ============================================================================
-  
+
   useEffect(() => {
     if (!lessonStartTime || viewMode || isSessionMode) return;
 
@@ -434,11 +435,11 @@ const SchoolBeneathActivity = ({
       videoElement.src = '';
     };
   }, [videoPath]);
-  
+
   // ============================================================================
   // LOOP HANDLERS
   // ============================================================================
-  
+
   // FIX: Receive full loop object from useLoopHandlers (not raw params)
   // useLoopHandlers already creates the loop with proper ID, so just use it directly
   const handleLoopPlaced = (loop) => {
@@ -463,7 +464,7 @@ const SchoolBeneathActivity = ({
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
-  
+
   // ============================================================================
   // LOADING STATE - Skip if in reflection mode (modal can show while loading)
   // ============================================================================
@@ -478,15 +479,15 @@ const SchoolBeneathActivity = ({
       </div>
     );
   }
-  
+
   // ============================================================================
   // BONUS GAME
   // ============================================================================
-  
+
   // ============================================================================
   // BONUS GAME - Now renders as overlay to prevent composition from unmounting
   // ============================================================================
-  
+
   // BONUS GAME moved to overlay at bottom of component
 
   // ============================================================================
@@ -534,69 +535,42 @@ const SchoolBeneathActivity = ({
 
       {/* Header */}
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">
-        <div className="px-4 py-2 flex items-center justify-between">
-          <h2 className="text-sm font-bold">
+        <div className="px-4 py-2 flex items-center">
+          <h2 className="text-sm font-bold flex-shrink-0">
             {title} - Composition
           </h2>
-          
-          <div className="flex items-center gap-4">
-            {/* ✅ SAVE BUTTON */}
+
+          <div className="flex items-center gap-2 flex-1 ml-4">
+            {/* Left: Reset button */}
             {studentId && placedLoops.length > 0 && !viewMode && (
-              <>
-                <button
-                  onClick={() => handleManualSave()}
-                  className="px-4 py-1.5 text-sm rounded bg-green-600 hover:bg-green-700 font-bold transition-colors"
-                >
-                  💾 Save
-                </button>
-                <button
-                  onClick={() => {
-                    if (window.confirm('Are you sure you want to start over? This will clear all your loops and cannot be undone.')) {
-                      // Set flag to prevent unmount auto-save from re-saving the old loops
-                      isResettingRef.current = true;
-
-                      // Clear state
-                      setPlacedLoops([]);
-
-                      // Clear ALL localStorage saves for this composition (handles all key patterns)
-                      clearAllCompositionSaves(storageKey, studentId);
-
-                      // Reset the loaded flag so it doesn't try to reload
-                      hasLoadedRef.current = false;
-
-                      // Force DAW remount
-                      setResetKey(prev => prev + 1);
-
-                      // Clear the reset flag after remount completes
-                      setTimeout(() => {
-                        isResettingRef.current = false;
-                      }, 100);
-
-                      console.log('🔄 Composition reset - cleared state and all localStorage');
-                    }
-                  }}
-                  className="px-4 py-1.5 text-sm rounded bg-red-600 hover:bg-red-700 font-bold transition-colors"
-                >
-                  🔄 Reset
-                </button>
-              </>
+              <button
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to start over? This will clear all your loops and cannot be undone.')) {
+                    isResettingRef.current = true;
+                    setPlacedLoops([]);
+                    clearAllCompositionSaves(storageKey, studentId);
+                    hasLoadedRef.current = false;
+                    setResetKey(prev => prev + 1);
+                    setTimeout(() => { isResettingRef.current = false; }, 100);
+                    console.log('🔄 Composition reset - cleared state and all localStorage');
+                  }
+                }}
+                className="px-4 py-1.5 text-sm rounded bg-red-600 hover:bg-red-700 font-bold transition-colors"
+              >
+                🔄 Reset
+              </button>
             )}
 
-            {/* View reflection button (shows reflection modal over current composition) */}
+            {/* View reflection button */}
             {reflectionCompleted && !showReflection && (
               <button
                 onClick={handleViewReflection}
                 className="px-3 py-1.5 text-sm rounded bg-yellow-600 hover:bg-yellow-700 font-semibold transition-colors flex items-center gap-1"
               >
-                â­ View Reflection & Composition
+                ⭐ View Reflection & Composition
               </button>
             )}
-            
-            {/* Loop count */}
-            <div className="text-xs text-gray-400">
-              {placedLoops.length} loops
-            </div>
-            
+
             {/* Timer (self-guided mode) */}
             {lessonStartTime && !isSessionMode && (
               <div className="flex items-center gap-2 text-sm">
@@ -610,6 +584,28 @@ const SchoolBeneathActivity = ({
                   {isMuted ? '🔇' : '🔔'}
                 </button>
               </div>
+            )}
+
+            {/* Spacer */}
+            <div className="flex-1" />
+
+            {/* Right: Back to Student Dashboard + Save */}
+            {!viewMode && (
+              <button
+                onClick={() => navigate('/student/home')}
+                className="px-4 py-1.5 text-sm rounded bg-gray-600 hover:bg-gray-500 font-semibold transition-colors"
+              >
+                Back to Student Dashboard
+              </button>
+            )}
+
+            {studentId && placedLoops.length > 0 && !viewMode && (
+              <button
+                onClick={() => handleManualSave()}
+                className="px-4 py-1.5 text-sm rounded bg-green-600 hover:bg-green-700 font-bold transition-colors"
+              >
+                💾 Save
+              </button>
             )}
 
             {/* View mode back button */}
@@ -628,7 +624,7 @@ const SchoolBeneathActivity = ({
       {/* DAW */}
       <div className="flex-1 min-h-0">
         <MusicComposer
-          key={`composition-${resetKey}-${showBonusGame ? 'bonus' : 'active'}`}  // Includes resetKey to force remount on reset
+          key={`composition-${resetKey}-${showBonusGame ? 'bonus' : 'active'}`}
           onLoopDropCallback={handleLoopPlaced}
           onLoopDeleteCallback={handleLoopDeleted}
           onLoopUpdateCallback={handleLoopUpdated}
@@ -639,21 +635,20 @@ const SchoolBeneathActivity = ({
             duration: videoDuration,
             videoPath: videoPath
           }}
-          // ALL LOOPS AVAILABLE - Students can filter themselves
           restrictToCategory={null}
           lockedMood={null}
-          showSoundEffects={true}  // Checkbox appears (unchecked by default)
+          showSoundEffects={true}
           hideHeader={true}
           hideSubmitButton={true}
           isLessonMode={true}
           showToast={(msg, type) => console.log(msg, type)}
-          initialPlacedLoops={placedLoops}  // âœ… Always pass current loops
+          initialPlacedLoops={placedLoops}
           readOnly={viewMode || showReflection}
           assignmentPanelContent={null}
         />
       </div>
 
-      {/* âœ… UPDATED: Reflection Modal - handles both first-time and viewing */}
+      {/* ✅ UPDATED: Reflection Modal - handles both first-time and viewing */}
       {showReflection && (
         <ReflectionModal
           compositionData={{
@@ -663,7 +658,7 @@ const SchoolBeneathActivity = ({
           }}
           onComplete={() => {
             console.log('Reflection onComplete - viewingReflection:', viewingReflection);
-            
+
             // Always close modal and go to bonus game
             setReflectionCompleted(true);
             setShowReflection(false);
@@ -672,9 +667,10 @@ const SchoolBeneathActivity = ({
           }}
           viewMode={viewingReflection}
           isSessionMode={isSessionMode}
+          activityId={reflectionActivityId}
         />
       )}
-      
+
       {/* Bonus game as overlay - keeps composition mounted underneath */}
       {/* data-cursor-handled tells MusicComposer's CustomCursor to hide */}
       {/* restore-cursor overrides chromebook-hide-cursor from parent to show native cursor */}
@@ -685,7 +681,7 @@ const SchoolBeneathActivity = ({
               <h2 className="text-2xl font-bold text-white">Bonus: Name That Loop!</h2>
               <p className="text-blue-100">Play the listening game with a partner</p>
             </div>
-            
+
             <button
               onClick={() => setShowBonusGame(false)}
               className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
@@ -693,9 +689,9 @@ const SchoolBeneathActivity = ({
               Back to Composition
             </button>
           </div>
-          
+
           <div className="flex-1 overflow-hidden">
-            <NameThatLoopActivity 
+            <NameThatLoopActivity
               onComplete={() => {
                 console.log('Bonus complete');
               }}

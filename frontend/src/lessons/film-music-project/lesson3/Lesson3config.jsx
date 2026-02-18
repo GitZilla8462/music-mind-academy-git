@@ -247,7 +247,8 @@ export const lesson3Config = {
       id: 3,
       type: "two-stars-wish",
       title: "Reflection Activity",
-      estimatedTime: "2 min"
+      estimatedTime: "2 min",
+      activityId: "fm-lesson3-reflection"
     },
     {
       id: 4,
@@ -404,8 +405,15 @@ export const lessonStages = [
     hasTimer: true,
     duration: 12,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson3/slides/10.svg'
+      type: 'composition-workspace',
+      title: 'Wildlife Documentary',
+      instruction: 'Pick a wildlife video. Compose a soundtrack with sections.',
+      bonusTip: 'Bonus: Add More Sections!',
+      videos: [
+        { emoji: '🌲', title: 'Forest Creatures', path: '/lessons/film-music-project/lesson3/slides/ForestCreatures.mp4' },
+        { emoji: '🦁', title: 'Savanna Creatures', path: '/lessons/film-music-project/lesson3/slides/SavannaCreatures.mp4' },
+        { emoji: '🐠', title: 'Underwater Creatures', path: '/lessons/film-music-project/lesson3/slides/UnderwaterCreatures.mp4' }
+      ]
     }
   },
   // Reflection

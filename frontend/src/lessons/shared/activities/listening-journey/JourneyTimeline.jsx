@@ -28,7 +28,7 @@ const SceneCard = ({ env, onAdd }) => {
         e.dataTransfer.effectAllowed = 'copy';
       }}
       onClick={() => onAdd(env.id)}
-      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 bg-gray-800 hover:bg-gray-700 hover:border-white/30 cursor-grab active:cursor-grabbing transition-all text-xs whitespace-nowrap flex-shrink-0"
+      className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg border border-white/10 bg-gray-800 hover:bg-gray-700 hover:border-white/30 cursor-grab active:cursor-grabbing transition-all text-[11px] sm:text-xs whitespace-nowrap flex-shrink-0"
     >
       <div
         className="w-6 h-5 rounded-sm flex items-center justify-center text-sm"
@@ -69,11 +69,11 @@ const PresetPlaceholder = ({ section, totalDuration, isActive, isSelected, onDro
       >
         {/* Section color fill */}
         <div className="absolute inset-0" style={{ backgroundColor: section.color, opacity: 0.25 }} />
-        <div className="relative h-full flex items-center gap-1.5 px-2 z-10">
-          <span className="text-lg flex-shrink-0">{env.icon}</span>
+        <div className="relative h-full flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 z-10">
+          <span className="text-base sm:text-lg flex-shrink-0">{env.icon}</span>
           <div className="flex flex-col min-w-0">
-            <span className="text-[11px] font-extrabold truncate" style={{ color: section.color }}>Section {section.label} — {section.sectionLabel}</span>
-            <span className="text-[9px] font-semibold text-white/70">{env.name}</span>
+            <span className="text-[10px] sm:text-[11px] font-extrabold truncate" style={{ color: section.color }}>Section {section.label} — {section.sectionLabel}</span>
+            <span className="text-[8px] sm:text-[9px] font-semibold text-white/70">{env.name}</span>
           </div>
         </div>
         {/* X button to clear scene */}
@@ -108,9 +108,9 @@ const PresetPlaceholder = ({ section, totalDuration, isActive, isSelected, onDro
       } ${isActive && !isSelected ? 'ring-2 ring-white/30' : ''}`}
       style={{ left: `${startPct}%`, width: `${widthPct}%`, minWidth: '36px' }}
     >
-      <div className="relative h-full flex flex-col items-center justify-center z-10">
-        <span className="text-sm font-black text-white/70" style={{ color: section.color }}>Section {section.label} — {section.sectionLabel}</span>
-        <span className={`text-[9px] mt-0.5 ${isSelected ? 'text-yellow-400/70 font-semibold' : 'text-white/25'}`}>
+      <div className="relative h-full flex flex-col items-center justify-center z-10 px-1">
+        <span className="text-xs sm:text-sm font-black text-white/70 truncate max-w-full" style={{ color: section.color }}>Section {section.label} — {section.sectionLabel}</span>
+        <span className={`text-[8px] sm:text-[9px] mt-0.5 truncate max-w-full ${isSelected ? 'text-yellow-400/70 font-semibold' : 'text-white/25'}`}>
           {isSelected ? 'Now click a scene above' : 'Click to select, or drag a scene'}
         </span>
       </div>
@@ -140,11 +140,11 @@ const ClipBlock = ({ section, totalDuration, isActive, onClick, onRemove = null 
       <div className="absolute inset-0 bg-black/10" />
 
       {/* Content */}
-      <div className="relative h-full flex items-center gap-1.5 px-2 z-10">
-        <span className="text-xl flex-shrink-0 drop-shadow-lg">{env.icon}</span>
+      <div className="relative h-full flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 z-10">
+        <span className="text-base sm:text-xl flex-shrink-0 drop-shadow-lg">{env.icon}</span>
         <div className="flex flex-col min-w-0">
-          <span className="text-[11px] font-bold text-white drop-shadow-md truncate">{env.name}</span>
-          <span className="text-[9px] text-white/60 drop-shadow">{section.label} &middot; {durationSec}s</span>
+          <span className="text-[10px] sm:text-[11px] font-bold text-white drop-shadow-md truncate">{env.name}</span>
+          <span className="text-[8px] sm:text-[9px] text-white/60 drop-shadow">{section.label} &middot; {durationSec}s</span>
         </div>
       </div>
 
@@ -355,10 +355,15 @@ const JourneyTimeline = ({
   presetMode = false,
   hideScenes = false,
   onAssignScene,
-  onClearScene
+  onClearScene,
+  onScrubChange
 }) => {
   const clipStripRef = useRef(null);
-  const [isDraggingProgress, setIsDraggingProgress] = useState(false);
+  const [isDraggingProgress, setIsDraggingProgressRaw] = useState(false);
+  const setIsDraggingProgress = useCallback((v) => {
+    setIsDraggingProgressRaw(v);
+    if (onScrubChange) onScrubChange(v);
+  }, [onScrubChange]);
   const [draggingBoundary, setDraggingBoundary] = useState(null);
   const [isDraggingLastEdge, setIsDraggingLastEdge] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -477,9 +482,9 @@ const JourneyTimeline = ({
   return (
     <div className="flex flex-col gap-1.5">
       {/* Scene palette row */}
-      {!hideScenes && <div className="flex items-center gap-1.5">
-        <span className="text-[10px] text-white/40 font-bold uppercase w-12 flex-shrink-0">Scenes</span>
-        <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+      {!hideScenes && <div className="flex items-center gap-1 sm:gap-1.5">
+        <span className="text-[9px] sm:text-[10px] text-white/40 font-bold uppercase w-10 sm:w-12 flex-shrink-0">Scenes</span>
+        <div className="flex gap-1 sm:gap-1.5 overflow-x-auto pb-0.5">
           {ENVIRONMENTS.map(env => (
             <SceneCard
               key={env.id}
@@ -503,30 +508,30 @@ const JourneyTimeline = ({
       </div>}
 
       {/* Timeline: transport left, tracks right */}
-      <div className="flex gap-2 items-start">
+      <div className="flex gap-1.5 sm:gap-2 items-start">
         {/* Transport controls */}
-        <div className="flex flex-col items-center gap-1 flex-shrink-0 pt-2">
+        <div className="flex flex-col items-center gap-0.5 sm:gap-1 flex-shrink-0 pt-1 sm:pt-2">
           <div className="flex gap-1">
             <button
               onClick={onRewind}
-              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+              className="p-1 sm:p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
             >
               <RotateCcw size={14} />
             </button>
             <button
               onClick={onTogglePlay}
               disabled={!hasContent}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
                 hasContent ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white/5 text-white/20 cursor-not-allowed'
               }`}
             >
               {isPlaying ? <Pause size={16} /> : <Play size={16} />}
             </button>
           </div>
-          <span className="text-[10px] text-white/50 font-mono whitespace-nowrap">
+          <span className="text-[9px] sm:text-[10px] text-white/50 font-mono whitespace-nowrap">
             {formatTime(currentTime)}
           </span>
-          <span className="text-[10px] text-white/30 font-mono whitespace-nowrap">
+          <span className="text-[9px] sm:text-[10px] text-white/30 font-mono whitespace-nowrap">
             / {formatTime(totalDuration)}
           </span>
         </div>
@@ -539,7 +544,7 @@ const JourneyTimeline = ({
             className={`relative rounded-lg transition-colors select-none ${
               isDraggingProgress ? 'cursor-grabbing' : 'cursor-pointer'
             } ${isDragOver ? 'ring-2 ring-blue-400 bg-blue-400/5' : ''
-            } ${hasContent ? 'h-14' : 'h-20'}`}
+            } ${hasContent ? 'h-10 sm:h-12 lg:h-14' : 'h-14 sm:h-16 lg:h-20'}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}

@@ -247,7 +247,7 @@ const MusicLoopsInMediaHub = () => {
   const lessons = [
     // Lesson 1: Mood (Drone Footage)
     {
-      id: 'lesson1',
+      id: 'fm-lesson1',
       number: 1,
       icon: '🎬',
       title: 'Score the Adventure',
@@ -277,7 +277,7 @@ const MusicLoopsInMediaHub = () => {
     },
     // Lesson 2: Layers/Texture (City Soundscape)
     {
-      id: 'lesson2',
+      id: 'fm-lesson2',
       number: 2,
       icon: '🏙️',
       title: 'City Soundscapes',
@@ -303,7 +303,7 @@ const MusicLoopsInMediaHub = () => {
     },
     // Lesson 3: Form/Structure (Epic Wildlife)
     {
-      id: 'lesson3',
+      id: 'fm-lesson3',
       number: 3,
       icon: '🌍',
       title: 'Epic Wildlife',
@@ -330,7 +330,7 @@ const MusicLoopsInMediaHub = () => {
     },
     // Lesson 4: Beat/Rhythm (Sports Highlight)
     {
-      id: 'lesson4',
+      id: 'fm-lesson4',
       number: 4,
       icon: '🏀',
       title: 'Sports Highlight Reel',
@@ -358,7 +358,7 @@ const MusicLoopsInMediaHub = () => {
     },
     // Lesson 5: Melody & Contour (Game On!)
     {
-      id: 'lesson5',
+      id: 'fm-lesson5',
       number: 5,
       icon: '🎮',
       title: 'Game On!',

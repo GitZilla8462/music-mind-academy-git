@@ -1032,8 +1032,8 @@ const MusicComposer = ({
         onDeleteCustomLoop={handleDeleteCustomLoop}
         // Passive mode - disable video playback in iframe previews
         isPassive={isPassive}
-        // Full screen preview
-        onFullScreenClick={() => setFullScreenPreviewOpen(true)}
+        // Full screen preview (hidden in lesson mode)
+        onFullScreenClick={isLessonMode ? undefined : () => setFullScreenPreviewOpen(true)}
       />
 
       {/* Full Screen Preview Modal */}

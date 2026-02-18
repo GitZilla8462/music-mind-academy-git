@@ -205,7 +205,8 @@ export const lesson2Config = {
       id: 2,
       type: "two-stars-wish",
       title: "Reflection Activity",
-      estimatedTime: "3 min"
+      estimatedTime: "3 min",
+      activityId: "fm-lesson2-reflection"
     },
     {
       id: 3,
@@ -343,8 +344,16 @@ export const lessonStages = [
     hasTimer: true,
     duration: 10,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson2/slides/9.svg'
+      type: 'composition-workspace',
+      title: 'City Soundscape',
+      instruction: 'Pick a city. Compose a soundtrack with 5+ loops.',
+      bonusTip: 'Bonus: Add more layers and sound effects!',
+      videos: [
+        { emoji: '🗽', title: 'New York City', path: '/lessons/film-music-project/lesson2/NYCMontage.mp4' },
+        { emoji: '🗼', title: 'Paris', path: '/lessons/film-music-project/lesson2/ParisMontage.mp4' },
+        { emoji: '🏛️', title: 'Madrid', path: '/lessons/film-music-project/lesson2/MadridMontage.mp4' },
+        { emoji: '🏯', title: 'Tokyo', path: '/lessons/film-music-project/lesson2/TokyoMontage.mp4' }
+      ]
     }
   },
   // Reflection

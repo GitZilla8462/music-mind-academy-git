@@ -85,6 +85,7 @@ export const getClassAuthInfo = () => {
  */
 export const parseActivityId = (activityId) => {
   // Normalize all Listening Journey piece variants → single gradable activity under L5
+  // Students draft in L3/L4 and submit in L5; all share the same storageKey per piece
   if (activityId.startsWith('listening-journey-')) {
     return { lessonId: 'll-lesson5', activityId: 'listening-journey' };
   }
@@ -149,7 +150,10 @@ export const saveStudentWork = (activityId, options, studentId = null, authInfo 
 
   // If authenticated (explicitly or via PIN session), sync to Firebase
   if (effectiveAuth?.uid) {
-    const { lessonId, activityId: parsedActivityId } = parseActivityId(activityId);
+    const parsed = parseActivityId(activityId);
+    // Allow callers to override which lesson this save is filed under (e.g., drafts in L3/L4 vs final in L5)
+    const lessonId = options.lessonId || parsed.lessonId;
+    const parsedActivityId = parsed.activityId;
     saveToFirebase(effectiveAuth.uid, effectiveAuth.classId || 'unassigned', lessonId, parsedActivityId, {
       type: options.type || 'composition',
       title: options.title,
@@ -454,7 +458,7 @@ export const migrateOldSaves = (studentId = null) => {
     },
     {
       oldKey: `epic-wildlife-composition-${id}`,
-      activityId: 'epic-wildlife-composition',
+      activityId: 'wildlife-composition',
       getMetadata: (data) => ({
         title: data.composition?.videoTitle || 'Epic Wildlife',
         emoji: data.composition?.videoEmoji || '🌍',

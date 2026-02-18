@@ -174,7 +174,7 @@ const PrintableLoginCards = ({ roster, className, onClose }) => {
 
                   {/* Instructions */}
                   <div className="mt-4 text-xs text-gray-500 text-center">
-                    Go to <span className="font-medium text-gray-700">musicmindacademy.com</span> → Enter username & PIN
+                    Go to <span className="font-medium text-gray-700">{isEduSite ? 'musicroomtools.org' : 'musicmindacademy.com'}</span> → Click <span className="font-medium text-gray-700">Join Class</span> → Click <span className="font-medium text-gray-700">Sign In</span> → Enter username & PIN
                   </div>
                 </div>
               ))}

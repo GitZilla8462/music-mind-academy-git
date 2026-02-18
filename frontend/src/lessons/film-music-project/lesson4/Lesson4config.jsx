@@ -203,7 +203,8 @@ export const lesson4Config = {
       id: 4,
       type: "two-stars-and-a-wish",
       title: "Beat Spotlight",
-      estimatedTime: "3 min"
+      estimatedTime: "3 min",
+      activityId: "fm-lesson4-reflection"
     }
   ]
 };
@@ -333,8 +334,15 @@ export const lessonStages = [
     trackProgress: true,
     duration: 12,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music-project/lesson4/slides/6-activity-compose.svg'
+      type: 'composition-workspace',
+      title: 'Sports Highlights',
+      instruction: 'Combine your beat with loops to score the video.',
+      bonusTip: 'Build intensity as the action builds!',
+      videos: [
+        { emoji: '⚽', title: 'Soccer', path: '/lessons/film-music-project/lesson4/SoccerHighlightReel.mp4' },
+        { emoji: '🏀', title: 'Basketball', path: '/lessons/film-music-project/lesson4/BasketballHighlightReel.mp4' },
+        { emoji: '🛹', title: 'Skateboarding', path: '/lessons/film-music-project/lesson4/SkateboardHighlighReel.mp4' }
+      ]
     }
   },
   {
@@ -408,7 +416,7 @@ export const getActivityForStage = (stage) => {
     'composition-instructions': 'summary',
     'sports-composition': 'sports-composition-activity',
     'reflection-instructions': 'summary',
-    'reflection-activity': 'two-stars-wish',  // Two Stars and a Wish reflection
+    'reflection-activity': 'two-stars-and-a-wish',  // Two Stars and a Wish reflection
     'conclusion': 'summary'
   };
   return stageMap[stage];

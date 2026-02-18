@@ -27,17 +27,17 @@ const JourneyViewport = ({
   if (!section || !section.scene) {
     const sectionInfo = section?.label ? `${section.label} Section — ${section.sectionLabel}` : null;
     return (
-      <div className="relative w-full h-full bg-gray-800 rounded-2xl flex flex-col items-center justify-center gap-3">
-        <p className="text-white/30 text-4xl">{'\uD83C\uDFAC'}</p>
+      <div className="relative w-full h-full bg-gray-800 rounded-2xl flex flex-col items-center justify-center gap-2 sm:gap-3 px-4">
+        <p className="text-white/30 text-2xl sm:text-4xl">{'\uD83C\uDFAC'}</p>
         {sectionInfo ? (
           <>
-            <p className="text-white/50 text-lg font-bold" style={{ color: section.color }}>{sectionInfo}</p>
-            <p className="text-white/40 text-base">Drag a scene onto this section in the timeline below</p>
+            <p className="text-white/50 text-sm sm:text-lg font-bold text-center" style={{ color: section.color }}>{sectionInfo}</p>
+            <p className="text-white/40 text-xs sm:text-base text-center">Drag a scene onto this section in the timeline below</p>
           </>
         ) : (
           <>
-            <p className="text-white/40 text-lg font-medium">Add a scene below to start building</p>
-            <p className="text-white/25 text-sm">Click or drag a scene from the palette onto the timeline</p>
+            <p className="text-white/40 text-sm sm:text-lg font-medium text-center">Add a scene below to start building</p>
+            <p className="text-white/25 text-xs sm:text-sm text-center">Click or drag a scene from the palette onto the timeline</p>
           </>
         )}
       </div>
@@ -135,16 +135,18 @@ const JourneyViewport = ({
         {/* Character (center-bottom for ground characters, higher for flying) */}
         {character && character.type !== 'none' && (
           <div className="absolute z-10" style={{ bottom: character.flying ? '45%' : '8%', left: '50%', transform: 'translateX(-50%)' }}>
-            <SpriteCharacterRenderer
-              sprites={character.sprites}
-              frameSize={character.frameSize}
-              frameHeight={character.frameHeight}
-              displayScale={character.displayScale || 1}
-              tempo={section.tempo}
-              dynamics={section.dynamics}
-              movement={section.movement}
-              isPlaying={isPlaying}
-            />
+            <div className="scale-[0.7] sm:scale-[0.85] lg:scale-100 origin-bottom">
+              <SpriteCharacterRenderer
+                sprites={character.sprites}
+                frameSize={character.frameSize}
+                frameHeight={character.frameHeight}
+                displayScale={character.displayScale || 1}
+                tempo={section.tempo}
+                dynamics={section.dynamics}
+                movement={section.movement}
+                isPlaying={isPlaying}
+              />
+            </div>
           </div>
         )}
 

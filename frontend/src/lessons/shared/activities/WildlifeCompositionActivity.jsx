@@ -295,7 +295,7 @@ const WildlifeCompositionActivity = ({
   
   const { hasSavedWork, loadSavedWork } = useAutoSave(
     studentId,
-    'epic-wildlife-composition',
+    'wildlife-composition',
     compositionData,
     5000
   );
@@ -388,7 +388,7 @@ const WildlifeCompositionActivity = ({
     console.log('🎬 Initial load - checking for saved work');
     
     // First try to load from manual save (has video metadata)
-    const manualSaveKey = `epic-wildlife-composition-${studentId}`;
+    const manualSaveKey = `wildlife-composition-${studentId}`;
     const manualSave = localStorage.getItem(manualSaveKey);
     
     if (manualSave) {
@@ -466,7 +466,7 @@ const WildlifeCompositionActivity = ({
     // Set saving flag
     isSavingRef.current = true;
     
-    const saveKey = `epic-wildlife-composition-${studentId}`;
+    const saveKey = `wildlife-composition-${studentId}`;
     const saveData = {
       composition: {
         placedLoops,
@@ -484,7 +484,7 @@ const WildlifeCompositionActivity = ({
     console.log('💾 Manual save complete:', saveKey, saveData);
     
     // Also save to the generic student work system so it appears on Join page
-    saveStudentWork('epic-wildlife-composition', {
+    saveStudentWork('wildlife-composition', {
       title: selectedVideo.title || 'Epic Wildlife',
       emoji: selectedVideo.emoji || '🌍',
       viewRoute: '/lessons/film-music-project/lesson4?view=saved',
@@ -747,10 +747,10 @@ const WildlifeCompositionActivity = ({
 
                       // Clear ALL localStorage saves for this composition (handles all key patterns)
                       clearAllCompositionSaves('epic-wildlife', studentId);
-                      clearAllCompositionSaves('epic-wildlife-composition', studentId);
+                      clearAllCompositionSaves('wildlife-composition', studentId);
                       // Also clear MusicComposer's internal save key (includes video ID)
                       if (selectedVideo?.id) {
-                        clearAllCompositionSaves(`epic-wildlife-composition-${selectedVideo.id}`, studentId);
+                        clearAllCompositionSaves(`wildlife-composition-${selectedVideo.id}`, studentId);
                       }
 
                       // Reset the loaded flag so it doesn't try to reload
@@ -823,7 +823,7 @@ const WildlifeCompositionActivity = ({
         {selectedVideo ? (
           <MusicComposer
             key={`wildlife-composer-${selectedVideo?.id || 'none'}-${resetKey}`}
-            compositionKey={`epic-wildlife-composition-${selectedVideo?.id}`}
+            compositionKey={`wildlife-composition-${selectedVideo?.id}`}
             onLoopDropCallback={handleLoopPlaced}
             onLoopDeleteCallback={handleLoopDeleted}
             onLoopUpdateCallback={handleLoopUpdated}

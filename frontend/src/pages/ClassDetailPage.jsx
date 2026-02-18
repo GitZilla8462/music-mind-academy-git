@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
-import { getClassById } from '../firebase/classes';
+import { getClassById, getConductedLessons } from '../firebase/classes';
 import { getClassRoster } from '../firebase/enrollments';
 import { getAllClassSubmissions, getClassGrades, deleteActivitySubmissions, deleteGrade } from '../firebase/grades';
 import { CURRICULUM } from '../config/curriculumConfig';
@@ -29,14 +29,17 @@ import {
   Download,
   Trash2,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Key
 } from 'lucide-react';
 import TeacherHeader from '../components/teacher/TeacherHeader';
 import RosterManager from '../components/teacher/RosterManager';
 import StudentDetailModal from '../components/teacher/StudentDetailModal';
 import GradeEntryModal from '../components/teacher/GradeEntryModal';
 import ActivityGradingView from '../components/teacher/ActivityGradingView';
+import AnswerKeyModal from '../components/teacher/AnswerKeyModal';
 import PrintableLoginCards from '../components/teacher/PrintableLoginCards';
+import { getAllAnswerKeys } from '../firebase/answerKeys';
 
 const getActivityIcon = (type) => {
   switch (type) {
@@ -49,9 +52,9 @@ const getActivityIcon = (type) => {
 
 // Unit styling to match MusicClassroomResources page
 const UNIT_STYLE = {
-  'listening-lab':     { number: 1, title: 'The Listening Lab',     color: '#8b5cf6' },
   'film-music':        { number: 1, title: 'The Loop Lab',           color: '#3b82f6' },
-  'production-studio': { number: 7, title: 'The Production Studio', color: '#f97316' },
+  'listening-lab':     { number: 2, title: 'The Listening Lab',     color: '#8b5cf6' },
+  'production-studio': { number: 3, title: 'The Production Studio', color: '#f97316' },
 };
 
 const ClassDetailPage = () => {
@@ -64,9 +67,10 @@ const ClassDetailPage = () => {
   const [roster, setRoster] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [grades, setGrades] = useState({});
+  const [conductedLessonIds, setConductedLessonIds] = useState(null); // Set of lesson IDs conducted for this class
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('students');
-  const [expandedUnits, setExpandedUnits] = useState([]);
+  const [expandedUnits, setExpandedUnits] = useState(() => CURRICULUM.map(u => u.id));
 
   // Students tab sorting
   const [sortBy, setSortBy] = useState('seat-asc');
@@ -79,6 +83,8 @@ const ClassDetailPage = () => {
   const [activityGradingData, setActivityGradingData] = useState(null);
   const [deleteGradeConfirm, setDeleteGradeConfirm] = useState(null); // { studentUid, studentName, lessonId, lessonName }
   const [deletingGrade, setDeletingGrade] = useState(false);
+  const [answerKeyModalData, setAnswerKeyModalData] = useState(null);
+  const [answerKeyIds, setAnswerKeyIds] = useState(new Set());
 
   // Handle URL parameter for auto-opening print cards
   useEffect(() => {
@@ -104,12 +110,21 @@ const ClassDetailPage = () => {
         const rosterData = await getClassRoster(classId);
         setRoster(rosterData || []);
 
-        const [subs, gradesData] = await Promise.all([
+        const [subs, gradesData, conducted] = await Promise.all([
           getAllClassSubmissions(classId),
-          getClassGrades(classId)
+          getClassGrades(classId),
+          getConductedLessons(classId)
         ]);
+        console.log('📊 ClassDetail fetch — classId:', classId, '| submissions:', subs?.length || 0, '| conductedLessons:', conducted ? [...conducted].join(', ') || 'empty set' : 'null');
         setSubmissions(subs || []);
         setGrades(gradesData || {});
+        setConductedLessonIds(conducted);
+
+        // Fetch answer key IDs for the key icon state
+        try {
+          const keys = await getAllAnswerKeys(user.uid);
+          setAnswerKeyIds(new Set(Object.keys(keys)));
+        } catch { /* answer keys fetch is non-critical */ }
       } catch (error) {
         console.error('Error fetching class data:', error);
       } finally {
@@ -125,12 +140,14 @@ const ClassDetailPage = () => {
     const rosterData = await getClassRoster(classId);
     setRoster(rosterData || []);
 
-    const [subs, gradesData] = await Promise.all([
+    const [subs, gradesData, conducted] = await Promise.all([
       getAllClassSubmissions(classId),
-      getClassGrades(classId)
+      getClassGrades(classId),
+      getConductedLessons(classId)
     ]);
     setSubmissions(subs || []);
     setGrades(gradesData || {});
+    setConductedLessonIds(conducted);
   };
 
   const getEffectiveUid = (student) => {
@@ -138,8 +155,10 @@ const ClassDetailPage = () => {
   };
 
   const getActivityStats = (lessonId, activityId) => {
+    // Only count submissions from students in the roster so counts match the grading view
+    const rosterUids = new Set(roster.map(s => s.studentUid || `seat-${s.seatNumber}`));
     const activitySubs = submissions.filter(s =>
-      s.lessonId === lessonId && s.activityId === activityId
+      s.lessonId === lessonId && s.activityId === activityId && rosterUids.has(s.studentUid)
     );
     return {
       submitted: activitySubs.filter(s => s.status === 'submitted' || s.status === 'pending' || s.status === 'graded').length,
@@ -209,7 +228,7 @@ const ClassDetailPage = () => {
     }
   };
 
-  const totalPending = submissions.filter(s => s.status === 'pending' || s.status === 'submitted').length;
+  // Note: grading notification counts removed — they were inaccurate and noisy
 
   if (authLoading || loading) {
     return (
@@ -238,13 +257,13 @@ const ClassDetailPage = () => {
   // Tabs config
   const tabs = [
     { id: 'students', label: 'Students', icon: Users },
-    { id: 'classwork', label: 'Classwork', icon: BookOpen, badge: totalPending },
-    { id: 'grades', label: 'Grades', icon: ClipboardList, badge: totalPending },
+    { id: 'classwork', label: 'Classwork', icon: BookOpen },
+    { id: 'grades', label: 'Grades', icon: ClipboardList },
   ];
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <TeacherHeader pendingCount={totalPending} />
+      <TeacherHeader />
 
       {/* Class Header — clean white */}
       <div className="bg-white border-b border-gray-200">
@@ -291,11 +310,6 @@ const ClassDetailPage = () => {
                 <span className="flex items-center gap-2">
                   <tab.icon size={16} />
                   {tab.label}
-                  {tab.badge > 0 && (
-                    <span className="bg-amber-100 text-amber-700 text-xs px-1.5 py-0.5 rounded-full">
-                      {tab.badge}
-                    </span>
-                  )}
                 </span>
               </button>
             ))}
@@ -432,33 +446,34 @@ const ClassDetailPage = () => {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Classwork</h2>
-              {totalPending > 0 && (
-                <span className="text-sm text-amber-600 font-medium">
-                  {totalPending} to grade
-                </span>
-              )}
             </div>
 
             <div className="space-y-3">
               {CURRICULUM.map((unit) => {
                 const isExpanded = expandedUnits.includes(unit.id);
 
-                // Only include activities that have at least one submission
-                const unitActivities = [];
-                let unitPending = 0;
+                // Build lesson groups with gradable activities (no games)
+                // Listening Lab: only L3-L5 listening journeys are graded
+                const unitLessons = [];
                 unit.lessons.forEach(lesson => {
                   if (!lesson.route || lesson.activities.length === 0) return;
-                  lesson.activities.forEach(activity => {
-                    const stats = getActivityStats(lesson.id, activity.id);
-                    if (stats.submitted > 0) {
-                      unitActivities.push({ ...activity, lesson, stats });
-                      unitPending += stats.pending;
-                    }
-                  });
+                  // Show lesson if conducted OR if any student has submitted work for it
+                  const hasSubmissions = submissions.some(s => s.lessonId === lesson.id);
+                  if (conductedLessonIds && !conductedLessonIds.has(lesson.id) && !hasSubmissions) return;
+                  // Filter: skip games
+                  const gradableActivities = lesson.activities
+                    .filter(a => a.type !== 'game')
+                    .map(activity => {
+                      const stats = getActivityStats(lesson.id, activity.id);
+                      return { ...activity, stats };
+                    });
+                  if (gradableActivities.length > 0) {
+                    unitLessons.push({ ...lesson, gradableActivities });
+                  }
                 });
 
-                // Hide units with no submissions at all
-                if (unitActivities.length === 0) return null;
+                // Hide units with no conducted lessons
+                if (unitLessons.length === 0) return null;
 
                 const style = UNIT_STYLE[unit.id] || { number: null, title: unit.name, color: '#6b7280' };
 
@@ -487,88 +502,109 @@ const ClassDetailPage = () => {
                           <div className="font-bold text-gray-900 text-left">{style.title}</div>
                         </div>
                       </div>
-                      {unitPending > 0 && (
-                        <span className="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full text-xs font-medium">
-                          {unitPending} to grade
-                        </span>
-                      )}
                     </button>
 
-                    {/* Flat activity list */}
+                    {/* Lessons grouped with activities */}
                     {isExpanded && (
-                      <div className="border-t border-gray-100 divide-y divide-gray-50">
-                        {unitActivities.map(({ lesson, stats, ...activity }) => {
-                            const Icon = getActivityIcon(activity.type);
-
-                            return (
-                              <div
-                                key={`${lesson.id}-${activity.id}`}
-                                className="px-4 py-3 pl-12 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-colors"
-                                onClick={() => setActivityGradingData({
-                                  lessonId: lesson.id,
-                                  activityId: activity.id,
-                                  lessonName: lesson.name,
-                                  activityName: activity.name,
-                                  activityType: activity.type
-                                })}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                                    activity.type === 'game' ? 'bg-purple-100' :
-                                    activity.type === 'composition' ? 'bg-blue-100' : 'bg-gray-100'
-                                  }`}>
-                                    <Icon size={16} className={
-                                      activity.type === 'game' ? 'text-purple-600' :
-                                      activity.type === 'composition' ? 'text-blue-600' : 'text-gray-600'
-                                    } />
-                                  </div>
-                                  <div>
-                                    <div className="font-medium text-gray-900 text-sm">
-                                      {activity.name}
-                                    </div>
-                                    <div className="text-xs text-gray-400">
-                                      {lesson.shortName || lesson.name}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center gap-3 text-xs">
-                                  <span className="text-gray-400">
-                                    {stats.submitted}/{roster.length}
-                                  </span>
-                                  {stats.pending > 0 && (
-                                    <span className="flex items-center gap-1 text-amber-600">
-                                      <Clock size={12} />
-                                      {stats.pending}
-                                    </span>
-                                  )}
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteActivity(lesson.id, activity.id, activity.name);
-                                    }}
-                                    className="p-1 text-gray-300 hover:text-red-500 transition-colors"
-                                    title="Delete all submissions"
+                      <div className="border-t border-gray-100">
+                        {unitLessons.map((lesson) => (
+                          <div key={lesson.id}>
+                            {/* Lesson header */}
+                            <div className="px-4 py-2 pl-11 bg-gray-50 border-b border-gray-100">
+                              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                {lesson.name}
+                              </span>
+                            </div>
+                            {/* Activities under this lesson */}
+                            <div className="divide-y divide-gray-50">
+                              {lesson.gradableActivities.map((activity) => {
+                                const Icon = getActivityIcon(activity.type);
+                                return (
+                                  <div
+                                    key={`${lesson.id}-${activity.id}`}
+                                    className="px-4 py-3 pl-14 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-colors"
+                                    onClick={() => setActivityGradingData({
+                                      lessonId: lesson.id,
+                                      activityId: activity.id,
+                                      lessonName: lesson.name,
+                                      activityName: activity.name,
+                                      activityType: activity.type
+                                    })}
                                   >
-                                    <Trash2 size={14} />
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
+                                    <div className="flex items-center gap-3">
+                                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                        activity.type === 'composition' ? 'bg-blue-100' : 'bg-gray-100'
+                                      }`}>
+                                        <Icon size={16} className={
+                                          activity.type === 'composition' ? 'text-blue-600' : 'text-gray-600'
+                                        } />
+                                      </div>
+                                      <div>
+                                        <div className="font-medium text-gray-900 text-sm">
+                                          {activity.name}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 text-xs">
+                                      <span className="text-gray-400">
+                                        {activity.stats.submitted}/{roster.length}
+                                      </span>
+                                      {activity.stats.pending > 0 && (
+                                        <span className="flex items-center gap-1 text-amber-600">
+                                          <Clock size={12} />
+                                          {activity.stats.pending}
+                                        </span>
+                                      )}
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setAnswerKeyModalData({
+                                            lessonId: lesson.id,
+                                            activityId: activity.id,
+                                            activityName: activity.name,
+                                            activityType: activity.type
+                                          });
+                                        }}
+                                        className={`p-1 transition-colors ${
+                                          answerKeyIds.has(`${lesson.id}-${activity.id}`)
+                                            ? 'text-amber-500 hover:text-amber-600'
+                                            : 'text-gray-300 hover:text-gray-500'
+                                        }`}
+                                        title={answerKeyIds.has(`${lesson.id}-${activity.id}`) ? 'Edit answer key' : 'Create answer key'}
+                                      >
+                                        <Key size={14} />
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteActivity(lesson.id, activity.id, activity.name);
+                                        }}
+                                        className="p-1 text-gray-300 hover:text-red-500 transition-colors"
+                                        title="Delete all submissions"
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
                 );
               })}
 
-              {/* Empty state when no submissions exist */}
-              {submissions.length === 0 && (
+              {/* Empty state when no lessons have been conducted */}
+              {(!conductedLessonIds || conductedLessonIds.size === 0) && submissions.length === 0 && (
                 <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
                   <ClipboardList className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <h3 className="font-medium text-gray-900 mb-1">No submissions yet</h3>
+                  <h3 className="font-medium text-gray-900 mb-1">No assignments yet</h3>
                   <p className="text-sm text-gray-500">
-                    Assignments will appear here once students submit work.
+                    Assignments will appear here once you start a lesson.
                   </p>
                 </div>
               )}
@@ -578,21 +614,57 @@ const ClassDetailPage = () => {
 
         {/* ==================== Grades Tab ==================== */}
         {activeTab === 'grades' && (() => {
-          const allLessons = CURRICULUM.flatMap(unit =>
-            unit.lessons
-              .filter(l => l.activities.length > 0)
-              .map(l => ({ ...l, unitIcon: unit.icon }))
-          );
+          // Build per-activity columns grouped by unit
+          const gradebookColumns = [];
+          const unitSpans = []; // { unitId, title, color, icon, colCount }
 
-          // Only show lessons that have at least one submission or grade
-          const gradebookLessons = allLessons.filter(l => {
-            const hasSubmission = submissions.some(s => s.lessonId === l.id);
-            const hasGrade = roster.some(student => {
-              const uid = getEffectiveUid(student);
-              return grades[uid]?.[l.id];
-            });
-            return hasSubmission || hasGrade;
-          });
+          for (const unit of CURRICULUM) {
+            const style = UNIT_STYLE[unit.id] || { number: null, title: unit.name, color: '#6b7280' };
+            let unitColCount = 0;
+
+            for (const lesson of unit.lessons) {
+              if (lesson.activities.length === 0) continue;
+              if (conductedLessonIds && !conductedLessonIds.has(lesson.id)) continue;
+
+              // Extract lesson number from id (e.g., 'fm-lesson2' → 2, 'll-lesson3' → 3)
+              const lessonNum = lesson.id.match(/lesson(\d+)/)?.[1] || '?';
+
+              // Only gradable activities (skip games)
+              const gradableActivities = lesson.activities.filter(a => a.type !== 'game');
+              for (const activity of gradableActivities) {
+                // Short label for column header
+                let shortLabel;
+                if (activity.type === 'composition') shortLabel = 'Comp';
+                else if (activity.type === 'reflection') shortLabel = 'Refl';
+                else if (activity.id.includes('listening-journey')) shortLabel = 'Journey';
+                else shortLabel = activity.name.split(' ')[0];
+
+                gradebookColumns.push({
+                  unitId: unit.id,
+                  unitColor: style.color,
+                  lessonId: lesson.id,
+                  lessonNum,
+                  lessonName: lesson.name,
+                  lessonShortName: lesson.shortName,
+                  activityId: activity.id,
+                  activityName: activity.name,
+                  activityType: activity.type,
+                  label: `L${lessonNum} ${shortLabel}`
+                });
+                unitColCount++;
+              }
+            }
+
+            if (unitColCount > 0) {
+              unitSpans.push({
+                unitId: unit.id,
+                title: style.title,
+                color: style.color,
+                icon: unit.icon,
+                colCount: unitColCount
+              });
+            }
+          }
 
           const getGradeColor = (points, maxPoints) => {
             const pct = Math.round((points / maxPoints) * 100);
@@ -602,24 +674,40 @@ const ClassDetailPage = () => {
             return 'text-red-700';
           };
 
-          // Find first gradable activity for a lesson (for clickable cells)
-          const getFirstActivity = (lesson) => {
-            return lesson.activities.find(a => a.type === 'composition') || lesson.activities[0] || null;
-          };
-
           const exportCSV = () => {
-            const headers = ['Student Name', 'Seat', ...gradebookLessons.map(l => `${l.unitIcon} ${l.shortName || l.name}`)];
-            const rows = roster.map(student => {
+            const headers = ['Last Name', 'First Name', 'Seat', 'Unit', 'Lesson', 'Assignment', 'Points', 'Max Points', 'Percentage', 'Date Graded'];
+            const rows = [];
+
+            for (const student of roster) {
               const uid = getEffectiveUid(student);
-              const name = student.displayName || `Seat ${student.seatNumber}`;
-              const lessonGrades = gradebookLessons.map(l => {
-                const g = grades[uid]?.[l.id];
-                if (!g) return '';
-                if (g.points !== undefined && g.maxPoints) return `${g.points}/${g.maxPoints}`;
-                return g.grade || '';
-              });
-              return [name, student.seatNumber, ...lessonGrades];
-            });
+              const fullName = student.displayName || `Seat ${student.seatNumber}`;
+              const nameParts = fullName.trim().split(/\s+/);
+              const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : fullName;
+              const firstName = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : '';
+
+              for (const col of gradebookColumns) {
+                const g = grades[uid]?.[col.lessonId];
+                const unitStyle = UNIT_STYLE[col.unitId] || { title: col.unitId };
+                const lessonLabel = `L${col.lessonNum}: ${col.lessonShortName || col.lessonName}`;
+                const assignmentLabel = col.activityName;
+
+                let points = '';
+                let maxPoints = '';
+                let pct = '';
+                let dateGraded = '';
+
+                if (g && g.points !== undefined && g.maxPoints) {
+                  points = g.points;
+                  maxPoints = g.maxPoints;
+                  pct = Math.round((g.points / g.maxPoints) * 100);
+                  if (g.gradedAt) {
+                    dateGraded = new Date(g.gradedAt).toISOString().split('T')[0];
+                  }
+                }
+
+                rows.push([lastName, firstName, student.seatNumber, unitStyle.title, lessonLabel, assignmentLabel, points, maxPoints, pct, dateGraded]);
+              }
+            }
 
             const csv = [headers, ...rows].map(row =>
               row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
@@ -634,7 +722,7 @@ const ClassDetailPage = () => {
             URL.revokeObjectURL(url);
           };
 
-          if (gradebookLessons.length === 0) {
+          if (gradebookColumns.length === 0) {
             return (
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Grades</h2>
@@ -642,7 +730,7 @@ const ClassDetailPage = () => {
                   <ClipboardList className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                   <h3 className="font-medium text-gray-900 mb-1">No grades yet</h3>
                   <p className="text-sm text-gray-500">
-                    Grades will appear here once students submit work in class.
+                    Grades will appear here once you conduct lessons with this class.
                   </p>
                 </div>
               </div>
@@ -666,16 +754,29 @@ const ClassDetailPage = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
+                      {/* Row 1: Unit grouping headers */}
+                      <tr className="border-b border-gray-200">
+                        <th className="sticky left-0 z-10 bg-white" rowSpan={2} />
+                        {unitSpans.map(u => (
+                          <th
+                            key={u.unitId}
+                            colSpan={u.colCount}
+                            className="px-2 py-2 text-center text-xs font-bold text-white tracking-wide"
+                            style={{ backgroundColor: u.color }}
+                          >
+                            {u.icon} {u.title}
+                          </th>
+                        ))}
+                      </tr>
+                      {/* Row 2: Activity column labels */}
                       <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="text-left p-3 font-medium text-gray-700 sticky left-0 bg-gray-50 z-10 min-w-[160px]">
-                          Student
-                        </th>
-                        {gradebookLessons.map(l => (
-                          <th key={l.id} className="p-3 font-medium text-gray-700 text-center min-w-[90px]">
-                            <div className="flex flex-col items-center">
-                              <span className="text-xs">{l.unitIcon}</span>
-                              <span className="text-xs leading-tight">{l.shortName || l.name}</span>
-                            </div>
+                        {gradebookColumns.map(col => (
+                          <th
+                            key={`${col.lessonId}-${col.activityId}`}
+                            className="px-2 py-2 font-medium text-gray-600 text-center min-w-[80px]"
+                            title={`${col.lessonName} — ${col.activityName}`}
+                          >
+                            <span className="text-[11px] leading-tight whitespace-nowrap">{col.label}</span>
                           </th>
                         ))}
                       </tr>
@@ -683,63 +784,63 @@ const ClassDetailPage = () => {
                     <tbody className="divide-y divide-gray-100">
                       {roster.map(student => {
                         const uid = getEffectiveUid(student);
+                        const studentName = student.displayName || `Seat ${student.seatNumber}`;
                         return (
                           <tr key={student.seatNumber} className="hover:bg-gray-50">
-                            <td className="p-3 font-medium text-gray-900 sticky left-0 bg-white z-10">
-                              {student.displayName || `Seat ${student.seatNumber}`}
+                            <td className="p-3 font-medium text-gray-900 sticky left-0 bg-white z-10 min-w-[160px] border-r border-gray-100">
+                              {studentName}
                             </td>
-                            {gradebookLessons.map(l => {
-                              const g = grades[uid]?.[l.id];
-                              const sub = submissions.find(s => s.studentUid === uid && s.lessonId === l.id);
+                            {gradebookColumns.map(col => {
+                              const g = grades[uid]?.[col.lessonId];
+                              const sub = submissions.find(s =>
+                                s.studentUid === uid && s.lessonId === col.lessonId &&
+                                (s.activityId === col.activityId || !s.activityId)
+                              );
                               const isPending = sub && (sub.status === 'pending' || sub.status === 'submitted');
-                              const firstActivity = getFirstActivity(l);
-                              const isClickable = (isPending || g) && firstActivity;
-
                               const hasData = g || isPending;
-                              const studentName = student.displayName || `Seat ${student.seatNumber}`;
 
                               return (
                                 <td
-                                  key={l.id}
-                                  className={`p-3 text-center relative group ${isClickable ? 'cursor-pointer hover:bg-blue-50 transition-colors' : ''}`}
+                                  key={`${col.lessonId}-${col.activityId}`}
+                                  className={`px-2 py-3 text-center relative group ${hasData ? 'cursor-pointer hover:bg-blue-50 transition-colors' : ''}`}
                                   onClick={() => {
-                                    if (isClickable) {
+                                    if (hasData) {
                                       setActivityGradingData({
-                                        lessonId: l.id,
-                                        activityId: firstActivity.id,
-                                        lessonName: l.name,
-                                        activityName: firstActivity.name,
-                                        activityType: firstActivity.type
+                                        lessonId: col.lessonId,
+                                        activityId: col.activityId,
+                                        lessonName: col.lessonName,
+                                        activityName: col.activityName,
+                                        activityType: col.activityType
                                       });
                                     }
                                   }}
                                 >
                                   {g && g.points !== undefined && g.maxPoints ? (
-                                    <span className={`font-bold tabular-nums ${getGradeColor(g.points, g.maxPoints)}`}>
+                                    <span className={`font-bold tabular-nums text-xs ${getGradeColor(g.points, g.maxPoints)}`}>
                                       {g.points}/{g.maxPoints}
                                     </span>
                                   ) : g?.grade ? (
-                                    <span className="font-bold text-gray-700">{g.grade}</span>
+                                    <span className="font-bold text-gray-700 text-xs">{g.grade}</span>
                                   ) : isPending ? (
-                                    <Clock size={14} className="text-amber-500 mx-auto" />
+                                    <Clock size={13} className="text-amber-500 mx-auto" />
                                   ) : (
-                                    <span className="text-gray-300">--</span>
+                                    <span className="text-gray-300 text-xs">--</span>
                                   )}
-                                  {hasData && (
+                                  {g && (
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setDeleteGradeConfirm({
                                           studentUid: uid,
                                           studentName,
-                                          lessonId: l.id,
-                                          lessonName: l.shortName || l.name
+                                          lessonId: col.lessonId,
+                                          lessonName: col.lessonShortName || col.lessonName
                                         });
                                       }}
-                                      className="absolute top-1 right-1 p-0.5 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                                      className="absolute top-0.5 right-0.5 p-0.5 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
                                       title="Delete grade"
                                     >
-                                      <Trash2 size={11} />
+                                      <Trash2 size={10} />
                                     </button>
                                   )}
                                 </td>
@@ -830,6 +931,26 @@ const ClassDetailPage = () => {
           onGradeSaved={(studentUid, lessonId, gradeData) => {
             handleGradeSaved(studentUid, lessonId, gradeData);
           }}
+        />
+      )}
+
+      {answerKeyModalData && (
+        <AnswerKeyModal
+          isOpen={!!answerKeyModalData}
+          onClose={(saved) => {
+            setAnswerKeyModalData(null);
+            if (saved) {
+              // Refresh answer key IDs
+              getAllAnswerKeys(user.uid)
+                .then(keys => setAnswerKeyIds(new Set(Object.keys(keys))))
+                .catch(() => {});
+            }
+          }}
+          lessonId={answerKeyModalData.lessonId}
+          activityId={answerKeyModalData.activityId}
+          activityName={answerKeyModalData.activityName}
+          activityType={answerKeyModalData.activityType}
+          teacherUid={user.uid}
         />
       )}
 

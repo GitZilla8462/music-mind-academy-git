@@ -67,7 +67,7 @@ const PlanningGuide = ({ sections, activeSectionIndex, guide, onGuideChange }) =
   };
 
   return (
-    <div className="w-56 flex-shrink-0 bg-black/20 border-l border-white/10 flex flex-col overflow-y-auto custom-scrollbar">
+    <div className="w-40 sm:w-48 lg:w-56 flex-shrink-0 bg-black/20 border-l border-white/10 flex flex-col overflow-y-auto custom-scrollbar">
       <div className="p-2">
         <div className="text-[10px] text-white/40 uppercase font-bold mb-2 text-center tracking-wide">Planning Guide</div>
 

@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, Star, Sparkles, Volume2, VolumeX, HelpCircle, Minimize2, Maximize2, Smile } from 'lucide-react';
 import { SELF_REFLECTION_PROMPTS, PARTNER_REFLECTION_OPTIONS } from './reflectionPrompts';
+import { saveStudentWork } from '../../../../utils/studentWorkStorage';
 
 // Chromebook detection for cursor handling
 const isChromebook = typeof navigator !== 'undefined' && (
@@ -12,7 +13,7 @@ const isChromebook = typeof navigator !== 'undefined' && (
   (navigator.userAgentData?.platform === 'Chrome OS')
 );
 
-const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSessionMode = false }) => {
+const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSessionMode = false, activityId = null }) => {
   // Steps: 1=choose type, 2=partner name (peer only), 3=listen, 4=star1, 5=star2, 6=wish, 7=vibe, 8=summary
   const [currentStep, setCurrentStep] = useState(viewMode ? 8 : 1);
   const [reflectionData, setReflectionData] = useState({
@@ -204,6 +205,16 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
       submittedAt: new Date().toISOString()
     };
     localStorage.setItem('school-beneath-reflection', JSON.stringify(finalData));
+
+    // Save to Firebase for teacher grading view
+    if (activityId) {
+      saveStudentWork(activityId, {
+        title: 'Reflection',
+        emoji: '\uD83D\uDCDD',
+        type: 'reflection',
+        data: finalData
+      });
+    }
 
     console.log('Submit Reflection clicked - transitioning to game');
     onComplete();

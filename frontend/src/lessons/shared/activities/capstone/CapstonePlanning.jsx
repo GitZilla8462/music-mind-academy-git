@@ -264,48 +264,60 @@ const CollapsibleInstruments = ({ instruments, onChange }) => {
 };
 
 // ============ MAIN ============
-const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null }) => {
+const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null, initialData = null, viewMode = false }) => {
   const [piece, setPiece] = useState(null);
   const [plans, setPlans] = useState({});
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
     try {
-      let pieceId = null;
-      const sel = localStorage.getItem(SELECTION_STORAGE_KEY);
-      if (sel) { pieceId = JSON.parse(sel)?.pieceId; }
+      // If initialData provided (grading view), use it directly
+      const pieceIdFromData = initialData?.pieceId;
+      let pieceId = pieceIdFromData || null;
+      if (!pieceId) {
+        const sel = localStorage.getItem(SELECTION_STORAGE_KEY);
+        if (sel) { pieceId = JSON.parse(sel)?.pieceId; }
+      }
       const p = getPieceById(pieceId || 'mountain-king');
       if (!p) return;
       setPiece(p);
       const d = {};
       p.sections.forEach(s => { d[s.id] = { dynamics: [], tempo: [], families: [], instruments: [] }; });
-      const saved = localStorage.getItem(PLAN_STORAGE_KEY);
-      if (saved) {
-        const sp = JSON.parse(saved);
-        if (sp?.pieceId === p.id && sp?.sections) {
-          Object.keys(sp.sections).forEach(sid => {
-            if (d[sid]) {
-              const merged = { ...d[sid], ...sp.sections[sid] };
-              if (!Array.isArray(merged.instruments)) merged.instruments = [];
-              // Backward compat: convert old string values to arrays
-              if (typeof merged.dynamics === 'string') merged.dynamics = merged.dynamics ? [merged.dynamics] : [];
-              if (typeof merged.tempo === 'string') merged.tempo = merged.tempo ? [merged.tempo] : [];
-              if (typeof merged.families === 'string') merged.families = merged.families ? [merged.families] : [];
-              d[sid] = merged;
-            }
-          });
+
+      // Load from initialData prop or localStorage
+      const savedSections = initialData?.sections || (() => {
+        const saved = localStorage.getItem(PLAN_STORAGE_KEY);
+        if (saved) {
+          const sp = JSON.parse(saved);
+          if (sp?.pieceId === p.id && sp?.sections) return sp.sections;
         }
+        return null;
+      })();
+
+      if (savedSections) {
+        Object.keys(savedSections).forEach(sid => {
+          if (d[sid]) {
+            const merged = { ...d[sid], ...savedSections[sid] };
+            if (!Array.isArray(merged.instruments)) merged.instruments = [];
+            // Backward compat: convert old string values to arrays
+            if (typeof merged.dynamics === 'string') merged.dynamics = merged.dynamics ? [merged.dynamics] : [];
+            if (typeof merged.tempo === 'string') merged.tempo = merged.tempo ? [merged.tempo] : [];
+            if (typeof merged.families === 'string') merged.families = merged.families ? [merged.families] : [];
+            d[sid] = merged;
+          }
+        });
       }
       setPlans(d);
     } catch (e) { console.error(e); }
-  }, []);
+  }, [initialData]);
 
   const { playSection, playingSection } = useSectionAudio(piece?.audioPath || '');
 
   const set = useCallback((sid, field, val) => {
+    if (viewMode) return;
     setPlans(prev => ({ ...prev, [sid]: { ...prev[sid], [field]: val } }));
     setIsSaved(false);
-  }, []);
+  }, [viewMode]);
 
   const save = useCallback(() => {
     if (!piece) return;
@@ -313,7 +325,7 @@ const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null }
     setIsSaved(true);
   }, [piece, plans]);
 
-  const done = useCallback(() => { save(); onComplete?.({ pieceId: piece?.id, sections: plans }); }, [save, onComplete, piece, plans]);
+  const done = useCallback(() => { save(); onComplete?.(); }, [save, onComplete]);
 
   if (!piece) return null;
 
@@ -429,8 +441,8 @@ const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null }
         </div>
       </div>
 
-      {/* Bottom bar */}
-      <div className="bg-white border-t border-gray-200 py-3 px-6 shrink-0 flex items-center justify-end gap-3">
+      {/* Bottom bar — hidden in view mode */}
+      {!viewMode && <div className="bg-white border-t border-gray-200 py-3 px-6 shrink-0 flex items-center justify-end gap-3">
         <button
           onClick={save}
           className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
@@ -446,7 +458,7 @@ const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null }
         >
           <Check size={16} /> Done
         </button>
-      </div>
+      </div>}
     </div>
   );
 };

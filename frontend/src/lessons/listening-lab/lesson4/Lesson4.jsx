@@ -62,15 +62,17 @@ const Lesson4 = () => {
 
   // Get selected piece config for Listening Journey
   const getSelectedPieceConfig = useCallback(() => {
+    let config;
     try {
       const saved = localStorage.getItem('listening-lab-lesson4-selected-piece');
       if (saved) {
         const { pieceId } = JSON.parse(saved);
-        return buildPieceConfig(getPieceById(pieceId));
+        config = buildPieceConfig(getPieceById(pieceId));
       }
     } catch (e) { /* ignore */ }
-    // Default to Mountain King if no piece selected yet
-    return buildPieceConfig(getPieceById('mountain-king'));
+    if (!config) config = buildPieceConfig(getPieceById('mountain-king'));
+    // Tag with lesson ID so saves are filed under L4 for teacher visibility
+    return { ...config, lessonId: 'll-lesson4' };
   }, []);
 
   // Check for view modes from URL params

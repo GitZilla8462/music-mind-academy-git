@@ -2,7 +2,7 @@
 // src/components/teacher/ActivityGradingView.jsx
 // Full-screen grading view: student list | grade form | work preview
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, Suspense, lazy } from 'react';
 import {
   X,
   ChevronLeft,
@@ -12,11 +12,18 @@ import {
   Loader2,
   Image,
   RotateCcw,
+  Key,
 } from 'lucide-react';
 import { getStudentWorkForTeacher } from '../../firebase/studentWork';
 import { gradeSubmission } from '../../firebase/grades';
+import { getAnswerKey } from '../../firebase/answerKeys';
 import { useFirebaseAuth } from '../../context/FirebaseAuthContext';
 import GradeForm from './GradeForm';
+import AnswerKeyModal from './AnswerKeyModal';
+// Lazy-load Listening Journey preview to avoid bundling LJ components with ClassDetailPage
+const LazyLJPreview = lazy(() => import('./ListeningJourneyPreview'));
+// Lazy-load Composition preview (loop blocks + video split view)
+const LazyCompositionPreview = lazy(() => import('./CompositionPreview'));
 
 // Must match GradeForm LEVELS pct values
 const LEVELS_PCT = [1.0, 0.75, 0.5, 0.25];
@@ -96,6 +103,9 @@ const ActivityGradingView = ({
   const [loadingWork, setLoadingWork] = useState(false);
   const [assignmentMaxPoints, setAssignmentMaxPoints] = useState('100');
   const [showGridLines, setShowGridLines] = useState(true);
+  const [showAnswerKey, setShowAnswerKey] = useState(false);
+  const [answerKeyData, setAnswerKeyData] = useState(null);
+  const [showAnswerKeyModal, setShowAnswerKeyModal] = useState(false);
   const sidebarRef = useRef(null);
 
   // Build enriched student list with submission/grade data for this activity
@@ -130,6 +140,14 @@ const ActivityGradingView = ({
     }
   }, [isOpen]);
 
+  // Fetch answer key on mount
+  useEffect(() => {
+    if (!isOpen || !user?.uid || !lessonId || !activityId) return;
+    getAnswerKey(user.uid, lessonId, activityId)
+      .then(key => setAnswerKeyData(key))
+      .catch(() => setAnswerKeyData(null));
+  }, [isOpen, user?.uid, lessonId, activityId]);
+
   // Fetch work data for the current student
   const fetchWork = useCallback(async (student) => {
     if (!student?.submission?.workKey || !student.uid) return;
@@ -137,7 +155,9 @@ const ActivityGradingView = ({
 
     setLoadingWork(true);
     try {
+      console.log('📖 Fetching work:', student.uid, student.submission.workKey);
       const data = await getStudentWorkForTeacher(student.uid, student.submission.workKey);
+      console.log('📖 Work data:', data ? 'found' : 'null', data ? Object.keys(data) : '');
       setWorkCache(prev => ({ ...prev, [student.uid]: data }));
     } catch (err) {
       console.error('Error fetching student work:', err);
@@ -184,7 +204,7 @@ const ActivityGradingView = ({
 
   const handleGradeSaved = (studentUid, lessonId, gradeData) => {
     // Sync max points across the page when any grade is saved
-    if (gradeData.maxPoints) {
+    if (gradeData?.maxPoints) {
       setAssignmentMaxPoints(gradeData.maxPoints.toString());
     }
     onGradeSaved(studentUid, lessonId, gradeData);
@@ -292,6 +312,51 @@ const ActivityGradingView = ({
     }
   };
 
+  // Helper: render a work preview from data (used for both student work and answer key)
+  const renderWorkContent = (workData) => {
+    if (!workData) return null;
+    const img = getImageFromWork(workData);
+    if (img) {
+      return (
+        <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
+          <img src={img} alt="Work" className="max-w-full max-h-full rounded-lg shadow-lg" />
+        </div>
+      );
+    }
+    if (workData.data?.sections) {
+      return (
+        <Suspense fallback={<div className="flex-1 flex items-center justify-center"><Loader2 className="w-8 h-8 text-gray-400 animate-spin" /></div>}>
+          <LazyLJPreview workData={workData} />
+        </Suspense>
+      );
+    }
+    if (workData.data?.star1 || workData.data?.reviewType) {
+      return (
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-gradient-to-br from-yellow-50 to-orange-50 p-5 rounded-xl border-2 border-yellow-300">
+            <p className="text-gray-900 leading-relaxed">
+              <strong>Star 1:</strong> {workData.data.star1}<br /><br />
+              <strong>Star 2:</strong> {workData.data.star2}<br /><br />
+              <strong>Wish:</strong> {workData.data.wish}
+            </p>
+          </div>
+        </div>
+      );
+    }
+    if (workData.data?.placedLoops) {
+      return (
+        <Suspense fallback={<div className="flex-1 flex items-center justify-center"><Loader2 className="w-8 h-8 text-gray-400 animate-spin" /></div>}>
+          <LazyCompositionPreview workData={workData} />
+        </Suspense>
+      );
+    }
+    return (
+      <div className="flex-1 flex items-center justify-center text-gray-400">
+        <p>Preview not available</p>
+      </div>
+    );
+  };
+
   // ========================
   // SpeedGrader View
   // ========================
@@ -357,6 +422,20 @@ const ActivityGradingView = ({
 
         <div className="text-xs text-gray-500">{activityName}</div>
 
+        {answerKeyData && (
+          <button
+            onClick={() => setShowAnswerKey(!showAnswerKey)}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+              showAnswerKey
+                ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            <Key size={12} />
+            {showAnswerKey ? 'Hide Key' : 'Show Key'}
+          </button>
+        )}
+
         <button
           onClick={onClose}
           className="text-gray-400 hover:text-gray-600 p-1"
@@ -405,6 +484,48 @@ const ActivityGradingView = ({
               onCriteriaChanged={handleCriteriaChanged}
             />
 
+            {/* Answer Key Section */}
+            <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
+              <div className="px-3 py-2 bg-gray-50 flex items-center gap-2">
+                <Key size={14} className={answerKeyData ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-sm font-medium text-gray-700">Answer Key</span>
+              </div>
+              <div className="p-3">
+                {answerKeyData ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-green-600 font-medium">Key created</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setShowAnswerKey(!showAnswerKey)}
+                        className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors flex items-center justify-center gap-1 ${
+                          showAnswerKey
+                            ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                        }`}
+                      >
+                        <Key size={11} />
+                        {showAnswerKey ? 'Hide Key' : 'Show Key'}
+                      </button>
+                      <button
+                        onClick={() => setShowAnswerKeyModal(true)}
+                        className="flex-1 py-1.5 text-xs font-medium rounded bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors"
+                      >
+                        Edit Key
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowAnswerKeyModal(true)}
+                    className="w-full py-2 text-xs font-medium rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <Key size={12} />
+                    Create Answer Key
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Next Student Button */}
             {selectedIndex < studentData.length - 1 && (
               <button
@@ -418,8 +539,28 @@ const ActivityGradingView = ({
           </div>
         </div>
 
-        {/* Right Panel - Work Display */}
-        <div className="flex-1 bg-gray-800 flex flex-col overflow-hidden">
+        {/* Right Panel - Work Display (splits when answer key shown) */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Answer Key Panel */}
+          {showAnswerKey && answerKeyData && (
+            <div className="w-1/2 bg-gray-800 flex flex-col overflow-hidden border-r border-gray-600">
+              <div className="px-3 py-1.5 bg-amber-900/30 border-b border-amber-700/50 flex items-center gap-2 shrink-0">
+                <Key size={12} className="text-amber-400" />
+                <span className="text-xs font-medium text-amber-300">Answer Key</span>
+              </div>
+              <div className="flex-1 flex flex-col overflow-hidden">
+                {renderWorkContent(answerKeyData)}
+              </div>
+            </div>
+          )}
+
+          {/* Student Work Panel */}
+          <div className={`${showAnswerKey && answerKeyData ? 'w-1/2' : 'flex-1'} bg-gray-800 flex flex-col overflow-hidden`}>
+            {showAnswerKey && answerKeyData && (
+              <div className="px-3 py-1.5 bg-blue-900/30 border-b border-blue-700/50 flex items-center gap-2 shrink-0">
+                <span className="text-xs font-medium text-blue-300">Student Work</span>
+              </div>
+            )}
           {isLoadingCurrent ? (
             <div className="flex-1 flex items-center justify-center">
               <Loader2 className="w-10 h-10 text-gray-400 animate-spin" />
@@ -493,11 +634,89 @@ const ActivityGradingView = ({
                 )}
               </div>
             </div>
+          ) : currentWork?.data?.sections ? (
+            <Suspense fallback={<div className="flex-1 flex items-center justify-center"><Loader2 className="w-10 h-10 text-gray-400 animate-spin" /></div>}>
+              <LazyLJPreview
+                workData={currentWork}
+                submittedAt={currentStudent.submission.submittedAt}
+              />
+            </Suspense>
+          ) : currentWork?.data?.star1 || currentWork?.data?.reviewType ? (
+            <div className="flex-1 flex items-center justify-center p-6">
+              <div className="max-w-lg w-full space-y-4">
+                {/* Header */}
+                <div className="text-center">
+                  <h3 className="text-white text-lg font-semibold flex items-center justify-center gap-2">
+                    <span>📝</span> Summary
+                    {currentWork.data.reviewType === 'partner' && currentWork.data.partnerName && (
+                      <span className="text-gray-400 text-sm font-normal">
+                        (reviewing {currentWork.data.partnerName})
+                      </span>
+                    )}
+                  </h3>
+                </div>
+
+                {/* Read aloud header */}
+                <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-3 rounded-lg text-center">
+                  <p className="text-white font-bold text-lg">📖 Read this out loud:</p>
+                </div>
+
+                {/* Read-aloud paragraph */}
+                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-5 rounded-xl border-2 border-yellow-300 shadow-md">
+                  <p className="text-gray-900 text-lg leading-loose">
+                    {currentWork.data.reviewType === 'partner' ? (
+                      <>
+                        Hey <strong>{currentWork.data.partnerName}</strong>!<br /><br />
+                        One thing you did really well with the DAW was <strong>{currentWork.data.star1}</strong>.<br /><br />
+                        Something that worked well in your music was <strong>{currentWork.data.star2}</strong>.<br /><br />
+                        I wonder what would happen if you tried <strong>{currentWork.data.wish}</strong>.<br /><br />
+                        {currentWork.data.vibe && (
+                          <>Overall, your composition gave off <strong>{currentWork.data.vibe.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]/gu, '').trim().toLowerCase()}</strong> vibes!</>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        One thing I did well with the DAW was <strong>{currentWork.data.star1}</strong>.<br /><br />
+                        Something that worked well in my music was <strong>{currentWork.data.star2}</strong>.<br /><br />
+                        Next time, I want to try <strong>{currentWork.data.wish}</strong>.<br /><br />
+                        {currentWork.data.vibe && (
+                          <>Overall, my composition gave off <strong>{currentWork.data.vibe.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]/gu, '').trim().toLowerCase()}</strong> vibes.</>
+                        )}
+                      </>
+                    )}
+                  </p>
+                </div>
+
+                {currentStudent.submission?.submittedAt && (
+                  <p className="text-xs text-gray-500 text-center">
+                    Submitted {new Date(currentStudent.submission.submittedAt).toLocaleString()}
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : currentWork?.data?.placedLoops ? (
+            <Suspense fallback={<div className="flex-1 flex items-center justify-center"><Loader2 className="w-10 h-10 text-gray-400 animate-spin" /></div>}>
+              <LazyCompositionPreview
+                workData={currentWork}
+                submittedAt={currentStudent.submission?.submittedAt}
+              />
+            </Suspense>
+          ) : currentWork ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8">
+              <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full text-center">
+                <p className="text-lg font-medium text-white mb-2">{currentWork.title || 'Work Submitted'}</p>
+                {currentStudent.submission.submittedAt && (
+                  <p className="text-xs text-gray-500 mt-3">
+                    Submitted {new Date(currentStudent.submission.submittedAt).toLocaleString()}
+                  </p>
+                )}
+              </div>
+            </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
               <Image size={48} className="mb-4" />
               <p className="text-lg font-medium">Work Submitted</p>
-              <p className="text-sm mt-1">No preview available for this submission.</p>
+              <p className="text-sm mt-1">Loading student work...</p>
               {currentStudent.submission.submittedAt && (
                 <p className="text-xs mt-2">
                   Submitted {new Date(currentStudent.submission.submittedAt).toLocaleString()}
@@ -506,7 +725,27 @@ const ActivityGradingView = ({
             </div>
           )}
         </div>
+        </div>
       </div>
+
+      {/* Answer Key Modal */}
+      <AnswerKeyModal
+        isOpen={showAnswerKeyModal}
+        onClose={(saved) => {
+          setShowAnswerKeyModal(false);
+          if (saved) {
+            // Refresh answer key data
+            getAnswerKey(user.uid, lessonId, activityId)
+              .then(key => setAnswerKeyData(key))
+              .catch(() => {});
+          }
+        }}
+        lessonId={lessonId}
+        activityId={activityId}
+        activityName={activityName}
+        activityType={activityType}
+        teacherUid={user?.uid}
+      />
     </div>
   );
 };

@@ -24,11 +24,39 @@ const LESSON_CONFIGS = {
     },
     filterLoopCategory: 'Mysterious'
   },
+  'adventure-composition': {
+    localStorageKeys: [],
+    studentWorkKey: 'adventure-composition',
+    reflectionKey: 'adventure-reflection',
+    video: null,
+    filterLoopCategory: null
+  },
+  'city-composition': {
+    localStorageKeys: [],
+    studentWorkKey: 'city-composition',
+    reflectionKey: 'city-reflection',
+    video: null,
+    filterLoopCategory: null
+  },
+  'wildlife-composition': {
+    localStorageKeys: [],
+    studentWorkKey: 'wildlife-composition',
+    reflectionKey: 'wildlife-reflection',
+    video: null,
+    filterLoopCategory: null
+  },
+  'sports-composition': {
+    localStorageKeys: [],
+    studentWorkKey: 'sports-composition',
+    reflectionKey: 'sports-reflection',
+    video: null,
+    filterLoopCategory: null
+  },
   'game-composition': {
     localStorageKeys: [],
-    studentWorkKey: 'game-composition',  // Uses studentWorkStorage
+    studentWorkKey: 'game-composition',
     reflectionKey: 'game-reflection',
-    video: null,  // Video is stored in composition data
+    video: null,
     filterLoopCategory: null
   }
 };
@@ -89,7 +117,8 @@ const TwoStarsAndAWishActivity = ({
   viewMode = false,
   isSessionMode = false,
   compositionData: propsCompositionData = null,  // Accept composition data as prop
-  activityType = null  // Optional activity type for different reflection contexts
+  activityType = null,  // Optional activity type for different reflection contexts
+  activityId = null  // Optional activity ID for Firebase save (e.g., 'll-lesson3-reflection')
 }) => {
   const [showBonus, setShowBonus] = useState(false);
   const [isDAWReady, setIsDAWReady] = useState(false);
@@ -219,6 +248,7 @@ const TwoStarsAndAWishActivity = ({
           onComplete={handleReflectionComplete}
           viewMode={reflectionCompleted ? true : viewMode}
           isSessionMode={isSessionMode}
+          activityId={activityId}
         />
       </div>
     );
@@ -304,6 +334,7 @@ const TwoStarsAndAWishActivity = ({
           onComplete={handleReflectionComplete}
           viewMode={reflectionCompleted ? true : viewMode}
           isSessionMode={isSessionMode}
+          activityId={activityId}
         />
       )}
     </div>
