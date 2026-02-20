@@ -182,7 +182,7 @@ const SchoolBeneathActivity = ({
 
   // ✅ SILENT AUTO-SAVE - Saves to same location as manual save every 30 seconds
   useEffect(() => {
-    if (!studentId || viewMode) return;
+    if (!studentId) return;
 
     const autoSaveInterval = setInterval(() => {
       if (placedLoops.length > 0) {
@@ -599,7 +599,7 @@ const SchoolBeneathActivity = ({
               </button>
             )}
 
-            {studentId && placedLoops.length > 0 && !viewMode && (
+            {studentId && placedLoops.length > 0 && (
               <button
                 onClick={() => handleManualSave()}
                 className="px-4 py-1.5 text-sm rounded bg-green-600 hover:bg-green-700 font-bold transition-colors"
@@ -643,7 +643,7 @@ const SchoolBeneathActivity = ({
           isLessonMode={true}
           showToast={(msg, type) => console.log(msg, type)}
           initialPlacedLoops={placedLoops}
-          readOnly={viewMode || showReflection}
+          readOnly={showReflection}
           assignmentPanelContent={null}
         />
       </div>
