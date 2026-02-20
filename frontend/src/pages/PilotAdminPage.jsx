@@ -1707,8 +1707,13 @@ const PilotAdminPage = () => {
                   )
                 );
 
+                // Get teacher name from outreach data or registered users
+                const registeredUser = registeredUsers.find(u => u.email?.toLowerCase() === teacher.email.toLowerCase());
+                const teacherName = outreach.name || registeredUser?.displayName || '';
+
                 return {
                   ...teacher,
+                  teacherName,
                   stage,
                   l1Done, l2Done, l3Done, l4Done, l5Done,
                   hasL3Survey,
@@ -1724,10 +1729,12 @@ const PilotAdminPage = () => {
                 };
               });
 
-              // Apply search filter
-              let filteredTeachers = teachers.filter(t =>
-                t.email.toLowerCase().includes(analyticsSearch.toLowerCase())
-              );
+              // Apply search filter (searches name and email)
+              let filteredTeachers = teachers.filter(t => {
+                const q = analyticsSearch.toLowerCase();
+                return t.email.toLowerCase().includes(q) ||
+                  (t.teacherName && t.teacherName.toLowerCase().includes(q));
+              });
 
               // Apply dropdown filter
               if (analyticsFilter === 'pilotOnly') {
@@ -1998,12 +2005,25 @@ const PilotAdminPage = () => {
                                     />
                                   </td>
                                   <td className="px-2 py-2">
-                                    <div className="font-medium text-gray-800 text-sm">
-                                      {teacher.email.split('@')[0]}
-                                    </div>
-                                    <div className="text-xs text-gray-400">
-                                      @{teacher.email.split('@')[1]}
-                                    </div>
+                                    {teacher.teacherName ? (
+                                      <>
+                                        <div className="font-medium text-gray-800 text-sm">
+                                          {teacher.teacherName}
+                                        </div>
+                                        <div className="text-xs text-gray-400">
+                                          {teacher.email}
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <div className="font-medium text-gray-800 text-sm">
+                                          {teacher.email.split('@')[0]}
+                                        </div>
+                                        <div className="text-xs text-gray-400">
+                                          @{teacher.email.split('@')[1]}
+                                        </div>
+                                      </>
+                                    )}
                                   </td>
                                   <td className="px-1 py-2 text-center" onClick={(e) => e.stopPropagation()}>
                                     <select
