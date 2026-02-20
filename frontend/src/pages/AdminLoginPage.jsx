@@ -91,15 +91,6 @@ const AdminLoginPage = () => {
               </div>
             )}
 
-            {/* Demo Credentials Info */}
-            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-              <div className="text-sm text-blue-700">
-                <p className="font-medium mb-1">Demo Admin Credentials:</p>
-                <p>Email: admin@musiceducation.com</p>
-                <p>Password: AdminPassword123!</p>
-              </div>
-            </div>
-
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">

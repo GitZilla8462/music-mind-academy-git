@@ -144,50 +144,5 @@ export const listAllApprovedEmails = async () => {
   return { academy, edu };
 };
 
-// Expose helper functions to window for console access
-if (typeof window !== 'undefined') {
-  window.addApprovedEmail = async (email, siteType = 'academy', notes = '') => {
-    try {
-      await addApprovedEmail(email, siteType, notes);
-      return `${email} approved for ${siteType}!`;
-    } catch (error) {
-      console.error('Failed to add email:', error);
-      return `Failed: ${error.message}`;
-    }
-  };
-
-  window.removeApprovedEmail = async (email, siteType = 'academy') => {
-    try {
-      await removeApprovedEmail(email, siteType);
-      return `${email} removed from ${siteType}!`;
-    } catch (error) {
-      console.error('Failed to remove email:', error);
-      return `Failed: ${error.message}`;
-    }
-  };
-
-  window.listApprovedEmails = async (siteType = 'academy') => {
-    try {
-      return await listApprovedEmails(siteType);
-    } catch (error) {
-      console.error('Failed to list emails:', error);
-      return `Failed: ${error.message}`;
-    }
-  };
-
-  window.listAllApprovedEmails = async () => {
-    try {
-      return await listAllApprovedEmails();
-    } catch (error) {
-      console.error('Failed to list emails:', error);
-      return `Failed: ${error.message}`;
-    }
-  };
-
-  console.log('Pilot email management loaded. Available commands:');
-  console.log('  await addApprovedEmail("email@example.com", "academy", "optional notes")');
-  console.log('  await addApprovedEmail("email@example.com", "edu", "optional notes")');
-  console.log('  await removeApprovedEmail("email@example.com", "academy")');
-  console.log('  await listApprovedEmails("academy")  // or "edu"');
-  console.log('  await listAllApprovedEmails()');
-}
+// Admin email management is handled via PilotAdminPage (authenticated).
+// Console helpers removed for security.

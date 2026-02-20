@@ -339,13 +339,25 @@ const AppContent = () => {
         } />
 
         {/* Admin dashboard for monitoring all problems */}
-        <Route path="/admin/all-problems" element={<AdminAllProblems />} />
+        <Route path="/admin/all-problems" element={
+          <FirebaseProtectedRoute>
+            <AdminAllProblems />
+          </FirebaseProtectedRoute>
+        } />
 
         {/* Debug tool for inspecting Firebase sessions */}
-        <Route path="/debug-session" element={<FirebaseSessionInspector />} />
+        <Route path="/debug-session" element={
+          <FirebaseProtectedRoute>
+            <FirebaseSessionInspector />
+          </FirebaseProtectedRoute>
+        } />
 
         {/* Dev-only Hotspot Editor for Melody Mystery */}
-        <Route path="/dev/hotspot-editor" element={<HotspotEditor />} />
+        <Route path="/dev/hotspot-editor" element={
+          <FirebaseProtectedRoute>
+            <HotspotEditor />
+          </FirebaseProtectedRoute>
+        } />
 
         {/* Lesson Plan PDF Viewer */}
         <Route path="/lesson-plan/lesson1" element={<LessonPlanPDF />} />
@@ -481,13 +493,25 @@ const AppContent = () => {
         <Route path="/join" element={<JoinWithCode />} />
 
         {/* Admin dashboard */}
-        <Route path="/admin/all-problems" element={<AdminAllProblems />} />
+        <Route path="/admin/all-problems" element={
+          <FirebaseProtectedRoute>
+            <AdminAllProblems />
+          </FirebaseProtectedRoute>
+        } />
 
         {/* Debug tool for inspecting Firebase sessions */}
-        <Route path="/debug-session" element={<FirebaseSessionInspector />} />
+        <Route path="/debug-session" element={
+          <FirebaseProtectedRoute>
+            <FirebaseSessionInspector />
+          </FirebaseProtectedRoute>
+        } />
 
         {/* Dev-only Hotspot Editor for Melody Mystery */}
-        <Route path="/dev/hotspot-editor" element={<HotspotEditor />} />
+        <Route path="/dev/hotspot-editor" element={
+          <FirebaseProtectedRoute>
+            <HotspotEditor />
+          </FirebaseProtectedRoute>
+        } />
 
         {/* Lesson Plan PDF Viewer */}
         <Route path="/lesson-plan/lesson1" element={<LessonPlanPDF />} />

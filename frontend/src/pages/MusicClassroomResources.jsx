@@ -238,21 +238,8 @@ function MusicClassroomResources() {
   }, [firebaseUser]);
 
   const handleLogin = () => {
-    if (username === 'tuba343' && password === 'music2025') {
-      setLoggedIn(true);
-      localStorage.setItem('classroom-logged-in', 'true');
-      localStorage.setItem('classroom-user-role', 'student');
-      localStorage.setItem('classroom-username', username);
-      localStorage.setItem('classroom-user-id', username);
-    } else if (username === 'teacher' && password === 'teach2025') {
-      setLoggedIn(true);
-      localStorage.setItem('classroom-logged-in', 'true');
-      localStorage.setItem('classroom-user-role', 'teacher');
-      localStorage.setItem('classroom-username', 'Teacher');
-      localStorage.setItem('classroom-user-id', 'teacher');
-    } else {
-      alert('Wrong username or password');
-    }
+    // Redirect to proper login page
+    navigate('/login');
   };
 
   const handleLogout = async () => {
