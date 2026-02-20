@@ -303,39 +303,63 @@ const PilotAdminPage = () => {
     setSuccess(null);
 
     try {
-      // Parse lines — supports:
-      //   email\tschool name   (tab-separated, each line gets its own note)
-      //   email   school name  (multiple spaces as separator)
-      //   email                (plain email, uses shared batchNotes)
+      // Parse lines — supports Excel paste with 2 or 3 tab-separated columns:
+      //   name\temail\tschool   (3 columns from Excel)
+      //   email\tschool         (2 columns)
+      //   email                 (plain email, uses shared batchNotes)
       const entries = [];
       const lines = batchEmails.split(/\n/).filter(l => l.trim());
 
       for (const line of lines) {
-        // Try tab-separated first, then 2+ spaces
-        let parts = line.includes('\t') ? line.split('\t') : line.split(/\s{2,}/);
-        const lineEmails = [];
-        let note = '';
+        // Split by tabs (Excel paste) or 2+ spaces
+        const parts = (line.includes('\t') ? line.split('\t') : line.split(/\s{2,}/))
+          .map(p => p.trim())
+          .filter(Boolean);
+
+        // Separate emails from non-email text
+        const emails = [];
+        const textParts = [];
 
         for (const part of parts) {
-          const trimmed = part.trim();
-          if (!trimmed) continue;
-          // Check if this part contains an email
-          const emailMatch = trimmed.match(/[^\s,;]+@[^\s,;]+/g);
+          const emailMatch = part.match(/[^\s,;()]+@[^\s,;()]+/g);
           if (emailMatch) {
-            lineEmails.push(...emailMatch.map(e => e.toLowerCase().trim()));
+            emails.push(...emailMatch.map(e => e.toLowerCase().trim()));
           } else {
-            // Non-email text is the school/note
-            note = trimmed;
+            textParts.push(part);
           }
         }
 
-        for (const email of lineEmails) {
-          entries.push({ email, note: note || batchNotes.trim() });
+        if (emails.length === 0) continue;
+
+        // With 3+ columns (name, email, school): last non-email text is school, first is name
+        // With 2 columns (email, school): non-email text is school
+        let name = '';
+        let school = '';
+        if (textParts.length >= 2) {
+          name = textParts[0];
+          school = textParts[textParts.length - 1];
+        } else if (textParts.length === 1) {
+          // Could be name or school — check if email was first column
+          const firstPart = parts[0].trim();
+          const firstHasEmail = firstPart.match(/[^\s,;()]+@[^\s,;()]+/);
+          if (firstHasEmail) {
+            school = textParts[0]; // email came first, so text is school
+          } else {
+            name = textParts[0]; // text came first, so it's name
+          }
+        }
+
+        for (const email of emails) {
+          entries.push({
+            email,
+            name: name,
+            school: school || batchNotes.trim()
+          });
         }
       }
 
       if (entries.length === 0) {
-        setError('No valid emails found. Make sure each email contains @');
+        setError('No valid emails found. Make sure each line has an email address.');
         setBatchAdding(false);
         return;
       }
@@ -351,7 +375,7 @@ const PilotAdminPage = () => {
       let added = 0;
       let skipped = 0;
 
-      for (const { email, note } of uniqueEntries) {
+      for (const { email, name, school } of uniqueEntries) {
         const emailKey = email.replace(/\./g, ',');
         const emailRef = ref(database, `approvedEmails/${selectedSite}/${emailKey}`);
 
@@ -364,8 +388,9 @@ const PilotAdminPage = () => {
 
         await set(emailRef, {
           email: email,
+          name: name || '',
           approvedAt: Date.now(),
-          notes: note,
+          notes: school,
           approvedBy: user.email,
           siteType: selectedSite
         });
@@ -374,8 +399,9 @@ const PilotAdminPage = () => {
         const outreachRef = ref(database, `teacherOutreach/${emailKey}`);
         await update(outreachRef, {
           email: email,
+          name: name || '',
           teacherType: newTeacherType,
-          school: note,
+          school: school,
           addedAt: Date.now()
         });
 
@@ -1191,17 +1217,17 @@ const PilotAdminPage = () => {
             <form onSubmit={handleBatchAdd} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Paste emails — one per line, optionally with school name (tab or double-space separated)
+                  Paste from Excel (Name, Email, School) or just emails — one per line
                 </label>
                 <textarea
                   value={batchEmails}
                   onChange={(e) => setBatchEmails(e.target.value)}
-                  placeholder={"teacher1@school.edu\tLincoln Middle School\nteacher2@school.edu\tWashington Academy\nteacher3@school.edu"}
+                  placeholder={"Jane Smith\tteacher1@school.edu\tLincoln Middle School\nJohn Doe\tteacher2@school.edu\tWashington Academy\nteacher3@school.edu"}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white h-32 font-mono text-sm"
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  {batchEmails.split(/\n/).filter(l => l.trim()).filter(l => l.match(/[^\s,;]+@[^\s,;]+/)).length} email(s) detected
+                  {batchEmails.split(/\n/).filter(l => l.trim()).filter(l => l.match(/[^\s,;()]+@[^\s,;()]+/)).length} email(s) detected
                 </p>
               </div>
               <div className="flex flex-col md:flex-row gap-4 items-end">
