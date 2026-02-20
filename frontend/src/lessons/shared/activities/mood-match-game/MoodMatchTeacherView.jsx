@@ -35,6 +35,7 @@ const ActivityBanner = () => (
 const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson }) => {
   const { sessionCode: contextSessionCode } = useSession();
   const sessionCode = propSessionCode || contextSessionCode;
+  console.log('🎮 MoodMatchTeacherView mounted, sessionCode:', sessionCode, 'prop:', propSessionCode, 'context:', contextSessionCode);
 
   // Game state
   const [currentLoopIndex, setCurrentLoopIndex] = useState(-1);
@@ -113,9 +114,14 @@ const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson })
   }, []);
 
   const startGame = async () => {
-    if (!sessionCode) return;
+    console.log('🎮 startGame clicked! sessionCode:', sessionCode);
+    if (!sessionCode) {
+      console.error('🎮 No sessionCode! Cannot start game.');
+      return;
+    }
 
     try {
+      console.log('🎮 Clearing votes...');
       await clearMoodMatchVotes(sessionCode);
       setCurrentLoopIndex(0);
       setShowResults(false);
