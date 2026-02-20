@@ -29,7 +29,7 @@ import {
   addSeatToRoster,
   bulkAddSeats,
   removeSeat,
-  resetSeatPin,
+  resetSeatPassword,
   updateSeat,
   getPrintableRoster,
   generateMissingUsernames,
@@ -281,37 +281,37 @@ const RosterManager = ({ classId, className, onClose }) => {
     }
   };
 
-  // Reset PIN
-  const handleResetPin = async (seatNumber) => {
+  // Reset password
+  const handleResetPassword = async (seatNumber) => {
     try {
-      const newPin = await resetSeatPin(classId, seatNumber);
+      const newPassword = await resetSeatPassword(classId, seatNumber);
       fetchRoster();
-      alert(`New PIN for Seat ${seatNumber}: ${newPin}`);
+      alert(`New password for Seat ${seatNumber}: ${newPassword}`);
     } catch (error) {
-      console.error('Error resetting PIN:', error);
+      console.error('Error resetting password:', error);
     }
   };
 
-  // Bulk reset PINs
-  const handleBulkResetPins = async () => {
+  // Bulk reset passwords
+  const handleBulkResetPasswords = async () => {
     if (selectedSeats.size === 0) return;
 
-    if (!confirm(`Reset PINs for ${selectedSeats.size} selected student${selectedSeats.size > 1 ? 's' : ''}?`)) {
+    if (!confirm(`Reset passwords for ${selectedSeats.size} selected student${selectedSeats.size > 1 ? 's' : ''}?`)) {
       return;
     }
 
     setBulkActionLoading(true);
     try {
-      const newPins = [];
+      const results = [];
       for (const seatNumber of selectedSeats) {
-        const newPin = await resetSeatPin(classId, seatNumber);
-        newPins.push({ seatNumber, pin: newPin });
+        const newPassword = await resetSeatPassword(classId, seatNumber);
+        results.push({ seatNumber, password: newPassword });
       }
       await fetchRoster();
-      alert(`Reset ${newPins.length} PIN${newPins.length > 1 ? 's' : ''}. Print new login cards to distribute.`);
+      alert(`Reset ${results.length} password${results.length > 1 ? 's' : ''}. Print new login cards to distribute.`);
     } catch (error) {
-      console.error('Error bulk resetting PINs:', error);
-      alert('Error resetting some PINs. Please try again.');
+      console.error('Error bulk resetting passwords:', error);
+      alert('Error resetting some passwords. Please try again.');
     } finally {
       setBulkActionLoading(false);
     }
@@ -333,7 +333,7 @@ const RosterManager = ({ classId, className, onClose }) => {
   // Copy roster to clipboard
   const handleCopyRoster = async () => {
     const printable = await getPrintableRoster(classId);
-    const text = `Class: ${className}\n\nName\tUsername\tPIN\n` +
+    const text = `Class: ${className}\n\nName\tUsername\tPassword\n` +
       printable.map(s => `${s.displayName}\t${s.username}\t${s.pin}`).join('\n');
 
     navigator.clipboard.writeText(text);
@@ -346,7 +346,7 @@ const RosterManager = ({ classId, className, onClose }) => {
     const printable = await getPrintableRoster(classId);
 
     const csvContent = [
-      ['Name', 'Username', 'PIN', 'Seat Number'].join(','),
+      ['Name', 'Username', 'Password', 'Seat Number'].join(','),
       ...printable.map(s => [
         `"${(s.displayName || '').replace(/"/g, '""')}"`,
         s.username,
@@ -449,10 +449,10 @@ const RosterManager = ({ classId, className, onClose }) => {
                     ? 'text-gray-600 hover:bg-gray-200 bg-gray-100'
                     : 'text-amber-700 bg-amber-100 hover:bg-amber-200'
                 }`}
-                title={showPins ? 'Hide PINs (projector mode)' : 'Show PINs'}
+                title={showPins ? 'Hide passwords (projector mode)' : 'Show passwords'}
               >
                 {showPins ? <Eye size={16} /> : <EyeOff size={16} />}
-                {showPins ? 'PINs Visible' : 'PINs Hidden'}
+                {showPins ? 'Passwords Visible' : 'Passwords Hidden'}
               </button>
             </div>
 
@@ -504,12 +504,12 @@ const RosterManager = ({ classId, className, onClose }) => {
                 </span>
                 <div className="flex-1" />
                 <button
-                  onClick={handleBulkResetPins}
+                  onClick={handleBulkResetPasswords}
                   disabled={bulkActionLoading}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-100 rounded-lg disabled:opacity-50"
                 >
                   <RefreshCw size={14} />
-                  Reset PINs
+                  Reset Passwords
                 </button>
                 <button
                   onClick={handleBulkRemove}
@@ -588,7 +588,7 @@ const RosterManager = ({ classId, className, onClose }) => {
                       </span>
                     </th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                      PIN
+                      Password
                     </th>
                     <th
                       className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none w-20"
@@ -649,7 +649,7 @@ const RosterManager = ({ classId, className, onClose }) => {
                       </td>
                       <td className="px-4 py-3">
                         <span className={`font-mono text-sm font-bold ${showPins ? 'text-gray-900' : 'text-gray-300'}`}>
-                          {showPins ? seat.pin : '••••'}
+                          {showPins ? seat.pin : '••••••••'}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600">
@@ -658,9 +658,9 @@ const RosterManager = ({ classId, className, onClose }) => {
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <button
-                            onClick={() => handleResetPin(seat.seatNumber)}
+                            onClick={() => handleResetPassword(seat.seatNumber)}
                             className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-                            title="Reset PIN"
+                            title="Reset password"
                           >
                             <RefreshCw size={16} />
                           </button>
@@ -683,7 +683,7 @@ const RosterManager = ({ classId, className, onClose }) => {
           {/* Footer */}
           <div className="p-4 border-t border-gray-200 bg-gray-50">
             <p className="text-xs text-gray-500 text-center">
-              Students log in with their username + PIN.
+              Students log in with their username + password.
               Click on a name to edit it. Use "Print Cards" to give students their login info.
             </p>
           </div>

@@ -249,7 +249,7 @@ const FirebaseTeacherDashboard = () => {
                   Set up once, then track everything.
                 </p>
                 <ul className="text-xs text-gray-400 space-y-1">
-                  <li>• Students get login PINs</li>
+                  <li>• Students get login passwords</li>
                   <li>• Work saves automatically</li>
                   <li>• Grade and give feedback</li>
                 </ul>

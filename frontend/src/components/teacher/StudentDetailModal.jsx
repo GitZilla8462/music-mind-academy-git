@@ -154,18 +154,20 @@ const StudentDetailModal = ({
       <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-xl font-semibold text-blue-600">
-              {(student?.displayName || student?.name || 'S').charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">
-                {student?.displayName || student?.name || `Student ${student?.seatNumber}`}
-              </h2>
-              <p className="text-sm text-gray-500">
-                Seat #{student?.seatNumber} · {submitted}/{totalActivities} activities complete
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">
+              {student?.displayName || student?.name || `Student ${student?.seatNumber}`}
+            </h2>
+            {(student?.username || student?.pin) && (
+              <p className="text-sm text-gray-500 mt-0.5 font-mono">
+                {student?.username && <>Username: <span className="font-semibold text-gray-700">{student.username}</span></>}
+                {student?.username && student?.pin && <> · </>}
+                {student?.pin && <>Password: <span className="font-semibold text-gray-700">{student.pin}</span></>}
               </p>
-            </div>
+            )}
+            <p className="text-sm text-gray-400 mt-0.5">
+              {submitted}/{totalActivities} activities complete
+            </p>
           </div>
           <button
             onClick={onClose}

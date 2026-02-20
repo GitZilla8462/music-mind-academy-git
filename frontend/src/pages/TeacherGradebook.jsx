@@ -13,6 +13,7 @@ import { CURRICULUM } from '../config/curriculumConfig';
 import GradebookTable from '../components/teacher/GradebookTable';
 import GradeEntryModal from '../components/teacher/GradeEntryModal';
 import StudentWorkViewer from '../components/teacher/StudentWorkViewer';
+import FirstTimeTip from '../components/teacher/onboarding/FirstTimeTip';
 
 // Build lesson columns from CURRICULUM (only lessons with activities)
 const LESSONS = CURRICULUM.flatMap(unit =>
@@ -204,6 +205,10 @@ const TeacherGradebook = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
+        <FirstTimeTip
+          tipId="gradebook-intro"
+          message="New here? Click any student cell to view their work, then grade it. Check Help for a video walkthrough."
+        />
         {roster.length === 0 ? (
           <div className="bg-gray-800 rounded-xl p-8 text-center border border-gray-700">
             <Users className="w-12 h-12 text-gray-500 mx-auto mb-4" />

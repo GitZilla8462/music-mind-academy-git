@@ -699,6 +699,7 @@ const ListeningLabHub = () => {
         onClose={() => setShowCreateClassModal(false)}
         teacherUid={user?.uid}
         onClassCreated={handleClassCreated}
+        fromLessonStart={!!selectedLesson}
       />
       </div>
     </div>

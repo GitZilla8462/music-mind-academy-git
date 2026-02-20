@@ -1,7 +1,7 @@
 // Class roster and enrollment management
 // src/firebase/enrollments.js
-// Handles student seats, PINs, and enrollments for Student Accounts mode
-// SECURITY: PINs are hashed with bcrypt for verification
+// Handles student seats, passwords, and enrollments for Student Accounts mode
+// SECURITY: Passwords are hashed with bcrypt for verification
 
 import { getDatabase, ref, get, set, update, remove } from 'firebase/database';
 import bcrypt from 'bcryptjs';
@@ -19,16 +19,40 @@ const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 // Musical instruments for username generation
 const MUSICAL_INSTRUMENTS = [
   'tuba', 'flute', 'drum', 'piano', 'guitar', 'violin', 'trumpet', 'cello',
-  'harp', 'banjo', 'bass', 'oboe', 'viola', 'horn', 'sax', 'bell',
+  'harp', 'banjo', 'bass', 'oboe', 'viola', 'horn', 'bell',
   'cymbal', 'snare', 'bongo', 'clef', 'chord', 'note', 'beat', 'tempo',
-  'rhythm', 'melody', 'brass', 'reed', 'string', 'keys'
+  'brass', 'reed', 'string', 'keys'
+];
+
+// Word lists for password generation (simple, phonetic, easy to spell)
+const PASSWORD_ADJECTIVES = [
+  'bold', 'bright', 'calm', 'cool', 'dark', 'deep', 'epic', 'fast',
+  'gold', 'grand', 'loud', 'quick', 'sharp', 'slow', 'soft', 'swift',
+  'tall', 'warm', 'wild', 'brave'
+];
+
+const PASSWORD_NOUNS = [
+  'beat', 'bell', 'boom', 'clap', 'crash', 'drum', 'echo', 'flame',
+  'grove', 'lake', 'loop', 'moon', 'note', 'peak', 'rain', 'rock',
+  'snap', 'solo', 'star', 'storm', 'sun', 'wave', 'wind'
 ];
 
 /**
- * Generate a random 4-digit PIN
+ * Generate a two-word password (e.g., "epicdrum")
+ * Displayed as one word, no spaces or hyphens
  */
-export const generatePin = () => {
-  return Math.floor(1000 + Math.random() * 9000).toString();
+export const generatePassword = () => {
+  const adj = PASSWORD_ADJECTIVES[Math.floor(Math.random() * PASSWORD_ADJECTIVES.length)];
+  const noun = PASSWORD_NOUNS[Math.floor(Math.random() * PASSWORD_NOUNS.length)];
+  return adj + noun;
+};
+
+/**
+ * Normalize password input for comparison
+ * Strips spaces, lowercases — so "Epic Drum", "epic drum", "epicdrum" all match
+ */
+export const normalizePassword = (input) => {
+  return input.replace(/\s+/g, '').toLowerCase();
 };
 
 /**
@@ -136,12 +160,12 @@ export const getSeatByUsername = async (classId, username) => {
 };
 
 /**
- * Hash a PIN using bcrypt
- * @param {string} pin - The plaintext PIN
- * @returns {Promise<string>} The hashed PIN
+ * Hash a password using bcrypt
+ * @param {string} password - The plaintext password
+ * @returns {Promise<string>} The hashed password
  */
-const hashPin = async (pin) => {
-  return bcrypt.hash(pin, BCRYPT_ROUNDS);
+const hashPassword = async (password) => {
+  return bcrypt.hash(password, BCRYPT_ROUNDS);
 };
 
 /**
@@ -165,9 +189,9 @@ export const addSeatToRoster = async (classId, seatData) => {
     throw new Error(`Seat ${seatNumber} already exists in this class`);
   }
 
-  // Generate PIN and hash it
-  const pin = generatePin();
-  const hashedPin = await hashPin(pin);
+  // Generate password and hash it
+  const password = generatePassword();
+  const hashedPassword = await hashPassword(password);
 
   // Generate username if not provided
   const username = providedUsername || await generateMusicalUsername(classId);
@@ -176,17 +200,17 @@ export const addSeatToRoster = async (classId, seatData) => {
     seatNumber,
     displayName,
     username, // Musical username for student login (e.g., "tuba123")
-    pin, // Plaintext stored in roster (protected, teacher-only access)
+    pin: password, // Plaintext stored in roster (protected, teacher-only access)
     studentUid: null, // Will be set when a Google account is linked
     status: 'active',
     addedAt: Date.now()
   };
 
-  // Store seat in roster, hashed PIN, and register username globally
+  // Store seat in roster, hashed password, and register username globally
   await Promise.all([
     set(seatRef, fullSeatData),
     set(ref(database, `pinHashes/${classId}/${seatNumber}`), {
-      hash: hashedPin,
+      hash: hashedPassword,
       updatedAt: Date.now()
     }),
     registerUsername(username, classId, seatNumber)
@@ -226,8 +250,8 @@ export const bulkAddSeats = async (classId, count, startFrom = 1, displayNames =
       nextSeat++;
     }
 
-    const pin = generatePin();
-    const hashedPin = await hashPin(pin);
+    const password = generatePassword();
+    const hashedPassword = await hashPassword(password);
 
     // Generate unique username
     const username = await generateMusicalUsername(classId, existingUsernames);
@@ -240,7 +264,7 @@ export const bulkAddSeats = async (classId, count, startFrom = 1, displayNames =
       seatNumber: nextSeat,
       displayName,
       username, // Musical username for student login
-      pin, // Plaintext for teacher
+      pin: password, // Plaintext for teacher
       studentUid: null,
       status: 'active',
       addedAt: Date.now()
@@ -248,7 +272,7 @@ export const bulkAddSeats = async (classId, count, startFrom = 1, displayNames =
 
     rosterUpdates[`classRosters/${classId}/${nextSeat}`] = seatData;
     pinHashUpdates[`pinHashes/${classId}/${nextSeat}`] = {
-      hash: hashedPin,
+      hash: hashedPassword,
       updatedAt: Date.now()
     };
 
@@ -388,31 +412,31 @@ export const generateMissingUsernames = async (classId) => {
 };
 
 /**
- * Reset a seat's PIN
+ * Reset a seat's password
  *
  * @param {string} classId - Class ID
  * @param {number} seatNumber - Seat number
- * @returns {string} New PIN
+ * @returns {string} New password
  */
-export const resetSeatPin = async (classId, seatNumber) => {
-  const newPin = generatePin();
-  const hashedPin = await hashPin(newPin);
+export const resetSeatPassword = async (classId, seatNumber) => {
+  const newPassword = generatePassword();
+  const hashedPassword = await hashPassword(newPassword);
 
   // Update both roster (plaintext for teacher) and pinHashes (for verification)
   await Promise.all([
     update(ref(database, `classRosters/${classId}/${seatNumber}`), {
-      pin: newPin,
+      pin: newPassword,
       updatedAt: Date.now()
     }),
     set(ref(database, `pinHashes/${classId}/${seatNumber}`), {
-      hash: hashedPin,
+      hash: hashedPassword,
       updatedAt: Date.now()
     }),
-    // Clear any rate limiting lockout when PIN is reset
+    // Clear any rate limiting lockout when password is reset
     remove(ref(database, `pinLoginAttempts/${classId}/${seatNumber}`))
   ]);
 
-  return newPin;
+  return newPassword;
 };
 
 /**
@@ -573,32 +597,32 @@ export const clearFailedAttempts = async (classId, seatNumber) => {
 };
 
 /**
- * Verify PIN for a seat (for PIN login)
- * Uses bcrypt to compare against hashed PIN
+ * Verify password for a seat
+ * Uses bcrypt to compare against hashed password
+ * Normalizes input (strips spaces, lowercases) for flexibility
  *
  * @param {string} classId - Class ID
  * @param {number} seatNumber - Seat number
- * @param {string} pin - PIN to verify
+ * @param {string} password - Password to verify
  * @returns {Object} { valid, error, rateLimitStatus }
  */
-export const verifyPin = async (classId, seatNumber, pin) => {
+export const verifyPin = async (classId, seatNumber, password) => {
   // Check rate limiting first
   const rateLimitStatus = await checkRateLimitStatus(classId, seatNumber);
 
   if (rateLimitStatus.isLocked) {
     return {
       valid: false,
-      error: `Too many failed attempts. Please wait ${rateLimitStatus.minutesRemaining} minutes and try again, or ask your teacher to reset your PIN.`,
+      error: `Too many failed attempts. Please wait ${rateLimitStatus.minutesRemaining} minutes and try again, or ask your teacher to reset your password.`,
       rateLimitStatus
     };
   }
 
-  // Get the hashed PIN from the public pinHashes path
+  // Get the hashed password from the pinHashes path
   const pinHashRef = ref(database, `pinHashes/${classId}/${seatNumber}`);
   const snapshot = await get(pinHashRef);
 
   if (!snapshot.exists()) {
-    // Record failed attempt
     const newStatus = await recordFailedPinAttempt(classId, seatNumber);
     return {
       valid: false,
@@ -609,19 +633,19 @@ export const verifyPin = async (classId, seatNumber, pin) => {
 
   const { hash } = snapshot.val();
 
-  // Compare using bcrypt
-  const isValid = await bcrypt.compare(pin, hash);
+  // Normalize input (strip spaces, lowercase) then compare with bcrypt
+  const normalized = normalizePassword(password);
+  const isValid = await bcrypt.compare(normalized, hash);
 
   if (!isValid) {
-    // Record failed attempt
     const newStatus = await recordFailedPinAttempt(classId, seatNumber);
     const attemptsLeft = newStatus.remainingAttempts;
 
-    let error = 'Invalid PIN.';
+    let error = 'Wrong password. Try again.';
     if (attemptsLeft <= 2 && attemptsLeft > 0) {
-      error = `Invalid PIN. ${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining.`;
+      error = `Wrong password. ${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining.`;
     } else if (attemptsLeft === 0) {
-      error = `Too many failed attempts. Please wait ${newStatus.minutesRemaining} minutes or ask your teacher to reset your PIN.`;
+      error = `Too many failed attempts. Please wait ${newStatus.minutesRemaining} minutes or ask your teacher to reset your password.`;
     }
 
     return {
@@ -642,17 +666,15 @@ export const verifyPin = async (classId, seatNumber, pin) => {
 };
 
 /**
- * Verify student PIN and return student info for joining a session
- * Used by the join page when a student enters class code + seat + PIN
+ * Verify student password and return student info for joining a session
  *
  * @param {string} classId - Class ID
  * @param {number} seatNumber - Seat number
- * @param {string} pin - PIN to verify
+ * @param {string} password - Password to verify
  * @returns {Object} { success, error, seatId, studentName }
  */
-export const verifyStudentPin = async (classId, seatNumber, pin) => {
-  // First verify the PIN
-  const verifyResult = await verifyPin(classId, seatNumber, pin);
+export const verifyStudentPin = async (classId, seatNumber, password) => {
+  const verifyResult = await verifyPin(classId, seatNumber, password);
 
   if (!verifyResult.valid) {
     return {
@@ -735,8 +757,8 @@ export const getPrintableRoster = async (classId) => {
     .map(seat => ({
       seatNumber: seat.seatNumber,
       displayName: seat.displayName,
-      username: seat.username, // Musical username for login
-      pin: seat.pin // Plaintext PIN for teacher to print
+      username: seat.username,
+      pin: seat.pin // Plaintext password for teacher to print
     }));
 };
 
@@ -756,10 +778,10 @@ export const migrateUnhashedPins = async (classId) => {
       const existingHash = await get(hashRef);
 
       if (!existingHash.exists()) {
-        // Hash the existing PIN and store it
-        const hashedPin = await hashPin(seat.pin);
+        // Hash the existing password and store it
+        const hashed = await hashPassword(seat.pin);
         await set(hashRef, {
-          hash: hashedPin,
+          hash: hashed,
           updatedAt: Date.now(),
           migratedAt: Date.now()
         });
@@ -772,13 +794,13 @@ export const migrateUnhashedPins = async (classId) => {
 };
 
 /**
- * Verify a student by username + PIN (global lookup, no class code needed)
+ * Verify a student by username + password (global lookup, no class code needed)
  *
  * @param {string} username - Student's username (e.g., "tuba123")
- * @param {string} pin - PIN to verify
+ * @param {string} password - Password to verify
  * @returns {Object} { success, error, classId, seatNumber, username, studentName, classCode, className }
  */
-export const verifyStudentGlobal = async (username, pin) => {
+export const verifyStudentGlobal = async (username, password) => {
   // Look up username in global index
   const usernameData = await lookupUsername(username);
 
@@ -791,8 +813,8 @@ export const verifyStudentGlobal = async (username, pin) => {
 
   const { classId, seatNumber } = usernameData;
 
-  // Verify the PIN
-  const verifyResult = await verifyPin(classId, seatNumber, pin);
+  // Verify the password
+  const verifyResult = await verifyPin(classId, seatNumber, password);
 
   if (!verifyResult.valid) {
     return {

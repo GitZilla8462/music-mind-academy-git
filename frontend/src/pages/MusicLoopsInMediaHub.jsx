@@ -15,118 +15,24 @@ import CreateClassModal from '../components/teacher/CreateClassModal';
 
 const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
 
-// First-time tutorial modal for teachers
-const TutorialModal = ({ onClose }) => {
-  const [dontShowAgain, setDontShowAgain] = useState(false);
-
-  const handleClose = () => {
-    if (dontShowAgain) {
-      localStorage.setItem('mma-tutorial-seen', 'true');
-    }
-    onClose();
-  };
-
-  const handleWatchVideo = () => {
-    window.open('/lessons/TutorialVideo.mp4', '_blank', 'width=1280,height=720,menubar=no,toolbar=no');
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">New to {isEduSite ? 'Music Room Tools' : 'Music Mind Academy'}?</h2>
-          <button
-            onClick={handleClose}
-            className="text-white/80 hover:text-white transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="px-6 py-5">
-          <p className="text-gray-700 text-lg mb-5">
-            Watch the tutorial video below to learn how to run a lesson!
-          </p>
-
-          {/* Watch Tutorial Button */}
-          <button
-            onClick={handleWatchVideo}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-all mb-4"
-          >
-            <Play size={20} fill="currentColor" />
-            Watch: How to Run a Lesson (2 min)
-          </button>
-
-          {/* Don't show again checkbox */}
-          <label className="flex items-center gap-2 cursor-pointer text-gray-600 hover:text-gray-800">
-            <input
-              type="checkbox"
-              checked={dontShowAgain}
-              onChange={(e) => setDontShowAgain(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-            />
-            <span className="text-sm">Don't show this again</span>
-          </label>
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-          <button
-            onClick={handleClose}
-            className="w-full bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors"
-          >
-            Got it, let's start!
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+// TutorialModal removed — onboarding now handled by WelcomeBanner on the main dashboard
+// and TutorialVideoLibrary in TeacherHeader Help button
 
 const MusicLoopsInMediaHub = () => {
   const navigate = useNavigate();
   const [creatingSession, setCreatingSession] = useState(null);
   const [expandedLessons, setExpandedLessons] = useState({});
-  const [gettingStartedOpen, setGettingStartedOpen] = useState(false);
   const [showStartModal, setShowStartModal] = useState(false);
   const [showCreateClassModal, setShowCreateClassModal] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState(null);
-  const [showTutorial, setShowTutorial] = useState(false);
-
   // Get authenticated teacher info
   const { user, signOut } = useFirebaseAuth();
-
-  // Show tutorial modal for first-time visitors
-  useEffect(() => {
-    const hasSeenTutorial = localStorage.getItem('mma-tutorial-seen') === 'true';
-    if (!hasSeenTutorial) {
-      setShowTutorial(true);
-    }
-  }, []);
 
   // Default to teacher role - hub is for teachers
   const userRole = localStorage.getItem('classroom-user-role') || 'teacher';
 
   // Check site mode for correct join URL
   const joinUrl = isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join';
-
-  // Check localStorage for Getting Started section state
-  // Collapsed by default, user can expand if needed
-  useEffect(() => {
-    const savedState = localStorage.getItem('gettingStartedOpen');
-    if (savedState !== null) {
-      setGettingStartedOpen(savedState === 'true');
-    }
-    // If no saved state, keep default (false/collapsed)
-  }, []);
-
-  const toggleGettingStarted = () => {
-    const newState = !gettingStartedOpen;
-    setGettingStartedOpen(newState);
-    localStorage.setItem('gettingStartedOpen', String(newState));
-  };
 
   const toggleExpanded = (lessonId) => {
     setExpandedLessons(prev => ({
@@ -462,89 +368,6 @@ const MusicLoopsInMediaHub = () => {
         </p>
       </div>
 
-      {/* GETTING STARTED - Collapsible */}
-      <div className="max-w-5xl mx-auto px-8 pb-6">
-        <div className="bg-gradient-to-r from-sky-50 to-blue-50 border-2 border-sky-200 rounded-xl overflow-hidden shadow-sm">
-          {/* Header - Always visible, clickable */}
-          <button
-            onClick={toggleGettingStarted}
-            className="w-full px-6 py-5 flex items-center justify-between hover:bg-sky-100/50 transition-colors"
-          >
-            <h2 className="text-xl font-bold text-sky-900 flex items-center gap-2">
-              🚀 Getting Started
-              <span className="text-sm font-medium text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full">New here? Start here!</span>
-            </h2>
-            {gettingStartedOpen ? (
-              <ChevronUp className="w-6 h-6 text-slate-500" />
-            ) : (
-              <ChevronDown className="w-6 h-6 text-slate-500" />
-            )}
-          </button>
-
-          {/* Content - Collapsible */}
-          {gettingStartedOpen && (
-            <div className="px-6 pb-6 border-t border-slate-100">
-              <ol className="mt-5 space-y-4 text-lg text-slate-700">
-                <li className="flex items-start gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center text-base font-semibold">1</span>
-                  <span className="pt-0.5">Click <strong className="text-slate-900">"Start Lesson"</strong> on any lesson</span>
-                </li>
-                <li className="flex items-start gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center text-base font-semibold">2</span>
-                  <span className="pt-0.5">Choose <strong className="text-slate-900">"Quick Session"</strong> (no accounts needed) or <strong className="text-slate-900">"Classroom Mode"</strong> (tracks student work)</span>
-                </li>
-                <li className="flex items-start gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center text-base font-semibold">3</span>
-                  <span className="pt-0.5">Students go to <strong className="text-sky-600">{joinUrl}</strong> and enter the code or sign in</span>
-                </li>
-                <li className="flex items-start gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center text-base font-semibold">4</span>
-                  <span className="pt-0.5">Click through slides (or use arrow keys) — click <strong className="text-slate-900">"Unlock"</strong> to start activities</span>
-                </li>
-                <li className="flex items-start gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center text-base font-semibold">5</span>
-                  <span className="pt-0.5">Click <strong className="text-slate-900">"End Session"</strong> when done</span>
-                </li>
-              </ol>
-
-              <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-amber-800 text-base">
-                  <strong>💡 Tip:</strong> Use the toggle button to preview student view
-                </p>
-              </div>
-
-              {/* Tutorial Video Thumbnail */}
-              <div className="mt-6">
-                <button
-                  onClick={() => window.open('/lessons/TutorialVideo.mp4', '_blank', 'width=1280,height=720,menubar=no,toolbar=no')}
-                  className="group relative w-full max-w-md rounded-xl overflow-hidden border-2 border-slate-200 hover:border-sky-400 transition-all shadow-sm hover:shadow-lg"
-                >
-                  {/* Video Thumbnail Background */}
-                  <div className="aspect-video bg-gradient-to-br from-sky-600 via-blue-700 to-indigo-800 flex items-center justify-center relative">
-                    {/* Decorative elements */}
-                    <div className="absolute inset-0 opacity-20">
-                      <div className="absolute top-4 left-4 w-16 h-16 border-2 border-white rounded-lg"></div>
-                      <div className="absolute bottom-4 right-4 w-24 h-3 bg-white rounded"></div>
-                      <div className="absolute bottom-10 right-4 w-16 h-3 bg-white rounded"></div>
-                    </div>
-
-                    {/* Play Button */}
-                    <div className="w-20 h-20 bg-white/90 group-hover:bg-white rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                      <Play className="w-10 h-10 text-sky-600 ml-1" fill="currentColor" />
-                    </div>
-                  </div>
-
-                  {/* Label */}
-                  <div className="bg-white px-4 py-3 text-left">
-                    <p className="font-semibold text-slate-900 text-base">Watch: How to Run a Lesson</p>
-                    <p className="text-sm text-slate-500">2 min tutorial</p>
-                  </div>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* LESSON CARDS */}
       <div className="max-w-5xl mx-auto px-8 pb-10">
@@ -828,12 +651,9 @@ const MusicLoopsInMediaHub = () => {
         onClose={() => setShowCreateClassModal(false)}
         teacherUid={user?.uid}
         onClassCreated={handleClassCreated}
+        fromLessonStart={!!selectedLesson}
       />
 
-      {/* Tutorial Modal - shows for first-time visitors */}
-      {showTutorial && (
-        <TutorialModal onClose={() => setShowTutorial(false)} />
-      )}
       </div>
     </div>
     </>

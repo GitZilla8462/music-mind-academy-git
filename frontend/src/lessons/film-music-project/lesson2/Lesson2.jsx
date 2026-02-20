@@ -222,7 +222,11 @@ const Lesson2Content = () => {
   const searchParams = new URLSearchParams(location.search);
   const viewSavedMode = searchParams.get('view') === 'saved';
   const viewReflectionMode = searchParams.get('view') === 'reflection';
-  
+  const isPreviewMode = searchParams.get('preview') === 'true';
+
+  // Preview mode: use local stage state (SessionContext rejects setCurrentStage without a session)
+  const [previewStage, setPreviewStage] = React.useState(null);
+
   // Custom hooks
   const lesson = useLesson(lesson2Config, LESSON_PROGRESS_KEY, LESSON_TIMER_KEY);
   const isTeacher = effectiveRole === 'teacher';
@@ -456,6 +460,32 @@ const Lesson2Content = () => {
         </div>
         <TransitionOverlay isVisible={showTransition} />
       </>
+    );
+  }
+
+  // ========================================
+  // PREVIEW MODE: Teacher clicks "Just Preview" — same view, no live session
+  // ========================================
+
+  if (isPreviewMode && isTeacher) {
+    return (
+      <TeacherLessonView
+          config={lesson2Config}
+          lessonStages={lessonStages}
+          getCurrentStage={() => previewStage}
+          setCurrentStage={setPreviewStage}
+          getStudents={() => []}
+          getProgressStats={() => ({ total: 0, completed: 0 })}
+          endSession={() => navigate(-1)}
+          activityTimers={timers.activityTimers}
+          formatTime={timers.formatTime}
+          adjustPresetTime={timers.adjustPresetTime}
+          startActivityTimer={timers.startActivityTimer}
+          pauseActivityTimer={timers.pauseActivityTimer}
+          resumeActivityTimer={timers.resumeActivityTimer}
+          resetActivityTimer={timers.resetActivityTimer}
+          isPreviewMode={true}
+        />
     );
   }
 

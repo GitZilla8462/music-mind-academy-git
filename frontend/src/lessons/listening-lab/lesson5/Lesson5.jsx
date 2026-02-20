@@ -81,6 +81,9 @@ const Lesson5 = () => {
   const isPreviewMode = searchParams.get('preview') === 'true';
   const isMuted = searchParams.get('muted') === 'true';
 
+  // Preview mode: use local stage state (SessionContext rejects setCurrentStage without a session)
+  const [previewStage, setPreviewStage] = useState(null);
+
   // Memoize currentStageData
   const currentStageData = useMemo(() => {
     return lessonStages.find(stage => stage.id === currentStage);
@@ -276,6 +279,32 @@ const Lesson5 = () => {
           />
         )}
       </>
+    );
+  }
+
+  // ========================================
+  // PREVIEW MODE: Teacher clicks "Just Preview" — same view, no live session
+  // ========================================
+
+  if (isPreviewMode && isTeacher) {
+    return (
+      <TeacherLessonView
+          config={lesson5Config}
+          lessonStages={lessonStages}
+          getCurrentStage={() => previewStage}
+          setCurrentStage={setPreviewStage}
+          getStudents={() => []}
+          getProgressStats={() => ({ total: 0, completed: 0 })}
+          endSession={() => navigate(-1)}
+          activityTimers={timers.activityTimers}
+          formatTime={timers.formatTime}
+          adjustPresetTime={timers.adjustPresetTime}
+          startActivityTimer={timers.startActivityTimer}
+          pauseActivityTimer={timers.pauseActivityTimer}
+          resumeActivityTimer={timers.resumeActivityTimer}
+          resetActivityTimer={timers.resetActivityTimer}
+          isPreviewMode={true}
+        />
     );
   }
 

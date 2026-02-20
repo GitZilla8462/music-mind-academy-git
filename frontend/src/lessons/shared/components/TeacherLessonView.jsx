@@ -3636,7 +3636,8 @@ const TeacherLessonView = ({
   startActivityTimer,
   pauseActivityTimer,
   resumeActivityTimer,
-  resetActivityTimer
+  resetActivityTimer,
+  isPreviewMode = false
 }) => {
   // Display code: prefer classCode (permanent) over sessionCode (temporary)
   const displayCode = classCode || sessionCode;
@@ -3820,13 +3821,20 @@ const TeacherLessonView = ({
   };
 
   // Check if we're on join-code (not started yet)
-  const isOnJoinCode = currentStage === 'locked' || currentStage === 'join-code' || !currentStage;
-  
+  const isOnJoinCode = !isPreviewMode && (currentStage === 'locked' || currentStage === 'join-code' || !currentStage);
+
   // Filter to content stages only (exclude join-code, locked)
   const contentStages = useMemo(() => {
     return lessonStages?.filter(s => s.id !== 'join-code' && s.id !== 'locked') || [];
   }, [lessonStages]);
-  
+
+  // Preview mode: auto-start on first content stage (skip join-code screen)
+  useEffect(() => {
+    if (isPreviewMode && contentStages.length > 0 && (!currentStage || currentStage === 'locked' || currentStage === 'join-code')) {
+      setCurrentStage(contentStages[0].id);
+    }
+  }, [isPreviewMode, contentStages, currentStage, setCurrentStage]);
+
   // Get current index within CONTENT stages (not full array)
   const currentContentIndex = contentStages.findIndex(s => s.id === currentStage);
   const isFirstStage = currentContentIndex <= 0;

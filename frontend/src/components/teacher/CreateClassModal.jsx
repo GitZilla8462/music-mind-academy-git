@@ -3,31 +3,103 @@
 // Updated: Paste names instead of entering count, shows musical usernames
 
 import React, { useState } from 'react';
-import { X, Users, Hash, Loader2, Copy, Check, Printer } from 'lucide-react';
-import { createClass } from '../../firebase/classes';
-import { bulkAddSeats } from '../../firebase/enrollments';
+import { X, Users, Loader2, Copy, Check, Printer, RotateCcw, Trash2, Pencil } from 'lucide-react';
+import { createClass, deleteClass } from '../../firebase/classes';
+import { bulkAddSeats, removeSeat, updateSeat } from '../../firebase/enrollments';
 
 import { useNavigate } from 'react-router-dom';
 
-const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated }) => {
+const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated, fromLessonStart = false }) => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1); // 1: Name & Mode, 2: Add Students, 3: Success
+  const [step, setStep] = useState(1); // 1: Name, 2: Add Students, 3: Success
   const [className, setClassName] = useState('');
-  const [addMode, setAddMode] = useState('names'); // 'names' or 'count'
   const [studentNames, setStudentNames] = useState('');
-  const [studentCount, setStudentCount] = useState(30);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState(null);
   const [createdClass, setCreatedClass] = useState(null);
   const [createdSeats, setCreatedSeats] = useState([]);
   const [copied, setCopied] = useState(false);
+  const [editingSeat, setEditingSeat] = useState(null);
+  const [editName, setEditName] = useState('');
 
-  // Parse names from textarea (one per line, skip empty)
+  // Parse names from pasted text — handles numbered lists, commas, tabs,
+  // sequential numbers jammed into text, student IDs, and extra columns
   const parseNames = (text) => {
-    return text
-      .split('\n')
-      .map(line => line.trim())
-      .filter(name => name.length > 0);
+    // Split by newlines first
+    let lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+    // If only 1 line, try other splitting strategies
+    if (lines.length === 1) {
+      const line = lines[0];
+
+      if (line.includes(',')) {
+        // Comma-separated
+        lines = line.split(',').map(l => l.trim()).filter(l => l.length > 0);
+      } else {
+        // Try splitting on numbered list patterns with punctuation: "1. Name 2. Name"
+        const withPunct = line.split(/(?=\d{1,3}[\.\)\-]\s*[A-Za-z])/);
+        if (withPunct.length >= 3) {
+          lines = withPunct.map(l => l.trim()).filter(l => l.length > 0);
+        } else {
+          // Detect sequential numbers jammed into text: "Name2Name3Name"
+          // Find all number occurrences and check if any form a sequence
+          const matches = [...line.matchAll(/\d+/g)];
+          if (matches.length >= 3) {
+            // Try sequences starting from 1, 2, or 0
+            for (const startVal of [1, 2, 0]) {
+              const seqMatches = [];
+              let expected = startVal;
+              for (const m of matches) {
+                if (parseInt(m[0]) === expected) {
+                  seqMatches.push(m);
+                  expected++;
+                }
+              }
+              // Need at least 3 sequential hits to be confident
+              if (seqMatches.length >= 3) {
+                const parts = [];
+                // Text before the first list number
+                if (seqMatches[0].index > 0) {
+                  parts.push(line.substring(0, seqMatches[0].index));
+                }
+                // Each segment from one list number to the next
+                for (let i = 0; i < seqMatches.length; i++) {
+                  const start = seqMatches[i].index;
+                  const end = i < seqMatches.length - 1
+                    ? seqMatches[i + 1].index
+                    : line.length;
+                  parts.push(line.substring(start, end));
+                }
+                lines = parts.map(l => l.trim()).filter(l => l.length > 0);
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Clean each line
+    return lines.map(line => {
+      // Strip leading numbering: "1.", "1)", "1-", "1 ", "01.", etc.
+      let name = line.replace(/^\d+[\.\)\-:\s]+/, '');
+      // Also strip a bare leading number jammed against text: "2Barry" → "Barry"
+      name = name.replace(/^\d+(?=[A-Za-z])/, '');
+      // Strip leading bullet characters
+      name = name.replace(/^[•\-–—\*]+\s*/, '');
+      // If line has tabs (spreadsheet paste), take first non-numeric column
+      if (name.includes('\t')) {
+        const cols = name.split('\t').map(c => c.trim());
+        name = cols.find(c => c && !/^\d+$/.test(c)) || cols[0];
+      }
+      // Strip standalone student IDs (4+ digit sequences)
+      name = name.replace(/\b\d{4,}\b/g, '');
+      // Strip email addresses
+      name = name.replace(/\S+@\S+\.\S+/g, '');
+      // Collapse extra whitespace
+      name = name.replace(/\s+/g, ' ').trim();
+      return name;
+    }).filter(name => name.length > 0 && !/^\d+$/.test(name));
   };
 
   const handleNext = () => {
@@ -40,13 +112,11 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated }) => {
   };
 
   const handleCreateClass = async () => {
-    const names = addMode === 'names' ? parseNames(studentNames) : [];
-    const count = addMode === 'names' ? names.length : studentCount;
+    const names = parseNames(studentNames);
+    const count = names.length;
 
     if (count === 0) {
-      setError(addMode === 'names'
-        ? 'Please enter at least one student name'
-        : 'Please enter the number of students');
+      setError('Please enter at least one student name');
       return;
     }
 
@@ -78,9 +148,7 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated }) => {
   const handleClose = () => {
     setStep(1);
     setClassName('');
-    setAddMode('names');
     setStudentNames('');
-    setStudentCount(30);
     setError(null);
     setCreatedClass(null);
     setCreatedSeats([]);
@@ -91,8 +159,10 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated }) => {
   const handleFinish = () => {
     if (createdClass) {
       onClassCreated?.(createdClass);
-      // Navigate to the class page
-      navigate(`/teacher/class/${createdClass.id}`);
+      // If opened from lesson start flow, don't navigate — parent reopens StartSessionModal
+      if (!fromLessonStart) {
+        navigate(`/teacher/class/${createdClass.id}`);
+      }
     }
     handleClose();
   };
@@ -102,7 +172,7 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated }) => {
       .map(seat => `${seat.displayName}\t${seat.username}\t${seat.pin}`)
       .join('\n');
 
-    const fullText = `Class: ${className}\n\nName\tUsername\tPIN\n${rosterText}`;
+    const fullText = `Class: ${className}\n\nName\tUsername\tPassword\n${rosterText}`;
 
     navigator.clipboard.writeText(fullText);
     setCopied(true);
@@ -112,10 +182,56 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated }) => {
   const handlePrint = () => {
     if (createdClass) {
       onClassCreated?.(createdClass);
-      // Navigate to class page with print modal open
-      navigate(`/teacher/class/${createdClass.id}?print=true`);
+      if (fromLessonStart) {
+        // Open print page in new tab so teacher stays on lesson flow
+        window.open(`/teacher/class/${createdClass.id}?print=true`, '_blank');
+      } else {
+        navigate(`/teacher/class/${createdClass.id}?print=true`);
+      }
     }
     handleClose();
+  };
+
+  // Remove a single seat from the roster
+  const handleRemoveSeat = async (seat) => {
+    if (!createdClass) return;
+    try {
+      await removeSeat(createdClass.id, seat.seatNumber);
+      setCreatedSeats(prev => prev.filter(s => s.seatNumber !== seat.seatNumber));
+    } catch (err) {
+      console.error('Error removing seat:', err);
+    }
+  };
+
+  // Rename a seat
+  const handleRenameSeat = async (seat) => {
+    if (!createdClass || !editName.trim()) return;
+    try {
+      await updateSeat(createdClass.id, seat.seatNumber, { displayName: editName.trim() });
+      setCreatedSeats(prev => prev.map(s =>
+        s.seatNumber === seat.seatNumber ? { ...s, displayName: editName.trim() } : s
+      ));
+      setEditingSeat(null);
+      setEditName('');
+    } catch (err) {
+      console.error('Error renaming seat:', err);
+    }
+  };
+
+  // Delete the just-created class and go back to step 2 to re-enter names
+  const handleStartOver = async () => {
+    if (createdClass) {
+      try {
+        await deleteClass(createdClass.id);
+      } catch (err) {
+        console.error('Error deleting class for redo:', err);
+      }
+    }
+    setCreatedClass(null);
+    setCreatedSeats([]);
+    setCopied(false);
+    setError(null);
+    setStep(2);
   };
 
   if (!isOpen) return null;
@@ -177,82 +293,32 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated }) => {
             {/* Step 2: Add Students */}
             {step === 2 && (
               <div className="space-y-5">
-                {/* Mode Toggle */}
-                <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
-                  <button
-                    onClick={() => setAddMode('names')}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      addMode === 'names'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <Users size={16} />
-                    Paste Names
-                  </button>
-                  <button
-                    onClick={() => setAddMode('count')}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      addMode === 'count'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <Hash size={16} />
-                    Enter Count
-                  </button>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Paste your student names
+                  </label>
+                  <textarea
+                    value={studentNames}
+                    onChange={(e) => setStudentNames(e.target.value)}
+                    placeholder="Sarah M.&#10;John D.&#10;Emma W.&#10;..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-40 resize-none font-mono text-sm"
+                    autoFocus
+                  />
+                  <p className="text-xs text-gray-500 mt-1.5">
+                    One per line, or comma-separated. Numbers and bullets are stripped automatically.
+                    {parseNames(studentNames).length > 0 && (
+                      <span className="text-blue-600 font-medium ml-1">
+                        {parseNames(studentNames).length} student{parseNames(studentNames).length !== 1 ? 's' : ''} detected
+                      </span>
+                    )}
+                  </p>
                 </div>
-
-                {/* Names Mode */}
-                {addMode === 'names' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Student Names (one per line)
-                    </label>
-                    <textarea
-                      value={studentNames}
-                      onChange={(e) => setStudentNames(e.target.value)}
-                      placeholder="Sarah M.&#10;John D.&#10;Emma W.&#10;..."
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-40 resize-none font-mono text-sm"
-                      autoFocus
-                    />
-                    <p className="text-xs text-gray-500 mt-1.5">
-                      Tip: Copy from a spreadsheet or type names directly.
-                      {parseNames(studentNames).length > 0 && (
-                        <span className="text-blue-600 font-medium ml-1">
-                          {parseNames(studentNames).length} student{parseNames(studentNames).length !== 1 ? 's' : ''} detected
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                )}
-
-                {/* Count Mode */}
-                {addMode === 'count' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Number of Students
-                    </label>
-                    <input
-                      type="number"
-                      value={studentCount}
-                      onChange={(e) => setStudentCount(Math.min(40, Math.max(1, parseInt(e.target.value) || 1)))}
-                      min={1}
-                      max={40}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      autoFocus
-                    />
-                    <p className="text-xs text-gray-500 mt-1.5">
-                      Students will be named "Seat 1", "Seat 2", etc. You can add names later.
-                    </p>
-                  </div>
-                )}
 
                 {/* Info Box */}
                 <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
                   <p className="text-sm text-blue-800">
                     Each student gets a unique <strong>musical username</strong> (like "tuba123")
-                    and a <strong>4-digit PIN</strong> for signing in.
+                    and a <strong>password</strong> for signing in.
                   </p>
                 </div>
 
@@ -297,15 +363,46 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated }) => {
                           <tr>
                             <th className="px-3 py-2 text-left text-gray-600 font-medium">Name</th>
                             <th className="px-3 py-2 text-left text-gray-600 font-medium">Username</th>
-                            <th className="px-3 py-2 text-left text-gray-600 font-medium">PIN</th>
+                            <th className="px-3 py-2 text-left text-gray-600 font-medium">Password</th>
+                            <th className="w-16"></th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {createdSeats.map((seat) => (
-                            <tr key={seat.seatNumber} className="hover:bg-gray-50">
-                              <td className="px-3 py-2 text-gray-900">{seat.displayName}</td>
-                              <td className="px-3 py-2 font-mono text-blue-600 font-medium">{seat.username}</td>
-                              <td className="px-3 py-2 font-mono font-bold text-gray-900">{seat.pin}</td>
+                            <tr key={seat.seatNumber} className="hover:bg-gray-50 group">
+                              <td className="px-3 py-1.5 text-gray-900">
+                                {editingSeat === seat.seatNumber ? (
+                                  <form onSubmit={(e) => { e.preventDefault(); handleRenameSeat(seat); }} className="flex gap-1">
+                                    <input
+                                      value={editName}
+                                      onChange={(e) => setEditName(e.target.value)}
+                                      className="w-full px-1.5 py-0.5 border border-blue-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                      autoFocus
+                                      onBlur={() => { setEditingSeat(null); setEditName(''); }}
+                                      onKeyDown={(e) => { if (e.key === 'Escape') { setEditingSeat(null); setEditName(''); } }}
+                                    />
+                                  </form>
+                                ) : (
+                                  <span
+                                    onClick={() => { setEditingSeat(seat.seatNumber); setEditName(seat.displayName); }}
+                                    className="cursor-pointer hover:text-blue-600"
+                                    title="Click to edit name"
+                                  >
+                                    {seat.displayName}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-3 py-1.5 font-mono text-blue-600 font-medium text-sm">{seat.username}</td>
+                              <td className="px-3 py-1.5 font-mono font-bold text-gray-900 text-sm">{seat.pin}</td>
+                              <td className="px-2 py-1.5">
+                                <button
+                                  onClick={() => handleRemoveSeat(seat)}
+                                  className="opacity-0 group-hover:opacity-100 p-1 text-gray-300 hover:text-red-500 transition-all"
+                                  title="Remove student"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -313,7 +410,7 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated }) => {
                     </div>
 
                     <p className="text-sm text-gray-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                      <strong>Next step:</strong> Print login cards to give each student their username and PIN.
+                      <strong>Next step:</strong> Print login cards to give each student their username and password.
                     </p>
                   </>
                 )}
@@ -351,7 +448,7 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated }) => {
                 </button>
                 <button
                   onClick={handleCreateClass}
-                  disabled={isCreating || (addMode === 'names' && parseNames(studentNames).length === 0)}
+                  disabled={isCreating || parseNames(studentNames).length === 0}
                   className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {isCreating ? (
@@ -367,19 +464,28 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated }) => {
             )}
 
             {step === 3 && (
-              <div className="flex items-center gap-3 w-full">
+              <div className="w-full space-y-3">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleFinish}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+                  >
+                    {fromLessonStart ? 'Print later' : 'Skip for now'}
+                  </button>
+                  <button
+                    onClick={handlePrint}
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                  >
+                    <Printer size={18} />
+                    Print Login Cards
+                  </button>
+                </div>
                 <button
-                  onClick={handleFinish}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+                  onClick={handleStartOver}
+                  className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors mx-auto"
                 >
-                  Skip for now
-                </button>
-                <button
-                  onClick={handlePrint}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
-                >
-                  <Printer size={18} />
-                  Print Login Cards
+                  <RotateCcw size={12} />
+                  Names wrong? Start over
                 </button>
               </div>
             )}

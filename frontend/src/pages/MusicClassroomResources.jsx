@@ -8,6 +8,9 @@ import { getSessionData } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import TeacherHeader from '../components/teacher/TeacherHeader';
+import WelcomeBanner, { shouldShowWelcomeBanner } from '../components/teacher/onboarding/WelcomeBanner';
+import CreateClassModal from '../components/teacher/CreateClassModal';
+import { getTeacherClasses } from '../firebase/classes';
 import { ChevronRight, BookOpen } from 'lucide-react';
 
 // Early access emails for unreleased units
@@ -49,7 +52,7 @@ const CURRICULUM_UNITS = [
       'Recognize form and structure'
     ],
     status: 'pilot',
-    releaseDate: 'March 15th',
+    releaseDate: 'April 1st',
     route: '/listening-lab',
     routeCommercial: '/listening-lab-hub'
   },
@@ -68,7 +71,7 @@ const CURRICULUM_UNITS = [
       'Compare instruments & traditions'
     ],
     status: 'preview',
-    releaseDate: 'April 15th',
+    releaseDate: 'May 1st',
     route: null,
     routeCommercial: null
   },
@@ -87,7 +90,7 @@ const CURRICULUM_UNITS = [
       'Produce an original beat'
     ],
     status: 'preview',
-    releaseDate: 'May 15th',
+    releaseDate: 'June 1st',
     route: null,
     routeCommercial: null
   },
@@ -173,6 +176,10 @@ function MusicClassroomResources() {
   const [isJoiningSession, setIsJoiningSession] = useState(false);
   const [sessionError, setSessionError] = useState('');
 
+  // Onboarding state
+  const [teacherClasses, setTeacherClasses] = useState([]);
+  const [showCreateClassModal, setShowCreateClassModal] = useState(false);
+
   const userRole = firebaseUser?.role || localStorage.getItem('classroom-user-role');
   const userEmail = firebaseUser?.email || legacyUser?.email || '';
   const hasEarlyAccess = EARLY_ACCESS_EMAILS.includes(userEmail.toLowerCase());
@@ -213,6 +220,21 @@ function MusicClassroomResources() {
       }
     }
   }, [isCommercialMode, firebaseAuthenticated, firebaseUser, legacyAuthenticated, legacyUser]);
+
+  // Fetch teacher classes for onboarding checklist
+  useEffect(() => {
+    const fetchClasses = async () => {
+      const uid = firebaseUser?.uid;
+      if (!uid) return;
+      try {
+        const classes = await getTeacherClasses(uid);
+        setTeacherClasses(classes || []);
+      } catch (err) {
+        // Non-critical — checklist just won't auto-detect
+      }
+    };
+    fetchClasses();
+  }, [firebaseUser]);
 
   const handleLogin = () => {
     if (username === 'tuba343' && password === 'music2025') {
@@ -290,10 +312,16 @@ function MusicClassroomResources() {
   const handleUnitClick = (unit) => {
     if (unit.status === 'pilot' || unit.status === 'active' || unit.status === 'preview') {
       const route = isEduMode ? unit.route : unit.routeCommercial;
-      if (route) navigate(route);
+      if (route) {
+        localStorage.setItem('teacher-previewed-lesson', 'true');
+        navigate(route);
+      }
     } else if (hasEarlyAccess && unit.route) {
       const route = isEduMode ? unit.route : unit.routeCommercial;
-      if (route) navigate(route);
+      if (route) {
+        localStorage.setItem('teacher-previewed-lesson', 'true');
+        navigate(route);
+      }
     }
   };
 
@@ -406,35 +434,35 @@ function MusicClassroomResources() {
         }
 
         /* Responsive: Main content */
-        .mcr-content { max-width: 1400px; width: 100%; margin: 0 auto; padding: 20px 24px; }
-        .mcr-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 12px; }
+        .mcr-content { max-width: 1400px; width: 100%; margin: 0 auto; padding: 12px 24px; }
+        .mcr-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 12px; }
         .mcr-join-bar { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
-        .mcr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-        .mcr-card-body { flex: 1; padding: 20px; display: flex; flex-direction: column; position: relative; }
-        .mcr-card-icon { position: absolute; top: 12px; right: 12px; width: 72px; height: 72px; object-fit: contain; }
-        .mcr-unit-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-right: 80px; }
-        .mcr-card-title { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 4px; line-height: 1.3; padding-right: 80px; }
-        .mcr-badge-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .mcr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .mcr-card-body { flex: 1; padding: 10px 12px; display: flex; flex-direction: column; position: relative; }
+        .mcr-card-icon { position: absolute; top: 6px; right: 8px; width: 44px; height: 44px; object-fit: contain; }
+        .mcr-unit-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; padding-right: 50px; }
+        .mcr-card-title { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 1px; line-height: 1.25; padding-right: 50px; }
+        .mcr-badge-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
 
         @media (max-width: 1024px) {
-          .mcr-grid { grid-template-columns: repeat(2, 1fr); }
+          .mcr-grid { grid-template-columns: repeat(3, 1fr); }
         }
         @media (max-width: 768px) {
-          .mcr-content { padding: 16px; }
-          .mcr-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-          .mcr-card-body { padding: 16px; }
-          .mcr-card-icon { width: 52px; height: 52px; top: 10px; right: 10px; }
-          .mcr-unit-row { padding-right: 60px; }
-          .mcr-card-title { padding-right: 60px; font-size: 16px; }
+          .mcr-content { padding: 10px; }
+          .mcr-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+          .mcr-card-body { padding: 10px; }
+          .mcr-card-icon { width: 40px; height: 40px; top: 6px; right: 6px; }
+          .mcr-unit-row { padding-right: 46px; }
+          .mcr-card-title { padding-right: 46px; font-size: 14px; }
           .mcr-header { flex-wrap: wrap; }
         }
         @media (max-width: 540px) {
-          .mcr-content { padding: 12px; }
-          .mcr-grid { grid-template-columns: 1fr; gap: 10px; }
-          .mcr-card-body { padding: 16px; }
-          .mcr-card-icon { width: 48px; height: 48px; top: 8px; right: 8px; }
-          .mcr-unit-row { padding-right: 54px; }
-          .mcr-card-title { padding-right: 54px; font-size: 16px; }
+          .mcr-content { padding: 8px; }
+          .mcr-grid { grid-template-columns: 1fr; gap: 8px; }
+          .mcr-card-body { padding: 10px; }
+          .mcr-card-icon { width: 40px; height: 40px; top: 6px; right: 6px; }
+          .mcr-unit-row { padding-right: 46px; }
+          .mcr-card-title { padding-right: 46px; font-size: 14px; }
           .mcr-header h1 { font-size: 20px !important; }
           .mcr-badge-row { gap: 4px; }
           .mcr-join-bar { flex-direction: column; gap: 8px; }
@@ -448,6 +476,16 @@ function MusicClassroomResources() {
         display: 'flex',
         flexDirection: 'column'
       }}>
+
+        {/* Welcome Banner for new teachers */}
+        {userRole !== 'student' && shouldShowWelcomeBanner() && (
+          <WelcomeBanner
+            teacherName={firebaseUser?.displayName?.split(' ')[0]}
+            classes={teacherClasses}
+            onCreateClass={() => setShowCreateClassModal(true)}
+            onBrowseLessons={() => navigate('/music-loops-in-media')}
+          />
+        )}
 
         {/* Student Join Session */}
         {userRole === 'student' && (
@@ -503,11 +541,11 @@ function MusicClassroomResources() {
         {/* Header */}
         <div className="mcr-header">
           <div>
-            <h1 className="mcr-header" style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b', marginBottom: '2px' }}>
-              General Music Curriculum
+            <h1 className="mcr-header" style={{ fontSize: '22px', fontWeight: '700', color: '#1e293b', marginBottom: '1px' }}>
+              6-8 General Music Curriculum
             </h1>
-            <p style={{ fontSize: '14px', color: '#64748b' }}>
-              7 units &bull; 35 lessons &bull; Full year &bull; Grades 6-8
+            <p style={{ fontSize: '13px', color: '#64748b' }}>
+              7 units &bull; 35 lessons &bull; Full year &bull; Grades 6-8 &bull; Optimized for Chromebooks
             </p>
           </div>
           <button
@@ -545,6 +583,7 @@ function MusicClassroomResources() {
             return (
               <div
                 key={unit.id}
+                id={`unit-card-${unit.id}`}
                 className={cardClass}
                 onClick={() => handleUnitClick(unit)}
                 style={{
@@ -575,7 +614,7 @@ function MusicClassroomResources() {
               >
                 {/* Colored top bar */}
                 <div style={{
-                  height: isActivePilot ? '5px' : isUpcomingPilot ? '4px' : '3px',
+                  height: isActivePilot ? '4px' : isUpcomingPilot ? '3px' : '2px',
                   backgroundColor: unit.color,
                   opacity: isPreview ? 0.4 : 1
                 }} />
@@ -595,49 +634,42 @@ function MusicClassroomResources() {
                   {/* Unit number and status */}
                   <div className="mcr-unit-row">
                     <span style={{
-                      fontSize: '12px',
+                      fontSize: '10px',
                       fontWeight: '600',
                       color: unit.color,
                       textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
+                      letterSpacing: '0.4px'
                     }}>
                       Unit {unit.id}
                     </span>
                     <div className="mcr-badge-row">
                       {isActivePilot && (
                         <span style={{
-                          fontSize: '11px',
+                          fontSize: '9px',
                           fontWeight: '700',
                           color: 'white',
                           backgroundColor: '#16a34a',
-                          padding: '3px 10px',
-                          borderRadius: '4px',
-                          letterSpacing: '0.3px'
+                          padding: '2px 6px',
+                          borderRadius: '3px',
+                          letterSpacing: '0.2px',
+                          whiteSpace: 'nowrap'
                         }}>
                           Pilot Now
                         </span>
                       )}
                       {isUpcomingPilot && (
-                        <>
-                          <span style={{
-                            fontSize: '11px',
-                            fontWeight: '700',
-                            color: 'white',
-                            backgroundColor: unit.color,
-                            padding: '3px 10px',
-                            borderRadius: '4px',
-                            letterSpacing: '0.3px'
-                          }}>
-                            Pilot Soon
-                          </span>
-                          <span style={{
-                            fontSize: '12px',
-                            fontWeight: '700',
-                            color: unit.color
-                          }}>
-                            Unlocks {unit.releaseDate}
-                          </span>
-                        </>
+                        <span style={{
+                          fontSize: '9px',
+                          fontWeight: '700',
+                          color: 'white',
+                          backgroundColor: unit.color,
+                          padding: '2px 6px',
+                          borderRadius: '3px',
+                          letterSpacing: '0.2px',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          Pilot {unit.releaseDate}
+                        </span>
                       )}
                       {isPreview && unit.releaseDate && (
                         <span style={{
@@ -658,9 +690,9 @@ function MusicClassroomResources() {
 
                   {/* Subtitle */}
                   <p style={{
-                    fontSize: '14px',
+                    fontSize: '12px',
                     color: '#475569',
-                    marginBottom: '12px'
+                    marginBottom: '5px'
                   }}>
                     {unit.subtitle}
                   </p>
@@ -672,15 +704,16 @@ function MusicClassroomResources() {
                     listStyle: 'none',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '4px'
+                    gap: '1px'
                   }}>
                     {unit.bullets.map((bullet, idx) => (
                       <li key={idx} style={{
-                        fontSize: '13px',
+                        fontSize: '11px',
                         color: '#475569',
                         display: 'flex',
                         alignItems: 'flex-start',
-                        gap: '6px'
+                        gap: '4px',
+                        lineHeight: '1.4'
                       }}>
                         <span style={{
                           color: unit.color,
@@ -695,15 +728,15 @@ function MusicClassroomResources() {
                   {/* Standards badge */}
                   {unit.standardBadge && (
                     <div style={{
-                      marginTop: '12px'
+                      marginTop: '4px'
                     }}>
                       <span style={{
-                        fontSize: '12px',
+                        fontSize: '10px',
                         fontWeight: '500',
                         color: '#475569',
                         backgroundColor: '#f1f5f9',
-                        padding: '4px 10px',
-                        borderRadius: '12px',
+                        padding: '2px 7px',
+                        borderRadius: '10px',
                         border: '1px solid #e2e8f0'
                       }}>
                         Standards: {unit.standardBadge}
@@ -712,18 +745,18 @@ function MusicClassroomResources() {
                   )}
 
                   {/* Spacer */}
-                  <div style={{ flex: 1, minHeight: '8px' }} />
+                  <div style={{ flex: 1, minHeight: '3px' }} />
 
                   {/* Footer */}
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    paddingTop: '12px',
+                    paddingTop: '6px',
                     borderTop: '1px solid #f1f5f9'
                   }}>
                     <span style={{
-                      fontSize: '13px',
+                      fontSize: '11px',
                       color: '#64748b'
                     }}>
                       {unit.lessonCount} lessons &bull; {unit.duration}
@@ -732,12 +765,12 @@ function MusicClassroomResources() {
                       <span style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '4px',
-                        fontSize: '13px',
+                        gap: '3px',
+                        fontSize: '12px',
                         fontWeight: '600',
                         color: unit.color
                       }}>
-                        Start Teaching <ChevronRight size={16} />
+                        Start Teaching <ChevronRight size={14} />
                       </span>
                     ) : isClickable ? (
                       <ChevronRight size={18} color={unit.color} />
@@ -751,15 +784,29 @@ function MusicClassroomResources() {
 
         {/* Footer */}
         <div style={{
-          marginTop: '16px',
+          marginTop: '8px',
           textAlign: 'center',
-          padding: '12px',
-          fontSize: '13px',
+          padding: '6px',
+          fontSize: '11px',
           color: '#94a3b8'
         }}>
           Full curriculum rolling out through 2026 &bull; Currently piloting Units 1 &amp; 2
         </div>
       </div>
+
+      {/* Create Class Modal (triggered from onboarding checklist) */}
+      {showCreateClassModal && (
+        <CreateClassModal
+          isOpen={showCreateClassModal}
+          onClose={() => setShowCreateClassModal(false)}
+          teacherUid={firebaseUser?.uid}
+          onClassCreated={(newClass) => {
+            setTeacherClasses(prev => [...prev, newClass]);
+            setShowCreateClassModal(false);
+          }}
+        />
+      )}
+
     </div>
   );
 }

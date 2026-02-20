@@ -45,7 +45,7 @@ const StudentLogin = () => {
 
   const handleLogin = async () => {
     if (!username || !pin) {
-      setError('Enter your username and PIN');
+      setError('Enter your username and password');
       return;
     }
     setIsSigningIn(true);
@@ -92,7 +92,7 @@ const StudentLogin = () => {
         <p className="text-gray-500">
           {isFromSession
             ? 'Sign in to join your class'
-            : 'Use the username and PIN from your login card'}
+            : 'Use the username and password from your login card'}
         </p>
         {isFromSession && (
           <div className="mt-3 inline-block bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-lg text-sm">
@@ -111,7 +111,7 @@ const StudentLogin = () => {
             </div>
           )}
 
-          {/* Username + PIN Form */}
+          {/* Username + Password Form */}
           <div className="space-y-4" onKeyDown={handleKeyDown}>
             <div>
               <label className="block text-gray-600 text-sm font-medium mb-1.5">Username</label>
@@ -130,18 +130,18 @@ const StudentLogin = () => {
             </div>
 
             <div>
-              <label className="block text-gray-600 text-sm font-medium mb-1.5">PIN</label>
+              <label className="block text-gray-600 text-sm font-medium mb-1.5">Password</label>
               <div className="relative">
                 <input
                   type={showPin ? 'text' : 'password'}
                   value={pin}
                   onChange={(e) => {
-                    setPin(e.target.value.replace(/\D/g, ''));
+                    setPin(e.target.value.toLowerCase().replace(/[^a-z]/g, ''));
                     setError(null);
                   }}
-                  placeholder="1234"
-                  className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg tracking-widest"
-                  maxLength={4}
+                  placeholder="epicdrum"
+                  className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg"
+                  maxLength={20}
                   autoComplete="current-password"
                 />
                 <button

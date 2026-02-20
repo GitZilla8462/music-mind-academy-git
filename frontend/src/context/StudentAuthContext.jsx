@@ -99,7 +99,7 @@ export const StudentAuthProvider = ({ children }) => {
       const result = await verifyStudentGlobal(username.toLowerCase().trim(), pin);
 
       if (!result.success) {
-        throw new Error(result.error || 'Invalid username or PIN.');
+        throw new Error(result.error || 'Invalid username or password.');
       }
 
       const session = {

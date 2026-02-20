@@ -3,6 +3,7 @@
 // Generates professional cut-out login cards for students
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { Printer, X } from 'lucide-react';
 
 const PrintableLoginCards = ({ roster, className, onClose }) => {
@@ -11,44 +12,48 @@ const PrintableLoginCards = ({ roster, className, onClose }) => {
     window.print();
   };
 
-  // Generate 6 cards per page (2 columns x 3 rows)
-  const cardsPerPage = 6;
-  const pages = [];
-  for (let i = 0; i < roster.length; i += cardsPerPage) {
-    pages.push(roster.slice(i, i + cardsPerPage));
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 overflow-auto bg-gray-900/50 print:bg-white print:static">
-      {/* Print Controls - Hidden when printing */}
-      <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between print:hidden">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">Print Login Cards</h2>
-          <p className="text-sm text-gray-500">{roster.length} cards for {className}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-          >
-            <Printer size={18} />
-            Print Cards
-          </button>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
-          >
-            <X size={20} />
-          </button>
-        </div>
+  return createPortal(
+    <div className="fixed inset-0 z-50 overflow-auto bg-gray-900/50 login-cards-print-container">
+      {/* Floating controls — hidden when printing */}
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2 print:hidden">
+        <button
+          onClick={handlePrint}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg"
+        >
+          <Printer size={18} />
+          Print
+        </button>
+        <button
+          onClick={onClose}
+          className="p-2 bg-white text-gray-500 hover:text-gray-700 rounded-lg shadow-lg"
+        >
+          <X size={20} />
+        </button>
       </div>
 
-      {/* Print Styles */}
+      {/* Styles */}
       <style>{`
+        .login-card {
+          border: 2px dashed #94a3b8;
+          border-radius: 8px;
+          padding: 10px 12px;
+          background: white;
+          break-inside: avoid;
+        }
+
+        .card-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 16px;
+          padding: 16px;
+          max-width: 800px;
+          margin: 0 auto;
+        }
+
         @media print {
           @page {
             size: letter;
-            margin: 0.5in;
+            margin: 0.3in 0.4in;
           }
 
           body {
@@ -56,152 +61,87 @@ const PrintableLoginCards = ({ roster, className, onClose }) => {
             print-color-adjust: exact !important;
           }
 
-          .print-page {
-            page-break-after: always;
-            page-break-inside: avoid;
-          }
-
-          .print-page:last-child {
-            page-break-after: auto;
-          }
-
-          .no-print {
+          /* Hide the app */
+          #root {
             display: none !important;
           }
-        }
 
-        .login-card {
-          border: 2px dashed #cbd5e1;
-          border-radius: 12px;
-          padding: 20px;
-          background: white;
-          position: relative;
-        }
+          /* Cards container: static for pagination */
+          .login-cards-print-container {
+            position: static !important;
+            overflow: visible !important;
+            height: auto !important;
+            background: white !important;
+          }
 
-        .login-card::before {
-          content: '✂';
-          position: absolute;
-          top: -12px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: white;
-          padding: 0 8px;
-          color: #94a3b8;
-          font-size: 14px;
-        }
-
-        .card-logo {
-          width: 32px;
-          height: 32px;
-          background: linear-gradient(135deg, #0ea5e9, #0284c7);
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-        }
-
-        .card-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 24px;
-          padding: 24px;
-        }
-
-        @media print {
+          /* Force grid layout in print */
           .card-grid {
-            gap: 20px;
-            padding: 0;
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+            padding: 0 !important;
+            max-width: none !important;
+          }
+
+          .login-card {
+            break-inside: avoid !important;
           }
         }
       `}</style>
 
-      {/* Card Pages */}
-      <div className="print:block">
-        {pages.map((pageCards, pageIndex) => (
-          <div key={pageIndex} className="print-page bg-white min-h-screen p-6 print:p-0 print:min-h-0">
-            {/* Page Header - Only on first page for print */}
-            {pageIndex === 0 && (
-              <div className="text-center mb-6 print:mb-4">
-                <h1 className="text-xl font-bold text-gray-900 print:text-lg">{className}</h1>
-                <p className="text-gray-500 text-sm">Student Login Cards</p>
+      {/* All cards in one continuous grid — browser handles pagination */}
+      <div className="bg-white p-6 print:p-0">
+        <div className="card-grid">
+          {roster.map((student) => (
+            <div key={student.seatNumber} className="login-card">
+              {/* Header: logo + student name */}
+              <div className="flex items-center gap-2 mb-1.5 pb-1.5 border-b border-gray-100">
+                {!isEduSite && (
+                  <img
+                    src="/MusicMindAcademyLogo.png"
+                    alt="Music Mind Academy"
+                    style={{ height: '20px', width: 'auto' }}
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-gray-900 text-sm truncate">
+                    {student.displayName || `Seat ${student.seatNumber}`}
+                  </div>
+                  <div className="text-[10px] text-gray-400">{className}</div>
+                </div>
               </div>
-            )}
 
-            {/* Cards Grid */}
-            <div className="card-grid">
-              {pageCards.map((student) => (
-                <div key={student.seatNumber} className="login-card">
-                  {/* Card Header */}
-                  <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
-                    {!isEduSite && (
-                      <img
-                        src="/MusicMindAcademyLogo.png"
-                        alt="Music Mind Academy"
-                        style={{ height: '32px', width: 'auto' }}
-                      />
-                    )}
-                    <div>
-                      <div className="font-semibold text-gray-900 text-sm">{isEduSite ? 'Music Room Tools' : 'Music Mind Academy'}</div>
-                      <div className="text-xs text-gray-500">{className}</div>
+              {/* Instructions */}
+              <div className="text-[10px] text-gray-500 mb-1.5 leading-tight">
+                <span className="font-semibold text-gray-600">1.</span> Go to <span className="font-medium text-gray-700">{isEduSite ? 'musicroomtools.org' : 'musicmindacademy.com'}</span>
+                {' '}<span className="font-semibold text-gray-600">2.</span> Click <span className="font-medium text-gray-700">Join Class</span>
+                {' '}<span className="font-semibold text-gray-600">3.</span> Enter your username & password
+              </div>
+
+              {/* Login Credentials */}
+              <div className="bg-gray-50 rounded-md p-2">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <div className="text-[9px] text-gray-500 uppercase tracking-wide">Username</div>
+                    <div className="font-mono font-bold text-lg text-gray-900 tracking-wide">
+                      {student.username || `seat${student.seatNumber}`}
                     </div>
                   </div>
-
-                  {/* Student Name */}
-                  <div className="mb-4">
-                    <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Student</div>
-                    <div className="font-semibold text-gray-900 text-lg">
-                      {student.displayName || `Seat ${student.seatNumber}`}
+                  <div className="border-l border-gray-200 pl-3">
+                    <div className="text-[9px] text-gray-500 uppercase tracking-wide">Password</div>
+                    <div className="font-mono font-bold text-base text-gray-900">
+                      {student.pin}
                     </div>
-                  </div>
-
-                  {/* Login Info */}
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                    <div>
-                      <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Username</div>
-                      <div className="font-mono font-bold text-2xl text-gray-900 tracking-wide text-center py-1">
-                        {student.username || `seat${student.seatNumber}`}
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-gray-200">
-                      <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">PIN</div>
-                      <div className="font-mono font-bold text-3xl text-gray-900 tracking-widest text-center py-1">
-                        {student.pin}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Instructions */}
-                  <div className="mt-4 text-xs text-gray-500 text-center">
-                    Go to <span className="font-medium text-gray-700">{isEduSite ? 'musicroomtools.org' : 'musicmindacademy.com'}</span> → Click <span className="font-medium text-gray-700">Join Class</span> → Click <span className="font-medium text-gray-700">Sign In</span> → Enter username & PIN
                   </div>
                 </div>
-              ))}
-
-              {/* Fill empty spots on last page */}
-              {pageCards.length < cardsPerPage &&
-                Array(cardsPerPage - pageCards.length).fill(null).map((_, i) => (
-                  <div key={`empty-${i}`} className="login-card opacity-0 print:hidden" />
-                ))
-              }
+              </div>
             </div>
-
-            {/* Page Footer */}
-            <div className="mt-6 text-center text-xs text-gray-400 print:mt-4">
-              Page {pageIndex + 1} of {pages.length} · Keep this card private
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      {/* Preview Note */}
-      <div className="p-4 bg-gray-100 text-center print:hidden">
-        <p className="text-sm text-gray-600">
-          Cards are designed to be cut along the dashed lines. Print on standard letter paper.
-        </p>
-      </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -2,7 +2,7 @@
 // src/pages/ClassDetailPage.jsx
 // Google Classroom-style: Students | Classwork | Grades
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { getClassById, getConductedLessons } from '../firebase/classes';
@@ -39,6 +39,7 @@ import GradeEntryModal from '../components/teacher/GradeEntryModal';
 import ActivityGradingView from '../components/teacher/ActivityGradingView';
 import AnswerKeyModal from '../components/teacher/AnswerKeyModal';
 import PrintableLoginCards from '../components/teacher/PrintableLoginCards';
+import PrintableRosterSheet from '../components/teacher/PrintableRosterSheet';
 import { getAllAnswerKeys } from '../firebase/answerKeys';
 
 const getActivityIcon = (type) => {
@@ -78,6 +79,8 @@ const ClassDetailPage = () => {
   // Modal states
   const [showRosterManager, setShowRosterManager] = useState(false);
   const [showPrintCards, setShowPrintCards] = useState(false);
+  const [showPrintRoster, setShowPrintRoster] = useState(false);
+  const [quickLookupStudent, setQuickLookupStudent] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [gradeModalData, setGradeModalData] = useState(null);
   const [activityGradingData, setActivityGradingData] = useState(null);
@@ -85,6 +88,14 @@ const ClassDetailPage = () => {
   const [deletingGrade, setDeletingGrade] = useState(false);
   const [answerKeyModalData, setAnswerKeyModalData] = useState(null);
   const [answerKeyIds, setAnswerKeyIds] = useState(new Set());
+
+  // Close quick lookup popover when clicking outside
+  useEffect(() => {
+    if (!quickLookupStudent) return;
+    const handleClick = () => setQuickLookupStudent(null);
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [quickLookupStudent]);
 
   // Handle URL parameter for auto-opening print cards
   useEffect(() => {
@@ -329,13 +340,22 @@ const ClassDetailPage = () => {
               </h2>
               <div className="flex items-center gap-2">
                 {roster.length > 0 && (
-                  <button
-                    onClick={() => setShowPrintCards(true)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <CreditCard size={16} />
-                    Print Login Cards
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setShowPrintRoster(true)}
+                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <FileText size={16} />
+                      Print Roster
+                    </button>
+                    <button
+                      onClick={() => setShowPrintCards(true)}
+                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <CreditCard size={16} />
+                      Print Login Cards
+                    </button>
+                  </>
                 )}
                 <button
                   onClick={() => setShowRosterManager(true)}
@@ -392,7 +412,7 @@ const ClassDetailPage = () => {
                         Username
                       </th>
                       <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                        PIN
+                        Password
                       </th>
                     </tr>
                   </thead>
@@ -407,7 +427,9 @@ const ClassDetailPage = () => {
                         if (sortBy === 'seat-desc') return b.seatNumber - a.seatNumber;
                         return 0;
                       })
-                      .map((student, index) => (
+                      .map((student, index) => {
+                        const isQuickLookup = quickLookupStudent?.seatNumber === student.seatNumber;
+                        return (
                         <tr
                           key={student.seatNumber || index}
                           className="hover:bg-gray-50 cursor-pointer"
@@ -417,13 +439,34 @@ const ClassDetailPage = () => {
                             #{student.seatNumber}
                           </td>
                           <td className="px-4 py-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-medium text-blue-600">
-                                {(student.displayName || student.name || 'S').charAt(0).toUpperCase()}
+                            <div className="relative">
+                              <div
+                                className="flex items-center gap-3"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setQuickLookupStudent(isQuickLookup ? null : student);
+                                }}
+                              >
+                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-medium text-blue-600">
+                                  {(student.displayName || student.name || 'S').charAt(0).toUpperCase()}
+                                </div>
+                                <span className="font-medium text-gray-900 hover:text-blue-600 transition-colors">
+                                  {student.displayName || student.name || `Student ${student.seatNumber}`}
+                                </span>
+                                <Key size={14} className="text-gray-300" />
                               </div>
-                              <span className="font-medium text-gray-900">
-                                {student.displayName || student.name || `Student ${student.seatNumber}`}
-                              </span>
+                              {isQuickLookup && (
+                                <div className="absolute top-full left-0 mt-1 z-20 bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-64" onClick={(e) => e.stopPropagation()}>
+                                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Username</div>
+                                  <div className="font-mono font-bold text-lg text-gray-900 mb-3">
+                                    {student.username || `seat${student.seatNumber}`}
+                                  </div>
+                                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Password</div>
+                                  <div className="font-mono font-bold text-xl text-gray-900">
+                                    {student.pin || '--'}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </td>
                           <td className="px-4 py-3 text-sm font-mono text-gray-600">
@@ -433,7 +476,8 @@ const ClassDetailPage = () => {
                             {student.pin || '--'}
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                   </tbody>
                 </table>
               </div>
@@ -875,6 +919,14 @@ const ClassDetailPage = () => {
           roster={roster}
           className={classData.name}
           onClose={() => setShowPrintCards(false)}
+        />
+      )}
+
+      {showPrintRoster && roster.length > 0 && (
+        <PrintableRosterSheet
+          roster={roster}
+          className={classData.name}
+          onClose={() => setShowPrintRoster(false)}
         />
       )}
 
