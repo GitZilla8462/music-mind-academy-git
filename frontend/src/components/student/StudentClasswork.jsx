@@ -15,7 +15,8 @@ import {
   PenLine,
 } from 'lucide-react';
 import { useStudentAuth } from '../../context/StudentAuthContext';
-import { getStudentGrades, getStudentSubmissions } from '../../firebase/grades';
+import { getDatabase, ref, onValue } from 'firebase/database';
+import { getStudentSubmissions } from '../../firebase/grades';
 import { getConductedLessons } from '../../firebase/classes';
 import { CURRICULUM } from '../../config/curriculumConfig';
 import { getAllStudentWork, saveStudentWork, parseActivityId } from '../../utils/studentWorkStorage';
@@ -65,6 +66,24 @@ const StudentClasswork = () => {
   const [expandedUnits, setExpandedUnits] = useState(() => CURRICULUM.map(u => u.id));
   const [conductedLessonIds, setConductedLessonIds] = useState(null);
 
+  // Real-time listener for grades so they update automatically when teacher saves
+  useEffect(() => {
+    if (!isAuthenticated || !isPinAuth || !currentStudentInfo?.classId) return;
+
+    const db = getDatabase();
+    const seatUid = `seat-${currentStudentInfo.seatNumber}`;
+    const gradesRef = ref(db, `grades/${currentStudentInfo.classId}/${seatUid}`);
+
+    const unsubscribe = onValue(gradesRef, (snapshot) => {
+      setGrades(snapshot.exists() ? snapshot.val() : {});
+    }, (error) => {
+      console.error('Error listening to grades:', error);
+    });
+
+    return () => unsubscribe();
+  }, [isAuthenticated, currentStudentInfo?.classId, currentStudentInfo?.seatNumber, isPinAuth]);
+
+  // Fetch submissions, conducted lessons, and local work (one-time)
   useEffect(() => {
     const fetchData = async () => {
       if (!isAuthenticated || !currentStudentInfo?.classId) {
@@ -78,17 +97,6 @@ const StudentClasswork = () => {
 
         const conducted = await getConductedLessons(currentStudentInfo.classId);
         setConductedLessonIds(conducted);
-
-        let gradesData = {};
-        try {
-          gradesData = await getStudentGrades(currentStudentInfo.classId, seatUid);
-          if (!gradesData || Object.keys(gradesData).length === 0) {
-            gradesData = await getStudentGrades(currentStudentInfo.classId, pinUid);
-          }
-        } catch (err) {
-          console.warn('Could not fetch grades:', err.message);
-        }
-        setGrades(gradesData || {});
 
         let subs = await getStudentSubmissions(currentStudentInfo.classId, seatUid);
         if (!subs || subs.length === 0) {

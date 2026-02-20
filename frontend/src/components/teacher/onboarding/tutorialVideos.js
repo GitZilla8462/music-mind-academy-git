@@ -16,13 +16,13 @@ export const TUTORIAL_VIDEOS = [
     priority: 1
   },
   {
-    id: 'grading',
-    title: 'Grading Student Work',
-    description: 'View saved student work, use SpeedGrader, and manage answer keys.',
-    duration: '2-3 min',
-    category: 'Grading',
+    id: 'assessment-saving',
+    title: 'Assessment and Saving Student Work',
+    description: 'How students save work, view grades, and how teachers assess with SpeedGrader.',
+    duration: '3 min',
+    category: 'Assessment',
     icon: GraduationCap,
-    src: '/videos/tutorials/grading.mp4',
+    src: '/videos/tutorials/assessment-saving.mp4',
     priority: 2
   }
 ];

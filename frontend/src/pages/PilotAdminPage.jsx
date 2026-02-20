@@ -303,25 +303,55 @@ const PilotAdminPage = () => {
     setSuccess(null);
 
     try {
-      // Parse emails - split by commas, newlines, spaces, or semicolons
-      const emailList = batchEmails
-        .split(/[\s,;\n]+/)
-        .map(email => email.toLowerCase().trim())
-        .filter(email => email && email.includes('@'));
+      // Parse lines — supports:
+      //   email\tschool name   (tab-separated, each line gets its own note)
+      //   email   school name  (multiple spaces as separator)
+      //   email                (plain email, uses shared batchNotes)
+      const entries = [];
+      const lines = batchEmails.split(/\n/).filter(l => l.trim());
 
-      if (emailList.length === 0) {
+      for (const line of lines) {
+        // Try tab-separated first, then 2+ spaces
+        let parts = line.includes('\t') ? line.split('\t') : line.split(/\s{2,}/);
+        const lineEmails = [];
+        let note = '';
+
+        for (const part of parts) {
+          const trimmed = part.trim();
+          if (!trimmed) continue;
+          // Check if this part contains an email
+          const emailMatch = trimmed.match(/[^\s,;]+@[^\s,;]+/g);
+          if (emailMatch) {
+            lineEmails.push(...emailMatch.map(e => e.toLowerCase().trim()));
+          } else {
+            // Non-email text is the school/note
+            note = trimmed;
+          }
+        }
+
+        for (const email of lineEmails) {
+          entries.push({ email, note: note || batchNotes.trim() });
+        }
+      }
+
+      if (entries.length === 0) {
         setError('No valid emails found. Make sure each email contains @');
         setBatchAdding(false);
         return;
       }
 
-      // Remove duplicates
-      const uniqueEmails = [...new Set(emailList)];
+      // Remove duplicates (keep first occurrence)
+      const seen = new Set();
+      const uniqueEntries = entries.filter(e => {
+        if (seen.has(e.email)) return false;
+        seen.add(e.email);
+        return true;
+      });
 
       let added = 0;
       let skipped = 0;
 
-      for (const email of uniqueEmails) {
+      for (const { email, note } of uniqueEntries) {
         const emailKey = email.replace(/\./g, ',');
         const emailRef = ref(database, `approvedEmails/${selectedSite}/${emailKey}`);
 
@@ -335,7 +365,7 @@ const PilotAdminPage = () => {
         await set(emailRef, {
           email: email,
           approvedAt: Date.now(),
-          notes: batchNotes.trim(),
+          notes: note,
           approvedBy: user.email,
           siteType: selectedSite
         });
@@ -345,6 +375,7 @@ const PilotAdminPage = () => {
         await update(outreachRef, {
           email: email,
           teacherType: newTeacherType,
+          school: note,
           addedAt: Date.now()
         });
 
@@ -1160,17 +1191,17 @@ const PilotAdminPage = () => {
             <form onSubmit={handleBatchAdd} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Paste multiple emails (separated by commas, spaces, or new lines)
+                  Paste emails — one per line, optionally with school name (tab or double-space separated)
                 </label>
                 <textarea
                   value={batchEmails}
                   onChange={(e) => setBatchEmails(e.target.value)}
-                  placeholder="teacher1@school.edu, teacher2@school.edu&#10;teacher3@school.edu&#10;teacher4@school.edu"
+                  placeholder={"teacher1@school.edu\tLincoln Middle School\nteacher2@school.edu\tWashington Academy\nteacher3@school.edu"}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white h-32 font-mono text-sm"
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  {batchEmails.split(/[\s,;\n]+/).filter(e => e && e.includes('@')).length} email(s) detected
+                  {batchEmails.split(/\n/).filter(l => l.trim()).filter(l => l.match(/[^\s,;]+@[^\s,;]+/)).length} email(s) detected
                 </p>
               </div>
               <div className="flex flex-col md:flex-row gap-4 items-end">

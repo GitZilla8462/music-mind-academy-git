@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Award, Loader2, BookOpen, ChevronDown, ChevronRight, Eye, PenLine } from 'lucide-react';
 import { useStudentAuth } from '../../context/StudentAuthContext';
-import { getStudentGrades } from '../../firebase/grades';
+import { getDatabase, ref, onValue } from 'firebase/database';
 import { CURRICULUM, getActivityById, getLessonById } from '../../config/curriculumConfig';
 
 // Quick feedback labels (matches GradeForm)
@@ -56,33 +56,27 @@ const StudentGradesList = () => {
   const [loading, setLoading] = useState(true);
   const [expandedLesson, setExpandedLesson] = useState(null);
 
+  // Real-time listener so grades update automatically when teacher saves
   useEffect(() => {
-    const fetchGrades = async () => {
-      if (!isAuthenticated || !isPinAuth || !currentStudentInfo?.classId) {
-        setLoading(false);
-        return;
-      }
+    if (!isAuthenticated || !isPinAuth || !currentStudentInfo?.classId) {
+      setLoading(false);
+      return;
+    }
 
-      try {
-        // Try seat-based UID first (what teacher saves under), then pin-based
-        const seatUid = `seat-${currentStudentInfo.seatNumber}`;
-        let gradesData = await getStudentGrades(currentStudentInfo.classId, seatUid);
+    const db = getDatabase();
+    const seatUid = `seat-${currentStudentInfo.seatNumber}`;
+    const gradesRef = ref(db, `grades/${currentStudentInfo.classId}/${seatUid}`);
 
-        if (!gradesData || Object.keys(gradesData).length === 0) {
-          const pinUid = `pin-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}`;
-          gradesData = await getStudentGrades(currentStudentInfo.classId, pinUid);
-        }
+    const unsubscribe = onValue(gradesRef, (snapshot) => {
+      setGrades(snapshot.exists() ? snapshot.val() : {});
+      setLoading(false);
+    }, (error) => {
+      console.error('Error listening to grades:', error);
+      setLoading(false);
+    });
 
-        setGrades(gradesData || {});
-      } catch (error) {
-        console.error('Error fetching grades:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGrades();
-  }, [isAuthenticated, currentStudentInfo, isPinAuth]);
+    return () => unsubscribe();
+  }, [isAuthenticated, currentStudentInfo?.classId, currentStudentInfo?.seatNumber, isPinAuth]);
 
   if (loading) {
     return (
