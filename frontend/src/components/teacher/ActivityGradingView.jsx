@@ -149,15 +149,14 @@ const ActivityGradingView = ({
   // }, [isOpen, user?.uid, lessonId, activityId]);
 
   // Fetch work data for the current student
-  const fetchWork = useCallback(async (student) => {
+  // Cache prevents re-fetching during navigation; forceRefresh bypasses it
+  const fetchWork = useCallback(async (student, forceRefresh = false) => {
     if (!student?.submission?.workKey || !student.uid) return;
-    if (workCache[student.uid]) return;
+    if (!forceRefresh && workCache[student.uid]) return;
 
     setLoadingWork(true);
     try {
-      console.log('📖 Fetching work:', student.uid, student.submission.workKey);
       const data = await getStudentWorkForTeacher(student.uid, student.submission.workKey);
-      console.log('📖 Work data:', data ? 'found' : 'null', data ? Object.keys(data) : '');
       setWorkCache(prev => ({ ...prev, [student.uid]: data }));
     } catch (err) {
       console.error('Error fetching student work:', err);
@@ -357,6 +356,17 @@ const ActivityGradingView = ({
     );
   };
 
+  // Refresh current student's work (re-fetch from Firebase)
+  const handleRefreshWork = useCallback(() => {
+    if (!currentStudent) return;
+    setWorkCache(prev => {
+      const next = { ...prev };
+      delete next[currentStudent.uid];
+      return next;
+    });
+    fetchWork(currentStudent, true);
+  }, [currentStudent, fetchWork]);
+
   // ========================
   // SpeedGrader View
   // ========================
@@ -421,6 +431,16 @@ const ActivityGradingView = ({
         <div className="h-6 w-px bg-gray-300" />
 
         <div className="text-xs text-gray-500">{activityName}</div>
+
+        <button
+          onClick={handleRefreshWork}
+          disabled={loadingWork}
+          className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors disabled:opacity-50"
+          title="Refresh student work"
+        >
+          <RotateCcw size={12} className={loadingWork ? 'animate-spin' : ''} />
+          Refresh
+        </button>
 
         {/* Answer key toggle commented out for now */}
         {/* {answerKeyData && (

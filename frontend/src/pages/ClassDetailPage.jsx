@@ -146,6 +146,13 @@ const ClassDetailPage = () => {
     fetchData();
   }, [classId, user, navigate]);
 
+  // Refresh only submissions when opening the grading view (lightweight — skips roster/grades/conducted)
+  useEffect(() => {
+    if (activityGradingData && classId) {
+      getAllClassSubmissions(classId).then(subs => setSubmissions(subs || []));
+    }
+  }, [activityGradingData]);
+
   const refreshData = async () => {
     if (!classId) return;
     const rosterData = await getClassRoster(classId);
