@@ -1,6 +1,6 @@
 // Printable Login Cards Component
 // src/components/teacher/PrintableLoginCards.jsx
-// Generates professional cut-out login cards for students
+// Generates login cards that mirror the actual student login page
 
 import React from 'react';
 import { createPortal } from 'react-dom';
@@ -8,6 +8,8 @@ import { Printer, X } from 'lucide-react';
 
 const PrintableLoginCards = ({ roster, className, onClose }) => {
   const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
+  const siteUrl = isEduSite ? 'musicroomtools.org' : 'musicmindacademy.com';
+
   const handlePrint = () => {
     window.print();
   };
@@ -35,8 +37,8 @@ const PrintableLoginCards = ({ roster, className, onClose }) => {
       <style>{`
         .login-card {
           border: 2px dashed #94a3b8;
-          border-radius: 8px;
-          padding: 10px 12px;
+          border-radius: 10px;
+          padding: 14px 16px;
           background: white;
           break-inside: avoid;
         }
@@ -94,44 +96,40 @@ const PrintableLoginCards = ({ roster, className, onClose }) => {
         <div className="card-grid">
           {roster.map((student) => (
             <div key={student.seatNumber} className="login-card">
-              {/* Header: logo + student name */}
-              <div className="flex items-center gap-2 mb-1.5 pb-1.5 border-b border-gray-100">
-                {!isEduSite && (
-                  <img
-                    src="/MusicMindAcademyLogo.png"
-                    alt="Music Mind Academy"
-                    style={{ height: '20px', width: 'auto' }}
-                  />
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-gray-900 text-sm truncate">
-                    {student.displayName || `Seat ${student.seatNumber}`}
-                  </div>
-                  <div className="text-[10px] text-gray-400">{className}</div>
+              {/* Student name + class */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="font-bold text-gray-900 text-sm truncate">
+                  {student.displayName || `Seat ${student.seatNumber}`}
                 </div>
+                <div className="text-[10px] text-gray-400 flex-shrink-0 ml-2">{className}</div>
               </div>
 
-              {/* Instructions */}
-              <div className="text-[10px] text-gray-500 mb-1.5 leading-tight">
-                <span className="font-semibold text-gray-600">1.</span> Go to <span className="font-medium text-gray-700">{isEduSite ? 'musicroomtools.org' : 'musicmindacademy.com'}</span>
-                {' '}<span className="font-semibold text-gray-600">2.</span> Click <span className="font-medium text-gray-700">Join Class</span>
-                {' '}<span className="font-semibold text-gray-600">3.</span> Enter your username & password
+              {/* Step 1: Big URL */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-center mb-2">
+                <div className="text-[10px] text-blue-500 font-semibold mb-0.5">1. Go to</div>
+                <div className="text-lg font-bold text-blue-700 tracking-tight">{siteUrl}</div>
               </div>
 
-              {/* Login Credentials */}
-              <div className="bg-gray-50 rounded-md p-2">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <div className="text-[9px] text-gray-500 uppercase tracking-wide">Username</div>
-                    <div className="font-mono font-bold text-lg text-gray-900 tracking-wide">
-                      {student.username || `seat${student.seatNumber}`}
-                    </div>
+              {/* Step 2: Click Join Class */}
+              <div className="text-sm text-gray-700 mb-2">
+                <span className="font-semibold text-gray-500">2.</span> Click <span className="font-semibold">Join Class</span>
+              </div>
+
+              {/* Step 3: Enter credentials */}
+              <div className="text-sm text-gray-700 mb-1.5">
+                <span className="font-semibold text-gray-500">3.</span> Enter your username & password
+              </div>
+              <div className="space-y-1.5">
+                <div className="border border-gray-300 rounded-md px-3 py-1.5 bg-gray-50">
+                  <div className="text-[9px] text-gray-400 mb-0.5">Username</div>
+                  <div className="font-mono font-bold text-base text-gray-900">
+                    {student.username || `seat${student.seatNumber}`}
                   </div>
-                  <div className="border-l border-gray-200 pl-3">
-                    <div className="text-[9px] text-gray-500 uppercase tracking-wide">Password</div>
-                    <div className="font-mono font-bold text-base text-gray-900">
-                      {student.pin}
-                    </div>
+                </div>
+                <div className="border border-gray-300 rounded-md px-3 py-1.5 bg-gray-50">
+                  <div className="text-[9px] text-gray-400 mb-0.5">Password</div>
+                  <div className="font-mono font-bold text-base text-gray-900">
+                    {student.pin}
                   </div>
                 </div>
               </div>

@@ -179,6 +179,7 @@ function MusicClassroomResources() {
   // Onboarding state
   const [teacherClasses, setTeacherClasses] = useState([]);
   const [showCreateClassModal, setShowCreateClassModal] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const userRole = firebaseUser?.role || localStorage.getItem('classroom-user-role');
   const userEmail = firebaseUser?.email || legacyUser?.email || '';
@@ -478,12 +479,13 @@ function MusicClassroomResources() {
       }}>
 
         {/* Welcome Banner for new teachers */}
-        {userRole !== 'student' && shouldShowWelcomeBanner() && (
+        {userRole !== 'student' && !bannerDismissed && shouldShowWelcomeBanner() && (
           <WelcomeBanner
             teacherName={firebaseUser?.displayName?.split(' ')[0]}
             classes={teacherClasses}
             onCreateClass={() => setShowCreateClassModal(true)}
             onBrowseLessons={() => navigate('/music-loops-in-media')}
+            onDismiss={() => setBannerDismissed(true)}
           />
         )}
 

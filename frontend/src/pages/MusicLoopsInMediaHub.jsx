@@ -7,11 +7,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../firebase/config';
 import { startClassSession } from '../firebase/classes';
-import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play, ArrowLeft, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play, X } from 'lucide-react';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { logSessionCreated, logLessonVisit } from '../firebase/analytics';
 import StartSessionModal from '../components/teacher/StartSessionModal';
 import CreateClassModal from '../components/teacher/CreateClassModal';
+import TeacherHeader from '../components/teacher/TeacherHeader';
 
 const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
 
@@ -25,6 +26,7 @@ const MusicLoopsInMediaHub = () => {
   const [showStartModal, setShowStartModal] = useState(false);
   const [showCreateClassModal, setShowCreateClassModal] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState(null);
+  const [newlyCreatedClass, setNewlyCreatedClass] = useState(null);
   // Get authenticated teacher info
   const { user, signOut } = useFirebaseAuth();
 
@@ -131,9 +133,10 @@ const MusicLoopsInMediaHub = () => {
     setShowCreateClassModal(true);
   };
 
-  // After class is created, reopen the start modal
-  const handleClassCreated = () => {
+  // After class is created, reopen the start modal with the new class pre-selected
+  const handleClassCreated = (createdClass) => {
     setShowCreateClassModal(false);
+    setNewlyCreatedClass(createdClass || null);
     // Reopen start modal so they can select the new class
     if (selectedLesson) {
       setShowStartModal(true);
@@ -301,54 +304,8 @@ const MusicLoopsInMediaHub = () => {
 
   return (
     <>
-      <style>{`
-        @media (max-width: 1400px) {
-          .hub-wrapper {
-            height: 100vh;
-            overflow: auto;
-          }
-          .hub-container {
-            transform: scale(0.75);
-            transform-origin: top left;
-            width: 133.33%;
-            min-height: 133.33%;
-          }
-        }
-      `}</style>
-      <div className="hub-wrapper">
-        <div className="hub-container min-h-screen bg-slate-50">
-      {/* HEADER */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/music-classroom-resources')}
-                className="flex items-center gap-2 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                <ArrowLeft size={20} />
-                <span className="font-medium">Back to Units</span>
-              </button>
-            </div>
-            {user && (
-              <button
-                onClick={async () => {
-                  try {
-                    await signOut();
-                    localStorage.removeItem('classroom-logged-in');
-                    navigate('/login');
-                  } catch (err) {
-                    console.error('Logout failed:', err);
-                  }
-                }}
-                className="text-lg text-slate-600 hover:text-slate-900 font-medium"
-              >
-                Logout
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+      <div className="min-h-screen bg-slate-50">
+      <TeacherHeader />
 
       {/* UNIT HEADER */}
       <div className="max-w-5xl mx-auto px-8 pt-8 pb-6">
@@ -631,31 +588,31 @@ const MusicLoopsInMediaHub = () => {
         </div>
       )}
 
-      {/* Start Session Modal */}
-      <StartSessionModal
-        isOpen={showStartModal}
-        onClose={() => {
-          setShowStartModal(false);
-          setSelectedLesson(null);
-        }}
-        lesson={selectedLesson}
-        teacherUid={user?.uid}
-        onStartForClass={handleStartForClass}
-        onStartQuickSession={handleStartQuickSession}
-        onCreateClass={handleCreateClassFromModal}
-      />
-
-      {/* Create Class Modal */}
-      <CreateClassModal
-        isOpen={showCreateClassModal}
-        onClose={() => setShowCreateClassModal(false)}
-        teacherUid={user?.uid}
-        onClassCreated={handleClassCreated}
-        fromLessonStart={!!selectedLesson}
-      />
-
       </div>
-    </div>
+
+    {/* Modals */}
+    <StartSessionModal
+      isOpen={showStartModal}
+      onClose={() => {
+        setShowStartModal(false);
+        setSelectedLesson(null);
+        setNewlyCreatedClass(null);
+      }}
+      lesson={selectedLesson}
+      teacherUid={user?.uid}
+      onStartForClass={handleStartForClass}
+      onStartQuickSession={handleStartQuickSession}
+      onCreateClass={handleCreateClassFromModal}
+      preselectedClassId={newlyCreatedClass?.id}
+    />
+
+    <CreateClassModal
+      isOpen={showCreateClassModal}
+      onClose={() => setShowCreateClassModal(false)}
+      teacherUid={user?.uid}
+      onClassCreated={handleClassCreated}
+      fromLessonStart={!!selectedLesson}
+    />
     </>
   );
 };

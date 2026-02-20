@@ -37,10 +37,10 @@ import RosterManager from '../components/teacher/RosterManager';
 import StudentDetailModal from '../components/teacher/StudentDetailModal';
 import GradeEntryModal from '../components/teacher/GradeEntryModal';
 import ActivityGradingView from '../components/teacher/ActivityGradingView';
-import AnswerKeyModal from '../components/teacher/AnswerKeyModal';
+// import AnswerKeyModal from '../components/teacher/AnswerKeyModal';
 import PrintableLoginCards from '../components/teacher/PrintableLoginCards';
 import PrintableRosterSheet from '../components/teacher/PrintableRosterSheet';
-import { getAllAnswerKeys } from '../firebase/answerKeys';
+// import { getAllAnswerKeys } from '../firebase/answerKeys';
 
 const getActivityIcon = (type) => {
   switch (type) {
@@ -86,8 +86,8 @@ const ClassDetailPage = () => {
   const [activityGradingData, setActivityGradingData] = useState(null);
   const [deleteGradeConfirm, setDeleteGradeConfirm] = useState(null); // { studentUid, studentName, lessonId, lessonName }
   const [deletingGrade, setDeletingGrade] = useState(false);
-  const [answerKeyModalData, setAnswerKeyModalData] = useState(null);
-  const [answerKeyIds, setAnswerKeyIds] = useState(new Set());
+  // const [answerKeyModalData, setAnswerKeyModalData] = useState(null);
+  // const [answerKeyIds, setAnswerKeyIds] = useState(new Set());
 
   // Close quick lookup popover when clicking outside
   useEffect(() => {
@@ -131,11 +131,11 @@ const ClassDetailPage = () => {
         setGrades(gradesData || {});
         setConductedLessonIds(conducted);
 
-        // Fetch answer key IDs for the key icon state
-        try {
-          const keys = await getAllAnswerKeys(user.uid);
-          setAnswerKeyIds(new Set(Object.keys(keys)));
-        } catch { /* answer keys fetch is non-critical */ }
+        // // Fetch answer key IDs for the key icon state
+        // try {
+        //   const keys = await getAllAnswerKeys(user.uid);
+        //   setAnswerKeyIds(new Set(Object.keys(keys)));
+        // } catch { /* answer keys fetch is non-critical */ }
       } catch (error) {
         console.error('Error fetching class data:', error);
       } finally {
@@ -276,21 +276,21 @@ const ClassDetailPage = () => {
     <div className="min-h-screen bg-gray-100">
       <TeacherHeader />
 
-      {/* Class Header — clean white */}
+      {/* Class Header — compact */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
-          <button
-            onClick={() => navigate('/teacher/dashboard')}
-            className="flex items-center gap-1 text-gray-500 hover:text-gray-700 mb-3 text-sm"
-          >
-            <ArrowLeft size={16} />
-            Classes
-          </button>
-
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-2">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{classData.name}</h1>
-              <p className="text-sm text-gray-500 mt-1">{roster.length} students</p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate('/teacher/dashboard')}
+                className="flex items-center gap-1 text-gray-500 hover:text-gray-700 text-sm"
+              >
+                <ArrowLeft size={16} />
+              </button>
+              <div>
+                <h1 className="text-lg font-bold text-gray-900">{classData.name}</h1>
+                <p className="text-xs text-gray-500">{roster.length} students</p>
+              </div>
             </div>
 
             <button
@@ -329,7 +329,7 @@ const ClassDetailPage = () => {
       </div>
 
       {/* Tab Content */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
 
         {/* ==================== Students Tab ==================== */}
         {activeTab === 'students' && (
@@ -501,9 +501,6 @@ const ClassDetailPage = () => {
                 const unitLessons = [];
                 unit.lessons.forEach(lesson => {
                   if (!lesson.route || lesson.activities.length === 0) return;
-                  // Show lesson if conducted OR if any student has submitted work for it
-                  const hasSubmissions = submissions.some(s => s.lessonId === lesson.id);
-                  if (conductedLessonIds && !conductedLessonIds.has(lesson.id) && !hasSubmissions) return;
                   // Filter: skip games
                   const gradableActivities = lesson.activities
                     .filter(a => a.type !== 'game')
@@ -537,13 +534,21 @@ const ClassDetailPage = () => {
                         ) : (
                           <ChevronRight size={18} style={{ color: style.color }} />
                         )}
-                        <div>
-                          {style.number && (
-                            <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: style.color }}>
-                              Unit {style.number}
-                            </div>
+                        <div className="flex items-center gap-3">
+                          <div>
+                            {style.number && (
+                              <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: style.color }}>
+                                Unit {style.number}
+                              </div>
+                            )}
+                            <div className="font-bold text-gray-900 text-left">{style.title}</div>
+                          </div>
+                          {unit.id === 'film-music' && (
+                            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Current Pilot</span>
                           )}
-                          <div className="font-bold text-gray-900 text-left">{style.title}</div>
+                          {unit.id === 'listening-lab' && (
+                            <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs font-medium rounded-full">Unlocks April 1st</span>
+                          )}
                         </div>
                       </div>
                     </button>
@@ -600,7 +605,8 @@ const ClassDetailPage = () => {
                                           {activity.stats.pending}
                                         </span>
                                       )}
-                                      <button
+                                      {/* Answer key button - commented out for now */}
+                                      {/* <button
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           setAnswerKeyModalData({
@@ -618,7 +624,7 @@ const ClassDetailPage = () => {
                                         title={answerKeyIds.has(`${lesson.id}-${activity.id}`) ? 'Edit answer key' : 'Create answer key'}
                                       >
                                         <Key size={14} />
-                                      </button>
+                                      </button> */}
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();
@@ -642,41 +648,40 @@ const ClassDetailPage = () => {
                 );
               })}
 
-              {/* Empty state when no lessons have been conducted */}
-              {(!conductedLessonIds || conductedLessonIds.size === 0) && submissions.length === 0 && (
-                <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-                  <ClipboardList className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <h3 className="font-medium text-gray-900 mb-1">No assignments yet</h3>
-                  <p className="text-sm text-gray-500">
-                    Assignments will appear here once you start a lesson.
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         )}
 
         {/* ==================== Grades Tab ==================== */}
         {activeTab === 'grades' && (() => {
-          // Build per-activity columns grouped by unit
+          // Build per-activity columns grouped by unit and lesson
           const gradebookColumns = [];
-          const unitSpans = []; // { unitId, title, color, icon, colCount }
+          const unitSpans = []; // { unitId, number, title, color, icon, colCount }
+          const lessonSpans = []; // { lessonId, lessonNum, lessonName, unitColor, colCount, isFirstInUnit }
 
           for (const unit of CURRICULUM) {
             const style = UNIT_STYLE[unit.id] || { number: null, title: unit.name, color: '#6b7280' };
             let unitColCount = 0;
+            let isFirstLessonInUnit = true;
 
             for (const lesson of unit.lessons) {
               if (lesson.activities.length === 0) continue;
-              if (conductedLessonIds && !conductedLessonIds.has(lesson.id)) continue;
 
-              // Extract lesson number from id (e.g., 'fm-lesson2' → 2, 'll-lesson3' → 3)
               const lessonNum = lesson.id.match(/lesson(\d+)/)?.[1] || '?';
-
-              // Only gradable activities (skip games)
               const gradableActivities = lesson.activities.filter(a => a.type !== 'game');
+              if (gradableActivities.length === 0) continue;
+
+              lessonSpans.push({
+                lessonId: lesson.id,
+                lessonNum,
+                lessonName: lesson.shortName || lesson.name,
+                unitColor: style.color,
+                colCount: gradableActivities.length,
+                isFirstInUnit: isFirstLessonInUnit
+              });
+              isFirstLessonInUnit = false;
+
               for (const activity of gradableActivities) {
-                // Short label for column header
                 let shortLabel;
                 if (activity.type === 'composition') shortLabel = 'Comp';
                 else if (activity.type === 'reflection') shortLabel = 'Refl';
@@ -693,7 +698,7 @@ const ClassDetailPage = () => {
                   activityId: activity.id,
                   activityName: activity.name,
                   activityType: activity.type,
-                  label: `L${lessonNum} ${shortLabel}`
+                  label: shortLabel
                 });
                 unitColCount++;
               }
@@ -702,6 +707,7 @@ const ClassDetailPage = () => {
             if (unitColCount > 0) {
               unitSpans.push({
                 unitId: unit.id,
+                number: style.number,
                 title: style.title,
                 color: style.color,
                 icon: unit.icon,
@@ -799,30 +805,54 @@ const ClassDetailPage = () => {
                   <table className="w-full text-sm">
                     <thead>
                       {/* Row 1: Unit grouping headers */}
-                      <tr className="border-b border-gray-200">
-                        <th className="sticky left-0 z-10 bg-white" rowSpan={2} />
-                        {unitSpans.map(u => (
+                      <tr>
+                        <th className="sticky left-0 z-10 bg-white border-r border-gray-200" rowSpan={3} />
+                        {unitSpans.map((u, i) => (
                           <th
                             key={u.unitId}
                             colSpan={u.colCount}
-                            className="px-2 py-2 text-center text-xs font-bold text-white tracking-wide"
+                            className={`px-2 py-2 text-center text-xs font-bold text-white tracking-wide ${i > 0 ? 'border-l-2 border-white/30' : ''}`}
                             style={{ backgroundColor: u.color }}
                           >
-                            {u.icon} {u.title}
+                            {u.number ? `Unit ${u.number}: ` : ''}{u.title}
                           </th>
                         ))}
                       </tr>
-                      {/* Row 2: Activity column labels */}
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        {gradebookColumns.map(col => (
+                      {/* Row 2: Lesson grouping headers */}
+                      <tr className="border-b border-gray-200">
+                        {lessonSpans.map((ls) => (
                           <th
-                            key={`${col.lessonId}-${col.activityId}`}
-                            className="px-2 py-2 font-medium text-gray-600 text-center min-w-[80px]"
-                            title={`${col.lessonName} — ${col.activityName}`}
+                            key={ls.lessonId}
+                            colSpan={ls.colCount}
+                            className={`px-2 py-1.5 text-center text-[11px] font-semibold tracking-wide ${ls.isFirstInUnit ? 'border-l-2' : 'border-l'}`}
+                            style={{
+                              backgroundColor: ls.unitColor + '10',
+                              color: ls.unitColor,
+                              borderLeftColor: ls.isFirstInUnit ? ls.unitColor : '#e5e7eb'
+                            }}
                           >
-                            <span className="text-[11px] leading-tight whitespace-nowrap">{col.label}</span>
+                            L{ls.lessonNum}
                           </th>
                         ))}
+                      </tr>
+                      {/* Row 3: Activity column labels */}
+                      <tr className="bg-gray-50 border-b border-gray-200">
+                        {gradebookColumns.map((col, i) => {
+                          // Check if this is the first column in a new lesson
+                          const prevCol = i > 0 ? gradebookColumns[i - 1] : null;
+                          const isNewLesson = prevCol && prevCol.lessonId !== col.lessonId;
+                          const isNewUnit = prevCol && prevCol.unitId !== col.unitId;
+                          return (
+                            <th
+                              key={`${col.lessonId}-${col.activityId}`}
+                              className={`px-2 py-1.5 font-medium text-gray-500 text-center min-w-[70px] ${isNewUnit ? 'border-l-2' : isNewLesson ? 'border-l border-gray-200' : ''}`}
+                              style={isNewUnit ? { borderLeftColor: col.unitColor } : undefined}
+                              title={`${col.lessonName} — ${col.activityName}`}
+                            >
+                              <span className="text-[10px] leading-tight whitespace-nowrap">{col.label}</span>
+                            </th>
+                          );
+                        })}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -831,10 +861,10 @@ const ClassDetailPage = () => {
                         const studentName = student.displayName || `Seat ${student.seatNumber}`;
                         return (
                           <tr key={student.seatNumber} className="hover:bg-gray-50">
-                            <td className="p-3 font-medium text-gray-900 sticky left-0 bg-white z-10 min-w-[160px] border-r border-gray-100">
+                            <td className="p-3 font-medium text-gray-900 sticky left-0 bg-white z-10 min-w-[160px] border-r border-gray-200">
                               {studentName}
                             </td>
-                            {gradebookColumns.map(col => {
+                            {gradebookColumns.map((col, colIdx) => {
                               const g = grades[uid]?.[col.lessonId];
                               const sub = submissions.find(s =>
                                 s.studentUid === uid && s.lessonId === col.lessonId &&
@@ -842,11 +872,15 @@ const ClassDetailPage = () => {
                               );
                               const isPending = sub && (sub.status === 'pending' || sub.status === 'submitted');
                               const hasData = g || isPending;
+                              const prevCol = colIdx > 0 ? gradebookColumns[colIdx - 1] : null;
+                              const isNewLesson = prevCol && prevCol.lessonId !== col.lessonId;
+                              const isNewUnit = prevCol && prevCol.unitId !== col.unitId;
 
                               return (
                                 <td
                                   key={`${col.lessonId}-${col.activityId}`}
-                                  className={`px-2 py-3 text-center relative group ${hasData ? 'cursor-pointer hover:bg-blue-50 transition-colors' : ''}`}
+                                  className={`px-2 py-3 text-center relative group ${hasData ? 'cursor-pointer hover:bg-blue-50 transition-colors' : ''} ${isNewUnit ? 'border-l-2' : isNewLesson ? 'border-l border-gray-100' : ''}`}
+                                  style={isNewUnit ? { borderLeftColor: col.unitColor } : undefined}
                                   onClick={() => {
                                     if (hasData) {
                                       setActivityGradingData({
@@ -986,7 +1020,8 @@ const ClassDetailPage = () => {
         />
       )}
 
-      {answerKeyModalData && (
+      {/* Answer key modal - commented out for now */}
+      {/* {answerKeyModalData && (
         <AnswerKeyModal
           isOpen={!!answerKeyModalData}
           onClose={(saved) => {
@@ -1004,7 +1039,7 @@ const ClassDetailPage = () => {
           activityType={answerKeyModalData.activityType}
           teacherUid={user.uid}
         />
-      )}
+      )} */}
 
       {/* Delete Grade Confirmation Modal */}
       {deleteGradeConfirm && (

@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Users, Eye, Plus, ChevronDown, Loader2 } from 'lucide-react';
+import { X, Users, Eye, Plus, ChevronDown, Loader2, Printer } from 'lucide-react';
 import { getTeacherClasses } from '../../firebase/classes';
 
 // Feature flag: set to true to re-enable Quick Session mode
@@ -17,13 +17,15 @@ const StartSessionModal = ({
   teacherUid,
   onStartForClass,
   onStartQuickSession,
-  onCreateClass
+  onCreateClass,
+  preselectedClassId
 }) => {
   const navigate = useNavigate();
   const [classes, setClasses] = useState([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
   const [selectedClassId, setSelectedClassId] = useState('');
   const [starting, setStarting] = useState(false);
+  const [justCreated, setJustCreated] = useState(false);
 
   // Fetch teacher's classes
   useEffect(() => {
@@ -34,8 +36,11 @@ const StartSessionModal = ({
       try {
         const classesData = await getTeacherClasses(teacherUid);
         setClasses(classesData);
-        // Auto-select first class if only one
-        if (classesData.length === 1) {
+        // Auto-select preselected class (just created) or first class if only one
+        if (preselectedClassId) {
+          setSelectedClassId(preselectedClassId);
+          setJustCreated(true);
+        } else if (classesData.length === 1) {
           setSelectedClassId(classesData[0].id);
         }
       } catch (error) {
@@ -46,15 +51,16 @@ const StartSessionModal = ({
     };
 
     fetchClasses();
-  }, [teacherUid, isOpen]);
+  }, [teacherUid, isOpen, preselectedClassId]);
 
-  // Reset state when modal opens
+  // Reset state when modal opens (but not preselectedClassId — that's handled above)
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !preselectedClassId) {
       setSelectedClassId('');
       setStarting(false);
+      setJustCreated(false);
     }
-  }, [isOpen]);
+  }, [isOpen, preselectedClassId]);
 
   const handleStartForClass = async () => {
     if (!selectedClassId) return;
@@ -270,55 +276,124 @@ const StartSessionModal = ({
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center justify-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Users className="w-5 h-5 text-blue-600" />
+                  {justCreated && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 flex items-center gap-2 text-green-700 text-sm">
+                      <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span className="font-medium">Class ready! Hit Start Lesson below.</span>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Select a Class</h3>
-                      <span className="text-xs text-gray-500">Students join with their username + password</span>
-                    </div>
-                  </div>
+                  )}
 
-                  <select
-                    value={selectedClassId}
-                    onChange={(e) => {
-                      if (e.target.value === '__create_new__') {
-                        onCreateClass?.();
-                      } else {
-                        setSelectedClassId(e.target.value);
-                      }
-                    }}
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-800 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Select a class...</option>
-                    {classes.map((cls) => (
-                      <option key={cls.id} value={cls.id}>{cls.name}</option>
-                    ))}
-                    <option value="__create_new__">+ Create new class</option>
-                  </select>
-                  <button
-                    onClick={handleStartForClass}
-                    disabled={starting || !selectedClassId}
-                    className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {starting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Starting...
-                      </>
-                    ) : (
-                      <>
-                        <Users size={18} />
-                        Start Lesson
-                      </>
-                    )}
-                  </button>
-                  <p className="text-xs text-gray-500 text-center mt-3">
-                    Student work saves to your gradebook
-                  </p>
+                  {classes.length === 1 ? (
+                    /* Single class — skip the dropdown, just show the class and go */
+                    <>
+                      <div className="flex items-center justify-center gap-3 mb-4">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${justCreated ? 'bg-green-100' : 'bg-blue-100'}`}>
+                          <Users className={`w-5 h-5 ${justCreated ? 'text-green-600' : 'text-blue-600'}`} />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{classes[0].name}</h3>
+                          <span className="text-xs text-gray-500">Students join with their username + password</span>
+                        </div>
+                      </div>
 
-                  {/* Preview option — visible blue outline so teachers can prep before going live */}
+                      <button
+                        onClick={handleStartForClass}
+                        disabled={starting}
+                        className={`w-full px-4 py-3 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${justCreated ? 'bg-green-600 hover:bg-green-700 animate-pulse' : 'bg-blue-600 hover:bg-blue-700'}`}
+                      >
+                        {starting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Starting...
+                          </>
+                        ) : (
+                          <>
+                            <Users size={18} />
+                            Start Lesson
+                          </>
+                        )}
+                      </button>
+                      <div className="flex items-center justify-between mt-3">
+                        <p className="text-xs text-gray-500">
+                          Student work saves to your gradebook
+                        </p>
+                        <button
+                          onClick={() => window.open(`/teacher/class/${classes[0].id}?print=true`, '_blank')}
+                          className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <Printer size={12} />
+                          Print login cards
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    /* Multiple classes — show dropdown */
+                    <>
+                      <div className="flex items-center justify-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <Users className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">Select a Class</h3>
+                          <span className="text-xs text-gray-500">Students join with their username + password</span>
+                        </div>
+                      </div>
+
+                      <select
+                        value={selectedClassId}
+                        onChange={(e) => {
+                          if (e.target.value === '__create_new__') {
+                            onCreateClass?.();
+                          } else {
+                            setSelectedClassId(e.target.value);
+                            setJustCreated(false);
+                          }
+                        }}
+                        className={`w-full px-3 py-2.5 border rounded-lg text-sm text-gray-800 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${justCreated && selectedClassId ? 'border-green-400 bg-green-50' : 'border-gray-300'}`}
+                      >
+                        <option value="">Select a class...</option>
+                        {classes.map((cls) => (
+                          <option key={cls.id} value={cls.id}>{cls.name}</option>
+                        ))}
+                        <option value="__create_new__">+ Create new class</option>
+                      </select>
+                      <button
+                        onClick={handleStartForClass}
+                        disabled={starting || !selectedClassId}
+                        className={`w-full px-4 py-3 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${justCreated && selectedClassId ? 'bg-green-600 hover:bg-green-700 animate-pulse' : 'bg-blue-600 hover:bg-blue-700'}`}
+                      >
+                        {starting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Starting...
+                          </>
+                        ) : (
+                          <>
+                            <Users size={18} />
+                            Start Lesson
+                          </>
+                        )}
+                      </button>
+                      <div className="flex items-center justify-between mt-3">
+                        <p className="text-xs text-gray-500">
+                          Student work saves to your gradebook
+                        </p>
+                        {selectedClassId && (
+                          <button
+                            onClick={() => window.open(`/teacher/class/${selectedClassId}?print=true`, '_blank')}
+                            className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 transition-colors"
+                          >
+                            <Printer size={12} />
+                            Print login cards
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Preview option */}
                   <button
                     onClick={() => {
                       localStorage.setItem('teacher-previewed-lesson', 'true');

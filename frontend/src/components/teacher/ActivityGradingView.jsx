@@ -16,10 +16,10 @@ import {
 } from 'lucide-react';
 import { getStudentWorkForTeacher } from '../../firebase/studentWork';
 import { gradeSubmission } from '../../firebase/grades';
-import { getAnswerKey } from '../../firebase/answerKeys';
+// import { getAnswerKey } from '../../firebase/answerKeys';
 import { useFirebaseAuth } from '../../context/FirebaseAuthContext';
 import GradeForm from './GradeForm';
-import AnswerKeyModal from './AnswerKeyModal';
+// import AnswerKeyModal from './AnswerKeyModal';
 // Lazy-load Listening Journey preview to avoid bundling LJ components with ClassDetailPage
 const LazyLJPreview = lazy(() => import('./ListeningJourneyPreview'));
 // Lazy-load Composition preview (loop blocks + video split view)
@@ -103,9 +103,9 @@ const ActivityGradingView = ({
   const [loadingWork, setLoadingWork] = useState(false);
   const [assignmentMaxPoints, setAssignmentMaxPoints] = useState('100');
   const [showGridLines, setShowGridLines] = useState(true);
-  const [showAnswerKey, setShowAnswerKey] = useState(false);
-  const [answerKeyData, setAnswerKeyData] = useState(null);
-  const [showAnswerKeyModal, setShowAnswerKeyModal] = useState(false);
+  // const [showAnswerKey, setShowAnswerKey] = useState(false);
+  // const [answerKeyData, setAnswerKeyData] = useState(null);
+  // const [showAnswerKeyModal, setShowAnswerKeyModal] = useState(false);
   const sidebarRef = useRef(null);
 
   // Build enriched student list with submission/grade data for this activity
@@ -140,13 +140,13 @@ const ActivityGradingView = ({
     }
   }, [isOpen]);
 
-  // Fetch answer key on mount
-  useEffect(() => {
-    if (!isOpen || !user?.uid || !lessonId || !activityId) return;
-    getAnswerKey(user.uid, lessonId, activityId)
-      .then(key => setAnswerKeyData(key))
-      .catch(() => setAnswerKeyData(null));
-  }, [isOpen, user?.uid, lessonId, activityId]);
+  // // Fetch answer key on mount
+  // useEffect(() => {
+  //   if (!isOpen || !user?.uid || !lessonId || !activityId) return;
+  //   getAnswerKey(user.uid, lessonId, activityId)
+  //     .then(key => setAnswerKeyData(key))
+  //     .catch(() => setAnswerKeyData(null));
+  // }, [isOpen, user?.uid, lessonId, activityId]);
 
   // Fetch work data for the current student
   const fetchWork = useCallback(async (student) => {
@@ -422,7 +422,8 @@ const ActivityGradingView = ({
 
         <div className="text-xs text-gray-500">{activityName}</div>
 
-        {answerKeyData && (
+        {/* Answer key toggle commented out for now */}
+        {/* {answerKeyData && (
           <button
             onClick={() => setShowAnswerKey(!showAnswerKey)}
             className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium transition-colors ${
@@ -434,7 +435,7 @@ const ActivityGradingView = ({
             <Key size={12} />
             {showAnswerKey ? 'Hide Key' : 'Show Key'}
           </button>
-        )}
+        )} */}
 
         <button
           onClick={onClose}
@@ -484,8 +485,8 @@ const ActivityGradingView = ({
               onCriteriaChanged={handleCriteriaChanged}
             />
 
-            {/* Answer Key Section */}
-            <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
+            {/* Answer Key Section - commented out for now */}
+            {/* <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
               <div className="px-3 py-2 bg-gray-50 flex items-center gap-2">
                 <Key size={14} className={answerKeyData ? 'text-amber-500' : 'text-gray-400'} />
                 <span className="text-sm font-medium text-gray-700">Answer Key</span>
@@ -524,7 +525,7 @@ const ActivityGradingView = ({
                   </button>
                 )}
               </div>
-            </div>
+            </div> */}
 
             {/* Next Student Button */}
             {selectedIndex < studentData.length - 1 && (
@@ -541,8 +542,8 @@ const ActivityGradingView = ({
 
         {/* Right Panel - Work Display (splits when answer key shown) */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Answer Key Panel */}
-          {showAnswerKey && answerKeyData && (
+          {/* Answer Key Panel - commented out for now */}
+          {/* {showAnswerKey && answerKeyData && (
             <div className="w-1/2 bg-gray-800 flex flex-col overflow-hidden border-r border-gray-600">
               <div className="px-3 py-1.5 bg-amber-900/30 border-b border-amber-700/50 flex items-center gap-2 shrink-0">
                 <Key size={12} className="text-amber-400" />
@@ -552,15 +553,10 @@ const ActivityGradingView = ({
                 {renderWorkContent(answerKeyData)}
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Student Work Panel */}
-          <div className={`${showAnswerKey && answerKeyData ? 'w-1/2' : 'flex-1'} bg-gray-800 flex flex-col overflow-hidden`}>
-            {showAnswerKey && answerKeyData && (
-              <div className="px-3 py-1.5 bg-blue-900/30 border-b border-blue-700/50 flex items-center gap-2 shrink-0">
-                <span className="text-xs font-medium text-blue-300">Student Work</span>
-              </div>
-            )}
+          <div className="flex-1 bg-gray-800 flex flex-col overflow-hidden">
           {isLoadingCurrent ? (
             <div className="flex-1 flex items-center justify-center">
               <Loader2 className="w-10 h-10 text-gray-400 animate-spin" />
@@ -728,8 +724,8 @@ const ActivityGradingView = ({
         </div>
       </div>
 
-      {/* Answer Key Modal */}
-      <AnswerKeyModal
+      {/* Answer Key Modal - commented out for now */}
+      {/* <AnswerKeyModal
         isOpen={showAnswerKeyModal}
         onClose={(saved) => {
           setShowAnswerKeyModal(false);
@@ -745,7 +741,7 @@ const ActivityGradingView = ({
         activityName={activityName}
         activityType={activityType}
         teacherUid={user?.uid}
-      />
+      /> */}
     </div>
   );
 };

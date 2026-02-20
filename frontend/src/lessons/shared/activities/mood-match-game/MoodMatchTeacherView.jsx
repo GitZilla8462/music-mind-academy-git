@@ -16,18 +16,18 @@ import {
 } from '../../../../firebase/config';
 import { MOOD_CATEGORIES, GAME_LOOPS, generateDiscussionPrompt, generateSummaryInsight } from './moodMatchConfig';
 
-// Student Activity Time Banner
+// Class Activity Time Banner
 const ActivityBanner = () => (
   <div
     className="w-full flex items-center justify-center"
     style={{
       height: '64px',
-      backgroundColor: '#0d9488',
+      backgroundColor: '#2563eb',
       flexShrink: 0
     }}
   >
     <span className="text-white font-bold" style={{ fontSize: '28px' }}>
-      STUDENT ACTIVITY
+      CLASS ACTIVITY
     </span>
   </div>
 );

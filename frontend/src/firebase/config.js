@@ -482,7 +482,7 @@ export const subscribeToMoodMatchState = (sessionCode, callback) => {
   console.log(`👂 Subscribing to mood match state for session: ${sessionCode}`);
 
   const unsubscribe = onValue(moodMatchRef, (snapshot) => {
-    const data = snapshot.val() || { currentLoopIndex: 0, showResults: false };
+    const data = snapshot.val() || { currentLoopIndex: -1, showResults: false };
     callback(data);
   });
 
@@ -541,7 +541,7 @@ export const clearMoodMatchVotes = async (sessionCode) => {
 
     const stateRef = ref(database, `sessions/${sessionCode}/moodMatch`);
     await set(stateRef, {
-      currentLoopIndex: 0,
+      currentLoopIndex: -1,
       showResults: false,
       updatedAt: Date.now()
     });

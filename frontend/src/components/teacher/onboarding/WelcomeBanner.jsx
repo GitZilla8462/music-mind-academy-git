@@ -3,7 +3,7 @@
 // Stays visible until all onboarding tasks are complete
 
 import React, { useState, useRef } from 'react';
-import { Play, Maximize2, Minimize2 } from 'lucide-react';
+import { Play, Maximize2, Minimize2, X } from 'lucide-react';
 import OnboardingChecklist from '../OnboardingChecklist';
 
 const BANNER_DISMISSED_KEY = 'teacher-welcome-banner-dismissed';
@@ -14,10 +14,16 @@ const WelcomeBanner = ({
   onCreateClass,
   onBrowseLessons,
   hasStartedSession = false,
+  onDismiss,
 }) => {
   const [videoExpanded, setVideoExpanded] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const videoRef = useRef(null);
+
+  const handleDismiss = () => {
+    dismissWelcomeBanner();
+    onDismiss?.();
+  };
 
   const handleExpandVideo = () => {
     setVideoExpanded(true);
@@ -73,10 +79,18 @@ const WelcomeBanner = ({
     <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-blue-200 overflow-hidden mb-4">
       <div className="p-4">
         {/* Header row */}
-        <div className="mb-3">
+        <div className="flex items-start justify-between mb-3">
           <h2 className="text-lg font-bold text-gray-900">
             Welcome{teacherName ? `, ${teacherName}` : ''}!
           </h2>
+          <button
+            onClick={handleDismiss}
+            className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors -mt-0.5"
+            title="Don't show this anymore"
+          >
+            <X size={14} />
+            <span>Don't show again</span>
+          </button>
         </div>
 
         {/* Side-by-side: Video (left) + Checklist (right) */}

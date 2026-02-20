@@ -20,6 +20,7 @@ const ListeningLabHub = () => {
   const [showStartModal, setShowStartModal] = useState(false);
   const [showCreateClassModal, setShowCreateClassModal] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState(null);
+  const [newlyCreatedClass, setNewlyCreatedClass] = useState(null);
 
   // Get authenticated teacher info
   const { user, signOut } = useFirebaseAuth();
@@ -136,9 +137,10 @@ const ListeningLabHub = () => {
     setShowCreateClassModal(true);
   };
 
-  // After class is created, reopen the start modal
-  const handleClassCreated = () => {
+  // After class is created, reopen the start modal with the new class pre-selected
+  const handleClassCreated = (createdClass) => {
     setShowCreateClassModal(false);
+    setNewlyCreatedClass(createdClass || null);
     if (selectedLesson) {
       setShowStartModal(true);
     }
@@ -685,12 +687,14 @@ const ListeningLabHub = () => {
         onClose={() => {
           setShowStartModal(false);
           setSelectedLesson(null);
+          setNewlyCreatedClass(null);
         }}
         lesson={selectedLesson}
         teacherUid={user?.uid}
         onStartForClass={handleStartForClass}
         onStartQuickSession={handleStartQuickSession}
         onCreateClass={handleCreateClassFromModal}
+        preselectedClassId={newlyCreatedClass?.id}
       />
 
       {/* Create Class Modal */}

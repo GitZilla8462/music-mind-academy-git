@@ -665,29 +665,29 @@ const PresentationContent = ({
 
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-8">
-        {/* Logo + URL */}
-        <div className="text-center mb-6">
-          {!isEduSite && (
-            <img
-              src="/MusicMindAcademyLogo.png"
-              alt={siteName}
-              className="h-14 w-auto mx-auto mb-2"
-            />
-          )}
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">{siteName}</h1>
-          <div className="text-gray-400 text-lg">
-            Go to <span className="font-semibold text-gray-700">{joinUrl}</span>
+        {/* Instructions */}
+        <div className="text-center mb-8">
+          <div className="text-2xl font-bold text-gray-800 mb-2">
+            <span className="text-gray-500">1.</span> Go to <span className="text-blue-600">{joinUrl}</span>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">
+            <span className="text-gray-500">2.</span> Log in with your username and password
           </div>
         </div>
 
-        {/* Single card matching student /join page styling */}
+        {/* Mock login form */}
         <div className="w-full max-w-sm mb-8">
           {isClassSession ? (
-            /* Classroom Mode (blue) */
             <div className="bg-white rounded-xl shadow-md p-7 border border-gray-200 flex flex-col">
-              <div className="text-center mb-5">
-                <h2 className="text-xl font-semibold text-blue-800 mb-1">Classroom Mode</h2>
-                <p className="text-gray-500 text-sm">Sign in to see your work and grades</p>
+              <div className="space-y-3 mb-4">
+                <div>
+                  <div className="text-gray-600 text-sm font-medium mb-1">Username</div>
+                  <div className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-400 font-mono text-lg">tuba123</div>
+                </div>
+                <div>
+                  <div className="text-gray-600 text-sm font-medium mb-1">Password</div>
+                  <div className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-400 font-mono text-lg">epicdrum</div>
+                </div>
               </div>
 
               <div className="bg-blue-700 text-white font-semibold py-3.5 px-4 rounded-lg text-lg text-center">
@@ -4182,8 +4182,8 @@ const TeacherLessonView = ({
               <>
                 <div className="text-xs text-slate-500 mb-2 space-y-1">
                   <div><span className="font-semibold text-slate-700">1.</span> Go to <span className="font-semibold text-blue-600">{getJoinUrl()}</span></div>
-                  <div><span className="font-semibold text-slate-700">2.</span> Click <span className="font-semibold text-purple-600">Sign In</span></div>
-                  <div><span className="font-semibold text-slate-700">3.</span> Click <span className="font-semibold text-emerald-600">Join Class</span></div>
+                  <div><span className="font-semibold text-slate-700">2.</span> Enter <span className="font-semibold text-purple-600">username & password</span></div>
+                  <div><span className="font-semibold text-slate-700">3.</span> Click <span className="font-semibold text-emerald-600">Sign In</span></div>
                 </div>
                 <div className="flex items-center gap-2 text-slate-600 text-sm pt-2 border-t border-slate-100">
                   <Users size={16} />

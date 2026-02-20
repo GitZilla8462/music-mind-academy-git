@@ -3,9 +3,11 @@
 // Updated: Paste names instead of entering count, shows musical usernames
 
 import React, { useState } from 'react';
-import { X, Users, Loader2, Copy, Check, Printer, RotateCcw, Trash2, Pencil } from 'lucide-react';
+import { X, Users, Loader2, Copy, Check, Printer, RotateCcw, Trash2, Pencil, FileText, CreditCard } from 'lucide-react';
 import { createClass, deleteClass } from '../../firebase/classes';
 import { bulkAddSeats, removeSeat, updateSeat } from '../../firebase/enrollments';
+import PrintableLoginCards from './PrintableLoginCards';
+import PrintableRosterSheet from './PrintableRosterSheet';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -21,6 +23,9 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated, fromLes
   const [copied, setCopied] = useState(false);
   const [editingSeat, setEditingSeat] = useState(null);
   const [editName, setEditName] = useState('');
+  const [hasPrinted, setHasPrinted] = useState(false);
+  const [showPrintCards, setShowPrintCards] = useState(false);
+  const [showPrintRoster, setShowPrintRoster] = useState(false);
 
   // Parse names from pasted text — handles numbered lists, commas, tabs,
   // sequential numbers jammed into text, student IDs, and extra columns
@@ -153,6 +158,9 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated, fromLes
     setCreatedClass(null);
     setCreatedSeats([]);
     setCopied(false);
+    setHasPrinted(false);
+    setShowPrintCards(false);
+    setShowPrintRoster(false);
     onClose();
   };
 
@@ -179,17 +187,19 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated, fromLes
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handlePrint = () => {
-    if (createdClass) {
-      onClassCreated?.(createdClass);
-      if (fromLessonStart) {
-        // Open print page in new tab so teacher stays on lesson flow
-        window.open(`/teacher/class/${createdClass.id}?print=true`, '_blank');
-      } else {
-        navigate(`/teacher/class/${createdClass.id}?print=true`);
-      }
-    }
+  const handlePrintCards = () => {
+    setShowPrintCards(true);
+    setHasPrinted(true);
+  };
+
+  const handlePrintRoster = () => {
+    setShowPrintRoster(true);
+    setHasPrinted(true);
+  };
+
+  const handleGoToLessons = () => {
     handleClose();
+    navigate('/music-loops-in-media-hub');
   };
 
   // Remove a single seat from the roster
@@ -385,10 +395,11 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated, fromLes
                                 ) : (
                                   <span
                                     onClick={() => { setEditingSeat(seat.seatNumber); setEditName(seat.displayName); }}
-                                    className="cursor-pointer hover:text-blue-600"
+                                    className="cursor-pointer hover:text-blue-600 inline-flex items-center gap-1 group/name"
                                     title="Click to edit name"
                                   >
                                     {seat.displayName}
+                                    <Pencil size={12} className="text-gray-300 group-hover/name:text-blue-400 transition-colors" />
                                   </span>
                                 )}
                               </td>
@@ -465,21 +476,57 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated, fromLes
 
             {step === 3 && (
               <div className="w-full space-y-3">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={handleFinish}
-                    className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
-                  >
-                    {fromLessonStart ? 'Print later' : 'Skip for now'}
-                  </button>
-                  <button
-                    onClick={handlePrint}
-                    className="flex-1 flex items-center justify-center gap-2 px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
-                  >
-                    <Printer size={18} />
-                    Print Login Cards
-                  </button>
-                </div>
+                {hasPrinted ? (
+                  <>
+                    <button
+                      onClick={handleGoToLessons}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                    >
+                      Go to Lessons
+                    </button>
+                    <div className="flex items-center justify-center gap-4">
+                      <button
+                        onClick={handlePrintCards}
+                        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors"
+                      >
+                        <CreditCard size={14} />
+                        Print Login Cards
+                      </button>
+                      <button
+                        onClick={handlePrintRoster}
+                        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors"
+                      >
+                        <FileText size={14} />
+                        Print Roster
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={handlePrintRoster}
+                        className="flex items-center gap-1.5 px-4 py-2 text-gray-600 hover:text-gray-800 font-medium border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
+                      >
+                        <FileText size={16} />
+                        Roster
+                      </button>
+                      <button
+                        onClick={handlePrintCards}
+                        className="flex-1 flex items-center justify-center gap-2 px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                      >
+                        <CreditCard size={18} />
+                        Print Login Cards
+                      </button>
+                    </div>
+                    <button
+                      onClick={handleFinish}
+                      className="block text-sm text-gray-400 hover:text-gray-600 transition-colors mx-auto"
+                    >
+                      Print later
+                    </button>
+                  </>
+                )}
                 <button
                   onClick={handleStartOver}
                   className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors mx-auto"
@@ -492,6 +539,22 @@ const CreateClassModal = ({ isOpen, onClose, teacherUid, onClassCreated, fromLes
           </div>
         </div>
       </div>
+      {/* Print overlays — rendered as portals, sit on top of everything */}
+      {showPrintCards && createdSeats.length > 0 && (
+        <PrintableLoginCards
+          roster={createdSeats}
+          className={className}
+          onClose={() => setShowPrintCards(false)}
+        />
+      )}
+
+      {showPrintRoster && createdSeats.length > 0 && (
+        <PrintableRosterSheet
+          roster={createdSeats}
+          className={className}
+          onClose={() => setShowPrintRoster(false)}
+        />
+      )}
     </div>
   );
 };
