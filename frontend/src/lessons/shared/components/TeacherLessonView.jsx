@@ -812,7 +812,7 @@ const PresentationContent = ({
 
       return (
         <div className="absolute inset-0">
-          <MoodMatchTeacherView onAdvanceLesson={goToNextStage} />
+          <MoodMatchTeacherView sessionCode={sessionCode} onAdvanceLesson={goToNextStage} />
         </div>
       );
     }

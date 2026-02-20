@@ -32,8 +32,9 @@ const ActivityBanner = () => (
   </div>
 );
 
-const MoodMatchTeacherView = ({ onAdvanceLesson }) => {
-  const { sessionCode } = useSession();
+const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson }) => {
+  const { sessionCode: contextSessionCode } = useSession();
+  const sessionCode = propSessionCode || contextSessionCode;
 
   // Game state
   const [currentLoopIndex, setCurrentLoopIndex] = useState(-1);
