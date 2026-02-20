@@ -121,7 +121,7 @@ const WelcomeBanner = ({
                   </div>
                   <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1 bg-black/60 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
                     <Maximize2 size={10} />
-                    2 min
+                    4 min
                   </div>
                 </>
               )}

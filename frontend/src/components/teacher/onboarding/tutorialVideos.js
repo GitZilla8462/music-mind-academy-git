@@ -2,14 +2,14 @@
 // Central config for all teacher tutorial videos
 // Videos are self-hosted MP4s in /public/videos/tutorials/
 
-import { Play, GraduationCap, Users, Monitor, Wrench } from 'lucide-react';
+import { Play, GraduationCap } from 'lucide-react';
 
 export const TUTORIAL_VIDEOS = [
   {
     id: 'quick-start',
     title: 'Run Your First Lesson',
     description: 'Make a roster, print login cards, start a session, and navigate the lesson view.',
-    duration: '2 min',
+    duration: '4 min',
     category: 'Getting Started',
     icon: Play,
     src: '/videos/tutorials/quick-start.mp4',
@@ -24,36 +24,6 @@ export const TUTORIAL_VIDEOS = [
     icon: GraduationCap,
     src: '/videos/tutorials/grading.mp4',
     priority: 2
-  },
-  {
-    id: 'session-modes',
-    title: 'Quick Join vs Classroom Mode',
-    description: 'When to use each mode and how student data is saved differently.',
-    duration: '2 min',
-    category: 'Session Modes',
-    icon: Users,
-    src: '/videos/tutorials/session-modes.mp4',
-    priority: 3
-  },
-  {
-    id: 'student-view',
-    title: 'What Students See',
-    description: 'A walkthrough of the student experience — logging in, completing activities, saving work.',
-    duration: '1-2 min',
-    category: 'Student View',
-    icon: Monitor,
-    src: '/videos/tutorials/student-view.mp4',
-    priority: 4
-  },
-  {
-    id: 'troubleshooting',
-    title: 'Common Issues & Fixes',
-    description: 'Audio not playing, students can\'t connect, and other quick fixes.',
-    duration: '2 min',
-    category: 'Troubleshooting',
-    icon: Wrench,
-    src: '/videos/tutorials/troubleshooting.mp4',
-    priority: 5
   }
 ];
 

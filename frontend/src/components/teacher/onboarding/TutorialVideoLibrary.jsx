@@ -153,20 +153,6 @@ const TutorialVideoLibrary = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              {/* Quick Reference */}
-              <div>
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                  Quick Reference
-                </h3>
-                <div className="bg-blue-50 rounded-lg p-4 text-sm">
-                  <p className="font-medium text-blue-900 mb-2">Two ways to use the platform:</p>
-                  <ul className="text-blue-800 space-y-1">
-                    <li><strong>Quick Join:</strong> Students join with a 4-digit code. No accounts needed.</li>
-                    <li><strong>Classroom Mode:</strong> Students log in to save work, get grades, and track progress.</li>
-                  </ul>
-                </div>
-              </div>
-
               {/* Support Links */}
               <div>
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
