@@ -71,7 +71,7 @@ const ClassDetailPage = () => {
   const [conductedLessonIds, setConductedLessonIds] = useState(null); // Set of lesson IDs conducted for this class
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('students');
-  const [expandedUnits, setExpandedUnits] = useState(() => CURRICULUM.map(u => u.id));
+  const [expandedUnits, setExpandedUnits] = useState([]);
 
   // Students tab sorting
   const [sortBy, setSortBy] = useState('seat-asc');
