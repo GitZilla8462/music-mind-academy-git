@@ -164,9 +164,12 @@ const PrivacyPolicy = () => {
           <h3>Information from Students</h3>
           <p>When students use {siteName} through their teacher's class, we collect:</p>
           <ul>
-            <li><strong>Student display name:</strong> Entered by teacher (e.g., first name or seat number)</li>
-            <li><strong>Musical username:</strong> System-generated (e.g., "tuba123") — not personally identifiable</li>
-            <li><strong>Compositions, reflections, and scores:</strong> Saved to the student's account</li>
+            <li><strong>Student name:</strong> Entered by the teacher for roster management and grading. Students never enter their own name.</li>
+            <li><strong>Musical username:</strong> System-generated login credential (e.g., "tuba123") — not personally identifiable</li>
+            <li><strong>Musical password:</strong> System-generated login credential (e.g., "epicdrum") — hashed with bcrypt for verification</li>
+            <li><strong>Compositions, reflections, and activity scores:</strong> Saved to the student's account</li>
+            <li><strong>Teacher-assigned grades:</strong> Letter grades, numeric scores, rubric scores, and written feedback entered by the teacher</li>
+            <li><strong>Session timestamps:</strong> When the student accessed the platform</li>
           </ul>
           <p>
             Teachers can also run Quick Join sessions where students participate with just a class code — no personal information collected.
@@ -237,8 +240,8 @@ const PrivacyPolicy = () => {
           <p><strong>Security measures include:</strong></p>
           <ul>
             <li>All data transmission uses HTTPS/TLS 1.2+ encryption</li>
-            <li>Student PINs are hashed using bcrypt for login verification; plaintext PINs are stored in a teacher-only protected path for printing login cards</li>
-            <li>Rate limiting prevents brute force attacks on PIN login (5 attempts per 15 minutes)</li>
+            <li>Student passwords are hashed using bcrypt for login verification; plaintext passwords are stored in a teacher-only protected path for printing login cards</li>
+            <li>Rate limiting prevents brute force attacks on student login (5 attempts per 15 minutes)</li>
             <li>Firebase Security Rules enforce role-based access control</li>
             <li>Teachers can only access data for their own classes</li>
             <li>Students can only access their own work</li>
@@ -287,8 +290,9 @@ const PrivacyPolicy = () => {
             collects no personal information.
           </p>
           <p>
-            <strong>Student Authentication:</strong> Students sign in using a musical username (e.g., "tuba123")
-            and a 4-digit PIN. No email address or Google account is required for students.
+            <strong>Student Authentication:</strong> Students sign in using a system-generated musical username (e.g., "tuba123")
+            and a system-generated musical password (e.g., "epicdrum"). No email address, Google account, or school account
+            is required for students. Students never enter personal information themselves.
           </p>
           <p>
             For complete details, see our <a href="/student-privacy">Student Data Privacy</a> page.
@@ -311,16 +315,50 @@ const PrivacyPolicy = () => {
             see our <a href="/student-privacy">Student Data Privacy</a> page.
           </p>
 
-          <h2>9. Data Breach Notification</h2>
+          <h2>9. Cross-Border Data Transfers</h2>
+          <p>
+            All student and teacher data is stored and processed in United States data centers. For users
+            outside the United States (including Canadian schools), personal information may be accessible
+            to courts, law enforcement, and national security authorities in the United States under
+            applicable law.
+          </p>
+          <p>
+            We protect all personal information with the same encryption, access controls, and contractual
+            safeguards regardless of where the user is located. We will not voluntarily disclose personal
+            information to any government authority without valid legal process, and we will notify the
+            affected school to the extent legally permitted.
+          </p>
+
+          <h2>10. Canadian Privacy (PIPEDA)</h2>
+          <p>
+            {siteName} complies with Canada's Personal Information Protection and Electronic
+            Documents Act (PIPEDA) and its 10 Fair Information Principles. Our practices align with PIPEDA's
+            requirements for accountability, purpose limitation, consent, data minimization, safeguards,
+            openness, and individual access.
+          </p>
+          <ul>
+            <li>We collect only the minimum personal information necessary for the educational service</li>
+            <li>Student data is used exclusively for educational purposes — never for advertising, profiling, or AI training</li>
+            <li>Students log in with system-generated credentials — no student email, Google account, or school account is required</li>
+            <li>Teachers and school boards can access, correct, or request deletion of student data at any time</li>
+            <li>We will notify affected Canadian schools within 72 hours of discovering a breach involving personal information</li>
+            <li>We are prepared to sign Data Processing Agreements with Canadian school boards and to provide documentation supporting Privacy Impact Assessments</li>
+          </ul>
+          <p>
+            For complete details, see the Canadian Schools section on our <a href="/student-privacy">Student Data Privacy</a> page.
+          </p>
+
+          <h2>11. Data Breach Notification</h2>
           <p>
             In the event of a breach or unauthorized release of personally identifiable information,
-            we will notify affected schools and districts within <strong>7 calendar days</strong> of
-            discovery, in accordance with NY Education Law § 2-d. The notification will include a
+            we will notify affected U.S. schools and districts within <strong>7 calendar days</strong> of
+            discovery, in accordance with NY Education Law § 2-d. We will notify affected Canadian schools
+            within <strong>72 hours</strong> of discovery, in accordance with PIPEDA. The notification will include a
             description of the incident, the types of data affected, and the remediation steps taken.
             For complete details, see our <a href="/student-privacy">Student Data Privacy</a> page.
           </p>
 
-          <h2>10. Changes to This Policy</h2>
+          <h2>12. Changes to This Policy</h2>
           <p>
             We may update this Privacy Policy from time to time. We will notify users of material
             changes by email and by posting a notice on our website at least 30 days before the changes
@@ -330,7 +368,7 @@ const PrivacyPolicy = () => {
 
           {!isEduSite && (
             <>
-              <h2>11. Contact Us</h2>
+              <h2>13. Contact Us</h2>
               <p>If you have questions about this Privacy Policy, please contact us:</p>
               <p>
                 <strong>Robert Taube</strong><br />

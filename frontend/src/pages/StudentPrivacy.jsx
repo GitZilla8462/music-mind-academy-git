@@ -334,6 +334,10 @@ const StudentPrivacy = () => {
                 <span className="it-item-label">NY Ed Law 2-d Compliant</span>
                 <span className="it-item-value yes">YES</span>
               </div>
+              <div className="it-item">
+                <span className="it-item-label">PIPEDA Compliant (Canada)</span>
+                <span className="it-item-value yes">YES</span>
+              </div>
               {!isEduSite && (
                 <div className="it-item">
                   <span className="it-item-label">DPA Available</span>
@@ -345,7 +349,7 @@ const StudentPrivacy = () => {
                 <span className="it-item-value yes">YES</span>
               </div>
               <div className="it-item">
-                <span className="it-item-label">PIN Security (bcrypt + protected)</span>
+                <span className="it-item-label">Password Security (bcrypt)</span>
                 <span className="it-item-value yes">YES</span>
               </div>
               <div className="it-item">
@@ -426,6 +430,7 @@ const StudentPrivacy = () => {
             <div className="compliance-badge">✓ FERPA Compliant</div>
             <div className="compliance-badge">✓ COPPA Compliant</div>
             <div className="compliance-badge">✓ NY Ed Law 2-d Compliant</div>
+            <div className="compliance-badge">✓ PIPEDA Compliant (Canada)</div>
             <div className="compliance-badge">✓ No Ads</div>
             <div className="compliance-badge">✓ No Data Selling</div>
             <div className="compliance-badge">✓ Encrypted at Rest + Transit</div>
@@ -447,28 +452,36 @@ const StudentPrivacy = () => {
             </thead>
             <tbody>
               <tr>
-                <td>Student Display Name</td>
-                <td>Entered by teacher (e.g., first name or seat number) — not required to be a real name</td>
+                <td>Student Name</td>
+                <td>Entered by teacher for roster management and grading (e.g., "Alex Smith"). Students never enter their own name — teachers type it when setting up the class.</td>
               </tr>
               <tr>
                 <td>Musical Username</td>
-                <td>System-generated (e.g., "tuba123") — not personally identifiable</td>
+                <td>System-generated login credential (e.g., "tuba123") — not personally identifiable. Students log in with this instead of an email address.</td>
+              </tr>
+              <tr>
+                <td>Musical Password</td>
+                <td>System-generated login credential (e.g., "epicdrum") — hashed with bcrypt for verification. Teachers can print login cards for students.</td>
               </tr>
               <tr>
                 <td>Music Compositions</td>
-                <td>Saved to student's account; visible to teacher in gradebook</td>
+                <td>Student-created music projects saved to their account; visible to teacher in gradebook</td>
               </tr>
               <tr>
                 <td>Written Reflections</td>
-                <td>Star/star/wish format; visible to teacher in gradebook</td>
+                <td>Two Stars and a Wish format; visible to teacher in gradebook</td>
+              </tr>
+              <tr>
+                <td>Teacher-Assigned Grades</td>
+                <td>Letter grades, numeric scores, rubric scores, and written feedback entered by the teacher</td>
               </tr>
               <tr>
                 <td>Activity/Game Scores</td>
-                <td>Visible to teacher in gradebook for grading and feedback</td>
+                <td>Scores from in-class activities; visible to teacher in gradebook</td>
               </tr>
               <tr>
                 <td>Session Timestamps</td>
-                <td>When student accessed platform</td>
+                <td>When student accessed the platform</td>
               </tr>
             </tbody>
           </table>
@@ -501,8 +514,10 @@ const StudentPrivacy = () => {
           <h2>How It Works for Students</h2>
           <p>
             Students do not create their own accounts. Teachers set up their class and the system
-            generates a unique musical username (e.g., "tuba123", "flute456") and a 4-digit PIN
-            for each student. Teachers print login cards with these credentials.
+            generates a unique musical username (e.g., "tuba123") and a musical password
+            (e.g., "epicdrum") for each student. Students never enter personal information — they
+            log in with these system-generated credentials only. No email address, Google account,
+            or school account is required. Teachers print login cards with these credentials.
           </p>
           <ol>
             <li><strong>Sign in</strong> with their musical username + PIN</li>
@@ -521,8 +536,8 @@ const StudentPrivacy = () => {
           <ul>
             <li><strong>Encryption in transit:</strong> All data transmitted over HTTPS/TLS 1.2+</li>
             <li><strong>Encryption at rest:</strong> AES-256 encryption (Firebase and MongoDB Atlas)</li>
-            <li><strong>PIN security:</strong> Student PINs are hashed using bcrypt for verification; plaintext PINs are stored in a teacher-only protected path so teachers can print login cards</li>
-            <li><strong>Rate limiting:</strong> PIN login attempts limited to 5 per 15 minutes</li>
+            <li><strong>Password security:</strong> Student passwords are hashed using bcrypt for verification; plaintext passwords are stored in a teacher-only protected path so teachers can print login cards</li>
+            <li><strong>Rate limiting:</strong> Login attempts limited to 5 per 15 minutes</li>
             <li><strong>Access controls:</strong> Role-based access — teachers see only their own students; students see only their own work</li>
             <li><strong>Firebase Security Rules:</strong> Database access restricted by role with granular permissions</li>
           </ul>
@@ -530,10 +545,10 @@ const StudentPrivacy = () => {
           <h3>Authentication</h3>
           <ul>
             <li><strong>Teacher authentication:</strong> Google or Microsoft OAuth, leveraging enterprise identity providers and their MFA requirements</li>
-            <li><strong>Student authentication:</strong> Musical username (e.g., "tuba123") + 4-digit PIN. Students cannot create accounts independently.</li>
-            <li><strong>PIN protection:</strong> PINs are hashed with bcrypt (cost factor 10) for verification. Plaintext PINs are stored in a teacher-only protected database path for printing login cards.</li>
-            <li><strong>Session expiry:</strong> Student PIN sessions automatically expire after 8 hours</li>
-            <li><strong>Brute force protection:</strong> After 5 failed PIN attempts, the account locks for 15 minutes. Teachers can reset PINs to unlock immediately.</li>
+            <li><strong>Student authentication:</strong> Musical username (e.g., "tuba123") + musical password (e.g., "epicdrum"). Students cannot create accounts independently. No email or school account is required.</li>
+            <li><strong>Password protection:</strong> Passwords are hashed with bcrypt (cost factor 10) for verification. Plaintext passwords are stored in a teacher-only protected database path so teachers can print login cards.</li>
+            <li><strong>Session expiry:</strong> Student sessions automatically expire after 8 hours</li>
+            <li><strong>Brute force protection:</strong> After 5 failed login attempts, the account locks for 15 minutes. Teachers can reset passwords to unlock immediately.</li>
           </ul>
 
           <h3>Subprocessors</h3>
@@ -577,6 +592,19 @@ const StudentPrivacy = () => {
             All data is stored in United States data centers. Cloud provider compliance reports are available upon request.
           </p>
 
+          <div className="highlight-box amber">
+            <h3 style={{ marginTop: 0, color: '#92400e' }}>Cross-Border Data Transfer Disclosure</h3>
+            <p style={{ marginBottom: 0 }}>
+              All student data is stored and processed in the United States. For schools outside the
+              United States (including Canadian schools), this means student data may be subject to
+              United States law, including lawful access requests from U.S. authorities. We protect
+              all data with the same encryption, access controls, and contractual safeguards regardless
+              of where the school is located. We will not voluntarily disclose student data to any government
+              authority without valid legal process, and we will notify the affected school to the extent
+              legally permitted.
+            </p>
+          </div>
+
           <p><strong>We do NOT use:</strong> Google Analytics, Facebook Pixel, advertising networks,
           behavioral tracking, or any other third-party services that process student data.</p>
 
@@ -587,7 +615,7 @@ const StudentPrivacy = () => {
           <ol>
             <li><strong>Containment (0-24 hours):</strong> Isolate affected systems, preserve evidence, assess scope</li>
             <li><strong>Assessment (24-72 hours):</strong> Determine what data was affected, identify root cause</li>
-            <li><strong>Notification (within 7 days):</strong> Notify affected schools and districts within 7 calendar days of discovery, as required by NY Education Law § 2-d</li>
+            <li><strong>Notification (within 7 days / 72 hours):</strong> Notify affected U.S. schools within 7 calendar days of discovery (per NY Education Law § 2-d). Notify affected Canadian schools within 72 hours of discovery (per PIPEDA).</li>
             <li><strong>Remediation (ongoing):</strong> Fix the vulnerability, implement additional controls, provide written report</li>
           </ol>
 
@@ -616,6 +644,36 @@ const StudentPrivacy = () => {
             for commercial purposes, encrypting all PII in transit and at rest, notifying affected schools
             within 7 days of a breach{!isEduSite && ', being prepared to sign Data Privacy Agreements with NY districts'}, and providing a Parents' Bill of Rights.
           </p>
+
+          <h3>PIPEDA (Canada's Personal Information Protection and Electronic Documents Act)</h3>
+          <p>
+            {siteName} complies with Canada's PIPEDA and its 10 Fair Information Principles.
+            We collect only the minimum personal information necessary for the educational service,
+            use it exclusively for educational purposes, and protect it with industry-standard safeguards.
+          </p>
+          <ul>
+            <li><strong>Accountability:</strong> Robert Taube serves as Privacy Officer and is responsible for all personal information under our control</li>
+            <li><strong>Purpose limitation:</strong> Student data is used exclusively for the educational music composition experience</li>
+            <li><strong>Consent:</strong> Teachers and school boards authorize use on behalf of students for educational purposes. Students never enter personal information themselves.</li>
+            <li><strong>Data minimization:</strong> We collect only what is needed — student names (entered by teacher), system-generated credentials, compositions, grades, and session timestamps. No student email addresses, home addresses, phone numbers, or biometric data are collected.</li>
+            <li><strong>Safeguards:</strong> AES-256 encryption at rest, TLS 1.2+ in transit, bcrypt password hashing, role-based access controls, and rate limiting</li>
+            <li><strong>Openness:</strong> This page and our <a href="/privacy" style={{ color: '#2563eb' }}>Privacy Policy</a> fully describe our data practices</li>
+            <li><strong>Individual access:</strong> Teachers and school boards can access, correct, or request deletion of student data at any time</li>
+            <li><strong>Cross-border transfer:</strong> Student data is stored in United States data centers. See the Cross-Border Data Transfer Disclosure above for details.</li>
+            <li><strong>Breach notification:</strong> We will notify affected schools within 72 hours of discovering a breach affecting personal information of Canadian students</li>
+          </ul>
+
+          <div className="highlight-box blue">
+            <h3 style={{ marginTop: 0, color: '#1e40af' }}>For Canadian School Boards</h3>
+            <p>
+              Students log in with system-generated usernames and passwords — no student email,
+              Google account, or school account is required. Student credentials are completely
+              separate from any school board systems. We are happy to provide documentation
+              to support your Privacy Impact Assessment (PIA) and to sign a Data Processing
+              Agreement with your board{!isEduSite && (<>. Contact us at{' '}
+              <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a></>)}.
+            </p>
+          </div>
 
           {/* Data Retention */}
           <h2>Data Retention</h2>
@@ -735,6 +793,24 @@ const StudentPrivacy = () => {
             We will notify affected schools within 7 calendar days of discovery, as required by
             NY Education Law § 2-d. All data is encrypted at rest and in transit with role-based
             access controls.
+          </p>
+
+          <h3>I'm a Canadian teacher. Does my school board need to approve this?</h3>
+          <p>
+            Students log in with system-generated usernames and passwords that are completely separate
+            from your school board's systems — no student email, Google account, or school account is
+            involved. Many Canadian teachers use {siteName} without formal board approval because
+            students never enter personal information themselves. If your board requires a Privacy Impact
+            Assessment or Data Processing Agreement, we are happy to provide supporting
+            documentation{!isEduSite && (<> — contact us at{' '}
+            <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a></>)}.
+          </p>
+
+          <h3>Is student data stored in Canada?</h3>
+          <p>
+            Student data is currently stored in United States data centers (Google Cloud and MongoDB Atlas).
+            Both providers offer Canadian data regions, and we are evaluating Canadian-hosted options for
+            Canadian schools. All data is encrypted in transit and at rest regardless of location.
           </p>
 
           <h3>What happens when a teacher leaves?</h3>

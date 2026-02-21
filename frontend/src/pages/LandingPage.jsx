@@ -1033,6 +1033,7 @@ const LandingPage = () => {
               <div className="privacy-badge"><span className="shield">🛡️</span> FERPA</div>
               <div className="privacy-badge"><span className="shield">🛡️</span> COPPA</div>
               <div className="privacy-badge"><span className="shield">🛡️</span> NY Ed Law 2-D</div>
+              <div className="privacy-badge"><span className="shield">🛡️</span> PIPEDA (Canada)</div>
             </div>
           </div>
         </div>
