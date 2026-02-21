@@ -20,4 +20,10 @@ const userSchema = new mongoose.Schema({
   lastLogin: Date
 });
 
+// Indexes for query performance
+userSchema.index({ role: 1 });
+userSchema.index({ teacher: 1 });
+userSchema.index({ classId: 1 });
+userSchema.index({ school: 1 });
+
 module.exports = mongoose.model('User', userSchema);

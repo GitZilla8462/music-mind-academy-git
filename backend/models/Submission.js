@@ -64,4 +64,9 @@ SubmissionSchema.pre('save', function(next) {
     next();
 });
 
+// Indexes for query performance
+SubmissionSchema.index({ assignment: 1, student: 1 });
+SubmissionSchema.index({ assignment: 1 });
+SubmissionSchema.index({ student: 1 });
+
 module.exports = mongoose.model('Submission', SubmissionSchema);

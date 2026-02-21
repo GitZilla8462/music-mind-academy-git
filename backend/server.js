@@ -46,8 +46,14 @@ app.use((req, res, next) => {
 // Define the MongoDB connection URL
 const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017/teacher_app';
 
-// Connect to MongoDB
-mongoose.connect(dbUrl)
+// Connect to MongoDB with connection pooling
+mongoose.connect(dbUrl, {
+    maxPoolSize: 50,
+    minPoolSize: 5,
+    maxIdleTimeMS: 30000,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+})
     .then(() => console.log('✅ MongoDB connected successfully'))
     .catch(err => console.error('❌ MongoDB connection error:', err));
 

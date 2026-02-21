@@ -39,4 +39,8 @@ const AssignmentSchema = new mongoose.Schema({
     },
 });
 
+// Indexes for query performance
+AssignmentSchema.index({ teacher: 1 });
+AssignmentSchema.index({ class: 1 });
+
 module.exports = mongoose.model('Assignment', AssignmentSchema);

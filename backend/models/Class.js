@@ -9,4 +9,7 @@ const classSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+// Index for fast teacher class lookups
+classSchema.index({ teacher: 1 });
+
 module.exports = mongoose.model('Class', classSchema);

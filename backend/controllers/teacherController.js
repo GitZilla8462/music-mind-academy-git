@@ -190,25 +190,41 @@ exports.bulkAddStudents = async (req, res) => {
             return res.status(403).json({ error: 'Access denied. You can only modify your own classes.' });
         }
 
-        const newStudents = [];
         const generatedAccounts = [];
-        let studentsCreated = 0;
+        const studentsToInsert = [];
         let attempts = 0;
         const maxAttempts = numberOfStudents * 2;
 
-        while (studentsCreated < numberOfStudents && attempts < maxAttempts) {
+        // Generate all accounts and hash passwords in parallel
+        while (studentsToInsert.length < numberOfStudents && attempts < maxAttempts) {
             attempts++;
-            try {
-                const { name: studentName, password: tempPassword } = generateRandomAccount();
+            const { name: studentName, password: tempPassword } = generateRandomAccount();
+            // Check for duplicate names within this batch
+            if (!studentsToInsert.some(s => s.name === studentName)) {
+                studentsToInsert.push({ name: studentName, tempPassword });
+            }
+        }
+
+        // Hash all passwords in parallel instead of one at a time
+        const hashedStudents = await Promise.all(
+            studentsToInsert.map(async ({ name, tempPassword }) => {
                 const hashedPassword = await bcrypt.hash(tempPassword, 12);
-                
+                return { name, tempPassword, hashedPassword };
+            })
+        );
+
+        // Bulk insert all students at once
+        const newStudents = [];
+        let studentsCreated = 0;
+        for (const { name: studentName, tempPassword, hashedPassword } of hashedStudents) {
+            try {
                 const student = new User({
                     name: studentName,
                     password: hashedPassword,
                     role: 'student',
                     school: req.user.school || 'Unknown School',
                     teacher: req.user.id,
-                    classId: classId,  // ✅ FIXED: Changed from 'class' to 'classId'
+                    classId: classId,
                     progress: 0
                 });
 
@@ -220,10 +236,9 @@ exports.bulkAddStudents = async (req, res) => {
                     password: tempPassword
                 });
                 studentsCreated++;
-
             } catch (err) {
                 if (err.code === 11000) {
-                    console.warn(`Attempt ${attempts}: Duplicate name generated, retrying...`);
+                    console.warn(`Duplicate name ${studentName}, skipping...`);
                 } else {
                     console.error('Unexpected error during student creation:', err);
                     return res.status(500).json({ error: 'Server Error' });
