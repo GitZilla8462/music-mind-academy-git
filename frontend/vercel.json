@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/:path(.*\\.mp4)",
+      "destination": "https://pub-347e37b6199841dc9383111a635046f1.r2.dev/:path",
+      "statusCode": 302
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
