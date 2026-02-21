@@ -77,9 +77,9 @@ const Lesson1 = () => {
     return lessonStages.find(stage => stage.id === currentStage);
   }, [currentStage]);
 
-  // Mute audio in preview mode
+  // Mute audio when explicitly requested via ?muted=true
   React.useEffect(() => {
-    if (isPreviewMode || isMuted) {
+    if (isMuted) {
       const OriginalAudioContext = window.AudioContext || window.webkitAudioContext;
       if (OriginalAudioContext) {
         window.AudioContext = function() {
@@ -92,11 +92,9 @@ const Lesson1 = () => {
 
       const muteEverything = () => {
         document.querySelectorAll('audio, video').forEach(el => {
-          // Skip game audio elements (like Name That Loop) - they should play in preview
           if (el.dataset.gameAudio === 'true') return;
           el.muted = true;
           el.volume = 0;
-          // Don't pause - just mute. Pausing breaks video playback in DAW preview.
         });
       };
 
@@ -105,7 +103,7 @@ const Lesson1 = () => {
 
       return () => clearInterval(interval);
     }
-  }, [isPreviewMode, isMuted]);
+  }, [isMuted]);
 
   // Handle session activity completion
   const handleSessionActivityComplete = useCallback((activityId) => {
@@ -274,7 +272,7 @@ const Lesson1 = () => {
               lessonStartTime={lesson.lessonStartTime}
               viewMode={false}
               isSessionMode={true}
-              muted={isPreviewMode || isMuted}
+              muted={isMuted}
             />
           </div>
         </div>
