@@ -307,7 +307,7 @@ const TeacherLoginPage = () => {
 
                 {/* Magic Link Section */}
                 <div>
-                  <p className="text-sm text-slate-600 mb-3 text-center">Sign in with email link</p>
+                  <p className="text-sm text-slate-600 mb-3 text-center">Sign in with other approved email</p>
                   <form onSubmit={handleSendMagicLink} className="space-y-3">
                     <input
                       type="email"
@@ -336,7 +336,7 @@ const TeacherLoginPage = () => {
                     </button>
                   </form>
                   <p className="text-xs text-slate-500 text-center mt-2">
-                    We'll email you a magic link to sign in
+                    We'll email you a sign-in link
                   </p>
                 </div>
 
