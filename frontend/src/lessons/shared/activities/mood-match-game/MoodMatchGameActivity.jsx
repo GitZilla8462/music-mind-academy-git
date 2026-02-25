@@ -15,8 +15,13 @@ import { MOOD_CATEGORIES, GAME_LOOPS } from './moodMatchConfig';
 const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = false }) => {
   const { sessionCode, userId } = useSession();
 
+  // For class-based sessions, sessionCode is null — use classCode from URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const classCode = urlParams.get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
+
   // Check if we're in demo mode (no session)
-  const isDemo = demoMode || !sessionCode;
+  const isDemo = demoMode || !effectiveSessionCode;
 
   // Game state from Firebase (or local for demo)
   const [moodMatchState, setMoodMatchState] = useState({
@@ -39,9 +44,9 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = f
 
   // Subscribe to mood match state from Firebase (skip in demo mode)
   useEffect(() => {
-    if (isDemo || !sessionCode) return;
+    if (isDemo || !effectiveSessionCode) return;
 
-    const unsubscribe = subscribeToMoodMatchState(sessionCode, (state) => {
+    const unsubscribe = subscribeToMoodMatchState(effectiveSessionCode, (state) => {
       setMoodMatchState(state);
 
       // Reset voting state when loop changes
@@ -51,13 +56,13 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = f
     });
 
     return () => unsubscribe();
-  }, [sessionCode, isDemo]);
+  }, [effectiveSessionCode, isDemo]);
 
   // Subscribe to votes for current loop (skip in demo mode)
   useEffect(() => {
-    if (isDemo || !sessionCode || !currentLoop) return;
+    if (isDemo || !effectiveSessionCode || !currentLoop) return;
 
-    const unsubscribe = subscribeToLoopVotes(sessionCode, currentLoop.id, (votes) => {
+    const unsubscribe = subscribeToLoopVotes(effectiveSessionCode, currentLoop.id, (votes) => {
       setCurrentLoopVotes(votes);
 
       // Check if I've already voted
@@ -68,7 +73,7 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = f
     });
 
     return () => unsubscribe();
-  }, [sessionCode, currentLoop?.id, userId, isDemo]);
+  }, [effectiveSessionCode, currentLoop?.id, userId, isDemo]);
 
   // Cleanup audio on unmount
   useEffect(() => {
@@ -127,10 +132,10 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = f
     }
 
     // Session mode - record to Firebase
-    if (!sessionCode) return;
+    if (!effectiveSessionCode) return;
 
     try {
-      await recordMoodMatchVote(sessionCode, currentLoop.id, userId, moodId);
+      await recordMoodMatchVote(effectiveSessionCode, currentLoop.id, userId, moodId);
       setMyVotes(prev => ({ ...prev, [currentLoop.id]: moodId }));
       setHasVotedThisRound(true);
       stopLoop();
