@@ -59,8 +59,13 @@
     },
 
     "approvedEmails": {
-      ".read": "auth != null",
-      ".write": "auth != null && (auth.token.email == 'robtaube90@gmail.com' || auth.token.email == 'robtaube92@gmail.com')"
+      ".write": "auth != null && (auth.token.email == 'robtaube90@gmail.com' || auth.token.email == 'robtaube92@gmail.com')",
+      "$site": {
+        ".read": "auth != null",
+        "$emailKey": {
+          ".read": true
+        }
+      }
     },
 
     "users": {

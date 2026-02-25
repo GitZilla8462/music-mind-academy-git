@@ -193,6 +193,7 @@ const TeacherLoginPage = () => {
                 </p>
                 <p className="text-slate-500 text-sm mb-6">
                   Click the link in the email to sign in. The link expires in 1 hour.
+                  <br />Check your spam folder if you don't see it within a minute.
                 </p>
                 <button
                   onClick={() => {
@@ -336,7 +337,7 @@ const TeacherLoginPage = () => {
                     </button>
                   </form>
                   <p className="text-xs text-slate-500 text-center mt-2">
-                    We'll email you a sign-in link
+                    We'll email you a sign-in link. Check your spam folder if you don't see it within a minute.
                   </p>
                 </div>
 
