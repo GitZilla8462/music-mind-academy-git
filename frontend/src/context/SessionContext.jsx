@@ -39,7 +39,9 @@ const shouldRestoreSession = () => {
   const search = window.location.search;
   
   // If URL has ?view= parameter, don't restore session (viewing saved work)
-  if (search.includes('view=')) {
+  // Use URLSearchParams to avoid false matches (e.g. "preview=true" contains "view=")
+  const params = new URLSearchParams(search);
+  if (params.has('view')) {
     console.log('🚫 Skipping session restore: viewing saved work');
     return false;
   }

@@ -48,6 +48,13 @@ const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson })
   const currentLoop = currentLoopIndex >= 0 ? GAME_LOOPS[currentLoopIndex] : null;
   const isGameComplete = currentLoopIndex >= GAME_LOOPS.length;
 
+  // Reset mood match state on mount so students don't see stale data from a previous game
+  useEffect(() => {
+    if (!sessionCode) return;
+    setMoodMatchCurrentLoop(sessionCode, -1, false);
+    clearMoodMatchVotes(sessionCode);
+  }, [sessionCode]);
+
   // Subscribe to session to get student count
   useEffect(() => {
     if (!sessionCode) return;

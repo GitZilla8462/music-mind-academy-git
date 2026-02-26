@@ -148,7 +148,8 @@ const ActivityBanner = () => (
 );
 
 const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
-  const sessionCode = sessionData?.sessionCode || new URLSearchParams(window.location.search).get('session');
+  const urlParams = new URLSearchParams(window.location.search);
+  const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
 
   // Game state
   const [gamePhase, setGamePhase] = useState('setup'); // setup, question, revealed, between-rounds, finished

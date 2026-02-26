@@ -36,6 +36,7 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = f
   const [hasVotedThisRound, setHasVotedThisRound] = useState(false);
   const [demoResults, setDemoResults] = useState({}); // For demo mode results display
   const audioRef = useRef(null);
+  const lastLoopIndexRef = useRef(-1); // Track last seen loop index to detect changes
 
   const currentLoopIndex = moodMatchState.currentLoopIndex;
   const currentLoop = currentLoopIndex >= 0 ? GAME_LOOPS[currentLoopIndex] : null;
@@ -49,9 +50,11 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = f
     const unsubscribe = subscribeToMoodMatchState(effectiveSessionCode, (state) => {
       setMoodMatchState(state);
 
-      // Reset voting state when loop changes
-      if (state.currentLoopIndex !== moodMatchState.currentLoopIndex) {
+      // Reset voting state when loop changes (use ref to avoid stale closure)
+      if (state.currentLoopIndex !== lastLoopIndexRef.current) {
+        lastLoopIndexRef.current = state.currentLoopIndex;
         setHasVotedThisRound(false);
+        setMyVotes({});
       }
     });
 

@@ -8,7 +8,8 @@ import { useSession } from '../../../../context/SessionContext';
 
 const DynamicsDashResults = ({ sessionData }) => {
   const { sessionCode: contextSessionCode, classId } = useSession();
-  const sessionCode = contextSessionCode || sessionData?.sessionCode || new URLSearchParams(window.location.search).get('session');
+  const urlParams = new URLSearchParams(window.location.search);
+  const sessionCode = contextSessionCode || sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
   const [leaderboard, setLeaderboard] = useState([]);
 
   const studentsPath = useMemo(() => {

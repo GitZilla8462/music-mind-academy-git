@@ -48,7 +48,8 @@ const SectionBlock = ({ section, size = 'md', revealed = true, isCurrent = false
 };
 
 const RondoFormGameTeacher = ({ sessionData, onComplete }) => {
-  const sessionCode = sessionData?.sessionCode || new URLSearchParams(window.location.search).get('session');
+  const urlParams = new URLSearchParams(window.location.search);
+  const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
 
   // Game phases: guided-listening | round1 | round2 | round3 | finished
   const [gamePhase, setGamePhase] = useState('setup');

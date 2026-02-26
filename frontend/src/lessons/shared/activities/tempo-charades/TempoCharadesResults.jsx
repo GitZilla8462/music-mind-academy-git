@@ -6,7 +6,8 @@ import { Trophy } from 'lucide-react';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
 const TempoCharadesResults = ({ sessionData }) => {
-  const sessionCode = sessionData?.sessionCode || new URLSearchParams(window.location.search).get('session');
+  const urlParams = new URLSearchParams(window.location.search);
+  const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
   const [leaderboard, setLeaderboard] = useState([]);
 
   // Subscribe to students for leaderboard

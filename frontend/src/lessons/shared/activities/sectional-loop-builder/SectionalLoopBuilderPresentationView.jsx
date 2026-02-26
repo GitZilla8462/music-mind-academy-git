@@ -127,7 +127,8 @@ const getInstrumentColor = (instrument) => {
 };
 
 const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) => {
-  const sessionCode = sessionData?.sessionCode || new URLSearchParams(window.location.search).get('session');
+  const urlParams = new URLSearchParams(window.location.search);
+  const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
   
   // Setup
   const [totalRounds, setTotalRounds] = useState(null);

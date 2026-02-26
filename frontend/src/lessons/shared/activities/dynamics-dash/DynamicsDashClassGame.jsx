@@ -33,7 +33,8 @@ const ActivityBanner = () => (
 const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
   const { sessionCode: contextSessionCode, classId } = useSession();
   // For quick sessions, sessionCode comes from session data or URL. For class sessions, use classId.
-  const sessionCode = contextSessionCode || sessionData?.sessionCode || new URLSearchParams(window.location.search).get('session');
+  const urlParams = new URLSearchParams(window.location.search);
+  const sessionCode = contextSessionCode || sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
 
   // Compute Firebase paths based on session type
   const gamePath = useMemo(() => {

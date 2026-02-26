@@ -63,7 +63,8 @@ const FormTracker = ({ currentRound, totalRounds, roundLabels }) => (
 );
 
 const SectionSpotterTeacherGame = ({ sessionData, onComplete, pieceId = 'mountain-king' }) => {
-  const sessionCode = sessionData?.sessionCode || new URLSearchParams(window.location.search).get('session');
+  const urlParams = new URLSearchParams(window.location.search);
+  const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
 
   // Round labels for the ABA' tracker
   const roundLabels = useMemo(() => [

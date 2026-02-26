@@ -3846,11 +3846,13 @@ const TeacherLessonView = ({
   }, [currentStage, lessonStages]);
 
   // Subscribe to session data for presentation content
+  // Use classCode as fallback for class-based sessions where sessionCode is null
+  const effectiveCode = classCode || sessionCode;
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!effectiveCode) return;
 
     const db = getDatabase();
-    const sessionRef = ref(db, `sessions/${sessionCode}`);
+    const sessionRef = ref(db, `sessions/${effectiveCode}`);
 
     const unsubscribe = onValue(sessionRef, (snapshot) => {
       // Use queueMicrotask to prevent setState during render
@@ -3860,7 +3862,7 @@ const TeacherLessonView = ({
     });
 
     return () => unsubscribe();
-  }, [sessionCode]);
+  }, [effectiveCode]);
 
   // Auto-expand active section
   useEffect(() => {
