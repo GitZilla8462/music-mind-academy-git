@@ -123,6 +123,9 @@ const SportsCompositionActivity = ({
   
   // Session mode detection
   const { getCurrentStage, sessionCode } = useSession();
+  // For class-based sessions, sessionCode is null — use classCode from URL params
+  const classCode = new URLSearchParams(window.location.search).get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
   const currentStage = isSessionMode ? getCurrentStage() : null;
 
   // Track save command from teacher
@@ -317,10 +320,10 @@ const SportsCompositionActivity = ({
   // ✅ Listen for teacher's save command from Firebase
   useEffect(() => {
     // Don't set up listener until we have studentId ready
-    if (!sessionCode || !isSessionMode || viewMode || !studentId) return;
+    if (!effectiveSessionCode || !isSessionMode || viewMode || !studentId) return;
 
     const db = getDatabase();
-    const saveCommandRef = ref(db, `sessions/${sessionCode}/saveCommand`);
+    const saveCommandRef = ref(db, `sessions/${effectiveSessionCode}/saveCommand`);
 
     const unsubscribe = onValue(saveCommandRef, (snapshot) => {
       const saveCommand = snapshot.val();
@@ -347,7 +350,7 @@ const SportsCompositionActivity = ({
     });
 
     return () => unsubscribe();
-  }, [sessionCode, isSessionMode, viewMode, placedLoops, studentId]);
+  }, [effectiveSessionCode, isSessionMode, viewMode, placedLoops, studentId]);
 
   // ✅ SAFETY NET: Save on unmount when leaving activity in session mode
   // This ensures data is saved even if Firebase saveCommand doesn't arrive in time

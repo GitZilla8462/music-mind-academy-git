@@ -21,6 +21,9 @@ import {
 
 const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
   const { sessionCode, userId: contextUserId, userRole, currentStage } = useSession();
+  // For class-based sessions, sessionCode is null — use classCode from URL params
+  const classCode = new URLSearchParams(window.location.search).get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
 
   // Fallback for userId
   const userId = contextUserId || localStorage.getItem('current-session-userId');
@@ -79,12 +82,12 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
     const errorHandler = (event) => {
       console.error('StringDetective error:', event.error);
 
-      if (sessionCode && userId) {
+      if (effectiveSessionCode && userId) {
         try {
           const db = getDatabase();
           push(ref(db, 'all-problems'), {
             data: {
-              sessionCode,
+              sessionCode: effectiveSessionCode,
               studentId: userId,
               studentName: playerName || 'Student',
               lessonId: 'listening-lab-lesson1',
@@ -104,16 +107,16 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
 
     window.addEventListener('error', errorHandler);
     return () => window.removeEventListener('error', errorHandler);
-  }, [sessionCode, userId, playerName]);
+  }, [effectiveSessionCode, userId, playerName]);
 
   // Heartbeat system
   useEffect(() => {
-    if (!sessionCode || !userId || !gameStarted) return;
+    if (!effectiveSessionCode || !userId || !gameStarted) return;
 
     const heartbeat = setInterval(() => {
       try {
         const db = getDatabase();
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
           lastActivity: Date.now(),
           lastUpdated: Date.now()
         }).catch(err => console.error('Heartbeat failed:', err));
@@ -123,7 +126,7 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
     }, 5000);
 
     return () => clearInterval(heartbeat);
-  }, [sessionCode, userId, gameStarted]);
+  }, [effectiveSessionCode, userId, gameStarted]);
 
   // Generate player name
   useEffect(() => {
@@ -136,9 +139,9 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
         const emoji = getPlayerEmoji(userId);
         let name;
 
-        if (sessionCode) {
+        if (effectiveSessionCode) {
           try {
-            const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+            const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
             const snapshot = await get(studentsRef);
             const studentsData = snapshot.val() || {};
 
@@ -168,15 +171,15 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
     };
 
     assignPlayerName();
-  }, [userId, sessionCode]);
+  }, [userId, effectiveSessionCode]);
 
   // Listen for teacher's game state
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!effectiveSessionCode) return;
 
     const db = getDatabase();
 
-    const gameRef = ref(db, `sessions/${sessionCode}/stringDetective`);
+    const gameRef = ref(db, `sessions/${effectiveSessionCode}/stringDetective`);
     const unsubGame = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
       if (data?.phase) {
@@ -184,7 +187,7 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
       }
     });
 
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
     const unsubStudents = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data).map(([id, s]) => ({
@@ -208,7 +211,7 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
       unsubGame();
       unsubStudents();
     };
-  }, [sessionCode, userId]);
+  }, [effectiveSessionCode, userId]);
 
   // Shuffle questions on mount
   useEffect(() => {
@@ -333,14 +336,14 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
       setGameComplete(true);
 
       // Save score to Firebase
-      if (sessionCode && userId && !viewMode && !isPracticeMode) {
+      if (effectiveSessionCode && userId && !viewMode && !isPracticeMode) {
         try {
           const db = getDatabase();
-          update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+          update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
             stringDetectiveScore: score,
             lastUpdated: Date.now()
           });
-          update(ref(db, `sessions/${sessionCode}/studentProgress/${userId}`), {
+          update(ref(db, `sessions/${effectiveSessionCode}/studentProgress/${userId}`), {
             'string-detective': 'completed'
           });
         } catch (err) {
@@ -373,10 +376,10 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
     setCurrentQuestion(shuffledQuestions[0]);
 
     // Save player info to Firebase
-    if (sessionCode && userId && playerName) {
+    if (effectiveSessionCode && userId && playerName) {
       try {
         const db = getDatabase();
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
           playerName,
           playerColor,
           playerEmoji,

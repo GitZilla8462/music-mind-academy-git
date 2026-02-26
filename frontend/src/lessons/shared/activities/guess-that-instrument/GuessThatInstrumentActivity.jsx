@@ -17,6 +17,8 @@ import {
 
 const GuessThatInstrumentActivity = ({ onComplete, viewMode = false }) => {
   const { sessionCode, userId: contextUserId, userRole } = useSession();
+  const classCode = new URLSearchParams(window.location.search).get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
   const userId = contextUserId || localStorage.getItem('current-session-userId');
 
   // Game state
@@ -156,10 +158,10 @@ const GuessThatInstrumentActivity = ({ onComplete, viewMode = false }) => {
       setScore(prev => prev + points);
 
       // Update score in Firebase
-      if (sessionCode && userId) {
+      if (effectiveSessionCode && userId) {
         try {
           const db = getDatabase();
-          update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+          update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
             guessInstrumentScore: score + points,
             lastUpdated: Date.now()
           });

@@ -12,6 +12,8 @@ import { AUDIO_PATH, DYNAMICS, QUESTIONS, calculateSpeedBonus, BASE_POINTS, TOTA
 
 const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
   const { sessionCode, userId: contextUserId, currentStage } = useSession();
+  const classCode = new URLSearchParams(window.location.search).get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
   const userId = contextUserId || localStorage.getItem('current-session-userId');
 
   const [gameStarted, setGameStarted] = useState(false);
@@ -75,9 +77,9 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
         const emoji = getPlayerEmoji(userId);
         let name;
 
-        if (sessionCode) {
+        if (effectiveSessionCode) {
           try {
-            const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+            const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
             const snapshot = await get(studentsRef);
             const studentsData = snapshot.val() || {};
             const existingNames = Object.entries(studentsData)
@@ -103,15 +105,15 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
     };
 
     assignPlayerName();
-  }, [userId, sessionCode]);
+  }, [userId, effectiveSessionCode]);
 
   // Listen for teacher game phase
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!effectiveSessionCode) return;
 
     const db = getDatabase();
 
-    const gameRef = ref(db, `sessions/${sessionCode}/dynamicsDash`);
+    const gameRef = ref(db, `sessions/${effectiveSessionCode}/dynamicsDash`);
     const unsubGame = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
       if (data?.phase) {
@@ -119,7 +121,7 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
       }
     });
 
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
     const unsubStudents = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data).map(([id, s]) => ({
@@ -143,7 +145,7 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
       unsubGame();
       unsubStudents();
     };
-  }, [sessionCode, userId]);
+  }, [effectiveSessionCode, userId]);
 
   // Timer update
   useEffect(() => {
@@ -158,12 +160,12 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
 
   // Heartbeat
   useEffect(() => {
-    if (!sessionCode || !userId || !gameStarted) return;
+    if (!effectiveSessionCode || !userId || !gameStarted) return;
 
     const heartbeat = setInterval(() => {
       try {
         const db = getDatabase();
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
           lastActivity: Date.now(),
           lastUpdated: Date.now()
         }).catch(() => {});
@@ -171,7 +173,7 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
     }, 5000);
 
     return () => clearInterval(heartbeat);
-  }, [sessionCode, userId, gameStarted]);
+  }, [effectiveSessionCode, userId, gameStarted]);
 
   const formatTime = (ms) => `${(ms / 1000).toFixed(1)}s`;
 
@@ -258,10 +260,10 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
     }
 
     // Save answer and score to Firebase in real-time (so teacher can track progress)
-    if (sessionCode && userId && !viewMode && !isPracticeMode) {
+    if (effectiveSessionCode && userId && !viewMode && !isPracticeMode) {
       try {
         const db = getDatabase();
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
           dynamicsDashScore: newScore,
           dynamicsDashAnswer: dynamicSymbol,
           dynamicsDashAnswerTime: timeElapsed
@@ -290,13 +292,13 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
       setGameComplete(true);
 
       // Save score to Firebase (not in practice mode)
-      if (sessionCode && userId && !viewMode && !isPracticeMode) {
+      if (effectiveSessionCode && userId && !viewMode && !isPracticeMode) {
         try {
           const db = getDatabase();
-          update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+          update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
             dynamicsDashScore: score
           });
-          update(ref(db, `sessions/${sessionCode}/studentProgress/${userId}`), {
+          update(ref(db, `sessions/${effectiveSessionCode}/studentProgress/${userId}`), {
             'dynamics-dash': 'completed'
           });
         } catch (err) {
@@ -319,10 +321,10 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
 
     setGameStarted(true);
 
-    if (sessionCode && userId && playerName) {
+    if (effectiveSessionCode && userId && playerName) {
       try {
         const db = getDatabase();
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
           playerName,
           playerColor,
           playerEmoji,

@@ -330,6 +330,9 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
 
   // Session context for saveCommand listener
   const { sessionCode } = useSession();
+  // For class-based sessions, sessionCode is null — use classCode from URL params
+  const classCode = new URLSearchParams(window.location.search).get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
 
   // Teacher save toast
   const [teacherSaveToast, setTeacherSaveToast] = useState(false);
@@ -675,10 +678,10 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
   // ✅ Listen for teacher's save command from Firebase
   useEffect(() => {
     // Don't set up listener until we have studentId ready
-    if (!sessionCode || !isSessionMode || !studentId) return;
+    if (!effectiveSessionCode || !isSessionMode || !studentId) return;
 
     const db = getDatabase();
-    const sessionRef = ref(db, `sessions/${sessionCode}/saveCommand`);
+    const sessionRef = ref(db, `sessions/${effectiveSessionCode}/saveCommand`);
 
     const unsubscribe = onValue(sessionRef, (snapshot) => {
       const saveCommand = snapshot.val();
@@ -711,7 +714,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
     });
 
     return () => unsubscribe();
-  }, [sessionCode, isSessionMode, studentId, handleManualSave]);
+  }, [effectiveSessionCode, isSessionMode, studentId, handleManualSave]);
 
   // ✅ Auto-save on unmount (when student leaves the activity)
   // This ensures work is saved even if teacher triggers save while student is on another activity

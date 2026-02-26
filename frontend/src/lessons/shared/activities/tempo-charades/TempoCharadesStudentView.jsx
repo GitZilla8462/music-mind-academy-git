@@ -12,6 +12,8 @@ import { TEMPO_OPTIONS, SCORING, calculateSpeedBonus, getTempoBySymbol } from '.
 
 const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
   const { sessionCode, userId: contextUserId } = useSession();
+  const classCode = new URLSearchParams(window.location.search).get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
   const userId = contextUserId || localStorage.getItem('current-session-userId');
 
   // Player info
@@ -59,9 +61,9 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
       const emoji = getPlayerEmoji(userId);
       let name;
 
-      if (sessionCode) {
+      if (effectiveSessionCode) {
         try {
-          const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+          const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
           const snapshot = await get(studentsRef);
           const studentsData = snapshot.val() || {};
           const existingNames = Object.entries(studentsData)
@@ -80,8 +82,8 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
       setPlayerColor(color);
       setPlayerEmoji(emoji);
 
-      if (sessionCode) {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+      if (effectiveSessionCode) {
+        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
           playerName: name,
           playerColor: color,
           playerEmoji: emoji
@@ -90,7 +92,7 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     };
 
     assignPlayerName();
-  }, [userId, sessionCode]);
+  }, [userId, effectiveSessionCode]);
 
   // Keep refs in sync
   useEffect(() => { scoreRef.current = score; }, [score]);
@@ -101,10 +103,10 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
 
   // Listen for game state updates from teacher
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!effectiveSessionCode) return;
 
     const db = getDatabase();
-    const gameRef = ref(db, `sessions/${sessionCode}/tempoCharades`);
+    const gameRef = ref(db, `sessions/${effectiveSessionCode}/tempoCharades`);
 
     const unsubscribe = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
@@ -150,7 +152,7 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
       if (data.phase === 'finished') {
         const effectiveUserId = userId || localStorage.getItem('current-session-userId');
         if (effectiveUserId && scoreRef.current === 0) {
-          get(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}/tempoCharadesScore`))
+          get(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${effectiveUserId}/tempoCharadesScore`))
             .then(snap => {
               const fbScore = snap.val() || 0;
               if (fbScore > 0) {
@@ -192,8 +194,8 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
           setScore(newScore);
 
           const effectiveUserId = userId || localStorage.getItem('current-session-userId');
-          if (sessionCode && effectiveUserId) {
-            update(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}`), {
+          if (effectiveSessionCode && effectiveUserId) {
+            update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${effectiveUserId}`), {
               tempoCharadesScore: newScore
             });
           }
@@ -202,14 +204,14 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode, userId]);
+  }, [effectiveSessionCode, userId]);
 
   // Listen for leaderboard
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!effectiveSessionCode) return;
 
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -231,7 +233,7 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode, userId]);
+  }, [effectiveSessionCode, userId]);
 
   // Submit answer
   const submitAnswer = (tempoSymbol) => {
@@ -241,9 +243,9 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     setSelectedAnswer(tempoSymbol);
     setAnswerSubmitted(true);
 
-    if (sessionCode && userId) {
+    if (effectiveSessionCode && userId) {
       const db = getDatabase();
-      update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
         tempoCharadesAnswer: tempoSymbol,
         tempoCharadesAnswerTime: Date.now()
       });

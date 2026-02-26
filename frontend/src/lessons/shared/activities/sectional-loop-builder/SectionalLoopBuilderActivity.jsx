@@ -482,12 +482,15 @@ const DemoModeGame = () => {
 // ============ MAIN COMPONENT ============
 const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionMode = false, forceFinished = false }) => {
   const { sessionCode, userId: contextUserId } = useSession();
+  // For class-based sessions, sessionCode is null — use classCode from URL params
+  const classCode = new URLSearchParams(window.location.search).get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
 
   // Fallback: if context userId is null, try localStorage (fixes timing issue with session context)
   const userId = contextUserId || localStorage.getItem('current-session-userId');
-  
+
   // Demo mode: no session, let teacher play standalone
-  const isDemoMode = !sessionCode && !isSessionMode;
+  const isDemoMode = !effectiveSessionCode && !isSessionMode;
   
   // Player
   const [playerName, setPlayerName] = useState('');
@@ -551,10 +554,10 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
 
   // Listen for teacher's "Save & Continue" command
   useEffect(() => {
-    if (!sessionCode || isDemoMode) return;
+    if (!effectiveSessionCode || isDemoMode) return;
 
     const db = getDatabase();
-    const saveCommandRef = ref(db, `sessions/${sessionCode}/saveCommand`);
+    const saveCommandRef = ref(db, `sessions/${effectiveSessionCode}/saveCommand`);
 
     const unsubscribe = onValue(saveCommandRef, (snapshot) => {
       const saveCommand = snapshot.val();
@@ -582,7 +585,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     });
 
     return () => unsubscribe();
-  }, [sessionCode, isDemoMode]);
+  }, [effectiveSessionCode, isDemoMode]);
 
   // CSS keyframes
   const styles = `
@@ -623,11 +626,11 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     setPlayerColor(color);
     setPlayerEmoji(emoji);
     
-    if (sessionCode && !viewMode) {
+    if (effectiveSessionCode && !viewMode) {
       const db = getDatabase();
       // Don't reset score/streak on rejoin - only update display info
       // Score is managed by calculateScore(), streak by reveal updates
-      update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
         playerName: name,
         displayName: name,
         playerColor: color,
@@ -637,7 +640,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
         lastActivity: Date.now()
       }).catch(console.error);
     }
-  }, [userId, sessionCode, viewMode]);
+  }, [userId, effectiveSessionCode, viewMode]);
 
   // Keep userIdRef in sync for Firebase listener closures
   useEffect(() => {
@@ -646,10 +649,10 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
 
   // Listen to game state (from activityData where teacher writes)
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!effectiveSessionCode) return;
     
     const db = getDatabase();
-    const gameRef = ref(db, `sessions/${sessionCode}/activityData`);
+    const gameRef = ref(db, `sessions/${effectiveSessionCode}/activityData`);
     
     const unsubscribe = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
@@ -755,14 +758,14 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
       unsubscribe();
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [sessionCode]);
+  }, [effectiveSessionCode]);
 
   // Listen to leaderboard
   useEffect(() => {
-    if (!sessionCode || !userId) return;
+    if (!effectiveSessionCode || !userId) return;
 
     const db = getDatabase();
-    const unsubscribe = onValue(ref(db, `sessions/${sessionCode}/studentsJoined`), (snap) => {
+    const unsubscribe = onValue(ref(db, `sessions/${effectiveSessionCode}/studentsJoined`), (snap) => {
       const students = snap.val();
       if (!students) return;
 
@@ -784,7 +787,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     });
 
     return () => unsubscribe();
-  }, [sessionCode, userId]);
+  }, [effectiveSessionCode, userId]);
 
   // Ensure clipResult is calculated if we're in revealed phase but don't have it
   // Also retry when userId becomes available (fixes race condition on slow devices like Chromebooks)
@@ -817,9 +820,9 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     
     console.log('✅ Answered:', section, `(${time}ms)`);
     
-    if (sessionCode && userId && !viewMode) {
+    if (effectiveSessionCode && userId && !viewMode) {
       const db = getDatabase();
-      update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
         currentAnswer: section,
         answerTime: time,
         lockedIn: true,
@@ -851,9 +854,9 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
       safariBonusRef.current = 50; // Set ref for synchronous access in calculateScore
 
       // Update Firebase
-      if (sessionCode && userId) {
+      if (effectiveSessionCode && userId) {
         const db = getDatabase();
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
           safariComplete: true,
           safariBonus: 50,
           lastActivity: Date.now()
@@ -939,9 +942,9 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     // Re-fetch userId from localStorage if scoped value is null (fixes race condition)
     const effectiveUserId = userId || localStorage.getItem('current-session-userId');
 
-    if (sessionCode && effectiveUserId && !viewMode) {
+    if (effectiveSessionCode && effectiveUserId && !viewMode) {
       const db = getDatabase();
-      update(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}`), {
+      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${effectiveUserId}`), {
         score: newScore,
         streak: newStreak,
         lastClipScore: total,

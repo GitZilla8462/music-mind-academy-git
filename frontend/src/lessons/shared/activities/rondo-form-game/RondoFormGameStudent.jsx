@@ -18,6 +18,8 @@ import {
 
 const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
   const { sessionCode, userId: contextUserId } = useSession();
+  const classCode = new URLSearchParams(window.location.search).get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
   const userId = contextUserId || localStorage.getItem('current-session-userId');
 
   // Player info
@@ -79,9 +81,9 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
       const color = getPlayerColor(userId);
       const emoji = getPlayerEmoji(userId);
       let name;
-      if (sessionCode) {
+      if (effectiveSessionCode) {
         try {
-          const snap = await get(ref(db, `sessions/${sessionCode}/studentsJoined`));
+          const snap = await get(ref(db, `sessions/${effectiveSessionCode}/studentsJoined`));
           const data = snap.val() || {};
           const existing = Object.entries(data)
             .filter(([id]) => id !== userId)
@@ -95,14 +97,14 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
       setPlayerName(name);
       setPlayerColor(color);
       setPlayerEmoji(emoji);
-      if (sessionCode) {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+      if (effectiveSessionCode) {
+        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
           playerName: name, playerColor: color, playerEmoji: emoji
         });
       }
     };
     assignPlayerName();
-  }, [userId, sessionCode]);
+  }, [userId, effectiveSessionCode]);
 
   // Keep refs synced
   useEffect(() => { scoreRef.current = score; }, [score]);
@@ -162,9 +164,9 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
 
   // Listen for game state
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!effectiveSessionCode) return;
     const db = getDatabase();
-    const gameRef = ref(db, `sessions/${sessionCode}/rondoFormGame`);
+    const gameRef = ref(db, `sessions/${effectiveSessionCode}/rondoFormGame`);
 
     const unsubscribe = onValue(gameRef, (snap) => {
       const data = snap.val();
@@ -218,8 +220,8 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
             const newScore = scoreRef.current + points;
             scoreRef.current = newScore;
             setScore(newScore);
-            if (sessionCode && userId) {
-              update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+            if (effectiveSessionCode && userId) {
+              update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
                 rondoGameScore: newScore
               });
             }
@@ -236,7 +238,7 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
       if (data.phase === 'finished' && scoreRef.current === 0) {
         const uid = userId || localStorage.getItem('current-session-userId');
         if (uid) {
-          get(ref(db, `sessions/${sessionCode}/studentsJoined/${uid}/rondoGameScore`))
+          get(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${uid}/rondoGameScore`))
             .then(s => { if (s.val() > 0) { scoreRef.current = s.val(); setScore(s.val()); } })
             .catch(() => {});
         }
@@ -254,13 +256,13 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode, userId, gamePhase, roundPhase, r2CurrentQuestion, initRound1, initRound3]);
+  }, [effectiveSessionCode, userId, gamePhase, roundPhase, r2CurrentQuestion, initRound1, initRound3]);
 
   // Leaderboard
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!effectiveSessionCode) return;
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
     const unsubscribe = onValue(studentsRef, (snap) => {
       const data = snap.val() || {};
       const list = Object.entries(data).map(([id, s]) => ({
@@ -276,7 +278,7 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
       if (myIdx !== -1) setMyRank(myIdx + 1);
     });
     return () => unsubscribe();
-  }, [sessionCode, userId]);
+  }, [effectiveSessionCode, userId]);
 
   // ========================================
   // ROUND 1: Drag-and-drop + tap fallback
@@ -416,9 +418,9 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
     scoreRef.current = newScore;
     setScore(newScore);
 
-    if (sessionCode && userId) {
+    if (effectiveSessionCode && userId) {
       const db = getDatabase();
-      update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
         rondoR1Answer: r1Slots,
         rondoR1Submitted: true,
         rondoR1Score: totalR1,
@@ -436,9 +438,9 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
     setR2SelectedAnswer(label);
     setR2AnswerSubmitted(true);
 
-    if (sessionCode && userId) {
+    if (effectiveSessionCode && userId) {
       const db = getDatabase();
-      update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
         rondoR2Answer: label,
         rondoR2AnswerTime: Date.now()
       });
@@ -584,9 +586,9 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
     scoreRef.current = newScore;
     setScore(newScore);
 
-    if (sessionCode && userId) {
+    if (effectiveSessionCode && userId) {
       const db = getDatabase();
-      update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
         rondoR3Answer: r3Slots.map(b => b.section),
         rondoR3Submitted: true,
         rondoR3Score: totalR3,

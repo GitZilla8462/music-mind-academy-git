@@ -19,6 +19,8 @@ const GUESS_TIMEOUT = (CLIP_DURATION * 1000) + ANSWER_TIME;
 
 const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
   const { sessionCode, userId: contextUserId } = useSession();
+  const classCode = new URLSearchParams(window.location.search).get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
   const userId = contextUserId || localStorage.getItem('current-session-userId');
 
   // Player info
@@ -168,8 +170,8 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
 
   // Helper: get Firebase group path
   const getGroupPath = useCallback((code) => {
-    return `sessions/${sessionCode}/tempoCharadesGroups/${code}`;
-  }, [sessionCode]);
+    return `sessions/${effectiveSessionCode}/tempoCharadesGroups/${code}`;
+  }, [effectiveSessionCode]);
 
   // Helper: check if current user is the host
   const isHost = useCallback(() => {
@@ -194,7 +196,7 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
   };
 
   const createGroup = async () => {
-    if (!sessionCode || !userId) return;
+    if (!effectiveSessionCode || !userId) return;
     setError('');
 
     try {
@@ -229,7 +231,7 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
   };
 
   const joinGroup = async () => {
-    if (!sessionCode || !userId || !groupCodeInput) return;
+    if (!effectiveSessionCode || !userId || !groupCodeInput) return;
     setError('');
 
     const code = groupCodeInput.trim();
@@ -518,10 +520,10 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
     await update(ref(db, getGroupPath(groupCode)), updates);
 
     // Update session leaderboard
-    if (sessionCode) {
+    if (effectiveSessionCode) {
       const allMembers = (await get(ref(db, `${getGroupPath(groupCode)}/members`))).val() || {};
       for (const [memberId, memberData] of Object.entries(allMembers)) {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${memberId}`), {
+        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${memberId}`), {
           tempoCharadesScore: memberData.score || 0
         }).catch(() => {});
       }

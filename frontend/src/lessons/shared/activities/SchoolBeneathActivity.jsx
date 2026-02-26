@@ -45,6 +45,9 @@ const SchoolBeneathActivity = ({
 
   // Session mode detection
   const { getCurrentStage, sessionCode } = useSession();
+  // For class-based sessions, sessionCode is null — use classCode from URL params
+  const classCode = new URLSearchParams(window.location.search).get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
   const currentStage = isSessionMode ? getCurrentStage() : null;
   const isReflectionStage = currentStage === 'reflection' || currentStage === 'reflection-activity';
 
@@ -196,10 +199,10 @@ const SchoolBeneathActivity = ({
   // Listen for teacher's save command from Firebase
   useEffect(() => {
     // Don't set up listener until we have studentId ready
-    if (!sessionCode || !isSessionMode || viewMode || !studentId) return;
+    if (!effectiveSessionCode || !isSessionMode || viewMode || !studentId) return;
 
     const db = getDatabase();
-    const sessionRef = ref(db, `sessions/${sessionCode}/saveCommand`);
+    const sessionRef = ref(db, `sessions/${effectiveSessionCode}/saveCommand`);
 
     const unsubscribe = onValue(sessionRef, (snapshot) => {
       const saveCommand = snapshot.val();
@@ -230,7 +233,7 @@ const SchoolBeneathActivity = ({
     });
 
     return () => unsubscribe();
-  }, [sessionCode, isSessionMode, viewMode, placedLoops, studentId]);
+  }, [effectiveSessionCode, isSessionMode, viewMode, placedLoops, studentId]);
 
   // ✅ Auto-save on unmount (when student leaves the activity)
   // This ensures work is saved even if teacher triggers save while student is on another activity

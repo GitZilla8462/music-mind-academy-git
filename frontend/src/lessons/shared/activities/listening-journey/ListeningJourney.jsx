@@ -99,6 +99,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   // Teacher save command listener
   const { sessionCode } = useSession();
+  const classCode = new URLSearchParams(window.location.search).get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
   const lastSaveCommandRef = useRef(null);
   const componentMountTimeRef = useRef(Date.now());
   const [teacherSaveToast, setTeacherSaveToast] = useState(false);
@@ -255,10 +257,10 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   // Listen for teacher's "Save All & Continue" command from Firebase
   useEffect(() => {
-    if (!sessionCode || !isSessionMode || viewMode) return;
+    if (!effectiveSessionCode || !isSessionMode || viewMode) return;
 
     const db = getDatabase();
-    const saveCommandRef = ref(db, `sessions/${sessionCode}/saveCommand`);
+    const saveCommandRef = ref(db, `sessions/${effectiveSessionCode}/saveCommand`);
 
     const unsubscribe = onValue(saveCommandRef, (snapshot) => {
       const saveCommand = snapshot.val();
@@ -283,7 +285,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     });
 
     return () => unsubscribe();
-  }, [sessionCode, isSessionMode, viewMode, sections, handleSave]);
+  }, [effectiveSessionCode, isSessionMode, viewMode, sections, handleSave]);
 
   const handleReset = useCallback(() => {
     if (presetMode && pieceConfig?.defaultSections) {
