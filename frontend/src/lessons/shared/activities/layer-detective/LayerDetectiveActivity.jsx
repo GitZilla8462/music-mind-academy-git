@@ -17,6 +17,11 @@ import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from './name
 const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
   const { sessionCode, userId: contextUserId, userRole, currentStage } = useSession();
 
+  // For class-based sessions, sessionCode is null — use classCode from URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const classCode = urlParams.get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
+
   // Fallback: if context userId is null, try localStorage (fixes race condition on Chromebooks)
   const userId = contextUserId || localStorage.getItem('current-session-userId');
   
@@ -54,7 +59,7 @@ const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
 // ✅ Component mount/unmount logging with audio cleanup
 useEffect(() => {
   console.log('🎮 LayerDetective mounted for student:', userId);
-  console.log('📍 Session code:', sessionCode);
+  console.log('📍 Session code:', effectiveSessionCode);
   
   return () => {
     console.log('🎮 LayerDetective unmounting - stopping all audio');
@@ -82,12 +87,12 @@ useEffect(() => {
     const errorHandler = (event) => {
       console.error('❌ Unhandled error in LayerDetective:', event.error);
       
-      if (sessionCode && userId) {
+      if (effectiveSessionCode && userId) {
         try {
           const db = getDatabase();
           push(ref(db, 'all-problems'), {
             data: {
-              sessionCode,
+              sessionCode: effectiveSessionCode,
               studentId: userId,
               studentName: playerName || 'Student',
               lessonId: 'music-loops-lesson2',
@@ -110,11 +115,11 @@ useEffect(() => {
     
     window.addEventListener('error', errorHandler);
     return () => window.removeEventListener('error', errorHandler);
-  }, [sessionCode, userId, playerName]);
+  }, [effectiveSessionCode, userId, playerName]);
 
   // ✅ Heartbeat system - detect frozen/crashed students
   useEffect(() => {
-    if (!sessionCode || !userId || !gameStarted) return;
+    if (!effectiveSessionCode || !userId || !gameStarted) return;
     
     console.log('💓 Starting heartbeat for student:', userId);
     
@@ -122,7 +127,7 @@ useEffect(() => {
     const heartbeat = setInterval(() => {
       try {
         const db = getDatabase();
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
           lastActivity: Date.now(),
           lastUpdated: Date.now()
         }).catch(err => {
@@ -137,7 +142,7 @@ useEffect(() => {
       console.log('💓 Stopping heartbeat for student:', userId);
       clearInterval(heartbeat);
     };
-  }, [sessionCode, userId, gameStarted]);
+  }, [effectiveSessionCode, userId, gameStarted]);
 
   // Generate player name on mount
   // Fetches existing names first to avoid duplicates
@@ -152,9 +157,9 @@ useEffect(() => {
         let name;
 
         // Fetch existing player names to avoid duplicates
-        if (sessionCode) {
+        if (effectiveSessionCode) {
           try {
-            const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+            const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
             const snapshot = await get(studentsRef);
             const studentsData = snapshot.val() || {};
 
@@ -187,16 +192,16 @@ useEffect(() => {
     };
 
     assignPlayerName();
-  }, [userId, sessionCode]);
+  }, [userId, effectiveSessionCode]);
 
   // ✅ Listen for teacher's class game state (to show results when teacher broadcasts)
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!effectiveSessionCode) return;
 
     const db = getDatabase();
 
     // Listen for game phase changes
-    const gameRef = ref(db, `sessions/${sessionCode}/layerDetective`);
+    const gameRef = ref(db, `sessions/${effectiveSessionCode}/layerDetective`);
     const unsubGame = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
       if (data?.phase) {
@@ -206,7 +211,7 @@ useEffect(() => {
     });
 
     // Listen for all students to build leaderboard and find my rank
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
     const unsubStudents = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data).map(([id, s]) => ({
@@ -232,7 +237,7 @@ useEffect(() => {
       unsubGame();
       unsubStudents();
     };
-  }, [sessionCode, userId]);
+  }, [effectiveSessionCode, userId]);
 
   // Calculate speed bonus (same as Name That Loop)
   const calculateSpeedBonus = (timeInMs) => {
@@ -470,12 +475,12 @@ useEffect(() => {
             console.error(`❌ Audio load failed: ${layer.file}`, e);
             
             // Log to Firebase so you can see it!
-            if (sessionCode && userId) {
+            if (effectiveSessionCode && userId) {
               try {
                 const db = getDatabase();
                 push(ref(db, 'all-problems'), {
                   data: {
-                    sessionCode,
+                    sessionCode: effectiveSessionCode,
                     studentId: userId,
                     studentName: playerName || 'Student',
                     lessonId: 'music-loops-lesson2',
@@ -534,12 +539,12 @@ useEffect(() => {
       setIsPlaying(false);
       
       // Log the crash to Firebase
-      if (sessionCode && userId) {
+      if (effectiveSessionCode && userId) {
         try {
           const db = getDatabase();
           push(ref(db, 'all-problems'), {
             data: {
-              sessionCode,
+              sessionCode: effectiveSessionCode,
               studentId: userId,
               studentName: playerName || 'Student',
               lessonId: 'music-loops-lesson2',
@@ -607,12 +612,12 @@ useEffect(() => {
       console.error('❌ Error in handleGuess:', error);
       
       // Log error to Firebase
-      if (sessionCode && userId) {
+      if (effectiveSessionCode && userId) {
         try {
           const db = getDatabase();
           push(ref(db, 'all-problems'), {
             data: {
-              sessionCode,
+              sessionCode: effectiveSessionCode,
               studentId: userId,
               message: `handleGuess error: ${error.message}`,
               date: new Date().toLocaleDateString(),
@@ -636,12 +641,12 @@ useEffect(() => {
         console.log('🎉 Game complete! Final score:', score);
         
         // ✅ ONLY save score to Firebase if NOT in practice mode
-        if (sessionCode && userId && !viewMode && !isPracticeMode) {
+        if (effectiveSessionCode && userId && !viewMode && !isPracticeMode) {
           try {
-            updateStudentScore(sessionCode, userId, score);
+            updateStudentScore(effectiveSessionCode, userId, score);
             
             const db = getDatabase();
-            update(ref(db, `sessions/${sessionCode}/studentProgress/${userId}`), {
+            update(ref(db, `sessions/${effectiveSessionCode}/studentProgress/${userId}`), {
               'layer-detective': 'completed'
             });
             
@@ -684,10 +689,10 @@ useEffect(() => {
       console.log('🎮 Game started!');
       
       // ✅ CRITICAL: Save player name to Firebase so presentation view can display it!
-      if (sessionCode && userId && playerName) {
+      if (effectiveSessionCode && userId && playerName) {
         try {
           const db = getDatabase();
-          update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+          update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
             playerName: playerName,
             playerColor: playerColor,
             playerEmoji: playerEmoji,

@@ -26,6 +26,11 @@ const SCORING = {
 const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFinished = false }) => {
   const { sessionCode, userId: contextUserId } = useSession();
 
+  // For class-based sessions, sessionCode is null — use classCode from URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const classCode = urlParams.get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
+
   // Fallback: if context userId is null, try localStorage (fixes race condition on Chromebooks)
   const userId = contextUserId || localStorage.getItem('current-session-userId');
 
@@ -71,9 +76,9 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
       let name;
 
       // Fetch existing player names to avoid duplicates
-      if (sessionCode) {
+      if (effectiveSessionCode) {
         try {
-          const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+          const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
           const snapshot = await get(studentsRef);
           const studentsData = snapshot.val() || {};
 
@@ -96,8 +101,8 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
       setPlayerColor(color);
 
       // Save player info to Firebase (don't reset score here - let game logic handle it)
-      if (sessionCode) {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+      if (effectiveSessionCode) {
+        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
           playerName: name,
           playerColor: color
         });
@@ -105,14 +110,14 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
     };
 
     assignPlayerName();
-  }, [userId, sessionCode]);
+  }, [userId, effectiveSessionCode]);
 
   // Listen for game state updates from teacher
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!effectiveSessionCode) return;
 
     const db = getDatabase();
-    const gameRef = ref(db, `sessions/${sessionCode}/layerDetective`);
+    const gameRef = ref(db, `sessions/${effectiveSessionCode}/layerDetective`);
 
     const unsubscribe = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
@@ -200,14 +205,14 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
 
           // Update Firebase - re-fetch userId from localStorage as extra safety for race condition
           const effectiveUserId = userId || localStorage.getItem('current-session-userId');
-          if (sessionCode && effectiveUserId) {
+          if (effectiveSessionCode && effectiveUserId) {
             const db = getDatabase();
             console.log('🔥 Writing score to Firebase:', { effectiveUserId, newScore });
-            update(ref(db, `sessions/${sessionCode}/studentsJoined/${effectiveUserId}`), {
+            update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${effectiveUserId}`), {
               layerDetectiveScore: newScore
             });
           } else {
-            console.log('❌ Cannot write to Firebase:', { sessionCode, effectiveUserId });
+            console.log('❌ Cannot write to Firebase:', { effectiveSessionCode, effectiveUserId });
           }
         } else {
           console.log('⏭️ Score calc SKIPPED:', {
@@ -220,14 +225,14 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
     });
 
     return () => unsubscribe();
-  }, [sessionCode, currentQuestion, selectedAnswer, score, playStartTime, wasCorrect, userId, contextUserId]);
+  }, [effectiveSessionCode, currentQuestion, selectedAnswer, score, playStartTime, wasCorrect, userId, contextUserId]);
 
   // Listen for leaderboard updates (for results display)
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!effectiveSessionCode) return;
 
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -250,7 +255,7 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
     });
 
     return () => unsubscribe();
-  }, [sessionCode, userId]);
+  }, [effectiveSessionCode, userId]);
 
   // Submit answer
   const submitAnswer = (answerId) => {
@@ -265,9 +270,9 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
     setAnswerSubmitted(true);
 
     // Send to Firebase
-    if (sessionCode && userId) {
+    if (effectiveSessionCode && userId) {
       const db = getDatabase();
-      update(ref(db, `sessions/${sessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
         layerDetectiveAnswer: answerId,
         layerDetectiveAnswerTime: Date.now()
       });
