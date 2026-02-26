@@ -33,7 +33,7 @@ const CURRICULUM_UNITS = [
       'Create beats and melodies'
     ],
     status: 'pilot',
-    releaseDate: null,
+    releaseDate: 'March 15th',
     route: '/music-loops-in-media',
     routeCommercial: '/music-loops-in-media-hub'
   },
@@ -458,6 +458,37 @@ function MusicClassroomResources() {
         }
       `}</style>
       <TeacherHeader />
+
+      {/* Pilot Banner */}
+      <div style={{
+        background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+        padding: '12px 24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '10px'
+      }}>
+        <span style={{
+          fontSize: '11px',
+          fontWeight: '700',
+          color: 'white',
+          backgroundColor: 'rgba(255,255,255,0.2)',
+          padding: '3px 10px',
+          borderRadius: '12px',
+          letterSpacing: '0.5px',
+          textTransform: 'uppercase',
+          whiteSpace: 'nowrap'
+        }}>
+          Free Pilot
+        </span>
+        <span style={{
+          fontSize: '14px',
+          fontWeight: '500',
+          color: 'white'
+        }}>
+          March 15 &ndash; June 30, 2026 &bull; All units and lessons are completely free during the pilot period.
+        </span>
+      </div>
 
       {/* Main Content */}
       <div className="mcr-content" style={{
