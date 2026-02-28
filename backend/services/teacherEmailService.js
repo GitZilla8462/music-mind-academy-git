@@ -9,7 +9,7 @@ const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
 const SMTP_PORT = process.env.SMTP_PORT || 587;
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
-const SITE_URL = process.env.SITE_URL || 'https://musicroomtools.org';
+const SITE_URL = process.env.SITE_URL || 'https://musicmindacademy.com';
 
 // Lazy-init transporter (same pattern as errorEmailService)
 let transporter = null;

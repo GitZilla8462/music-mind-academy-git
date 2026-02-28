@@ -7,14 +7,34 @@ const MidPilotSurveyPage = () => {
   const [searchParams] = useSearchParams();
   const email = searchParams.get('email') || '';
 
+  const [confidence, setConfidence] = useState('');
+  const [easeOfUse, setEaseOfUse] = useState('');
   const [favoriteFeature, setFavoriteFeature] = useState('');
   const [favoriteOther, setFavoriteOther] = useState('');
+  const [lessonTiming, setLessonTiming] = useState('');
+  const [hadIssues, setHadIssues] = useState('');
+  const [issueDescription, setIssueDescription] = useState('');
   const [improvementSuggestion, setImprovementSuggestion] = useState('');
-  const [skippedParts, setSkippedParts] = useState('');
+  const [colleagueResponse, setColleagueResponse] = useState('');
   const [studentQuotes, setStudentQuotes] = useState('');
-  const [onTrack, setOnTrack] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  const confidenceOptions = [
+    { id: 'very-confident', label: 'Very confident' },
+    { id: 'somewhat-confident', label: 'Somewhat confident' },
+    { id: 'neutral', label: 'Neutral' },
+    { id: 'not-very-confident', label: 'Not very confident' },
+    { id: 'not-confident', label: 'Not confident at all' }
+  ];
+
+  const easeOptions = [
+    { id: 'very-easy', label: 'Very easy' },
+    { id: 'easy', label: 'Easy' },
+    { id: 'neutral', label: 'Neutral' },
+    { id: 'difficult', label: 'Difficult' },
+    { id: 'very-difficult', label: 'Very difficult' }
+  ];
 
   const featureOptions = [
     { id: 'daw', label: 'The DAW (composition tool)' },
@@ -24,14 +44,19 @@ const MidPilotSurveyPage = () => {
     { id: 'other', label: 'Other' }
   ];
 
-  const trackOptions = [
+  const timingOptions = [
+    { id: 'too-short', label: 'Too short' },
+    { id: 'just-right', label: 'Just right' },
+    { id: 'too-long', label: 'Too long' },
+    { id: 'varies', label: 'Varies by lesson' }
+  ];
+
+  const issueOptions = [
     { id: 'yes', label: 'Yes' },
-    { id: 'probably', label: 'Probably' },
-    { id: 'not-sure', label: 'Not sure' },
     { id: 'no', label: 'No' }
   ];
 
-  const canSubmit = favoriteFeature && improvementSuggestion.trim() && onTrack;
+  const canSubmit = confidence && easeOfUse && favoriteFeature && improvementSuggestion.trim();
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -39,11 +64,15 @@ const MidPilotSurveyPage = () => {
     try {
       await saveMidPilotSurveyStandalone({
         teacherEmail: email,
+        confidence,
+        easeOfUse,
         favoriteFeature: favoriteFeature === 'other' ? `Other: ${favoriteOther}` : favoriteFeature,
+        lessonTiming,
+        hadIssues,
+        issueDescription: issueDescription.trim(),
         improvementSuggestion: improvementSuggestion.trim(),
-        skippedParts: skippedParts.trim(),
+        colleagueResponse: colleagueResponse.trim(),
         studentQuotes: studentQuotes.trim(),
-        onTrack,
         submittedAt: Date.now()
       });
       setSubmitted(true);
@@ -86,10 +115,54 @@ const MidPilotSurveyPage = () => {
         </div>
 
         <div className="p-6 space-y-5 max-h-[65vh] overflow-y-auto">
-          {/* Q1: Favorite Feature */}
+          {/* Q1: Confidence */}
           <div>
             <p className="font-medium text-gray-800 mb-3">
-              Which feature do students enjoy most? <span className="text-red-500">*</span>
+              How confident do you feel teaching with Music Mind Academy? <span className="text-red-500">*</span>
+            </p>
+            <div className="space-y-2">
+              {confidenceOptions.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => setConfidence(option.id)}
+                  className={`w-full text-left px-4 py-2.5 rounded-lg border-2 transition-all ${
+                    confidence === option.id
+                      ? 'border-purple-500 bg-purple-50 text-purple-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Q2: Ease of Use */}
+          <div>
+            <p className="font-medium text-gray-800 mb-3">
+              How easy is it to teach with Music Mind Academy? <span className="text-red-500">*</span>
+            </p>
+            <div className="space-y-2">
+              {easeOptions.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => setEaseOfUse(option.id)}
+                  className={`w-full text-left px-4 py-2.5 rounded-lg border-2 transition-all ${
+                    easeOfUse === option.id
+                      ? 'border-purple-500 bg-purple-50 text-purple-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Q3: Favorite Feature */}
+          <div>
+            <p className="font-medium text-gray-800 mb-3">
+              Which feature do your students enjoy most? <span className="text-red-500">*</span>
             </p>
             <div className="space-y-2">
               {featureOptions.map((option) => (
@@ -117,10 +190,62 @@ const MidPilotSurveyPage = () => {
             </div>
           </div>
 
-          {/* Q2: Improvement (required) */}
+          {/* Q4: Lesson Timing */}
+          <div>
+            <p className="font-medium text-gray-800 mb-3">
+              Are the lessons taking the expected amount of time?
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {timingOptions.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => setLessonTiming(option.id)}
+                  className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                    lessonTiming === option.id
+                      ? 'border-purple-500 bg-purple-50 text-purple-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Q5: Technical Issues */}
+          <div>
+            <p className="font-medium text-gray-800 mb-3">
+              Did you encounter any technical issues or bugs in Lessons 1-3?
+            </p>
+            <div className="flex gap-2">
+              {issueOptions.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => setHadIssues(option.id)}
+                  className={`px-6 py-2 rounded-lg border-2 transition-all ${
+                    hadIssues === option.id
+                      ? 'border-purple-500 bg-purple-50 text-purple-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            {hadIssues === 'yes' && (
+              <textarea
+                value={issueDescription}
+                onChange={(e) => setIssueDescription(e.target.value)}
+                placeholder="Briefly describe what happened..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 resize-none h-16 mt-2"
+              />
+            )}
+          </div>
+
+          {/* Q6: Improvement (required) */}
           <div>
             <p className="font-medium text-gray-800 mb-2">
-              What's ONE thing that would make this significantly better? <span className="text-red-500">*</span>
+              What's ONE thing that would make Music Mind Academy significantly better? <span className="text-red-500">*</span>
             </p>
             <textarea
               value={improvementSuggestion}
@@ -130,23 +255,23 @@ const MidPilotSurveyPage = () => {
             />
           </div>
 
-          {/* Q3: Skipped Parts (optional) */}
+          {/* Q7: Colleague Response */}
           <div>
             <p className="font-medium text-gray-800 mb-2">
-              Have you had to skip or modify any parts? If so, why?
+              If a colleague asked you about Music Mind Academy right now, what would you tell them?
             </p>
             <textarea
-              value={skippedParts}
-              onChange={(e) => setSkippedParts(e.target.value)}
-              placeholder="Optional - helps us understand pacing issues"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 resize-none h-16"
+              value={colleagueResponse}
+              onChange={(e) => setColleagueResponse(e.target.value)}
+              placeholder="What would you say?"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 resize-none h-20"
             />
           </div>
 
-          {/* Q4: Student Quotes (optional) */}
+          {/* Q8: Student Quotes */}
           <div>
             <p className="font-medium text-gray-800 mb-1">
-              Any student quotes or reactions worth sharing?
+              Any quotes from your students about Music Mind Academy?
             </p>
             <p className="text-sm text-gray-500 mb-2">These help us understand what's working!</p>
             <textarea
@@ -155,28 +280,6 @@ const MidPilotSurveyPage = () => {
               placeholder="e.g., 'This is actually fun!' or 'Can we do this again?'"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 resize-none h-16"
             />
-          </div>
-
-          {/* Q5: On Track */}
-          <div>
-            <p className="font-medium text-gray-800 mb-3">
-              Are you on track to finish all 5 lessons by end of the pilot? <span className="text-red-500">*</span>
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {trackOptions.map((option) => (
-                <button
-                  key={option.id}
-                  onClick={() => setOnTrack(option.id)}
-                  className={`px-4 py-2 rounded-lg border-2 transition-all ${
-                    onTrack === option.id
-                      ? 'border-purple-500 bg-purple-50 text-purple-700'
-                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
 

@@ -333,10 +333,6 @@ const AppContent = () => {
           </FirebaseProtectedRoute>
         } />
 
-        {/* Standalone survey pages (teachers click email links) */}
-        <Route path="/survey/mid-pilot" element={<MidPilotSurveyPage />} />
-        <Route path="/survey/final" element={<FinalPilotSurveyPage />} />
-
         {/* Teacher Gradebook (NEW) */}
         <Route path="/teacher/gradebook/:classId" element={
           <FirebaseProtectedRoute>
