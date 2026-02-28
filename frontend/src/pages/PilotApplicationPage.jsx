@@ -22,6 +22,7 @@ const PilotApplicationPage = () => {
 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
 
   const gradeOptions = ['6th', '7th', '8th', 'Other'];
   const deviceOptions = ['Chromebooks', 'iPads', 'Windows', 'Mac', 'Mixed', 'Other'];
@@ -35,11 +36,13 @@ const PilotApplicationPage = () => {
     }
   };
 
-  const canSubmit = firstName.trim() && lastName.trim() && personalEmail.trim() && schoolEmail.trim() && schoolName.trim();
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const canSubmit = firstName.trim() && lastName.trim() && personalEmail.trim() && schoolEmail.trim() && schoolName.trim() && isValidEmail(personalEmail.trim()) && isValidEmail(schoolEmail.trim());
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
     setSubmitting(true);
+    setError('');
     try {
       const applicationData = {
         firstName: firstName.trim(),
@@ -69,10 +72,10 @@ const PilotApplicationPage = () => {
       if (result.success) {
         setSubmitted(true);
       } else {
-        console.error('Application submission failed:', result.error);
+        setError('Something went wrong. Please try again.');
       }
     } catch (err) {
-      console.error('Failed to submit application:', err);
+      setError('Could not connect to the server. Please check your internet and try again.');
     }
     setSubmitting(false);
   };
@@ -320,6 +323,12 @@ const PilotApplicationPage = () => {
 
         {/* Footer */}
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+          {error && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3 text-center">{error}</p>
+          )}
+          {(personalEmail.trim() && !isValidEmail(personalEmail.trim())) || (schoolEmail.trim() && !isValidEmail(schoolEmail.trim())) ? (
+            <p className="text-xs text-red-500 mb-2 text-center">Please enter valid email addresses</p>
+          ) : null}
           <button
             onClick={handleSubmit}
             disabled={!canSubmit || submitting}
