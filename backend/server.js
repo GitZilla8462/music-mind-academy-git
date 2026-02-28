@@ -23,6 +23,7 @@ const musicresourcesRoutes = require('./routes/musicresourcesRoutes'); // 🆕 N
 const roomRoutes = require('./routes/roomRoutes'); // Beat Escape Room sharing
 const melodyRoomRoutes = require('./routes/melodyRoomRoutes'); // Melody Mystery sharing
 const errorLogRoutes = require('./routes/errorLogRoutes'); // First-party error logging
+const hubspotRoutes = require('./routes/hubspotRoutes'); // HubSpot CRM status sync
 
 // Create the Express application
 const app = express();
@@ -70,6 +71,7 @@ app.use('/api/musicresources', musicresourcesRoutes); // 🆕 NEW ROUTE
 app.use('/api/rooms', roomRoutes); // Beat Escape Room sharing
 app.use('/api/melody-rooms', melodyRoomRoutes); // Melody Mystery sharing
 app.use('/api/errors', errorLogRoutes); // First-party error logging (bypasses school firewalls)
+app.use('/api/hubspot', hubspotRoutes); // HubSpot CRM status sync
 
 // A simple test route to check if the server is working
 app.get('/', (req, res) => {

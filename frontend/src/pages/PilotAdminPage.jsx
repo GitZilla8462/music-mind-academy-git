@@ -88,6 +88,10 @@ const PilotAdminPage = () => {
   const [isBackfilling, setIsBackfilling] = useState(false);
   const [backfillResult, setBackfillResult] = useState(null);
 
+  // HubSpot sync state
+  const [hubspotSyncing, setHubspotSyncing] = useState(false);
+  const [hubspotSyncResult, setHubspotSyncResult] = useState(null);
+
   const database = getDatabase();
 
   // Check if current user is admin
@@ -1613,9 +1617,9 @@ const PilotAdminPage = () => {
         {activeTab === 'analytics' && (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             {(() => {
-              // Constants for "real class" threshold
-              const MIN_STUDENTS = 10;
-              const MIN_DURATION = 15 * 60 * 1000; // 15 minutes in ms
+              // Constants for "real class" threshold (using active teaching time, not wall-clock)
+              const MIN_ACTIVE_MINUTES = 10; // minutes of actual stage navigation
+              const MIN_STAGES = 3; // must move through at least 3 stages
 
               // Build teacher lesson data from sessions
               const teacherLessonData = {};
@@ -1645,12 +1649,20 @@ const PilotAdminPage = () => {
                   };
                 }
 
+                // Compute active teaching time from stageTimes
+                const sessionStageTimes = session.stageTimes || {};
+                const activeTimeMs = Object.values(sessionStageTimes).reduce((sum, t) => sum + (t || 0), 0);
+                const activeTimeMins = Math.round(activeTimeMs / 60000);
+                const stageCount = Object.keys(sessionStageTimes).length;
+
                 // Add session to lesson
                 teacherLessonData[email].lessons[lessonNum].push({
                   sessionCode: session.sessionCode,
                   date: session.startTime,
                   students: session.studentsJoined || 0,
                   duration: session.duration || 0,
+                  activeTimeMins,
+                  stageCount,
                   completed: session.completed || false
                 });
 
@@ -1663,10 +1675,11 @@ const PilotAdminPage = () => {
               });
 
               // Helper to check if lesson is "completed" (real class)
-              // A real class = 10+ students AND 15+ minutes (regardless of whether session was formally ended)
+              // A real class = 10+ min active teaching time AND 3+ stages navigated
+              // Uses stageTimes (actual teaching) instead of wall-clock duration
               const isLessonCompleted = (sessions) => {
                 return sessions.some(s =>
-                  s.students >= MIN_STUDENTS && s.duration >= MIN_DURATION
+                  s.activeTimeMins >= MIN_ACTIVE_MINUTES && s.stageCount >= MIN_STAGES
                 );
               };
 
@@ -1954,6 +1967,47 @@ const PilotAdminPage = () => {
                         >
                           Mark All as Pilot
                         </button>
+
+                        {/* Sync to HubSpot button */}
+                        <button
+                          disabled={hubspotSyncing}
+                          onClick={async () => {
+                            if (!confirm(`Sync ${teachers.length} teachers to HubSpot? This will update platform_status and lesson_reached for all teachers.`)) return;
+                            setHubspotSyncing(true);
+                            setHubspotSyncResult(null);
+                            try {
+                              // Build teacher data with highest lesson reached
+                              const teacherPayload = teachers.map(t => {
+                                let highestLesson = 0;
+                                if (t.l5Done) highestLesson = 5;
+                                else if (t.l4Done) highestLesson = 4;
+                                else if (t.l3Done) highestLesson = 3;
+                                else if (t.l2Done) highestLesson = 2;
+                                else if (t.l1Done) highestLesson = 1;
+                                return {
+                                  email: t.email,
+                                  displayName: t.teacherName || '',
+                                  lessonReached: highestLesson
+                                };
+                              });
+                              const res = await fetch('/api/hubspot/batch-sync', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ teachers: teacherPayload })
+                              });
+                              const result = await res.json();
+                              setHubspotSyncResult(result);
+                              setSuccess(`HubSpot sync: ${result.updated || 0} updated, ${result.created || 0} created, ${result.failed || 0} failed`);
+                            } catch (err) {
+                              setError('HubSpot sync failed: ' + err.message);
+                            } finally {
+                              setHubspotSyncing(false);
+                            }
+                          }}
+                          className="px-3 py-2 bg-orange-100 text-orange-700 rounded-lg text-sm hover:bg-orange-200 disabled:opacity-50"
+                        >
+                          {hubspotSyncing ? 'Syncing...' : 'Sync to HubSpot'}
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -2146,10 +2200,10 @@ const PilotAdminPage = () => {
                                                         }) : 'Unknown'}
                                                       </span>
                                                       <span className="text-gray-500">
-                                                        {session.students} stu · {formatDuration(session.duration)}
+                                                        {session.students} stu · {session.activeTimeMins}min active · {session.stageCount} stages
                                                       </span>
-                                                      <span className={session.students >= MIN_STUDENTS && session.duration >= MIN_DURATION ? 'text-green-600' : 'text-yellow-600'}>
-                                                        {session.students >= MIN_STUDENTS && session.duration >= MIN_DURATION ? '✓' : 'test'}
+                                                      <span className={session.activeTimeMins >= MIN_ACTIVE_MINUTES && session.stageCount >= MIN_STAGES ? 'text-green-600' : 'text-yellow-600'}>
+                                                        {session.activeTimeMins >= MIN_ACTIVE_MINUTES && session.stageCount >= MIN_STAGES ? '✓' : 'test'}
                                                       </span>
                                                     </div>
                                                   ))}
