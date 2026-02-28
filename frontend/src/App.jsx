@@ -50,7 +50,17 @@ const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
 const TeacherDashboard = React.lazy(() => import('./pages/TeacherDashboard'));
 const StudentDashboard = React.lazy(() => import('./pages/StudentDashboard'));
 const FirebaseTeacherDashboard = React.lazy(() => import('./pages/FirebaseTeacherDashboard'));
-const PilotAdminPage = React.lazy(() => import('./pages/PilotAdminPage'));
+// Admin dashboard (sidebar layout with nested routes)
+const AdminLayout = React.lazy(() => import('./pages/admin/AdminLayout'));
+const AdminDashboardPage = React.lazy(() => import('./pages/admin/DashboardPage'));
+const AdminApplicationsPage = React.lazy(() => import('./pages/admin/ApplicationsPage'));
+const AdminApprovedEmailsPage = React.lazy(() => import('./pages/admin/ApprovedEmailsPage'));
+const AdminRegisteredUsersPage = React.lazy(() => import('./pages/admin/RegisteredUsersPage'));
+const AdminTeacherAnalyticsPage = React.lazy(() => import('./pages/admin/TeacherAnalyticsPage'));
+const AdminLessonAnalyticsPage = React.lazy(() => import('./pages/admin/LessonAnalyticsPage'));
+const AdminSessionsPage = React.lazy(() => import('./pages/admin/SessionsPage'));
+const AdminSurveysPage = React.lazy(() => import('./pages/admin/SurveysPage'));
+const AdminErrorLogsPage = React.lazy(() => import('./pages/admin/ErrorLogsPage'));
 const MidPilotSurveyPage = React.lazy(() => import('./pages/MidPilotSurveyPage'));
 const FinalPilotSurveyPage = React.lazy(() => import('./pages/FinalPilotSurveyPage'));
 const PilotApplicationPage = React.lazy(() => import('./pages/PilotApplicationPage'));
@@ -327,12 +337,24 @@ const AppContent = () => {
           </FirebaseProtectedRoute>
         } />
 
-        {/* Pilot program admin page */}
-        <Route path="/admin/pilot" element={
+        {/* Admin dashboard with sidebar navigation */}
+        <Route path="/admin" element={
           <FirebaseProtectedRoute>
-            <PilotAdminPage />
+            <AdminLayout />
           </FirebaseProtectedRoute>
-        } />
+        }>
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="applications" element={<AdminApplicationsPage />} />
+          <Route path="approved" element={<AdminApprovedEmailsPage />} />
+          <Route path="registered" element={<AdminRegisteredUsersPage />} />
+          <Route path="teachers" element={<AdminTeacherAnalyticsPage />} />
+          <Route path="lessons" element={<AdminLessonAnalyticsPage />} />
+          <Route path="sessions" element={<AdminSessionsPage />} />
+          <Route path="surveys" element={<AdminSurveysPage />} />
+          <Route path="errors" element={<AdminErrorLogsPage />} />
+        </Route>
+        {/* Redirect old admin URL */}
+        <Route path="/admin/pilot" element={<Navigate to="/admin" replace />} />
 
         {/* Teacher Gradebook (NEW) */}
         <Route path="/teacher/gradebook/:classId" element={
@@ -628,12 +650,24 @@ const AppContent = () => {
           </FirebaseProtectedRoute>
         } />
 
-        {/* Pilot program admin page */}
-        <Route path="/admin/pilot" element={
+        {/* Admin dashboard with sidebar navigation */}
+        <Route path="/admin" element={
           <FirebaseProtectedRoute>
-            <PilotAdminPage />
+            <AdminLayout />
           </FirebaseProtectedRoute>
-        } />
+        }>
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="applications" element={<AdminApplicationsPage />} />
+          <Route path="approved" element={<AdminApprovedEmailsPage />} />
+          <Route path="registered" element={<AdminRegisteredUsersPage />} />
+          <Route path="teachers" element={<AdminTeacherAnalyticsPage />} />
+          <Route path="lessons" element={<AdminLessonAnalyticsPage />} />
+          <Route path="sessions" element={<AdminSessionsPage />} />
+          <Route path="surveys" element={<AdminSurveysPage />} />
+          <Route path="errors" element={<AdminErrorLogsPage />} />
+        </Route>
+        {/* Redirect old admin URL */}
+        <Route path="/admin/pilot" element={<Navigate to="/admin" replace />} />
 
         {/* Pilot application page (public) */}
         <Route path="/apply" element={<PilotApplicationPage />} />
