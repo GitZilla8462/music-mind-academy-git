@@ -7,8 +7,6 @@ const nodemailer = require('nodemailer');
 
 // Email configuration from environment variables
 const ALERT_EMAIL = process.env.ERROR_ALERT_EMAIL || 'rob@musicmindacademy.com';
-const SMTP_HOST = process.env.SMTP_HOST || 'smtp-relay.gmail.com';
-const SMTP_PORT = process.env.SMTP_PORT || 587;
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 
@@ -22,9 +20,7 @@ let transporter = null;
 const getTransporter = () => {
   if (!transporter && SMTP_USER && SMTP_PASS) {
     transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: SMTP_PORT,
-      secure: SMTP_PORT === 465,
+      service: 'gmail',
       auth: {
         user: SMTP_USER,
         pass: SMTP_PASS
