@@ -1972,7 +1972,7 @@ const PilotAdminPage = () => {
                         <button
                           disabled={hubspotSyncing}
                           onClick={async () => {
-                            if (!confirm(`Sync ${teachers.length} teachers to HubSpot? This will update platform_status and lesson_reached for all teachers.`)) return;
+                            if (!confirm(`Sync all teachers to HubSpot? This will update platform_status and lesson_reached for all teachers including registered users.`)) return;
                             setHubspotSyncing(true);
                             setHubspotSyncResult(null);
                             try {
@@ -1989,6 +1989,18 @@ const PilotAdminPage = () => {
                                   displayName: t.teacherName || '',
                                   lessonReached: highestLesson
                                 };
+                              });
+
+                              // Also include registered users who have no sessions
+                              const sessionEmails = new Set(teachers.map(t => t.email.toLowerCase()));
+                              registeredUsers.forEach(u => {
+                                if (u.email && !sessionEmails.has(u.email.toLowerCase())) {
+                                  teacherPayload.push({
+                                    email: u.email,
+                                    displayName: u.displayName || '',
+                                    lessonReached: 0
+                                  });
+                                }
                               });
                               const res = await fetch('/api/hubspot/batch-sync', {
                                 method: 'POST',
