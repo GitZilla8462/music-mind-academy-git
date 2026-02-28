@@ -7,7 +7,8 @@ const nodemailer = require('nodemailer');
 
 // Email configuration from environment variables
 const ALERT_EMAIL = process.env.ERROR_ALERT_EMAIL || 'rob@musicmindacademy.com';
-const SMTP_USER = process.env.SMTP_USER;
+const SMTP_USER = process.env.SMTP_USER || 'rob@musicmindacademy.com';
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SMTP_PASS = process.env.SMTP_PASS;
 
 // Rate limiting - don't spam emails
@@ -18,12 +19,14 @@ const COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes between duplicate errors
 let transporter = null;
 
 const getTransporter = () => {
-  if (!transporter && SMTP_USER && SMTP_PASS) {
+  if (!transporter && (RESEND_API_KEY || SMTP_PASS)) {
     transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.resend.com',
+      port: 465,
+      secure: true,
       auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASS
+        user: 'resend',
+        pass: RESEND_API_KEY || SMTP_PASS
       }
     });
   }

@@ -5,7 +5,8 @@
 
 const nodemailer = require('nodemailer');
 
-const SMTP_USER = process.env.SMTP_USER;
+const SMTP_USER = process.env.SMTP_USER || 'rob@musicmindacademy.com';
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SMTP_PASS = process.env.SMTP_PASS;
 const SITE_URL = process.env.SITE_URL || 'https://musicmindacademy.com';
 const RAILWAY_URL = process.env.RAILWAY_PUBLIC_DOMAIN
@@ -18,12 +19,14 @@ const ADMIN_EMAIL = 'rob@musicmindacademy.com';
 let transporter = null;
 
 const getTransporter = () => {
-  if (!transporter && SMTP_USER && SMTP_PASS) {
+  if (!transporter && (RESEND_API_KEY || SMTP_PASS)) {
     transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.resend.com',
+      port: 465,
+      secure: true,
       auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASS
+        user: 'resend',
+        pass: RESEND_API_KEY || SMTP_PASS
       }
     });
   }
