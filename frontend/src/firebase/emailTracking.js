@@ -1,4 +1,4 @@
-// Email tracking utility for automated survey emails
+// Email tracking utility for automated survey and drip emails
 // Prevents duplicate sends and updates teacherOutreach in Firebase
 
 import { getDatabase, ref, get, set, update } from 'firebase/database';
@@ -9,7 +9,7 @@ const database = getDatabase();
  * Convert email to Firebase-safe key
  * Matches PilotAdminPage pattern: lowercase, dots → commas
  */
-const emailToKey = (email) => email.toLowerCase().replace(/\./g, ',');
+export const emailToKey = (email) => email.toLowerCase().replace(/\./g, ',');
 
 /**
  * Check if an email of this type has already been sent to this teacher
@@ -23,11 +23,22 @@ export const hasEmailBeenSent = async (email, type) => {
 /**
  * Mark an email as sent in Firebase
  */
-const markEmailSent = async (email, type) => {
+export const markEmailSent = async (email, type) => {
   const emailKey = emailToKey(email);
   await set(ref(database, `emailsSent/${emailKey}/${type}`), {
     sentAt: Date.now()
   });
+};
+
+/**
+ * Endpoint map for all email types
+ */
+const ENDPOINT_MAP = {
+  'survey-l3': '/api/email/survey-l3',
+  'survey-l5': '/api/email/survey-l5',
+  'drip-1': '/api/email/drip-1',
+  'drip-2': '/api/email/drip-2',
+  'drip-3': '/api/email/drip-3'
 };
 
 /**
@@ -45,6 +56,15 @@ const updateOutreachStatus = async (email, type) => {
   } else if (type === 'survey-l5') {
     updates.emailedDone = true;
     updates.emailedDoneAt = Date.now();
+  } else if (type === 'drip-1') {
+    updates.dripWelcomeSent = true;
+    updates.dripWelcomeSentAt = Date.now();
+  } else if (type === 'drip-2') {
+    updates.dripFollowup1Sent = true;
+    updates.dripFollowup1SentAt = Date.now();
+  } else if (type === 'drip-3') {
+    updates.dripFollowup2Sent = true;
+    updates.dripFollowup2SentAt = Date.now();
   }
 
   await update(outreachRef, updates);
@@ -56,9 +76,10 @@ const updateOutreachStatus = async (email, type) => {
  *
  * @param {string} email - Teacher email
  * @param {string} displayName - Teacher display name
- * @param {'survey-l3'|'survey-l5'} type - Email type
+ * @param {'survey-l3'|'survey-l5'|'drip-1'|'drip-2'|'drip-3'} type - Email type
+ * @param {object} extraData - Additional data to pass to the API (e.g., { name })
  */
-export const sendTeacherEmail = async (email, displayName, type) => {
+export const sendTeacherEmail = async (email, displayName, type, extraData = {}) => {
   // Check if already sent
   const alreadySent = await hasEmailBeenSent(email, type);
   if (alreadySent) {
@@ -67,12 +88,20 @@ export const sendTeacherEmail = async (email, displayName, type) => {
   }
 
   // Call backend to send the email
-  const endpoint = type === 'survey-l3' ? '/api/email/survey-l3' : '/api/email/survey-l5';
+  const endpoint = ENDPOINT_MAP[type];
+  if (!endpoint) {
+    console.error(`[EmailTracking] Unknown email type: ${type}`);
+    return { success: false, error: `Unknown type: ${type}` };
+  }
+
+  const body = type.startsWith('drip-')
+    ? { email, name: extraData.name || displayName, ...extraData }
+    : { email, displayName, ...extraData };
 
   const res = await fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, displayName })
+    body: JSON.stringify(body)
   });
 
   const result = await res.json();

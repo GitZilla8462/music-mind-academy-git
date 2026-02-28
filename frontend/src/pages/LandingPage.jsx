@@ -1,12 +1,9 @@
 // /src/pages/LandingPage.jsx
 // Marketing landing page for Music Mind Academy (musicmindacademy.com)
-// Teachers apply via Google Form, then sign in at /login after approval
+// Teachers apply at /apply, then sign in at /login after approval
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// Google Form URL for pilot program applications
-const PILOT_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfgcfEfVoPGYCRmpgyNO0FNPnR9Jc3O-BOhpMTodQhKAHSaSQ/viewform?usp=header';
 
 // Activity data
 const activities = [
@@ -49,15 +46,9 @@ const activities = [
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [showPilotModal, setShowPilotModal] = useState(false);
 
   const handleJoinPilot = () => {
-    setShowPilotModal(true);
-  };
-
-  const handleContinueToForm = () => {
-    window.open(PILOT_FORM_URL, '_blank');
-    setShowPilotModal(false);
+    navigate('/apply');
   };
 
   const handleTeacherLogin = () => {
@@ -1073,112 +1064,6 @@ const LandingPage = () => {
         </div>
       </footer>
 
-      {/* Pilot Application Modal */}
-      {showPilotModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem'
-          }}
-          onClick={() => setShowPilotModal(false)}
-        >
-          <div
-            style={{
-              backgroundColor: 'white',
-              borderRadius: '1rem',
-              padding: '2rem',
-              maxWidth: '500px',
-              width: '100%',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🎵</div>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.5rem' }}>
-                Join the Pilot
-              </h2>
-              <p style={{ color: '#64748b', fontSize: '1rem' }}>
-                Try Music Mind Academy free with your classes this spring.
-              </p>
-            </div>
-
-            <div style={{
-              backgroundColor: '#f8fafc',
-              borderRadius: '0.75rem',
-              padding: '1.25rem',
-              marginBottom: '1.5rem'
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ fontSize: '1.25rem' }}>📅</span>
-                  <div>
-                    <div style={{ fontWeight: 600, color: '#1e293b' }}>Pilot window</div>
-                    <div style={{ color: '#64748b', fontSize: '0.9rem' }}>March – June 2026</div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ fontSize: '1.25rem' }}>🆓</span>
-                  <div>
-                    <div style={{ fontWeight: 600, color: '#1e293b' }}>100% free</div>
-                    <div style={{ color: '#64748b', fontSize: '0.9rem' }}>No cost during the pilot program</div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ fontSize: '1.25rem' }}>📧</span>
-                  <div>
-                    <div style={{ fontWeight: 600, color: '#1e293b' }}>What happens next</div>
-                    <div style={{ color: '#64748b', fontSize: '0.9rem' }}>Fill out the form and I'll get you set up</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <button
-                onClick={handleContinueToForm}
-                style={{
-                  width: '100%',
-                  padding: '0.875rem 1.5rem',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s'
-                }}
-                onMouseOver={(e) => e.target.style.backgroundColor = '#2563eb'}
-                onMouseOut={(e) => e.target.style.backgroundColor = '#3b82f6'}
-              >
-                Continue to Application →
-              </button>
-              <button
-                onClick={() => setShowPilotModal(false)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: 'transparent',
-                  color: '#64748b',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  fontSize: '0.9rem',
-                  cursor: 'pointer'
-                }}
-              >
-                Maybe later
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

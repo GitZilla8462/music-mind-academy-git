@@ -1,56 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
-const HUBSPOT_API = 'https://api.hubapi.com/crm/v3/objects/contacts';
-
-/**
- * Helper: Update a HubSpot contact by email. Creates if not found.
- */
-async function updateHubSpotContact(token, email, properties, displayName) {
-  // Try to update existing contact
-  const updateRes = await fetch(
-    `${HUBSPOT_API}/${encodeURIComponent(email)}?idProperty=email`,
-    {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ properties })
-    }
-  );
-
-  if (updateRes.ok) {
-    return { success: true, action: 'updated', data: await updateRes.json() };
-  }
-
-  // If not found, create
-  if (updateRes.status === 404) {
-    const nameParts = (displayName || '').split(' ');
-    const createProps = {
-      email,
-      firstname: nameParts[0] || '',
-      lastname: nameParts.slice(1).join(' ') || '',
-      ...properties
-    };
-
-    const createRes = await fetch(HUBSPOT_API, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ properties: createProps })
-    });
-
-    if (createRes.ok) {
-      return { success: true, action: 'created', data: await createRes.json() };
-    }
-    return { success: false, error: await createRes.text() };
-  }
-
-  return { success: false, error: await updateRes.text() };
-}
+const { updateHubSpotContact } = require('../services/hubspotService');
 
 /**
  * POST /api/hubspot/update-status
@@ -59,7 +9,8 @@ async function updateHubSpotContact(token, email, properties, displayName) {
  * Sets platform_status = "registered".
  */
 router.post('/update-status', async (req, res) => {
-  const { email, displayName } = req.body;
+  const { email, displayName, status } = req.body;
+  const platformStatus = status || 'registered';
 
   if (!email) {
     return res.status(400).json({ error: 'Email is required' });
@@ -72,9 +23,9 @@ router.post('/update-status', async (req, res) => {
   }
 
   try {
-    const result = await updateHubSpotContact(token, email, { platform_status: 'registered' }, displayName);
+    const result = await updateHubSpotContact(token, email, { platform_status: platformStatus }, displayName);
     if (result.success) {
-      console.log(`✅ HubSpot: ${email} → registered (${result.action}, ID: ${result.data.id})`);
+      console.log(`✅ HubSpot: ${email} → ${platformStatus} (${result.action}, ID: ${result.data.id})`);
     } else {
       console.error(`❌ HubSpot: ${email} failed:`, result.error);
     }

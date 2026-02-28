@@ -5,10 +5,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { getDatabase, ref, get, set, remove, onValue, update } from 'firebase/database';
-import { Users, UserPlus, Trash2, Mail, Calendar, Shield, ArrowLeft, RefreshCw, BarChart3, Clock, BookOpen, Play, Building2, GraduationCap, ChevronDown, ChevronUp, MessageSquare, Star, Download, DatabaseBackup, AlertTriangle, Search, Filter, ArrowUpDown, Check, X, FileText } from 'lucide-react';
+import { Users, UserPlus, Trash2, Mail, Calendar, Shield, ArrowLeft, RefreshCw, BarChart3, Clock, BookOpen, Play, Building2, GraduationCap, ChevronDown, ChevronUp, MessageSquare, Star, Download, DatabaseBackup, AlertTriangle, Search, Filter, ArrowUpDown, Check, X, FileText, Inbox, Send } from 'lucide-react';
 import ErrorLogViewer from '../components/admin/ErrorLogViewer';
 import { getTeacherAnalytics, getPilotSessions, getPilotSummaryStats, subscribeToAnalytics } from '../firebase/analytics';
 import { SITE_TYPES } from '../firebase/approvedEmails';
+import { processDripEmails } from '../firebase/dripProcessor';
+import { sendTeacherEmail } from '../firebase/emailTracking';
 import * as XLSX from 'xlsx';
 
 // Your admin email(s) - only these can access this page
@@ -91,6 +93,15 @@ const PilotAdminPage = () => {
   // HubSpot sync state
   const [hubspotSyncing, setHubspotSyncing] = useState(false);
   const [hubspotSyncResult, setHubspotSyncResult] = useState(null);
+
+  // Applications state
+  const [applications, setApplications] = useState([]);
+  const [expandedApplications, setExpandedApplications] = useState({});
+  const [approvingId, setApprovingId] = useState(null);
+
+  // Drip processor state
+  const [dripProcessing, setDripProcessing] = useState(false);
+  const [dripResult, setDripResult] = useState(null);
 
   const database = getDatabase();
 
@@ -219,6 +230,21 @@ const PilotAdminPage = () => {
       }
     });
 
+    // Listen to pilot applications
+    const applicationsRef = ref(database, 'pilotApplications');
+    const unsubApplications = onValue(applicationsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const apps = [];
+        snapshot.forEach((child) => {
+          apps.push({ id: child.key, ...child.val() });
+        });
+        apps.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
+        setApplications(apps);
+      } else {
+        setApplications([]);
+      }
+    });
+
     return () => {
       unsubAcademy();
       unsubEdu();
@@ -228,8 +254,138 @@ const PilotAdminPage = () => {
       unsubMidPilot();
       unsubFinalPilot();
       unsubOutreach();
+      unsubApplications();
     };
   }, [user, isAdmin, database]);
+
+  // Auto-run drip processor when data is loaded
+  useEffect(() => {
+    if (!isAdmin || loading || academyEmails.length === 0) return;
+
+    const runDrip = async () => {
+      try {
+        // Build approved emails map from academy emails
+        const approvedMap = {};
+        academyEmails.forEach(e => {
+          const key = e.email?.toLowerCase().replace(/\./g, ',');
+          if (key) approvedMap[key] = e;
+        });
+
+        // Build registered emails set
+        const registeredSet = new Set(
+          registeredUsers.map(u => u.email?.toLowerCase()).filter(Boolean)
+        );
+
+        const result = await processDripEmails(approvedMap, registeredSet, teacherOutreach);
+        if (result.drip2Sent > 0 || result.drip3Sent > 0) {
+          setDripResult(result);
+          console.log('[DripProcessor] Auto-run results:', result);
+        }
+      } catch (err) {
+        console.error('[DripProcessor] Auto-run error:', err);
+      }
+    };
+
+    runDrip();
+  }, [isAdmin, loading, academyEmails.length, registeredUsers.length]);
+
+  // Manual drip processor trigger
+  const handleProcessDrips = async () => {
+    setDripProcessing(true);
+    setDripResult(null);
+    try {
+      const approvedMap = {};
+      academyEmails.forEach(e => {
+        const key = e.email?.toLowerCase().replace(/\./g, ',');
+        if (key) approvedMap[key] = e;
+      });
+      const registeredSet = new Set(
+        registeredUsers.map(u => u.email?.toLowerCase()).filter(Boolean)
+      );
+      const result = await processDripEmails(approvedMap, registeredSet, teacherOutreach);
+      setDripResult(result);
+    } catch (err) {
+      console.error('[DripProcessor] Manual run error:', err);
+      setError('Drip processing failed');
+    }
+    setDripProcessing(false);
+  };
+
+  // Approve a pilot application from the admin page
+  const handleApproveApplication = async (app) => {
+    setApprovingId(app.id);
+    try {
+      const schoolEmail = app.schoolEmail.toLowerCase();
+      const emailKey = schoolEmail.replace(/\./g, ',');
+      const now = Date.now();
+
+      // 1. Update application status
+      await update(ref(database, `pilotApplications/${app.id}`), {
+        status: 'approved',
+        approvedAt: now
+      });
+
+      // 2. Add to approvedEmails/academy/
+      await set(ref(database, `approvedEmails/academy/${emailKey}`), {
+        email: schoolEmail,
+        approvedAt: now,
+        name: `${app.firstName} ${app.lastName}`,
+        school: app.schoolName,
+        source: 'pilot-application'
+      });
+
+      // 3. Add to teacherOutreach
+      await update(ref(database, `teacherOutreach/${emailKey}`), {
+        email: schoolEmail,
+        name: `${app.firstName} ${app.lastName}`,
+        school: app.schoolName,
+        approvedAt: now,
+        source: 'pilot-application'
+      });
+
+      // 4. Send drip-1 welcome email
+      await sendTeacherEmail(
+        app.personalEmail || schoolEmail,
+        app.firstName,
+        'drip-1',
+        { name: app.firstName }
+      );
+
+      // 5. Sync to HubSpot
+      try {
+        await fetch('/api/hubspot/update-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: schoolEmail,
+            displayName: `${app.firstName} ${app.lastName}`,
+            status: 'approved'
+          })
+        });
+      } catch (hsErr) {
+        console.error('HubSpot sync failed:', hsErr);
+      }
+
+      setSuccess(`Approved ${app.firstName} ${app.lastName} — welcome email sent`);
+    } catch (err) {
+      console.error('Failed to approve:', err);
+      setError(`Failed to approve: ${err.message}`);
+    }
+    setApprovingId(null);
+  };
+
+  // Reject a pilot application
+  const handleRejectApplication = async (app) => {
+    try {
+      await update(ref(database, `pilotApplications/${app.id}`), {
+        status: 'rejected',
+        rejectedAt: Date.now()
+      });
+      setSuccess(`Declined ${app.firstName} ${app.lastName}`);
+    } catch (err) {
+      setError(`Failed to decline: ${err.message}`);
+    }
+  };
 
   // Toggle outreach checkbox or set value (emailed L3, emailed Done, teacherType, etc.)
   const toggleOutreach = async (teacherEmail, field, explicitValue = null) => {
@@ -1345,7 +1501,23 @@ const PilotAdminPage = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-4 flex-wrap">
+        <div className="flex gap-2 mb-4 flex-wrap items-center">
+          <button
+            onClick={() => setActiveTab('applications')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+              activeTab === 'applications'
+                ? 'bg-green-600 text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <Inbox size={18} />
+            Applications
+            {applications.filter(a => a.status === 'pending').length > 0 && (
+              <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                {applications.filter(a => a.status === 'pending').length}
+              </span>
+            )}
+          </button>
           <button
             onClick={() => setActiveTab('approved')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -1421,7 +1593,138 @@ const PilotAdminPage = () => {
             <AlertTriangle size={18} />
             Error Logs
           </button>
+
+          {/* Drip processor button */}
+          <div className="ml-auto">
+            <button
+              onClick={handleProcessDrips}
+              disabled={dripProcessing}
+              className="px-3 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200"
+            >
+              <Send size={16} className={dripProcessing ? 'animate-spin' : ''} />
+              {dripProcessing ? 'Processing...' : 'Process Drips'}
+            </button>
+            {dripResult && (dripResult.drip2Sent > 0 || dripResult.drip3Sent > 0) && (
+              <p className="text-xs text-amber-600 mt-1">
+                Sent: {dripResult.drip2Sent} follow-up, {dripResult.drip3Sent} final
+              </p>
+            )}
+          </div>
         </div>
+
+        {/* Applications Tab */}
+        {activeTab === 'applications' && (
+          <div className="rounded-xl border border-green-200 overflow-hidden">
+            <div className="px-6 py-4 bg-green-50 border-b border-green-200 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <Inbox size={20} />
+                Pilot Applications
+              </h2>
+              <span className="text-sm text-gray-500">
+                {applications.filter(a => a.status === 'pending').length} pending / {applications.length} total
+              </span>
+            </div>
+
+            {applications.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                No applications yet. Teachers will apply at musicmindacademy.com/apply
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {applications.map((app) => {
+                  const isPending = app.status === 'pending';
+                  const isApproved = app.status === 'approved';
+                  const isRejected = app.status === 'rejected';
+                  const expanded = expandedApplications[app.id];
+
+                  return (
+                    <div key={app.id} className={`px-6 py-4 ${isRejected ? 'bg-gray-50 opacity-60' : ''}`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <span className="font-semibold text-gray-800">
+                              {app.firstName} {app.lastName}
+                            </span>
+                            {isPending && (
+                              <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium">Pending</span>
+                            )}
+                            {isApproved && (
+                              <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">Approved</span>
+                            )}
+                            {isRejected && (
+                              <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-full font-medium">Declined</span>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-500 mt-1">
+                            {app.schoolEmail} &middot; {app.schoolName}
+                            {app.city && ` &middot; ${app.city}${app.state ? ', ' + app.state : ''}`}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            Applied {new Date(app.submittedAt).toLocaleDateString()} at {new Date(app.submittedAt).toLocaleTimeString()}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setExpandedApplications(prev => ({ ...prev, [app.id]: !prev[app.id] }))}
+                            className="p-2 text-gray-400 hover:text-gray-600"
+                          >
+                            {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                          </button>
+                          {isPending && (
+                            <>
+                              <button
+                                onClick={() => handleApproveApplication(app)}
+                                disabled={approvingId === app.id}
+                                className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 disabled:opacity-50"
+                              >
+                                {approvingId === app.id ? 'Approving...' : 'Approve'}
+                              </button>
+                              <button
+                                onClick={() => handleRejectApplication(app)}
+                                className="px-4 py-2 bg-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-300"
+                              >
+                                Decline
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {expanded && (
+                        <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 gap-3 text-sm">
+                          <div><span className="text-gray-500">Personal Email:</span> <span className="text-gray-800">{app.personalEmail}</span></div>
+                          <div><span className="text-gray-500">School Email:</span> <span className="text-gray-800">{app.schoolEmail}</span></div>
+                          {app.grades?.length > 0 && <div><span className="text-gray-500">Grades:</span> <span className="text-gray-800">{app.grades.join(', ')}</span></div>}
+                          {app.devices?.length > 0 && <div><span className="text-gray-500">Devices:</span> <span className="text-gray-800">{app.devices.join(', ')}</span></div>}
+                          {app.classSize && <div><span className="text-gray-500">Class Size:</span> <span className="text-gray-800">{app.classSize}</span></div>}
+                          {app.toolsUsed?.length > 0 && <div><span className="text-gray-500">Tools Used:</span> <span className="text-gray-800">{app.toolsUsed.join(', ')}</span></div>}
+                          {app.biggestChallenge && (
+                            <div className="col-span-2">
+                              <span className="text-gray-500">Biggest Challenge:</span>
+                              <p className="text-gray-800 mt-1">{app.biggestChallenge}</p>
+                            </div>
+                          )}
+                          {app.whyPilot && (
+                            <div className="col-span-2">
+                              <span className="text-gray-500">Why Pilot:</span>
+                              <p className="text-gray-800 mt-1">{app.whyPilot}</p>
+                            </div>
+                          )}
+                          {app.anythingElse && (
+                            <div className="col-span-2">
+                              <span className="text-gray-500">Other:</span>
+                              <p className="text-gray-800 mt-1">{app.anythingElse}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Approved Emails List */}
         {activeTab === 'approved' && (
@@ -1550,9 +1853,21 @@ const PilotAdminPage = () => {
                           Signed Up
                         </span>
                       ) : (
-                        <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-sm rounded-full">
-                          Pending
-                        </span>
+                        <>
+                          <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-sm rounded-full">
+                            Pending
+                          </span>
+                          {/* Drip status badges for teachers who haven't logged in */}
+                          {teacherOutreach[emailKey]?.dripWelcomeSent && (
+                            <span className="px-2 py-0.5 bg-sky-100 text-sky-700 text-xs rounded-full" title="Welcome email sent">W</span>
+                          )}
+                          {teacherOutreach[emailKey]?.dripFollowup1Sent && (
+                            <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full" title="Follow-up 1 sent (day 7)">F1</span>
+                          )}
+                          {teacherOutreach[emailKey]?.dripFollowup2Sent && (
+                            <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full" title="Follow-up 2 sent (day 14)">F2</span>
+                          )}
+                        </>
                       )}
                       <button
                         onClick={() => handleRemoveEmail(item.id, item.email)}

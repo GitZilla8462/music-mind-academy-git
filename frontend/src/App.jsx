@@ -53,6 +53,7 @@ const FirebaseTeacherDashboard = React.lazy(() => import('./pages/FirebaseTeache
 const PilotAdminPage = React.lazy(() => import('./pages/PilotAdminPage'));
 const MidPilotSurveyPage = React.lazy(() => import('./pages/MidPilotSurveyPage'));
 const FinalPilotSurveyPage = React.lazy(() => import('./pages/FinalPilotSurveyPage'));
+const PilotApplicationPage = React.lazy(() => import('./pages/PilotApplicationPage'));
 
 // Student Account pages (NEW)
 const StudentLogin = React.lazy(() => import('./pages/StudentLogin'));
@@ -633,6 +634,9 @@ const AppContent = () => {
             <PilotAdminPage />
           </FirebaseProtectedRoute>
         } />
+
+        {/* Pilot application page (public) */}
+        <Route path="/apply" element={<PilotApplicationPage />} />
 
         {/* Standalone survey pages (teachers click email links) */}
         <Route path="/survey/mid-pilot" element={<MidPilotSurveyPage />} />
