@@ -24,6 +24,7 @@ const roomRoutes = require('./routes/roomRoutes'); // Beat Escape Room sharing
 const melodyRoomRoutes = require('./routes/melodyRoomRoutes'); // Melody Mystery sharing
 const errorLogRoutes = require('./routes/errorLogRoutes'); // First-party error logging
 const hubspotRoutes = require('./routes/hubspotRoutes'); // HubSpot CRM status sync
+const emailRoutes = require('./routes/emailRoutes'); // Automated survey emails
 
 // Create the Express application
 const app = express();
@@ -72,6 +73,7 @@ app.use('/api/rooms', roomRoutes); // Beat Escape Room sharing
 app.use('/api/melody-rooms', melodyRoomRoutes); // Melody Mystery sharing
 app.use('/api/errors', errorLogRoutes); // First-party error logging (bypasses school firewalls)
 app.use('/api/hubspot', hubspotRoutes); // HubSpot CRM status sync
+app.use('/api/email', emailRoutes); // Automated survey emails
 
 // A simple test route to check if the server is working
 app.get('/', (req, res) => {

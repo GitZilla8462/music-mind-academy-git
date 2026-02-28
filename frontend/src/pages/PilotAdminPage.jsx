@@ -2563,11 +2563,19 @@ const PilotAdminPage = () => {
                     <div key={survey.id} className="p-6 hover:bg-gray-50">
                       <div className="flex items-start justify-between mb-4">
                         <div>
-                          <span className="font-mono font-bold text-purple-600">{survey.sessionCode || survey.id}</span>
-                          <span className="mx-2 text-gray-300">•</span>
-                          <span className="text-sm text-gray-500">
-                            {survey.studentCount} students
+                          <span className="font-mono font-bold text-purple-600">
+                            {survey.teacherEmail || survey.sessionCode || survey.id}
                           </span>
+                          {survey.source === 'email-link' ? (
+                            <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-600 text-xs rounded">via email</span>
+                          ) : (
+                            <>
+                              <span className="mx-2 text-gray-300">•</span>
+                              <span className="text-sm text-gray-500">
+                                {survey.studentCount} students
+                              </span>
+                            </>
+                          )}
                         </div>
                         <span className="text-sm text-gray-400">
                           {formatDate(survey.savedAt || survey.submittedAt)}
@@ -2655,11 +2663,19 @@ const PilotAdminPage = () => {
                     <div key={survey.id} className="p-6 hover:bg-gray-50">
                       <div className="flex items-start justify-between mb-4">
                         <div>
-                          <span className="font-mono font-bold text-green-600">{survey.sessionCode || survey.id}</span>
-                          <span className="mx-2 text-gray-300">•</span>
-                          <span className="text-sm text-gray-500">
-                            {survey.studentCount} students
+                          <span className="font-mono font-bold text-green-600">
+                            {survey.teacherEmail || survey.sessionCode || survey.id}
                           </span>
+                          {survey.source === 'email-link' ? (
+                            <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-600 text-xs rounded">via email</span>
+                          ) : (
+                            <>
+                              <span className="mx-2 text-gray-300">•</span>
+                              <span className="text-sm text-gray-500">
+                                {survey.studentCount} students
+                              </span>
+                            </>
+                          )}
                         </div>
                         <span className="text-sm text-gray-400">
                           {formatDate(survey.savedAt || survey.submittedAt)}

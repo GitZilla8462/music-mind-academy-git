@@ -104,10 +104,21 @@ router.post('/update-lesson', async (req, res) => {
   }
 
   try {
-    const result = await updateHubSpotContact(token, email, {
+    const properties = {
       lesson_reached: String(lessonReached),
       platform_status: 'active'
-    });
+    };
+
+    // Track when survey emails are triggered
+    const now = new Date().toISOString().split('T')[0]; // YYYY-MM-DD for HubSpot date fields
+    if (Number(lessonReached) === 3) {
+      properties.l3_survey_sent = now;
+    }
+    if (Number(lessonReached) === 5) {
+      properties.l5_survey_sent = now;
+    }
+
+    const result = await updateHubSpotContact(token, email, properties);
     if (result.success) {
       console.log(`✅ HubSpot: ${email} → lesson ${lessonReached} unit ${unit || '?'} (ID: ${result.data.id})`);
     }

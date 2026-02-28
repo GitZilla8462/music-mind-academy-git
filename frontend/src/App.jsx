@@ -51,6 +51,8 @@ const TeacherDashboard = React.lazy(() => import('./pages/TeacherDashboard'));
 const StudentDashboard = React.lazy(() => import('./pages/StudentDashboard'));
 const FirebaseTeacherDashboard = React.lazy(() => import('./pages/FirebaseTeacherDashboard'));
 const PilotAdminPage = React.lazy(() => import('./pages/PilotAdminPage'));
+const MidPilotSurveyPage = React.lazy(() => import('./pages/MidPilotSurveyPage'));
+const FinalPilotSurveyPage = React.lazy(() => import('./pages/FinalPilotSurveyPage'));
 
 // Student Account pages (NEW)
 const StudentLogin = React.lazy(() => import('./pages/StudentLogin'));
@@ -330,6 +332,10 @@ const AppContent = () => {
             <PilotAdminPage />
           </FirebaseProtectedRoute>
         } />
+
+        {/* Standalone survey pages (teachers click email links) */}
+        <Route path="/survey/mid-pilot" element={<MidPilotSurveyPage />} />
+        <Route path="/survey/final" element={<FinalPilotSurveyPage />} />
 
         {/* Teacher Gradebook (NEW) */}
         <Route path="/teacher/gradebook/:classId" element={
@@ -631,6 +637,10 @@ const AppContent = () => {
             <PilotAdminPage />
           </FirebaseProtectedRoute>
         } />
+
+        {/* Standalone survey pages (teachers click email links) */}
+        <Route path="/survey/mid-pilot" element={<MidPilotSurveyPage />} />
+        <Route path="/survey/final" element={<FinalPilotSurveyPage />} />
 
         {/* Teacher Gradebook (NEW) */}
         <Route path="/teacher/gradebook/:classId" element={

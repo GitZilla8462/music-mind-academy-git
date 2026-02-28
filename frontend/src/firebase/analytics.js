@@ -2,6 +2,7 @@
 // src/firebase/analytics.js
 
 import { getDatabase, ref, get, set, update, push, onValue, increment } from 'firebase/database';
+import { sendTeacherEmail } from './emailTracking';
 
 const database = getDatabase();
 
@@ -171,6 +172,16 @@ export const logSessionEnded = async (sessionCode, lastStage, studentsJoined) =>
           unit
         })
       }).catch(err => console.warn('HubSpot lesson sync skipped:', err.message));
+
+      // Fire-and-forget survey emails (duplicate prevention handled by emailTracking)
+      if (lessonNum === 3) {
+        sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, 'survey-l3')
+          .catch(err => console.warn('L3 survey email skipped:', err.message));
+      }
+      if (lessonNum === 5) {
+        sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, 'survey-l5')
+          .catch(err => console.warn('L5 survey email skipped:', err.message));
+      }
     }
   }
 };
@@ -328,6 +339,52 @@ export const saveFinalPilotSurvey = async (surveyData) => {
     console.log(`📊 Saved final pilot survey for session ${surveyData.sessionCode}`);
   } catch (error) {
     console.error('Failed to save final pilot survey:', error);
+    throw error;
+  }
+};
+
+/**
+ * Save standalone mid-pilot survey (from email link, no session code)
+ */
+export const saveMidPilotSurveyStandalone = async (surveyData) => {
+  if (!surveyData.teacherEmail) return;
+
+  try {
+    const surveysRef = ref(database, 'surveys/midPilot');
+    const newRef = push(surveysRef);
+    await set(newRef, {
+      ...surveyData,
+      surveyType: 'midPilot',
+      source: 'email-link',
+      savedAt: Date.now()
+    });
+
+    console.log(`📊 Saved standalone mid-pilot survey for ${surveyData.teacherEmail}`);
+  } catch (error) {
+    console.error('Failed to save standalone mid-pilot survey:', error);
+    throw error;
+  }
+};
+
+/**
+ * Save standalone final pilot survey (from email link, no session code)
+ */
+export const saveFinalPilotSurveyStandalone = async (surveyData) => {
+  if (!surveyData.teacherEmail) return;
+
+  try {
+    const surveysRef = ref(database, 'surveys/finalPilot');
+    const newRef = push(surveysRef);
+    await set(newRef, {
+      ...surveyData,
+      surveyType: 'finalPilot',
+      source: 'email-link',
+      savedAt: Date.now()
+    });
+
+    console.log(`📊 Saved standalone final pilot survey for ${surveyData.teacherEmail}`);
+  } catch (error) {
+    console.error('Failed to save standalone final pilot survey:', error);
     throw error;
   }
 };
