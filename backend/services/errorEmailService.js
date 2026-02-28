@@ -7,7 +7,7 @@ const nodemailer = require('nodemailer');
 
 // Email configuration from environment variables
 const ALERT_EMAIL = process.env.ERROR_ALERT_EMAIL || 'rob@musicmindacademy.com';
-const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
+const SMTP_HOST = process.env.SMTP_HOST || 'smtp-relay.gmail.com';
 const SMTP_PORT = process.env.SMTP_PORT || 587;
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;

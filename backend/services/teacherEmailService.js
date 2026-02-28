@@ -5,7 +5,7 @@
 
 const nodemailer = require('nodemailer');
 
-const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
+const SMTP_HOST = process.env.SMTP_HOST || 'smtp-relay.gmail.com';
 const SMTP_PORT = process.env.SMTP_PORT || 587;
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
@@ -21,7 +21,6 @@ let transporter = null;
 
 const getTransporter = () => {
   if (!transporter && SMTP_USER && SMTP_PASS) {
-    console.log(`[SMTP Debug] User: "${SMTP_USER}", Pass length: ${SMTP_PASS?.length}, Host: ${SMTP_HOST}, Port: ${SMTP_PORT}`);
     transporter = nodemailer.createTransport({
       host: SMTP_HOST,
       port: SMTP_PORT,
