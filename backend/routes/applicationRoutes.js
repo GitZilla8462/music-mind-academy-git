@@ -6,10 +6,65 @@
 const express = require('express');
 const router = express.Router();
 const { getDatabase } = require('../services/firebaseAdmin');
-const { sendDripWelcomeEmail } = require('../services/teacherEmailService');
+const { sendDripWelcomeEmail, sendApplicationNotificationEmail } = require('../services/teacherEmailService');
 const { updateHubSpotContact } = require('../services/hubspotService');
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
+
+/**
+ * POST /api/applications/submit
+ * Public endpoint — saves application to Firebase, notifies admin, syncs HubSpot
+ */
+router.post('/submit', async (req, res) => {
+  const data = req.body;
+
+  if (!data.schoolEmail || !data.firstName || !data.lastName || !data.schoolName) {
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
+  }
+
+  const db = getDatabase();
+  if (!db) {
+    return res.status(500).json({ success: false, error: 'Firebase not configured' });
+  }
+
+  try {
+    // 1. Save to Firebase
+    const applicationData = {
+      ...data,
+      submittedAt: Date.now(),
+      status: 'pending'
+    };
+    const newRef = db.ref('pilotApplications').push();
+    await newRef.set(applicationData);
+    const applicationId = newRef.key;
+
+    // 2. Send admin notification email
+    try {
+      await sendApplicationNotificationEmail(applicationData, applicationId);
+    } catch (emailErr) {
+      console.error('[Applications] Admin notification failed:', emailErr.message);
+    }
+
+    // 3. Sync to HubSpot as "applied"
+    const hubspotToken = process.env.HUBSPOT_PRIVATE_APP_TOKEN;
+    if (hubspotToken) {
+      try {
+        await updateHubSpotContact(hubspotToken, data.schoolEmail, {
+          platform_status: 'applied'
+        }, `${data.firstName} ${data.lastName}`);
+        console.log(`[Applications] HubSpot: ${data.schoolEmail} → applied`);
+      } catch (hsErr) {
+        console.error('[Applications] HubSpot sync failed:', hsErr.message);
+      }
+    }
+
+    console.log(`[Applications] New application: ${data.firstName} ${data.lastName} (${data.schoolEmail})`);
+    return res.json({ success: true, applicationId });
+  } catch (err) {
+    console.error('[Applications] Submit error:', err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 /**
  * GET /api/applications/approve/:id?token=SECRET

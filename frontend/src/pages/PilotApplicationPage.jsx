@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { CheckCircle } from 'lucide-react';
-import { getDatabase, ref, push } from 'firebase/database';
 
 const PilotApplicationPage = () => {
   // Required fields
@@ -42,8 +41,6 @@ const PilotApplicationPage = () => {
     if (!canSubmit) return;
     setSubmitting(true);
     try {
-      const database = getDatabase();
-      const applicationsRef = ref(database, 'pilotApplications');
       const applicationData = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -58,39 +55,22 @@ const PilotApplicationPage = () => {
         biggestChallenge: biggestChallenge.trim(),
         whyPilot: whyPilot.trim(),
         toolsUsed,
-        anythingElse: anythingElse.trim(),
-        submittedAt: Date.now(),
-        status: 'pending'
+        anythingElse: anythingElse.trim()
       };
-      const newRef = await push(applicationsRef, applicationData);
 
-      // Notify admin via backend
-      try {
-        await fetch('/api/email/application-notify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...applicationData, applicationId: newRef.key })
-        });
-      } catch (emailErr) {
-        console.error('Failed to send admin notification:', emailErr);
+      // Submit through backend (handles Firebase write, admin email, HubSpot)
+      const res = await fetch('/api/applications/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(applicationData)
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        setSubmitted(true);
+      } else {
+        console.error('Application submission failed:', result.error);
       }
-
-      // Add to HubSpot as "applied"
-      try {
-        await fetch('/api/hubspot/update-status', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: applicationData.schoolEmail,
-            displayName: `${applicationData.firstName} ${applicationData.lastName}`,
-            status: 'applied'
-          })
-        });
-      } catch (hsErr) {
-        console.error('HubSpot sync failed:', hsErr);
-      }
-
-      setSubmitted(true);
     } catch (err) {
       console.error('Failed to submit application:', err);
     }
@@ -245,7 +225,8 @@ const PilotApplicationPage = () => {
 
           {/* Student Devices */}
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">What devices do your students use?</p>
+            <p className="text-sm font-medium text-gray-700 mb-1">What devices do your students use?</p>
+            <p className="text-xs text-amber-600 mb-2">Music Mind Academy is only optimized for Chromebooks. Other devices may not work properly.</p>
             <div className="flex flex-wrap gap-2">
               {deviceOptions.map((device) => (
                 <button
