@@ -9,7 +9,7 @@ const { updateHubSpotContact } = require('../services/hubspotService');
  * Sets platform_status = "registered".
  */
 router.post('/update-status', async (req, res) => {
-  const { email, displayName, status } = req.body;
+  const { email, displayName, status, properties } = req.body;
   const platformStatus = status || 'registered';
 
   if (!email) {
@@ -23,7 +23,8 @@ router.post('/update-status', async (req, res) => {
   }
 
   try {
-    const result = await updateHubSpotContact(token, email, { platform_status: platformStatus }, displayName);
+    const allProperties = { platform_status: platformStatus, ...(properties || {}) };
+    const result = await updateHubSpotContact(token, email, allProperties, displayName);
     if (result.success) {
       console.log(`✅ HubSpot: ${email} → ${platformStatus} (${result.action}, ID: ${result.data.id})`);
     } else {

@@ -110,6 +110,22 @@ export const sendTeacherEmail = async (email, displayName, type, extraData = {})
     // Mark as sent and update admin outreach
     await markEmailSent(email, type);
     await updateOutreachStatus(email, type);
+
+    // Sync drip dates to HubSpot
+    if (type.startsWith('drip-')) {
+      try {
+        const now = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const dripProperty = type === 'drip-1' ? 'drip_1_sent' : type === 'drip-2' ? 'drip_2_sent' : 'drip_3_sent';
+        await fetch('/api/hubspot/update-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, status: 'approved', properties: { [dripProperty]: now } })
+        });
+      } catch (hsErr) {
+        console.warn(`[EmailTracking] HubSpot drip sync failed for ${email}:`, hsErr.message);
+      }
+    }
+
     console.log(`[EmailTracking] ${type} sent and tracked for ${email}`);
   } else {
     console.warn(`[EmailTracking] ${type} send failed for ${email}:`, result.error);

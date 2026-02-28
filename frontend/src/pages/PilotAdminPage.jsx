@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { getDatabase, ref, get, set, remove, onValue, update } from 'firebase/database';
-import { Users, UserPlus, Trash2, Mail, Calendar, Shield, ArrowLeft, RefreshCw, BarChart3, Clock, BookOpen, Play, Building2, GraduationCap, ChevronDown, ChevronUp, MessageSquare, Star, Download, DatabaseBackup, AlertTriangle, Search, Filter, ArrowUpDown, Check, X, FileText, Inbox, Send } from 'lucide-react';
+import { Users, UserPlus, Trash2, Mail, Calendar, Shield, ArrowLeft, RefreshCw, BarChart3, Clock, BookOpen, Play, Building2, GraduationCap, ChevronDown, ChevronUp, MessageSquare, Star, Download, DatabaseBackup, AlertTriangle, Search, Filter, ArrowUpDown, Check, X, FileText, Inbox } from 'lucide-react';
 import ErrorLogViewer from '../components/admin/ErrorLogViewer';
 import { getTeacherAnalytics, getPilotSessions, getPilotSummaryStats, subscribeToAnalytics } from '../firebase/analytics';
 import { SITE_TYPES } from '../firebase/approvedEmails';
@@ -1594,22 +1594,6 @@ const PilotAdminPage = () => {
             Error Logs
           </button>
 
-          {/* Drip processor button */}
-          <div className="ml-auto">
-            <button
-              onClick={handleProcessDrips}
-              disabled={dripProcessing}
-              className="px-3 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200"
-            >
-              <Send size={16} className={dripProcessing ? 'animate-spin' : ''} />
-              {dripProcessing ? 'Processing...' : 'Process Drips'}
-            </button>
-            {dripResult && (dripResult.drip2Sent > 0 || dripResult.drip3Sent > 0) && (
-              <p className="text-xs text-amber-600 mt-1">
-                Sent: {dripResult.drip2Sent} follow-up, {dripResult.drip3Sent} final
-              </p>
-            )}
-          </div>
         </div>
 
         {/* Applications Tab */}
