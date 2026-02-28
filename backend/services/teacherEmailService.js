@@ -21,6 +21,7 @@ let transporter = null;
 
 const getTransporter = () => {
   if (!transporter && SMTP_USER && SMTP_PASS) {
+    console.log(`[SMTP Debug] User: "${SMTP_USER}", Pass length: ${SMTP_PASS?.length}, Host: ${SMTP_HOST}, Port: ${SMTP_PORT}`);
     transporter = nodemailer.createTransport({
       host: SMTP_HOST,
       port: SMTP_PORT,
