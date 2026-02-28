@@ -988,6 +988,75 @@ const PilotAdminPage = () => {
               {isBackfilling ? 'Backfilling...' : 'Recover Student Data'}
             </button>
             <button
+              disabled={hubspotSyncing}
+              onClick={async () => {
+                // Build teacher data from sessions
+                const teacherLessonData = {};
+                pilotSessions.forEach(session => {
+                  const email = session.teacherEmail;
+                  if (!email) return;
+                  let lessonNum = null;
+                  if (session.lessonRoute?.includes('lesson1')) lessonNum = 1;
+                  else if (session.lessonRoute?.includes('lesson2')) lessonNum = 2;
+                  else if (session.lessonRoute?.includes('lesson3')) lessonNum = 3;
+                  else if (session.lessonRoute?.includes('lesson4')) lessonNum = 4;
+                  else if (session.lessonRoute?.includes('lesson5')) lessonNum = 5;
+                  if (!lessonNum) return;
+
+                  const stageTimes = session.stageTimes || {};
+                  const activeTimeMs = Object.values(stageTimes).reduce((sum, t) => sum + (t || 0), 0);
+                  const activeTimeMins = Math.round(activeTimeMs / 60000);
+                  const stageCount = Object.keys(stageTimes).length;
+                  const isReal = activeTimeMins >= 10 && stageCount >= 3;
+
+                  if (!teacherLessonData[email]) teacherLessonData[email] = { email, highestLesson: 0 };
+                  if (isReal && lessonNum > teacherLessonData[email].highestLesson) {
+                    teacherLessonData[email].highestLesson = lessonNum;
+                  }
+                });
+
+                const teacherPayload = Object.values(teacherLessonData).map(t => ({
+                  email: t.email,
+                  displayName: '',
+                  lessonReached: t.highestLesson
+                }));
+
+                // Also include registered users with no sessions
+                const sessionEmails = new Set(Object.keys(teacherLessonData).map(e => e.toLowerCase()));
+                registeredUsers.forEach(u => {
+                  if (u.email && !sessionEmails.has(u.email.toLowerCase())) {
+                    teacherPayload.push({ email: u.email, displayName: u.displayName || '', lessonReached: 0 });
+                  }
+                });
+
+                if (!confirm(`Sync ${teacherPayload.length} teachers to HubSpot?`)) return;
+                setHubspotSyncing(true);
+                setHubspotSyncResult(null);
+                try {
+                  const res = await fetch('/api/hubspot/batch-sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ teachers: teacherPayload })
+                  });
+                  const result = await res.json();
+                  setHubspotSyncResult(result);
+                  setSuccess(`HubSpot sync: ${result.updated || 0} updated, ${result.created || 0} created, ${result.failed || 0} failed`);
+                } catch (err) {
+                  setError('HubSpot sync failed: ' + err.message);
+                } finally {
+                  setHubspotSyncing(false);
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white rounded-lg font-medium transition-colors"
+            >
+              {hubspotSyncing ? (
+                <RefreshCw size={18} className="animate-spin" />
+              ) : (
+                <ArrowUpDown size={18} />
+              )}
+              {hubspotSyncing ? 'Syncing...' : 'Sync to HubSpot'}
+            </button>
+            <button
               onClick={exportToExcel}
               className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
             >
@@ -1968,58 +2037,6 @@ const PilotAdminPage = () => {
                           Mark All as Pilot
                         </button>
 
-                        {/* Sync to HubSpot button */}
-                        <button
-                          disabled={hubspotSyncing}
-                          onClick={async () => {
-                            if (!confirm(`Sync all teachers to HubSpot? This will update platform_status and lesson_reached for all teachers including registered users.`)) return;
-                            setHubspotSyncing(true);
-                            setHubspotSyncResult(null);
-                            try {
-                              // Build teacher data with highest lesson reached
-                              const teacherPayload = teachers.map(t => {
-                                let highestLesson = 0;
-                                if (t.l5Done) highestLesson = 5;
-                                else if (t.l4Done) highestLesson = 4;
-                                else if (t.l3Done) highestLesson = 3;
-                                else if (t.l2Done) highestLesson = 2;
-                                else if (t.l1Done) highestLesson = 1;
-                                return {
-                                  email: t.email,
-                                  displayName: t.teacherName || '',
-                                  lessonReached: highestLesson
-                                };
-                              });
-
-                              // Also include registered users who have no sessions
-                              const sessionEmails = new Set(teachers.map(t => t.email.toLowerCase()));
-                              registeredUsers.forEach(u => {
-                                if (u.email && !sessionEmails.has(u.email.toLowerCase())) {
-                                  teacherPayload.push({
-                                    email: u.email,
-                                    displayName: u.displayName || '',
-                                    lessonReached: 0
-                                  });
-                                }
-                              });
-                              const res = await fetch('/api/hubspot/batch-sync', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ teachers: teacherPayload })
-                              });
-                              const result = await res.json();
-                              setHubspotSyncResult(result);
-                              setSuccess(`HubSpot sync: ${result.updated || 0} updated, ${result.created || 0} created, ${result.failed || 0} failed`);
-                            } catch (err) {
-                              setError('HubSpot sync failed: ' + err.message);
-                            } finally {
-                              setHubspotSyncing(false);
-                            }
-                          }}
-                          className="px-3 py-2 bg-orange-100 text-orange-700 rounded-lg text-sm hover:bg-orange-200 disabled:opacity-50"
-                        >
-                          {hubspotSyncing ? 'Syncing...' : 'Sync to HubSpot'}
-                        </button>
                       </div>
                     </div>
                   </div>
