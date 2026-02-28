@@ -19,7 +19,15 @@ const initFirebase = () => {
   }
 
   try {
-    const parsed = JSON.parse(serviceAccount);
+    // Railway may convert \n escape sequences in env vars to actual newlines,
+    // which breaks JSON.parse (newlines inside JSON strings are invalid).
+    // Fix by replacing actual newlines back to \n escape sequences before parsing.
+    const fixed = serviceAccount.replace(/\n/g, '\\n');
+    const parsed = JSON.parse(fixed);
+    // Restore actual newlines in the private key (PEM format needs them)
+    if (parsed.private_key) {
+      parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+    }
     admin.initializeApp({
       credential: admin.credential.cert(parsed),
       databaseURL: databaseURL || `https://${parsed.project_id}-default-rtdb.firebaseio.com`
