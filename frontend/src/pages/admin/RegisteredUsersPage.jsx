@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Trash2 } from 'lucide-react';
+import { Users, Trash2, Download } from 'lucide-react';
 import { useAdminData } from './AdminDataContext';
 
 const RegisteredUsersPage = () => {
@@ -31,6 +31,37 @@ const RegisteredUsersPage = () => {
     const newSelected = {};
     unapproved.forEach(user => { newSelected[user.id] = true; });
     setSelectedUsers(newSelected);
+  };
+
+  const exportCSV = () => {
+    const headers = ['Name', 'Email', 'Joined', 'Last Login', 'Type', 'Approved'];
+    const rows = [...registeredUsers].sort((a, b) => {
+      const aEmailKey = a.email?.toLowerCase().replace(/\./g, ',');
+      const bEmailKey = b.email?.toLowerCase().replace(/\./g, ',');
+      const aType = teacherOutreach[aEmailKey]?.teacherType || 'pilot';
+      const bType = teacherOutreach[bEmailKey]?.teacherType || 'pilot';
+      return (bType === 'purchased' ? 1 : 0) - (aType === 'purchased' ? 1 : 0);
+    }).map(user => {
+      const isApproved = approvedEmails.some(e => e.email?.toLowerCase() === user.email?.toLowerCase());
+      const emailKey = user.email?.toLowerCase().replace(/\./g, ',');
+      const teacherType = teacherOutreach[emailKey]?.teacherType || 'pilot';
+      return [
+        `"${(user.displayName || 'Unknown').replace(/"/g, '""')}"`,
+        user.email || '',
+        user.createdAt ? new Date(user.createdAt).toISOString() : '',
+        user.lastLoginAt ? new Date(user.lastLoginAt).toISOString() : '',
+        teacherType,
+        isApproved ? 'Yes' : 'No'
+      ];
+    });
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `registered-users-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const onBulkDelete = async () => {
@@ -76,6 +107,11 @@ const RegisteredUsersPage = () => {
                 </button>
               )}
             </div>
+            <button onClick={exportCSV}
+              className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 flex items-center gap-1">
+              <Download size={14} />
+              Export CSV
+            </button>
           </div>
 
           {[...registeredUsers].sort((a, b) => {
