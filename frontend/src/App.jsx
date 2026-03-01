@@ -6,6 +6,7 @@ import { SessionProvider } from './context/SessionContext';
 import { FirebaseAuthProvider } from './context/FirebaseAuthContext';
 import { StudentAuthProvider } from './context/StudentAuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import lazyWithRetry from './utils/lazyWithRetry';
 
 // Import styles - including snap guide styles
 import './App.css';
@@ -31,114 +32,115 @@ import ErrorLogger from './components/ErrorLogger';
 
 // ===========================================
 // LAZY IMPORTS - Load on demand (heavy components)
+// Uses lazyWithRetry to auto-reload on stale chunk errors after deploys
 // ===========================================
 
 // Landing pages (light, but lazy load for code splitting)
-const LandingPage = React.lazy(() => import('./pages/LandingPage'));
-const EduLandingPage = React.lazy(() => import('./pages/EduLandingPage'));
-const TeacherLoginPage = React.lazy(() => import('./pages/TeacherLoginPage'));
+const LandingPage = lazyWithRetry(() => import('./pages/LandingPage'));
+const EduLandingPage = lazyWithRetry(() => import('./pages/EduLandingPage'));
+const TeacherLoginPage = lazyWithRetry(() => import('./pages/TeacherLoginPage'));
 
 // Legal/Privacy pages
-const StudentPrivacy = React.lazy(() => import('./pages/StudentPrivacy'));
-const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
-const TermsOfService = React.lazy(() => import('./pages/TermsOfService'));
-const DataPrivacyAgreement = React.lazy(() => import('./pages/DataPrivacyAgreement'));
-const SecurityPractices = React.lazy(() => import('./pages/SecurityPractices'));
+const StudentPrivacy = lazyWithRetry(() => import('./pages/StudentPrivacy'));
+const PrivacyPolicy = lazyWithRetry(() => import('./pages/PrivacyPolicy'));
+const TermsOfService = lazyWithRetry(() => import('./pages/TermsOfService'));
+const DataPrivacyAgreement = lazyWithRetry(() => import('./pages/DataPrivacyAgreement'));
+const SecurityPractices = lazyWithRetry(() => import('./pages/SecurityPractices'));
 
 // Dashboard pages
-const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
-const TeacherDashboard = React.lazy(() => import('./pages/TeacherDashboard'));
-const StudentDashboard = React.lazy(() => import('./pages/StudentDashboard'));
-const FirebaseTeacherDashboard = React.lazy(() => import('./pages/FirebaseTeacherDashboard'));
+const AdminDashboard = lazyWithRetry(() => import('./pages/AdminDashboard'));
+const TeacherDashboard = lazyWithRetry(() => import('./pages/TeacherDashboard'));
+const StudentDashboard = lazyWithRetry(() => import('./pages/StudentDashboard'));
+const FirebaseTeacherDashboard = lazyWithRetry(() => import('./pages/FirebaseTeacherDashboard'));
 // Admin dashboard (sidebar layout with nested routes)
-const AdminLayout = React.lazy(() => import('./pages/admin/AdminLayout'));
-const AdminDashboardPage = React.lazy(() => import('./pages/admin/DashboardPage'));
-const AdminApplicationsPage = React.lazy(() => import('./pages/admin/ApplicationsPage'));
-const AdminApprovedEmailsPage = React.lazy(() => import('./pages/admin/ApprovedEmailsPage'));
-const AdminRegisteredUsersPage = React.lazy(() => import('./pages/admin/RegisteredUsersPage'));
-const AdminTeacherAnalyticsPage = React.lazy(() => import('./pages/admin/TeacherAnalyticsPage'));
-const AdminLessonAnalyticsPage = React.lazy(() => import('./pages/admin/LessonAnalyticsPage'));
-const AdminSessionsPage = React.lazy(() => import('./pages/admin/SessionsPage'));
-const AdminSurveysPage = React.lazy(() => import('./pages/admin/SurveysPage'));
-const AdminEmailsPage = React.lazy(() => import('./pages/admin/EmailsPage'));
-const AdminErrorLogsPage = React.lazy(() => import('./pages/admin/ErrorLogsPage'));
-const MidPilotSurveyPage = React.lazy(() => import('./pages/MidPilotSurveyPage'));
-const FinalPilotSurveyPage = React.lazy(() => import('./pages/FinalPilotSurveyPage'));
-const PilotApplicationPage = React.lazy(() => import('./pages/PilotApplicationPage'));
+const AdminLayout = lazyWithRetry(() => import('./pages/admin/AdminLayout'));
+const AdminDashboardPage = lazyWithRetry(() => import('./pages/admin/DashboardPage'));
+const AdminApplicationsPage = lazyWithRetry(() => import('./pages/admin/ApplicationsPage'));
+const AdminApprovedEmailsPage = lazyWithRetry(() => import('./pages/admin/ApprovedEmailsPage'));
+const AdminRegisteredUsersPage = lazyWithRetry(() => import('./pages/admin/RegisteredUsersPage'));
+const AdminTeacherAnalyticsPage = lazyWithRetry(() => import('./pages/admin/TeacherAnalyticsPage'));
+const AdminLessonAnalyticsPage = lazyWithRetry(() => import('./pages/admin/LessonAnalyticsPage'));
+const AdminSessionsPage = lazyWithRetry(() => import('./pages/admin/SessionsPage'));
+const AdminSurveysPage = lazyWithRetry(() => import('./pages/admin/SurveysPage'));
+const AdminEmailsPage = lazyWithRetry(() => import('./pages/admin/EmailsPage'));
+const AdminErrorLogsPage = lazyWithRetry(() => import('./pages/admin/ErrorLogsPage'));
+const MidPilotSurveyPage = lazyWithRetry(() => import('./pages/MidPilotSurveyPage'));
+const FinalPilotSurveyPage = lazyWithRetry(() => import('./pages/FinalPilotSurveyPage'));
+const PilotApplicationPage = lazyWithRetry(() => import('./pages/PilotApplicationPage'));
 
 // Student Account pages (NEW)
-const StudentLogin = React.lazy(() => import('./pages/StudentLogin'));
-const StudentHome = React.lazy(() => import('./pages/StudentHome'));
+const StudentLogin = lazyWithRetry(() => import('./pages/StudentLogin'));
+const StudentHome = lazyWithRetry(() => import('./pages/StudentHome'));
 
 // Teacher Gradebook (NEW)
-const TeacherGradebook = React.lazy(() => import('./pages/TeacherGradebook'));
+const TeacherGradebook = lazyWithRetry(() => import('./pages/TeacherGradebook'));
 
 // Class Detail Page (NEW)
-const ClassDetailPage = React.lazy(() => import('./pages/ClassDetailPage'));
+const ClassDetailPage = lazyWithRetry(() => import('./pages/ClassDetailPage'));
 
 // Classroom and hub pages
-const MusicClassroomResources = React.lazy(() => import('./pages/MusicClassroomResources'));
-const MusicLoopsInMediaHub = React.lazy(() => import('./pages/MusicLoopsInMediaHub'));
-const ListeningLabHub = React.lazy(() => import('./pages/ListeningLabHub'));
-const FilmMusicHub = React.lazy(() => import('./pages/FilmMusicHub'));
-const CurriculumGuide = React.lazy(() => import('./pages/CurriculumGuide'));
+const MusicClassroomResources = lazyWithRetry(() => import('./pages/MusicClassroomResources'));
+const MusicLoopsInMediaHub = lazyWithRetry(() => import('./pages/MusicLoopsInMediaHub'));
+const ListeningLabHub = lazyWithRetry(() => import('./pages/ListeningLabHub'));
+const FilmMusicHub = lazyWithRetry(() => import('./pages/FilmMusicHub'));
+const CurriculumGuide = lazyWithRetry(() => import('./pages/CurriculumGuide'));
 
 // Assignment/class management pages
-const CreateAssignmentPage = React.lazy(() => import('./pages/CreateAssignmentPage'));
-const ClassManagementPage = React.lazy(() => import('./pages/ClassManagementPage'));
-const EditClassPage = React.lazy(() => import('./pages/EditClassPage'));
-const StudentProfilePage = React.lazy(() => import('./pages/StudentProfilePage'));
-const AssignmentGradingPage = React.lazy(() => import('./components/dashboard/teacherdashboard/AssignmentGradingPage'));
-const StudentSubmissionView = React.lazy(() => import('./components/dashboard/teacherdashboard/StudentSubmissionView'));
-const EditAssignmentPage = React.lazy(() => import('./components/dashboard/teacherdashboard/EditAssignmentPage'));
-const TeacherSubmissionViewer = React.lazy(() => import('./components/dashboard/teacherdashboard/TeacherSubmissionViewer'));
+const CreateAssignmentPage = lazyWithRetry(() => import('./pages/CreateAssignmentPage'));
+const ClassManagementPage = lazyWithRetry(() => import('./pages/ClassManagementPage'));
+const EditClassPage = lazyWithRetry(() => import('./pages/EditClassPage'));
+const StudentProfilePage = lazyWithRetry(() => import('./pages/StudentProfilePage'));
+const AssignmentGradingPage = lazyWithRetry(() => import('./components/dashboard/teacherdashboard/AssignmentGradingPage'));
+const StudentSubmissionView = lazyWithRetry(() => import('./components/dashboard/teacherdashboard/StudentSubmissionView'));
+const EditAssignmentPage = lazyWithRetry(() => import('./components/dashboard/teacherdashboard/EditAssignmentPage'));
+const TeacherSubmissionViewer = lazyWithRetry(() => import('./components/dashboard/teacherdashboard/TeacherSubmissionViewer'));
 
 // Film music score project (HEAVY - uses Pixi.js, Tone.js)
-const VideoSelection = React.lazy(() => import('./pages/projects/film-music-score/shared/VideoSelection'));
-const MusicComposer = React.lazy(() => import('./pages/projects/film-music-score/composer/MusicComposer'));
-const FilmMusicScoreMain = React.lazy(() => import('./pages/projects/film-music-score/FilmMusicScoreMain'));
+const VideoSelection = lazyWithRetry(() => import('./pages/projects/film-music-score/shared/VideoSelection'));
+const MusicComposer = lazyWithRetry(() => import('./pages/projects/film-music-score/composer/MusicComposer'));
+const FilmMusicScoreMain = lazyWithRetry(() => import('./pages/projects/film-music-score/FilmMusicScoreMain'));
 
 // Lesson components (HEAVY - use Tone.js, etc.)
-const SimpleLessonPlaceholder = React.lazy(() => import('./lessons/shared/components/LessonPlayer'));
-const Lesson1 = React.lazy(() => import('./lessons/film-music-project/lesson1/Lesson1'));
-const Lesson2 = React.lazy(() => import('./lessons/film-music-project/lesson2/Lesson2'));
-const Lesson3 = React.lazy(() => import('./lessons/film-music-project/lesson3/Lesson3'));
-const Lesson4 = React.lazy(() => import('./lessons/film-music-project/lesson4/Lesson4'));
-const Lesson5 = React.lazy(() => import('./lessons/film-music-project/lesson5/Lesson5'));
+const SimpleLessonPlaceholder = lazyWithRetry(() => import('./lessons/shared/components/LessonPlayer'));
+const Lesson1 = lazyWithRetry(() => import('./lessons/film-music-project/lesson1/Lesson1'));
+const Lesson2 = lazyWithRetry(() => import('./lessons/film-music-project/lesson2/Lesson2'));
+const Lesson3 = lazyWithRetry(() => import('./lessons/film-music-project/lesson3/Lesson3'));
+const Lesson4 = lazyWithRetry(() => import('./lessons/film-music-project/lesson4/Lesson4'));
+const Lesson5 = lazyWithRetry(() => import('./lessons/film-music-project/lesson5/Lesson5'));
 
 // Film Music Unit Lessons (NEW - Leitmotif-based curriculum)
-const FMLesson1 = React.lazy(() => import('./lessons/film-music/lesson1/Lesson1'));
+const FMLesson1 = lazyWithRetry(() => import('./lessons/film-music/lesson1/Lesson1'));
 
 // Listening Lab Unit Lessons (Unit 2 - Elements of Music)
-const ListeningLabLesson1 = React.lazy(() => import('./lessons/listening-lab/lesson1/Lesson1'));
-const ListeningLabLesson2 = React.lazy(() => import('./lessons/listening-lab/lesson2/Lesson2'));
-const ListeningLabLesson3 = React.lazy(() => import('./lessons/listening-lab/lesson3/Lesson3'));
-const ListeningLabLesson4 = React.lazy(() => import('./lessons/listening-lab/lesson4/Lesson4'));
-const ListeningLabLesson5 = React.lazy(() => import('./lessons/listening-lab/lesson5/Lesson5'));
+const ListeningLabLesson1 = lazyWithRetry(() => import('./lessons/listening-lab/lesson1/Lesson1'));
+const ListeningLabLesson2 = lazyWithRetry(() => import('./lessons/listening-lab/lesson2/Lesson2'));
+const ListeningLabLesson3 = lazyWithRetry(() => import('./lessons/listening-lab/lesson3/Lesson3'));
+const ListeningLabLesson4 = lazyWithRetry(() => import('./lessons/listening-lab/lesson4/Lesson4'));
+const ListeningLabLesson5 = lazyWithRetry(() => import('./lessons/listening-lab/lesson5/Lesson5'));
 
 // Lesson plan PDFs
-const LessonPlanPDF = React.lazy(() => import('./lessons/film-music-project/lesson1/LessonPlanPDF'));
-const LessonPlan2PDF = React.lazy(() => import('./lessons/film-music-project/lesson2/LessonPlan2PDF'));
-const LessonPlan3PDF = React.lazy(() => import('./lessons/film-music-project/lesson3/LessonPlan3PDF'));
-const LessonPlan4PDF = React.lazy(() => import('./lessons/film-music-project/lesson4/LessonPlan4PDF'));
+const LessonPlanPDF = lazyWithRetry(() => import('./lessons/film-music-project/lesson1/LessonPlanPDF'));
+const LessonPlan2PDF = lazyWithRetry(() => import('./lessons/film-music-project/lesson2/LessonPlan2PDF'));
+const LessonPlan3PDF = lazyWithRetry(() => import('./lessons/film-music-project/lesson3/LessonPlan3PDF'));
+const LessonPlan4PDF = lazyWithRetry(() => import('./lessons/film-music-project/lesson4/LessonPlan4PDF'));
 
 // Presentation and session pages
-const PresentationView = React.lazy(() => import('./components/PresentationView'));
-const SessionStartPage = React.lazy(() => import('./pages/SessionStartPage'));
-const JoinWithCode = React.lazy(() => import('./pages/JoinWithCode'));
-const CompositionViewer = React.lazy(() => import('./pages/CompositionViewer'));
-const PublicPortfolio = React.lazy(() => import('./pages/PublicPortfolio'));
+const PresentationView = lazyWithRetry(() => import('./components/PresentationView'));
+const SessionStartPage = lazyWithRetry(() => import('./pages/SessionStartPage'));
+const JoinWithCode = lazyWithRetry(() => import('./pages/JoinWithCode'));
+const CompositionViewer = lazyWithRetry(() => import('./pages/CompositionViewer'));
+const PublicPortfolio = lazyWithRetry(() => import('./pages/PublicPortfolio'));
 
 // Debug and admin tools
-const FirebaseSessionInspector = React.lazy(() => import('./components/FirebaseSessionInspector'));
-const AdminAllProblems = React.lazy(() => import('./pages/AdminAllProblems'));
+const FirebaseSessionInspector = lazyWithRetry(() => import('./components/FirebaseSessionInspector'));
+const AdminAllProblems = lazyWithRetry(() => import('./pages/AdminAllProblems'));
 
 // Activity pages
-const DemoActivity = React.lazy(() => import('./pages/DemoActivity'));
-const ListeningMapViewer = React.lazy(() => import('./pages/ListeningMapViewer'));
+const DemoActivity = lazyWithRetry(() => import('./pages/DemoActivity'));
+const ListeningMapViewer = lazyWithRetry(() => import('./pages/ListeningMapViewer'));
 
 // Dev tools
-const HotspotEditor = React.lazy(() => import('./pages/dev/HotspotEditor'));
+const HotspotEditor = lazyWithRetry(() => import('./pages/dev/HotspotEditor'));
 
 // Add global styles for snap guide
 const snapGuideStyles = `
