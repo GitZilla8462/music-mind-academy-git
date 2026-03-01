@@ -130,8 +130,8 @@ const EmailsPage = () => {
   }, [teacherOutreach]);
 
   const wrapPreviewHtml = (html) => {
-    // Wrap email HTML so links don't navigate inside the iframe
-    return `<!DOCTYPE html><html><head><style>a{pointer-events:none;cursor:default;}</style></head><body style="margin:0;padding:16px;background:#f3f4f6;">${html}</body></html>`;
+    // Wrap email HTML - links open in new tab, not inside the iframe
+    return `<!DOCTYPE html><html><head><base target="_blank"></head><body style="margin:0;padding:16px;background:#f3f4f6;">${html}</body></html>`;
   };
 
   const handlePreview = async (type) => {
@@ -486,7 +486,7 @@ const EmailsPage = () => {
                         className="w-full border-0"
                         style={{ height: '450px' }}
                         title={`${template.name} preview`}
-                        sandbox=""
+                        sandbox="allow-popups allow-popups-to-escape-sandbox"
                       />
                     </div>
                   )}
