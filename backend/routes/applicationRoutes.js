@@ -213,6 +213,22 @@ router.get('/decline/:id', async (req, res) => {
 });
 
 /**
+ * GET /api/applications/count
+ * Debug endpoint — check how many applications exist in Firebase
+ */
+router.get('/count', async (req, res) => {
+  const db = getDatabase();
+  if (!db) return res.status(500).json({ error: 'Firebase not configured' });
+  try {
+    const snap = await db.ref('pilotApplications').once('value');
+    const count = snap.exists() ? Object.keys(snap.val()).length : 0;
+    return res.json({ count, exists: snap.exists() });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * POST /api/applications/bulk-import
  * Import applications from Google Forms (TSV paste)
  */
