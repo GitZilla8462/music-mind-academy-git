@@ -171,6 +171,9 @@ export const AdminDataProvider = ({ children }) => {
   }, [user, isAdmin, database]);
 
   // Auto-run drip processor
+  // DRIP PROCESSOR DISABLED — was auto-sending emails on every admin page load
+  // To re-enable, uncomment below and add a manual "Run Drip" button instead
+  /*
   useEffect(() => {
     if (!isAdmin || loading || academyEmails.length === 0) return;
     const runDrip = async () => {
@@ -190,6 +193,7 @@ export const AdminDataProvider = ({ children }) => {
     };
     runDrip();
   }, [isAdmin, loading, academyEmails.length, registeredUsers.length]);
+  */
 
   // --- Action Handlers ---
 
