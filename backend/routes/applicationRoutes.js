@@ -213,6 +213,104 @@ router.get('/decline/:id', async (req, res) => {
 });
 
 /**
+ * POST /api/applications/bulk-import
+ * Import applications from Google Forms (TSV paste)
+ */
+router.post('/bulk-import', async (req, res) => {
+  const { applications } = req.body;
+
+  if (!Array.isArray(applications) || applications.length === 0) {
+    return res.status(400).json({ success: false, error: 'No applications provided' });
+  }
+
+  const db = getDatabase();
+  if (!db) {
+    return res.status(500).json({ success: false, error: 'Firebase not configured' });
+  }
+
+  try {
+    // 1. Load existing pilotApplications to detect duplicates
+    const existingSnap = await db.ref('pilotApplications').once('value');
+    const existingEmails = new Set();
+    if (existingSnap.exists()) {
+      Object.values(existingSnap.val()).forEach(app => {
+        if (app.schoolEmail) {
+          existingEmails.add(app.schoolEmail.toLowerCase().trim());
+        }
+      });
+    }
+
+    // 2. Load approvedEmails/academy to determine status
+    const approvedSnap = await db.ref('approvedEmails/academy').once('value');
+    const approvedEmails = new Set();
+    if (approvedSnap.exists()) {
+      Object.values(approvedSnap.val()).forEach(entry => {
+        if (entry.email) {
+          approvedEmails.add(entry.email.toLowerCase().trim());
+        }
+      });
+    }
+
+    let imported = 0;
+    let skipped = 0;
+    const errors = [];
+
+    for (const app of applications) {
+      const email = (app.schoolEmail || '').toLowerCase().trim();
+      if (!email) {
+        skipped++;
+        continue;
+      }
+
+      // Skip duplicates
+      if (existingEmails.has(email)) {
+        skipped++;
+        continue;
+      }
+
+      // Determine status
+      const isApproved = approvedEmails.has(email);
+
+      const applicationData = {
+        firstName: app.firstName || '',
+        lastName: app.lastName || '',
+        schoolEmail: email,
+        schoolName: app.schoolName || '',
+        personalEmail: app.personalEmail || '',
+        city: app.city || '',
+        state: app.state || '',
+        grades: app.grades || [],
+        devices: app.devices || [],
+        classSize: app.classSize || '',
+        biggestChallenge: app.biggestChallenge || '',
+        whyPilot: app.whyPilot || '',
+        toolsUsed: app.toolsUsed || [],
+        canCommit: app.canCommit || '',
+        anythingElse: app.anythingElse || '',
+        submittedAt: app.submittedAt || Date.now(),
+        status: isApproved ? 'approved' : 'imported',
+        source: 'google-form'
+      };
+
+      try {
+        const newRef = db.ref('pilotApplications').push();
+        await newRef.set(applicationData);
+        existingEmails.add(email); // prevent duplicates within the same batch
+        imported++;
+      } catch (writeErr) {
+        errors.push(`${email}: ${writeErr.message}`);
+      }
+    }
+
+    console.log(`[Applications] Bulk import: ${imported} imported, ${skipped} skipped, ${errors.length} errors`);
+    return res.json({ success: true, imported, skipped, errors });
+  } catch (err) {
+    console.error('[Applications] Bulk import error:', err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
  * Simple HTML page response for email link clicks
  */
 function htmlPage(title, message, color) {
