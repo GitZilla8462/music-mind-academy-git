@@ -129,6 +129,11 @@ const EmailsPage = () => {
     return counts;
   }, [teacherOutreach]);
 
+  const wrapPreviewHtml = (html) => {
+    // Wrap email HTML so links don't navigate inside the iframe
+    return `<!DOCTYPE html><html><head><style>a{pointer-events:none;cursor:default;}</style></head><body style="margin:0;padding:16px;background:#f3f4f6;">${html}</body></html>`;
+  };
+
   const handlePreview = async (type) => {
     if (previewType === type) {
       setPreviewType(null);
@@ -139,7 +144,7 @@ const EmailsPage = () => {
     try {
       const res = await fetch(`/api/email/preview/${type}`);
       const data = await res.json();
-      setPreviewHtml(data.html);
+      setPreviewHtml(wrapPreviewHtml(data.html));
     } catch (err) {
       setPreviewHtml(`<p style="color: red; padding: 20px;">Failed to load preview: ${err.message}</p>`);
     }
