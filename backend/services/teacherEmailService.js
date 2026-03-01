@@ -226,7 +226,9 @@ const sendMidPilotSurveyEmail = async (email, displayName) => {
   try {
     const info = await transport.sendMail({
       from: `"Music Mind Academy" <${SMTP_USER}>`,
+      replyTo: ADMIN_EMAIL,
       to: email,
+      bcc: ADMIN_EMAIL,
       subject,
       text,
       html
@@ -261,7 +263,9 @@ const sendFinalPilotSurveyEmail = async (email, displayName) => {
   try {
     const info = await transport.sendMail({
       from: `"Music Mind Academy" <${SMTP_USER}>`,
+      replyTo: ADMIN_EMAIL,
       to: email,
+      bcc: ADMIN_EMAIL,
       subject,
       text,
       html
@@ -358,6 +362,7 @@ const sendDripWelcomeEmail = async (email, firstName) => {
       from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
       replyTo: ADMIN_EMAIL,
       to: email,
+      bcc: ADMIN_EMAIL,
       subject,
       text,
       html
@@ -392,6 +397,7 @@ const sendDripFollowup1Email = async (email, firstName) => {
       from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
       replyTo: ADMIN_EMAIL,
       to: email,
+      bcc: ADMIN_EMAIL,
       subject,
       text,
       html
@@ -426,6 +432,7 @@ const sendDripFollowup2Email = async (email, firstName) => {
       from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
       replyTo: ADMIN_EMAIL,
       to: email,
+      bcc: ADMIN_EMAIL,
       subject,
       text,
       html
