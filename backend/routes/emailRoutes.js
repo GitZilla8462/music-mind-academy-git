@@ -9,7 +9,9 @@ const {
   sendDripFollowup1Email,
   sendDripFollowup2Email,
   getEmailPreview,
-  getDefaultTemplates
+  getDefaultTemplates,
+  renderTemplate,
+  renderPreviewHtml
 } = require('../services/teacherEmailService');
 
 /**
@@ -140,14 +142,21 @@ router.post('/drip-3', async (req, res) => {
 router.get('/preview/:type', async (req, res) => {
   const { type } = req.params;
 
+  // Get the default preview (always needed for sample vars and fallback)
+  const defaultPreview = getEmailPreview(type);
+  if (!defaultPreview) {
+    return res.status(404).json({ error: `Unknown email type: ${type}` });
+  }
+
   try {
     // Check for custom template in MongoDB
     const custom = await EmailTemplate.findOne({ type });
     if (custom) {
+      // Render custom template with the same sample data used by defaults
       return res.json({
         subject: custom.subject,
-        html: custom.htmlContent,
-        from: getEmailPreview(type)?.from || 'Music Mind Academy',
+        html: renderPreviewHtml(type, custom.htmlContent),
+        from: defaultPreview.from,
         isCustom: true,
         updatedAt: custom.updatedAt,
         updatedBy: custom.updatedBy
@@ -158,12 +167,7 @@ router.get('/preview/:type', async (req, res) => {
   }
 
   // Fall back to default
-  const preview = getEmailPreview(type);
-  if (!preview) {
-    return res.status(404).json({ error: `Unknown email type: ${type}` });
-  }
-
-  return res.json({ ...preview, isCustom: false });
+  return res.json({ ...defaultPreview, isCustom: false });
 });
 
 /**

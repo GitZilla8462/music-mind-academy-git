@@ -47,6 +47,7 @@ export const AdminDataProvider = ({ children }) => {
   const [finalPilotSurveys, setFinalPilotSurveys] = useState([]);
 
   const [teacherOutreach, setTeacherOutreach] = useState({});
+  const [emailsSent, setEmailsSent] = useState({});
   const [applications, setApplications] = useState([]);
 
   const [approvingId, setApprovingId] = useState(null);
@@ -146,6 +147,12 @@ export const AdminDataProvider = ({ children }) => {
       else { setTeacherOutreach({}); }
     });
 
+    const emailsSentRef = ref(database, 'emailsSent');
+    const unsubEmailsSent = onValue(emailsSentRef, (snapshot) => {
+      if (snapshot.exists()) { setEmailsSent(snapshot.val()); }
+      else { setEmailsSent({}); }
+    });
+
     const applicationsRef = ref(database, 'pilotApplications');
     const unsubApplications = onValue(applicationsRef, (snapshot) => {
       if (snapshot.exists()) {
@@ -159,7 +166,7 @@ export const AdminDataProvider = ({ children }) => {
     return () => {
       unsubAcademy(); unsubEdu(); unsubUsers(); unsubAnalytics();
       unsubQuickSurveys(); unsubMidPilot(); unsubFinalPilot();
-      unsubOutreach(); unsubApplications();
+      unsubOutreach(); unsubEmailsSent(); unsubApplications();
     };
   }, [user, isAdmin, database]);
 
@@ -658,7 +665,7 @@ export const AdminDataProvider = ({ children }) => {
     academyEmails, eduEmails, registeredUsers,
     teacherAnalytics, pilotSessions, summaryStats,
     quickSurveys, midPilotSurveys, finalPilotSurveys,
-    teacherOutreach, applications,
+    teacherOutreach, emailsSent, applications,
     approvingId, dripProcessing, dripResult,
     isBackfilling, backfillResult, setBackfillResult,
     hubspotSyncing, hubspotSyncResult,

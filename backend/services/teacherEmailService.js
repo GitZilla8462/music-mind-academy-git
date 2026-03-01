@@ -439,15 +439,10 @@ const sendDripFollowup2Email = async (email, firstName) => {
 };
 
 /**
- * Get rendered HTML preview for a specific email type (no sending)
- * Used by the preview endpoint - renders with sample data
+ * Get sample variables for preview rendering
  */
-const getEmailPreview = (type) => {
-  const defaults = getDefaultTemplates();
-  const template = defaults[type];
-  if (!template) return null;
-
-  const sampleVars = {
+const getSampleVars = (type) => {
+  const vars = {
     firstName: 'Jane',
     siteUrl: SITE_URL,
     loginUrl: `${SITE_URL}/login`,
@@ -464,10 +459,31 @@ const getEmailPreview = (type) => {
     applicationDetails: `<div style="margin-top: 16px; padding: 12px; background: #f8fafc; border-radius: 8px;"><p style="margin: 0 0 4px; font-size: 13px; color: #6b7280;">Why Pilot</p><p style="margin: 0; font-size: 14px; color: #374151;">I want to bring more technology into my music classroom.</p></div>`
   };
 
-  // For survey-l5, override the survey URL
   if (type === 'survey-l5') {
-    sampleVars.surveyUrl = `${SITE_URL}/survey/final?email=jane.smith%40school.edu`;
+    vars.surveyUrl = `${SITE_URL}/survey/final?email=jane.smith%40school.edu`;
   }
+
+  return vars;
+};
+
+/**
+ * Render any HTML string with sample preview data for a given type
+ * Used by the preview route for both default and custom templates
+ */
+const renderPreviewHtml = (type, html) => {
+  return renderTemplate(html, getSampleVars(type));
+};
+
+/**
+ * Get rendered HTML preview for a specific email type (no sending)
+ * Used by the preview endpoint - renders with sample data
+ */
+const getEmailPreview = (type) => {
+  const defaults = getDefaultTemplates();
+  const template = defaults[type];
+  if (!template) return null;
+
+  const sampleVars = getSampleVars(type);
 
   return {
     subject: renderTemplate(template.subject, sampleVars),
@@ -485,5 +501,6 @@ module.exports = {
   sendDripFollowup2Email,
   getEmailPreview,
   getDefaultTemplates,
-  renderTemplate
+  renderTemplate,
+  renderPreviewHtml
 };

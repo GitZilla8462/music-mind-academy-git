@@ -81,7 +81,7 @@ const colorClasses = {
 };
 
 const EmailsPage = () => {
-  const { teacherOutreach, user } = useAdminData();
+  const { emailsSent, user } = useAdminData();
   const [previewType, setPreviewType] = useState(null);
   const [previewHtml, setPreviewHtml] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -118,16 +118,17 @@ const EmailsPage = () => {
   }, []);
 
   const stats = useMemo(() => {
+    // Count from emailsSent/{emailKey}/{type} — the actual send log
     const counts = { 'drip-1': 0, 'drip-2': 0, 'drip-3': 0, 'survey-l3': 0, 'survey-l5': 0 };
-    Object.values(teacherOutreach).forEach(entry => {
-      if (entry.dripWelcomeSent) counts['drip-1']++;
-      if (entry.dripFollowup1Sent) counts['drip-2']++;
-      if (entry.dripFollowup2Sent) counts['drip-3']++;
-      if (entry.emailedL3) counts['survey-l3']++;
-      if (entry.emailedDone) counts['survey-l5']++;
+    Object.values(emailsSent).forEach(teacherEmails => {
+      if (teacherEmails['drip-1']) counts['drip-1']++;
+      if (teacherEmails['drip-2']) counts['drip-2']++;
+      if (teacherEmails['drip-3']) counts['drip-3']++;
+      if (teacherEmails['survey-l3']) counts['survey-l3']++;
+      if (teacherEmails['survey-l5']) counts['survey-l5']++;
     });
     return counts;
-  }, [teacherOutreach]);
+  }, [emailsSent]);
 
   const wrapPreviewHtml = (html) => {
     // Wrap email HTML - links open in new tab, not inside the iframe
