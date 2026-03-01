@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Inbox, Users, UserCheck, BarChart3, BookOpen, Play, MessageSquare, AlertTriangle, ArrowLeft, Shield, Download, RefreshCw, ArrowUpDown, DatabaseBackup } from 'lucide-react';
+import { LayoutDashboard, Inbox, Users, UserCheck, BarChart3, BookOpen, Play, MessageSquare, AlertTriangle, Mail, ArrowLeft, Shield, Download, RefreshCw, ArrowUpDown, DatabaseBackup } from 'lucide-react';
 import { AdminDataProvider, useAdminData } from './AdminDataContext';
 
 const AdminLayoutInner = () => {
@@ -89,6 +89,7 @@ const AdminLayoutInner = () => {
     {
       label: 'SYSTEM',
       items: [
+        { to: '/admin/emails', icon: Mail, label: 'Emails' },
         { to: '/admin/errors', icon: AlertTriangle, label: 'Error Logs' },
       ]
     }

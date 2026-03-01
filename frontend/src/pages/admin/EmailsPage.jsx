@@ -1,0 +1,280 @@
+import React, { useState, useMemo } from 'react';
+import { Mail, Send, Eye, EyeOff, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { useAdminData } from './AdminDataContext';
+
+const EMAIL_TEMPLATES = [
+  {
+    id: 'drip-1',
+    name: 'Welcome Email',
+    subject: "You're in! Music Mind Academy pilot access is ready",
+    trigger: 'Immediately on approval',
+    description: 'Sent to teachers when their application is approved. Contains login instructions and pilot dates.',
+    color: 'sky',
+    outreachField: 'dripWelcomeSent',
+    from: 'Rob Taube - Music Mind Academy',
+  },
+  {
+    id: 'drip-2',
+    name: '7-Day Follow-up',
+    subject: 'Just checking in - have you had a chance to log in?',
+    trigger: '7 days after approval, if no login',
+    description: 'Auto-sent to teachers who were approved but haven\'t logged in after a week.',
+    color: 'blue',
+    outreachField: 'dripFollowup1Sent',
+    from: 'Rob Taube - Music Mind Academy',
+  },
+  {
+    id: 'drip-3',
+    name: 'Final Reminder',
+    subject: 'Last reminder - your pilot access is waiting',
+    trigger: '14 days after approval, if no login',
+    description: 'Last automated reminder for teachers who still haven\'t logged in.',
+    color: 'indigo',
+    outreachField: 'dripFollowup2Sent',
+    from: 'Rob Taube - Music Mind Academy',
+  },
+  {
+    id: 'survey-l3',
+    name: 'Mid-Pilot Survey',
+    subject: "You're halfway through the pilot! Quick survey inside",
+    trigger: 'After Lesson 3 real class (10+ min, 3+ stages)',
+    description: 'Automatically sent when a teacher completes Lesson 3 with a real class.',
+    color: 'purple',
+    outreachField: 'emailedL3',
+    from: 'Music Mind Academy',
+  },
+  {
+    id: 'survey-l5',
+    name: 'Final Survey',
+    subject: 'You finished the pilot! Final survey inside',
+    trigger: 'After Lesson 5 real class (10+ min, 3+ stages)',
+    description: 'Automatically sent when a teacher completes Lesson 5 with a real class.',
+    color: 'green',
+    outreachField: 'emailedDone',
+    from: 'Music Mind Academy',
+  },
+  {
+    id: 'application-notify',
+    name: 'Application Notification',
+    subject: 'New pilot application: [Name]',
+    trigger: 'When teacher submits application form',
+    description: 'Sent to admin (rob@musicmindacademy.com) with application details and approve/decline buttons.',
+    color: 'orange',
+    outreachField: null,
+    from: 'Music Mind Academy',
+  },
+];
+
+const colorClasses = {
+  sky: { border: 'border-l-sky-500', bg: 'bg-sky-50', text: 'text-sky-700', badge: 'bg-sky-100 text-sky-700' },
+  blue: { border: 'border-l-blue-500', bg: 'bg-blue-50', text: 'text-blue-700', badge: 'bg-blue-100 text-blue-700' },
+  indigo: { border: 'border-l-indigo-500', bg: 'bg-indigo-50', text: 'text-indigo-700', badge: 'bg-indigo-100 text-indigo-700' },
+  purple: { border: 'border-l-purple-500', bg: 'bg-purple-50', text: 'text-purple-700', badge: 'bg-purple-100 text-purple-700' },
+  green: { border: 'border-l-green-500', bg: 'bg-green-50', text: 'text-green-700', badge: 'bg-green-100 text-green-700' },
+  orange: { border: 'border-l-orange-500', bg: 'bg-orange-50', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700' },
+};
+
+const EmailsPage = () => {
+  const { teacherOutreach, user } = useAdminData();
+  const [previewType, setPreviewType] = useState(null);
+  const [previewHtml, setPreviewHtml] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [sendingType, setSendingType] = useState(null);
+  const [sendResult, setSendResult] = useState(null);
+
+  const stats = useMemo(() => {
+    const counts = { 'drip-1': 0, 'drip-2': 0, 'drip-3': 0, 'survey-l3': 0, 'survey-l5': 0 };
+    Object.values(teacherOutreach).forEach(entry => {
+      if (entry.dripWelcomeSent) counts['drip-1']++;
+      if (entry.dripFollowup1Sent) counts['drip-2']++;
+      if (entry.dripFollowup2Sent) counts['drip-3']++;
+      if (entry.emailedL3) counts['survey-l3']++;
+      if (entry.emailedDone) counts['survey-l5']++;
+    });
+    return counts;
+  }, [teacherOutreach]);
+
+  const handlePreview = async (type) => {
+    if (previewType === type) {
+      setPreviewType(null);
+      return;
+    }
+    setPreviewLoading(true);
+    setPreviewType(type);
+    try {
+      const res = await fetch(`/api/email/preview/${type}`);
+      const data = await res.json();
+      setPreviewHtml(data.html);
+    } catch (err) {
+      setPreviewHtml(`<p style="color: red; padding: 20px;">Failed to load preview: ${err.message}</p>`);
+    }
+    setPreviewLoading(false);
+  };
+
+  const handleSendTest = async (type) => {
+    setSendingType(type);
+    setSendResult(null);
+    try {
+      let body;
+      if (type === 'application-notify') {
+        body = {
+          applicationId: 'test-preview',
+          firstName: 'Test', lastName: 'Teacher',
+          schoolEmail: user.email, personalEmail: user.email,
+          schoolName: 'Test School', city: 'Test City', state: 'TS',
+          grades: ['6th', '7th'], devices: ['Chromebooks'], classSize: '25',
+          whyPilot: 'This is a test application sent from the admin email preview page.',
+        };
+      } else if (type.startsWith('survey')) {
+        body = { email: user.email, displayName: 'Rob Taube' };
+      } else {
+        body = { email: user.email, name: 'Rob' };
+      }
+
+      const res = await fetch(`/api/email/${type}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      setSendResult({ type, success: data.success, error: data.error });
+      if (data.success) {
+        setTimeout(() => setSendResult(null), 4000);
+      }
+    } catch (err) {
+      setSendResult({ type, success: false, error: err.message });
+    }
+    setSendingType(null);
+  };
+
+  const totalSent = Object.values(stats).reduce((sum, n) => sum + n, 0);
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <Mail size={24} />
+            Email Templates
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">Preview, test, and monitor all automated emails</p>
+        </div>
+        <div className="text-right">
+          <div className="text-2xl font-bold text-blue-600">{totalSent}</div>
+          <div className="text-xs text-gray-500">Total emails sent</div>
+        </div>
+      </div>
+
+      {/* Stats bar */}
+      <div className="flex flex-wrap gap-3">
+        {EMAIL_TEMPLATES.filter(t => t.outreachField).map(template => {
+          const colors = colorClasses[template.color];
+          return (
+            <div key={template.id} className={`px-3 py-2 rounded-lg ${colors.badge} text-sm font-medium`}>
+              {template.name}: {stats[template.id] || 0} sent
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Email template cards */}
+      <div className="space-y-4">
+        {EMAIL_TEMPLATES.map(template => {
+          const colors = colorClasses[template.color];
+          const isPreviewOpen = previewType === template.id;
+          const isSending = sendingType === template.id;
+          const result = sendResult?.type === template.id ? sendResult : null;
+
+          return (
+            <div key={template.id} className={`bg-white rounded-xl border border-gray-200 border-l-4 ${colors.border} overflow-hidden`}>
+              <div className="p-5">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-gray-800">{template.name}</h3>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors.badge}`}>
+                        {template.id}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">
+                      <span className="font-medium">Subject:</span> {template.subject}
+                    </p>
+                    <p className="text-sm text-gray-500 mb-2">{template.description}</p>
+                    <div className="flex items-center gap-4 text-xs text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <Clock size={12} />
+                        {template.trigger}
+                      </span>
+                      <span>From: {template.from}</span>
+                      {template.outreachField && (
+                        <span className="flex items-center gap-1 font-medium text-gray-600">
+                          <Send size={12} />
+                          {stats[template.id] || 0} sent
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 ml-4">
+                    <button
+                      onClick={() => handlePreview(template.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        isPreviewOpen
+                          ? 'bg-gray-800 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {isPreviewOpen ? <EyeOff size={14} /> : <Eye size={14} />}
+                      {isPreviewOpen ? 'Hide' : 'Preview'}
+                    </button>
+                    <button
+                      onClick={() => handleSendTest(template.id)}
+                      disabled={isSending}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <Send size={14} />
+                      {isSending ? 'Sending...' : 'Send Test'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Send result */}
+                {result && (
+                  <div className={`mt-3 flex items-center gap-2 text-sm ${result.success ? 'text-green-600' : 'text-red-600'}`}>
+                    {result.success ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+                    {result.success ? `Test sent to ${user.email}` : `Failed: ${result.error}`}
+                  </div>
+                )}
+              </div>
+
+              {/* Preview panel */}
+              {isPreviewOpen && (
+                <div className="border-t border-gray-200 bg-gray-50 p-4">
+                  <div className="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wider">Email Preview (sample data)</div>
+                  {previewLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-600"></div>
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                      <iframe
+                        srcDoc={previewHtml}
+                        className="w-full border-0"
+                        style={{ height: '450px' }}
+                        title={`${template.name} preview`}
+                        sandbox="allow-same-origin"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export default EmailsPage;

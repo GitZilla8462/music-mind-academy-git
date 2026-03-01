@@ -6,7 +6,8 @@ const {
   sendApplicationNotificationEmail,
   sendDripWelcomeEmail,
   sendDripFollowup1Email,
-  sendDripFollowup2Email
+  sendDripFollowup2Email,
+  getEmailPreview
 } = require('../services/teacherEmailService');
 
 /**
@@ -127,6 +128,21 @@ router.post('/drip-3', async (req, res) => {
     console.error('[EmailRoute] drip-3 error:', error.message);
     return res.status(200).json({ success: false, error: error.message });
   }
+});
+
+/**
+ * GET /api/email/preview/:type
+ * Get rendered HTML preview for an email template (no sending)
+ */
+router.get('/preview/:type', (req, res) => {
+  const { type } = req.params;
+  const preview = getEmailPreview(type);
+
+  if (!preview) {
+    return res.status(404).json({ error: `Unknown email type: ${type}` });
+  }
+
+  return res.json(preview);
 });
 
 module.exports = router;

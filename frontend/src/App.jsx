@@ -60,6 +60,7 @@ const AdminTeacherAnalyticsPage = React.lazy(() => import('./pages/admin/Teacher
 const AdminLessonAnalyticsPage = React.lazy(() => import('./pages/admin/LessonAnalyticsPage'));
 const AdminSessionsPage = React.lazy(() => import('./pages/admin/SessionsPage'));
 const AdminSurveysPage = React.lazy(() => import('./pages/admin/SurveysPage'));
+const AdminEmailsPage = React.lazy(() => import('./pages/admin/EmailsPage'));
 const AdminErrorLogsPage = React.lazy(() => import('./pages/admin/ErrorLogsPage'));
 const MidPilotSurveyPage = React.lazy(() => import('./pages/MidPilotSurveyPage'));
 const FinalPilotSurveyPage = React.lazy(() => import('./pages/FinalPilotSurveyPage'));
@@ -351,6 +352,7 @@ const AppContent = () => {
           <Route path="lessons" element={<AdminLessonAnalyticsPage />} />
           <Route path="sessions" element={<AdminSessionsPage />} />
           <Route path="surveys" element={<AdminSurveysPage />} />
+          <Route path="emails" element={<AdminEmailsPage />} />
           <Route path="errors" element={<AdminErrorLogsPage />} />
         </Route>
         {/* Redirect old admin URL */}
@@ -664,6 +666,7 @@ const AppContent = () => {
           <Route path="lessons" element={<AdminLessonAnalyticsPage />} />
           <Route path="sessions" element={<AdminSessionsPage />} />
           <Route path="surveys" element={<AdminSurveysPage />} />
+          <Route path="emails" element={<AdminEmailsPage />} />
           <Route path="errors" element={<AdminErrorLogsPage />} />
         </Route>
         {/* Redirect old admin URL */}

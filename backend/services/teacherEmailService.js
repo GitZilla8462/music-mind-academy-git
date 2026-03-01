@@ -405,11 +405,178 @@ const sendDripFollowup2Email = async (email, firstName) => {
   }
 };
 
+/**
+ * Get rendered HTML preview for an email template (no sending)
+ * Uses sample data so admin can see what emails look like
+ */
+const getEmailPreview = (type) => {
+  const sampleName = 'Jane';
+  const sampleEmail = 'jane.smith@school.edu';
+  const sampleSurveyUrl = `${SITE_URL}/survey/mid-pilot?email=${encodeURIComponent(sampleEmail)}`;
+  const sampleFinalSurveyUrl = `${SITE_URL}/survey/final?email=${encodeURIComponent(sampleEmail)}`;
+
+  const templates = {
+    'drip-1': {
+      subject: "You're in! Music Mind Academy pilot access is ready",
+      from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #0c4a6e; color: white; padding: 24px; border-radius: 8px 8px 0 0;">
+            <h1 style="margin: 0; font-size: 20px;">Welcome to the Pilot!</h1>
+            <p style="margin: 8px 0 0; opacity: 0.9;">Music Mind Academy</p>
+          </div>
+          <div style="background: #ffffff; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+            <p style="font-size: 16px; color: #374151;">Hi ${sampleName},</p>
+            <p style="font-size: 15px; color: #4b5563; line-height: 1.6;">
+              I am sending this message to you because you signed up for my pilot for general music lessons. I am unlocking my pilot now so you can see the lessons and website before you teach with your students.
+            </p>
+            <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 16px; margin: 20px 0;">
+              <p style="margin: 0 0 8px; font-weight: 600; color: #0c4a6e;">Key Details:</p>
+              <ul style="margin: 0; padding-left: 20px; color: #4b5563; line-height: 1.8;">
+                <li><strong>Pilot Start:</strong> March 15, 2026</li>
+                <li><strong>Access Through:</strong> June 30, 2026</li>
+              </ul>
+            </div>
+            <p style="font-size: 15px; color: #4b5563; line-height: 1.6; font-weight: 600;">Here's what to do:</p>
+            <ol style="color: #4b5563; line-height: 1.8; padding-left: 20px;">
+              <li>Go to <a href="${SITE_URL}" style="color: #0ea5e9; font-weight: 600;">musicmindacademy.com</a> and log in with your teacher email</li>
+              <li>Explore the lessons and poke around</li>
+              <li>Reply to this email to let me know you're in</li>
+            </ol>
+            <p style="font-size: 15px; color: #4b5563; line-height: 1.6;">I'm excited to have you as part of this pilot. Don't hesitate to reach out if you have any questions!</p>
+            <div style="text-align: center; margin: 28px 0;">
+              <a href="${SITE_URL}/login" style="background: #0ea5e9; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600;">Log In Now</a>
+            </div>
+            <p style="font-size: 15px; color: #4b5563;">Best,<br><strong>Rob Taube</strong><br><span style="color: #6b7280;">Music Mind Academy</span></p>
+            <p style="font-size: 13px; color: #9ca3af; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb;">Music Mind Academy &middot; <a href="${SITE_URL}" style="color: #0ea5e9;">musicmindacademy.com</a></p>
+          </div>
+        </div>
+      `
+    },
+    'drip-2': {
+      subject: 'Just checking in - have you had a chance to log in?',
+      from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #ffffff; padding: 24px; border: 1px solid #e5e7eb; border-radius: 8px;">
+            <p style="font-size: 16px; color: #374151;">Hi ${sampleName},</p>
+            <p style="font-size: 15px; color: #4b5563; line-height: 1.6;">I wanted to check in - I approved your Music Mind Academy pilot access about a week ago. Have you had a chance to log in and explore?</p>
+            <p style="font-size: 15px; color: #4b5563; line-height: 1.6;">If you ran into any issues logging in, just reply to this email and I'll help you get set up. The pilot runs through June 30, so there's still plenty of time.</p>
+            <div style="text-align: center; margin: 28px 0;">
+              <a href="${SITE_URL}/login" style="background: #0ea5e9; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600;">Log In Now</a>
+            </div>
+            <p style="font-size: 15px; color: #4b5563;">Best,<br><strong>Rob Taube</strong><br><span style="color: #6b7280;">Music Mind Academy</span></p>
+            <p style="font-size: 13px; color: #9ca3af; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb;">Music Mind Academy &middot; <a href="${SITE_URL}" style="color: #0ea5e9;">musicmindacademy.com</a></p>
+          </div>
+        </div>
+      `
+    },
+    'drip-3': {
+      subject: 'Last reminder - your pilot access is waiting',
+      from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #ffffff; padding: 24px; border: 1px solid #e5e7eb; border-radius: 8px;">
+            <p style="font-size: 16px; color: #374151;">Hi ${sampleName},</p>
+            <p style="font-size: 15px; color: #4b5563; line-height: 1.6;">This is my last reminder - your free pilot access to Music Mind Academy is still waiting for you. I'd love for you to try it out before the pilot ends on June 30.</p>
+            <p style="font-size: 15px; color: #4b5563; line-height: 1.6;">It only takes a minute to log in and start exploring the lessons. Everything is ready to go - no setup needed.</p>
+            <div style="text-align: center; margin: 28px 0;">
+              <a href="${SITE_URL}/login" style="background: #0ea5e9; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600;">Log In Now</a>
+            </div>
+            <p style="font-size: 15px; color: #4b5563; line-height: 1.6;">If you're no longer interested or have any questions, just reply to this email. No worries either way!</p>
+            <p style="font-size: 15px; color: #4b5563;">Best,<br><strong>Rob Taube</strong><br><span style="color: #6b7280;">Music Mind Academy</span></p>
+            <p style="font-size: 13px; color: #9ca3af; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb;">Music Mind Academy &middot; <a href="${SITE_URL}" style="color: #0ea5e9;">musicmindacademy.com</a></p>
+          </div>
+        </div>
+      `
+    },
+    'survey-l3': {
+      subject: "You're halfway through the pilot! Quick survey inside",
+      from: `"Music Mind Academy" <${SMTP_USER}>`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #7c3aed; color: white; padding: 24px; border-radius: 8px 8px 0 0;">
+            <h1 style="margin: 0; font-size: 20px;">Mid-Pilot Check-In</h1>
+            <p style="margin: 8px 0 0; opacity: 0.9;">Music Mind Academy Pilot Program</p>
+          </div>
+          <div style="background: #ffffff; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+            <p style="font-size: 16px; color: #374151;">Hi ${sampleName},</p>
+            <p style="font-size: 15px; color: #4b5563; line-height: 1.6;">Congrats on finishing Lesson 3! You're halfway through the unit. We'd love to hear how it's going so far.</p>
+            <p style="font-size: 15px; color: #4b5563; line-height: 1.6;">This quick survey takes about 2 minutes and helps us make the platform better for you and your students.</p>
+            <div style="text-align: center; margin: 28px 0;">
+              <a href="${sampleSurveyUrl}" style="background: #7c3aed; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600;">Take the Mid-Pilot Survey</a>
+            </div>
+            <p style="font-size: 13px; color: #9ca3af; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb;">Music Mind Academy &middot; <a href="${SITE_URL}" style="color: #7c3aed;">musicroomtools.org</a></p>
+          </div>
+        </div>
+      `
+    },
+    'survey-l5': {
+      subject: 'You finished the pilot! Final survey inside',
+      from: `"Music Mind Academy" <${SMTP_USER}>`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #059669; color: white; padding: 24px; border-radius: 8px 8px 0 0;">
+            <h1 style="margin: 0; font-size: 20px;">You Did It!</h1>
+            <p style="margin: 8px 0 0; opacity: 0.9;">Music Mind Academy Pilot Program</p>
+          </div>
+          <div style="background: #ffffff; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+            <p style="font-size: 16px; color: #374151;">Hi ${sampleName},</p>
+            <p style="font-size: 15px; color: #4b5563; line-height: 1.6;">Amazing work completing all 5 lessons! Your students are lucky to have you.</p>
+            <p style="font-size: 15px; color: #4b5563; line-height: 1.6;">We'd love your final feedback on the pilot. This survey takes about 5 minutes and your responses directly shape what we build next.</p>
+            <div style="text-align: center; margin: 28px 0;">
+              <a href="${sampleFinalSurveyUrl}" style="background: #059669; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600;">Take the Final Survey</a>
+            </div>
+            <p style="font-size: 13px; color: #9ca3af; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb;">Music Mind Academy &middot; <a href="${SITE_URL}" style="color: #059669;">musicroomtools.org</a></p>
+          </div>
+        </div>
+      `
+    },
+    'application-notify': {
+      subject: 'New pilot application: Jane Smith',
+      from: `"Music Mind Academy" <${SMTP_USER}>`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #0ea5e9; color: white; padding: 24px; border-radius: 8px 8px 0 0;">
+            <h1 style="margin: 0; font-size: 20px;">New Pilot Application</h1>
+            <p style="margin: 8px 0 0; opacity: 0.9;">Music Mind Academy</p>
+          </div>
+          <div style="background: #ffffff; padding: 24px; border: 1px solid #e5e7eb; border-top: none;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+              <tr><td style="padding: 8px 0; color: #6b7280; width: 120px;">Name</td><td style="padding: 8px 0; color: #1e293b; font-weight: 600;">Jane Smith</td></tr>
+              <tr><td style="padding: 8px 0; color: #6b7280;">School Email</td><td style="padding: 8px 0; color: #1e293b;">jane.smith@school.edu</td></tr>
+              <tr><td style="padding: 8px 0; color: #6b7280;">Personal Email</td><td style="padding: 8px 0; color: #1e293b;">jane@gmail.com</td></tr>
+              <tr><td style="padding: 8px 0; color: #6b7280;">School</td><td style="padding: 8px 0; color: #1e293b;">Lincoln Middle School</td></tr>
+              <tr><td style="padding: 8px 0; color: #6b7280;">Location</td><td style="padding: 8px 0; color: #1e293b;">Portland, OR</td></tr>
+              <tr><td style="padding: 8px 0; color: #6b7280;">Grades</td><td style="padding: 8px 0; color: #1e293b;">6th, 7th, 8th</td></tr>
+              <tr><td style="padding: 8px 0; color: #6b7280;">Devices</td><td style="padding: 8px 0; color: #1e293b;">Chromebooks</td></tr>
+              <tr><td style="padding: 8px 0; color: #6b7280;">Class Size</td><td style="padding: 8px 0; color: #1e293b;">25-30</td></tr>
+            </table>
+            <div style="margin-top: 16px; padding: 12px; background: #f8fafc; border-radius: 8px;"><p style="margin: 0 0 4px; font-size: 13px; color: #6b7280;">Why Pilot</p><p style="margin: 0; font-size: 14px; color: #374151;">I want to bring more technology into my music classroom and this looks like a great fit for my students.</p></div>
+            <div style="text-align: center; margin: 28px 0; display: flex; gap: 16px; justify-content: center;">
+              <a href="#" style="background: #059669; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600;">Approve</a>
+              <a href="#" style="background: #6b7280; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600;">Decline</a>
+            </div>
+          </div>
+          <div style="padding: 16px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; background: #f9fafb;">
+            <p style="font-size: 12px; color: #9ca3af; margin: 0; text-align: center;">Approving will add their school email to the approved list and send a welcome email.</p>
+          </div>
+        </div>
+      `
+    }
+  };
+
+  const template = templates[type];
+  if (!template) return null;
+  return template;
+};
+
 module.exports = {
   sendMidPilotSurveyEmail,
   sendFinalPilotSurveyEmail,
   sendApplicationNotificationEmail,
   sendDripWelcomeEmail,
   sendDripFollowup1Email,
-  sendDripFollowup2Email
+  sendDripFollowup2Email,
+  getEmailPreview
 };
