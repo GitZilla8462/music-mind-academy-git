@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Mail, Send, Eye, EyeOff, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Mail, Send, Eye, EyeOff, Clock, CheckCircle, AlertCircle, Pencil, RotateCcw, Save, X } from 'lucide-react';
 import { useAdminData } from './AdminDataContext';
 
 const EMAIL_TEMPLATES = [
@@ -12,6 +12,7 @@ const EMAIL_TEMPLATES = [
     color: 'sky',
     outreachField: 'dripWelcomeSent',
     from: 'Rob Taube - Music Mind Academy',
+    variables: ['firstName', 'siteUrl', 'loginUrl'],
   },
   {
     id: 'drip-2',
@@ -22,6 +23,7 @@ const EMAIL_TEMPLATES = [
     color: 'blue',
     outreachField: 'dripFollowup1Sent',
     from: 'Rob Taube - Music Mind Academy',
+    variables: ['firstName', 'siteUrl', 'loginUrl'],
   },
   {
     id: 'drip-3',
@@ -32,6 +34,7 @@ const EMAIL_TEMPLATES = [
     color: 'indigo',
     outreachField: 'dripFollowup2Sent',
     from: 'Rob Taube - Music Mind Academy',
+    variables: ['firstName', 'siteUrl', 'loginUrl'],
   },
   {
     id: 'survey-l3',
@@ -42,6 +45,7 @@ const EMAIL_TEMPLATES = [
     color: 'purple',
     outreachField: 'emailedL3',
     from: 'Music Mind Academy',
+    variables: ['firstName', 'surveyUrl', 'siteUrl'],
   },
   {
     id: 'survey-l5',
@@ -52,6 +56,7 @@ const EMAIL_TEMPLATES = [
     color: 'green',
     outreachField: 'emailedDone',
     from: 'Music Mind Academy',
+    variables: ['firstName', 'surveyUrl', 'siteUrl'],
   },
   {
     id: 'application-notify',
@@ -62,6 +67,7 @@ const EMAIL_TEMPLATES = [
     color: 'orange',
     outreachField: null,
     from: 'Music Mind Academy',
+    variables: ['fullName', 'applicationTable', 'applicationDetails', 'approveUrl', 'declineUrl', 'siteUrl'],
   },
 ];
 
@@ -81,6 +87,35 @@ const EmailsPage = () => {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [sendingType, setSendingType] = useState(null);
   const [sendResult, setSendResult] = useState(null);
+
+  // Edit state
+  const [editingType, setEditingType] = useState(null);
+  const [editSubject, setEditSubject] = useState('');
+  const [editHtml, setEditHtml] = useState('');
+  const [editLoading, setEditLoading] = useState(false);
+  const [customTemplates, setCustomTemplates] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [saveResult, setSaveResult] = useState(null);
+
+  // Load custom template status on mount
+  useEffect(() => {
+    const loadTemplates = async () => {
+      try {
+        const res = await fetch('/api/email/templates');
+        if (res.ok) {
+          const templates = await res.json();
+          const map = {};
+          templates.forEach(t => {
+            if (t.isCustom) map[t.type] = t;
+          });
+          setCustomTemplates(map);
+        }
+      } catch (err) {
+        console.warn('Failed to load template status:', err.message);
+      }
+    };
+    loadTemplates();
+  }, []);
 
   const stats = useMemo(() => {
     const counts = { 'drip-1': 0, 'drip-2': 0, 'drip-3': 0, 'survey-l3': 0, 'survey-l5': 0 };
@@ -109,6 +144,85 @@ const EmailsPage = () => {
       setPreviewHtml(`<p style="color: red; padding: 20px;">Failed to load preview: ${err.message}</p>`);
     }
     setPreviewLoading(false);
+  };
+
+  const handleEdit = async (type) => {
+    if (editingType === type) {
+      setEditingType(null);
+      return;
+    }
+    setEditLoading(true);
+    setEditingType(type);
+    try {
+      // Load current template (custom or default) from the templates list endpoint
+      const res = await fetch('/api/email/templates');
+      if (res.ok) {
+        const templates = await res.json();
+        const template = templates.find(t => t.type === type);
+        if (template) {
+          setEditSubject(template.subject);
+          setEditHtml(template.htmlContent);
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to load template for editing:', err.message);
+    }
+    setEditLoading(false);
+  };
+
+  const handleSave = async (type) => {
+    setSaving(true);
+    setSaveResult(null);
+    try {
+      const res = await fetch(`/api/email/templates/${type}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: editSubject,
+          htmlContent: editHtml,
+          updatedBy: user.email
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSaveResult({ type, success: true });
+        setCustomTemplates(prev => ({ ...prev, [type]: data.template }));
+        setEditingType(null);
+        // Refresh preview if open
+        if (previewType === type) {
+          handlePreview(type);
+        }
+        setTimeout(() => setSaveResult(null), 3000);
+      } else {
+        setSaveResult({ type, success: false, error: data.error });
+      }
+    } catch (err) {
+      setSaveResult({ type, success: false, error: err.message });
+    }
+    setSaving(false);
+  };
+
+  const handleReset = async (type) => {
+    if (!confirm('Reset this template to the default? Your custom version will be deleted.')) return;
+    try {
+      const res = await fetch(`/api/email/templates/${type}/reset`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setCustomTemplates(prev => {
+          const next = { ...prev };
+          delete next[type];
+          return next;
+        });
+        setEditingType(null);
+        setSaveResult({ type, success: true, message: 'Reset to default' });
+        if (previewType === type) {
+          handlePreview(type);
+        }
+        setTimeout(() => setSaveResult(null), 3000);
+      }
+    } catch (err) {
+      console.error('Failed to reset template:', err);
+    }
   };
 
   const handleSendTest = async (type) => {
@@ -158,7 +272,7 @@ const EmailsPage = () => {
             <Mail size={24} />
             Email Templates
           </h1>
-          <p className="text-sm text-gray-500 mt-1">Preview, test, and monitor all automated emails</p>
+          <p className="text-sm text-gray-500 mt-1">Preview, edit, test, and monitor all automated emails</p>
         </div>
         <div className="text-right">
           <div className="text-2xl font-bold text-blue-600">{totalSent}</div>
@@ -183,8 +297,11 @@ const EmailsPage = () => {
         {EMAIL_TEMPLATES.map(template => {
           const colors = colorClasses[template.color];
           const isPreviewOpen = previewType === template.id;
+          const isEditing = editingType === template.id;
           const isSending = sendingType === template.id;
           const result = sendResult?.type === template.id ? sendResult : null;
+          const saved = saveResult?.type === template.id ? saveResult : null;
+          const isCustom = !!customTemplates[template.id];
 
           return (
             <div key={template.id} className={`bg-white rounded-xl border border-gray-200 border-l-4 ${colors.border} overflow-hidden`}>
@@ -196,6 +313,11 @@ const EmailsPage = () => {
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors.badge}`}>
                         {template.id}
                       </span>
+                      {isCustom && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                          Customized
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600 mb-2">
                       <span className="font-medium">Subject:</span> {template.subject}
@@ -229,6 +351,17 @@ const EmailsPage = () => {
                       {isPreviewOpen ? 'Hide' : 'Preview'}
                     </button>
                     <button
+                      onClick={() => handleEdit(template.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        isEditing
+                          ? 'bg-amber-600 text-white'
+                          : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                      }`}
+                    >
+                      <Pencil size={14} />
+                      {isEditing ? 'Close' : 'Edit'}
+                    </button>
+                    <button
                       onClick={() => handleSendTest(template.id)}
                       disabled={isSending}
                       className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-sm font-medium transition-colors"
@@ -239,19 +372,104 @@ const EmailsPage = () => {
                   </div>
                 </div>
 
-                {/* Send result */}
+                {/* Send/save result */}
                 {result && (
                   <div className={`mt-3 flex items-center gap-2 text-sm ${result.success ? 'text-green-600' : 'text-red-600'}`}>
                     {result.success ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
                     {result.success ? `Test sent to ${user.email}` : `Failed: ${result.error}`}
                   </div>
                 )}
+                {saved && (
+                  <div className={`mt-3 flex items-center gap-2 text-sm ${saved.success ? 'text-green-600' : 'text-red-600'}`}>
+                    {saved.success ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+                    {saved.success ? (saved.message || 'Template saved!') : `Failed: ${saved.error}`}
+                  </div>
+                )}
               </div>
 
+              {/* Edit panel */}
+              {isEditing && (
+                <div className="border-t border-gray-200 bg-amber-50/50 p-4">
+                  {editLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-amber-600"></div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Variable hints */}
+                      <div className="bg-white rounded-lg border border-amber-200 p-3">
+                        <p className="text-xs font-medium text-amber-700 mb-1">Available variables (use in HTML):</p>
+                        <div className="flex flex-wrap gap-2">
+                          {template.variables.map(v => (
+                            <code key={v} className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-mono">
+                              {`{{${v}}}`}
+                            </code>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Subject line */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Subject Line</label>
+                        <input
+                          type="text"
+                          value={editSubject}
+                          onChange={(e) => setEditSubject(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        />
+                      </div>
+
+                      {/* HTML editor */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">HTML Template</label>
+                        <textarea
+                          value={editHtml}
+                          onChange={(e) => setEditHtml(e.target.value)}
+                          rows={18}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-amber-500 focus:border-amber-500 leading-relaxed"
+                          spellCheck={false}
+                        />
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => handleSave(template.id)}
+                          disabled={saving}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg text-sm font-medium transition-colors"
+                        >
+                          <Save size={14} />
+                          {saving ? 'Saving...' : 'Save Template'}
+                        </button>
+                        {isCustom && (
+                          <button
+                            onClick={() => handleReset(template.id)}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+                          >
+                            <RotateCcw size={14} />
+                            Reset to Default
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setEditingType(null)}
+                          className="flex items-center gap-1.5 px-4 py-2 text-gray-500 hover:text-gray-700 text-sm font-medium transition-colors"
+                        >
+                          <X size={14} />
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Preview panel */}
-              {isPreviewOpen && (
+              {isPreviewOpen && !isEditing && (
                 <div className="border-t border-gray-200 bg-gray-50 p-4">
-                  <div className="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wider">Email Preview (sample data)</div>
+                  <div className="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wider">
+                    Email Preview (sample data)
+                    {isCustom && <span className="ml-2 text-amber-600 normal-case">showing custom version</span>}
+                  </div>
                   {previewLoading ? (
                     <div className="flex items-center justify-center py-8">
                       <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-600"></div>
@@ -263,7 +481,7 @@ const EmailsPage = () => {
                         className="w-full border-0"
                         style={{ height: '450px' }}
                         title={`${template.name} preview`}
-                        sandbox="allow-same-origin"
+                        sandbox=""
                       />
                     </div>
                   )}
