@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, RefreshCw, CheckCircle, Eye, Trash2, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangle, RefreshCw, CheckCircle, Eye, Trash2, Filter, ChevronDown, ChevronUp, Download } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -98,6 +98,28 @@ const ErrorLogViewer = () => {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const exportCSV = () => {
+    const headers = ['Date', 'Severity', 'Status', 'Type', 'Page', 'Device', 'Message', 'Stack Trace'];
+    const rows = errors.map(e => [
+      new Date(e.createdAt).toISOString(),
+      e.severity || '',
+      e.status || '',
+      e.errorType || '',
+      e.page || '',
+      e.device || '',
+      `"${(e.message || '').replace(/"/g, '""')}"`,
+      `"${(e.stack || '').replace(/"/g, '""').replace(/\n/g, '\\n')}"`
+    ]);
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `error-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       {/* Stats Summary */}
@@ -172,6 +194,15 @@ const ErrorLogViewer = () => {
           >
             <RefreshCw size={14} />
             Refresh
+          </button>
+
+          <button
+            onClick={exportCSV}
+            disabled={errors.length === 0}
+            className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm flex items-center gap-1"
+          >
+            <Download size={14} />
+            Export CSV
           </button>
         </div>
       </div>

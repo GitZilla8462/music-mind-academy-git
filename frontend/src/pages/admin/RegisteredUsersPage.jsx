@@ -84,12 +84,13 @@ const RegisteredUsersPage = () => {
             const aType = teacherOutreach[aEmailKey]?.teacherType || 'pilot';
             const bType = teacherOutreach[bEmailKey]?.teacherType || 'pilot';
             return (bType === 'purchased' ? 1 : 0) - (aType === 'purchased' ? 1 : 0);
-          }).map((user) => {
+          }).map((user, index) => {
             const isApproved = approvedEmails.some(e => e.email?.toLowerCase() === user.email?.toLowerCase());
             const emailKey = user.email?.toLowerCase().replace(/\./g, ',');
             const teacherType = teacherOutreach[emailKey]?.teacherType || 'pilot';
             return (
               <div key={user.id} className={`px-6 py-4 flex items-center gap-4 hover:bg-gray-50 ${selectedUsers[user.id] ? 'bg-red-50' : ''}`}>
+                <span className="text-xs text-gray-400 w-6 text-right font-mono">{index + 1}</span>
                 <input type="checkbox" checked={!!selectedUsers[user.id]}
                   onChange={(e) => setSelectedUsers(prev => ({ ...prev, [user.id]: e.target.checked }))} className="rounded" />
                 {user.photoURL ? (
