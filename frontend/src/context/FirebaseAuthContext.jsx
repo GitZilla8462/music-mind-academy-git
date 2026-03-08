@@ -8,7 +8,10 @@ import {
   onAuthStateChanged,
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
-  signInWithEmailLink
+  signInWithEmailLink,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile
 } from 'firebase/auth';
 import { auth, googleProvider, microsoftProvider } from '../firebase/config';
 import { getOrCreateUser, getUserById } from '../firebase/users';
@@ -247,6 +250,72 @@ export const FirebaseAuthProvider = ({ children }) => {
     }
   };
 
+  // Sign in with email and password (district-friendly — no popups, no magic links)
+  const signInWithEmailPassword = async (email, password) => {
+    setError(null);
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check approval first
+    const approved = await isEmailApproved(normalizedEmail);
+    if (!approved) {
+      const notApprovedError = new Error("Your email hasn't been approved for the pilot yet. Please apply through our form and wait for approval.");
+      notApprovedError.code = 'auth/not-approved';
+      throw notApprovedError;
+    }
+
+    try {
+      // Try to sign in with existing account
+      const result = await signInWithEmailAndPassword(auth, normalizedEmail, password);
+      const firebaseUser = result.user;
+
+      const data = await getOrCreateUser(firebaseUser);
+      setUserData(data);
+
+      trackFirstLogin(firebaseUser.uid, firebaseUser.email).catch(err => {
+        console.warn('Analytics tracking failed (non-critical):', err.message);
+      });
+
+      console.log('Email/password Sign-In successful');
+      return { user: firebaseUser, userData: data };
+    } catch (err) {
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+        // No account yet — create one
+        try {
+          const result = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
+          const firebaseUser = result.user;
+
+          // Set display name from email prefix
+          const displayName = normalizedEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          await updateProfile(firebaseUser, { displayName });
+
+          const data = await getOrCreateUser(firebaseUser);
+          setUserData(data);
+
+          trackFirstLogin(firebaseUser.uid, firebaseUser.email).catch(err2 => {
+            console.warn('Analytics tracking failed (non-critical):', err2.message);
+          });
+
+          console.log('Email/password account created and signed in');
+          return { user: firebaseUser, userData: data };
+        } catch (createErr) {
+          console.error('Failed to create account:', createErr);
+          setError(createErr.message);
+          throw createErr;
+        }
+      }
+
+      if (err.code === 'auth/wrong-password') {
+        const wrongPwError = new Error('Incorrect password. Please try again.');
+        wrongPwError.code = 'auth/wrong-password';
+        throw wrongPwError;
+      }
+
+      console.error('Email/password Sign-In error:', err);
+      setError(err.message);
+      throw err;
+    }
+  };
+
   // Check if current URL is a magic link
   const isMagicLinkUrl = () => {
     return isSignInWithEmailLink(auth, window.location.href);
@@ -279,6 +348,7 @@ export const FirebaseAuthProvider = ({ children }) => {
     isAuthenticated: !!user,
     signInWithGoogle,
     signInWithMicrosoft,
+    signInWithEmailPassword,
     sendMagicLink,
     completeMagicLinkSignIn,
     isMagicLinkUrl,
