@@ -385,6 +385,19 @@ export const AdminDataProvider = ({ children }) => {
     } catch (err) { setError(err.message); return false; }
   };
 
+  const removeTeacherCompletely = async (email, skipConfirm = false) => {
+    const emailKey = email.toLowerCase().replace(/\./g, ',');
+    if (!skipConfirm && !confirm(`Permanently remove ${email} from all data (approvedEmails, outreach, emailsSent)?`)) return false;
+    try {
+      await remove(ref(database, `approvedEmails/academy/${emailKey}`));
+      await remove(ref(database, `approvedEmails/edu/${emailKey}`));
+      await remove(ref(database, `teacherOutreach/${emailKey}`));
+      await remove(ref(database, `emailsSent/${emailKey}`));
+      if (!skipConfirm) setSuccess(`Removed ${email} completely`);
+      return true;
+    } catch (err) { setError(err.message); return false; }
+  };
+
   // Utility helpers
   const formatDate = (timestamp) => {
     if (!timestamp) return 'Unknown';
@@ -677,7 +690,7 @@ export const AdminDataProvider = ({ children }) => {
     handleApproveApplication, handleRejectApplication,
     toggleOutreach,
     handleAddEmail, handleBatchAdd,
-    handleRemoveEmail, handleBulkDelete, handleBulkDeleteUsers,
+    handleRemoveEmail, handleBulkDelete, handleBulkDeleteUsers, removeTeacherCompletely,
     backfillStudentCounts, syncToHubSpot, exportToExcel,
     // Utilities
     formatDate, formatDuration, getLessonName,

@@ -2,11 +2,17 @@ import React, { useState, useMemo, useCallback, useRef } from 'react';
 import {
   BarChart3, Search, Filter, ChevronDown, Check, Copy, Download,
   Mail, X, Eye, Loader2, CheckCircle, AlertCircle, Users, UserX,
-  GraduationCap, Clock, ClipboardList
+  GraduationCap, Clock, ClipboardList, Trash2, Link2
 } from 'lucide-react';
 import { useAdminData } from './AdminDataContext';
 import { EMAIL_NAMES } from './emailConstants';
 import { getDatabase, ref, set } from 'firebase/database';
+
+const PERSONAL_DOMAINS = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'me.com', 'icloud.com', 'msn.com', 'aol.com', 'live.com', 'comcast.net'];
+const isPersonalEmail = (email) => {
+  const domain = email.split('@')[1]?.toLowerCase();
+  return PERSONAL_DOMAINS.includes(domain);
+};
 
 const ADMIN_EMAILS = ['robtaube90@gmail.com', 'robtaube92@gmail.com'];
 
@@ -34,7 +40,8 @@ const TeacherAnalyticsPage = () => {
   const {
     academyEmails, registeredUsers, pilotSessions, teacherOutreach,
     midPilotSurveys, finalPilotSurveys, applications, emailsSent,
-    toggleOutreach, setSuccess, formatDuration, formatDate
+    toggleOutreach, setSuccess, formatDuration, formatDate,
+    removeTeacherCompletely
   } = useAdminData();
 
   const [analyticsSort, setAnalyticsSort] = useState({ column: 'stage', direction: 'desc' });
@@ -48,6 +55,7 @@ const TeacherAnalyticsPage = () => {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [funnelFilter, setFunnelFilter] = useState(null);
   const [toast, setToast] = useState(null);
+  const [showDuplicates, setShowDuplicates] = useState(false);
 
   const showToast = useCallback((msg) => {
     setToast(msg);
@@ -195,25 +203,81 @@ const TeacherAnalyticsPage = () => {
     return result;
   }, [academyEmails, registeredByEmail, sessionsByTeacher, teacherOutreach, applicationsByEmail, midPilotSurveys, finalPilotSurveys, pilotSessions, emailHistoryByTeacher]);
 
-  // Detect duplicate names (different emails, same name)
-  const duplicateNames = useMemo(() => {
+  // Detect duplicate teachers: same name OR same email prefix
+  const { duplicateNames, duplicatePairs } = useMemo(() => {
+    // Group by name
     const byName = {};
     teachers.forEach(t => {
       const name = t.teacherName?.toLowerCase().trim();
       if (!name) return;
       if (!byName[name]) byName[name] = [];
-      byName[name].push(t.email);
+      byName[name].push(t);
     });
+
+    // Group by email prefix (part before @)
+    const byPrefix = {};
+    teachers.forEach(t => {
+      const prefix = t.email.split('@')[0].toLowerCase().replace(/[._-]/g, '');
+      if (!prefix || prefix.length < 4) return;
+      if (!byPrefix[prefix]) byPrefix[prefix] = [];
+      byPrefix[prefix].push(t);
+    });
+
+    // Build unique duplicate pairs
+    const pairSet = new Set();
+    const pairs = [];
+    const addPair = (t1, t2) => {
+      const key = [t1.email, t2.email].sort().join('|');
+      if (pairSet.has(key)) return;
+      pairSet.add(key);
+      // Determine which is school vs personal
+      const t1Personal = isPersonalEmail(t1.email);
+      const t2Personal = isPersonalEmail(t2.email);
+      const keep = t1Personal && !t2Personal ? t2 : !t1Personal && t2Personal ? t1 : (t1.teacherName ? t1 : t2);
+      const remove = keep === t1 ? t2 : t1;
+      pairs.push({ keep, remove, matchType: 'name' });
+    };
+
+    // Name-based pairs
+    Object.values(byName).forEach(group => {
+      if (group.length < 2) return;
+      for (let i = 0; i < group.length; i++) {
+        for (let j = i + 1; j < group.length; j++) {
+          if (group[i].email !== group[j].email) addPair(group[i], group[j]);
+        }
+      }
+    });
+
+    // Prefix-based pairs (catches nameless entries with matching prefix)
+    Object.values(byPrefix).forEach(group => {
+      if (group.length < 2) return;
+      for (let i = 0; i < group.length; i++) {
+        for (let j = i + 1; j < group.length; j++) {
+          if (group[i].email !== group[j].email) {
+            const key = [group[i].email, group[j].email].sort().join('|');
+            if (!pairSet.has(key)) {
+              pairSet.add(key);
+              const t1Personal = isPersonalEmail(group[i].email);
+              const t2Personal = isPersonalEmail(group[j].email);
+              const keep = t1Personal && !t2Personal ? group[j] : !t1Personal && t2Personal ? group[i] : (group[i].teacherName ? group[i] : group[j]);
+              const rem = keep === group[i] ? group[j] : group[i];
+              pairs.push({ keep, remove: rem, matchType: 'prefix' });
+            }
+          }
+        }
+      }
+    });
+
+    // Build flagged map for "Dup?" badges
     const flagged = {};
-    Object.values(byName).forEach(emails => {
-      if (emails.length < 2) return;
-      const uniqueEmails = [...new Set(emails)];
-      if (uniqueEmails.length < 2) return;
-      uniqueEmails.forEach(email => {
-        flagged[email] = uniqueEmails.filter(e => e !== email);
-      });
+    pairs.forEach(({ keep, remove: rem }) => {
+      if (!flagged[keep.email]) flagged[keep.email] = [];
+      if (!flagged[rem.email]) flagged[rem.email] = [];
+      flagged[keep.email].push(rem.email);
+      flagged[rem.email].push(keep.email);
     });
-    return flagged;
+
+    return { duplicateNames: flagged, duplicatePairs: pairs };
   }, [teachers]);
 
   // Funnel counts
@@ -449,6 +513,17 @@ const TeacherAnalyticsPage = () => {
         <FunnelCard label="Stalled 14+ days" count={funnelCounts.stalled} colorClass="bg-red-50 text-red-700" filterKey="stalled" icon={Clock} />
         <FunnelCard label="Survey Due" count={funnelCounts.surveyDue} colorClass="bg-purple-50 text-purple-800" filterKey="surveyDue" icon={ClipboardList} />
       </div>
+
+      {/* Duplicates button */}
+      {duplicatePairs.length > 0 && (
+        <button
+          onClick={() => setShowDuplicates(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-orange-50 border border-orange-200 text-orange-700 rounded-lg text-sm font-medium hover:bg-orange-100"
+        >
+          <Link2 size={16} />
+          {duplicatePairs.length} Duplicate{duplicatePairs.length !== 1 ? 's' : ''} Detected — Clean Up
+        </button>
+      )}
 
       {/* Main Card */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -811,6 +886,20 @@ const TeacherAnalyticsPage = () => {
         )}
       </div>
 
+      {/* Duplicates Modal */}
+      {showDuplicates && (
+        <DuplicatesModal
+          pairs={duplicatePairs}
+          onRemove={async (email) => {
+            const ok = await removeTeacherCompletely(email, true);
+            if (ok) showToast(`Removed ${email}`);
+            return ok;
+          }}
+          onClose={() => setShowDuplicates(false)}
+          onBulkDone={(count) => { setShowDuplicates(false); showToast(`Removed ${count} duplicate(s)`); }}
+        />
+      )}
+
       {/* Email Modal */}
       {showEmailModal && (
         <BatchEmailModal
@@ -821,6 +910,123 @@ const TeacherAnalyticsPage = () => {
           onSuccess={(msg) => { setShowEmailModal(false); setSuccess(msg); setSelectedEmails(new Set()); }}
         />
       )}
+    </div>
+  );
+};
+
+// --- Duplicates Modal ---
+
+const DuplicatesModal = ({ pairs, onRemove, onClose, onBulkDone }) => {
+  const [removed, setRemoved] = useState(new Set());
+  const [removing, setRemoving] = useState(null);
+  const [bulkRemoving, setBulkRemoving] = useState(false);
+
+  const handleRemoveOne = async (email) => {
+    setRemoving(email);
+    const ok = await onRemove(email);
+    if (ok) setRemoved(prev => new Set([...prev, email]));
+    setRemoving(null);
+  };
+
+  const handleRemoveAll = async () => {
+    const toRemove = pairs
+      .filter(p => isPersonalEmail(p.remove.email) && !removed.has(p.remove.email))
+      .map(p => p.remove.email);
+    if (toRemove.length === 0) return;
+    if (!confirm(`Remove ${toRemove.length} personal email duplicate(s)? This keeps the school email for each teacher.`)) return;
+    setBulkRemoving(true);
+    let count = 0;
+    for (const email of toRemove) {
+      const ok = await onRemove(email);
+      if (ok) { count++; setRemoved(prev => new Set([...prev, email])); }
+    }
+    setBulkRemoving(false);
+    onBulkDone(count);
+  };
+
+  const activePairs = pairs.filter(p => !removed.has(p.remove.email) && !removed.has(p.keep.email));
+  const personalDups = activePairs.filter(p => isPersonalEmail(p.remove.email));
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <Link2 size={20} />
+              Duplicate Teachers ({activePairs.length} pairs)
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Same person with multiple email addresses. Remove personal emails and keep school emails.
+            </p>
+          </div>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg">
+            <X size={20} className="text-gray-500" />
+          </button>
+        </div>
+
+        {/* Bulk action */}
+        {personalDups.length > 0 && (
+          <div className="px-6 py-3 bg-orange-50 border-b border-orange-200 flex items-center justify-between shrink-0">
+            <span className="text-sm text-orange-800">
+              <strong>{personalDups.length}</strong> personal email{personalDups.length !== 1 ? 's' : ''} can be auto-removed (keeps school email)
+            </span>
+            <button
+              onClick={handleRemoveAll}
+              disabled={bulkRemoving}
+              className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-50 font-medium"
+            >
+              {bulkRemoving ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+              Remove All Personal Emails
+            </button>
+          </div>
+        )}
+
+        {/* Pairs list */}
+        <div className="overflow-y-auto flex-1 px-6 py-4">
+          {activePairs.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">No duplicates remaining!</div>
+          ) : (
+            <div className="space-y-3">
+              {activePairs.map(({ keep, remove: rem, matchType }, i) => (
+                <div key={i} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      {/* Keep */}
+                      <div className="flex items-center gap-2">
+                        <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded uppercase">Keep</span>
+                        <span className="font-medium text-gray-800">{keep.teacherName || keep.email.split('@')[0]}</span>
+                        <span className="text-sm text-gray-500">{keep.email}</span>
+                        {keep.school && <span className="text-xs text-gray-400">({keep.school})</span>}
+                        {!isPersonalEmail(keep.email) && <span className="text-[10px] text-blue-600 font-medium">School</span>}
+                      </div>
+                      {/* Remove */}
+                      <div className="flex items-center gap-2">
+                        <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded uppercase">Remove</span>
+                        <span className="text-gray-600">{rem.teacherName || rem.email.split('@')[0]}</span>
+                        <span className="text-sm text-gray-500">{rem.email}</span>
+                        {isPersonalEmail(rem.email) && <span className="text-[10px] text-orange-600 font-medium">Personal</span>}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveOne(rem.email)}
+                      disabled={removing === rem.email}
+                      className="shrink-0 flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs font-medium hover:bg-red-100 disabled:opacity-50"
+                    >
+                      {removing === rem.email ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                      Remove
+                    </button>
+                  </div>
+                  <div className="mt-1 text-[10px] text-gray-400">
+                    Matched by {matchType === 'name' ? 'same name' : 'similar email prefix'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
