@@ -11,7 +11,7 @@ const formatTime = (seconds) => {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
-const CompositionPreview = ({ workData, submittedAt }) => {
+const CompositionPreview = ({ workData, submittedAt, videoOnly = false }) => {
   const videoRef = useRef(null);
   const rafRef = useRef(null);
   const audioCtxRef = useRef(null);
@@ -225,7 +225,7 @@ const CompositionPreview = ({ workData, submittedAt }) => {
       )}
 
       {/* Top: Video */}
-      <div className="flex-shrink-0 bg-black flex items-center justify-center" style={{ height: '45%' }}>
+      <div className={`bg-black flex items-center justify-center ${videoOnly ? 'flex-1' : 'flex-shrink-0'}`} style={videoOnly ? undefined : { height: '45%' }}>
         {videoPath ? (
           <video
             ref={videoRef}
@@ -245,7 +245,7 @@ const CompositionPreview = ({ workData, submittedAt }) => {
       </div>
 
       {/* Middle: Loop track lanes */}
-      <div className="flex-1 bg-gray-900 border-t border-gray-700 flex flex-col overflow-hidden">
+      {!videoOnly && <div className="flex-1 bg-gray-900 border-t border-gray-700 flex flex-col overflow-hidden">
         {/* Timeline divider */}
         <div className="h-1 bg-gray-800 border-b border-gray-700 flex-shrink-0" />
 
@@ -302,7 +302,7 @@ const CompositionPreview = ({ workData, submittedAt }) => {
             <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 rounded-full" />
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* Bottom: Transport controls */}
       <div className="flex-shrink-0 h-12 bg-gray-800 border-t border-gray-700 flex items-center justify-center gap-2 px-4">

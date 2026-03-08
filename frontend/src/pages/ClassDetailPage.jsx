@@ -2,7 +2,7 @@
 // src/pages/ClassDetailPage.jsx
 // Google Classroom-style: Students | Classwork | Grades
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { getClassById, getConductedLessons } from '../firebase/classes';
@@ -30,13 +30,15 @@ import {
   Trash2,
   AlertTriangle,
   Loader2,
-  Key
+  Key,
+  Presentation
 } from 'lucide-react';
 import TeacherHeader from '../components/teacher/TeacherHeader';
 import RosterManager from '../components/teacher/RosterManager';
 import StudentDetailModal from '../components/teacher/StudentDetailModal';
 import GradeEntryModal from '../components/teacher/GradeEntryModal';
 import ActivityGradingView from '../components/teacher/ActivityGradingView';
+const LazyShowcaseMode = lazy(() => import('../components/teacher/ShowcaseMode'));
 // import AnswerKeyModal from '../components/teacher/AnswerKeyModal';
 import PrintableLoginCards from '../components/teacher/PrintableLoginCards';
 import PrintableRosterSheet from '../components/teacher/PrintableRosterSheet';
@@ -84,6 +86,7 @@ const ClassDetailPage = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [gradeModalData, setGradeModalData] = useState(null);
   const [activityGradingData, setActivityGradingData] = useState(null);
+  const [showcaseData, setShowcaseData] = useState(null);
   const [deleteGradeConfirm, setDeleteGradeConfirm] = useState(null); // { studentUid, studentName, lessonId, lessonName }
   const [deletingGrade, setDeletingGrade] = useState(false);
   // const [answerKeyModalData, setAnswerKeyModalData] = useState(null);
@@ -612,6 +615,22 @@ const ClassDetailPage = () => {
                                           {activity.stats.pending}
                                         </span>
                                       )}
+                                      {activity.type === 'composition' && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowcaseData({
+                                              lessonId: lesson.id,
+                                              activityId: activity.id,
+                                              activityName: activity.name
+                                            });
+                                          }}
+                                          className="p-1 text-gray-300 hover:text-blue-500 transition-colors"
+                                          title="Showcase student work"
+                                        >
+                                          <Presentation size={14} />
+                                        </button>
+                                      )}
                                       {/* Answer key button - commented out for now */}
                                       {/* <button
                                         onClick={(e) => {
@@ -1025,6 +1044,21 @@ const ClassDetailPage = () => {
             handleGradeSaved(studentUid, lessonId, gradeData);
           }}
         />
+      )}
+
+      {showcaseData && (
+        <Suspense fallback={null}>
+          <LazyShowcaseMode
+            isOpen={!!showcaseData}
+            onClose={() => setShowcaseData(null)}
+            classId={classId}
+            lessonId={showcaseData.lessonId}
+            activityId={showcaseData.activityId}
+            activityName={showcaseData.activityName}
+            roster={roster}
+            submissions={submissions}
+          />
+        </Suspense>
       )}
 
       {/* Answer key modal - commented out for now */}

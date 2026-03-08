@@ -2,7 +2,7 @@
 // Top header bar - COMPACT VERSION
 
 import React from 'react';
-import { ArrowLeft, Save, FileText } from 'lucide-react';
+import { ArrowLeft, Save, FileText, Download, Presentation, Loader2 } from 'lucide-react';
 
 const ComposerHeader = ({
   tutorialMode,
@@ -15,11 +15,14 @@ const ComposerHeader = ({
   hasUnsavedChanges,
   showNotesPanel,
   isSubmitting,
+  isExporting,
   hideSubmitButton,
   onBack,
   onToggleNotesPanel,
   onClearAll,
-  onSubmit
+  onSubmit,
+  onExport,
+  onPresent
 }) => {
   
   const getModeLabel = () => {
@@ -93,6 +96,30 @@ const ComposerHeader = ({
             >
               Clear
             </button>
+
+            {onExport && (
+              <button
+                onClick={onExport}
+                disabled={isExporting || placedLoops.length === 0}
+                className="px-2 py-1 text-xs bg-purple-600 hover:bg-purple-700 disabled:bg-gray-500 rounded transition-colors flex items-center"
+                title="Export as WAV"
+              >
+                {isExporting ? <Loader2 size={12} className="mr-1 animate-spin" /> : <Download size={12} className="mr-1" />}
+                {isExporting ? 'Exporting...' : 'Export'}
+              </button>
+            )}
+
+            {onPresent && (
+              <button
+                onClick={onPresent}
+                disabled={placedLoops.length === 0}
+                className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 disabled:bg-gray-500 rounded transition-colors flex items-center"
+                title="Present fullscreen"
+              >
+                <Presentation size={12} className="mr-1" />
+                Present
+              </button>
+            )}
 
             {!hideSubmitButton && !isDemo && !isPractice && (
               <button

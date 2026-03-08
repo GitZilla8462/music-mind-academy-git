@@ -807,6 +807,25 @@ const MusicComposer = ({
   // Audio is initialized on first play button click (see usePlaybackHandlers)
   // This ensures we have a valid user gesture for browser autoplay policy
 
+  // Export composition as WAV
+  const [isExporting, setIsExporting] = useState(false);
+  const handleExport = async () => {
+    if (placedLoops.length === 0) return;
+    setIsExporting(true);
+    try {
+      const { exportCompositionToWav } = await import('../shared/exportComposition');
+      const title = selectedVideo?.title || 'composition';
+      const filename = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
+      await exportCompositionToWav(placedLoops, selectedVideo?.duration || 60, filename);
+      showToast?.('Composition exported!', 'success');
+    } catch (err) {
+      console.error('Export failed:', err);
+      showToast?.('Export failed — try again', 'error');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (placedLoops.length === 0) {
       showToast?.('Please add some music loops before submitting', 'error');
@@ -960,10 +979,13 @@ const MusicComposer = ({
           hasUnsavedChanges={hasUnsavedChanges}
           showNotesPanel={showNotesPanel}
           isSubmitting={isSubmitting}
+          isExporting={isExporting}
           hideSubmitButton={hideSubmitButton}
           onBack={handleBack}
           onToggleNotesPanel={() => setShowNotesPanel(!showNotesPanel)}
           onClearAll={clearComposition}
+          onExport={!isDemo && !isPractice ? handleExport : undefined}
+          onPresent={placedLoops.length > 0 ? () => setFullScreenPreviewOpen(true) : undefined}
           onSubmit={handleSubmit}
         />
       )}
@@ -1032,8 +1054,8 @@ const MusicComposer = ({
         onDeleteCustomLoop={handleDeleteCustomLoop}
         // Passive mode - disable video playback in iframe previews
         isPassive={isPassive}
-        // Full screen preview (hidden in lesson mode)
-        onFullScreenClick={isLessonMode ? undefined : () => setFullScreenPreviewOpen(true)}
+        // Full screen preview
+        onFullScreenClick={() => setFullScreenPreviewOpen(true)}
       />
 
       {/* Full Screen Preview Modal */}

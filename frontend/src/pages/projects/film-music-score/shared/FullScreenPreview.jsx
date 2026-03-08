@@ -1,8 +1,8 @@
 // FullScreenPreview.jsx - Full screen presentation mode
 // Shows video on top, loop blocks below, transport controls at bottom
 
-import React, { useEffect, useCallback, useRef } from 'react';
-import { X, Play, Pause, RotateCcw, SkipBack, SkipForward, Volume2 } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { X, Play, Pause, RotateCcw, SkipBack, SkipForward, Volume2, Eye, EyeOff } from 'lucide-react';
 
 const FullScreenPreview = ({
   isOpen,
@@ -20,6 +20,7 @@ const FullScreenPreview = ({
   onVolumeChange
 }) => {
   const videoRef = useRef(null);
+  const [videoOnly, setVideoOnly] = useState(false);
 
   // Close on Escape key
   useEffect(() => {
@@ -104,17 +105,26 @@ const FullScreenPreview = ({
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
-      {/* Close button */}
-      <button
-        onClick={onClose}
-        className="absolute top-3 right-3 z-10 p-2 bg-gray-800 hover:bg-gray-700 rounded-full text-white transition-colors"
-        title="Close (Esc)"
-      >
-        <X size={22} />
-      </button>
+      {/* Top-right controls */}
+      <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+        <button
+          onClick={() => setVideoOnly(!videoOnly)}
+          className={`p-2 rounded-full text-white transition-colors ${videoOnly ? 'bg-blue-600 hover:bg-blue-500' : 'bg-gray-800 hover:bg-gray-700'}`}
+          title={videoOnly ? 'Show DAW tracks' : 'Video only'}
+        >
+          {videoOnly ? <Eye size={18} /> : <EyeOff size={18} />}
+        </button>
+        <button
+          onClick={onClose}
+          className="p-2 bg-gray-800 hover:bg-gray-700 rounded-full text-white transition-colors"
+          title="Close (Esc)"
+        >
+          <X size={22} />
+        </button>
+      </div>
 
       {/* Top: Video */}
-      <div className="flex-shrink-0 bg-black flex items-center justify-center" style={{ height: '45%' }}>
+      <div className={`flex-shrink-0 bg-black flex items-center justify-center ${videoOnly ? 'flex-1' : ''}`} style={videoOnly ? undefined : { height: '45%' }}>
         {videoUrl ? (
           <video
             ref={videoRef}
@@ -132,8 +142,8 @@ const FullScreenPreview = ({
         )}
       </div>
 
-      {/* Middle: Loop track lanes */}
-      <div className="flex-1 bg-gray-900 border-t border-gray-700 flex flex-col overflow-hidden">
+      {/* Middle: Loop track lanes (hidden in video-only mode) */}
+      {!videoOnly && <div className="flex-1 bg-gray-900 border-t border-gray-700 flex flex-col overflow-hidden">
         {/* Timeline header (thin divider) */}
         <div className="h-1 bg-gray-800 border-b border-gray-700 flex-shrink-0" />
 
@@ -192,7 +202,7 @@ const FullScreenPreview = ({
             <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 rounded-full" />
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* Bottom: Transport controls */}
       <div className="flex-shrink-0 h-14 bg-gray-800 border-t border-gray-700 flex items-center justify-center gap-3 px-6">
