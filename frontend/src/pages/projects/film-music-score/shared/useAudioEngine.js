@@ -343,8 +343,8 @@ export const useAudioEngine = (videoDuration = 60) => {
       const loopVolume = loop.volume ?? 1.0;
       const effectiveVolume = trackVolume * loopVolume;
 
-      // Skip if loop ends before current time
-      if (loop.endTime <= schedulingStartTime) {
+      // Skip loops with invalid or null timing
+      if (loop.startTime == null || loop.endTime == null || loop.endTime <= schedulingStartTime) {
         return;
       }
 
