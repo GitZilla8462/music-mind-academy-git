@@ -131,7 +131,7 @@ const TeacherAnalyticsPage = () => {
       let stage = 'Not Logged In';
       let l1Done = false, l2Done = false, l3Done = false, l4Done = false, l5Done = false;
 
-      if (reg) {
+      if (reg || sessions) {
         stage = 'Registered';
         if (sessions) {
           l1Done = isLessonCompleted(sessions.lessons[1]);
