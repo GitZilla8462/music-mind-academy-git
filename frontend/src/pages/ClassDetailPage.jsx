@@ -615,6 +615,24 @@ const ClassDetailPage = () => {
                                           {activity.stats.pending}
                                         </span>
                                       )}
+                                      {activity.stats.submitted > 0 && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setActivityGradingData({
+                                              lessonId: lesson.id,
+                                              activityId: activity.id,
+                                              lessonName: lesson.name,
+                                              activityName: activity.name,
+                                              activityType: activity.type
+                                            });
+                                          }}
+                                          className="flex items-center gap-1 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
+                                        >
+                                          <ClipboardList size={12} />
+                                          Grade
+                                        </button>
+                                      )}
                                       {activity.type === 'composition' && activity.stats.submitted > 0 && (
                                         <button
                                           onClick={(e) => {
