@@ -39,6 +39,8 @@ const TeacherAnalyticsPage = () => {
   const [analyticsSort, setAnalyticsSort] = useState({ column: 'stage', direction: 'desc' });
   const [stageFilter, setStageFilter] = useState('all');
   const [activityFilter, setActivityFilter] = useState('all');
+  const [surveyFilter, setSurveyFilter] = useState('all');
+  const [emailFilter, setEmailFilter] = useState('all');
   const [analyticsSearch, setAnalyticsSearch] = useState('');
   const [expandedTeachers, setExpandedTeachers] = useState({});
   const [selectedEmails, setSelectedEmails] = useState(new Set());
@@ -260,6 +262,23 @@ const TeacherAnalyticsPage = () => {
     else if (activityFilter === 'inactive14') list = list.filter(t => t.lastActive > 0 && (now - t.lastActive) >= 14 * day);
     else if (activityFilter === 'inactive30') list = list.filter(t => t.lastActive > 0 && (now - t.lastActive) >= 30 * day);
 
+    // Survey filter
+    if (surveyFilter === 'hasL3') list = list.filter(t => t.hasL3Survey || t.manualL3Survey);
+    else if (surveyFilter === 'missingL3') list = list.filter(t => STAGE_ORDER[t.stage] >= STAGE_ORDER['L3'] && !t.hasL3Survey && !t.manualL3Survey);
+    else if (surveyFilter === 'hasL5') list = list.filter(t => t.hasFinalSurvey || t.manualFinalSurvey);
+    else if (surveyFilter === 'missingL5') list = list.filter(t => STAGE_ORDER[t.stage] >= STAGE_ORDER['Completed'] && !t.hasFinalSurvey && !t.manualFinalSurvey);
+
+    // Email filter
+    if (emailFilter === 'none') list = list.filter(t => Object.keys(t.emailHistory).length === 0);
+    else if (emailFilter === 'missingWelcome') list = list.filter(t => !t.emailHistory['drip-1']);
+    else if (emailFilter === 'missingFollowup') list = list.filter(t => !t.emailHistory['drip-2']);
+    else if (emailFilter === 'missingFinal') list = list.filter(t => !t.emailHistory['drip-3']);
+    else if (emailFilter === 'missingSurveyL3') list = list.filter(t => !t.emailHistory['survey-l3']);
+    else if (emailFilter === 'missingSurveyL5') list = list.filter(t => !t.emailHistory['survey-l5']);
+    else if (emailFilter === 'hasWelcome') list = list.filter(t => !!t.emailHistory['drip-1']);
+    else if (emailFilter === 'hasFollowup') list = list.filter(t => !!t.emailHistory['drip-2']);
+    else if (emailFilter === 'hasFinal') list = list.filter(t => !!t.emailHistory['drip-3']);
+
     // Funnel filter overrides
     if (funnelFilter === 'notLoggedIn') list = list.filter(t => t.stage === 'Not Logged In');
     else if (funnelFilter === 'registered') list = list.filter(t => t.stage === 'Registered');
@@ -288,7 +307,7 @@ const TeacherAnalyticsPage = () => {
     });
 
     return list;
-  }, [teachers, analyticsSearch, stageFilter, activityFilter, funnelFilter, analyticsSort]);
+  }, [teachers, analyticsSearch, stageFilter, activityFilter, surveyFilter, emailFilter, funnelFilter, analyticsSort]);
 
   const getLessonScore = (teacher, lessonNum) => {
     if (teacher[`l${lessonNum}Done`]) return 2;
@@ -442,7 +461,7 @@ const TeacherAnalyticsPage = () => {
               </h2>
               <p className="text-sm text-gray-500 mt-1">
                 {filteredTeachers.length} of {teachers.length} teacher{teachers.length !== 1 ? 's' : ''}
-                {(stageFilter !== 'all' || activityFilter !== 'all' || funnelFilter) && ' (filtered)'}
+                {(stageFilter !== 'all' || activityFilter !== 'all' || surveyFilter !== 'all' || emailFilter !== 'all' || funnelFilter) && ' (filtered)'}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
@@ -487,10 +506,39 @@ const TeacherAnalyticsPage = () => {
                 <option value="inactive14">Inactive 14+ days</option>
                 <option value="inactive30">Inactive 30+ days</option>
               </select>
+              {/* Survey filter */}
+              <select
+                value={surveyFilter}
+                onChange={(e) => { setSurveyFilter(e.target.value); setFunnelFilter(null); }}
+                className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+              >
+                <option value="all">All Surveys</option>
+                <option value="hasL3">Has Mid-Pilot Survey</option>
+                <option value="missingL3">Missing Mid-Pilot Survey</option>
+                <option value="hasL5">Has Final Survey</option>
+                <option value="missingL5">Missing Final Survey</option>
+              </select>
+              {/* Email filter */}
+              <select
+                value={emailFilter}
+                onChange={(e) => { setEmailFilter(e.target.value); setFunnelFilter(null); }}
+                className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+              >
+                <option value="all">All Emails</option>
+                <option value="none">No emails sent</option>
+                <option value="hasWelcome">Has Welcome Email</option>
+                <option value="missingWelcome">Missing Welcome Email</option>
+                <option value="hasFollowup">Has 7-Day Follow-up</option>
+                <option value="missingFollowup">Missing 7-Day Follow-up</option>
+                <option value="hasFinal">Has Final Reminder</option>
+                <option value="missingFinal">Missing Final Reminder</option>
+                <option value="missingSurveyL3">Missing Mid-Pilot Survey email</option>
+                <option value="missingSurveyL5">Missing Final Survey email</option>
+              </select>
               {/* Clear filters */}
-              {(stageFilter !== 'all' || activityFilter !== 'all' || funnelFilter || analyticsSearch) && (
+              {(stageFilter !== 'all' || activityFilter !== 'all' || surveyFilter !== 'all' || emailFilter !== 'all' || funnelFilter || analyticsSearch) && (
                 <button
-                  onClick={() => { setStageFilter('all'); setActivityFilter('all'); setFunnelFilter(null); setAnalyticsSearch(''); }}
+                  onClick={() => { setStageFilter('all'); setActivityFilter('all'); setSurveyFilter('all'); setEmailFilter('all'); setFunnelFilter(null); setAnalyticsSearch(''); }}
                   className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
                 >
                   Clear
