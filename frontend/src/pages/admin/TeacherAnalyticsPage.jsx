@@ -547,6 +547,7 @@ const TeacherAnalyticsPage = () => {
                   <SortHeader column="stage">Stage</SortHeader>
                   <SortHeader column="days" center>Days</SortHeader>
                   <SortHeader column="lastActive">Last Active</SortHeader>
+                  <th className="px-2 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider text-left bg-gray-50 whitespace-nowrap">Emails Sent</th>
                   <SortHeader column="l1" center>L1</SortHeader>
                   <SortHeader column="l2" center>L2</SortHeader>
                   <SortHeader column="l3" center>L3</SortHeader>
@@ -609,19 +610,6 @@ const TeacherAnalyticsPage = () => {
                               <div className="text-xs text-gray-400">@{teacher.email.split('@')[1]}</div>
                             </>
                           )}
-                          {Object.keys(teacher.emailHistory).length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-0.5">
-                              {Object.entries(teacher.emailHistory).map(([type, data]) => {
-                                const label = type === 'drip-1' ? 'D1' : type === 'drip-2' ? 'D2' : type === 'drip-3' ? 'D3' : type === 'survey-l3' ? 'S3' : type === 'survey-l5' ? 'S5' : type;
-                                const date = data.sentAt ? new Date(data.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-                                return (
-                                  <span key={type} className="inline-flex items-center px-1.5 py-0 rounded text-[10px] font-medium bg-blue-50 text-blue-600" title={`${type} sent ${date}`}>
-                                    <Mail size={9} className="mr-0.5" />{label}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          )}
                         </td>
                         {/* School */}
                         <td className="px-2 py-2 text-sm text-gray-600 max-w-[160px] truncate">
@@ -641,6 +629,34 @@ const TeacherAnalyticsPage = () => {
                         <td className="px-2 py-2 text-sm text-gray-600 whitespace-nowrap">
                           {teacher.lastActive ? new Date(teacher.lastActive).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : <span className="text-gray-300">Never</span>}
                         </td>
+                        {/* Emails Sent */}
+                        <td className="px-2 py-2 max-w-[220px]">
+                          {Object.keys(teacher.emailHistory).length > 0 ? (
+                            <div className="space-y-0.5">
+                              {Object.entries(teacher.emailHistory)
+                                .sort((a, b) => (a[1].sentAt || 0) - (b[1].sentAt || 0))
+                                .map(([type, data]) => {
+                                  const names = {
+                                    'drip-1': 'Welcome Email',
+                                    'drip-2': '7-Day Follow-up',
+                                    'drip-3': 'Final Reminder',
+                                    'survey-l3': 'Mid-Pilot Survey',
+                                    'survey-l5': 'Final Survey',
+                                  };
+                                  const name = names[type] || data.subject || type;
+                                  const date = data.sentAt ? new Date(data.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                                  return (
+                                    <div key={type} className="text-xs text-gray-600 whitespace-nowrap">
+                                      <span className="font-medium text-gray-700">{name}</span>
+                                      {date && <span className="text-gray-400 ml-1">{date}</span>}
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          ) : (
+                            <span className="text-gray-300 text-xs">--</span>
+                          )}
+                        </td>
                         {/* L1-L5 */}
                         <LessonCell sessions={teacher.lessons[1]} isCompleted={teacher.l1Done} />
                         <LessonCell sessions={teacher.lessons[2]} isCompleted={teacher.l2Done} />
@@ -656,7 +672,7 @@ const TeacherAnalyticsPage = () => {
                       {/* Expanded details */}
                       {isExpanded && canExpand && (
                         <tr className="bg-gray-50">
-                          <td colSpan={13} className="px-6 py-4">
+                          <td colSpan={14} className="px-6 py-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                               {/* Email History Card */}
                               {hasEmails && (
