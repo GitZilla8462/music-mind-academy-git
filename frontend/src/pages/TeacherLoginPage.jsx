@@ -343,7 +343,7 @@ const TeacherLoginPage = () => {
                     )}
                   </button>
                   <p className="text-xs text-slate-500 text-center">
-                    First time? Enter your approved email and choose a password to create your account.
+                    First time? Just enter your approved email and pick a password — your account will be created automatically.
                   </p>
                 </form>
 

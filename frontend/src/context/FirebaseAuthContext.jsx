@@ -298,6 +298,13 @@ export const FirebaseAuthProvider = ({ children }) => {
           console.log('Email/password account created and signed in');
           return { user: firebaseUser, userData: data };
         } catch (createErr) {
+          if (createErr.code === 'auth/email-already-in-use') {
+            // Account exists but sign-in failed — wrong password
+            const wrongPwError = new Error('Incorrect password. Please try again.');
+            wrongPwError.code = 'auth/wrong-password';
+            setError(wrongPwError.message);
+            throw wrongPwError;
+          }
           console.error('Failed to create account:', createErr);
           setError(createErr.message);
           throw createErr;
