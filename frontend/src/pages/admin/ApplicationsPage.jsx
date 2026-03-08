@@ -331,31 +331,29 @@ const ApplicationsPage = () => {
         </div>
       ) : viewMode === 'table' ? (
         /* ============ TABLE / SPREADSHEET VIEW ============ */
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 sticky top-0">
+        <div className="overflow-hidden">
+          <table className="w-full text-sm table-fixed">
+            <thead className="bg-gray-50">
               <tr>
                 {[
-                  { key: 'firstName', label: 'Name' },
-                  { key: 'schoolEmail', label: 'School Email' },
-                  { key: 'schoolName', label: 'School' },
-                  { key: 'city', label: 'City' },
-                  { key: 'state', label: 'State' },
-                  { key: 'grades', label: 'Grades' },
-                  { key: 'devices', label: 'Devices' },
-                  { key: 'classSize', label: 'Class Size' },
-                  { key: 'status', label: 'Status' },
-                  { key: 'submittedAt', label: 'Applied' },
-                ].map(({ key, label }) => (
+                  { key: 'firstName', label: 'Name', w: 'w-[14%]' },
+                  { key: 'schoolEmail', label: 'Email', w: 'w-[20%]' },
+                  { key: 'schoolName', label: 'School', w: 'w-[16%]' },
+                  { key: 'city', label: 'Location', w: 'w-[12%]' },
+                  { key: 'grades', label: 'Grades', w: 'w-[8%]' },
+                  { key: 'devices', label: 'Devices', w: 'w-[10%]' },
+                  { key: 'status', label: 'Status', w: 'w-[8%]' },
+                  { key: 'submittedAt', label: 'Applied', w: 'w-[7%]' },
+                ].map(({ key, label, w }) => (
                   <th
                     key={key}
                     onClick={() => handleSort(key)}
-                    className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 whitespace-nowrap select-none"
+                    className={`${w} px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none`}
                   >
                     {label}<SortArrow col={key} />
                   </th>
                 ))}
-                <th className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">Actions</th>
+                <th className="w-[5%] px-2 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">Act.</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -368,54 +366,46 @@ const ApplicationsPage = () => {
                       className={`hover:bg-gray-50 cursor-pointer ${app.status === 'rejected' ? 'opacity-50' : ''}`}
                       onClick={() => setExpandedApplications(prev => ({ ...prev, [app.id]: !prev[app.id] }))}
                     >
-                      <td className="px-3 py-2 font-medium text-gray-800 whitespace-nowrap">
+                      <td className="px-2 py-2 font-medium text-gray-800 truncate" title={`${app.firstName} ${app.lastName}`}>
                         {app.firstName} {app.lastName}
                       </td>
-                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap max-w-[220px] truncate" title={app.schoolEmail}>
+                      <td className="px-2 py-2 text-gray-600 truncate" title={app.schoolEmail}>
                         {app.schoolEmail}
                       </td>
-                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap max-w-[180px] truncate" title={app.schoolName}>
+                      <td className="px-2 py-2 text-gray-600 truncate" title={app.schoolName}>
                         {app.schoolName}
                       </td>
-                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{app.city || '--'}</td>
-                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{app.state || '--'}</td>
-                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{(app.grades || []).join(', ') || '--'}</td>
-                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{(app.devices || []).join(', ') || '--'}</td>
-                      <td className="px-3 py-2 text-gray-600 text-center whitespace-nowrap">{app.classSize || '--'}</td>
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${STATUS_BADGE[app.status] || 'bg-gray-100 text-gray-500'}`}>
-                          {app.status === 'rejected' ? 'Declined' : (app.status || 'unknown').charAt(0).toUpperCase() + (app.status || '').slice(1)}
+                      <td className="px-2 py-2 text-gray-600 truncate" title={`${app.city || ''}${app.state ? ', ' + app.state : ''}`}>
+                        {app.city || '--'}{app.state ? `, ${app.state}` : ''}
+                      </td>
+                      <td className="px-2 py-2 text-gray-600 truncate text-xs">{(app.grades || []).join(', ') || '--'}</td>
+                      <td className="px-2 py-2 text-gray-600 truncate text-xs">{(app.devices || []).join(', ') || '--'}</td>
+                      <td className="px-2 py-2">
+                        <span className={`px-1.5 py-0.5 text-xs rounded-full font-medium ${STATUS_BADGE[app.status] || 'bg-gray-100 text-gray-500'}`}>
+                          {app.status === 'rejected' ? 'Declined' : (app.status || '?').charAt(0).toUpperCase() + (app.status || '').slice(1)}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-gray-500 whitespace-nowrap text-xs">
-                        {app.submittedAt ? new Date(app.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) : '--'}
+                      <td className="px-2 py-2 text-gray-500 text-xs">
+                        {app.submittedAt ? new Date(app.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '--'}
                       </td>
-                      <td className="px-3 py-2 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-2 py-2 text-center" onClick={(e) => e.stopPropagation()}>
                         {isPending && (
-                          <div className="flex items-center gap-1 justify-center">
-                            <button
-                              onClick={() => handleApproveApplication(app)}
-                              disabled={approvingId === app.id}
-                              className="px-2 py-1 bg-green-500 text-white rounded text-xs font-medium hover:bg-green-600 disabled:opacity-50"
-                            >
-                              {approvingId === app.id ? '...' : 'Approve'}
-                            </button>
-                            <button
-                              onClick={() => handleRejectApplication(app)}
-                              className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs font-medium hover:bg-gray-300"
-                            >
-                              Decline
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => handleApproveApplication(app)}
+                            disabled={approvingId === app.id}
+                            className="px-2 py-1 bg-green-500 text-white rounded text-xs font-medium hover:bg-green-600 disabled:opacity-50"
+                          >
+                            {approvingId === app.id ? '...' : 'OK'}
+                          </button>
                         )}
                       </td>
                     </tr>
                     {expanded && (
                       <tr className="bg-gray-50">
-                        <td colSpan={11} className="px-6 py-4">
+                        <td colSpan={9} className="px-4 py-4">
                           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                             <div><span className="text-gray-500">Personal Email:</span> <span className="text-gray-800">{app.personalEmail || '--'}</span></div>
-                            <div><span className="text-gray-500">School Email:</span> <span className="text-gray-800">{app.schoolEmail}</span></div>
+                            <div><span className="text-gray-500">Class Size:</span> <span className="text-gray-800">{app.classSize || '--'}</span></div>
                             {app.toolsUsed?.length > 0 && <div><span className="text-gray-500">Tools Used:</span> <span className="text-gray-800">{app.toolsUsed.join(', ')}</span></div>}
                             {app.canCommit && <div><span className="text-gray-500">Can Commit:</span> <span className="text-gray-800">{app.canCommit}</span></div>}
                             {app.biggestChallenge && (
