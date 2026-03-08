@@ -5,17 +5,10 @@ import {
   GraduationCap, Clock, ClipboardList
 } from 'lucide-react';
 import { useAdminData } from './AdminDataContext';
+import { EMAIL_NAMES } from './emailConstants';
 import { getDatabase, ref, set } from 'firebase/database';
 
 const ADMIN_EMAILS = ['robtaube90@gmail.com', 'robtaube92@gmail.com'];
-
-const EMAIL_NAMES = {
-  'drip-1': 'Welcome Email',
-  'drip-2': '7-Day Follow-up',
-  'drip-3': 'Final Reminder',
-  'survey-l3': 'Mid-Pilot Survey',
-  'survey-l5': 'Final Survey',
-};
 
 const STAGE_ORDER = {
   'Not Logged In': 0, 'Registered': 1, 'Explored': 2,
