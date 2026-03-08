@@ -175,6 +175,30 @@ const getDefaultTemplates = () => ({
   </div>
 </div>`
   },
+  'unit-complete': {
+    subject: 'You finished {{unitName}}! Quick feedback?',
+    from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
+    html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+  <div style="background: #7c3aed; color: white; padding: 24px; border-radius: 8px 8px 0 0;">
+    <h1 style="margin: 0; font-size: 20px;">Nice work finishing {{unitName}}!</h1>
+    <p style="margin: 8px 0 0; opacity: 0.9;">Music Mind Academy</p>
+  </div>
+  <div style="background: #ffffff; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <p style="font-size: 16px; color: #374151;">Hi {{firstName}},</p>
+    <p style="font-size: 15px; color: #4b5563; line-height: 1.6;">You just wrapped up all 5 lessons in <strong>{{unitName}}</strong>. I'd love to hear how it went — just reply to this email with a few quick thoughts:</p>
+    <div style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 8px; padding: 16px; margin: 20px 0;">
+      <ol style="margin: 0; padding-left: 20px; color: #4b5563; line-height: 2;">
+        <li>What worked well in this unit?</li>
+        <li>Any issues or things that didn't work?</li>
+        <li>Would you teach this unit again?</li>
+      </ol>
+    </div>
+    <p style="font-size: 15px; color: #4b5563; line-height: 1.6;">No need to be formal — a few sentences is great. Your feedback directly shapes what I build next.</p>
+    <p style="font-size: 15px; color: #4b5563;">Thanks,<br><strong>Rob Taube</strong><br><span style="color: #6b7280;">Music Mind Academy</span></p>
+    <p style="font-size: 13px; color: #9ca3af; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb;">Music Mind Academy &middot; <a href="{{siteUrl}}" style="color: #7c3aed;">musicmindacademy.com</a></p>
+  </div>
+</div>`
+  },
   'application-notify': {
     subject: 'New pilot application: {{fullName}}',
     from: `"Music Mind Academy" <${SMTP_USER}>`,
@@ -446,6 +470,42 @@ const sendDripFollowup2Email = async (email, firstName) => {
 };
 
 /**
+ * Send unit-complete feedback email (after finishing L5 of Units 2+)
+ */
+const sendUnitCompleteEmail = async (email, displayName, unitName) => {
+  const transport = getTransporter();
+  if (!transport) {
+    console.log('[TeacherEmail] SMTP not configured, skipping unit-complete email');
+    return { success: false, error: 'SMTP not configured' };
+  }
+
+  const firstName = (displayName || '').split(' ')[0] || 'Teacher';
+  const vars = { firstName, unitName: unitName || 'this unit', siteUrl: SITE_URL, loginUrl: `${SITE_URL}/login` };
+
+  const custom = await getCustomOrDefaultHtml('unit-complete', vars);
+  const subject = custom ? custom.subject : `You finished ${unitName || 'a unit'}! Quick feedback?`;
+  const html = custom ? custom.html : renderTemplate(getDefaultTemplates()['unit-complete'].html, vars);
+  const text = `Hi ${firstName},\n\nYou just wrapped up all 5 lessons in ${unitName}. I'd love to hear how it went — just reply with a few quick thoughts:\n\n1. What worked well in this unit?\n2. Any issues or things that didn't work?\n3. Would you teach this unit again?\n\nThanks,\nRob Taube\nMusic Mind Academy`;
+
+  try {
+    const info = await transport.sendMail({
+      from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
+      replyTo: ADMIN_EMAIL,
+      to: email,
+      bcc: ADMIN_EMAIL,
+      subject,
+      text,
+      html
+    });
+    console.log(`[TeacherEmail] Unit-complete email sent to ${email} for ${unitName} (${info.messageId})`);
+    return { success: true, messageId: info.messageId };
+  } catch (err) {
+    console.error(`[TeacherEmail] Failed to send unit-complete email to ${email}:`, err.message);
+    return { success: false, error: err.message };
+  }
+};
+
+/**
  * Get sample variables for preview rendering
  */
 const getSampleVars = (type) => {
@@ -468,6 +528,9 @@ const getSampleVars = (type) => {
 
   if (type === 'survey-l5') {
     vars.surveyUrl = `${SITE_URL}/survey/final?email=jane.smith%40school.edu`;
+  }
+  if (type === 'unit-complete') {
+    vars.unitName = 'Listening Lab';
   }
 
   return vars;
@@ -529,6 +592,7 @@ const sendCustomEmail = async (email, firstName, subject, html) => {
 module.exports = {
   sendMidPilotSurveyEmail,
   sendFinalPilotSurveyEmail,
+  sendUnitCompleteEmail,
   sendApplicationNotificationEmail,
   sendDripWelcomeEmail,
   sendDripFollowup1Email,

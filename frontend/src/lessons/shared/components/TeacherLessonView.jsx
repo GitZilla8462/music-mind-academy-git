@@ -3810,8 +3810,8 @@ const TeacherLessonView = ({
         // Final PMF survey after Unit 1, Lesson 5 only
         setSurveyType('finalPilot');
       } else {
-        // Quick survey for all other lessons/units
-        setSurveyType('quick');
+        // No popup survey — unit-complete emails handle feedback for other units
+        endSession();
       }
     } else {
       // Skip survey for testing (< 5 students)

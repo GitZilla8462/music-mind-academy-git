@@ -4,6 +4,7 @@ const EmailTemplate = require('../models/EmailTemplate');
 const {
   sendMidPilotSurveyEmail,
   sendFinalPilotSurveyEmail,
+  sendUnitCompleteEmail,
   sendApplicationNotificationEmail,
   sendDripWelcomeEmail,
   sendDripFollowup1Email,
@@ -51,6 +52,26 @@ router.post('/survey-l5', async (req, res) => {
     return res.json(result);
   } catch (error) {
     console.error('[EmailRoute] survey-l5 error:', error.message);
+    return res.status(200).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * POST /api/email/unit-complete
+ * Send feedback request email after finishing a unit (Units 2+)
+ */
+router.post('/unit-complete', async (req, res) => {
+  const { email, displayName, unitName } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  try {
+    const result = await sendUnitCompleteEmail(email, displayName, unitName);
+    return res.json(result);
+  } catch (error) {
+    console.error('[EmailRoute] unit-complete error:', error.message);
     return res.status(200).json({ success: false, error: error.message });
   }
 });

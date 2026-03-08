@@ -5,7 +5,7 @@ const emailTemplateSchema = new mongoose.Schema({
     type: String,
     unique: true,
     required: true,
-    enum: ['drip-1', 'drip-2', 'drip-3', 'survey-l3', 'survey-l5', 'application-notify']
+    enum: ['drip-1', 'drip-2', 'drip-3', 'survey-l3', 'survey-l5', 'unit-complete', 'application-notify']
   },
   subject: {
     type: String,

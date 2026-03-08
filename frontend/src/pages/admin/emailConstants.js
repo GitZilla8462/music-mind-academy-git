@@ -58,6 +58,17 @@ export const EMAIL_TEMPLATES = [
     variables: ['firstName', 'surveyUrl', 'siteUrl'],
   },
   {
+    id: 'unit-complete',
+    name: 'Unit Complete Feedback',
+    subject: 'You finished {{unitName}}! Quick feedback?',
+    trigger: 'After finishing L5 of Units 2+',
+    description: 'Reply-based feedback email sent when a teacher completes all 5 lessons of any unit except Unit 1 (which has its own survey).',
+    color: 'violet',
+    outreachField: null,
+    from: 'Rob Taube - Music Mind Academy',
+    variables: ['firstName', 'unitName', 'siteUrl'],
+  },
+  {
     id: 'application-notify',
     name: 'Application Notification',
     subject: 'New pilot application: [Name]',
@@ -71,6 +82,12 @@ export const EMAIL_TEMPLATES = [
 ];
 
 // Quick lookup: id → friendly name
-export const EMAIL_NAMES = Object.fromEntries(
-  EMAIL_TEMPLATES.map(t => [t.id, t.name])
-);
+export const EMAIL_NAMES = {
+  ...Object.fromEntries(EMAIL_TEMPLATES.map(t => [t.id, t.name])),
+  // Per-unit complete emails tracked as unit-complete-u2, unit-complete-u3, etc.
+  'unit-complete-u2': 'U2 Complete',
+  'unit-complete-u3': 'U3 Complete',
+  'unit-complete-u4': 'U4 Complete',
+  'unit-complete-u5': 'U5 Complete',
+  'unit-complete-u6': 'U6 Complete',
+};

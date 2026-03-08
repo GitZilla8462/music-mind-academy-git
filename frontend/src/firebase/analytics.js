@@ -158,7 +158,9 @@ export const logSessionEnded = async (sessionCode, lastStage, studentsJoined) =>
   else if (route.includes('lesson4')) lessonNum = 4;
   else if (route.includes('lesson5')) lessonNum = 5;
 
-  const unit = route.includes('listening-lab') ? 2 : 1;
+  const isUnit1 = route.includes('film-music-project') || (!route.includes('listening-lab'));
+  const unitNum = route.includes('listening-lab') ? 2 : 1;
+  const unitNames = { 1: 'Film Music', 2: 'Listening Lab' };
   const studentCount = sessionData.studentsJoined || 0;
 
   if (isRealClass && sessionData.teacherEmail && lessonNum) {
@@ -169,21 +171,30 @@ export const logSessionEnded = async (sessionCode, lastStage, studentsJoined) =>
       body: JSON.stringify({
         email: sessionData.teacherEmail,
         lessonReached: lessonNum,
-        unit
+        unit: unitNum
       })
     }).catch(err => console.warn('HubSpot lesson sync skipped:', err.message));
   }
 
-  // Fire-and-forget survey emails — trigger for 5+ students regardless of time/stages
-  // (duplicate prevention handled by emailTracking)
+  // Auto-emails on lesson completion (duplicate prevention handled by emailTracking)
   if (sessionData.teacherEmail && studentCount >= 5) {
-    if (lessonNum === 3) {
-      sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, 'survey-l3')
-        .catch(err => console.warn('L3 survey email skipped:', err.message));
-    }
-    if (lessonNum === 5) {
-      sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, 'survey-l5')
-        .catch(err => console.warn('L5 survey email skipped:', err.message));
+    if (isUnit1) {
+      // Unit 1 only: mid-pilot survey after L3, final survey after L5
+      if (lessonNum === 3) {
+        sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, 'survey-l3')
+          .catch(err => console.warn('L3 survey email skipped:', err.message));
+      }
+      if (lessonNum === 5) {
+        sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, 'survey-l5')
+          .catch(err => console.warn('L5 survey email skipped:', err.message));
+      }
+    } else {
+      // Units 2+: send unit-complete feedback request after L5
+      if (lessonNum === 5) {
+        const unitName = unitNames[unitNum] || `Unit ${unitNum}`;
+        sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, `unit-complete-u${unitNum}`, { unitName })
+          .catch(err => console.warn(`Unit ${unitNum} complete email skipped:`, err.message));
+      }
     }
   }
 };

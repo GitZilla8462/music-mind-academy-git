@@ -36,6 +36,7 @@ export const markEmailSent = async (email, type) => {
 const ENDPOINT_MAP = {
   'survey-l3': '/api/email/survey-l3',
   'survey-l5': '/api/email/survey-l5',
+  'unit-complete': '/api/email/unit-complete',
   'drip-1': '/api/email/drip-1',
   'drip-2': '/api/email/drip-2',
   'drip-3': '/api/email/drip-3'
@@ -88,7 +89,8 @@ export const sendTeacherEmail = async (email, displayName, type, extraData = {})
   }
 
   // Call backend to send the email
-  const endpoint = ENDPOINT_MAP[type];
+  // unit-complete-u2, unit-complete-u3 etc. all map to the same endpoint
+  const endpoint = ENDPOINT_MAP[type] || (type.startsWith('unit-complete') ? ENDPOINT_MAP['unit-complete'] : null);
   if (!endpoint) {
     console.error(`[EmailTracking] Unknown email type: ${type}`);
     return { success: false, error: `Unknown type: ${type}` };
