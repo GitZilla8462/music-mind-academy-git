@@ -16,6 +16,16 @@ const isPersonalEmail = (email) => {
 
 const ADMIN_EMAILS = ['robtaube90@gmail.com', 'robtaube92@gmail.com'];
 
+// Unit definitions — add new units here as they're built
+const UNITS = {
+  'film-music-project': { label: 'Film Music', short: 'FM', badgeComplete: 'bg-blue-100 text-blue-800', badgePartial: 'bg-blue-50 text-blue-600', border: 'border-blue-200', heading: 'text-blue-700' },
+  'listening-lab': { label: 'Listening Lab', short: 'LL', badgeComplete: 'bg-purple-100 text-purple-800', badgePartial: 'bg-purple-50 text-purple-600', border: 'border-purple-200', heading: 'text-purple-700' },
+  // Future units:
+  // 'world-music': { label: 'World Music', short: 'WM', badgeComplete: 'bg-green-100 text-green-800', badgePartial: 'bg-green-50 text-green-600', border: 'border-green-200', heading: 'text-green-700' },
+};
+
+const UNIT_IDS = Object.keys(UNITS);
+
 const STAGE_ORDER = {
   'Not Logged In': 0, 'Registered': 1, 'Explored': 2,
   'L1': 3, 'L2': 4, 'L3': 5, 'L4': 6, 'L5': 7, 'Completed': 8
@@ -57,34 +67,47 @@ const TeacherAnalyticsPage = () => {
   const [toast, setToast] = useState(null);
   const [showDuplicates, setShowDuplicates] = useState(false);
   const [showMarkSentModal, setShowMarkSentModal] = useState(false);
+  const [unitFilter, setUnitFilter] = useState('all'); // 'all' or a unit ID like 'film-music-project'
 
   const showToast = useCallback((msg) => {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
   }, []);
 
-  // Build session data by teacher email
+  // Build session data by teacher email — organized by unit
   const sessionsByTeacher = useMemo(() => {
     const map = {};
+    const emptyUnits = () => {
+      const u = {};
+      UNIT_IDS.forEach(id => { u[id] = { 1: [], 2: [], 3: [], 4: [], 5: [] }; });
+      return u;
+    };
+
     pilotSessions.forEach(session => {
       const email = session.teacherEmail?.toLowerCase();
       if (!email) return;
-      let lessonNum = null;
-      if (session.lessonRoute?.includes('lesson1')) lessonNum = 1;
-      else if (session.lessonRoute?.includes('lesson2')) lessonNum = 2;
-      else if (session.lessonRoute?.includes('lesson3')) lessonNum = 3;
-      else if (session.lessonRoute?.includes('lesson4')) lessonNum = 4;
-      else if (session.lessonRoute?.includes('lesson5')) lessonNum = 5;
-      if (!lessonNum) return;
+      const route = session.lessonRoute || '';
 
-      if (!map[email]) map[email] = { lessons: { 1: [], 2: [], 3: [], 4: [], 5: [] }, totalStudents: 0, totalSessions: 0, lastSessionTime: 0 };
+      // Extract unit and lesson from route like /lessons/film-music-project/lesson3
+      let unitId = null;
+      let lessonNum = null;
+      for (const id of UNIT_IDS) {
+        if (route.includes(id)) { unitId = id; break; }
+      }
+      // Fallback: if no unit matched but has lesson, assume film-music-project (legacy)
+      const lessonMatch = route.match(/lesson(\d)/);
+      if (lessonMatch) lessonNum = parseInt(lessonMatch[1]);
+      if (!unitId && lessonNum) unitId = 'film-music-project';
+      if (!unitId || !lessonNum) return;
+
+      if (!map[email]) map[email] = { units: emptyUnits(), totalStudents: 0, totalSessions: 0, lastSessionTime: 0 };
 
       const stageTimes = session.stageTimes || {};
       const activeTimeMs = Object.values(stageTimes).reduce((sum, t) => sum + (t || 0), 0);
       const activeTimeMins = Math.round(activeTimeMs / 60000);
       const stageCount = Object.keys(stageTimes).length;
 
-      map[email].lessons[lessonNum].push({
+      map[email].units[unitId][lessonNum].push({
         sessionCode: session.sessionCode, date: session.startTime,
         students: session.studentsJoined || 0, duration: session.duration || 0,
         activeTimeMins, stageCount, completed: session.completed || false
@@ -150,24 +173,47 @@ const TeacherAnalyticsPage = () => {
       const teacherName = outreach.name || reg?.displayName || approved.name || (app ? `${app.firstName} ${app.lastName}` : '');
       const school = outreach.school || approved.notes || (app ? app.schoolName : '');
 
-      // Determine stage
+      // Build per-unit progress
+      const unitProgress = {};
+      let highestLesson = 0;
+      let unitsComplete = 0;
+      let unitsStarted = 0;
+      let totalLessonsDone = 0;
+
+      if (sessions) {
+        UNIT_IDS.forEach(uid => {
+          const lessons = sessions.units[uid];
+          const done = [1, 2, 3, 4, 5].map(n => isLessonCompleted(lessons[n]));
+          const started = [1, 2, 3, 4, 5].map(n => lessons[n].length > 0);
+          const lessonsDone = done.filter(Boolean).length;
+          const lessonsStarted = started.filter(Boolean).length;
+          unitProgress[uid] = { done, started, lessonsDone, lessonsStarted };
+          totalLessonsDone += lessonsDone;
+          if (lessonsDone === 5) unitsComplete++;
+          if (lessonsStarted > 0) unitsStarted++;
+        });
+      }
+
+      // Determine stage (based on highest progress across all units)
       let stage = 'Not Logged In';
-      let l1Done = false, l2Done = false, l3Done = false, l4Done = false, l5Done = false;
 
       if (reg || sessions) {
         stage = 'Registered';
         if (sessions) {
-          l1Done = isLessonCompleted(sessions.lessons[1]);
-          l2Done = isLessonCompleted(sessions.lessons[2]);
-          l3Done = isLessonCompleted(sessions.lessons[3]);
-          l4Done = isLessonCompleted(sessions.lessons[4]);
-          l5Done = isLessonCompleted(sessions.lessons[5]);
+          // Find highest completed lesson across all units
+          UNIT_IDS.forEach(uid => {
+            const up = unitProgress[uid];
+            if (!up) return;
+            for (let i = 4; i >= 0; i--) {
+              if (up.done[i] && (i + 1) > highestLesson) highestLesson = i + 1;
+            }
+          });
 
-          if (l5Done) stage = 'Completed';
-          else if (l4Done) stage = 'L4';
-          else if (l3Done) stage = 'L3';
-          else if (l2Done) stage = 'L2';
-          else if (l1Done) stage = 'L1';
+          if (unitsComplete > 0 && highestLesson === 5) stage = 'Completed';
+          else if (highestLesson >= 4) stage = 'L4';
+          else if (highestLesson >= 3) stage = 'L3';
+          else if (highestLesson >= 2) stage = 'L2';
+          else if (highestLesson >= 1) stage = 'L1';
           else if (sessions.totalSessions > 0) stage = 'Explored';
         }
       }
@@ -187,8 +233,9 @@ const TeacherAnalyticsPage = () => {
 
       result.push({
         email, teacherName, school, stage,
-        l1Done, l2Done, l3Done, l4Done, l5Done,
-        lessons: sessions?.lessons || { 1: [], 2: [], 3: [], 4: [], 5: [] },
+        unitProgress,
+        unitsComplete, unitsStarted, totalLessonsDone,
+        units: sessions?.units || {},
         totalStudents: sessions?.totalStudents || 0,
         totalSessions: sessions?.totalSessions || 0,
         lastActive,
@@ -361,6 +408,7 @@ const TeacherAnalyticsPage = () => {
         case 'stage': cmp = (STAGE_ORDER[a.stage] || 0) - (STAGE_ORDER[b.stage] || 0); break;
         case 'days': cmp = (a.approvedAt || 0) - (b.approvedAt || 0); break;
         case 'lastActive': cmp = (a.lastActive || 0) - (b.lastActive || 0); break;
+        case 'units': cmp = (a.totalLessonsDone || 0) - (b.totalLessonsDone || 0); break;
         case 'l1': cmp = getLessonScore(a, 1) - getLessonScore(b, 1); break;
         case 'l2': cmp = getLessonScore(a, 2) - getLessonScore(b, 2); break;
         case 'l3': cmp = getLessonScore(a, 3) - getLessonScore(b, 3); break;
@@ -373,11 +421,15 @@ const TeacherAnalyticsPage = () => {
     });
 
     return list;
-  }, [teachers, analyticsSearch, stageFilter, activityFilter, surveyFilter, emailFilter, funnelFilter, analyticsSort]);
+  }, [teachers, analyticsSearch, stageFilter, activityFilter, surveyFilter, emailFilter, unitFilter, funnelFilter, analyticsSort]);
 
   const getLessonScore = (teacher, lessonNum) => {
-    if (teacher[`l${lessonNum}Done`]) return 2;
-    if (teacher.lessons[lessonNum] && teacher.lessons[lessonNum].length > 0) return 1;
+    // When filtering by unit, score based on that unit's data
+    const uid = unitFilter !== 'all' ? unitFilter : 'film-music-project';
+    const up = teacher.unitProgress[uid];
+    if (!up) return 0;
+    if (up.done[lessonNum - 1]) return 2;
+    if (up.started[lessonNum - 1]) return 1;
     return 0;
   };
 
@@ -538,7 +590,7 @@ const TeacherAnalyticsPage = () => {
               </h2>
               <p className="text-sm text-gray-500 mt-1">
                 {filteredTeachers.length} of {teachers.length} teacher{teachers.length !== 1 ? 's' : ''}
-                {(stageFilter !== 'all' || activityFilter !== 'all' || surveyFilter !== 'all' || emailFilter !== 'all' || funnelFilter) && ' (filtered)'}
+                {(stageFilter !== 'all' || activityFilter !== 'all' || surveyFilter !== 'all' || emailFilter !== 'all' || unitFilter !== 'all' || funnelFilter) && ' (filtered)'}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
@@ -612,10 +664,21 @@ const TeacherAnalyticsPage = () => {
                 <option value="missingSurveyL3">Missing Mid-Pilot Survey email</option>
                 <option value="missingSurveyL5">Missing Final Survey email</option>
               </select>
+              {/* Unit filter */}
+              <select
+                value={unitFilter}
+                onChange={(e) => { setUnitFilter(e.target.value); setFunnelFilter(null); }}
+                className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+              >
+                <option value="all">All Units</option>
+                {UNIT_IDS.map(uid => (
+                  <option key={uid} value={uid}>{UNITS[uid].label}</option>
+                ))}
+              </select>
               {/* Clear filters */}
-              {(stageFilter !== 'all' || activityFilter !== 'all' || surveyFilter !== 'all' || emailFilter !== 'all' || funnelFilter || analyticsSearch) && (
+              {(stageFilter !== 'all' || activityFilter !== 'all' || surveyFilter !== 'all' || emailFilter !== 'all' || unitFilter !== 'all' || funnelFilter || analyticsSearch) && (
                 <button
-                  onClick={() => { setStageFilter('all'); setActivityFilter('all'); setSurveyFilter('all'); setEmailFilter('all'); setFunnelFilter(null); setAnalyticsSearch(''); }}
+                  onClick={() => { setStageFilter('all'); setActivityFilter('all'); setSurveyFilter('all'); setEmailFilter('all'); setUnitFilter('all'); setFunnelFilter(null); setAnalyticsSearch(''); }}
                   className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
                 >
                   Clear
@@ -676,11 +739,17 @@ const TeacherAnalyticsPage = () => {
                   <SortHeader column="days" center>Days</SortHeader>
                   <SortHeader column="lastActive">Last Active</SortHeader>
                   <th className="px-2 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider text-left bg-gray-50 whitespace-nowrap">Emails Sent</th>
-                  <SortHeader column="l1" center>L1</SortHeader>
-                  <SortHeader column="l2" center>L2</SortHeader>
-                  <SortHeader column="l3" center>L3</SortHeader>
-                  <SortHeader column="l4" center>L4</SortHeader>
-                  <SortHeader column="l5" center>L5</SortHeader>
+                  {unitFilter === 'all' ? (
+                    <SortHeader column="units" center>Units</SortHeader>
+                  ) : (
+                    <>
+                      <SortHeader column="l1" center>L1</SortHeader>
+                      <SortHeader column="l2" center>L2</SortHeader>
+                      <SortHeader column="l3" center>L3</SortHeader>
+                      <SortHeader column="l4" center>L4</SortHeader>
+                      <SortHeader column="l5" center>L5</SortHeader>
+                    </>
+                  )}
                   <SortHeader column="students" center>Students</SortHeader>
                 </tr>
               </thead>
@@ -779,12 +848,43 @@ const TeacherAnalyticsPage = () => {
                             );
                           })()}
                         </td>
-                        {/* L1-L5 */}
-                        <LessonCell sessions={teacher.lessons[1]} isCompleted={teacher.l1Done} />
-                        <LessonCell sessions={teacher.lessons[2]} isCompleted={teacher.l2Done} />
-                        <LessonCell sessions={teacher.lessons[3]} isCompleted={teacher.l3Done} />
-                        <LessonCell sessions={teacher.lessons[4]} isCompleted={teacher.l4Done} />
-                        <LessonCell sessions={teacher.lessons[5]} isCompleted={teacher.l5Done} />
+                        {/* Units / L1-L5 */}
+                        {unitFilter === 'all' ? (
+                          <td className="px-2 py-2 text-center">
+                            {teacher.unitsStarted === 0 ? (
+                              <span className="text-gray-300">--</span>
+                            ) : (
+                              <div className="flex items-center justify-center gap-1">
+                                {UNIT_IDS.map(uid => {
+                                  const up = teacher.unitProgress[uid];
+                                  if (!up || up.lessonsStarted === 0) return null;
+                                  const complete = up.lessonsDone === 5;
+                                  const unitDef = UNITS[uid];
+                                  return (
+                                    <span
+                                      key={uid}
+                                      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium ${
+                                        complete ? unitDef.badgeComplete : unitDef.badgePartial
+                                      }`}
+                                      title={`${unitDef.label}: ${up.lessonsDone}/5 lessons`}
+                                    >
+                                      {unitDef.short}
+                                      <span className="text-[10px]">{up.lessonsDone}/5</span>
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </td>
+                        ) : (
+                          <>
+                            {[1, 2, 3, 4, 5].map(n => {
+                              const lessons = teacher.units[unitFilter]?.[n] || [];
+                              const done = teacher.unitProgress[unitFilter]?.done[n - 1] || false;
+                              return <LessonCell key={n} sessions={lessons} isCompleted={done} />;
+                            })}
+                          </>
+                        )}
                         {/* Students */}
                         <td className="px-2 py-2 text-center font-medium text-gray-800">
                           {teacher.totalStudents || <span className="text-gray-300">--</span>}
@@ -794,7 +894,7 @@ const TeacherAnalyticsPage = () => {
                       {/* Expanded details */}
                       {isExpanded && canExpand && (
                         <tr className="bg-gray-50">
-                          <td colSpan={14} className="px-6 py-4">
+                          <td colSpan={unitFilter === 'all' ? 10 : 14} className="px-6 py-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                               {/* Email History Card */}
                               {hasEmails && (
@@ -805,16 +905,14 @@ const TeacherAnalyticsPage = () => {
                                   <div className="space-y-1.5 text-sm">
                                     {Object.entries(teacher.emailHistory)
                                       .sort((a, b) => (a[1].sentAt || 0) - (b[1].sentAt || 0))
-                                      .map(([type, data]) => {
-                                        return (
-                                          <div key={type} className="flex items-center justify-between">
-                                            <span className="text-gray-700">{EMAIL_NAMES[type] || data.subject || type}</span>
-                                            <span className="text-gray-500 text-xs">
-                                              {data.sentAt ? new Date(data.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown date'}
-                                            </span>
-                                          </div>
-                                        );
-                                      })}
+                                      .map(([type, data]) => (
+                                        <div key={type} className="flex items-center justify-between">
+                                          <span className="text-gray-700">{EMAIL_NAMES[type] || data.subject || type}</span>
+                                          <span className="text-gray-500 text-xs">
+                                            {data.sentAt ? new Date(data.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown date'}
+                                          </span>
+                                        </div>
+                                      ))}
                                   </div>
                                 </div>
                               )}
@@ -824,40 +922,59 @@ const TeacherAnalyticsPage = () => {
                                   <div className="space-y-1 text-sm text-gray-600">
                                     <div>Total Sessions: <span className="font-medium">{teacher.totalSessions}</span></div>
                                     <div>Total Students: <span className="font-medium">{teacher.totalStudents}</span></div>
+                                    <div>Units Started: <span className="font-medium">{teacher.unitsStarted}</span></div>
+                                    <div>Units Complete: <span className="font-medium">{teacher.unitsComplete}</span></div>
                                     <div>Last Active: <span className="font-medium">
                                       {teacher.lastActive ? new Date(teacher.lastActive).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Never'}
                                     </span></div>
                                   </div>
                                 </div>
                               )}
-                              {[1, 2, 3, 4, 5].map(lessonNum => {
-                                const sessions = teacher.lessons[lessonNum];
-                                if (sessions.length === 0) return null;
-                                const lessonNames = { 1: 'Mood', 2: 'Instrumentation', 3: 'Texture', 4: 'Form', 5: 'Capstone' };
-                                const totalStudents = sessions.reduce((sum, s) => sum + s.students, 0);
-                                const totalTime = sessions.reduce((sum, s) => sum + s.duration, 0);
+                              {/* Per-unit lesson breakdown */}
+                              {UNIT_IDS.map(uid => {
+                                const unitLessons = teacher.units[uid];
+                                if (!unitLessons) return null;
+                                const up = teacher.unitProgress[uid];
+                                if (!up || up.lessonsStarted === 0) return null;
+                                const unitDef = UNITS[uid];
+                                const lessonNames = uid === 'film-music-project'
+                                  ? { 1: 'Mood', 2: 'Instrumentation', 3: 'Texture', 4: 'Form', 5: 'Capstone' }
+                                  : { 1: 'Lesson 1', 2: 'Lesson 2', 3: 'Lesson 3', 4: 'Lesson 4', 5: 'Lesson 5' };
                                 return (
-                                  <div key={lessonNum} className="bg-white rounded-lg p-4 border border-gray-200">
-                                    <h4 className="font-medium text-gray-800 mb-2">
-                                      L{lessonNum}: {lessonNames[lessonNum]}
-                                      <span className="ml-2 text-xs font-normal text-gray-500">
-                                        {sessions.length} session{sessions.length > 1 ? 's' : ''} | {totalStudents} students | {formatDuration(totalTime)}
-                                      </span>
+                                  <div key={uid} className={`bg-white rounded-lg p-4 border ${unitDef.border} col-span-1 md:col-span-2 lg:col-span-3`}>
+                                    <h4 className={`font-medium mb-3 ${unitDef.heading}`}>
+                                      {unitDef.label}
+                                      <span className="ml-2 text-xs font-normal text-gray-500">{up.lessonsDone}/5 lessons complete</span>
                                     </h4>
-                                    <div className="space-y-2 max-h-32 overflow-y-auto">
-                                      {sessions.sort((a, b) => (b.date || 0) - (a.date || 0)).map((session, i) => (
-                                        <div key={i} className="flex items-center justify-between text-sm">
-                                          <span className="text-gray-600">
-                                            {session.date ? new Date(session.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Unknown'}
-                                          </span>
-                                          <span className="text-gray-500">
-                                            {session.students} stu | {session.activeTimeMins}min | {session.stageCount} stages
-                                          </span>
-                                          <span className={session.activeTimeMins >= MIN_ACTIVE_MINUTES && session.stageCount >= MIN_STAGES ? 'text-green-600' : 'text-yellow-600'}>
-                                            {session.activeTimeMins >= MIN_ACTIVE_MINUTES && session.stageCount >= MIN_STAGES ? '✓' : 'test'}
-                                          </span>
-                                        </div>
-                                      ))}
+                                    <div className="grid grid-cols-5 gap-2">
+                                      {[1, 2, 3, 4, 5].map(lessonNum => {
+                                        const sessions = unitLessons[lessonNum];
+                                        const done = up.done[lessonNum - 1];
+                                        const started = up.started[lessonNum - 1];
+                                        const totalStudents = sessions.reduce((sum, s) => sum + s.students, 0);
+                                        return (
+                                          <div key={lessonNum} className={`rounded-lg p-2 text-xs border ${done ? 'bg-green-50 border-green-200' : started ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200'}`}>
+                                            <div className="font-medium text-gray-700 mb-1">L{lessonNum}: {lessonNames[lessonNum]}</div>
+                                            {sessions.length > 0 ? (
+                                              <div className="text-gray-500">
+                                                {sessions.length} session{sessions.length > 1 ? 's' : ''} | {totalStudents} stu
+                                                <div className="mt-1 space-y-0.5">
+                                                  {sessions.sort((a, b) => (b.date || 0) - (a.date || 0)).slice(0, 3).map((s, i) => (
+                                                    <div key={i} className="flex justify-between">
+                                                      <span>{s.date ? new Date(s.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '?'}</span>
+                                                      <span className={s.activeTimeMins >= MIN_ACTIVE_MINUTES && s.stageCount >= MIN_STAGES ? 'text-green-600' : 'text-yellow-600'}>
+                                                        {s.activeTimeMins >= MIN_ACTIVE_MINUTES && s.stageCount >= MIN_STAGES ? '✓' : 'test'}
+                                                      </span>
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              </div>
+                                            ) : (
+                                              <span className="text-gray-300">Not started</span>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
                                     </div>
                                   </div>
                                 );
