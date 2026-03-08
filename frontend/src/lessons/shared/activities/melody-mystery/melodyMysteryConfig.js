@@ -303,7 +303,11 @@ export const initMelodySynth = async () => {
 
 export const playNote = async (noteId) => {
   if (!initialized) await initMelodySynth();
-  melodySynth?.triggerAttackRelease(noteId, '8n');
+  try {
+    melodySynth?.triggerAttackRelease(noteId, '8n');
+  } catch (err) {
+    // Chromebook timing: synth scheduling conflict - skip this note
+  }
 };
 
 export const playGrid = async (grid, bpm = DEFAULT_BPM) => {
@@ -315,7 +319,11 @@ export const playGrid = async (grid, bpm = DEFAULT_BPM) => {
     for (let row = 0; row < GRID_ROWS; row++) {
       if (grid[row][col]) {
         setTimeout(() => {
-          melodySynth?.triggerAttackRelease(MELODY_NOTES[row].id, '8n');
+          try {
+            melodySynth?.triggerAttackRelease(MELODY_NOTES[row].id, '8n');
+          } catch (err) {
+            // Chromebook timing: synth scheduling conflict - skip this note
+          }
         }, col * interval);
         break; // Only one note per column
       }
@@ -353,33 +361,33 @@ const initUISynth = async () => {
 export const sounds = {
   click: async () => {
     await initUISynth();
-    uiSynth?.triggerAttackRelease('C5', '32n');
+    try { uiSynth?.triggerAttackRelease('C5', '32n'); } catch (err) {}
   },
 
   wrongGuess: async () => {
     await initUISynth();
-    uiSynth?.triggerAttackRelease('E3', '8n');
-    setTimeout(() => uiSynth?.triggerAttackRelease('C3', '8n'), 150);
+    try { uiSynth?.triggerAttackRelease('E3', '8n'); } catch (err) {}
+    setTimeout(() => { try { uiSynth?.triggerAttackRelease('C3', '8n'); } catch (err) {} }, 150);
   },
 
   unlock: async () => {
     await initUISynth();
     const notes = ['C5', 'E5', 'G5', 'C6'];
     notes.forEach((note, i) => {
-      setTimeout(() => uiSynth?.triggerAttackRelease(note, '16n'), i * 100);
+      setTimeout(() => { try { uiSynth?.triggerAttackRelease(note, '16n'); } catch (err) {} }, i * 100);
     });
   },
 
   hint: async () => {
     await initUISynth();
-    uiSynth?.triggerAttackRelease('G4', '8n');
+    try { uiSynth?.triggerAttackRelease('G4', '8n'); } catch (err) {}
   },
 
   escape: async () => {
     await initUISynth();
     const notes = ['C5', 'E5', 'G5', 'C6', 'E6', 'G6'];
     notes.forEach((note, i) => {
-      setTimeout(() => uiSynth?.triggerAttackRelease(note, '8n'), i * 100);
+      setTimeout(() => { try { uiSynth?.triggerAttackRelease(note, '8n'); } catch (err) {} }, i * 100);
     });
   }
 };

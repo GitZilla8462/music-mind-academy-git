@@ -691,12 +691,15 @@ const playNote = async (noteId, deviceId = null) => {
   const shiftedNote = shiftNoteOctave(noteId, config.octaveShift);
 
   // MetalSynth uses frequency, not note names
-  if (config.synthType === 'metal') {
-    // Convert note to frequency for MetalSynth
-    const freq = Tone.Frequency(shiftedNote).toFrequency();
-    currentSynth?.triggerAttackRelease(freq, '8n');
-  } else {
-    currentSynth?.triggerAttackRelease(shiftedNote, '8n');
+  try {
+    if (config.synthType === 'metal') {
+      const freq = Tone.Frequency(shiftedNote).toFrequency();
+      currentSynth?.triggerAttackRelease(freq, '8n');
+    } else {
+      currentSynth?.triggerAttackRelease(shiftedNote, '8n');
+    }
+  } catch (err) {
+    // Chromebook timing: synth scheduling conflict - skip this note
   }
 };
 
@@ -715,11 +718,15 @@ export const playSimpleGrid = async (grid, bpm = 120, onBeatChange, deviceId = n
         const shiftedNote = shiftNoteOctave(NOTES[row].id, config.octaveShift);
 
         // MetalSynth uses frequency
-        if (config.synthType === 'metal') {
-          const freq = Tone.Frequency(shiftedNote).toFrequency();
-          currentSynth?.triggerAttackRelease(freq, '8n');
-        } else {
-          currentSynth?.triggerAttackRelease(shiftedNote, '8n');
+        try {
+          if (config.synthType === 'metal') {
+            const freq = Tone.Frequency(shiftedNote).toFrequency();
+            currentSynth?.triggerAttackRelease(freq, '8n');
+          } else {
+            currentSynth?.triggerAttackRelease(shiftedNote, '8n');
+          }
+        } catch (err) {
+          // Chromebook timing: synth scheduling conflict - skip this note
         }
         break; // One note per column
       }
