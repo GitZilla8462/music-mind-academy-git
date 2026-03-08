@@ -56,6 +56,7 @@ const TeacherAnalyticsPage = () => {
   const [funnelFilter, setFunnelFilter] = useState(null);
   const [toast, setToast] = useState(null);
   const [showDuplicates, setShowDuplicates] = useState(false);
+  const [showMarkSentModal, setShowMarkSentModal] = useState(false);
 
   const showToast = useCallback((msg) => {
     setToast(msg);
@@ -640,6 +641,9 @@ const TeacherAnalyticsPage = () => {
               <button onClick={() => setShowEmailModal(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
                 <Mail size={14} /> Send Email
               </button>
+              <button onClick={() => setShowMarkSentModal(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
+                <Check size={14} /> Mark Email Sent
+              </button>
             </div>
             <button onClick={() => setSelectedEmails(new Set())} className="ml-auto text-sm text-blue-600 hover:text-blue-800">
               Clear selection
@@ -886,6 +890,15 @@ const TeacherAnalyticsPage = () => {
         )}
       </div>
 
+      {/* Mark Sent Modal */}
+      {showMarkSentModal && (
+        <MarkSentModal
+          teachers={selectedTeachers}
+          onClose={() => setShowMarkSentModal(false)}
+          onDone={(count, label) => { setShowMarkSentModal(false); showToast(`Marked ${label} as sent for ${count} teachers`); setSelectedEmails(new Set()); }}
+        />
+      )}
+
       {/* Duplicates Modal */}
       {showDuplicates && (
         <DuplicatesModal
@@ -910,6 +923,92 @@ const TeacherAnalyticsPage = () => {
           onSuccess={(msg) => { setShowEmailModal(false); setSuccess(msg); setSelectedEmails(new Set()); }}
         />
       )}
+    </div>
+  );
+};
+
+// --- Mark Sent Modal ---
+
+const MarkSentModal = ({ teachers, onClose, onDone }) => {
+  const [emailType, setEmailType] = useState('drip-2');
+  const [marking, setMarking] = useState(false);
+
+  const EMAIL_OPTIONS = [
+    { value: 'drip-1', label: 'Welcome Email' },
+    { value: 'drip-2', label: '7-Day Follow-up' },
+    { value: 'drip-3', label: 'Final Reminder' },
+    { value: 'survey-l3', label: 'Mid-Pilot Survey' },
+    { value: 'survey-l5', label: 'Final Survey' },
+  ];
+
+  const handleMark = async () => {
+    if (!confirm(`Mark "${EMAIL_OPTIONS.find(o => o.value === emailType)?.label}" as sent for ${teachers.length} teacher(s)?`)) return;
+    setMarking(true);
+    const db = getDatabase();
+    const now = Date.now();
+    let count = 0;
+    // Use Promise.all in batches of 20 for reliability
+    const batch = [];
+    for (const t of teachers) {
+      const emailKey = t.email.toLowerCase().replace(/\./g, ',');
+      batch.push(
+        set(ref(db, `emailsSent/${emailKey}/${emailType}`), {
+          sentAt: now,
+          subject: EMAIL_OPTIONS.find(o => o.value === emailType)?.label || emailType,
+          type: emailType,
+        }).then(() => { count++; }).catch(e => console.warn('Failed:', t.email, e.message))
+      );
+      // Flush in batches of 20
+      if (batch.length >= 20) {
+        await Promise.all(batch.splice(0));
+      }
+    }
+    if (batch.length > 0) await Promise.all(batch);
+    setMarking(false);
+    onDone(count, EMAIL_OPTIONS.find(o => o.value === emailType)?.label);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800">Mark Email as Sent</h3>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg">
+            <X size={20} className="text-gray-500" />
+          </button>
+        </div>
+        <div className="px-6 py-4 space-y-4">
+          <p className="text-sm text-gray-600">
+            Stamp tracking for <strong>{teachers.length}</strong> teacher{teachers.length !== 1 ? 's' : ''} without re-sending the email.
+            Use this if emails were sent but tracking wasn't recorded.
+          </p>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email Type</label>
+            <select
+              value={emailType}
+              onChange={(e) => setEmailType(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            >
+              {EMAIL_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800" disabled={marking}>
+              Cancel
+            </button>
+            <button
+              onClick={handleMark}
+              disabled={marking}
+              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 font-medium"
+            >
+              {marking ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+              Mark {teachers.length} as Sent
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -1145,27 +1244,32 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
 
       const result = await res.json();
       setProgress({ sent: result.sent || 0, failed: result.failed || 0, total: teachers.length });
-      setDone(true);
 
-      // Track sent emails in Firebase so they show in email history
+      // Track sent emails in Firebase BEFORE showing done (so closing modal doesn't kill tracking)
       if (result.sent > 0) {
         const db = getDatabase();
         const now = Date.now();
         const emailType = selectedTemplate || 'custom';
         const trackLabel = selectedTemplate || `custom-${now}`;
+        // Write in parallel batches of 20 for speed + reliability
+        const batch = [];
         for (const t of teachers) {
           const emailKey = t.email.toLowerCase().replace(/\./g, ',');
-          try {
-            await set(ref(db, `emailsSent/${emailKey}/${trackLabel}`), {
+          batch.push(
+            set(ref(db, `emailsSent/${emailKey}/${trackLabel}`), {
               sentAt: now,
               subject: subject,
               type: emailType,
-            });
-          } catch (e) {
-            console.warn('Failed to track email for', t.email, e.message);
+            }).catch(e => console.warn('Failed to track email for', t.email, e.message))
+          );
+          if (batch.length >= 20) {
+            await Promise.all(batch.splice(0));
           }
         }
+        if (batch.length > 0) await Promise.all(batch);
       }
+
+      setDone(true);
     } catch (err) {
       console.error('Batch send failed:', err);
       setProgress(prev => ({ ...prev, failed: prev.total }));
