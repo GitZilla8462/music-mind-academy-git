@@ -9,7 +9,7 @@ import { getAuth, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAv0tH8VmKizydKhdHfFFgKES9Ir-PfXtA",
-  authDomain: "musicmindacademy.com",
+  authDomain: "music-mind-academy.firebaseapp.com",
   databaseURL: "https://music-mind-academy-default-rtdb.firebaseio.com",
   projectId: "music-mind-academy",
   storageBucket: "music-mind-academy.firebasestorage.app",
