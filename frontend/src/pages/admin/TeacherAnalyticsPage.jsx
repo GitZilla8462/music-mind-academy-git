@@ -18,10 +18,10 @@ const ADMIN_EMAILS = ['robtaube90@gmail.com', 'robtaube92@gmail.com'];
 
 // Unit definitions — add new units here as they're built
 const UNITS = {
-  'film-music-project': { label: 'Film Music', short: 'FM', badgeComplete: 'bg-blue-100 text-blue-800', badgePartial: 'bg-blue-50 text-blue-600', border: 'border-blue-200', heading: 'text-blue-700' },
-  'listening-lab': { label: 'Listening Lab', short: 'LL', badgeComplete: 'bg-purple-100 text-purple-800', badgePartial: 'bg-purple-50 text-purple-600', border: 'border-purple-200', heading: 'text-purple-700' },
+  'film-music-project': { label: 'Film Music', short: 'U1', badgeComplete: 'bg-blue-100 text-blue-800', badgePartial: 'bg-blue-50 text-blue-600', border: 'border-blue-200', heading: 'text-blue-700' },
+  'listening-lab': { label: 'Listening Lab', short: 'U2', badgeComplete: 'bg-purple-100 text-purple-800', badgePartial: 'bg-purple-50 text-purple-600', border: 'border-purple-200', heading: 'text-purple-700' },
   // Future units:
-  // 'world-music': { label: 'World Music', short: 'WM', badgeComplete: 'bg-green-100 text-green-800', badgePartial: 'bg-green-50 text-green-600', border: 'border-green-200', heading: 'text-green-700' },
+  // 'world-music': { label: 'World Music', short: 'U3', badgeComplete: 'bg-green-100 text-green-800', badgePartial: 'bg-green-50 text-green-600', border: 'border-green-200', heading: 'text-green-700' },
 };
 
 const UNIT_IDS = Object.keys(UNITS);
@@ -671,8 +671,8 @@ const TeacherAnalyticsPage = () => {
                 className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
               >
                 <option value="all">All Units</option>
-                {UNIT_IDS.map(uid => (
-                  <option key={uid} value={uid}>{UNITS[uid].label}</option>
+                {UNIT_IDS.map((uid, i) => (
+                  <option key={uid} value={uid}>Unit {i + 1}: {UNITS[uid].label}</option>
                 ))}
               </select>
               {/* Clear filters */}
@@ -787,7 +787,7 @@ const TeacherAnalyticsPage = () => {
                           )}
                         </td>
                         {/* Name */}
-                        <td className="px-2 py-2 max-w-[240px]">
+                        <td className="px-2 py-2 max-w-[160px]">
                           {teacher.teacherName ? (
                             <>
                               <div className="font-medium text-gray-800 text-sm truncate">
@@ -809,7 +809,7 @@ const TeacherAnalyticsPage = () => {
                           )}
                         </td>
                         {/* School */}
-                        <td className="px-2 py-2 text-sm text-gray-600 max-w-[160px] truncate">
+                        <td className="px-2 py-2 text-sm text-gray-600 max-w-[120px] truncate">
                           {teacher.school || <span className="text-gray-300">--</span>}
                         </td>
                         {/* Stage badge */}
