@@ -92,6 +92,7 @@ const EmailsPage = () => {
   const [editingType, setEditingType] = useState(null);
   const [editSubject, setEditSubject] = useState('');
   const [editHtml, setEditHtml] = useState('');
+  const [editMode, setEditMode] = useState('preview'); // 'preview' or 'html'
   const [editLoading, setEditLoading] = useState(false);
   const [customTemplates, setCustomTemplates] = useState({});
   const [saving, setSaving] = useState(false);
@@ -159,6 +160,7 @@ const EmailsPage = () => {
     }
     setEditLoading(true);
     setEditingType(type);
+    setEditMode('preview'); // always start in preview mode
     try {
       // Load current template (custom or default) from the templates list endpoint
       const res = await fetch('/api/email/templates');
@@ -402,18 +404,6 @@ const EmailsPage = () => {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {/* Variable hints */}
-                      <div className="bg-white rounded-lg border border-amber-200 p-3">
-                        <p className="text-xs font-medium text-amber-700 mb-1">Available variables (use in HTML):</p>
-                        <div className="flex flex-wrap gap-2">
-                          {template.variables.map(v => (
-                            <code key={v} className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-mono">
-                              {`{{${v}}}`}
-                            </code>
-                          ))}
-                        </div>
-                      </div>
-
                       {/* Subject line */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Subject Line</label>
@@ -425,17 +415,59 @@ const EmailsPage = () => {
                         />
                       </div>
 
-                      {/* HTML editor */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">HTML Template</label>
-                        <textarea
-                          value={editHtml}
-                          onChange={(e) => setEditHtml(e.target.value)}
-                          rows={18}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-amber-500 focus:border-amber-500 leading-relaxed"
-                          spellCheck={false}
-                        />
+                      {/* Mode toggle + variable hints */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setEditMode('preview')}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${editMode === 'preview' ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                          >
+                            <Eye size={14} className="inline mr-1.5" />Preview
+                          </button>
+                          <button
+                            onClick={() => setEditMode('html')}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${editMode === 'html' ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                          >
+                            Edit HTML
+                          </button>
+                        </div>
+                        {editMode === 'html' && (
+                          <div className="flex items-center gap-1.5 text-xs text-amber-700">
+                            <span className="font-medium">Variables:</span>
+                            {template.variables.map(v => (
+                              <code key={v} className="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded font-mono">
+                                {`{{${v}}}`}
+                              </code>
+                            ))}
+                          </div>
+                        )}
                       </div>
+
+                      {/* Preview or HTML editor */}
+                      {editMode === 'preview' ? (
+                        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                          <iframe
+                            srcDoc={`<!DOCTYPE html><html><head><base target="_blank"></head><body style="margin:0;padding:16px;background:#f3f4f6;">${editHtml}</body></html>`}
+                            className="w-full border-0"
+                            style={{ height: '400px' }}
+                            title="Template preview"
+                            sandbox="allow-popups allow-popups-to-escape-sandbox"
+                          />
+                          <div className="px-3 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-400">
+                            This is how the email looks. Click "Edit HTML" to modify the template code.
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <textarea
+                            value={editHtml}
+                            onChange={(e) => setEditHtml(e.target.value)}
+                            rows={18}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-amber-500 focus:border-amber-500 leading-relaxed"
+                            spellCheck={false}
+                          />
+                        </div>
+                      )}
 
                       {/* Actions */}
                       <div className="flex items-center gap-3">

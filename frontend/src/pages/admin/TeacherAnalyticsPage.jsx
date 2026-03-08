@@ -694,12 +694,25 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
+  const [mode, setMode] = useState('write'); // 'write' = plain text, 'html' = raw HTML
   const [sending, setSending] = useState(false);
   const [progress, setProgress] = useState({ sent: 0, failed: 0, total: 0 });
   const [done, setDone] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
   const iframeRef = useRef(null);
+
+  // Convert plain text to styled HTML email
+  const plainTextToHtml = (text) => {
+    const escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const paragraphs = escaped.split(/\n\n+/).map(p =>
+      `<p style="margin: 0 0 16px 0; line-height: 1.6;">${p.replace(/\n/g, '<br>')}</p>`
+    ).join('');
+    return `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">${paragraphs}</div>`;
+  };
 
   // Load templates
   React.useEffect(() => {
@@ -720,10 +733,18 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
 
   const handleTemplateChange = (templateType) => {
     setSelectedTemplate(templateType);
-    const tmpl = templates.find(t => t.type === templateType);
-    if (tmpl) {
-      setSubject(tmpl.subject || '');
-      setBody(tmpl.htmlContent || '');
+    if (templateType) {
+      const tmpl = templates.find(t => t.type === templateType);
+      if (tmpl) {
+        setSubject(tmpl.subject || '');
+        setBody(tmpl.htmlContent || '');
+        setMode('html'); // templates are HTML
+      }
+    } else {
+      // Cleared template — back to plain text
+      setBody('');
+      setSubject('');
+      setMode('write');
     }
   };
 
@@ -742,10 +763,11 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
     setTimeout(() => {
       if (iframeRef.current) {
         const sampleFirstName = teachers.length > 0 ? getFirstName(teachers[0]) : 'there';
-        const previewHtml = body.replace(/\{\{firstName\}\}/g, sampleFirstName);
+        const htmlContent = mode === 'write' ? plainTextToHtml(body) : body;
+        const previewHtml = htmlContent.replace(/\{\{firstName\}\}/g, sampleFirstName);
         const doc = iframeRef.current.contentDocument;
         doc.open();
-        doc.write(previewHtml);
+        doc.write(`<!DOCTYPE html><html><head><base target="_blank"></head><body style="margin:0;padding:16px;background:#f3f4f6;">${previewHtml}</body></html>`);
         doc.close();
       }
     }, 100);
@@ -764,13 +786,15 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
         firstName: getFirstName(t),
       }));
 
+      const htmlBody = mode === 'write' ? plainTextToHtml(body) : body;
+
       const res = await fetch('/api/email/batch-send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           recipients,
           customSubject: subject,
-          customHtml: body,
+          customHtml: htmlBody,
           templateType: selectedTemplate || undefined,
         }),
       });
@@ -846,14 +870,26 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
 
               {/* Body */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  HTML Body <span className="font-normal text-gray-400">(use {'{{firstName}}'} for personalization)</span>
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium text-gray-700">
+                    {mode === 'write' ? 'Message' : 'HTML Body'}{' '}
+                    <span className="font-normal text-gray-400">(use {'{{firstName}}'} for personalization)</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setMode(mode === 'write' ? 'html' : 'write')}
+                    className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    {mode === 'write' ? 'Switch to HTML' : 'Switch to Plain Text'}
+                  </button>
+                </div>
                 <textarea
                   value={body} onChange={(e) => setBody(e.target.value)}
-                  placeholder="<p>Hi {{firstName}},</p>..."
+                  placeholder={mode === 'write'
+                    ? "Hi {{firstName}},\n\nJust wanted to check in..."
+                    : "<p>Hi {{firstName}},</p>..."}
                   rows={10}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 ${mode === 'html' ? 'font-mono text-xs' : ''}`}
                 />
               </div>
 
