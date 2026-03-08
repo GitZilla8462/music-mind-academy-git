@@ -318,9 +318,6 @@ const EmailsPage = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold text-gray-800">{template.name}</h3>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors.badge}`}>
-                        {template.id}
-                      </span>
                       {isCustom && (
                         <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
                           Customized

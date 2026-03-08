@@ -9,6 +9,14 @@ import { getDatabase, ref, set } from 'firebase/database';
 
 const ADMIN_EMAILS = ['robtaube90@gmail.com', 'robtaube92@gmail.com'];
 
+const EMAIL_NAMES = {
+  'drip-1': 'Welcome Email',
+  'drip-2': '7-Day Follow-up',
+  'drip-3': 'Final Reminder',
+  'survey-l3': 'Mid-Pilot Survey',
+  'survey-l5': 'Final Survey',
+};
+
 const STAGE_ORDER = {
   'Not Logged In': 0, 'Registered': 1, 'Explored': 2,
   'L1': 3, 'L2': 4, 'L3': 5, 'L4': 6, 'L5': 7, 'Completed': 8
@@ -684,14 +692,7 @@ const TeacherAnalyticsPage = () => {
                               {Object.entries(teacher.emailHistory)
                                 .sort((a, b) => (a[1].sentAt || 0) - (b[1].sentAt || 0))
                                 .map(([type, data]) => {
-                                  const names = {
-                                    'drip-1': 'Welcome Email',
-                                    'drip-2': '7-Day Follow-up',
-                                    'drip-3': 'Final Reminder',
-                                    'survey-l3': 'Mid-Pilot Survey',
-                                    'survey-l5': 'Final Survey',
-                                  };
-                                  const name = names[type] || data.subject || type;
+                                  const name = EMAIL_NAMES[type] || data.subject || type;
                                   const date = data.sentAt ? new Date(data.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
                                   return (
                                     <div key={type} className="text-xs text-gray-600 whitespace-nowrap">
@@ -732,16 +733,9 @@ const TeacherAnalyticsPage = () => {
                                     {Object.entries(teacher.emailHistory)
                                       .sort((a, b) => (a[1].sentAt || 0) - (b[1].sentAt || 0))
                                       .map(([type, data]) => {
-                                        const labels = {
-                                          'drip-1': 'Welcome Email',
-                                          'drip-2': '7-Day Follow-up',
-                                          'drip-3': 'Final Reminder',
-                                          'survey-l3': 'Mid-Pilot Survey',
-                                          'survey-l5': 'Final Survey',
-                                        };
                                         return (
                                           <div key={type} className="flex items-center justify-between">
-                                            <span className="text-gray-700">{labels[type] || type}</span>
+                                            <span className="text-gray-700">{EMAIL_NAMES[type] || data.subject || type}</span>
                                             <span className="text-gray-500 text-xs">
                                               {data.sentAt ? new Date(data.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown date'}
                                             </span>
@@ -1024,7 +1018,7 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
                 >
                   <option value="">{loadingTemplates ? 'Loading templates...' : 'Select a template (or write custom)'}</option>
                   {templates.map(t => (
-                    <option key={t.type} value={t.type}>{t.type}</option>
+                    <option key={t.type} value={t.type}>{EMAIL_NAMES[t.type] || t.type}</option>
                   ))}
                 </select>
               </div>
