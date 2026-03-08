@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Inbox, ChevronDown, ChevronUp, Upload, X } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Inbox, ChevronDown, ChevronUp, Upload, X, Table, LayoutList, Search, Download, Copy } from 'lucide-react';
 import { useAdminData } from './AdminDataContext';
 
 /**
@@ -82,6 +82,13 @@ const parseTSV = (tsv) => {
   return applications;
 };
 
+const STATUS_BADGE = {
+  pending: 'bg-yellow-100 text-yellow-700',
+  approved: 'bg-green-100 text-green-700',
+  rejected: 'bg-gray-100 text-gray-500',
+  imported: 'bg-blue-100 text-blue-700',
+};
+
 const ApplicationsPage = () => {
   const { applications, approvingId, handleApproveApplication, handleRejectApplication } = useAdminData();
   const [expandedApplications, setExpandedApplications] = useState({});
@@ -90,6 +97,10 @@ const ApplicationsPage = () => {
   const [parsed, setParsed] = useState(null);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [viewMode, setViewMode] = useState('table'); // 'cards' or 'table'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [tableSort, setTableSort] = useState({ col: 'submittedAt', dir: 'desc' });
 
   const handleParse = () => {
     const apps = parseTSV(tsvInput);
@@ -120,10 +131,79 @@ const ApplicationsPage = () => {
     }
   };
 
+  // Filter and search
+  const filteredApps = useMemo(() => {
+    let list = applications;
+    if (statusFilter !== 'all') {
+      list = list.filter(a => a.status === statusFilter);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(a =>
+        (a.firstName || '').toLowerCase().includes(q) ||
+        (a.lastName || '').toLowerCase().includes(q) ||
+        (a.schoolEmail || '').toLowerCase().includes(q) ||
+        (a.personalEmail || '').toLowerCase().includes(q) ||
+        (a.schoolName || '').toLowerCase().includes(q) ||
+        (a.city || '').toLowerCase().includes(q) ||
+        (a.state || '').toLowerCase().includes(q)
+      );
+    }
+    // Sort for table view
+    const { col, dir } = tableSort;
+    list = [...list].sort((a, b) => {
+      let va = a[col] || '', vb = b[col] || '';
+      if (col === 'submittedAt') { va = va || 0; vb = vb || 0; }
+      if (typeof va === 'string') va = va.toLowerCase();
+      if (typeof vb === 'string') vb = vb.toLowerCase();
+      if (va < vb) return dir === 'asc' ? -1 : 1;
+      if (va > vb) return dir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }, [applications, statusFilter, searchQuery, tableSort]);
+
   const pendingCount = applications.filter(a => a.status === 'pending' || a.status === 'imported').length;
+
+  const handleSort = (col) => {
+    setTableSort(prev => ({
+      col,
+      dir: prev.col === col && prev.dir === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const SortArrow = ({ col }) => {
+    if (tableSort.col !== col) return null;
+    return <span className="ml-0.5">{tableSort.dir === 'asc' ? '\u25B2' : '\u25BC'}</span>;
+  };
+
+  // CSV export
+  const handleExportCSV = () => {
+    const headers = ['First Name', 'Last Name', 'School Email', 'Personal Email', 'School', 'City', 'State', 'Grades', 'Devices', 'Class Size', 'Biggest Challenge', 'Why Pilot', 'Tools Used', 'Can Commit', 'Other', 'Status', 'Applied'];
+    const escape = (v) => {
+      const s = String(v || '').replace(/"/g, '""');
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
+    };
+    const rows = filteredApps.map(a => [
+      a.firstName, a.lastName, a.schoolEmail, a.personalEmail, a.schoolName,
+      a.city, a.state, (a.grades || []).join('; '), (a.devices || []).join('; '),
+      a.classSize, a.biggestChallenge, a.whyPilot, (a.toolsUsed || []).join('; '),
+      a.canCommit, a.anythingElse, a.status,
+      a.submittedAt ? new Date(a.submittedAt).toLocaleDateString() : ''
+    ].map(escape).join(','));
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `pilot-applications-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="rounded-xl border border-green-200 overflow-hidden bg-white">
+      {/* Header */}
       <div className="px-6 py-4 bg-green-50 border-b border-green-200 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
           <Inbox size={20} />
@@ -194,39 +274,197 @@ const ApplicationsPage = () => {
         </div>
       )}
 
+      {/* Toolbar: search, filters, view toggle, export */}
+      {applications.length > 0 && (
+        <div className="px-6 py-3 border-b border-gray-200 flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search name, email, school..."
+              className="w-full pl-9 pr-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-300 focus:border-green-400"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white"
+          >
+            <option value="all">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="imported">Imported</option>
+            <option value="rejected">Declined</option>
+          </select>
+          <span className="text-sm text-gray-500">{filteredApps.length} shown</span>
+          <div className="flex items-center gap-1 ml-auto">
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center gap-1 px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm"
+              title="Export CSV"
+            >
+              <Download size={14} /> CSV
+            </button>
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`p-1.5 rounded ${viewMode === 'cards' ? 'bg-green-100 text-green-700' : 'text-gray-400 hover:text-gray-600'}`}
+              title="Card view"
+            >
+              <LayoutList size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`p-1.5 rounded ${viewMode === 'table' ? 'bg-green-100 text-green-700' : 'text-gray-400 hover:text-gray-600'}`}
+              title="Table view"
+            >
+              <Table size={18} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {applications.length === 0 ? (
         <div className="p-8 text-center text-gray-500">
           No applications yet. Teachers will apply at musicmindacademy.com/apply
         </div>
+      ) : viewMode === 'table' ? (
+        /* ============ TABLE / SPREADSHEET VIEW ============ */
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 sticky top-0">
+              <tr>
+                {[
+                  { key: 'firstName', label: 'Name' },
+                  { key: 'schoolEmail', label: 'School Email' },
+                  { key: 'schoolName', label: 'School' },
+                  { key: 'city', label: 'City' },
+                  { key: 'state', label: 'State' },
+                  { key: 'grades', label: 'Grades' },
+                  { key: 'devices', label: 'Devices' },
+                  { key: 'classSize', label: 'Class Size' },
+                  { key: 'status', label: 'Status' },
+                  { key: 'submittedAt', label: 'Applied' },
+                ].map(({ key, label }) => (
+                  <th
+                    key={key}
+                    onClick={() => handleSort(key)}
+                    className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 whitespace-nowrap select-none"
+                  >
+                    {label}<SortArrow col={key} />
+                  </th>
+                ))}
+                <th className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredApps.map((app) => {
+                const isPending = app.status === 'pending' || app.status === 'imported';
+                const expanded = expandedApplications[app.id];
+                return (
+                  <React.Fragment key={app.id}>
+                    <tr
+                      className={`hover:bg-gray-50 cursor-pointer ${app.status === 'rejected' ? 'opacity-50' : ''}`}
+                      onClick={() => setExpandedApplications(prev => ({ ...prev, [app.id]: !prev[app.id] }))}
+                    >
+                      <td className="px-3 py-2 font-medium text-gray-800 whitespace-nowrap">
+                        {app.firstName} {app.lastName}
+                      </td>
+                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap max-w-[220px] truncate" title={app.schoolEmail}>
+                        {app.schoolEmail}
+                      </td>
+                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap max-w-[180px] truncate" title={app.schoolName}>
+                        {app.schoolName}
+                      </td>
+                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{app.city || '--'}</td>
+                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{app.state || '--'}</td>
+                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{(app.grades || []).join(', ') || '--'}</td>
+                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{(app.devices || []).join(', ') || '--'}</td>
+                      <td className="px-3 py-2 text-gray-600 text-center whitespace-nowrap">{app.classSize || '--'}</td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${STATUS_BADGE[app.status] || 'bg-gray-100 text-gray-500'}`}>
+                          {app.status === 'rejected' ? 'Declined' : (app.status || 'unknown').charAt(0).toUpperCase() + (app.status || '').slice(1)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-gray-500 whitespace-nowrap text-xs">
+                        {app.submittedAt ? new Date(app.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) : '--'}
+                      </td>
+                      <td className="px-3 py-2 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        {isPending && (
+                          <div className="flex items-center gap-1 justify-center">
+                            <button
+                              onClick={() => handleApproveApplication(app)}
+                              disabled={approvingId === app.id}
+                              className="px-2 py-1 bg-green-500 text-white rounded text-xs font-medium hover:bg-green-600 disabled:opacity-50"
+                            >
+                              {approvingId === app.id ? '...' : 'Approve'}
+                            </button>
+                            <button
+                              onClick={() => handleRejectApplication(app)}
+                              className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs font-medium hover:bg-gray-300"
+                            >
+                              Decline
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                    {expanded && (
+                      <tr className="bg-gray-50">
+                        <td colSpan={11} className="px-6 py-4">
+                          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                            <div><span className="text-gray-500">Personal Email:</span> <span className="text-gray-800">{app.personalEmail || '--'}</span></div>
+                            <div><span className="text-gray-500">School Email:</span> <span className="text-gray-800">{app.schoolEmail}</span></div>
+                            {app.toolsUsed?.length > 0 && <div><span className="text-gray-500">Tools Used:</span> <span className="text-gray-800">{app.toolsUsed.join(', ')}</span></div>}
+                            {app.canCommit && <div><span className="text-gray-500">Can Commit:</span> <span className="text-gray-800">{app.canCommit}</span></div>}
+                            {app.biggestChallenge && (
+                              <div className="col-span-2 lg:col-span-3">
+                                <span className="text-gray-500">Biggest Challenge:</span>
+                                <p className="text-gray-800 mt-1">{app.biggestChallenge}</p>
+                              </div>
+                            )}
+                            {app.whyPilot && (
+                              <div className="col-span-2 lg:col-span-3">
+                                <span className="text-gray-500">Why Pilot:</span>
+                                <p className="text-gray-800 mt-1">{app.whyPilot}</p>
+                              </div>
+                            )}
+                            {app.anythingElse && (
+                              <div className="col-span-2 lg:col-span-3">
+                                <span className="text-gray-500">Other:</span>
+                                <p className="text-gray-800 mt-1">{app.anythingElse}</p>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       ) : (
+        /* ============ CARD VIEW ============ */
         <div className="divide-y divide-gray-100">
-          {applications.map((app) => {
+          {filteredApps.map((app) => {
             const isPending = app.status === 'pending';
-            const isApproved = app.status === 'approved';
-            const isRejected = app.status === 'rejected';
             const isImported = app.status === 'imported';
             const expanded = expandedApplications[app.id];
 
             return (
-              <div key={app.id} className={`px-6 py-4 ${isRejected ? 'bg-gray-50 opacity-60' : ''}`}>
+              <div key={app.id} className={`px-6 py-4 ${app.status === 'rejected' ? 'bg-gray-50 opacity-60' : ''}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
                       <span className="font-semibold text-gray-800">
                         {app.firstName} {app.lastName}
                       </span>
-                      {isPending && (
-                        <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium">Pending</span>
-                      )}
-                      {isApproved && (
-                        <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">Approved</span>
-                      )}
-                      {isRejected && (
-                        <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-full font-medium">Declined</span>
-                      )}
-                      {isImported && (
-                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">Imported</span>
-                      )}
+                      <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${STATUS_BADGE[app.status] || 'bg-gray-100 text-gray-500'}`}>
+                        {app.status === 'rejected' ? 'Declined' : (app.status || 'unknown').charAt(0).toUpperCase() + (app.status || '').slice(1)}
+                      </span>
                       {app.source === 'google-form' && (
                         <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs rounded-full font-medium">Google Form</span>
                       )}
