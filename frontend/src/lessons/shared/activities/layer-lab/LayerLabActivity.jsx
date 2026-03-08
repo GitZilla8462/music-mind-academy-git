@@ -425,7 +425,13 @@ const LayerLabActivity = ({ onComplete }) => {
           if (currentMuted[trackId]) return;
           const grid = currentGrids[trackId];
           grid?.forEach((row, rowIdx) => {
-            if (row[col]) playNote(trackId, rowIdx, time);
+            if (row[col]) {
+              try {
+                playNote(trackId, rowIdx, time);
+              } catch (e) {
+                // Chromebook timing: callback fired late, time already passed - skip this beat
+              }
+            }
           });
         });
       },

@@ -540,16 +540,20 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
 
         INSTRUMENTS.forEach((inst, index) => {
           if (currentGrid[index][step]) {
-            if (inst.id === 'kick') {
-              synthsRef.current.kick.triggerAttackRelease('C1', '8n', time);
-            } else if (inst.id === 'snare') {
-              synthsRef.current.snare.triggerAttackRelease('16n', time);
-            } else if (inst.id === 'clap') {
-              synthsRef.current.clap.triggerAttackRelease('16n', time);
-            } else if (inst.id === 'hihat') {
-              synthsRef.current.hihat.triggerAttackRelease('32n', time);
-            } else if (inst.id === 'openhat') {
-              synthsRef.current.openhat.triggerAttackRelease('16n', time);
+            try {
+              if (inst.id === 'kick') {
+                synthsRef.current.kick.triggerAttackRelease('C1', '8n', time);
+              } else if (inst.id === 'snare') {
+                synthsRef.current.snare.triggerAttackRelease('16n', time);
+              } else if (inst.id === 'clap') {
+                synthsRef.current.clap.triggerAttackRelease('16n', time);
+              } else if (inst.id === 'hihat') {
+                synthsRef.current.hihat.triggerAttackRelease('32n', time);
+              } else if (inst.id === 'openhat') {
+                synthsRef.current.openhat.triggerAttackRelease('16n', time);
+              }
+            } catch (err) {
+              // Chromebook timing: callback fired late, time already passed - skip this beat
             }
           }
         });

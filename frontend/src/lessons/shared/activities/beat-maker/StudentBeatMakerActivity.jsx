@@ -231,17 +231,21 @@ const TeacherBeatTutorial = () => {
 
     sequenceRef.current = new Tone.Sequence(
       (time, stepIdx) => {
-        if (pattern.kick.includes(stepIdx)) {
-          synthsRef.current.kick.triggerAttackRelease('C1', '8n', time);
-        }
-        if (pattern.snare.includes(stepIdx)) {
-          synthsRef.current.snare.triggerAttackRelease('16n', time);
-        }
-        if (pattern.hihat.includes(stepIdx)) {
-          synthsRef.current.hihat.triggerAttackRelease('32n', time);
-        }
-        if (pattern.openhat.includes(stepIdx)) {
-          synthsRef.current.openhat.triggerAttackRelease('16n', time);
+        try {
+          if (pattern.kick.includes(stepIdx)) {
+            synthsRef.current.kick.triggerAttackRelease('C1', '8n', time);
+          }
+          if (pattern.snare.includes(stepIdx)) {
+            synthsRef.current.snare.triggerAttackRelease('16n', time);
+          }
+          if (pattern.hihat.includes(stepIdx)) {
+            synthsRef.current.hihat.triggerAttackRelease('32n', time);
+          }
+          if (pattern.openhat.includes(stepIdx)) {
+            synthsRef.current.openhat.triggerAttackRelease('16n', time);
+          }
+        } catch (e) {
+          // Chromebook timing: callback fired late, time already passed - skip this beat
         }
 
         Tone.Draw.schedule(() => {
@@ -548,17 +552,21 @@ const StudentBeatMakerActivity = ({
 
     previewSequenceRef.current = new Tone.Sequence(
       (time, stepIdx) => {
-        if (pattern.kick?.includes(stepIdx)) {
-          previewSynthsRef.current.kick.triggerAttackRelease('C1', '8n', time);
-        }
-        if (pattern.snare?.includes(stepIdx)) {
-          previewSynthsRef.current.snare.triggerAttackRelease('16n', time);
-        }
-        if (pattern.hihat?.includes(stepIdx)) {
-          previewSynthsRef.current.hihat.triggerAttackRelease('32n', time);
-        }
-        if (pattern.openhat?.includes(stepIdx)) {
-          previewSynthsRef.current.openhat.triggerAttackRelease('16n', time);
+        try {
+          if (pattern.kick?.includes(stepIdx)) {
+            previewSynthsRef.current.kick.triggerAttackRelease('C1', '8n', time);
+          }
+          if (pattern.snare?.includes(stepIdx)) {
+            previewSynthsRef.current.snare.triggerAttackRelease('16n', time);
+          }
+          if (pattern.hihat?.includes(stepIdx)) {
+            previewSynthsRef.current.hihat.triggerAttackRelease('32n', time);
+          }
+          if (pattern.openhat?.includes(stepIdx)) {
+            previewSynthsRef.current.openhat.triggerAttackRelease('16n', time);
+          }
+        } catch (e) {
+          // Chromebook timing: callback fired late, time already passed - skip this beat
         }
       },
       stepIndices,

@@ -444,7 +444,7 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0, lockedMood = null,
               try {
                 synthRef.current.triggerAttackRelease(note.id, '8n', time);
               } catch (e) {
-                console.error('Error playing note:', e);
+                // Chromebook timing: callback fired late, time already passed - skip this beat
               }
             }
           }
@@ -946,7 +946,11 @@ const MelodyMakerActivity = ({
       (time, beat) => {
         notes.forEach((noteId, noteIndex) => {
           if (pattern[noteIndex] && pattern[noteIndex][beat]) {
-            previewSynthRef.current.triggerAttackRelease(noteId, '8n', time);
+            try {
+              previewSynthRef.current.triggerAttackRelease(noteId, '8n', time);
+            } catch (e) {
+              // Chromebook timing: callback fired late, time already passed - skip this beat
+            }
           }
         });
       },

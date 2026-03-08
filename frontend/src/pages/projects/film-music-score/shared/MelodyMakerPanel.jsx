@@ -394,7 +394,11 @@ const MelodyMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideCl
         currentNotes.forEach((note, noteIndex) => {
           if (currentGrid[noteIndex]?.[beatIdx]) {
             if (synthRef.current) {
-              synthRef.current.triggerAttackRelease(note.id, '8n', time);
+              try {
+                synthRef.current.triggerAttackRelease(note.id, '8n', time);
+              } catch (err) {
+                // Chromebook timing: callback fired late, time already passed - skip this beat
+              }
             }
           }
         });

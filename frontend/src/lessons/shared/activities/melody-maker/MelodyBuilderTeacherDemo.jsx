@@ -256,7 +256,11 @@ const MelodyBuilderTeacherDemo = ({ onComplete, viewMode }) => {
         MELODY_NOTES.forEach((note, noteIndex) => {
           if (pattern[noteIndex][beatIdx]) {
             triggered[`${noteIndex}-${beatIdx}`] = true;
-            synthRef.current.triggerAttackRelease(note.id, '8n', time);
+            try {
+              synthRef.current.triggerAttackRelease(note.id, '8n', time);
+            } catch (e) {
+              // Chromebook timing: callback fired late, time already passed - skip this beat
+            }
           }
         });
 

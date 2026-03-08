@@ -286,12 +286,16 @@ const BeatMakerActivity = ({ onComplete }) => {
             triggered[`${index}-${step}`] = true;
             console.log('🎵 Triggering:', inst.id, 'at step', step);
 
-            if (inst.id === 'kick' && synthsRef.current?.kick) {
-              synthsRef.current.kick.triggerAttackRelease('C1', '8n', time);
-            } else if (inst.id === 'snare' && synthsRef.current?.snare) {
-              synthsRef.current.snare.triggerAttackRelease('16n', time);
-            } else if (inst.id === 'hihat' && synthsRef.current?.hihat) {
-              synthsRef.current.hihat.triggerAttackRelease('32n', time);
+            try {
+              if (inst.id === 'kick' && synthsRef.current?.kick) {
+                synthsRef.current.kick.triggerAttackRelease('C1', '8n', time);
+              } else if (inst.id === 'snare' && synthsRef.current?.snare) {
+                synthsRef.current.snare.triggerAttackRelease('16n', time);
+              } else if (inst.id === 'hihat' && synthsRef.current?.hihat) {
+                synthsRef.current.hihat.triggerAttackRelease('32n', time);
+              }
+            } catch (e) {
+              // Chromebook timing: callback fired late, time already passed - skip this beat
             }
           }
         });

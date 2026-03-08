@@ -156,7 +156,7 @@ const useMelodyEngine = ({ pattern, tempo, isPlaying, onNotePlay, onStep }) => {
           try {
             synthRef.current.triggerAttackRelease(activeNotes, '8n', time);
           } catch (e) {
-            // Ignore disposal errors during hot reload
+            // Chromebook timing: callback fired late, time already passed - skip this beat
           }
         }
 
