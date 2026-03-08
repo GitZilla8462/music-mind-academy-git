@@ -16,7 +16,6 @@ const TeacherLoginPage = () => {
   const {
     isAuthenticated,
     signInWithGoogle,
-    signInWithEmailPassword,
     sendMagicLink,
     completeMagicLinkSignIn,
     isMagicLinkUrl,
@@ -25,22 +24,18 @@ const TeacherLoginPage = () => {
 
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState(null);
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [isEmailPasswordSigningIn, setIsEmailPasswordSigningIn] = useState(false);
   const [magicLinkEmail, setMagicLinkEmail] = useState('');
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [isSendingMagicLink, setIsSendingMagicLink] = useState(false);
   const [isCompletingMagicLink, setIsCompletingMagicLink] = useState(false);
   const [needsEmailForMagicLink, setNeedsEmailForMagicLink] = useState(false);
-  const [showMoreOptions, setShowMoreOptions] = useState(false);
+  const [showEmailOption, setShowEmailOption] = useState(false);
 
   // Check if we're on the edu site
   const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
   // Go to unit selection page after login
   const dashboardRoute = '/music-classroom-resources';
   const siteName = isEduSite ? 'Music Room Tools' : 'Music Mind Academy';
-  const gradientColors = isEduSite ? 'from-violet-600 to-purple-500' : 'from-blue-600 to-sky-500';
   const accentColor = isEduSite ? 'text-violet-600' : 'text-blue-600';
   const buttonBgColor = isEduSite ? 'bg-violet-600 hover:bg-violet-700' : 'bg-blue-600 hover:bg-blue-700';
 
@@ -102,32 +97,6 @@ const TeacherLoginPage = () => {
       }
     } finally {
       setIsSigningIn(false);
-    }
-  };
-
-  const handleEmailPasswordSignIn = async (e) => {
-    e.preventDefault();
-    if (!loginEmail.trim() || !loginPassword.trim()) return;
-
-    setIsEmailPasswordSigningIn(true);
-    setError(null);
-
-    try {
-      await signInWithEmailPassword(loginEmail, loginPassword);
-      navigate(dashboardRoute);
-    } catch (err) {
-      console.error('Email/password sign-in failed:', err);
-      if (err.code === 'auth/not-approved') {
-        setError("Your email hasn't been approved for the pilot yet. Please apply through our form and wait for approval.");
-      } else if (err.code === 'auth/wrong-password') {
-        setError('Incorrect password. Please try again.');
-      } else if (err.code === 'auth/weak-password') {
-        setError('Password must be at least 6 characters.');
-      } else {
-        setError(err.message || 'Sign-in failed. Please try again.');
-      }
-    } finally {
-      setIsEmailPasswordSigningIn(false);
     }
   };
 
@@ -282,7 +251,7 @@ const TeacherLoginPage = () => {
                 <div className="text-center mb-8">
                   <h1 className="text-2xl font-bold text-slate-800 mb-2">Teacher Sign In</h1>
                   <p className="text-slate-600">
-                    Enter your approved email to get started.
+                    Sign in with your school Google account.
                   </p>
                 </div>
 
@@ -327,77 +296,28 @@ const TeacherLoginPage = () => {
                   )}
                 </button>
 
-                {/* Divider */}
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-slate-200"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-white text-slate-500">or</span>
-                  </div>
-                </div>
-
-                {/* Email + Password fallback for blocked districts */}
-                <p className="text-sm text-slate-500 text-center mb-3">
-                  Can't use Google at your school? Use email and password instead.
-                </p>
-                <form onSubmit={handleEmailPasswordSignIn} className="space-y-3">
-                  <div>
-                    <input
-                      type="email"
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      placeholder="you@school.edu"
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
-                      required
-                      autoComplete="email"
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="password"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="Password (min 6 characters)"
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
-                      required
-                      minLength={6}
-                      autoComplete="current-password"
-                    />
-                  </div>
+                {/* Fallback: magic link for district-blocked schools */}
+                {!showEmailOption ? (
                   <button
-                    type="submit"
-                    disabled={isEmailPasswordSigningIn || !loginEmail.trim() || !loginPassword.trim()}
-                    className={`w-full py-3 rounded-xl font-semibold text-white ${buttonBgColor} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
-                  >
-                    {isEmailPasswordSigningIn ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Signing in...
-                      </span>
-                    ) : (
-                      'Continue'
-                    )}
-                  </button>
-                  <p className="text-xs text-slate-500 text-center">
-                    First time? Just enter your approved email and pick a password — your account will be created automatically.
-                  </p>
-                </form>
-
-                {/* More options (magic link) */}
-                {!showMoreOptions ? (
-                  <button
-                    onClick={() => setShowMoreOptions(true)}
+                    onClick={() => setShowEmailOption(true)}
                     className="w-full text-center text-sm text-slate-500 hover:text-slate-700 mt-4"
                   >
-                    More sign-in options
+                    Can't use Google at your school?
                   </button>
                 ) : (
-                  <div className="mt-4">
-                    <p className="text-sm text-slate-600 mb-3 text-center">Or get a sign-in link via email (no password needed)</p>
+                  <div className="mt-6">
+                    <div className="relative mb-4">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-slate-200"></div>
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-4 bg-white text-slate-500">or sign in with email</span>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-slate-500 text-center mb-3">
+                      We'll send a login link to your email. No password needed.
+                    </p>
                     <form onSubmit={handleSendMagicLink} className="space-y-3">
                       <input
                         type="email"
@@ -406,11 +326,12 @@ const TeacherLoginPage = () => {
                         placeholder="you@school.edu"
                         className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
                         required
+                        autoComplete="email"
                       />
                       <button
                         type="submit"
                         disabled={isSendingMagicLink || !magicLinkEmail.trim()}
-                        className="w-full py-3 rounded-xl font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className={`w-full py-3 rounded-xl font-semibold text-white ${buttonBgColor} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
                         {isSendingMagicLink ? (
                           <span className="flex items-center justify-center gap-2">
@@ -421,13 +342,10 @@ const TeacherLoginPage = () => {
                             Sending...
                           </span>
                         ) : (
-                          'Send login link'
+                          'Send me a login link'
                         )}
                       </button>
                     </form>
-                    <p className="text-xs text-slate-500 text-center mt-2">
-                      We'll email you a sign-in link. Check your spam folder if you don't see it within a minute.
-                    </p>
                   </div>
                 )}
 
