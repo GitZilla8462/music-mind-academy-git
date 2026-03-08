@@ -8,6 +8,7 @@ const {
   sendDripWelcomeEmail,
   sendDripFollowup1Email,
   sendDripFollowup2Email,
+  sendCustomEmail,
   getEmailPreview,
   getDefaultTemplates,
   renderTemplate,
@@ -210,7 +211,7 @@ router.put('/templates/:type', async (req, res) => {
   const { subject, htmlContent, updatedBy } = req.body;
 
   const validTypes = ['drip-1', 'drip-2', 'drip-3', 'survey-l3', 'survey-l5', 'application-notify'];
-  if (!validTypes.includes(type)) {
+  if (!validTypes.includes(type) && !type.startsWith('custom-')) {
     return res.status(400).json({ error: `Invalid template type: ${type}` });
   }
   if (!subject || !htmlContent) {
@@ -243,6 +244,101 @@ router.post('/templates/:type/reset', async (req, res) => {
     console.error('[EmailRoute] Failed to reset template:', err.message);
     return res.status(500).json({ error: err.message });
   }
+});
+
+/**
+ * POST /api/email/batch-send
+ * Send emails to a list of recipients using a known template or custom content
+ * Sends one at a time with 1-second delay to respect rate limits
+ */
+router.post('/batch-send', async (req, res) => {
+  const { recipients, templateType, customSubject, customHtml } = req.body;
+
+  if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+    return res.status(400).json({ error: 'recipients array is required and must not be empty' });
+  }
+
+  if (!templateType && (!customSubject || !customHtml)) {
+    return res.status(400).json({ error: 'Either templateType or both customSubject and customHtml are required' });
+  }
+
+  const SITE_URL = process.env.SITE_URL || 'https://musicmindacademy.com';
+
+  // If using a known template type, load the template once
+  let templateSubject = null;
+  let templateHtml = null;
+
+  if (templateType && !customSubject) {
+    try {
+      // Check for custom template in MongoDB first
+      const EmailTemplate = require('../models/EmailTemplate');
+      const custom = await EmailTemplate.findOne({ type: templateType });
+      if (custom) {
+        templateSubject = custom.subject;
+        templateHtml = custom.htmlContent;
+      } else {
+        // Fall back to default
+        const defaults = getDefaultTemplates();
+        if (defaults[templateType]) {
+          templateSubject = defaults[templateType].subject;
+          templateHtml = defaults[templateType].html;
+        } else {
+          return res.status(400).json({ error: `Unknown template type: ${templateType}` });
+        }
+      }
+    } catch (err) {
+      return res.status(500).json({ error: `Failed to load template: ${err.message}` });
+    }
+  }
+
+  // Use custom content if provided (overrides template)
+  if (customSubject && customHtml) {
+    templateSubject = customSubject;
+    templateHtml = customHtml;
+  }
+
+  const sent = [];
+  const errors = [];
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  for (let i = 0; i < recipients.length; i++) {
+    const { email, firstName } = recipients[i];
+    if (!email) {
+      errors.push({ email: '(missing)', error: 'No email provided' });
+      continue;
+    }
+
+    const name = firstName || 'Teacher';
+    const vars = {
+      firstName: name,
+      siteUrl: SITE_URL,
+      loginUrl: `${SITE_URL}/login`
+    };
+
+    const renderedSubject = renderTemplate(templateSubject, vars);
+    const renderedHtml = renderTemplate(templateHtml, vars);
+
+    const result = await sendCustomEmail(email, name, renderedSubject, renderedHtml);
+
+    if (result.success) {
+      sent.push(email);
+    } else {
+      errors.push({ email, error: result.error });
+    }
+
+    // 1-second delay between emails to respect 2 req/s rate limit
+    if (i < recipients.length - 1) {
+      await delay(1000);
+    }
+  }
+
+  console.log(`[EmailRoute] Batch send complete: ${sent.length} sent, ${errors.length} failed`);
+  return res.json({
+    success: true,
+    sent: sent.length,
+    failed: errors.length,
+    errors: errors.length > 0 ? errors : undefined
+  });
 });
 
 module.exports = router;

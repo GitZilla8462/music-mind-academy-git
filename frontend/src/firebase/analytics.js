@@ -149,39 +149,41 @@ export const logSessionEnded = async (sessionCode, lastStage, studentsJoined) =>
   const stageCount = Object.keys(stageTimes).length;
   const isRealClass = activeTimeMins >= 10 && stageCount >= 3;
 
-  if (isRealClass && sessionData.teacherEmail) {
-    // Determine lesson number and unit from route
-    const route = sessionData.lessonRoute || '';
-    let lessonNum = null;
-    if (route.includes('lesson1')) lessonNum = 1;
-    else if (route.includes('lesson2')) lessonNum = 2;
-    else if (route.includes('lesson3')) lessonNum = 3;
-    else if (route.includes('lesson4')) lessonNum = 4;
-    else if (route.includes('lesson5')) lessonNum = 5;
+  // Determine lesson number and unit from route
+  const route = sessionData.lessonRoute || '';
+  let lessonNum = null;
+  if (route.includes('lesson1')) lessonNum = 1;
+  else if (route.includes('lesson2')) lessonNum = 2;
+  else if (route.includes('lesson3')) lessonNum = 3;
+  else if (route.includes('lesson4')) lessonNum = 4;
+  else if (route.includes('lesson5')) lessonNum = 5;
 
-    const unit = route.includes('listening-lab') ? 2 : 1;
+  const unit = route.includes('listening-lab') ? 2 : 1;
+  const studentCount = sessionData.studentsJoined || 0;
 
-    if (lessonNum) {
-      // Fire-and-forget HubSpot update
-      fetch('/api/hubspot/update-lesson', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: sessionData.teacherEmail,
-          lessonReached: lessonNum,
-          unit
-        })
-      }).catch(err => console.warn('HubSpot lesson sync skipped:', err.message));
+  if (isRealClass && sessionData.teacherEmail && lessonNum) {
+    // Fire-and-forget HubSpot update
+    fetch('/api/hubspot/update-lesson', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: sessionData.teacherEmail,
+        lessonReached: lessonNum,
+        unit
+      })
+    }).catch(err => console.warn('HubSpot lesson sync skipped:', err.message));
+  }
 
-      // Fire-and-forget survey emails (duplicate prevention handled by emailTracking)
-      if (lessonNum === 3) {
-        sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, 'survey-l3')
-          .catch(err => console.warn('L3 survey email skipped:', err.message));
-      }
-      if (lessonNum === 5) {
-        sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, 'survey-l5')
-          .catch(err => console.warn('L5 survey email skipped:', err.message));
-      }
+  // Fire-and-forget survey emails — trigger for 5+ students regardless of time/stages
+  // (duplicate prevention handled by emailTracking)
+  if (sessionData.teacherEmail && studentCount >= 5) {
+    if (lessonNum === 3) {
+      sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, 'survey-l3')
+        .catch(err => console.warn('L3 survey email skipped:', err.message));
+    }
+    if (lessonNum === 5) {
+      sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, 'survey-l5')
+        .catch(err => console.warn('L5 survey email skipped:', err.message));
     }
   }
 };

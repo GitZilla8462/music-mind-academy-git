@@ -499,6 +499,33 @@ const getEmailPreview = (type) => {
   };
 };
 
+/**
+ * Send a custom/ad-hoc email with pre-rendered subject and html
+ * Used by the batch-send endpoint for arbitrary emails
+ */
+const sendCustomEmail = async (email, firstName, subject, html) => {
+  const transport = getTransporter();
+  if (!transport) {
+    return { success: false, error: 'SMTP not configured' };
+  }
+
+  try {
+    const info = await transport.sendMail({
+      from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
+      replyTo: ADMIN_EMAIL,
+      to: email,
+      bcc: ADMIN_EMAIL,
+      subject,
+      html
+    });
+    console.log(`[TeacherEmail] Custom email sent to ${email} (${info.messageId})`);
+    return { success: true, messageId: info.messageId };
+  } catch (err) {
+    console.error(`[TeacherEmail] Failed to send custom email to ${email}:`, err.message);
+    return { success: false, error: err.message };
+  }
+};
+
 module.exports = {
   sendMidPilotSurveyEmail,
   sendFinalPilotSurveyEmail,
@@ -506,6 +533,7 @@ module.exports = {
   sendDripWelcomeEmail,
   sendDripFollowup1Email,
   sendDripFollowup2Email,
+  sendCustomEmail,
   getEmailPreview,
   getDefaultTemplates,
   renderTemplate,
