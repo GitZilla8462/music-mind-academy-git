@@ -192,6 +192,27 @@ const TeacherAnalyticsPage = () => {
     return result;
   }, [academyEmails, registeredByEmail, sessionsByTeacher, teacherOutreach, applicationsByEmail, midPilotSurveys, finalPilotSurveys, pilotSessions, emailHistoryByTeacher]);
 
+  // Detect duplicate names (different emails, same name)
+  const duplicateNames = useMemo(() => {
+    const byName = {};
+    teachers.forEach(t => {
+      const name = t.teacherName?.toLowerCase().trim();
+      if (!name) return;
+      if (!byName[name]) byName[name] = [];
+      byName[name].push(t.email);
+    });
+    const flagged = {};
+    Object.values(byName).forEach(emails => {
+      if (emails.length < 2) return;
+      const uniqueEmails = [...new Set(emails)];
+      if (uniqueEmails.length < 2) return;
+      uniqueEmails.forEach(email => {
+        flagged[email] = uniqueEmails.filter(e => e !== email);
+      });
+    });
+    return flagged;
+  }, [teachers]);
+
   // Funnel counts
   const funnelCounts = useMemo(() => {
     const now = Date.now();
@@ -571,7 +592,15 @@ const TeacherAnalyticsPage = () => {
                         <td className="px-2 py-2 max-w-[240px]">
                           {teacher.teacherName ? (
                             <>
-                              <div className="font-medium text-gray-800 text-sm truncate">{teacher.teacherName}</div>
+                              <div className="font-medium text-gray-800 text-sm truncate">
+                                {teacher.teacherName}
+                                {duplicateNames[teacher.email] && (
+                                  <span
+                                    className="ml-1 inline-block px-1 py-0.5 text-[10px] font-semibold bg-orange-100 text-orange-600 rounded cursor-help"
+                                    title={`Same name as: ${duplicateNames[teacher.email].join(', ')}`}
+                                  >Dup?</span>
+                                )}
+                              </div>
                               <div className="text-xs text-gray-400 truncate">{teacher.email}</div>
                             </>
                           ) : (
