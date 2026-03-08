@@ -1015,8 +1015,14 @@ const MarkSentModal = ({ teachers, onClose, onDone }) => {
 
 // --- Duplicates Modal ---
 
+const DISMISSED_DUPS_KEY = 'dismissedDuplicatePairs';
+const getDismissedPairs = () => {
+  try { return JSON.parse(localStorage.getItem(DISMISSED_DUPS_KEY) || '[]'); } catch { return []; }
+};
+
 const DuplicatesModal = ({ pairs, onRemove, onClose, onBulkDone }) => {
   const [removed, setRemoved] = useState(new Set());
+  const [dismissed, setDismissed] = useState(() => new Set(getDismissedPairs()));
   const [removing, setRemoving] = useState(null);
   const [bulkRemoving, setBulkRemoving] = useState(false);
 
@@ -1027,8 +1033,22 @@ const DuplicatesModal = ({ pairs, onRemove, onClose, onBulkDone }) => {
     setRemoving(null);
   };
 
+  const handleKeepBoth = (keep, rem) => {
+    const key = [keep.email, rem.email].sort().join('|');
+    setDismissed(prev => {
+      const next = new Set([...prev, key]);
+      localStorage.setItem(DISMISSED_DUPS_KEY, JSON.stringify([...next]));
+      return next;
+    });
+  };
+
+  const isPairDismissed = (keep, rem) => {
+    const key = [keep.email, rem.email].sort().join('|');
+    return dismissed.has(key);
+  };
+
   const handleRemoveAll = async () => {
-    const toRemove = pairs
+    const toRemove = activePairs
       .filter(p => isPersonalEmail(p.remove.email) && !removed.has(p.remove.email))
       .map(p => p.remove.email);
     if (toRemove.length === 0) return;
@@ -1043,7 +1063,7 @@ const DuplicatesModal = ({ pairs, onRemove, onClose, onBulkDone }) => {
     onBulkDone(count);
   };
 
-  const activePairs = pairs.filter(p => !removed.has(p.remove.email) && !removed.has(p.keep.email));
+  const activePairs = pairs.filter(p => !removed.has(p.remove.email) && !removed.has(p.keep.email) && !isPairDismissed(p.keep, p.remove));
   const personalDups = activePairs.filter(p => isPersonalEmail(p.remove.email));
 
   return (
@@ -1108,14 +1128,23 @@ const DuplicatesModal = ({ pairs, onRemove, onClose, onBulkDone }) => {
                         {isPersonalEmail(rem.email) && <span className="text-[10px] text-orange-600 font-medium">Personal</span>}
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleRemoveOne(rem.email)}
-                      disabled={removing === rem.email}
-                      className="shrink-0 flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs font-medium hover:bg-red-100 disabled:opacity-50"
-                    >
-                      {removing === rem.email ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
-                      Remove
-                    </button>
+                    <div className="shrink-0 flex flex-col gap-1.5">
+                      <button
+                        onClick={() => handleRemoveOne(rem.email)}
+                        disabled={removing === rem.email}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs font-medium hover:bg-red-100 disabled:opacity-50"
+                      >
+                        {removing === rem.email ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                        Remove
+                      </button>
+                      <button
+                        onClick={() => handleKeepBoth(keep, rem)}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-lg text-xs font-medium hover:bg-green-100"
+                      >
+                        <Check size={12} />
+                        Keep Both
+                      </button>
+                    </div>
                   </div>
                   <div className="mt-1 text-[10px] text-gray-400">
                     Matched by {matchType === 'name' ? 'same name' : 'similar email prefix'}
