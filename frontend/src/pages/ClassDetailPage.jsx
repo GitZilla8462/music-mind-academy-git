@@ -615,7 +615,7 @@ const ClassDetailPage = () => {
                                           {activity.stats.pending}
                                         </span>
                                       )}
-                                      {activity.type === 'composition' && (
+                                      {activity.type === 'composition' && activity.stats.submitted > 0 && (
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
@@ -625,10 +625,10 @@ const ClassDetailPage = () => {
                                               activityName: activity.name
                                             });
                                           }}
-                                          className="p-1 text-gray-300 hover:text-blue-500 transition-colors"
-                                          title="Showcase student work"
+                                          className="flex items-center gap-1 px-2.5 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors"
                                         >
-                                          <Presentation size={14} />
+                                          <Play size={12} fill="currentColor" />
+                                          Showcase
                                         </button>
                                       )}
                                       {/* Answer key button - commented out for now */}
