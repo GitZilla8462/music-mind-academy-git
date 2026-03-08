@@ -5,6 +5,7 @@ import {
   GraduationCap, Clock, ClipboardList
 } from 'lucide-react';
 import { useAdminData } from './AdminDataContext';
+import { getDatabase, ref, set } from 'firebase/database';
 
 const ADMIN_EMAILS = ['robtaube90@gmail.com', 'robtaube92@gmail.com'];
 
@@ -31,7 +32,7 @@ const MIN_STAGES = 3;
 const TeacherAnalyticsPage = () => {
   const {
     academyEmails, registeredUsers, pilotSessions, teacherOutreach,
-    midPilotSurveys, finalPilotSurveys, applications,
+    midPilotSurveys, finalPilotSurveys, applications, emailsSent,
     toggleOutreach, setSuccess, formatDuration, formatDate
   } = useAdminData();
 
@@ -106,6 +107,16 @@ const TeacherAnalyticsPage = () => {
     return sessions.some(s => s.activeTimeMins >= MIN_ACTIVE_MINUTES && s.stageCount >= MIN_STAGES);
   };
 
+  // Build email history lookup from emailsSent
+  const emailHistoryByTeacher = useMemo(() => {
+    const map = {};
+    Object.entries(emailsSent).forEach(([emailKey, types]) => {
+      const email = emailKey.replace(/,/g, '.').toLowerCase();
+      map[email] = types; // e.g. { 'drip-1': { sentAt: 123 }, 'drip-2': { sentAt: 456 } }
+    });
+    return map;
+  }, [emailsSent]);
+
   // Unified teacher list
   const teachers = useMemo(() => {
     const emailSet = new Set();
@@ -174,11 +185,12 @@ const TeacherAnalyticsPage = () => {
         manualL3Survey: outreach.manualL3Survey || false,
         manualFinalSurvey: outreach.manualFinalSurvey || false,
         teacherType: outreach.teacherType || 'pilot',
+        emailHistory: emailHistoryByTeacher[email] || {},
       });
     });
 
     return result;
-  }, [academyEmails, registeredByEmail, sessionsByTeacher, teacherOutreach, applicationsByEmail, midPilotSurveys, finalPilotSurveys, pilotSessions]);
+  }, [academyEmails, registeredByEmail, sessionsByTeacher, teacherOutreach, applicationsByEmail, midPilotSurveys, finalPilotSurveys, pilotSessions, emailHistoryByTeacher]);
 
   // Funnel counts
   const funnelCounts = useMemo(() => {
@@ -528,13 +540,15 @@ const TeacherAnalyticsPage = () => {
                   const isSelected = selectedEmails.has(teacher.email);
                   const daysApproved = daysSince(teacher.approvedAt);
                   const hasSessions = teacher.totalSessions > 0;
+                  const hasEmails = Object.keys(teacher.emailHistory).length > 0;
+                  const canExpand = hasSessions || hasEmails;
 
                   return (
                     <React.Fragment key={teacher.email}>
                       <tr
-                        className={`hover:bg-gray-50 cursor-pointer ${isSelected ? 'bg-blue-50' : ''}`}
+                        className={`hover:bg-gray-50 ${canExpand ? 'cursor-pointer' : ''} ${isSelected ? 'bg-blue-50' : ''}`}
                         onClick={() => {
-                          if (hasSessions) setExpandedTeachers(prev => ({ ...prev, [teacher.email]: !prev[teacher.email] }));
+                          if (canExpand) setExpandedTeachers(prev => ({ ...prev, [teacher.email]: !prev[teacher.email] }));
                         }}
                       >
                         {/* Checkbox */}
@@ -547,14 +561,14 @@ const TeacherAnalyticsPage = () => {
                         </td>
                         {/* Expand arrow */}
                         <td className="px-1 py-2 text-center">
-                          {hasSessions ? (
+                          {canExpand ? (
                             <ChevronDown size={14} className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                           ) : (
                             <span className="text-gray-200">-</span>
                           )}
                         </td>
                         {/* Name */}
-                        <td className="px-2 py-2 max-w-[200px]">
+                        <td className="px-2 py-2 max-w-[240px]">
                           {teacher.teacherName ? (
                             <>
                               <div className="font-medium text-gray-800 text-sm truncate">{teacher.teacherName}</div>
@@ -565,6 +579,19 @@ const TeacherAnalyticsPage = () => {
                               <div className="font-medium text-gray-800 text-sm">{teacher.email.split('@')[0]}</div>
                               <div className="text-xs text-gray-400">@{teacher.email.split('@')[1]}</div>
                             </>
+                          )}
+                          {Object.keys(teacher.emailHistory).length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-0.5">
+                              {Object.entries(teacher.emailHistory).map(([type, data]) => {
+                                const label = type === 'drip-1' ? 'D1' : type === 'drip-2' ? 'D2' : type === 'drip-3' ? 'D3' : type === 'survey-l3' ? 'S3' : type === 'survey-l5' ? 'S5' : type;
+                                const date = data.sentAt ? new Date(data.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                                return (
+                                  <span key={type} className="inline-flex items-center px-1.5 py-0 rounded text-[10px] font-medium bg-blue-50 text-blue-600" title={`${type} sent ${date}`}>
+                                    <Mail size={9} className="mr-0.5" />{label}
+                                  </span>
+                                );
+                              })}
+                            </div>
                           )}
                         </td>
                         {/* School */}
@@ -598,20 +625,51 @@ const TeacherAnalyticsPage = () => {
                       </tr>
 
                       {/* Expanded details */}
-                      {isExpanded && hasSessions && (
+                      {isExpanded && canExpand && (
                         <tr className="bg-gray-50">
                           <td colSpan={13} className="px-6 py-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                                <h4 className="font-medium text-gray-800 mb-2">Summary</h4>
-                                <div className="space-y-1 text-sm text-gray-600">
-                                  <div>Total Sessions: <span className="font-medium">{teacher.totalSessions}</span></div>
-                                  <div>Total Students: <span className="font-medium">{teacher.totalStudents}</span></div>
-                                  <div>Last Active: <span className="font-medium">
-                                    {teacher.lastActive ? new Date(teacher.lastActive).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Never'}
-                                  </span></div>
+                              {/* Email History Card */}
+                              {hasEmails && (
+                                <div className="bg-white rounded-lg p-4 border border-blue-200">
+                                  <h4 className="font-medium text-gray-800 mb-2 flex items-center gap-1.5">
+                                    <Mail size={14} className="text-blue-600" /> Emails Sent
+                                  </h4>
+                                  <div className="space-y-1.5 text-sm">
+                                    {Object.entries(teacher.emailHistory)
+                                      .sort((a, b) => (a[1].sentAt || 0) - (b[1].sentAt || 0))
+                                      .map(([type, data]) => {
+                                        const labels = {
+                                          'drip-1': 'Welcome Email',
+                                          'drip-2': '7-Day Follow-up',
+                                          'drip-3': 'Final Reminder',
+                                          'survey-l3': 'Mid-Pilot Survey',
+                                          'survey-l5': 'Final Survey',
+                                        };
+                                        return (
+                                          <div key={type} className="flex items-center justify-between">
+                                            <span className="text-gray-700">{labels[type] || type}</span>
+                                            <span className="text-gray-500 text-xs">
+                                              {data.sentAt ? new Date(data.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown date'}
+                                            </span>
+                                          </div>
+                                        );
+                                      })}
+                                  </div>
                                 </div>
-                              </div>
+                              )}
+                              {hasSessions && (
+                                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                                  <h4 className="font-medium text-gray-800 mb-2">Summary</h4>
+                                  <div className="space-y-1 text-sm text-gray-600">
+                                    <div>Total Sessions: <span className="font-medium">{teacher.totalSessions}</span></div>
+                                    <div>Total Students: <span className="font-medium">{teacher.totalStudents}</span></div>
+                                    <div>Last Active: <span className="font-medium">
+                                      {teacher.lastActive ? new Date(teacher.lastActive).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Never'}
+                                    </span></div>
+                                  </div>
+                                </div>
+                              )}
                               {[1, 2, 3, 4, 5].map(lessonNum => {
                                 const sessions = teacher.lessons[lessonNum];
                                 if (sessions.length === 0) return null;
@@ -802,6 +860,26 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
       const result = await res.json();
       setProgress({ sent: result.sent || 0, failed: result.failed || 0, total: teachers.length });
       setDone(true);
+
+      // Track sent emails in Firebase so they show in email history
+      if (result.sent > 0) {
+        const db = getDatabase();
+        const now = Date.now();
+        const emailType = selectedTemplate || 'custom';
+        const trackLabel = selectedTemplate || `custom-${now}`;
+        for (const t of teachers) {
+          const emailKey = t.email.toLowerCase().replace(/\./g, ',');
+          try {
+            await set(ref(db, `emailsSent/${emailKey}/${trackLabel}`), {
+              sentAt: now,
+              subject: subject,
+              type: emailType,
+            });
+          } catch (e) {
+            console.warn('Failed to track email for', t.email, e.message);
+          }
+        }
+      }
     } catch (err) {
       console.error('Batch send failed:', err);
       setProgress(prev => ({ ...prev, failed: prev.total }));
