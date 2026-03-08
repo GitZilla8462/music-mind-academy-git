@@ -3790,18 +3790,27 @@ const TeacherLessonView = ({
   };
 
   // Handle end session with appropriate survey based on lesson
+  // Mid-pilot and final surveys only trigger for Unit 1 (Film Music)
+  const isUnit1 = () => {
+    const path = window.location.pathname;
+    const id = config.lessonId || '';
+    return path.includes('film-music-project') || id.includes('film-music-project') ||
+      // Legacy routes without unit prefix are assumed to be Unit 1
+      (!path.includes('listening-lab') && !id.includes('listening-lab'));
+  };
+
   const handleEndSession = () => {
     if (studentCount >= MIN_STUDENTS_FOR_SURVEY) {
       const lessonNum = getLessonNumber();
 
-      if (lessonNum === 3) {
-        // Mid-pilot survey after Lesson 3
+      if (lessonNum === 3 && isUnit1()) {
+        // Mid-pilot survey after Unit 1, Lesson 3 only
         setSurveyType('midPilot');
-      } else if (lessonNum === 5) {
-        // Final PMF survey after Lesson 5
+      } else if (lessonNum === 5 && isUnit1()) {
+        // Final PMF survey after Unit 1, Lesson 5 only
         setSurveyType('finalPilot');
       } else {
-        // Quick survey for other lessons
+        // Quick survey for all other lessons/units
         setSurveyType('quick');
       }
     } else {
