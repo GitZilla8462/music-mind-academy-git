@@ -231,8 +231,13 @@ const TeacherAnalyticsPage = () => {
         pilotSessions.some(ps => ps.sessionCode === s.sessionCode && ps.teacherEmail?.toLowerCase() === email)
       );
 
+      // Get personal email from application data
+      const personalEmail = app?.personalEmail?.toLowerCase().trim() || '';
+      const hasPersonalEmail = personalEmail && personalEmail !== email;
+
       result.push({
         email, teacherName, school, stage,
+        personalEmail: hasPersonalEmail ? personalEmail : '',
         unitProgress,
         unitsComplete, unitsStarted, totalLessonsDone,
         units: sessions?.units || {},
@@ -896,6 +901,15 @@ const TeacherAnalyticsPage = () => {
                         <tr className="bg-gray-50">
                           <td colSpan={unitFilter === 'all' ? 10 : 14} className="px-6 py-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {/* Personal Email */}
+                              {teacher.personalEmail && (
+                                <div className="bg-white rounded-lg p-4 border border-orange-200">
+                                  <h4 className="font-medium text-gray-800 mb-2 flex items-center gap-1.5">
+                                    <Mail size={14} className="text-orange-500" /> Personal Email
+                                  </h4>
+                                  <a href={`mailto:${teacher.personalEmail}`} className="text-sm text-blue-600 hover:underline">{teacher.personalEmail}</a>
+                                </div>
+                              )}
                               {/* Email History Card */}
                               {hasEmails && (
                                 <div className="bg-white rounded-lg p-4 border border-blue-200">
@@ -1290,7 +1304,11 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
   const [done, setDone] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
+  const [alsoSendPersonal, setAlsoSendPersonal] = useState(false);
   const iframeRef = useRef(null);
+
+  const teachersWithPersonal = teachers.filter(t => t.personalEmail);
+  const personalCount = teachersWithPersonal.length;
 
   // Convert plain text to styled HTML email
   const plainTextToHtml = (text) => {
@@ -1365,16 +1383,29 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
 
   const handleSend = async () => {
     if (!subject.trim() || !body.trim()) return;
-    if (!confirm(`Send email to ${teachers.length} teacher(s)?`)) return;
+    const personalNote = alsoSendPersonal && personalCount > 0 ? ` + ${personalCount} personal emails` : '';
+    if (!confirm(`Send email to ${teachers.length} teacher(s)${personalNote}?`)) return;
 
     setSending(true);
-    setProgress({ sent: 0, failed: 0, total: teachers.length });
+    const totalToSend = teachers.length + (alsoSendPersonal ? personalCount : 0);
+    setProgress({ sent: 0, failed: 0, total: totalToSend });
 
     try {
+      // Build recipients: school emails first
       const recipients = teachers.map(t => ({
         email: t.email,
         firstName: getFirstName(t),
       }));
+
+      // Add personal emails if checked
+      if (alsoSendPersonal) {
+        teachersWithPersonal.forEach(t => {
+          recipients.push({
+            email: t.personalEmail,
+            firstName: getFirstName(t),
+          });
+        });
+      }
 
       const htmlBody = mode === 'write' ? plainTextToHtml(body) : body;
 
@@ -1390,7 +1421,7 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
       });
 
       const result = await res.json();
-      setProgress({ sent: result.sent || 0, failed: result.failed || 0, total: teachers.length });
+      setProgress({ sent: result.sent || 0, failed: result.failed || 0, total: totalToSend });
 
       // Track sent emails in Firebase BEFORE showing done (so closing modal doesn't kill tracking)
       if (result.sent > 0) {
@@ -1529,6 +1560,21 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
                 </div>
               )}
 
+              {/* Also send to personal email */}
+              {personalCount > 0 && (
+                <label className="flex items-center gap-2 px-3 py-2 bg-orange-50 border border-orange-200 rounded-lg cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={alsoSendPersonal}
+                    onChange={(e) => setAlsoSendPersonal(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    Also send to personal email <span className="text-orange-600 font-medium">({personalCount} of {teachers.length} have one)</span>
+                  </span>
+                </label>
+              )}
+
               {/* Actions */}
               <div className="flex items-center justify-between pt-2">
                 <button
@@ -1548,7 +1594,7 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
                     className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                   >
                     {sending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
-                    Send to {teachers.length} teacher{teachers.length !== 1 ? 's' : ''}
+                    Send to {teachers.length}{alsoSendPersonal && personalCount > 0 ? ` + ${personalCount} personal` : ''} email{teachers.length !== 1 ? 's' : ''}
                   </button>
                 </div>
               </div>
