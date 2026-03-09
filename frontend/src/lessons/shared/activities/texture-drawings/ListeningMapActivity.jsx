@@ -32,7 +32,7 @@ import { INSTRUMENT_ICONS } from './config/InstrumentIcons';
 import { useSession } from '../../../../context/SessionContext';
 
 // Storage - Use generic system so it appears on Join page
-import { saveStudentWork, loadStudentWork, loadStudentWorkAsync, getClassAuthInfo } from '../../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, loadStudentWorkAsync, getClassAuthInfo, getStudentId } from '../../../../utils/studentWorkStorage';
 
 // ============================================================================
 // CONFIG
@@ -387,14 +387,9 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
   // Audio
   const audio = useAudioPlayer(mapConfig.audioFile, mapConfig.totalDuration);
 
-  // Init student ID
+  // Init student ID - use seat-based ID when logged in, anonymous fallback otherwise
   useEffect(() => {
-    let id = localStorage.getItem('anonymous-student-id');
-    if (!id) {
-      id = `Student-${Math.floor(100000 + Math.random() * 900000)}`;
-      localStorage.setItem('anonymous-student-id', id);
-    }
-    setStudentId(id);
+    setStudentId(getStudentId());
   }, []);
 
   // Measure container
@@ -717,16 +712,42 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
   }, [effectiveSessionCode, isSessionMode, studentId, handleManualSave]);
 
   // ✅ Auto-save on unmount (when student leaves the activity)
-  // This ensures work is saved even if teacher triggers save while student is on another activity
-  const handleManualSaveRef = useRef(handleManualSave);
-  handleManualSaveRef.current = handleManualSave;
+  // Uses synchronous save — the async handleManualSave can fail during unmount
+  // because React clears refs before the async toDataURL() completes.
+  const canvasRefForUnmount = useRef(null);
+  const studentIdForUnmount = useRef(null);
+  canvasRefForUnmount.current = canvasRef.current;
+  studentIdForUnmount.current = studentId;
 
   useEffect(() => {
     return () => {
-      // Save silently when component unmounts
-      if (isSessionMode) {
-        console.log('💾 Auto-saving listening map on unmount...');
-        handleManualSaveRef.current?.(true);
+      if (!isSessionMode) return;
+      const canvas = canvasRefForUnmount.current;
+      const id = studentIdForUnmount.current;
+      if (!canvas || !id) return;
+
+      console.log('💾 Auto-saving listening map on unmount (sync)...');
+      try {
+        const editableData = canvas.getEditableData?.();
+        if (editableData) {
+          saveStudentWork(activityId, {
+            title: mapConfig.credits.title,
+            emoji: '🗺️',
+            viewRoute: null,
+            subtitle: `${mapConfig.numRows} rows`,
+            category: 'Listening Map',
+            data: {
+              editableData,
+              songTitle: mapConfig.credits.title,
+              composer: mapConfig.credits.composer,
+              numRows: mapConfig.numRows,
+              savedAt: new Date().toISOString()
+            }
+          }, id);
+          console.log('✅ Listening map saved on unmount');
+        }
+      } catch (error) {
+        console.error('❌ Failed to save listening map on unmount:', error);
       }
     };
   }, [isSessionMode]);

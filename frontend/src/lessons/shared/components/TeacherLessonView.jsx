@@ -2677,9 +2677,19 @@ const PresentationContent = ({
           <video
             key={currentStage}
             controls
-            autoPlay
+            playsInline
             className="absolute inset-0 w-full h-full object-contain"
             onEnded={onVideoEnded}
+            ref={(el) => {
+              if (el) {
+                const startTime = currentStageData.presentationView.startTime;
+                if (startTime) el.currentTime = startTime;
+                el.play().catch(() => {
+                  // Autoplay blocked — show controls so teacher can click play
+                  el.setAttribute('data-autoplay-blocked', 'true');
+                });
+              }
+            }}
           >
             <source src={videoPath} type="video/mp4" />
           </video>
