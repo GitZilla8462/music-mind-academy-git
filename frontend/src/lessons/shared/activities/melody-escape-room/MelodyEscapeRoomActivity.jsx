@@ -6,6 +6,7 @@ import {
   loopData, categories, instrumentIcons, roomThemes, scoring,
   generateShareCode, saveRoom, loadRoom, getAllLoops, checkAnswer
 } from './melodyEscapeRoomConfig';
+import { getStudentId } from '../../../../utils/studentWorkStorage';
 import { sounds, initAudio } from './melodyEscapeRoomSounds';
 import {
   animationStyles, Confetti, Lock, LoopCard, ThemeSelector,
@@ -48,13 +49,9 @@ const MelodyEscapeRoomActivity = ({ onComplete }) => {
   // ========== TIMER REF ==========
   const timerRef = useRef(null);
 
-  // Initialize student ID
+  // Initialize student ID - use seat-based ID when logged in
   useEffect(() => {
-    let id = localStorage.getItem('anonymous-student-id');
-    if (!id) {
-      id = `Student-${Math.floor(100000 + Math.random() * 900000)}`;
-      localStorage.setItem('anonymous-student-id', id);
-    }
+    const id = getStudentId();
     setStudentId(id);
     console.log('🎮 Melody Escape Room - Student ID:', id);
   }, []);

@@ -58,7 +58,7 @@ const FullScreenPreview = ({
     const video = videoRef.current;
     if (!video || !isOpen || isPlaying) return;
 
-    if (Math.abs(video.currentTime - currentTime) > 0.5) {
+    if (isFinite(currentTime) && Math.abs(video.currentTime - currentTime) > 0.5) {
       video.currentTime = currentTime;
     }
   }, [currentTime, isPlaying, isOpen]);

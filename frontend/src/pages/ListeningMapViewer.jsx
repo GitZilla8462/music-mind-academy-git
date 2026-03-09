@@ -4,11 +4,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// Get student ID
-const getStudentId = () => {
-  return localStorage.getItem('anonymous-student-id') || 'unknown';
-};
+import { getStudentId } from '../utils/studentWorkStorage';
 
 // Load saved listening map directly from localStorage
 const loadListeningMap = () => {

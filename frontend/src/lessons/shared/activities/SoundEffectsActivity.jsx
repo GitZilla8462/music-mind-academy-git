@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
 import { saveCompositionToServer } from '../../film-music-project/lesson1/compositionServerUtils';
 import { Sparkles } from 'lucide-react';
+import { getStudentId } from '../../../utils/studentWorkStorage';
 import { useAutoSave, AutoSaveIndicator } from '../../../hooks/useAutoSave.jsx';
 
 const SoundEffectsActivity = ({ 
@@ -29,12 +30,7 @@ const SoundEffectsActivity = ({
   const [studentId, setStudentId] = useState('');
   
   useEffect(() => {
-    let id = localStorage.getItem('anonymous-student-id');
-    if (!id) {
-      id = `Student-${Math.floor(100000 + Math.random() * 900000)}`;
-      localStorage.setItem('anonymous-student-id', id);
-    }
-    setStudentId(id);
+    setStudentId(getStudentId());
   }, []);
 
   // Auto-save composition with sound effects every 5 seconds

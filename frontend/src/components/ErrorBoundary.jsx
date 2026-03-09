@@ -24,6 +24,8 @@ class ErrorBoundary extends React.Component {
       error.message?.includes('Failed to fetch dynamically imported module') ||
       error.message?.includes('Loading chunk') ||
       error.message?.includes('Loading CSS chunk') ||
+      error.message?.includes('Unable to preload CSS') ||
+      error.message?.includes('is not a valid JavaScript MIME type') ||
       error.name === 'ChunkLoadError';
 
     if (isChunkError) {

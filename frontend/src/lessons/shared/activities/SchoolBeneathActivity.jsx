@@ -12,7 +12,7 @@ import ReflectionModal from './two-stars-and-a-wish/ReflectionModal';
 import { useTimerSound } from '../hooks/useTimerSound';
 import NameThatLoopActivity from './layer-detective/NameThatLoopActivity';
 import { useSession } from '../../../context/SessionContext';
-import { saveStudentWork, loadStudentWork, clearAllCompositionSaves } from '../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, clearAllCompositionSaves, getStudentId } from '../../../utils/studentWorkStorage';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
 const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes
@@ -66,13 +66,9 @@ const SchoolBeneathActivity = ({
   // Student ID
   const [studentId, setStudentId] = useState('');
 
-  // Initialize student ID
+  // Initialize student ID - use seat-based ID when logged in
   useEffect(() => {
-    let id = localStorage.getItem('anonymous-student-id');
-    if (!id) {
-      id = `Student-${Math.floor(100000 + Math.random() * 900000)}`;
-      localStorage.setItem('anonymous-student-id', id);
-    }
+    const id = getStudentId();
     setStudentId(id);
     console.log('🔑 Student ID:', id);
   }, []);

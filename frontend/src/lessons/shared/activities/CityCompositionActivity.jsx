@@ -22,7 +22,7 @@ import { useTimerSound } from '../hooks/useTimerSound';
 import LoopLab from './loop-lab/LoopLabActivity';
 import { useSession } from '../../../context/SessionContext';
 import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson2/lesson2StorageUtils';
-import { saveStudentWork, loadStudentWork, clearAllCompositionSaves } from '../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, clearAllCompositionSaves, getStudentId } from '../../../utils/studentWorkStorage';
 
 const CITY_COMPOSITION_DEADLINE = 10 * 60 * 1000; // 10 minutes
 
@@ -187,13 +187,9 @@ const CityCompositionActivity = ({
     console.log(msg, type);
   }, []);
 
-  // Initialize student ID
+  // Initialize student ID - use seat-based ID when logged in
   useEffect(() => {
-    let id = localStorage.getItem('anonymous-student-id');
-    if (!id) {
-      id = `Student-${Math.floor(100000 + Math.random() * 900000)}`;
-      localStorage.setItem('anonymous-student-id', id);
-    }
+    const id = getStudentId();
     setStudentId(id);
     console.log('🏙️ Student ID:', id);
   }, []);

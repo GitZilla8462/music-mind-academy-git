@@ -87,7 +87,7 @@ const VideoPlayer = ({
     const video = videoRef.current;
     if (!video || isPlaying) return; // Only sync when paused
 
-    if (Math.abs(video.currentTime - currentTime) > 0.5) {
+    if (isFinite(currentTime) && Math.abs(video.currentTime - currentTime) > 0.5) {
       video.currentTime = currentTime;
     }
   }, [currentTime, isPlaying]);

@@ -16,6 +16,7 @@ const TeacherLoginPage = () => {
   const {
     isAuthenticated,
     signInWithGoogle,
+    signInWithMicrosoft,
     sendMagicLink,
     completeMagicLinkSignIn,
     isMagicLinkUrl,
@@ -90,6 +91,24 @@ const TeacherLoginPage = () => {
       navigate(dashboardRoute);
     } catch (err) {
       console.error('Sign-in failed:', err);
+      if (err.code === 'auth/not-approved') {
+        setError("Your email is not registered for access. Contact your administrator");
+      } else {
+        setError(err.message || 'Sign-in failed. Please try again.');
+      }
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
+
+  const handleMicrosoftSignIn = async () => {
+    setIsSigningIn(true);
+    setError(null);
+    try {
+      await signInWithMicrosoft();
+      navigate(dashboardRoute);
+    } catch (err) {
+      console.error('Microsoft sign-in failed:', err);
       if (err.code === 'auth/not-approved') {
         setError("Your email is not registered for access. Contact your administrator");
       } else {
@@ -251,7 +270,7 @@ const TeacherLoginPage = () => {
                 <div className="text-center mb-8">
                   <h1 className="text-2xl font-bold text-slate-800 mb-2">Teacher Sign In</h1>
                   <p className="text-slate-600">
-                    Sign in with your school Google account.
+                    Sign in with your school account.
                   </p>
                 </div>
 
@@ -294,6 +313,21 @@ const TeacherLoginPage = () => {
                       Sign in with Google
                     </>
                   )}
+                </button>
+
+                {/* Microsoft Sign In */}
+                <button
+                  onClick={handleMicrosoftSignIn}
+                  disabled={isSigningIn}
+                  className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-white border-2 border-slate-200 rounded-xl font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-3"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 21 21">
+                    <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+                    <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+                    <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+                    <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+                  </svg>
+                  Sign in with Microsoft
                 </button>
 
                 {/* Fallback: magic link for district-blocked schools */}

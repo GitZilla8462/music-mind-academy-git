@@ -66,7 +66,7 @@ export const getClassAuthInfo = () => {
     if (!session.classId || session.seatNumber == null) return null;
 
     return {
-      uid: `seat-${session.seatNumber}`,
+      uid: `seat-${session.classId}-${session.seatNumber}`,
       classId: session.classId,
       displayName: session.displayName || `Seat ${session.seatNumber}`
     };

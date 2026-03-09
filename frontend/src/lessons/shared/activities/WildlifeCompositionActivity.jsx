@@ -20,7 +20,7 @@ import { useTimerSound } from '../hooks/useTimerSound';
 import LoopLabActivity from './loop-lab/LoopLabActivity';
 import { useSession } from '../../../context/SessionContext.jsx';
 // Note: Using wildlife-specific storage key instead of shared lesson4 utils
-import { saveStudentWork, clearAllCompositionSaves } from '../../../utils/studentWorkStorage.js';
+import { saveStudentWork, clearAllCompositionSaves, getStudentId } from '../../../utils/studentWorkStorage.js';
 
 const WILDLIFE_COMPOSITION_DEADLINE = 10 * 60 * 1000; // 10 minutes
 
@@ -162,13 +162,9 @@ const WildlifeCompositionActivity = ({
   // Teacher save toast
   const [teacherSaveToast, setTeacherSaveToast] = useState(false);
   
-  // Initialize student ID
+  // Initialize student ID - use seat-based ID when logged in
   useEffect(() => {
-    let id = localStorage.getItem('anonymous-student-id');
-    if (!id) {
-      id = `Student-${Math.floor(100000 + Math.random() * 900000)}`;
-      localStorage.setItem('anonymous-student-id', id);
-    }
+    const id = getStudentId();
     setStudentId(id);
     console.log('🌍 Wildlife Student ID:', id);
   }, []);

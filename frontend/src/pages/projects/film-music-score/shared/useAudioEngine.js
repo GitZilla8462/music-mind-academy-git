@@ -508,6 +508,7 @@ export const useAudioEngine = (videoDuration = 60) => {
   }, [clearScheduledEvents, stopPreview]);
 
   const seek = useCallback((time) => {
+    if (!isFinite(time)) return;
     const now = Date.now();
     if (now - lastSeekTimeRef.current < SEEK_DEBOUNCE_MS) {
       return;
