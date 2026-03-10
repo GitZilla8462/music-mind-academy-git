@@ -429,16 +429,6 @@ export const lessonStages = [
             '4. Listen carefully \u2014 each clip is only 8 seconds!'
           ]
         },
-        {
-          heading: 'Remember',
-          bullets: [
-            'Largo (50 BPM) = Very Slow',
-            'Adagio (72 BPM) = Slow, Relaxed',
-            'Andante (92 BPM) = Walking Speed',
-            'Allegro (138 BPM) = Fast, Lively',
-            'Presto (184 BPM) = Very Fast'
-          ]
-        }
       ]
     }
   },
