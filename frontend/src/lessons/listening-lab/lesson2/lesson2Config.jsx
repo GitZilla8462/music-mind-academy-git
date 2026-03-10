@@ -163,16 +163,7 @@ export const lessonSections = [
         type: 'summary',
         label: 'Answer Key',
         duration: 2
-      }
-    ]
-  },
-  {
-    id: 'reflect',
-    title: '4. Reflection',
-    subtitle: 'Exit Ticket',
-    color: 'blue',
-    estimatedTime: 3,
-    stages: [
+      },
       {
         id: 'reflection',
         type: 'discussion',
@@ -185,7 +176,7 @@ export const lessonSections = [
   },
   {
     id: 'bonus',
-    title: '5. Bonus',
+    title: '4. Bonus',
     subtitle: 'Extra Activities',
     color: 'purple',
     estimatedTime: 12,
