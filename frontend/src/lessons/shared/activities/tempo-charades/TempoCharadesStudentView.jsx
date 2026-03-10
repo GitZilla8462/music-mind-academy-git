@@ -432,6 +432,11 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
             ) : wasCorrect === false ? (
               <div className="bg-red-500/30 rounded-2xl p-6 mb-4">
                 <p className="text-3xl font-bold text-red-400 mb-2">Not quite!</p>
+                {selectedTempo && (
+                  <p className="text-lg text-white/80 mt-2">
+                    You picked: {selectedTempo.emoji} <span className="font-bold">{selectedTempo.symbol}</span> — {selectedTempo.bpm} BPM
+                  </p>
+                )}
               </div>
             ) : (
               <div className="bg-gray-500/30 rounded-2xl p-6 mb-4">

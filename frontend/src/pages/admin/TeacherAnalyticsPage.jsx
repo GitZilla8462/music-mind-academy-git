@@ -51,7 +51,8 @@ const TeacherAnalyticsPage = () => {
     academyEmails, registeredUsers, pilotSessions, teacherOutreach,
     midPilotSurveys, finalPilotSurveys, applications, emailsSent,
     toggleOutreach, setSuccess, formatDuration, formatDate,
-    removeTeacherCompletely
+    removeTeacherCompletely,
+    nameFixing, nameFixResult, setNameFixResult, fixTeacherNames
   } = useAdminData();
 
   const [analyticsSort, setAnalyticsSort] = useState({ column: 'stage', direction: 'desc' });
@@ -582,6 +583,25 @@ const TeacherAnalyticsPage = () => {
           {duplicatePairs.length} Duplicate{duplicatePairs.length !== 1 ? 's' : ''} Detected — Clean Up
         </button>
       )}
+
+      {/* Fix Names button */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={fixTeacherNames}
+          disabled={nameFixing}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 disabled:opacity-50"
+        >
+          {nameFixing ? <Loader2 size={16} className="animate-spin" /> : <Users size={16} />}
+          {nameFixing ? 'Fixing Names...' : 'Fix Teacher Names'}
+        </button>
+        {nameFixResult && (
+          <div className={`flex items-center gap-2 text-sm ${nameFixResult.success ? 'text-green-700' : 'text-red-700'}`}>
+            {nameFixResult.success ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+            {nameFixResult.message}
+            <button onClick={() => setNameFixResult(null)} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
+          </div>
+        )}
+      </div>
 
       {/* Main Card */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

@@ -9,6 +9,7 @@ const colorClasses = {
   indigo: { border: 'border-l-indigo-500', bg: 'bg-indigo-50', text: 'text-indigo-700', badge: 'bg-indigo-100 text-indigo-700' },
   purple: { border: 'border-l-purple-500', bg: 'bg-purple-50', text: 'text-purple-700', badge: 'bg-purple-100 text-purple-700' },
   green: { border: 'border-l-green-500', bg: 'bg-green-50', text: 'text-green-700', badge: 'bg-green-100 text-green-700' },
+  violet: { border: 'border-l-violet-500', bg: 'bg-violet-50', text: 'text-violet-700', badge: 'bg-violet-100 text-violet-700' },
   orange: { border: 'border-l-orange-500', bg: 'bg-orange-50', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700' },
 };
 
@@ -223,7 +224,7 @@ const EmailsPage = () => {
       {/* Stats bar */}
       <div className="flex flex-wrap gap-3">
         {EMAIL_TEMPLATES.filter(t => t.outreachField).map(template => {
-          const colors = colorClasses[template.color];
+          const colors = colorClasses[template.color] || colorClasses.blue;
           return (
             <div key={template.id} className={`px-3 py-2 rounded-lg ${colors.badge} text-sm font-medium`}>
               {template.name}: {stats[template.id] || 0} sent
@@ -235,7 +236,7 @@ const EmailsPage = () => {
       {/* Email template cards */}
       <div className="space-y-4">
         {EMAIL_TEMPLATES.map(template => {
-          const colors = colorClasses[template.color];
+          const colors = colorClasses[template.color] || colorClasses.blue;
           const isPreviewOpen = previewType === template.id;
           const isEditing = editingType === template.id;
           const isSending = sendingType === template.id;

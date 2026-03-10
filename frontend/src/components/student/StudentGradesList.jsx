@@ -64,7 +64,8 @@ const StudentGradesList = () => {
     }
 
     const db = getDatabase();
-    const seatUid = `seat-${currentStudentInfo.seatNumber}`;
+    // UID must match getStudentId() format: seat-{classId}-{seatNumber}
+    const seatUid = `seat-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}`;
     const gradesRef = ref(db, `grades/${currentStudentInfo.classId}/${seatUid}`);
 
     const unsubscribe = onValue(gradesRef, (snapshot) => {

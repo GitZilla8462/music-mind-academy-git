@@ -67,11 +67,15 @@ const StudentClasswork = () => {
   const [conductedLessonIds, setConductedLessonIds] = useState(null);
 
   // Real-time listener for grades so they update automatically when teacher saves
+  // UID must match getStudentId() format: seat-{classId}-{seatNumber}
+  const seatUid = currentStudentInfo?.classId != null && currentStudentInfo?.seatNumber != null
+    ? `seat-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}`
+    : null;
+
   useEffect(() => {
-    if (!isAuthenticated || !isPinAuth || !currentStudentInfo?.classId) return;
+    if (!isAuthenticated || !isPinAuth || !seatUid) return;
 
     const db = getDatabase();
-    const seatUid = `seat-${currentStudentInfo.seatNumber}`;
     const gradesRef = ref(db, `grades/${currentStudentInfo.classId}/${seatUid}`);
 
     const unsubscribe = onValue(gradesRef, (snapshot) => {
@@ -81,24 +85,29 @@ const StudentClasswork = () => {
     });
 
     return () => unsubscribe();
-  }, [isAuthenticated, currentStudentInfo?.classId, currentStudentInfo?.seatNumber, isPinAuth]);
+  }, [isAuthenticated, isPinAuth, seatUid, currentStudentInfo?.classId]);
 
   // Fetch submissions, conducted lessons, and local work (one-time)
   useEffect(() => {
     const fetchData = async () => {
-      if (!isAuthenticated || !currentStudentInfo?.classId) {
+      if (!isAuthenticated || !currentStudentInfo?.classId || !seatUid) {
         setLoading(false);
         return;
       }
 
       try {
-        const seatUid = `seat-${currentStudentInfo.seatNumber}`;
+        // Also try legacy UID formats for backward compatibility
+        const legacySeatUid = `seat-${currentStudentInfo.seatNumber}`;
         const pinUid = `pin-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}`;
 
         const conducted = await getConductedLessons(currentStudentInfo.classId);
         setConductedLessonIds(conducted);
 
+        // Try correct format first, then legacy formats
         let subs = await getStudentSubmissions(currentStudentInfo.classId, seatUid);
+        if (!subs || subs.length === 0) {
+          subs = await getStudentSubmissions(currentStudentInfo.classId, legacySeatUid);
+        }
         if (!subs || subs.length === 0) {
           subs = await getStudentSubmissions(currentStudentInfo.classId, pinUid);
         }

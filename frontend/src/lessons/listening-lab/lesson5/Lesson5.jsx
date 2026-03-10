@@ -130,11 +130,13 @@ const Lesson5 = () => {
   const lastSaveCommandRef = React.useRef(null);
 
   // Listen for teacher's "Save & Continue" command from Firebase
+  // Use classCode for class-based sessions where sessionCode is null
+  const effectiveSessionCode = sessionCode || sessionMode.urlClassCode;
   React.useEffect(() => {
-    if (!sessionCode || !sessionMode.isSessionMode || effectiveRole !== 'student') return;
+    if (!effectiveSessionCode || !sessionMode.isSessionMode || effectiveRole !== 'student') return;
 
     const db = getDatabase();
-    const saveCommandRef = ref(db, `sessions/${sessionCode}/saveCommand`);
+    const saveCommandRef = ref(db, `sessions/${effectiveSessionCode}/saveCommand`);
 
     const unsubscribe = onValue(saveCommandRef, (snapshot) => {
       const saveCommand = snapshot.val();
@@ -158,7 +160,7 @@ const Lesson5 = () => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode, sessionMode.isSessionMode, effectiveRole]);
+  }, [effectiveSessionCode, sessionMode.isSessionMode, effectiveRole]);
 
   // Show loading while session is initializing
   if (sessionMode.isSessionMode && !effectiveRole) {
