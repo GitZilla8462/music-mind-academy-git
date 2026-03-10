@@ -469,10 +469,10 @@ export const lessonStages = [
         {
           heading: 'Instructions',
           bullets: [
-            'Mark the tempo throughout the piece using colors:',
-            '\uD83D\uDD35 Blue = Slow, \uD83D\uDFE1 Yellow = Medium, \uD83D\uDD34 Red = Fast',
-            'Draw arrows for accelerando (\u2192 speeding up) and ritardando (\u2192 slowing down)',
-            '\u2B50 Bonus: Circle moments where you hear the clarinet'
+            'Listen to the song on the Listening Map',
+            'As you listen, place as many tempo markings as you can on the map',
+            'Shoot for at least 8 different tempo markings throughout the piece',
+            'Dynamics and instruments are bonus!'
           ]
         }
       ]

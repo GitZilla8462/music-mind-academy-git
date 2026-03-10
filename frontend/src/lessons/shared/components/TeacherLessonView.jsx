@@ -1966,48 +1966,26 @@ const PresentationContent = ({
             </div>
           </div>
 
-          {/* Directions Below */}
+          {/* Directions */}
           <div className="flex-1 flex items-start justify-center p-4 lg:p-6 pt-6 lg:pt-8">
-            <div className="flex gap-6 lg:gap-10 max-w-6xl w-full">
-              {/* Your Task */}
-              <div className="flex-1 bg-white/10 rounded-2xl p-6 lg:p-8 backdrop-blur-sm">
-                <h2 className="text-3xl lg:text-4xl font-bold text-teal-300 mb-5">Your Task</h2>
-                <ol className="space-y-4 text-2xl lg:text-3xl text-white">
-                  <li className="flex gap-4">
-                    <span className="text-teal-400 font-bold">1.</span>
-                    <span>Press <strong className="text-teal-300">PLAY</strong> and listen</span>
-                  </li>
-                  <li className="flex gap-4">
-                    <span className="text-teal-400 font-bold">2.</span>
-                    <span>Mark <strong className="text-teal-300">tempo changes</strong> with colors</span>
-                  </li>
-                  <li className="flex gap-4">
-                    <span className="text-teal-400 font-bold">3.</span>
-                    <span>Draw <strong className="text-teal-300">accel./rit.</strong> arrows</span>
-                  </li>
-                </ol>
-              </div>
-
-              {/* Color Guide */}
-              <div className="flex-1 bg-white/10 rounded-2xl p-6 lg:p-8 backdrop-blur-sm">
-                <h2 className="text-3xl lg:text-4xl font-bold text-amber-300 mb-5">Color Guide</h2>
-                <ul className="space-y-4 text-2xl lg:text-3xl text-white/90">
-                  <li className="flex gap-4 items-center">
-                    <span className="w-8 h-8 rounded-full bg-blue-500 flex-shrink-0"></span>
-                    <span><strong>Blue</strong> = Slow (Largo, Adagio)</span>
-                  </li>
-                  <li className="flex gap-4 items-center">
-                    <span className="w-8 h-8 rounded-full bg-yellow-400 flex-shrink-0"></span>
-                    <span><strong>Yellow</strong> = Medium (Andante)</span>
-                  </li>
-                  <li className="flex gap-4 items-center">
-                    <span className="w-8 h-8 rounded-full bg-red-500 flex-shrink-0"></span>
-                    <span><strong>Red</strong> = Fast (Allegro, Presto)</span>
-                  </li>
-                </ul>
-                <div className="mt-6 p-4 bg-green-500/20 border border-green-400/40 rounded-xl">
-                  <p className="text-xl text-green-300 font-bold">Bonus: Circle moments where you hear the clarinet!</p>
-                </div>
+            <div className="max-w-4xl w-full bg-white/10 rounded-2xl p-8 lg:p-10 backdrop-blur-sm">
+              <h2 className="text-3xl lg:text-4xl font-bold text-teal-300 mb-6">Instructions</h2>
+              <ol className="space-y-5 text-2xl lg:text-3xl text-white">
+                <li className="flex gap-4">
+                  <span className="text-teal-400 font-bold">1.</span>
+                  <span>Listen to the song on the <strong className="text-teal-300">Listening Map</strong></span>
+                </li>
+                <li className="flex gap-4">
+                  <span className="text-teal-400 font-bold">2.</span>
+                  <span>As you listen, place as many <strong className="text-teal-300">tempo markings</strong> as you can on the map</span>
+                </li>
+                <li className="flex gap-4">
+                  <span className="text-teal-400 font-bold">3.</span>
+                  <span>Shoot for at least <strong className="text-teal-300">8 different tempo markings</strong> throughout the piece</span>
+                </li>
+              </ol>
+              <div className="mt-6 p-4 bg-green-500/20 border border-green-400/40 rounded-xl">
+                <p className="text-xl text-green-300 font-bold">Bonus: Add dynamics and instruments too!</p>
               </div>
             </div>
           </div>
@@ -4057,12 +4035,13 @@ const TeacherLessonView = ({
      currentStageData?.id === 'animator-directions' || currentStageData?.id === 'build-time');
 
   // Send save command to all students via Firebase
+  // Use effectiveCode (classCode || sessionCode) for class-based sessions
   const sendSaveCommand = async () => {
-    if (!sessionCode) return;
+    if (!effectiveCode) return;
 
     try {
       const db = getDatabase();
-      const sessionRef = ref(db, `sessions/${sessionCode}`);
+      const sessionRef = ref(db, `sessions/${effectiveCode}`);
       await update(sessionRef, {
         saveCommand: Date.now()
       });
