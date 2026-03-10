@@ -521,6 +521,16 @@ export const lessonStages = [
     }
   },
   {
+    id: 'tempo-answer-key',
+    label: 'Answer Key',
+    description: 'Show the answer key for the Tempo Listening Map.',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'tempo-answer-key'
+    }
+  },
+  {
     id: 'reflection',
     label: 'Class Reflection',
     description: 'Wrap up with three reflection questions.',
@@ -540,16 +550,6 @@ export const lessonStages = [
           ]
         }
       ]
-    }
-  },
-  {
-    id: 'tempo-answer-key',
-    label: 'Answer Key',
-    description: 'Show the answer key for the Tempo Listening Map.',
-    type: 'summary',
-    duration: 2,
-    presentationView: {
-      type: 'tempo-answer-key'
     }
   },
   {
