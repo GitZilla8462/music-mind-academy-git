@@ -456,74 +456,6 @@ export const lessonStages = [
     }
   },
   {
-    id: 'bonus-intro',
-    label: 'Lesson Complete!',
-    description: 'Lesson is complete. Bonus activity if time allows.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'summary',
-      title: 'Lesson Complete!',
-      subtitle: 'Great work today!',
-      sections: [
-        {
-          heading: 'What We Learned',
-          bullets: [
-            'The four orchestral woodwinds: Flute, Oboe, Clarinet, Bassoon',
-            'Five tempo markings: Largo, Adagio, Andante, Allegro, Presto',
-            'Tempo changes: Accelerando and Ritardando',
-            'How to create a Tempo Listening Map'
-          ]
-        },
-        {
-          heading: 'Bonus Activity',
-          bullets: [
-            'The following activity is a BONUS if you have extra time.',
-            'Tempo Detective: Small Groups \u2014 everyone gets a turn!'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'small-group-instructions',
-    label: 'Small Group Instructions',
-    description: 'Explain how to play Tempo Detective in small groups.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'summary',
-      title: 'Tempo Detective: Small Groups',
-      subtitle: 'Everyone Gets a Turn!',
-      sections: [
-        {
-          heading: 'Instructions',
-          bullets: [
-            'Get into groups of 2\u20135 (you can start with just 2 \u2014 others can join later!)',
-            'Join your group with a shared code',
-            'Take turns being the picker \u2014 the game will tell you when it\'s your turn',
-            'The picker chooses a tempo, everyone listens to the clip, then guessers pick the tempo'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'small-group-game',
-    label: '🎮 Unlock Small Group Detective',
-    description: 'SMALL GROUPS: Take turns picking tempos and guessing!',
-    bonusDescription: 'Everyone gets a turn to be the picker!',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: false,
-    duration: 9,
-    presentationView: {
-      type: 'activity-banner',
-      title: 'Tempo Detective: Small Groups',
-      subtitle: 'Group up! Take turns picking and guessing.'
-    }
-  },
-  {
     id: 'listening-map-instructions',
     label: 'Tempo Listening Map Instructions',
     description: 'Explain the Tempo Listening Map activity.',
@@ -619,7 +551,75 @@ export const lessonStages = [
     presentationView: {
       type: 'tempo-answer-key'
     }
-  }
+  },
+  {
+    id: 'bonus-intro',
+    label: 'Lesson Complete!',
+    description: 'Lesson is complete. Bonus activity if time allows.',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'summary',
+      title: 'Lesson Complete!',
+      subtitle: 'Great work today!',
+      sections: [
+        {
+          heading: 'What We Learned',
+          bullets: [
+            'The four orchestral woodwinds: Flute, Oboe, Clarinet, Bassoon',
+            'Five tempo markings: Largo, Adagio, Andante, Allegro, Presto',
+            'Tempo changes: Accelerando and Ritardando',
+            'How to create a Tempo Listening Map'
+          ]
+        },
+        {
+          heading: 'Bonus Activity',
+          bullets: [
+            'The following activity is a BONUS if you have extra time.',
+            'Tempo Detective: Small Groups \u2014 everyone gets a turn!'
+          ]
+        }
+      ]
+    }
+  },
+  {
+    id: 'small-group-instructions',
+    label: 'Small Group Instructions',
+    description: 'Explain how to play Tempo Detective in small groups.',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'summary',
+      title: 'Tempo Detective: Small Groups',
+      subtitle: 'Everyone Gets a Turn!',
+      sections: [
+        {
+          heading: 'Instructions',
+          bullets: [
+            'Get into groups of 2\u20135 (you can start with just 2 \u2014 others can join later!)',
+            'Join your group with a shared code',
+            'Take turns being the picker \u2014 the game will tell you when it\'s your turn',
+            'The picker chooses a tempo, everyone listens to the clip, then guessers pick the tempo'
+          ]
+        }
+      ]
+    }
+  },
+  {
+    id: 'small-group-game',
+    label: '🎮 Unlock Small Group Detective',
+    description: 'SMALL GROUPS: Take turns picking tempos and guessing!',
+    bonusDescription: 'Everyone gets a turn to be the picker!',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: false,
+    duration: 9,
+    presentationView: {
+      type: 'activity-banner',
+      title: 'Tempo Detective: Small Groups',
+      subtitle: 'Group up! Take turns picking and guessing.'
+    }
+  },
 ];
 
 // Helper function to map session stage to activity type
