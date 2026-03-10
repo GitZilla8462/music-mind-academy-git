@@ -2,7 +2,7 @@
 // Comprehensive Curriculum Guide - Standards, Units, and Scope & Sequence
 // Reference page for teachers
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Check, BookOpen, Music, Target, Award } from 'lucide-react';
 
@@ -12,10 +12,10 @@ const CURRICULUM_DATA = {
     title: 'Music Mind Academy Curriculum',
     subtitle: 'A Complete Middle School General Music Curriculum',
     grades: '6-8',
-    totalUnits: 7,
-    totalLessons: 35,
+    totalUnits: 6,
+    totalLessons: 30,
     duration: '5 lessons per unit',
-    description: 'A standards-aligned curriculum that takes students from listening and responding to creating and performing. Students progress through seven units, building skills in media composition, critical listening, cultural awareness, rhythm creation, songwriting, and film scoring.'
+    description: 'A standards-aligned curriculum that takes students from listening and responding to creating and performing. Each unit spans one month of instruction, building skills in media composition, critical listening, cultural awareness, rhythm creation, songwriting, and film scoring.'
   },
   units: [
     {
@@ -57,26 +57,26 @@ const CURRICULUM_DATA = {
       color: '#8b5cf6',
       focus: 'Responding',
       duration: '~40 min per lesson',
-      overview: 'Students develop critical listening skills by identifying instruments, dynamics, texture, and form in orchestral and popular music.',
+      overview: 'Students develop critical listening skills by exploring one instrument family per lesson alongside a core music element. Each lesson features a famous classical piece and builds toward a capstone Listening Journey project.',
       essentialQuestion: 'How do the elements of music work together to create meaning and emotion?',
       standards: {
         primary: ['MU:Re7.2', 'MU:Re8.1', 'MU:Re9.1'],
         description: 'Responding standards - analyzing and evaluating music'
       },
       iCanStatements: [
-        'I can identify instruments by their sound (timbre)',
-        'I can describe dynamics (loud/soft) and tempo (fast/slow) using music vocabulary',
-        'I can recognize texture changes in music (thick/thin)',
-        'I can identify form and structure (ABA, verse-chorus, rondo)',
-        'I can analyze how composers use elements to create emotion'
+        'I can identify instruments from the four orchestral families by sight and sound',
+        'I can describe dynamics (pp through ff) and tempo (Largo through Presto) using Italian terms',
+        'I can track dynamic and tempo changes on a listening map',
+        'I can identify musical form and label sections with letters (A, B)',
+        'I can create a Listening Journey that demonstrates dynamics, tempo, and form'
       ],
-      portfolioPiece: 'Comprehensive Listening Map Analysis',
+      portfolioPiece: 'Listening Journey (Capstone Animation)',
       lessons: [
-        { num: 1, title: 'Meet the Orchestra', concept: 'Instruments & Timbre' },
-        { num: 2, title: 'Volume & Speed', concept: 'Dynamics & Tempo' },
-        { num: 3, title: 'Thick or Thin', concept: 'Texture & Layers' },
-        { num: 4, title: 'Section Spotter', concept: 'Form & Structure' },
-        { num: 5, title: 'The Full Picture', concept: 'Putting It All Together' }
+        { num: 1, title: 'Strings & Dynamics', concept: 'String Family + Dynamic Markings', piece: 'Vivaldi — Spring' },
+        { num: 2, title: 'Woodwinds & Tempo', concept: 'Woodwind Family + Tempo Markings', piece: 'Brahms — Hungarian Dance No. 5' },
+        { num: 3, title: 'Brass & Form', concept: 'Brass Family + Ternary Form (ABA)', piece: 'Grieg — In the Hall of the Mountain King' },
+        { num: 4, title: 'Percussion & Review', concept: 'Percussion Family + Review All Elements', piece: 'Student Choice Capstone' },
+        { num: 5, title: 'Worktime + Presentation', concept: 'Finish & Share Listening Journeys', piece: 'Student Journeys' }
       ]
     },
     {
@@ -254,6 +254,120 @@ function CurriculumGuide() {
 
   const { overview, units, standards } = CURRICULUM_DATA;
 
+  const handleDownloadPDF = () => {
+    // Build a clean printable HTML document
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Please allow pop-ups to download the PDF.');
+      return;
+    }
+
+    const unitSections = units.map(unit => `
+      <div style="page-break-inside: avoid; margin-bottom: 32px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+        <div style="background-color: ${unit.color}; color: white; padding: 16px 24px;">
+          <div style="font-size: 13px; opacity: 0.9;">Unit ${unit.id} &bull; ${unit.duration}</div>
+          <h2 style="font-size: 22px; margin: 4px 0;">${unit.title}: ${unit.subtitle}</h2>
+        </div>
+        <div style="padding: 20px 24px;">
+          <p style="font-size: 14px; color: #475569; margin-bottom: 12px;">${unit.overview}</p>
+          <p style="font-size: 14px; color: #1e293b; font-style: italic; margin-bottom: 16px;"><strong>Essential Question:</strong> "${unit.essentialQuestion}"</p>
+
+          <h3 style="font-size: 13px; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">Students Will Be Able To...</h3>
+          <ul style="font-size: 13px; color: #475569; margin-bottom: 16px; padding-left: 20px;">
+            ${unit.iCanStatements.map(s => `<li style="margin-bottom: 4px;">${s}</li>`).join('')}
+          </ul>
+
+          <h3 style="font-size: 13px; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">Lessons</h3>
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="background-color: #f8fafc;">
+                <th style="padding: 8px; text-align: left; border-bottom: 1px solid #e2e8f0; width: 30px;">#</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 1px solid #e2e8f0;">Title</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 1px solid #e2e8f0;">Concept</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${unit.lessons.map(l => `
+                <tr>
+                  <td style="padding: 6px 8px; border-bottom: 1px solid #f1f5f9;">${l.num}</td>
+                  <td style="padding: 6px 8px; border-bottom: 1px solid #f1f5f9; font-weight: 500;">${l.title}</td>
+                  <td style="padding: 6px 8px; border-bottom: 1px solid #f1f5f9; color: #64748b;">${l.concept}${l.piece ? `<br/><em style="font-size:11px;color:#94a3b8;">${l.piece}</em>` : ''}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div style="margin-top: 12px; display: flex; gap: 16px; font-size: 12px;">
+            <span><strong>Standards:</strong> ${unit.standards.primary.join(', ')}</span>
+            <span><strong>Portfolio:</strong> ${unit.portfolioPiece}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    const monthlySchedule = [
+      { month: 'September', unitId: 1 },
+      { month: 'October', unitId: 2 },
+      { month: 'November', unitId: 3 },
+      { month: 'December', unitId: 4 },
+      { month: 'January', unitId: 5 },
+      { month: 'February', unitId: 6 }
+    ];
+
+    const scheduleRows = monthlySchedule.map(({ month, unitId }) => {
+      const unit = units.find(u => u.id === unitId);
+      return `<tr>
+        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">${month}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">Unit ${unit.id}: ${unit.title}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">${unit.subtitle}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">${unit.focus}</td>
+      </tr>`;
+    }).join('');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>${isEduSite ? 'Music Room Tools' : 'Music Mind Academy'} - Curriculum Guide</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 900px; margin: 0 auto; padding: 40px; color: #1e293b; }
+          h1 { font-size: 28px; margin-bottom: 4px; }
+          h2 { margin: 0; }
+          @media print { body { padding: 20px; } div { page-break-inside: avoid; } }
+        </style>
+      </head>
+      <body>
+        <h1>${isEduSite ? 'Music Room Tools' : 'Music Mind Academy'} Curriculum Guide</h1>
+        <p style="font-size: 16px; color: #64748b; margin-bottom: 4px;">${overview.subtitle}</p>
+        <p style="font-size: 14px; color: #64748b; margin-bottom: 24px;">Grades ${overview.grades} &bull; ${overview.totalUnits} Units &bull; ${overview.totalLessons} Lessons &bull; ~40 min per lesson</p>
+        <p style="font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 32px;">${overview.description}</p>
+
+        <h2 style="font-size: 20px; margin-bottom: 16px;">Scope & Sequence</h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 32px;">
+          <thead>
+            <tr style="background-color: #f8fafc;">
+              <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0;">Month</th>
+              <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0;">Unit</th>
+              <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0;">Subtitle</th>
+              <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0;">Focus</th>
+            </tr>
+          </thead>
+          <tbody>${scheduleRows}</tbody>
+        </table>
+
+        <h2 style="font-size: 20px; margin-bottom: 16px;">Unit Details</h2>
+        ${unitSections}
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+
+    // Wait for content to render, then trigger print
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
       {/* Header */}
@@ -301,7 +415,7 @@ function CurriculumGuide() {
             </div>
           </div>
           <button
-            onClick={() => alert('The Curriculum Guide PDF is coming soon! For now, you can view the full guide on this page.')}
+            onClick={handleDownloadPDF}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -593,6 +707,11 @@ function CurriculumGuide() {
                           <div style={{ flex: 1 }}>
                             <span style={{ fontWeight: '600', color: '#1e293b' }}>{lesson.title}</span>
                             <span style={{ color: '#94a3b8', marginLeft: '8px' }}>— {lesson.concept}</span>
+                            {lesson.piece && (
+                              <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic', marginTop: '2px' }}>
+                                {lesson.piece}
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -793,10 +912,12 @@ function CurriculumGuide() {
               {/* Timeline */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {[
-                  { quarter: 'Q1 (Sept-Oct)', units: [1] },
-                  { quarter: 'Q2 (Nov-Dec)', units: [2] },
-                  { quarter: 'Q3 (Jan-Mar)', units: [3, 4] },
-                  { quarter: 'Q4 (Apr-Jun)', units: [5, 6] }
+                  { quarter: 'September', units: [1] },
+                  { quarter: 'October', units: [2] },
+                  { quarter: 'November', units: [3] },
+                  { quarter: 'December', units: [4] },
+                  { quarter: 'January', units: [5] },
+                  { quarter: 'February', units: [6] }
                 ].map((period) => (
                   <div key={period.quarter} style={{
                     display: 'flex',
@@ -899,6 +1020,11 @@ function CurriculumGuide() {
                           </td>
                           <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
                             {lesson.concept}
+                            {lesson.piece && (
+                              <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px', fontStyle: 'italic' }}>
+                                {lesson.piece}
+                              </div>
+                            )}
                           </td>
                           {idx === 0 && (
                             <td rowSpan={unit.lessons.length} style={{
