@@ -149,7 +149,9 @@ const MusicLoopsInMediaHub = () => {
   };
 
   const handleOpenLessonPlan = (lessonId) => {
-    const route = `/lesson-plan/${lessonId}`;
+    // Strip 'fm-' prefix to match route definitions (e.g., fm-lesson1 → lesson1)
+    const routeId = lessonId.replace('fm-', '');
+    const route = `/lesson-plan/${routeId}`;
     window.open(route, '_blank');
   };
 

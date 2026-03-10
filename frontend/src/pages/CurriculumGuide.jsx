@@ -301,6 +301,7 @@ function CurriculumGuide() {
             </div>
           </div>
           <button
+            onClick={() => alert('The Curriculum Guide PDF is coming soon! For now, you can view the full guide on this page.')}
             style={{
               display: 'flex',
               alignItems: 'center',
