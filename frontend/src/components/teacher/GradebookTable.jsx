@@ -95,6 +95,7 @@ const GradebookTable = ({
   lessons,
   submissions,
   grades,
+  classId,
   onOpenGrade,
   onViewWork
 }) => {
@@ -145,8 +146,8 @@ const GradebookTable = ({
           </thead>
           <tbody>
             {roster.map((student) => {
-              // For PIN-based students, use the seat-based UID
-              const studentUid = student.studentUid || `seat-${student.seatNumber}`;
+              // For PIN-based students, use the seat-based UID (must match getStudentId() format)
+              const studentUid = student.studentUid || `seat-${classId}-${student.seatNumber}`;
 
               return (
                 <tr key={student.seatNumber} className="hover:bg-gray-700/30">

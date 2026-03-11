@@ -229,6 +229,7 @@ const TeacherGradebook = () => {
             lessons={LESSONS}
             submissions={submissions}
             grades={grades}
+            classId={classId}
             onOpenGrade={handleOpenGradeModal}
             onViewWork={handleViewWork}
           />

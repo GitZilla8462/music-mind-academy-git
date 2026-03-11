@@ -44,7 +44,8 @@ const StudentDetailModal = ({
   const [expandedLessons, setExpandedLessons] = useState([]);
 
   // Get effective UID: Google UID if linked, otherwise seat-based ID
-  const effectiveUid = student?.studentUid || (student?.seatNumber != null ? `seat-${student.seatNumber}` : null);
+  // Must match getStudentId() format: seat-{classId}-{seatNumber}
+  const effectiveUid = student?.studentUid || (student?.seatNumber != null && classId ? `seat-${classId}-${student.seatNumber}` : null);
 
   useEffect(() => {
     const fetchSubmissions = async () => {

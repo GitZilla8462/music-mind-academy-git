@@ -172,12 +172,13 @@ const ClassDetailPage = () => {
   };
 
   const getEffectiveUid = (student) => {
-    return student.studentUid || `seat-${student.seatNumber}`;
+    // Must match getStudentId() format: seat-{classId}-{seatNumber}
+    return student.studentUid || `seat-${classId}-${student.seatNumber}`;
   };
 
   const getActivityStats = (lessonId, activityId) => {
     // Only count submissions from students in the roster so counts match the grading view
-    const rosterUids = new Set(roster.map(s => s.studentUid || `seat-${s.seatNumber}`));
+    const rosterUids = new Set(roster.map(s => s.studentUid || `seat-${classId}-${s.seatNumber}`));
     const activitySubs = submissions.filter(s =>
       s.lessonId === lessonId && s.activityId === activityId && rosterUids.has(s.studentUid)
     );

@@ -56,7 +56,7 @@ const ShowcaseMode = ({
           const work = await getStudentWorkForTeacher(sub.studentUid, sub.workKey);
           if (work?.data?.placedLoops && work.data.placedLoops.length > 0) {
             const rosterEntry = roster.find(
-              r => (r.studentUid || `seat-${r.seatNumber}`) === sub.studentUid
+              r => (r.studentUid || `seat-${classId}-${r.seatNumber}`) === sub.studentUid
             );
             entries.push({
               uid: sub.studentUid,

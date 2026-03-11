@@ -55,7 +55,8 @@ const getDefaultCriteria = (lessonId) => {
 
 const GradeForm = ({ student, lesson, activity, classId, currentGrade, submission, onSave, compact = false, maxPointsProp, onMaxPointsChange, onCriteriaChanged }) => {
   const { user } = useFirebaseAuth();
-  const effectiveUid = student?.studentUid || (student?.seatNumber != null ? `seat-${student.seatNumber}` : null);
+  // Must match getStudentId() format: seat-{classId}-{seatNumber}
+  const effectiveUid = student?.studentUid || (student?.seatNumber != null && classId ? `seat-${classId}-${student.seatNumber}` : null);
 
   // Grade state
   const [points, setPoints] = useState('');

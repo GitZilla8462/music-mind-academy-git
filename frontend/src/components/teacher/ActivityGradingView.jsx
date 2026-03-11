@@ -110,7 +110,8 @@ const ActivityGradingView = ({
 
   // Build enriched student list with submission/grade data for this activity
   const studentData = roster.map(student => {
-    const uid = student.studentUid || `seat-${student.seatNumber}`;
+    // Must match getStudentId() format: seat-{classId}-{seatNumber}
+    const uid = student.studentUid || `seat-${classId}-${student.seatNumber}`;
     const submission = submissions.find(s =>
       s.studentUid === uid && s.lessonId === lessonId && s.activityId === activityId
     );
