@@ -208,6 +208,8 @@ const CityCompositionActivity = ({
           durations[video.id] = duration;
         } catch (error) {
           console.error(`❌ Failed to detect duration for ${video.id}:`, error);
+          // Use fallback duration so the activity isn't blocked
+          durations[video.id] = 90;
         }
       }
       
@@ -281,6 +283,17 @@ const CityCompositionActivity = ({
           setShowVideoSelection(false);
           setIsLoadingVideo(false);
           console.log('✅ Loaded saved video with detected duration:', video.title, 'Duration:', video.duration, 's');
+        } else if (!detectingDurations) {
+          // Detection finished but this video's duration is missing — use fallback
+          console.warn('⚠️ Duration detection finished but missing for', videoTemplate.id, '— using fallback');
+          const video = {
+            ...videoTemplate,
+            duration: 90
+          };
+          setSelectedVideo(video);
+          setVideoDuration(90);
+          setShowVideoSelection(false);
+          setIsLoadingVideo(false);
         } else {
           console.log('⏳ Waiting for duration detection to complete...');
           setIsLoadingVideo(true);

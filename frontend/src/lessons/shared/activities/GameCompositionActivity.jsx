@@ -263,6 +263,7 @@ const GameCompositionActivity = ({
           durations[video.id] = duration;
         } catch (error) {
           console.error(`❌ Failed to detect duration for ${video.id}:`, error);
+          durations[video.id] = 90;
         }
       }
 
@@ -317,22 +318,27 @@ const GameCompositionActivity = ({
       console.log('🎬 Found video template:', videoTemplate);
 
       if (videoTemplate) {
-        const detectedDuration = videoDurations[videoTemplate.id];
-        // If detection is complete (not empty object) OR we have a duration, proceed
-        const detectionComplete = !detectingDurations && Object.keys(videoDurations).length > 0;
-
-        if (detectedDuration || detectionComplete) {
-          // Use detected duration or fallback to 150s (2:30)
-          const finalDuration = detectedDuration || 150;
+        if (videoDurations[videoTemplate.id]) {
           const video = {
             ...videoTemplate,
-            duration: finalDuration
+            duration: videoDurations[videoTemplate.id]
           };
           setSelectedVideo(video);
           setVideoDuration(video.duration);
           setShowVideoSelection(false);
           setIsLoadingVideo(false);
-          console.log('✅ Loaded saved video with duration:', video.title, 'Duration:', video.duration, 's', detectedDuration ? '(detected)' : '(fallback)');
+          console.log('✅ Loaded saved video with detected duration:', video.title, 'Duration:', video.duration, 's');
+        } else if (!detectingDurations) {
+          // Detection finished but this video's duration is missing — use fallback
+          console.warn('⚠️ Duration detection finished but missing for', videoTemplate.id, '— using fallback');
+          const video = {
+            ...videoTemplate,
+            duration: 90
+          };
+          setSelectedVideo(video);
+          setVideoDuration(90);
+          setShowVideoSelection(false);
+          setIsLoadingVideo(false);
         } else {
           console.log('⏳ Waiting for duration detection to complete...');
           setIsLoadingVideo(true);
