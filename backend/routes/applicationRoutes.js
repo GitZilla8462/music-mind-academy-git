@@ -107,12 +107,14 @@ router.get('/approve/:id', async (req, res) => {
     });
 
     // 2. Add to approvedEmails/academy/
+    const personalEmail = (application.personalEmail || '').toLowerCase().trim();
     await db.ref(`approvedEmails/academy/${emailKey}`).set({
       email: schoolEmail,
       approvedAt: now,
       name: `${application.firstName} ${application.lastName}`,
       school: application.schoolName,
-      source: 'pilot-application'
+      source: 'pilot-application',
+      ...(personalEmail && personalEmail !== schoolEmail ? { personalEmail } : {})
     });
 
     // 3. Add to teacherOutreach so admin page shows them

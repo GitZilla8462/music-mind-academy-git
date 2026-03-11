@@ -49,11 +49,27 @@ export const isEmailApproved = async (email, siteType = null) => {
   const site = siteType || getCurrentSiteType();
 
   try {
-    const emailKey = emailToKey(email);
+    const normalizedEmail = email.toLowerCase().trim();
+    const emailKey = emailToKey(normalizedEmail);
+
+    // Fast path: check if this email is a primary (school) email
     const emailRef = ref(database, `approvedEmails/${site}/${emailKey}`);
     const snapshot = await get(emailRef);
+    if (snapshot.exists()) return true;
 
-    return snapshot.exists();
+    // Slow path: check if this email is stored as a personalEmail on any entry
+    const allRef = ref(database, `approvedEmails/${site}`);
+    const allSnapshot = await get(allRef);
+    if (!allSnapshot.exists()) return false;
+
+    let found = false;
+    allSnapshot.forEach((child) => {
+      const entry = child.val();
+      if (entry.personalEmail && entry.personalEmail.toLowerCase().trim() === normalizedEmail) {
+        found = true;
+      }
+    });
+    return found;
   } catch (error) {
     console.error('Error checking email approval:', error);
     return false;

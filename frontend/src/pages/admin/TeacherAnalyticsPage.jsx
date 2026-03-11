@@ -51,7 +51,7 @@ const TeacherAnalyticsPage = () => {
     academyEmails, registeredUsers, pilotSessions, teacherOutreach,
     midPilotSurveys, finalPilotSurveys, applications, emailsSent,
     toggleOutreach, setSuccess, formatDuration, formatDate,
-    removeTeacherCompletely,
+    removeTeacherCompletely, mergeTeacherEntries,
     nameFixing, nameFixResult, setNameFixResult, fixTeacherNames
   } = useAdminData();
 
@@ -232,8 +232,8 @@ const TeacherAnalyticsPage = () => {
         pilotSessions.some(ps => ps.sessionCode === s.sessionCode && ps.teacherEmail?.toLowerCase() === email)
       );
 
-      // Get personal email from application data
-      const personalEmail = app?.personalEmail?.toLowerCase().trim() || '';
+      // Get personal email from approved entry or application data
+      const personalEmail = approved.personalEmail?.toLowerCase().trim() || app?.personalEmail?.toLowerCase().trim() || '';
       const hasPersonalEmail = personalEmail && personalEmail !== email;
 
       result.push({
@@ -259,6 +259,15 @@ const TeacherAnalyticsPage = () => {
 
   // Detect duplicate teachers: same name OR same email prefix
   const { duplicateNames, duplicatePairs } = useMemo(() => {
+    // Build set of known linked email pairs (personalEmail relationships)
+    const linkedPairs = new Set();
+    teachers.forEach(t => {
+      if (t.personalEmail) {
+        const key = [t.email, t.personalEmail].sort().join('|');
+        linkedPairs.add(key);
+      }
+    });
+
     // Group by name
     const byName = {};
     teachers.forEach(t => {
@@ -282,7 +291,7 @@ const TeacherAnalyticsPage = () => {
     const pairs = [];
     const addPair = (t1, t2) => {
       const key = [t1.email, t2.email].sort().join('|');
-      if (pairSet.has(key)) return;
+      if (pairSet.has(key) || linkedPairs.has(key)) return;
       pairSet.add(key);
       // Determine which is school vs personal
       const t1Personal = isPersonalEmail(t1.email);
@@ -309,7 +318,7 @@ const TeacherAnalyticsPage = () => {
         for (let j = i + 1; j < group.length; j++) {
           if (group[i].email !== group[j].email) {
             const key = [group[i].email, group[j].email].sort().join('|');
-            if (!pairSet.has(key)) {
+            if (!pairSet.has(key) && !linkedPairs.has(key)) {
               pairSet.add(key);
               const t1Personal = isPersonalEmail(group[i].email);
               const t2Personal = isPersonalEmail(group[j].email);
@@ -825,11 +834,17 @@ const TeacherAnalyticsPage = () => {
                                 )}
                               </div>
                               <div className="text-xs text-gray-400 truncate">{teacher.email}</div>
+                              {teacher.personalEmail && (
+                                <div className="text-[10px] text-orange-500 truncate" title={teacher.personalEmail}>↳ {teacher.personalEmail}</div>
+                              )}
                             </>
                           ) : (
                             <>
                               <div className="font-medium text-gray-800 text-sm">{teacher.email.split('@')[0]}</div>
                               <div className="text-xs text-gray-400">@{teacher.email.split('@')[1]}</div>
+                              {teacher.personalEmail && (
+                                <div className="text-[10px] text-orange-500 truncate" title={teacher.personalEmail}>↳ {teacher.personalEmail}</div>
+                              )}
                             </>
                           )}
                         </td>
@@ -1060,6 +1075,11 @@ const TeacherAnalyticsPage = () => {
             if (ok) showToast(`Removed ${email}`);
             return ok;
           }}
+          onMerge={async (keepEmail, removeEmail) => {
+            const ok = await mergeTeacherEntries(keepEmail, removeEmail);
+            if (ok) showToast(`Merged ${removeEmail} → ${keepEmail}`);
+            return ok;
+          }}
           onClose={() => setShowDuplicates(false)}
           onBulkDone={(count) => { setShowDuplicates(false); showToast(`Removed ${count} duplicate(s)`); }}
         />
@@ -1172,10 +1192,11 @@ const getDismissedPairs = () => {
   try { return JSON.parse(localStorage.getItem(DISMISSED_DUPS_KEY) || '[]'); } catch { return []; }
 };
 
-const DuplicatesModal = ({ pairs, onRemove, onClose, onBulkDone }) => {
+const DuplicatesModal = ({ pairs, onRemove, onMerge, onClose, onBulkDone }) => {
   const [removed, setRemoved] = useState(new Set());
   const [dismissed, setDismissed] = useState(() => new Set(getDismissedPairs()));
   const [removing, setRemoving] = useState(null);
+  const [merging, setMerging] = useState(null);
   const [bulkRemoving, setBulkRemoving] = useState(false);
 
   const handleRemoveOne = async (email) => {
@@ -1183,6 +1204,13 @@ const DuplicatesModal = ({ pairs, onRemove, onClose, onBulkDone }) => {
     const ok = await onRemove(email);
     if (ok) setRemoved(prev => new Set([...prev, email]));
     setRemoving(null);
+  };
+
+  const handleMergeOne = async (keepEmail, removeEmail) => {
+    setMerging(removeEmail);
+    const ok = await onMerge(keepEmail, removeEmail);
+    if (ok) setRemoved(prev => new Set([...prev, removeEmail]));
+    setMerging(null);
   };
 
   const handleKeepBoth = (keep, rem) => {
@@ -1229,7 +1257,7 @@ const DuplicatesModal = ({ pairs, onRemove, onClose, onBulkDone }) => {
               Duplicate Teachers ({activePairs.length} pairs)
             </h3>
             <p className="text-sm text-gray-500 mt-1">
-              Same person with multiple email addresses. Remove personal emails and keep school emails.
+              Same person with multiple email addresses. Merge to keep both emails on one entry, or remove the duplicate.
             </p>
           </div>
           <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg">
@@ -1241,16 +1269,38 @@ const DuplicatesModal = ({ pairs, onRemove, onClose, onBulkDone }) => {
         {personalDups.length > 0 && (
           <div className="px-6 py-3 bg-orange-50 border-b border-orange-200 flex items-center justify-between shrink-0">
             <span className="text-sm text-orange-800">
-              <strong>{personalDups.length}</strong> personal email{personalDups.length !== 1 ? 's' : ''} can be auto-removed (keeps school email)
+              <strong>{personalDups.length}</strong> personal email{personalDups.length !== 1 ? 's' : ''} can be merged (links personal email to school email)
             </span>
-            <button
-              onClick={handleRemoveAll}
-              disabled={bulkRemoving}
-              className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-50 font-medium"
-            >
-              {bulkRemoving ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-              Remove All Personal Emails
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  const toMerge = personalDups.filter(p => !removed.has(p.remove.email));
+                  if (toMerge.length === 0) return;
+                  if (!confirm(`Merge ${toMerge.length} duplicate(s)? Each personal email will be linked to its school email.`)) return;
+                  setBulkRemoving(true);
+                  let count = 0;
+                  for (const { keep, remove: rem } of toMerge) {
+                    const ok = await onMerge(keep.email, rem.email);
+                    if (ok) { count++; setRemoved(prev => new Set([...prev, rem.email])); }
+                  }
+                  setBulkRemoving(false);
+                  onBulkDone(count);
+                }}
+                disabled={bulkRemoving}
+                className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 font-medium"
+              >
+                {bulkRemoving ? <Loader2 size={14} className="animate-spin" /> : <Link2 size={14} />}
+                Merge All
+              </button>
+              <button
+                onClick={handleRemoveAll}
+                disabled={bulkRemoving}
+                className="flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-lg text-sm hover:bg-red-100 disabled:opacity-50 font-medium"
+              >
+                {bulkRemoving ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                Remove All
+              </button>
+            </div>
           </div>
         )}
 
@@ -1281,6 +1331,14 @@ const DuplicatesModal = ({ pairs, onRemove, onClose, onBulkDone }) => {
                       </div>
                     </div>
                     <div className="shrink-0 flex flex-col gap-1.5">
+                      <button
+                        onClick={() => handleMergeOne(keep.email, rem.email)}
+                        disabled={merging === rem.email}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-medium hover:bg-blue-100 disabled:opacity-50"
+                      >
+                        {merging === rem.email ? <Loader2 size={12} className="animate-spin" /> : <Link2 size={12} />}
+                        Merge
+                      </button>
                       <button
                         onClick={() => handleRemoveOne(rem.email)}
                         disabled={removing === rem.email}

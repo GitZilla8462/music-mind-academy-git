@@ -205,9 +205,11 @@ export const AdminDataProvider = ({ children }) => {
       const now = Date.now();
 
       await update(ref(database, `pilotApplications/${app.id}`), { status: 'approved', approvedAt: now });
+      const personalEmail = (app.personalEmail || '').toLowerCase().trim();
       await set(ref(database, `approvedEmails/academy/${emailKey}`), {
         email: schoolEmail, approvedAt: now,
-        name: `${app.firstName} ${app.lastName}`, school: app.schoolName, source: 'pilot-application'
+        name: `${app.firstName} ${app.lastName}`, school: app.schoolName, source: 'pilot-application',
+        ...(personalEmail && personalEmail !== schoolEmail ? { personalEmail } : {})
       });
       await update(ref(database, `teacherOutreach/${emailKey}`), {
         email: schoolEmail, name: `${app.firstName} ${app.lastName}`,
@@ -256,13 +258,15 @@ export const AdminDataProvider = ({ children }) => {
     }
   };
 
-  const handleAddEmail = async (email, notes, teacherType) => {
+  const handleAddEmail = async (email, notes, teacherType, personalEmail = '') => {
     try {
       const emailKey = email.toLowerCase().trim().replace(/\./g, ',');
+      const normalizedPersonal = personalEmail?.toLowerCase().trim() || '';
       const emailRef = ref(database, `approvedEmails/${selectedSite}/${emailKey}`);
       await set(emailRef, {
         email: email.toLowerCase().trim(), approvedAt: Date.now(),
-        notes: notes.trim(), approvedBy: user.email, siteType: selectedSite
+        notes: notes.trim(), approvedBy: user.email, siteType: selectedSite,
+        ...(normalizedPersonal && normalizedPersonal !== email.toLowerCase().trim() ? { personalEmail: normalizedPersonal } : {})
       });
       const outreachRef = ref(database, `teacherOutreach/${emailKey}`);
       await update(outreachRef, { email: email.toLowerCase().trim(), teacherType, addedAt: Date.now() });
@@ -396,6 +400,70 @@ export const AdminDataProvider = ({ children }) => {
       if (!skipConfirm) setSuccess(`Removed ${email} completely`);
       return true;
     } catch (err) { setError(err.message); return false; }
+  };
+
+  const updatePersonalEmail = async (primaryEmail, personalEmail) => {
+    try {
+      const emailKey = primaryEmail.toLowerCase().replace(/\./g, ',');
+      const normalizedPersonal = personalEmail?.toLowerCase().trim() || '';
+      await update(ref(database, `approvedEmails/academy/${emailKey}`), {
+        personalEmail: normalizedPersonal
+      });
+      await update(ref(database, `approvedEmails/edu/${emailKey}`), {
+        personalEmail: normalizedPersonal
+      }).catch(() => {}); // edu entry may not exist
+      return true;
+    } catch (err) { setError(err.message); return false; }
+  };
+
+  const mergeTeacherEntries = async (keepEmail, removeEmail) => {
+    const keepKey = keepEmail.toLowerCase().replace(/\./g, ',');
+    const removeKey = removeEmail.toLowerCase().replace(/\./g, ',');
+    try {
+      // 1. Set personalEmail on the kept entry
+      await update(ref(database, `approvedEmails/academy/${keepKey}`), {
+        personalEmail: removeEmail.toLowerCase().trim()
+      });
+
+      // 2. Merge outreach data (fill gaps only)
+      const removeOutreach = teacherOutreach[removeKey];
+      if (removeOutreach) {
+        const keepOutreach = teacherOutreach[keepKey] || {};
+        const mergedFields = {};
+        if (!keepOutreach.name && removeOutreach.name) mergedFields.name = removeOutreach.name;
+        if (!keepOutreach.school && removeOutreach.school) mergedFields.school = removeOutreach.school;
+        if (Object.keys(mergedFields).length > 0) {
+          await update(ref(database, `teacherOutreach/${keepKey}`), mergedFields);
+        }
+      }
+
+      // 3. Merge emailsSent data
+      const removeEmailsSentSnap = await get(ref(database, `emailsSent/${removeKey}`));
+      if (removeEmailsSentSnap.exists()) {
+        const keepEmailsSentSnap = await get(ref(database, `emailsSent/${keepKey}`));
+        const keepData = keepEmailsSentSnap.exists() ? keepEmailsSentSnap.val() : {};
+        const removeData = removeEmailsSentSnap.val();
+        const mergedEmailsSent = {};
+        Object.entries(removeData).forEach(([type, val]) => {
+          if (!keepData[type]) mergedEmailsSent[type] = val;
+        });
+        if (Object.keys(mergedEmailsSent).length > 0) {
+          await update(ref(database, `emailsSent/${keepKey}`), mergedEmailsSent);
+        }
+      }
+
+      // 4. Remove the duplicate entry completely
+      await remove(ref(database, `approvedEmails/academy/${removeKey}`));
+      await remove(ref(database, `approvedEmails/edu/${removeKey}`)).catch(() => {});
+      await remove(ref(database, `teacherOutreach/${removeKey}`));
+      await remove(ref(database, `emailsSent/${removeKey}`));
+
+      setSuccess(`Merged ${removeEmail} → ${keepEmail}`);
+      return true;
+    } catch (err) {
+      setError(`Failed to merge: ${err.message}`);
+      return false;
+    }
   };
 
   // Utility helpers
@@ -768,6 +836,7 @@ export const AdminDataProvider = ({ children }) => {
     toggleOutreach,
     handleAddEmail, handleBatchAdd,
     handleRemoveEmail, handleBulkDelete, handleBulkDeleteUsers, removeTeacherCompletely,
+    mergeTeacherEntries, updatePersonalEmail,
     backfillStudentCounts, syncToHubSpot, exportToExcel, fixTeacherNames,
     // Utilities
     formatDate, formatDuration, getLessonName,

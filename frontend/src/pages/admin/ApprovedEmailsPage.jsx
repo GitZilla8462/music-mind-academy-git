@@ -11,6 +11,7 @@ const ApprovedEmailsPage = () => {
   } = useAdminData();
 
   const [newEmail, setNewEmail] = useState('');
+  const [newPersonalEmail, setNewPersonalEmail] = useState('');
   const [newNotes, setNewNotes] = useState('');
   const [newTeacherType, setNewTeacherType] = useState('pilot');
   const [adding, setAdding] = useState(false);
@@ -38,8 +39,8 @@ const ApprovedEmailsPage = () => {
     e.preventDefault();
     if (!newEmail.trim()) return;
     setAdding(true);
-    const success = await handleAddEmail(newEmail, newNotes, newTeacherType);
-    if (success) { setNewEmail(''); setNewNotes(''); }
+    const success = await handleAddEmail(newEmail, newNotes, newTeacherType, newPersonalEmail);
+    if (success) { setNewEmail(''); setNewNotes(''); setNewPersonalEmail(''); }
     setAdding(false);
   };
 
@@ -148,6 +149,12 @@ const ApprovedEmailsPage = () => {
               <label className="block text-xs font-medium text-gray-600 mb-1">Notes (optional)</label>
               <input type="text" value={newNotes} onChange={(e) => setNewNotes(e.target.value)}
                 placeholder="School name, grade level"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white" />
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Personal Email (optional)</label>
+              <input type="email" value={newPersonalEmail} onChange={(e) => setNewPersonalEmail(e.target.value)}
+                placeholder="teacher@gmail.com"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white" />
             </div>
             <div className="w-32">
@@ -275,6 +282,9 @@ const ApprovedEmailsPage = () => {
                       onChange={(e) => setSelectedEmails(prev => ({ ...prev, [item.id]: e.target.checked }))} className="rounded" />
                     <div>
                       <div className="font-medium text-gray-800">{item.email}</div>
+                      {item.personalEmail && (
+                        <div className="text-xs text-orange-500">↳ {item.personalEmail}</div>
+                      )}
                       <div className="text-sm text-gray-500 flex items-center gap-4">
                         <span className="flex items-center gap-1"><Calendar size={14} />{formatDate(item.approvedAt)}</span>
                         {item.notes && <span>• {item.notes}</span>}
