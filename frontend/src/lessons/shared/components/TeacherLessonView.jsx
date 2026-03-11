@@ -3500,8 +3500,8 @@ const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, piece
 
   return (
     <div className="absolute inset-0">
-      {/* Live ListeningJourney behind everything */}
-      <div className="absolute inset-0">
+      {/* Live ListeningJourney behind everything — override h-screen to fit container */}
+      <div className="absolute inset-0 [&>div]:!h-full [&>div]:!max-h-full overflow-hidden">
         {ListeningJourneyComponent ? (
           <ListeningJourneyComponent
             onComplete={() => {}}
