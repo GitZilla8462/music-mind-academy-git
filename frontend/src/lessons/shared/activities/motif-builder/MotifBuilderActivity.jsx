@@ -130,7 +130,11 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
   const playNote = useCallback(async (note) => {
     await initAudio();
     if (synthRef.current) {
-      synthRef.current.triggerAttackRelease(note, '8n');
+      try {
+        synthRef.current.triggerAttackRelease(note, '8n');
+      } catch (err) {
+        // Chromebook timing or rapid clicks: start time conflict - skip preview
+      }
     }
   }, []);
 

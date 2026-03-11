@@ -384,7 +384,11 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0, lockedMood = null,
 
         // Play the note
         if (synthRef.current) {
-          synthRef.current.triggerAttackRelease(currentNotes[noteIndex].id, '8n');
+          try {
+            synthRef.current.triggerAttackRelease(currentNotes[noteIndex].id, '8n');
+          } catch (err) {
+            // Chromebook timing or rapid clicks: start time conflict - skip preview
+          }
         }
       }
       return newGrid;
