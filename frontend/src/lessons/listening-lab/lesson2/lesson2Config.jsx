@@ -131,7 +131,7 @@ export const lessonSections = [
     title: '3. Tempo Listening Map',
     subtitle: 'Hungarian Dance No. 5',
     color: 'blue',
-    estimatedTime: 14,
+    estimatedTime: 21,
     stages: [
       {
         id: 'listening-map-instructions',
@@ -144,7 +144,7 @@ export const lessonSections = [
         id: 'tempo-listening-map',
         type: 'activity',
         label: '🎮 Unlock Tempo Listening Map',
-        duration: 8,
+        duration: 15,
         hasTimer: true,
         trackProgress: true,
         description: 'STUDENTS WORK: Create a Tempo Listening Map for Hungarian Dance No. 5.',
@@ -246,7 +246,7 @@ export const lesson2Config = {
       id: 3,
       type: "tempo-listening-map",
       title: "Tempo Listening Map",
-      estimatedTime: "8 min"
+      estimatedTime: "15 min"
     },
     {
       id: 4,
@@ -477,7 +477,7 @@ export const lessonStages = [
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 8,
+    duration: 15,
     presentationView: {
       type: 'tempo-listening-map-directions'
     }
