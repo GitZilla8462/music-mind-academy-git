@@ -15,7 +15,7 @@ const CURRICULUM_DATA = {
     totalUnits: 6,
     totalLessons: 30,
     duration: '5 lessons per unit',
-    description: 'A standards-aligned curriculum that takes students from listening and responding to creating and performing. Each unit spans one month of instruction, building skills in media composition, critical listening, cultural awareness, rhythm creation, songwriting, and film scoring.'
+    description: 'A standards-aligned curriculum that takes students from listening and responding to creating and performing. Six units span the full school year at one lesson per week, with built-in flex weeks for catch-up and enrichment. Students build skills in media composition, critical listening, cultural awareness, rhythm creation, songwriting, and film scoring.'
   },
   units: [
     {
@@ -306,21 +306,21 @@ function CurriculumGuide() {
     `).join('');
 
     const monthlySchedule = [
-      { month: 'September', unitId: 1 },
-      { month: 'October', unitId: 2 },
-      { month: 'November', unitId: 3 },
-      { month: 'December', unitId: 4 },
-      { month: 'January', unitId: 5 },
-      { month: 'February', unitId: 6 }
+      { month: 'September', content: 'Unit 1: The Loop Lab', weeks: 'Weeks 1–5 + Flex Week', focus: 'Creating' },
+      { month: 'October', content: 'Unit 2: The Listening Lab', weeks: 'Weeks 7–11 + Flex Week', focus: 'Responding' },
+      { month: 'November', content: 'Unit 3: World Music Workshop', weeks: 'Weeks 13–17 + Flex Week', focus: 'Connecting' },
+      { month: 'Dec – Jan', content: 'Unit 4: The Beat Lab', weeks: 'Weeks 19–23 + Winter Break', focus: 'Creating' },
+      { month: 'Feb – Mar', content: 'Unit 5: Songwriter\'s Studio', weeks: 'Weeks 24–28 + Flex Week', focus: 'Creating & Performing' },
+      { month: 'Apr – May', content: 'Unit 6: Film Scoring Academy', weeks: 'Weeks 30–34 + Flex Week', focus: 'Creating & Connecting' },
+      { month: 'June', content: 'Showcase & Review', weeks: 'Weeks 35–36', focus: 'Reflection & Celebration' }
     ];
 
-    const scheduleRows = monthlySchedule.map(({ month, unitId }) => {
-      const unit = units.find(u => u.id === unitId);
+    const scheduleRows = monthlySchedule.map(({ month, content, weeks, focus }) => {
       return `<tr>
         <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">${month}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">Unit ${unit.id}: ${unit.title}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">${unit.subtitle}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">${unit.focus}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${content}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">${weeks}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">${focus}</td>
       </tr>`;
     }).join('');
 
@@ -346,9 +346,9 @@ function CurriculumGuide() {
         <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 32px;">
           <thead>
             <tr style="background-color: #f8fafc;">
-              <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0;">Month</th>
-              <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0;">Unit</th>
-              <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0;">Subtitle</th>
+              <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0;">Timeframe</th>
+              <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0;">Content</th>
+              <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0;">Pacing</th>
               <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0;">Focus</th>
             </tr>
           </thead>
@@ -905,76 +905,197 @@ function CurriculumGuide() {
               <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>
                 Scope & Sequence
               </h2>
-              <p style={{ fontSize: '15px', color: '#64748b', marginBottom: '24px' }}>
-                A suggested pacing guide for the full school year. Each lesson is approximately 40 minutes.
+              <p style={{ fontSize: '15px', color: '#64748b', marginBottom: '8px' }}>
+                A suggested pacing guide for the full school year. One lesson per week, approximately 40 minutes each.
+              </p>
+              <p style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '32px' }}>
+                Each unit includes a built-in flex week for catch-up, reteaching, or enrichment activities.
               </p>
 
-              {/* Timeline */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {[
-                  { quarter: 'September', units: [1] },
-                  { quarter: 'October', units: [2] },
-                  { quarter: 'November', units: [3] },
-                  { quarter: 'December', units: [4] },
-                  { quarter: 'January', units: [5] },
-                  { quarter: 'February', units: [6] }
-                ].map((period) => (
-                  <div key={period.quarter} style={{
-                    display: 'flex',
-                    alignItems: 'stretch',
-                    gap: '16px'
-                  }}>
-                    <div style={{
-                      width: '140px',
-                      backgroundColor: '#1e293b',
-                      color: 'white',
-                      padding: '16px',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: '600',
-                      fontSize: '14px',
-                      flexShrink: 0
-                    }}>
-                      {period.quarter}
-                    </div>
-                    <div style={{
+              {/* Visual Timeline Bar */}
+              <div style={{ marginBottom: '32px' }}>
+                <div style={{ display: 'flex', marginBottom: '8px' }}>
+                  {['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((m) => (
+                    <div key={m} style={{
                       flex: 1,
-                      display: 'flex',
-                      gap: '12px'
+                      textAlign: 'center',
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      color: '#94a3b8',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em'
                     }}>
-                      {period.units.map((unitId) => {
-                        const unit = units.find(u => u.id === unitId);
-                        return (
-                          <div key={unitId} style={{
-                            flex: 1,
-                            backgroundColor: '#f8fafc',
-                            borderRadius: '8px',
-                            padding: '16px',
-                            borderLeft: `4px solid ${unit.color}`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px'
-                          }}>
+                      {m}
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: '2px', height: '48px', borderRadius: '8px', overflow: 'hidden' }}>
+                  {[
+                    { unitId: 1, spans: 6 },
+                    { unitId: 2, spans: 6 },
+                    { unitId: 3, spans: 6 },
+                    { unitId: 4, spans: 6 },
+                    { unitId: 5, spans: 6 },
+                    { unitId: 6, spans: 6 }
+                  ].map(({ unitId, spans }) => {
+                    const unit = units.find(u => u.id === unitId);
+                    return (
+                      <div key={unitId} style={{
+                        flex: spans,
+                        backgroundColor: unit.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        color: 'white',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        padding: '0 8px',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden'
+                      }}>
+                        <span style={{ fontSize: '16px' }}>{unit.icon}</span>
+                        <span>Unit {unit.id}</span>
+                      </div>
+                    );
+                  })}
+                  <div style={{
+                    flex: 2,
+                    backgroundColor: '#e2e8f0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    color: '#64748b'
+                  }}>
+                    Review
+                  </div>
+                </div>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: '16px',
+                  marginTop: '12px',
+                  fontSize: '11px',
+                  color: '#94a3b8'
+                }}>
+                  <span>36 weeks total</span>
+                  <span>|</span>
+                  <span>30 lessons + 6 flex weeks</span>
+                </div>
+              </div>
+
+              {/* Month-by-Month Breakdown */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {[
+                  { month: 'September', unitId: 1, weeks: 'Weeks 1–5', detail: '5 lessons + flex week', extra: null },
+                  { month: 'October', unitId: 2, weeks: 'Weeks 7–11', detail: '5 lessons + flex week', extra: null },
+                  { month: 'November', unitId: 3, weeks: 'Weeks 13–17', detail: '5 lessons + Thanksgiving flex', extra: null },
+                  { month: 'Dec – Jan', unitId: 4, weeks: 'Weeks 19–23', detail: '5 lessons + winter break', extra: 'Winter break falls naturally between lessons' },
+                  { month: 'Feb – Mar', unitId: 5, weeks: 'Weeks 24–28', detail: '5 lessons + flex week', extra: null },
+                  { month: 'Apr – May', unitId: 6, weeks: 'Weeks 30–34', detail: '5 lessons + flex week', extra: null },
+                  { month: 'June', unitId: null, weeks: 'Weeks 35–36', detail: 'Showcase & review', extra: 'Student showcase performances, portfolio review, end-of-year celebration' }
+                ].map((period) => {
+                  const unit = period.unitId ? units.find(u => u.id === period.unitId) : null;
+                  return (
+                    <div key={period.month} style={{
+                      display: 'flex',
+                      alignItems: 'stretch',
+                      borderRadius: '10px',
+                      overflow: 'hidden',
+                      border: '1px solid #e2e8f0'
+                    }}>
+                      <div style={{
+                        width: '120px',
+                        backgroundColor: unit ? `${unit.color}10` : '#f8fafc',
+                        borderRight: `3px solid ${unit ? unit.color : '#94a3b8'}`,
+                        padding: '14px 16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <div style={{ fontSize: '14px', fontWeight: '700', color: '#1e293b' }}>
+                          {period.month}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+                          {period.weeks}
+                        </div>
+                      </div>
+                      <div style={{
+                        flex: 1,
+                        padding: '14px 20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '14px',
+                        backgroundColor: 'white'
+                      }}>
+                        {unit ? (
+                          <>
                             <span style={{ fontSize: '28px' }}>{unit.icon}</span>
-                            <div>
-                              <div style={{ fontSize: '12px', color: unit.color, fontWeight: '600' }}>
-                                Unit {unit.id}
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '12px', fontWeight: '600', color: unit.color }}>
+                                  Unit {unit.id}
+                                </span>
+                                <span style={{
+                                  fontSize: '10px',
+                                  fontWeight: '600',
+                                  color: '#64748b',
+                                  backgroundColor: '#f1f5f9',
+                                  padding: '2px 6px',
+                                  borderRadius: '4px'
+                                }}>
+                                  {unit.focus}
+                                </span>
                               </div>
-                              <div style={{ fontSize: '15px', fontWeight: '600', color: '#1e293b' }}>
-                                {unit.title}
+                              <div style={{ fontSize: '15px', fontWeight: '600', color: '#1e293b', marginTop: '2px' }}>
+                                {unit.title}: {unit.subtitle}
                               </div>
-                              <div style={{ fontSize: '12px', color: '#64748b' }}>
-                                {unit.focus} • 5 Lessons
+                              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
+                                {period.detail}{period.extra ? ` — ${period.extra}` : ''}
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                            <div style={{
+                              display: 'flex',
+                              gap: '3px',
+                              flexShrink: 0
+                            }}>
+                              {[1,2,3,4,5].map(n => (
+                                <div key={n} style={{
+                                  width: '8px',
+                                  height: '24px',
+                                  borderRadius: '3px',
+                                  backgroundColor: unit.color,
+                                  opacity: 0.6 + (n * 0.08)
+                                }} title={`Lesson ${n}`} />
+                              ))}
+                              <div style={{
+                                width: '8px',
+                                height: '24px',
+                                borderRadius: '3px',
+                                backgroundColor: '#e2e8f0'
+                              }} title="Flex week" />
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span style={{ fontSize: '28px' }}>🎉</span>
+                            <div>
+                              <div style={{ fontSize: '15px', fontWeight: '600', color: '#1e293b' }}>
+                                Showcase & Review
+                              </div>
+                              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
+                                {period.extra}
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Full Lesson Table */}
@@ -985,68 +1106,64 @@ function CurriculumGuide() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                   <thead>
                     <tr style={{ backgroundColor: '#f8fafc' }}>
+                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Week</th>
                       <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Unit</th>
                       <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Lesson</th>
                       <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Title</th>
                       <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Concept</th>
-                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Focus</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {units.flatMap((unit) =>
-                      unit.lessons.map((lesson, idx) => (
-                        <tr key={`${unit.id}-${lesson.num}`} style={{
-                          backgroundColor: idx === 0 ? `${unit.color}08` : 'white'
-                        }}>
-                          {idx === 0 && (
-                            <td rowSpan={unit.lessons.length} style={{
-                              padding: '12px',
-                              borderBottom: '1px solid #e2e8f0',
-                              verticalAlign: 'top',
-                              fontWeight: '600',
-                              color: unit.color
-                            }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span style={{ fontSize: '20px' }}>{unit.icon}</span>
-                                {unit.title}
-                              </div>
+                    {units.flatMap((unit, unitIdx) => {
+                      const baseWeek = unitIdx * 6 + 1;
+                      return [
+                        ...unit.lessons.map((lesson, idx) => (
+                          <tr key={`${unit.id}-${lesson.num}`} style={{
+                            backgroundColor: idx === 0 ? `${unit.color}08` : 'white'
+                          }}>
+                            <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontWeight: '500' }}>
+                              {baseWeek + idx}
                             </td>
-                          )}
-                          <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0' }}>
-                            {lesson.num}
-                          </td>
-                          <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', fontWeight: '500' }}>
-                            {lesson.title}
-                          </td>
-                          <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
-                            {lesson.concept}
-                            {lesson.piece && (
-                              <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px', fontStyle: 'italic' }}>
-                                {lesson.piece}
-                              </div>
-                            )}
-                          </td>
-                          {idx === 0 && (
-                            <td rowSpan={unit.lessons.length} style={{
-                              padding: '12px',
-                              borderBottom: '1px solid #e2e8f0',
-                              verticalAlign: 'top'
-                            }}>
-                              <span style={{
-                                fontSize: '11px',
+                            {idx === 0 && (
+                              <td rowSpan={unit.lessons.length + 1} style={{
+                                padding: '12px',
+                                borderBottom: '1px solid #e2e8f0',
+                                verticalAlign: 'top',
                                 fontWeight: '600',
-                                color: unit.color,
-                                backgroundColor: `${unit.color}15`,
-                                padding: '4px 8px',
-                                borderRadius: '4px'
+                                color: unit.color
                               }}>
-                                {unit.focus}
-                              </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '20px' }}>{unit.icon}</span>
+                                  {unit.title}
+                                </div>
+                              </td>
+                            )}
+                            <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0' }}>
+                              {lesson.num}
                             </td>
-                          )}
+                            <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', fontWeight: '500' }}>
+                              {lesson.title}
+                            </td>
+                            <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
+                              {lesson.concept}
+                              {lesson.piece && (
+                                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px', fontStyle: 'italic' }}>
+                                  {lesson.piece}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )),
+                        <tr key={`${unit.id}-flex`} style={{ backgroundColor: '#f8fafc' }}>
+                          <td style={{ padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#94a3b8', fontWeight: '500' }}>
+                            {baseWeek + 5}
+                          </td>
+                          <td colSpan={3} style={{ padding: '12px', borderBottom: '2px solid #e2e8f0', color: '#94a3b8', fontStyle: 'italic' }}>
+                            Flex week — catch-up, reteaching, or enrichment
+                          </td>
                         </tr>
-                      ))
-                    )}
+                      ];
+                    })}
                   </tbody>
                 </table>
               </div>
