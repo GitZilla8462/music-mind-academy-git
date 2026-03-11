@@ -36,8 +36,18 @@ const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson })
   const { sessionCode: contextSessionCode } = useSession();
   const sessionCode = propSessionCode || contextSessionCode;
 
-  // Game state
-  const [currentLoopIndex, setCurrentLoopIndex] = useState(-1);
+  // Shuffled order for replay value - randomize which loops play in which order
+  const [shuffledOrder, setShuffledOrder] = useState(() => {
+    const indices = GAME_LOOPS.map((_, i) => i);
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+    return indices;
+  });
+
+  // Game state - roundIndex tracks position in shuffled order
+  const [roundIndex, setRoundIndex] = useState(-1);
   const [showResults, setShowResults] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [votes, setVotes] = useState({});
@@ -45,8 +55,10 @@ const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson })
   const [allLoopResults, setAllLoopResults] = useState({}); // Store results for summary
   const audioRef = useRef(null);
 
+  // Map round position to actual GAME_LOOPS index
+  const currentLoopIndex = roundIndex >= 0 && roundIndex < shuffledOrder.length ? shuffledOrder[roundIndex] : -1;
   const currentLoop = currentLoopIndex >= 0 ? GAME_LOOPS[currentLoopIndex] : null;
-  const isGameComplete = currentLoopIndex >= GAME_LOOPS.length;
+  const isGameComplete = roundIndex >= GAME_LOOPS.length;
 
   // Reset mood match state on mount so students don't see stale data from a previous game
   useEffect(() => {
@@ -123,11 +135,20 @@ const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson })
     if (!sessionCode) return;
 
     try {
+      // Reshuffle order each time game starts
+      const indices = GAME_LOOPS.map((_, i) => i);
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+      setShuffledOrder(indices);
+
       await clearMoodMatchVotes(sessionCode);
-      setCurrentLoopIndex(0);
+      setRoundIndex(0);
       setShowResults(false);
       setAllLoopResults({});
-      await setMoodMatchCurrentLoop(sessionCode, 0, false);
+      // Send the actual GAME_LOOPS index so students get the right loop
+      await setMoodMatchCurrentLoop(sessionCode, indices[0], false);
     } catch (error) {
       console.error('Error starting game:', error);
     }
@@ -156,16 +177,17 @@ const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson })
     if (!sessionCode) return;
 
     try {
-      const nextIndex = currentLoopIndex + 1;
-      setCurrentLoopIndex(nextIndex);
+      const nextRound = roundIndex + 1;
+      setRoundIndex(nextRound);
       setShowResults(false);
       setVotes({});
 
-      if (nextIndex < GAME_LOOPS.length) {
-        await setMoodMatchCurrentLoop(sessionCode, nextIndex, false);
+      if (nextRound < GAME_LOOPS.length) {
+        // Send the actual GAME_LOOPS index so students get the right loop
+        await setMoodMatchCurrentLoop(sessionCode, shuffledOrder[nextRound], false);
       } else {
         // Game complete
-        await setMoodMatchCurrentLoop(sessionCode, nextIndex, false);
+        await setMoodMatchCurrentLoop(sessionCode, GAME_LOOPS.length, false);
       }
     } catch (error) {
       console.error('Error advancing to next loop:', error);
@@ -295,7 +317,7 @@ const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson })
         <div className="flex-1 flex flex-col p-4 min-h-0 overflow-hidden">
         {/* Header */}
         <div className="text-center mb-3 shrink-0">
-          <h1 className="text-3xl font-bold text-white mb-1">LOOP {currentLoopIndex + 1} RESULTS</h1>
+          <h1 className="text-3xl font-bold text-white mb-1">LOOP {roundIndex + 1} RESULTS</h1>
           <p className="text-lg text-gray-400">{voteCount} votes</p>
         </div>
 
@@ -338,7 +360,7 @@ const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson })
             onClick={handleNextLoop}
             className="flex items-center gap-3 mx-auto px-8 py-4 bg-green-600 hover:bg-green-500 text-white text-lg font-bold rounded-xl transition-all"
           >
-            {currentLoopIndex < GAME_LOOPS.length - 1 ? (
+            {roundIndex < GAME_LOOPS.length - 1 ? (
               <>
                 NEXT LOOP
                 <ChevronRight className="w-5 h-5" />
@@ -369,7 +391,7 @@ const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson })
       <div className="flex-1 flex flex-col p-4 min-h-0">
         {/* Header */}
         <div className="text-center mb-2 shrink-0">
-          <h1 className="text-3xl font-bold text-white mb-1">LOOP {currentLoopIndex + 1} OF {GAME_LOOPS.length}</h1>
+          <h1 className="text-3xl font-bold text-white mb-1">LOOP {roundIndex + 1} OF {GAME_LOOPS.length}</h1>
           <div className="w-20 h-1 bg-purple-500 mx-auto"></div>
         </div>
 
