@@ -278,7 +278,7 @@ const MusicLoopsInMediaHub = () => {
       color: 'from-pink-500 to-purple-600',
       route: '/lessons/film-music-project/lesson5',
       available: true,
-      hasLessonPlan: true,
+      hasLessonPlan: false,
       inThisLesson: 'Students discover how melody creates memorable themes by analyzing famous game music, learning about contour patterns (ascending, descending, arch), and composing their own video game soundtrack.',
       studentsWill: [
         'Identify and describe contour patterns in melodies',
