@@ -333,21 +333,14 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
     listenersRef.current.push(membersUnsub, gameUnsub);
   }, [getGroupPath, userId]);
 
-  // ============ AUTO-PLAY AUDIO ON GUESSING PHASE ============
+  // ============ STOP AUDIO WHEN LEAVING GUESSING PHASE ============
 
   useEffect(() => {
-    if (gamePhase === 'guessing' && clipInfo && !isPicker && playedRoundRef.current !== currentRound) {
-      playedRoundRef.current = currentRound;
-      const timer = setTimeout(() => {
-        playClipFromInfo(clipInfo);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
     if (gamePhase !== 'guessing') {
       stopAudio();
       playedRoundRef.current = -1;
     }
-  }, [gamePhase, clipInfo, isPicker, currentRound, playClipFromInfo, stopAudio]);
+  }, [gamePhase, stopAudio]);
 
   // ============ COUNTDOWN TIMER ============
 
@@ -879,11 +872,11 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
             {clipInfo && (
               <div className="text-center mb-2">
                 <button
-                  onClick={() => playClipFromInfo(clipInfo)}
+                  onClick={() => { playedRoundRef.current = currentRound; playClipFromInfo(clipInfo); }}
                   className="bg-purple-500/50 hover:bg-purple-500/70 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 mx-auto"
                 >
                   {isPlayingAudio ? <Pause size={16} /> : <Play size={16} />}
-                  {isPlayingAudio ? 'Playing...' : 'Replay Clip'}
+                  {isPlayingAudio ? 'Playing...' : playedRoundRef.current === currentRound ? 'Replay Clip' : 'Play Clip'}
                 </button>
               </div>
             )}
