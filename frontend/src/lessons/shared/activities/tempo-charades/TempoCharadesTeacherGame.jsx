@@ -177,9 +177,7 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
       playStartTime: Date.now()
     });
 
-    // Play the first clip
-    setTimeout(() => playClip(newQuestions[0]), 300);
-  }, [sessionCode, students, updateGame, playClip]);
+  }, [sessionCode, students, updateGame]);
 
   // Replay clip
   const replayClip = useCallback(() => {
@@ -251,10 +249,8 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
         playStartTime: Date.now()
       });
 
-      // Play the next clip
-      setTimeout(() => playClip(questions[nextIdx]), 300);
     }
-  }, [sessionCode, students, currentQuestion, questions, updateGame, playClip]);
+  }, [sessionCode, students, currentQuestion, questions, updateGame]);
 
   const question = questions[currentQuestion];
   const correctTempo = question ? getTempoBySymbol(question.correctAnswer) : null;
@@ -348,9 +344,9 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
                   ) : (
                     <button
                       onClick={replayClip}
-                      className="px-6 py-3 rounded-2xl text-xl font-bold flex items-center gap-2 bg-gray-600 hover:bg-gray-700"
+                      className="px-6 py-3 rounded-2xl text-xl font-bold flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 hover:scale-105 transition-all"
                     >
-                      <Play size={24} /> Replay Clip
+                      <Play size={24} /> Play Clip
                     </button>
                   )}
                   <button
