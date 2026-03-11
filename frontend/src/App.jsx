@@ -123,6 +123,7 @@ const LessonPlanPDF = lazyWithRetry(() => import('./lessons/film-music-project/l
 const LessonPlan2PDF = lazyWithRetry(() => import('./lessons/film-music-project/lesson2/LessonPlan2PDF'));
 const LessonPlan3PDF = lazyWithRetry(() => import('./lessons/film-music-project/lesson3/LessonPlan3PDF'));
 const LessonPlan4PDF = lazyWithRetry(() => import('./lessons/film-music-project/lesson4/LessonPlan4PDF'));
+const LessonPlan5PDF = lazyWithRetry(() => import('./lessons/film-music-project/lesson5/LessonPlan5PDF'));
 
 // Presentation and session pages
 const PresentationView = lazyWithRetry(() => import('./components/PresentationView'));
@@ -393,6 +394,7 @@ const AppContent = () => {
         <Route path="/lesson-plan/lesson2" element={<LessonPlan2PDF />} />
         <Route path="/lesson-plan/lesson3" element={<LessonPlan3PDF />} />
         <Route path="/lesson-plan/lesson4" element={<LessonPlan4PDF />} />
+        <Route path="/lesson-plan/lesson5" element={<LessonPlan5PDF />} />
 
         {/* Join Page - NO AUTHENTICATION REQUIRED */}
         <Route path="/join" element={<JoinWithCode />} />
@@ -547,6 +549,7 @@ const AppContent = () => {
         <Route path="/lesson-plan/lesson2" element={<LessonPlan2PDF />} />
         <Route path="/lesson-plan/lesson3" element={<LessonPlan3PDF />} />
         <Route path="/lesson-plan/lesson4" element={<LessonPlan4PDF />} />
+        <Route path="/lesson-plan/lesson5" element={<LessonPlan5PDF />} />
 
         {/* ✅ ADDED: View saved listening map */}
         <Route path="/view/listening-map" element={<ListeningMapViewer />} />
