@@ -433,28 +433,51 @@ const DrawingCanvas = forwardRef(({
   // History
   const historyRef = useRef([]);
   const historyIndexRef = useRef(-1);
-  
+
+  // Track whether loadState has restored content — prevents init from clearing it
+  const hasLoadedContentRef = useRef(false);
+
   // ========================================================================
   // INITIALIZATION
   // ========================================================================
-  
+
   useEffect(() => {
     const canvas = drawingCanvasRef.current;
     if (!canvas) return;
-    
+
+    // If content was loaded via loadState, preserve it during resize
+    // by capturing the current content before resizing
+    let previousContent = null;
+    if (hasLoadedContentRef.current && canvas.width > 0 && canvas.height > 0) {
+      try {
+        previousContent = canvas.toDataURL();
+      } catch (e) {
+        // Canvas may be tainted, ignore
+      }
+    }
+
     canvas.width = width;
     canvas.height = height;
-    
+
     const ctx = canvas.getContext('2d');
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     drawingCtxRef.current = ctx;
-    
-    // All white background - no row shading
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, width, height);
-    
-    saveToHistory();
+
+    if (previousContent) {
+      // Restore previous content after resize
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0);
+        saveToHistory();
+      };
+      img.src = previousContent;
+    } else {
+      // First init — white background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+      saveToHistory();
+    }
   }, [width, height, instruments.length]);
   
   // Clear selection when a new sticker is picked from the panel (entering placement mode)
@@ -669,6 +692,7 @@ const DrawingCanvas = forwardRef(({
       }
       setIsDrawing(false);
       lastPointRef.current = null;
+      hasLoadedContentRef.current = true;
       saveToHistory();
     }
   };
@@ -1326,6 +1350,7 @@ const DrawingCanvas = forwardRef(({
         img.onload = () => {
           ctx.clearRect(0, 0, width, height);
           ctx.drawImage(img, 0, 0);
+          hasLoadedContentRef.current = true;
           console.log('✅ Canvas drawing layer restored');
         };
         img.src = savedState.canvasImageData;

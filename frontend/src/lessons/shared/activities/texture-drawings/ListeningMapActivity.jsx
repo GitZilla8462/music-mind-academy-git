@@ -669,6 +669,8 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
 
   // Track when this component mounted - only process save commands issued after mount
   const componentMountTimeRef = useRef(Date.now());
+  // Track if teacher save already fired — prevents unmount save from overwriting good data
+  const teacherSaveTriggeredRef = useRef(false);
 
   // ✅ Listen for teacher's save command from Firebase
   useEffect(() => {
@@ -700,6 +702,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
         // Trigger save
         if (canvasRef.current) {
           handleManualSave(true); // Silent save
+          teacherSaveTriggeredRef.current = true;
 
           // Show toast notification
           setTeacherSaveToast(true);
@@ -714,6 +717,9 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
   // ✅ Auto-save on unmount (when student leaves the activity)
   // Uses synchronous save — the async handleManualSave can fail during unmount
   // because React clears refs before the async toDataURL() completes.
+  // IMPORTANT: Skip if teacher save already fired — the canvas DOM refs are destroyed
+  // by the time this runs, so getEditableData() returns empty data that would
+  // overwrite the good data the teacher save already stored.
   const canvasRefForUnmount = useRef(null);
   const studentIdForUnmount = useRef(null);
   canvasRefForUnmount.current = canvasRef.current;
@@ -722,6 +728,13 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
   useEffect(() => {
     return () => {
       if (!isSessionMode) return;
+
+      // Teacher save already captured the data correctly — don't overwrite with stale data
+      if (teacherSaveTriggeredRef.current) {
+        console.log('💾 Skipping unmount save — teacher save already stored good data');
+        return;
+      }
+
       const canvas = canvasRefForUnmount.current;
       const id = studentIdForUnmount.current;
       if (!canvas || !id) return;
@@ -729,7 +742,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
       console.log('💾 Auto-saving listening map on unmount (sync)...');
       try {
         const editableData = canvas.getEditableData?.();
-        if (editableData) {
+        if (editableData && editableData.canvasImageData) {
           saveStudentWork(activityId, {
             title: mapConfig.credits.title,
             emoji: '🗺️',
@@ -745,6 +758,8 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
             }
           }, id);
           console.log('✅ Listening map saved on unmount');
+        } else {
+          console.log('⚠️ Skipping unmount save — canvas data is empty (refs likely destroyed)');
         }
       } catch (error) {
         console.error('❌ Failed to save listening map on unmount:', error);
