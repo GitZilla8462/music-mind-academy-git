@@ -267,9 +267,15 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
       a.addEventListener('canplaythrough', resolve, { once: true });
       a.load();
     }))).then(() => {
-      // All audio loaded - play all at the exact same moment
-      audios.forEach(a => a.play().catch(console.error));
-      setIsPlaying(true);
+      // Reset all to time 0 right before playing (ensures identical start position)
+      audios.forEach(a => { a.currentTime = 0; });
+
+      // Use requestAnimationFrame for tighter sync — all .play() calls
+      // execute within a single frame (~16ms) instead of spread across microtasks
+      requestAnimationFrame(() => {
+        audios.forEach(a => a.play().catch(console.error));
+        setIsPlaying(true);
+      });
     }).catch(console.error);
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -320,7 +326,11 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     const OVERLAP = 100;
 
     const fadeIn = (audios) => {
-      audios.forEach(a => { a.currentTime = 0; a.volume = 0; a.play().catch(() => {}); });
+      audios.forEach(a => { a.currentTime = 0; a.volume = 0; });
+      // Start all in same frame for tight sync
+      requestAnimationFrame(() => {
+        audios.forEach(a => a.play().catch(() => {}));
+      });
       let step = 0;
       const interval = setInterval(() => {
         step++;
@@ -344,8 +354,9 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
         if (audioRefs.current.length > 0) fadeOut(audioRefs.current);
         setCurrentPlayPosition(-1);
         setIsPlaying(false);
-        setGamePhase('listenIntro3');
-        updateGame({ gamePhase: 'listenIntro3' });
+        // Skip safari directions (listenIntro3) — go straight to preQuiz
+        setGamePhase('preQuiz');
+        updateGame({ gamePhase: 'preQuiz' });
         return;
       }
 
@@ -873,7 +884,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
                 })()}
               </div>
 
-              <button onClick={() => { stopAudio(); setGamePhase('listenIntro3'); updateGame({ gamePhase: 'listenIntro3' }); }}
+              <button onClick={() => { stopAudio(); setGamePhase('preQuiz'); updateGame({ gamePhase: 'preQuiz' }); }}
                 className="px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-lg opacity-50 hover:opacity-100">Skip</button>
             </div>
           )}
