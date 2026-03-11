@@ -379,59 +379,12 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     const newTotalClips = (roundNum - 1) * 5 + 1;
     setTotalClipsPlayed(newTotalClips);
 
-    // Set up Safari for this clip (same logic as startClipGuessing)
-    const shuffledAnimals = [...SAFARI_ANIMALS].sort(() => Math.random() - 0.5);
+    // Safari disabled — loops don't sync well with the search mechanic
     const newAssignments = {};
-    students.forEach((s, idx) => {
-      const animal = shuffledAnimals[idx % shuffledAnimals.length];
-      newAssignments[s.id] = {
-        emoji: animal.emoji,
-        name: animal.name,
-        code: generateCode()
-      };
-    });
+    const hunters = [];
     setSafariAssignments(newAssignments);
-
-    // Safari requires at least 4 students (3 hunters + 1 target minimum)
-    let hunters = [];
-    console.log('🦁 startRound - students.length:', students.length);
-    if (students.length >= 4) {
-      const eligibleStudents = students.filter(s => !studentsWhoWentOnSafari.has(s.id));
-      let finalEligible = eligibleStudents.length >= 3 ? eligibleStudents : students;
-
-      if (eligibleStudents.length < 3) {
-        setStudentsWhoWentOnSafari(new Set());
-      }
-
-      const shuffledEligible = [...finalEligible].sort(() => Math.random() - 0.5);
-      const hunterStudents = shuffledEligible.slice(0, 3);
-      const hunterIds = new Set(hunterStudents.map(s => s.id));
-
-      hunters = hunterStudents.map(s => {
-        // Exclude ALL hunters from valid targets - hunters don't display their animal badge
-        const validTargets = students.filter(other =>
-          !hunterIds.has(other.id) && newAssignments[other.id]
-        );
-        if (validTargets.length === 0) return null;
-        const randomTarget = validTargets[Math.floor(Math.random() * validTargets.length)];
-        const targetAssignment = newAssignments[randomTarget.id];
-        console.log('🦁 Safari hunter:', s.name, '→ looking for:', targetAssignment.emoji, targetAssignment.name);
-        return {
-          studentId: s.id,
-          name: s.name,
-          targetEmoji: targetAssignment.emoji,
-          targetName: targetAssignment.name
-        };
-      }).filter(h => h !== null);
-
-      setStudentsWhoWentOnSafari(prev => {
-        const newSet = new Set(prev);
-        hunters.forEach(h => newSet.add(h.studentId));
-        return newSet;
-      });
-    }
     setSafariHunters(hunters);
-    setSafariTimer(45);
+    setSafariTimer(0);
     safariTimerStartedRef.current = false;
 
     if (sessionCode) {
@@ -462,73 +415,12 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     setTotalClipsPlayed(clipNum);
     setGamePhase('guessing');
 
-    // Assign animals and codes to students (shuffle each clip)
-    const shuffledAnimals = [...SAFARI_ANIMALS].sort(() => Math.random() - 0.5);
+    // Safari disabled — loops don't sync well with the search mechanic
     const newAssignments = {};
-    students.forEach((s, idx) => {
-      const animal = shuffledAnimals[idx % shuffledAnimals.length];
-      newAssignments[s.id] = {
-        emoji: animal.emoji,
-        name: animal.name,
-        code: generateCode()
-      };
-    });
+    const hunters = [];
     setSafariAssignments(newAssignments);
-
-    // Safari requires at least 4 students (3 hunters + 1 target minimum)
-    let hunters = [];
-    console.log('🦁 startClipGuessing - students.length:', students.length);
-    if (students.length >= 4) {
-      // Pick 3 students who haven't gone on Safari yet
-      const eligibleStudents = students.filter(s => !studentsWhoWentOnSafari.has(s.id));
-
-      // If everyone has gone, reset the list
-      let finalEligible = eligibleStudents;
-      if (eligibleStudents.length < 3) {
-        setStudentsWhoWentOnSafari(new Set());
-        finalEligible = students;
-      }
-
-      // Pick 3 random students
-      const shuffledEligible = [...finalEligible].sort(() => Math.random() - 0.5);
-      const hunterStudents = shuffledEligible.slice(0, 3);
-      const hunterIds = new Set(hunterStudents.map(s => s.id));
-
-      hunters = hunterStudents.map(s => {
-        // Exclude ALL hunters from valid targets - hunters don't display their animal badge
-        const validTargets = students.filter(other =>
-          !hunterIds.has(other.id) && newAssignments[other.id]
-        );
-
-        if (validTargets.length === 0) {
-          console.error('❌ No valid Safari targets found!');
-          return null;
-        }
-
-        const randomTarget = validTargets[Math.floor(Math.random() * validTargets.length)];
-        const targetAssignment = newAssignments[randomTarget.id];
-
-        console.log('🦁 Safari hunter:', s.name, '→ looking for:', targetAssignment.emoji, targetAssignment.name);
-
-        return {
-          studentId: s.id,
-          name: s.name,
-          targetEmoji: targetAssignment.emoji,
-          targetName: targetAssignment.name
-        };
-      }).filter(h => h !== null);
-
-      setStudentsWhoWentOnSafari(prev => {
-        const newSet = new Set(prev);
-        hunters.forEach(h => newSet.add(h.studentId));
-        return newSet;
-      });
-    }
-
     setSafariHunters(hunters);
-
-    // Reset Safari timer
-    setSafariTimer(45);
+    setSafariTimer(0);
     safariTimerStartedRef.current = false;
 
     if (sessionCode) {
