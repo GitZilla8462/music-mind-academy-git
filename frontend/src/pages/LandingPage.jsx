@@ -104,6 +104,11 @@ const LandingPage = () => {
           gap: 0.75rem;
         }
 
+        .nav-logo-img {
+          height: 72px;
+          width: auto;
+        }
+
         .nav-logo {
           width: 40px;
           height: 40px;
@@ -120,6 +125,12 @@ const LandingPage = () => {
           font-family: 'Space Grotesk', sans-serif;
           font-size: 1.5rem;
           font-weight: 700;
+        }
+
+        .nav-buttons {
+          display: flex;
+          align-items: center;
+          gap: 1.25rem;
         }
 
         .btn {
@@ -692,6 +703,9 @@ const LandingPage = () => {
           .nav-brand-text {
             font-size: 1.25rem;
           }
+          .nav-logo-img {
+            height: 64px;
+          }
           .section-header h2 {
             font-size: 1.5rem;
           }
@@ -716,21 +730,23 @@ const LandingPage = () => {
           .nav-inner {
             padding: 0.75rem 1rem;
             flex-wrap: wrap;
-            gap: 0.75rem;
+            gap: 0.5rem;
           }
           .nav-brand-text {
-            font-size: 1.1rem;
+            display: none;
+          }
+          .nav-logo-img {
+            height: 56px;
           }
           .nav-buttons {
-            width: 100%;
-            justify-content: stretch;
+            display: flex;
+            gap: 0.5rem;
           }
           .nav-buttons .btn {
-            flex: 1;
-            text-align: center;
-            padding: 0.625rem 0.5rem;
+            padding: 0.5rem 0.75rem;
             font-size: 0.8rem;
             min-height: 44px;
+            white-space: nowrap;
           }
           .activities-grid {
             grid-template-columns: repeat(2, 1fr);
@@ -770,8 +786,8 @@ const LandingPage = () => {
           .hero h1 {
             font-size: 1.5rem;
           }
-          .nav-brand-text {
-            display: none;
+          .nav-logo-img {
+            height: 48px;
           }
           .activities-grid {
             grid-template-columns: 1fr;
@@ -786,11 +802,11 @@ const LandingPage = () => {
             <img
               src="/MusicMindAcademyLogo.png"
               alt="Music Mind Academy"
-              style={{ height: '56px', width: 'auto' }}
+              className="nav-logo-img"
             />
             <span className="nav-brand-text">Music Mind Academy</span>
           </div>
-          <div className="nav-buttons" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div className="nav-buttons">
             <button onClick={handleJoinClass} className="btn btn-join">
               Join Class
             </button>
