@@ -340,6 +340,70 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     }
   }, [appMode, editMode, selectedSticker, selectedItemIds, clearSelection, currentTime, rawMidgroundOffset, sections, totalDuration]);
 
+  // ── Drag-from-panel sticker placement ───────────────────────────────
+  const [dragGhost, setDragGhost] = useState(null); // { sticker, x, y }
+
+  const handleStickerDragStart = useCallback((sticker, e) => {
+    if (appMode !== 'build') return;
+    setEditMode('sticker');
+    setSelectedSticker(sticker);
+
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    setDragGhost({ sticker, x: clientX, y: clientY });
+
+    const handleMove = (moveE) => {
+      const mx = moveE.touches ? moveE.touches[0].clientX : moveE.clientX;
+      const my = moveE.touches ? moveE.touches[0].clientY : moveE.clientY;
+      setDragGhost(prev => prev ? { ...prev, x: mx, y: my } : null);
+    };
+
+    const handleEnd = (endE) => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleEnd);
+      window.removeEventListener('touchmove', handleMove);
+      window.removeEventListener('touchend', handleEnd);
+      window.removeEventListener('touchcancel', handleEnd);
+
+      const ex = endE.changedTouches ? endE.changedTouches[0].clientX : endE.clientX;
+      const ey = endE.changedTouches ? endE.changedTouches[0].clientY : endE.clientY;
+
+      // Find the viewport element and check if drop landed on it
+      const vpEl = document.querySelector('[data-viewport]');
+      if (vpEl) {
+        const rect = vpEl.getBoundingClientRect();
+        if (ex >= rect.left && ex <= rect.right && ey >= rect.top && ey <= rect.bottom) {
+          const posX = (ex - rect.left) / rect.width;
+          const posY = (ey - rect.top) / rect.height;
+          // Place the sticker (same logic as handleViewportClick)
+          const startTime = currentTime;
+          const duration = totalDuration - currentTime;
+          setItems(prev => [...prev, {
+            type: 'sticker',
+            icon: sticker.symbol || sticker.id,
+            render: sticker.render || 'emoji',
+            name: sticker.name,
+            timestamp: startTime,
+            position: { x: posX, y: posY },
+            placedAtOffset: rawMidgroundOffset,
+            entryOffsetX: 1.0 - posX,
+            _placedWallTime: performance.now(),
+            duration,
+            scale: 2,
+            id: _nextSectionId++,
+          }]);
+        }
+      }
+      setDragGhost(null);
+    };
+
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleEnd);
+    window.addEventListener('touchmove', handleMove, { passive: false });
+    window.addEventListener('touchend', handleEnd);
+    window.addEventListener('touchcancel', handleEnd);
+  }, [appMode, currentTime, totalDuration, rawMidgroundOffset]);
+
   // ── Marquee drag-to-select ──────────────────────────────────────────
   const handleMarqueeEnd = useCallback((rect) => {
     const minX = Math.min(rect.startX, rect.endX);
@@ -686,6 +750,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                 <StickerPanelWrapper
                   selectedSticker={selectedSticker}
                   onStickerSelect={setSelectedSticker}
+                  onDragStart={handleStickerDragStart}
                   defaultTab={defaultTab}
                 />
               )}
@@ -914,13 +979,30 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           Teacher saved your work!
         </div>
       )}
+
+      {/* Drag ghost — follows cursor when dragging sticker from panel */}
+      {dragGhost && (
+        <div
+          className="fixed pointer-events-none z-[300]"
+          style={{
+            left: dragGhost.x - 24,
+            top: dragGhost.y - 24,
+            opacity: 0.85,
+            transform: 'scale(1.2)',
+          }}
+        >
+          <span style={{ fontSize: '40px' }}>
+            {dragGhost.sticker.symbol || dragGhost.sticker.id}
+          </span>
+        </div>
+      )}
     </div>
   );
 };
 
 // ── Sticker Panel Wrapper ──────────────────────────────────────────
 // Lazy wrapper to avoid importing the large StickerPanel unless needed
-const StickerPanelWrapper = ({ selectedSticker, onStickerSelect, defaultTab = null }) => {
+const StickerPanelWrapper = ({ selectedSticker, onStickerSelect, onDragStart, defaultTab = null }) => {
   const [StickerPanel, setStickerPanel] = useState(null);
   const [stickerSize, setStickerSize] = useState(56);
 
@@ -943,6 +1025,7 @@ const StickerPanelWrapper = ({ selectedSticker, onStickerSelect, defaultTab = nu
     <StickerPanel
       selectedSticker={selectedSticker}
       onStickerSelect={onStickerSelect}
+      onDragStart={onDragStart}
       stickerSize={stickerSize}
       onSizeChange={setStickerSize}
       isOpen={true}
