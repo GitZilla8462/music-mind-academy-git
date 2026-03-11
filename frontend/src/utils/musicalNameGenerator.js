@@ -3,10 +3,10 @@
 // Pattern: [Instrument] + [Animal/Cool Word]
 
 const instruments = [
-  'Piano', 'Guitar', 'Drum', 'Flute', 'Trumpet', 
-  'Violin', 'Sax', 'Clarinet', 'Trombone', 'Cello',
-  'Harp', 'Oboe', 'Tuba', 'Cymbal', 'Banjo',
-  'Ukulele', 'Accordion', 'Xylo', 'Tambourine', 'Kazoo'
+  'Bass', 'Guitar', 'Drum', 'Flute', 'Trumpet',
+  'Verse', 'Sax', 'Chord', 'Trombone', 'Tempo',
+  'Harp', 'Oboe', 'Tuba', 'Beat', 'Groove',
+  'Rhythm', 'Treble', 'Xylo', 'Snare', 'Kazoo'
 ];
 
 const animals = [
