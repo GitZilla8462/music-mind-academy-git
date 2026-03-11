@@ -55,7 +55,12 @@ const VirtualKeyboard = ({ onExit }) => {
   const playNote = async (note) => {
     await startAudio();
     if (synthRef.current && !pressedKeys.has(note)) {
-      synthRef.current.triggerAttack(note);
+      try {
+        synthRef.current.triggerAttack(note);
+      } catch (err) {
+        // Synth may have been disposed (tab backgrounded, instrument change race) - skip
+        return;
+      }
       setPressedKeys(prev => new Set([...prev, note]));
     }
   };
@@ -63,7 +68,11 @@ const VirtualKeyboard = ({ onExit }) => {
   // Stop note
   const stopNote = (note) => {
     if (synthRef.current && pressedKeys.has(note)) {
-      synthRef.current.triggerRelease(note);
+      try {
+        synthRef.current.triggerRelease(note);
+      } catch (err) {
+        // Synth may have been disposed - skip
+      }
       setPressedKeys(prev => {
         const newSet = new Set(prev);
         newSet.delete(note);

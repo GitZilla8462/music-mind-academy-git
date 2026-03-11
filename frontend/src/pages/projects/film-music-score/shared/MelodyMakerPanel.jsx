@@ -329,7 +329,11 @@ const MelodyMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideCl
 
         // Play note preview
         if (synthRef.current) {
-          synthRef.current.triggerAttackRelease(currentNotes[noteIndex].id, '8n');
+          try {
+            synthRef.current.triggerAttackRelease(currentNotes[noteIndex].id, '8n');
+          } catch (err) {
+            // Chromebook timing or rapid clicks: start time conflict - skip preview
+          }
         }
       }
 
