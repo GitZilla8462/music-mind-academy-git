@@ -243,26 +243,10 @@ const FilmMusicHub = () => {
   };
 
   return (
-    <>
-      <style>{`
-        @media (max-width: 1400px) {
-          .hub-wrapper {
-            height: 100vh;
-            overflow: auto;
-          }
-          .hub-container {
-            transform: scale(0.75);
-            transform-origin: top left;
-            width: 133.33%;
-            min-height: 133.33%;
-          }
-        }
-      `}</style>
-      <div className="hub-wrapper">
-        <div className="hub-container min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50">
       {/* HEADER */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-8 py-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
@@ -295,7 +279,7 @@ const FilmMusicHub = () => {
 
       {/* DEVELOPER BANNER */}
       <div className="bg-amber-50 border-b border-amber-200">
-        <div className="max-w-5xl mx-auto px-8 py-3">
+        <div className="max-w-5xl mx-auto px-4 sm:px-8 py-3">
           <div className="flex items-center gap-2 text-amber-800">
             <Lock size={18} />
             <span className="font-medium">Developer Preview</span>
@@ -305,25 +289,25 @@ const FilmMusicHub = () => {
       </div>
 
       {/* UNIT HEADER */}
-      <div className="max-w-5xl mx-auto px-8 pt-8 pb-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-8 pb-6">
         <div className="flex items-center gap-5">
-          <div className="w-18 h-18 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center flex-shrink-0" style={{ width: '72px', height: '72px' }}>
-            <span className="text-4xl">🎵</span>
+          <div className="rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center flex-shrink-0 w-12 h-12 sm:w-[72px] sm:h-[72px]">
+            <span className="text-2xl sm:text-4xl">🎵</span>
           </div>
           <div>
-            <h2 className="text-4xl font-bold text-slate-900">Film Music: Scoring the Story</h2>
+            <h2 className="text-2xl sm:text-4xl font-bold text-slate-900">Film Music: Scoring the Story</h2>
             <p className="text-xl text-slate-600 mt-1">
               Tell stories through music — the way Hollywood composers do.
             </p>
           </div>
         </div>
-        <p className="text-base text-slate-500 mt-4 ml-[92px]">
+        <p className="text-base text-slate-500 mt-4 ml-0 sm:ml-[92px]">
           5 Lessons  •  ~40 min each  •  Grades 6-8  •  Cumulative Project
         </p>
       </div>
 
       {/* WHAT MAKES THIS DIFFERENT */}
-      <div className="max-w-5xl mx-auto px-8 pb-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 pb-6">
         <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-xl overflow-hidden shadow-sm">
           <button
             onClick={toggleGettingStarted}
@@ -341,7 +325,7 @@ const FilmMusicHub = () => {
 
           {gettingStartedOpen && (
             <div className="px-6 pb-6 border-t border-orange-100">
-              <div className="mt-5 grid grid-cols-2 gap-6">
+              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <h3 className="font-semibold text-slate-800 mb-3">The Loop Lab (Current)</h3>
                   <ul className="space-y-2 text-slate-600">
@@ -388,7 +372,7 @@ const FilmMusicHub = () => {
 
               <div className="mt-6 p-4 bg-white border border-orange-200 rounded-lg">
                 <h4 className="font-semibold text-slate-800 mb-2">The Big Ideas</h4>
-                <div className="grid grid-cols-2 gap-2 text-sm text-slate-600">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-slate-600">
                   <div>• Film composers are storytellers</div>
                   <div>• Music reveals the invisible</div>
                   <div>• Music identifies characters</div>
@@ -403,7 +387,7 @@ const FilmMusicHub = () => {
       </div>
 
       {/* CUMULATIVE MODEL BANNER */}
-      <div className="max-w-5xl mx-auto px-8 pb-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 pb-6">
         <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-5">
           <h3 className="font-bold text-emerald-900 mb-3 flex items-center gap-2">
             🎼 Cumulative Composition Model
@@ -411,7 +395,7 @@ const FilmMusicHub = () => {
           <p className="text-emerald-800 mb-4">
             Students build ONE project across all 5 lessons. Each lesson adds a new layer:
           </p>
-          <div className="flex items-center gap-2 text-sm font-medium">
+          <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
             <span className="px-3 py-1.5 bg-orange-100 text-orange-800 rounded-lg">L1: Theme</span>
             <span className="text-emerald-400">→</span>
             <span className="px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg">L2: + Bass</span>
@@ -426,7 +410,7 @@ const FilmMusicHub = () => {
       </div>
 
       {/* LESSON CARDS */}
-      <div className="max-w-5xl mx-auto px-8 pb-10">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 pb-10">
         <div className="space-y-4">
               {lessons.map((lesson) => {
                 const isExpanded = expandedLessons[lesson.id];
@@ -441,50 +425,50 @@ const FilmMusicHub = () => {
                   >
                     {/* COLLAPSED CARD HEADER */}
                     <div
-                      className="px-5 py-4 cursor-pointer hover:bg-slate-50"
+                      className="px-3 sm:px-5 py-4 cursor-pointer hover:bg-slate-50"
                       onClick={() => toggleExpanded(lesson.id)}
                     >
-                      <div className="flex items-center gap-5">
+                      <div className="flex items-start sm:items-center gap-3 sm:gap-5 flex-wrap sm:flex-nowrap">
                         {/* Gradient Icon */}
-                        <div className={`w-14 h-14 rounded-lg bg-gradient-to-br ${lesson.color} flex items-center justify-center flex-shrink-0`}>
-                          <span className="text-2xl">{lesson.icon}</span>
+                        <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-gradient-to-br ${lesson.color} flex items-center justify-center flex-shrink-0`}>
+                          <span className="text-lg sm:text-2xl">{lesson.icon}</span>
                         </div>
 
                         {/* Lesson Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3">
-                            <span className="text-base font-semibold text-orange-600">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-0 sm:gap-3">
+                            <span className="text-sm sm:text-base font-semibold text-orange-600">
                               Lesson {lesson.number}
                             </span>
-                            <span className="text-slate-300">•</span>
-                            <h3 className="text-xl font-bold text-slate-900">
+                            <span className="text-slate-300 hidden sm:inline">•</span>
+                            <h3 className="text-base sm:text-xl font-bold text-slate-900">
                               {lesson.title}
                             </h3>
-                            <span className="text-slate-300">•</span>
-                            <span className="text-base text-slate-600">
+                            <span className="text-slate-300 hidden sm:inline">•</span>
+                            <span className="text-sm sm:text-base text-slate-600">
                               {lesson.concept}
                             </span>
                           </div>
                         </div>
 
                         {/* Right side: Time + Actions */}
-                        <div className="flex items-center gap-5 flex-shrink-0">
-                          <span className="text-base text-slate-500">
+                        <div className="flex items-center gap-3 sm:gap-5 flex-shrink-0">
+                          <span className="text-base text-slate-500 hidden sm:inline">
                             ~{totalTime} min
                           </span>
                           {!lesson.available && (
-                            <span className="px-3 py-1 text-sm font-medium text-amber-700 bg-amber-100 rounded-full">
+                            <span className="px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium text-amber-700 bg-amber-100 rounded-full">
                               Coming Soon
                             </span>
                           )}
                           {/* Expand/Collapse indicator */}
                           {isExpanded ? (
-                            <ChevronUp className="w-6 h-6 text-slate-400" />
+                            <ChevronUp className="w-5 h-5 sm:w-6 sm:h-6 text-slate-400" />
                           ) : (
-                            <ChevronDown className="w-6 h-6 text-slate-400" />
+                            <ChevronDown className="w-5 h-5 sm:w-6 sm:h-6 text-slate-400" />
                           )}
 
-                          {/* Start Session Button - disabled for now */}
+                          {/* Start Session Button - hidden on mobile, shown on desktop */}
                           {lesson.available && userRole === 'teacher' && (
                             <button
                               onClick={(e) => {
@@ -492,7 +476,7 @@ const FilmMusicHub = () => {
                                 handleStartSession(lesson.id, lesson.route);
                               }}
                               disabled={creatingSession === lesson.id}
-                              className={`font-semibold py-2.5 px-5 rounded-lg transition-colors flex items-center gap-2 text-base ${
+                              className={`hidden sm:flex font-semibold py-2.5 px-5 rounded-lg transition-colors items-center gap-2 text-base ${
                                 creatingSession === lesson.id
                                   ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
                                   : 'bg-orange-500 hover:bg-orange-600 text-white'
@@ -510,6 +494,33 @@ const FilmMusicHub = () => {
                           )}
                         </div>
                       </div>
+
+                      {/* Start Session Button - mobile only, below the row */}
+                      {lesson.available && userRole === 'teacher' && (
+                        <div className="mt-3 flex sm:hidden">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStartSession(lesson.id, lesson.route);
+                            }}
+                            disabled={creatingSession === lesson.id}
+                            className={`font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm w-full justify-center ${
+                              creatingSession === lesson.id
+                                ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                                : 'bg-orange-500 hover:bg-orange-600 text-white'
+                            }`}
+                          >
+                            {creatingSession === lesson.id ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                Creating...
+                              </>
+                            ) : (
+                              'Start Session'
+                            )}
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* EXPANDED CONTENT */}
@@ -559,8 +570,8 @@ const FilmMusicHub = () => {
                             Activities
                           </h4>
 
-                          {/* Activities Header Row */}
-                          <div className="grid grid-cols-[200px_1fr_auto_60px_80px] gap-x-4 items-center py-2 border-b border-slate-200 mb-1">
+                          {/* Activities Header Row - hidden on mobile */}
+                          <div className="hidden sm:grid grid-cols-[200px_1fr_auto_60px_80px] gap-x-4 items-center py-2 border-b border-slate-200 mb-1">
                             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                               Activity
                             </span>
@@ -579,58 +590,66 @@ const FilmMusicHub = () => {
                             {lesson.activities.map((activity, index) => (
                               <div
                                 key={index}
-                                className="grid grid-cols-[200px_1fr_auto_60px_80px] gap-x-4 items-center py-3 border-b border-slate-100 last:border-b-0"
+                                className="flex flex-col gap-1 py-3 border-b border-slate-100 last:border-b-0 sm:grid sm:grid-cols-[200px_1fr_auto_60px_80px] sm:gap-x-4 sm:items-center"
                               >
-                                {/* Column 1: Title */}
-                                <span className={`text-base font-medium truncate ${activity.isBonus ? 'text-amber-700' : 'text-slate-800'}`}>
-                                  {activity.title}
-                                </span>
+                                {/* Title + Time row on mobile */}
+                                <div className="flex items-center justify-between sm:contents">
+                                  {/* Column 1: Title */}
+                                  <span className={`text-base font-medium truncate ${activity.isBonus ? 'text-amber-700' : 'text-slate-800'}`}>
+                                    {activity.title}
+                                  </span>
 
-                                {/* Column 2: Description */}
-                                <span className="text-slate-700 text-base truncate">
+                                  {/* Column 2: Description - hidden on mobile, shown in grid on desktop */}
+                                  <span className="text-slate-700 text-base truncate hidden sm:block">
+                                    {activity.description}
+                                  </span>
+
+                                  {/* Column 3: Badges */}
+                                  <div className="flex gap-1">
+                                    {activity.isPartnerActivity && (
+                                      <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
+                                        Partner
+                                      </span>
+                                    )}
+                                    {activity.isBonus && (
+                                      <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
+                                        Bonus
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Column 4: Time */}
+                                  <span className="text-slate-600 text-sm sm:text-base text-right">
+                                    {activity.time} min
+                                  </span>
+
+                                  {/* Column 5: Preview Button */}
+                                  <div className="text-right">
+                                    {activity.activityType && lesson.available ? (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDemoActivity(activity.activityType, activity.title);
+                                        }}
+                                        className="text-sm text-orange-600 hover:text-orange-700 font-medium flex items-center gap-1"
+                                      >
+                                        <Play size={14} />
+                                        Preview
+                                      </button>
+                                    ) : activity.activityType ? (
+                                      <span className="text-sm text-slate-400">
+                                        Coming
+                                      </span>
+                                    ) : (
+                                      <span className="text-sm text-slate-400">—</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Description - shown on mobile below title */}
+                                <span className="text-slate-600 text-sm sm:hidden">
                                   {activity.description}
                                 </span>
-
-                                {/* Column 3: Badges */}
-                                <div className="flex gap-1">
-                                  {activity.isPartnerActivity && (
-                                    <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
-                                      Partner
-                                    </span>
-                                  )}
-                                  {activity.isBonus && (
-                                    <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
-                                      Bonus
-                                    </span>
-                                  )}
-                                </div>
-
-                                {/* Column 4: Time */}
-                                <span className="text-slate-600 text-base text-right">
-                                  {activity.time} min
-                                </span>
-
-                                {/* Column 5: Preview Button */}
-                                <div className="text-right">
-                                  {activity.activityType && lesson.available ? (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDemoActivity(activity.activityType, activity.title);
-                                      }}
-                                      className="text-sm text-orange-600 hover:text-orange-700 font-medium flex items-center gap-1"
-                                    >
-                                      <Play size={14} />
-                                      Preview
-                                    </button>
-                                  ) : activity.activityType ? (
-                                    <span className="text-sm text-slate-400">
-                                      Coming
-                                    </span>
-                                  ) : (
-                                    <span className="text-sm text-slate-400">—</span>
-                                  )}
-                                </div>
                               </div>
                             ))}
                           </div>
@@ -666,7 +685,7 @@ const FilmMusicHub = () => {
       {/* FOOTER HELP LINKS */}
       {!isEduSite && (
         <div className="border-t border-slate-200 bg-white mt-8">
-          <div className="max-w-5xl mx-auto px-8 py-8">
+          <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8">
             <div className="flex items-center justify-center text-base text-slate-600">
               <span>Need help?</span>
               <a
@@ -680,8 +699,6 @@ const FilmMusicHub = () => {
         </div>
       )}
       </div>
-    </div>
-    </>
   );
 };
 

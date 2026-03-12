@@ -2,7 +2,7 @@
 // Comprehensive Curriculum Guide - Standards, Units, and Scope & Sequence
 // Reference page for teachers
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Check, BookOpen, Music, Target, Award } from 'lucide-react';
 
@@ -254,6 +254,14 @@ function CurriculumGuide() {
 
   const { overview, units, standards } = CURRICULUM_DATA;
 
+  // Mobile responsiveness
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleDownloadPDF = () => {
     // Build a clean printable HTML document
     const printWindow = window.open('', '_blank');
@@ -381,35 +389,37 @@ function CurriculumGuide() {
         <div style={{
           maxWidth: '1200px',
           margin: '0 auto',
-          padding: '16px 24px',
+          padding: isMobile ? '12px 12px' : '16px 24px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          gap: '8px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px', minWidth: 0 }}>
             <button
               onClick={() => navigate(-1)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '8px 12px',
+                gap: '4px',
+                padding: isMobile ? '8px' : '8px 12px',
                 backgroundColor: 'transparent',
                 border: 'none',
                 borderRadius: '8px',
                 fontSize: '14px',
                 fontWeight: '500',
                 color: '#64748b',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                flexShrink: 0
               }}
             >
               <ArrowLeft size={18} />
-              Back to Units
+              {!isMobile && 'Back to Units'}
             </button>
-            <div style={{ width: '1px', height: '24px', backgroundColor: '#e2e8f0' }} />
+            {!isMobile && <div style={{ width: '1px', height: '24px', backgroundColor: '#e2e8f0' }} />}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <BookOpen size={20} color="#3b82f6" />
-              <span style={{ fontSize: '18px', fontWeight: '700', color: '#1e293b' }}>
+              <span style={{ fontSize: isMobile ? '15px' : '18px', fontWeight: '700', color: '#1e293b', whiteSpace: 'nowrap' }}>
                 Curriculum Guide
               </span>
             </div>
@@ -419,19 +429,21 @@ function CurriculumGuide() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '10px 16px',
+              gap: '6px',
+              padding: isMobile ? '8px 10px' : '10px 16px',
               backgroundColor: '#3b82f6',
               border: 'none',
               borderRadius: '8px',
-              fontSize: '14px',
+              fontSize: isMobile ? '12px' : '14px',
               fontWeight: '600',
               color: 'white',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              flexShrink: 0,
+              whiteSpace: 'nowrap'
             }}
           >
             <Download size={16} />
-            Download PDF
+            {isMobile ? 'PDF' : 'Download PDF'}
           </button>
         </div>
 
@@ -439,21 +451,24 @@ function CurriculumGuide() {
         <div style={{
           maxWidth: '1200px',
           margin: '0 auto',
-          padding: '0 24px',
+          padding: isMobile ? '0 8px' : '0 24px',
           display: 'flex',
-          gap: '4px'
+          gap: '2px',
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch'
         }}>
           {[
             { id: 'overview', label: 'Overview' },
             { id: 'units', label: 'Unit Details' },
-            { id: 'standards', label: 'Standards Alignment' },
+            { id: 'standards', label: 'Standards' },
             { id: 'scope', label: 'Scope & Sequence' }
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               style={{
-                padding: '12px 20px',
+                padding: isMobile ? '10px 12px' : '12px 20px',
+                whiteSpace: 'nowrap',
                 backgroundColor: activeTab === tab.id ? 'white' : 'transparent',
                 border: 'none',
                 borderBottom: activeTab === tab.id ? '2px solid #3b82f6' : '2px solid transparent',
@@ -471,7 +486,7 @@ function CurriculumGuide() {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 24px' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '16px 12px' : '32px 24px' }}>
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div>
@@ -479,22 +494,22 @@ function CurriculumGuide() {
             <div style={{
               backgroundColor: 'white',
               borderRadius: '16px',
-              padding: '32px',
+              padding: isMobile ? '20px 16px' : '32px',
               marginBottom: '24px',
               boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
             }}>
-              <h1 style={{ fontSize: '32px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>
+              <h1 style={{ fontSize: isMobile ? '22px' : '32px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>
                 {isEduSite ? 'Music Room Tools Curriculum' : overview.title}
               </h1>
-              <p style={{ fontSize: '18px', color: '#64748b', marginBottom: '24px' }}>
+              <p style={{ fontSize: isMobile ? '15px' : '18px', color: '#64748b', marginBottom: '24px' }}>
                 {overview.subtitle}
               </p>
 
               {/* Quick Stats */}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '16px',
+                gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+                gap: isMobile ? '10px' : '16px',
                 marginBottom: '24px'
               }}>
                 {[
@@ -530,7 +545,7 @@ function CurriculumGuide() {
             </h2>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(350px, 1fr))',
               gap: '16px'
             }}>
               {units.map((unit) => (
@@ -596,19 +611,19 @@ function CurriculumGuide() {
                 {/* Unit Header */}
                 <div style={{
                   background: `linear-gradient(135deg, ${unit.color}, ${unit.color}dd)`,
-                  padding: '24px 32px',
+                  padding: isMobile ? '16px' : '24px 32px',
                   color: 'white'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <span style={{ fontSize: '40px' }}>{unit.icon}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '12px' : '16px' }}>
+                    <span style={{ fontSize: isMobile ? '32px' : '40px' }}>{unit.icon}</span>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: '500', opacity: 0.9 }}>
+                      <div style={{ fontSize: isMobile ? '12px' : '14px', fontWeight: '500', opacity: 0.9 }}>
                         Unit {unit.id} &bull; {unit.duration}
                       </div>
-                      <h2 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '4px' }}>
+                      <h2 style={{ fontSize: isMobile ? '20px' : '28px', fontWeight: '700', marginBottom: '4px' }}>
                         {unit.title}
                       </h2>
-                      <p style={{ fontSize: '16px', opacity: 0.9 }}>
+                      <p style={{ fontSize: isMobile ? '14px' : '16px', opacity: 0.9 }}>
                         {unit.subtitle}
                       </p>
                     </div>
@@ -616,12 +631,12 @@ function CurriculumGuide() {
                 </div>
 
                 {/* Unit Content */}
-                <div style={{ padding: '24px 32px' }}>
+                <div style={{ padding: isMobile ? '16px' : '24px 32px' }}>
                   {/* Overview & Essential Question */}
                   <div style={{
                     display: 'grid',
-                    gridTemplateColumns: '2fr 1fr',
-                    gap: '24px',
+                    gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr',
+                    gap: isMobile ? '16px' : '24px',
                     marginBottom: '24px'
                   }}>
                     <div>
@@ -654,7 +669,7 @@ function CurriculumGuide() {
                     </h3>
                     <div style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                      gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))',
                       gap: '8px'
                     }}>
                       {unit.iCanStatements.map((statement, idx) => (
@@ -704,9 +719,13 @@ function CurriculumGuide() {
                           }}>
                             {lesson.num}
                           </span>
-                          <div style={{ flex: 1 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
                             <span style={{ fontWeight: '600', color: '#1e293b' }}>{lesson.title}</span>
-                            <span style={{ color: '#94a3b8', marginLeft: '8px' }}>— {lesson.concept}</span>
+                            {isMobile ? (
+                              <div style={{ color: '#94a3b8', fontSize: '12px', marginTop: '2px' }}>{lesson.concept}</div>
+                            ) : (
+                              <span style={{ color: '#94a3b8', marginLeft: '8px' }}>— {lesson.concept}</span>
+                            )}
                             {lesson.piece && (
                               <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic', marginTop: '2px' }}>
                                 {lesson.piece}
@@ -721,7 +740,7 @@ function CurriculumGuide() {
                   {/* Standards & Portfolio */}
                   <div style={{
                     display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
+                    gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
                     gap: '16px'
                   }}>
                     <div style={{
@@ -776,14 +795,14 @@ function CurriculumGuide() {
             <div style={{
               backgroundColor: 'white',
               borderRadius: '16px',
-              padding: '32px',
+              padding: isMobile ? '20px 16px' : '32px',
               marginBottom: '24px',
               boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
             }}>
-              <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>
+              <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>
                 National Core Arts Standards Alignment
               </h2>
-              <p style={{ fontSize: '15px', color: '#64748b', marginBottom: '24px' }}>
+              <p style={{ fontSize: isMobile ? '14px' : '15px', color: '#64748b', marginBottom: '24px' }}>
                 This curriculum is fully aligned with the National Core Arts Standards for Music (2014).
                 Each unit addresses specific anchor standards across the four artistic processes.
               </p>
@@ -791,8 +810,8 @@ function CurriculumGuide() {
               {/* Standards Grid */}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '20px'
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+                gap: isMobile ? '16px' : '20px'
               }}>
                 {Object.values(standards).map((category) => (
                   <div key={category.code} style={{
@@ -847,10 +866,10 @@ function CurriculumGuide() {
             <div style={{
               backgroundColor: 'white',
               borderRadius: '16px',
-              padding: '32px',
+              padding: isMobile ? '16px 12px' : '32px',
               boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
             }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1e293b', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: isMobile ? '16px' : '18px', fontWeight: '700', color: '#1e293b', marginBottom: '16px' }}>
                 Standards Coverage by Unit
               </h3>
               <div style={{ overflowX: 'auto' }}>
@@ -899,10 +918,10 @@ function CurriculumGuide() {
             <div style={{
               backgroundColor: 'white',
               borderRadius: '16px',
-              padding: '32px',
+              padding: isMobile ? '20px 16px' : '32px',
               boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
             }}>
-              <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>
+              <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>
                 Scope & Sequence
               </h2>
               <p style={{ fontSize: '15px', color: '#64748b', marginBottom: '8px' }}>
@@ -913,7 +932,8 @@ function CurriculumGuide() {
               </p>
 
               {/* Visual Timeline Bar */}
-              <div style={{ marginBottom: '32px' }}>
+              <div style={{ marginBottom: '32px', overflowX: isMobile ? 'auto' : 'visible', WebkitOverflowScrolling: 'touch' }}>
+                <div style={{ minWidth: isMobile ? '500px' : 'auto' }}>
                 <div style={{ display: 'flex', marginBottom: '8px' }}>
                   {['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((m) => (
                     <div key={m} style={{
@@ -984,6 +1004,7 @@ function CurriculumGuide() {
                   <span>|</span>
                   <span>30 lessons + 6 flex weeks</span>
                 </div>
+                </div>
               </div>
 
               {/* Month-by-Month Breakdown */}
@@ -1001,31 +1022,35 @@ function CurriculumGuide() {
                   return (
                     <div key={period.month} style={{
                       display: 'flex',
-                      alignItems: 'stretch',
+                      flexDirection: isMobile ? 'column' : 'row',
+                      alignItems: isMobile ? 'stretch' : 'stretch',
                       borderRadius: '10px',
                       overflow: 'hidden',
                       border: '1px solid #e2e8f0'
                     }}>
                       <div style={{
-                        width: '120px',
+                        width: isMobile ? 'auto' : '120px',
                         backgroundColor: unit ? `${unit.color}10` : '#f8fafc',
-                        borderRight: `3px solid ${unit ? unit.color : '#94a3b8'}`,
-                        padding: '14px 16px',
+                        borderRight: isMobile ? 'none' : `3px solid ${unit ? unit.color : '#94a3b8'}`,
+                        borderBottom: isMobile ? `3px solid ${unit ? unit.color : '#94a3b8'}` : 'none',
+                        padding: isMobile ? '10px 14px' : '14px 16px',
                         display: 'flex',
-                        flexDirection: 'column',
+                        flexDirection: isMobile ? 'row' : 'column',
+                        alignItems: isMobile ? 'center' : 'flex-start',
+                        gap: isMobile ? '8px' : '0',
                         justifyContent: 'center',
                         flexShrink: 0
                       }}>
                         <div style={{ fontSize: '14px', fontWeight: '700', color: '#1e293b' }}>
                           {period.month}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: isMobile ? '0' : '2px' }}>
                           {period.weeks}
                         </div>
                       </div>
                       <div style={{
                         flex: 1,
-                        padding: '14px 20px',
+                        padding: isMobile ? '12px 14px' : '14px 20px',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '14px',
@@ -1058,7 +1083,7 @@ function CurriculumGuide() {
                               </div>
                             </div>
                             <div style={{
-                              display: 'flex',
+                              display: isMobile ? 'none' : 'flex',
                               gap: '3px',
                               flexShrink: 0
                             }}>

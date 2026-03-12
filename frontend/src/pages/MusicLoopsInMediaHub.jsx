@@ -310,26 +310,26 @@ const MusicLoopsInMediaHub = () => {
       <TeacherHeader />
 
       {/* UNIT HEADER */}
-      <div className="max-w-5xl mx-auto px-8 pt-8 pb-6">
-        <div className="flex items-center gap-5">
-          <div className="w-18 h-18 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center flex-shrink-0" style={{ width: '72px', height: '72px' }}>
-            <span className="text-4xl">🎬</span>
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-8 pb-6">
+        <div className="flex items-center gap-3 sm:gap-5">
+          <div className="rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center flex-shrink-0 w-12 h-12 sm:w-[72px] sm:h-[72px]">
+            <span className="text-2xl sm:text-4xl">🎬</span>
           </div>
           <div>
-            <h2 className="text-4xl font-bold text-slate-900">The Loop Lab</h2>
-            <p className="text-xl text-slate-600 mt-1">
+            <h2 className="text-2xl sm:text-4xl font-bold text-slate-900">The Loop Lab</h2>
+            <p className="text-base sm:text-xl text-slate-600 mt-1">
               Create soundtracks for video using loops — the way professionals do it.
             </p>
           </div>
         </div>
-        <p className="text-base text-slate-500 mt-4 ml-[92px]">
+        <p className="text-base text-slate-500 mt-4 ml-0 sm:ml-[92px]">
           5 Lessons  •  ~40 min each  •  Grades 6-8
         </p>
       </div>
 
 
       {/* LESSON CARDS */}
-      <div className="max-w-5xl mx-auto px-8 pb-10">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 pb-10">
         <div className="space-y-4">
               {lessons.map((lesson) => {
                 const isExpanded = expandedLessons[lesson.id];
@@ -344,34 +344,71 @@ const MusicLoopsInMediaHub = () => {
                   >
                     {/* COLLAPSED CARD HEADER - Clickable to expand/collapse */}
                     <div
-                      className={`px-5 py-4 ${lesson.available ? 'cursor-pointer hover:bg-slate-50' : ''}`}
+                      className={`px-3 sm:px-5 py-3 sm:py-4 ${lesson.available ? 'cursor-pointer hover:bg-slate-50' : ''}`}
                       onClick={() => lesson.available && toggleExpanded(lesson.id)}
                     >
-                      <div className="flex items-center gap-5">
+                      <div className="flex items-start sm:items-center gap-3 sm:gap-5">
                         {/* Gradient Icon */}
-                        <div className={`w-14 h-14 rounded-lg bg-gradient-to-br ${lesson.color} flex items-center justify-center flex-shrink-0`}>
-                          <span className="text-2xl">{lesson.icon}</span>
+                        <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-gradient-to-br ${lesson.color} flex items-center justify-center flex-shrink-0`}>
+                          <span className="text-lg sm:text-2xl">{lesson.icon}</span>
                         </div>
 
-                        {/* Lesson Info */}
+                        {/* Lesson Info + Actions wrapper */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3">
-                            <span className="text-base font-semibold text-sky-600">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-0 sm:gap-3">
+                            <span className="text-sm sm:text-base font-semibold text-sky-600">
                               Lesson {lesson.number}
                             </span>
-                            <span className="text-slate-300">•</span>
-                            <h3 className="text-xl font-bold text-slate-900">
+                            <span className="text-slate-300 hidden sm:inline">•</span>
+                            <h3 className="text-base sm:text-xl font-bold text-slate-900">
                               {lesson.title}
                             </h3>
-                            <span className="text-slate-300">•</span>
-                            <span className="text-base text-slate-600">
+                            <span className="text-slate-300 hidden sm:inline">•</span>
+                            <span className="text-sm sm:text-base text-slate-600">
                               {lesson.concept}
                             </span>
                           </div>
+
+                          {/* Mobile: Start Session button below lesson info */}
+                          <div className="flex sm:hidden items-center gap-3 mt-2">
+                            {!lesson.available && (
+                              <span className="text-sm text-slate-400">Coming Soon</span>
+                            )}
+                            {lesson.available && userRole === 'teacher' && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStartSession(lesson);
+                                }}
+                                disabled={creatingSession === lesson.id}
+                                className={`font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm ${
+                                  creatingSession === lesson.id
+                                    ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                                    : 'bg-sky-500 hover:bg-sky-600 text-white'
+                                }`}
+                              >
+                                {creatingSession === lesson.id ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                    Creating...
+                                  </>
+                                ) : (
+                                  'Start Session'
+                                )}
+                              </button>
+                            )}
+                            {lesson.available && (
+                              isExpanded ? (
+                                <ChevronUp className="w-5 h-5 text-slate-400" />
+                              ) : (
+                                <ChevronDown className="w-5 h-5 text-slate-400" />
+                              )
+                            )}
+                          </div>
                         </div>
 
-                        {/* Right side: Time + Actions */}
-                        <div className="flex items-center gap-5 flex-shrink-0">
+                        {/* Right side: Time + Actions (hidden on mobile) */}
+                        <div className="hidden sm:flex items-center gap-5 flex-shrink-0">
                           <span className="text-base text-slate-500">
                             ~40 min
                           </span>
@@ -465,8 +502,8 @@ const MusicLoopsInMediaHub = () => {
                               Activities
                             </h4>
 
-                            {/* Activities Header Row */}
-                            <div className="grid grid-cols-[200px_1fr_auto_60px_80px] gap-x-4 items-center py-2 border-b border-slate-200 mb-1">
+                            {/* Activities Header Row (hidden on mobile) */}
+                            <div className="hidden sm:grid grid-cols-[200px_1fr_auto_60px_80px] gap-x-4 items-center py-2 border-b border-slate-200 mb-1">
                               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                                 Activity
                               </span>
@@ -480,59 +517,67 @@ const MusicLoopsInMediaHub = () => {
                               <span></span>
                             </div>
 
-                            {/* Activities Table with CSS Grid */}
+                            {/* Activities Table */}
                             <div className="space-y-0">
                               {lesson.activities.map((activity, index) => (
                                 <div
                                   key={index}
-                                  className="grid grid-cols-[200px_1fr_auto_60px_80px] gap-x-4 items-center py-3 border-b border-slate-100 last:border-b-0"
+                                  className="flex flex-col sm:grid sm:grid-cols-[200px_1fr_auto_60px_80px] gap-x-4 sm:items-center py-3 border-b border-slate-100 last:border-b-0"
                                 >
-                                  {/* Column 1: Title */}
-                                  <span className={`text-base font-medium truncate ${activity.isBonus ? 'text-amber-700' : 'text-slate-800'}`}>
-                                    {activity.title}
-                                  </span>
+                                  {/* Mobile: Row with title, badges, time, preview */}
+                                  <div className="flex items-center justify-between sm:contents">
+                                    {/* Column 1: Title */}
+                                    <span className={`text-sm sm:text-base font-medium truncate ${activity.isBonus ? 'text-amber-700' : 'text-slate-800'}`}>
+                                      {activity.title}
+                                    </span>
 
-                                  {/* Column 2: Description */}
-                                  <span className="text-slate-700 text-base truncate">
+                                    {/* Column 2: Description (hidden on mobile, shown below) */}
+                                    <span className="text-slate-700 text-base truncate hidden sm:block">
+                                      {activity.description}
+                                    </span>
+
+                                    {/* Column 3: Badges */}
+                                    <div className="flex gap-1">
+                                      {activity.isPartnerActivity && (
+                                        <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
+                                          Partner
+                                        </span>
+                                      )}
+                                      {activity.isBonus && (
+                                        <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
+                                          Bonus
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {/* Column 4: Time */}
+                                    <span className="text-slate-600 text-sm sm:text-base text-right">
+                                      {activity.time} min
+                                    </span>
+
+                                    {/* Column 5: Preview Button */}
+                                    <div className="text-right">
+                                      {activity.activityType ? (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDemoActivity(activity.activityType, activity.title);
+                                          }}
+                                          className="inline-flex items-center gap-1 text-sm text-sky-600 hover:text-sky-700 font-medium"
+                                        >
+                                          <Play className="w-4 h-4" />
+                                          <span className="hidden sm:inline">Preview</span>
+                                        </button>
+                                      ) : (
+                                        <span className="text-sm text-slate-400 hidden sm:inline">—</span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Mobile: Description below title */}
+                                  <p className="text-slate-500 text-sm mt-0.5 sm:hidden">
                                     {activity.description}
-                                  </span>
-
-                                  {/* Column 3: Badges */}
-                                  <div className="flex gap-1">
-                                    {activity.isPartnerActivity && (
-                                      <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
-                                        Partner
-                                      </span>
-                                    )}
-                                    {activity.isBonus && (
-                                      <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
-                                        Bonus
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  {/* Column 4: Time */}
-                                  <span className="text-slate-600 text-base text-right">
-                                    {activity.time} min
-                                  </span>
-
-                                  {/* Column 5: Preview Button */}
-                                  <div className="text-right">
-                                    {activity.activityType ? (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleDemoActivity(activity.activityType, activity.title);
-                                        }}
-                                        className="inline-flex items-center gap-1 text-sm text-sky-600 hover:text-sky-700 font-medium"
-                                      >
-                                        <Play className="w-4 h-4" />
-                                        Preview
-                                      </button>
-                                    ) : (
-                                      <span className="text-sm text-slate-400">—</span>
-                                    )}
-                                  </div>
+                                  </p>
                                 </div>
                               ))}
                             </div>
@@ -576,7 +621,7 @@ const MusicLoopsInMediaHub = () => {
       {/* FOOTER HELP LINKS */}
       {!isEduSite && (
         <div className="border-t border-slate-200 bg-white mt-8">
-          <div className="max-w-5xl mx-auto px-8 py-8">
+          <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8">
             <div className="flex items-center justify-center text-base text-slate-600">
               <span>Need help?</span>
               <a
