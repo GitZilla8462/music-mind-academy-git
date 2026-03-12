@@ -138,11 +138,14 @@ const TwoStarsAndAWishActivity = ({
   const compositionData = propsCompositionData || storedComposition?.data || null;
   const lessonType = storedComposition?.lessonType || 'school-beneath';
 
+  // Determine the reflection storage key for this lesson
+  const reflectionKey = LESSON_CONFIGS[lessonType]?.reflectionKey || 'school-beneath-reflection';
+
   // Check if reflection is already completed when component mounts
   useEffect(() => {
     // Check all possible reflection keys
-    const reflectionKeys = ['school-beneath-reflection', 'game-reflection'];
-    for (const key of reflectionKeys) {
+    const allReflectionKeys = Object.values(LESSON_CONFIGS).map(c => c.reflectionKey);
+    for (const key of allReflectionKeys) {
       const savedReflection = localStorage.getItem(key);
       if (savedReflection) {
         try {
@@ -249,6 +252,7 @@ const TwoStarsAndAWishActivity = ({
           viewMode={reflectionCompleted ? true : viewMode}
           isSessionMode={isSessionMode}
           activityId={activityId}
+          reflectionKey={reflectionKey}
         />
       </div>
     );
@@ -335,6 +339,7 @@ const TwoStarsAndAWishActivity = ({
           viewMode={reflectionCompleted ? true : viewMode}
           isSessionMode={isSessionMode}
           activityId={activityId}
+          reflectionKey={reflectionKey}
         />
       )}
     </div>

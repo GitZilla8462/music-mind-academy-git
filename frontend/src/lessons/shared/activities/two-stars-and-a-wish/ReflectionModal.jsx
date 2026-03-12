@@ -6,6 +6,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, Star, Sparkles, Volume2, VolumeX, HelpCircle, Minimize2, Maximize2, Smile } from 'lucide-react';
 import { SELF_REFLECTION_PROMPTS, PARTNER_REFLECTION_OPTIONS } from './reflectionPrompts';
 import { saveStudentWork } from '../../../../utils/studentWorkStorage';
+import { getDatabase, ref, onValue } from 'firebase/database';
+import { useSession } from '../../../../context/SessionContext';
 
 // Chromebook detection for cursor handling
 const isChromebook = typeof navigator !== 'undefined' && (
@@ -13,7 +15,7 @@ const isChromebook = typeof navigator !== 'undefined' && (
   (navigator.userAgentData?.platform === 'Chrome OS')
 );
 
-const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSessionMode = false, activityId = null }) => {
+const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSessionMode = false, activityId = null, reflectionKey = 'school-beneath-reflection' }) => {
   // Steps: 1=choose type, 2=partner name (peer only), 3=listen, 4=star1, 5=star2, 6=wish, 7=vibe, 8=summary
   const [currentStep, setCurrentStep] = useState(viewMode ? 8 : 1);
   const [reflectionData, setReflectionData] = useState({
@@ -40,11 +42,66 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
   const [isMinimized, setIsMinimized] = useState(false);
 
   const hasSpokenRef = useRef(false);
+  const componentMountTimeRef = useRef(Date.now());
+  const lastSaveCommandRef = useRef(null);
+
+  // Session code for save command listener
+  const { sessionCode } = useSession();
+  const classCode = new URLSearchParams(window.location.search).get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
+
+  // Save current progress (even if incomplete) — used by teacher save command
+  const saveProgress = () => {
+    const progressData = {
+      ...reflectionData,
+      savedAt: new Date().toISOString(),
+      currentStep,
+      isComplete: currentStep === 8
+    };
+    localStorage.setItem(reflectionKey, JSON.stringify(progressData));
+
+    if (activityId) {
+      saveStudentWork(activityId, {
+        title: 'Reflection',
+        emoji: '\uD83D\uDCDD',
+        type: 'reflection',
+        data: progressData
+      });
+    }
+    console.log('💾 Reflection progress saved');
+  };
+
+  // Listen for teacher's save command
+  useEffect(() => {
+    if (!effectiveSessionCode || !isSessionMode || viewMode) return;
+
+    const db = getDatabase();
+    const saveCommandRef = ref(db, `sessions/${effectiveSessionCode}/saveCommand`);
+
+    const unsubscribe = onValue(saveCommandRef, (snapshot) => {
+      const saveCommand = snapshot.val();
+      if (!saveCommand) return;
+
+      // Only process commands issued after mount
+      if (saveCommand <= componentMountTimeRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        return;
+      }
+
+      if (saveCommand !== lastSaveCommandRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        console.log('💾 Teacher save command received in reflection!');
+        saveProgress();
+      }
+    });
+
+    return () => unsubscribe();
+  }, [effectiveSessionCode, isSessionMode, viewMode, reflectionData, currentStep]);
 
   // Load saved reflection if in view mode
   useEffect(() => {
     if (viewMode) {
-      const saved = localStorage.getItem('school-beneath-reflection');
+      const saved = localStorage.getItem(reflectionKey);
       if (saved) {
         try {
           const data = JSON.parse(saved);
@@ -204,7 +261,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
       ...reflectionData,
       submittedAt: new Date().toISOString()
     };
-    localStorage.setItem('school-beneath-reflection', JSON.stringify(finalData));
+    localStorage.setItem(reflectionKey, JSON.stringify(finalData));
 
     // Save to Firebase for teacher grading view
     if (activityId) {

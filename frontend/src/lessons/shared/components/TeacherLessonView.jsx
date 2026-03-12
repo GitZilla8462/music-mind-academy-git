@@ -4030,10 +4030,11 @@ const TeacherLessonView = ({
     return () => clearInterval(interval);
   }, [classroomTimer.isRunning, playTimerEndSound]);
 
-  // Check if current stage is a saveable activity (composition, listening map, or listening journey)
+  // Check if current stage is a saveable activity (composition, listening map, listening journey, or reflection)
   const isSaveableActivity = currentStageData?.type === 'activity' &&
     (currentStageData?.id?.includes('composition') || currentStageData?.id?.includes('listening-map') ||
-     currentStageData?.id === 'animator-directions' || currentStageData?.id === 'build-time');
+     currentStageData?.id === 'animator-directions' || currentStageData?.id === 'build-time' ||
+     currentStageData?.id?.includes('reflection'));
 
   // Send save command to all students via Firebase
   // Use effectiveCode (classCode || sessionCode) for class-based sessions
