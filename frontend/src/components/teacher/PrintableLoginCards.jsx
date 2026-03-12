@@ -133,6 +133,11 @@ const PrintableLoginCards = ({ roster, className, onClose }) => {
                   </div>
                 </div>
               </div>
+
+              {/* Save password tip */}
+              <div className="mt-2 text-center text-[9px] text-gray-400 italic">
+                When Chrome asks "Save password?" — click <span className="font-bold text-gray-500">Save</span>
+              </div>
             </div>
           ))}
         </div>

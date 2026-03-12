@@ -178,6 +178,13 @@ const StudentLogin = () => {
             <p className="text-gray-400 text-xs text-center">
               Check your login card from your teacher
             </p>
+
+            {/* Chromebook save password tip */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-center">
+              <p className="text-amber-700 text-xs font-medium">
+                💡 When Chrome asks "Save password?" — click <span className="font-bold">Save</span> so you don't have to type it next time!
+              </p>
+            </div>
           </div>
 
         </div>
