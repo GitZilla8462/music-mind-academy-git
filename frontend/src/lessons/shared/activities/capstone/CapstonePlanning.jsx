@@ -264,7 +264,7 @@ const CollapsibleInstruments = ({ instruments, onChange }) => {
 };
 
 // ============ MAIN ============
-const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null, initialData = null, viewMode = false }) => {
+const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null, initialData = null, viewMode = false, hidePlayButtons = false }) => {
   const [piece, setPiece] = useState(null);
   const [plans, setPlans] = useState({});
   const [isSaved, setIsSaved] = useState(false);
@@ -389,17 +389,19 @@ const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null, 
                     <span className="text-xs text-gray-400">
                       {fmt(section.startTime)}–{fmt(section.endTime)}
                     </span>
-                    <button
-                      onClick={() => playSection(section.id, section.startTime, section.endTime)}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ml-auto shrink-0 transition-colors ${
-                        playing ? 'bg-red-100 text-red-600' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                      }`}
-                    >
-                      {playing
-                        ? <><Square size={10} fill="currentColor" /> Stop</>
-                        : <><Play size={10} fill="currentColor" /> Listen</>
-                      }
-                    </button>
+                    {!hidePlayButtons && (
+                      <button
+                        onClick={() => playSection(section.id, section.startTime, section.endTime)}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ml-auto shrink-0 transition-colors ${
+                          playing ? 'bg-red-100 text-red-600' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                        }`}
+                      >
+                        {playing
+                          ? <><Square size={10} fill="currentColor" /> Stop</>
+                          : <><Play size={10} fill="currentColor" /> Listen</>
+                        }
+                      </button>
+                    )}
                   </div>
 
                   <div className="text-sm text-gray-900 leading-[2] pl-1">

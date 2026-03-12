@@ -812,12 +812,15 @@ const ActivityRenderer = ({
 
     // ✅ ADDED: Capstone Planning (Listening Lab Lesson 4)
     // Students sketch a plan for their Listening Journey sections
+    // In Lesson 3 (planning-intro), teacher controls audio — hide play buttons
+    // In Lesson 4 (capstone-planning), students work independently — show play buttons
     case 'capstone-planning':
       return (
         <CapstonePlanning
           key={`capstone-planning-${activity.id}`}
           onComplete={onComplete}
           isSessionMode={isSessionMode}
+          hidePlayButtons={activity.id === 'planning-intro'}
         />
       );
 

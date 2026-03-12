@@ -1321,7 +1321,7 @@ const PresentationContent = ({
       const MOUNTAIN_KING_SECTIONS = [
         { label: 'A', name: 'Sneaky Start', startTime: 0, endTime: 59, color: '#3B82F6', desc: 'Pizzicato strings + bassoons, pp, andante' },
         { label: 'B', name: 'Building Energy', startTime: 59, endTime: 101, color: '#EF4444', desc: 'Brass enters, tempo increases, mf' },
-        { label: 'A\'', name: 'Explosive Return', startTime: 101, endTime: 150, color: '#3B82F6', desc: 'Full orchestra, ff, presto' },
+        { label: 'A\'', name: 'Explosive Return', startTime: 101, endTime: 154, color: '#3B82F6', desc: 'Full orchestra, ff, presto' },
       ];
       const AUDIO_PATH = '/audio/classical/grieg-mountain-king.mp3';
 
@@ -1535,6 +1535,7 @@ const PresentationContent = ({
                 <CapstonePlanning
                   onComplete={() => {}}
                   isSessionMode={false}
+                  hidePlayButtons={true}
                   highlightSection={isPlaybackPhase ? MOUNTAIN_KING_SECTIONS[activeSectionIdx].label : null}
                 />
               ) : (

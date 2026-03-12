@@ -44,7 +44,7 @@ export const CAPSTONE_PIECES = [
     sections: [
       { id: 1, label: 'A', sectionLabel: 'Sneaky Start', startTime: 0, endTime: 59, color: '#3B82F6', defaultDynamics: 'pp', defaultTempo: 'andante' },
       { id: 2, label: 'B', sectionLabel: 'Building Energy', startTime: 59, endTime: 101, color: '#EF4444', defaultDynamics: 'mf', defaultTempo: 'moderato' },
-      { id: 3, label: 'A\'', sectionLabel: 'Explosive Return', startTime: 101, endTime: 150, color: '#3B82F6', defaultDynamics: 'ff', defaultTempo: 'presto' }
+      { id: 3, label: 'A\'', sectionLabel: 'Explosive Return', startTime: 101, endTime: 154, color: '#3B82F6', defaultDynamics: 'ff', defaultTempo: 'presto' }
     ]
   },
   {
