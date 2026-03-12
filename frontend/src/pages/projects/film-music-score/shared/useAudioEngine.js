@@ -141,17 +141,33 @@ export const useAudioEngine = (videoDuration = 60) => {
 
   const initializeAudio = useCallback(async () => {
     if (Tone.context.state !== 'running') {
-      try {
-        const startPromise = Tone.start();
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Audio start timeout')), 500)
-        );
-        await Promise.race([startPromise, timeoutPromise]);
-      } catch (err) {
-        throw new Error('AudioContext requires user gesture to start');
+      // Try up to 2 times with a generous timeout
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const startPromise = Tone.start();
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Audio start timeout')), 2000)
+          );
+          await Promise.race([startPromise, timeoutPromise]);
+          if (Tone.context.state === 'running') break;
+        } catch (err) {
+          if (attempt === 1) {
+            throw new Error('AudioContext requires user gesture to start');
+          }
+          // Brief pause before retry
+          await new Promise(r => setTimeout(r, 100));
+        }
       }
       if (Tone.context.state !== 'running') {
-        throw new Error('AudioContext requires user gesture to start');
+        // Last resort: try resuming the raw audio context directly
+        try {
+          await Tone.context.rawContext.resume();
+        } catch (e) {
+          // ignore
+        }
+        if (Tone.context.state !== 'running') {
+          throw new Error('AudioContext requires user gesture to start');
+        }
       }
     }
 
