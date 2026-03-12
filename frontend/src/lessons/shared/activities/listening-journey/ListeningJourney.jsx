@@ -289,13 +289,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   const handleReset = useCallback(() => {
     if (presetMode && pieceConfig?.defaultSections) {
-      // In preset mode, restore to default sections (preserve backgrounds if set)
-      setSections(pieceConfig.defaultSections.map(s => ({
-        ...s,
-        sky: s.sky || null,
-        scene: s.scene || null,
-        ground: s.ground || null,
-      })));
+      // In preset mode, restore to default sections (preserve backgrounds/scenes)
+      setSections(pieceConfig.defaultSections.map(s => ({ ...s })));
     } else {
       setSections([]);
     }
