@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../firebase/config';
 import { startClassSession } from '../firebase/classes';
-import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play, ArrowLeft, X } from 'lucide-react';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { logSessionCreated, logLessonVisit } from '../firebase/analytics';
 import StartSessionModal from '../components/teacher/StartSessionModal';
@@ -308,6 +308,17 @@ const MusicLoopsInMediaHub = () => {
     <>
       <div className="min-h-screen bg-slate-50">
       <TeacherHeader />
+
+      {/* BACK BUTTON */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-4">
+        <button
+          onClick={() => navigate('/music-classroom-resources')}
+          className="flex items-center gap-2 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+        >
+          <ArrowLeft size={20} />
+          <span className="font-medium">Back to Units</span>
+        </button>
+      </div>
 
       {/* UNIT HEADER */}
       <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-8 pb-6">
