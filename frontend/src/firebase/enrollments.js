@@ -607,27 +607,15 @@ export const clearFailedAttempts = async (classId, seatNumber) => {
  * @returns {Object} { valid, error, rateLimitStatus }
  */
 export const verifyPin = async (classId, seatNumber, password) => {
-  // Check rate limiting first
-  const rateLimitStatus = await checkRateLimitStatus(classId, seatNumber);
-
-  if (rateLimitStatus.isLocked) {
-    return {
-      valid: false,
-      error: `Too many failed attempts. Please wait ${rateLimitStatus.minutesRemaining} minutes and try again, or ask your teacher to reset your password.`,
-      rateLimitStatus
-    };
-  }
-
   // Get the hashed password from the pinHashes path
   const pinHashRef = ref(database, `pinHashes/${classId}/${seatNumber}`);
   const snapshot = await get(pinHashRef);
 
   if (!snapshot.exists()) {
-    const newStatus = await recordFailedPinAttempt(classId, seatNumber);
     return {
       valid: false,
       error: 'Invalid seat number.',
-      rateLimitStatus: newStatus
+      rateLimitStatus: { isLocked: false, remainingAttempts: MAX_LOGIN_ATTEMPTS }
     };
   }
 
@@ -638,25 +626,12 @@ export const verifyPin = async (classId, seatNumber, password) => {
   const isValid = await bcrypt.compare(normalized, hash);
 
   if (!isValid) {
-    const newStatus = await recordFailedPinAttempt(classId, seatNumber);
-    const attemptsLeft = newStatus.remainingAttempts;
-
-    let error = 'Wrong password. Try again.';
-    if (attemptsLeft <= 2 && attemptsLeft > 0) {
-      error = `Wrong password. ${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining.`;
-    } else if (attemptsLeft === 0) {
-      error = `Too many failed attempts. Please wait ${newStatus.minutesRemaining} minutes or ask your teacher to reset your password.`;
-    }
-
     return {
       valid: false,
-      error,
-      rateLimitStatus: newStatus
+      error: 'Wrong password. Try again.',
+      rateLimitStatus: { isLocked: false, remainingAttempts: MAX_LOGIN_ATTEMPTS }
     };
   }
-
-  // Clear failed attempts on success
-  await clearFailedAttempts(classId, seatNumber);
 
   return {
     valid: true,
