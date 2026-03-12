@@ -122,6 +122,7 @@ const FlatSelect = ({ value, onChange, options, taken, placeholder }) => {
 
 // ============ MULTI-SELECT SENTENCE ============
 const MultiSelectSentence = ({ items, onChange, options, prefix, suffix }) => {
+  const [showingAdd, setShowingAdd] = useState(false);
   const hasAny = items.length > 0;
 
   const handleChange = (index, newVal) => {
@@ -130,7 +131,10 @@ const MultiSelectSentence = ({ items, onChange, options, prefix, suffix }) => {
     onChange(updated);
   };
 
-  const handleAdd = (newVal) => { if (newVal) onChange([...items, newVal]); };
+  const handleAdd = (newVal) => {
+    if (newVal) onChange([...items, newVal]);
+    setShowingAdd(false);
+  };
   const canAddMore = options.length > items.length;
 
   return (
@@ -148,11 +152,22 @@ const MultiSelectSentence = ({ items, onChange, options, prefix, suffix }) => {
           </span>
         );
       })}
-      {canAddMore && (
+      {!hasAny && (
+        <FlatSelect value="" onChange={handleAdd} options={options} taken={items} placeholder="select..." />
+      )}
+      {hasAny && canAddMore && !showingAdd && (
+        <button
+          onClick={() => setShowingAdd(true)}
+          className="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold text-blue-500 bg-blue-50 hover:bg-blue-100 transition-colors ml-1 align-middle"
+          title="Add another"
+        >
+          +
+        </button>
+      )}
+      {hasAny && canAddMore && showingAdd && (
         <>
-          {hasAny && items.length === 1 && ' and '}
-          {hasAny && items.length > 1 && ', and '}
-          <FlatSelect value="" onChange={handleAdd} options={options} taken={items} placeholder={hasAny ? 'add more...' : 'select...'} />
+          {items.length >= 1 && ' and '}
+          <FlatSelect value="" onChange={handleAdd} options={options} taken={items} placeholder="add..." />
         </>
       )}
       {suffix}
