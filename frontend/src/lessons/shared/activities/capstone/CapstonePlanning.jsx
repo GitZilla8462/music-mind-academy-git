@@ -22,12 +22,12 @@ const DYNAMICS_OPTIONS = [
 ];
 
 const TEMPO_OPTIONS = [
-  { value: 'largo', label: 'Largo' },
-  { value: 'adagio', label: 'Adagio' },
-  { value: 'andante', label: 'Andante' },
-  { value: 'moderato', label: 'Moderato' },
-  { value: 'allegro', label: 'Allegro' },
-  { value: 'presto', label: 'Presto' },
+  { value: 'largo', label: 'Largo (~50 BPM)' },
+  { value: 'adagio', label: 'Adagio (~70 BPM)' },
+  { value: 'andante', label: 'Andante (~90 BPM)' },
+  { value: 'moderato', label: 'Moderato (~110 BPM)' },
+  { value: 'allegro', label: 'Allegro (~140 BPM)' },
+  { value: 'presto', label: 'Presto (~180 BPM)' },
   { value: 'accelerando', label: 'accelerando' },
   { value: 'ritardando', label: 'ritardando' },
 ];
