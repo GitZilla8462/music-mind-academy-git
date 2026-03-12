@@ -747,7 +747,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
               {leftPanelTab === 'stickers' && (
                 <StickerPanelWrapper
                   selectedSticker={selectedSticker}
-                  onStickerSelect={setSelectedSticker}
+                  onStickerSelect={(s) => { setSelectedSticker(s); setEditMode('sticker'); }}
                   onDragStart={handleStickerDragStart}
                   defaultTab={defaultTab}
                 />
