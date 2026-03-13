@@ -704,12 +704,14 @@ const WildlifeCompositionActivity = ({
   }
   
   // LOADING STATE - Skip if in reflection mode (modal can show while loading)
-  if ((isLoadingVideo || (!selectedVideo && !showVideoSelection) || detectingDurations) && !viewMode && !isReflectionStage) {
+  // Note: Don't block on detectingDurations — the video selection overlay handles that state
+  // by showing "Loading..." on buttons and disabling them until durations are ready
+  if ((isLoadingVideo || (!selectedVideo && !showVideoSelection)) && !viewMode && !isReflectionStage) {
     return (
       <div className="h-full flex items-center justify-center bg-gray-900">
         <div className="text-white text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-          <p>{detectingDurations ? 'Detecting video durations...' : 'Loading video...'}</p>
+          <p>Loading video...</p>
         </div>
       </div>
     );
