@@ -4,7 +4,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Star, ChevronRight, ChevronLeft, Check, Sparkles, Volume2, VolumeX, Minimize2, Maximize2, CheckCircle, Smile } from 'lucide-react';
-import { saveReflection, getReflection } from '../../../film-music-project/lesson3/lesson3StorageUtils';
 
 // Chromebook detection for cursor handling
 const isChromebook = typeof navigator !== 'undefined' && (
@@ -48,9 +47,14 @@ const WildlifeReflectionModal = ({
   // Load saved reflection if in view mode
   useEffect(() => {
     if (viewMode) {
-      const saved = getReflection();
+      const saved = localStorage.getItem('epic-wildlife-reflection');
       if (saved) {
-        setReflectionData(saved);
+        try {
+          const data = JSON.parse(saved);
+          setReflectionData(data);
+        } catch (error) {
+          console.error('Error loading reflection:', error);
+        }
       }
     }
   }, [viewMode]);
@@ -183,16 +187,6 @@ const WildlifeReflectionModal = ({
       submittedAt: new Date().toISOString()
     };
 
-    // Save using the lesson4 storage utility
-    saveReflection(
-      fullData.reviewType,
-      fullData.partnerName,
-      fullData.star1,
-      fullData.star2,
-      fullData.wish
-    );
-
-    // Also save to localStorage for consistency
     localStorage.setItem('epic-wildlife-reflection', JSON.stringify(fullData));
     console.log('✅ Wildlife reflection saved:', fullData);
 

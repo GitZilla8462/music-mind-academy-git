@@ -233,7 +233,6 @@ const CompositionPreview = ({ workData, submittedAt, videoOnly = false }) => {
             className="h-full w-full object-contain"
             playsInline
             preload="auto"
-            muted
             onEnded={handleVideoEnded}
           />
         ) : (

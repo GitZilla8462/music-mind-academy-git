@@ -31,8 +31,8 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
 
   // Compute Firebase paths based on session type
   const gamePath = useMemo(() => {
-    if (classId) return `classes/${classId}/currentSession/nameThatelement`;
-    if (sessionCode) return `sessions/${sessionCode}/nameThatelement`;
+    if (classId) return `classes/${classId}/currentSession/nameThatElement`;
+    if (sessionCode) return `sessions/${sessionCode}/nameThatElement`;
     return null;
   }, [classId, sessionCode]);
 
@@ -143,13 +143,16 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
         return;
       }
 
-      setGamePhase(data.phase || 'waiting');
+      // Map teacher phases to student phases
+      // Teacher uses 'question', student expects 'guessing'
+      const phase = data.phase === 'question' ? 'guessing' : (data.phase || 'waiting');
+      setGamePhase(phase);
       setCurrentRound(data.currentRound || 0);
       setCurrentQuestion(data.currentQuestion || 0);
       setTotalQuestions(data.totalQuestions || TOTAL_QUESTIONS);
 
       // Handle phase changes
-      if (data.phase === 'playing' || data.phase === 'guessing') {
+      if (phase === 'guessing') {
         // New game starting - reset score when on question 0
         if (data.currentQuestion === 0 && scoredQuestionRef.current === -1 && scoreRef.current > 0) {
           scoreRef.current = 0;
@@ -173,15 +176,13 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
           setCorrectAnswer(null);
         }
 
-        // When teacher shows the question, students can start answering
-        if (data.phase === 'guessing') {
-          playStartTimeRef.current = data.startedAt || data.playStartTime || Date.now();
-          setPlayStartTime(data.startedAt || data.playStartTime || Date.now());
-        }
+        // Students can start answering
+        playStartTimeRef.current = data.startedAt || data.playStartTime || Date.now();
+        setPlayStartTime(data.startedAt || data.playStartTime || Date.now());
       }
 
       // Handle finished - restore score from Firebase if component remounted
-      if (data.phase === 'finished') {
+      if (phase === 'finished') {
         const effectiveUserId = userId || localStorage.getItem('current-session-userId');
         if (effectiveUserId && scoreRef.current === 0 && studentsPath) {
           get(ref(db, `${studentsPath}/${effectiveUserId}/nteScore`))
@@ -197,7 +198,7 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
       }
 
       // Handle reveal
-      if (data.phase === 'revealed' && data.revealedAnswer) {
+      if (phase === 'revealed' && data.revealedAnswer) {
         setCorrectAnswer(data.revealedAnswer);
 
         const questionNum = data.currentQuestion || 0;
@@ -248,9 +249,11 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
-      const list = Object.entries(data).map(([id, s]) => ({
+      const list = Object.entries(data)
+        .filter(([, s]) => s.playerName || s.displayName)
+        .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName || 'Student',
+        name: s.playerName || s.displayName,
         score: s.nteScore || 0,
         playerColor: s.playerColor || '#3B82F6',
         playerEmoji: s.playerEmoji || '\uD83C\uDFB5'
@@ -280,11 +283,8 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
     if (studentsPath && userId) {
       const db = getDatabase();
       update(ref(db, `${studentsPath}/${userId}`), {
-        nteAnswer: {
-          answer: answerId,
-          answeredAt: Date.now(),
-          questionId: currentQuestion
-        }
+        nteAnswer: answerId,
+        nteAnswerTime: Date.now()
       });
     }
   };
@@ -491,10 +491,10 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
           </div>
         )}
 
-        {/* Playing - waiting for question to appear */}
-        {gamePhase === 'playing' && (
+        {/* Between rounds or other waiting states */}
+        {(gamePhase === 'playing' || gamePhase === 'between-rounds') && (
           <div className="text-center">
-            <p className="text-xl text-purple-200">Get ready...</p>
+            <p className="text-xl text-purple-200">Get ready for the next round...</p>
             <p className="text-sm text-purple-300 mt-2">Watch the main screen</p>
           </div>
         )}

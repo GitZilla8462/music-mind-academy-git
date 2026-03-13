@@ -23,6 +23,7 @@ import TeacherLessonView from '../../shared/components/TeacherLessonView';
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 import TransitionOverlay from '../../shared/components/TransitionOverlay';
+import ExitSessionButton from '../../../components/ExitSessionButton';
 import SectionalLoopBuilderActivity from '../../shared/activities/sectional-loop-builder/SectionalLoopBuilderActivity';
 
 const LESSON_PROGRESS_KEY = 'lesson3-progress';
@@ -170,7 +171,8 @@ const Lesson3 = () => {
     if (currentStageData?.type === 'summary') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8 relative">
+            <ExitSessionButton />
             <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-300">Your teacher will provide instruction</p>
@@ -179,12 +181,13 @@ const Lesson3 = () => {
         </>
       );
     }
-    
+
     // CLASS DEMO: Students see "Watch the Main Screen" for whole-class activities
     if (currentStageData?.type === 'class-demo') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8 relative">
+            <ExitSessionButton />
             <Gamepad2 className="w-32 h-32 mb-8 animate-pulse text-green-400" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-300">Follow along with the class demo</p>
@@ -194,7 +197,7 @@ const Lesson3 = () => {
         </>
       );
     }
-    
+
     // Section Safari Results - Show student their score and rank (BEFORE results type check!)
     if (currentStage === 'sectional-loop-builder-results') {
       return (
@@ -213,7 +216,8 @@ const Lesson3 = () => {
     if (currentStageData?.type === 'results') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8 relative">
+            <ExitSessionButton />
             <Trophy className="w-32 h-32 mb-8 animate-pulse text-yellow-400" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-300">Viewing game results and winners!</p>
@@ -222,12 +226,13 @@ const Lesson3 = () => {
         </>
       );
     }
-    
+
     // VIDEO STAGES: Students see static slide
     if (currentStageData?.type === 'video') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8 relative">
+            <ExitSessionButton />
             <Video className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-300">The video is playing on the projection screen</p>
@@ -236,12 +241,13 @@ const Lesson3 = () => {
         </>
       );
     }
-    
+
     // DISCUSSION/CONCLUSION STAGES: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'discussion' || currentStage === 'conclusion') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 text-white p-8 relative">
+            <ExitSessionButton />
             <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-300">Your teacher is leading a class discussion</p>

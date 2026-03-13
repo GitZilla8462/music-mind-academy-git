@@ -3,12 +3,13 @@
 
 import React, { useEffect } from 'react';
 import VirtualKeyboard from '../lessons/shared/activities/keyboard/VirtualKeyboard.jsx';
+import ExitSessionButton from './ExitSessionButton';
 
-const StudentWaitingScreen = ({ 
+const StudentWaitingScreen = ({
   lessonTitle = "Film Music - Lesson 1",
   currentStage = 'locked'
 }) => {
-  
+
   // Redirect when session ends
   useEffect(() => {
     if (currentStage === 'ended') {
@@ -21,16 +22,16 @@ const StudentWaitingScreen = ({
       if (isProduction) {
         redirectUrl = isEduSite ? 'https://musicroomtools.org/join' : 'https://musicmindacademy.com/join';
       }
-      
+
       // Wait 2 seconds before redirecting so user can see the message
       const timer = setTimeout(() => {
         window.location.href = redirectUrl;
       }, 2000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [currentStage]);
-  
+
   // Session ended - show message before redirect
   if (currentStage === 'ended') {
     return (
@@ -104,7 +105,8 @@ const StudentWaitingScreen = ({
         padding: '20px',
         textAlign: 'center',
         backgroundColor: 'rgba(0,0,0,0.3)',
-        borderBottom: '2px solid rgba(255,255,255,0.1)'
+        borderBottom: '2px solid rgba(255,255,255,0.1)',
+        position: 'relative'
       }}>
         <div style={{
           fontSize: '28px',
@@ -121,6 +123,7 @@ const StudentWaitingScreen = ({
         }}>
           {lessonTitle}
         </p>
+        <ExitSessionButton />
       </div>
 
       {/* Virtual Keyboard - fills the rest of the screen */}

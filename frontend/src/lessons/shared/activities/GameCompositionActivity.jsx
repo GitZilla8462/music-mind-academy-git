@@ -170,7 +170,7 @@ const GameCompositionActivity = ({
   const navigate = useNavigate();
 
   // Session mode detection
-  const { getCurrentStage, sessionCode } = useSession();
+  const { getCurrentStage, sessionCode, leaveSession } = useSession();
   // For class-based sessions, sessionCode is null — use classCode from URL params
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
@@ -383,8 +383,8 @@ const GameCompositionActivity = ({
   }, [studentId, selectedVideo, placedLoops, viewMode]);
 
   // Listen for teacher's save command from Firebase
+  // Uses refs to avoid stale closures — listener set up once, always reads latest state
   useEffect(() => {
-    // Don't set up listener until we have studentId ready
     if (!effectiveSessionCode || !isSessionMode || viewMode || !studentId) return;
 
     const db = getDatabase();
@@ -392,10 +392,8 @@ const GameCompositionActivity = ({
 
     const unsubscribe = onValue(saveCommandRef, (snapshot) => {
       const saveCommand = snapshot.val();
-
       if (!saveCommand) return;
 
-      // Only process save commands that were issued AFTER this component mounted
       if (saveCommand <= componentMountTimeRef.current) {
         lastSaveCommandRef.current = saveCommand;
         return;
@@ -405,25 +403,37 @@ const GameCompositionActivity = ({
         lastSaveCommandRef.current = saveCommand;
         console.log('💾 Teacher save command received for game composition!');
 
-        // Use state values (effect will recreate with fresh values when these change)
-        if (placedLoops.length > 0 && selectedVideo) {
-          handleManualSave(true); // Silent save
+        const currentLoops = placedLoopsRef.current;
+        const currentStudentId = studentIdRef.current;
+        const currentVideo = selectedVideoRef.current;
 
-          // Show toast notification
+        if (currentLoops.length > 0 && currentStudentId && currentVideo) {
+          saveStudentWork('game-composition', {
+            title: currentVideo.title,
+            emoji: currentVideo.emoji || '🎮',
+            viewRoute: '/lessons/film-music-project/lesson5?view=saved',
+            subtitle: `${currentLoops.length} loops • ${formatDuration(currentVideo.duration)}`,
+            category: 'Film Music Project',
+            data: {
+              placedLoops: currentLoops,
+              videoDuration: currentVideo.duration,
+              videoId: currentVideo.id,
+              videoTitle: currentVideo.title,
+              videoPath: currentVideo.videoPath,
+              videoEmoji: currentVideo.emoji,
+              timestamp: Date.now()
+            }
+          }, currentStudentId);
+          console.log('💾 Teacher-triggered save complete for game composition');
+
           setTeacherSaveToast(true);
           setTimeout(() => setTeacherSaveToast(false), 3000);
-        } else {
-          console.log('⚠️ Teacher save command received but nothing to save:', {
-            hasLoops: placedLoops.length > 0,
-            hasStudentId: !!studentId,
-            hasVideo: !!selectedVideo
-          });
         }
       }
     });
 
     return () => unsubscribe();
-  }, [effectiveSessionCode, isSessionMode, viewMode, studentId, placedLoops, selectedVideo]);
+  }, [effectiveSessionCode, isSessionMode, viewMode, studentId]);
 
   // Safety net: Save on unmount
   useEffect(() => {
@@ -823,9 +833,23 @@ const GameCompositionActivity = ({
               </>
             )}
 
-            <div className="text-xs text-gray-400">
-              {placedLoops.length} loops
-            </div>
+            {isSessionMode && (
+              <button
+                onClick={() => {
+                  if (window.confirm('Leave this session? Your saved work will still be available.')) {
+                    leaveSession();
+                    window.location.href = window.location.hostname === 'localhost'
+                      ? 'http://localhost:5173/join'
+                      : import.meta.env.VITE_SITE_MODE === 'edu'
+                        ? 'https://musicroomtools.org/join'
+                        : 'https://musicmindacademy.com/join';
+                  }
+                }}
+                className="px-3 py-1.5 text-sm rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
+              >
+                Exit Session
+              </button>
+            )}
 
             {lessonStartTime && !isSessionMode && (
               <div className="flex items-center gap-2 text-sm">

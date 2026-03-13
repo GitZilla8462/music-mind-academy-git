@@ -21,6 +21,7 @@ import LessonStartScreen from '../../shared/components/LessonStartScreen';
 import TeacherLessonView from '../../shared/components/TeacherLessonView'; // ✅ NEW
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
+import ExitSessionButton from '../../../components/ExitSessionButton';
 import TransitionOverlay from '../../shared/components/TransitionOverlay';
 import LayerDetectiveStudentView from '../../shared/activities/layer-detective/LayerDetectiveStudentView';
 
@@ -307,7 +308,7 @@ const Lesson2Content = () => {
     if (!currentStage || currentStage === 'join-code') {
       return <StudentWaitingScreen />;
     }
-    
+
     // Session has ended
     if (currentStage === 'ended') {
       console.log('📚 Session ended, redirecting to join page');
@@ -344,7 +345,8 @@ const Lesson2Content = () => {
     if (currentStageData?.type === 'summary') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8 relative">
+            <ExitSessionButton />
             <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>
@@ -353,12 +355,13 @@ const Lesson2Content = () => {
         </>
       );
     }
-    
+
     // CLASS DEMO: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'class-demo') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-900 via-red-900 to-pink-900 text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-900 via-red-900 to-pink-900 text-white p-8 relative">
+            <ExitSessionButton />
             <Gamepad2 className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-300">Follow along with the class demo</p>
@@ -367,12 +370,13 @@ const Lesson2Content = () => {
         </>
       );
     }
-    
+
     // VIDEO STAGES: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'video') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8 relative">
+            <ExitSessionButton />
             <Video className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-400">The video is playing on the projection screen</p>
@@ -381,12 +385,13 @@ const Lesson2Content = () => {
         </>
       );
     }
-    
+
     // RESULTS: Students see results
     if (currentStageData?.type === 'results') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 text-white p-8 relative">
+            <ExitSessionButton />
             <Trophy className="w-32 h-32 mb-8 animate-pulse text-yellow-400" />
             <h1 className="text-5xl font-bold mb-4">Great Job!</h1>
             <p className="text-2xl text-gray-300">Check the main screen to see final scores!</p>
@@ -398,12 +403,13 @@ const Lesson2Content = () => {
         </>
       );
     }
-    
+
     // DISCUSSION/CONCLUSION: Students see "Watch the Main Screen"
     if (currentStageData?.type === 'discussion' || currentStage === 'conclusion') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8 relative">
+            <ExitSessionButton />
             <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-400">Your teacher is leading a class discussion</p>

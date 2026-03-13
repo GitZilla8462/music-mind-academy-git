@@ -44,7 +44,7 @@ const SchoolBeneathActivity = ({
   const navigate = useNavigate();
 
   // Session mode detection
-  const { getCurrentStage, sessionCode } = useSession();
+  const { getCurrentStage, sessionCode, leaveSession } = useSession();
   // For class-based sessions, sessionCode is null — use classCode from URL params
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
@@ -56,6 +56,11 @@ const SchoolBeneathActivity = ({
   const componentMountTimeRef = useRef(Date.now());
   const isResettingRef = useRef(false); // Prevents unmount auto-save during reset
   const [teacherSaveToast, setTeacherSaveToast] = useState(false);
+
+  // Refs for latest state — used by save command handler and unmount save to avoid stale closures
+  const placedLoopsRef = useRef([]);
+  const videoDurationRef = useRef(null);
+  const studentIdRef = useRef('');
 
   // Reflection flow states
   const [showReflection, setShowReflection] = useState(false);
@@ -100,6 +105,11 @@ const SchoolBeneathActivity = ({
   const autoAdvanceCalledRef = useRef(false);
   const hasLoadedRef = useRef(false);
   const isSavingRef = useRef(false);
+
+  // Keep refs in sync with state (avoids stale closures in Firebase listeners)
+  useEffect(() => { placedLoopsRef.current = placedLoops; }, [placedLoops]);
+  useEffect(() => { videoDurationRef.current = videoDuration; }, [videoDuration]);
+  useEffect(() => { studentIdRef.current = studentId; }, [studentId]);
 
   // Timer sound hook (plays chime when timer ends)
   const { isMuted, toggleMute, playTimerEndSound } = useTimerSound();
@@ -160,6 +170,7 @@ const SchoolBeneathActivity = ({
       data: {
         placedLoops,
         videoDuration,
+        videoId: storageKey === 'adventure-composition' ? 'nature-drone' : 'school-beneath',
         videoTitle: title,
         videoPath: videoPath,
         timestamp: Date.now()
@@ -193,6 +204,8 @@ const SchoolBeneathActivity = ({
   }, [studentId, placedLoops, viewMode, title, videoPath, videoDuration]);
 
   // Listen for teacher's save command from Firebase
+  // Uses refs instead of state to avoid stale closures — this listener is set up ONCE
+  // and always reads the latest data from refs when the save command fires
   useEffect(() => {
     // Don't set up listener until we have studentId ready
     if (!effectiveSessionCode || !isSessionMode || viewMode || !studentId) return;
@@ -215,11 +228,35 @@ const SchoolBeneathActivity = ({
       // Only trigger if this is a new command (timestamp changed)
       if (saveCommand !== lastSaveCommandRef.current) {
         lastSaveCommandRef.current = saveCommand;
-        console.log('💾 Teacher save command received!');
 
-        // Trigger save
-        if (placedLoops.length > 0) {
-          handleManualSave(true); // Silent save
+        // Read latest state from refs (never stale)
+        const currentLoops = placedLoopsRef.current;
+        const currentDuration = videoDurationRef.current;
+        const currentStudentId = studentIdRef.current;
+
+        console.log('💾 Teacher save command received!', { loops: currentLoops.length, studentId: currentStudentId });
+
+        // Save directly using refs — bypasses isSavingRef guard so teacher saves ALWAYS go through
+        if (currentLoops.length > 0 && currentStudentId) {
+          saveStudentWork(storageKey, {
+            title: title,
+            emoji: storageKey === 'adventure-composition' ? '🏔️' : '🏫',
+            viewRoute: storageKey === 'adventure-composition'
+              ? '/lessons/film-music-project/lesson1?view=saved&activity=adventure'
+              : '/lessons/film-music-project/lesson1?view=saved',
+            subtitle: `${currentLoops.length} loops`,
+            category: 'Film Music Project',
+            data: {
+              placedLoops: currentLoops,
+              videoDuration: currentDuration,
+              videoId: storageKey === 'adventure-composition' ? 'nature-drone' : 'school-beneath',
+              videoTitle: title,
+              videoPath: videoPath,
+              timestamp: Date.now()
+            }
+          }, currentStudentId);
+
+          console.log('💾 Teacher-triggered save complete:', storageKey, currentLoops.length, 'loops');
 
           // Show toast notification
           setTeacherSaveToast(true);
@@ -229,7 +266,7 @@ const SchoolBeneathActivity = ({
     });
 
     return () => unsubscribe();
-  }, [effectiveSessionCode, isSessionMode, viewMode, placedLoops, studentId]);
+  }, [effectiveSessionCode, isSessionMode, viewMode, studentId, storageKey, title, videoPath]);
 
   // ✅ Auto-save on unmount (when student leaves the activity)
   // This ensures work is saved even if teacher triggers save while student is on another activity
@@ -240,21 +277,32 @@ const SchoolBeneathActivity = ({
         console.log('⏭️ Skipping unmount auto-save - reset in progress');
         return;
       }
-      if (isSessionMode && !viewMode && placedLoops.length > 0 && studentId) {
-        console.log('💾 Auto-saving composition on unmount...');
-        // Direct save logic since handleManualSave might be stale
-        const savedData = {
-          placedLoops,
-          videoDuration,
-          title,
-          videoPath,
-          savedAt: new Date().toISOString()
-        };
-        const key = `mma-saved-${storageKey}-${studentId}`;
-        localStorage.setItem(key, JSON.stringify(savedData));
+      // Use refs for latest state — closure values may be stale
+      const currentLoops = placedLoopsRef.current;
+      const currentDuration = videoDurationRef.current;
+      const currentStudentId = studentIdRef.current;
+      if (isSessionMode && !viewMode && currentLoops.length > 0 && currentStudentId) {
+        console.log('💾 Auto-saving composition on unmount...', currentLoops.length, 'loops');
+        // Save in proper saveStudentWork format so it appears on dashboard
+        saveStudentWork(storageKey, {
+          title: title,
+          emoji: storageKey === 'adventure-composition' ? '🏔️' : '🏫',
+          viewRoute: storageKey === 'adventure-composition'
+            ? '/lessons/film-music-project/lesson1?view=saved&activity=adventure'
+            : '/lessons/film-music-project/lesson1?view=saved',
+          subtitle: `${currentLoops.length} loops`,
+          category: 'Film Music Project',
+          data: {
+            placedLoops: currentLoops,
+            videoDuration: currentDuration,
+            videoTitle: title,
+            videoPath: videoPath,
+            timestamp: Date.now()
+          }
+        }, currentStudentId);
       }
     };
-  }, [isSessionMode, viewMode, placedLoops, studentId, videoDuration, title, videoPath, storageKey]);
+  }, [isSessionMode, viewMode, storageKey, title, videoPath]);
 
   // Load saved work on mount ONLY - includes manual saves and view mode (from Join page)
   // NOTE: We only load placedLoops here, NOT videoDuration - let video detection effect handle duration
@@ -604,6 +652,25 @@ const SchoolBeneathActivity = ({
                 className="px-4 py-1.5 text-sm rounded bg-green-600 hover:bg-green-700 font-bold transition-colors"
               >
                 💾 Save
+              </button>
+            )}
+
+            {/* Exit Session button */}
+            {isSessionMode && (
+              <button
+                onClick={() => {
+                  if (window.confirm('Leave this session? Your saved work will still be available.')) {
+                    leaveSession();
+                    window.location.href = window.location.hostname === 'localhost'
+                      ? 'http://localhost:5173/join'
+                      : import.meta.env.VITE_SITE_MODE === 'edu'
+                        ? 'https://musicroomtools.org/join'
+                        : 'https://musicmindacademy.com/join';
+                  }
+                }}
+                className="px-3 py-1.5 text-sm rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
+              >
+                Exit Session
               </button>
             )}
 

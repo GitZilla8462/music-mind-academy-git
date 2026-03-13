@@ -92,6 +92,7 @@ import TeacherLessonView from '../../shared/components/TeacherLessonView';
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 import TransitionOverlay from '../../shared/components/TransitionOverlay';
+import ExitSessionButton from '../../../components/ExitSessionButton';
 
 const LESSON_PROGRESS_KEY = 'fm-lesson1-progress';
 const LESSON_TIMER_KEY = 'fm-lesson1-timer';
@@ -264,7 +265,8 @@ const Lesson1 = () => {
       console.log('📺 Showing Watch the Main Screen for stage:', currentStage);
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8 relative">
+            <ExitSessionButton />
             <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>
@@ -278,7 +280,8 @@ const Lesson1 = () => {
     if (currentStageData?.type === 'demo') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8 relative">
+            <ExitSessionButton />
             <Music className="w-32 h-32 mb-8 animate-pulse text-orange-400" />
             <h1 className="text-5xl font-bold mb-4">Listen Carefully!</h1>
             <p className="text-2xl text-gray-300">Can you identify the character from the music?</p>
@@ -293,7 +296,8 @@ const Lesson1 = () => {
     if (currentStageData?.type === 'video') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8 relative">
+            <ExitSessionButton />
             <Video className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-400">The video is playing on the projection screen</p>
@@ -307,7 +311,8 @@ const Lesson1 = () => {
     if (currentStageData?.type === 'discussion') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8 relative">
+            <ExitSessionButton />
             <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-400">Your teacher is leading a class discussion</p>

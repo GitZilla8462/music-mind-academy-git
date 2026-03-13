@@ -24,18 +24,18 @@ const INSTRUMENT_CONFIGS = [
     facts: ['PITCHED — can play specific notes', 'Pedal changes pitch by tightening the drumhead', 'Powerful moments in Mountain King\'s dramatic climax!']
   },
   {
-    id: 'xylophone',
-    name: 'Xylophone',
+    id: 'marimba',
+    name: 'Marimba',
     emoji: '🎵',
     color: '#8B5CF6', // purple
     category: 'Pitched',
-    description: 'Wooden bars struck with mallets — bright and sparkling',
+    description: 'Wooden bars struck with mallets — warm and resonant',
     videoPath: '/lessons/listening-lab/lesson3/videos/xylophone-demo.mp4',
     startTime: 0,
     endTime: 9999,
     volume: 0.8,
     credit: 'Daniel Hallet — Keiko Abe: Prism Rhapsody, MYAC Symphony Orchestra (CC BY)',
-    facts: ['PITCHED — plays specific notes', 'Wooden bars arranged like piano keys', 'Bright, sharp tone that cuts through the orchestra']
+    facts: ['PITCHED — plays specific notes', 'Wooden bars with resonator tubes underneath', 'Warm, rich tone with a wide range']
   },
   {
     id: 'snare-drum',
@@ -324,7 +324,7 @@ const PercussionFamilyShowcase = ({ onAdvance }) => {
             <div className="flex justify-center gap-8 mb-10">
               <div className="bg-amber-500/20 rounded-xl px-6 py-3">
                 <span className="text-xl font-bold text-amber-300">Pitched</span>
-                <span className="text-lg text-white/80 ml-2">= plays NOTES (Timpani, Xylophone)</span>
+                <span className="text-lg text-white/80 ml-2">= plays NOTES (Timpani, Marimba)</span>
               </div>
               <div className="bg-blue-500/20 rounded-xl px-6 py-3">
                 <span className="text-xl font-bold text-blue-300">Unpitched</span>

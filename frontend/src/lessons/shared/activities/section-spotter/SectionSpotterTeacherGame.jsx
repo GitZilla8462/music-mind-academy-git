@@ -129,9 +129,11 @@ const SectionSpotterTeacherGame = ({ sessionData, onComplete, pieceId = 'mountai
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
-      const list = Object.entries(data).map(([id, s]) => ({
+      const list = Object.entries(data)
+        .filter(([, s]) => s.playerName || s.displayName)
+        .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName || 'Student',
+        name: s.playerName || s.displayName,
         score: s.sectionSpotterScore || 0,
         answer: s.sectionSpotterAnswer,
         answerTime: s.sectionSpotterAnswerTime,

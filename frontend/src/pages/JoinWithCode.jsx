@@ -239,6 +239,13 @@ function JoinWithCode() {
                 )}
               </button>
 
+              <button
+                onClick={() => navigate('/student/home')}
+                className="w-full mt-3 bg-white hover:bg-gray-50 text-gray-600 font-medium py-2.5 px-4 rounded-lg border border-gray-300 transition-colors text-sm"
+              >
+                Go to Dashboard
+              </button>
+
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm text-center mt-3">
                   {error}

@@ -124,9 +124,11 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
     const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
     const unsubStudents = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
-      const list = Object.entries(data).map(([id, s]) => ({
+      const list = Object.entries(data)
+        .filter(([, s]) => s.playerName || s.displayName)
+        .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName || 'Student',
+        name: s.playerName || s.displayName,
         score: s.dynamicsDashScore || 0,
         playerColor: s.playerColor || '#3B82F6',
         playerEmoji: s.playerEmoji || '🎵'

@@ -369,7 +369,7 @@ export const lessonStages = [
         {
           heading: 'Two Types of Percussion',
           bullets: [
-            'PITCHED — can play specific notes (timpani, xylophone, marimba)',
+            'PITCHED — can play specific notes (timpani, marimba)',
             'UNPITCHED — no specific pitch, just rhythm and color (snare drum, bass drum, cymbals)',
             'Percussion instruments are played by striking, shaking, or scraping'
           ]

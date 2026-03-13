@@ -18,99 +18,99 @@ import { getDatabase, ref, update, onValue } from 'firebase/database';
 // QUESTIONS DATA
 // ============================================================
 const QUESTIONS = [
-  // Round 1 - Term Identification
+  // Round 1 - Warm Up (mix of terms, some less obvious)
   {
     id: 'q1',
     round: 1,
-    prompt: 'Crescendo',
+    prompt: 'Forte (f)',
     type: 'dynamics',
-    explanation: 'Getting louder \u2014 that\'s dynamics!'
+    explanation: 'Forte means loud \u2014 that\'s about volume = dynamics!'
   },
   {
     id: 'q2',
     round: 1,
-    prompt: 'Allegro',
+    prompt: 'Accelerando',
     type: 'tempo',
-    explanation: 'Fast \u2014 that\'s tempo!'
+    explanation: 'Gradually speeding up \u2014 that\'s tempo, not dynamics!'
   },
   {
     id: 'q3',
     round: 1,
-    prompt: 'Rondo',
+    prompt: 'Coda',
     type: 'form',
-    explanation: 'ABACADA \u2014 that\'s form!'
+    explanation: 'A coda is the ending section of a piece \u2014 that\'s form!'
   },
   {
     id: 'q4',
     round: 1,
-    prompt: 'Pianissimo (pp)',
-    type: 'dynamics',
-    explanation: 'Very soft \u2014 that\'s dynamics!'
+    prompt: 'Ritardando',
+    type: 'tempo',
+    explanation: 'Gradually slowing down \u2014 that\'s tempo!'
   },
-  // Round 2 - Description
+  // Round 2 - Think About It (descriptions requiring careful thinking)
   {
     id: 'q5',
     round: 2,
-    prompt: 'The music suddenly gets much louder',
+    prompt: 'The guitarist strums softer and softer until you can barely hear it',
     type: 'dynamics',
-    explanation: 'A sudden change in volume is dynamics!'
+    explanation: 'Getting quieter is a volume change \u2014 decrescendo = dynamics!'
   },
   {
     id: 'q6',
     round: 2,
-    prompt: 'The A section comes back after B',
+    prompt: 'After the guitar solo, the main theme returns',
     type: 'form',
-    explanation: 'Sections repeating = form (ABA)!'
+    explanation: 'A theme returning is about structure \u2014 that\'s form!'
   },
   {
     id: 'q7',
     round: 2,
-    prompt: 'The beat slows down gradually',
+    prompt: 'The drummer gradually picks up speed through the verse',
     type: 'tempo',
-    explanation: 'Slowing down = ritardando \u2014 that\'s tempo!'
+    explanation: 'Picking up speed = accelerando \u2014 that\'s tempo!'
   },
   {
     id: 'q8',
     round: 2,
-    prompt: 'The music is organized A-B-A-C-A-D-A',
-    type: 'form',
-    explanation: 'That pattern is rondo form!'
+    prompt: 'In the last section, every instrument drops to a whisper',
+    type: 'dynamics',
+    explanation: '"Drops to a whisper" = getting very quiet \u2014 dynamics! Don\'t be tricked by "section"!'
   },
-  // Round 3 - Expert
+  // Round 3 - Expert Challenge (genuinely tricky)
   {
     id: 'q9',
     round: 3,
-    prompt: 'Decrescendo',
+    prompt: 'Sforzando (sfz)',
     type: 'dynamics',
-    explanation: 'Getting softer \u2014 that\'s dynamics!'
+    explanation: 'Sforzando means a sudden strong accent \u2014 that\'s dynamics!'
   },
   {
     id: 'q10',
     round: 3,
-    prompt: 'The orchestra races through the melody',
+    prompt: 'The march transitions from a walk to a sprint',
     type: 'tempo',
-    explanation: 'Racing = presto \u2014 that\'s tempo!'
+    explanation: 'Walk to sprint = slow to fast \u2014 that\'s tempo, not dynamics!'
   },
   {
     id: 'q11',
     round: 3,
-    prompt: 'Episode',
+    prompt: 'Verse \u2192 Chorus \u2192 Verse \u2192 Chorus \u2192 Bridge \u2192 Chorus',
     type: 'form',
-    explanation: 'An episode is a section in rondo form!'
+    explanation: 'The order sections appear in = the structure = form!'
   },
   {
     id: 'q12',
     round: 3,
-    prompt: 'The music whispers, then SHOUTS',
-    type: 'dynamics',
-    explanation: 'p to ff \u2014 that\'s dynamics!'
+    prompt: 'Rubato',
+    type: 'tempo',
+    explanation: 'Rubato means flexible timing/speed \u2014 that\'s tempo!'
   }
 ];
 
 const ROUND_NAMES = {
-  1: 'Term Identification',
-  2: 'Description',
-  3: 'Expert'
+  1: 'Warm Up',
+  2: 'Think About It',
+  3: 'Expert Challenge'
 };
 
 // Category definitions
@@ -192,9 +192,11 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
-      const list = Object.entries(data).map(([id, s]) => ({
+      const list = Object.entries(data)
+        .filter(([, s]) => s.playerName || s.displayName)
+        .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName || 'Student',
+        name: s.playerName || s.displayName,
         score: s.nteScore || 0,
         answer: s.nteAnswer,
         answerTime: s.nteAnswerTime,
@@ -444,31 +446,31 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
             {/* ==================== SETUP ==================== */}
             {gamePhase === 'setup' && (
               <div className="text-center">
-                <div className="text-9xl mb-6">{'\uD83C\uDFAF'}</div>
-                <h2 className="text-5xl font-bold mb-4">Name That Element</h2>
-                <p className="text-2xl text-white/70 mb-6">Is it Dynamics, Tempo, or Form?</p>
+                <div className="text-7xl mb-3">{'\uD83C\uDFAF'}</div>
+                <h2 className="text-4xl font-bold mb-2">Name That Element</h2>
+                <p className="text-xl text-white/70 mb-4">Is it Dynamics, Tempo, or Form?</p>
 
                 {/* Category preview */}
-                <div className="flex gap-6 justify-center mb-8">
+                <div className="flex gap-4 justify-center mb-4">
                   {Object.entries(CATEGORIES).map(([key, cat]) => (
                     <div
                       key={key}
-                      className="px-8 py-4 rounded-2xl text-center"
+                      className="px-6 py-3 rounded-2xl text-center"
                       style={{ backgroundColor: cat.color }}
                     >
-                      <div className="text-4xl mb-1">{cat.emoji}</div>
-                      <div className="text-2xl font-black">{cat.label}</div>
+                      <div className="text-3xl mb-1">{cat.emoji}</div>
+                      <div className="text-xl font-black">{cat.label}</div>
                     </div>
                   ))}
                 </div>
 
-                <p className="text-xl text-white/50 mb-8">3 rounds &middot; 4 questions each &middot; Speed bonus for fast answers!</p>
+                <p className="text-lg text-white/50 mb-5">3 rounds &middot; 4 questions each &middot; Speed bonus for fast answers!</p>
 
                 <button
                   onClick={startGame}
-                  className="px-10 py-5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-2xl text-3xl font-bold hover:scale-105 transition-all flex items-center gap-3 mx-auto"
+                  className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-3 mx-auto"
                 >
-                  <Play size={40} /> Start Game
+                  <Play size={32} /> Start Game
                 </button>
               </div>
             )}

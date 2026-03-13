@@ -70,7 +70,7 @@ export const summarySlides = {
         description: 'Can play specific NOTES',
         instruments: [
           { name: 'Timpani', description: 'Large drums with pedals to change pitch', color: '#F59E0B' },
-          { name: 'Xylophone', description: 'Wooden bars struck with mallets', color: '#8B5CF6' }
+          { name: 'Marimba', description: 'Wooden bars struck with mallets', color: '#8B5CF6' }
         ]
       },
       {
@@ -391,7 +391,7 @@ export const vocabulary = [
   { term: 'Trombone', definition: 'Brass instrument that uses a slide — "big trumpet" in Italian' },
   { term: 'Tuba', definition: 'Lowest brass instrument — deep, powerful foundation' },
   { term: 'Percussion', definition: 'Instruments that produce sound by being struck, shaken, or scraped' },
-  { term: 'Pitched', definition: 'Percussion that plays specific notes (timpani, xylophone)' },
+  { term: 'Pitched', definition: 'Percussion that plays specific notes (timpani, marimba)' },
   { term: 'Unpitched', definition: 'Percussion with no specific note (snare, cymbals)' },
   { term: 'Timpani', definition: 'Large pitched drums — the "thunder" of the orchestra' },
   { term: 'Form', definition: 'The overall structure or blueprint of a piece of music' },

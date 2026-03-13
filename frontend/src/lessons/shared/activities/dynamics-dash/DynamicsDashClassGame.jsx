@@ -83,15 +83,17 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
-      const list = Object.entries(data).map(([id, s]) => ({
-        id,
-        name: s.playerName || s.displayName || 'Student',
-        score: s.dynamicsDashScore || 0,
-        answer: s.dynamicsDashAnswer,
-        answerTime: s.dynamicsDashAnswerTime,
-        playerColor: s.playerColor || '#3B82F6',
-        playerEmoji: s.playerEmoji || '🎵'
-      }));
+      const list = Object.entries(data)
+        .filter(([, s]) => s.playerName || s.displayName)
+        .map(([id, s]) => ({
+          id,
+          name: s.playerName || s.displayName,
+          score: s.dynamicsDashScore || 0,
+          answer: s.dynamicsDashAnswer,
+          answerTime: s.dynamicsDashAnswerTime,
+          playerColor: s.playerColor || '#3B82F6',
+          playerEmoji: s.playerEmoji || '🎵'
+        }));
 
       setStudents(list);
       setLockedCount(list.filter(s => s.answer).length);

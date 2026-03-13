@@ -214,9 +214,11 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
-      const list = Object.entries(data).map(([id, s]) => ({
+      const list = Object.entries(data)
+        .filter(([, s]) => s.playerName || s.displayName || s.name)
+        .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName || s.name || 'Student',
+        name: s.playerName || s.displayName || s.name,
         score: s.score || 0,
         streak: s.streak || 0,
         currentAnswer: s.currentAnswer,

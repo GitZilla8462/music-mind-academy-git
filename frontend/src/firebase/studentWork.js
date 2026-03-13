@@ -20,6 +20,24 @@ export const saveStudentWork = async (studentUid, classId, lessonId, activityId,
   const workKey = `${lessonId}-${activityId}`;
   const workRef = ref(database, `studentWork/${studentUid}/${workKey}`);
 
+  // Check if record already exists to preserve status/submittedAt on re-saves
+  const existingSnap = await get(workRef);
+  const existing = existingSnap.exists() ? existingSnap.val() : null;
+
+  if (existing) {
+    // Update only the work data fields — preserve status, submittedAt, createdAt
+    await update(workRef, {
+      data: workData.data || workData,
+      title: workData.title || existing.title || activityId,
+      emoji: workData.emoji || existing.emoji || '🎵',
+      type: workData.type || existing.type || 'composition',
+      updatedAt: Date.now()
+    });
+    console.log(`Updated work: ${workKey} for student ${studentUid}`);
+    return { ...existing, data: workData.data || workData, updatedAt: Date.now() };
+  }
+
+  // First save — create the full record
   const fullWorkData = {
     workId: workKey,
     studentUid,
@@ -31,7 +49,7 @@ export const saveStudentWork = async (studentUid, classId, lessonId, activityId,
     data: workData.data || workData,
     title: workData.title || activityId,
     emoji: workData.emoji || '🎵',
-    createdAt: workData.createdAt || Date.now(),
+    createdAt: Date.now(),
     updatedAt: Date.now(),
     submittedAt: null
   };
@@ -119,13 +137,15 @@ export const submitStudentWork = async (studentUid, lessonId, activityId, classI
   const isResubmission = existing && (existing.status === 'graded' || existing.resubmittedAt);
 
   if (isResubmission) {
-    // Resubmission — preserve history, mark as resubmitted
+    // Resubmission — preserve history, mark as resubmitted, refresh workKey + title
     const resubmitCount = (existing.resubmitCount || 0) + 1;
     await update(submissionRef, {
       status: 'pending',
       submittedAt: now,
       resubmittedAt: now,
-      resubmitCount
+      resubmitCount,
+      workKey,
+      title: workData.title || existing.title
     });
     console.log(`Resubmitted work: ${workKey} for student ${studentUid} (attempt ${resubmitCount + 1})`);
   } else {

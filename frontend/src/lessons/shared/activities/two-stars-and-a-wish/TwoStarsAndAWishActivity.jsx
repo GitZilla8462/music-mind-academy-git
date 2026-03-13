@@ -28,7 +28,11 @@ const LESSON_CONFIGS = {
     localStorageKeys: [],
     studentWorkKey: 'adventure-composition',
     reflectionKey: 'adventure-reflection',
-    video: null,
+    video: {
+      id: 'nature-drone',
+      title: 'Score the Adventure',
+      videoPath: '/lessons/film-music-project/lesson1/NatureDroneFootage.mp4'
+    },
     filterLoopCategory: null
   },
   'city-composition': {
@@ -61,40 +65,26 @@ const LESSON_CONFIGS = {
   }
 };
 
-// Helper function to load composition data (pure function, no state updates)
-const loadCompositionFromStorage = () => {
-  // Try each lesson's storage keys in order
-  for (const [lessonId, config] of Object.entries(LESSON_CONFIGS)) {
-    // First try direct localStorage keys
-    for (const key of config.localStorageKeys || []) {
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        try {
-          const data = JSON.parse(saved);
-          console.log(`Found composition in localStorage: ${key}`);
-          return {
-            lessonType: lessonId,
-            data: {
-              placedLoops: data.placedLoops || [],
-              requirements: data.requirements || {},
-              videoDuration: data.videoDuration || 60,
-              videoId: data.videoId || null,
-              videoTitle: data.videoTitle || null,
-              videoPath: data.videoPath || null
-            }
-          };
-        } catch (error) {
-          console.error(`Error loading composition from ${key}:`, error);
-        }
-      }
-    }
+// Map URL paths to the correct composition storage key
+const getLessonKeyFromUrl = () => {
+  const path = window.location.pathname;
+  if (path.includes('lesson1')) return 'adventure-composition';
+  if (path.includes('lesson2')) return 'city-composition';
+  if (path.includes('lesson3')) return 'wildlife-composition';
+  if (path.includes('lesson4')) return 'sports-composition';
+  if (path.includes('lesson5')) return 'game-composition';
+  return null;
+};
 
-    // Then try studentWorkStorage
-    if (config.studentWorkKey) {
-      const savedWork = loadStudentWork(config.studentWorkKey);
-      if (savedWork && savedWork.data) {
-        console.log(`Found composition in studentWorkStorage: ${config.studentWorkKey}`);
-        const data = savedWork.data;
+// Try to load a specific lesson's composition
+const tryLoadLesson = (lessonId, config) => {
+  // First try direct localStorage keys
+  for (const key of config.localStorageKeys || []) {
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        console.log(`Found composition in localStorage: ${key}`);
         return {
           lessonType: lessonId,
           data: {
@@ -106,8 +96,48 @@ const loadCompositionFromStorage = () => {
             videoPath: data.videoPath || null
           }
         };
+      } catch (error) {
+        console.error(`Error loading composition from ${key}:`, error);
       }
     }
+  }
+
+  // Then try studentWorkStorage
+  if (config.studentWorkKey) {
+    const savedWork = loadStudentWork(config.studentWorkKey);
+    if (savedWork && savedWork.data) {
+      console.log(`Found composition in studentWorkStorage: ${config.studentWorkKey}`);
+      const data = savedWork.data;
+      return {
+        lessonType: lessonId,
+        data: {
+          placedLoops: data.placedLoops || [],
+          requirements: data.requirements || {},
+          videoDuration: data.videoDuration || 60,
+          videoId: data.videoId || null,
+          videoTitle: data.videoTitle || null,
+          videoPath: data.videoPath || null
+        }
+      };
+    }
+  }
+  return null;
+};
+
+// Helper function to load composition data (pure function, no state updates)
+const loadCompositionFromStorage = () => {
+  // First, try the current lesson based on URL
+  const currentLessonKey = getLessonKeyFromUrl();
+  if (currentLessonKey && LESSON_CONFIGS[currentLessonKey]) {
+    const result = tryLoadLesson(currentLessonKey, LESSON_CONFIGS[currentLessonKey]);
+    if (result) return result;
+  }
+
+  // Fallback: try all lessons in order
+  for (const [lessonId, config] of Object.entries(LESSON_CONFIGS)) {
+    if (lessonId === currentLessonKey) continue; // Already tried
+    const result = tryLoadLesson(lessonId, config);
+    if (result) return result;
   }
   return null;
 };
@@ -269,19 +299,35 @@ const TwoStarsAndAWishActivity = ({
         ...lessonConfig.video,
         duration: compositionData?.videoDuration || 60
       };
-    } else if (compositionData?.videoId) {
-      // Use video from composition data (e.g., Game Composition)
-      // Map video IDs to paths for Lesson 5 game videos
-      const gameVideoPaths = {
+    } else if (compositionData?.videoId || compositionData?.videoPath) {
+      // Map ALL video IDs to their file paths across all lessons
+      const allVideoPaths = {
+        // Adventure (Lesson 1)
+        'nature-drone': '/lessons/film-music-project/lesson1/NatureDroneFootage.mp4',
+        // City (Lesson 2)
+        'nyc': '/lessons/film-music-project/lesson2/NYCMontage.mp4',
+        'paris': '/lessons/film-music-project/lesson2/ParisMontage.mp4',
+        'madrid': '/lessons/film-music-project/lesson2/MadridMontage.mp4',
+        'tokyo': '/lessons/film-music-project/lesson2/TokyoMontage.mp4',
+        // Wildlife (Lesson 3)
+        'forest': '/lessons/film-music-project/lesson3/slides/ForestCreatures.mp4',
+        'savanna': '/lessons/film-music-project/lesson3/slides/SavannaCreatures.mp4',
+        'underwater': '/lessons/film-music-project/lesson3/slides/UnderwaterCreatures.mp4',
+        // Sports (Lesson 4)
+        'soccer': '/lessons/film-music-project/lesson4/SoccerHighlightReel.mp4',
+        'basketball': '/lessons/film-music-project/lesson4/BasketballHighlightReel.mp4',
+        'skateboarding': '/lessons/film-music-project/lesson4/SkateboardHighlighReel.mp4',
+        // Game (Lesson 5)
         'grow-a-garden': '/lessons/film-music-project/GrowAGarden.mp4',
         'minecraft': '/lessons/film-music-project/MinecraftGameplay.mp4',
         'unpacking': '/lessons/film-music-project/Unpacking.mp4'
       };
+      const resolvedPath = (compositionData.videoId && allVideoPaths[compositionData.videoId]) || compositionData.videoPath;
       return {
-        id: compositionData.videoId,
-        title: compositionData.videoTitle || 'Game Video',
+        id: compositionData.videoId || 'composition-video',
+        title: compositionData.videoTitle || 'Video',
         duration: compositionData.videoDuration || 60,
-        videoPath: gameVideoPaths[compositionData.videoId] || compositionData.videoPath
+        videoPath: resolvedPath
       };
     }
     // Fallback

@@ -107,7 +107,7 @@ const CityCompositionActivity = ({
   const navigate = useNavigate();
   
   // Session mode detection
-  const { getCurrentStage, sessionCode } = useSession();
+  const { getCurrentStage, sessionCode, leaveSession } = useSession();
   // For class-based sessions, sessionCode is null — use classCode from URL params
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
@@ -337,35 +337,52 @@ const CityCompositionActivity = ({
     return () => clearInterval(autoSaveInterval);
   }, [studentId, selectedVideo, placedLoops, viewMode]);
 
-  // ✅ Auto-save on unmount (when student leaves the activity)
-  // This ensures work is saved even if teacher triggers save while student is on another activity
+  // Refs for latest state — used by save command handler and unmount save to avoid stale closures
+  const placedLoopsRef = useRef(placedLoops);
+  const studentIdRef = useRef(studentId);
+  const selectedVideoRef = useRef(selectedVideo);
+  const videoDurationRef = useRef(videoDuration);
+  useEffect(() => { placedLoopsRef.current = placedLoops; }, [placedLoops]);
+  useEffect(() => { studentIdRef.current = studentId; }, [studentId]);
+  useEffect(() => { selectedVideoRef.current = selectedVideo; }, [selectedVideo]);
+  useEffect(() => { videoDurationRef.current = videoDuration; }, [videoDuration]);
+
+  // ✅ Auto-save on unmount — uses refs for latest state, proper saveStudentWork format
   useEffect(() => {
     return () => {
-      // Skip auto-save if reset was just triggered (prevents re-saving cleared work)
       if (isResettingRef.current) {
         console.log('⏭️ Skipping unmount auto-save - reset in progress');
         return;
       }
-      if (isSessionMode && !viewMode && placedLoops.length > 0 && studentId && selectedVideo) {
-        console.log('💾 Auto-saving city composition on unmount...');
-        const savedData = {
-          placedLoops,
-          videoDuration,
-          requirements: { minLoops: 5, completed: placedLoops.length >= 5 },
-          videoId: selectedVideo.id,
-          videoTitle: selectedVideo.title,
-          videoPath: selectedVideo.videoPath,
-          savedAt: new Date().toISOString()
-        };
-        const key = `mma-saved-city-soundscapes-${studentId}`;
-        localStorage.setItem(key, JSON.stringify(savedData));
+      const currentLoops = placedLoopsRef.current;
+      const currentStudentId = studentIdRef.current;
+      const currentVideo = selectedVideoRef.current;
+      const currentDuration = videoDurationRef.current;
+      if (isSessionMode && !viewMode && currentLoops.length > 0 && currentStudentId && currentVideo) {
+        console.log('💾 Auto-saving city composition on unmount...', currentLoops.length, 'loops');
+        saveStudentWork('city-composition', {
+          title: currentVideo.title || 'City Soundscape',
+          emoji: currentVideo.emoji || '🏙️',
+          viewRoute: '/lessons/film-music-project/lesson2?view=saved',
+          subtitle: `${currentLoops.length} loops`,
+          category: 'Film Music Project',
+          data: {
+            placedLoops: currentLoops,
+            videoDuration: currentDuration,
+            videoId: currentVideo.id,
+            videoTitle: currentVideo.title,
+            videoPath: currentVideo.videoPath,
+            videoEmoji: currentVideo.emoji,
+            timestamp: Date.now()
+          }
+        }, currentStudentId);
       }
     };
-  }, [isSessionMode, viewMode, placedLoops, studentId, selectedVideo, videoDuration]);
+  }, [isSessionMode, viewMode]);
 
   // ✅ Listen for teacher's save command from Firebase
+  // Uses refs to avoid stale closures — listener set up once, always reads latest state
   useEffect(() => {
-    // Don't set up listener until we have studentId ready
     if (!effectiveSessionCode || !isSessionMode || viewMode || !studentId) return;
 
     const db = getDatabase();
@@ -373,10 +390,8 @@ const CityCompositionActivity = ({
 
     const unsubscribe = onValue(saveCommandRef, (snapshot) => {
       const saveCommand = snapshot.val();
-
       if (!saveCommand) return;
 
-      // Only process save commands that were issued AFTER this component mounted
       if (saveCommand <= componentMountTimeRef.current) {
         lastSaveCommandRef.current = saveCommand;
         return;
@@ -386,10 +401,30 @@ const CityCompositionActivity = ({
         lastSaveCommandRef.current = saveCommand;
         console.log('💾 Teacher save command received for city composition!');
 
-        if (placedLoops.length > 0 && selectedVideo) {
-          handleManualSave(true); // Silent save
+        const currentLoops = placedLoopsRef.current;
+        const currentStudentId = studentIdRef.current;
+        const currentVideo = selectedVideoRef.current;
+        const currentDuration = videoDurationRef.current;
 
-          // Show toast notification
+        if (currentLoops.length > 0 && currentStudentId && currentVideo) {
+          saveStudentWork('city-composition', {
+            title: currentVideo.title || 'City Soundscape',
+            emoji: currentVideo.emoji || '🏙️',
+            viewRoute: '/lessons/film-music-project/lesson2?view=saved',
+            subtitle: `${currentLoops.length} loops`,
+            category: 'Film Music Project',
+            data: {
+              placedLoops: currentLoops,
+              videoDuration: currentDuration,
+              videoId: currentVideo.id,
+              videoTitle: currentVideo.title,
+              videoPath: currentVideo.videoPath,
+              videoEmoji: currentVideo.emoji,
+              timestamp: Date.now()
+            }
+          }, currentStudentId);
+          console.log('💾 Teacher-triggered save complete for city composition');
+
           setTeacherSaveToast(true);
           setTimeout(() => setTeacherSaveToast(false), 3000);
         }
@@ -397,7 +432,7 @@ const CityCompositionActivity = ({
     });
 
     return () => unsubscribe();
-  }, [effectiveSessionCode, isSessionMode, viewMode, studentId, placedLoops, selectedVideo]);
+  }, [effectiveSessionCode, isSessionMode, viewMode, studentId]);
 
   // Load saved work on mount ONLY - includes manual saves
   // ✅ FIXED: Use ref instead of sessionStorage so refresh reloads saved work
@@ -818,10 +853,24 @@ const CityCompositionActivity = ({
               </button>
             )}
             
-            <div className="text-xs text-gray-400">
-              {placedLoops.length} loops
-            </div>
-            
+            {isSessionMode && (
+              <button
+                onClick={() => {
+                  if (window.confirm('Leave this session? Your saved work will still be available.')) {
+                    leaveSession();
+                    window.location.href = window.location.hostname === 'localhost'
+                      ? 'http://localhost:5173/join'
+                      : import.meta.env.VITE_SITE_MODE === 'edu'
+                        ? 'https://musicroomtools.org/join'
+                        : 'https://musicmindacademy.com/join';
+                  }
+                }}
+                className="px-3 py-1.5 text-sm rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
+              >
+                Exit Session
+              </button>
+            )}
+
             {lessonStartTime && !isSessionMode && (
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-gray-400">Time:</span>

@@ -16,9 +16,10 @@ const LayerDetectivePresentationView = ({ sessionData, onEndActivity }) => {
     if (!sessionData?.studentsJoined) return;
     
     const students = Object.entries(sessionData.studentsJoined)
+      .filter(([, data]) => data.playerName || data.displayName || data.name)
       .map(([id, data]) => ({
         id,
-        name: data.playerName || data.displayName || data.name || 'Student',  // ✅ Check playerName FIRST
+        name: data.playerName || data.displayName || data.name,  // ✅ Check playerName FIRST
         score: data.score || 0,
         playerColor: data.playerColor || '#3B82F6',        // ✅ Player color
         playerEmoji: data.playerEmoji || '🎵',             // ✅ Player emoji

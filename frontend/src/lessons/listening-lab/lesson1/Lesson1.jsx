@@ -22,6 +22,7 @@ import TeacherLessonView from '../../shared/components/TeacherLessonView';
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 import TransitionOverlay from '../../shared/components/TransitionOverlay';
+import ExitSessionButton from '../../../components/ExitSessionButton';
 
 const LESSON_PROGRESS_KEY = 'listening-lab-lesson1-progress';
 const LESSON_TIMER_KEY = 'listening-lab-lesson1-timer';
@@ -193,7 +194,8 @@ const Lesson1 = () => {
       console.log('📺 Showing Watch the Main Screen for stage:', currentStage);
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8 relative">
+            <ExitSessionButton />
             <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>
@@ -212,7 +214,8 @@ const Lesson1 = () => {
     if (currentStageData?.type === 'video' || currentStageData?.type === 'demo') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8 relative">
+            <ExitSessionButton />
             <Video className="w-32 h-32 mb-8 text-purple-400" />
             <h1 className="text-5xl font-bold mb-4">Watch the Video</h1>
             <p className="text-2xl text-gray-400">Look at the main screen</p>
@@ -255,7 +258,8 @@ const Lesson1 = () => {
     // Fallback - watch main screen
     return (
       <>
-        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+        <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8 relative">
+          <ExitSessionButton />
           <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
           <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
           <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>

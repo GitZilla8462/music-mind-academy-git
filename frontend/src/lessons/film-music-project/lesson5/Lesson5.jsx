@@ -22,6 +22,7 @@ import TeacherLessonView from '../../shared/components/TeacherLessonView';
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 import TransitionOverlay from '../../shared/components/TransitionOverlay';
+import ExitSessionButton from '../../../components/ExitSessionButton';
 
 const LESSON_PROGRESS_KEY = 'lesson5-progress';
 const LESSON_TIMER_KEY = 'lesson5-timer';
@@ -191,7 +192,8 @@ const Lesson5 = () => {
     if (currentStageData?.type === 'summary') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8 relative">
+            <ExitSessionButton />
             <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>
@@ -205,7 +207,8 @@ const Lesson5 = () => {
     if (currentStageData?.type === 'class-demo') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white p-8 relative">
+            <ExitSessionButton />
             <Music className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-300">Follow along with the class demo</p>
@@ -220,7 +223,8 @@ const Lesson5 = () => {
     if (currentStageData?.type === 'demo') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white p-8 relative">
+            <ExitSessionButton />
             <Music className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-300">Follow along with the demo</p>
@@ -235,7 +239,8 @@ const Lesson5 = () => {
     if (currentStageData?.type === 'results') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 text-white p-8 relative">
+            <ExitSessionButton />
             <Trophy className="w-32 h-32 mb-8 animate-pulse text-yellow-400" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-300">Viewing game results and scores</p>
@@ -249,7 +254,8 @@ const Lesson5 = () => {
     if (currentStageData?.type === 'video') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8 relative">
+            <ExitSessionButton />
             <Video className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-400">The video is playing on the projection screen</p>
@@ -263,7 +269,8 @@ const Lesson5 = () => {
     if (currentStageData?.type === 'discussion' || currentStage === 'conclusion') {
       return (
         <>
-          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8">
+          <div className="h-screen flex flex-col items-center justify-center bg-black text-white p-8 relative">
+            <ExitSessionButton />
             <Monitor className="w-32 h-32 mb-8 animate-pulse text-white" />
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-400">Your teacher is leading a class discussion</p>

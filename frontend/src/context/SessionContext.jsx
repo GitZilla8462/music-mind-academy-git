@@ -789,11 +789,15 @@ export const SessionProvider = ({ children }) => {
       }
 
       // Use class session end for class-based sessions, traditional for quick sessions
-      if (classId) {
-        await endClassSession(classId);
-        console.log('✅ Ended class session:', classId);
-      } else if (sessionCode) {
-        await firebaseEndSession(sessionCode);
+      try {
+        if (classId) {
+          await endClassSession(classId);
+          console.log('✅ Ended class session:', classId);
+        } else if (sessionCode) {
+          await firebaseEndSession(sessionCode);
+        }
+      } catch (firebaseError) {
+        console.warn('⚠️ Firebase session cleanup failed (proceeding with local cleanup):', firebaseError.message);
       }
 
       leaveSession();
@@ -811,6 +815,9 @@ export const SessionProvider = ({ children }) => {
 
     } catch (error) {
       console.error('❌ Error ending session:', error);
+      // Still clean up locally and navigate away even if everything failed
+      leaveSession();
+      window.location.href = '/music-classroom-resources';
     }
   };
 

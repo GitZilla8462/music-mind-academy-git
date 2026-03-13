@@ -122,7 +122,7 @@ const SportsCompositionActivity = ({
   const navigate = useNavigate();
   
   // Session mode detection
-  const { getCurrentStage, sessionCode } = useSession();
+  const { getCurrentStage, sessionCode, leaveSession } = useSession();
   // For class-based sessions, sessionCode is null — use classCode from URL params
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
@@ -330,8 +330,8 @@ const SportsCompositionActivity = ({
   }, [studentId, selectedVideo, placedLoops, viewMode]);
 
   // ✅ Listen for teacher's save command from Firebase
+  // Uses refs to avoid stale closures — listener set up once, always reads latest state
   useEffect(() => {
-    // Don't set up listener until we have studentId ready
     if (!effectiveSessionCode || !isSessionMode || viewMode || !studentId) return;
 
     const db = getDatabase();
@@ -339,30 +339,45 @@ const SportsCompositionActivity = ({
 
     const unsubscribe = onValue(saveCommandRef, (snapshot) => {
       const saveCommand = snapshot.val();
-
-      // Skip if no command
       if (!saveCommand) return;
 
-      // Only process save commands that were issued AFTER this component mounted
       if (saveCommand <= componentMountTimeRef.current) {
         lastSaveCommandRef.current = saveCommand;
         return;
       }
 
-      // Only trigger if this is a new command (timestamp changed)
       if (saveCommand !== lastSaveCommandRef.current) {
         lastSaveCommandRef.current = saveCommand;
         console.log('💾 Teacher save command received for sports composition!');
 
-        // Trigger immediate save
-        if (placedLoops.length > 0) {
-          handleManualSave(true); // Silent save
+        const currentLoops = placedLoopsRef.current;
+        const currentStudentId = studentIdRef.current;
+        const currentVideo = selectedVideoRef.current;
+
+        if (currentLoops.length > 0 && currentStudentId && currentVideo) {
+          saveStudentWork('sports-composition', {
+            title: currentVideo.title,
+            emoji: currentVideo.emoji,
+            viewRoute: '/lessons/film-music-project/lesson4?view=saved',
+            subtitle: `${currentLoops.length} loops • ${formatDuration(currentVideo.duration)}`,
+            category: 'Film Music Project',
+            data: {
+              placedLoops: currentLoops,
+              videoDuration: currentVideo.duration,
+              videoId: currentVideo.id,
+              videoTitle: currentVideo.title,
+              videoPath: currentVideo.videoPath,
+              videoEmoji: currentVideo.emoji,
+              timestamp: Date.now()
+            }
+          }, currentStudentId);
+          console.log('💾 Teacher-triggered save complete for sports composition');
         }
       }
     });
 
     return () => unsubscribe();
-  }, [effectiveSessionCode, isSessionMode, viewMode, placedLoops, studentId]);
+  }, [effectiveSessionCode, isSessionMode, viewMode, studentId]);
 
   // ✅ SAFETY NET: Save on unmount when leaving activity in session mode
   // This ensures data is saved even if Firebase saveCommand doesn't arrive in time
@@ -843,10 +858,24 @@ const SportsCompositionActivity = ({
               </button>
             )}
             
-            <div className="text-xs text-gray-400">
-              {placedLoops.length} loops
-            </div>
-            
+            {isSessionMode && (
+              <button
+                onClick={() => {
+                  if (window.confirm('Leave this session? Your saved work will still be available.')) {
+                    leaveSession();
+                    window.location.href = window.location.hostname === 'localhost'
+                      ? 'http://localhost:5173/join'
+                      : import.meta.env.VITE_SITE_MODE === 'edu'
+                        ? 'https://musicroomtools.org/join'
+                        : 'https://musicmindacademy.com/join';
+                  }
+                }}
+                className="px-3 py-1.5 text-sm rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
+              >
+                Exit Session
+              </button>
+            )}
+
             {lessonStartTime && !isSessionMode && (
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-gray-400">Time:</span>

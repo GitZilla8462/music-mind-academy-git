@@ -45,18 +45,24 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
   const componentMountTimeRef = useRef(Date.now());
   const lastSaveCommandRef = useRef(null);
 
+  // Refs for latest state — used by save command handler to avoid stale closures
+  const reflectionDataRef = useRef(reflectionData);
+  const currentStepRef = useRef(currentStep);
+  useEffect(() => { reflectionDataRef.current = reflectionData; }, [reflectionData]);
+  useEffect(() => { currentStepRef.current = currentStep; }, [currentStep]);
+
   // Session code for save command listener
   const { sessionCode } = useSession();
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
 
-  // Save current progress (even if incomplete) — used by teacher save command
+  // Save current progress (even if incomplete) — used by teacher save command and submit
   const saveProgress = () => {
     const progressData = {
-      ...reflectionData,
+      ...reflectionDataRef.current,
       savedAt: new Date().toISOString(),
-      currentStep,
-      isComplete: currentStep === 8
+      currentStep: currentStepRef.current,
+      isComplete: currentStepRef.current === 8
     };
     localStorage.setItem(reflectionKey, JSON.stringify(progressData));
 
@@ -71,7 +77,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
     console.log('💾 Reflection progress saved');
   };
 
-  // Listen for teacher's save command
+  // Listen for teacher's save command — uses refs so listener is set up once, never stale
   useEffect(() => {
     if (!effectiveSessionCode || !isSessionMode || viewMode) return;
 
@@ -96,7 +102,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
     });
 
     return () => unsubscribe();
-  }, [effectiveSessionCode, isSessionMode, viewMode, reflectionData, currentStep]);
+  }, [effectiveSessionCode, isSessionMode, viewMode]);
 
   // Load saved reflection if in view mode
   useEffect(() => {

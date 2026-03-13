@@ -13,9 +13,10 @@ const LayerDetectiveResults = ({ sessionData, onPlayAgain, onNextActivity }) => 
 
     // Get all students sorted by score
     const allStudents = Object.entries(sessionData.studentsJoined)
+      .filter(([, data]) => data.playerName || data.displayName || data.name)
       .map(([id, data]) => ({
         id,
-        name: data.playerName || data.displayName || data.name || 'Student',
+        name: data.playerName || data.displayName || data.name,
         score: data.layerDetectiveScore || data.score || 0,
         playerColor: data.playerColor || '#3B82F6',
         playerEmoji: data.playerEmoji || '🎵'
