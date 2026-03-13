@@ -260,8 +260,13 @@ const YouTubeClip = ({ videoId, startTime, endTime, title, subtitle, currentStag
   const [isReady, setIsReady] = useState(false);
   const checkIntervalRef = useRef(null);
 
+  // Check for valid YouTube video ID (11 alphanumeric chars)
+  const isValidVideoId = videoId && videoId !== 'PLACEHOLDER' && /^[a-zA-Z0-9_-]{11}$/.test(videoId);
+
   // Load YouTube IFrame API
   useEffect(() => {
+    if (!isValidVideoId) return;
+
     // Check if API is already loaded
     if (window.YT && window.YT.Player) {
       initPlayer();
@@ -284,7 +289,7 @@ const YouTubeClip = ({ videoId, startTime, endTime, title, subtitle, currentStag
         clearInterval(checkIntervalRef.current);
       }
       if (playerRef.current) {
-        playerRef.current.destroy();
+        try { playerRef.current.destroy(); } catch { /* player already destroyed */ }
       }
     };
   }, [currentStage]);
@@ -307,6 +312,7 @@ const YouTubeClip = ({ videoId, startTime, endTime, title, subtitle, currentStag
       },
       events: {
         onReady: () => setIsReady(true),
+        onError: () => { /* Suppress YouTube player errors (invalid IDs, etc.) */ },
         onStateChange: (event) => {
           if (event.data === window.YT.PlayerState.PLAYING) {
             setIsPlaying(true);
@@ -361,10 +367,17 @@ const YouTubeClip = ({ videoId, startTime, endTime, title, subtitle, currentStag
       {/* Video Container */}
       <div className="flex-1 flex items-center justify-center">
         <div className="relative w-full max-w-4xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl">
+          {!isValidVideoId ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-800">
+              <div className="text-6xl mb-4">🎬</div>
+              <p className="text-2xl text-slate-300">Video coming soon</p>
+            </div>
+          ) : (
           <div ref={containerRef} className="absolute inset-0" />
+          )}
 
           {/* Overlay controls */}
-          {!isPlaying && isReady && (
+          {isValidVideoId && !isPlaying && isReady && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/30">
               <button
                 onClick={handlePlayPause}
