@@ -542,10 +542,13 @@ export const clearAllCompositionSaves = (activityId, studentId = null, authInfo 
     console.error('Error clearing centralized auto-save:', error);
   }
 
+  // Auto-detect class auth if not explicitly provided (same pattern as saveStudentWork)
+  const effectiveAuth = authInfo || getClassAuthInfo();
+
   // If authenticated, also delete from Firebase
-  if (authInfo?.uid) {
+  if (effectiveAuth?.uid) {
     const { lessonId, activityId: parsedActivityId } = parseActivityId(activityId);
-    deleteFromFirebase(authInfo.uid, lessonId, parsedActivityId)
+    deleteFromFirebase(effectiveAuth.uid, lessonId, parsedActivityId)
       .then(() => {
         console.log(`☁️ Cleared from Firebase: ${activityId}`);
       })

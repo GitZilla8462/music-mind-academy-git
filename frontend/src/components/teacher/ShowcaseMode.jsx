@@ -32,56 +32,65 @@ const ShowcaseMode = ({
   const [loadingList, setLoadingList] = useState(true);
   const [videoOnly, setVideoOnly] = useState(false);
 
+  // Shared fetch function — used for initial load and auto-refresh
+  const loadAllWork = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) {
+      setLoadingList(true);
+      setSelectedIndex(0);
+      setVideoOnly(false);
+    }
+    if (!isRefresh) setWorkCache({});
+
+    // Find submissions for this activity
+    const activitySubmissions = submissions.filter(
+      s => s.lessonId === lessonId && s.activityId === activityId && s.workKey
+    );
+
+    // Fetch work for each submission
+    const entries = [];
+    const cache = {};
+
+    await Promise.all(activitySubmissions.map(async (sub) => {
+      try {
+        const work = await getStudentWorkForTeacher(sub.studentUid, sub.workKey);
+        if (work?.data?.placedLoops && work.data.placedLoops.length > 0) {
+          const rosterEntry = roster.find(
+            r => (r.studentUid || `seat-${classId}-${r.seatNumber}`) === sub.studentUid
+          );
+          entries.push({
+            uid: sub.studentUid,
+            displayName: rosterEntry?.displayName || `Seat ${rosterEntry?.seatNumber || '?'}`,
+            seatNumber: rosterEntry?.seatNumber || 999,
+            submission: sub,
+            work
+          });
+          cache[sub.studentUid] = work;
+        }
+      } catch (err) {
+        console.warn('Failed to load work for showcase:', sub.studentUid, err);
+      }
+    }));
+
+    // Sort by name
+    entries.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+    setStudentEntries(entries);
+    setWorkCache(cache);
+    if (!isRefresh) setLoadingList(false);
+  }, [classId, lessonId, activityId, roster, submissions]);
+
   // Build list of students who have submitted compositions with placedLoops
   useEffect(() => {
     if (!isOpen) return;
+    loadAllWork(false);
+  }, [isOpen, loadAllWork]);
 
-    const loadAllWork = async () => {
-      setLoadingList(true);
-      setSelectedIndex(0);
-      setWorkCache({});
-      setVideoOnly(false);
-
-      // Find submissions for this activity
-      const activitySubmissions = submissions.filter(
-        s => s.lessonId === lessonId && s.activityId === activityId && s.workKey
-      );
-
-      // Fetch work for each submission
-      const entries = [];
-      const cache = {};
-
-      await Promise.all(activitySubmissions.map(async (sub) => {
-        try {
-          const work = await getStudentWorkForTeacher(sub.studentUid, sub.workKey);
-          if (work?.data?.placedLoops && work.data.placedLoops.length > 0) {
-            const rosterEntry = roster.find(
-              r => (r.studentUid || `seat-${classId}-${r.seatNumber}`) === sub.studentUid
-            );
-            entries.push({
-              uid: sub.studentUid,
-              displayName: rosterEntry?.displayName || `Seat ${rosterEntry?.seatNumber || '?'}`,
-              seatNumber: rosterEntry?.seatNumber || 999,
-              submission: sub,
-              work
-            });
-            cache[sub.studentUid] = work;
-          }
-        } catch (err) {
-          console.warn('Failed to load work for showcase:', sub.studentUid, err);
-        }
-      }));
-
-      // Sort by name
-      entries.sort((a, b) => a.displayName.localeCompare(b.displayName));
-
-      setStudentEntries(entries);
-      setWorkCache(cache);
-      setLoadingList(false);
-    };
-
-    loadAllWork();
-  }, [isOpen, classId, lessonId, activityId, roster, submissions]);
+  // Auto-refresh work data every 10 seconds while showcase is open
+  useEffect(() => {
+    if (!isOpen) return;
+    const interval = setInterval(() => loadAllWork(true), 10000);
+    return () => clearInterval(interval);
+  }, [isOpen, loadAllWork]);
 
   // Keyboard navigation
   useEffect(() => {

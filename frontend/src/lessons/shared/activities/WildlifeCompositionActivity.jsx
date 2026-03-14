@@ -20,7 +20,7 @@ import { useTimerSound } from '../hooks/useTimerSound';
 import LoopLabActivity from './loop-lab/LoopLabActivity';
 import { useSession } from '../../../context/SessionContext.jsx';
 // Note: Using wildlife-specific storage key instead of shared lesson4 utils
-import { saveStudentWork, clearAllCompositionSaves, getStudentId } from '../../../utils/studentWorkStorage.js';
+import { saveStudentWork, clearAllCompositionSaves, getStudentId, getClassAuthInfo, loadStudentWork as loadFromFirebase } from '../../../utils/studentWorkStorage.js';
 
 const WILDLIFE_COMPOSITION_DEADLINE = 10 * 60 * 1000; // 10 minutes
 
@@ -142,6 +142,7 @@ const WildlifeCompositionActivity = ({
   const [resetKey, setResetKey] = useState(0); // Used to force DAW remount on reset
   const [videoDuration, setVideoDuration] = useState(null);
   const [isLoadingVideo, setIsLoadingVideo] = useState(false);
+  const [isLoadingWork, setIsLoadingWork] = useState(!!getClassAuthInfo());
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [saveMessage, setSaveMessage] = useState(null);
   const timerRef = useRef(null);
@@ -422,60 +423,95 @@ const WildlifeCompositionActivity = ({
   }, [effectiveSessionCode, isSessionMode, viewMode, studentId]);
 
   // Load saved work on mount ONLY - includes manual saves
+  // Firebase-first for authenticated students to prevent stale localStorage data
   useEffect(() => {
     if (!studentId || !selectedVideo) return;
-    
+
     // Skip if already loaded this session (ref resets on refresh, allowing reload)
     if (hasLoadedRef.current) {
       console.log('⏭️ Already loaded this session, skipping');
       return;
     }
-    
+
     console.log('🎬 Initial load - checking for saved work');
-    
-    // First try to load from manual save (has video metadata)
-    const manualSaveKey = `wildlife-composition-${studentId}`;
-    const manualSave = localStorage.getItem(manualSaveKey);
-    
-    if (manualSave) {
-      try {
-        const data = JSON.parse(manualSave);
-        console.log('📂 Found manual save:', data);
-        
-        if (data.composition && data.composition.placedLoops && data.composition.placedLoops.length > 0) {
-          // Make sure loops match the current video
-          if (data.composition.videoId === selectedVideo.id) {
-            setPlacedLoops(data.composition.placedLoops);
-            setVideoDuration(data.composition.videoDuration || selectedVideo.duration);
-            console.log('✅ Loaded from manual save:', data.composition.placedLoops.length, 'loops for', selectedVideo.title);
+
+    const loadWork = async () => {
+      // For authenticated students, check Firebase first
+      const authInfo = getClassAuthInfo();
+      if (authInfo) {
+        console.log('🔑 Authenticated student — checking Firebase first for wildlife composition');
+        try {
+          const firebaseData = await loadFromFirebase('wildlife-composition', studentId);
+          if (firebaseData && firebaseData.data && firebaseData.data.placedLoops && firebaseData.data.placedLoops.length > 0) {
+            if (!firebaseData.data.videoId || firebaseData.data.videoId === selectedVideo.id) {
+              localStorage.removeItem('composition-wildlife-composition');
+              setPlacedLoops(firebaseData.data.placedLoops);
+              setVideoDuration(firebaseData.data.videoDuration || selectedVideo.duration);
+              console.log('✅ Loaded from Firebase:', firebaseData.data.placedLoops.length, 'loops');
+              hasLoadedRef.current = true;
+              setIsLoadingWork(false);
+              return;
+            }
+          }
+          // Firebase has no data for this student — start fresh (don't fall through to localStorage)
+          console.log('ℹ️ No Firebase data for this student — starting fresh');
+          hasLoadedRef.current = true;
+          setIsLoadingWork(false);
+          return;
+        } catch (err) {
+          console.warn('⚠️ Firebase load failed, falling back to localStorage:', err);
+          setIsLoadingWork(false);
+          // Fall through to localStorage
+        }
+      }
+
+      // For anonymous students or Firebase errors: use localStorage
+      // First try to load from manual save (has video metadata)
+      const manualSaveKey = `wildlife-composition-${studentId}`;
+      const manualSave = localStorage.getItem(manualSaveKey);
+
+      if (manualSave) {
+        try {
+          const data = JSON.parse(manualSave);
+          console.log('📂 Found manual save:', data);
+
+          if (data.composition && data.composition.placedLoops && data.composition.placedLoops.length > 0) {
+            // Make sure loops match the current video
+            if (data.composition.videoId === selectedVideo.id) {
+              setPlacedLoops(data.composition.placedLoops);
+              setVideoDuration(data.composition.videoDuration || selectedVideo.duration);
+              console.log('✅ Loaded from manual save:', data.composition.placedLoops.length, 'loops for', selectedVideo.title);
+              hasLoadedRef.current = true;
+              return;
+            } else {
+              console.log('⚠️ Saved video mismatch - saved:', data.composition.videoId, 'current:', selectedVideo.id);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading manual save:', error);
+        }
+      }
+
+      // Fallback to auto-save
+      if (hasSavedWork) {
+        const saved = loadSavedWork();
+        if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
+          // Check if video matches
+          if (!saved.videoId || saved.videoId === selectedVideo.id) {
+            setPlacedLoops(saved.placedLoops || []);
+            setVideoDuration(saved.videoDuration || selectedVideo.duration);
+            console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
             hasLoadedRef.current = true;
             return;
-          } else {
-            console.log('⚠️ Saved video mismatch - saved:', data.composition.videoId, 'current:', selectedVideo.id);
           }
         }
-      } catch (error) {
-        console.error('Error loading manual save:', error);
       }
-    }
-    
-    // Fallback to auto-save
-    if (hasSavedWork) {
-      const saved = loadSavedWork();
-      if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
-        // Check if video matches
-        if (!saved.videoId || saved.videoId === selectedVideo.id) {
-          setPlacedLoops(saved.placedLoops || []);
-          setVideoDuration(saved.videoDuration || selectedVideo.duration);
-          console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
-          hasLoadedRef.current = true;
-          return;
-        }
-      }
-    }
-    
-    console.log('ℹ️ No saved work found for this video');
-    hasLoadedRef.current = true;
+
+      console.log('ℹ️ No saved work found for this video');
+      hasLoadedRef.current = true;
+    };
+
+    loadWork();
   }, [studentId, hasSavedWork, loadSavedWork, selectedVideo]);
   
   // REFLECTION VIEW HANDLERS
@@ -883,30 +919,39 @@ const WildlifeCompositionActivity = ({
 
       <div className="flex-1 min-h-0">
         {selectedVideo ? (
-          <MusicComposer
-            key={`wildlife-composer-${selectedVideo?.id || 'none'}-${resetKey}`}
-            compositionKey={`wildlife-composition-${selectedVideo?.id}`}
-            onLoopDropCallback={handleLoopPlaced}
-            onLoopDeleteCallback={handleLoopDeleted}
-            onLoopUpdateCallback={handleLoopUpdated}
-            tutorialMode={false}
-            preselectedVideo={{
-              id: selectedVideo.id,
-              title: selectedVideo.title,
-              duration: selectedVideo.duration,
-              videoPath: selectedVideo.videoPath
-            }}
-            restrictToCategory={null}
-            lockedMood={null}
-            showSoundEffects={true}
-            hideHeader={true}
-            hideSubmitButton={true}
-            isLessonMode={true}
-            showToast={(msg, type) => console.log(msg, type)}
-            initialPlacedLoops={placedLoops}
-            readOnly={viewMode || showReflection}
-            assignmentPanelContent={null}
-          />
+          isLoadingWork ? (
+            <div className="h-full flex items-center justify-center bg-gray-900">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500 mx-auto mb-3"></div>
+                <p className="text-gray-400 text-sm">Loading your composition...</p>
+              </div>
+            </div>
+          ) : (
+            <MusicComposer
+              key={`wildlife-composer-${selectedVideo?.id || 'none'}-${resetKey}`}
+              compositionKey={`wildlife-composition-${selectedVideo?.id}`}
+              onLoopDropCallback={handleLoopPlaced}
+              onLoopDeleteCallback={handleLoopDeleted}
+              onLoopUpdateCallback={handleLoopUpdated}
+              tutorialMode={false}
+              preselectedVideo={{
+                id: selectedVideo.id,
+                title: selectedVideo.title,
+                duration: selectedVideo.duration,
+                videoPath: selectedVideo.videoPath
+              }}
+              restrictToCategory={null}
+              lockedMood={null}
+              showSoundEffects={true}
+              hideHeader={true}
+              hideSubmitButton={true}
+              isLessonMode={true}
+              showToast={(msg, type) => console.log(msg, type)}
+              initialPlacedLoops={placedLoops}
+              readOnly={viewMode || showReflection}
+              assignmentPanelContent={null}
+            />
+          )
         ) : (
           <div className="h-full flex items-center justify-center bg-gray-900">
             <div className="text-white text-center">

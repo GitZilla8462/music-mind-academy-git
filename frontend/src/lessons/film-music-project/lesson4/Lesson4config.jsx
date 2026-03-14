@@ -204,7 +204,8 @@ export const lesson4Config = {
       type: "two-stars-and-a-wish",
       title: "Beat Spotlight",
       estimatedTime: "3 min",
-      activityId: "fm-lesson4-reflection"
+      activityId: "fm-lesson4-reflection",
+      compositionKey: "sports-composition"
     }
   ]
 };

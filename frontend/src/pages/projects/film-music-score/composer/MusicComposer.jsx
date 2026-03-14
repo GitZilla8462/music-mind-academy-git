@@ -332,18 +332,21 @@ const MusicComposer = ({
   }, [selectedVideo, audioReady, tutorialMode, videoLoading, onDAWReadyCallback]);
 
   // STEP 1: Store initial loops from props and load into state immediately
-  // ✅ OPTIMIZED: Only run once on mount, not on every initialPlacedLoops reference change
+  // ✅ Only run once on mount — must NOT re-run when parent updates initialPlacedLoops,
+  // because useComposerEffects may have already loaded loops from localStorage.
+  // Re-running would overwrite the user's work with stale parent state.
   useEffect(() => {
     // Skip if already loaded or no loops to load
     if (initialLoopsLoadedRef.current || !initialPlacedLoops || initialPlacedLoops.length === 0) {
       return;
     }
-    
+
     console.log('🎵 Initializing with saved loops from props:', initialPlacedLoops.length, 'loops');
     savedLoopsRef.current = initialPlacedLoops;
     setPlacedLoops(initialPlacedLoops);
     initialLoopsLoadedRef.current = true;
-  }, [initialPlacedLoops, setPlacedLoops]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // STEP 2: Re-render custom beats on timeline that have invalid blob URLs
   // Custom beats saved with blob URLs lose those URLs on page reload
@@ -673,7 +676,9 @@ const MusicComposer = ({
     customLoops,
     setCustomLoops,
     // Passive mode - disable audio for iframe previews
-    isPassive
+    isPassive,
+    // Pass initialPlacedLoops so useComposerEffects can skip localStorage load when props provide loops
+    initialPlacedLoops
   });
 
   // Re-render custom beats AND melodies that were loaded from localStorage

@@ -335,7 +335,7 @@ const Lesson2 = () => {
     return (
       <ActivityRenderer
         activity={{ type: viewReflectionMode ? 'listening-lab-lesson2-reflection' : 'tempo-listening-map', id: 'saved-view' }}
-        onComplete={() => navigate('/music-classroom-resources')}
+        onComplete={() => navigate(-1)}
         viewMode={true}
         isSessionMode={false}
         lessonConfig={lessonConfig}

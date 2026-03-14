@@ -248,6 +248,7 @@ const ActivityRenderer = ({
         <TwoStarsAndAWishActivity
           key={`reflection-${activity.id}`}
           activityId={activity.activityId || null}
+          compositionKey={activity.compositionKey || null}
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}

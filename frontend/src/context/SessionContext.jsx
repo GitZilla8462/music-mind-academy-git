@@ -77,6 +77,7 @@ const clearSessionStorage = () => {
   localStorage.removeItem('current-session-userId');
   localStorage.removeItem('current-session-studentName');
   localStorage.removeItem('current-session-time');
+  localStorage.removeItem('current-session-classCode');
   console.log('🧹 Session storage cleared');
 };
 
@@ -143,6 +144,10 @@ export const SessionProvider = ({ children }) => {
   const [classId, setClassId] = useState(() => {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('classId') || null;
+  });
+  const [classCode, setClassCode] = useState(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('classCode') || localStorage.getItem('current-session-classCode') || null;
   });
   const [sessionData, setSessionData] = useState(null);
   const [isInSession, setIsInSession] = useState(false);
@@ -214,29 +219,38 @@ export const SessionProvider = ({ children }) => {
     }
   }, [userId]);
 
+  useEffect(() => {
+    if (classCode) {
+      localStorage.setItem('current-session-classCode', classCode);
+    } else {
+      localStorage.removeItem('current-session-classCode');
+    }
+  }, [classCode]);
+
   // Heartbeat for tracking session duration (every 60 seconds)
   useEffect(() => {
     // Only run heartbeat for teachers with active sessions
-    if (!sessionCode || userRole !== 'teacher') return;
+    const analyticsKey = sessionCode || classCode;
+    if (!analyticsKey || userRole !== 'teacher') return;
 
     // Get teacher UID from sessionData or localStorage
     const teacherUid = sessionData?.teacherId || localStorage.getItem('classroom-user-id');
 
     // Initial heartbeat
-    updateSessionHeartbeat(sessionCode, teacherUid).catch(() => {});
+    updateSessionHeartbeat(analyticsKey, teacherUid).catch(() => {});
 
     // Set up interval for every 60 seconds
     const heartbeatInterval = setInterval(() => {
-      updateSessionHeartbeat(sessionCode, teacherUid).catch(() => {});
+      updateSessionHeartbeat(analyticsKey, teacherUid).catch(() => {});
     }, 60000); // 60 seconds
 
-    console.log('💓 Started session heartbeat for:', sessionCode);
+    console.log('💓 Started session heartbeat for:', analyticsKey);
 
     return () => {
       clearInterval(heartbeatInterval);
       console.log('💔 Stopped session heartbeat');
     };
-  }, [sessionCode, userRole, sessionData?.teacherId]);
+  }, [sessionCode, classCode, userRole, sessionData?.teacherId]);
 
   // Firebase subscription with logging
   // Supports both traditional sessions (sessionCode) and class-based sessions (classId)
@@ -459,7 +473,7 @@ export const SessionProvider = ({ children }) => {
     }
   }, [sessionData, sessionCode, userRole, isLoadingSession]);
 
-  const startSession = (code, teacherId, classIdParam = null) => {
+  const startSession = (code, teacherId, classIdParam = null, classCodeParam = null) => {
     console.log('🎬 Teacher starting session:', { code, teacherId });
     setSessionCode(code);
     setUserRole('teacher');
@@ -467,13 +481,18 @@ export const SessionProvider = ({ children }) => {
     setIsInSession(true);
     isNormalEndRef.current = false;
     hasAutoCleanedRef.current = false;
-    
+
     // Set session start time
     localStorage.setItem('current-session-time', Date.now().toString());
-    
+
     if (classIdParam) {
       setClassId(classIdParam);
       console.log('Session started with classId:', classIdParam);
+    }
+    if (classCodeParam) {
+      setClassCode(classCodeParam);
+      localStorage.setItem('current-session-classCode', classCodeParam);
+      console.log('Session started with classCode:', classCodeParam);
     }
   };
 
@@ -571,9 +590,11 @@ export const SessionProvider = ({ children }) => {
         console.warn('Analytics student count update failed (non-critical):', err);
       });
 
-      // Store classId if this is a class session
+      // Store classId and classCode if this is a class session
       if (isClassSession && classIdForSession) {
         setClassId(classIdForSession);
+        setClassCode(code); // code is the class code (e.g., "AB1234")
+        localStorage.setItem('current-session-classCode', code);
         // Don't set sessionCode for class sessions — use classId subscription path instead
         // Clear any stale session code from localStorage to prevent restore conflicts
         localStorage.removeItem('current-session-code');
@@ -702,6 +723,7 @@ export const SessionProvider = ({ children }) => {
     
     setSessionCode(null);
     setClassId(null);
+    setClassCode(null);
     setSessionData(null);
     setUserRole(null);
     setUserId(null);
@@ -732,7 +754,8 @@ export const SessionProvider = ({ children }) => {
       }
 
       // Log stage change for analytics (non-blocking)
-      const analyticsCode = sessionCode || classId;
+      // Use classCode (not classId) for class sessions — matches the pilotSessions key
+      const analyticsCode = sessionCode || classCode;
       logStageChange(analyticsCode, stage).catch(() => {});
     } catch (error) {
       console.error('❌ Error updating stage:', error);
@@ -764,7 +787,7 @@ export const SessionProvider = ({ children }) => {
     }
 
     try {
-      const sessionIdentifier = sessionCode || classId;
+      const sessionIdentifier = sessionCode || classCode;
       console.log('🛑 Teacher ending session normally:', sessionIdentifier);
       isNormalEndRef.current = true;
 
@@ -872,6 +895,7 @@ export const SessionProvider = ({ children }) => {
   const value = {
     sessionCode,
     classId,
+    classCode,
     sessionData,
     currentStage,  // ✅ Direct value - use this instead of getCurrentStage()
     userRole,

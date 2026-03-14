@@ -28,9 +28,34 @@ const CompositionPreview = ({ workData, submittedAt, videoOnly = false }) => {
 
   const data = workData?.data || {};
   const placedLoops = data.placedLoops || [];
-  const videoPath = data.videoPath || null;
   const videoTitle = data.videoTitle || '';
   const duration = data.videoDuration || 60;
+
+  // Resolve video path — use saved path, or look up by videoId for older saves missing videoPath
+  const VIDEO_PATHS = {
+    // Adventure (Lesson 1)
+    'nature-drone': '/lessons/film-music-project/lesson1/NatureDroneFootage.mp4',
+    // City (Lesson 2)
+    'nyc': '/lessons/film-music-project/lesson2/NYCMontage.mp4',
+    'paris': '/lessons/film-music-project/lesson2/ParisMontage.mp4',
+    'madrid': '/lessons/film-music-project/lesson2/MadridMontage.mp4',
+    'tokyo': '/lessons/film-music-project/lesson2/TokyoMontage.mp4',
+    // Wildlife (Lesson 3)
+    'forest': '/lessons/film-music-project/lesson3/slides/ForestCreatures.mp4',
+    'savanna': '/lessons/film-music-project/lesson3/slides/SavannaCreatures.mp4',
+    'underwater': '/lessons/film-music-project/lesson3/slides/UnderwaterCreatures.mp4',
+    // Sports (Lesson 4)
+    'soccer': '/lessons/film-music-project/lesson4/SoccerHighlightReel.mp4',
+    'basketball': '/lessons/film-music-project/lesson4/BasketballHighlightReel.mp4',
+    'skateboarding': '/lessons/film-music-project/lesson4/SkateboardHighlighReel.mp4',
+    // Game (Lesson 5)
+    'grow-a-garden': '/lessons/film-music-project/GrowAGarden.mp4',
+    'minecraft': '/lessons/film-music-project/MinecraftGameplay.mp4',
+    'unpacking': '/lessons/film-music-project/Unpacking.mp4',
+    // School Beneath
+    'school-beneath': '/lessons/videos/film-music-loop-project/SchoolMystery.mp4'
+  };
+  const videoPath = data.videoPath || (data.videoId && VIDEO_PATHS[data.videoId]) || null;
 
   // Initialize AudioContext and load buffers on mount
   useEffect(() => {

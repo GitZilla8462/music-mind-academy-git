@@ -212,7 +212,8 @@ export const lesson5Config = {
       type: "two-stars-and-a-wish",
       title: "Melody Spotlight",
       estimatedTime: "3 min",
-      activityId: "fm-lesson5-reflection"
+      activityId: "fm-lesson5-reflection",
+      compositionKey: "game-composition"
     }
   ]
 };

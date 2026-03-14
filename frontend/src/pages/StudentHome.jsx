@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudentAuth } from '../context/StudentAuthContext';
 import { getClassSessionByCode, joinClassSession, subscribeToClassSession } from '../firebase/classes';
+import { logStudentJoined } from '../firebase/analytics';
 import { LogOut, Play, Award, BookOpen, FolderHeart, ClipboardList } from 'lucide-react';
 import StudentGradesList from '../components/student/StudentGradesList';
 import StudentPortfolio from '../components/student/StudentPortfolio';
@@ -67,6 +68,7 @@ const StudentHome = () => {
         seatNumber: pinSession.seatNumber,
         name: pinSession.displayName || pinSession.username
       });
+      logStudentJoined(activeSession.classData.classCode);
 
       const lessonRoute = activeSession.classData.currentSession?.lessonRoute || '/lessons/film-music-project/lesson1';
       window.location.href = `${lessonRoute}?classId=${activeSession.classData.id}&role=student&classCode=${activeSession.classData.classCode}&seatId=${seatId}&username=${pinSession.username}`;

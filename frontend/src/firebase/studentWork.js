@@ -25,16 +25,19 @@ export const saveStudentWork = async (studentUid, classId, lessonId, activityId,
   const existing = existingSnap.exists() ? existingSnap.val() : null;
 
   if (existing) {
-    // Update only the work data fields — preserve status, submittedAt, createdAt
+    // Re-save: overwrite data with set() to ensure old array entries are fully removed
+    // (update() does shallow merge which can leave stale array indices in Firebase RTDB)
+    const newData = workData.data || workData;
+    await set(ref(database, `studentWork/${studentUid}/${workKey}/data`), newData);
     await update(workRef, {
-      data: workData.data || workData,
       title: workData.title || existing.title || activityId,
       emoji: workData.emoji || existing.emoji || '🎵',
       type: workData.type || existing.type || 'composition',
       updatedAt: Date.now()
     });
-    console.log(`Updated work: ${workKey} for student ${studentUid}`);
-    return { ...existing, data: workData.data || workData, updatedAt: Date.now() };
+    const loopCount = newData?.placedLoops?.length ?? 'N/A';
+    console.log(`Updated work: ${workKey} for student ${studentUid} — ${loopCount} loops saved to Firebase`);
+    return { ...existing, data: newData, updatedAt: Date.now() };
   }
 
   // First save — create the full record
@@ -250,7 +253,10 @@ export const getStudentWorkForTeacher = async (studentUid, workKey) => {
   const snapshot = await get(workRef);
 
   if (snapshot.exists()) {
-    return snapshot.val();
+    const val = snapshot.val();
+    const loopCount = val?.data?.placedLoops?.length ?? 'N/A';
+    console.log(`📥 Showcase fetch: ${workKey} for ${studentUid} — ${loopCount} loops from Firebase`);
+    return val;
   }
   return null;
 };

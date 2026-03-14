@@ -248,7 +248,8 @@ export const lesson3Config = {
       type: "two-stars-wish",
       title: "Reflection Activity",
       estimatedTime: "2 min",
-      activityId: "fm-lesson3-reflection"
+      activityId: "fm-lesson3-reflection",
+      compositionKey: "wildlife-composition"
     },
     {
       id: 4,

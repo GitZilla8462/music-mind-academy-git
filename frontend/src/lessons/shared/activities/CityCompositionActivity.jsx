@@ -22,7 +22,8 @@ import { useTimerSound } from '../hooks/useTimerSound';
 import LoopLab from './loop-lab/LoopLabActivity';
 import { useSession } from '../../../context/SessionContext';
 import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson2/lesson2StorageUtils';
-import { saveStudentWork, loadStudentWork, clearAllCompositionSaves, getStudentId } from '../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, clearAllCompositionSaves, getStudentId, getClassAuthInfo } from '../../../utils/studentWorkStorage';
+import { loadStudentWork as loadFromFirebase } from '../../../firebase/studentWork';
 
 const CITY_COMPOSITION_DEADLINE = 10 * 60 * 1000; // 10 minutes
 
@@ -140,6 +141,7 @@ const CityCompositionActivity = ({
   const [resetKey, setResetKey] = useState(0); // Used to force DAW remount on reset
   const [videoDuration, setVideoDuration] = useState(null);
   const [isLoadingVideo, setIsLoadingVideo] = useState(false);
+  const [isLoadingWork, setIsLoadingWork] = useState(!!getClassAuthInfo());
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [saveMessage, setSaveMessage] = useState(null);
   const timerRef = useRef(null);
@@ -436,60 +438,103 @@ const CityCompositionActivity = ({
 
   // Load saved work on mount ONLY - includes manual saves
   // ✅ FIXED: Use ref instead of sessionStorage so refresh reloads saved work
+  // ✅ FIXED: Firebase-first loading for authenticated students (PIN login)
+  // For authenticated students, Firebase is the source of truth — localStorage is only
+  // used as a fallback for anonymous students. This prevents stale localStorage data from a previous
+  // student at the same seat from leaking into a new student's session.
   useEffect(() => {
     if (!studentId || !selectedVideo) return;
-    
+
     // Skip if already loaded this session (ref resets on refresh, allowing reload)
     if (hasLoadedRef.current) {
       console.log('⏭️ Already loaded this session, skipping');
       return;
     }
-    
-    console.log('🎬 Initial load - checking for saved work');
-    
-    // First try to load from manual save (has video metadata)
-    const manualSaveKey = `city-composition-${studentId}`;
-    const manualSave = localStorage.getItem(manualSaveKey);
-    
-    if (manualSave) {
-      try {
-        const data = JSON.parse(manualSave);
-        console.log('📂 Found manual save:', data);
-        
-        if (data.composition && data.composition.placedLoops && data.composition.placedLoops.length > 0) {
-          // Make sure loops match the current video
-          if (data.composition.videoId === selectedVideo.id) {
-            setPlacedLoops(data.composition.placedLoops);
-            setVideoDuration(data.composition.videoDuration || selectedVideo.duration);
-            console.log('✅ Loaded from manual save:', data.composition.placedLoops.length, 'loops for', selectedVideo.title);
+
+    const loadWork = async () => {
+      console.log('🎬 Initial load - checking for saved work');
+
+      // For authenticated students, check Firebase first (source of truth)
+      const classAuth = getClassAuthInfo();
+      if (classAuth?.uid) {
+        try {
+          const { parseActivityId } = await import('../../../utils/studentWorkStorage');
+          const { lessonId, activityId: parsedActivityId } = parseActivityId('city-composition');
+          const firebaseData = await loadFromFirebase(classAuth.uid, lessonId, parsedActivityId);
+          if (firebaseData?.data?.placedLoops?.length > 0) {
+            // Make sure loops match the current video
+            if (!firebaseData.data.videoId || firebaseData.data.videoId === selectedVideo.id) {
+              // Clear MusicComposer's internal localStorage to prevent stale data race
+              localStorage.removeItem('composition-city-composition');
+              setPlacedLoops(firebaseData.data.placedLoops);
+              setVideoDuration(firebaseData.data.videoDuration || selectedVideo.duration);
+              console.log('☁️ Loaded from Firebase:', firebaseData.data.placedLoops.length, 'loops');
+              hasLoadedRef.current = true;
+              setIsLoadingWork(false);
+              return;
+            } else {
+              console.log('⚠️ Firebase saved video mismatch - saved:', firebaseData.data.videoId, 'current:', selectedVideo.id);
+            }
+          }
+          // Firebase has no data for this student — start fresh (don't use stale localStorage)
+          console.log('ℹ️ No saved work in Firebase for authenticated student — starting fresh');
+          hasLoadedRef.current = true;
+          setIsLoadingWork(false);
+          return;
+        } catch (err) {
+          console.warn('⚠️ Firebase load failed, falling back to localStorage:', err.message);
+          setIsLoadingWork(false);
+          // Fall through to localStorage on error
+        }
+      }
+
+      // Anonymous students (or Firebase load failed): use localStorage
+      // First try to load from manual save (has video metadata)
+      const manualSaveKey = `city-composition-${studentId}`;
+      const manualSave = localStorage.getItem(manualSaveKey);
+
+      if (manualSave) {
+        try {
+          const data = JSON.parse(manualSave);
+          console.log('📂 Found manual save:', data);
+
+          if (data.composition && data.composition.placedLoops && data.composition.placedLoops.length > 0) {
+            // Make sure loops match the current video
+            if (data.composition.videoId === selectedVideo.id) {
+              setPlacedLoops(data.composition.placedLoops);
+              setVideoDuration(data.composition.videoDuration || selectedVideo.duration);
+              console.log('✅ Loaded from manual save:', data.composition.placedLoops.length, 'loops for', selectedVideo.title);
+              hasLoadedRef.current = true;
+              return;
+            } else {
+              console.log('⚠️ Saved video mismatch - saved:', data.composition.videoId, 'current:', selectedVideo.id);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading manual save:', error);
+        }
+      }
+
+      // Fallback to auto-save
+      if (hasSavedWork) {
+        const saved = loadSavedWork();
+        if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
+          // Check if video matches
+          if (!saved.videoId || saved.videoId === selectedVideo.id) {
+            setPlacedLoops(saved.placedLoops || []);
+            setVideoDuration(saved.videoDuration || selectedVideo.duration);
+            console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
             hasLoadedRef.current = true;
             return;
-          } else {
-            console.log('⚠️ Saved video mismatch - saved:', data.composition.videoId, 'current:', selectedVideo.id);
           }
         }
-      } catch (error) {
-        console.error('Error loading manual save:', error);
       }
-    }
-    
-    // Fallback to auto-save
-    if (hasSavedWork) {
-      const saved = loadSavedWork();
-      if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
-        // Check if video matches
-        if (!saved.videoId || saved.videoId === selectedVideo.id) {
-          setPlacedLoops(saved.placedLoops || []);
-          setVideoDuration(saved.videoDuration || selectedVideo.duration);
-          console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
-          hasLoadedRef.current = true;
-          return;
-        }
-      }
-    }
-    
-    console.log('ℹ️ No saved work found for this video');
-    hasLoadedRef.current = true;
+
+      console.log('ℹ️ No saved work found for this video');
+      hasLoadedRef.current = true;
+    };
+
+    loadWork();
   }, [studentId, hasSavedWork, loadSavedWork, selectedVideo]);
   
   // REFLECTION VIEW HANDLERS
@@ -905,26 +950,35 @@ const CityCompositionActivity = ({
 
       <div className="flex-1 min-h-0">
         {selectedVideo ? (
-          <MusicComposer
-            key={`city-composer-${selectedVideo?.id || 'none'}-${resetKey}`}
-            compositionKey={`city-composition-${selectedVideo?.id}`}
-            onLoopDropCallback={handleLoopPlaced}
-            onLoopDeleteCallback={handleLoopDeleted}
-            onLoopUpdateCallback={handleLoopUpdated}
-            tutorialMode={false}
-            preselectedVideo={memoizedPreselectedVideo}
-            restrictToCategory={null}
-            lockedMood={null}
-            showSoundEffects={true}
-            hideHeader={true}
-            hideSubmitButton={true}
-            isLessonMode={true}
-            showToast={memoizedShowToast}
-            initialPlacedLoops={placedLoops}
-            readOnly={viewMode || showReflection}
-            assignmentPanelContent={null}
-            initialCursorPosition={lastMousePositionRef.current}
-          />
+          isLoadingWork ? (
+            <div className="h-full flex items-center justify-center bg-gray-900">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500 mx-auto mb-3"></div>
+                <p className="text-gray-400 text-sm">Loading your composition...</p>
+              </div>
+            </div>
+          ) : (
+            <MusicComposer
+              key={`city-composer-${selectedVideo?.id || 'none'}-${resetKey}`}
+              compositionKey={`city-composition-${selectedVideo?.id}`}
+              onLoopDropCallback={handleLoopPlaced}
+              onLoopDeleteCallback={handleLoopDeleted}
+              onLoopUpdateCallback={handleLoopUpdated}
+              tutorialMode={false}
+              preselectedVideo={memoizedPreselectedVideo}
+              restrictToCategory={null}
+              lockedMood={null}
+              showSoundEffects={true}
+              hideHeader={true}
+              hideSubmitButton={true}
+              isLessonMode={true}
+              showToast={memoizedShowToast}
+              initialPlacedLoops={placedLoops}
+              readOnly={viewMode || showReflection}
+              assignmentPanelContent={null}
+              initialCursorPosition={lastMousePositionRef.current}
+            />
+          )
         ) : (
           <div className="h-full flex items-center justify-center bg-gray-900">
             <div className="text-white text-center">

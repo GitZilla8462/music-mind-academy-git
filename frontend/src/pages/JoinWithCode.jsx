@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getSessionData } from '../firebase/config';
 import { getClassByCode, getClassSessionByCode, joinClassSession } from '../firebase/classes';
+import { logStudentJoined } from '../firebase/analytics';
 import { getStudentId, migrateOldSaves } from '../utils/studentWorkStorage';
 import BeatEscapeRoomActivity from '../lessons/shared/activities/beat-escape-room/BeatEscapeRoomActivity';
 import MelodyMysteryActivity from '../lessons/shared/activities/melody-mystery/MelodyMysteryActivity';
@@ -149,6 +150,11 @@ function JoinWithCode() {
       await joinClassSession(activeSession.classData.id, seatId, {
         seatNumber: pinSession.seatNumber,
         name: pinSession.displayName || pinSession.username
+      });
+
+      // Track student join in analytics (uses classCode as the pilotSessions key)
+      logStudentJoined(activeSession.classData.classCode).catch((err) => {
+        console.warn('Analytics student count update failed (non-critical):', err);
       });
 
       const lessonRoute = activeSession.classData.currentSession?.lessonRoute || '/lessons/film-music-project/lesson1';

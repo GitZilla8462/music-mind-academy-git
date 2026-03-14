@@ -17,7 +17,8 @@ import { useAutoSave } from '../../../hooks/useAutoSave.jsx';
 import TwoStarsAndAWishActivity from './two-stars-and-a-wish/TwoStarsAndAWishActivity';
 import { useTimerSound } from '../hooks/useTimerSound';
 import { useSession } from '../../../context/SessionContext';
-import { saveStudentWork, loadStudentWork, getStudentId, clearAllCompositionSaves } from '../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, getStudentId, clearAllCompositionSaves, getClassAuthInfo } from '../../../utils/studentWorkStorage';
+import { loadStudentWork as loadFromFirebase } from '../../../firebase/studentWork';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
 // Storage keys for Lesson 5
@@ -206,6 +207,7 @@ const GameCompositionActivity = ({
   const [resetKey, setResetKey] = useState(0); // Used to force DAW remount on reset
   const [videoDuration, setVideoDuration] = useState(null);
   const [isLoadingVideo, setIsLoadingVideo] = useState(false);
+  const [isLoadingWork, setIsLoadingWork] = useState(!!getClassAuthInfo());
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [saveMessage, setSaveMessage] = useState(null);
   const [teacherSaveToast, setTeacherSaveToast] = useState(false);
@@ -471,7 +473,7 @@ const GameCompositionActivity = ({
     };
   }, [isSessionMode, viewMode]);
 
-  // Load saved work on mount
+  // Load saved work on mount — Firebase-first for authenticated (PIN login) students
   useEffect(() => {
     if (!studentId || !selectedVideo) return;
 
@@ -480,42 +482,88 @@ const GameCompositionActivity = ({
       return;
     }
 
-    console.log('🎬 Initial load - checking for saved work');
+    const loadWork = async () => {
+      console.log('🎬 Initial load - checking for saved work');
 
-    const savedWork = loadStudentWork('game-composition');
+      // Check if student is authenticated via PIN login (class auth)
+      const classAuth = getClassAuthInfo();
 
-    if (savedWork && savedWork.data) {
-      console.log('📂 Found saved work:', savedWork);
+      if (classAuth && classAuth.uid) {
+        console.log('🔑 Authenticated student detected, trying Firebase first...');
+        try {
+          const { parseActivityId } = await import('../../../utils/studentWorkStorage');
+          const { lessonId, activityId: parsedActivityId } = parseActivityId('game-composition');
+          const firebaseWork = await loadFromFirebase(classAuth.uid, lessonId, parsedActivityId);
 
-      if (savedWork.data.placedLoops && savedWork.data.placedLoops.length > 0) {
-        if (savedWork.data.videoId === selectedVideo.id) {
-          setPlacedLoops(savedWork.data.placedLoops);
-          setVideoDuration(savedWork.data.videoDuration || selectedVideo.duration);
-          console.log('✅ Loaded:', savedWork.data.placedLoops.length, 'loops for', selectedVideo.title);
+          if (firebaseWork && firebaseWork.data) {
+            console.log('📂 Found Firebase saved work:', firebaseWork);
+
+            if (firebaseWork.data.placedLoops && firebaseWork.data.placedLoops.length > 0) {
+              if (firebaseWork.data.videoId === selectedVideo.id) {
+                // Clear MusicComposer's stale internal localStorage save before setting state
+                localStorage.removeItem('composition-game-composition');
+                setPlacedLoops(firebaseWork.data.placedLoops);
+                setVideoDuration(firebaseWork.data.videoDuration || selectedVideo.duration);
+                console.log('✅ Loaded from Firebase:', firebaseWork.data.placedLoops.length, 'loops for', selectedVideo.title);
+                hasLoadedRef.current = true;
+                setIsLoadingWork(false);
+                return;
+              } else {
+                console.log('⚠️ Firebase saved video mismatch - saved:', firebaseWork.data.videoId, 'current:', selectedVideo.id);
+              }
+            }
+          }
+
+          // Firebase had no data for this authenticated student — start fresh (don't fall back to localStorage)
+          console.log('ℹ️ No Firebase saved work for authenticated student — starting fresh');
           hasLoadedRef.current = true;
+          setIsLoadingWork(false);
           return;
-        } else {
-          console.log('⚠️ Saved video mismatch - saved:', savedWork.data.videoId, 'current:', selectedVideo.id);
+        } catch (error) {
+          console.error('⚠️ Firebase load failed, falling back to localStorage:', error);
+          setIsLoadingWork(false);
+          // Fall through to localStorage below
         }
       }
-    }
 
-    // Fallback to auto-save
-    if (hasSavedWork) {
-      const saved = loadSavedWork();
-      if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
-        if (!saved.videoId || saved.videoId === selectedVideo.id) {
-          setPlacedLoops(saved.placedLoops || []);
-          setVideoDuration(saved.videoDuration || selectedVideo.duration);
-          console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
-          hasLoadedRef.current = true;
-          return;
+      // Non-authenticated students (or Firebase error fallback): use localStorage
+      const savedWork = loadStudentWork('game-composition');
+
+      if (savedWork && savedWork.data) {
+        console.log('📂 Found saved work:', savedWork);
+
+        if (savedWork.data.placedLoops && savedWork.data.placedLoops.length > 0) {
+          if (savedWork.data.videoId === selectedVideo.id) {
+            setPlacedLoops(savedWork.data.placedLoops);
+            setVideoDuration(savedWork.data.videoDuration || selectedVideo.duration);
+            console.log('✅ Loaded:', savedWork.data.placedLoops.length, 'loops for', selectedVideo.title);
+            hasLoadedRef.current = true;
+            return;
+          } else {
+            console.log('⚠️ Saved video mismatch - saved:', savedWork.data.videoId, 'current:', selectedVideo.id);
+          }
         }
       }
-    }
 
-    console.log('ℹ️ No saved work found for this video');
-    hasLoadedRef.current = true;
+      // Fallback to auto-save
+      if (hasSavedWork) {
+        const saved = loadSavedWork();
+        if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
+          if (!saved.videoId || saved.videoId === selectedVideo.id) {
+            setPlacedLoops(saved.placedLoops || []);
+            setVideoDuration(saved.videoDuration || selectedVideo.duration);
+            console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
+            hasLoadedRef.current = true;
+            return;
+          }
+        }
+      }
+
+      console.log('ℹ️ No saved work found for this video');
+      hasLoadedRef.current = true;
+    };
+
+    loadWork();
   }, [studentId, hasSavedWork, loadSavedWork, selectedVideo]);
 
   // Manual save handler
@@ -879,31 +927,40 @@ const GameCompositionActivity = ({
 
       <div className="flex-1 min-h-0">
         {selectedVideo ? (
-          <MusicComposer
-            key={`game-composer-${selectedVideo?.id || 'none'}-${resetKey}`}
-            onLoopDropCallback={handleLoopPlaced}
-            onLoopDeleteCallback={handleLoopDeleted}
-            onLoopUpdateCallback={handleLoopUpdated}
-            tutorialMode={false}
-            preselectedVideo={{
-              id: selectedVideo.id,
-              title: selectedVideo.title,
-              duration: selectedVideo.duration,
-              videoPath: selectedVideo.videoPath
-            }}
-            restrictToCategory={null}
-            lockedMood={null}
-            showSoundEffects={true}
-            showCreatorTools={true}
-            hideHeader={true}
-            hideSubmitButton={true}
-            isLessonMode={true}
-            showToast={(msg, type) => console.log(msg, type)}
-            initialPlacedLoops={placedLoops}
-            initialCustomLoops={savedStudentMelodies}
-            readOnly={viewMode || showReflection}
-            assignmentPanelContent={null}
-          />
+          isLoadingWork ? (
+            <div className="h-full flex items-center justify-center bg-gray-900">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500 mx-auto mb-3"></div>
+                <p className="text-gray-400 text-sm">Loading your composition...</p>
+              </div>
+            </div>
+          ) : (
+            <MusicComposer
+              key={`game-composer-${selectedVideo?.id || 'none'}-${resetKey}`}
+              onLoopDropCallback={handleLoopPlaced}
+              onLoopDeleteCallback={handleLoopDeleted}
+              onLoopUpdateCallback={handleLoopUpdated}
+              tutorialMode={false}
+              preselectedVideo={{
+                id: selectedVideo.id,
+                title: selectedVideo.title,
+                duration: selectedVideo.duration,
+                videoPath: selectedVideo.videoPath
+              }}
+              restrictToCategory={null}
+              lockedMood={null}
+              showSoundEffects={true}
+              showCreatorTools={true}
+              hideHeader={true}
+              hideSubmitButton={true}
+              isLessonMode={true}
+              showToast={(msg, type) => console.log(msg, type)}
+              initialPlacedLoops={placedLoops}
+              initialCustomLoops={savedStudentMelodies}
+              readOnly={viewMode || showReflection}
+              assignmentPanelContent={null}
+            />
+          )
         ) : (
           <div className="h-full flex items-center justify-center bg-gray-900">
             <div className="text-white text-center">

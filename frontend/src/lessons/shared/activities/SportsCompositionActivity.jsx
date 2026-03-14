@@ -19,7 +19,8 @@ import { useTimerSound } from '../hooks/useTimerSound';
 import NameThatLoopActivity from './layer-detective/NameThatLoopActivity';
 import { useSession } from '../../../context/SessionContext';
 import { saveSelectedVideo, getSelectedVideo } from '../../film-music-project/lesson4/lesson4StorageUtils';
-import { saveStudentWork, loadStudentWork, getStudentId, clearAllCompositionSaves } from '../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, getStudentId, clearAllCompositionSaves, getClassAuthInfo } from '../../../utils/studentWorkStorage';
+import { loadStudentWork as loadFromFirebase } from '../../../firebase/studentWork';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
 // Load saved beats from StudentBeatMakerActivity
@@ -158,6 +159,7 @@ const SportsCompositionActivity = ({
   const [placedLoops, setPlacedLoops] = useState([]);
   const [resetKey, setResetKey] = useState(0); // Used to force DAW remount on reset
   const [videoDuration, setVideoDuration] = useState(null);
+  const [isLoadingWork, setIsLoadingWork] = useState(!!getClassAuthInfo());
   const [isLoadingVideo, setIsLoadingVideo] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [saveMessage, setSaveMessage] = useState(null);
@@ -430,75 +432,122 @@ const SportsCompositionActivity = ({
     };
   }, [isSessionMode, viewMode]);
 
-  // Load saved work on mount - NOW USES NEW SYSTEM
+  // Load saved work on mount - FIREBASE-FIRST for authenticated students
   useEffect(() => {
     if (!studentId || !selectedVideo) return;
-    
+
     if (hasLoadedRef.current) {
       console.log('⏭️ Already loaded this session, skipping');
       return;
     }
-    
-    console.log('🎬 Initial load - checking for saved work');
-    
-    // Try to load from new system first
-    const savedWork = loadStudentWork('sports-composition');
-    
-    if (savedWork && savedWork.data) {
-      console.log('📂 Found saved work (new system):', savedWork);
-      
-      if (savedWork.data.placedLoops && savedWork.data.placedLoops.length > 0) {
-        if (savedWork.data.videoId === selectedVideo.id) {
-          setPlacedLoops(savedWork.data.placedLoops);
-          setVideoDuration(savedWork.data.videoDuration || selectedVideo.duration);
-          console.log('✅ Loaded from new system:', savedWork.data.placedLoops.length, 'loops for', selectedVideo.title);
+
+    const loadWork = async () => {
+      console.log('🎬 Initial load - checking for saved work');
+
+      // Check if student is authenticated via PIN login
+      const classAuth = getClassAuthInfo();
+
+      if (classAuth && classAuth.uid) {
+        console.log('🔐 Authenticated student detected, trying Firebase first...');
+        try {
+          const { parseActivityId } = await import('../../../utils/studentWorkStorage');
+          const { lessonId, activityId: parsedActivityId } = parseActivityId('sports-composition');
+          const firebaseWork = await loadFromFirebase(classAuth.uid, lessonId, parsedActivityId);
+
+          if (firebaseWork && firebaseWork.data) {
+            console.log('📂 Found saved work in Firebase:', firebaseWork);
+
+            if (firebaseWork.data.placedLoops && firebaseWork.data.placedLoops.length > 0) {
+              if (firebaseWork.data.videoId === selectedVideo.id) {
+                localStorage.removeItem('composition-sports-composition');
+                setPlacedLoops(firebaseWork.data.placedLoops);
+                setVideoDuration(firebaseWork.data.videoDuration || selectedVideo.duration);
+                console.log('✅ Loaded from Firebase:', firebaseWork.data.placedLoops.length, 'loops for', selectedVideo.title);
+                hasLoadedRef.current = true;
+                setIsLoadingWork(false);
+                return;
+              } else {
+                console.log('⚠️ Firebase saved video mismatch - saved:', firebaseWork.data.videoId, 'current:', selectedVideo.id);
+              }
+            }
+          }
+
+          // Firebase had no data for this authenticated student — start fresh (don't fall back to localStorage)
+          console.log('ℹ️ No Firebase data for authenticated student — starting fresh');
           hasLoadedRef.current = true;
+          setIsLoadingWork(false);
           return;
-        } else {
-          console.log('⚠️ Saved video mismatch - saved:', savedWork.data.videoId, 'current:', selectedVideo.id);
+        } catch (error) {
+          console.error('❌ Firebase load failed, falling back to localStorage:', error);
+          setIsLoadingWork(false);
+          // Fall through to localStorage below
         }
       }
-    }
-    
-    // Fallback: try old format for backwards compatibility
-    const oldSaveKey = `sports-composition-${studentId}`;
-    const oldSave = localStorage.getItem(oldSaveKey);
-    
-    if (oldSave) {
-      try {
-        const data = JSON.parse(oldSave);
-        console.log('📂 Found old format save:', data);
-        
-        if (data.composition && data.composition.placedLoops && data.composition.placedLoops.length > 0) {
-          if (data.composition.videoId === selectedVideo.id) {
-            setPlacedLoops(data.composition.placedLoops);
-            setVideoDuration(data.composition.videoDuration || selectedVideo.duration);
-            console.log('✅ Loaded from old format:', data.composition.placedLoops.length, 'loops');
+
+      // Non-authenticated students (or Firebase error fallback): use localStorage
+      console.log('📦 Using localStorage for work loading');
+
+      // Try to load from new system first
+      const savedWork = loadStudentWork('sports-composition');
+
+      if (savedWork && savedWork.data) {
+        console.log('📂 Found saved work (new system):', savedWork);
+
+        if (savedWork.data.placedLoops && savedWork.data.placedLoops.length > 0) {
+          if (savedWork.data.videoId === selectedVideo.id) {
+            setPlacedLoops(savedWork.data.placedLoops);
+            setVideoDuration(savedWork.data.videoDuration || selectedVideo.duration);
+            console.log('✅ Loaded from new system:', savedWork.data.placedLoops.length, 'loops for', selectedVideo.title);
+            hasLoadedRef.current = true;
+            return;
+          } else {
+            console.log('⚠️ Saved video mismatch - saved:', savedWork.data.videoId, 'current:', selectedVideo.id);
+          }
+        }
+      }
+
+      // Fallback: try old format for backwards compatibility
+      const oldSaveKey = `sports-composition-${studentId}`;
+      const oldSave = localStorage.getItem(oldSaveKey);
+
+      if (oldSave) {
+        try {
+          const data = JSON.parse(oldSave);
+          console.log('📂 Found old format save:', data);
+
+          if (data.composition && data.composition.placedLoops && data.composition.placedLoops.length > 0) {
+            if (data.composition.videoId === selectedVideo.id) {
+              setPlacedLoops(data.composition.placedLoops);
+              setVideoDuration(data.composition.videoDuration || selectedVideo.duration);
+              console.log('✅ Loaded from old format:', data.composition.placedLoops.length, 'loops');
+              hasLoadedRef.current = true;
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Error loading old format save:', error);
+        }
+      }
+
+      // Fallback to auto-save
+      if (hasSavedWork) {
+        const saved = loadSavedWork();
+        if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
+          if (!saved.videoId || saved.videoId === selectedVideo.id) {
+            setPlacedLoops(saved.placedLoops || []);
+            setVideoDuration(saved.videoDuration || selectedVideo.duration);
+            console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
             hasLoadedRef.current = true;
             return;
           }
         }
-      } catch (error) {
-        console.error('Error loading old format save:', error);
       }
-    }
-    
-    // Fallback to auto-save
-    if (hasSavedWork) {
-      const saved = loadSavedWork();
-      if (saved && saved.placedLoops && saved.placedLoops.length > 0) {
-        if (!saved.videoId || saved.videoId === selectedVideo.id) {
-          setPlacedLoops(saved.placedLoops || []);
-          setVideoDuration(saved.videoDuration || selectedVideo.duration);
-          console.log('✅ Auto-loaded previous work:', saved.placedLoops.length, 'loops');
-          hasLoadedRef.current = true;
-          return;
-        }
-      }
-    }
-    
-    console.log('ℹ️ No saved work found for this video');
-    hasLoadedRef.current = true;
+
+      console.log('ℹ️ No saved work found for this video');
+      hasLoadedRef.current = true;
+    };
+
+    loadWork();
   }, [studentId, hasSavedWork, loadSavedWork, selectedVideo]);
   
   // REFLECTION DETECTION
@@ -904,31 +953,40 @@ const SportsCompositionActivity = ({
 
       <div className="flex-1 min-h-0">
         {selectedVideo ? (
-          <MusicComposer
-            key={`sports-composer-${selectedVideo?.id || 'none'}-${resetKey}`}
-            onLoopDropCallback={handleLoopPlaced}
-            onLoopDeleteCallback={handleLoopDeleted}
-            onLoopUpdateCallback={handleLoopUpdated}
-            tutorialMode={false}
-            preselectedVideo={{
-              id: selectedVideo.id,
-              title: selectedVideo.title,
-              duration: selectedVideo.duration,
-              videoPath: selectedVideo.videoPath
-            }}
-            restrictToCategory={null}
-            lockedMood={null}
-            showSoundEffects={true}
-            showCreatorTools={true}
-            hideHeader={true}
-            hideSubmitButton={true}
-            isLessonMode={true}
-            showToast={(msg, type) => console.log(msg, type)}
-            initialPlacedLoops={placedLoops}
-            initialCustomLoops={savedStudentBeats}
-            readOnly={viewMode || showReflection}
-            assignmentPanelContent={null}
-          />
+          isLoadingWork ? (
+            <div className="h-full flex items-center justify-center bg-gray-900">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500 mx-auto mb-3"></div>
+                <p className="text-gray-400 text-sm">Loading your composition...</p>
+              </div>
+            </div>
+          ) : (
+            <MusicComposer
+              key={`sports-composer-${selectedVideo?.id || 'none'}-${resetKey}`}
+              onLoopDropCallback={handleLoopPlaced}
+              onLoopDeleteCallback={handleLoopDeleted}
+              onLoopUpdateCallback={handleLoopUpdated}
+              tutorialMode={false}
+              preselectedVideo={{
+                id: selectedVideo.id,
+                title: selectedVideo.title,
+                duration: selectedVideo.duration,
+                videoPath: selectedVideo.videoPath
+              }}
+              restrictToCategory={null}
+              lockedMood={null}
+              showSoundEffects={true}
+              showCreatorTools={true}
+              hideHeader={true}
+              hideSubmitButton={true}
+              isLessonMode={true}
+              showToast={(msg, type) => console.log(msg, type)}
+              initialPlacedLoops={placedLoops}
+              initialCustomLoops={savedStudentBeats}
+              readOnly={viewMode || showReflection}
+              assignmentPanelContent={null}
+            />
+          )
         ) : (
           <div className="h-full flex items-center justify-center bg-gray-900">
             <div className="text-white text-center">

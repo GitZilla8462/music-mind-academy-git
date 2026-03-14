@@ -9,7 +9,8 @@ import MusicComposer from "../../../../pages/projects/film-music-score/composer/
 import ReflectionModal from './ReflectionModal';
 import NameThatLoopActivity from '../layer-detective/NameThatLoopActivity';
 import LoopLabActivity from '../loop-lab/LoopLabActivity';
-import { loadStudentWork, getStudentId } from '../../../../utils/studentWorkStorage';
+import { loadStudentWork, getStudentId, getClassAuthInfo, parseActivityId } from '../../../../utils/studentWorkStorage';
+import { loadStudentWork as loadFromFirebase } from '../../../../firebase/studentWork';
 
 // Lesson-specific configuration for standalone mode
 const LESSON_CONFIGS = {
@@ -148,17 +149,59 @@ const TwoStarsAndAWishActivity = ({
   isSessionMode = false,
   compositionData: propsCompositionData = null,  // Accept composition data as prop
   activityType = null,  // Optional activity type for different reflection contexts
-  activityId = null  // Optional activity ID for Firebase save (e.g., 'll-lesson3-reflection')
+  activityId = null,  // Optional activity ID for Firebase save (e.g., 'll-lesson3-reflection')
+  compositionKey = null  // Explicit composition key to load (e.g., 'city-composition') — bypasses URL detection
 }) => {
   const [showBonus, setShowBonus] = useState(false);
   const [isDAWReady, setIsDAWReady] = useState(false);
   const [reflectionCompleted, setReflectionCompleted] = useState(false);
 
-  // Load composition data once on mount (use lazy initial state)
-  const [storedComposition] = useState(() => {
+  // Load composition data — sync from localStorage initially, then upgrade from Firebase if authenticated
+  const [storedComposition, setStoredComposition] = useState(() => {
     if (propsCompositionData) return null; // Don't load if props provided
+    // If an explicit compositionKey is provided (e.g., from session mode), use it directly
+    if (compositionKey && LESSON_CONFIGS[compositionKey]) {
+      const result = tryLoadLesson(compositionKey, LESSON_CONFIGS[compositionKey]);
+      if (result) return result;
+    }
     return loadCompositionFromStorage();
   });
+
+  // For authenticated students, upgrade to Firebase data (source of truth)
+  useEffect(() => {
+    if (propsCompositionData) return; // Don't load if props provided
+
+    const authInfo = getClassAuthInfo();
+    if (!authInfo?.uid) return; // Only for authenticated students
+
+    // Determine which composition key to load
+    const key = compositionKey || getLessonKeyFromUrl();
+    if (!key || !LESSON_CONFIGS[key]) return;
+
+    const config = LESSON_CONFIGS[key];
+    if (!config.studentWorkKey) return;
+
+    const { lessonId, activityId: parsedActivityId } = parseActivityId(config.studentWorkKey);
+
+    loadFromFirebase(authInfo.uid, lessonId, parsedActivityId).then((firebaseData) => {
+      if (firebaseData?.data?.placedLoops?.length > 0) {
+        console.log('☁️ Reflection: loaded composition from Firebase:', firebaseData.data.placedLoops.length, 'loops');
+        setStoredComposition({
+          lessonType: key,
+          data: {
+            placedLoops: firebaseData.data.placedLoops,
+            requirements: firebaseData.data.requirements || {},
+            videoDuration: firebaseData.data.videoDuration || 60,
+            videoId: firebaseData.data.videoId || null,
+            videoTitle: firebaseData.data.videoTitle || null,
+            videoPath: firebaseData.data.videoPath || null
+          }
+        });
+      }
+    }).catch((err) => {
+      console.warn('⚠️ Reflection: Firebase load failed, using localStorage:', err.message);
+    });
+  }, []); // Run once on mount
 
   // Determine if we're in "modal mode" (compositionData passed as prop)
   // In modal mode, the DAW is already showing behind us, so we just show the reflection modal
@@ -166,7 +209,7 @@ const TwoStarsAndAWishActivity = ({
 
   // Use prop data if provided, otherwise use stored data
   const compositionData = propsCompositionData || storedComposition?.data || null;
-  const lessonType = storedComposition?.lessonType || 'school-beneath';
+  const lessonType = storedComposition?.lessonType || compositionKey || 'school-beneath';
 
   // Determine the reflection storage key for this lesson
   const reflectionKey = LESSON_CONFIGS[lessonType]?.reflectionKey || 'school-beneath-reflection';

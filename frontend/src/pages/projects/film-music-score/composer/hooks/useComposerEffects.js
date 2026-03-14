@@ -56,7 +56,10 @@ export const useComposerEffects = ({
   setCustomLoops = null,
 
   // Passive mode - disable audio for iframe previews (performance optimization)
-  isPassive = false
+  isPassive = false,
+
+  // Initial loops from parent — if provided, skip localStorage load to prevent stale data overwrite
+  initialPlacedLoops = null
 }) => {
   
   // Track if we've already loaded a video to prevent re-initialization
@@ -249,8 +252,10 @@ export const useComposerEffects = ({
     }
 
     // Skip loading from localStorage if loops were already provided via props
-    if (placedLoops && placedLoops.length > 0) {
-      console.log('📂 Skipping localStorage load - loops already provided via props:', placedLoops.length);
+    // Must check initialPlacedLoops (the prop) not placedLoops (state) because
+    // React state updates from the initialPlacedLoops effect haven't flushed yet
+    if ((initialPlacedLoops && initialPlacedLoops.length > 0) || (placedLoops && placedLoops.length > 0)) {
+      console.log('📂 Skipping localStorage load - loops already provided via props:', initialPlacedLoops?.length || placedLoops?.length);
       hasLoadedSavedCompositionRef.current = true;
       return;
     }

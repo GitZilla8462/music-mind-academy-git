@@ -335,7 +335,7 @@ const Lesson3 = () => {
     return (
       <ActivityRenderer
         activity={{ type: viewReflectionMode ? 'listening-lab-lesson3-reflection' : 'listening-journey', id: 'saved-view', pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG }}
-        onComplete={() => navigate('/music-classroom-resources')}
+        onComplete={() => navigate(-1)}
         viewMode={true}
         isSessionMode={false}
         lessonConfig={lessonConfig}

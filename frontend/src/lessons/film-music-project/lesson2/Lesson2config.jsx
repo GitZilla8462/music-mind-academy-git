@@ -206,7 +206,8 @@ export const lesson2Config = {
       type: "two-stars-wish",
       title: "Reflection Activity",
       estimatedTime: "3 min",
-      activityId: "fm-lesson2-reflection"
+      activityId: "fm-lesson2-reflection",
+      compositionKey: "city-composition"
     },
     {
       id: 3,

@@ -12,7 +12,8 @@ import ReflectionModal from './two-stars-and-a-wish/ReflectionModal';
 import { useTimerSound } from '../hooks/useTimerSound';
 import NameThatLoopActivity from './layer-detective/NameThatLoopActivity';
 import { useSession } from '../../../context/SessionContext';
-import { saveStudentWork, loadStudentWork, clearAllCompositionSaves, getStudentId } from '../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, clearAllCompositionSaves, getStudentId, getClassAuthInfo } from '../../../utils/studentWorkStorage';
+import { loadStudentWork as loadFromFirebase } from '../../../firebase/studentWork';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
 const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes
@@ -99,6 +100,7 @@ const SchoolBeneathActivity = ({
   const [resetKey, setResetKey] = useState(0); // Used to force DAW remount on reset
   const [videoDuration, setVideoDuration] = useState(null);
   const [isLoadingVideo, setIsLoadingVideo] = useState(true);
+  const [isLoadingWork, setIsLoadingWork] = useState(!!getClassAuthInfo()); // Wait for Firebase if authenticated
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [saveMessage, setSaveMessage] = useState(null);
   const timerRef = useRef(null);
@@ -306,6 +308,9 @@ const SchoolBeneathActivity = ({
 
   // Load saved work on mount ONLY - includes manual saves and view mode (from Join page)
   // NOTE: We only load placedLoops here, NOT videoDuration - let video detection effect handle duration
+  // For authenticated students (PIN login), Firebase is the source of truth — localStorage is only
+  // used as a fallback for anonymous students. This prevents stale localStorage data from a previous
+  // student at the same seat from leaking into a new student's session.
   useEffect(() => {
     if (!studentId) return;
 
@@ -315,31 +320,60 @@ const SchoolBeneathActivity = ({
       return;
     }
 
-    console.log('🎬 Initial load - checking for saved work', { viewMode, storageKey, studentId });
+    const loadWork = async () => {
+      console.log('🎬 Initial load - checking for saved work', { viewMode, storageKey, studentId });
 
-    // First try to load from new mma-saved format (Join page compatible)
-    const savedWork = loadStudentWork(storageKey, studentId);
-    if (savedWork && savedWork.data && savedWork.data.placedLoops && savedWork.data.placedLoops.length > 0) {
-      setPlacedLoops(savedWork.data.placedLoops);
-      // DON'T set videoDuration from saved data - let video detection effect always re-detect
-      console.log('✅ Loaded from saved work:', savedWork.data.placedLoops.length, 'loops');
+      // For authenticated students, check Firebase first (source of truth)
+      const classAuth = getClassAuthInfo();
+      if (classAuth?.uid) {
+        try {
+          const { lessonId, activityId: parsedActivityId } = await import('../../../utils/studentWorkStorage').then(m => m.parseActivityId(storageKey));
+          const firebaseData = await loadFromFirebase(classAuth.uid, lessonId, parsedActivityId);
+          if (firebaseData?.data?.placedLoops?.length > 0) {
+            setPlacedLoops(firebaseData.data.placedLoops);
+            // Clear MusicComposer's internal localStorage to prevent stale data race
+            localStorage.removeItem(`composition-${storageKey}`);
+            console.log('☁️ Loaded from Firebase:', firebaseData.data.placedLoops.length, 'loops');
+            hasLoadedRef.current = true;
+            setIsLoadingWork(false);
+            return;
+          }
+          // Firebase has no data for this student — start fresh (don't use stale localStorage)
+          localStorage.removeItem(`composition-${storageKey}`);
+          console.log('ℹ️ No saved work in Firebase for authenticated student — starting fresh');
+          hasLoadedRef.current = true;
+          setIsLoadingWork(false);
+          return;
+        } catch (err) {
+          console.warn('⚠️ Firebase load failed, falling back to localStorage:', err.message);
+          setIsLoadingWork(false);
+          // Fall through to localStorage on error
+        }
+      }
+
+      // Anonymous students (or Firebase load failed): use localStorage
+      const savedWork = loadStudentWork(storageKey, studentId);
+      if (savedWork && savedWork.data && savedWork.data.placedLoops && savedWork.data.placedLoops.length > 0) {
+        setPlacedLoops(savedWork.data.placedLoops);
+        console.log('✅ Loaded from saved work:', savedWork.data.placedLoops.length, 'loops');
+        hasLoadedRef.current = true;
+        return;
+      }
+
+      // Fallback to auto-save
+      const autoSaved = loadAutoSavedComposition(storageKey, studentId);
+      if (autoSaved && autoSaved.composition && autoSaved.composition.placedLoops && autoSaved.composition.placedLoops.length > 0) {
+        setPlacedLoops(autoSaved.composition.placedLoops);
+        console.log('✅ Auto-loaded previous work:', autoSaved.composition.placedLoops.length, 'loops');
+        hasLoadedRef.current = true;
+        return;
+      }
+
+      console.log('ℹ️ No saved work found');
       hasLoadedRef.current = true;
-      return;
-    }
+    };
 
-    // Fallback to auto-save - directly check localStorage instead of relying on hasSavedWork state
-    // (hasSavedWork state may not be set yet when this effect first runs)
-    const autoSaved = loadAutoSavedComposition(storageKey, studentId);
-    if (autoSaved && autoSaved.composition && autoSaved.composition.placedLoops && autoSaved.composition.placedLoops.length > 0) {
-      setPlacedLoops(autoSaved.composition.placedLoops);
-      // DON'T set videoDuration from saved data - let video detection effect always re-detect
-      console.log('✅ Auto-loaded previous work:', autoSaved.composition.placedLoops.length, 'loops');
-      hasLoadedRef.current = true;
-      return;
-    }
-
-    console.log('ℹ️ No saved work found');
-    hasLoadedRef.current = true;
+    loadWork();
   }, [studentId, viewMode, storageKey]);
 
   // ============================================================================
@@ -687,9 +721,16 @@ const SchoolBeneathActivity = ({
         </div>
       </div>
 
-      {/* DAW */}
+      {/* DAW — delay render until Firebase load completes so MusicComposer doesn't load stale localStorage */}
       <div className="flex-1 min-h-0">
-        <MusicComposer
+        {isLoadingWork ? (
+          <div className="h-full flex items-center justify-center bg-gray-900">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500 mx-auto mb-3"></div>
+              <p className="text-gray-400 text-sm">Loading your composition...</p>
+            </div>
+          </div>
+        ) : <MusicComposer
           key={`composition-${resetKey}-${showBonusGame ? 'bonus' : 'active'}`}
           onLoopDropCallback={handleLoopPlaced}
           onLoopDeleteCallback={handleLoopDeleted}
@@ -711,7 +752,7 @@ const SchoolBeneathActivity = ({
           initialPlacedLoops={placedLoops}
           readOnly={showReflection}
           assignmentPanelContent={null}
-        />
+        />}
       </div>
 
       {/* ✅ UPDATED: Reflection Modal - handles both first-time and viewing */}
