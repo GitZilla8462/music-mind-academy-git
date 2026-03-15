@@ -12,6 +12,16 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 import { lesson5Config, lessonStages, getActivityForStage } from './lesson5Config';
 import { getPieceById, buildPieceConfig } from '../lesson4/lesson4Config';
 
+// L5: Cloud environments + bird characters
+import { CHARACTER_OPTIONS } from '../../shared/activities/listening-journey/journeyDefaults';
+const CLOUD_ENVIRONMENTS = [
+  'clouds-day', 'clouds-lavender', 'clouds-sunset', 'clouds-night',
+  'sky-1', 'sky-2', 'sky-5', 'sky-10', 'sky-14', 'sky-17',
+];
+const BIRD_CHARACTERS = ['yellow-bird', 'crow', 'pigeon'];
+const DEFAULT_BIRD = CHARACTER_OPTIONS.find(c => c.id === 'yellow-bird');
+const JOURNEY_L5_EXTRAS = { allowedEnvironments: CLOUD_ENVIRONMENTS, allowedCharacters: BIRD_CHARACTERS, gameMode: true, defaultCharacter: DEFAULT_BIRD, defaultScene: 'clouds-day' };
+
 // Hooks
 import { useLesson } from '../../shared/hooks/useLesson';
 import { useSessionMode } from '../../shared/hooks/useSessionMode';
@@ -251,7 +261,7 @@ const Lesson5 = () => {
       return (
         <>
           <ActivityRenderer
-            activity={{ type: activityType, id: currentStage, ...(activityType === 'listening-journey' ? { pieceConfig: getSelectedPieceConfig() } : {}) }}
+            activity={{ type: activityType, id: currentStage, ...(activityType === 'listening-journey' ? { pieceConfig: getSelectedPieceConfig(), ...JOURNEY_L5_EXTRAS } : {}) }}
             onComplete={handleSessionActivityComplete}
             sessionCode={sessionCode}
             viewMode={false}
@@ -348,7 +358,7 @@ const Lesson5 = () => {
   if (viewSavedMode || viewReflectionMode) {
     return (
       <ActivityRenderer
-        activity={{ type: viewReflectionMode ? 'listening-lab-lesson5-reflection' : 'listening-journey', id: 'saved-view', ...(viewSavedMode ? { pieceConfig: getSelectedPieceConfig() } : {}) }}
+        activity={{ type: viewReflectionMode ? 'listening-lab-lesson5-reflection' : 'listening-journey', id: 'saved-view', ...(viewSavedMode ? { pieceConfig: getSelectedPieceConfig(), ...JOURNEY_L5_EXTRAS } : {}) }}
         onComplete={() => navigate(-1)}
         viewMode={true}
         isSessionMode={false}
@@ -393,7 +403,7 @@ const Lesson5 = () => {
 
   return (
     <ActivityRenderer
-      activity={{ type: currentActivity.type, id: currentActivity.id, ...(currentActivity.type === 'listening-journey' ? { pieceConfig: getSelectedPieceConfig() } : {}) }}
+      activity={{ type: currentActivity.type, id: currentActivity.id, ...(currentActivity.type === 'listening-journey' ? { pieceConfig: getSelectedPieceConfig(), ...JOURNEY_L5_EXTRAS } : {}) }}
       onComplete={lesson.handleActivityComplete}
       viewMode={false}
       isSessionMode={false}

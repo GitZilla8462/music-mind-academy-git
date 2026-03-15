@@ -79,10 +79,9 @@ export const ARTICULATION_STYLES = [
 
 // Movement -> animation state + cycle speed override
 export const MOVEMENT_TYPES = [
-  { id: 'crawl', label: 'Crawl', icon: '🐛', anim: 'walk', cycleDuration: 1.2, scrollMultiplier: 0.3 },
-  { id: 'walk', label: 'Walk', icon: '🚶', anim: 'walk', cycleDuration: 0.6, scrollMultiplier: 1.0 },
-  { id: 'run', label: 'Run', icon: '🏃', anim: 'run', cycleDuration: 0.35, scrollMultiplier: 2.0 },
-  { id: 'sprint', label: 'Sprint', icon: '💨', anim: 'run', cycleDuration: 0.2, scrollMultiplier: 3.5 },
+  { id: 'crawl', label: 'Slow', icon: '🐢', anim: 'walk', cycleDuration: 1.2, scrollMultiplier: 0.3 },
+  { id: 'walk', label: 'Medium', icon: '🚶', anim: 'walk', cycleDuration: 0.6, scrollMultiplier: 1.0 },
+  { id: 'run', label: 'Fast', icon: '🏃', anim: 'run', cycleDuration: 0.35, scrollMultiplier: 2.0 },
 ];
 
 export const getTempoById = (id) => TEMPO_SPEEDS.find(t => t.id === id) || TEMPO_SPEEDS[2];

@@ -763,6 +763,11 @@ const ActivityRenderer = ({
           viewMode={viewMode}
           isSessionMode={isSessionMode}
           pieceConfig={activity.pieceConfig || null}
+          allowedEnvironments={activity.allowedEnvironments || null}
+          allowedCharacters={activity.allowedCharacters || null}
+          gameMode={activity.gameMode || false}
+          defaultScene={activity.defaultScene || null}
+          defaultCharacter={activity.defaultCharacter || null}
         />
       );
 

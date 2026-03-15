@@ -8,7 +8,10 @@ import SKY_MOODS from './config/skyMoods';
 import ENVIRONMENTS from './config/environments';
 import { TEMPO_SPEEDS, DYNAMICS_LEVELS, ARTICULATION_STYLES, MOVEMENT_TYPES } from './characterAnimations';
 
-const SectionPicker = ({ track, currentValue, sectionData, rect, onSelect, onClose }) => {
+const SectionPicker = ({ track, currentValue, sectionData, rect, onSelect, onClose, allowedEnvironments = null }) => {
+  const filteredEnvironments = allowedEnvironments
+    ? ENVIRONMENTS.filter(e => allowedEnvironments.includes(e.id))
+    : ENVIRONMENTS;
   const popoverRef = useRef(null);
 
   // Close on click outside
@@ -68,22 +71,32 @@ const SectionPicker = ({ track, currentValue, sectionData, rect, onSelect, onClo
           </div>
         </div>
 
-        {/* Scene */}
+        {/* Scene — thumbnail grid with previews */}
         <div className="mb-3">
-          <div className="text-[10px] text-white/50 uppercase font-bold mb-1.5">Scene</div>
-          <div className="grid grid-cols-3 gap-1.5">
-            {ENVIRONMENTS.map(env => (
+          <div className="text-[10px] text-white/50 uppercase font-bold mb-1.5">Scene ({filteredEnvironments.length})</div>
+          <div className="grid grid-cols-4 gap-1.5 max-h-48 overflow-y-auto pr-1">
+            {filteredEnvironments.map(env => (
               <button
                 key={env.id}
                 onClick={() => onSelect(env.id, 'scene')}
-                className={`flex items-center gap-1.5 p-1.5 rounded-lg transition-all text-left ${
+                className={`relative rounded-lg overflow-hidden transition-all h-12 ${
                   sectionData.scene === env.id
-                    ? 'bg-white/20 ring-2 ring-white'
-                    : 'bg-white/5 hover:bg-white/10'
+                    ? 'ring-2 ring-white scale-105'
+                    : 'opacity-75 hover:opacity-100 hover:scale-105'
                 }`}
+                title={env.name}
               >
-                <span className="text-base">{env.icon}</span>
-                <span className="text-[10px] text-white/80 font-bold">{env.name}</span>
+                {env.type === 'image' ? (
+                  <>
+                    <img src={env.sky} alt="" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+                    {env.layers[0] && (
+                      <img src={env.layers[env.layers.length - 1]?.src || env.layers[0].src} alt="" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+                    )}
+                  </>
+                ) : (
+                  <div className="absolute inset-0" style={{ backgroundColor: env.backgroundColor }} />
+                )}
+                <span className="absolute bottom-0 inset-x-0 text-[7px] text-white font-bold bg-black/50 px-1 py-0.5 truncate text-center">{env.name}</span>
               </button>
             ))}
           </div>
@@ -250,26 +263,36 @@ const SectionPicker = ({ track, currentValue, sectionData, rect, onSelect, onClo
 
   if (track === 'scene') {
     return (
-      <div ref={popoverRef} style={style} className="bg-gray-800 border border-white/20 rounded-xl shadow-2xl p-3 w-64">
+      <div ref={popoverRef} style={style} className="bg-gray-800 border border-white/20 rounded-xl shadow-2xl p-3 w-80">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold text-white/70 uppercase">Choose Scene</span>
+          <span className="text-xs font-bold text-white/70 uppercase">Choose Scene ({filteredEnvironments.length})</span>
           <button onClick={onClose} className="p-0.5 rounded hover:bg-white/10 text-white/50">
             <X size={14} />
           </button>
         </div>
-        <div className="grid grid-cols-3 gap-2">
-          {ENVIRONMENTS.map(env => (
+        <div className="grid grid-cols-4 gap-2 max-h-60 overflow-y-auto pr-1">
+          {filteredEnvironments.map(env => (
             <button
               key={env.id}
               onClick={() => onSelect(env.id)}
-              className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${
+              className={`relative rounded-lg overflow-hidden transition-all h-14 ${
                 currentValue === env.id
-                  ? 'bg-white/20 ring-2 ring-white'
-                  : 'bg-white/5 hover:bg-white/10'
+                  ? 'ring-2 ring-white scale-105'
+                  : 'opacity-75 hover:opacity-100 hover:scale-105'
               }`}
+              title={env.name}
             >
-              <span className="text-xl">{env.icon}</span>
-              <span className="text-[10px] text-white/80 font-bold">{env.name}</span>
+              {env.type === 'image' ? (
+                <>
+                  <img src={env.sky} alt="" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+                  {env.layers[0] && (
+                    <img src={env.layers[env.layers.length - 1]?.src || env.layers[0].src} alt="" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+                  )}
+                </>
+              ) : (
+                <div className="absolute inset-0" style={{ backgroundColor: env.backgroundColor }} />
+              )}
+              <span className="absolute bottom-0 inset-x-0 text-[8px] text-white font-bold bg-black/50 px-1 py-0.5 truncate text-center">{env.name}</span>
             </button>
           ))}
         </div>

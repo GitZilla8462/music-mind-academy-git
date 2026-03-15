@@ -110,7 +110,14 @@ const useJourneyPlayback = (audioSrc, totalDuration, sections, volume = 1.0) => 
     seekTo(0);
   }, [pause, seekTo]);
 
-  const togglePlay = useCallback(() => isPlaying ? pause() : play(), [isPlaying, play, pause]);
+  const togglePlay = useCallback(() => {
+    // Check actual audio state (not React state) to avoid desync after HMR/buffering
+    if (audioRef.current?.paused) {
+      play();
+    } else {
+      pause();
+    }
+  }, [play, pause]);
 
   // Derive current section from playback position
   const currentSectionIndex = useMemo(() => {

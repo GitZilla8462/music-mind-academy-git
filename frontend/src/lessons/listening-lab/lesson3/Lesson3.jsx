@@ -11,6 +11,10 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 // Config
 import { lesson3Config, lessonStages, getActivityForStage, MOUNTAIN_KING_JOURNEY_CONFIG } from './lesson3Config';
 
+// L3: Only cloud environments available (no forest/mountain/city)
+const CLOUD_ENVIRONMENTS = ['clouds-day', 'clouds-lavender', 'clouds-sunset', 'clouds-night'];
+const JOURNEY_L3_PROPS = { pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG, allowedEnvironments: CLOUD_ENVIRONMENTS };
+
 // Hooks
 import { useLesson } from '../../shared/hooks/useLesson';
 import { useSessionMode } from '../../shared/hooks/useSessionMode';
@@ -237,7 +241,7 @@ const Lesson3 = () => {
       return (
         <>
           <ActivityRenderer
-            activity={{ type: activityType, id: currentStage, ...(activityType === 'listening-journey' ? { pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG } : {}) }}
+            activity={{ type: activityType, id: currentStage, ...(activityType === 'listening-journey' ? JOURNEY_L3_PROPS : {}) }}
             onComplete={handleSessionActivityComplete}
             sessionCode={sessionCode}
             viewMode={false}
@@ -334,7 +338,7 @@ const Lesson3 = () => {
   if (viewSavedMode || viewReflectionMode) {
     return (
       <ActivityRenderer
-        activity={{ type: viewReflectionMode ? 'listening-lab-lesson3-reflection' : 'listening-journey', id: 'saved-view', pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG }}
+        activity={{ type: viewReflectionMode ? 'listening-lab-lesson3-reflection' : 'listening-journey', id: 'saved-view', ...JOURNEY_L3_PROPS }}
         onComplete={() => navigate(-1)}
         viewMode={true}
         isSessionMode={false}
@@ -379,7 +383,7 @@ const Lesson3 = () => {
 
   return (
     <ActivityRenderer
-      activity={{ type: currentActivity.type, id: currentActivity.id, ...(currentActivity.type === 'listening-journey' ? { pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG } : {}) }}
+      activity={{ type: currentActivity.type, id: currentActivity.id, ...(currentActivity.type === 'listening-journey' ? JOURNEY_L3_PROPS : {}) }}
       onComplete={lesson.handleActivityComplete}
       viewMode={false}
       isSessionMode={false}

@@ -28,7 +28,7 @@ let _nextSectionId = Date.now();
 const DRAW_COLORS = ['#ffffff', '#000000', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#6b7280'];
 const DRAW_SIZES = [4, 8, 16, 24, 32];
 
-const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false, pieceConfig = null }) => {
+const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false, pieceConfig = null, allowedEnvironments = null, allowedCharacters = null, gameMode = false, defaultScene = null, defaultCharacter: defaultCharacterProp = null }) => {
   // If pieceConfig is provided, use it instead of defaults
   const audioPath = pieceConfig?.audioPath || AUDIO_PATH;
   const audioVolume = pieceConfig?.volume || 1.0;
@@ -54,11 +54,12 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     }
     if (pieceConfig?.defaultSections?.length > 0) {
       // Pre-populate with piece sections (form times given, students customize visuals)
+      const fallbackScene = defaultScene || (presetMode ? null : 'forest');
       return pieceConfig.defaultSections.map(s => ({
         ...s,
-        sky: s.sky || (presetMode && !s.scene ? null : 'clear-day'),
-        scene: s.scene || (presetMode ? null : 'forest'),
-        ground: s.ground || (presetMode && !s.scene ? null : 'grass'),
+        sky: s.sky || (fallbackScene ? (SCENE_SKY_MAP[fallbackScene] || 'clear-day') : null),
+        scene: s.scene || fallbackScene,
+        ground: s.ground || (fallbackScene ? (SCENE_GROUND_MAP[fallbackScene] || 'grass') : null),
       }));
     }
     return []; // Start empty — user builds by adding scenes
@@ -66,7 +67,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   const [items, setItems] = useState(() => savedData?.items || []);
 
-  const defaultCharacter = pieceConfig?.defaultCharacter || null;
+  const defaultCharacter = defaultCharacterProp || pieceConfig?.defaultCharacter || null;
   const [character, setCharacter] = useState(() => savedData?.character || defaultCharacter);
 
   const [editMode, setEditMode] = useState(defaultTab ? 'sticker' : 'select'); // 'select' | 'sticker' | 'text'
@@ -76,7 +77,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const [marquee, setMarquee] = useState(null);
   const [showTextEditor, setShowTextEditor] = useState(false);
   const [textEditorPosition, setTextEditorPosition] = useState(null);
-  const [leftPanelTab, setLeftPanelTab] = useState(defaultTab ? 'stickers' : 'movement'); // 'stickers' | 'movement' | 'text'
+  const [leftPanelTab, setLeftPanelTab] = useState(defaultTab || gameMode ? 'stickers' : 'movement'); // 'stickers' | 'movement' | 'text'
 
   // Drawing tool state
   const [drawingTool, setDrawingTool] = useState(null); // null | 'brush' | 'pencil' | 'eraser'
@@ -96,6 +97,15 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   // Reset confirmation state
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  // ── Game mode state ──────────────────────────────────────────────
+  const [birdY, setBirdY] = useState(0.35);
+  const [birdX, setBirdX] = useState(0.12);
+  const [gameScore, setGameScore] = useState(0);
+  const [decoyMode, setDecoyMode] = useState(false); // when ON, placed stickers auto-marked as decoy
+  const [collectedIds, setCollectedIds] = useState(new Set());
+  const [birdHurt, setBirdHurt] = useState(false);
+  const hurtTimerRef = useRef(null);
 
   // Teacher save command listener
   const { sessionCode } = useSession();
@@ -119,6 +129,19 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   } = useJourneyPlayback(audioPath, totalDuration, sections, audioVolume);
 
   const { midgroundOffset, foregroundOffset, rawMidgroundOffset } = useParallaxScroll(currentTime, sections);
+
+  // Reset game state when rewinding
+  const gameRewind = useCallback(() => {
+    rewind();
+    if (gameMode) {
+      setBirdY(0.35);
+      setBirdX(0.12);
+      setGameScore(0);
+      setCollectedIds(new Set());
+      setBirdHurt(false);
+      if (hurtTimerRef.current) clearTimeout(hurtTimerRef.current);
+    }
+  }, [rewind, gameMode]);
 
   // Active section — always derived from playhead position
   const activeSectionIndex = useMemo(() => {
@@ -287,6 +310,59 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     return () => unsubscribe();
   }, [effectiveSessionCode, isSessionMode, viewMode, sections, handleSave]);
 
+  // ── Game mode: collision detection ────────────────────────────────
+  const collectedIdsRef = useRef(collectedIds);
+  collectedIdsRef.current = collectedIds;
+  const birdYRef = useRef(birdY);
+  birdYRef.current = birdY;
+  const birdXRef = useRef(birdX);
+  birdXRef.current = birdX;
+  const rawMidgroundOffsetRef = useRef(rawMidgroundOffset);
+  rawMidgroundOffsetRef.current = rawMidgroundOffset;
+
+  useEffect(() => {
+    if (!gameMode || !isPlaying || !character?.flying) return;
+
+    const HIT_RADIUS = 0.12;
+
+    const checkCollisions = () => {
+      const collected = collectedIdsRef.current;
+      items.forEach(item => {
+        if (collected.has(item.id)) return;
+
+        const drift = item.placedAtOffset != null
+          ? -(rawMidgroundOffsetRef.current - item.placedAtOffset)
+          : 0;
+        const stickerX = item.position.x + drift;
+        const stickerY = item.position.y;
+
+        const dx = birdXRef.current - stickerX;
+        const dy = birdYRef.current - stickerY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < HIT_RADIUS) {
+          setCollectedIds(prev => {
+            const next = new Set(prev);
+            next.add(item.id);
+            return next;
+          });
+          if (item.isDecoy) {
+            setGameScore(prev => prev - 5);
+            // Trigger hurt animation for ~0.5s
+            setBirdHurt(true);
+            if (hurtTimerRef.current) clearTimeout(hurtTimerRef.current);
+            hurtTimerRef.current = setTimeout(() => setBirdHurt(false), 600);
+          } else {
+            setGameScore(prev => prev + 10);
+          }
+        }
+      });
+    };
+
+    const id = setInterval(checkCollisions, 50);
+    return () => clearInterval(id);
+  }, [gameMode, isPlaying, character?.flying, items]);
+
   const handleReset = useCallback(() => {
     if (presetMode && pieceConfig?.defaultSections) {
       // In preset mode, restore to default sections (preserve backgrounds/scenes)
@@ -303,7 +379,19 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   // ── Sticker / text placement ───────────────────────────────────────
 
-  const selectItem = useCallback((id) => setSelectedItemIds(new Set(id != null ? [id] : [])), []);
+  const selectItem = useCallback((id) => {
+    setSelectedItemIds(new Set(id != null ? [id] : []));
+    // In decoy mode, clicking a placed sticker auto-toggles its decoy status
+    if (id != null && decoyMode && gameMode) {
+      setItems(prev => {
+        const item = prev.find(i => i.id === id);
+        if (!item || item.type !== 'sticker') return prev;
+        const decoyCount = prev.filter(i => i.isDecoy).length;
+        if (!item.isDecoy && decoyCount >= 5) return prev;
+        return prev.map(i => i.id === id ? { ...i, isDecoy: !i.isDecoy } : i);
+      });
+    }
+  }, [decoyMode, gameMode]);
   const clearSelection = useCallback(() => setSelectedItemIds(new Set()), []);
 
   const handleViewportClick = useCallback((pos) => {
@@ -318,6 +406,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       const startTime = currentTime;
       const duration = totalDuration - currentTime;
 
+      const decoyCount = gameMode && decoyMode ? items.filter(i => i.isDecoy).length : 0;
+      const markDecoy = gameMode && decoyMode && decoyCount < 5;
       setItems(prev => [...prev, {
         type: 'sticker',
         icon: selectedSticker.symbol || selectedSticker.id,
@@ -331,12 +421,13 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         duration,
         scale: 2,
         id: _nextSectionId++,
+        ...(markDecoy ? { isDecoy: true } : {}),
       }]);
     } else if (editMode === 'text') {
       setTextEditorPosition(pos);
       setShowTextEditor(true);
     }
-  }, [appMode, editMode, selectedSticker, selectedItemIds, clearSelection, currentTime, rawMidgroundOffset, sections, totalDuration]);
+  }, [appMode, editMode, selectedSticker, selectedItemIds, clearSelection, currentTime, rawMidgroundOffset, sections, totalDuration, gameMode, decoyMode, items]);
 
   // ── Drag-from-panel sticker placement ───────────────────────────────
   const [dragGhost, setDragGhost] = useState(null); // { sticker, x, y }
@@ -455,24 +546,38 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const clipboardRef = React.useRef(null);
   const pasteCountRef = React.useRef(0);
 
+  // Refs for rapidly-changing values so keyboard handler stays stable
+  const togglePlayRef = useRef(togglePlay);
+  togglePlayRef.current = togglePlay;
+  const selectedItemIdsRef = useRef(selectedItemIds);
+  selectedItemIdsRef.current = selectedItemIds;
+  const clearSelectionRef = useRef(clearSelection);
+  clearSelectionRef.current = clearSelection;
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+  const currentTimeRef = useRef(currentTime);
+  currentTimeRef.current = currentTime;
+  const totalDurationRef = useRef(totalDuration);
+  totalDurationRef.current = totalDuration;
+
   // ── Keyboard shortcuts (spacebar, delete, copy/paste) ─────────────
   React.useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       if (e.code === 'Space') {
         e.preventDefault();
-        togglePlay();
+        togglePlayRef.current();
       }
-      if ((e.code === 'Delete' || e.code === 'Backspace') && selectedItemIds.size > 0) {
+      if ((e.code === 'Delete' || e.code === 'Backspace') && selectedItemIdsRef.current.size > 0) {
         e.preventDefault();
-        setItems(prev => prev.filter(i => !selectedItemIds.has(i.id)));
-        clearSelection();
+        setItems(prev => prev.filter(i => !selectedItemIdsRef.current.has(i.id)));
+        clearSelectionRef.current();
       }
       // Ctrl+C / Cmd+C — copy first selected sticker
-      if ((e.ctrlKey || e.metaKey) && e.code === 'KeyC' && selectedItemIds.size > 0) {
+      if ((e.ctrlKey || e.metaKey) && e.code === 'KeyC' && selectedItemIdsRef.current.size > 0) {
         e.preventDefault();
-        const firstId = [...selectedItemIds][0];
-        const item = items.find(i => i.id === firstId);
+        const firstId = [...selectedItemIdsRef.current][0];
+        const item = itemsRef.current.find(i => i.id === firstId);
         if (item) {
           clipboardRef.current = item;
           pasteCountRef.current = 0;
@@ -488,9 +593,9 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           ...src,
           id: _nextSectionId++,
           position: { x: Math.min(src.position.x + offset, 0.95), y: Math.min(src.position.y + offset, 0.95) },
-          timestamp: currentTime,
-          duration: totalDuration - currentTime,
-          placedAtOffset: rawMidgroundOffset,
+          timestamp: currentTimeRef.current,
+          duration: totalDurationRef.current - currentTimeRef.current,
+          placedAtOffset: rawMidgroundOffsetRef.current,
           _placedWallTime: performance.now(),
         };
         setItems(prev => [...prev, newItem]);
@@ -499,7 +604,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [togglePlay, selectedItemIds, clearSelection, items, currentTime, totalDuration, rawMidgroundOffset]);
+  }, []); // stable — uses refs for all changing values
 
   // ── Section picker ─────────────────────────────────────────────────
 
@@ -558,8 +663,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
             <div className="w-px h-5 sm:h-6 bg-white/20 mx-0.5 sm:mx-1" />
 
-            {/* Color tools (inline) */}
-            {isBuild && (
+            {/* Color/drawing tools (hidden in game mode) */}
+            {isBuild && !gameMode && (
               <>
                 {[
                   { id: 'brush', icon: '\uD83D\uDD8C\uFE0F' },
@@ -605,7 +710,31 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             )}
 
             {/* Character selector (sprites) */}
-            <CharacterSelector selectedId={character?.id} onSelect={setCharacter} />
+            <CharacterSelector selectedId={character?.id} onSelect={setCharacter} allowedCharacters={allowedCharacters} />
+
+            {/* Game mode: decoy mode toggle */}
+            {gameMode && isBuild && (() => {
+              const decoyCount = items.filter(i => i.isDecoy).length;
+              return (
+                <>
+                  <div className="w-px h-5 sm:h-6 bg-white/20 mx-0.5 sm:mx-1" />
+                  <button
+                    onClick={() => setDecoyMode(d => !d)}
+                    disabled={!decoyMode && decoyCount >= 5}
+                    className={`px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-bold transition-colors whitespace-nowrap ${
+                      decoyMode
+                        ? 'bg-red-500 text-white hover:bg-red-600 ring-1 ring-red-300'
+                        : decoyCount >= 5
+                        ? 'bg-white/10 text-white/30 cursor-not-allowed'
+                        : 'bg-white/10 text-white/60 hover:bg-red-500/30 hover:text-red-300'
+                    }`}
+                  >
+                    {decoyMode ? `Decoy ON — click stickers to toggle (${decoyCount}/5)` : `Decoy (${decoyCount}/5)`}
+                    </button>
+                  )}
+                </>
+              );
+            })()}
           </div>
 
           {/* Right: Build/Present + Reset + Save */}
@@ -626,7 +755,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                   isPresent ? 'bg-orange-500 text-white' : 'text-white/40 hover:text-white/60'
                 }`}
               >
-                <Presentation size={12} /> <span className="hidden sm:inline">Present</span>
+                <Presentation size={12} /> <span className="hidden sm:inline">{gameMode ? 'Play Game' : 'Present'}</span>
               </button>
               <button
                 onClick={() => setAppMode('fullscreen')}
@@ -690,7 +819,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       {(isFullscreen || isPresent) && (
         <div className="absolute bottom-3 right-3 z-50 flex items-center gap-2">
           <button
-            onClick={rewind}
+            onClick={gameRewind}
             className="p-2 rounded-lg bg-black/50 hover:bg-black/70 text-white/60 hover:text-white transition-colors"
             title="Rewind"
           >
@@ -719,13 +848,14 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       <div className="flex-1 flex min-h-0">
         {/* Left panel — only in build mode */}
         {isBuild && (
-          <div className="w-40 sm:w-48 lg:w-56 flex-shrink-0 bg-black/20 border-r border-white/10 flex flex-col overflow-hidden">
+          <div className="w-44 sm:w-48 lg:w-56 flex-shrink-0 bg-black/20 border-r border-white/10 flex flex-col overflow-hidden">
             {/* Tab bar */}
             <div className="flex border-b border-white/10 flex-shrink-0">
               {[
                 { id: 'stickers', icon: <Sticker size={13} />, label: 'Stickers' },
-                ...(!hideMovement ? [{ id: 'movement', icon: <Wind size={13} />, label: 'Movement' }] : []),
-                { id: 'text', icon: <Type size={13} />, label: 'Text' },
+                ...(!hideMovement && !gameMode ? [{ id: 'movement', icon: <Wind size={13} />, label: 'Movement' }] : []),
+                /* Text tab commented out for now */
+                // ...(!gameMode ? [{ id: 'text', icon: <Type size={13} />, label: 'Text' }] : []),
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -776,54 +906,56 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                     </div>
                   </div>
 
-                  {/* Weather */}
-                  <div>
-                    <div className="text-[9px] text-white/40 uppercase font-bold mb-1.5 text-center">Weather</div>
-                    <div className="flex flex-col gap-1">
-                      {[
-                        { id: 'none', icon: <CloudOff size={14} />, label: 'Clear' },
-                        { id: 'rain', icon: <CloudRain size={14} />, label: 'Rain' },
-                        { id: 'snow', icon: <CloudSnow size={14} />, label: 'Snow' },
-                      ].map(w => (
-                        <button
-                          key={w.id}
-                          onClick={() => handleUpdateSection(activeSectionIndex, 'weather', w.id)}
-                          className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-all text-xs ${
-                            (activeSection?.weather || 'none') === w.id
-                              ? 'bg-cyan-500 text-white ring-1 ring-cyan-300'
-                              : 'bg-white/5 text-white/60 hover:bg-white/10'
-                          }`}
-                        >
-                          {w.icon}
-                          <span className="font-bold">{w.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Lighting */}
-                  <div>
-                    <div className="text-[9px] text-white/40 uppercase font-bold mb-1.5 text-center">Lighting</div>
-                    <div className="flex flex-col gap-1">
-                      {[
-                        { id: false, icon: <Sun size={14} />, label: 'Day' },
-                        { id: true, icon: <Moon size={14} />, label: 'Night' },
-                      ].map(l => (
-                        <button
-                          key={String(l.id)}
-                          onClick={() => handleUpdateSection(activeSectionIndex, 'nightMode', l.id)}
-                          className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-all text-xs ${
-                            (activeSection?.nightMode || false) === l.id
-                              ? 'bg-indigo-500 text-white ring-1 ring-indigo-300'
-                              : 'bg-white/5 text-white/60 hover:bg-white/10'
-                          }`}
-                        >
-                          {l.icon}
-                          <span className="font-bold">{l.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  {/* Weather & Lighting — hidden for cloud-only environments */}
+                  {!allowedEnvironments && (
+                    <>
+                      <div>
+                        <div className="text-[9px] text-white/40 uppercase font-bold mb-1.5 text-center">Weather</div>
+                        <div className="flex flex-col gap-1">
+                          {[
+                            { id: 'none', icon: <CloudOff size={14} />, label: 'Clear' },
+                            { id: 'rain', icon: <CloudRain size={14} />, label: 'Rain' },
+                            { id: 'snow', icon: <CloudSnow size={14} />, label: 'Snow' },
+                          ].map(w => (
+                            <button
+                              key={w.id}
+                              onClick={() => handleUpdateSection(activeSectionIndex, 'weather', w.id)}
+                              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-all text-xs ${
+                                (activeSection?.weather || 'none') === w.id
+                                  ? 'bg-cyan-500 text-white ring-1 ring-cyan-300'
+                                  : 'bg-white/5 text-white/60 hover:bg-white/10'
+                              }`}
+                            >
+                              {w.icon}
+                              <span className="font-bold">{w.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] text-white/40 uppercase font-bold mb-1.5 text-center">Lighting</div>
+                        <div className="flex flex-col gap-1">
+                          {[
+                            { id: false, icon: <Sun size={14} />, label: 'Day' },
+                            { id: true, icon: <Moon size={14} />, label: 'Night' },
+                          ].map(l => (
+                            <button
+                              key={String(l.id)}
+                              onClick={() => handleUpdateSection(activeSectionIndex, 'nightMode', l.id)}
+                              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-all text-xs ${
+                                (activeSection?.nightMode || false) === l.id
+                                  ? 'bg-indigo-500 text-white ring-1 ring-indigo-300'
+                                  : 'bg-white/5 text-white/60 hover:bg-white/10'
+                              }`}
+                            >
+                              {l.icon}
+                              <span className="font-bold">{l.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -864,6 +996,14 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
               marquee={marquee}
               onMarqueeChange={setMarquee}
               onMarqueeEnd={handleMarqueeEnd}
+              gameMode={gameMode}
+              birdY={birdY}
+              birdX={birdX}
+              onBirdYChange={setBirdY}
+              onBirdXChange={setBirdX}
+              score={gameScore}
+              collectedIds={collectedIds}
+              isHurt={birdHurt}
             >
               <DrawingOverlay
                 ref={drawingCanvasRef}
@@ -886,6 +1026,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                 selectedItemIds={selectedItemIds}
                 onSelectItem={selectItem}
                 isBuildMode={isBuild && !drawingTool}
+                gameMode={gameMode}
+                collectedIds={collectedIds}
               />
             </JourneyViewport>
           </div>
@@ -921,7 +1063,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           isPlaying={isPlaying}
           onTogglePlay={togglePlay}
           onSeek={seekTo}
-          onRewind={rewind}
+          onRewind={gameRewind}
           onOpenPicker={handleOpenPicker}
           onAddScene={handleAddScene}
           onRemoveSection={hideScenes ? null : handleRemoveSection}
@@ -941,6 +1083,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             });
           }}
           onScrubChange={setIsScrubbing}
+          allowedEnvironments={allowedEnvironments}
           onClearScene={hideScenes ? null : (sectionIndex) => {
             setSections(prev => {
               const updated = [...prev];
@@ -960,6 +1103,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           rect={pickerState.rect}
           onSelect={handlePickerSelect}
           onClose={() => setPickerState(null)}
+          allowedEnvironments={allowedEnvironments}
         />
       )}
 

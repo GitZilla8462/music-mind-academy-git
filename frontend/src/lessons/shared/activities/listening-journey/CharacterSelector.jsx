@@ -25,10 +25,13 @@ const SpritePreview = ({ char }) => {
   );
 };
 
-const CharacterSelector = ({ selectedId, onSelect }) => {
+const CharacterSelector = ({ selectedId, onSelect, allowedCharacters = null }) => {
+  const options = allowedCharacters
+    ? CHARACTER_OPTIONS.filter(c => c.type === 'none' || allowedCharacters.includes(c.id))
+    : CHARACTER_OPTIONS;
   return (
     <div className="flex gap-1 flex-nowrap">
-      {CHARACTER_OPTIONS.map((char) => (
+      {options.map((char) => (
         <button
           key={char.id}
           onClick={() => onSelect(char.type === 'none' ? null : char)}

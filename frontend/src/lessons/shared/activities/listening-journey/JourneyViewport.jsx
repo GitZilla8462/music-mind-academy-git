@@ -1,6 +1,6 @@
 // Composes all layers: ParallaxEnvironment (includes sky) -> Weather -> Character -> overlays
 
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState, useEffect } from 'react';
 import ParallaxEnvironment from './ParallaxEnvironment';
 import SpriteCharacterRenderer from './SpriteCharacterRenderer';
 import WeatherOverlay from './WeatherOverlay';
@@ -21,8 +21,78 @@ const JourneyViewport = ({
   onMarqueeChange,
   onMarqueeEnd,
   children,
+  // Game mode props
+  gameMode = false,
+  birdY = 0.35,
+  birdX = 0.12,
+  onBirdYChange,
+  onBirdXChange,
+  score = 0,
+  collectedIds = new Set(),
+  isHurt = false,
 }) => {
   const dragRef = useRef(null);
+
+  // Arrow key control for flying characters — always active when bird is present
+  const keysRef = useRef(new Set());
+
+  useEffect(() => {
+    if (!character?.flying || !onBirdYChange) return;
+
+    const handleKeyDown = (e) => {
+      const WASD_MAP = { w: 'ArrowUp', s: 'ArrowDown', a: 'ArrowLeft', d: 'ArrowRight',
+                         W: 'ArrowUp', S: 'ArrowDown', A: 'ArrowLeft', D: 'ArrowRight' };
+      const mapped = WASD_MAP[e.key] || (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key) ? e.key : null);
+      if (mapped) {
+        e.preventDefault();
+        keysRef.current.add(mapped);
+      }
+    };
+    const handleKeyUp = (e) => {
+      const WASD_MAP = { w: 'ArrowUp', s: 'ArrowDown', a: 'ArrowLeft', d: 'ArrowRight',
+                         W: 'ArrowUp', S: 'ArrowDown', A: 'ArrowLeft', D: 'ArrowRight' };
+      keysRef.current.delete(WASD_MAP[e.key] || e.key);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      keysRef.current.clear();
+    };
+  }, [character?.flying, onBirdYChange]);
+
+  // Smooth RAF movement loop — runs independently of key listeners
+  useEffect(() => {
+    if (!character?.flying || !onBirdYChange) return;
+
+    const SPEED = 0.008; // normalized units per frame — gentle bird movement
+    let lastTime = performance.now();
+    let animId;
+
+    const tick = (now) => {
+      const dt = Math.min((now - lastTime) / 16.67, 3); // normalize to ~60fps, cap at 3x
+      lastTime = now;
+      const keys = keysRef.current;
+      let dy = 0;
+      let dx = 0;
+      if (keys.has('ArrowUp')) dy -= SPEED * dt;
+      if (keys.has('ArrowDown')) dy += SPEED * dt;
+      if (keys.has('ArrowLeft')) dx -= SPEED * dt;
+      if (keys.has('ArrowRight')) dx += SPEED * dt;
+      if (dy !== 0) {
+        onBirdYChange(prev => Math.max(0.05, Math.min(0.85, prev + dy)));
+      }
+      if (dx !== 0 && onBirdXChange) {
+        onBirdXChange(prev => Math.max(0.03, Math.min(0.35, prev + dx)));
+      }
+      animId = requestAnimationFrame(tick);
+    };
+    animId = requestAnimationFrame(tick);
+
+    return () => cancelAnimationFrame(animId);
+  }, [character?.flying, onBirdYChange, onBirdXChange]);
 
   if (!section || !section.scene) {
     const sectionInfo = section?.label ? `${section.label} Section — ${section.sectionLabel}` : null;
@@ -132,9 +202,15 @@ const JourneyViewport = ({
           nightMode={section.nightMode || false}
         />
 
-        {/* Character (center-bottom for ground characters, higher for flying) */}
+        {/* Character — flying birds on left side (arrow-key controlled), ground characters centered */}
         {character && character.type !== 'none' && (
-          <div className="absolute z-10" style={{ bottom: character.flying ? '45%' : '8%', left: '50%', transform: 'translateX(-50%)' }}>
+          <div
+            className="absolute z-10"
+            style={character.flying
+              ? { top: `${birdY * 100}%`, left: `${birdX * 100}%`, willChange: 'top, left' }
+              : { bottom: '8%', left: '50%', transform: 'translateX(-50%)' }
+            }
+          >
             <div className="scale-[0.7] sm:scale-[0.85] lg:scale-100 origin-bottom">
               <SpriteCharacterRenderer
                 sprites={character.sprites}
@@ -144,7 +220,8 @@ const JourneyViewport = ({
                 tempo={section.tempo}
                 dynamics={section.dynamics}
                 movement={section.movement}
-                isPlaying={isPlaying}
+                isPlaying={character.flying ? true : isPlaying}
+                isHurt={isHurt}
               />
             </div>
           </div>
@@ -163,6 +240,28 @@ const JourneyViewport = ({
           className="absolute border-2 border-blue-400 bg-blue-400/15 rounded-sm pointer-events-none z-40"
           style={marqueeStyle}
         />
+      )}
+
+      {/* Game mode score overlay */}
+      {gameMode && (
+        <div className="absolute top-3 right-3 z-50 pointer-events-none">
+          <div className="bg-black/70 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20">
+            <div className="text-[10px] text-white/50 uppercase font-bold tracking-wider">Score</div>
+            <div className={`text-2xl font-black tabular-nums ${score >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              {score}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Game mode: arrow key hint */}
+      {gameMode && !isPlaying && character?.flying && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+          <div className="bg-black/70 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20 text-center">
+            <div className="text-white/80 text-sm font-bold">Press Play, then use Arrow Keys or WASD to fly!</div>
+            <div className="text-white/50 text-xs mt-0.5">Collect stickers for points — watch out for decoys!</div>
+          </div>
+        </div>
       )}
     </div>
   );

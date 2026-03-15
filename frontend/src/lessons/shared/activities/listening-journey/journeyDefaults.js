@@ -105,6 +105,13 @@ export const SCENE_SKY_MAP = {
   'city': 'clear-day',
   'plain-white': 'clear-day',
   'plain-black': 'night',
+  'clouds-day': 'clear-day',
+  'clouds-lavender': 'clear-day',
+  'clouds-sunset': 'golden-hour',
+  'clouds-night': 'night',
+  // Sky Backgrounds Collection (10 curated skies)
+  'sky-1': 'clear-day', 'sky-2': 'clear-day', 'sky-5': 'clear-day',
+  'sky-10': 'clear-day', 'sky-14': 'clear-day', 'sky-17': 'clear-day',
 };
 
 // Section color palette (cycles through)
@@ -140,5 +147,27 @@ export const CHARACTER_OPTIONS = [
     idle: { src: '/images/characters/dude-monster/idle.png', frames: 4 },
     walk: { src: '/images/characters/dude-monster/walk.png', frames: 6 },
     run: { src: '/images/characters/dude-monster/run.png', frames: 6 },
+  }},
+  // Bird characters (pixel art, 32x32 frames)
+  { id: 'yellow-bird', name: 'Yellow Bird', type: 'sprite', frameSize: 32, displayScale: 1.5, flying: true, sprites: {
+    idle: { src: '/images/characters/yellow-bird/fly.png', frames: 4 },
+    walk: { src: '/images/characters/yellow-bird/fly.png', frames: 4 },
+    run: { src: '/images/characters/yellow-bird/fly.png', frames: 4 },
+    hurt: { src: '/images/characters/yellow-bird/hurt.png', frames: 3 },
+    perch: { src: '/images/characters/yellow-bird/idle.png', frames: 12 },
+  }},
+  { id: 'crow', name: 'Crow', type: 'sprite', frameSize: 32, displayScale: 1.5, flying: true, sprites: {
+    idle: { src: '/images/characters/crow/fly.png', frames: 4 },
+    walk: { src: '/images/characters/crow/fly.png', frames: 4 },
+    run: { src: '/images/characters/crow/fly.png', frames: 4 },
+    hurt: { src: '/images/characters/crow/hurt.png', frames: 3 },
+    perch: { src: '/images/characters/crow/idle.png', frames: 12 },
+  }},
+  { id: 'pigeon', name: 'Pigeon', type: 'sprite', frameSize: 32, displayScale: 1.5, flying: true, sprites: {
+    idle: { src: '/images/characters/pigeon/fly.png', frames: 4 },
+    walk: { src: '/images/characters/pigeon/fly.png', frames: 4 },
+    run: { src: '/images/characters/pigeon/fly.png', frames: 4 },
+    hurt: { src: '/images/characters/pigeon/hurt.png', frames: 3 },
+    perch: { src: '/images/characters/pigeon/idle.png', frames: 12 },
   }},
 ];

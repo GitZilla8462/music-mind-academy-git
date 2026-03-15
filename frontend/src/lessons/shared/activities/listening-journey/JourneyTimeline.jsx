@@ -41,6 +41,88 @@ const SceneCard = ({ env, onAdd }) => {
   );
 };
 
+// ── Scene Palette Row (dropdown grid for many environments) ─────────
+
+const ScenePaletteRow = ({ environments, presetMode, onAssignScene, onAddScene, selectedPresetIndex, setSelectedPresetIndex, activeIndex, sections }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClick = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsOpen(false);
+    };
+    const timer = setTimeout(() => document.addEventListener('mousedown', handleClick), 50);
+    return () => { clearTimeout(timer); document.removeEventListener('mousedown', handleClick); };
+  }, [isOpen]);
+
+  const handleSelect = (sceneId) => {
+    if (presetMode && onAssignScene) {
+      const targetIdx = selectedPresetIndex !== null ? selectedPresetIndex
+        : activeIndex >= 0 ? activeIndex
+        : sections.findIndex(s => !s.scene);
+      if (targetIdx >= 0) {
+        onAssignScene(targetIdx, sceneId);
+        setSelectedPresetIndex(targetIdx);
+      }
+    } else {
+      onAddScene(sceneId);
+    }
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative flex items-center gap-1 sm:gap-1.5">
+      <button
+        onClick={() => setIsOpen(o => !o)}
+        className={`flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border transition-all text-[11px] sm:text-xs font-bold whitespace-nowrap ${
+          isOpen ? 'bg-white/20 border-white/30 text-white' : 'bg-gray-800 border-white/10 text-white/60 hover:bg-gray-700 hover:text-white/80'
+        }`}
+      >
+        <span>{'\u2601\uFE0F'}</span>
+        <span>Scenes ({environments.length})</span>
+        <span className="text-[9px]">{isOpen ? '\u25B2' : '\u25BC'}</span>
+      </button>
+
+      {isOpen && (
+        <div
+          ref={dropdownRef}
+          className="absolute bottom-full left-0 mb-2 bg-gray-800 border border-white/20 rounded-xl shadow-2xl p-2 z-50"
+          style={{ width: '340px' }}
+        >
+          <div className="grid grid-cols-5 gap-1.5 max-h-52 overflow-y-auto pr-1">
+            {environments.map(env => (
+              <button
+                key={env.id}
+                onClick={() => handleSelect(env.id)}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('scene-id', env.id);
+                  e.dataTransfer.effectAllowed = 'copy';
+                }}
+                className="relative rounded-lg overflow-hidden transition-all h-12 hover:scale-105 hover:ring-1 hover:ring-white/50 cursor-grab active:cursor-grabbing"
+                title={env.name}
+              >
+                {env.type === 'image' ? (
+                  <>
+                    <img src={env.sky} alt="" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+                    {env.layers.length > 0 && (
+                      <img src={env.layers[env.layers.length - 1].src} alt="" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+                    )}
+                  </>
+                ) : (
+                  <div className="absolute inset-0" style={{ backgroundColor: env.backgroundColor }} />
+                )}
+                <span className="absolute bottom-0 inset-x-0 text-[6px] text-white font-bold bg-black/60 px-0.5 py-px truncate text-center leading-tight">{env.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── Clip Block (iMovie-style filmstrip clip) ────────────────────────
 
 // ── Preset Placeholder Block (greyed out, awaiting scene drop) ──────
@@ -356,7 +438,8 @@ const JourneyTimeline = ({
   hideScenes = false,
   onAssignScene,
   onClearScene,
-  onScrubChange
+  onScrubChange,
+  allowedEnvironments = null
 }) => {
   const clipStripRef = useRef(null);
   const [isDraggingProgress, setIsDraggingProgressRaw] = useState(false);
@@ -481,31 +564,17 @@ const JourneyTimeline = ({
 
   return (
     <div className="flex flex-col gap-1.5">
-      {/* Scene palette row */}
-      {!hideScenes && <div className="flex items-center gap-1 sm:gap-1.5">
-        <span className="text-[9px] sm:text-[10px] text-white/40 font-bold uppercase w-10 sm:w-12 flex-shrink-0">Scenes</span>
-        <div className="flex gap-1 sm:gap-1.5 overflow-x-auto pb-0.5">
-          {ENVIRONMENTS.map(env => (
-            <SceneCard
-              key={env.id}
-              env={env}
-              onAdd={(sceneId) => {
-                if (presetMode && onAssignScene) {
-                  const targetIdx = selectedPresetIndex !== null ? selectedPresetIndex
-                    : activeIndex >= 0 ? activeIndex
-                    : sections.findIndex(s => !s.scene);
-                  if (targetIdx >= 0) {
-                    onAssignScene(targetIdx, sceneId);
-                    setSelectedPresetIndex(targetIdx);
-                  }
-                } else {
-                  onAddScene(sceneId);
-                }
-              }}
-            />
-          ))}
-        </div>
-      </div>}
+      {/* Scene palette — dropdown grid for many environments */}
+      {!hideScenes && <ScenePaletteRow
+        environments={allowedEnvironments ? ENVIRONMENTS.filter(e => allowedEnvironments.includes(e.id)) : ENVIRONMENTS}
+        presetMode={presetMode}
+        onAssignScene={onAssignScene}
+        onAddScene={onAddScene}
+        selectedPresetIndex={selectedPresetIndex}
+        setSelectedPresetIndex={setSelectedPresetIndex}
+        activeIndex={activeIndex}
+        sections={sections}
+      />}
 
       {/* Timeline: transport left, tracks right */}
       <div className="flex gap-1.5 sm:gap-2 items-start">

@@ -174,12 +174,12 @@ export const MOUNTAIN_KING_JOURNEY_CONFIG = (() => {
     hideMovement: true,
     defaultTab: 'dynamics',
     viewRoute: '/lessons/listening-lab/lesson3?view=saved',
-    defaultCharacter: CHARACTER_OPTIONS.find(c => c.id === 'dog'),
-    defaultSections: base.defaultSections.map(s => ({
+    defaultCharacter: null,
+    defaultSections: base.defaultSections.map((s, i) => ({
       ...s,
-      scene: 'night-mountain',
-      sky: 'night',
-      ground: 'rock',
+      scene: ['clouds-day', 'clouds-lavender', 'clouds-sunset', 'clouds-night', 'clouds-day', 'clouds-lavender'][i] || 'clouds-day',
+      sky: ['clear-day', 'clear-day', 'golden-hour', 'night', 'clear-day', 'clear-day'][i] || 'clear-day',
+      ground: null,
     })),
   };
 })();

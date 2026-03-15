@@ -1,5 +1,6 @@
 // Parallax environment — image layers that scroll at different speeds
 // Each layer is a PNG strip rendered 3x wide for seamless tiling
+// Sky-pack layers use CSS background-image tiling for proper height scaling
 
 import React from 'react';
 import { getEnvironmentById } from './config/environments';
@@ -28,9 +29,28 @@ const ParallaxEnvironment = ({ sceneId, midgroundOffset = 0 }) => {
 
       {/* Scrolling parallax layers */}
       {env.layers.map((layer, idx) => {
-        // Each layer wraps independently — one modulo on the combined product
         const translateX = -((midgroundOffset * layer.speed) % 1.0) * 33.333;
 
+        // Sky-pack layers: use CSS background tiling for seamless height scaling
+        if (layer.bgTile) {
+          return (
+            <div
+              key={idx}
+              className="absolute inset-0"
+              style={{
+                width: '300%',
+                willChange: 'transform',
+                transform: `translateX(${translateX}%)`,
+                backgroundImage: `url(${layer.src})`,
+                backgroundRepeat: 'repeat-x',
+                backgroundSize: 'auto 70%',
+                backgroundPosition: 'bottom',
+              }}
+            />
+          );
+        }
+
+        // Original layers: 3x image copies for tiling
         return (
           <div
             key={idx}

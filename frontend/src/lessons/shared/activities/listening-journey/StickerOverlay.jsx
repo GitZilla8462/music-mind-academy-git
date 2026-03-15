@@ -221,7 +221,51 @@ const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSe
         <div className="absolute -inset-1.5 border-2 border-blue-400 rounded-lg bg-blue-400/10 pointer-events-none" />
       )}
 
-      {type === 'sticker' && renderStickerContent(item, scale)}
+      {type === 'sticker' && item._collected && (
+        <div className="relative" style={{ animation: 'collected-fadeout 0.8s ease-out forwards' }}>
+          {/* Burst ring animation */}
+          <div
+            className={`absolute -inset-3 rounded-full ${item.isDecoy ? 'bg-red-500/40 ring-2 ring-red-400' : 'bg-emerald-500/40 ring-2 ring-emerald-400'}`}
+            style={{ animation: 'sticker-burst 0.6s ease-out forwards' }}
+          />
+          {renderStickerContent(item, scale)}
+          {/* Points badge */}
+          <div
+            className={`absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[11px] font-black whitespace-nowrap ${
+              item.isDecoy ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white'
+            }`}
+            style={{ animation: 'points-float 1s ease-out forwards' }}
+          >
+            {item.isDecoy ? '-5' : '+10'}
+          </div>
+          <style>{`
+            @keyframes sticker-burst {
+              0% { transform: scale(0.5); opacity: 1; }
+              100% { transform: scale(2); opacity: 0; }
+            }
+            @keyframes points-float {
+              0% { transform: translateX(-50%) translateY(0); opacity: 1; }
+              100% { transform: translateX(-50%) translateY(-24px); opacity: 0; }
+            }
+            @keyframes collected-fadeout {
+              0% { opacity: 1; transform: scale(1); }
+              60% { opacity: 1; transform: scale(1.1); }
+              100% { opacity: 0; transform: scale(0.5); }
+            }
+          `}</style>
+        </div>
+      )}
+      {type === 'sticker' && !item._collected && (
+        <div className="relative">
+          {renderStickerContent(item, scale)}
+          {/* Build-mode only decoy indicator — hidden during playback */}
+          {item.isDecoy && isBuildMode && (
+            <div className="absolute -top-1 -right-1 bg-red-500 rounded-full w-4 h-4 flex items-center justify-center pointer-events-none">
+              <span className="text-white text-[10px] font-bold">!</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {type === 'text' && (
         <div
@@ -252,7 +296,7 @@ const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSe
 // Memoize StickerItem — only re-renders when its own props change
 const StickerItem = React.memo(StickerItemInner);
 
-const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem, onUpdateItem, onAddItem, onSwitchToSelect, rawScrollOffset = 0, selectedItemIds = new Set(), onSelectItem, isBuildMode = false }) => {
+const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem, onUpdateItem, onAddItem, onSwitchToSelect, rawScrollOffset = 0, selectedItemIds = new Set(), onSelectItem, isBuildMode = false, gameMode = false, collectedIds = new Set() }) => {
   const singleSelected = selectedItemIds.size === 1;
   return (
     <>
@@ -264,10 +308,13 @@ const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem,
           ? -(rawScrollOffset - item.placedAtOffset)
           : 0;
 
+        // In game mode (not build): collected stickers get a flash + disappear
+        const collected = gameMode && !isBuildMode && collectedIds.has(item.id);
+
         return (
           <StickerItem
             key={item.id}
-            item={item}
+            item={collected ? { ...item, _collected: true } : item}
             visible={visible}
             scrollOffsetX={drift}
             isSelected={selectedItemIds.has(item.id)}

@@ -11,6 +11,11 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 // Config
 import { lesson4Config, lessonStages, getActivityForStage, getPieceById, buildPieceConfig } from './lesson4Config';
 
+// L4: Only cloud environments + bird characters
+const CLOUD_ENVIRONMENTS = ['clouds-day', 'clouds-lavender', 'clouds-sunset', 'clouds-night'];
+const BIRD_CHARACTERS = ['yellow-bird', 'crow', 'pigeon'];
+const JOURNEY_L4_EXTRAS = { allowedEnvironments: CLOUD_ENVIRONMENTS, allowedCharacters: BIRD_CHARACTERS };
+
 // Hooks
 import { useLesson } from '../../shared/hooks/useLesson';
 import { useSessionMode } from '../../shared/hooks/useSessionMode';
@@ -252,7 +257,7 @@ const Lesson4 = () => {
       return (
         <>
           <ActivityRenderer
-            activity={{ type: activityType, id: currentStage, ...(activityType === 'listening-journey' ? { pieceConfig: getSelectedPieceConfig() } : {}) }}
+            activity={{ type: activityType, id: currentStage, ...(activityType === 'listening-journey' ? { pieceConfig: getSelectedPieceConfig(), ...JOURNEY_L4_EXTRAS } : {}) }}
             onComplete={handleSessionActivityComplete}
             sessionCode={sessionCode}
             viewMode={false}
@@ -349,7 +354,7 @@ const Lesson4 = () => {
   if (viewSavedMode || viewReflectionMode) {
     return (
       <ActivityRenderer
-        activity={{ type: viewReflectionMode ? 'listening-lab-lesson4-reflection' : 'listening-journey', id: 'saved-view', ...(viewSavedMode ? { pieceConfig: getSelectedPieceConfig() } : {}) }}
+        activity={{ type: viewReflectionMode ? 'listening-lab-lesson4-reflection' : 'listening-journey', id: 'saved-view', ...(viewSavedMode ? { pieceConfig: getSelectedPieceConfig(), ...JOURNEY_L4_EXTRAS } : {}) }}
         onComplete={() => navigate(-1)}
         viewMode={true}
         isSessionMode={false}
@@ -394,7 +399,7 @@ const Lesson4 = () => {
 
   return (
     <ActivityRenderer
-      activity={{ type: currentActivity.type, id: currentActivity.id, ...(currentActivity.type === 'listening-journey' ? { pieceConfig: getSelectedPieceConfig() } : {}) }}
+      activity={{ type: currentActivity.type, id: currentActivity.id, ...(currentActivity.type === 'listening-journey' ? { pieceConfig: getSelectedPieceConfig(), ...JOURNEY_L4_EXTRAS } : {}) }}
       onComplete={lesson.handleActivityComplete}
       viewMode={false}
       isSessionMode={false}
