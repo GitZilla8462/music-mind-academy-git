@@ -102,6 +102,7 @@ const ActivityGradingView = ({
   const [workCache, setWorkCache] = useState({});
   const [loadingWork, setLoadingWork] = useState(false);
   const [assignmentMaxPoints, setAssignmentMaxPoints] = useState('100');
+  const [appliedCriteria, setAppliedCriteria] = useState(null); // Custom rubric applied to all students
   const [showGridLines, setShowGridLines] = useState(true);
   // const [showAnswerKey, setShowAnswerKey] = useState(false);
   // const [answerKeyData, setAnswerKeyData] = useState(null);
@@ -268,8 +269,11 @@ const ActivityGradingView = ({
     }
   };
 
-  // Apply rubric criteria change to all graded students
+  // Apply rubric criteria change to all students (graded and ungraded)
   const handleCriteriaChanged = async (newCriteriaNames) => {
+    // Store the applied criteria so ungraded students use it instead of the default
+    setAppliedCriteria(newCriteriaNames);
+
     const maxPts = parseInt(assignmentMaxPoints, 10) || 100;
 
     for (const student of studentData) {
@@ -504,6 +508,7 @@ const ActivityGradingView = ({
               maxPointsProp={assignmentMaxPoints}
               onMaxPointsChange={handleMaxPointsChange}
               onCriteriaChanged={handleCriteriaChanged}
+              appliedCriteria={appliedCriteria}
             />
 
             {/* Answer Key Section - commented out for now */}

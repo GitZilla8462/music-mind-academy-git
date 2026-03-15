@@ -53,7 +53,7 @@ const getDefaultCriteria = (lessonId) => {
   return DEFAULT_CRITERIA;
 };
 
-const GradeForm = ({ student, lesson, activity, classId, currentGrade, submission, onSave, compact = false, maxPointsProp, onMaxPointsChange, onCriteriaChanged }) => {
+const GradeForm = ({ student, lesson, activity, classId, currentGrade, submission, onSave, compact = false, maxPointsProp, onMaxPointsChange, onCriteriaChanged, appliedCriteria }) => {
   const { user } = useFirebaseAuth();
   // Must match getStudentId() format: seat-{classId}-{seatNumber}
   const effectiveUid = student?.studentUid || (student?.seatNumber != null && classId ? `seat-${classId}-${student.seatNumber}` : null);
@@ -74,6 +74,8 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
   const [savedRubrics, setSavedRubrics] = useState([]);
   const [rubricName, setRubricName] = useState('');
   const [showTemplates, setShowTemplates] = useState(false);
+  const [activeTemplateName, setActiveTemplateName] = useState(null);
+  const [templateSavedFlash, setTemplateSavedFlash] = useState(false);
 
   // UI state
   const [showComment, setShowComment] = useState(false);
@@ -108,13 +110,17 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
         pointsOverride: c.pointsOverride ?? null
       })));
       setShowRubric(true);
+    } else if (appliedCriteria?.length) {
+      // Use the teacher's custom rubric that was applied to all students
+      setCriteria(appliedCriteria.map(c => ({ name: c.name, selectedLevel: null, pointsOverride: null })));
+      setShowRubric(true);
     } else {
       setCriteria(getDefaultCriteria(lesson?.id).map(c => ({ ...c, selectedLevel: null, pointsOverride: null })));
     }
 
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
-  }, [currentGrade, effectiveUid, lesson?.id]);
+  }, [currentGrade, effectiveUid, lesson?.id, appliedCriteria]);
 
   // Cleanup
   useEffect(() => {
@@ -339,13 +345,17 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
   // Template save/load
   const handleSaveTemplate = async () => {
     if (!rubricName.trim()) return;
+    const name = rubricName.trim();
     try {
       const template = await saveRubricTemplate(user.uid, {
-        name: rubricName.trim(),
+        name,
         categories: criteria.map(c => ({ name: c.name }))
       });
       setSavedRubrics(prev => [...prev, template]);
+      setActiveTemplateName(name);
       setRubricName('');
+      setTemplateSavedFlash(true);
+      setTimeout(() => setTemplateSavedFlash(false), 2500);
     } catch (err) {
       console.error('Error saving rubric template:', err);
     }
@@ -355,6 +365,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
     const newCriteria = template.categories.map(c => ({ name: c.name, selectedLevel: null, pointsOverride: null }));
     setCriteria(newCriteria);
     setShowTemplates(false);
+    setActiveTemplateName(template.name);
     if (onCriteriaChanged) {
       if (window.confirm('Apply this rubric template to every student for this assignment?')) {
         onCriteriaChanged(newCriteria.map(c => ({ name: c.name })));
@@ -412,7 +423,9 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
           onClick={() => setShowRubric(!showRubric)}
           className="w-full px-3 py-2 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
         >
-          <span className="text-sm font-medium text-gray-700">Rubric</span>
+          <span className="text-sm font-medium text-gray-700">
+            Rubric{activeTemplateName && <span className="text-gray-400 font-normal ml-1">— {activeTemplateName}</span>}
+          </span>
           <div className="flex items-center gap-2">
             {rubricTotal !== null && (
               <span className="text-xs text-gray-500 font-medium">{rubricTotal}/{maxPoints}</span>
@@ -584,6 +597,11 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
                   >
                     Save
                   </button>
+                  {templateSavedFlash && (
+                    <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                      <Check size={12} /> Saved!
+                    </span>
+                  )}
                 </div>
 
                 <button
