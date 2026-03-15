@@ -238,11 +238,8 @@ export const logStageChange = async (sessionCode, newStage) => {
       lastStageAt: now
     });
   } catch (error) {
-    // Fallback: just update the stage
-    await update(sessionRef, {
-      lastStage: newStage,
-      lastStageAt: now
-    });
+    // Students may not have write access to pilotSessions — that's fine
+    console.warn('Could not update stage analytics:', error.message);
   }
 };
 
@@ -252,10 +249,15 @@ export const logStageChange = async (sessionCode, newStage) => {
 export const logStudentJoined = async (sessionCode) => {
   if (!sessionCode) return;
 
-  const sessionRef = ref(database, `pilotSessions/${sessionCode}`);
-  await update(sessionRef, {
-    studentsJoined: increment(1)
-  });
+  try {
+    const sessionRef = ref(database, `pilotSessions/${sessionCode}`);
+    await update(sessionRef, {
+      studentsJoined: increment(1)
+    });
+  } catch (err) {
+    // Students may not have write access to pilotSessions — that's fine
+    console.warn('Could not update student count:', err.message);
+  }
 };
 
 // ==========================================

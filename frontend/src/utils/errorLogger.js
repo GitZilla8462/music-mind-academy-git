@@ -176,9 +176,9 @@ const getErrorType = (error, context = {}) => {
 const getSeverity = (error, context = {}) => {
   const message = (error?.message || String(error)).toLowerCase();
 
-  // Audio errors are never critical — they don't lose student work
+  // Audio/chunk errors are never critical — they don't lose student work
   const errorType = getErrorType(error, context);
-  if (errorType === 'audio') return 'medium';
+  if (errorType === 'audio' || errorType === 'chunk') return 'medium';
 
   if (context.isUnhandled) return 'critical';
   if (context.isReactError) return 'high';

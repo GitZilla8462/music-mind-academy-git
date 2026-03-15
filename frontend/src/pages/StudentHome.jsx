@@ -68,7 +68,7 @@ const StudentHome = () => {
         seatNumber: pinSession.seatNumber,
         name: pinSession.displayName || pinSession.username
       });
-      logStudentJoined(activeSession.classData.classCode);
+      logStudentJoined(activeSession.classData.classCode).catch(() => {});
 
       const lessonRoute = activeSession.classData.currentSession?.lessonRoute || '/lessons/film-music-project/lesson1';
       window.location.href = `${lessonRoute}?classId=${activeSession.classData.id}&role=student&classCode=${activeSession.classData.classCode}&seatId=${seatId}&username=${pinSession.username}`;
