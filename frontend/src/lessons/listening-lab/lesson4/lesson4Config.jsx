@@ -226,24 +226,8 @@ export const lessonSections = [
     ]
   },
   {
-    id: 'review',
-    title: '2. Review',
-    subtitle: 'Dynamics, Tempo & Form',
-    color: 'blue',
-    estimatedTime: 4,
-    stages: [
-      {
-        id: 'review-slides',
-        type: 'summary',
-        label: 'Quick Review',
-        description: 'Recap dynamics, tempo, and form concepts from Lessons 1-3.',
-        duration: 4
-      }
-    ]
-  },
-  {
     id: 'worktime',
-    title: '3. Listening Journey Worktime',
+    title: '2. Listening Journey Worktime',
     subtitle: 'Build Your Journey',
     color: 'blue',
     estimatedTime: 20,
@@ -262,7 +246,7 @@ export const lessonSections = [
   },
   {
     id: 'bonus-game',
-    title: '4. Bonus Game',
+    title: '3. Bonus Game',
     subtitle: 'Name That Element',
     color: 'blue',
     estimatedTime: 10,
@@ -347,7 +331,6 @@ export const lessonStages = [
           heading: 'Today\'s Plan',
           bullets: [
             '🥁 PERCUSSION — Meet the percussion family (pitched vs. unpitched)',
-            '📝 REVIEW — Quick recap of dynamics, tempo, and form',
             '🏗️ WORKTIME — Continue building your Listening Journey',
             '🎮 BONUS — Name That Element game!'
           ]
@@ -385,44 +368,6 @@ export const lessonStages = [
     duration: 4,
     presentationView: {
       type: 'percussion-showcase'
-    }
-  },
-  {
-    id: 'review-slides',
-    label: 'Quick Review',
-    description: 'Recap dynamics, tempo, and form from Lessons 1-3.',
-    type: 'summary',
-    duration: 4,
-    presentationView: {
-      type: 'summary',
-      title: 'Quick Review',
-      subtitle: 'What have we learned so far?',
-      sections: [
-        {
-          heading: 'Dynamics (Lesson 1)',
-          bullets: [
-            'How LOUD or SOFT the music is',
-            'pp → p → mp → mf → f → ff',
-            'Crescendo (getting louder) & Decrescendo (getting softer)'
-          ]
-        },
-        {
-          heading: 'Tempo (Lesson 2)',
-          bullets: [
-            'How FAST or SLOW the music moves',
-            'Largo → Adagio → Andante → Allegro → Presto',
-            'Accelerando (speeding up) & Ritardando (slowing down)'
-          ]
-        },
-        {
-          heading: 'Form (Lesson 3)',
-          bullets: [
-            'The BLUEPRINT of a piece — sections labeled with letters',
-            'Ternary form: ABA (statement, contrast, return)',
-            'Mountain King: A (sneaky) → B (building) → A\' (explosive)'
-          ]
-        }
-      ]
     }
   },
   {
@@ -493,7 +438,6 @@ export const getActivityForStage = (stage) => {
     'welcome-intro': 'summary',
     'percussion-definition': 'summary',
     'percussion-showcase': 'summary',
-    'review-slides': 'summary',
     'build-time': 'listening-journey',
     'review-game-intro': 'summary',
     'review-game': 'name-that-element'

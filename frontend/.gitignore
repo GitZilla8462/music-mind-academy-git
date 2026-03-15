@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 dist/
 dist/
+
+# Original untrimmed video files (kept locally for re-trimming)
+*-original.mp4

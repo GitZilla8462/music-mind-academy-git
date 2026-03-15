@@ -15,8 +15,8 @@ const INSTRUMENT_CONFIGS = [
     color: '#3B82F6', // blue
     description: 'The highest voice in the woodwind family',
     videoPath: '/lessons/listening-lab/lesson2/videos/flute-demo.mp4',
-    startTime: 90,  // 1:30
-    endTime: 100,   // 1:40
+    startTime: 3,   // 0:03 (trimmed from original 1:30)
+    endTime: 13,    // 0:13 (trimmed from original 1:40)
     volume: 0.8,
     credit: 'Performed by Angeliki Sousoura',
     facts: ['No reed \u2014 sound made by blowing across the mouthhole', 'Made of metal, not wood!', 'Plays the highest notes in the woodwind family']
@@ -28,8 +28,8 @@ const INSTRUMENT_CONFIGS = [
     color: '#8B5CF6', // purple
     description: 'A double reed with a piercing, nasal tone',
     videoPath: '/lessons/listening-lab/lesson2/videos/oboe-demo.mp4',
-    startTime: 8,   // 0:08
-    endTime: 17,    // 0:17
+    startTime: 3,   // 0:03 (trimmed from original 0:08)
+    endTime: 12,    // 0:12 (trimmed from original 0:17)
     volume: 0.8,
     credit: 'Performed by Aaron Hill',
     facts: ['Uses a double reed \u2014 two thin pieces of cane', 'Tunes the entire orchestra', 'Distinctive nasal, piercing sound']
@@ -41,8 +41,8 @@ const INSTRUMENT_CONFIGS = [
     color: '#10B981', // emerald
     description: 'Warm and smooth, with the widest range',
     videoPath: '/lessons/listening-lab/lesson2/videos/clarinet-demo.mp4',
-    startTime: 192, // 3:12
-    endTime: 202,   // 3:22
+    startTime: 3,   // 0:03 (trimmed from original 3:12)
+    endTime: 13,    // 0:13 (trimmed from original 3:22)
     volume: 0.8,
     credit: 'Performed by Kyrill Rybakov',
     facts: ['Uses a single reed', 'Widest range of any woodwind', 'Can sound warm or bright']
@@ -54,8 +54,8 @@ const INSTRUMENT_CONFIGS = [
     color: '#EF4444', // red
     description: 'The deepest, richest woodwind sound',
     videoPath: '/lessons/listening-lab/lesson2/videos/bassoon-demo.mp4',
-    startTime: 528, // 8:48
-    endTime: 538,   // 8:58
+    startTime: 3,   // 0:03 (trimmed from original 8:48)
+    endTime: 13,    // 0:13 (trimmed from original 8:58)
     volume: 0.8,
     credit: 'Performed by Wang Shao Jung',
     facts: ['Uses a double reed, like the oboe', 'Lowest standard orchestral woodwind', 'Over 8 feet of tubing folded into its body']
