@@ -174,10 +174,14 @@ const getErrorType = (error, context = {}) => {
 
 // Determine severity from error
 const getSeverity = (error, context = {}) => {
+  const message = (error?.message || String(error)).toLowerCase();
+
+  // Audio errors are never critical — they don't lose student work
+  const errorType = getErrorType(error, context);
+  if (errorType === 'audio') return 'medium';
+
   if (context.isUnhandled) return 'critical';
   if (context.isReactError) return 'high';
-
-  const message = (error?.message || String(error)).toLowerCase();
 
   if (message.includes('crash') || message.includes('fatal')) return 'critical';
   if (message.includes('undefined') || message.includes('null') || message.includes('cannot read')) return 'high';

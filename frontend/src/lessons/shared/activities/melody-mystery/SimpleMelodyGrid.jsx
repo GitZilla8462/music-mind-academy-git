@@ -640,10 +640,22 @@ const createDeviceSynth = async (deviceId) => {
   }
 
   // Connect chain: synth -> effects -> destination
-  if (effects.length > 0) {
-    synth.chain(...effects, Tone.Destination);
-  } else {
-    synth.toDestination();
+  try {
+    if (effects.length > 0) {
+      synth.chain(...effects, Tone.Destination);
+    } else {
+      synth.toDestination();
+    }
+  } catch (err) {
+    // Audio context mismatch — dispose everything and fall back to a simple synth
+    console.warn('Audio context mismatch, falling back to simple synth:', err.message);
+    try { synth.dispose(); } catch (e) { /* ignore */ }
+    effects.forEach(e => { try { e.dispose(); } catch (ex) { /* ignore */ } });
+    effects.length = 0;
+    synth = new Tone.Synth({
+      oscillator: { type: config.oscType || 'triangle' },
+      envelope: config.envelope
+    }).toDestination();
   }
 
   currentSynth = synth;
@@ -676,8 +688,8 @@ const shiftNoteOctave = (noteId, octaveShift) => {
 
 // Initialize audio with optional device
 const initAudio = async (deviceId = null) => {
-  // If same device already initialized, skip
-  if (audioInitialized && deviceId === currentDeviceId) return;
+  // If same device already initialized and synth is still valid, skip
+  if (audioInitialized && deviceId === currentDeviceId && currentSynth && !currentSynth.disposed) return;
 
   await createDeviceSynth(deviceId);
 };
