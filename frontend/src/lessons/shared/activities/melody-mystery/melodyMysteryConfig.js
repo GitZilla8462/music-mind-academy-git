@@ -304,7 +304,7 @@ export const initMelodySynth = async () => {
 export const playNote = async (noteId) => {
   if (!initialized) await initMelodySynth();
   try {
-    melodySynth?.triggerAttackRelease(noteId, '8n');
+    melodySynth?.triggerAttackRelease(noteId, '8n', Tone.now() + 0.01);
   } catch (err) {
     // Chromebook timing: synth scheduling conflict - skip this note
   }
@@ -320,7 +320,7 @@ export const playGrid = async (grid, bpm = DEFAULT_BPM) => {
       if (grid[row][col]) {
         setTimeout(() => {
           try {
-            melodySynth?.triggerAttackRelease(MELODY_NOTES[row].id, '8n');
+            melodySynth?.triggerAttackRelease(MELODY_NOTES[row].id, '8n', Tone.now() + 0.01);
           } catch (err) {
             // Chromebook timing: synth scheduling conflict - skip this note
           }
