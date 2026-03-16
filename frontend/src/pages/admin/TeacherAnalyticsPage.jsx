@@ -347,22 +347,21 @@ const TeacherAnalyticsPage = () => {
   const funnelCounts = useMemo(() => {
     const now = Date.now();
     const fourteenDays = 14 * 24 * 60 * 60 * 1000;
-    let notLoggedIn = 0, registered = 0, teaching = 0, stalled = 0, surveyDue = 0;
+    let notLoggedIn = 0, loggedIn = 0, explored = 0, teaching = 0, stalled = 0, surveyDue = 0;
 
     teachers.forEach(t => {
+      // Primary funnel: these 4 add up to total
       if (t.stage === 'Not Logged In') notLoggedIn++;
-      else if (t.stage === 'Registered') registered++;
+      else if (t.stage === 'Registered') loggedIn++;
+      else if (t.stage === 'Explored') explored++;
+      else teaching++; // L1+
 
-      if (STAGE_ORDER[t.stage] >= STAGE_ORDER['L1']) teaching++;
-
-      // Stalled: has any activity but none in 14 days
+      // Cross-cutting filters (overlap with above)
       if (t.lastActive > 0 && (now - t.lastActive) > fourteenDays) stalled++;
-
-      // Survey due: L3+ but no mid-pilot survey
       if (STAGE_ORDER[t.stage] >= STAGE_ORDER['L3'] && !t.hasL3Survey && !t.manualL3Survey) surveyDue++;
     });
 
-    return { notLoggedIn, registered, teaching, stalled, surveyDue };
+    return { total: teachers.length, notLoggedIn, loggedIn, explored, teaching, stalled, surveyDue };
   }, [teachers]);
 
   // Filter teachers
@@ -409,7 +408,7 @@ const TeacherAnalyticsPage = () => {
 
     // Funnel filter overrides
     if (funnelFilter === 'notLoggedIn') list = list.filter(t => t.stage === 'Not Logged In');
-    else if (funnelFilter === 'registered') list = list.filter(t => t.stage === 'Registered');
+    else if (funnelFilter === 'loggedIn') list = list.filter(t => t.stage === 'Registered' || t.stage === 'Explored');
     else if (funnelFilter === 'teaching') list = list.filter(t => STAGE_ORDER[t.stage] >= STAGE_ORDER['L1']);
     else if (funnelFilter === 'stalled') list = list.filter(t => t.lastActive > 0 && (now - t.lastActive) > 14 * day);
     else if (funnelFilter === 'surveyDue') list = list.filter(t => STAGE_ORDER[t.stage] >= STAGE_ORDER['L3'] && !t.hasL3Survey && !t.manualL3Survey);
@@ -573,13 +572,18 @@ const TeacherAnalyticsPage = () => {
         </div>
       )}
 
-      {/* Funnel Cards */}
-      <div className="flex flex-wrap gap-3">
-        <FunnelCard label="Not Logged In" count={funnelCounts.notLoggedIn} colorClass="bg-red-50 text-red-800" filterKey="notLoggedIn" icon={UserX} />
-        <FunnelCard label="Registered" count={funnelCounts.registered} colorClass="bg-yellow-50 text-yellow-800" filterKey="registered" icon={Users} />
-        <FunnelCard label="Teaching (L1+)" count={funnelCounts.teaching} colorClass="bg-green-50 text-green-800" filterKey="teaching" icon={GraduationCap} />
-        <FunnelCard label="Stalled 14+ days" count={funnelCounts.stalled} colorClass="bg-red-50 text-red-700" filterKey="stalled" icon={Clock} />
-        <FunnelCard label="Survey Due" count={funnelCounts.surveyDue} colorClass="bg-purple-50 text-purple-800" filterKey="surveyDue" icon={ClipboardList} />
+      {/* Funnel Cards — top row adds up to total */}
+      <div className="space-y-2">
+        <div className="flex flex-wrap gap-3">
+          <FunnelCard label="Never Logged In" count={funnelCounts.notLoggedIn} colorClass="bg-red-50 text-red-800" filterKey="notLoggedIn" icon={UserX} />
+          <FunnelCard label="Only Logged In" count={funnelCounts.loggedIn + funnelCounts.explored} colorClass="bg-yellow-50 text-yellow-800" filterKey="loggedIn" icon={Users} />
+          <FunnelCard label="Teaching (L1+)" count={funnelCounts.teaching} colorClass="bg-green-50 text-green-800" filterKey="teaching" icon={GraduationCap} />
+        </div>
+        <div className="text-xs text-gray-400 ml-1">{funnelCounts.notLoggedIn} + {funnelCounts.loggedIn + funnelCounts.explored} + {funnelCounts.teaching} = {funnelCounts.total} approved</div>
+        <div className="flex flex-wrap gap-3">
+          <FunnelCard label="Stalled 14+ days" count={funnelCounts.stalled} colorClass="bg-gray-50 text-gray-700" filterKey="stalled" icon={Clock} />
+          <FunnelCard label="Survey Due" count={funnelCounts.surveyDue} colorClass="bg-purple-50 text-purple-800" filterKey="surveyDue" icon={ClipboardList} />
+        </div>
       </div>
 
       {/* Duplicates button */}
