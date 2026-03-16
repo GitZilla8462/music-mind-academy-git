@@ -5,6 +5,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, Star, Sparkles, Volume2, VolumeX, Minimize2, Maximize2, Smile } from 'lucide-react';
+import { saveStudentWork, getClassAuthInfo, parseActivityId } from '../../../../utils/studentWorkStorage';
+import { loadStudentWork as loadFromFirebase } from '../../../../firebase/studentWork';
 
 // Chromebook detection for cursor handling
 const isChromebook = typeof navigator !== 'undefined' && (
@@ -40,18 +42,34 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
 
   const hasSpokenRef = useRef(false);
 
-  // Load saved reflection if in view mode
+  // Load saved reflection if in view mode — tries localStorage first, then Firebase fallback
   useEffect(() => {
-    if (viewMode) {
-      const saved = localStorage.getItem('city-reflection');
-      if (saved) {
-        try {
-          const data = JSON.parse(saved);
-          setReflectionData(data);
-        } catch (error) {
-          console.error('Error loading reflection:', error);
-        }
+    if (!viewMode) return;
+
+    const saved = localStorage.getItem('city-reflection');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        setReflectionData(data);
+        return;
+      } catch (error) {
+        console.error('Error loading reflection:', error);
       }
+    }
+
+    // Firebase fallback for authenticated students (e.g., different device)
+    const authInfo = getClassAuthInfo();
+    if (authInfo?.uid) {
+      const { lessonId, activityId: parsedActivityId } = parseActivityId('fm-lesson2-reflection');
+      loadFromFirebase(authInfo.uid, lessonId, parsedActivityId).then((firebaseData) => {
+        if (firebaseData?.data) {
+          console.log('☁️ Loaded city reflection from Firebase');
+          setReflectionData(firebaseData.data);
+          localStorage.setItem('city-reflection', JSON.stringify(firebaseData.data));
+        }
+      }).catch((err) => {
+        console.warn('⚠️ Firebase city reflection load failed:', err.message);
+      });
     }
   }, [viewMode]);
 
@@ -185,6 +203,14 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
 
     localStorage.setItem('city-reflection', JSON.stringify(fullData));
     console.log('✅ City reflection saved:', fullData);
+
+    // Save to Firebase for cross-device access
+    saveStudentWork('fm-lesson2-reflection', {
+      title: 'Reflection',
+      emoji: '\uD83D\uDCDD',
+      type: 'reflection',
+      data: fullData
+    });
 
     if (onComplete) {
       onComplete();

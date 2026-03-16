@@ -20,7 +20,8 @@ import { useTimerSound } from '../hooks/useTimerSound';
 import LoopLabActivity from './loop-lab/LoopLabActivity';
 import { useSession } from '../../../context/SessionContext.jsx';
 // Note: Using wildlife-specific storage key instead of shared lesson4 utils
-import { saveStudentWork, clearAllCompositionSaves, getStudentId, getClassAuthInfo, loadStudentWork as loadFromFirebase } from '../../../utils/studentWorkStorage.js';
+import { saveStudentWork, clearAllCompositionSaves, getStudentId, getClassAuthInfo, parseActivityId } from '../../../utils/studentWorkStorage.js';
+import { loadStudentWork as loadFromFirebase } from '../../../firebase/studentWork';
 
 const WILDLIFE_COMPOSITION_DEADLINE = 10 * 60 * 1000; // 10 minutes
 
@@ -441,7 +442,8 @@ const WildlifeCompositionActivity = ({
       if (authInfo) {
         console.log('🔑 Authenticated student — checking Firebase first for wildlife composition');
         try {
-          const firebaseData = await loadFromFirebase('wildlife-composition', studentId);
+          const { lessonId, activityId: parsedActivityId } = parseActivityId('wildlife-composition');
+          const firebaseData = await loadFromFirebase(authInfo.uid, lessonId, parsedActivityId);
           if (firebaseData && firebaseData.data && firebaseData.data.placedLoops && firebaseData.data.placedLoops.length > 0) {
             if (!firebaseData.data.videoId || firebaseData.data.videoId === selectedVideo.id) {
               localStorage.removeItem('composition-wildlife-composition');

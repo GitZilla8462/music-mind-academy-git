@@ -11,10 +11,13 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 // Config
 import { lesson4Config, lessonStages, getActivityForStage, getPieceById, buildPieceConfig } from './lesson4Config';
 
-// L4: Only cloud environments + bird characters
-const CLOUD_ENVIRONMENTS = ['clouds-day', 'clouds-lavender', 'clouds-sunset', 'clouds-night'];
+// L4: Cloud environments (10 scenes) + bird characters, no game mode (decoys are L5 only)
+const CLOUD_ENVIRONMENTS = [
+  'clouds-day', 'clouds-lavender', 'clouds-sunset', 'clouds-night',
+  'sky-1', 'sky-2', 'sky-5', 'sky-10', 'sky-14', 'sky-17',
+];
 const BIRD_CHARACTERS = ['yellow-bird', 'crow', 'pigeon'];
-const JOURNEY_L4_EXTRAS = { allowedEnvironments: CLOUD_ENVIRONMENTS, allowedCharacters: BIRD_CHARACTERS };
+const JOURNEY_L4_EXTRAS = { allowedEnvironments: CLOUD_ENVIRONMENTS, allowedCharacters: BIRD_CHARACTERS, hideDrawingTools: true };
 
 // Hooks
 import { useLesson } from '../../shared/hooks/useLesson';
@@ -77,8 +80,8 @@ const Lesson4 = () => {
       }
     } catch (e) { /* ignore */ }
     if (!config) config = buildPieceConfig(getPieceById('mountain-king'));
-    // Tag with lesson ID so saves are filed under L4 for teacher visibility
-    return { ...config, lessonId: 'll-lesson4' };
+    // Tag with lesson ID and viewRoute so saves are filed under L4 for teacher visibility
+    return { ...config, lessonId: 'll-lesson4', viewRoute: '/lessons/listening-lab/lesson4?view=saved' };
   }, []);
 
   // Check for view modes from URL params

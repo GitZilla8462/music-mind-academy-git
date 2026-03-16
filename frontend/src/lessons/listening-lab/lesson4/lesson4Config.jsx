@@ -230,17 +230,31 @@ export const lessonSections = [
     title: '2. Listening Journey Worktime',
     subtitle: 'Build Your Journey',
     color: 'blue',
-    estimatedTime: 20,
+    estimatedTime: 19,
     stages: [
+      {
+        id: 'worktime-intro',
+        type: 'summary',
+        label: 'Today\'s Focus',
+        description: 'Explain what students should add today — tempo, instruments, and form.',
+        duration: 2
+      },
       {
         id: 'build-time',
         type: 'activity',
         label: 'Build Your Journey',
-        duration: 20,
+        duration: 15,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students continue building their Listening Journey.',
-        bonusDescription: 'Match backgrounds, tempo, and dynamics to what you hear!'
+        description: 'Students continue building their Listening Journey — add tempo, instruments, and form.',
+        bonusDescription: 'Make sure every sticker matches what you actually hear!'
+      },
+      {
+        id: 'peer-review-intro',
+        type: 'summary',
+        label: 'Peer Review Preview',
+        description: 'Explain the game concept — accuracy matters because classmates will play your game.',
+        duration: 2
       }
     ]
   },
@@ -295,7 +309,7 @@ export const lesson4Config = {
       id: 2,
       type: "listening-journey",
       title: "Listening Journey Worktime",
-      estimatedTime: "20 min"
+      estimatedTime: "15 min"
     },
     {
       id: 3,
@@ -330,9 +344,9 @@ export const lessonStages = [
         {
           heading: 'Today\'s Plan',
           bullets: [
-            '🥁 PERCUSSION — Meet the percussion family (pitched vs. unpitched)',
-            '🏗️ WORKTIME — Continue building your Listening Journey',
-            '🎮 BONUS — Name That Element game!'
+            'PERCUSSION — Meet the percussion family (pitched vs. unpitched)',
+            'WORKTIME — Continue building your Listening Journey',
+            'BONUS — Name That Element game!'
           ]
         }
       ]
@@ -371,18 +385,79 @@ export const lessonStages = [
     }
   },
   {
+    id: 'worktime-intro',
+    label: 'Today\'s Focus',
+    description: 'Explain what students should add today.',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'summary',
+      title: 'Listening Journey — Today\'s Focus',
+      subtitle: 'Make Your Game Accurate!',
+      sections: [
+        {
+          heading: 'What to Add Today',
+          bullets: [
+            'Dynamics — should be done from last class!',
+            'TEMPO — Add tempo markings (allegro, adagio, accelerando, etc.)',
+            'INSTRUMENTS — Add stickers for instruments you hear in each section',
+            'FORM — Add section labels (A, B, A\') to mark where sections change'
+          ]
+        },
+        {
+          heading: 'Why Accuracy Matters',
+          bullets: [
+            'Your journey is becoming a GAME that classmates will play!',
+            'Every sticker a player collects earns points — but only if it\'s accurate',
+            'Make sure each sticker matches what you ACTUALLY hear in that part of the music'
+          ]
+        }
+      ]
+    }
+  },
+  {
     id: 'build-time',
     label: 'Build Your Journey',
-    description: 'Students continue building their Listening Journey.',
-    bonusDescription: 'Match backgrounds, tempo, and dynamics to what you hear!',
+    description: 'Students continue building — add tempo, instruments, and form.',
+    bonusDescription: 'Make sure every sticker matches what you actually hear!',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 20,
+    duration: 15,
     presentationView: {
       type: 'activity-banner',
       title: 'Listening Journey Worktime',
-      subtitle: 'Continue building — show what you hear!'
+      subtitle: 'Add tempo, instruments, and form markers!'
+    }
+  },
+  {
+    id: 'peer-review-intro',
+    label: 'Peer Review Preview',
+    description: 'Explain the game concept and what\'s coming next class.',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'summary',
+      title: 'Your Journey Is a Game!',
+      subtitle: 'What\'s Coming Next Class',
+      sections: [
+        {
+          heading: 'How the Game Works',
+          bullets: [
+            'A bird character flies through your world collecting stickers',
+            'Each sticker the bird touches = +10 points',
+            'Stickers need to be ACCURATE — if you put "forte" where the music is actually piano, that\'s not a good sticker!'
+          ]
+        },
+        {
+          heading: 'Next Class: Decoys & Play!',
+          bullets: [
+            'You\'ll add DECOYS — fake stickers that cost players -5 points',
+            'Example: Placing a forte marking where the music is actually piano',
+            'Then you\'ll swap Chromebooks and PLAY each other\'s games!'
+          ]
+        }
+      ]
     }
   },
   {
@@ -438,7 +513,9 @@ export const getActivityForStage = (stage) => {
     'welcome-intro': 'summary',
     'percussion-definition': 'summary',
     'percussion-showcase': 'summary',
+    'worktime-intro': 'summary',
     'build-time': 'listening-journey',
+    'peer-review-intro': 'summary',
     'review-game-intro': 'summary',
     'review-game': 'name-that-element'
   };

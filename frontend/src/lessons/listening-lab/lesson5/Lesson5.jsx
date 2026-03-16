@@ -20,7 +20,7 @@ const CLOUD_ENVIRONMENTS = [
 ];
 const BIRD_CHARACTERS = ['yellow-bird', 'crow', 'pigeon'];
 const DEFAULT_BIRD = CHARACTER_OPTIONS.find(c => c.id === 'yellow-bird');
-const JOURNEY_L5_EXTRAS = { allowedEnvironments: CLOUD_ENVIRONMENTS, allowedCharacters: BIRD_CHARACTERS, gameMode: true, defaultCharacter: DEFAULT_BIRD, defaultScene: 'clouds-day' };
+const JOURNEY_L5_EXTRAS = { allowedEnvironments: CLOUD_ENVIRONMENTS, allowedCharacters: BIRD_CHARACTERS, hideDrawingTools: true, gameMode: true, defaultCharacter: DEFAULT_BIRD, defaultScene: 'clouds-day' };
 
 // Hooks
 import { useLesson } from '../../shared/hooks/useLesson';
@@ -74,15 +74,16 @@ const Lesson5 = () => {
 
   // Get selected piece config for Listening Journey
   const getSelectedPieceConfig = useCallback(() => {
+    let config;
     try {
       const saved = localStorage.getItem('listening-lab-lesson4-selected-piece');
       if (saved) {
         const { pieceId } = JSON.parse(saved);
-        return buildPieceConfig(getPieceById(pieceId));
+        config = buildPieceConfig(getPieceById(pieceId));
       }
     } catch (e) { /* ignore */ }
-    // Default to Mountain King if no piece was saved from Lesson 4
-    return buildPieceConfig(getPieceById('mountain-king'));
+    if (!config) config = buildPieceConfig(getPieceById('mountain-king'));
+    return { ...config, lessonId: 'll-lesson5' };
   }, []);
 
   // Check for view modes from URL params

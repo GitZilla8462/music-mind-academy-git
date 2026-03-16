@@ -765,6 +765,7 @@ const ActivityRenderer = ({
           pieceConfig={activity.pieceConfig || null}
           allowedEnvironments={activity.allowedEnvironments || null}
           allowedCharacters={activity.allowedCharacters || null}
+          hideDrawingTools={activity.hideDrawingTools || false}
           gameMode={activity.gameMode || false}
           defaultScene={activity.defaultScene || null}
           defaultCharacter={activity.defaultCharacter || null}

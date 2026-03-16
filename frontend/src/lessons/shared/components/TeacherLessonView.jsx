@@ -1576,6 +1576,11 @@ const PresentationContent = ({
             ListeningJourneyComponent={ListeningJourney}
             pieceConfig={pieceConfig}
             dismissedRef={animatorDirDismissedRef}
+            journeyProps={{
+              hideDrawingTools: true,
+              allowedCharacters: ['yellow-bird', 'crow', 'pigeon'],
+              allowedEnvironments: ['clouds-day', 'clouds-lavender', 'clouds-sunset', 'clouds-night'],
+            }}
           />
         </div>
       );
@@ -3441,7 +3446,7 @@ const FinalPilotSurvey = ({
 // ============================================
 // ANIMATOR DIRECTIONS OVERLAY (stable component to prevent remounting)
 // ============================================
-const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, pieceConfig, dismissedRef }) => {
+const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, pieceConfig, dismissedRef, journeyProps = {} }) => {
   const [showOverlay, setShowOverlay] = useState(!dismissedRef.current);
   const [dirStep, setDirStep] = useState(0);
 
@@ -3480,6 +3485,16 @@ const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, piece
   }, []);
 
   const directions = [
+    {
+      title: 'Listening Journey Game Creator',
+      icon: '\uD83C\uDFAE',
+      items: [
+        <>Welcome to the <span className="font-bold text-purple-700">Listening Journey Game Creator!</span></>,
+        <>Listen to the music and add <span className="font-bold text-amber-600">symbols, dynamics, tempo markings, and instruments</span> that match what you hear</>,
+        <>You're building a <span className="font-bold text-emerald-700">game</span> — a bird character will fly through your world and <span className="font-bold text-gray-900">collect the stickers you place for points</span></>,
+        <>Your classmates will get to <span className="font-bold text-blue-600">play your game!</span> Make it awesome</>,
+      ],
+    },
     {
       title: 'Your Job',
       icon: '\uD83D\uDDFA\uFE0F',
@@ -3522,6 +3537,7 @@ const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, piece
             viewMode={false}
             isSessionMode={false}
             pieceConfig={pieceConfig || null}
+            {...journeyProps}
           />
         ) : (
           <div className="flex items-center justify-center h-full bg-gray-900">

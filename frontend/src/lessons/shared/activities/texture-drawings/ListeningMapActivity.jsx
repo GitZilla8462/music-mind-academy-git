@@ -436,7 +436,9 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
       }
 
       if (savedWork && savedWork.data?.editableData) {
-        console.log('📂 Found saved listening map, restoring...');
+        console.log('📂 Found saved listening map, restoring...',
+          'stickers in editableData:', savedWork.data.editableData?.stickers?.length,
+          savedWork.data.editableData?.stickers?.map(s => `${s.id}:${s.data?.id || s.data?.render || '?'}`));
 
         // Use loadState to restore stickers and canvas
         if (canvasRef.current?.loadState) {
@@ -454,12 +456,14 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
     loadWork();
   }, [studentId, canvasReady]);
 
-  // Dimensions
+  // Dimensions — enforce ~4:3 landscape aspect ratio so exports look consistent
+  // regardless of browser window shape (dev tools open, narrow windows, etc.)
   const stickerPanelWidth = showStickerPanel ? 240 : 0;
   const rowControlsWidth = 80;
   const rightToolbarWidth = 60;
   const canvasWidth = Math.max(0, containerSize.width - stickerPanelWidth - rowControlsWidth - rightToolbarWidth);
-  const canvasHeight = containerSize.height;
+  const targetHeight = Math.round(canvasWidth * 0.75); // 4:3 landscape
+  const canvasHeight = Math.min(containerSize.height, targetHeight) || containerSize.height;
   const rowHeight = canvasHeight / mapConfig.numRows;
 
   // Playhead
@@ -495,6 +499,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
   };
 
   const handleStickerPlaced = () => {
+    // Switch to hand tool so user can immediately move/resize the placed sticker
     setTool(TOOL_TYPES.HAND || 'hand');
   };
 
@@ -629,6 +634,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
     try {
       // Get editable data (stickers + canvas drawing)
       const editableData = canvasRef.current.getEditableData?.();
+      console.log('💾 Save capturing stickers:', editableData?.stickers?.length, 'stickers', editableData?.stickers?.map(s => s.data?.id || s.data?.render || 'unknown'));
       // Also get flat image for preview/thumbnail (async to render instrument PNGs)
       const imageData = await canvasRef.current.toDataURL?.();
 
@@ -823,11 +829,12 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
             </button>
           </div>
         </div>
-        <div className="flex-1 flex items-center justify-center p-4">
+        <div className="flex-1 flex items-center justify-center p-4" style={{ minHeight: 0 }}>
           <img
             src={presentationMode}
             alt="My Listening Map"
-            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+            className="rounded-lg shadow-2xl"
+            style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#ffffff' }}
           />
         </div>
       </div>
@@ -923,7 +930,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
         )}
 
         {/* CANVAS */}
-        <div ref={canvasAreaRef} className="relative flex-1 overflow-hidden bg-white">
+        <div ref={canvasAreaRef} className="relative flex-1 overflow-auto bg-white">
           {canvasWidth > 0 && canvasHeight > 0 && (
             <>
               <DrawingCanvas

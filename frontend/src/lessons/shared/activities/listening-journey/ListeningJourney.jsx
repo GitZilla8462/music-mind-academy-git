@@ -3,7 +3,7 @@
 // Stickers are time-pinned: only visible when the playhead is at their timestamp
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { Save, RotateCcw, Sticker, Type, Moon, Sun, CloudRain, CloudSnow, Wind, CloudOff, Hammer, Presentation, Maximize, Minimize, Play, Pause, SkipBack } from 'lucide-react';
+import { Save, RotateCcw, Sticker, Type, Moon, Sun, CloudRain, CloudSnow, Wind, CloudOff, Hammer, Presentation, Maximize, Minimize, Play, Pause, SkipBack, HelpCircle } from 'lucide-react';
 import PlanningGuide from './PlanningGuide';
 import EssayPanel from './EssayPanel';
 
@@ -19,7 +19,7 @@ import useParallaxScroll, { getScrollOffsetAtTime } from './hooks/useParallaxScr
 import { MOVEMENT_TYPES } from './characterAnimations';
 import { AUDIO_PATH, TOTAL_DURATION, CHARACTER_OPTIONS, SCENE_SKY_MAP, SECTION_COLORS } from './journeyDefaults';
 import { SCENE_GROUND_MAP } from './config/groundTypes';
-import { saveStudentWork, loadStudentWork, getClassAuthInfo } from '../../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, loadStudentWorkAsync, getClassAuthInfo } from '../../../../utils/studentWorkStorage';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
@@ -28,7 +28,7 @@ let _nextSectionId = Date.now();
 const DRAW_COLORS = ['#ffffff', '#000000', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#6b7280'];
 const DRAW_SIZES = [4, 8, 16, 24, 32];
 
-const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false, pieceConfig = null, allowedEnvironments = null, allowedCharacters = null, gameMode = false, defaultScene = null, defaultCharacter: defaultCharacterProp = null }) => {
+const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false, pieceConfig = null, allowedEnvironments = null, allowedCharacters = null, hideDrawingTools = false, gameMode = false, defaultScene = null, defaultCharacter: defaultCharacterProp = null }) => {
   // If pieceConfig is provided, use it instead of defaults
   const audioPath = pieceConfig?.audioPath || AUDIO_PATH;
   const audioVolume = pieceConfig?.volume || 1.0;
@@ -39,9 +39,10 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const hideMovement = pieceConfig?.hideMovement || false;
   const defaultTab = pieceConfig?.defaultTab || null;
   // ── State ──────────────────────────────────────────────────────────
-  // Load saved data ONCE (instead of 6 separate localStorage parses)
+  // Load saved data ONCE (localStorage first, Firebase fallback in useEffect below)
   const [savedSnapshot] = useState(() => loadStudentWork(storageKey));
   const savedData = savedSnapshot?.data;
+  const hasLocalData = useRef(!!savedData?.sections?.length);
 
   const [sections, setSections] = useState(() => {
     if (savedData?.sections?.length > 0) {
@@ -79,6 +80,32 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const [textEditorPosition, setTextEditorPosition] = useState(null);
   const [leftPanelTab, setLeftPanelTab] = useState(defaultTab || gameMode ? 'stickers' : 'movement'); // 'stickers' | 'movement' | 'text'
 
+  // Firebase fallback — if no local data, try loading from Firebase (cross-device support)
+  useEffect(() => {
+    if (hasLocalData.current) return;
+    const authInfo = getClassAuthInfo();
+    if (!authInfo?.uid) return;
+
+    (async () => {
+      console.log('🔍 No local listening journey data, trying Firebase...');
+      const fbWork = await loadStudentWorkAsync(storageKey, authInfo);
+      const fbData = fbWork?.data;
+      if (fbData?.sections?.length > 0) {
+        console.log('☁️ Restored listening journey from Firebase:', fbData.sections.length, 'sections');
+        setSections(fbData.sections.map(s => ({
+          ...s,
+          sky: s.sky || 'clear-day',
+          scene: s.scene || (presetMode ? null : 'forest'),
+          ground: s.ground || 'grass',
+        })));
+        if (fbData.items) setItems(fbData.items);
+        if (fbData.character) setCharacter(fbData.character);
+        if (fbData.guideData) setGuideData(fbData.guideData);
+        if (fbData.essayData) setEssayData(fbData.essayData);
+      }
+    })();
+  }, [storageKey, viewMode, presetMode]);
+
   // Drawing tool state
   const [drawingTool, setDrawingTool] = useState(null); // null | 'brush' | 'pencil' | 'eraser'
   const [brushColor, setBrushColor] = useState('#ffffff');
@@ -97,6 +124,18 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   // Reset confirmation state
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  // ── Intro modal (first time opening Listening Journey) ──────────
+  const showIntro = pieceConfig?.showIntro || false;
+  const introKey = `listening-journey-intro-seen-${storageKey}`;
+  const [showIntroModal, setShowIntroModal] = useState(() => {
+    if (!showIntro || viewMode) return false;
+    return !localStorage.getItem(introKey);
+  });
+  const dismissIntro = useCallback(() => {
+    setShowIntroModal(false);
+    localStorage.setItem(introKey, '1');
+  }, [introKey]);
 
   // ── Game mode state ──────────────────────────────────────────────
   const [birdY, setBirdY] = useState(0.35);
@@ -278,6 +317,62 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     setTimeout(() => setSaveStatus(null), 2000);
   }, [sections, character, items, guideData, essayData, audioPath, audioVolume, storageKey, pieceConfig]);
 
+  // Track if teacher save already fired — prevents unmount save from overwriting
+  const teacherSaveTriggeredRef = useRef(false);
+
+  // Refs for unmount save (captures latest state without re-creating effect)
+  const unmountSectionsRef = useRef(sections);
+  unmountSectionsRef.current = sections;
+  const unmountCharacterRef = useRef(character);
+  unmountCharacterRef.current = character;
+  const unmountItemsRef = useRef(items);
+  unmountItemsRef.current = items;
+  const unmountGuideRef = useRef(guideData);
+  unmountGuideRef.current = guideData;
+  const unmountEssayRef = useRef(essayData);
+  unmountEssayRef.current = essayData;
+
+  // Auto-save on unmount (when teacher advances to next stage)
+  useEffect(() => {
+    return () => {
+      if (!isSessionMode || viewMode) return;
+      if (teacherSaveTriggeredRef.current) {
+        console.log('💾 Skipping unmount save — teacher save already stored good data');
+        return;
+      }
+      if (unmountSectionsRef.current.length === 0) return;
+
+      console.log('💾 Auto-saving listening journey on unmount...');
+      try {
+        const authInfo = getClassAuthInfo();
+        const cleanItems = unmountItemsRef.current.map(({ _placedWallTime, ...rest }) => rest);
+        const drawingData = drawingCanvasRef.current?.getDataURL() || null;
+        saveStudentWork(storageKey, {
+          title: 'Listening Journey',
+          emoji: '🎭',
+          viewRoute: pieceConfig?.viewRoute || '/lessons/listening-lab/lesson4?view=saved',
+          subtitle: `${unmountSectionsRef.current.length} sections`,
+          category: 'Listening Lab',
+          lessonId: pieceConfig?.lessonId || null,
+          data: {
+            sections: unmountSectionsRef.current,
+            character: unmountCharacterRef.current,
+            items: cleanItems,
+            guideData: unmountGuideRef.current,
+            essayData: unmountEssayRef.current,
+            drawingData,
+            audioPath,
+            audioVolume,
+            pieceTitle: pieceConfig?.title || null
+          }
+        }, null, authInfo);
+        console.log('✅ Listening journey saved on unmount');
+      } catch (error) {
+        console.error('❌ Failed to save listening journey on unmount:', error);
+      }
+    };
+  }, [isSessionMode, viewMode, storageKey, audioPath, audioVolume, pieceConfig]);
+
   // Listen for teacher's "Save All & Continue" command from Firebase
   useEffect(() => {
     if (!effectiveSessionCode || !isSessionMode || viewMode) return;
@@ -301,6 +396,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
         if (sections.length > 0) {
           handleSave();
+          teacherSaveTriggeredRef.current = true;
           setTeacherSaveToast(true);
           setTimeout(() => setTeacherSaveToast(false), 3000);
         }
@@ -381,13 +477,11 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   const selectItem = useCallback((id) => {
     setSelectedItemIds(new Set(id != null ? [id] : []));
-    // In decoy mode, clicking a placed sticker auto-toggles its decoy status
+    // In decoy mode, clicking a placed sticker toggles its decoy status
     if (id != null && decoyMode && gameMode) {
       setItems(prev => {
         const item = prev.find(i => i.id === id);
         if (!item || item.type !== 'sticker') return prev;
-        const decoyCount = prev.filter(i => i.isDecoy).length;
-        if (!item.isDecoy && decoyCount >= 5) return prev;
         return prev.map(i => i.id === id ? { ...i, isDecoy: !i.isDecoy } : i);
       });
     }
@@ -406,8 +500,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       const startTime = currentTime;
       const duration = totalDuration - currentTime;
 
-      const decoyCount = gameMode && decoyMode ? items.filter(i => i.isDecoy).length : 0;
-      const markDecoy = gameMode && decoyMode && decoyCount < 5;
+      const markDecoy = gameMode && decoyMode;
       setItems(prev => [...prev, {
         type: 'sticker',
         icon: selectedSticker.symbol || selectedSticker.id,
@@ -658,13 +751,15 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         <div className="flex items-center justify-between px-2 sm:px-4 py-1 sm:py-1.5 bg-black/30 border-b border-white/10 flex-shrink-0 flex-nowrap overflow-hidden">
           {/* Left: Title + Color tools + Sprites */}
           <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
-            <h1 className="text-xs sm:text-sm font-bold whitespace-nowrap mr-1">Listening Journey</h1>
-            <span className="text-[10px] sm:text-[11px] text-white/50 truncate mr-1 hidden sm:inline">{pieceConfig?.title || 'Hungarian Dance No. 5 - Brahms'}</span>
+            <div className="flex flex-col mr-1 min-w-0">
+              <h1 className="text-xs sm:text-sm font-bold whitespace-nowrap leading-tight">Listening Journey Game Creator</h1>
+              <span className="text-[9px] sm:text-[10px] text-white/50 truncate leading-tight">{pieceConfig?.title || 'Hungarian Dance No. 5 - Brahms'}</span>
+            </div>
 
             <div className="w-px h-5 sm:h-6 bg-white/20 mx-0.5 sm:mx-1" />
 
-            {/* Color/drawing tools (hidden in game mode) */}
-            {isBuild && !gameMode && (
+            {/* Color/drawing tools (hidden in game mode and when hideDrawingTools is set) */}
+            {isBuild && !gameMode && !hideDrawingTools && (
               <>
                 {[
                   { id: 'brush', icon: '\uD83D\uDD8C\uFE0F' },
@@ -720,25 +815,30 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                   <div className="w-px h-5 sm:h-6 bg-white/20 mx-0.5 sm:mx-1" />
                   <button
                     onClick={() => setDecoyMode(d => !d)}
-                    disabled={!decoyMode && decoyCount >= 5}
                     className={`px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-bold transition-colors whitespace-nowrap ${
                       decoyMode
-                        ? 'bg-red-500 text-white hover:bg-red-600 ring-1 ring-red-300'
-                        : decoyCount >= 5
-                        ? 'bg-white/10 text-white/30 cursor-not-allowed'
+                        ? 'bg-red-500 text-white hover:bg-red-600 ring-2 ring-red-300 animate-pulse'
                         : 'bg-white/10 text-white/60 hover:bg-red-500/30 hover:text-red-300'
                     }`}
                   >
-                    {decoyMode ? `Decoy ON — click stickers to toggle (${decoyCount}/5)` : `Decoy (${decoyCount}/5)`}
-                    </button>
-                  )}
+                    {decoyMode ? `Decoy Mode ON (${decoyCount})` : `Decoy${decoyCount > 0 ? ` (${decoyCount})` : ''}`}
+                  </button>
                 </>
               );
             })()}
           </div>
 
-          {/* Right: Build/Present + Reset + Save */}
+          {/* Right: Directions + Build/Present + Reset + Save */}
           <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
+            {/* Directions button */}
+            <button
+              onClick={() => { setShowIntroModal(true); }}
+              className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md text-[10px] sm:text-[11px] font-bold text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+              title="Directions"
+            >
+              <HelpCircle size={14} /> <span className="hidden sm:inline">Directions</span>
+            </button>
+            <div className="w-px h-5 bg-white/20" />
             {/* Mode switcher */}
             <div className="flex bg-white/5 rounded-lg p-0.5">
               <button
@@ -848,7 +948,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       <div className="flex-1 flex min-h-0">
         {/* Left panel — only in build mode */}
         {isBuild && (
-          <div className="w-44 sm:w-48 lg:w-56 flex-shrink-0 bg-black/20 border-r border-white/10 flex flex-col overflow-hidden">
+          <div className="w-[240px] flex-shrink-0 bg-black/20 border-r border-white/10 flex flex-col overflow-hidden">
             {/* Tab bar */}
             <div className="flex border-b border-white/10 flex-shrink-0">
               {[
@@ -1136,6 +1236,56 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           <span style={{ fontSize: '40px' }}>
             {dragGhost.sticker.symbol || dragGhost.sticker.id}
           </span>
+        </div>
+      )}
+
+      {/* Intro + Directions modal — shown first time students open Listening Journey */}
+      {showIntroModal && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-gray-800 rounded-2xl max-w-xl w-full shadow-2xl border border-white/10 overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
+              <h2 className="text-2xl font-black text-white">Welcome to the Listening Journey!</h2>
+              <p className="text-white/80 text-sm mt-1">Build a visual world that matches the music</p>
+            </div>
+            <div className="px-6 py-4 space-y-4">
+              {/* What is it */}
+              <div className="space-y-2">
+                <div className="flex items-start gap-3">
+                  <span className="text-xl flex-shrink-0">🎵</span>
+                  <p className="text-white/90 text-sm">As the music plays, your <span className="font-bold text-purple-300">character walks through scenes you create</span>. Place stickers that match what you hear — dynamics, tempo, instruments, and more!</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-xl flex-shrink-0">🎮</span>
+                  <p className="text-white/90 text-sm">This becomes a <span className="font-bold text-emerald-300">game your classmates will play!</span> A bird flies through your world collecting stickers for points. Later you'll add decoy traps — fake stickers that cost points.</p>
+                </div>
+              </div>
+
+              {/* How to use it */}
+              <div className="bg-white/5 rounded-xl p-4">
+                <h3 className="text-white font-bold text-sm mb-2">How to Build</h3>
+                <div className="space-y-2 text-white/80 text-sm">
+                  <p><span className="font-bold text-white">1.</span> Click a <span className="text-blue-300 font-semibold">section (A, B, A')</span> in the timeline at the bottom</p>
+                  <p><span className="font-bold text-white">2.</span> Drag <span className="text-amber-300 font-semibold">stickers</span> from the left panel onto the scene</p>
+                  <p><span className="font-bold text-white">3.</span> Press <span className="text-emerald-300 font-semibold">Play</span> to hear the music and watch your journey</p>
+                  <p><span className="font-bold text-white">4.</span> Add dynamics, tempo, and instrument stickers to each section</p>
+                </div>
+              </div>
+
+              {/* Goal */}
+              <div className="flex items-start gap-3 bg-purple-500/10 rounded-xl p-3 border border-purple-500/20">
+                <span className="text-xl flex-shrink-0">🎯</span>
+                <p className="text-white/90 text-sm"><span className="font-bold text-white">Your goal:</span> Make each section look and feel different — show how the music changes from quiet to loud, slow to fast!</p>
+              </div>
+            </div>
+            <div className="px-6 pb-4">
+              <button
+                onClick={dismissIntro}
+                className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white text-lg font-bold rounded-xl transition-colors"
+              >
+                Let's Build!
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

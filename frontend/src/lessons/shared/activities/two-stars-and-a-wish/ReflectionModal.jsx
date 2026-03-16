@@ -5,7 +5,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, Star, Sparkles, Volume2, VolumeX, HelpCircle, Minimize2, Maximize2, Smile } from 'lucide-react';
 import { SELF_REFLECTION_PROMPTS, PARTNER_REFLECTION_OPTIONS } from './reflectionPrompts';
-import { saveStudentWork } from '../../../../utils/studentWorkStorage';
+import { saveStudentWork, getClassAuthInfo, parseActivityId } from '../../../../utils/studentWorkStorage';
+import { loadStudentWork as loadFromFirebase } from '../../../../firebase/studentWork';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import { useSession } from '../../../../context/SessionContext';
 
@@ -104,20 +105,40 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
     return () => unsubscribe();
   }, [effectiveSessionCode, isSessionMode, viewMode]);
 
-  // Load saved reflection if in view mode
+  // Load saved reflection if in view mode — tries localStorage first, then Firebase fallback
   useEffect(() => {
-    if (viewMode) {
-      const saved = localStorage.getItem(reflectionKey);
-      if (saved) {
-        try {
-          const data = JSON.parse(saved);
-          setReflectionData(data);
-        } catch (error) {
-          console.error('Error loading reflection:', error);
-        }
+    if (!viewMode) return;
+
+    // Try localStorage first
+    const saved = localStorage.getItem(reflectionKey);
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        setReflectionData(data);
+        return; // Found locally, no need for Firebase
+      } catch (error) {
+        console.error('Error loading reflection:', error);
       }
     }
-  }, [viewMode]);
+
+    // Firebase fallback for authenticated students (e.g., different device)
+    if (activityId) {
+      const authInfo = getClassAuthInfo();
+      if (authInfo?.uid) {
+        const { lessonId, activityId: parsedActivityId } = parseActivityId(activityId);
+        loadFromFirebase(authInfo.uid, lessonId, parsedActivityId).then((firebaseData) => {
+          if (firebaseData?.data) {
+            console.log('☁️ Loaded reflection from Firebase:', activityId);
+            setReflectionData(firebaseData.data);
+            // Cache locally for future loads
+            localStorage.setItem(reflectionKey, JSON.stringify(firebaseData.data));
+          }
+        }).catch((err) => {
+          console.warn('⚠️ Firebase reflection load failed:', err.message);
+        });
+      }
+    }
+  }, [viewMode, reflectionKey, activityId]);
 
   // Voice synthesis with better voice selection
   const speak = (text) => {

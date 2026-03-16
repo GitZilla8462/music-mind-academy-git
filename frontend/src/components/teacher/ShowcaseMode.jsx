@@ -1,6 +1,6 @@
-// ShowcaseMode — full-screen presentation of student compositions
+// ShowcaseMode — full-screen presentation of student work
 // src/components/teacher/ShowcaseMode.jsx
-// No grades, no rubric — just student work for class showcase
+// Supports compositions (placedLoops), listening maps (imageData), and listening journeys (sections)
 
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import {
@@ -14,6 +14,19 @@ import {
 import { getStudentWorkForTeacher } from '../../firebase/studentWork';
 
 const LazyCompositionPreview = lazy(() => import('./CompositionPreview'));
+const LazyLJPreview = lazy(() => import('./ListeningJourneyPreview'));
+
+// Check if work data has any displayable content
+const hasDisplayableWork = (work) => {
+  if (!work?.data) return false;
+  // DAW compositions
+  if (work.data.placedLoops?.length > 0) return true;
+  // Listening maps (canvas image)
+  if (work.data.imageData) return true;
+  // Listening journeys (sections)
+  if (work.data.sections) return true;
+  return false;
+};
 
 const ShowcaseMode = ({
   isOpen,
@@ -53,7 +66,7 @@ const ShowcaseMode = ({
     await Promise.all(activitySubmissions.map(async (sub) => {
       try {
         const work = await getStudentWorkForTeacher(sub.studentUid, sub.workKey);
-        if (work?.data?.placedLoops && work.data.placedLoops.length > 0) {
+        if (hasDisplayableWork(work)) {
           const rosterEntry = roster.find(
             r => (r.studentUid || `seat-${classId}-${r.seatNumber}`) === sub.studentUid
           );
@@ -79,7 +92,7 @@ const ShowcaseMode = ({
     if (!isRefresh) setLoadingList(false);
   }, [classId, lessonId, activityId, roster, submissions]);
 
-  // Build list of students who have submitted compositions with placedLoops
+  // Build list of students who have submitted work
   useEffect(() => {
     if (!isOpen) return;
     loadAllWork(false);
@@ -114,13 +127,18 @@ const ShowcaseMode = ({
 
   const current = studentEntries[selectedIndex];
   const currentWork = current ? workCache[current.uid] : null;
-  const compositionTitle = currentWork?.data?.compositionTitle || currentWork?.title || '';
+  const compositionTitle = currentWork?.data?.compositionTitle || currentWork?.data?.songTitle || currentWork?.title || '';
+
+  // Determine work type for rendering
+  const isListeningMap = currentWork?.data?.imageData && !currentWork?.data?.placedLoops;
+  const isComposition = currentWork?.data?.placedLoops?.length > 0;
+  const isListeningJourney = currentWork?.data?.sections?.length > 0;
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
       {/* Top bar */}
       <div className="h-12 bg-gray-900 border-b border-gray-700 flex items-center px-4 gap-3 flex-shrink-0">
-        {/* Student name + composition title */}
+        {/* Student name + title */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {current && (
             <>
@@ -163,19 +181,21 @@ const ShowcaseMode = ({
           </button>
         </div>
 
-        {/* Video Only toggle */}
-        <button
-          onClick={() => setVideoOnly(prev => !prev)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-            videoOnly
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
-          }`}
-          title={videoOnly ? 'Show track lanes' : 'Hide track lanes'}
-        >
-          {videoOnly ? <Monitor size={14} /> : <Layers size={14} />}
-          {videoOnly ? 'Video Only' : 'Full View'}
-        </button>
+        {/* Video Only toggle — only for compositions */}
+        {isComposition && (
+          <button
+            onClick={() => setVideoOnly(prev => !prev)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              videoOnly
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+            }`}
+            title={videoOnly ? 'Show track lanes' : 'Hide track lanes'}
+          >
+            {videoOnly ? <Monitor size={14} /> : <Layers size={14} />}
+            {videoOnly ? 'Video Only' : 'Full View'}
+          </button>
+        )}
 
         {/* Close */}
         <button
@@ -192,17 +212,27 @@ const ShowcaseMode = ({
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <Loader2 className="w-10 h-10 text-gray-500 animate-spin mx-auto mb-3" />
-              <p className="text-gray-400 text-sm">Loading student compositions...</p>
+              <p className="text-gray-400 text-sm">Loading student work...</p>
             </div>
           </div>
         ) : studentEntries.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <p className="text-gray-400 text-lg font-medium">No Compositions</p>
-              <p className="text-gray-500 text-sm mt-1">No students have submitted compositions for this activity yet.</p>
+              <p className="text-gray-400 text-lg font-medium">No Submissions</p>
+              <p className="text-gray-500 text-sm mt-1">No students have submitted work for this activity yet.</p>
             </div>
           </div>
-        ) : currentWork ? (
+        ) : isListeningMap && currentWork ? (
+          /* Listening Map — show as full-screen image matching Chromebook canvas layout */
+          <div className="flex-1 flex items-center justify-center p-6 bg-gray-950" style={{ minHeight: 0 }}>
+            <img
+              src={currentWork.data.imageData}
+              alt={`${current.displayName}'s listening map`}
+              className="rounded-lg shadow-2xl"
+              style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#ffffff' }}
+            />
+          </div>
+        ) : isComposition && currentWork ? (
           <Suspense fallback={
             <div className="flex-1 flex items-center justify-center">
               <Loader2 className="w-10 h-10 text-gray-500 animate-spin" />
@@ -213,6 +243,18 @@ const ShowcaseMode = ({
               workData={currentWork}
               submittedAt={current.submission?.submittedAt}
               videoOnly={videoOnly}
+            />
+          </Suspense>
+        ) : isListeningJourney && currentWork ? (
+          <Suspense fallback={
+            <div className="flex-1 flex items-center justify-center">
+              <Loader2 className="w-10 h-10 text-gray-500 animate-spin" />
+            </div>
+          }>
+            <LazyLJPreview
+              key={current.uid}
+              workData={currentWork}
+              submittedAt={current.submission?.submittedAt}
             />
           </Suspense>
         ) : (

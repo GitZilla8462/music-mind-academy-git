@@ -655,8 +655,8 @@ const DrawingCanvas = forwardRef(({
     ctx.moveTo(point.x, point.y);
     
     if (isEraserTool(tool)) {
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.strokeStyle = 'rgba(0,0,0,1)';
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = '#ffffff';
     } else {
       ctx.globalCompositeOperation = 'source-over';
       ctx.strokeStyle = color;
@@ -1066,7 +1066,7 @@ const DrawingCanvas = forwardRef(({
       if (!e.shiftKey) {
         setSelectedStickerIds(new Set());
       }
-      
+
       // Start marquee selection
       const screenPoint = getScreenPoint(e);
       startMarqueeSelection(screenPoint);
@@ -1168,12 +1168,16 @@ const DrawingCanvas = forwardRef(({
     composite.height = height;
     const ctx = composite.getContext('2d');
 
-    // 1. Draw the base canvas (drawings, background)
+    // 1. White background first (transparent pixels become black in PNG export)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+
+    // 2. Draw the base canvas (drawings) on top
     if (drawingCanvasRef.current) {
       ctx.drawImage(drawingCanvasRef.current, 0, 0);
     }
 
-    // 2. Draw each sticker onto the composite canvas
+    // 3. Draw each sticker onto the composite canvas
     stickers.forEach(sticker => {
       const { x, y, rotation, scale, data } = sticker;
       const baseSize = data?.size || 56;
@@ -1315,7 +1319,7 @@ const DrawingCanvas = forwardRef(({
       ctx.restore();
     });
 
-    // 3. Draw row divider lines
+    // 4. Draw row divider lines
     if (numRows > 1) {
       const rowHeight = height / numRows;
       ctx.strokeStyle = '#d1d5db'; // gray-300
@@ -1359,6 +1363,7 @@ const DrawingCanvas = forwardRef(({
     
     // Restore stickers
     if (savedState.stickers && Array.isArray(savedState.stickers)) {
+      console.log('📂 Stickers in savedState:', savedState.stickers.length, savedState.stickers.map(s => `id=${s.id} ${s.data?.id || s.data?.render || '?'} @(${Math.round(s.x)},${Math.round(s.y)})`));
       setStickers(savedState.stickers);
       // Update nextStickerId to be higher than any existing sticker
       const maxId = savedState.stickers.reduce((max, s) => Math.max(max, s.id || 0), 0);
@@ -1429,8 +1434,9 @@ const DrawingCanvas = forwardRef(({
           left: 0,
           width: '100%',
           height: '100%',
+          backgroundColor: '#ffffff',
           touchAction: 'none',
-          cursor: isHandTool(tool) ? 'default' 
+          cursor: isHandTool(tool) ? 'default'
             : isStickerTool(tool) ? 'copy'
             : isEraserTool(tool) ? 'cell'
             : 'crosshair'

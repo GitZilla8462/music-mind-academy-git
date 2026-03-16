@@ -103,7 +103,7 @@ const ActivityGradingView = ({
   const [loadingWork, setLoadingWork] = useState(false);
   const [assignmentMaxPoints, setAssignmentMaxPoints] = useState('100');
   const [appliedCriteria, setAppliedCriteria] = useState(null); // Custom rubric applied to all students
-  const [showGridLines, setShowGridLines] = useState(true);
+  const [showGridLines, setShowGridLines] = useState(false);
   // const [showAnswerKey, setShowAnswerKey] = useState(false);
   // const [answerKeyData, setAnswerKeyData] = useState(null);
   // const [showAnswerKeyModal, setShowAnswerKeyModal] = useState(false);
@@ -488,7 +488,7 @@ const ActivityGradingView = ({
         </div>
 
         {/* Middle Panel - Grade Form */}
-        <div className="w-80 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
+        <div className="w-64 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
           <div className="p-4">
             <div className="mb-4">
               <h3 className="font-semibold text-gray-900 text-sm">
@@ -595,13 +595,13 @@ const ActivityGradingView = ({
             </div>
           ) : currentImage ? (
             <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="flex-1 flex items-center justify-center p-6 overflow-auto">
-                <div className="grid rounded-lg shadow-lg overflow-hidden" style={{ maxWidth: '100%', maxHeight: 'calc(100vh - 10rem)' }}>
+              <div className="flex-1 flex items-center justify-center p-6 overflow-auto" style={{ minHeight: 0 }}>
+                <div className="grid rounded-lg shadow-lg overflow-hidden" style={{ width: '100%', height: '100%' }}>
                   <img
                     src={currentImage}
                     alt={`${currentStudent.displayName}'s work`}
-                    className="w-full h-auto block"
-                    style={{ gridArea: '1 / 1', maxHeight: 'calc(100vh - 10rem)' }}
+                    className="block"
+                    style={{ gridArea: '1 / 1', width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#ffffff' }}
                   />
                   {/* Grid lines overlay - same grid cell as image, guaranteed same size */}
                   {showGridLines && currentWork?.data?.numRows > 1 && (

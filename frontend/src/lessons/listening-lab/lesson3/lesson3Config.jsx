@@ -170,6 +170,7 @@ export const MOUNTAIN_KING_JOURNEY_CONFIG = (() => {
   return {
     ...base,
     lessonId: 'll-lesson3',
+    showIntro: true,
     hideScenes: true,
     hideMovement: true,
     defaultTab: 'dynamics',
@@ -262,23 +263,23 @@ export const lessonSections = [
     title: '3. Listening Journey',
     subtitle: 'Build Your Journey',
     color: 'blue',
-    estimatedTime: 14,
+    estimatedTime: 15,
     stages: [
       {
-        id: 'animator-intro-video',
-        type: 'video',
-        label: 'Intro to Listening Journey',
-        duration: 2,
-        description: 'Watch a video introducing the Listening Journey.'
+        id: 'game-creator-intro',
+        type: 'summary',
+        label: 'Game Creator Intro',
+        description: 'Introduce the Listening Journey Game Creator concept to students.',
+        duration: 2
       },
       {
         id: 'animator-directions',
         type: 'activity',
-        label: 'Listening Journey Directions',
-        duration: 10,
+        label: 'Build Your Listening Journey',
+        duration: 12,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students focus on placing dynamic markings in the Listening Journey.'
+        description: 'Students build their Listening Journey — focus on dynamics today.'
       },
       {
         id: 'lesson-complete',
@@ -353,9 +354,9 @@ export const lesson3Config = {
     // },
     {
       id: 1,
-      type: "animator-intro",
-      title: "Intro to Listening Journey",
-      estimatedTime: "4 min"
+      type: "listening-journey",
+      title: "Build Your Listening Journey",
+      estimatedTime: "12 min"
     }
   ]
 };
@@ -490,24 +491,42 @@ export const lessonStages = [
     }
   },
   {
-    id: 'animator-intro-video',
-    label: 'Intro to Listening Journey',
-    description: 'Watch a video introducing the Listening Journey.',
-    type: 'video',
+    id: 'game-creator-intro',
+    label: 'Game Creator Intro',
+    description: 'Introduce the Listening Journey Game Creator.',
+    type: 'summary',
     duration: 2,
     presentationView: {
-      type: 'youtube-clip',
-      videoId: 'PLACEHOLDER',
-      title: 'Introduction to the Listening Journey',
-      subtitle: 'See how to build your Listening Journey'
+      type: 'summary',
+      title: 'Listening Journey Game Creator',
+      subtitle: 'You\'re Building a Listening Game!',
+      sections: [
+        {
+          heading: 'What Is This?',
+          bullets: [
+            '🎵 You\'re creating a visual world that matches the music',
+            '🐦 A bird character will fly through your world collecting stickers',
+            '🎮 Your classmates will PLAY your game — every sticker they collect earns points!',
+            '🎯 The stickers you place need to match what you actually hear in the music'
+          ]
+        },
+        {
+          heading: 'Today\'s Focus: Dynamics',
+          bullets: [
+            'Place dynamic markings (pp, p, f, ff, crescendo, decrescendo) in each section',
+            'Show how the music gets louder or softer as it changes',
+            'Next class: you\'ll add tempo, instruments, and form markers too!'
+          ]
+        }
+      ]
     }
   },
   {
     id: 'animator-directions',
-    label: 'Listening Journey Directions',
-    description: 'Students focus on placing dynamic markings in the Listening Journey.',
+    label: 'Build Your Listening Journey',
+    description: 'Students build their Listening Journey — focus on dynamics today.',
     type: 'activity',
-    duration: 10,
+    duration: 12,
     hasTimer: true,
     presentationView: {
       type: 'journey-animator-directions',
@@ -612,7 +631,7 @@ export const getActivityForStage = (stage) => {
     'meet-ternary-form': 'summary',
     // 'section-spotter': 'section-spotter',
     'planning-intro': 'capstone-planning',
-    'animator-intro-video': 'video',
+    'game-creator-intro': 'summary',
     'animator-directions': 'listening-journey',
     'lesson-complete': 'summary',
     'bonus-activity-intro': 'summary',

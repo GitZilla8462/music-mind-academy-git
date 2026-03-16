@@ -11,9 +11,10 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 // Config
 import { lesson3Config, lessonStages, getActivityForStage, MOUNTAIN_KING_JOURNEY_CONFIG } from './lesson3Config';
 
-// L3: Only cloud environments available (no forest/mountain/city)
+// L3: Only cloud environments + bird characters, no drawing tools
 const CLOUD_ENVIRONMENTS = ['clouds-day', 'clouds-lavender', 'clouds-sunset', 'clouds-night'];
-const JOURNEY_L3_PROPS = { pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG, allowedEnvironments: CLOUD_ENVIRONMENTS };
+const BIRD_CHARACTERS = ['yellow-bird', 'crow', 'pigeon'];
+const JOURNEY_L3_PROPS = { pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG, allowedEnvironments: CLOUD_ENVIRONMENTS, allowedCharacters: BIRD_CHARACTERS, hideDrawingTools: true };
 
 // Hooks
 import { useLesson } from '../../shared/hooks/useLesson';

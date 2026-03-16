@@ -4,6 +4,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Star, ChevronRight, ChevronLeft, Check, Sparkles, Volume2, VolumeX, Minimize2, Maximize2, CheckCircle, Smile } from 'lucide-react';
+import { saveStudentWork, getClassAuthInfo, parseActivityId } from '../../../../utils/studentWorkStorage';
+import { loadStudentWork as loadFromFirebase } from '../../../../firebase/studentWork';
 
 // Chromebook detection for cursor handling
 const isChromebook = typeof navigator !== 'undefined' && (
@@ -44,18 +46,34 @@ const WildlifeReflectionModal = ({
 
   const hasSpokenRef = useRef(false);
 
-  // Load saved reflection if in view mode
+  // Load saved reflection if in view mode — tries localStorage first, then Firebase fallback
   useEffect(() => {
-    if (viewMode) {
-      const saved = localStorage.getItem('epic-wildlife-reflection');
-      if (saved) {
-        try {
-          const data = JSON.parse(saved);
-          setReflectionData(data);
-        } catch (error) {
-          console.error('Error loading reflection:', error);
-        }
+    if (!viewMode) return;
+
+    const saved = localStorage.getItem('epic-wildlife-reflection');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        setReflectionData(data);
+        return;
+      } catch (error) {
+        console.error('Error loading reflection:', error);
       }
+    }
+
+    // Firebase fallback for authenticated students (e.g., different device)
+    const authInfo = getClassAuthInfo();
+    if (authInfo?.uid) {
+      const { lessonId, activityId: parsedActivityId } = parseActivityId('fm-lesson3-reflection');
+      loadFromFirebase(authInfo.uid, lessonId, parsedActivityId).then((firebaseData) => {
+        if (firebaseData?.data) {
+          console.log('☁️ Loaded wildlife reflection from Firebase');
+          setReflectionData(firebaseData.data);
+          localStorage.setItem('epic-wildlife-reflection', JSON.stringify(firebaseData.data));
+        }
+      }).catch((err) => {
+        console.warn('⚠️ Firebase wildlife reflection load failed:', err.message);
+      });
     }
   }, [viewMode]);
 
@@ -189,6 +207,14 @@ const WildlifeReflectionModal = ({
 
     localStorage.setItem('epic-wildlife-reflection', JSON.stringify(fullData));
     console.log('✅ Wildlife reflection saved:', fullData);
+
+    // Save to Firebase for cross-device access
+    saveStudentWork('fm-lesson3-reflection', {
+      title: 'Reflection',
+      emoji: '\uD83D\uDCDD',
+      type: 'reflection',
+      data: fullData
+    });
 
     if (onComplete) {
       onComplete();
