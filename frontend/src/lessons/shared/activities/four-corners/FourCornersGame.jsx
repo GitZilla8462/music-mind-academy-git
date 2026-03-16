@@ -20,64 +20,66 @@ import { getDatabase, ref, update, onValue } from 'firebase/database';
 const VIVALDI_SPRING = '/lessons/film-music-project/lesson2/mp3/Classicals.de-Vivaldi-The-Four-Seasons-01-John-Harrison-with-the-Wichita-State-University-Chamber-Players-Spring-Mvt-1-Allegro.mp3';
 
 // ============================================================
-// QUESTIONS DATA — 12 audio-based questions, 3 per category
-// Each has audioPath (and optional startTime/endTime for excerpts)
+// QUESTIONS DATA — 12 questions
+// Categories: dynamics, tempo, instruments (strings/woodwinds/brass), form
+// No definitions in answers — students should know the terms by Lesson 3
+// Audio for instruments extracted from the showcase videos they already heard
 // Correct answers distributed evenly: A=3, B=3, C=3, D=3
 // ============================================================
 const QUESTIONS = [
   // --- Q1: Dynamics — Forte ---
   {
     id: 'q1', category: 'dynamics',
-    prompt: 'Listen! How loud is this music?',
+    prompt: 'Listen! What dynamic level is this?',
     audio: { path: VIVALDI_SPRING, startTime: 0, endTime: 8, volume: 0.85 },
-    answers: { A: 'Piano (soft)', B: 'Forte (loud)', C: 'Pianissimo (very soft)', D: 'Mezzo Forte (medium loud)' },
+    answers: { A: 'Piano', B: 'Forte', C: 'Pianissimo', D: 'Mezzo Piano' },
     correct: 'B',
-    explanation: 'That was forte (f) — loud and strong!'
+    explanation: 'That was forte — loud and strong!'
   },
-  // --- Q2: Dynamics — Piano ---
+  // --- Q2: Dynamics — Crescendo ---
   {
     id: 'q2', category: 'dynamics',
-    prompt: 'Listen! How loud is this music?',
-    audio: { path: VIVALDI_SPRING, startTime: 8, endTime: 15, volume: 0.32 },
-    answers: { A: 'Forte (loud)', B: 'Fortissimo (very loud)', C: 'Piano (soft)', D: 'Mezzo Forte (medium loud)' },
+    prompt: 'Listen! What is happening to the dynamics?',
+    audio: { path: VIVALDI_SPRING, startTime: 60, endTime: 72, volume: 0.7 },
+    answers: { A: 'Decrescendo', B: 'Staying the same', C: 'Crescendo', D: 'Sforzando' },
     correct: 'C',
-    explanation: 'That was piano (p) — soft and gentle!'
+    explanation: 'That was a crescendo — getting louder!'
   },
-  // --- Q3: Dynamics — Fortissimo ---
+  // --- Q3: Tempo — Accelerando ---
   {
-    id: 'q3', category: 'dynamics',
-    prompt: 'Listen! How loud is this music?',
-    audio: { path: VIVALDI_SPRING, startTime: 71, endTime: 77, volume: 1.0 },
-    answers: { A: 'Piano (soft)', B: 'Mezzo Forte (medium loud)', C: 'Pianissimo (very soft)', D: 'Fortissimo (very loud)' },
-    correct: 'D',
-    explanation: 'That was fortissimo (ff) — very loud!'
+    id: 'q3', category: 'tempo',
+    prompt: 'Listen! What is happening to the tempo?',
+    audio: { path: '/audio/classical/grieg-mountain-king.mp3', volume: 0.7 },
+    answers: { A: 'Ritardando', B: 'Accelerando', C: 'Staying the same', D: 'Fermata' },
+    correct: 'B',
+    explanation: 'That was accelerando — gradually speeding up!'
   },
-  // --- Q4: Tempo — Largo ---
+  // --- Q4: Tempo — Presto ---
   {
     id: 'q4', category: 'tempo',
-    prompt: 'Listen! How fast is this music?',
-    audio: { path: '/audio/classical/dvorak-largo-1.mp3', volume: 2.0 },
-    answers: { A: 'Largo (very slow)', B: 'Allegro (fast)', C: 'Andante (walking speed)', D: 'Presto (very fast)' },
-    correct: 'A',
-    explanation: 'That was Largo — very slow and steady!'
-  },
-  // --- Q5: Tempo — Presto ---
-  {
-    id: 'q5', category: 'tempo',
-    prompt: 'Listen! How fast is this music?',
+    prompt: 'Listen! What tempo is this?',
     audio: { path: '/audio/classical/vivaldi-summer-presto-1.mp3', volume: 0.7 },
-    answers: { A: 'Largo (very slow)', B: 'Presto (very fast)', C: 'Andante (walking speed)', D: 'Allegro (fast)' },
-    correct: 'B',
+    answers: { A: 'Andante', B: 'Largo', C: 'Presto', D: 'Adagio' },
+    correct: 'C',
     explanation: 'That was Presto — very fast!'
   },
-  // --- Q6: Tempo — Andante ---
+  // --- Q5: Strings — Cello ---
   {
-    id: 'q6', category: 'tempo',
-    prompt: 'Listen! How fast is this music?',
-    audio: { path: '/audio/classical/grieg-morning-1.mp3', volume: 0.7 },
-    answers: { A: 'Presto (very fast)', B: 'Allegro (fast)', C: 'Andante (walking speed)', D: 'Largo (very slow)' },
-    correct: 'C',
-    explanation: 'That was Andante — walking speed!'
+    id: 'q5', category: 'strings',
+    prompt: 'Listen! What string instrument is this?',
+    audio: { path: '/audio/orchestra-samples/strings/cello.mp3', volume: 0.7 },
+    answers: { A: 'Violin', B: 'Viola', C: 'Double Bass', D: 'Cello' },
+    correct: 'D',
+    explanation: 'That was the cello — rich and warm, like a singing voice!'
+  },
+  // --- Q6: Woodwinds — Bassoon ---
+  {
+    id: 'q6', category: 'woodwinds',
+    prompt: 'Listen! What woodwind instrument is this?',
+    audio: { path: '/audio/orchestra-samples/woodwinds/bassoon.mp3', volume: 1.0 },
+    answers: { A: 'Bassoon', B: 'Clarinet', C: 'Oboe', D: 'Flute' },
+    correct: 'A',
+    explanation: 'That was the bassoon — the deepest woodwind!'
   },
   // --- Q7: Woodwinds — Flute ---
   {
@@ -88,50 +90,50 @@ const QUESTIONS = [
     correct: 'D',
     explanation: 'That was the flute — bright and airy!'
   },
-  // --- Q8: Woodwinds — Oboe ---
+  // --- Q8: Brass — Tuba ---
   {
-    id: 'q8', category: 'woodwinds',
-    prompt: 'Listen! What woodwind instrument is this?',
-    audio: { path: '/audio/orchestra-samples/woodwinds/oboe.mp3', volume: 1.0 },
-    answers: { A: 'Oboe', B: 'Flute', C: 'Bassoon', D: 'Clarinet' },
-    correct: 'A',
-    explanation: 'That was the oboe — nasal and piercing!'
-  },
-  // --- Q9: Woodwinds — Clarinet ---
-  {
-    id: 'q9', category: 'woodwinds',
-    prompt: 'Listen! What woodwind instrument is this?',
-    audio: { path: '/audio/orchestra-samples/woodwinds/clarinet.mp3', volume: 1.0 },
-    answers: { A: 'Flute', B: 'Clarinet', C: 'Oboe', D: 'Bassoon' },
-    correct: 'B',
-    explanation: 'That was the clarinet — warm and smooth!'
-  },
-  // --- Q10: Brass — Trumpet ---
-  {
-    id: 'q10', category: 'brass',
-    prompt: 'Listen! What brass instrument is this?',
-    audio: { path: '/audio/orchestra-samples/brass/trumpet.mp3', volume: 1.0 },
-    answers: { A: 'French Horn', B: 'Tuba', C: 'Trumpet', D: 'Trombone' },
-    correct: 'C',
-    explanation: 'That was the trumpet — bright and bold!'
-  },
-  // --- Q11: Brass — Tuba ---
-  {
-    id: 'q11', category: 'brass',
+    id: 'q8', category: 'brass',
     prompt: 'Listen! What brass instrument is this?',
     audio: { path: '/audio/orchestra-samples/brass/tuba.mp3', volume: 1.0 },
     answers: { A: 'Trombone', B: 'French Horn', C: 'Trumpet', D: 'Tuba' },
     correct: 'D',
     explanation: 'That was the tuba — deep and powerful!'
   },
-  // --- Q12: Brass — French Horn ---
+  // --- Q9: Brass — Trumpet ---
   {
-    id: 'q12', category: 'brass',
+    id: 'q9', category: 'brass',
     prompt: 'Listen! What brass instrument is this?',
-    audio: { path: '/audio/orchestra-samples/brass/french-horn.mp3', volume: 1.0 },
-    answers: { A: 'French Horn', B: 'Trumpet', C: 'Tuba', D: 'Trombone' },
+    audio: { path: '/audio/orchestra-samples/brass/trumpet.mp3', volume: 1.0 },
+    answers: { A: 'French Horn', B: 'Tuba', C: 'Trumpet', D: 'Trombone' },
+    correct: 'C',
+    explanation: 'That was the trumpet — bright and bold!'
+  },
+  // --- Q10: Form — Rondo ---
+  {
+    id: 'q10', category: 'form',
+    prompt: 'A piece goes A-B-A-C-A. What form is this?',
+    audio: null,
+    answers: { A: 'Rondo', B: 'Binary', C: 'Ternary', D: 'Theme & Variations' },
     correct: 'A',
-    explanation: 'That was the French horn — mellow and round!'
+    explanation: 'ABACA is rondo form — the A section keeps returning!'
+  },
+  // --- Q11: Form — Ternary ---
+  {
+    id: 'q11', category: 'form',
+    prompt: 'A piece has three sections: the first and last sound the same. What form is this?',
+    audio: null,
+    answers: { A: 'Rondo', B: 'Ternary', C: 'Through-composed', D: 'Binary' },
+    correct: 'B',
+    explanation: 'ABA is ternary form — it returns to the opening section!'
+  },
+  // --- Q12: Form — Ritardando vs Decrescendo ---
+  {
+    id: 'q12', category: 'form',
+    prompt: 'The music is getting slower. What is the Italian term for this?',
+    audio: null,
+    answers: { A: 'Decrescendo', B: 'Crescendo', C: 'Ritardando', D: 'Accelerando' },
+    correct: 'C',
+    explanation: 'Ritardando means gradually slowing down. Decrescendo means getting softer — that\'s dynamics, not tempo!'
   }
 ];
 
@@ -146,8 +148,10 @@ const CORNERS = {
 const CATEGORY_EMOJI = {
   dynamics: '\uD83D\uDCE2',
   tempo: '\u23F1\uFE0F',
+  strings: '\uD83C\uDFBB',
   woodwinds: '\uD83C\uDFB5',
-  brass: '\uD83C\uDFBA'
+  brass: '\uD83C\uDFBA',
+  form: '\uD83C\uDFDB\uFE0F'
 };
 
 // Student Activity Banner
@@ -452,7 +456,7 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
                 <p className="text-2xl text-white/70 mb-2">Listen to the sound, then move to the corner with the right answer!</p>
                 <p className="text-xl text-white/50 mb-6">Each question plays a sound clip</p>
 
-                <p className="text-xl text-white/50 mb-8">12 questions &middot; Dynamics, Tempo, Woodwinds & Brass</p>
+                <p className="text-xl text-white/50 mb-8">12 questions &middot; Dynamics, Tempo, Instruments & Form</p>
 
                 <button
                   onClick={startGame}
