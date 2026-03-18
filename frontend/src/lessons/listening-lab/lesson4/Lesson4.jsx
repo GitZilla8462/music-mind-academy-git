@@ -11,13 +11,15 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 // Config
 import { lesson4Config, lessonStages, getActivityForStage, getPieceById, buildPieceConfig } from './lesson4Config';
 
-// L4: Cloud environments (10 scenes) + bird characters, no game mode (decoys are L5 only)
+// L4: Cloud environments (10 scenes) + bird characters, game mode ON (no decoys until L5)
+import { CHARACTER_OPTIONS } from '../../shared/activities/listening-journey/journeyDefaults';
 const CLOUD_ENVIRONMENTS = [
   'clouds-day', 'clouds-lavender', 'clouds-sunset', 'clouds-night',
   'sky-1', 'sky-2', 'sky-5', 'sky-10', 'sky-14', 'sky-17',
 ];
 const BIRD_CHARACTERS = ['yellow-bird', 'crow', 'pigeon'];
-const JOURNEY_L4_EXTRAS = { allowedEnvironments: CLOUD_ENVIRONMENTS, allowedCharacters: BIRD_CHARACTERS, hideDrawingTools: true };
+const DEFAULT_BIRD = CHARACTER_OPTIONS.find(c => c.id === 'yellow-bird');
+const JOURNEY_L4_EXTRAS = { allowedEnvironments: CLOUD_ENVIRONMENTS, allowedCharacters: BIRD_CHARACTERS, hideDrawingTools: true, gameMode: true, hideDecoys: true, defaultCharacter: DEFAULT_BIRD, defaultScene: 'clouds-day' };
 
 // Hooks
 import { useLesson } from '../../shared/hooks/useLesson';

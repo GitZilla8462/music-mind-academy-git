@@ -352,14 +352,25 @@ const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null, 
       <div className="flex-1 flex justify-center overflow-auto py-3 px-3">
         <div className="bg-white shadow-lg w-full max-w-[1300px] rounded px-8 py-5 flex flex-col" style={{ maxHeight: '100%' }}>
 
-          {/* Header — compact */}
-          <div className="text-center mb-3 shrink-0">
+          {/* Header — compact, with save button top-right */}
+          <div className="relative text-center mb-3 shrink-0">
             <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em]">Listening Lab — Capstone Project</p>
             <h1 className="text-xl font-bold text-gray-900 leading-tight mt-0.5">Plan Your Journey</h1>
             <h2 className="text-base text-gray-600 italic">{piece.title}</h2>
             <p className="text-xs text-gray-400 mt-0.5">
               {piece.composer} ({piece.year}) &nbsp;&bull;&nbsp; Form: {piece.formLetters} &nbsp;&bull;&nbsp; {piece.duration}
             </p>
+            {!viewMode && (
+              <button
+                onClick={save}
+                className={`absolute top-0 right-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                  isSaved ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                }`}
+              >
+                {isSaved ? <Check size={14} /> : <Save size={14} />}
+                {isSaved ? 'Saved' : 'Save'}
+              </button>
+            )}
           </div>
 
           <div className="border-t border-gray-200 mb-3 shrink-0" />
@@ -458,24 +469,6 @@ const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null, 
         </div>
       </div>
 
-      {/* Bottom bar — hidden in view mode */}
-      {!viewMode && <div className="bg-white border-t border-gray-200 py-3 px-6 shrink-0 flex items-center justify-end gap-3">
-        <button
-          onClick={save}
-          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
-            isSaved ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
-          }`}
-        >
-          {isSaved ? <Check size={16} /> : <Save size={16} />}
-          {isSaved ? 'Saved' : 'Save'}
-        </button>
-        <button
-          onClick={done}
-          className="flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold text-white bg-blue-600 hover:bg-blue-700"
-        >
-          <Check size={16} /> Done
-        </button>
-      </div>}
     </div>
   );
 };

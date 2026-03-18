@@ -391,21 +391,21 @@ export const videos = [
     id: 'basketball',
     title: 'Basketball Highlights',
     // FIXED: No duration property - will be detected from actual video file
-    videoPath: '/lessons/film-music-project/lesson2/basketball.mp4',
+    videoPath: '/lessons/film-music-project/lesson4/BasketballHighlightReel.mp4',
     thumbnail: '/lessons/film-music-project/lesson2/basketball-thumb.jpg'
   },
   {
     id: 'skateboarding',
     title: 'Skateboarding Tricks',
     // FIXED: No duration property - will be detected from actual video file
-    videoPath: '/lessons/film-music-project/lesson2/skateboard.mp4',
+    videoPath: '/lessons/film-music-project/lesson4/SkateboardHighlighReel.mp4',
     thumbnail: '/lessons/film-music-project/lesson2/skateboard-thumb.jpg'
   },
   {
     id: 'football',
     title: 'Football Action',
     // FIXED: No duration property - will be detected from actual video file
-    videoPath: '/lessons/film-music-project/lesson2/football.mp4',
+    videoPath: '/lessons/film-music-project/lesson4/SoccerHighlightReel.mp4',
     thumbnail: '/lessons/film-music-project/lesson2/football-thumb.jpg'
   }
 ];

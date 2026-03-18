@@ -170,12 +170,12 @@ export const MOUNTAIN_KING_JOURNEY_CONFIG = (() => {
   return {
     ...base,
     lessonId: 'll-lesson3',
-    showIntro: true,
+    showIntro: false,
     hideScenes: true,
     hideMovement: true,
     defaultTab: 'dynamics',
     viewRoute: '/lessons/listening-lab/lesson3?view=saved',
-    defaultCharacter: null,
+    defaultCharacter: CHARACTER_OPTIONS.find(c => c.id === 'yellow-bird'),
     defaultSections: base.defaultSections.map((s, i) => ({
       ...s,
       scene: ['clouds-day', 'clouds-lavender', 'clouds-sunset', 'clouds-night', 'clouds-day', 'clouds-lavender'][i] || 'clouds-day',
@@ -280,6 +280,29 @@ export const lessonSections = [
         hasTimer: true,
         trackProgress: true,
         description: 'Students build their Listening Journey — focus on dynamics today.'
+      },
+      {
+        id: 'swap-intro',
+        type: 'summary',
+        label: 'Swap Chromebooks',
+        duration: 1,
+        description: 'Students swap devices with their partner.'
+      },
+      {
+        id: 'peer-play',
+        type: 'activity',
+        label: 'Play Partner\'s Game',
+        duration: 4,
+        hasTimer: true,
+        trackProgress: true,
+        description: 'Students play their partner\'s Listening Journey game.'
+      },
+      {
+        id: 'peer-feedback',
+        type: 'discussion',
+        label: 'Give Feedback',
+        duration: 2,
+        description: 'Students give feedback on sticker placement.'
       },
       {
         id: 'lesson-complete',
@@ -499,25 +522,11 @@ export const lessonStages = [
     presentationView: {
       type: 'summary',
       title: 'Listening Journey Game Creator',
-      subtitle: 'You\'re Building a Listening Game!',
-      sections: [
-        {
-          heading: 'What Is This?',
-          bullets: [
-            '🎵 You\'re creating a visual world that matches the music',
-            '🐦 A bird character will fly through your world collecting stickers',
-            '🎮 Your classmates will PLAY your game — every sticker they collect earns points!',
-            '🎯 The stickers you place need to match what you actually hear in the music'
-          ]
-        },
-        {
-          heading: 'Today\'s Focus: Dynamics',
-          bullets: [
-            'Place dynamic markings (pp, p, f, ff, crescendo, decrescendo) in each section',
-            'Show how the music gets louder or softer as it changes',
-            'Next class: you\'ll add tempo, instruments, and form markers too!'
-          ]
-        }
+      subtitle: 'Build a game your classmates will play!',
+      bullets: [
+        '🎵 Create a visual world that matches the music',
+        '🐦 Place dynamic stickers (pp, p, f, ff) where you hear them',
+        '🎮 Your classmates play your game and collect your stickers for points!',
       ]
     }
   },
@@ -531,6 +540,54 @@ export const lessonStages = [
     presentationView: {
       type: 'journey-animator-directions',
       pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG,
+      journeyProps: { gameMode: true, hideDecoys: true },
+    }
+  },
+  {
+    id: 'swap-intro',
+    label: 'Swap Chromebooks',
+    description: 'Students swap devices with their partner to play each other\'s games.',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'summary',
+      title: 'Swap Chromebooks!',
+      subtitle: 'Time to play your partner\'s game',
+      bullets: [
+        '👥 Switch Chromebooks with your partner',
+        '🎮 You\'ll play their Listening Journey — a bird collects stickers for points!',
+        '🎵 Listen carefully — do the stickers match the music?',
+      ]
+    }
+  },
+  {
+    id: 'peer-play',
+    label: 'Play Partner\'s Game',
+    description: 'Students play their partner\'s Listening Journey game and earn points.',
+    type: 'activity',
+    duration: 4,
+    hasTimer: true,
+    presentationView: {
+      type: 'journey-animator-directions',
+      pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG,
+      journeyProps: { gameMode: true, hideDecoys: true },
+    }
+  },
+  {
+    id: 'peer-feedback',
+    label: 'Give Feedback',
+    description: 'Students give feedback on partner\'s sticker placement.',
+    type: 'discussion',
+    duration: 2,
+    presentationView: {
+      type: 'summary',
+      title: 'Give Feedback',
+      subtitle: 'Swap back and tell your partner:',
+      bullets: [
+        '✅ Which stickers matched the music perfectly?',
+        '🔧 Which stickers felt wrong? (e.g. "ff" during a quiet part)',
+        '💡 Any spots where a sticker was missing?',
+      ]
     }
   },
   {
@@ -633,6 +690,9 @@ export const getActivityForStage = (stage) => {
     'planning-intro': 'capstone-planning',
     'game-creator-intro': 'summary',
     'animator-directions': 'listening-journey',
+    'swap-intro': 'summary',
+    'peer-play': 'listening-journey',
+    'peer-feedback': 'summary',
     'lesson-complete': 'summary',
     'bonus-activity-intro': 'summary',
     'four-corners-instructions': 'summary',

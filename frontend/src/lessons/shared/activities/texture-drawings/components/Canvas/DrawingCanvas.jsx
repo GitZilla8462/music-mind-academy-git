@@ -655,8 +655,8 @@ const DrawingCanvas = forwardRef(({
     ctx.moveTo(point.x, point.y);
     
     if (isEraserTool(tool)) {
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = '#ffffff';
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.strokeStyle = 'rgba(0,0,0,1)';
     } else {
       ctx.globalCompositeOperation = 'source-over';
       ctx.strokeStyle = color;

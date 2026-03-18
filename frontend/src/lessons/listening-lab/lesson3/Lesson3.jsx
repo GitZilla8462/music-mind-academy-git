@@ -12,9 +12,12 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 import { lesson3Config, lessonStages, getActivityForStage, MOUNTAIN_KING_JOURNEY_CONFIG } from './lesson3Config';
 
 // L3: Only cloud environments + bird characters, no drawing tools
+import { CHARACTER_OPTIONS } from '../../shared/activities/listening-journey/journeyDefaults';
 const CLOUD_ENVIRONMENTS = ['clouds-day', 'clouds-lavender', 'clouds-sunset', 'clouds-night'];
 const BIRD_CHARACTERS = ['yellow-bird', 'crow', 'pigeon'];
-const JOURNEY_L3_PROPS = { pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG, allowedEnvironments: CLOUD_ENVIRONMENTS, allowedCharacters: BIRD_CHARACTERS, hideDrawingTools: true };
+const DEFAULT_BIRD = CHARACTER_OPTIONS.find(c => c.id === 'yellow-bird');
+const JOURNEY_L3_PROPS = { pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG, allowedEnvironments: CLOUD_ENVIRONMENTS, allowedCharacters: BIRD_CHARACTERS, hideDrawingTools: true, gameMode: true, hideDecoys: true, defaultCharacter: DEFAULT_BIRD, defaultScene: 'clouds-day' };
+const JOURNEY_L3_PLAY_PROPS = { ...JOURNEY_L3_PROPS, gameMode: true, hideDecoys: true };
 
 // Hooks
 import { useLesson } from '../../shared/hooks/useLesson';
@@ -242,7 +245,7 @@ const Lesson3 = () => {
       return (
         <>
           <ActivityRenderer
-            activity={{ type: activityType, id: currentStage, ...(activityType === 'listening-journey' ? JOURNEY_L3_PROPS : {}) }}
+            activity={{ type: activityType, id: currentStage, ...(activityType === 'listening-journey' ? (currentStage === 'peer-play' ? JOURNEY_L3_PLAY_PROPS : JOURNEY_L3_PROPS) : {}) }}
             onComplete={handleSessionActivityComplete}
             sessionCode={sessionCode}
             viewMode={false}
@@ -384,7 +387,7 @@ const Lesson3 = () => {
 
   return (
     <ActivityRenderer
-      activity={{ type: currentActivity.type, id: currentActivity.id, ...(currentActivity.type === 'listening-journey' ? JOURNEY_L3_PROPS : {}) }}
+      activity={{ type: currentActivity.type, id: currentActivity.id, ...(currentActivity.type === 'listening-journey' ? (currentActivity.id === 'peer-play' ? JOURNEY_L3_PLAY_PROPS : JOURNEY_L3_PROPS) : {}) }}
       onComplete={lesson.handleActivityComplete}
       viewMode={false}
       isSessionMode={false}

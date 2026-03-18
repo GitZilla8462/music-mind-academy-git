@@ -16,6 +16,8 @@
 //
 // ========================================
 
+import { buildPieceConfig, getPieceById } from '../lesson4/lesson4Config';
+
 export const LESSON_PROGRESS_KEY = 'listening-lab-lesson5-progress';
 export const LESSON_TIMER_KEY = 'listening-lab-lesson5-timer';
 
@@ -219,9 +221,9 @@ export const lessonStages = [
     hasTimer: true,
     duration: 15,
     presentationView: {
-      type: 'activity-banner',
-      title: 'Work Time!',
-      subtitle: 'Finish your Listening Journey — show what you hear!'
+      type: 'journey-animator-directions',
+      pieceConfig: buildPieceConfig(getPieceById('mountain-king')),
+      journeyProps: { gameMode: true },
     }
   },
   {
@@ -268,9 +270,9 @@ export const lessonStages = [
     hasTimer: true,
     duration: 5,
     presentationView: {
-      type: 'activity-banner',
-      title: 'Add Your Decoys!',
-      subtitle: 'Turn on Decoy Mode and place your traps!'
+      type: 'journey-animator-directions',
+      pieceConfig: buildPieceConfig(getPieceById('mountain-king')),
+      journeyProps: { gameMode: true },
     }
   },
   {
@@ -313,9 +315,9 @@ export const lessonStages = [
     hasTimer: true,
     duration: 8,
     presentationView: {
-      type: 'activity-banner',
-      title: 'Play Each Other\'s Games!',
-      subtitle: 'Swap Chromebooks — collect stickers, avoid decoys!'
+      type: 'journey-animator-directions',
+      pieceConfig: buildPieceConfig(getPieceById('mountain-king')),
+      journeyProps: { gameMode: true },
     }
   },
   {

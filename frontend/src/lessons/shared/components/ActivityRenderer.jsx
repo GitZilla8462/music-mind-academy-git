@@ -767,6 +767,7 @@ const ActivityRenderer = ({
           allowedCharacters={activity.allowedCharacters || null}
           hideDrawingTools={activity.hideDrawingTools || false}
           gameMode={activity.gameMode || false}
+          hideDecoys={activity.hideDecoys || false}
           defaultScene={activity.defaultScene || null}
           defaultCharacter={activity.defaultCharacter || null}
         />

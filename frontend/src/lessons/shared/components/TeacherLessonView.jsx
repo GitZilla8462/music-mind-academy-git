@@ -678,20 +678,37 @@ const PresentationContent = ({
 
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-8">
-        {/* Instructions */}
-        <div className="text-center mb-8">
-          <div className="text-2xl font-bold text-gray-800 mb-2">
-            <span className="text-gray-500">1.</span> Go to <span className="text-blue-600">{joinUrl}</span>
-          </div>
-          <div className="text-2xl font-bold text-gray-800">
-            <span className="text-gray-500">2.</span> Log in with your username and password
-          </div>
-        </div>
+        {/* Welcome Header */}
+        <h1 className="text-5xl font-black text-gray-900 mb-6">Welcome to Music Class!</h1>
 
-        {/* Mock login form */}
-        <div className="w-full max-w-sm mb-8">
-          {isClassSession ? (
-            <div className="bg-white rounded-xl shadow-md p-7 border border-gray-200 flex flex-col">
+        {/* Steps + Mock Login Side by Side */}
+        <div className="flex items-center gap-10 max-w-3xl w-full">
+          {/* Left: Steps */}
+          <div className="flex-1 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">1</div>
+              <div className="text-2xl font-bold text-gray-800">Get your login card<br/><span className="text-xl text-gray-500">or login info from your teacher</span></div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">2</div>
+              <div className="text-2xl font-bold text-gray-800">Go to <span className="text-blue-600">{joinUrl}</span></div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">3</div>
+              <div className="text-2xl font-bold text-gray-800">Enter your username & password</div>
+            </div>
+
+            <div className="flex items-center gap-3 mt-2">
+              <div className="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">!</div>
+              <div className="text-xl font-semibold text-gray-600">When Chrome asks "Save password?" — click Save</div>
+            </div>
+          </div>
+
+          {/* Right: Mock Login Form */}
+          <div className="w-72 flex-shrink-0">
+            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200 flex flex-col">
               <div className="space-y-3 mb-4">
                 <div>
                   <div className="text-gray-600 text-sm font-medium mb-1">Username</div>
@@ -702,35 +719,15 @@ const PresentationContent = ({
                   <div className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-400 font-mono text-lg">epicdrum</div>
                 </div>
               </div>
-
               <div className="bg-blue-700 text-white font-semibold py-3.5 px-4 rounded-lg text-lg text-center">
                 Sign In
               </div>
             </div>
-          ) : (
-            /* Quick Session (green) */
-            <div className="bg-white rounded-xl shadow-md p-7 border border-gray-200 flex flex-col">
-              <div className="text-center mb-5">
-                <h2 className="text-xl font-semibold text-emerald-800 mb-1">Quick Session</h2>
-                <p className="text-gray-500 text-sm">Your teacher will show the code on screen</p>
-              </div>
-
-              <div className="mb-3">
-                <div className="bg-white border-2 border-gray-300 rounded-lg py-4 px-4 text-center">
-                  <div className="text-5xl font-bold font-mono tracking-[0.3em] text-gray-800">
-                    {displayCode}
-                  </div>
-                </div>
-              </div>
-              <div className="bg-emerald-700 text-white font-semibold py-3.5 px-4 rounded-lg text-lg text-center">
-                Join
-              </div>
-            </div>
-          )}
+          </div>
         </div>
 
         {/* Student Count */}
-        <div className="flex items-center gap-3 text-xl text-gray-500">
+        <div className="flex items-center gap-3 text-xl text-gray-500 mt-8">
           <Users size={24} />
           <span>
             {studentCount === 0
@@ -1327,249 +1324,18 @@ const PresentationContent = ({
       );
     }
 
-    // Journey Planner Directions (Listening Lab Lesson 3) - 60/40 split: activity left, directions right
-    // Steps 0-2: text directions, Steps 3-5: section-by-section playback with teacher play buttons
-    // Right panel uses Epic Wildlife green/teal color scheme, one direction at a time
+    // Journey Planner Directions (Listening Lab Lesson 3) - extracted to stable component
     if (type === 'journey-planner-directions') {
-      const MOUNTAIN_KING_SECTIONS = [
-        { label: 'A', name: 'Sneaky Start', startTime: 0, endTime: 59, color: '#3B82F6', desc: 'Pizzicato strings + bassoons, pp, andante' },
-        { label: 'B', name: 'Building Energy', startTime: 59, endTime: 101, color: '#EF4444', desc: 'Brass enters, tempo increases, mf' },
-        { label: 'A\'', name: 'Explosive Return', startTime: 101, endTime: 154, color: '#3B82F6', desc: 'Full orchestra, ff, presto' },
-      ];
-      const AUDIO_PATH = '/audio/classical/grieg-mountain-king.mp3';
-
-      const PlannerDirectionsSplit = () => {
-        const [dirStep, setDirStep] = useState(0);
-        const [isPlaying, setIsPlaying] = useState(false);
-        const audioRef = useRef(null);
-        const clipTimerRef = useRef(null);
-
-        // Cleanup audio on unmount
-        useEffect(() => {
-          return () => {
-            if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-            if (clipTimerRef.current) clearTimeout(clipTimerRef.current);
-          };
-        }, []);
-
-        const stopAudio = useCallback(() => {
-          if (audioRef.current) { audioRef.current.pause(); }
-          if (clipTimerRef.current) { clearTimeout(clipTimerRef.current); clipTimerRef.current = null; }
-          setIsPlaying(false);
-        }, []);
-
-        // Stop audio when changing steps
-        useEffect(() => { stopAudio(); }, [dirStep, stopAudio]);
-
-        const playSection = useCallback((section) => {
-          stopAudio();
-          if (!audioRef.current) {
-            audioRef.current = new Audio(AUDIO_PATH);
-            audioRef.current.preload = 'auto';
-          }
-          audioRef.current.currentTime = section.startTime;
-          audioRef.current.volume = 0.5;
-          audioRef.current.play().catch(err => console.error('Audio play error:', err));
-          setIsPlaying(true);
-          const duration = (section.endTime - section.startTime) * 1000;
-          clipTimerRef.current = setTimeout(() => {
-            if (audioRef.current) audioRef.current.pause();
-            setIsPlaying(false);
-          }, duration);
-        }, [stopAudio]);
-
-        const formatTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-
-        // Which section index is active (steps 3,4,5 → sections 0,1,2)
-        const activeSectionIdx = dirStep >= 3 ? dirStep - 3 : -1;
-        const isPlaybackPhase = dirStep >= 3;
-        const totalSteps = 6;
-
-        // Direction content for steps 0-2
-        const textDirections = [
-          {
-            title: 'Your Job',
-            content: (
-              <div className="space-y-4">
-                <div className="text-center mb-2"><div className="text-5xl mb-2">🗺️</div></div>
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                  <ul className="space-y-3 text-gray-700">
-                    <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">•</span><span>You just identified the <span className="font-bold text-gray-900">ABA form</span> of Mountain King</span></li>
-                    <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">•</span><span>Now <span className="font-bold text-gray-900">PLAN</span> your Listening Journey by describing each section</span></li>
-                    <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">•</span><span>Listen to each section and fill in: <span className="font-bold text-amber-600">DYNAMICS</span>, <span className="font-bold text-emerald-600">TEMPO</span>, and <span className="font-bold text-purple-600">INSTRUMENTS</span></span></li>
-                    <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">•</span><span>This plan will guide you when you build your Listening Journey!</span></li>
-                  </ul>
-                </div>
-              </div>
-            ),
-          },
-          {
-            title: 'For Each Section, Describe:',
-            content: (
-              <div className="space-y-4">
-                <div className="text-center mb-2"><div className="text-5xl mb-2">🎧</div></div>
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                  <ul className="space-y-3 text-gray-700">
-                    <li className="flex items-start gap-2"><span className="text-amber-500 text-xl mt-0.5">♪</span><span><span className="font-bold text-amber-600">DYNAMICS</span> — How loud or soft? (pp, p, mf, f, ff)</span></li>
-                    <li className="flex items-start gap-2"><span className="text-emerald-500 text-xl mt-0.5">♪</span><span><span className="font-bold text-emerald-600">TEMPO</span> — How fast? (andante, moderato, presto)</span></li>
-                    <li className="flex items-start gap-2"><span className="text-purple-500 text-xl mt-0.5">♪</span><span><span className="font-bold text-purple-600">INSTRUMENTS</span> — Which families and instruments do you hear?</span></li>
-                  </ul>
-                </div>
-                <div className="bg-teal-50 rounded-lg p-3 border border-teal-200 text-center">
-                  <p className="text-teal-700 font-bold">You can select multiple things you hear!</p>
-                </div>
-              </div>
-            ),
-          },
-          {
-            title: 'Now Let\'s Listen!',
-            content: (
-              <div className="space-y-4">
-                <div className="text-center mb-2"><div className="text-5xl mb-2">🎵</div></div>
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                  <p className="text-lg font-bold text-gray-800 text-center">
-                    We will listen to each section one at a time
-                  </p>
-                  <p className="text-gray-600 text-center mt-2">
-                    Pay attention to the dynamics, tempo, and instruments you hear
-                  </p>
-                </div>
-              </div>
-            ),
-          },
-        ];
-
-        const headerTitle = isPlaybackPhase
-          ? `Section ${MOUNTAIN_KING_SECTIONS[activeSectionIdx].label}`
-          : textDirections[dirStep].title;
-
-        return (
-          <div className="absolute inset-0 flex bg-white">
-            {/* Left 40% — Teacher directions (Epic Wildlife green/teal scheme) */}
-            <div className="w-[40%] h-full bg-white border-r-2 border-green-200 flex flex-col">
-              {/* Header */}
-              <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-5 py-4 shrink-0 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Star size={22} />
-                  <h2 className="font-bold text-xl">{headerTitle}</h2>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {Array.from({ length: totalSteps }).map((_, i) => (
-                    <div
-                      key={i}
-                      className={`w-2.5 h-2.5 rounded-full transition-all ${
-                        i === dirStep ? 'bg-white scale-125' : i < dirStep ? 'bg-white/50' : 'bg-white/25'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 overflow-y-auto p-5">
-                {!isPlaybackPhase ? (
-                  textDirections[dirStep].content
-                ) : (
-                  /* Section playback controls */
-                  (() => {
-                    const sec = MOUNTAIN_KING_SECTIONS[activeSectionIdx];
-                    return (
-                      <div className="space-y-4">
-                        <div className="text-center mb-2">
-                          <div
-                            className="w-16 h-16 rounded-full flex items-center justify-center text-3xl font-black text-white mx-auto mb-3"
-                            style={{ backgroundColor: sec.color }}
-                          >
-                            {sec.label}
-                          </div>
-                          <h3 className="font-bold text-gray-900 text-lg">{sec.name}</h3>
-                          <p className="text-gray-500">{formatTime(sec.startTime)}–{formatTime(sec.endTime)}</p>
-                        </div>
-
-                        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                          <p className="text-gray-700 text-center mb-4">
-                            Press play to listen to <span className="font-bold">Section {sec.label}</span> with your class
-                          </p>
-                          <button
-                            onClick={() => isPlaying ? stopAudio() : playSection(sec)}
-                            className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-3 ${
-                              isPlaying
-                                ? 'bg-red-500 hover:bg-red-600 text-white'
-                                : 'bg-green-600 hover:bg-green-700 text-white'
-                            }`}
-                          >
-                            {isPlaying ? (
-                              <><Pause size={24} /> Stop</>
-                            ) : (
-                              <><Play size={24} /> Play Section {sec.label}</>
-                            )}
-                          </button>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                          <p className="text-sm text-gray-600 text-center">
-                            Students are watching the main screen. Ask them to listen for the <span className="font-bold">dynamics</span>, <span className="font-bold">tempo</span>, and <span className="font-bold">instruments</span> in this section.
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })()
-                )}
-              </div>
-
-              {/* Navigation */}
-              <div className="border-t border-green-100 px-5 py-3 flex items-center justify-between shrink-0">
-                <button
-                  onClick={() => setDirStep(Math.max(0, dirStep - 1))}
-                  className={`px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-1 ${
-                    dirStep === 0 ? 'opacity-0 pointer-events-none' : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  <ChevronLeft size={18} /> Back
-                </button>
-                {dirStep < totalSteps - 1 ? (
-                  <button
-                    onClick={() => setDirStep(dirStep + 1)}
-                    className="bg-green-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-green-700 transition-all flex items-center gap-1"
-                  >
-                    {dirStep === 2 ? 'Start Listening' : 'Next'} <ChevronRight size={18} />
-                  </button>
-                ) : (
-                  <div className="text-sm text-green-600 font-semibold flex items-center gap-1">
-                    <Check size={18} /> All sections complete
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right 60% — CapstonePlanning always visible, with section highlight during playback */}
-            <div className="w-[60%] h-full relative bg-gray-100 overflow-hidden">
-              {CapstonePlanning ? (
-                <CapstonePlanning
-                  onComplete={() => {}}
-                  isSessionMode={false}
-                  hidePlayButtons={true}
-                  highlightSection={isPlaybackPhase ? MOUNTAIN_KING_SECTIONS[activeSectionIdx].label : null}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full bg-gray-100">
-                  <p className="text-gray-400">Loading planner...</p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      };
-
       return (
         <div className="absolute inset-0">
-          <PlannerDirectionsSplit />
+          <PlannerDirectionsSplit CapstonePlanningComponent={CapstonePlanning} />
         </div>
       );
     }
 
-    // Journey Animator Directions (Listening Lab Lesson 3) - Live animator + floating draggable overlay
+    // Journey Animator Directions (Listening Lab) - Live animator + floating draggable overlay
     if (type === 'journey-animator-directions') {
+      const configJourneyProps = currentStageData.presentationView.journeyProps || {};
       return (
         <div className="absolute inset-0">
           <AnimatorDirectionsOverlay
@@ -1577,9 +1343,12 @@ const PresentationContent = ({
             pieceConfig={pieceConfig}
             dismissedRef={animatorDirDismissedRef}
             journeyProps={{
+              skipSavedData: true,
               hideDrawingTools: true,
               allowedCharacters: ['yellow-bird', 'crow', 'pigeon'],
               allowedEnvironments: ['clouds-day', 'clouds-lavender', 'clouds-sunset', 'clouds-night'],
+              defaultScene: 'clouds-day',
+              ...configJourneyProps,
             }}
           />
         </div>
@@ -1687,34 +1456,43 @@ const PresentationContent = ({
           { label: 'B', color: '#EF4444', name: 'Contrast', desc: 'Something different' },
           { label: 'A\'', color: '#3B82F6', name: 'Return', desc: 'Theme comes back' },
         ];
-        const pieceTitle = currentStageData?.presentationView?.pieceTitle;
 
         return (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8">
-            <h2 className="text-5xl font-black text-white mb-2">Meet Ternary Form</h2>
-            <p className="text-2xl text-gray-400 mb-2">Statement — Contrast — Return</p>
-            {pieceTitle && <p className="text-xl text-amber-400 mb-6">{pieceTitle}</p>}
-            {!pieceTitle && <div className="mb-6" />}
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-6 lg:p-10">
+            <h1 className="text-6xl lg:text-8xl font-bold text-white mb-3 lg:mb-5 text-center">
+              Ternary Form
+            </h1>
+            <p className="text-3xl lg:text-5xl text-purple-300 mb-8 lg:mb-10 text-center">
+              Statement — Contrast — Return
+            </p>
 
-            <div className="flex gap-6 mb-8">
+            {/* ABA blocks */}
+            <div className="flex gap-8 lg:gap-12 mb-8 lg:mb-10">
               {sections.map((s, idx) => (
                 <div key={idx} className="flex flex-col items-center">
                   <div
-                    className="w-28 h-28 rounded-2xl flex items-center justify-center font-black text-white mb-2 shadow-lg text-5xl"
+                    className="w-28 h-28 lg:w-36 lg:h-36 rounded-2xl flex items-center justify-center font-black text-white shadow-lg text-5xl lg:text-7xl"
                     style={{ backgroundColor: s.color }}
                   >
                     {s.label}
                   </div>
-                  <div className="text-white font-bold text-lg">{s.name}</div>
-                  <div className="text-gray-400 text-sm max-w-28 text-center">{s.desc}</div>
+                  <div className="text-white font-bold text-xl lg:text-2xl mt-3">{s.name}</div>
                 </div>
               ))}
             </div>
 
-            <div className="bg-white/10 rounded-2xl p-6 max-w-2xl">
-              <p className="text-xl text-white mb-2"><span className="font-bold">Ternary</span> = Three parts: A (statement), B (contrast), A (return)</p>
-              <p className="text-lg text-gray-300">The <span className="font-bold text-blue-400">A section</span> comes back after the contrasting B section.</p>
-              <p className="text-lg text-gray-300 mt-2">In Mountain King, A starts <span className="font-bold text-blue-400">sneaky and quiet</span>, but when it returns as A', it's <span className="font-bold text-red-400">explosive and loud!</span></p>
+            {/* Key points */}
+            <div className="max-w-6xl w-full px-4">
+              <ul className="space-y-4 lg:space-y-6">
+                <li className="flex items-start gap-3 lg:gap-4">
+                  <span className="text-purple-400 text-3xl lg:text-4xl mt-0.5">•</span>
+                  <span className="text-2xl lg:text-4xl text-slate-200 leading-snug">The A section comes back after the contrasting B section — but it can come back <span className="font-bold text-white">changed</span></span>
+                </li>
+                <li className="flex items-start gap-3 lg:gap-4">
+                  <span className="text-purple-400 text-3xl lg:text-4xl mt-0.5">•</span>
+                  <span className="text-2xl lg:text-4xl text-slate-200 leading-snug">Next: class listening activity — <span className="font-bold text-purple-300">In the Hall of the Mountain King</span></span>
+                </li>
+              </ul>
             </div>
           </div>
         );
@@ -3444,6 +3222,172 @@ const FinalPilotSurvey = ({
 };
 
 // ============================================
+// PLANNER DIRECTIONS SPLIT (stable component to prevent remounting)
+// Extracted outside TeacherLessonView so React keeps the same component identity
+// ============================================
+const MOUNTAIN_KING_SECTIONS = [
+  { label: 'A', name: 'Sneaky Start', startTime: 0, endTime: 59, color: '#3B82F6', desc: 'Pizzicato strings + bassoons, pp, andante' },
+  { label: 'B', name: 'Building Energy', startTime: 59, endTime: 101, color: '#EF4444', desc: 'Brass enters, tempo increases, mf' },
+  { label: 'A\'', name: 'Explosive Return', startTime: 101, endTime: 154, color: '#3B82F6', desc: 'Full orchestra, ff, presto' },
+];
+const AUDIO_PATH = '/audio/classical/grieg-mountain-king.mp3';
+
+const PlannerDirectionsSplit = React.memo(({ CapstonePlanningComponent }) => {
+  const [playingIdx, setPlayingIdx] = useState(-1);
+  const [isLoading, setIsLoading] = useState(false);
+  const audioRef = useRef(null);
+
+  // Preload audio on mount
+  useEffect(() => {
+    const audio = new Audio(AUDIO_PATH);
+    audio.preload = 'auto';
+    audio.volume = 0.5;
+    audioRef.current = audio;
+    return () => {
+      audio.pause();
+      if (audio._onTimeUpdate) audio.removeEventListener('timeupdate', audio._onTimeUpdate);
+      if (audio._onEnded) audio.removeEventListener('ended', audio._onEnded);
+      audio.src = '';
+      audioRef.current = null;
+    };
+  }, []);
+
+  const stopAudio = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      if (audioRef.current._onTimeUpdate) audioRef.current.removeEventListener('timeupdate', audioRef.current._onTimeUpdate);
+      if (audioRef.current._onEnded) audioRef.current.removeEventListener('ended', audioRef.current._onEnded);
+    }
+    setPlayingIdx(-1);
+    setIsLoading(false);
+  }, []);
+
+  const playSection = useCallback((section, idx) => {
+    // Toggle off if already playing this section
+    if (playingIdx === idx) { stopAudio(); return; }
+    stopAudio();
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio._onTimeUpdate) audio.removeEventListener('timeupdate', audio._onTimeUpdate);
+    if (audio._onEnded) audio.removeEventListener('ended', audio._onEnded);
+    const onTimeUpdate = () => {
+      if (audio.currentTime >= section.endTime) {
+        audio.pause();
+        audio.removeEventListener('timeupdate', onTimeUpdate);
+        setPlayingIdx(-1);
+      }
+    };
+    const onEnded = () => { setPlayingIdx(-1); };
+    audio._onTimeUpdate = onTimeUpdate;
+    audio._onEnded = onEnded;
+    audio.addEventListener('timeupdate', onTimeUpdate);
+    audio.addEventListener('ended', onEnded);
+    audio.currentTime = section.startTime;
+    setIsLoading(true);
+    audio.play().then(() => {
+      setIsLoading(false);
+      setPlayingIdx(idx);
+    }).catch(err => {
+      console.error('Audio play error:', err);
+      setIsLoading(false);
+      setPlayingIdx(-1);
+    });
+  }, [playingIdx, stopAudio]);
+
+  const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+
+  // highlightSection is the label of whichever section is playing (or null)
+  const highlightLabel = playingIdx >= 0 ? MOUNTAIN_KING_SECTIONS[playingIdx].label : null;
+
+  return (
+    <div className="absolute inset-0 flex bg-white">
+      {/* Left — Section player controls */}
+      <div className="w-[340px] h-full bg-white border-r border-gray-200 flex flex-col">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-5 py-4 shrink-0">
+          <h2 className="font-bold text-lg">Listen & Plan</h2>
+          <p className="text-white/70 text-sm mt-0.5">Play each section for your class</p>
+        </div>
+
+        {/* Section cards */}
+        <div className="flex-1 flex flex-col gap-3 p-4">
+          {MOUNTAIN_KING_SECTIONS.map((sec, idx) => {
+            const isActive = playingIdx === idx;
+            const isLoadingThis = isLoading && playingIdx === -1;
+            return (
+              <button
+                key={sec.label}
+                onClick={() => playSection(sec, idx)}
+                className={`relative flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
+                  isActive
+                    ? 'border-current bg-opacity-10 shadow-lg scale-[1.02]'
+                    : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
+                }`}
+                style={isActive ? { borderColor: sec.color, backgroundColor: sec.color + '12' } : {}}
+              >
+                {/* Section label circle */}
+                <div
+                  className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-black text-white shrink-0"
+                  style={{ backgroundColor: sec.color }}
+                >
+                  {sec.label}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-gray-900 text-base">{sec.name}</div>
+                  <div className="text-sm text-gray-500">{fmt(sec.startTime)} – {fmt(sec.endTime)}</div>
+                  <div className="text-xs text-gray-400 mt-0.5">{sec.desc}</div>
+                </div>
+
+                {/* Play/Stop icon */}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                  isActive
+                    ? 'bg-red-500 text-white'
+                    : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200'
+                }`}>
+                  {isActive ? <Pause size={20} /> : <Play size={20} className="ml-0.5" />}
+                </div>
+
+                {/* Playing indicator */}
+                {isActive && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-red-500 animate-pulse" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Tip at bottom */}
+        <div className="px-4 pb-4 shrink-0">
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+            <p className="text-xs text-gray-500 text-center">
+              Play a section, pause to discuss, then play the next one. Students fill in their worksheet as they listen.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right — CapstonePlanning (student view) */}
+      <div className="flex-1 h-full relative bg-gray-100 overflow-hidden">
+        {CapstonePlanningComponent ? (
+          <CapstonePlanningComponent
+            onComplete={() => {}}
+            isSessionMode={false}
+            hidePlayButtons={true}
+            highlightSection={highlightLabel}
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full bg-gray-100">
+            <p className="text-gray-400">Loading planner...</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+// ============================================
 // ANIMATOR DIRECTIONS OVERLAY (stable component to prevent remounting)
 // ============================================
 const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, pieceConfig, dismissedRef, journeyProps = {} }) => {
@@ -3524,6 +3468,13 @@ const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, piece
     },
   ];
 
+  const reopenOverlay = useCallback(() => {
+    dismissedRef.current = false;
+    setShowOverlay(true);
+    setDirStep(0);
+    setPos(null);
+  }, [dismissedRef]);
+
   const dir = directions[dirStep];
   const c = { outer: 'bg-white border-gray-200', header: 'border-gray-200', bg: 'bg-gray-50', border: 'border-gray-200', dot: 'bg-gray-800', itemText: 'text-gray-900', nav: 'border-gray-200', navBack: 'text-gray-600 hover:bg-gray-100', navNext: 'bg-gray-800 hover:bg-gray-900 text-white' };
 
@@ -3538,6 +3489,7 @@ const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, piece
             isSessionMode={false}
             pieceConfig={pieceConfig || null}
             {...journeyProps}
+            onDirectionsClick={reopenOverlay}
           />
         ) : (
           <div className="flex items-center justify-center h-full bg-gray-900">
@@ -3622,15 +3574,7 @@ const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, piece
         </div>
       )}
 
-      {/* Re-open overlay button (when dismissed) */}
-      {!showOverlay && (
-        <button
-          onClick={() => { dismissedRef.current = false; setShowOverlay(true); }}
-          className="absolute z-50 top-2 left-2 bg-white hover:bg-gray-100 text-gray-600 hover:text-gray-900 px-1 py-0.5 rounded-sm shadow-lg border border-gray-200 transition-colors flex items-center gap-0.5 text-[9px] font-medium"
-        >
-          <HelpCircle size={9} /> Directions
-        </button>
-      )}
+      {/* Directions re-open handled by ListeningJourney's built-in Directions button in the top bar */}
     </div>
   );
 });
@@ -4256,9 +4200,9 @@ const TeacherLessonView = ({
                 <div>
                   <button
                     onClick={handleStartLesson}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-lg font-bold text-lg bg-emerald-500 hover:bg-emerald-600 text-white transition-colors shadow-lg animate-pulse"
                   >
-                    <Play size={18} />
+                    <Play size={20} />
                     Start Lesson
                   </button>
                 </div>

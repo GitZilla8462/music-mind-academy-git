@@ -28,7 +28,7 @@ let _nextSectionId = Date.now();
 const DRAW_COLORS = ['#ffffff', '#000000', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#6b7280'];
 const DRAW_SIZES = [4, 8, 16, 24, 32];
 
-const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false, pieceConfig = null, allowedEnvironments = null, allowedCharacters = null, hideDrawingTools = false, gameMode = false, defaultScene = null, defaultCharacter: defaultCharacterProp = null }) => {
+const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false, pieceConfig = null, allowedEnvironments = null, allowedCharacters = null, hideDrawingTools = false, gameMode = false, hideDecoys = false, defaultScene = null, defaultCharacter: defaultCharacterProp = null, skipSavedData = false, onDirectionsClick = null }) => {
   // If pieceConfig is provided, use it instead of defaults
   const audioPath = pieceConfig?.audioPath || AUDIO_PATH;
   const audioVolume = pieceConfig?.volume || 1.0;
@@ -40,18 +40,24 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const defaultTab = pieceConfig?.defaultTab || null;
   // ── State ──────────────────────────────────────────────────────────
   // Load saved data ONCE (localStorage first, Firebase fallback in useEffect below)
-  const [savedSnapshot] = useState(() => loadStudentWork(storageKey));
+  const [savedSnapshot] = useState(() => skipSavedData ? null : loadStudentWork(storageKey));
   const savedData = savedSnapshot?.data;
   const hasLocalData = useRef(!!savedData?.sections?.length);
 
   const [sections, setSections] = useState(() => {
     if (savedData?.sections?.length > 0) {
-      return savedData.sections.map(s => ({
-        ...s,
-        sky: s.sky || 'clear-day',
-        scene: s.scene || (presetMode ? null : 'forest'),
-        ground: s.ground || 'grass',
-      }));
+      return savedData.sections.map(s => {
+        // If scene isn't in the allowed list, replace with default
+        const sceneAllowed = !allowedEnvironments || !s.scene || allowedEnvironments.includes(s.scene);
+        const fallback = defaultScene || (allowedEnvironments ? allowedEnvironments[0] : null);
+        const scene = sceneAllowed ? (s.scene || (presetMode ? null : 'forest')) : fallback;
+        return {
+          ...s,
+          sky: sceneAllowed ? (s.sky || 'clear-day') : (SCENE_SKY_MAP[scene] || 'clear-day'),
+          scene,
+          ground: sceneAllowed ? (s.ground || 'grass') : (SCENE_GROUND_MAP[scene] || 'grass'),
+        };
+      });
     }
     if (pieceConfig?.defaultSections?.length > 0) {
       // Pre-populate with piece sections (form times given, students customize visuals)
@@ -69,7 +75,14 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const [items, setItems] = useState(() => savedData?.items || []);
 
   const defaultCharacter = defaultCharacterProp || pieceConfig?.defaultCharacter || null;
-  const [character, setCharacter] = useState(() => savedData?.character || defaultCharacter);
+  const [character, setCharacter] = useState(() => {
+    const saved = savedData?.character;
+    // If saved character isn't in the allowed list, use default instead
+    if (saved && allowedCharacters && !allowedCharacters.includes(saved.id)) {
+      return defaultCharacter;
+    }
+    return saved || defaultCharacter;
+  });
 
   const [editMode, setEditMode] = useState(defaultTab ? 'sticker' : 'select'); // 'select' | 'sticker' | 'text'
   const [saveStatus, setSaveStatus] = useState(null);
@@ -82,7 +95,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   // Firebase fallback — if no local data, try loading from Firebase (cross-device support)
   useEffect(() => {
-    if (hasLocalData.current) return;
+    if (hasLocalData.current || skipSavedData) return;
     const authInfo = getClassAuthInfo();
     if (!authInfo?.uid) return;
 
@@ -808,7 +821,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             <CharacterSelector selectedId={character?.id} onSelect={setCharacter} allowedCharacters={allowedCharacters} />
 
             {/* Game mode: decoy mode toggle */}
-            {gameMode && isBuild && (() => {
+            {gameMode && isBuild && !hideDecoys && (() => {
               const decoyCount = items.filter(i => i.isDecoy).length;
               return (
                 <>
@@ -832,7 +845,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
             {/* Directions button */}
             <button
-              onClick={() => { setShowIntroModal(true); }}
+              onClick={() => { onDirectionsClick ? onDirectionsClick() : setShowIntroModal(true); }}
               className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md text-[10px] sm:text-[11px] font-bold text-white/50 hover:text-white hover:bg-white/10 transition-colors"
               title="Directions"
             >
@@ -1256,7 +1269,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="text-xl flex-shrink-0">🎮</span>
-                  <p className="text-white/90 text-sm">This becomes a <span className="font-bold text-emerald-300">game your classmates will play!</span> A bird flies through your world collecting stickers for points. Later you'll add decoy traps — fake stickers that cost points.</p>
+                  <p className="text-white/90 text-sm">This becomes a <span className="font-bold text-emerald-300">game your classmates will play!</span> A bird flies through your world collecting stickers for points.{!hideDecoys && ' Later you\'ll add decoy traps — fake stickers that cost points.'}</p>
                 </div>
               </div>
 

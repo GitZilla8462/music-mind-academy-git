@@ -425,9 +425,9 @@ export const lessonStages = [
     hasTimer: true,
     duration: 15,
     presentationView: {
-      type: 'activity-banner',
-      title: 'Listening Journey Worktime',
-      subtitle: 'Add tempo, instruments, and form markers!'
+      type: 'journey-animator-directions',
+      pieceConfig: buildPieceConfig(CAPSTONE_PIECES[0]),
+      journeyProps: { gameMode: true, hideDecoys: true },
     }
   },
   {
