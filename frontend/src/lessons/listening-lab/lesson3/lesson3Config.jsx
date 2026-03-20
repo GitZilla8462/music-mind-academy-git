@@ -557,6 +557,7 @@ export const lessonStages = [
         '👥 Switch Chromebooks with your partner',
         '🎮 You\'ll play their Listening Journey — a bird collects stickers for points!',
         '🎵 Listen carefully — do the stickers match the music?',
+        '▶️ Click "Play Game" and use the arrow keys to play!',
       ]
     }
   },
