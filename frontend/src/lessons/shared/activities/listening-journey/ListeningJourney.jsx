@@ -3,7 +3,7 @@
 // Stickers are time-pinned: only visible when the playhead is at their timestamp
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { Save, RotateCcw, Sticker, Type, Moon, Sun, CloudRain, CloudSnow, Wind, CloudOff, Hammer, Presentation, Maximize, Minimize, Play, Pause, SkipBack, HelpCircle } from 'lucide-react';
+import { Save, RotateCcw, Sticker, Type, Moon, Sun, CloudRain, CloudSnow, Wind, CloudOff, Hammer, Presentation, Maximize, Minimize, Play, Pause, SkipBack, HelpCircle, Trophy, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
 import PlanningGuide from './PlanningGuide';
 import EssayPanel from './EssayPanel';
 
@@ -161,6 +161,14 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   // Game phase: 'idle' (build mode), 'ready' (start screen), 'playing', 'finished'
   const [gamePhase, setGamePhase] = useState('idle');
   const prevIsPlayingRef = useRef(false);
+  // High scores & player name for game mode
+  const [playerName, setPlayerName] = useState('');
+  const highScoresKey = `mma-highscores-${storageKey}`;
+  const [highScores, setHighScores] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(highScoresKey)) || [];
+    } catch { return []; }
+  });
 
   // Teacher save command listener
   const { sessionCode } = useSession();
@@ -203,9 +211,17 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   useEffect(() => {
     if (gameMode && gamePhase === 'playing' && prevIsPlayingRef.current && !isPlaying && currentTime === 0) {
       setGamePhase('finished');
+      // Save high score
+      const name = playerName.trim() || 'Anonymous';
+      const newEntry = { name, score: gameScore, date: new Date().toISOString() };
+      setHighScores(prev => {
+        const updated = [...prev, newEntry].sort((a, b) => b.score - a.score).slice(0, 5);
+        localStorage.setItem(highScoresKey, JSON.stringify(updated));
+        return updated;
+      });
     }
     prevIsPlayingRef.current = isPlaying;
-  }, [isPlaying, currentTime, gameMode, gamePhase]);
+  }, [isPlaying, currentTime, gameMode, gamePhase, gameScore, playerName, highScoresKey]);
 
   // When switching to present/fullscreen in game mode, show start screen
   const setAppModeWithGame = useCallback((mode) => {
@@ -887,13 +903,13 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                   <div className="w-px h-5 sm:h-6 bg-white/20 mx-0.5 sm:mx-1" />
                   <button
                     onClick={() => setDecoyMode(d => !d)}
-                    className={`px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-bold transition-colors whitespace-nowrap ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold transition-colors shadow-lg whitespace-nowrap ${
                       decoyMode
-                        ? 'bg-red-500 text-white hover:bg-red-600 ring-2 ring-red-300 animate-pulse'
-                        : 'bg-white/10 text-white/60 hover:bg-red-500/30 hover:text-red-300'
+                        ? 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/30'
+                        : 'bg-red-500/20 text-red-300 hover:bg-red-500/40 shadow-red-500/10'
                     }`}
                   >
-                    {decoyMode ? `Decoy Mode ON (${decoyCount})` : `Decoy${decoyCount > 0 ? ` (${decoyCount})` : ''}`}
+                    {decoyMode ? `Placing Decoys (${decoyCount})` : `Place Decoy${decoyCount > 0 ? ` (${decoyCount})` : ''}`}
                   </button>
                 </>
               );
@@ -912,32 +928,53 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             </button>
             <div className="w-px h-5 bg-white/20" />
             {/* Mode switcher */}
-            <div className="flex bg-white/5 rounded-lg p-0.5">
-              <button
-                onClick={() => setAppModeWithGame('build')}
-                className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md text-[10px] sm:text-[11px] font-bold transition-colors ${
-                  isBuild ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60'
-                }`}
-              >
-                <Hammer size={12} /> <span className="hidden sm:inline">Build</span>
-              </button>
-              <button
-                onClick={() => setAppModeWithGame('present')}
-                className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md text-[10px] sm:text-[11px] font-bold transition-colors ${
-                  isPresent ? 'bg-orange-500 text-white' : 'text-white/40 hover:text-white/60'
-                }`}
-              >
-                <Presentation size={12} /> <span className="hidden sm:inline">{gameMode ? 'Play Game' : 'Present'}</span>
-              </button>
-              <button
-                onClick={() => setAppModeWithGame('fullscreen')}
-                className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md text-[10px] sm:text-[11px] font-bold transition-colors ${
-                  isFullscreen ? 'bg-blue-500 text-white' : 'text-white/40 hover:text-white/60'
-                }`}
-              >
-                <Maximize size={12} />
-              </button>
-            </div>
+            {gameMode ? (
+              <div className="flex rounded-xl overflow-hidden shadow-lg">
+                <button
+                  onClick={() => setAppModeWithGame('build')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold transition-colors ${
+                    isBuild ? 'bg-indigo-500 text-white' : 'bg-indigo-500/30 text-indigo-200 hover:bg-indigo-500/50'
+                  }`}
+                >
+                  <Hammer size={14} /> Build
+                </button>
+                <button
+                  onClick={() => setAppModeWithGame('present')}
+                  className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-black transition-colors ${
+                    isPresent || isFullscreen ? 'bg-emerald-600 text-white' : 'bg-emerald-500 text-white hover:bg-emerald-600'
+                  }`}
+                >
+                  <Play size={14} fill="white" /> Play Game
+                </button>
+              </div>
+            ) : (
+              <div className="flex bg-white/5 rounded-lg p-0.5">
+                <button
+                  onClick={() => setAppModeWithGame('build')}
+                  className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md text-[10px] sm:text-[11px] font-bold transition-colors ${
+                    isBuild ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60'
+                  }`}
+                >
+                  <Hammer size={12} /> <span className="hidden sm:inline">Build</span>
+                </button>
+                <button
+                  onClick={() => setAppModeWithGame('present')}
+                  className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md text-[10px] sm:text-[11px] font-bold transition-colors ${
+                    isPresent ? 'bg-orange-500 text-white' : 'text-white/40 hover:text-white/60'
+                  }`}
+                >
+                  <Presentation size={12} /> <span className="hidden sm:inline">Present</span>
+                </button>
+                <button
+                  onClick={() => setAppModeWithGame('fullscreen')}
+                  className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md text-[10px] sm:text-[11px] font-bold transition-colors ${
+                    isFullscreen ? 'bg-blue-500 text-white' : 'text-white/40 hover:text-white/60'
+                  }`}
+                >
+                  <Maximize size={12} />
+                </button>
+              </div>
+            )}
 
             <div className="w-px h-5 sm:h-6 bg-white/20 mx-0.5 sm:mx-1" />
 
@@ -990,6 +1027,15 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       {/* Floating controls for presentation & fullscreen */}
       {(isFullscreen || isPresent) && (
         <div className="absolute bottom-3 right-3 z-50 flex items-center gap-2">
+          {gameMode && (
+            <button
+              onClick={() => setAppModeWithGame('build')}
+              className="px-3 py-2 rounded-lg bg-black/50 hover:bg-black/70 text-white/60 hover:text-white transition-colors text-xs font-bold flex items-center gap-1"
+              title="Back to Build"
+            >
+              <Hammer size={14} /> Build
+            </button>
+          )}
           <button
             onClick={gameRewind}
             className="p-2 rounded-lg bg-black/50 hover:bg-black/70 text-white/60 hover:text-white transition-colors"
@@ -1004,7 +1050,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           >
             {isPlaying ? <Pause size={16} /> : <Play size={16} />}
           </button>
-          {isFullscreen && (
+          {isFullscreen && !gameMode && (
             <button
               onClick={() => setAppModeWithGame('build')}
               className="p-2 rounded-lg bg-black/50 hover:bg-black/70 text-white/60 hover:text-white transition-colors"
@@ -1018,48 +1064,154 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
       {/* Game Start overlay */}
       {gameMode && (isPresent || isFullscreen) && gamePhase === 'ready' && (
-        <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="text-center">
-            <div className="text-6xl mb-4">🎮</div>
-            <h2 className="text-4xl font-black text-white mb-2">Ready to Play?</h2>
-            <p className="text-lg text-white/70 mb-6">Use arrow keys to dodge decoys and collect stickers!</p>
-            <button
-              onClick={startGame}
-              className="px-10 py-4 bg-emerald-500 hover:bg-emerald-600 text-white text-2xl font-black rounded-2xl shadow-lg transition-colors"
-            >
-              Start Game
-            </button>
+        <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-gray-900/90 rounded-3xl border border-white/10 shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 text-center">
+              <div className="text-4xl mb-1">🎮</div>
+              <h2 className="text-3xl font-black text-white">Play This Journey!</h2>
+            </div>
+
+            <div className="px-6 py-5 space-y-4">
+              {/* Name entry */}
+              <div>
+                <label className="text-sm font-bold text-white/70 block mb-1">Your Name</label>
+                <input
+                  type="text"
+                  value={playerName}
+                  onChange={(e) => setPlayerName(e.target.value)}
+                  placeholder="Type your name..."
+                  maxLength={20}
+                  className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white text-lg font-bold placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === 'Enter' && playerName.trim()) startGame(); }}
+                />
+              </div>
+
+              {/* Controls */}
+              <div className="bg-white/5 rounded-xl p-3">
+                <p className="text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Controls</p>
+                <div className="flex items-center justify-center gap-6">
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="flex gap-1">
+                      <kbd className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/80"><ArrowUp size={14} /></kbd>
+                    </div>
+                    <div className="flex gap-1">
+                      <kbd className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/80"><ArrowLeft size={14} /></kbd>
+                      <kbd className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/80"><ArrowDown size={14} /></kbd>
+                      <kbd className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/80"><ArrowRight size={14} /></kbd>
+                    </div>
+                  </div>
+                  <div className="text-sm text-white/70">
+                    <p className="font-bold text-white">Fly your bird!</p>
+                    <p>Collect stickers for <span className="text-emerald-400 font-bold">+10 pts</span></p>
+                    <p>Dodge decoys for <span className="text-red-400 font-bold">-5 pts</span></p>
+                  </div>
+                </div>
+              </div>
+
+              {/* High Scores */}
+              {highScores.length > 0 && (
+                <div className="bg-white/5 rounded-xl p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Trophy size={14} className="text-yellow-400" />
+                    <p className="text-xs font-bold text-white/50 uppercase tracking-wider">High Scores</p>
+                  </div>
+                  <div className="space-y-1">
+                    {highScores.map((entry, i) => (
+                      <div key={i} className={`flex items-center gap-2 px-2 py-1 rounded-lg ${i === 0 ? 'bg-yellow-500/10' : ''}`}>
+                        <span className="w-5 text-center font-bold text-sm text-white/50">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
+                        <span className="flex-1 text-sm font-bold text-white truncate">{entry.name}</span>
+                        <span className={`text-sm font-black tabular-nums ${entry.score >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{entry.score}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Start button */}
+              <button
+                onClick={startGame}
+                disabled={!playerName.trim()}
+                className={`w-full py-4 rounded-xl text-2xl font-black transition-all flex items-center justify-center gap-3 ${
+                  playerName.trim()
+                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 hover:scale-[1.02]'
+                    : 'bg-white/10 text-white/30 cursor-not-allowed'
+                }`}
+              >
+                <Play size={24} fill="white" /> START
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Game Over overlay */}
-      {gameMode && (isPresent || isFullscreen) && gamePhase === 'finished' && (
-        <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="text-center">
-            <div className="text-6xl mb-4">{gameScore >= 0 ? '🏆' : '😅'}</div>
-            <h2 className="text-4xl font-black text-white mb-2">Game Over!</h2>
-            <div className={`text-6xl font-black tabular-nums mb-2 ${gameScore >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-              {gameScore}
-            </div>
-            <p className="text-lg text-white/50 mb-6">points</p>
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={() => { setGamePhase('ready'); gameRewind(); }}
-                className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-xl font-bold rounded-xl shadow-lg transition-colors"
-              >
-                Play Again
-              </button>
-              <button
-                onClick={() => setAppModeWithGame('build')}
-                className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white text-xl font-bold rounded-xl shadow-lg transition-colors"
-              >
-                Back to Build
-              </button>
+      {gameMode && (isPresent || isFullscreen) && gamePhase === 'finished' && (() => {
+        const isNewHighScore = highScores.length > 0 && highScores[0].score === gameScore && highScores[0].name === (playerName.trim() || 'Anonymous');
+        return (
+          <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+            <div className="bg-gray-900/90 rounded-3xl border border-white/10 shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+              {/* Header */}
+              <div className={`px-6 py-4 text-center ${isNewHighScore ? 'bg-gradient-to-r from-yellow-600 to-amber-600' : 'bg-gradient-to-r from-emerald-600 to-teal-600'}`}>
+                <div className="text-4xl mb-1">{isNewHighScore ? '🏆' : gameScore >= 0 ? '🎮' : '😅'}</div>
+                <h2 className="text-3xl font-black text-white">
+                  {isNewHighScore ? 'New High Score!' : 'Game Over!'}
+                </h2>
+              </div>
+
+              <div className="px-6 py-5 space-y-4">
+                {/* Score */}
+                <div className="text-center">
+                  <div className="text-sm font-bold text-white/50 uppercase tracking-wider mb-1">{playerName.trim() || 'Anonymous'}</div>
+                  <div className={`text-6xl font-black tabular-nums ${gameScore >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {gameScore}
+                  </div>
+                  <div className="text-sm text-white/40">points</div>
+                </div>
+
+                {/* Leaderboard */}
+                {highScores.length > 0 && (
+                  <div className="bg-white/5 rounded-xl p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Trophy size={14} className="text-yellow-400" />
+                      <p className="text-xs font-bold text-white/50 uppercase tracking-wider">Leaderboard</p>
+                    </div>
+                    <div className="space-y-1">
+                      {highScores.map((entry, i) => {
+                        const isCurrentRun = entry.score === gameScore && entry.name === (playerName.trim() || 'Anonymous') && i === highScores.findIndex(e => e.score === gameScore && e.name === (playerName.trim() || 'Anonymous'));
+                        return (
+                          <div key={i} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors ${isCurrentRun ? 'bg-emerald-500/20 ring-1 ring-emerald-400/50' : i === 0 ? 'bg-yellow-500/10' : ''}`}>
+                            <span className="w-5 text-center font-bold text-sm text-white/50">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
+                            <span className="flex-1 text-sm font-bold text-white truncate">{entry.name}</span>
+                            <span className={`text-sm font-black tabular-nums ${entry.score >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{entry.score}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => { setGamePhase('ready'); gameRewind(); }}
+                    className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-black rounded-xl shadow-lg transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+                  >
+                    <Play size={18} fill="white" /> Play Again
+                  </button>
+                  <button
+                    onClick={() => setAppModeWithGame('build')}
+                    className="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white text-lg font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Hammer size={18} /> Back to Build
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Main content area */}
       <div className="flex-1 flex min-h-0">

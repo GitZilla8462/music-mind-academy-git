@@ -298,11 +298,12 @@ const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSe
           {/* Build-mode ring: green = points, red = decoy */}
           {isBuildMode && (
             <div
-              className={`absolute -inset-1.5 rounded-full pointer-events-none ${
+              className={`absolute -inset-3 rounded-full pointer-events-none border-3 ${
                 item.isDecoy
-                  ? 'ring-2 ring-red-500 bg-red-500/10'
-                  : 'ring-2 ring-emerald-500 bg-emerald-500/10'
+                  ? 'border-red-500'
+                  : 'border-emerald-500'
               }`}
+              style={{ borderWidth: '3px' }}
             />
           )}
           {renderStickerContent(item, scale)}

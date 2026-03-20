@@ -392,24 +392,22 @@ export const lessonStages = [
     duration: 2,
     presentationView: {
       type: 'summary',
-      title: 'Listening Journey — Today\'s Focus',
-      subtitle: 'Make Your Game Accurate!',
+      title: 'Today\'s Focus',
+      subtitle: 'Add Tempo, Instruments & Form',
       sections: [
         {
           heading: 'What to Add Today',
           bullets: [
-            'Dynamics — should be done from last class!',
-            'TEMPO — Add tempo markings (allegro, adagio, accelerando, etc.)',
-            'INSTRUMENTS — Add stickers for instruments you hear in each section',
-            'FORM — Add section labels (A, B, A\') to mark where sections change'
+            'TEMPO — Add tempo markings (allegro, adagio, etc.)',
+            'INSTRUMENTS — Add stickers for instruments you hear',
+            'FORM — Add section labels (A, B, A\') where sections change'
           ]
         },
         {
-          heading: 'Why Accuracy Matters',
+          heading: 'Accuracy Matters!',
           bullets: [
             'Your journey is becoming a GAME that classmates will play!',
-            'Every sticker a player collects earns points — but only if it\'s accurate',
-            'Make sure each sticker matches what you ACTUALLY hear in that part of the music'
+            'Every sticker must match what you ACTUALLY hear'
           ]
         }
       ]
@@ -444,17 +442,15 @@ export const lessonStages = [
         {
           heading: 'How the Game Works',
           bullets: [
-            'A bird character flies through your world collecting stickers',
-            'Each sticker the bird touches = +10 points',
-            'Stickers need to be ACCURATE — if you put "forte" where the music is actually piano, that\'s not a good sticker!'
+            'A bird flies through your world collecting stickers',
+            'Each sticker = +10 points (but only if it\'s accurate!)'
           ]
         },
         {
-          heading: 'Next Class: Decoys & Play!',
+          heading: 'Next Class',
           bullets: [
-            'You\'ll add DECOYS — fake stickers that cost players -5 points',
-            'Example: Placing a forte marking where the music is actually piano',
-            'Then you\'ll swap Chromebooks and PLAY each other\'s games!'
+            'Add DECOYS — fake stickers that cost players -5 points',
+            'Swap Chromebooks and PLAY each other\'s games!'
           ]
         }
       ]
@@ -474,19 +470,17 @@ export const lessonStages = [
         {
           heading: 'How to Play',
           bullets: [
-            '1. You\'ll hear a short music clip',
-            '2. Decide: Is this about DYNAMICS, TEMPO, or FORM?',
-            '3. Tap your answer on your Chromebook',
-            '4. 3 rounds of 4 clips each — 12 questions total!',
-            '5. Fast + correct = more points!'
+            'See a term or description — is it DYNAMICS, TEMPO, or FORM?',
+            'Tap your answer on your Chromebook',
+            '3 rounds, 12 questions — fast + correct = more points!'
           ]
         },
         {
           heading: 'The Three Elements',
           bullets: [
-            'DYNAMICS — How loud or soft? (p, f, crescendo, decrescendo)',
-            'TEMPO — How fast or slow? (allegro, adagio, accelerando)',
-            'FORM — What section? (A section, B section, ternary, rondo)'
+            'DYNAMICS — How loud or soft? (p, f, crescendo)',
+            'TEMPO — How fast or slow? (allegro, adagio)',
+            'FORM — What section? (A, B, rondo, ternary)'
           ]
         }
       ]

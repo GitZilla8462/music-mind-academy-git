@@ -677,49 +677,49 @@ const PresentationContent = ({
     const siteName = isEduSite ? 'Music Room Tools' : 'Music Mind Academy';
 
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-8">
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-4 lg:p-8">
         {/* Welcome Header */}
-        <h1 className="text-5xl font-black text-gray-900 mb-6">Welcome to Music Class!</h1>
+        <h1 className="text-4xl lg:text-5xl font-black text-gray-900 mb-4 lg:mb-6">Welcome to Music Class!</h1>
 
         {/* Steps + Mock Login Side by Side */}
-        <div className="flex items-center gap-10 max-w-3xl w-full">
+        <div className="flex items-center gap-6 lg:gap-10 max-w-3xl w-full">
           {/* Left: Steps */}
-          <div className="flex-1 space-y-4">
+          <div className="flex-1 space-y-3 lg:space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">1</div>
-              <div className="text-2xl font-bold text-gray-800">Get your login card<br/><span className="text-xl text-gray-500">or login info from your teacher</span></div>
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-base lg:text-lg flex-shrink-0">1</div>
+              <div className="text-xl lg:text-2xl font-bold text-gray-800">Get your login card<br/><span className="text-lg lg:text-xl text-gray-500">or login info from your teacher</span></div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">2</div>
-              <div className="text-2xl font-bold text-gray-800">Go to <span className="text-blue-600">{joinUrl}</span></div>
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-base lg:text-lg flex-shrink-0">2</div>
+              <div className="text-xl lg:text-2xl font-bold text-gray-800">Go to <span className="text-blue-600">{joinUrl}</span></div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">3</div>
-              <div className="text-2xl font-bold text-gray-800">Enter your username & password</div>
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-base lg:text-lg flex-shrink-0">3</div>
+              <div className="text-xl lg:text-2xl font-bold text-gray-800">Enter your username & password</div>
             </div>
 
-            <div className="flex items-center gap-3 mt-2">
-              <div className="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">!</div>
-              <div className="text-xl font-semibold text-gray-600">When Chrome asks "Save password?" — click Save</div>
+            <div className="flex items-center gap-3 mt-1 lg:mt-2">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-base lg:text-lg flex-shrink-0">!</div>
+              <div className="text-lg lg:text-xl font-semibold text-gray-600">When Chrome asks "Save password?" — click Save</div>
             </div>
           </div>
 
           {/* Right: Mock Login Form */}
-          <div className="w-72 flex-shrink-0">
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200 flex flex-col">
-              <div className="space-y-3 mb-4">
+          <div className="w-60 lg:w-72 flex-shrink-0">
+            <div className="bg-white rounded-xl shadow-md p-4 lg:p-6 border border-gray-200 flex flex-col">
+              <div className="space-y-2 lg:space-y-3 mb-3 lg:mb-4">
                 <div>
                   <div className="text-gray-600 text-sm font-medium mb-1">Username</div>
-                  <div className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-400 font-mono text-lg">tuba123</div>
+                  <div className="bg-white border border-gray-300 rounded-lg px-3 lg:px-4 py-2 lg:py-3 text-gray-400 font-mono text-base lg:text-lg">tuba123</div>
                 </div>
                 <div>
                   <div className="text-gray-600 text-sm font-medium mb-1">Password</div>
-                  <div className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-400 font-mono text-lg">epicdrum</div>
+                  <div className="bg-white border border-gray-300 rounded-lg px-3 lg:px-4 py-2 lg:py-3 text-gray-400 font-mono text-base lg:text-lg">epicdrum</div>
                 </div>
               </div>
-              <div className="bg-blue-700 text-white font-semibold py-3.5 px-4 rounded-lg text-lg text-center">
+              <div className="bg-blue-700 text-white font-semibold py-2.5 lg:py-3.5 px-4 rounded-lg text-base lg:text-lg text-center">
                 Sign In
               </div>
             </div>
@@ -727,8 +727,8 @@ const PresentationContent = ({
         </div>
 
         {/* Student Count */}
-        <div className="flex items-center gap-3 text-xl text-gray-500 mt-8">
-          <Users size={24} />
+        <div className="flex items-center gap-3 text-lg lg:text-xl text-gray-500 mt-5 lg:mt-8">
+          <Users size={22} />
           <span>
             {studentCount === 0
               ? 'Waiting for students...'
@@ -1885,31 +1885,36 @@ const PresentationContent = ({
     if (type === 'summary') {
       const { title, subtitle, bullets, sections } = currentStageData.presentationView;
 
+      // Count total items to scale font sizes for content-heavy slides
+      const totalBullets = (bullets?.length || 0) + (sections?.reduce((sum, s) => sum + (s.bullets?.length || 0), 0) || 0);
+      const hasManySections = sections && sections.length >= 2;
+      const isDense = totalBullets > 5 || hasManySections;
+
       return (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-6 lg:p-10">
           {/* Title */}
-          <h1 className="text-6xl lg:text-8xl font-bold text-white mb-3 lg:mb-5 text-center">
+          <h1 className={`${isDense ? 'text-5xl lg:text-6xl mb-2 lg:mb-3' : 'text-6xl lg:text-8xl mb-3 lg:mb-5'} font-bold text-white text-center`}>
             {title}
           </h1>
 
           {/* Subtitle (if provided) */}
           {subtitle && (
-            <p className="text-3xl lg:text-5xl text-purple-300 mb-6 lg:mb-10 text-center">
+            <p className={`${isDense ? 'text-2xl lg:text-3xl mb-4 lg:mb-6' : 'text-3xl lg:text-5xl mb-6 lg:mb-10'} text-purple-300 text-center`}>
               {subtitle}
             </p>
           )}
 
           {/* Spacer if no subtitle */}
-          {!subtitle && <div className="mb-4 lg:mb-8" />}
+          {!subtitle && <div className={isDense ? 'mb-3 lg:mb-5' : 'mb-4 lg:mb-8'} />}
 
           {/* Simple bullets (if provided) */}
           {bullets && bullets.length > 0 && (
             <div className="max-w-6xl w-full px-4">
-              <ul className="space-y-4 lg:space-y-6">
+              <ul className={isDense ? 'space-y-2 lg:space-y-3' : 'space-y-4 lg:space-y-6'}>
                 {bullets.map((bullet, index) => (
                   <li key={index} className="flex items-start gap-3 lg:gap-4">
-                    <span className="text-purple-400 text-4xl lg:text-5xl mt-0.5">•</span>
-                    <span className="text-3xl lg:text-4xl text-slate-200 leading-snug lg:leading-relaxed">{bullet}</span>
+                    <span className={`text-purple-400 ${isDense ? 'text-3xl lg:text-4xl' : 'text-4xl lg:text-5xl'} mt-0.5`}>•</span>
+                    <span className={`${isDense ? 'text-2xl lg:text-3xl' : 'text-3xl lg:text-4xl'} text-slate-200 leading-snug`}>{bullet}</span>
                   </li>
                 ))}
               </ul>
@@ -1920,17 +1925,17 @@ const PresentationContent = ({
           {sections && sections.length > 0 && (
             <div className="max-w-6xl w-full px-4">
               {sections.map((section, sectionIndex) => (
-                <div key={sectionIndex} className="mb-5 lg:mb-8">
+                <div key={sectionIndex} className={isDense ? 'mb-3 lg:mb-5' : 'mb-5 lg:mb-8'}>
                   {section.heading && (
-                    <h2 className="text-4xl lg:text-6xl font-bold text-purple-400 mb-3 lg:mb-6">
+                    <h2 className={`${isDense ? 'text-3xl lg:text-4xl mb-2 lg:mb-3' : 'text-4xl lg:text-6xl mb-3 lg:mb-6'} font-bold text-purple-400`}>
                       {section.heading}
                     </h2>
                   )}
-                  <ul className="space-y-3 lg:space-y-5 pl-2 lg:pl-4">
+                  <ul className={`${isDense ? 'space-y-1.5 lg:space-y-2' : 'space-y-3 lg:space-y-5'} pl-2 lg:pl-4`}>
                     {section.bullets.map((bullet, bulletIndex) => (
-                      <li key={bulletIndex} className="flex items-start gap-2 lg:gap-4">
-                        <span className="text-purple-400 text-3xl lg:text-4xl mt-0.5">•</span>
-                        <span className="text-2xl lg:text-4xl text-slate-200 leading-snug">{bullet}</span>
+                      <li key={bulletIndex} className="flex items-start gap-2 lg:gap-3">
+                        <span className={`text-purple-400 ${isDense ? 'text-2xl lg:text-3xl' : 'text-3xl lg:text-4xl'} mt-0.5`}>•</span>
+                        <span className={`${isDense ? 'text-xl lg:text-2xl' : 'text-2xl lg:text-4xl'} text-slate-200 leading-snug`}>{bullet}</span>
                       </li>
                     ))}
                   </ul>

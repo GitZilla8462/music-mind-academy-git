@@ -555,9 +555,9 @@ export const lessonStages = [
       subtitle: 'Time to play your partner\'s game',
       bullets: [
         '👥 Switch Chromebooks with your partner',
-        '🎮 You\'ll play their Listening Journey — a bird collects stickers for points!',
-        '🎵 Listen carefully — do the stickers match the music?',
-        '▶️ Click "Play Game" and use the arrow keys to play!',
+        '▶️ Press "Play Game" on the top bar, then give your Chromebook to someone to play',
+        '🎮 A bird collects stickers for points — listen carefully!',
+        '🎵 Do the stickers match the music?',
       ]
     }
   },
