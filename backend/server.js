@@ -26,6 +26,8 @@ const errorLogRoutes = require('./routes/errorLogRoutes'); // First-party error 
 const hubspotRoutes = require('./routes/hubspotRoutes'); // HubSpot CRM status sync
 const emailRoutes = require('./routes/emailRoutes'); // Automated survey emails
 const applicationRoutes = require('./routes/applicationRoutes'); // Pilot application approve/decline
+const newsRoutes = require('./routes/newsRoutes'); // Music Journalist news feed
+const articleGenerationRoutes = require('./routes/articleGenerationRoutes'); // Article generation admin
 
 // Initialize Firebase Admin SDK
 const { initFirebase } = require('./services/firebaseAdmin');
@@ -80,6 +82,8 @@ app.use('/api/errors', errorLogRoutes); // First-party error logging (bypasses s
 app.use('/api/hubspot', hubspotRoutes); // HubSpot CRM status sync
 app.use('/api/email', emailRoutes); // Automated survey emails
 app.use('/api/applications', applicationRoutes); // Pilot application approve/decline
+app.use('/api/news', newsRoutes); // Music Journalist news feed
+app.use('/api/admin/news', articleGenerationRoutes); // Article generation admin
 
 // A simple test route to check if the server is working
 app.get('/', (req, res) => {

@@ -141,6 +141,69 @@ export const CURRICULUM = [
     ]
   },
   {
+    id: 'music-journalist',
+    name: 'Music Journalist',
+    shortName: 'Music Journalist',
+    icon: '📰',
+    color: 'navy',
+    lessons: [
+      {
+        id: 'mj-lesson1',
+        name: 'Lesson 1: Read Like a Journalist',
+        shortName: 'Read',
+        concept: 'Analyze music news — identify facts, opinions, and key details',
+        route: '/lessons/music-journalist/lesson1',
+        activities: [
+          { id: 'fact-opinion-sorter', name: 'Fact or Opinion Sorter', type: 'game' },
+          { id: 'mj-lesson1-reflection', name: 'Article Reflection', type: 'reflection' }
+        ]
+      },
+      {
+        id: 'mj-lesson2',
+        name: 'Lesson 2: Find Your Beat',
+        shortName: 'Topic',
+        concept: 'Choose a research topic and begin building a research board',
+        route: '/lessons/music-journalist/lesson2',
+        activities: [
+          { id: 'source-or-not', name: 'Source or Not?', type: 'game' },
+          { id: 'mj-lesson2-reflection', name: 'Topic Reflection', type: 'reflection' }
+        ]
+      },
+      {
+        id: 'mj-lesson3',
+        name: 'Lesson 3: Deep Dive',
+        shortName: 'Research',
+        concept: 'Read multiple sources, evaluate evidence, organize research',
+        route: '/lessons/music-journalist/lesson3',
+        activities: [
+          { id: 'headline-writer', name: 'Headline Writer', type: 'game' },
+          { id: 'mj-lesson3-reflection', name: 'Research Reflection', type: 'reflection' }
+        ]
+      },
+      {
+        id: 'mj-lesson4',
+        name: 'Lesson 4: Build Your Story',
+        shortName: 'Build',
+        concept: 'Turn research into a 4-slide presentation',
+        route: '/lessons/music-journalist/lesson4',
+        activities: [
+          { id: 'mj-slide-builder', name: 'Slide Builder', type: 'composition' }
+        ]
+      },
+      {
+        id: 'mj-lesson5',
+        name: 'Lesson 5: Press Day',
+        shortName: 'Present',
+        concept: 'Present your story and give peer feedback',
+        route: '/lessons/music-journalist/lesson5',
+        activities: [
+          { id: 'mj-presentation', name: 'Music Journalist Presentation', type: 'composition' },
+          { id: 'mj-peer-feedback', name: 'Peer Feedback', type: 'reflection' }
+        ]
+      }
+    ]
+  },
+  {
     id: 'production-studio',
     name: 'The Production Studio',
     shortName: 'Production Studio',

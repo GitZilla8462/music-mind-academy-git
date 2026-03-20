@@ -98,6 +98,33 @@ import NameThatElementStudentView from '../activities/name-that-element/NameThat
 // ✅ ADDED: Four Corners review game (Listening Lab Lesson 3 - Bonus)
 import FourCornersStudentView from '../activities/four-corners/FourCornersStudentView';
 
+// ✅ ADDED: Fact or Opinion Sorter (Music Journalist Unit 3)
+import { FactOpinionStudentView } from '../activities/fact-opinion-sorter';
+
+// ✅ ADDED: Source or Not? News Credibility Challenge (Music Journalist Unit 3)
+import { SourceOrNotStudentView } from '../activities/source-or-not';
+
+// ✅ ADDED: Headline Writer (Music Journalist Unit 3)
+import { HeadlineWriterStudentView } from '../activities/headline-writer';
+
+// ✅ ADDED: Image Library (Music Journalist Unit 3)
+import { ImageLibrary } from '../activities/image-library';
+
+// ✅ ADDED: Research Board (Music Journalist Unit 3)
+import { ResearchBoard } from '../activities/research-board';
+
+// ✅ ADDED: Slide Builder capstone (Music Journalist Unit 3)
+import { SlideBuilder } from '../activities/slide-builder';
+
+// ✅ ADDED: Topic Selector (Music Journalist Lesson 2)
+import { TopicSelector } from '../activities/topic-selector';
+
+// ✅ ADDED: Presentation Mode (Music Journalist Lesson 5)
+import { PresentationMode } from '../activities/presentation-mode';
+
+// ✅ ADDED: Peer Feedback (Music Journalist Lesson 5)
+import { PeerFeedback } from '../activities/peer-feedback';
+
 // ✅ ADDED: Capstone activities (Listening Lab Lesson 4)
 import CapstonePieceSelection from '../activities/capstone/CapstonePieceSelection';
 import CapstonePlanning from '../activities/capstone/CapstonePlanning';
@@ -856,6 +883,110 @@ const ActivityRenderer = ({
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Fact or Opinion Sorter (Music Journalist Unit 3)
+    // Students see FACT/OPINION buttons synced to teacher's game via Firebase
+    case 'fact-opinion-sorter':
+      return (
+        <FactOpinionStudentView
+          key={`fact-opinion-student-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Source or Not? News Credibility Challenge (Music Journalist Unit 3)
+    // Students see CREDIBLE/NOT CREDIBLE buttons synced to teacher's game via Firebase
+    case 'source-or-not':
+      return (
+        <SourceOrNotStudentView
+          key={`source-or-not-student-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Headline Writer (Music Journalist Unit 3)
+    // Students write headlines, then vote on the best one — synced via Firebase
+    case 'headline-writer':
+      return (
+        <HeadlineWriterStudentView
+          key={`headline-writer-student-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Slide Builder capstone (Music Journalist Unit 3)
+    // Students build a 4-slide presentation using research from their Research Board
+    case 'mj-slide-builder':
+      return (
+        <SlideBuilder
+          key={`mj-slide-builder-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Image Library (Music Journalist Unit 3)
+    // Searchable panel for finding free-to-use images from Wikimedia Commons
+    case 'image-library':
+      return (
+        <ImageLibrary
+          key={`image-library-${activity.id}`}
+          onImageSelect={activity.onImageSelect || undefined}
+          embedded={activity.embedded || false}
+        />
+      );
+
+    // ✅ ADDED: Research Board (Music Journalist Unit 3)
+    // Standalone research board panel for reviewing highlights and images across articles
+    case 'research-board':
+      return (
+        <ResearchBoard
+          key={`research-board-${activity.id}`}
+          collapsed={activity.collapsed || false}
+          onToggle={activity.onToggle || undefined}
+          onSlideTag={activity.onSlideTag || undefined}
+          readOnly={viewMode}
+        />
+      );
+
+    // ✅ ADDED: Topic Selector (Music Journalist Lesson 2)
+    // Students pick and lock in their research topic
+    case 'topic-selector':
+      return (
+        <TopicSelector
+          key={`topic-selector-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Presentation Mode (Music Journalist Lesson 5)
+    // Full-screen presentation viewer for capstone slides
+    case 'mj-presentation':
+      return (
+        <PresentationMode
+          key={`mj-presentation-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Peer Feedback (Music Journalist Lesson 5)
+    // Students write feedback for presenters
+    case 'mj-peer-feedback':
+      return (
+        <PeerFeedback
+          key={`mj-peer-feedback-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+          viewMode={viewMode}
         />
       );
 

@@ -487,6 +487,9 @@ const PresentationContent = ({
   const [FourCornersGame, setFourCornersGame] = useState(null);
   const [CapstonePlanning, setCapstonePlanning] = useState(null);
   const [ListeningJourney, setListeningJourney] = useState(null);
+  const [FactOpinionSorterGame, setFactOpinionSorterGame] = useState(null);
+  const [SourceOrNotGame, setSourceOrNotGame] = useState(null);
+  const [HeadlineWriterGame, setHeadlineWriterGame] = useState(null);
 
   // Composition present mode (video + DAW tracks fullscreen)
   const [compositionPresentMode, setCompositionPresentMode] = useState(false);
@@ -665,6 +668,21 @@ const PresentationContent = ({
     import('../../shared/activities/capstone/CapstonePieceSelectionTeacher')
       .then(module => setCapstonePieceSelectionTeacher(() => module.default))
       .catch(() => console.log('Capstone Piece Selection Teacher not available'));
+
+    // Unit 3 Music Journalist: Fact or Opinion Sorter
+    import('../../shared/activities/fact-opinion-sorter/FactOpinionSorterGame')
+      .then(module => setFactOpinionSorterGame(() => module.default))
+      .catch(() => console.log('Fact Opinion Sorter Game not available'));
+
+    // Unit 3 Music Journalist: Source or Not
+    import('../../shared/activities/source-or-not/SourceOrNotGame')
+      .then(module => setSourceOrNotGame(() => module.default))
+      .catch(() => console.log('Source or Not Game not available'));
+
+    // Unit 3 Music Journalist: Headline Writer
+    import('../../shared/activities/headline-writer/HeadlineWriterGame')
+      .then(module => setHeadlineWriterGame(() => module.default))
+      .catch(() => console.log('Headline Writer Game not available'));
   }, []);
 
   // Join Code Screen — mirrors the student /join page styling
@@ -1581,6 +1599,57 @@ const PresentationContent = ({
       return (
         <div className="absolute inset-0">
           <FourCornersGame sessionData={sessionData} onComplete={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Fact or Opinion Sorter (Music Journalist Lesson 1)
+    if (type === 'fact-opinion-sorter-teacher-game') {
+      if (!FactOpinionSorterGame) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900">
+            <div className="text-white text-2xl">Loading Fact or Opinion Sorter...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <FactOpinionSorterGame sessionData={sessionData} onComplete={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Source or Not (Music Journalist Lesson 2)
+    if (type === 'source-or-not-teacher-game') {
+      if (!SourceOrNotGame) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900">
+            <div className="text-white text-2xl">Loading Source or Not...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <SourceOrNotGame sessionData={sessionData} onComplete={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Headline Writer (Music Journalist Lesson 3)
+    if (type === 'headline-writer-teacher-game') {
+      if (!HeadlineWriterGame) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900">
+            <div className="text-white text-2xl">Loading Headline Writer...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <HeadlineWriterGame sessionData={sessionData} onComplete={goToNextStage} />
         </div>
       );
     }

@@ -58,22 +58,22 @@ const CURRICULUM_UNITS = [
   },
   {
     id: 3,
-    title: 'Music Around the World',
-    subtitle: 'Global Sounds & Cultures',
-    color: '#14b8a6',
-    icon: '/images/assignments/curriculum/unit2-world.png',
-    standardBadge: 'Connecting',
+    title: 'Music Journalist',
+    subtitle: 'Read, Research & Report',
+    color: '#0ea5e9',
+    icon: '/images/assignments/curriculum/unit3-journalist.png',
+    standardBadge: 'Responding & Connecting',
     lessonCount: 5,
-    duration: '~40 min per lesson',
+    duration: '~45 min per lesson',
     bullets: [
-      'Explore music from 5 continents',
-      'Connect culture to musical choices',
-      'Compare instruments & traditions'
+      'Read & annotate real music articles',
+      'Research an artist or music topic',
+      'Build & present a multimedia story'
     ],
-    status: 'preview',
-    releaseDate: 'May 1st',
-    route: null,
-    routeCommercial: null
+    status: 'pilot',
+    releaseDate: 'April 15th',
+    route: '/music-journalist',
+    routeCommercial: '/music-journalist-hub'
   },
   {
     id: 4,
@@ -115,6 +115,7 @@ const CURRICULUM_UNITS = [
   },
   {
     id: 6,
+    devOnly: true,
     title: 'Film Music',
     subtitle: 'Scoring the Story',
     color: '#f59e0b',
@@ -134,6 +135,7 @@ const CURRICULUM_UNITS = [
   },
   {
     id: 7,
+    devOnly: true,
     title: 'The Production Studio',
     subtitle: 'Music Industry & Collaboration',
     color: '#f97316',
@@ -591,7 +593,7 @@ function MusicClassroomResources() {
 
         {/* Unit Grid */}
         <div className="mcr-grid">
-          {CURRICULUM_UNITS.map((unit) => {
+          {CURRICULUM_UNITS.filter(unit => !unit.devOnly || import.meta.env.DEV).map((unit) => {
             const isActivePilot = unit.status === 'pilot' && !unit.releaseDate;
             const isUpcomingPilot = unit.status === 'pilot' && unit.releaseDate;
             const isClickable = unit.status === 'pilot' || unit.status === 'active' || unit.status === 'preview' || (hasEarlyAccess && unit.route);

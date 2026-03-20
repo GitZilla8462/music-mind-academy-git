@@ -158,7 +158,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const [collectedIds, setCollectedIds] = useState(new Set());
   const [birdHurt, setBirdHurt] = useState(false);
   const hurtTimerRef = useRef(null);
-  // Game phase: 'idle' (build mode), 'ready' (start screen), 'playing', 'finished'
+  // Game phase: 'idle' (build mode), 'ready' (start screen), 'playing', 'paused', 'finished'
   const [gamePhase, setGamePhase] = useState('idle');
   const prevIsPlayingRef = useRef(false);
   // High scores & player name for game mode
@@ -188,7 +188,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const {
     isPlaying, currentTime, isLoaded,
     currentSectionIndex, currentSection, scrollSpeed,
-    seekTo, rewind, togglePlay
+    play, pause, seekTo, rewind, togglePlay
   } = useJourneyPlayback(audioPath, totalDuration, sections, audioVolume);
 
   const { midgroundOffset, foregroundOffset, rawMidgroundOffset } = useParallaxScroll(currentTime, sections);
@@ -255,6 +255,52 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     // Small delay so rewind settles before play
     setTimeout(() => togglePlay(), 100);
   }, [rewind, togglePlay]);
+
+  // Pause / Resume / Restart for game mode
+  const pauseGame = useCallback(() => {
+    if (gamePhase !== 'playing') return;
+    pause();
+    setGamePhase('paused');
+  }, [gamePhase, pause]);
+
+  const resumeGame = useCallback(() => {
+    if (gamePhase !== 'paused') return;
+    setGamePhase('playing');
+    play();
+  }, [gamePhase, play]);
+
+  const restartGame = useCallback(() => {
+    rewind();
+    setBirdY(0.35);
+    setBirdX(0.12);
+    setGameScore(0);
+    collectedIdsRef.current = new Set();
+    setCollectedIds(new Set());
+    setBirdHurt(false);
+    if (hurtTimerRef.current) clearTimeout(hurtTimerRef.current);
+    setGamePhase('playing');
+    setTimeout(() => play(), 100);
+  }, [rewind, play]);
+
+  const quitGame = useCallback(() => {
+    pause();
+    setGamePhase('idle');
+    setAppMode('build');
+  }, [pause]);
+
+  // Escape key to pause/resume during gameplay
+  useEffect(() => {
+    if (!gameMode) return;
+    const handleKey = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (gamePhase === 'playing') pauseGame();
+        else if (gamePhase === 'paused') resumeGame();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [gameMode, gamePhase, pauseGame, resumeGame]);
 
   // Active section — always derived from playhead position
   const activeSectionIndex = useMemo(() => {
@@ -1025,17 +1071,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       )}
 
       {/* Floating controls for presentation & fullscreen */}
-      {(isFullscreen || isPresent) && (
+      {(isFullscreen || isPresent) && !gameMode && (
         <div className="absolute bottom-3 right-3 z-50 flex items-center gap-2">
-          {gameMode && (
-            <button
-              onClick={() => setAppModeWithGame('build')}
-              className="px-3 py-2 rounded-lg bg-black/50 hover:bg-black/70 text-white/60 hover:text-white transition-colors text-xs font-bold flex items-center gap-1"
-              title="Back to Build"
-            >
-              <Hammer size={14} /> Build
-            </button>
-          )}
           <button
             onClick={gameRewind}
             className="p-2 rounded-lg bg-black/50 hover:bg-black/70 text-white/60 hover:text-white transition-colors"
@@ -1050,7 +1087,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           >
             {isPlaying ? <Pause size={16} /> : <Play size={16} />}
           </button>
-          {isFullscreen && !gameMode && (
+          {isFullscreen && (
             <button
               onClick={() => setAppModeWithGame('build')}
               className="p-2 rounded-lg bg-black/50 hover:bg-black/70 text-white/60 hover:text-white transition-colors"
@@ -1059,6 +1096,53 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
               <Minimize size={16} />
             </button>
           )}
+        </div>
+      )}
+
+      {/* Game mode: pause button during gameplay */}
+      {gameMode && (isPresent || isFullscreen) && gamePhase === 'playing' && (
+        <button
+          onClick={pauseGame}
+          className="absolute top-3 left-3 z-50 p-3 rounded-full bg-black/50 hover:bg-black/70 text-white/60 hover:text-white transition-colors"
+          title="Pause (Esc)"
+        >
+          <Pause size={20} />
+        </button>
+      )}
+
+      {/* Game mode: pause overlay */}
+      {gameMode && (isPresent || isFullscreen) && gamePhase === 'paused' && (
+        <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-gray-900/90 rounded-3xl border border-white/10 shadow-2xl max-w-sm w-full mx-4 overflow-hidden">
+            <div className="px-6 py-5 text-center">
+              <Pause size={40} className="text-white/50 mx-auto mb-2" />
+              <h2 className="text-3xl font-black text-white mb-1">Paused</h2>
+              <p className="text-sm text-white/40 mb-6">Score: <span className={`font-bold ${gameScore >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{gameScore}</span> pts</p>
+
+              <div className="space-y-2">
+                <button
+                  onClick={resumeGame}
+                  className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-black rounded-xl transition-colors flex items-center justify-center gap-2"
+                >
+                  <Play size={20} fill="white" /> Resume
+                </button>
+                <button
+                  onClick={restartGame}
+                  className="w-full py-3 bg-white/10 hover:bg-white/20 text-white text-lg font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+                >
+                  <SkipBack size={18} /> Restart
+                </button>
+                <button
+                  onClick={quitGame}
+                  className="w-full py-3 bg-white/5 hover:bg-red-500/20 text-white/60 hover:text-red-300 text-lg font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+                >
+                  <Hammer size={18} /> Quit to Build
+                </button>
+              </div>
+
+              <p className="text-xs text-white/30 mt-4">Press Esc to resume</p>
+            </div>
+          </div>
         </div>
       )}
 
