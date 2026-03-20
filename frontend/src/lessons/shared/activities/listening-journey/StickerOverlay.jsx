@@ -125,14 +125,17 @@ const cleanupDrag = (ref) => {
 const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSelected, onSelect, onUpdateItem, isBuildMode }) => {
   const { position, type } = item;
   const scale = item.scale || 1;
+  const rotation = item.rotation || 0;
   const adjustedX = position.x + (scrollOffsetX || 0);
   const interactive = isBuildMode && visible;
   const dragRef = useRef(null);
   const resizeRef = useRef(null);
+  const rotateRef = useRef(null);
 
-  // Always clean up drag/resize listeners on unmount (hooks must run before any early return)
+  // Always clean up drag/resize/rotate listeners on unmount (hooks must run before any early return)
   useEffect(() => () => cleanupDrag(dragRef), []);
   useEffect(() => () => cleanupDrag(resizeRef), []);
+  useEffect(() => () => cleanupDrag(rotateRef), []);
 
   // Cull off-screen stickers (skip rendering entirely)
   if (!isSelected && (adjustedX < -0.3 || adjustedX > 1.3)) return null;
@@ -202,13 +205,48 @@ const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSe
     window.addEventListener('mouseup', onUp);
   };
 
+  const handleRotateDown = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    cleanupDrag(rotateRef);
+
+    const el = e.currentTarget.closest('[data-sticker-root]');
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const startAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+    const startRotation = rotation;
+
+    const onMove = (me) => {
+      me.preventDefault();
+      const angle = Math.atan2(me.clientY - cy, me.clientX - cx) * (180 / Math.PI);
+      let newRotation = startRotation + (angle - startAngle);
+      // Snap to 0° when within 5° (makes it easy to reset)
+      if (Math.abs(newRotation % 360) < 5 || Math.abs(newRotation % 360) > 355) {
+        newRotation = Math.round(newRotation / 360) * 360;
+      }
+      onUpdateItem(item.id, { rotation: newRotation });
+    };
+
+    const onUp = () => {
+      lastDragEndTime = Date.now();
+      cleanupDrag(rotateRef);
+    };
+
+    rotateRef.current = { onMove, onUp };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
   return (
     <div
+      data-sticker-root
       className={`absolute z-30 select-none ${interactive ? 'cursor-grab' : 'pointer-events-none'}`}
       style={{
         left: `${adjustedX * 100}%`,
         top: `${position.y * 100}%`,
-        transform: 'translate(-50%, -50%)',
+        transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
         willChange: 'transform',
         display: visible ? 'inline-block' : 'none',
         width: 'fit-content',
@@ -257,13 +295,17 @@ const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSe
       )}
       {type === 'sticker' && !item._collected && (
         <div className="relative">
-          {renderStickerContent(item, scale)}
-          {/* Build-mode only decoy indicator — hidden during playback */}
-          {item.isDecoy && isBuildMode && (
-            <div className="absolute -top-1 -right-1 bg-red-500 rounded-full w-4 h-4 flex items-center justify-center pointer-events-none">
-              <span className="text-white text-[10px] font-bold">!</span>
-            </div>
+          {/* Build-mode ring: green = points, red = decoy */}
+          {isBuildMode && (
+            <div
+              className={`absolute -inset-1.5 rounded-full pointer-events-none ${
+                item.isDecoy
+                  ? 'ring-2 ring-red-500 bg-red-500/10'
+                  : 'ring-2 ring-emerald-500 bg-emerald-500/10'
+              }`}
+            />
           )}
+          {renderStickerContent(item, scale)}
         </div>
       )}
 
@@ -288,6 +330,20 @@ const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSe
           className="absolute -bottom-2 -right-2 w-4 h-4 bg-green-500 border-2 border-white rounded-sm cursor-nwse-resize z-40 pointer-events-auto"
           onMouseDown={handleResizeDown}
         />
+      )}
+      {/* Rotate handle — blue circle at top-right */}
+      {isSelected && (
+        <div
+          className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 border-2 border-white rounded-full z-40 pointer-events-auto flex items-center justify-center"
+          style={{ cursor: 'grab' }}
+          onMouseDown={handleRotateDown}
+          title="Rotate"
+        >
+          <svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+            <path d="M13 3 A6 6 0 1 0 14 8" />
+            <path d="M11 1 L13 3 L11 5" />
+          </svg>
+        </div>
       )}
     </div>
   );
