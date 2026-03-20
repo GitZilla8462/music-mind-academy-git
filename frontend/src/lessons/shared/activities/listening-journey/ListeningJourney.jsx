@@ -142,7 +142,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const showIntro = pieceConfig?.showIntro || false;
   const introKey = `listening-journey-intro-seen-${storageKey}`;
   const [showIntroModal, setShowIntroModal] = useState(() => {
-    if (!showIntro || viewMode) return false;
+    if (!showIntro || viewMode || onDirectionsClick) return false;
     return !localStorage.getItem(introKey);
   });
   const dismissIntro = useCallback(() => {
