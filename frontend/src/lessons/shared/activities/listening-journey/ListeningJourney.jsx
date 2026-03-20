@@ -158,6 +158,9 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const [collectedIds, setCollectedIds] = useState(new Set());
   const [birdHurt, setBirdHurt] = useState(false);
   const hurtTimerRef = useRef(null);
+  // Game phase: 'idle' (build mode), 'ready' (start screen), 'playing', 'finished'
+  const [gamePhase, setGamePhase] = useState('idle');
+  const prevIsPlayingRef = useRef(false);
 
   // Teacher save command listener
   const { sessionCode } = useSession();
@@ -189,11 +192,53 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       setBirdY(0.35);
       setBirdX(0.12);
       setGameScore(0);
+      collectedIdsRef.current = new Set();
       setCollectedIds(new Set());
       setBirdHurt(false);
       if (hurtTimerRef.current) clearTimeout(hurtTimerRef.current);
     }
   }, [rewind, gameMode]);
+
+  // Detect game over: isPlaying went from true → false while in 'playing' phase and audio reset to 0
+  useEffect(() => {
+    if (gameMode && gamePhase === 'playing' && prevIsPlayingRef.current && !isPlaying && currentTime === 0) {
+      setGamePhase('finished');
+    }
+    prevIsPlayingRef.current = isPlaying;
+  }, [isPlaying, currentTime, gameMode, gamePhase]);
+
+  // When switching to present/fullscreen in game mode, show start screen
+  const setAppModeWithGame = useCallback((mode) => {
+    if (gameMode && (mode === 'present' || mode === 'fullscreen') && gamePhase === 'idle') {
+      setGamePhase('ready');
+      // Reset game state for fresh start
+      rewind();
+      setBirdY(0.35);
+      setBirdX(0.12);
+      setGameScore(0);
+      setCollectedIds(new Set());
+      setBirdHurt(false);
+      if (hurtTimerRef.current) clearTimeout(hurtTimerRef.current);
+    }
+    if (mode === 'build') {
+      setGamePhase('idle');
+    }
+    setAppMode(mode);
+  }, [gameMode, gamePhase, rewind]);
+
+  const startGame = useCallback(() => {
+    rewind();
+    setBirdY(0.35);
+    setBirdX(0.12);
+    setGameScore(0);
+    collectedIdsRef.current = new Set();
+    setCollectedIds(new Set());
+    setBirdHurt(false);
+    if (hurtTimerRef.current) clearTimeout(hurtTimerRef.current);
+    setGamePhase('playing');
+    // Small delay so rewind settles before play
+    setTimeout(() => togglePlay(), 100);
+  }, [rewind, togglePlay]);
 
   // Active section — always derived from playhead position
   const activeSectionIndex = useMemo(() => {
@@ -420,14 +465,15 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   }, [effectiveSessionCode, isSessionMode, viewMode, sections, handleSave]);
 
   // ── Game mode: collision detection ────────────────────────────────
-  const collectedIdsRef = useRef(collectedIds);
-  collectedIdsRef.current = collectedIds;
+  const collectedIdsRef = useRef(new Set());
   const birdYRef = useRef(birdY);
   birdYRef.current = birdY;
   const birdXRef = useRef(birdX);
   birdXRef.current = birdX;
   const rawMidgroundOffsetRef = useRef(rawMidgroundOffset);
   rawMidgroundOffsetRef.current = rawMidgroundOffset;
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
 
   useEffect(() => {
     if (!gameMode || !isPlaying || !character?.flying) return;
@@ -436,7 +482,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
     const checkCollisions = () => {
       const collected = collectedIdsRef.current;
-      items.forEach(item => {
+      itemsRef.current.forEach(item => {
+        if (item.type !== 'sticker') return;
         if (collected.has(item.id)) return;
 
         const drift = item.placedAtOffset != null
@@ -450,11 +497,11 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < HIT_RADIUS) {
-          setCollectedIds(prev => {
-            const next = new Set(prev);
-            next.add(item.id);
-            return next;
-          });
+          // Update ref immediately to prevent double-scoring between frames
+          const next = new Set(collectedIdsRef.current);
+          next.add(item.id);
+          collectedIdsRef.current = next;
+          setCollectedIds(next);
           if (item.isDecoy) {
             setGameScore(prev => prev - 5);
             // Trigger hurt animation for ~0.5s
@@ -468,9 +515,14 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       });
     };
 
-    const id = setInterval(checkCollisions, 50);
-    return () => clearInterval(id);
-  }, [gameMode, isPlaying, character?.flying, items]);
+    let rafId;
+    const loop = () => {
+      checkCollisions();
+      rafId = requestAnimationFrame(loop);
+    };
+    rafId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(rafId);
+  }, [gameMode, isPlaying, character?.flying]);
 
   const handleReset = useCallback(() => {
     if (presetMode && pieceConfig?.defaultSections) {
@@ -659,8 +711,6 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   selectedItemIdsRef.current = selectedItemIds;
   const clearSelectionRef = useRef(clearSelection);
   clearSelectionRef.current = clearSelection;
-  const itemsRef = useRef(items);
-  itemsRef.current = items;
   const currentTimeRef = useRef(currentTime);
   currentTimeRef.current = currentTime;
   const totalDurationRef = useRef(totalDuration);
@@ -855,7 +905,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             {/* Mode switcher */}
             <div className="flex bg-white/5 rounded-lg p-0.5">
               <button
-                onClick={() => setAppMode('build')}
+                onClick={() => setAppModeWithGame('build')}
                 className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md text-[10px] sm:text-[11px] font-bold transition-colors ${
                   isBuild ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60'
                 }`}
@@ -863,7 +913,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                 <Hammer size={12} /> <span className="hidden sm:inline">Build</span>
               </button>
               <button
-                onClick={() => setAppMode('present')}
+                onClick={() => setAppModeWithGame('present')}
                 className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md text-[10px] sm:text-[11px] font-bold transition-colors ${
                   isPresent ? 'bg-orange-500 text-white' : 'text-white/40 hover:text-white/60'
                 }`}
@@ -871,7 +921,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                 <Presentation size={12} /> <span className="hidden sm:inline">{gameMode ? 'Play Game' : 'Present'}</span>
               </button>
               <button
-                onClick={() => setAppMode('fullscreen')}
+                onClick={() => setAppModeWithGame('fullscreen')}
                 className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md text-[10px] sm:text-[11px] font-bold transition-colors ${
                   isFullscreen ? 'bg-blue-500 text-white' : 'text-white/40 hover:text-white/60'
                 }`}
@@ -947,13 +997,58 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           </button>
           {isFullscreen && (
             <button
-              onClick={() => setAppMode('build')}
+              onClick={() => setAppModeWithGame('build')}
               className="p-2 rounded-lg bg-black/50 hover:bg-black/70 text-white/60 hover:text-white transition-colors"
               title="Exit fullscreen"
             >
               <Minimize size={16} />
             </button>
           )}
+        </div>
+      )}
+
+      {/* Game Start overlay */}
+      {gameMode && (isPresent || isFullscreen) && gamePhase === 'ready' && (
+        <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="text-center">
+            <div className="text-6xl mb-4">🎮</div>
+            <h2 className="text-4xl font-black text-white mb-2">Ready to Play?</h2>
+            <p className="text-lg text-white/70 mb-6">Use arrow keys to dodge decoys and collect stickers!</p>
+            <button
+              onClick={startGame}
+              className="px-10 py-4 bg-emerald-500 hover:bg-emerald-600 text-white text-2xl font-black rounded-2xl shadow-lg transition-colors"
+            >
+              Start Game
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Game Over overlay */}
+      {gameMode && (isPresent || isFullscreen) && gamePhase === 'finished' && (
+        <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="text-center">
+            <div className="text-6xl mb-4">{gameScore >= 0 ? '🏆' : '😅'}</div>
+            <h2 className="text-4xl font-black text-white mb-2">Game Over!</h2>
+            <div className={`text-6xl font-black tabular-nums mb-2 ${gameScore >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              {gameScore}
+            </div>
+            <p className="text-lg text-white/50 mb-6">points</p>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => { setGamePhase('ready'); gameRewind(); }}
+                className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-xl font-bold rounded-xl shadow-lg transition-colors"
+              >
+                Play Again
+              </button>
+              <button
+                onClick={() => setAppModeWithGame('build')}
+                className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white text-xl font-bold rounded-xl shadow-lg transition-colors"
+              >
+                Back to Build
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
