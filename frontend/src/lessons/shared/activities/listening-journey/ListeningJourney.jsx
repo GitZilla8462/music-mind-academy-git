@@ -111,7 +111,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           scene: s.scene || (presetMode ? null : 'forest'),
           ground: s.ground || 'grass',
         })));
-        if (fbData.items) setItems(fbData.items);
+        if (fbData.items) { setItems(fbData.items); userInteractedRef.current = true; }
         if (fbData.character) setCharacter(fbData.character);
         if (fbData.guideData) setGuideData(fbData.guideData);
         if (fbData.essayData) setEssayData(fbData.essayData);
@@ -377,6 +377,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   // Track if teacher save already fired — prevents unmount save from overwriting
   const teacherSaveTriggeredRef = useRef(false);
+  // Track if user actually interacted (placed/moved stickers) — prevents unmount save from overwriting real work with defaults
+  const userInteractedRef = useRef(!!savedData?.items?.length);
 
   // Refs for unmount save (captures latest state without re-creating effect)
   const unmountSectionsRef = useRef(sections);
@@ -399,6 +401,11 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         return;
       }
       if (unmountSectionsRef.current.length === 0) return;
+      // Don't overwrite real work with empty defaults — only save if student has stickers or had local data
+      if (unmountItemsRef.current.length === 0 && !userInteractedRef.current) {
+        console.log('💾 Skipping unmount save — no stickers placed and no prior local data (would overwrite Firebase work)');
+        return;
+      }
 
       console.log('💾 Auto-saving listening journey on unmount...');
       try {
@@ -566,6 +573,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       const duration = totalDuration - currentTime;
 
       const markDecoy = gameMode && decoyMode;
+      userInteractedRef.current = true;
       setItems(prev => [...prev, {
         type: 'sticker',
         icon: selectedSticker.symbol || selectedSticker.id,
@@ -623,6 +631,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           const posX = (ex - rect.left) / rect.width;
           const posY = (ey - rect.top) / rect.height;
           // Place the sticker (same logic as handleViewportClick)
+          userInteractedRef.current = true;
           const startTime = currentTime;
           const duration = totalDuration - currentTime;
           setItems(prev => [...prev, {
