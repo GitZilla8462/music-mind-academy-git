@@ -1,133 +1,67 @@
 // File: /lessons/music-journalist/lesson3/lesson3Config.jsx
-// Lesson 3: Deep Dive
-// "Go deeper — more sources, more evidence, stronger story"
+// Lesson 3: Listen Like a Critic
+// "How do you describe music so other people can hear it through your words?"
+//
+// Standards:
+// - MU:Re7.1.7 — Select and describe musical elements
+// - MU:Re8.1.7 — Interpret expressive intent, citing evidence from the music
+// - MU:Cn11.0.7 — Relationships between music, history, and culture
+// ========================================
 
 export const LESSON_PROGRESS_KEY = 'music-journalist-lesson3-progress';
 export const LESSON_TIMER_KEY = 'music-journalist-lesson3-timer';
 
-// ========================================
-// SECTION-BASED GROUPING FOR TEACHER CONTROL
-// ========================================
 export const lessonSections = [
   {
-    id: 'progress-check',
-    title: '1. Progress Check',
-    subtitle: 'Review & Reconnect',
+    id: 'introduction',
+    title: '1. Introduction',
+    subtitle: 'Hook + Music Description Toolkit',
     color: 'blue',
-    estimatedTime: 5,
+    estimatedTime: 8,
     stages: [
-      {
-        id: 'join-code',
-        type: 'waiting',
-        label: 'Join Code Screen',
-        description: 'Students enter session code to join.',
-        duration: 0
-      },
-      {
-        id: 'progress-check',
-        type: 'summary',
-        label: 'Progress Check',
-        description: 'Review what students have gathered so far and set goals for today.',
-        duration: 5
-      }
+      { id: 'hook', type: 'summary', label: 'Hook', description: 'Play two clips of "rock" that sound totally different.', duration: 3 },
+      { id: 'description-toolkit', type: 'summary', label: 'Description Toolkit', description: 'Teach: tempo, mood, instrumentation, hook, production, influence.', duration: 5 }
     ]
   },
   {
-    id: 'evidence-images',
-    title: '2. Evidence & Images',
-    subtitle: 'Strengthen Your Research',
+    id: 'listening-session',
+    title: '2. Critical Listening',
+    subtitle: 'Listen + Analyze',
     color: 'blue',
     estimatedTime: 15,
     stages: [
-      {
-        id: 'strong-evidence',
-        type: 'summary',
-        label: 'Strong vs. Weak Evidence',
-        description: 'Show examples of weak vs. strong evidence and how to improve quotes and facts.',
-        duration: 5
-      },
-      {
-        id: 'image-library-intro',
-        type: 'summary',
-        label: 'Image Library',
-        description: 'Introduce the image library and how journalists use images to support their stories.',
-        duration: 3
-      },
-      {
-        id: 'read-third-article',
-        type: 'activity',
-        label: 'Read Third Article',
-        description: 'STUDENTS WORK: Read a third article and collect strong evidence.',
-        duration: 7,
-        hasTimer: true,
-        trackProgress: true
-      }
+      { id: 'critical-listening', type: 'activity', label: 'Critical Listening', description: 'STUDENTS: Listen to 2-3 tracks. Fill out Listening Guide for each.', duration: 15, hasTimer: true, trackProgress: true }
     ]
   },
   {
-    id: 'organize',
-    title: '3. Organize',
-    subtitle: 'Research Board',
+    id: 'sound-statement',
+    title: '3. Sound Statement',
+    subtitle: 'Describe + Defend',
     color: 'blue',
-    estimatedTime: 10,
+    estimatedTime: 12,
     stages: [
-      {
-        id: 'organize-research',
-        type: 'activity',
-        label: 'Organize Research Board',
-        description: 'STUDENTS WORK: Organize all evidence on the research board by theme.',
-        duration: 10,
-        hasTimer: true,
-        trackProgress: true
-      }
+      { id: 'sound-statement-share', type: 'discussion', label: 'Sound Statement Share', description: '4-5 students read their Sound Statement aloud.', duration: 5 },
+      { id: 'form-opinion', type: 'activity', label: 'Form Your Opinion', description: 'STUDENTS: "Why should this artist be signed? Give 3 reasons with evidence."', duration: 7, hasTimer: true, trackProgress: true }
     ]
   },
   {
     id: 'game',
-    title: '4. Headline Writer',
-    subtitle: 'Game Time',
+    title: '4. Source or Not?',
+    subtitle: 'Credibility Game',
     color: 'blue',
-    estimatedTime: 10,
+    estimatedTime: 7,
     stages: [
-      {
-        id: 'headline-writer-intro',
-        type: 'summary',
-        label: 'Headline Writer Instructions',
-        description: 'Explain the Headline Writer game: craft compelling headlines from evidence.',
-        duration: 2
-      },
-      {
-        id: 'headline-writer-game',
-        type: 'activity',
-        label: 'Headline Writer Game',
-        description: 'CLASS GAME: Write the best headline for real music stories!',
-        duration: 8,
-        hasTimer: true,
-        trackProgress: true
-      }
+      { id: 'source-or-not-game', type: 'activity', label: 'Source or Not?', description: 'STUDENTS PLAY: Judge source credibility!', duration: 7, hasTimer: true, trackProgress: true }
     ]
   },
   {
-    id: 'reflect',
-    title: '5. Reflect',
-    subtitle: 'Wrap Up',
+    id: 'preview',
+    title: '5. Preview',
+    subtitle: 'Next Steps',
     color: 'blue',
-    estimatedTime: 5,
+    estimatedTime: 3,
     stages: [
-      {
-        id: 'reflection',
-        type: 'discussion',
-        label: 'Reflection',
-        description: 'Discuss what makes evidence strong and how research boards help organize thinking.',
-        duration: 3
-      },
-      {
-        id: 'lesson-complete',
-        type: 'summary',
-        label: 'Lesson Complete',
-        description: 'Celebrate progress and preview Lesson 4.',
-        duration: 2
-      }
+      { id: 'preview-next', type: 'summary', label: 'Preview', description: '"Next class you build the press kit."', duration: 3 }
     ]
   }
 ];
@@ -135,287 +69,140 @@ export const lessonSections = [
 export const lesson3Config = {
   id: 'music-journalist-lesson3',
   lessonPath: '/lessons/music-journalist/lesson3',
-  title: "Deep Dive",
-  subtitle: "More Sources, More Evidence, Stronger Story",
+  title: 'Listen Like a Critic',
+  subtitle: 'How do you describe music so other people can hear it through your words?',
+  duration: 45,
+  themeColor: '#1a2744',
+  accentColor: '#f0b429',
   learningObjectives: [
-    "Distinguish between strong and weak evidence",
-    "Collect evidence from a third source article",
-    "Organize research by theme on a research board",
-    "Write compelling headlines from evidence"
+    'Listen critically and identify musical elements (tempo, mood, instrumentation)',
+    'Write a Sound Statement describing an artist\'s unique sound',
+    'Form an evidence-based opinion about why their artist deserves to be signed',
+    'Evaluate source credibility'
   ],
   lessonSections,
   activities: [
-    {
-      id: 1,
-      type: "article-reader",
-      title: "Read Third Article",
-      estimatedTime: "7 min"
-    },
-    {
-      id: 2,
-      type: "research-board",
-      title: "Organize Research Board",
-      estimatedTime: "10 min"
-    },
-    {
-      id: 3,
-      type: "headline-writer",
-      title: "Headline Writer Game",
-      estimatedTime: "8 min"
-    }
+    { id: 1, type: 'listening-guide', title: 'Critical Listening', estimatedTime: '15 min' },
+    { id: 2, type: 'listening-guide', title: 'Form Your Opinion', estimatedTime: '7 min' },
+    { id: 3, type: 'source-or-not', title: 'Source or Not?', estimatedTime: '7 min' }
   ]
 };
 
-// ========================================
-// LESSON STAGES - With presentationView data for each stage
-// ========================================
 export const lessonStages = [
+  { id: 'join-code', label: 'Join Code', type: 'waiting' },
   {
-    id: 'join-code',
-    label: 'Join Code Screen',
-    description: 'Students enter session code to join.',
-    type: 'waiting'
-  },
-  {
-    id: 'progress-check',
-    label: 'Progress Check',
-    description: 'Review what students have gathered so far and set goals for today.',
-    type: 'summary',
-    duration: 5,
+    id: 'hook', label: 'Hook', type: 'summary', duration: 3,
     presentationView: {
-      type: 'summary',
-      title: 'Progress Check',
-      subtitle: 'Where Are We in Our Investigation?',
+      type: 'summary', title: 'Listen Like a Critic', subtitle: 'Can You Hear the Difference?',
       sections: [
-        {
-          heading: 'So Far You Have...',
-          bullets: [
-            'Chosen a music topic to investigate',
-            'Read TWO articles about your topic',
-            'Collected evidence: quotes, facts, and observations',
-            'Started building your research board'
-          ]
-        },
-        {
-          heading: 'Today\'s Goal',
-          bullets: [
-            'Read a THIRD article for deeper evidence',
-            'Learn to tell STRONG evidence from WEAK evidence',
-            'ORGANIZE your research board by theme',
-            'Play the Headline Writer game'
-          ]
-        }
+        { heading: 'Listen to These Two Clips', bullets: [
+          'Both of these artists are labeled "rock"',
+          'But they sound COMPLETELY different',
+          'How would you explain that difference to someone who hasn\'t heard them?'
+        ]},
+        { heading: 'Today\'s Challenge', bullets: [
+          'Learn the vocabulary to DESCRIBE what you hear',
+          'Listen to YOUR artist\'s music and analyze it',
+          'Write a Sound Statement — one sentence that captures their unique sound'
+        ]}
       ]
     }
   },
   {
-    id: 'strong-evidence',
-    label: 'Strong vs. Weak Evidence',
-    description: 'Show examples of weak vs. strong evidence.',
-    type: 'summary',
-    duration: 5,
+    id: 'description-toolkit', label: 'Description Toolkit', type: 'summary', duration: 5,
     presentationView: {
-      type: 'summary',
-      title: 'Strong vs. Weak Evidence',
-      subtitle: 'Not All Evidence Is Created Equal',
+      type: 'summary', title: 'The Music Description Toolkit', subtitle: '6 Ways to Describe What You Hear',
       sections: [
-        {
-          heading: 'Weak Evidence',
-          bullets: [
-            '"The song is popular." (Too vague - HOW popular?)',
-            '"People like it." (Who? How many?)',
-            '"It sounds good." (That\'s an opinion, not evidence)'
-          ]
-        },
-        {
-          heading: 'Strong Evidence',
-          bullets: [
-            '"The song reached #1 on Billboard Hot 100 in its first week." (Specific fact)',
-            '"Producer Pharrell Williams said: \'I wanted every beat to feel like sunshine.\'" (Direct quote)',
-            '"The album sold 2 million copies in 3 days." (Measurable data)'
-          ]
-        },
-        {
-          heading: 'How to Strengthen Your Evidence',
-          bullets: [
-            'Add NUMBERS and DATES when possible',
-            'Use DIRECT QUOTES from artists or experts',
-            'Include WHO, WHAT, WHEN, WHERE details'
-          ]
-        }
+        { heading: 'The Toolkit', bullets: [
+          'TEMPO — How fast is the music? (Slow, Moderate, Fast, Changes)',
+          'MOOD — What feeling does it create? (Energetic, Chill, Mysterious, Powerful...)',
+          'INSTRUMENTATION — What instruments or sounds do you hear?',
+          'HOOK — What\'s the catchy part that grabs your attention?',
+          'PRODUCTION — How is the overall sound shaped? (Raw, Polished, Lo-fi, Layered)',
+          'INFLUENCE — Who do they remind you of? What genre traditions do they draw from?'
+        ]},
+        { heading: 'Your Listening Guide', bullets: [
+          'For each track you listen to, fill in ALL 6 categories',
+          'Then write a SOUND STATEMENT — one sentence describing their unique sound',
+          'Example: "Enji blends Mongolian folk with jazz, featuring haunting vocals in three languages"'
+        ]}
       ]
     }
   },
   {
-    id: 'image-library-intro',
-    label: 'Image Library',
-    description: 'Introduce the image library and how journalists use images.',
-    type: 'summary',
-    duration: 3,
+    id: 'critical-listening', label: 'Critical Listening', type: 'activity', duration: 15, hasTimer: true, trackProgress: true,
+    presentationView: { type: 'activity-banner', title: 'Critical Listening Session', subtitle: 'Listen to 2-3 tracks. Fill out the Listening Guide. Write your Sound Statement.' }
+  },
+  {
+    id: 'sound-statement-share', label: 'Sound Statement Share', type: 'discussion', duration: 5,
     presentationView: {
-      type: 'summary',
-      title: 'Images Tell Stories Too',
-      subtitle: 'How Journalists Use Visuals',
+      type: 'summary', title: 'Sound Statement Share', subtitle: 'Can We Hear the Music Through Your Words?',
       sections: [
-        {
-          heading: 'Why Images Matter',
-          bullets: [
-            'A great image grabs the reader\'s attention FIRST',
-            'Images provide CONTEXT that words alone cannot',
-            'Professional journalists always pair text with visuals'
-          ]
-        },
-        {
-          heading: 'Choosing the Right Image',
-          bullets: [
-            'Does it connect to your MAIN IDEA?',
-            'Does it make the reader want to READ MORE?',
-            'Could you write a caption explaining WHY this image matters?'
-          ]
-        }
+        { heading: 'Share Out', bullets: [
+          '4-5 agents will read their Sound Statement aloud',
+          'Class: "Could you hear the music through their words?"',
+          'What made certain descriptions more vivid than others?'
+        ]}
       ]
     }
   },
   {
-    id: 'read-third-article',
-    label: 'Read Third Article',
-    description: 'STUDENTS WORK: Read a third article and collect strong evidence.',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 7,
-    presentationView: {
-      type: 'activity-banner',
-      title: 'Read Your Third Article',
-      subtitle: 'Find strong evidence: quotes, facts, and specific details.'
-    }
+    id: 'form-opinion', label: 'Form Your Opinion', type: 'activity', duration: 7, hasTimer: true, trackProgress: true,
+    presentationView: { type: 'activity-banner', title: 'Form Your Opinion', subtitle: '"Why should this artist be signed?" Give 3 reasons with evidence.' }
   },
   {
-    id: 'organize-research',
-    label: 'Organize Research Board',
-    description: 'STUDENTS WORK: Organize all evidence on the research board by theme.',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 10,
-    presentationView: {
-      type: 'activity-banner',
-      title: 'Organize Your Research Board',
-      subtitle: 'Group your evidence by theme. Look for patterns and connections.'
-    }
+    id: 'source-or-not-game', label: 'Source or Not?', type: 'activity', duration: 7, hasTimer: true, trackProgress: true, hasProgress: true,
+    presentationView: { type: 'source-or-not-teacher-game' }
   },
   {
-    id: 'headline-writer-intro',
-    label: 'Headline Writer Instructions',
-    description: 'Explain the Headline Writer game.',
-    type: 'summary',
-    duration: 2,
+    id: 'preview-next', label: 'Preview', type: 'summary', duration: 3,
     presentationView: {
-      type: 'summary',
-      title: 'Headline Writer',
-      subtitle: 'Can You Write the Perfect Headline?',
+      type: 'summary', title: 'Next Class: Build the Press Kit', subtitle: 'Bring Your Research + Sound Statement',
       sections: [
-        {
-          heading: 'How to Play',
-          bullets: [
-            '1. Read a short music news summary',
-            '2. Write the most compelling HEADLINE you can',
-            '3. A great headline is SHORT, SPECIFIC, and makes you want to read more',
-            '4. Vote on the best headlines from the class!'
-          ]
-        },
-        {
-          heading: 'Headline Tips',
-          bullets: [
-            'Use ACTIVE verbs (\"breaks\" not \"has broken\")',
-            'Include a HOOK that creates curiosity',
-            'Keep it under 10 words if possible',
-            'Make the reader ask \"Wait, what?!\"'
-          ]
-        }
+        { heading: 'What You Need for Lesson 4', bullets: [
+          'Your Research Board with 5+ strong facts',
+          'Your Sound Statement from today',
+          'Your 3 reasons for signing your artist',
+          'Next class: turn all of this into a 5-slide PRESS KIT'
+        ]}
       ]
     }
   },
   {
-    id: 'headline-writer-game',
-    label: 'Headline Writer Game',
-    description: 'CLASS GAME: Write the best headline for real music stories!',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 8,
+    id: 'lesson-complete', label: 'Lesson Complete', type: 'summary', duration: 1,
     presentationView: {
-      type: 'headline-writer-teacher-game'
-    }
-  },
-  {
-    id: 'reflection',
-    label: 'Reflection',
-    description: 'Discuss what makes evidence strong and how research boards help organize thinking.',
-    type: 'discussion',
-    duration: 3,
-    presentationView: {
-      type: 'summary',
-      title: 'Reflection',
-      subtitle: 'Think About Your Research',
+      type: 'summary', title: 'Lesson 3 Complete!', subtitle: 'You\'re Listening Like a Critic',
       sections: [
-        {
-          heading: 'Discussion Questions',
-          bullets: [
-            '1. What is the STRONGEST piece of evidence you found today?',
-            '2. How did organizing your research board help you see your story more clearly?',
-            '3. What headline would YOU write for your own story?'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'lesson-complete',
-    label: 'Lesson Complete',
-    description: 'Celebrate progress and preview Lesson 4.',
-    type: 'summary',
-    duration: 2,
-    presentationView: {
-      type: 'summary',
-      title: 'Deep Dive Complete!',
-      subtitle: 'You\'re Building a Real Story',
-      sections: [
-        {
-          heading: 'Today You...',
-          bullets: [
-            'Learned to identify STRONG vs. WEAK evidence',
-            'Read a THIRD article and collected key details',
-            'ORGANIZED your research board by theme',
-            'Practiced writing attention-grabbing HEADLINES'
-          ]
-        },
-        {
-          heading: 'Next Time: Build Your Story',
-          bullets: [
-            'Turn your research into a 4-slide presentation',
-            'Learn storytelling techniques real journalists use',
-            'Build something you\'re proud to share!'
-          ]
-        }
+        { heading: 'What You Did Today', bullets: [
+          'Learned 6 ways to describe music (tempo, mood, instrumentation, hook, production, influence)',
+          'Listened critically to your artist\'s tracks',
+          'Wrote a Sound Statement capturing their unique sound',
+          'Formed an evidence-based opinion on why they should be signed'
+        ]}
       ]
     }
   }
 ];
 
-// Helper function to map session stage to activity type
-export const getActivityForStage = (stage) => {
-  const stageMap = {
-    'join-code': 'waiting',
-    'progress-check': 'summary',
-    'strong-evidence': 'summary',
-    'image-library-intro': 'summary',
-    'read-third-article': 'article-reader',
-    'organize-research': 'research-board',
-    'headline-writer-intro': 'summary',
-    'headline-writer-game': 'headline-writer',
-    'reflection': 'discussion',
-    'lesson-complete': 'summary'
-  };
-  return stageMap[stage];
-};
+export const getActivityForStage = (stage) => ({
+  'join-code': 'waiting',
+  'hook': 'summary',
+  'description-toolkit': 'summary',
+  'critical-listening': 'listening-guide',
+  'sound-statement-share': 'discussion',
+  'form-opinion': 'listening-guide',
+  'source-or-not-game': 'source-or-not',
+  'preview-next': 'summary',
+  'lesson-complete': 'summary'
+})[stage];
+
+export const VOCABULARY = [
+  { term: 'Tempo', definition: 'The speed of the music — slow, moderate, fast, or changing' },
+  { term: 'Mood', definition: 'The emotional feeling the music creates — energetic, melancholy, peaceful, intense' },
+  { term: 'Instrumentation', definition: 'The specific instruments and sounds used in a song' },
+  { term: 'Hook', definition: 'The catchy part of a song that grabs your attention and sticks in your head' },
+  { term: 'Production', definition: 'How a song is recorded, mixed, and arranged — the overall sound quality and style' },
+  { term: 'Influence', definition: 'Other artists, genres, or traditions that shaped an artist\'s sound' },
+  { term: 'Sound Statement', definition: 'A one-sentence description capturing an artist\'s unique sound and what makes them different' },
+  { term: 'EP', definition: 'Extended Play — a release with 4-6 songs, between a single and a full album' }
+];

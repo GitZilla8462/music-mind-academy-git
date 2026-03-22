@@ -4,6 +4,11 @@ const ImageCache = require('../models/ImageCache');
 const WIKI_API = 'https://en.wikipedia.org/w/api.php';
 const COMMONS_API = 'https://commons.wikimedia.org/w/api.php';
 
+// Wikipedia requires a User-Agent header
+const HEADERS = {
+  'User-Agent': 'MusicMindAcademy/1.0 (rob@musicmindacademy.com) Node.js'
+};
+
 /**
  * Get the main Wikipedia page image for a topic
  */
@@ -15,9 +20,9 @@ const getWikipediaImage = async (topic) => {
         titles: topic,
         prop: 'pageimages',
         format: 'json',
-        pithumbsize: 800,
-        origin: '*'
+        pithumbsize: 800
       },
+      headers: HEADERS,
       timeout: 8000
     });
 
@@ -27,9 +32,13 @@ const getWikipediaImage = async (topic) => {
     const page = Object.values(pages)[0];
     if (!page?.thumbnail?.source) return null;
 
+    // Skip non-image files
+    const imgUrl = page.thumbnail.source;
+    if (/\.(djvu|svg|pdf|ogg|ogv|webm)/i.test(imgUrl)) return null;
+
     return {
-      url: page.thumbnail.source,
-      thumbnail_url: page.thumbnail.source,
+      url: imgUrl,
+      thumbnail_url: imgUrl,
       title: page.title,
       attribution: `Image from Wikipedia: ${page.title}`,
       license: 'CC BY-SA'
@@ -48,30 +57,28 @@ const searchImages = async (query, limit = 12) => {
   try {
     const cached = await ImageCache.findOne({ query: query.toLowerCase() });
     if (cached) {
-      console.log(`📸 Image cache hit for "${query}"`);
+      console.log(`Image cache hit for "${query}"`);
       return cached.results;
     }
   } catch (e) { /* ignore cache errors */ }
 
   try {
-    // Search Commons
     const { data: searchData } = await axios.get(COMMONS_API, {
       params: {
         action: 'query',
         list: 'search',
         srsearch: query,
-        srnamespace: 6, // File namespace
+        srnamespace: 6,
         format: 'json',
-        srlimit: limit,
-        origin: '*'
+        srlimit: limit
       },
+      headers: HEADERS,
       timeout: 10000
     });
 
     const searchResults = searchData?.query?.search || [];
     if (searchResults.length === 0) return [];
 
-    // Get image info for each result
     const results = [];
     for (const result of searchResults.slice(0, limit)) {
       try {
@@ -81,9 +88,9 @@ const searchImages = async (query, limit = 12) => {
             titles: result.title,
             prop: 'imageinfo',
             iiprop: 'url|extmetadata|mime',
-            format: 'json',
-            origin: '*'
+            format: 'json'
           },
+          headers: HEADERS,
           timeout: 5000
         });
 
@@ -94,16 +101,16 @@ const searchImages = async (query, limit = 12) => {
         const imageInfo = page?.imageinfo?.[0];
         if (!imageInfo?.url) continue;
 
-        // Skip non-image files
         const mime = imageInfo.mime || '';
         if (!mime.startsWith('image/')) continue;
+        // Skip non-photo formats
+        if (/\.(djvu|svg|pdf)/i.test(imageInfo.url)) continue;
 
         const meta = imageInfo.extmetadata || {};
         const artist = meta.Artist?.value?.replace(/<[^>]*>/g, '') || 'Unknown';
         const license = meta.LicenseShortName?.value || 'Unknown license';
         const description = meta.ImageDescription?.value?.replace(/<[^>]*>/g, '') || result.title;
 
-        // Build thumbnail URL (Wikimedia thumb pattern)
         const thumbUrl = imageInfo.url.replace('/commons/', '/commons/thumb/') + '/400px-' + result.title.replace('File:', '');
 
         results.push({
@@ -114,7 +121,6 @@ const searchImages = async (query, limit = 12) => {
           license
         });
       } catch (e) {
-        // Skip failed image info fetches
         continue;
       }
     }

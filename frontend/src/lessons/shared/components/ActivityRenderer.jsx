@@ -125,9 +125,48 @@ import { PresentationMode } from '../activities/presentation-mode';
 // ✅ ADDED: Peer Feedback (Music Journalist Lesson 5)
 import { PeerFeedback } from '../activities/peer-feedback';
 
+// ✅ ADDED: Article Reader / News Feed (Music Journalist Unit 3)
+import { ArticleReader, NewsHub } from '../activities/news-feed';
+
+// ✅ ADDED: Artist Discovery (Music Agent Unit 3)
+import { ArtistDiscovery } from '../activities/artist-discovery';
+
+// ✅ ADDED: Genre Match Game (Music Agent Unit 3 — Lesson 1)
+import { GenreMatchStudentView } from '../activities/genre-match';
+
+// ✅ ADDED: Listening Guide + Sound Statement (Music Agent Unit 3 — Lesson 3)
+import { ListeningGuideActivity } from '../activities/listening-guide';
+
 // ✅ ADDED: Capstone activities (Listening Lab Lesson 4)
 import CapstonePieceSelection from '../activities/capstone/CapstonePieceSelection';
 import CapstonePlanning from '../activities/capstone/CapstonePlanning';
+
+// Wrapper: shows NewsHub feed, click article → ArticleReader, back button returns to feed
+// Dark background wrapper ensures white text is visible when embedded in any parent
+const ArticleReaderActivity = ({ activity, onComplete }) => {
+  const [selectedArticle, setSelectedArticle] = React.useState(null);
+
+  if (selectedArticle) {
+    return (
+      <div className="h-screen bg-[#0f1419] overflow-y-auto">
+        <ArticleReader
+          article={selectedArticle}
+          onBack={() => setSelectedArticle(null)}
+          embedded={true}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen bg-[#0f1419] overflow-y-auto">
+      <NewsHub
+        onArticleClick={(article) => setSelectedArticle(article)}
+        embedded={true}
+      />
+    </div>
+  );
+};
 
 const ActivityRenderer = ({
   activity,
@@ -919,8 +958,68 @@ const ActivityRenderer = ({
         />
       );
 
+    // ✅ ADDED: Article Reader (Music Journalist Unit 3)
+    // Students browse the news feed and read/highlight/annotate articles
+    case 'article-reader':
+      return (
+        <ArticleReaderActivity
+          key={`article-reader-${activity.id}`}
+          activity={activity}
+          onComplete={onComplete}
+        />
+      );
+
+    // ✅ ADDED: Artist Discovery (Music Agent Unit 3)
+    // Students browse and research emerging artists by genre
+    case 'artist-discovery':
+      return (
+        <div className="h-screen bg-[#0f1419] overflow-y-auto">
+          <ArtistDiscovery
+            key={`artist-discovery-${activity.id}`}
+            onComplete={onComplete}
+            isSessionMode={isSessionMode}
+          />
+        </div>
+      );
+
+    // ✅ ADDED: Genre Match Game (Music Agent Unit 3 — Lesson 1)
+    case 'genre-match':
+      return (
+        <div className="h-screen bg-[#0f1419] overflow-y-auto">
+          <GenreMatchStudentView
+            key={`genre-match-${activity.id}`}
+            onComplete={onComplete}
+            isSessionMode={isSessionMode}
+          />
+        </div>
+      );
+
+    // ✅ ADDED: Listening Guide + Sound Statement (Music Agent Unit 3 — Lesson 3)
+    case 'listening-guide':
+      return (
+        <div className="h-screen bg-[#0f1419] overflow-y-auto">
+          <ListeningGuideActivity
+            key={`listening-guide-${activity.id}`}
+            onComplete={onComplete}
+            isSessionMode={isSessionMode}
+          />
+        </div>
+      );
+
+    // ✅ ADDED: Artist Vote (Music Agent Unit 3 — Lesson 5)
+    case 'artist-vote':
+      return (
+        <div className="h-screen bg-[#0f1419] flex items-center justify-center">
+          <div className="text-center p-8">
+            <p className="text-4xl mb-4">🗳️</p>
+            <h2 className="text-2xl font-bold text-white mb-2">Vote Now</h2>
+            <p className="text-white/50 text-sm">Voting opens on the main screen</p>
+          </div>
+        </div>
+      );
+
     // ✅ ADDED: Slide Builder capstone (Music Journalist Unit 3)
-    // Students build a 4-slide presentation using research from their Research Board
+    // Students build a 5-slide press kit using research from their Research Board
     case 'mj-slide-builder':
       return (
         <SlideBuilder

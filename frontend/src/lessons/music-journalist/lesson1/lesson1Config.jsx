@@ -1,15 +1,20 @@
 // File: /lessons/music-journalist/lesson1/lesson1Config.jsx
-// Lesson 1: Read Like a Journalist
-// "How journalists find, read, and analyze music stories"
+// Lesson 1: Welcome to the Agency
+// "What does it take to discover the next big artist?"
 //
 // ========================================
 // CURRICULUM NOTES
 // ========================================
 // Students learn:
-// - What music journalism is and why it matters
-// - Three types of music writing: news, review, feature
-// - How to annotate articles using color-coded highlights
-// - The difference between fact and opinion in music writing
+// - What music agents and A&R reps do
+// - How to explore genres and identify characteristics
+// - How to navigate the Artist Discovery platform
+// - Music vocabulary: genre, subgenre, A&R, emerging artist, press kit, pitch
+//
+// Standards:
+// - MU:Re7.2.7 — Classify and compare music using musical vocabulary
+// - MU:Cn10.0.7 — Personal interests influence musical selection
+// - CCSS.ELA-LITERACY.SL.7.4 — Present claims with relevant evidence
 //
 // Color theme: deep navy (#1a2744) with gold accent (#f0b429)
 // ========================================
@@ -23,97 +28,106 @@ export const LESSON_TIMER_KEY = 'music-journalist-lesson1-timer';
 export const lessonSections = [
   {
     id: 'introduction',
-    title: '1. Introduction',
-    subtitle: 'Hook + What Is Music Journalism',
+    title: '1. Welcome to the Agency',
+    subtitle: 'Hook + What Does an Agent Do?',
     color: 'blue',
-    estimatedTime: 10,
+    estimatedTime: 11,
     stages: [
       {
         id: 'welcome-hook',
         type: 'summary',
         label: 'Welcome Hook',
-        description: 'What makes a story worth telling?',
-        duration: 2
-      },
-      {
-        id: 'what-is-journalism',
-        type: 'summary',
-        label: 'What Is Music Journalism?',
-        description: 'Introduce three types of music writing: news, review, feature.',
+        description: '"You\'ve been hired at a music agency. Find the next big artist."',
         duration: 3
       },
       {
-        id: 'news-feed-intro',
+        id: 'what-is-an-agent',
         type: 'summary',
-        label: 'MMA News Feed',
-        description: 'Introduce the MMA News Feed where students will find articles.',
-        duration: 2
+        label: 'What Does an Agent Do?',
+        description: 'Teach: A&R, music agent, press kit, pitch.',
+        duration: 3
+      },
+      {
+        id: 'genre-exploration',
+        type: 'summary',
+        label: 'Genre Exploration',
+        description: 'Quick overview of genres with audio examples.',
+        duration: 5
       }
     ]
   },
   {
-    id: 'guided-reading',
-    title: '2. Guided Reading',
-    subtitle: 'Read & Annotate Together',
+    id: 'explore-platform',
+    title: '2. Explore the Platform',
+    subtitle: 'Browse Artists by Genre',
     color: 'blue',
     estimatedTime: 10,
     stages: [
       {
-        id: 'read-featured-article',
+        id: 'explore-artists',
         type: 'activity',
-        label: 'Read Featured Article',
-        description: 'Class reads a featured music article together.',
-        duration: 6,
-        hasTimer: false,
-        trackProgress: true
-      },
-      {
-        id: 'annotation-practice',
-        type: 'summary',
-        label: 'Annotation Practice',
-        description: 'How to annotate: color-coded highlighting system.',
-        duration: 4
-      }
-    ]
-  },
-  {
-    id: 'fact-vs-opinion',
-    title: '3. Fact vs Opinion',
-    subtitle: 'Concept + Game',
-    color: 'blue',
-    estimatedTime: 10,
-    stages: [
-      {
-        id: 'fact-vs-opinion',
-        type: 'summary',
-        label: 'Fact vs Opinion',
-        description: 'Teach the difference between fact and opinion with music examples.',
-        duration: 4
-      },
-      {
-        id: 'fact-opinion-game',
-        type: 'activity',
-        label: 'Fact or Opinion Sorter',
-        description: 'STUDENTS PLAY: Sort music statements into fact or opinion!',
-        duration: 6,
+        label: 'Explore Artists',
+        description: 'STUDENTS BROWSE: Listen to previews across genres. Star artists.',
+        duration: 10,
         hasTimer: true,
         trackProgress: true
       }
     ]
   },
   {
-    id: 'reflect',
-    title: '4. Reflect',
-    subtitle: 'Portfolio Prompt',
+    id: 'genre-game',
+    title: '3. Genre Match Game',
+    subtitle: 'Identify Genres by Listening',
     color: 'blue',
-    estimatedTime: 5,
+    estimatedTime: 8,
     stages: [
       {
-        id: 'reflection',
-        type: 'discussion',
-        label: 'Portfolio Reflection',
-        description: 'Students reflect on what they learned about reading music journalism.',
+        id: 'genre-match-game',
+        type: 'activity',
+        label: 'Genre Match',
+        description: 'STUDENTS PLAY: Hear a clip, identify the genre!',
+        duration: 8,
+        hasTimer: true,
+        trackProgress: true
+      }
+    ]
+  },
+  {
+    id: 'the-assignment',
+    title: '4. The Assignment',
+    subtitle: 'Unit Overview + Vocab',
+    color: 'blue',
+    estimatedTime: 8,
+    stages: [
+      {
+        id: 'unit-overview',
+        type: 'summary',
+        label: 'The Assignment',
+        description: 'Explain the 5-lesson arc: discover → research → listen → build → pitch.',
         duration: 5
+      },
+      {
+        id: 'vocab-check',
+        type: 'summary',
+        label: 'Vocab Check',
+        description: 'Review key vocabulary: A&R, genre, emerging artist, press kit, pitch.',
+        duration: 3
+      }
+    ]
+  },
+  {
+    id: 'reflect',
+    title: '5. Preview',
+    subtitle: 'Discussion + Next Steps',
+    color: 'blue',
+    estimatedTime: 3,
+    stages: [
+      {
+        id: 'lesson-preview',
+        type: 'discussion',
+        label: 'Preview',
+        description: '"Which genre interests you most? Who might be your artist?"',
+        duration: 3
       }
     ]
   }
@@ -122,30 +136,30 @@ export const lessonSections = [
 export const lesson1Config = {
   id: 'music-journalist-lesson1',
   lessonPath: '/lessons/music-journalist/lesson1',
-  title: 'Read Like a Journalist',
-  subtitle: 'How journalists find, read, and analyze music stories',
+  title: 'Welcome to the Agency',
+  subtitle: 'What does it take to discover the next big artist?',
   duration: 45,
   themeColor: '#1a2744',
   accentColor: '#f0b429',
   learningObjectives: [
-    'Define music journalism and identify three types of music writing',
-    'Read and annotate a music article using color-coded highlights',
-    'Distinguish between fact and opinion in music writing',
-    'Reflect on why music journalism matters to artists and fans'
+    'Understand what music agents and A&R reps do in the music industry',
+    'Explore and identify characteristics of different musical genres',
+    'Navigate the Artist Discovery platform and preview emerging artists',
+    'Use music vocabulary to describe and classify what you hear'
   ],
   lessonSections,
   activities: [
     {
       id: 1,
-      type: 'article-reader',
-      title: 'Read Featured Article',
-      estimatedTime: '6 min'
+      type: 'artist-discovery',
+      title: 'Explore Artists',
+      estimatedTime: '10 min'
     },
     {
       id: 2,
-      type: 'fact-opinion-sorter',
-      title: 'Fact or Opinion Sorter',
-      estimatedTime: '6 min'
+      type: 'genre-match',
+      title: 'Genre Match Game',
+      estimatedTime: '8 min'
     }
   ]
 };
@@ -163,226 +177,222 @@ export const lessonStages = [
   {
     id: 'welcome-hook',
     label: 'Welcome Hook',
-    description: 'What makes a story worth telling?',
-    type: 'summary',
-    duration: 2,
-    presentationView: {
-      type: 'summary',
-      title: 'Read Like a Journalist',
-      subtitle: 'What makes a story worth telling?',
-      sections: [
-        {
-          heading: 'Think About This',
-          bullets: [
-            'Your favorite artist just dropped a surprise album at midnight',
-            'A local teen wins a national songwriting contest',
-            'A concert venue bans phones from all shows',
-            'Which of these would YOU want to read about? Why?'
-          ]
-        },
-        {
-          heading: 'Today You Will',
-          bullets: [
-            'Learn what MUSIC JOURNALISM is and why it matters',
-            'Read and ANNOTATE a real music article',
-            'Tell the difference between FACT and OPINION',
-            'Start building your JOURNALIST PORTFOLIO'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'what-is-journalism',
-    label: 'What Is Music Journalism?',
-    description: 'Introduce three types of music writing: news, review, feature.',
+    description: '"You\'ve been hired at a music agency."',
     type: 'summary',
     duration: 3,
     presentationView: {
       type: 'summary',
-      title: 'What Is Music Journalism?',
-      subtitle: 'Three Types of Music Writing',
+      title: 'Welcome to the Agency',
+      subtitle: 'You\'ve Just Been Hired',
       sections: [
         {
-          heading: 'NEWS Article',
+          heading: 'Your Mission',
           bullets: [
-            'Reports WHAT HAPPENED — factual, timely, objective',
-            'Example: "Billie Eilish announces 2026 world tour with 47 dates across North America"',
-            'Answers: Who? What? When? Where? Why?'
+            'You are a MUSIC AGENT at a record label',
+            'Your job: find the NEXT BIG ARTIST before anyone else',
+            'Scout talent, research their story, build their press kit, and PITCH them'
           ]
         },
         {
-          heading: 'REVIEW',
+          heading: 'Artists Who Were "Discovered"',
           bullets: [
-            'Shares a critic\'s OPINION about music — argues a point of view',
-            'Example: "Kendrick Lamar\'s new album is a masterpiece of storytelling and production"',
-            'Includes evidence and reasoning to support the opinion'
-          ]
-        },
-        {
-          heading: 'FEATURE Story',
-          bullets: [
-            'A deep dive into a person, trend, or topic — tells a STORY',
-            'Example: "How a 14-year-old bedroom producer became the most streamed artist on SoundCloud"',
-            'Uses interviews, quotes, and narrative to engage readers'
+            'BILLIE EILISH — uploaded songs to SoundCloud from her bedroom at age 13',
+            'CHANCE THE RAPPER — gave away free mixtapes and never signed to a label',
+            'BTS — started at a tiny label with no radio play, built a global fanbase online',
+            'These artists were found by agents who believed in them before they were famous'
           ]
         }
       ]
     }
   },
   {
-    id: 'news-feed-intro',
-    label: 'MMA News Feed',
-    description: 'Introduce the MMA News Feed where students will find articles.',
+    id: 'what-is-an-agent',
+    label: 'What Does an Agent Do?',
+    description: 'Teach: A&R, music agent, press kit, pitch.',
     type: 'summary',
-    duration: 2,
+    duration: 3,
     presentationView: {
       type: 'summary',
-      title: 'The MMA News Feed',
-      subtitle: 'Your Source for Music Stories',
+      title: 'What Does a Music Agent Do?',
+      subtitle: 'The People Behind the Artists',
       sections: [
         {
-          heading: 'What Is the MMA News Feed?',
+          heading: 'Key Roles',
           bullets: [
-            'A curated collection of music articles written for YOU',
-            'New articles appear throughout the unit',
-            'Each article is labeled: NEWS, REVIEW, or FEATURE'
+            'A&R (Artists & Repertoire) — the person at a label who DISCOVERS new talent',
+            'MUSIC AGENT — represents and PROMOTES an artist\'s career',
+            'They listen to hundreds of artists to find the few with real potential'
           ]
         },
         {
-          heading: 'How You Will Use It',
+          heading: 'The Agent\'s Toolkit',
           bullets: [
-            'Read articles and ANNOTATE them with highlights',
-            'Save articles to your PORTFOLIO for writing assignments',
-            'Use articles as MODELS for your own music journalism'
+            'PRESS KIT — a package with the artist\'s bio, photos, music samples, and achievements',
+            'PITCH — a short, persuasive presentation to convince a label to sign the artist',
+            'By the end of this unit, YOU will build a press kit and deliver a pitch'
           ]
         }
       ]
     }
   },
   {
-    id: 'read-featured-article',
-    label: 'Read Featured Article',
-    description: 'Class reads a featured music article together.',
+    id: 'genre-exploration',
+    label: 'Genre Exploration',
+    description: 'Quick overview of genres with audio examples.',
+    type: 'summary',
+    duration: 5,
+    presentationView: {
+      type: 'summary',
+      title: 'Know Your Genres',
+      subtitle: 'A Great Agent Knows Every Corner of Music',
+      sections: [
+        {
+          heading: '10 Genres to Explore',
+          bullets: [
+            'HIP-HOP — beats, rhymes, storytelling, sampling',
+            'POP — catchy hooks, broad appeal, production-focused',
+            'ROCK — guitars, drums, energy, rebellion',
+            'R&B / SOUL — vocals, groove, emotion, Motown roots',
+            'ELECTRONIC — synthesizers, beats, no traditional instruments required'
+          ]
+        },
+        {
+          heading: '',
+          bullets: [
+            'JAZZ — improvisation, complex harmony, swing feel',
+            'LATIN — reggaeton, salsa, cumbia, global rhythms',
+            'FOLK / COUNTRY — acoustic, storytelling, roots traditions',
+            'WORLD — music from every culture, cross-cultural fusion',
+            'INDIE / ALTERNATIVE — experimental, outside the mainstream'
+          ]
+        },
+        {
+          heading: 'Your Challenge',
+          bullets: [
+            'Explore at least 3 genres you DON\'T usually listen to',
+            'A great agent discovers talent in EVERY genre, not just their favorite'
+          ]
+        }
+      ]
+    }
+  },
+  {
+    id: 'explore-artists',
+    label: 'Explore Artists',
+    description: 'STUDENTS BROWSE: Listen to previews across genres. Star artists.',
     type: 'activity',
-    duration: 6,
-    hasTimer: false,
+    duration: 10,
+    hasTimer: true,
     trackProgress: true,
     presentationView: {
       type: 'activity-banner',
-      title: 'Read Featured Article',
-      subtitle: 'Open on your Chromebook and read along with the class.'
+      title: 'Explore the Artist Library',
+      subtitle: 'Browse by genre. Listen to tracks. Star artists you like.'
     }
   },
   {
-    id: 'annotation-practice',
-    label: 'Annotation Practice',
-    description: 'How to annotate: color-coded highlighting system.',
-    type: 'summary',
-    duration: 4,
-    presentationView: {
-      type: 'summary',
-      title: 'How to Annotate Like a Journalist',
-      subtitle: 'Use Colors to Mark What You Find',
-      sections: [
-        {
-          heading: 'Color-Coded Highlighting',
-          bullets: [
-            'YELLOW = FACT — something that can be proven true',
-            'BLUE = VOCABULARY — a word or term you want to remember',
-            'GREEN = OPINION — someone\'s personal view or judgment',
-            'STAR = SAVE — a quote or detail you want to use later'
-          ]
-        },
-        {
-          heading: 'Why Annotate?',
-          bullets: [
-            'Journalists mark up articles to find KEY INFORMATION quickly',
-            'Annotations help you REMEMBER what you read',
-            'You will use your annotations when you WRITE your own articles',
-            'Practice now — you will annotate every article in this unit'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'fact-vs-opinion',
-    label: 'Fact vs Opinion',
-    description: 'Teach the difference between fact and opinion with music examples.',
-    type: 'summary',
-    duration: 4,
-    presentationView: {
-      type: 'summary',
-      title: 'Fact vs Opinion',
-      subtitle: 'Can You Tell the Difference?',
-      sections: [
-        {
-          heading: 'What Is a FACT?',
-          bullets: [
-            'A statement that can be PROVEN true or false',
-            '"Beyonce has won 32 Grammy Awards" — checkable, provable',
-            '"The Beatles released their first album in 1963" — documented, verifiable',
-            '"Drake\'s album Views debuted at #1 on the Billboard 200" — recorded data'
-          ]
-        },
-        {
-          heading: 'What Is an OPINION?',
-          bullets: [
-            'A statement that reflects someone\'s PERSONAL VIEW or judgment',
-            '"Beyonce is the greatest performer of all time" — debatable, subjective',
-            '"The Beatles changed music forever" — arguable, not provable',
-            '"Drake\'s Views is his best album" — a matter of taste'
-          ]
-        },
-        {
-          heading: 'Why Does It Matter?',
-          bullets: [
-            'NEWS articles should be mostly FACTS',
-            'REVIEWS are built on OPINIONS supported by evidence',
-            'Good journalists know the difference and use both on purpose'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'fact-opinion-game',
-    label: 'Fact or Opinion Sorter',
-    description: 'STUDENTS PLAY: Sort music statements into fact or opinion!',
+    id: 'genre-match-game',
+    label: 'Genre Match',
+    description: 'STUDENTS PLAY: Hear a clip, identify the genre!',
     type: 'activity',
-    duration: 6,
+    duration: 8,
     hasTimer: true,
     trackProgress: true,
     hasProgress: true,
     presentationView: {
-      type: 'fact-opinion-sorter-teacher-game'
+      type: 'genre-match-teacher-game'
     }
   },
   {
-    id: 'reflection',
-    label: 'Portfolio Reflection',
-    description: 'Students reflect on what they learned about reading music journalism.',
-    type: 'discussion',
+    id: 'unit-overview',
+    label: 'The Assignment',
+    description: 'Explain the 5-lesson arc.',
+    type: 'summary',
     duration: 5,
     presentationView: {
       type: 'summary',
-      title: 'Portfolio Reflection',
-      subtitle: 'Think Like a Journalist',
+      title: 'Your Mission: 5 Lessons',
+      subtitle: 'From Scout to Agent',
       sections: [
         {
-          heading: 'Reflect on Today',
+          heading: 'The Journey',
           bullets: [
-            '1. What is one thing you learned about music journalism today?',
-            '2. Which type of music writing interests you most: news, review, or feature? Why?',
-            '3. Why is it important for a journalist to know the difference between fact and opinion?'
+            'Lesson 1 (TODAY): Explore the platform, learn about genres and agents',
+            'Lesson 2: PICK your artist and start researching their story',
+            'Lesson 3: LISTEN like a critic — describe their sound using music vocabulary',
+            'Lesson 4: BUILD your press kit — a 5-slide presentation',
+            'Lesson 5: PITCH DAY — present to the class, class votes on who gets signed!'
           ]
         },
         {
-          heading: 'Looking Ahead',
+          heading: 'The Stakes',
           bullets: [
-            'Next lesson: you will learn to WRITE like a journalist',
-            'Start noticing music articles you see online — are they news, reviews, or features?'
+            'You are competing against other agents in the class',
+            'The class VOTES on which artist should be signed',
+            'Can you make the most convincing case for YOUR artist?'
+          ]
+        }
+      ]
+    }
+  },
+  {
+    id: 'vocab-check',
+    label: 'Vocab Check',
+    description: 'Review key vocabulary.',
+    type: 'summary',
+    duration: 3,
+    presentationView: {
+      type: 'summary',
+      title: 'Vocabulary Check',
+      subtitle: 'Words You Need to Know',
+      sections: [
+        {
+          heading: 'Music Industry',
+          bullets: [
+            'A&R — the person who discovers new talent for a record label',
+            'MUSIC AGENT — someone who represents and promotes an artist',
+            'EMERGING ARTIST — a musician gaining fans but not yet mainstream',
+            'RECORD LABEL — a company that produces and distributes music',
+            'UNSIGNED — an artist not currently signed to a label'
+          ]
+        },
+        {
+          heading: 'Your Toolkit',
+          bullets: [
+            'PRESS KIT — bio, photos, music samples packaged to promote an artist',
+            'PITCH — a short, persuasive presentation to convince someone to act',
+            'GENRE — a category of music with shared characteristics',
+            'SUBGENRE — a more specific category within a genre'
+          ]
+        }
+      ]
+    }
+  },
+  {
+    id: 'lesson-preview',
+    label: 'Preview',
+    description: '"Which genre interests you most?"',
+    type: 'discussion',
+    duration: 3,
+    presentationView: {
+      type: 'summary',
+      title: 'Before Next Class',
+      subtitle: 'Think About Your Pick',
+      sections: [
+        {
+          heading: 'Discuss',
+          bullets: [
+            'Which GENRE surprised you the most today?',
+            'Did you discover a genre you didn\'t expect to like?',
+            'Which artist caught your ear? Why?'
+          ]
+        },
+        {
+          heading: 'Next Time',
+          bullets: [
+            'Lesson 2: You PICK your artist and start researching',
+            'Think about which artist from today\'s exploration you want to represent',
+            'Come ready to commit — once you choose, that\'s YOUR artist for the unit'
           ]
         }
       ]
@@ -391,28 +401,28 @@ export const lessonStages = [
   {
     id: 'lesson-complete',
     label: 'Lesson Complete',
-    description: 'Wrap up and celebrate progress.',
+    description: 'Wrap up.',
     type: 'summary',
     duration: 1,
     presentationView: {
       type: 'summary',
       title: 'Lesson 1 Complete!',
-      subtitle: 'You Are Reading Like a Journalist',
+      subtitle: 'Welcome to the Agency',
       sections: [
         {
           heading: 'What You Learned Today',
           bullets: [
-            'Music journalism includes NEWS, REVIEWS, and FEATURES',
-            'Annotating with color-coded highlights helps you read actively',
-            'Facts can be proven — opinions reflect personal views',
-            'Good journalists use both facts and opinions on purpose'
+            'Music agents and A&R reps DISCOVER talent across every genre',
+            'There are 10+ genres, each with unique characteristics',
+            'A press kit and pitch are how agents promote their artists',
+            'You explored 19 emerging artists on the platform'
           ]
         },
         {
           heading: 'Next Time',
           bullets: [
-            'Lesson 2: Write Like a Journalist',
-            'You will draft your first music news article!'
+            'Lesson 2: Scout Your Artist',
+            'You will pick your artist, research their story, and start building your case'
           ]
         }
       ]
@@ -425,13 +435,13 @@ export const getActivityForStage = (stage) => {
   const stageMap = {
     'join-code': 'waiting',
     'welcome-hook': 'summary',
-    'what-is-journalism': 'summary',
-    'news-feed-intro': 'summary',
-    'read-featured-article': 'article-reader',
-    'annotation-practice': 'summary',
-    'fact-vs-opinion': 'summary',
-    'fact-opinion-game': 'fact-opinion-sorter',
-    'reflection': 'discussion',
+    'what-is-an-agent': 'summary',
+    'genre-exploration': 'summary',
+    'explore-artists': 'artist-discovery',
+    'genre-match-game': 'genre-match',
+    'unit-overview': 'summary',
+    'vocab-check': 'summary',
+    'lesson-preview': 'discussion',
     'lesson-complete': 'summary'
   };
   return stageMap[stage];
@@ -441,14 +451,14 @@ export const getActivityForStage = (stage) => {
 // VOCABULARY FOR THIS LESSON
 // ========================================
 export const VOCABULARY = [
-  { term: 'Music Journalism', definition: 'Writing about music for an audience — reporting, reviewing, and telling stories about artists and the music industry' },
-  { term: 'News Article', definition: 'A factual report about something that happened — answers who, what, when, where, and why' },
-  { term: 'Review', definition: 'A piece of writing that shares a critic\'s opinion about music, supported by evidence and reasoning' },
-  { term: 'Feature Story', definition: 'A longer, in-depth article that tells a story about a person, trend, or topic in music' },
-  { term: 'Fact', definition: 'A statement that can be proven true or false with evidence' },
-  { term: 'Opinion', definition: 'A statement that reflects someone\'s personal view, belief, or judgment' },
-  { term: 'Annotate', definition: 'To mark up a text with highlights, notes, or symbols to identify key information' },
-  { term: 'Source', definition: 'Where information comes from — a person, document, or organization that provides facts' },
-  { term: 'Headline', definition: 'The title of an article, designed to grab attention and summarize the story' },
-  { term: 'Byline', definition: 'The line in an article that tells the reader who wrote it' }
+  { term: 'A&R', definition: 'Artists & Repertoire — the person at a record label who discovers and develops new talent' },
+  { term: 'Music Agent', definition: 'Someone who represents and promotes an artist\'s career, helping them get signed, booked, and noticed' },
+  { term: 'Emerging Artist', definition: 'A musician who is gaining fans and attention but isn\'t mainstream famous yet' },
+  { term: 'Record Label', definition: 'A company that produces, distributes, and promotes music recordings' },
+  { term: 'Unsigned', definition: 'An artist who is not currently signed to a record label — they release music independently' },
+  { term: 'Press Kit', definition: 'A package of materials (bio, photos, music samples, achievements) used to promote an artist to labels and media' },
+  { term: 'Pitch', definition: 'A short, persuasive presentation designed to convince someone to take action — like signing an artist' },
+  { term: 'Genre', definition: 'A category of music defined by shared characteristics like instruments, rhythm, and style (hip-hop, jazz, rock, etc.)' },
+  { term: 'Subgenre', definition: 'A more specific category within a genre — like "indie rock" within rock, or "trap" within hip-hop' },
+  { term: 'Discography', definition: 'The complete collection of an artist\'s recorded music — all their albums, EPs, and singles' }
 ];

@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const cron = require('node-cron');
 require('dotenv').config();
 
 // Import Models
@@ -28,6 +29,7 @@ const emailRoutes = require('./routes/emailRoutes'); // Automated survey emails
 const applicationRoutes = require('./routes/applicationRoutes'); // Pilot application approve/decline
 const newsRoutes = require('./routes/newsRoutes'); // Music Journalist news feed
 const articleGenerationRoutes = require('./routes/articleGenerationRoutes'); // Article generation admin
+const { runDailyPipeline } = require('./services/articleGenerationService'); // Article generation cron
 
 // Initialize Firebase Admin SDK
 const { initFirebase } = require('./services/firebaseAdmin');
@@ -84,6 +86,20 @@ app.use('/api/email', emailRoutes); // Automated survey emails
 app.use('/api/applications', applicationRoutes); // Pilot application approve/decline
 app.use('/api/news', newsRoutes); // Music Journalist news feed
 app.use('/api/admin/news', articleGenerationRoutes); // Article generation admin
+
+// Auto-generate articles every Sunday at 1:00 PM EST, email digest for approval
+cron.schedule('0 18 * * 0', async () => {
+  console.log('[CRON] Starting weekly article generation...');
+  try {
+    const results = await runDailyPipeline();
+    console.log(`[CRON] Done. Generated: ${results.generated}, Skipped: ${results.skipped}, Errors: ${results.errors.length}`);
+  } catch (error) {
+    console.error('[CRON] Article generation failed:', error.message);
+  }
+}, {
+  timezone: 'America/New_York'
+});
+console.log('Cron scheduled: article generation Sunday 1:00 PM EST');
 
 // A simple test route to check if the server is working
 app.get('/', (req, res) => {

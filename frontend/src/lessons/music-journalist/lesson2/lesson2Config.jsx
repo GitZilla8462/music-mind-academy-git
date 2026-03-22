@@ -1,145 +1,76 @@
 // File: /lessons/music-journalist/lesson2/lesson2Config.jsx
-// Lesson 2: Find Your Beat
-// "Choose your topic and start building your research board"
+// Lesson 2: Scout Your Artist
+// "What makes an artist worth signing?"
 //
 // ========================================
 // CURRICULUM NOTES
 // ========================================
 // Students learn:
-// - How to browse the news feed for music stories
-// - How to choose a strong research topic
-// - How to read articles and save highlights to a research board
-// - How to evaluate source credibility (Source or Not? game)
+// - How to choose an artist and commit to researching them
+// - The difference between strong and weak evidence
+// - How to use the Research Board to save key facts
+// - Fact vs opinion (game review from Lesson 1)
 //
-// Duration: 45 minutes
+// Standards:
+// - MU:Cn10.0.7 — Personal interests influence musical selection
+// - CCSS.ELA-LITERACY.RI.7.1 — Cite textual evidence
+// - CCSS.ELA-LITERACY.W.7.7 — Short research using multiple sources
 // ========================================
 
 export const LESSON_PROGRESS_KEY = 'music-journalist-lesson2-progress';
 export const LESSON_TIMER_KEY = 'music-journalist-lesson2-timer';
 
-// ========================================
-// SECTION-BASED GROUPING FOR TEACHER CONTROL
-// ========================================
 export const lessonSections = [
   {
     id: 'introduction',
     title: '1. Introduction',
-    subtitle: 'Hook + News Feed',
+    subtitle: 'Hook + What Makes an Artist Worth Signing?',
     color: 'blue',
-    estimatedTime: 5,
+    estimatedTime: 7,
     stages: [
-      {
-        id: 'welcome-hook',
-        type: 'summary',
-        label: 'What Story Do YOU Want to Tell?',
-        description: 'Hook students with the idea of choosing their own music story.',
-        duration: 3
-      },
-      {
-        id: 'browse-news-feed',
-        type: 'summary',
-        label: 'How to Browse the News Feed',
-        description: 'Show students how to navigate the news feed: top stories, search, genre filters, archive.',
-        duration: 2
-      }
+      { id: 'hook', type: 'summary', label: 'Hook', description: '"Imagine scrolling and hearing something that stops you."', duration: 3 },
+      { id: 'worth-signing', type: 'summary', label: 'Worth Signing?', description: 'Teach the 4-point checklist: unique sound, story, growth, your gut.', duration: 4 }
     ]
   },
   {
-    id: 'topic-selection',
-    title: '2. Topic Selection',
-    subtitle: 'Choose Your Beat',
+    id: 'choose-artist',
+    title: '2. Choose Your Artist',
+    subtitle: 'Browse, Listen, Commit',
     color: 'blue',
-    estimatedTime: 10,
+    estimatedTime: 12,
     stages: [
-      {
-        id: 'choosing-topic',
-        type: 'summary',
-        label: 'Choosing a Strong Topic',
-        description: 'Review the checklist for picking a good topic.',
-        duration: 3
-      },
-      {
-        id: 'partner-setup',
-        type: 'summary',
-        label: 'Partner / Solo Setup',
-        description: 'Confirm whether students work solo or with a partner (teacher sets in dashboard).',
-        duration: 2
-      },
-      {
-        id: 'save-topic',
-        type: 'activity',
-        label: 'Save Your Topic',
-        description: 'STUDENTS WORK: Type in your chosen topic and save it.',
-        duration: 5,
-        hasTimer: true,
-        trackProgress: true
-      }
+      { id: 'choose-your-artist', type: 'activity', label: 'Choose Your Artist', description: 'STUDENTS: Browse artists, listen to tracks, pick ONE and lock in.', duration: 12, hasTimer: true, trackProgress: true }
     ]
   },
   {
     id: 'research',
-    title: '3. Research',
-    subtitle: 'Build Your Board',
+    title: '3. Research Session',
+    subtitle: 'Strong vs Weak Evidence + Research',
     color: 'blue',
-    estimatedTime: 15,
+    estimatedTime: 16,
     stages: [
-      {
-        id: 'research-session',
-        type: 'activity',
-        label: 'Research Session',
-        description: 'STUDENTS WORK: Read at least 2 articles and save highlights to your research board.',
-        duration: 15,
-        hasTimer: true,
-        trackProgress: true
-      }
+      { id: 'strong-vs-weak', type: 'summary', label: 'Strong vs Weak Evidence', description: 'Teach: specific facts vs vague opinions.', duration: 4 },
+      { id: 'research-session', type: 'activity', label: 'Research Session', description: 'STUDENTS: Read artist profile, highlight key facts. Save 5+ to Research Board.', duration: 12, hasTimer: true, trackProgress: true }
     ]
   },
   {
     id: 'game',
-    title: '4. Game',
-    subtitle: 'Source or Not?',
+    title: '4. Fact or Opinion',
+    subtitle: 'Game Time',
     color: 'blue',
-    estimatedTime: 8,
+    estimatedTime: 7,
     stages: [
-      {
-        id: 'source-or-not-intro',
-        type: 'summary',
-        label: 'Source or Not? Intro',
-        description: 'Explain the news credibility game.',
-        duration: 2
-      },
-      {
-        id: 'source-or-not-game',
-        type: 'activity',
-        label: 'Source or Not? Challenge',
-        description: 'CLASS GAME: Can you tell a credible source from a fake one?',
-        duration: 6,
-        hasTimer: false,
-        trackProgress: true
-      }
+      { id: 'fact-opinion-game', type: 'activity', label: 'Fact or Opinion', description: 'STUDENTS PLAY: Sort music statements!', duration: 7, hasTimer: true, trackProgress: true }
     ]
   },
   {
     id: 'reflect',
-    title: '5. Reflect',
-    subtitle: 'Portfolio Reflection',
+    title: '5. Checkpoint',
+    subtitle: 'Share + Preview',
     color: 'blue',
-    estimatedTime: 5,
+    estimatedTime: 3,
     stages: [
-      {
-        id: 'reflection',
-        type: 'discussion',
-        label: 'Portfolio Reflection',
-        description: 'Reflect on your topic choice and what you learned about credible sources.',
-        duration: 4
-      },
-      {
-        id: 'lesson-complete',
-        type: 'summary',
-        label: 'Lesson Complete',
-        description: 'Wrap up and preview what comes next.',
-        duration: 1
-      }
+      { id: 'checkpoint', type: 'discussion', label: 'Checkpoint', description: '"Tell your neighbor: Who did you pick and why?"', duration: 3 }
     ]
   }
 ];
@@ -147,386 +78,151 @@ export const lessonSections = [
 export const lesson2Config = {
   id: 'music-journalist-lesson2',
   lessonPath: '/lessons/music-journalist/lesson2',
-  title: "Find Your Beat",
-  subtitle: "Choose your topic and start building your research board",
+  title: 'Scout Your Artist',
+  subtitle: 'What makes an artist worth signing?',
+  duration: 45,
+  themeColor: '#1a2744',
+  accentColor: '#f0b429',
   learningObjectives: [
-    "Browse the news feed to discover music stories across genres",
-    "Choose a strong research topic using the checklist criteria",
-    "Read articles and save highlights to a research board",
-    "Evaluate the credibility of news sources"
+    'Choose an emerging artist to represent as their agent',
+    'Distinguish between strong evidence and weak evidence',
+    'Use the Research Board to collect and organize key facts',
+    'Apply fact vs opinion skills to music research'
   ],
   lessonSections,
   activities: [
-    {
-      id: 1,
-      type: "topic-selector",
-      title: "Save Your Topic",
-      estimatedTime: "5 min"
-    },
-    {
-      id: 2,
-      type: "article-reader",
-      title: "Research Session",
-      estimatedTime: "15 min"
-    },
-    {
-      id: 3,
-      type: "source-or-not",
-      title: "Source or Not?",
-      estimatedTime: "6 min"
-    }
+    { id: 1, type: 'artist-discovery', title: 'Choose Your Artist', estimatedTime: '12 min' },
+    { id: 2, type: 'artist-discovery', title: 'Research Session', estimatedTime: '12 min' },
+    { id: 3, type: 'fact-opinion-sorter', title: 'Fact or Opinion', estimatedTime: '7 min' }
   ]
 };
 
-// ========================================
-// LESSON STAGES - With presentationView data for each stage
-// ========================================
 export const lessonStages = [
+  { id: 'join-code', label: 'Join Code', type: 'waiting' },
   {
-    id: 'join-code',
-    label: 'Join Code Screen',
-    description: 'Students enter session code to join.',
-    type: 'waiting'
-  },
-  {
-    id: 'welcome-hook',
-    label: 'What Story Do YOU Want to Tell?',
-    description: 'Hook students with the idea of choosing their own music story.',
-    type: 'summary',
-    duration: 3,
+    id: 'hook', label: 'Hook', type: 'summary', duration: 3,
     presentationView: {
-      type: 'summary',
-      title: 'Find Your Beat',
-      subtitle: 'Choose your topic and start building your research board',
+      type: 'summary', title: 'Scout Your Artist', subtitle: 'Time to Find Your Next Star',
       sections: [
-        {
-          heading: 'What Story Do YOU Want to Tell?',
-          bullets: [
-            'Every great journalist starts with a question they care about',
-            'Today YOU pick the music story you want to investigate',
-            'Your topic will drive your entire project',
-            'Think: What in music makes you curious? Excited? Confused?'
-          ]
-        },
-        {
-          heading: 'Today We Will',
-          bullets: [
-            'Browse the NEWS FEED for music stories',
-            'Choose YOUR TOPIC using a checklist',
-            'Start your RESEARCH BOARD with real articles',
-            'Play SOURCE OR NOT? to sharpen your credibility skills'
-          ]
-        }
+        { heading: 'The Moment', bullets: [
+          'Imagine you\'re scrolling through music and you hear something that STOPS you',
+          'Something different. Something real. Something that makes you think "this person has IT"',
+          'That\'s what we\'re looking for today'
+        ]},
+        { heading: 'Today\'s Goal', bullets: [
+          'Pick ONE emerging artist from the platform',
+          'Start researching their story',
+          'Save at least 5 strong facts to your Research Board'
+        ]}
       ]
     }
   },
   {
-    id: 'browse-news-feed',
-    label: 'How to Browse the News Feed',
-    description: 'Show students how to navigate the news feed: top stories, search, genre filters, archive.',
-    type: 'summary',
-    duration: 2,
+    id: 'worth-signing', label: 'Worth Signing?', type: 'summary', duration: 4,
     presentationView: {
-      type: 'summary',
-      title: 'Browsing the News Feed',
-      subtitle: 'Find Stories That Interest You',
+      type: 'summary', title: 'What Makes an Artist Worth Signing?', subtitle: 'The Agent\'s Checklist',
       sections: [
-        {
-          heading: 'How to Browse',
-          bullets: [
-            'TOP STORIES: Curated headlines updated regularly',
-            'SEARCH: Type keywords to find specific topics',
-            'GENRE FILTERS: Hip-hop, Pop, Rock, Classical, Jazz, Electronic, and more',
-            'ARCHIVE: Older stories organized by date and category'
-          ]
-        },
-        {
-          heading: 'Pro Tips',
-          bullets: [
-            'Skim headlines first - do not read every article yet',
-            'Star stories that catch your eye',
-            'Look for topics with MULTIPLE articles (you will need at least 3)',
-            'Think about what connects to your life or to class discussions'
-          ]
-        }
+        { heading: 'The 4-Point Checklist', bullets: [
+          '1. UNIQUE SOUND — Do they sound like everyone else, or do they have their own thing?',
+          '2. STORY — Where are they from? What drives them? Why do they make music?',
+          '3. GROWTH — Are they getting better? Are more people discovering them?',
+          '4. YOUR GUT — Do YOU believe in them? Would you stake your reputation on them?'
+        ]},
+        { heading: 'Remember', bullets: [
+          'Great agents don\'t just follow trends — they FIND talent others miss',
+          'No duplicates allowed — first come, first served!'
+        ]}
       ]
     }
   },
   {
-    id: 'choosing-topic',
-    label: 'Choosing a Strong Topic',
-    description: 'Review the checklist for picking a good topic.',
-    type: 'summary',
-    duration: 3,
+    id: 'choose-your-artist', label: 'Choose Your Artist', type: 'activity', duration: 12, hasTimer: true, trackProgress: true,
+    presentationView: { type: 'activity-banner', title: 'Choose Your Artist', subtitle: 'Browse. Listen. Pick ONE. Lock it in.' }
+  },
+  {
+    id: 'strong-vs-weak', label: 'Strong vs Weak Evidence', type: 'summary', duration: 4,
     presentationView: {
-      type: 'summary',
-      title: 'Choosing a Strong Topic',
-      subtitle: 'Use This Checklist',
+      type: 'summary', title: 'Strong vs Weak Evidence', subtitle: 'Not All Facts Are Created Equal',
       sections: [
-        {
-          heading: 'Your Topic Should Have',
-          bullets: [
-            '3+ ARTICLES available to read and cite',
-            'Be EXPLAINABLE - you can describe it in one sentence',
-            'CONNECT to something we have discussed in class',
-            'Be genuinely INTERESTING to you'
-          ]
-        },
-        {
-          heading: 'Strong Topic Examples',
-          bullets: [
-            '"How streaming changed the way artists release music"',
-            '"Why K-pop is growing so fast in the U.S."',
-            '"The debate over AI-generated music"',
-            '"How TikTok turns unknown songs into hits"'
-          ]
-        },
-        {
-          heading: 'Weak Topic Examples',
-          bullets: [
-            '"Music" (too broad)',
-            '"My favorite song" (too personal, not researchable)',
-            '"A song from 1342" (not enough sources)'
-          ]
-        }
+        { heading: 'STRONG Evidence', bullets: [
+          '"Their EP has 12,000 streams in 3 months" — specific, measurable',
+          '"They were featured on Bandcamp Daily in October 2025" — verifiable',
+          '"She started playing guitar at age 14" — concrete fact',
+          '"Their name means \'be strong\' in Urhobo" — specific, interesting'
+        ]},
+        { heading: 'WEAK Evidence', bullets: [
+          '"They\'re really good" — vague, no detail',
+          '"Their music is cool" — opinion, not evidence',
+          '"A lot of people like them" — how many? who?',
+          '"They\'ve been around for a while" — how long?'
+        ]},
+        { heading: 'Your Goal', bullets: ['Save at least 5 STRONG facts to your Research Board'] }
       ]
     }
   },
   {
-    id: 'partner-setup',
-    label: 'Partner / Solo Setup',
-    description: 'Confirm whether students work solo or with a partner (teacher sets in dashboard).',
-    type: 'summary',
-    duration: 2,
+    id: 'research-session', label: 'Research Session', type: 'activity', duration: 12, hasTimer: true, trackProgress: true,
+    presentationView: { type: 'activity-banner', title: 'Research Session', subtitle: 'Read the artist profile. Highlight key facts. Save 5+ to Research Board.' }
+  },
+  {
+    id: 'fact-opinion-game', label: 'Fact or Opinion', type: 'activity', duration: 7, hasTimer: true, trackProgress: true, hasProgress: true,
+    presentationView: { type: 'fact-opinion-sorter-teacher-game' }
+  },
+  {
+    id: 'checkpoint', label: 'Checkpoint', type: 'discussion', duration: 3,
     presentationView: {
-      type: 'summary',
-      title: 'Working Solo or With a Partner',
-      subtitle: 'Your Teacher Will Set This Up',
+      type: 'summary', title: 'Checkpoint', subtitle: 'Share Your Pick',
       sections: [
-        {
-          heading: 'If Solo',
-          bullets: [
-            'You choose your own topic',
-            'You build your own research board',
-            'You write your own article'
-          ]
-        },
-        {
-          heading: 'If Partners',
-          bullets: [
-            'You and your partner agree on ONE topic',
-            'You split the reading - each person reads different articles',
-            'You combine highlights on a shared research board',
-            'You co-write the final article'
-          ]
-        },
-        {
-          heading: 'Either Way',
-          bullets: [
-            'Everyone is responsible for reading at least 2 articles today',
-            'Everyone saves highlights to the research board'
-          ]
-        }
+        { heading: 'Turn to Your Neighbor', bullets: [
+          'Who did you pick and WHY?',
+          'What\'s one STRONG fact you found about them?',
+          'What makes their sound unique?'
+        ]},
+        { heading: 'Next Time', bullets: [
+          'Lesson 3: Listen Like a Critic',
+          'You will LISTEN to your artist\'s music and learn to describe what you hear'
+        ]}
       ]
     }
   },
   {
-    id: 'save-topic',
-    label: 'Save Your Topic',
-    description: 'STUDENTS WORK: Type in your chosen topic and save it.',
-    bonusDescription: 'Make sure your topic passes the checklist!',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 5,
+    id: 'lesson-complete', label: 'Lesson Complete', type: 'summary', duration: 1,
     presentationView: {
-      type: 'summary',
-      title: 'Save Your Topic',
-      subtitle: 'Time to Commit!',
+      type: 'summary', title: 'Lesson 2 Complete!', subtitle: 'You\'ve Scouted Your Artist',
       sections: [
-        {
-          heading: 'On Your Screen',
-          bullets: [
-            '1. Type your topic in the text box',
-            '2. Check off each item on the checklist',
-            '3. Click SAVE to lock in your topic',
-            '4. You can edit your topic later if needed'
-          ]
-        },
-        {
-          heading: 'Remember the Checklist',
-          bullets: [
-            '3+ articles available',
-            'Explainable in one sentence',
-            'Connects to class',
-            'Interesting to YOU'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'research-session',
-    label: 'Research Session',
-    description: 'STUDENTS WORK: Read at least 2 articles and save highlights to your research board.',
-    bonusDescription: 'Early finishers: read a 3rd article or organize your highlights.',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 15,
-    presentationView: {
-      type: 'summary',
-      title: 'Research Session',
-      subtitle: 'Read, Highlight, Save',
-      sections: [
-        {
-          heading: 'Your Goal',
-          bullets: [
-            'Read at least 2 ARTICLES related to your topic',
-            'HIGHLIGHT key quotes, facts, and ideas',
-            'SAVE highlights to your research board',
-            'Note the SOURCE for each highlight (author, publication, date)'
-          ]
-        },
-        {
-          heading: 'What Makes a Good Highlight?',
-          bullets: [
-            'A surprising FACT or STATISTIC',
-            'A direct QUOTE from someone important',
-            'A KEY IDEA that supports your topic',
-            'Something you DISAGREE with (that is useful too!)'
-          ]
-        },
-        {
-          heading: 'Early Finishers',
-          bullets: [
-            'Read a 3rd article',
-            'Organize your highlights by theme',
-            'Write a one-sentence summary of each article'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'source-or-not-intro',
-    label: 'Source or Not? Intro',
-    description: 'Explain the news credibility game.',
-    type: 'summary',
-    duration: 2,
-    presentationView: {
-      type: 'summary',
-      title: 'Source or Not?',
-      subtitle: 'The News Credibility Challenge',
-      sections: [
-        {
-          heading: 'How to Play',
-          bullets: [
-            '1. You will see a music news headline and source',
-            '2. Decide: Is this a CREDIBLE source or NOT?',
-            '3. Answer quickly for bonus points!',
-            '4. After each round, see WHY the source is credible or not'
-          ]
-        },
-        {
-          heading: 'What Makes a Source Credible?',
-          bullets: [
-            'Published by a known, reputable outlet',
-            'Author is identified and has expertise',
-            'Facts can be verified elsewhere',
-            'NOT just someone\'s opinion blog or anonymous post'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'source-or-not-game',
-    label: 'Source or Not? Challenge',
-    description: 'CLASS GAME: Can you tell a credible source from a fake one?',
-    bonusDescription: 'Can you get a perfect score?',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: false,
-    duration: 6,
-    presentationView: {
-      type: 'source-or-not-teacher-game'
-    }
-  },
-  {
-    id: 'reflection',
-    label: 'Portfolio Reflection',
-    description: 'Reflect on your topic choice and what you learned about credible sources.',
-    type: 'discussion',
-    duration: 4,
-    presentationView: {
-      type: 'summary',
-      title: 'Portfolio Reflection',
-      subtitle: '',
-      sections: [
-        {
-          heading: 'Reflect on Today',
-          bullets: [
-            '1. What topic did you choose, and WHY does it interest you?',
-            '2. What is one thing you learned from your research today?',
-            '3. How will you know if a source is trustworthy for your project?'
-          ]
-        },
-        {
-          heading: 'Looking Ahead',
-          bullets: [
-            'Next class: You will continue building your research board',
-            'Goal: 5+ highlights from 3+ articles before you start writing'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'lesson-complete',
-    label: 'Lesson Complete',
-    description: 'Wrap up and preview what comes next.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'summary',
-      title: 'Great Work Today!',
-      subtitle: 'You Found Your Beat',
-      sections: [
-        {
-          heading: 'What You Accomplished',
-          bullets: [
-            'Chose a research topic that passes the checklist',
-            'Read articles and started your research board',
-            'Learned how to spot credible vs. non-credible sources'
-          ]
-        },
-        {
-          heading: 'Next Time',
-          bullets: [
-            'Continue your research with more articles',
-            'Start organizing your highlights into an outline',
-            'Get ready to write your first draft!'
-          ]
-        }
+        { heading: 'What You Did Today', bullets: [
+          'Evaluated artists using the 4-point checklist',
+          'Chose YOUR artist to represent',
+          'Researched their story with strong evidence',
+          'Practiced spotting fact vs opinion'
+        ]},
+        { heading: 'Come Ready for Lesson 3', bullets: ['You\'ll listen to your artist\'s music and learn to describe their sound like a real critic'] }
       ]
     }
   }
 ];
 
-// Helper function to map session stage to activity type
 export const getActivityForStage = (stage) => {
   const stageMap = {
-    'welcome-hook': 'summary',
-    'browse-news-feed': 'summary',
-    'choosing-topic': 'summary',
-    'partner-setup': 'summary',
-    'save-topic': 'topic-selector',
-    'research-session': 'article-reader',
-    'source-or-not-intro': 'summary',
-    'source-or-not-game': 'source-or-not',
-    'reflection': 'discussion',
+    'join-code': 'waiting',
+    'hook': 'summary',
+    'worth-signing': 'summary',
+    'choose-your-artist': 'artist-discovery',
+    'strong-vs-weak': 'summary',
+    'research-session': 'artist-discovery',
+    'fact-opinion-game': 'fact-opinion-sorter',
+    'checkpoint': 'discussion',
     'lesson-complete': 'summary'
   };
   return stageMap[stage];
 };
+
+export const VOCABULARY = [
+  { term: 'Evidence', definition: 'Specific facts, quotes, numbers, or data that support your argument' },
+  { term: 'Strong Evidence', definition: 'Evidence that is specific, measurable, and verifiable — like dates, numbers, and named sources' },
+  { term: 'Weak Evidence', definition: 'Vague statements that don\'t include specific details — like "they\'re really good"' },
+  { term: 'Research Board', definition: 'Your collection of highlighted facts and evidence saved from artist profiles' },
+  { term: 'Credible Source', definition: 'A trustworthy, reliable place to find accurate information' },
+  { term: 'Fact', definition: 'A statement that can be proven true or false with evidence' },
+  { term: 'Opinion', definition: 'A statement that reflects someone\'s personal view, belief, or judgment' }
+];

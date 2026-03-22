@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ArrowLeft, ExternalLink, Star, ChevronRight, ChevronLeft, X, BookOpen } from 'lucide-react';
+import { GenrePlaceholder } from './NewsHub';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -263,10 +264,10 @@ const ArticleReader = ({ article: articleProp, articleId, onBack, onHighlight, s
   // Loading state
   if (loading) {
     return (
-      <div className={`${embedded ? '' : 'min-h-screen'} bg-[#1a2744] flex items-center justify-center`}>
+      <div className={`${embedded ? '' : 'min-h-screen'} bg-[#0f1419] flex items-center justify-center`}>
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-[#f0b429] border-t-transparent rounded-full animate-spin" />
-          <p className="text-white/60 text-sm">Loading article...</p>
+          <div className="w-6 h-6 border-2 border-white/30 border-t-transparent rounded-full animate-spin" />
+          <p className="text-white/40 text-sm">Loading...</p>
         </div>
       </div>
     );
@@ -275,11 +276,11 @@ const ArticleReader = ({ article: articleProp, articleId, onBack, onHighlight, s
   // No article state
   if (!article) {
     return (
-      <div className={`${embedded ? '' : 'min-h-screen'} bg-[#1a2744] flex items-center justify-center`}>
+      <div className={`${embedded ? '' : 'min-h-screen'} bg-[#0f1419] flex items-center justify-center`}>
         <div className="text-center">
-          <p className="text-white/60 text-lg mb-4">Article not found</p>
+          <p className="text-white/40 text-base mb-4">Article not found</p>
           {onBack && (
-            <button onClick={onBack} className="px-4 py-2 bg-[#f0b429] text-[#1a2744] font-bold rounded-lg hover:bg-[#f0b429]/90 transition-colors">
+            <button onClick={onBack} className="px-4 py-2 bg-white/10 text-white/70 font-medium rounded-lg hover:bg-white/15 transition-colors text-sm">
               Go Back
             </button>
           )}
@@ -294,42 +295,41 @@ const ArticleReader = ({ article: articleProp, articleId, onBack, onHighlight, s
 
   const paragraphs = bodyText.split(/\n\n|\n/).filter(p => p.trim());
 
+  const articleGenre = article.genres?.[0] || '';
+
   const Wrapper = embedded ? React.Fragment : ({ children }) => (
-    <div className="min-h-screen bg-[#1a2744]">{children}</div>
+    <div className="min-h-screen bg-[#0f1419]">{children}</div>
   );
 
   return (
     <Wrapper>
       {/* Header bar */}
-      <div className="sticky top-0 z-30 bg-[#1a2744]/95 backdrop-blur-sm border-b border-white/10 px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center gap-3">
+      <div className="sticky top-0 z-30 bg-[#0f1419]/95 backdrop-blur-sm border-b border-white/[0.08] px-4 py-3">
+        <div className="max-w-5xl mx-auto flex items-center gap-3">
           {onBack && (
             <button
               onClick={onBack}
-              className="flex items-center gap-1.5 text-white/60 hover:text-white transition-colors flex-shrink-0"
+              className="flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors flex-shrink-0"
             >
-              <ArrowLeft size={18} />
-              <span className="text-sm font-medium hidden sm:inline">Back</span>
+              <ArrowLeft size={16} />
+              <span className="text-sm hidden sm:inline">Back</span>
             </button>
           )}
-          <h1 className="text-white font-bold text-sm sm:text-base truncate flex-1">
-            {article.generated_headline}
-          </h1>
-          {article.source_name && (
-            <span className="inline-block px-2.5 py-1 text-[11px] font-semibold bg-white/10 text-white/70 rounded-full flex-shrink-0">
-              {article.source_name}
-            </span>
-          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-white/80 font-medium text-sm truncate">
+              {article.generated_headline}
+            </p>
+          </div>
           {/* Research board toggle button */}
           {showResearchBoardProp && (
             <button
               onClick={() => setResearchBoardOpen(!researchBoardOpen)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f0b429]/20 text-[#f0b429] rounded-lg text-xs font-bold hover:bg-[#f0b429]/30 transition-colors flex-shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.06] text-white/50 rounded-lg text-xs font-medium hover:bg-white/[0.1] hover:text-white/70 transition-colors flex-shrink-0"
             >
               <BookOpen size={14} />
               <span className="hidden sm:inline">Research</span>
               {highlights.length > 0 && (
-                <span className="w-5 h-5 rounded-full bg-[#f0b429] text-[#1a2744] text-[10px] font-black flex items-center justify-center">
+                <span className="w-4 h-4 rounded-full bg-white/20 text-white/80 text-[10px] font-bold flex items-center justify-center">
                   {highlights.length}
                 </span>
               )}
@@ -339,91 +339,102 @@ const ArticleReader = ({ article: articleProp, articleId, onBack, onHighlight, s
       </div>
 
       {/* Main content area */}
-      <div className="max-w-7xl mx-auto flex">
+      <div className="max-w-5xl mx-auto flex">
         {/* Article content */}
-        <div className={`flex-1 ${researchBoardOpen ? 'lg:pr-4' : ''} px-4 py-6`}>
-          <div className="max-w-prose mx-auto">
+        <div className={`flex-1 ${researchBoardOpen ? 'lg:pr-6' : ''} px-4 py-6`}>
+          <div className="max-w-[640px] mx-auto">
+
             {/* Hero image */}
-            {article.image_url && (
-              <div className="mb-6">
-                <div className="relative w-full aspect-[16/9] bg-gray-800 rounded-xl overflow-hidden">
+            <div className="mb-6">
+              <div className="relative w-full aspect-[2/1] bg-gray-900 rounded-lg overflow-hidden">
+                {article.image_url ? (
                   <img
                     src={article.image_url}
                     alt=""
                     className="w-full h-full object-cover"
                   />
-                </div>
-                {article.image_credit && (
-                  <p className="text-white/30 text-xs mt-1.5 italic">{article.image_credit}</p>
+                ) : (
+                  <GenrePlaceholder genre={articleGenre} size="featured" />
                 )}
               </div>
-            )}
+              {article.image_credit && (
+                <p className="text-white/25 text-xs mt-1.5">{article.image_credit}</p>
+              )}
+            </div>
+
+            {/* Headline */}
+            <h1 className="text-2xl font-bold text-white leading-tight mb-3">
+              {article.generated_headline}
+            </h1>
+
+            {/* Meta line */}
+            <div className="flex items-center gap-2 text-sm text-white/40 mb-5 flex-wrap">
+              {article.source_name && (
+                <>
+                  {article.source_url ? (
+                    <a
+                      href={article.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white/50 hover:text-white/70 transition-colors flex items-center gap-1"
+                    >
+                      {article.source_name}
+                      <ExternalLink size={11} />
+                    </a>
+                  ) : (
+                    <span className="text-white/50">{article.source_name}</span>
+                  )}
+                </>
+              )}
+              {article.published_at && (
+                <>
+                  <span className="text-white/20">&middot;</span>
+                  <span>{formatDate(article.published_at)}</span>
+                </>
+              )}
+            </div>
 
             {/* Reading level toggle */}
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-1 mb-6 p-0.5 bg-white/[0.04] rounded-lg w-fit">
               <button
                 onClick={() => handleReadingLevel('standard')}
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                   readingLevel === 'standard'
-                    ? 'bg-[#f0b429] text-[#1a2744] font-bold'
-                    : 'bg-white/10 text-white/60 hover:bg-white/15'
+                    ? 'bg-white/[0.12] text-white'
+                    : 'text-white/40 hover:text-white/60'
                 }`}
               >
                 Standard
               </button>
               <button
                 onClick={() => handleReadingLevel('simplified')}
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                   readingLevel === 'simplified'
-                    ? 'bg-[#f0b429] text-[#1a2744] font-bold'
-                    : 'bg-white/10 text-white/60 hover:bg-white/15'
+                    ? 'bg-white/[0.12] text-white'
+                    : 'text-white/40 hover:text-white/60'
                 }`}
               >
                 Simplified
               </button>
             </div>
 
-            {/* Source attribution */}
-            <div className="flex items-center gap-4 mb-1 flex-wrap">
-              {article.source_name && (
-                <div className="flex items-center gap-1.5 text-white/50 text-sm">
-                  <span>Source:</span>
-                  {article.source_url ? (
-                    <a
-                      href={article.source_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#f0b429]/80 hover:text-[#f0b429] transition-colors flex items-center gap-1"
-                    >
-                      {article.source_name}
-                      <ExternalLink size={12} />
-                    </a>
-                  ) : (
-                    <span className="text-white/70">{article.source_name}</span>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Published date */}
-            {article.published_at && (
-              <p className="text-white/40 text-sm mb-6">{formatDate(article.published_at)}</p>
-            )}
+            {/* Divider */}
+            <div className="border-t border-white/[0.06] mb-6" />
 
             {/* Article body */}
             <div ref={bodyRef} className="space-y-4 mb-8 select-text">
               {paragraphs.map((paragraph, i) => (
-                <p key={i} className="text-lg leading-relaxed text-white/90">
+                <p key={i} className="text-[15px] leading-[1.75] text-white/80">
                   {renderTextWithHighlights(paragraph, highlights)}
                 </p>
               ))}
             </div>
 
-            {/* Discussion question callout */}
+            {/* Discussion question */}
             {article.discussion_question && (
-              <div className="bg-[#f0b429]/10 border border-[#f0b429]/30 rounded-xl p-5 mb-8">
-                <p className="text-[#f0b429] font-bold text-sm uppercase tracking-wider mb-2">Talk About It:</p>
-                <p className="text-white/90 text-base leading-relaxed">{article.discussion_question}</p>
+              <div className="border-t border-white/[0.06] pt-6 mb-8">
+                <p className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-2">Discuss</p>
+                <p className="text-white/70 text-[15px] leading-relaxed">{article.discussion_question}</p>
               </div>
             )}
           </div>
@@ -431,58 +442,48 @@ const ArticleReader = ({ article: articleProp, articleId, onBack, onHighlight, s
 
         {/* Research Board panel */}
         {showResearchBoardProp && researchBoardOpen && (
-          <div className="hidden lg:block w-80 flex-shrink-0 border-l border-white/10 bg-[#1a2744]/80 min-h-[calc(100vh-57px)]">
-            <div className="sticky top-[57px] p-4 max-h-[calc(100vh-57px)] overflow-y-auto">
-              {/* Research board header */}
+          <div className="hidden lg:block w-72 flex-shrink-0 border-l border-white/[0.06] bg-[#0f1419] min-h-[calc(100vh-49px)]">
+            <div className="sticky top-[49px] p-4 max-h-[calc(100vh-49px)] overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <BookOpen size={16} className="text-[#f0b429]" />
-                  <h2 className="text-white font-bold text-sm">Research Board</h2>
+                  <BookOpen size={14} className="text-white/40" />
+                  <h2 className="text-white/70 font-semibold text-sm">Research Board</h2>
                   {highlights.length > 0 && (
-                    <span className="w-5 h-5 rounded-full bg-[#f0b429]/20 text-[#f0b429] text-[10px] font-bold flex items-center justify-center">
-                      {highlights.length}
-                    </span>
+                    <span className="text-white/30 text-xs">({highlights.length})</span>
                   )}
                 </div>
                 <button
                   onClick={() => setResearchBoardOpen(false)}
-                  className="text-white/40 hover:text-white transition-colors"
+                  className="text-white/30 hover:text-white/60 transition-colors"
                 >
-                  <ChevronRight size={16} />
+                  <ChevronRight size={14} />
                 </button>
               </div>
 
-              {/* Highlights list */}
               {highlights.length === 0 ? (
                 <div className="text-center py-8">
-                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
-                    <BookOpen size={20} className="text-white/20" />
-                  </div>
-                  <p className="text-white/40 text-sm">No highlights saved yet</p>
-                  <p className="text-white/25 text-xs mt-1">Select text in the article to highlight it</p>
+                  <p className="text-white/25 text-sm">No highlights yet</p>
+                  <p className="text-white/15 text-xs mt-1">Select text to highlight</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {highlights.map(hl => {
                     const colorInfo = HIGHLIGHT_COLORS[hl.color] || HIGHLIGHT_COLORS.yellow;
                     return (
-                      <div key={hl.id} className="bg-white/5 border border-white/10 rounded-lg p-3 group">
+                      <div key={hl.id} className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3 group">
                         <div className="flex items-start gap-2">
                           <div
-                            className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5"
+                            className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
                             style={{ backgroundColor: colorInfo.color }}
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-white/80 text-xs leading-relaxed line-clamp-3">
+                            <p className="text-white/60 text-xs leading-relaxed line-clamp-3">
                               "{hl.text}"
-                            </p>
-                            <p className="text-white/30 text-[10px] mt-1 truncate">
-                              {hl.articleHeadline || 'This article'}
                             </p>
                           </div>
                           <button
                             onClick={() => removeHighlight(hl.id)}
-                            className="text-white/20 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
+                            className="text-white/15 hover:text-red-400/70 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
                           >
                             <X size={12} />
                           </button>
@@ -501,53 +502,48 @@ const ArticleReader = ({ article: articleProp, articleId, onBack, onHighlight, s
       {toolbar && (
         <div
           ref={toolbarRef}
-          className="fixed z-50 flex items-center gap-1 bg-gray-900 border border-white/20 rounded-xl shadow-2xl shadow-black/50 px-2 py-1.5"
+          className="fixed z-50 flex items-center gap-0.5 bg-[#1a1f25] border border-white/[0.12] rounded-lg shadow-2xl shadow-black/60 px-1.5 py-1"
           style={{
             left: `${Math.max(20, Math.min(toolbar.x - 90, window.innerWidth - 200))}px`,
-            top: `${Math.max(10, toolbar.y - 48)}px`,
+            top: `${Math.max(10, toolbar.y - 44)}px`,
           }}
         >
-          {/* Yellow - Main Idea */}
           <button
             onClick={() => addHighlight(toolbar.text, 'yellow')}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-white/10 transition-colors group"
-            title="Main Idea / Key Fact"
+            className="flex items-center gap-1 px-2 py-1.5 rounded hover:bg-white/[0.08] transition-colors"
+            title="Main Idea"
           >
-            <div className="w-5 h-5 rounded-full" style={{ backgroundColor: '#fbbf24' }} />
-            <span className="text-white/60 text-[10px] hidden sm:inline group-hover:text-white/90">Idea</span>
+            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#fbbf24' }} />
+            <span className="text-white/50 text-[10px] hidden sm:inline">Idea</span>
           </button>
 
-          {/* Blue - Vocabulary */}
           <button
             onClick={() => addHighlight(toolbar.text, 'blue')}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-white/10 transition-colors group"
+            className="flex items-center gap-1 px-2 py-1.5 rounded hover:bg-white/[0.08] transition-colors"
             title="Vocabulary"
           >
-            <div className="w-5 h-5 rounded-full" style={{ backgroundColor: '#60a5fa' }} />
-            <span className="text-white/60 text-[10px] hidden sm:inline group-hover:text-white/90">Vocab</span>
+            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#60a5fa' }} />
+            <span className="text-white/50 text-[10px] hidden sm:inline">Vocab</span>
           </button>
 
-          {/* Green - Opinion */}
           <button
             onClick={() => addHighlight(toolbar.text, 'green')}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-white/10 transition-colors group"
-            title="Opinion / Argument"
+            className="flex items-center gap-1 px-2 py-1.5 rounded hover:bg-white/[0.08] transition-colors"
+            title="Opinion"
           >
-            <div className="w-5 h-5 rounded-full" style={{ backgroundColor: '#34d399' }} />
-            <span className="text-white/60 text-[10px] hidden sm:inline group-hover:text-white/90">Opinion</span>
+            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#34d399' }} />
+            <span className="text-white/50 text-[10px] hidden sm:inline">Opinion</span>
           </button>
 
-          {/* Divider */}
-          <div className="w-px h-5 bg-white/15 mx-0.5" />
+          <div className="w-px h-4 bg-white/[0.1] mx-0.5" />
 
-          {/* Star - Save to Research Board */}
           <button
             onClick={() => saveToResearchBoard(toolbar.text)}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-white/10 transition-colors group"
+            className="flex items-center gap-1 px-2 py-1.5 rounded hover:bg-white/[0.08] transition-colors"
             title="Save to Research Board"
           >
-            <Star size={16} className="text-[#f0b429] fill-[#f0b429]" />
-            <span className="text-white/60 text-[10px] hidden sm:inline group-hover:text-white/90">Save</span>
+            <Star size={14} className="text-amber-400 fill-amber-400" />
+            <span className="text-white/50 text-[10px] hidden sm:inline">Save</span>
           </button>
         </div>
       )}

@@ -1,6 +1,6 @@
 // File: slide-builder/SlideBuilder.jsx
-// Capstone slide builder for Music Journalist presentations (Unit 3).
-// Students build a 4-slide presentation using research from their Research Board.
+// Press Kit builder for Music Agent presentations (Unit 3).
+// Students build a 5-slide press kit using research from their Research Board.
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
@@ -38,23 +38,28 @@ const AUTOSAVE_INTERVAL = 30000; // 30 seconds
 const SLIDE_CONFIGS = [
   {
     number: 1,
-    defaultTitle: 'Introduce Your Topic',
-    prompt: 'Who or what is your topic? Give your audience the essential background.',
+    defaultTitle: 'Meet the Artist',
+    prompt: 'Artist name, genre, location, and one hook sentence: "The 19-year-old producer redefining bedroom pop."',
   },
   {
     number: 2,
-    defaultTitle: 'Why It Matters',
-    prompt: 'Why is this artist or topic significant in music history or culture?',
+    defaultTitle: 'Their Story',
+    prompt: 'Where are they from? How did they start? What drives them? Include at least one specific fact (date, number, place).',
   },
   {
     number: 3,
-    defaultTitle: 'What You Found Most Interesting',
-    prompt: "What surprised you? What's the detail your audience won't know?",
+    defaultTitle: 'Their Sound',
+    prompt: 'Your Sound Statement + instruments, genre, influences, mood. Reference a specific song. "If you like ___, you\'ll love ___."',
   },
   {
     number: 4,
-    defaultTitle: 'Your Take',
-    prompt: 'In your opinion, why should people your age care about this topic?',
+    defaultTitle: 'Why Sign Them?',
+    prompt: 'Your 3 evidence-based reasons. Include streaming numbers, press mentions, or growth. End with a call to action.',
+  },
+  {
+    number: 5,
+    defaultTitle: 'Listen to This',
+    prompt: 'Song title + album name. Why did you pick THIS song? What should the audience listen for?',
   },
 ];
 

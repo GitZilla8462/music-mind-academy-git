@@ -567,7 +567,7 @@ function MusicClassroomResources() {
               6-8 General Music Curriculum
             </h1>
             <p style={{ fontSize: '13px', color: '#64748b' }}>
-              7 units &bull; 35 lessons &bull; Full year &bull; Grades 6-8 &bull; Optimized for Chromebooks
+              5 units &bull; 25 lessons &bull; Grades 6-8 &bull; Optimized for Chromebooks
             </p>
           </div>
           <button
