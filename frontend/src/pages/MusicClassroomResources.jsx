@@ -58,17 +58,17 @@ const CURRICULUM_UNITS = [
   },
   {
     id: 3,
-    title: 'Music Journalist',
-    subtitle: 'Read, Research & Report',
+    title: 'Music Agent',
+    subtitle: 'Discover, Research & Pitch',
     color: '#0ea5e9',
     icon: '/images/assignments/curriculum/unit3-journalist.png',
     standardBadge: 'Responding & Connecting',
     lessonCount: 5,
     duration: '~45 min per lesson',
     bullets: [
-      'Read & annotate real music articles',
-      'Research an artist or music topic',
-      'Build & present a multimedia story'
+      'Discover emerging artists across 10 genres',
+      'Research & analyze music with evidence',
+      'Design a press kit & pitch to the class'
     ],
     status: 'pilot',
     releaseDate: 'April 15th',

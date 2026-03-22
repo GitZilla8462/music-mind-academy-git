@@ -1,5 +1,10 @@
 import React from 'react';
-import { getBandcampEmbedUrl } from './artistDatabase';
+
+// Kept for legacy use in ListeningGuideActivity — will be removed when Lesson 3 is updated
+function getBandcampEmbedUrl(embedAlbumId, options = {}) {
+  const { size = 'large', bgColor = '181922', linkColor = '056cc4', tracklist = false, transparent = true } = options;
+  return `https://bandcamp.com/EmbeddedPlayer/album=${embedAlbumId}/size=${size}/bgcol=${bgColor}/linkcol=${linkColor}/tracklist=${tracklist}/transparent=${transparent}/`;
+}
 
 // CSS dimensions for our container
 const SIZE_DIMS = {

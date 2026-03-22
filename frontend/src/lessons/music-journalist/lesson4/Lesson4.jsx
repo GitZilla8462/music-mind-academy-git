@@ -332,7 +332,7 @@ const Lesson4 = () => {
   if (viewSavedMode || viewReflectionMode) {
     return (
       <ActivityRenderer
-        activity={{ type: 'mj-slide-builder', id: 'saved-view' }}
+        activity={{ type: 'mj-press-kit', id: 'saved-view' }}
         onComplete={() => navigate(-1)}
         viewMode={false}
         isSessionMode={false}

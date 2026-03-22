@@ -1,5 +1,5 @@
 // File: /lessons/music-journalist/lesson5/lesson5Config.jsx
-// Lesson 5: Pitch Day
+// Lesson 5: Launch Day
 // "Can you convince someone to care about something you believe in?"
 //
 // Standards:
@@ -37,12 +37,12 @@ export const lessonSections = [
   {
     id: 'the-vote',
     title: '3. The Vote',
-    subtitle: 'Who Gets Signed?',
+    subtitle: 'Whose Artist Goes Viral?',
     color: 'blue',
     estimatedTime: 5,
     stages: [
-      { id: 'class-vote', type: 'activity', label: 'Class Vote', description: 'STUDENTS VOTE: Which artist should get signed?', duration: 3, trackProgress: true },
-      { id: 'results', type: 'summary', label: 'Results', description: 'Reveal the winner + superlative awards.', duration: 2 }
+      { id: 'class-vote', type: 'activity', label: 'Class Vote', description: 'STUDENTS VOTE: Whose artist goes viral?', duration: 3, trackProgress: true },
+      { id: 'results', type: 'summary', label: 'Results', description: 'Reveal the winner + awards.', duration: 2 }
     ]
   },
   {
@@ -61,15 +61,15 @@ export const lessonSections = [
 export const lesson5Config = {
   id: 'music-journalist-lesson5',
   lessonPath: '/lessons/music-journalist/lesson5',
-  title: 'Pitch Day',
-  subtitle: 'Can you convince someone to care about something you believe in?',
+  title: 'Launch Day',
+  subtitle: 'Make your artist go viral',
   duration: 45,
   themeColor: '#1a2744',
   accentColor: '#f0b429',
   learningObjectives: [
     'Deliver a persuasive 2-3 minute presentation with evidence',
     'Listen critically to peers and provide constructive feedback',
-    'Vote on which artist should be signed based on the strongest pitch',
+    'Vote on whose artist deserves to go viral based on the strongest pitch',
     'Reflect on music discovery, research, and communication skills'
   ],
   lessonSections,
@@ -85,13 +85,13 @@ export const lessonStages = [
   {
     id: 'welcome', label: 'Welcome', type: 'summary', duration: 3,
     presentationView: {
-      type: 'summary', title: 'Pitch Day', subtitle: 'Today You\'re Not Students — You\'re Agents',
+      type: 'summary', title: 'Launch Day', subtitle: 'Today You\'re Not Students — You\'re Agents',
       sections: [
         { heading: 'The Scene', bullets: [
-          'You are in a room full of LABEL EXECUTIVES',
+          'You found an artist that NOBODY in this room knows about',
           'Each agent has ONE artist they believe in',
           'You have 2-3 minutes to convince the room',
-          'At the end, the class VOTES — one artist gets SIGNED'
+          'At the end, the class VOTES — whose artist goes VIRAL?'
         ]},
         { heading: 'Make It Count', bullets: [
           'Tell the STORY — don\'t just read your slides',
@@ -133,18 +133,19 @@ export const lessonStages = [
   },
   {
     id: 'class-vote', label: 'Class Vote', type: 'activity', duration: 3, trackProgress: true,
-    presentationView: { type: 'activity-banner', title: 'The Vote', subtitle: 'Which artist should get SIGNED? Vote now.' }
+    presentationView: { type: 'activity-banner', title: 'The Vote', subtitle: 'Whose artist goes VIRAL? Vote now.' }
   },
   {
     id: 'results', label: 'Results', type: 'summary', duration: 2,
     presentationView: {
-      type: 'summary', title: 'The Results Are In', subtitle: 'Who Got Signed?',
+      type: 'summary', title: 'The Results Are In', subtitle: 'Whose Artist Goes Viral?',
       sections: [
         { heading: 'Awards', bullets: [
-          'SIGNED — the artist with the most votes',
-          'Best Sound Statement — most vivid description',
-          'Most Convincing Evidence — strongest research',
-          'Best Press Kit Design — cleanest, most professional slides',
+          'GONE VIRAL — the artist with the most votes',
+          'Best Hook — most compelling opening pitch',
+          'Best Sound Statement — most vivid music description',
+          'Strongest Case — best evidence and research',
+          'Best Campaign Design — most professional press kit',
           'Crowd Favorite — the pitch that got the biggest reaction'
         ]}
       ]
@@ -170,16 +171,16 @@ export const lessonStages = [
       type: 'summary', title: 'You Are Music Agents', subtitle: 'Unit 3 Complete',
       sections: [
         { heading: 'What You Did in This Unit', bullets: [
-          'Explored 10 genres and 19 emerging artists',
-          'Chose an artist and researched their story',
-          'Listened critically and described music using professional vocabulary',
-          'Built a press kit presentation',
-          'Pitched to a room and defended your choice with evidence'
+          'Explored 10 genres and 20 emerging artists nobody knew about',
+          'Chose YOUR artist, researched their story with real evidence',
+          'Described their music so precisely people could hear it through your words',
+          'Designed a visual campaign that made people care',
+          'Stood up and made your case to a live audience'
         ]},
         { heading: 'That\'s Real', bullets: [
-          'You just did what REAL music agents, journalists, and A&R reps do every day',
-          'You researched. You listened. You built a case. You pitched it.',
-          'Those are skills that go way beyond music class.'
+          'You just did what REAL music agents and A&R reps do every day',
+          'You found talent. You built the case. You designed the campaign. You pitched it.',
+          'These skills — research, writing, design, and speaking — go way beyond music class.'
         ]}
       ]
     }
@@ -218,5 +219,5 @@ export const VOCABULARY = [
   { term: 'Pitch', definition: 'A short, persuasive presentation designed to convince someone to take action' },
   { term: 'Call to Action', definition: 'The final statement telling your audience exactly what you want them to do' },
   { term: 'Peer Feedback', definition: 'Constructive comments from classmates — one strength and one suggestion' },
-  { term: 'Signed', definition: 'When a record label agrees to represent and promote an artist — the goal of every pitch' }
+  { term: 'Go Viral', definition: 'When content spreads rapidly online — the goal is to make your artist\'s music reach as many people as possible' }
 ];

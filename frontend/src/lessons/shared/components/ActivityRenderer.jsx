@@ -115,6 +115,7 @@ import { ResearchBoard } from '../activities/research-board';
 
 // ✅ ADDED: Slide Builder capstone (Music Journalist Unit 3)
 import { SlideBuilder } from '../activities/slide-builder';
+import { PressKitDesigner } from '../activities/press-kit-designer';
 
 // ✅ ADDED: Topic Selector (Music Journalist Lesson 2)
 import { TopicSelector } from '../activities/topic-selector';
@@ -1027,6 +1028,19 @@ const ActivityRenderer = ({
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Press Kit Designer (Music Journalist Unit 3)
+    // Redesigned presentation tool with layouts, palettes, and live preview
+    case 'mj-press-kit':
+      return (
+        <PressKitDesigner
+          key={`mj-press-kit-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+          availableSlides={activity.availableSlides}
         />
       );
 

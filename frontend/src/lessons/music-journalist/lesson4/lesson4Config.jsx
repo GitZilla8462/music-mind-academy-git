@@ -72,7 +72,7 @@ export const lesson4Config = {
   ],
   lessonSections,
   activities: [
-    { id: 1, type: 'mj-slide-builder', title: 'Build Press Kit', estimatedTime: '25 min' },
+    { id: 1, type: 'mj-press-kit', title: 'Build Press Kit', estimatedTime: '25 min' },
     { id: 2, type: 'mj-peer-feedback', title: 'Peer Review', estimatedTime: '5 min' }
   ]
 };
@@ -187,9 +187,9 @@ export const getActivityForStage = (stage) => ({
   'join-code': 'waiting',
   'hook': 'summary',
   'five-slide-structure': 'summary',
-  'build-press-kit': 'mj-slide-builder',
+  'build-press-kit': 'mj-press-kit',
   'peer-review': 'mj-peer-feedback',
-  'revise': 'mj-slide-builder',
+  'revise': 'mj-press-kit',
   'presentation-prep': 'summary',
   'lesson-complete': 'summary'
 })[stage];

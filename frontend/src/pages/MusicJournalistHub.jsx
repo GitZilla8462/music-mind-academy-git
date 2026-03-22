@@ -118,121 +118,125 @@ const MusicJournalistHub = () => {
     {
       id: 'mj-lesson1',
       number: 1,
-      icon: '📰',
-      title: 'Read Like a Journalist',
-      concept: 'Analyze Music News',
-      essentialQuestion: 'What makes a music story worth telling?',
+      icon: '🔍',
+      title: 'How Artists Blow Up',
+      concept: 'Discover & Explore',
+      essentialQuestion: 'What does it take to discover the next big artist?',
       color: 'from-blue-900 to-indigo-800',
       route: '/lessons/music-journalist/lesson1',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students read a featured music news article together, learn to annotate text by highlighting main ideas, vocabulary, and opinions, distinguish facts from opinions in journalism, and play the Fact or Opinion Sorter game.',
+      inThisLesson: 'Students learn what music agents and A&R reps do, explore 20 emerging artists across 10 genres on the discovery platform, play the Genre Match game, and learn the difference between facts and opinions as agent research skills.',
       studentsWill: [
-        'Identify main idea and supporting details in a music news article',
-        'Distinguish fact from opinion in journalism',
-        'Use annotation tools to highlight and save key information'
+        'Understand what music agents and A&R reps do in the music industry',
+        'Explore and identify characteristics of different musical genres',
+        'Distinguish fact from opinion when evaluating artist potential'
       ],
       activities: [
-        { title: 'What Is Music Journalism?', description: 'Explore three types of music writing: news, reviews, and features', time: 5 },
-        { title: 'Read the Featured Article', description: 'Class reads a real music article together on the projector', time: 10 },
-        { title: 'Annotation Practice', description: 'Learn to highlight facts, vocabulary, and opinions', time: 8 },
-        { title: 'Fact or Opinion Sorter', description: 'Class game: Sort 10 music statements into fact or opinion', time: 10, activityType: 'fact-opinion-sorter' },
-        { title: 'Reflection', description: 'What was the most interesting thing from today\'s article?', time: 5, activityType: 'mj-lesson1-reflection' }
+        { title: 'Welcome to the Agency', description: 'How Billie Eilish, Chance, and BTS went from zero to fame', time: 5 },
+        { title: 'Explore the Platform', description: 'Browse 20 emerging artists across 10 genres — star your favorites', time: 10, activityType: 'artist-discovery' },
+        { title: 'Genre Match Game', description: 'Hear a clip, identify the genre — test your ear', time: 8, activityType: 'genre-match' },
+        { title: 'The Assignment', description: 'Learn the 5-lesson arc: discover, research, listen, build, pitch', time: 5 },
+        { title: 'Preview', description: 'Which genre surprised you? Who caught your ear?', time: 3 }
       ]
     },
     {
       id: 'mj-lesson2',
       number: 2,
-      icon: '🔍',
-      title: 'Find Your Beat',
-      concept: 'Choose Your Topic',
-      essentialQuestion: 'What story do YOU want to tell?',
+      icon: '🎯',
+      title: 'Claim Your Artist',
+      concept: 'Choose & Research',
+      essentialQuestion: 'What makes an artist worth believing in?',
       color: 'from-indigo-800 to-blue-700',
       route: '/lessons/music-journalist/lesson2',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students browse the MMA news feed to find their research topic, evaluate topics for research readiness, learn about their partner assignment (if applicable), begin building their research board, and play Source or Not? to learn about news credibility.',
+      inThisLesson: 'Students choose their emerging artist from the platform, research their story using the artist profile, learn to distinguish strong evidence from weak evidence, save facts to their Research Board, and play Fact or Opinion to sharpen their skills.',
       studentsWill: [
-        'Browse and evaluate multiple music news articles',
-        'Select a research topic with enough available coverage',
-        'Begin populating a research board with annotated highlights and saved images'
+        'Select an emerging artist and commit to representing them',
+        'Identify strong vs weak evidence for building a case',
+        'Save at least 5 specific facts to their Research Board'
       ],
       activities: [
-        { title: 'Browse the News Feed', description: 'Explore articles by genre, artist, or topic', time: 7 },
-        { title: 'Choose Your Topic', description: 'Select a research-ready topic and lock it in', time: 5 },
-        { title: 'Start Your Research Board', description: 'Read 2 articles and save highlights to your board', time: 15 },
-        { title: 'Source or Not?', description: 'Class game: Can you spot credible vs. fake sources?', time: 8, activityType: 'source-or-not' },
-        { title: 'Reflection', description: 'What is your topic and why did you choose it?', time: 5, activityType: 'mj-lesson2-reflection' }
+        { title: 'What Makes an Artist Worth It?', description: 'The 4-point checklist: unique sound, story, growth, your gut', time: 4 },
+        { title: 'Choose Your Artist', description: 'Browse the platform and lock in your pick — first come, first served', time: 12, activityType: 'artist-discovery' },
+        { title: 'Strong vs Weak Evidence', description: 'Learn what would convince a label vs what falls flat', time: 4 },
+        { title: 'Research Session', description: 'Dig into your artist\'s profile — save 5+ facts to Research Board', time: 12, activityType: 'artist-discovery' },
+        { title: 'Fact or Opinion Game', description: 'Sort 10 statements — agents need evidence, not just vibes', time: 7, activityType: 'fact-opinion-sorter' }
       ]
     },
     {
       id: 'mj-lesson3',
       number: 3,
-      icon: '📚',
-      title: 'Deep Dive',
-      concept: 'Research & Evidence',
-      essentialQuestion: 'What makes evidence strong enough to support your story?',
+      icon: '🎧',
+      title: 'Build Your Case',
+      concept: 'Listen & Describe',
+      essentialQuestion: 'How do you describe music so other people can hear it through your words?',
       color: 'from-blue-700 to-cyan-700',
       route: '/lessons/music-journalist/lesson3',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students read and annotate a minimum of three articles, evaluate and save images from the MMA image library, organize their research board by tagging highlights with slide numbers, and play Headline Writer to practice writing compelling headlines.',
+      inThisLesson: 'Students listen critically to their artist\'s tracks using 6 music descriptors (tempo, mood, instrumentation, hook, production, influence), write a Sound Statement, form 3 evidence-backed reasons why their artist should go viral, and play Source or Not to evaluate credibility.',
       studentsWill: [
-        'Read and annotate a minimum of three articles on their chosen topic',
-        'Evaluate and save images from the MMA image library',
-        'Organize research board for presentation building'
+        'Analyze music using 6 specific descriptors from the Music Description Toolkit',
+        'Write a Sound Statement that captures their artist\'s unique sound in one sentence',
+        'Form 3 evidence-backed reasons why their artist deserves to go viral'
       ],
       activities: [
-        { title: 'Evidence Check', description: 'Review your research — is it specific and strong?', time: 5 },
-        { title: 'Read Your Third Article', description: 'Find a new angle or detail for your topic', time: 12 },
-        { title: 'Image Library', description: 'Search and save images for your presentation', time: 8 },
-        { title: 'Organize Research Board', description: 'Tag each highlight with a slide number', time: 8 },
-        { title: 'Headline Writer', description: 'Write the best headline — class votes on the winner!', time: 10, activityType: 'headline-writer' }
+        { title: 'Hook: Same Genre, Different Sound', description: 'Two "rock" clips that sound nothing alike — describe the difference', time: 3 },
+        { title: 'Music Description Toolkit', description: 'Learn 6 ways to describe music: tempo, mood, instrumentation, hook, production, influence', time: 5 },
+        { title: 'Critical Listening Session', description: 'Listen to your artist\'s tracks and fill out the Listening Guide', time: 15, activityType: 'listening-guide' },
+        { title: 'Source or Not?', description: 'Can you spot a credible music source vs random noise?', time: 7, activityType: 'source-or-not' },
+        { title: 'Preview', description: 'Bring your Research Board, Sound Statement, and 3 reasons to Lesson 4', time: 3 }
       ]
     },
     {
       id: 'mj-lesson4',
       number: 4,
-      icon: '🛠️',
-      title: 'Build Your Story',
-      concept: 'Slide Builder',
-      essentialQuestion: 'How do you turn research into a story people want to hear?',
+      icon: '🎨',
+      title: 'Design the Campaign',
+      concept: 'Press Kit Builder',
+      essentialQuestion: 'How do you tell someone\'s story in a way that makes people care?',
       color: 'from-cyan-700 to-teal-600',
       route: '/lessons/music-journalist/lesson4',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students open the MMA slide builder to construct their 4-slide presentation. They drag highlights and images from their research board directly into slides. Partners see each other\'s work in real time and have assigned slide ownership.',
+      inThisLesson: 'Students use the Press Kit Designer to build a 5-slide visual campaign for their artist. They choose layouts, pick colors, place images, and drag text — all pre-populated from their research. Partners review each other\'s work and give feedback.',
       studentsWill: [
-        'Use the MMA slide builder to construct a 4-slide presentation',
-        'Drag annotated highlights and saved images into slides',
-        'Write original slide text using research as evidence'
+        'Design a 5-slide press kit with layouts, colors, images, and evidence-backed content',
+        'Pull research from their Research Board and Listening Guide into the presentation',
+        'Give and receive constructive peer feedback'
       ],
       activities: [
-        { title: 'Presentation Structure', description: 'Learn the 4-slide format: Intro, Why It Matters, Interesting, Your Take', time: 5 },
-        { title: 'Slide Builder', description: 'Build your presentation — drag from research board into slides', time: 30, activityType: 'mj-slide-builder' }
+        { title: 'The 5-Slide Structure', description: 'Learn each slide: Meet, Sound, Why, Listen, Go Viral', time: 5 },
+        { title: 'Build Your Press Kit', description: 'Design your campaign — layouts, colors, images, text', time: 25, activityType: 'mj-press-kit' },
+        { title: 'Peer Review', description: 'Swap with a partner — strongest slide? What\'s missing?', time: 5, activityType: 'mj-peer-feedback' },
+        { title: 'Presentation Prep', description: 'Polish and prepare for Launch Day', time: 5 }
       ]
     },
     {
       id: 'mj-lesson5',
       number: 5,
-      icon: '🎤',
-      title: 'Press Day',
-      concept: 'Present & Reflect',
-      essentialQuestion: 'What does it mean to share your story with the world?',
+      icon: '🚀',
+      title: 'Launch Day',
+      concept: 'Pitch & Vote',
+      essentialQuestion: 'Can you convince someone to care about something you believe in?',
       color: 'from-teal-600 to-emerald-600',
       route: '/lessons/music-journalist/lesson5',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Presentation day! Students deliver 2-3 minute presentations from their completed slides. Speaker notes are visible only on the presenter\'s device. After each presentation, classmates submit structured peer feedback. All work auto-saves to student portfolio.',
+      inThisLesson: 'Launch Day! Students present their 2-3 minute pitches with press kits on screen and music playing. Classmates submit peer feedback after each pitch. The class votes on whose artist goes viral. Awards: Gone Viral, Best Hook, Best Sound Statement, Strongest Case, Best Campaign Design, Crowd Favorite.',
       studentsWill: [
-        'Deliver a 2-3 minute presentation from completed slides',
-        'Practice public speaking with notes-view support',
-        'Provide and receive structured peer feedback'
+        'Deliver a persuasive 2-3 minute pitch backed by evidence',
+        'Listen critically and provide constructive peer feedback',
+        'Vote on whose artist deserves to go viral based on pitch quality'
       ],
       activities: [
-        { title: 'Presentation Format', description: 'Review expectations: 2-3 minutes, both partners speak', time: 3 },
-        { title: 'Presentations', description: 'Present your story — slides full screen, notes on your device', time: 30, activityType: 'mj-presentation' },
-        { title: 'Peer Feedback', description: 'Write specific feedback for each presenter', time: 10, activityType: 'mj-peer-feedback' }
+        { title: 'Welcome to Launch Day', description: 'Set the scene — you are agents, this room is your audience', time: 3 },
+        { title: 'The Pitches', description: '2-3 min per agent — press kit on screen, music plays, make your case', time: 25, activityType: 'mj-presentation' },
+        { title: 'Peer Feedback', description: 'One thing that convinced you + one thing to improve', time: 3, activityType: 'mj-peer-feedback' },
+        { title: 'The Vote', description: 'Whose artist goes viral? Class votes now.', time: 3, activityType: 'artist-vote' },
+        { title: 'Results & Awards', description: 'Gone Viral, Best Hook, Strongest Case, Crowd Favorite', time: 5 }
       ]
     }
   ];
@@ -252,12 +256,12 @@ const MusicJournalistHub = () => {
 
         {/* Unit Header */}
         <div className="text-center mb-8">
-          <div className="text-5xl mb-3">📰</div>
-          <h1 className="text-4xl font-black text-white mb-2">Music Journalist</h1>
-          <p className="text-lg text-[#f0b429] font-semibold mb-1">Read, Research & Report on the World of Music</p>
+          <div className="text-5xl mb-3">🎯</div>
+          <h1 className="text-4xl font-black text-white mb-2">Music Agent</h1>
+          <p className="text-lg text-[#f0b429] font-semibold mb-1">Discover Talent. Build the Case. Make Them Go Viral.</p>
           <p className="text-white/50 max-w-2xl mx-auto">
-            Students explore current music news, develop research skills, annotate real articles,
-            and produce a multimedia presentation about an artist or music topic of their choice.
+            Students discover emerging artists, research their stories, analyze their music,
+            design a visual press kit campaign, and pitch to the class — who goes viral?
           </p>
         </div>
 

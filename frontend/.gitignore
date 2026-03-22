@@ -27,3 +27,5 @@ dist/
 
 # Original untrimmed video files (kept locally for re-trimming)
 *-original.mp4
+public/audio/artists/
+CC-ARTIST-DOWNLOAD-GUIDE.md

@@ -1,227 +1,214 @@
 // File: /src/lessons/music-journalist/lesson5/summarySlideContent.js
-// All instructional text and content for Music Journalist Lesson 5 - Press Day
-// "Present Your Story to the World"
+// All instructional text and content for Music Agent Unit — Lesson 5
+// "Launch Day"
+// Students present their press kits, class votes on whose artist goes viral
+//
+// Standards:
+// - MU:Re9.1.7 — Apply criteria, give constructive feedback
+// - CCSS.ELA-LITERACY.SL.7.4 — Present claims and findings with relevant evidence
+// - ISTE 6d — Publish and present for intended audiences
 
 // ========================================
 // 1. SLIDE CONTENT FOR PRESENTATION VIEW
 // ========================================
 export const summarySlides = {
-  // Slide 1 - Today You Publish
-  publishDay: {
-    title: "Press Day",
-    subtitle: "Today You Publish Your Story",
-    icon: "📰",
-    journey: [
-      {
-        lesson: 1,
-        title: "Read Like a Journalist",
-        summary: "You learned to read critically and find the story behind the story"
-      },
-      {
-        lesson: 2,
-        title: "Find Your Beat",
-        summary: "You chose your topic and started researching"
-      },
-      {
-        lesson: 3,
-        title: "Deep Dive",
-        summary: "You gathered strong evidence and organized your research"
-      },
-      {
-        lesson: 4,
-        title: "Build Your Story",
-        summary: "You turned your research into a 4-slide presentation"
-      },
-      {
-        lesson: 5,
-        title: "Press Day",
-        summary: "TODAY - you present your story to the world!"
-      }
-    ],
-    todaysAgenda: [
-      "PRESENT your story to the class",
-      "Give and receive PEER FEEDBACK",
-      "Celebrate becoming a MUSIC JOURNALIST!"
-    ],
-    teacherNote: "Build excitement and reduce anxiety. Remind students that everyone is presenting and the class will be supportive. This is a celebration, not a test."
+  // Welcome
+  welcome: {
+    title: 'Launch Day',
+    subtitle: 'Make your artist go viral',
+    essentialQuestion: 'Can you convince someone to care about something you believe in?',
+    iCan: 'I can present a persuasive pitch using evidence, music, and visual design to promote an emerging artist.',
+    body: 'Today you are not students. You are agents in a room full of people who have never heard of your artist. Your job: make them care. Make them press play. Make them remember the name.',
+    teacherNote: 'Set the professional tone immediately. Dim the lights if possible. This is a performance, not a class presentation. The energy matters.'
   },
 
-  // Slide 2 - Presentation Format
-  presentationFormat: {
-    title: "Presentation Format",
-    subtitle: "How This Will Work",
-    icon: "🎤",
-    forPresenter: [
-      "You have about 2 MINUTES to present your 4 slides",
-      "Don't just READ your slides - TELL your story",
-      "Make eye contact with the audience",
-      "Be ready for ONE question from the audience"
+  // Presentation Norms
+  presentationNorms: {
+    title: 'How This Works',
+    subtitle: 'Norms for Launch Day',
+    forPresenters: [
+      '2-3 minutes — that is all you get. Make every second count.',
+      'TELL the story — do not read your slides word for word',
+      'Make eye contact — you are selling, not reporting',
+      'You MUST play or reference a song — let the music speak',
+      'End with a CALL TO ACTION — tell us what to do'
     ],
     forAudience: [
-      "Listen actively and respectfully",
-      "Think of ONE thing you liked and ONE question to ask",
-      "You'll give written feedback after presentations",
-      "Support your classmates - this takes courage!"
+      'SILENT during pitches — give every agent respect',
+      'Snap or clap AFTER — show appreciation',
+      'Fill out the FEEDBACK FORM for each presenter',
+      'Be ready with ONE QUESTION if time allows',
+      'Vote with your HONEST OPINION — which artist deserves it?'
     ],
-    presentationOrder: {
-      method: "Random or volunteer-based",
-      timePerStudent: "~2 minutes presenting + ~1 minute for questions",
-      teacherNote: "Consider having 2-3 volunteers go first to set the tone. Use a random name picker if needed."
-    },
-    tips: [
-      "Take a deep breath before you start",
-      "Speak slowly - slower than you think you need to",
-      "It's okay to glance at your slides for reference",
-      "Smile - you worked hard on this!"
-    ],
-    teacherNote: "Review expectations clearly. Model what good audience behavior looks like. Consider having a brief practice round where one student presents their first slide."
+    teacherNote: 'Read through norms quickly. Enforce silence during presentations — it makes the room feel professional and raises the stakes.'
   },
 
-  // Slide 3 - Portfolio View
-  portfolioView: {
-    title: "Your Journalist Portfolio",
-    subtitle: "Look at Everything You Created",
-    icon: "📁",
-    unitWork: [
-      "Read and analyzed MULTIPLE music articles",
-      "Built a RESEARCH BOARD with strong evidence",
-      "Wrote attention-grabbing HEADLINES",
-      "Created a 4-SLIDE PRESENTATION",
-      "PRESENTED your story to an audience"
+  // During Presentations
+  presentations: {
+    title: 'The Pitches',
+    subtitle: 'Each agent has 2-3 minutes',
+    flow: [
+      'Agent presents their 5-slide press kit',
+      'Teacher plays the featured track (30-60 seconds)',
+      'Quick reaction — snap, clap, or comment',
+      'Next agent'
     ],
-    skillsDeveloped: [
+    teacherNote: 'Keep transitions tight. Use a timer visible to students. Play the track during or after the presentation depending on how the student sets it up. The music is the most important moment — make sure speakers are working and volume is right.'
+  },
+
+  // Peer Feedback
+  peerFeedback: {
+    title: 'Feedback Time',
+    subtitle: 'Help Each Other Get Better',
+    instructions: [
+      'For each presenter, write:',
+      '1. ONE THING that convinced you (be specific)',
+      '2. ONE THING that could be stronger (be constructive)',
+    ],
+    starterSentences: {
+      convinced: [
+        'I was convinced when you said...',
+        'The strongest evidence was...',
+        'The moment I wanted to listen was...',
+        'Your Sound Statement made me...'
+      ],
+      stronger: [
+        'Slide __ could use more...',
+        'I wanted to know more about...',
+        'The evidence would be stronger if...',
+        'The call to action could be more specific, like...'
+      ]
+    },
+    teacherNote: 'Students fill out feedback during or right after each presentation. Keep it short — 1-2 sentences each. Quality matters more than quantity.'
+  },
+
+  // The Vote
+  theVote: {
+    title: 'The Vote',
+    subtitle: 'Whose Artist Goes Viral?',
+    description: 'You have heard every pitch. You have seen every press kit. Now vote: which artist deserves to blow up? Vote based on the PITCH, not just the music — who made the strongest case?',
+    criteria: [
+      'Strength of evidence (facts, numbers, sources)',
+      'Quality of Sound Statement (could you hear the music?)',
+      'Design of the press kit (visual impact)',
+      'Delivery of the pitch (confidence, storytelling)',
+      'The music itself (did it make you want to listen more?)'
+    ],
+    teacherNote: 'One vote per student. Real-time results via Firebase. Build suspense — do not reveal results immediately. Count down.'
+  },
+
+  // Results & Awards
+  results: {
+    title: 'The Results',
+    subtitle: 'And the Winner Is...',
+    awards: [
       {
-        skill: "Critical Reading",
-        description: "You can read an article and identify the key evidence"
+        name: 'Gone Viral',
+        icon: 'trophy',
+        color: '#F59E0B',
+        description: 'The artist with the most votes — the class chose YOUR artist to blow up',
+        criteria: 'Most votes'
       },
       {
-        skill: "Research",
-        description: "You can find, evaluate, and organize information from multiple sources"
+        name: 'Best Hook',
+        icon: 'zap',
+        color: '#EF4444',
+        description: 'The opening that grabbed the room — you had us from the first sentence',
+        criteria: 'Most compelling opening pitch'
       },
       {
-        skill: "Writing",
-        description: "You can write clear, compelling text for an audience"
+        name: 'Best Sound Statement',
+        icon: 'music',
+        color: '#3B82F6',
+        description: 'We could HEAR the music through your words — that is a real skill',
+        criteria: 'Most vivid, specific music description'
       },
       {
-        skill: "Visual Storytelling",
-        description: "You can pair images with text to tell a stronger story"
+        name: 'Strongest Case',
+        icon: 'shield',
+        color: '#10B981',
+        description: 'Your evidence was airtight — facts, numbers, sources, proof',
+        criteria: 'Best evidence quality'
       },
       {
-        skill: "Public Speaking",
-        description: "You can present your work confidently to a group"
+        name: 'Best Campaign Design',
+        icon: 'palette',
+        color: '#8B5CF6',
+        description: 'Your press kit looked like it came from a real agency',
+        criteria: 'Most professional visual design'
+      },
+      {
+        name: 'Crowd Favorite',
+        icon: 'heart',
+        color: '#EC4899',
+        description: 'The pitch that got the biggest reaction from the room',
+        criteria: 'Most audience engagement'
       }
     ],
-    teacherNote: "This is a moment for students to feel proud. Read through the skills slowly and let students appreciate how much they've grown."
+    teacherNote: 'Reveal the main winner (Gone Viral) last for maximum impact. Other awards can be teacher-chosen or class-nominated. Make it feel like a real awards moment.'
   },
 
-  // Slide 4 - Unit Celebration
-  unitCelebration: {
-    title: "You Are a Music Journalist!",
-    subtitle: "Congratulations on Completing the Unit",
-    icon: "🏆",
-    whatMakesAJournalist: [
-      "A journalist READS carefully and asks questions",
-      "A journalist RESEARCHES deeply and finds strong evidence",
-      "A journalist TELLS stories that help people understand the world",
-      "A journalist uses FACTS to inform, not just opinions"
+  // Reflection & Celebration
+  celebration: {
+    title: 'You Did It',
+    subtitle: 'What You Just Accomplished',
+    reflection: [
+      {
+        question: 'What did you learn about MUSIC through this project?',
+        hint: 'Think about genres, instruments, production, or artists you didn\'t know before.'
+      },
+      {
+        question: 'Did anyone discover a genre they didn\'t expect to like?',
+        hint: 'Raise your hand if you found something outside your comfort zone.'
+      },
+      {
+        question: 'What was hardest: the research, the writing, or the presenting?',
+        hint: 'All three are skills that get better with practice.'
+      },
+      {
+        question: 'Would you actually follow your artist after this?',
+        hint: 'If yes, that means the project worked — you genuinely connected with their music.'
+      }
     ],
-    youDidAllOfThat: [
-      "You chose a topic YOU cared about",
-      "You dug deep to find the real story",
-      "You organized your thinking and built something to share",
-      "You stood up and presented with courage"
+    skillsSummary: [
+      'CRITICAL LISTENING — you can describe music with precision, not just feelings',
+      'RESEARCH — you can find and evaluate evidence from credible sources',
+      'PERSUASIVE WRITING — you can build an argument backed by facts',
+      'VISUAL DESIGN — you can create a campaign that communicates visually',
+      'PUBLIC SPEAKING — you can stand up and make a case to a live audience'
     ],
-    keepGoing: [
-      "Music journalism is everywhere - blogs, magazines, YouTube, podcasts",
-      "The skills you learned work for ANY topic, not just music",
-      "Next time you read a news story, notice the Hook, Background, Evidence, and So What!",
-      "Consider starting a music blog or podcast of your own!"
+    portfolio: [
+      'Research Board with highlighted evidence',
+      'Listening Guide with track analysis',
+      'Sound Statement',
+      '5-Slide Press Kit',
+      'Peer feedback given and received'
     ],
-    finalMessage: "The world needs more thoughtful, evidence-based storytellers. You just proved you can be one.",
-    teacherNote: "End on a high note. Consider having students share one thing they're proud of from the unit. If time allows, ask who might want to pursue journalism or writing in the future."
+    closingMessage: 'You just did what REAL music agents do every day. You found talent that nobody else was paying attention to, you built the case, you designed the campaign, and you presented it to the world. These skills — research, writing, design, and speaking — transfer to any career. The music was just the beginning.',
+    teacherNote: 'End on a high note. If time allows, have students share one artist from another student\'s pitch that they want to follow. This validates the work and shows that the pitches actually worked.'
+  },
+
+  // Lesson Complete
+  lessonComplete: {
+    title: 'Unit Complete!',
+    subtitle: 'You Are a Music Agent',
+    summary: [
+      'You discovered an emerging artist that nobody in this class knew about',
+      'You researched their story with specific, verifiable evidence',
+      'You described their music so precisely that people could hear it through your words',
+      'You designed a visual campaign that made people care',
+      'You stood up and made your case to a live audience'
+    ],
+    celebration: 'Go follow your artist. Share their music. You believed in them — now make it real.'
   }
 };
 
 // ========================================
-// 2. PEER FEEDBACK STRUCTURE
-// ========================================
-export const peerFeedbackTemplate = {
-  title: "Peer Feedback",
-  subtitle: "Help Your Classmates Grow",
-  instructions: [
-    "Think about the presentation you just watched",
-    "Write ONE specific thing you liked",
-    "Write ONE specific suggestion for improvement",
-    "Be KIND, SPECIFIC, and HELPFUL"
-  ],
-  starterSentences: {
-    liked: [
-      "I liked how you...",
-      "Your strongest slide was ___ because...",
-      "The evidence you used about ___ was really compelling because...",
-      "Your headline grabbed my attention because...",
-      "I learned something new: ..."
-    ],
-    suggestion: [
-      "One thing that could make it even better: ...",
-      "I wanted to hear more about...",
-      "Your ___ slide could be stronger if you added...",
-      "Consider using a more specific example for...",
-      "The audience might connect more if you..."
-    ]
-  },
-  rubric: [
-    {
-      category: "Hook",
-      question: "Did the headline and opening make you want to hear more?"
-    },
-    {
-      category: "Evidence",
-      question: "Did they use specific quotes, numbers, or facts?"
-    },
-    {
-      category: "Storytelling",
-      question: "Did the presentation flow like a story (not just a list of facts)?"
-    },
-    {
-      category: "Delivery",
-      question: "Did the presenter speak clearly and engage the audience?"
-    }
-  ]
-};
-
-// ========================================
-// 3. PRESENTATION TIPS
-// ========================================
-export const presentationTips = {
-  beforeYouPresent: [
-    "Take three deep breaths",
-    "Review your slides one last time",
-    "Remember: you know this topic better than anyone in the room",
-    "The audience WANTS you to succeed"
-  ],
-  duringYourPresentation: [
-    "Start with your headline - say it with confidence",
-    "Look up from your slides and make eye contact",
-    "Speak slowly and clearly - pause between slides",
-    "If you lose your place, just take a breath and continue"
-  ],
-  handlingQuestions: [
-    "Listen to the full question before answering",
-    "It's okay to say 'That's a great question, I'm not sure but I think...'",
-    "Connect your answer back to your evidence",
-    "Thank the person for their question"
-  ]
-};
-
-// ========================================
-// 4. VOCABULARY FOR THIS LESSON
+// 2. VOCABULARY FOR THIS LESSON
 // ========================================
 export const vocabulary = [
-  { term: 'Peer Feedback', definition: 'Constructive comments from classmates to help improve work' },
-  { term: 'Constructive', definition: 'Helpful and focused on improvement, not criticism' },
-  { term: 'Portfolio', definition: 'A collection of your best work that shows your skills' },
-  { term: 'Delivery', definition: 'How you present - voice, eye contact, confidence, pacing' },
-  { term: 'Audience Engagement', definition: 'Keeping listeners interested and connected to your story' },
-  { term: 'Publish', definition: 'To share your work with an audience' }
+  { term: 'Pitch', definition: 'A short, persuasive presentation designed to convince someone to take action — the culmination of your research and design' },
+  { term: 'Call to Action', definition: 'The specific thing you want your audience to do — follow, listen, share, sign' },
+  { term: 'Peer Feedback', definition: 'Constructive comments from classmates — what worked and what could be stronger' },
+  { term: 'Go Viral', definition: 'When content spreads rapidly — your goal is to make the class believe your artist is the next one to blow up' }
 ];

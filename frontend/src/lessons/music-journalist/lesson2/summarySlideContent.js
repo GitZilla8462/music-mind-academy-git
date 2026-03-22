@@ -1,538 +1,182 @@
 // File: /src/lessons/music-journalist/lesson2/summarySlideContent.js
-// All instructional text and content for Lesson 2 - Find Your Beat
-// "Choose your topic and start building your research board"
+// All instructional text and content for Music Agent Unit — Lesson 2
+// "Claim Your Artist"
+// Students choose their artist, research their story, learn strong vs weak evidence
+//
+// Standards:
+// - MU:Cn10.0.7 — Personal interests influence musical selection
+// - CCSS.ELA-LITERACY.RI.7.1 — Cite textual evidence to support analysis
+// - CCSS.ELA-LITERACY.W.7.7 — Short research projects using multiple sources
 
 // ========================================
 // 1. SLIDE CONTENT FOR PRESENTATION VIEW
 // ========================================
 export const summarySlides = {
-  // Slide 1 - Welcome Hook
+  // Welcome Hook
   welcomeHook: {
-    title: "Find Your Beat",
-    subtitle: "Choose your topic and start building your research board",
-    essentialQuestion: "What makes a music story worth investigating?",
-    iCan: "I can choose a research topic and identify credible sources.",
+    title: 'Claim Your Artist',
+    subtitle: 'Find the one nobody knows about yet',
+    essentialQuestion: 'What makes an artist worth believing in?',
+    iCan: 'I can select an emerging artist and identify strong evidence about why they deserve attention.',
     agenda: [
-      "Browse the NEWS FEED for music stories",
-      "Choose YOUR TOPIC using a checklist",
-      "Start your RESEARCH BOARD with real articles",
-      "Play SOURCE OR NOT? to sharpen your credibility skills"
+      'Review: What makes an artist worth signing?',
+      'CHOOSE your artist from the platform',
+      'Research their story — build your evidence',
+      'Play FACT OR OPINION to sharpen your skills'
     ],
     hook: {
-      title: "What Story Do YOU Want to Tell?",
+      title: 'Imagine This...',
       prompts: [
-        "Every great journalist starts with a question they care about",
-        "Today YOU pick the music story you want to investigate",
-        "Your topic will drive your entire project"
+        'You are scrolling through music and you hear something that stops you',
+        'Something about this artist is DIFFERENT — their sound, their story, their energy',
+        'Today you find that artist and make them YOURS'
       ]
     },
-    teacherNote: "Start by asking students what music topics they are curious about. Get a few responses before showing the agenda. Energy is key here - this is where students take ownership of their project."
+    teacherNote: 'Build urgency — this is the commitment moment. Once they choose, that artist is theirs for the rest of the unit. First come, first served means they need to be decisive.'
   },
 
-  // Slide 2 - Browse News Feed
-  browseNewsFeed: {
-    title: "Browsing the News Feed",
-    subtitle: "Find Stories That Interest You",
-    icon: "📰",
-    features: [
-      {
-        name: "Top Stories",
-        description: "Curated headlines updated regularly",
-        icon: "📌"
-      },
-      {
-        name: "Search",
-        description: "Type keywords to find specific topics",
-        icon: "🔍"
-      },
-      {
-        name: "Genre Filters",
-        description: "Hip-hop, Pop, Rock, Classical, Jazz, Electronic, and more",
-        icon: "🎵"
-      },
-      {
-        name: "Archive",
-        description: "Older stories organized by date and category",
-        icon: "📁"
-      }
-    ],
-    proTips: [
-      "Skim headlines first - do not read every article yet",
-      "Star stories that catch your eye",
-      "Look for topics with MULTIPLE articles (you will need at least 3)",
-      "Think about what connects to your life or to class discussions"
-    ],
-    teacherNote: "Walk students through the news feed interface on the main screen. Show them how to use filters and search. Spend about 1 minute demonstrating, then let them explore on their own devices."
-  },
-
-  // Slide 3 - Choosing a Strong Topic
-  choosingTopic: {
-    title: "Choosing a Strong Topic",
-    subtitle: "Use This Checklist",
-    icon: "✅",
+  // What Makes an Artist Worth It?
+  worthSigning: {
+    title: 'What Makes an Artist Worth It?',
+    subtitle: 'The 4-Point Checklist',
     checklist: [
       {
-        item: "3+ Articles Available",
-        description: "You need enough sources to research thoroughly",
-        icon: "📚"
+        label: 'Unique Sound',
+        icon: 'music',
+        description: 'Do they sound DIFFERENT from everyone else? Can you hear their voice in a crowd?',
+        question: 'If you played their song in a room of 100 songs, would it stand out?'
       },
       {
-        item: "Explainable in One Sentence",
-        description: "If you cannot explain it simply, it might be too broad or confusing",
-        icon: "💬"
+        label: 'Story',
+        icon: 'bookOpen',
+        description: 'Where are they from? What drives them? Is there something about their background that makes you care?',
+        question: 'Could you tell someone their story in 30 seconds and make them interested?'
       },
       {
-        item: "Connects to Class",
-        description: "Relates to something we have discussed or will discuss",
-        icon: "🔗"
+        label: 'Growth',
+        icon: 'trendingUp',
+        description: 'Are they getting better? Are more people discovering them? Is there momentum?',
+        question: 'Is this artist on the way UP — or have they peaked?'
       },
       {
-        item: "Interesting to YOU",
-        description: "You will be working on this for multiple lessons - pick something you care about",
-        icon: "❤️"
+        label: 'Your Gut',
+        icon: 'heart',
+        description: 'Do YOU believe in this artist? Would you stake your reputation on them?',
+        question: 'If you had one shot to make an artist blow up, would you pick THIS one?'
       }
     ],
-    strongExamples: [
-      "How streaming changed the way artists release music",
-      "Why K-pop is growing so fast in the U.S.",
-      "The debate over AI-generated music",
-      "How TikTok turns unknown songs into hits"
-    ],
-    weakExamples: [
-      { topic: "Music", reason: "Too broad - what about music?" },
-      { topic: "My favorite song", reason: "Too personal, not researchable" },
-      { topic: "A song from 1342", reason: "Not enough sources available" }
-    ],
-    teacherNote: "Go through each checklist item. Ask students to give thumbs up/down on the examples. The weak examples usually get laughs and help clarify what NOT to do."
+    teacherNote: 'Walk through each point. Emphasize that agents use ALL FOUR — not just gut feeling. The research in this unit is about backing up your gut with evidence.'
   },
 
-  // Slide 4 - Partner Setup
-  partnerSetup: {
-    title: "Working Solo or With a Partner",
-    subtitle: "Your Teacher Will Set This Up",
-    icon: "🤝",
-    soloMode: {
-      title: "If Solo",
-      points: [
-        "You choose your own topic",
-        "You build your own research board",
-        "You write your own article"
-      ]
-    },
-    partnerMode: {
-      title: "If Partners",
-      points: [
-        "You and your partner agree on ONE topic",
-        "You split the reading - each person reads different articles",
-        "You combine highlights on a shared research board",
-        "You co-write the final article"
-      ]
-    },
-    eitherWay: [
-      "Everyone is responsible for reading at least 2 articles today",
-      "Everyone saves highlights to the research board"
-    ],
-    teacherNote: "This is configured in the teacher dashboard before the lesson. If partners, give students 1-2 minutes to discuss and agree on a shared topic."
-  },
-
-  // Slide 5 - Save Topic Instructions
-  saveTopicInstructions: {
-    title: "Save Your Topic",
-    subtitle: "Time to Commit!",
-    icon: "💾",
-    steps: [
+  // Strong vs Weak Evidence
+  strongVsWeak: {
+    title: 'Strong vs Weak Evidence',
+    subtitle: 'What Would Convince a Label?',
+    strong: [
       {
-        step: 1,
-        icon: "✏️",
-        title: "Type your topic",
-        description: "Write your topic as a clear, specific question or statement"
+        statement: 'Their EP has 12,000 streams in 3 months',
+        why: 'Specific number + specific timeframe = verifiable growth'
       },
       {
-        step: 2,
-        icon: "✅",
-        title: "Check the checklist",
-        description: "Make sure your topic passes all four criteria"
+        statement: 'Featured on Bandcamp Daily in October 2025',
+        why: 'Named source + specific date = credible press mention'
       },
       {
-        step: 3,
-        icon: "💾",
-        title: "Click Save",
-        description: "Lock in your topic - you can edit it later if needed"
+        statement: 'Self-released debut at age 20, Pitchfork gave it Best New Music',
+        why: 'Specific achievement + recognized publication = strong credential'
       }
     ],
-    teacherNote: "Monitor the dashboard to see which students have saved topics. Help students who are stuck narrow down their ideas."
-  },
-
-  // Slide 6 - Research Session Instructions
-  researchSession: {
-    title: "Research Session",
-    subtitle: "Read, Highlight, Save",
-    icon: "🔬",
-    goals: [
-      "Read at least 2 ARTICLES related to your topic",
-      "HIGHLIGHT key quotes, facts, and ideas",
-      "SAVE highlights to your research board",
-      "Note the SOURCE for each highlight (author, publication, date)"
-    ],
-    whatMakesGoodHighlight: [
+    weak: [
       {
-        type: "Surprising Fact or Statistic",
-        example: "Streaming now accounts for 84% of music industry revenue",
-        icon: "📊"
+        statement: 'They are really good',
+        why: 'Vague — what does "good" mean? No specifics.'
       },
       {
-        type: "Direct Quote",
-        example: "As Taylor Swift said, 'Music is art, and art should be paid for'",
-        icon: "💬"
+        statement: 'A lot of people like them',
+        why: 'How many? Where? "A lot" means nothing without data.'
       },
       {
-        type: "Key Idea",
-        example: "AI-generated music raises questions about copyright ownership",
-        icon: "💡"
-      },
-      {
-        type: "Something You Disagree With",
-        example: "The author claims vinyl is making a comeback, but the data is mixed",
-        icon: "🤔"
+        statement: 'They should be famous',
+        why: 'Opinion without evidence — WHY should they be famous?'
       }
     ],
-    earlyFinishers: [
-      "Read a 3rd article",
-      "Organize your highlights by theme",
-      "Write a one-sentence summary of each article"
-    ],
-    teacherNote: "Set the timer for 15 minutes. Walk around and check in with students. Encourage them to highlight specific passages, not just star whole articles. Monitor the dashboard for progress."
+    rule: 'Strong evidence has NUMBERS, NAMES, DATES, and SOURCES. Weak evidence has VAGUE WORDS and NO PROOF.',
+    teacherNote: 'This is the most important slide for the unit. Every pitch in Lesson 5 will be judged on evidence quality. Plant the seed now that "I like them" is not enough — agents need proof.'
   },
 
-  // Slide 7 - Source or Not? Game Intro
-  sourceOrNotIntro: {
-    title: "Source or Not?",
-    subtitle: "The News Credibility Challenge",
-    icon: "🕵️",
-    howToPlay: [
-      "You will see a music news headline and source",
-      "Decide: Is this a CREDIBLE source or NOT?",
-      "Answer quickly for bonus points!",
-      "After each round, see WHY the source is credible or not"
-    ],
-    credibleSignals: [
+  // Research Session
+  researchIntro: {
+    title: 'Research Your Artist',
+    subtitle: 'Build Your Evidence Board',
+    description: 'You have your artist. Now dig into their profile and find the facts that will make your case. Save at least 5 strong pieces of evidence to your Research Board.',
+    tasks: [
       {
-        signal: "Known, Reputable Outlet",
-        examples: "Rolling Stone, Billboard, NPR Music, Pitchfork",
-        icon: "✅"
+        label: 'Read the Bio',
+        description: 'Where are they from? When did they start? What is their story?'
       },
       {
-        signal: "Identified Author",
-        examples: "Written by a named journalist with a bio",
-        icon: "✅"
+        label: 'Check the Numbers',
+        description: 'How many albums? What instruments? When did they form?'
       },
       {
-        signal: "Verifiable Facts",
-        examples: "Claims can be checked against other sources",
-        icon: "✅"
+        label: 'Find the Hook',
+        description: 'What is the ONE thing about this artist that would make someone stop scrolling?'
       },
       {
-        signal: "Professional Editing",
-        examples: "Proper grammar, citations, balanced reporting",
-        icon: "✅"
+        label: 'Save to Research Board',
+        description: 'Highlight and save at least 5 facts that you can use in your pitch'
       }
     ],
-    notCredibleSignals: [
-      {
-        signal: "Anonymous Blog Post",
-        examples: "No author name, no publication standards",
-        icon: "❌"
-      },
-      {
-        signal: "Clickbait Headlines",
-        examples: "YOU WON'T BELIEVE what this artist did!!!",
-        icon: "❌"
-      },
-      {
-        signal: "No Sources Cited",
-        examples: "Claims made without evidence or references",
-        icon: "❌"
-      },
-      {
-        signal: "Opinion Disguised as News",
-        examples: "Personal rants presented as factual reporting",
-        icon: "❌"
-      }
-    ],
-    teacherNote: "This game reinforces media literacy. After the game, connect it back to their research: the sources they choose for their project matter."
+    teacherNote: 'Students should spend the full 12 minutes reading and saving. Walk around and check that they are finding SPECIFIC facts, not just reading casually.'
   },
 
-  // Slide 8 - Reflection
-  reflection: {
-    title: "Portfolio Reflection",
-    subtitle: "Think About Your Choices",
-    icon: "💭",
+  // Checkpoint
+  checkpoint: {
+    title: 'Agent Checkpoint',
+    subtitle: 'Where Do You Stand?',
     prompts: [
       {
         number: 1,
-        question: "What topic did you choose, and WHY does it interest you?",
-        hint: "Think about what drew you to this story"
+        question: 'Tell your neighbor: Who did you pick and WHY?',
+        hint: 'Use at least one specific fact from your research, not just "I liked their sound."'
       },
       {
         number: 2,
-        question: "What is one thing you learned from your research today?",
-        hint: "A fact, quote, or idea that surprised you"
-      },
-      {
-        number: 3,
-        question: "How will you know if a source is trustworthy for your project?",
-        hint: "Think about what you learned from Source or Not?"
+        question: 'What is the strongest piece of evidence you found?',
+        hint: 'Think: would this convince a label executive?'
       }
     ],
-    lookingAhead: [
-      "Next class: Continue building your research board",
-      "Goal: 5+ highlights from 3+ articles before you start writing"
-    ],
-    teacherNote: "Give students 3-4 minutes for written reflection. These responses save to their portfolio and help you assess understanding."
+    lookingAhead: 'Next lesson, you will LISTEN to your artist\'s music like a critic. You will write a Sound Statement — one sentence that captures exactly what they sound like. Bring your research.',
+    teacherNote: 'Quick partner share. Listen for students using specific evidence vs vague opinions. Call out strong examples to the class.'
   },
 
-  // Slide 9 - Lesson Complete
+  // Lesson Complete
   lessonComplete: {
-    title: "Great Work Today!",
-    subtitle: "You Found Your Beat",
-    icon: "🎉",
-    accomplishments: [
-      "Chose a research topic that passes the checklist",
-      "Read articles and started your research board",
-      "Learned how to spot credible vs. non-credible sources"
+    title: 'Lesson 2 Complete!',
+    subtitle: 'You Have Your Artist',
+    summary: [
+      'You chose an emerging artist and committed to representing them',
+      'Strong evidence uses NUMBERS, NAMES, DATES, and SOURCES',
+      'Weak evidence uses vague words with no proof',
+      'Your Research Board has at least 5 facts to build your case'
     ],
-    nextTime: [
-      "Continue your research with more articles",
-      "Start organizing your highlights into an outline",
-      "Get ready to write your first draft!"
-    ],
-    teacherNote: "Quick verbal check: ask 2-3 students to share their topics. Celebrate the variety of topics chosen. Remind students their research boards save automatically."
-  }
-};
-
-// ========================================
-// 2. TOPIC CHECKLIST DATA
-// ========================================
-export const topicChecklist = [
-  {
-    id: 'articles',
-    label: '3+ articles available',
-    description: 'You need enough sources to research thoroughly',
-    icon: '📚'
-  },
-  {
-    id: 'explainable',
-    label: 'Explainable in one sentence',
-    description: 'If you cannot explain it simply, it might be too broad',
-    icon: '💬'
-  },
-  {
-    id: 'connects',
-    label: 'Connects to class discussions',
-    description: 'Relates to something we have discussed or will discuss',
-    icon: '🔗'
-  },
-  {
-    id: 'interesting',
-    label: 'Interesting to YOU',
-    description: 'You will work on this for multiple lessons',
-    icon: '❤️'
-  }
-];
-
-// ========================================
-// 3. SOURCE OR NOT? GAME CONTENT
-// ========================================
-export const sourceOrNotQuestions = [
-  {
-    id: 1,
-    headline: "Beyonce Breaks Billboard Record with New Album",
-    source: "Billboard Magazine",
-    sourceUrl: "billboard.com",
-    isCredible: true,
-    explanation: "Billboard is the industry standard for music charts and sales data. They have direct access to streaming and sales numbers."
-  },
-  {
-    id: 2,
-    headline: "This Artist Is SECRETLY Controlled by the Music Industry!!!",
-    source: "MusicTruthRevealed.blogspot.com",
-    sourceUrl: "musictruthrevealed.blogspot.com",
-    isCredible: false,
-    explanation: "Anonymous blog with sensationalized headline and no named author. Conspiracy-style language is a red flag."
-  },
-  {
-    id: 3,
-    headline: "Streaming Revenue Surpasses Physical Sales for Fifth Consecutive Year",
-    source: "NPR Music",
-    sourceUrl: "npr.org/music",
-    isCredible: true,
-    explanation: "NPR is a well-known, reputable news organization with professional editorial standards and fact-checking."
-  },
-  {
-    id: 4,
-    headline: "Top 10 Reasons Why Rap Music Is Destroying Society",
-    source: "angry_music_fan_2024 on Reddit",
-    sourceUrl: "reddit.com/r/unpopularopinion",
-    isCredible: false,
-    explanation: "This is an anonymous Reddit opinion post, not journalism. It has no editorial review, no sources cited, and uses biased, inflammatory language."
-  },
-  {
-    id: 5,
-    headline: "How K-Pop Groups Are Trained: Inside the Idol System",
-    source: "Rolling Stone",
-    sourceUrl: "rollingstone.com",
-    isCredible: true,
-    explanation: "Rolling Stone is one of the most established music publications with decades of credible reporting and named journalists."
-  },
-  {
-    id: 6,
-    headline: "EXPOSED: Record Labels Are Paying TikTok Influencers to Promote Songs",
-    source: "The New York Times",
-    sourceUrl: "nytimes.com",
-    isCredible: true,
-    explanation: "Despite the dramatic headline, The New York Times is a highly credible source with rigorous fact-checking. Investigative journalism often uses strong headlines."
-  },
-  {
-    id: 7,
-    headline: "AI Will Replace All Musicians by 2025 - Here's Proof",
-    source: "FutureMusicNow (no author listed)",
-    sourceUrl: "futuremusicnow.xyz",
-    isCredible: false,
-    explanation: "Unknown website with no named author, making absolute predictions without evidence. The .xyz domain and lack of editorial standards are red flags."
-  },
-  {
-    id: 8,
-    headline: "Live Nation Reports Record Concert Attendance in 2024",
-    source: "Variety",
-    sourceUrl: "variety.com",
-    isCredible: true,
-    explanation: "Variety is a long-established entertainment industry trade publication with professional reporters and editorial oversight."
-  },
-  {
-    id: 9,
-    headline: "Why Vinyl Records Sound Better Than Digital - A Musician's Take",
-    source: "JamSession_Mike on YouTube",
-    sourceUrl: "youtube.com/@jamsession_mike",
-    isCredible: false,
-    explanation: "While the creator may be knowledgeable, a personal YouTube channel is opinion content, not journalism. No editorial review or fact-checking process."
-  },
-  {
-    id: 10,
-    headline: "Music Education Programs Linked to Higher Test Scores, Study Finds",
-    source: "Education Week",
-    sourceUrl: "edweek.org",
-    isCredible: true,
-    explanation: "Education Week is a respected publication covering education policy and research. They cite studies and use professional editorial standards."
-  }
-];
-
-// ========================================
-// 4. RESEARCH BOARD CONTENT
-// ========================================
-export const researchBoardContent = {
-  instructions: {
-    title: "Your Research Board",
-    subtitle: "Collect Evidence for Your Story",
-    overview: "Save highlights from articles to build your evidence base.",
-    mainSteps: [
-      {
-        step: 1,
-        icon: "📖",
-        title: "Read an article",
-        description: "Choose an article related to your topic"
-      },
-      {
-        step: 2,
-        icon: "✨",
-        title: "Highlight key passages",
-        description: "Select facts, quotes, and ideas that matter"
-      },
-      {
-        step: 3,
-        icon: "📝",
-        title: "Add your note",
-        description: "Write why this highlight matters to your story"
-      },
-      {
-        step: 4,
-        icon: "💾",
-        title: "Save to board",
-        description: "Your highlights are saved automatically"
-      }
-    ]
-  },
-  highlightCategories: [
-    { id: 'fact', label: 'Fact / Statistic', color: '#3B82F6', icon: '📊' },
-    { id: 'quote', label: 'Direct Quote', color: '#8B5CF6', icon: '💬' },
-    { id: 'idea', label: 'Key Idea', color: '#10B981', icon: '💡' },
-    { id: 'disagree', label: 'Disagree / Question', color: '#F59E0B', icon: '🤔' }
-  ]
-};
-
-// ========================================
-// 5. REFLECTION ACTIVITY CONTENT
-// ========================================
-export const reflectionActivity = {
-  steps: {
-    teacherInstruction: {
-      title: "Time to Reflect!",
-      text: "Think about your topic choice and what you learned about credible sources.",
-      voiceText: "Time to reflect on your learning!"
-    }
-  },
-
-  selfReflection: {
-    prompt1: {
-      title: "Your Topic",
-      question: "What topic did you choose, and WHY does it interest you?",
-      voiceText: "What topic did you choose and why?",
-      options: [
-        "I chose it because it connects to music I listen to every day",
-        "I chose it because I saw a debate about it online and want to learn more",
-        "I chose it because it affects how artists make a living",
-        "I chose it because it is changing how people discover new music",
-        "Custom..."
-      ]
+    nextLesson: {
+      title: 'Lesson 3: Build Your Case',
+      preview: 'You will listen critically, describe their sound, and write the words that make someone hit play.'
     },
-    prompt2: {
-      title: "What You Learned",
-      question: "What is one thing you learned from your research today?",
-      voiceText: "What did you learn from your research?",
-      options: [
-        "I learned a surprising fact I did not know before",
-        "I found a quote from an expert that changed my thinking",
-        "I realized there are multiple sides to this story",
-        "I discovered a connection between my topic and a bigger trend",
-        "Custom..."
-      ]
-    },
-    prompt3: {
-      title: "Source Credibility",
-      question: "How will you know if a source is trustworthy for your project?",
-      voiceText: "How will you evaluate your sources?",
-      options: [
-        "I will check if the author is named and has expertise",
-        "I will look for facts that can be verified elsewhere",
-        "I will avoid anonymous blogs and opinion posts",
-        "I will use established publications like Rolling Stone or NPR",
-        "Custom..."
-      ]
-    }
+    celebration: 'Your artist has an agent now. Do not let them down.'
   }
 };
 
 // ========================================
-// 6. VOCABULARY FOR THIS LESSON
+// 2. VOCABULARY FOR THIS LESSON
 // ========================================
 export const vocabulary = [
-  { term: 'Beat (journalism)', definition: 'A specific topic or area that a journalist covers regularly' },
-  { term: 'Source', definition: 'Where information comes from - a person, publication, or document' },
-  { term: 'Credible', definition: 'Trustworthy and reliable; can be believed based on evidence' },
-  { term: 'Research Board', definition: 'A collection of highlights, quotes, and notes gathered from articles' },
-  { term: 'Highlight', definition: 'A key passage selected from an article for its importance' },
-  { term: 'Citation', definition: 'A reference to the source of information (author, publication, date)' },
-  { term: 'Bias', definition: 'A tendency to favor one perspective over another' },
-  { term: 'Primary Source', definition: 'Firsthand account or original material (interview, speech, data)' },
-  { term: 'Secondary Source', definition: 'Analysis or interpretation of primary sources (news article, review)' },
-  { term: 'Clickbait', definition: 'Sensationalized headlines designed to get clicks, often misleading' }
+  { term: 'Evidence', definition: 'Facts, data, quotes, or examples that support a claim — the proof behind your argument' },
+  { term: 'Strong Evidence', definition: 'Specific, verifiable information with numbers, dates, names, or sources' },
+  { term: 'Weak Evidence', definition: 'Vague statements without specifics — "a lot of people" or "really good" with no proof' },
+  { term: 'Research Board', definition: 'Your collection of saved facts, quotes, and images about your artist — the raw material for your pitch' },
+  { term: 'Credible Source', definition: 'A trustworthy place where information comes from — like a recognized publication or official record' },
+  { term: 'Fact', definition: 'A statement that can be proven true or false with evidence' },
+  { term: 'Opinion', definition: 'A statement that reflects someone\'s personal view — it cannot be proven, only agreed or disagreed with' }
 ];

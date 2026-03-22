@@ -1,19 +1,31 @@
 import React from 'react';
-import { ArrowLeft, Star, Sparkles, Headphones } from 'lucide-react';
+import { ArrowLeft, Star, Sparkles } from 'lucide-react';
 import { GENRE_CONFIG } from './artistDatabase';
-import BandcampEmbed from './BandcampEmbed';
 import HeroBanner from './profile/HeroBanner';
-import FeaturedTracks from './profile/FeaturedTracks';
+import TrackList from './profile/TrackList';
 import QuickFacts from './profile/QuickFacts';
 import AboutSection from './profile/AboutSection';
 import TheirSound from './profile/TheirSound';
 import SimilarArtists from './profile/SimilarArtists';
 
-const ArtistProfile = ({ artist, onBack, onSelect, isSelected, onStar, isStarred, onViewArtist }) => {
+const ArtistProfile = ({
+  artist,
+  onBack,
+  onSelect,
+  isSelected,
+  onStar,
+  isStarred,
+  onViewArtist,
+  player,
+  playerArtistId,
+  onPlayTrack,
+}) => {
   const genreConfig = GENRE_CONFIG[artist.genre] || { color: '#6b7280', bg: 'linear-gradient(135deg, #374151 0%, #1f2937 100%)' };
 
+  const isThisArtistPlaying = playerArtistId === artist.id;
+
   return (
-    <div className="min-h-screen bg-[#0f1419]">
+    <div className="min-h-screen bg-[#0f1419]" style={{ paddingBottom: player?.currentTrack ? '72px' : '0' }}>
       {/* Sticky header */}
       <div className="sticky top-0 z-30 bg-[#0f1419]/95 backdrop-blur-sm border-b border-white/[0.08] px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
@@ -35,49 +47,32 @@ const ArtistProfile = ({ artist, onBack, onSelect, isSelected, onStar, isStarred
           >
             <Star size={16} fill={isStarred ? 'currentColor' : 'none'} />
           </button>
+          {/* Artist photo */}
+          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-white/[0.1]">
+            {artist.imageUrl ? (
+              <img src={artist.imageUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full" style={{ background: genreConfig.bg }} />
+            )}
+          </div>
         </div>
       </div>
 
       {/* Hero banner */}
       <HeroBanner artist={artist} genreConfig={genreConfig} />
 
-      {/* Inline music player — right below hero, impossible to miss */}
-      <div className="max-w-4xl mx-auto">
-        <div className="px-4 pt-4">
-          {/* Album info + player bar */}
-          <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl overflow-hidden">
-            {/* Album art + info row */}
-            <div className="flex items-center gap-3 p-3">
-              <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
-                {artist.imageUrl ? (
-                  <img src={artist.imageUrl} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full" style={{ background: genreConfig.bg }} />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-white/90 text-sm font-semibold truncate">{artist.albumTitle || 'Featured Album'}</p>
-                <p className="text-white/40 text-xs truncate">{artist.name} · {artist.tracks?.length || 0} tracks</p>
-              </div>
-            </div>
-            {/* Bandcamp player — large embed with album art + always-visible controls */}
-            <div className="border-t border-white/[0.06] overflow-hidden" style={{ height: '200px' }}>
-              <iframe
-                style={{ border: 0, width: '100%', height: '470px' }}
-                src={`https://bandcamp.com/EmbeddedPlayer/album=${artist.embedAlbumId}/size=large/bgcol=0f1419/linkcol=4db8ff/tracklist=false/transparent=true/`}
-                title="Bandcamp Player"
-                allow="autoplay; encrypted-media"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 pt-6">
-        {/* Track list */}
-        <FeaturedTracks
+        {/* Track list — tap to play */}
+        <TrackList
           tracks={artist.tracks}
+          currentTrackIndex={isThisArtistPlaying ? player.currentTrackIndex : null}
+          isPlaying={isThisArtistPlaying && player.isPlaying}
+          onPlay={(index) => onPlayTrack(index)}
+          onPause={() => player.pause()}
+          albumTitle={artist.albumTitle}
+          genreColor={genreConfig.color}
+          license={artist.license}
           artistName={artist.name}
         />
 

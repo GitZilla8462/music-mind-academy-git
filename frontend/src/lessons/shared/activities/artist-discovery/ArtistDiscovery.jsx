@@ -2,6 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { Search } from 'lucide-react';
 import ArtistCard from './ArtistCard';
 import ArtistProfile from './ArtistProfile';
+import MiniPlayer from './profile/MiniPlayer';
+import useAudioPlayer from './profile/useAudioPlayer';
 import { ARTIST_DATABASE, GENRE_CONFIG, ALL_GENRES, getArtistsByGenre, getArtistById } from './artistDatabase';
 
 // ─── Storage helpers ────────────────────────────────────────────
@@ -21,11 +23,49 @@ function saveDiscoveryState(state) {
 }
 
 // ─── Main Discovery Browse Page ─────────────────────────────────
-const ArtistDiscovery = ({ onComplete, isSessionMode, lockedArtists = [] }) => {
+const ArtistDiscovery = ({ onComplete, isSessionMode, lockedArtists = [], hideMiniPlayer = false }) => {
   const [state, setState] = useState(loadDiscoveryState);
   const [activeGenre, setActiveGenre] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewingArtist, setViewingArtist] = useState(null);
+
+  // Track which artist's tracks are loaded in the player
+  const [playerArtistId, setPlayerArtistId] = useState(null);
+  const playerArtist = playerArtistId ? getArtistById(playerArtistId) : null;
+  const playerTracks = playerArtist?.tracks || [];
+  const player = useAudioPlayer(playerTracks, {
+    artistId: playerArtistId,
+    artistName: playerArtist?.name,
+    artistImageUrl: playerArtist?.imageUrl,
+  });
+  const playerGenreConfig = playerArtist ? (GENRE_CONFIG[playerArtist.genre] || { color: '#6b7280', bg: 'linear-gradient(135deg, #374151 0%, #1f2937 100%)' }) : null;
+
+  // Load an artist's tracks into the player and start playing
+  const handlePlayTrack = useCallback((artistId, trackIndex) => {
+    if (artistId !== playerArtistId) {
+      // Switching artists — need to update playerArtistId which will cause
+      // useAudioPlayer to get new tracks on next render.
+      // We store the pending play so we can trigger it after re-render.
+      setPlayerArtistId(artistId);
+      // We'll use a ref-based approach via useEffect instead
+      setPendingPlay(trackIndex);
+    } else {
+      player.playTrack(trackIndex);
+    }
+  }, [playerArtistId, player]);
+
+  // Handle pending play after artist switch
+  const [pendingPlay, setPendingPlay] = useState(null);
+  React.useEffect(() => {
+    if (pendingPlay !== null && playerArtistId) {
+      // Small delay to let useAudioPlayer update with new tracks
+      const timer = setTimeout(() => {
+        player.playTrack(pendingPlay);
+        setPendingPlay(null);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [pendingPlay, playerArtistId]);
 
   const save = useCallback((newState) => {
     setState(newState);
@@ -65,20 +105,44 @@ const ArtistDiscovery = ({ onComplete, isSessionMode, lockedArtists = [] }) => {
     );
   }
 
+  const hasMiniPlayer = player.currentTrack !== null;
+
   // Show artist profile
   if (viewingArtist) {
     const artist = getArtistById(viewingArtist);
     if (artist) {
       return (
-        <ArtistProfile
-          artist={artist}
-          onBack={() => setViewingArtist(null)}
-          onSelect={handleSelect}
-          isSelected={state.selected === artist.id}
-          onStar={handleStar}
-          isStarred={state.starred.includes(artist.id)}
-          onViewArtist={(id) => setViewingArtist(id)}
-        />
+        <div className="min-h-screen bg-[#0f1419]">
+          <ArtistProfile
+            artist={artist}
+            onBack={() => setViewingArtist(null)}
+            onSelect={handleSelect}
+            isSelected={state.selected === artist.id}
+            onStar={handleStar}
+            isStarred={state.starred.includes(artist.id)}
+            onViewArtist={(id) => setViewingArtist(id)}
+            player={player}
+            playerArtistId={playerArtistId}
+            onPlayTrack={(trackIndex) => handlePlayTrack(artist.id, trackIndex)}
+          />
+          {hasMiniPlayer && !hideMiniPlayer && (
+            <MiniPlayer
+              currentTrack={player.currentTrack}
+              isPlaying={player.isPlaying}
+              progress={player.progress}
+              currentTime={player.currentTime}
+              duration={player.duration}
+              onTogglePlay={player.togglePlay}
+              onNext={player.next}
+              onPrev={player.prev}
+              onSeek={player.seek}
+              imageUrl={playerArtist?.imageUrl}
+              genreConfig={playerGenreConfig}
+              artistName={playerArtist?.name}
+              onArtistClick={() => setViewingArtist(playerArtistId)}
+            />
+          )}
+        </div>
       );
     }
   }
@@ -138,7 +202,7 @@ const ArtistDiscovery = ({ onComplete, isSessionMode, lockedArtists = [] }) => {
       </div>
 
       {/* Artist grid */}
-      <div className="flex-1 overflow-y-auto px-4 pb-6">
+      <div className="flex-1 overflow-y-auto px-4 pb-6" style={{ paddingBottom: hasMiniPlayer ? '80px' : state.selected ? '72px' : '24px' }}>
         <div className="max-w-6xl mx-auto">
           {filtered.length === 0 ? (
             <div className="text-center py-16">
@@ -160,8 +224,24 @@ const ArtistDiscovery = ({ onComplete, isSessionMode, lockedArtists = [] }) => {
         </div>
       </div>
 
-      {/* Bottom bar — shows selected artist */}
-      {state.selected && (
+      {/* Bottom bar — mini player takes priority over selected artist bar */}
+      {hasMiniPlayer && !hideMiniPlayer ? (
+        <MiniPlayer
+          currentTrack={player.currentTrack}
+          isPlaying={player.isPlaying}
+          progress={player.progress}
+          currentTime={player.currentTime}
+          duration={player.duration}
+          onTogglePlay={player.togglePlay}
+          onNext={player.next}
+          onPrev={player.prev}
+          onSeek={player.seek}
+          imageUrl={playerArtist?.imageUrl}
+          genreConfig={playerGenreConfig}
+          artistName={playerArtist?.name}
+          onArtistClick={() => setViewingArtist(playerArtistId)}
+        />
+      ) : state.selected ? (
         <div className="flex-shrink-0 border-t border-white/[0.08] bg-[#0f1419]/95 backdrop-blur-sm px-4 py-3">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -185,7 +265,7 @@ const ArtistDiscovery = ({ onComplete, isSessionMode, lockedArtists = [] }) => {
             </button>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

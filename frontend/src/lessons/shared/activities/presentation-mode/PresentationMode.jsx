@@ -6,7 +6,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, X, Clock, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
 import { getHighlightsForSlide } from '../research-board/researchBoardStorage';
 import { saveStudentWork, getClassAuthInfo } from '../../../../utils/studentWorkStorage';
+import SlideRenderer from '../press-kit-designer/layouts/SlideRenderer';
+import { renderSlideObject, CANVAS_W, CANVAS_H } from '../press-kit-designer/components/SlideCanvas';
+import { getPalette } from '../press-kit-designer/palettes';
 
+const PRESS_KIT_STORAGE_KEY = 'mma-press-kit-data';
 const SLIDE_STORAGE_KEY = 'mma-slide-builder-data';
 const ACTIVITY_ID = 'mj-presentation';
 const LESSON_ID = 'mj-lesson5';
@@ -19,11 +23,35 @@ const PresentationMode = ({ onComplete, viewMode = false, isSessionMode = false 
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [finished, setFinished] = useState(false);
   const [fadeKey, setFadeKey] = useState(0);
+  const [isNewFormat, setIsNewFormat] = useState(false);
+  const [pressKitGenre, setPressKitGenre] = useState('');
   const timerRef = useRef(null);
 
-  // Load slide data on mount
+  // Load slide data on mount — prefer new press kit format, fall back to old
   useEffect(() => {
     try {
+      // Try new press kit format first
+      const pkRaw = localStorage.getItem(PRESS_KIT_STORAGE_KEY);
+      if (pkRaw) {
+        const parsed = JSON.parse(pkRaw);
+        if (parsed.version === 2 && parsed.slides?.length > 0) {
+          setSlides(parsed.slides);
+          setIsNewFormat(true);
+          // Load genre for SlideRenderer
+          try {
+            const adRaw = localStorage.getItem('mma-artist-discovery');
+            if (adRaw) {
+              const ad = JSON.parse(adRaw);
+              if (ad.selected) {
+                // Genre is in slide 1 fields or we read from artist data
+                setPressKitGenre(parsed.slides[0]?.fields?.genre?.split(' / ')[0] || '');
+              }
+            }
+          } catch { /* ignore */ }
+          return;
+        }
+      }
+      // Fall back to old slide builder format
       const raw = localStorage.getItem(SLIDE_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
@@ -219,44 +247,81 @@ const PresentationMode = ({ onComplete, viewMode = false, isSessionMode = false 
           className="w-full max-w-4xl animate-fadeIn"
           style={{ animation: 'fadeIn 0.3s ease-in-out' }}
         >
-          {/* Headline */}
-          {slide.headline && (
-            <h1 className="text-4xl md:text-5xl font-bold mb-8 text-center leading-tight">
-              {slide.headline}
-            </h1>
-          )}
-
-          <div className="flex gap-8 items-start">
-            {/* Bullets */}
-            <div className={`flex-1 ${slide.imageUrl ? '' : 'max-w-3xl mx-auto'}`}>
-              {filledBullets.length > 0 && (
-                <ul className="space-y-4">
-                  {filledBullets.map((bullet, i) => (
-                    <li key={i} className="flex items-start gap-3 text-xl md:text-2xl text-white/90 leading-relaxed">
-                      <span className="text-[#f0b429] mt-1.5 flex-shrink-0">&#x2022;</span>
-                      <span>{bullet}</span>
-                    </li>
-                  ))}
-                </ul>
+          {isNewFormat ? (
+            /* New Press Kit Designer format — free-form canvas objects */
+            <div className="w-full relative overflow-hidden rounded-lg" style={{ aspectRatio: `${CANVAS_W}/${CANVAS_H}`, background: getPalette(slide.palette || 'genre', pressKitGenre).bg }}>
+              {/* Background accent */}
+              <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 30% 50%, ${getPalette(slide.palette || 'genre', pressKitGenre).accent}11 0%, transparent 70%)` }} />
+              {/* Render all objects at presentation scale */}
+              {(slide.objects || []).map(obj => {
+                const containerEl = document.querySelector('.max-w-4xl');
+                const presentScale = containerEl ? containerEl.offsetWidth / CANVAS_W : 1;
+                return (
+                  <div
+                    key={obj.id}
+                    style={{
+                      position: 'absolute',
+                      left: obj.x * presentScale,
+                      top: obj.y * presentScale,
+                      transform: obj.rotation ? `rotate(${obj.rotation}deg)` : undefined,
+                    }}
+                  >
+                    {renderSlideObject(obj, presentScale)}
+                  </div>
+                );
+              })}
+              {/* Fallback: if no objects, use SlideRenderer */}
+              {(!slide.objects || slide.objects.length === 0) && (
+                <SlideRenderer
+                  slideNumber={slideNumber}
+                  layout={slide.layout}
+                  paletteId={slide.palette}
+                  genre={pressKitGenre}
+                  fields={slide.fields || {}}
+                  image={slide.image}
+                />
               )}
             </div>
+          ) : (
+            /* Old SlideBuilder format — headline + bullets */
+            <>
+              {slide.headline && (
+                <h1 className="text-4xl md:text-5xl font-bold mb-8 text-center leading-tight">
+                  {slide.headline}
+                </h1>
+              )}
 
-            {/* Image */}
-            {slide.imageUrl && (
-              <div className="flex-shrink-0 w-80">
-                <img
-                  src={slide.imageUrl}
-                  alt=""
-                  className="w-full rounded-xl shadow-lg object-cover max-h-72"
-                />
-                {slide.imageAttribution && (
-                  <p className="text-white/30 text-xs mt-1.5 text-center truncate">
-                    {slide.imageAttribution}
-                  </p>
+              <div className="flex gap-8 items-start">
+                <div className={`flex-1 ${slide.imageUrl ? '' : 'max-w-3xl mx-auto'}`}>
+                  {filledBullets.length > 0 && (
+                    <ul className="space-y-4">
+                      {filledBullets.map((bullet, i) => (
+                        <li key={i} className="flex items-start gap-3 text-xl md:text-2xl text-white/90 leading-relaxed">
+                          <span className="text-[#f0b429] mt-1.5 flex-shrink-0">&#x2022;</span>
+                          <span>{bullet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                {slide.imageUrl && (
+                  <div className="flex-shrink-0 w-80">
+                    <img
+                      src={slide.imageUrl}
+                      alt=""
+                      className="w-full rounded-xl shadow-lg object-cover max-h-72"
+                    />
+                    {slide.imageAttribution && (
+                      <p className="text-white/30 text-xs mt-1.5 text-center truncate">
+                        {slide.imageAttribution}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </div>
 
