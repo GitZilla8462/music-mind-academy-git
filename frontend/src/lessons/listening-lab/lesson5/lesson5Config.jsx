@@ -79,26 +79,26 @@ export const lessonSections = [
   },
   {
     id: 'play',
-    title: '3. Play Games',
+    title: '3. Peer Play',
     subtitle: 'Play Each Other\'s Journeys',
     color: 'green',
-    estimatedTime: 9,
+    estimatedTime: 10,
     stages: [
       {
         id: 'play-intro',
         type: 'summary',
-        label: 'How to Play',
-        description: 'Explain peer play — swap devices and play each other\'s games.',
-        duration: 1
+        label: 'How Peer Play Works',
+        description: 'Explain the automatic matchmaking system and turn-based play.',
+        duration: 2
       },
       {
         id: 'peer-play',
         type: 'activity',
-        label: 'Play Games',
+        label: 'Peer Play',
         duration: 8,
         hasTimer: true,
         trackProgress: false,
-        description: 'Students swap devices and play each other\'s Listening Journey games.'
+        description: 'Auto-matched pairs play each other\'s journeys. Students meet up, take turns, and watch each other play.'
       }
     ]
   },
@@ -234,27 +234,16 @@ export const lessonStages = [
     duration: 2,
     presentationView: {
       type: 'summary',
-      title: 'Time to Set Traps!',
-      subtitle: 'Adding Decoys to Your Game',
+      title: 'Add Decoys',
+      subtitle: 'Trick your classmates!',
       sections: [
         {
-          heading: 'What Are Decoys?',
+          heading: 'Decoys = Fake Stickers',
           bullets: [
-            '🎯 Decoys are FAKE stickers that look real but are traps',
-            '🐦 When someone plays your game, their bird collects stickers',
-            '✅ Real stickers = +10 points',
-            '❌ Decoys = -5 points! Ouch!'
-          ]
-        },
-        {
-          heading: 'How to Add Decoys',
-          bullets: [
-            '1. Click the "Decoy" button in the toolbar — it turns red',
-            '2. Now any sticker you place is automatically a decoy!',
-            '3. You can also click existing stickers to toggle them',
-            '4. Decoys show a red dot (only you can see it)',
-            '5. Turn Decoy Mode off to place normal stickers again',
-            '6. Tip: Place decoys near real stickers to trick players!'
+            'Real stickers = +10 pts, Decoys = -5 pts',
+            'Click "Decoy" in the toolbar to turn it on (turns red)',
+            'Place decoys near real stickers to trick players',
+            'Click any existing sticker to toggle it between real and decoy'
           ]
         }
       ]
@@ -277,31 +266,32 @@ export const lessonStages = [
   },
   {
     id: 'play-intro',
-    label: 'How to Play',
-    description: 'Explain peer play format.',
+    label: 'How Peer Play Works',
+    description: 'Explain the automatic matchmaking and turn-based play.',
     type: 'summary',
-    duration: 1,
+    duration: 2,
     presentationView: {
       type: 'summary',
-      title: 'Game Time!',
+      title: 'Peer Play',
       subtitle: 'Play Each Other\'s Journeys',
       sections: [
         {
           heading: 'How It Works',
           bullets: [
-            '🔄 Swap Chromebooks with a partner',
-            '🎮 Press "Play Game" to start their journey',
-            '🐦 Use arrow keys to fly the bird and collect stickers',
-            '✅ Real stickers = +10 points | ❌ Decoys = -5 points',
-            '🏆 Try to get the highest score!'
+            '1. You\'ll be automatically matched with a partner',
+            '2. Your Chromebook loads THEIR journey — their Chromebook loads YOURS',
+            '3. Meet up — one person watches while the other plays',
+            '4. Then switch — now YOU watch them play YOUR journey',
+            '5. When both turns are done, you get a new partner automatically'
           ]
         },
         {
-          heading: 'Rules',
+          heading: 'Controls',
           bullets: [
-            'Play at least 2 different classmates\' games',
-            'Be respectful — don\'t change anyone\'s work',
-            'When the timer ends, return to your own Chromebook'
+            'Use arrow keys to fly the bird and collect stickers',
+            'Real stickers = +10 points',
+            'Decoys = -5 points',
+            'Try to get the highest score on your partner\'s game'
           ]
         }
       ]
@@ -309,15 +299,13 @@ export const lessonStages = [
   },
   {
     id: 'peer-play',
-    label: 'Play Games',
-    description: 'Students swap devices and play each other\'s journey games.',
+    label: 'Peer Play',
+    description: 'Auto-matched pairs play each other\'s journey games with turn-based play.',
     type: 'activity',
     hasTimer: true,
     duration: 8,
     presentationView: {
-      type: 'journey-animator-directions',
-      pieceConfig: buildPieceConfig(getPieceById('mountain-king')),
-      journeyProps: { gameMode: true },
+      type: 'peer-play-teacher',
     }
   },
   {
@@ -372,7 +360,7 @@ export const getActivityForStage = (stage) => {
     'decoy-intro': 'summary',
     'decoy-time': 'listening-journey',
     'play-intro': 'summary',
-    'peer-play': 'listening-journey',
+    'peer-play': 'peer-play',
     'gallery-intro': 'summary',
     'gallery-sharing': 'gallery-circle'
   };

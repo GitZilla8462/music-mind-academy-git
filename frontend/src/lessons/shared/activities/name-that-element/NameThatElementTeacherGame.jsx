@@ -1,109 +1,109 @@
 // File: NameThatElementTeacherGame.jsx
 // Name That Element - Teacher Presentation View (Class Game)
-// Teacher shows a term or description, students decide if it's DYNAMICS, TEMPO, or FORM
+// Teacher plays a 10-second instrument clip, students identify the family
 // 3 rounds of 4 questions = 12 total
 //
 // PHASES:
 // 1. Setup - Show "Start Game"
-// 2. Question - Prompt displayed, students answer on devices
+// 2. Question - Audio plays, students answer on devices
 // 3. Revealed - Show correct answer with explanation
 // 4. Between-rounds - Round summary
 // 5. Finished - Final leaderboard
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Play, Users, Trophy, Eye, ChevronRight, CheckCircle, XCircle, Zap } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Play, Pause, Users, Trophy, Eye, ChevronRight, CheckCircle, XCircle, Zap, Volume2 } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
 
 // ============================================================
-// QUESTIONS DATA
+// QUESTIONS DATA — each plays an instrument audio clip
 // ============================================================
 const QUESTIONS = [
-  // Round 1 - Warm Up (mix of terms, some less obvious)
+  // Round 1 - Warm Up (one from each family, easier/more recognizable)
   {
-    id: 'q1',
-    round: 1,
-    prompt: 'Forte (f)',
-    type: 'dynamics',
-    explanation: 'Forte means loud \u2014 that\'s about volume = dynamics!'
+    id: 'q1', round: 1,
+    instrument: 'Trumpet',
+    family: 'brass',
+    audioPath: '/audio/orchestra-samples/brass/trumpet.mp3',
+    explanation: 'The trumpet is a brass instrument — bright, loud, and played with valves!'
   },
   {
-    id: 'q2',
-    round: 1,
-    prompt: 'Accelerando',
-    type: 'tempo',
-    explanation: 'Gradually speeding up \u2014 that\'s tempo, not dynamics!'
+    id: 'q2', round: 1,
+    instrument: 'Violin',
+    family: 'strings',
+    audioPath: '/audio/orchestra-samples/strings/violin.mp3',
+    explanation: 'The violin is a string instrument — highest pitched in the string family!'
   },
   {
-    id: 'q3',
-    round: 1,
-    prompt: 'Coda',
-    type: 'form',
-    explanation: 'A coda is the ending section of a piece \u2014 that\'s form!'
+    id: 'q3', round: 1,
+    instrument: 'Flute',
+    family: 'woodwinds',
+    audioPath: '/audio/orchestra-samples/woodwinds/flute.mp3',
+    explanation: 'The flute is a woodwind — even though it\'s metal, it uses air across an edge!'
   },
   {
-    id: 'q4',
-    round: 1,
-    prompt: 'Ritardando',
-    type: 'tempo',
-    explanation: 'Gradually slowing down \u2014 that\'s tempo!'
+    id: 'q4', round: 1,
+    instrument: 'Snare Drum',
+    family: 'percussion',
+    audioPath: '/audio/orchestra-samples/percussion/snare-drum.mp3',
+    explanation: 'The snare drum is percussion — you strike it to make sound!'
   },
-  // Round 2 - Think About It (descriptions requiring careful thinking)
+  // Round 2 - Think About It (less obvious instruments)
   {
-    id: 'q5',
-    round: 2,
-    prompt: 'The guitarist strums softer and softer until you can barely hear it',
-    type: 'dynamics',
-    explanation: 'Getting quieter is a volume change \u2014 decrescendo = dynamics!'
-  },
-  {
-    id: 'q6',
-    round: 2,
-    prompt: 'After the guitar solo, the main theme returns',
-    type: 'form',
-    explanation: 'A theme returning is about structure \u2014 that\'s form!'
+    id: 'q5', round: 2,
+    instrument: 'Cello',
+    family: 'strings',
+    audioPath: '/audio/orchestra-samples/strings/cello.mp3',
+    explanation: 'The cello is a string instrument — warm, rich tone, played sitting down!'
   },
   {
-    id: 'q7',
-    round: 2,
-    prompt: 'The drummer gradually picks up speed through the verse',
-    type: 'tempo',
-    explanation: 'Picking up speed = accelerando \u2014 that\'s tempo!'
+    id: 'q6', round: 2,
+    instrument: 'Bassoon',
+    family: 'woodwinds',
+    audioPath: '/audio/orchestra-samples/woodwinds/bassoon.mp3',
+    explanation: 'The bassoon is a woodwind — deep and buzzy, uses a double reed!'
   },
   {
-    id: 'q8',
-    round: 2,
-    prompt: 'In the last section, every instrument drops to a whisper',
-    type: 'dynamics',
-    explanation: '"Drops to a whisper" = getting very quiet \u2014 dynamics! Don\'t be tricked by "section"!'
-  },
-  // Round 3 - Expert Challenge (genuinely tricky)
-  {
-    id: 'q9',
-    round: 3,
-    prompt: 'Sforzando (sfz)',
-    type: 'dynamics',
-    explanation: 'Sforzando means a sudden strong accent \u2014 that\'s dynamics!'
+    id: 'q7', round: 2,
+    instrument: 'Tuba',
+    family: 'brass',
+    audioPath: '/audio/orchestra-samples/brass/tuba.mp3',
+    explanation: 'The tuba is brass — the lowest and largest brass instrument!'
   },
   {
-    id: 'q10',
-    round: 3,
-    prompt: 'The march transitions from a walk to a sprint',
-    type: 'tempo',
-    explanation: 'Walk to sprint = slow to fast \u2014 that\'s tempo, not dynamics!'
+    id: 'q8', round: 2,
+    instrument: 'Xylophone',
+    family: 'percussion',
+    audioPath: '/audio/orchestra-samples/percussion/xylophone.mp3',
+    explanation: 'The xylophone is percussion — you strike wooden bars with mallets!'
+  },
+  // Round 3 - Expert Challenge (trickier to distinguish)
+  {
+    id: 'q9', round: 3,
+    instrument: 'French Horn',
+    family: 'brass',
+    audioPath: '/audio/orchestra-samples/brass/french-horn.mp3',
+    explanation: 'The French horn is brass — warm and mellow, with a huge coiled tube!'
   },
   {
-    id: 'q11',
-    round: 3,
-    prompt: 'Verse \u2192 Chorus \u2192 Verse \u2192 Chorus \u2192 Bridge \u2192 Chorus',
-    type: 'form',
-    explanation: 'The order sections appear in = the structure = form!'
+    id: 'q10', round: 3,
+    instrument: 'Oboe',
+    family: 'woodwinds',
+    audioPath: '/audio/orchestra-samples/woodwinds/oboe.mp3',
+    explanation: 'The oboe is a woodwind — nasal tone, uses a double reed, tunes the orchestra!'
   },
   {
-    id: 'q12',
-    round: 3,
-    prompt: 'Rubato',
-    type: 'tempo',
-    explanation: 'Rubato means flexible timing/speed \u2014 that\'s tempo!'
+    id: 'q11', round: 3,
+    instrument: 'Viola',
+    family: 'strings',
+    audioPath: '/audio/orchestra-samples/strings/viola.mp3',
+    explanation: 'The viola is a string instrument — slightly larger and deeper than the violin!'
+  },
+  {
+    id: 'q12', round: 3,
+    instrument: 'Timpani',
+    family: 'percussion',
+    audioPath: '/audio/orchestra-samples/percussion/timpani.mp3',
+    explanation: 'Timpani are percussion — large copper drums that can play different pitches!'
   }
 ];
 
@@ -115,16 +115,17 @@ const ROUND_NAMES = {
 
 // Category definitions
 const CATEGORIES = {
-  dynamics: { label: 'Dynamics', color: '#EF4444', emoji: '\uD83D\uDCE2', bgClass: 'from-red-600 to-red-700' },
-  tempo:    { label: 'Tempo',    color: '#8B5CF6', emoji: '\u23F1\uFE0F', bgClass: 'from-purple-600 to-purple-700' },
-  form:     { label: 'Form',     color: '#3B82F6', emoji: '\uD83D\uDD24', bgClass: 'from-blue-600 to-blue-700' }
+  strings:    { label: 'Strings',    color: '#3B82F6', emoji: '🎻', bgClass: 'from-blue-600 to-blue-700' },
+  woodwinds:  { label: 'Woodwinds',  color: '#10B981', emoji: '🎵', bgClass: 'from-emerald-600 to-emerald-700' },
+  brass:      { label: 'Brass',      color: '#F59E0B', emoji: '🎺', bgClass: 'from-amber-600 to-amber-700' },
+  percussion: { label: 'Percussion', color: '#EF4444', emoji: '🥁', bgClass: 'from-red-600 to-red-700' }
 };
 
 // Scoring
 const SCORING = {
   CORRECT: 100,
-  SPEED_BONUS_MAX: 50, // bonus for answering within first 5 seconds
-  SPEED_BONUS_WINDOW: 5000 // ms
+  SPEED_BONUS_MAX: 50,
+  SPEED_BONUS_WINDOW: 5000
 };
 
 const calculateSpeedBonus = (answerTime, startedAt) => {
@@ -152,10 +153,14 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
   const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
 
   // Game state
-  const [gamePhase, setGamePhase] = useState('setup'); // setup, question, revealed, between-rounds, finished
+  const [gamePhase, setGamePhase] = useState('setup');
   const [currentRound, setCurrentRound] = useState(1);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // 0-3 within round
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questionStartTime, setQuestionStartTime] = useState(null);
+
+  // Audio
+  const audioRef = useRef(null);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
 
   // Students
   const [students, setStudents] = useState([]);
@@ -175,7 +180,40 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
   const currentQuestion = roundQuestions[currentQuestionIndex] || null;
 
   // Live answer counts per category
-  const [answerCounts, setAnswerCounts] = useState({ dynamics: 0, tempo: 0, form: 0 });
+  const [answerCounts, setAnswerCounts] = useState({ strings: 0, woodwinds: 0, brass: 0, percussion: 0 });
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  // Play/pause audio clip
+  const playAudio = useCallback(() => {
+    if (!currentQuestion) return;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    const audio = new Audio(currentQuestion.audioPath);
+    audio.volume = 0.8;
+    audioRef.current = audio;
+    setIsAudioPlaying(true);
+    audio.play().catch(() => {});
+    audio.onended = () => setIsAudioPlaying(false);
+    audio.onpause = () => setIsAudioPlaying(false);
+  }, [currentQuestion]);
+
+  const pauseAudio = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setIsAudioPlaying(false);
+    }
+  }, []);
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
@@ -201,7 +239,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
         answer: s.nteAnswer,
         answerTime: s.nteAnswerTime,
         playerColor: s.playerColor || '#3B82F6',
-        playerEmoji: s.playerEmoji || '\uD83C\uDFB5'
+        playerEmoji: s.playerEmoji || '🎵'
       }));
 
       setStudents(list);
@@ -209,7 +247,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
       setLeaderboard([...list].sort((a, b) => b.score - a.score));
 
       // Count answers per category
-      const counts = { dynamics: 0, tempo: 0, form: 0 };
+      const counts = { strings: 0, woodwinds: 0, brass: 0, percussion: 0 };
       list.forEach(s => {
         if (s.answer && Object.prototype.hasOwnProperty.call(counts, s.answer)) {
           counts[s.answer]++;
@@ -251,7 +289,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
       phase: 'question',
       currentRound: 1,
       currentQuestion: 0,
-      questionData: { prompt: firstQuestion.prompt, type: firstQuestion.type, id: firstQuestion.id },
+      questionData: { instrument: firstQuestion.instrument, family: firstQuestion.family, id: firstQuestion.id },
       revealedAnswer: null,
       startedAt: now
     });
@@ -260,6 +298,12 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
   // Reveal answer
   const reveal = useCallback(() => {
     if (!currentQuestion) return;
+    // Stop audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+      setIsAudioPlaying(false);
+    }
 
     const changes = {};
     let correct = 0;
@@ -268,14 +312,13 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
       const db = getDatabase();
       students.forEach(s => {
         if (s.answer) {
-          const isCorrect = s.answer === currentQuestion.type;
+          const isCorrect = s.answer === currentQuestion.family;
           if (isCorrect) {
             correct++;
             const speedBonus = calculateSpeedBonus(s.answerTime, questionStartTime);
             const points = SCORING.CORRECT + speedBonus;
             const newScore = (s.score || 0) + points;
             changes[s.id] = { isCorrect: true, points, speedBonus };
-            // Update score in Firebase
             update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
               nteScore: newScore
             }).catch(err => console.error(`Failed to update score for ${s.id}:`, err));
@@ -296,13 +339,12 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
 
     updateGame({
       phase: 'revealed',
-      revealedAnswer: currentQuestion.type
+      revealedAnswer: currentQuestion.family
     });
   }, [currentQuestion, students, sessionCode, questionStartTime, updateGame]);
 
   // Next question
   const nextQuestion = useCallback(() => {
-    // Clear student answers
     if (sessionCode) {
       const db = getDatabase();
       students.forEach(s => {
@@ -316,18 +358,14 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
     const nextIdx = currentQuestionIndex + 1;
 
     if (nextIdx >= 4) {
-      // End of round
       if (currentRound >= 3) {
-        // Game over
         setGamePhase('finished');
         updateGame({ phase: 'finished', revealedAnswer: null });
       } else {
-        // Show between-rounds screen
         setGamePhase('between-rounds');
         updateGame({ phase: 'between-rounds', revealedAnswer: null });
       }
     } else {
-      // Next question in same round
       const now = Date.now();
       setCurrentQuestionIndex(nextIdx);
       setGamePhase('question');
@@ -339,7 +377,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
       updateGame({
         phase: 'question',
         currentQuestion: nextIdx,
-        questionData: { prompt: nextQ.prompt, type: nextQ.type, id: nextQ.id },
+        questionData: { instrument: nextQ.instrument, family: nextQ.family, id: nextQ.id },
         revealedAnswer: null,
         startedAt: now
       });
@@ -360,7 +398,6 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
     const now = Date.now();
     setQuestionStartTime(now);
 
-    // Clear student answers
     if (sessionCode) {
       const db = getDatabase();
       students.forEach(s => {
@@ -377,13 +414,13 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
       phase: 'question',
       currentRound: nextRound,
       currentQuestion: 0,
-      questionData: { prompt: firstQ.prompt, type: firstQ.type, id: firstQ.id },
+      questionData: { instrument: firstQ.instrument, family: firstQ.family, id: firstQ.id },
       revealedAnswer: null,
       startedAt: now
     });
   }, [currentRound, sessionCode, students, updateGame]);
 
-  const correctCategory = currentQuestion ? CATEGORIES[currentQuestion.type] : null;
+  const correctCategory = currentQuestion ? CATEGORIES[currentQuestion.family] : null;
 
   return (
     <div className="min-h-screen h-full flex flex-col bg-gradient-to-br from-emerald-900 via-teal-900 to-cyan-900 text-white overflow-hidden">
@@ -395,8 +432,8 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
         {/* Header */}
         <div className="flex items-center justify-between mb-3 flex-shrink-0">
           <div className="flex items-center gap-4">
-            <span className="text-5xl">{'\uD83C\uDFAF'}</span>
-            <h1 className="text-4xl font-bold">Name That Element</h1>
+            <span className="text-5xl">🎯</span>
+            <h1 className="text-4xl font-bold">Name That Instrument</h1>
             {gamePhase !== 'setup' && gamePhase !== 'finished' && (
               <span className="bg-white/10 px-4 py-2 rounded-full text-xl">
                 Round {currentRound} &middot; Q{currentQuestionIndex + 1}/4
@@ -418,7 +455,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
               const isComplete = qRound < currentRound || (qRound === currentRound && qIdx < currentQuestionIndex) || (qRound === currentRound && qIdx === currentQuestionIndex && (gamePhase === 'revealed' || gamePhase === 'between-rounds'));
               const isCurrent = qRound === currentRound && qIdx === currentQuestionIndex && gamePhase === 'question';
               const q = QUESTIONS[idx];
-              const catColor = isComplete ? CATEGORIES[q.type].color : 'rgba(255,255,255,0.1)';
+              const catColor = isComplete ? CATEGORIES[q.family].color : 'rgba(255,255,255,0.1)';
 
               return (
                 <div
@@ -431,7 +468,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
                     opacity: isComplete ? 1 : isCurrent ? 0.7 : 0.3
                   }}
                 >
-                  {isComplete ? '\u2713' : idx + 1}
+                  {isComplete ? '✓' : idx + 1}
                 </div>
               );
             })}
@@ -446,9 +483,9 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
             {/* ==================== SETUP ==================== */}
             {gamePhase === 'setup' && (
               <div className="text-center">
-                <div className="text-7xl mb-3">{'\uD83C\uDFAF'}</div>
-                <h2 className="text-4xl font-bold mb-2">Name That Element</h2>
-                <p className="text-xl text-white/70 mb-4">Is it Dynamics, Tempo, or Form?</p>
+                <div className="text-7xl mb-3">🎯</div>
+                <h2 className="text-4xl font-bold mb-2">Name That Instrument</h2>
+                <p className="text-xl text-white/70 mb-4">Listen to the clip — which family does it belong to?</p>
 
                 {/* Category preview */}
                 <div className="flex gap-4 justify-center mb-4">
@@ -482,31 +519,46 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
                   Round {currentRound}: {ROUND_NAMES[currentRound]}
                 </div>
 
-                {/* Question prompt - large and centered */}
+                {/* Audio player — large play button */}
                 <div className="bg-white/10 rounded-3xl p-8 mb-6 max-w-2xl mx-auto border-2 border-white/20">
-                  <div className="text-5xl font-black leading-tight">
-                    {currentQuestion.prompt}
+                  <div className="text-white/50 text-xl mb-4 uppercase tracking-wider font-bold">Listen carefully...</div>
+                  <button
+                    onClick={isAudioPlaying ? pauseAudio : playAudio}
+                    className={`w-32 h-32 rounded-full mx-auto flex items-center justify-center transition-all hover:scale-105 ${
+                      isAudioPlaying
+                        ? 'bg-gradient-to-br from-orange-500 to-red-500 animate-pulse shadow-lg shadow-orange-500/30'
+                        : 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30'
+                    }`}
+                  >
+                    {isAudioPlaying ? (
+                      <Pause size={56} className="text-white" />
+                    ) : (
+                      <Volume2 size={56} className="text-white" />
+                    )}
+                  </button>
+                  <div className="text-white/40 text-sm mt-3">
+                    {isAudioPlaying ? 'Playing...' : 'Tap to play'}
                   </div>
                 </div>
 
-                <p className="text-2xl text-teal-200 mb-6">Is this Dynamics, Tempo, or Form?</p>
+                <p className="text-2xl text-teal-200 mb-6">Which instrument family is this?</p>
 
                 {/* Category buttons with live vote counts */}
-                <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto mb-6">
+                <div className="grid grid-cols-4 gap-3 max-w-3xl mx-auto mb-6">
                   {Object.entries(CATEGORIES).map(([key, cat]) => {
                     const count = answerCounts[key] || 0;
                     return (
                       <div
                         key={key}
-                        className="rounded-2xl p-5 text-center transition-all"
+                        className="rounded-2xl p-4 text-center transition-all"
                         style={{
                           backgroundColor: `${cat.color}30`,
                           borderColor: cat.color,
                           borderWidth: '3px'
                         }}
                       >
-                        <div className="text-4xl mb-1">{cat.emoji}</div>
-                        <div className="text-2xl font-black text-white">{cat.label}</div>
+                        <div className="text-3xl mb-1">{cat.emoji}</div>
+                        <div className="text-lg font-black text-white">{cat.label}</div>
                         <div className="mt-2 bg-black/30 rounded-xl px-3 py-1 inline-block">
                           <span className="text-2xl font-bold" style={{ color: cat.color }}>{count}</span>
                           <span className="text-sm text-white/60 ml-1">votes</span>
@@ -545,18 +597,19 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
                   style={{ backgroundColor: correctCategory.color }}
                 >
                   <div className="text-6xl mb-2">{correctCategory.emoji}</div>
-                  <div className="text-6xl font-black text-white mb-2">{correctCategory.label}</div>
-                  <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="text-5xl font-black text-white mb-1">{currentQuestion.instrument}</div>
+                  <div className="text-3xl font-bold text-white/80 mb-2">{correctCategory.label}</div>
+                  <div className="flex items-center justify-center gap-2">
                     <CheckCircle size={24} className="text-white/90" />
-                    <div className="text-xl text-white/90">{currentQuestion.explanation}</div>
+                    <div className="text-lg text-white/90">{currentQuestion.explanation}</div>
                   </div>
                 </div>
 
-                {/* Vote breakdown with correct/incorrect indicators */}
-                <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto mb-4">
+                {/* Vote breakdown */}
+                <div className="grid grid-cols-4 gap-3 max-w-2xl mx-auto mb-4">
                   {Object.entries(CATEGORIES).map(([key, cat]) => {
                     const count = answerCounts[key] || 0;
-                    const isCorrect = key === currentQuestion.type;
+                    const isCorrect = key === currentQuestion.family;
                     return (
                       <div
                         key={key}
@@ -568,7 +621,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
                         {isCorrect && (
                           <CheckCircle size={24} className="text-green-400 absolute -top-2 -right-2" />
                         )}
-                        <div className="text-xl font-bold">{cat.label}</div>
+                        <div className="text-lg font-bold">{cat.label}</div>
                         <div className="text-2xl font-black">{count}</div>
                       </div>
                     );
@@ -604,7 +657,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
             {/* ==================== BETWEEN ROUNDS ==================== */}
             {gamePhase === 'between-rounds' && (
               <div className="text-center">
-                <div className="text-8xl mb-4">{'\u2B50'}</div>
+                <div className="text-8xl mb-4">⭐</div>
                 <h2 className="text-5xl font-black mb-2">Round {currentRound} Complete!</h2>
                 <p className="text-2xl text-white/60 mb-2">{ROUND_NAMES[currentRound]}</p>
 
@@ -619,7 +672,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
                 </div>
 
                 <div className="text-xl text-white/70 mb-6">
-                  Up next: <span className="font-bold text-teal-300">Round {currentRound + 1} \u2014 {ROUND_NAMES[currentRound + 1]}</span>
+                  Up next: <span className="font-bold text-teal-300">Round {currentRound + 1} — {ROUND_NAMES[currentRound + 1]}</span>
                 </div>
 
                 <button
@@ -634,11 +687,10 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
             {/* ==================== FINISHED ==================== */}
             {gamePhase === 'finished' && (
               <div className="text-center">
-                <div className="text-9xl mb-4">{'\uD83C\uDFC6'}</div>
+                <div className="text-9xl mb-4">🏆</div>
                 <h2 className="text-5xl font-black mb-4">Game Complete!</h2>
                 <p className="text-2xl text-white/70 mb-6">Great job everyone!</p>
 
-                {/* Top 5 podium */}
                 {leaderboard.length > 0 && (
                   <div className="max-w-lg mx-auto mb-8">
                     {leaderboard.slice(0, 5).map((student, idx) => (
@@ -652,7 +704,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
                         }`}
                       >
                         <span className="w-12 text-center font-bold text-3xl">
-                          {idx === 0 ? '\uD83E\uDD47' : idx === 1 ? '\uD83E\uDD48' : idx === 2 ? '\uD83E\uDD49' : `#${idx + 1}`}
+                          {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
                         </span>
                         <div
                           className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold text-white"
@@ -698,7 +750,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
                       } ${isRevealing && change?.isCorrect ? 'ring-2 ring-green-400' : ''}`}
                     >
                       <span className="w-8 text-center font-bold text-xl">
-                        {idx === 0 ? '\uD83E\uDD47' : idx === 1 ? '\uD83E\uDD48' : idx === 2 ? '\uD83E\uDD49' : `#${idx + 1}`}
+                        {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
                       </span>
                       <div
                         className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold text-white"
@@ -708,7 +760,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
                       </div>
                       <span className="flex-1 truncate text-lg font-medium">{student.name}</span>
                       {gamePhase === 'question' && student.answer && (
-                        <span className="text-green-400 text-sm">{'\u2713'}</span>
+                        <span className="text-green-400 text-sm">✓</span>
                       )}
                       <span className="font-bold text-xl">
                         {student.score}

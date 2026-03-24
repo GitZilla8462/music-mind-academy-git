@@ -28,7 +28,7 @@ let _nextSectionId = Date.now();
 const DRAW_COLORS = ['#ffffff', '#000000', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#6b7280'];
 const DRAW_SIZES = [4, 8, 16, 24, 32];
 
-const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false, pieceConfig = null, allowedEnvironments = null, allowedCharacters = null, hideDrawingTools = false, gameMode = false, hideDecoys = false, defaultScene = null, defaultCharacter: defaultCharacterProp = null, skipSavedData = false, onDirectionsClick = null }) => {
+const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false, pieceConfig = null, allowedEnvironments = null, allowedCharacters = null, hideDrawingTools = false, gameMode = false, hideDecoys = false, defaultScene = null, defaultCharacter: defaultCharacterProp = null, skipSavedData = false, onDirectionsClick = null, savedDataOverride = null }) => {
   // If pieceConfig is provided, use it instead of defaults
   const audioPath = pieceConfig?.audioPath || AUDIO_PATH;
   const audioVolume = pieceConfig?.volume || 1.0;
@@ -40,7 +40,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const defaultTab = pieceConfig?.defaultTab || null;
   // ── State ──────────────────────────────────────────────────────────
   // Load saved data ONCE (localStorage first, Firebase fallback in useEffect below)
-  const [savedSnapshot] = useState(() => skipSavedData ? null : loadStudentWork(storageKey));
+  // savedDataOverride lets PeerPlay inject another student's journey data
+  const [savedSnapshot] = useState(() => savedDataOverride ? { data: savedDataOverride } : skipSavedData ? null : loadStudentWork(storageKey));
   const savedData = savedSnapshot?.data;
   const hasLocalData = useRef(!!savedData?.sections?.length);
 
@@ -72,7 +73,18 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     return []; // Start empty — user builds by adding scenes
   });
 
-  const [items, setItems] = useState(() => savedData?.items || []);
+  const [items, setItems] = useState(() => {
+    if (!savedData?.items?.length) return [];
+    // Recalculate placedAtOffset for every item using the current sections
+    // so stickers stay anchored even if section tempos changed after placement
+    const loadedSections = sections; // sections state is already initialized above
+    return savedData.items.map(item => {
+      if (item.timestamp != null && loadedSections.length > 0) {
+        return { ...item, placedAtOffset: getScrollOffsetAtTime(item.timestamp, loadedSections) };
+      }
+      return item;
+    });
+  });
 
   const defaultCharacter = defaultCharacterProp || pieceConfig?.defaultCharacter || null;
   const [character, setCharacter] = useState(() => {
@@ -92,10 +104,11 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const [showTextEditor, setShowTextEditor] = useState(false);
   const [textEditorPosition, setTextEditorPosition] = useState(null);
   const [leftPanelTab, setLeftPanelTab] = useState(defaultTab || gameMode ? 'stickers' : 'movement'); // 'stickers' | 'movement' | 'text'
+  const [showScoreboard, setShowScoreboard] = useState(false);
 
   // Firebase fallback — if no local data, try loading from Firebase (cross-device support)
   useEffect(() => {
-    if (hasLocalData.current || skipSavedData) return;
+    if (hasLocalData.current || skipSavedData || savedDataOverride) return;
     const authInfo = getClassAuthInfo();
     if (!authInfo?.uid) return;
 
@@ -111,7 +124,17 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           scene: s.scene || (presetMode ? null : 'forest'),
           ground: s.ground || 'grass',
         })));
-        if (fbData.items) { setItems(fbData.items); userInteractedRef.current = true; }
+        if (fbData.items) {
+          // Recalculate placedAtOffset so stickers stay anchored to correct sections
+          const fbSections = fbData.sections;
+          setItems(fbData.items.map(item => {
+            if (item.timestamp != null && fbSections.length > 0) {
+              return { ...item, placedAtOffset: getScrollOffsetAtTime(item.timestamp, fbSections) };
+            }
+            return item;
+          }));
+          userInteractedRef.current = true;
+        }
         if (fbData.character) setCharacter(fbData.character);
         if (fbData.guideData) setGuideData(fbData.guideData);
         if (fbData.essayData) setEssayData(fbData.essayData);
@@ -127,7 +150,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const [initialDrawingData] = useState(() => savedData?.drawingData || null);
 
   // App mode: build (editor), present (animation + essay), fullscreen (animation only)
-  const [appMode, setAppMode] = useState('build'); // 'build' | 'present' | 'fullscreen'
+  // When playing someone else's journey (savedDataOverride), start in fullscreen game mode
+  const [appMode, setAppMode] = useState(savedDataOverride && gameMode ? 'fullscreen' : 'build'); // 'build' | 'present' | 'fullscreen'
 
   // Planning guide checklist state (per-section items)
   const [guideData, setGuideData] = useState(() => savedData?.guideData || {});
@@ -159,7 +183,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const [birdHurt, setBirdHurt] = useState(false);
   const hurtTimerRef = useRef(null);
   // Game phase: 'idle' (build mode), 'ready' (start screen), 'playing', 'paused', 'finished'
-  const [gamePhase, setGamePhase] = useState('idle');
+  const [gamePhase, setGamePhase] = useState(savedDataOverride && gameMode ? 'ready' : 'idle');
   const prevIsPlayingRef = useRef(false);
   // High scores & player name for game mode
   const [playerName, setPlayerName] = useState('');
@@ -219,9 +243,13 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         localStorage.setItem(highScoresKey, JSON.stringify(updated));
         return updated;
       });
+      // For peer play: notify parent that game is done (after a brief delay to show score)
+      if (savedDataOverride && onComplete) {
+        setTimeout(() => onComplete(), 3000);
+      }
     }
     prevIsPlayingRef.current = isPlaying;
-  }, [isPlaying, currentTime, gameMode, gamePhase, gameScore, playerName, highScoresKey]);
+  }, [isPlaying, currentTime, gameMode, gamePhase, gameScore, playerName, highScoresKey, savedDataOverride, onComplete]);
 
   // When switching to present/fullscreen in game mode, show start screen
   const setAppModeWithGame = useCallback((mode) => {
@@ -457,7 +485,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   // Auto-save on unmount (when teacher advances to next stage)
   useEffect(() => {
     return () => {
-      if (!isSessionMode || viewMode) return;
+      if (!isSessionMode || viewMode || savedDataOverride) return;
       if (teacherSaveTriggeredRef.current) {
         console.log('💾 Skipping unmount save — teacher save already stored good data');
         return;
@@ -502,7 +530,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   // Listen for teacher's "Save All & Continue" command from Firebase
   useEffect(() => {
-    if (!effectiveSessionCode || !isSessionMode || viewMode) return;
+    if (!effectiveSessionCode || !isSessionMode || viewMode || savedDataOverride) return;
 
     const db = getDatabase();
     const saveCommandRef = ref(db, `sessions/${effectiveSessionCode}/saveCommand`);
@@ -561,8 +589,11 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         const stickerX = item.position.x + drift;
         const stickerY = item.position.y;
 
-        const dx = birdXRef.current - stickerX;
-        const dy = birdYRef.current - stickerY;
+        // Offset collision point to bird center (birdX/birdY is top-left corner)
+        const birdCenterX = birdXRef.current + 0.025;
+        const birdCenterY = birdYRef.current + 0.04;
+        const dx = birdCenterX - stickerX;
+        const dy = birdCenterY - stickerY;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < HIT_RADIUS) {
@@ -877,11 +908,12 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const isBuild = appMode === 'build';
   const isPresent = appMode === 'present';
   const isFullscreen = appMode === 'fullscreen';
+  const isGamePlaying = gameMode && (isPresent || isFullscreen);
 
   return (
     <div className="h-screen flex flex-col bg-gray-900 text-white overflow-hidden">
-      {/* Header — hidden in fullscreen */}
-      {!isFullscreen && (
+      {/* Header — hidden in fullscreen and game mode */}
+      {!isFullscreen && !isGamePlaying && (
         <div className="flex items-center justify-between px-2 sm:px-4 py-1 sm:py-1.5 bg-black/30 border-b border-white/10 flex-shrink-0 flex-nowrap overflow-hidden">
           {/* Left: Title + Color tools + Sprites */}
           <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
@@ -975,24 +1007,26 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             <div className="w-px h-5 bg-white/20" />
             {/* Mode switcher */}
             {gameMode ? (
-              <div className="flex rounded-xl overflow-hidden shadow-lg">
-                <button
-                  onClick={() => setAppModeWithGame('build')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold transition-colors ${
-                    isBuild ? 'bg-indigo-500 text-white' : 'bg-indigo-500/30 text-indigo-200 hover:bg-indigo-500/50'
-                  }`}
-                >
-                  <Hammer size={14} /> Build
-                </button>
-                <button
-                  onClick={() => setAppModeWithGame('present')}
-                  className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-black transition-colors ${
-                    isPresent || isFullscreen ? 'bg-emerald-600 text-white' : 'bg-emerald-500 text-white hover:bg-emerald-600'
-                  }`}
-                >
-                  <Play size={14} fill="white" /> Play Game
-                </button>
-              </div>
+              <>
+                <div className="flex rounded-xl overflow-hidden shadow-lg">
+                  <button
+                    onClick={() => setAppModeWithGame('build')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold transition-colors ${
+                      isBuild ? 'bg-indigo-500 text-white' : 'bg-indigo-500/30 text-indigo-200 hover:bg-indigo-500/50'
+                    }`}
+                  >
+                    <Hammer size={14} /> Build
+                  </button>
+                  <button
+                    onClick={() => setAppModeWithGame('present')}
+                    className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-black transition-colors ${
+                      isPresent || isFullscreen ? 'bg-emerald-600 text-white' : 'bg-emerald-500 text-white hover:bg-emerald-600'
+                    }`}
+                  >
+                    <Play size={14} fill="white" /> Play Game
+                  </button>
+                </div>
+              </>
             ) : (
               <div className="flex bg-white/5 rounded-lg p-0.5">
                 <button
@@ -1021,6 +1055,13 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                 </button>
               </div>
             )}
+            <button
+              onClick={() => setShowScoreboard(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] sm:text-sm font-bold bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/40 transition-colors"
+              title="High Scores"
+            >
+              <Trophy size={14} /> <span className="hidden sm:inline">Scores</span>
+            </button>
 
             <div className="w-px h-5 sm:h-6 bg-white/20 mx-0.5 sm:mx-1" />
 
@@ -1131,6 +1172,12 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                   className="w-full py-3 bg-white/10 hover:bg-white/20 text-white text-lg font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
                 >
                   <SkipBack size={18} /> Restart
+                </button>
+                <button
+                  onClick={() => setShowScoreboard(true)}
+                  className="w-full py-3 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-300 text-lg font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+                >
+                  <Trophy size={18} /> High Scores
                 </button>
                 <button
                   onClick={quitGame}
@@ -1277,25 +1324,64 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                 )}
 
                 {/* Buttons */}
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => { setGamePhase('ready'); gameRewind(); }}
-                    className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-black rounded-xl shadow-lg transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
-                  >
-                    <Play size={18} fill="white" /> Play Again
-                  </button>
-                  <button
-                    onClick={() => setAppModeWithGame('build')}
-                    className="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white text-lg font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Hammer size={18} /> Back to Build
-                  </button>
-                </div>
+                {savedDataOverride ? (
+                  <div className="text-center text-white/60 py-3">
+                    <span className="animate-pulse">Returning to partner pool...</span>
+                  </div>
+                ) : (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => { setGamePhase('ready'); gameRewind(); }}
+                      className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-black rounded-xl shadow-lg transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+                    >
+                      <Play size={18} fill="white" /> Play Again
+                    </button>
+                    <button
+                      onClick={() => setAppModeWithGame('build')}
+                      className="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white text-lg font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Hammer size={18} /> Back to Build
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         );
       })()}
+
+      {/* Scoreboard overlay */}
+      {showScoreboard && (
+        <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowScoreboard(false)}>
+          <div className="bg-gray-900/90 rounded-3xl border border-white/10 shadow-2xl max-w-sm w-full mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="bg-gradient-to-r from-yellow-600 to-amber-600 px-6 py-4 text-center">
+              <Trophy size={32} className="text-white mx-auto mb-1" />
+              <h2 className="text-2xl font-black text-white">High Scores</h2>
+            </div>
+            <div className="px-6 py-5">
+              {highScores.length > 0 ? (
+                <div className="space-y-1.5">
+                  {highScores.map((entry, i) => (
+                    <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${i === 0 ? 'bg-yellow-500/15' : 'bg-white/5'}`}>
+                      <span className="w-6 text-center font-bold text-white/50">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
+                      <span className="flex-1 font-bold text-white truncate">{entry.name}</span>
+                      <span className={`font-black tabular-nums ${entry.score >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{entry.score}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-white/40 py-4">No scores yet — play a game!</p>
+              )}
+              <button
+                onClick={() => setShowScoreboard(false)}
+                className="w-full mt-4 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main content area */}
       <div className="flex-1 flex min-h-0">
@@ -1306,7 +1392,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             <div className="flex border-b border-white/10 flex-shrink-0">
               {[
                 { id: 'stickers', icon: <Sticker size={13} />, label: 'Stickers' },
-                ...(!hideMovement && !gameMode ? [{ id: 'movement', icon: <Wind size={13} />, label: 'Movement' }] : []),
+                /* Movement tab removed — bird always flies at medium pace */
                 /* Text tab commented out for now */
                 // ...(!gameMode ? [{ id: 'text', icon: <Type size={13} />, label: 'Text' }] : []),
               ].map(tab => (
@@ -1433,7 +1519,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         )}
 
         {/* Viewport (center) */}
-        <div className={`flex-1 ${isFullscreen ? 'p-0' : 'p-1.5 sm:p-2 lg:p-3'} min-w-0 flex flex-col`}>
+        <div className={`flex-1 ${isFullscreen || isGamePlaying ? 'p-0' : 'p-1.5 sm:p-2 lg:p-3'} min-w-0 flex flex-col`}>
           <div className="flex-1 min-h-0">
             <JourneyViewport
               section={activeSection}
@@ -1495,7 +1581,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             onGuideChange={setGuideData}
           />
         )}
-        {isPresent && (
+        {isPresent && !isGamePlaying && (
           <EssayPanel
             sections={sections}
             guideData={guideData}
@@ -1506,8 +1592,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         )}
       </div>
 
-      {/* Timeline + transport (bottom) — hidden in fullscreen */}
-      {!isFullscreen && <div className="px-2 py-1.5 sm:px-3 sm:py-2 lg:px-4 lg:py-3 bg-black/30 border-t border-white/10">
+      {/* Timeline + transport (bottom) — hidden in fullscreen and game mode */}
+      {!isFullscreen && !isGamePlaying && <div className="px-2 py-1.5 sm:px-3 sm:py-2 lg:px-4 lg:py-3 bg-black/30 border-t border-white/10">
         <JourneyTimeline
           sections={sections}
           items={items}

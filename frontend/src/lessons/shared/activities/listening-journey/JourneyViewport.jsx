@@ -40,6 +40,7 @@ const JourneyViewport = ({
     if (!character?.flying || !onBirdYChange) return;
 
     const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       const WASD_MAP = { w: 'ArrowUp', s: 'ArrowDown', a: 'ArrowLeft', d: 'ArrowRight',
                          W: 'ArrowUp', S: 'ArrowDown', A: 'ArrowLeft', D: 'ArrowRight' };
       const mapped = WASD_MAP[e.key] || (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key) ? e.key : null);
@@ -49,6 +50,7 @@ const JourneyViewport = ({
       }
     };
     const handleKeyUp = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       const WASD_MAP = { w: 'ArrowUp', s: 'ArrowDown', a: 'ArrowLeft', d: 'ArrowRight',
                          W: 'ArrowUp', S: 'ArrowDown', A: 'ArrowLeft', D: 'ArrowRight' };
       keysRef.current.delete(WASD_MAP[e.key] || e.key);
@@ -67,7 +69,7 @@ const JourneyViewport = ({
   useEffect(() => {
     if (!character?.flying || !onBirdYChange) return;
 
-    const SPEED = 0.008; // normalized units per frame — gentle bird movement
+    const SPEED = 0.006; // normalized units per frame — smooth gliding bird movement
     let lastTime = performance.now();
     let animId;
 
@@ -218,8 +220,8 @@ const JourneyViewport = ({
                 frameHeight={character.frameHeight}
                 displayScale={character.displayScale || 1}
                 tempo={section.tempo}
-                dynamics={section.dynamics}
-                movement={section.movement}
+                dynamics={character.flying ? 'mf' : section.dynamics}
+                movement="walk"
                 isPlaying={character.flying ? true : isPlaying}
                 isHurt={isHurt}
               />

@@ -3,18 +3,13 @@
 // During playback, currentTime updates via rAF so animation stays smooth
 
 import { useMemo } from 'react';
-import { getTempoById, getMovementById } from '../characterAnimations';
 
 // Base rate: copies-per-second at speed=1.0 (andante)
 const BASE_RATE = 0.40;
 
-// Scroll speed = tempo × movement multiplier
-// Movement (Slow/Medium/Fast) controls both character animation AND parallax speed
-const getSectionScrollSpeed = (section) => {
-  const tempoSpeed = getTempoById(section.tempo).speed;
-  const movementData = section.movement ? getMovementById(section.movement) : null;
-  const movementMultiplier = movementData ? movementData.scrollMultiplier : 1.0;
-  return tempoSpeed * movementMultiplier;
+// Constant scroll speed — same pace regardless of section tempo
+const getSectionScrollSpeed = () => {
+  return 1.0;
 };
 
 // Compute raw midground scroll offset at a given time (non-hook, callable anywhere)

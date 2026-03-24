@@ -262,7 +262,12 @@ const Lesson5 = () => {
       return (
         <>
           <ActivityRenderer
-            activity={{ type: activityType, id: currentStage, ...(activityType === 'listening-journey' ? { pieceConfig: getSelectedPieceConfig(), ...JOURNEY_L5_EXTRAS } : {}) }}
+            activity={{
+              type: activityType,
+              id: currentStage,
+              ...(activityType === 'listening-journey' ? { pieceConfig: getSelectedPieceConfig(), ...JOURNEY_L5_EXTRAS } : {}),
+              ...(activityType === 'peer-play' ? { pieceConfig: getSelectedPieceConfig(), journeyExtras: JOURNEY_L5_EXTRAS } : {})
+            }}
             onComplete={handleSessionActivityComplete}
             sessionCode={sessionCode}
             viewMode={false}

@@ -9,11 +9,12 @@ import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
 
-// Answer options
+// Answer options — instrument families
 const ANSWERS = [
-  { id: 'dynamics', label: 'DYNAMICS', emoji: '\uD83D\uDCE2', color: '#EF4444', bgClass: 'from-red-500 to-red-700' },
-  { id: 'tempo', label: 'TEMPO', emoji: '\u23F1\uFE0F', color: '#8B5CF6', bgClass: 'from-purple-500 to-purple-700' },
-  { id: 'form', label: 'FORM', emoji: '\uD83D\uDD24', color: '#3B82F6', bgClass: 'from-blue-500 to-blue-700' }
+  { id: 'strings', label: 'STRINGS', emoji: '🎻', color: '#3B82F6', bgClass: 'from-blue-500 to-blue-700' },
+  { id: 'woodwinds', label: 'WOODWINDS', emoji: '🎵', color: '#10B981', bgClass: 'from-emerald-500 to-emerald-700' },
+  { id: 'brass', label: 'BRASS', emoji: '🎺', color: '#F59E0B', bgClass: 'from-amber-500 to-amber-700' },
+  { id: 'percussion', label: 'PERCUSSION', emoji: '🥁', color: '#EF4444', bgClass: 'from-red-500 to-red-700' }
 ];
 
 // Scoring
@@ -371,7 +372,7 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
     return (
       <div className="h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 flex items-center justify-center p-6">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Name That Element</h1>
+          <h1 className="text-4xl font-bold text-white mb-4">Name That Instrument</h1>
           <p className="text-xl text-purple-200 mb-8">Waiting for teacher to start...</p>
 
           <div className="bg-white/10 rounded-2xl p-6 inline-block">
@@ -412,21 +413,21 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
         {gamePhase === 'guessing' && !answerSubmitted && (
           <>
             <h2 className="text-2xl font-bold text-white mb-2 text-center">
-              Is it Dynamics, Tempo, or Form?
+              Which instrument family?
             </h2>
             <p className="text-purple-200 text-sm mb-6">Listen to the main screen, then tap your answer:</p>
 
-            <div className="flex flex-col gap-4 w-full max-w-md">
+            <div className="grid grid-cols-2 gap-3 w-full max-w-md">
               {ANSWERS.map(answer => (
                 <button
                   key={answer.id}
                   onClick={() => submitAnswer(answer.id)}
-                  className={`w-full py-6 px-6 rounded-2xl text-center transition-all hover:scale-[1.03] active:scale-95 text-white bg-gradient-to-r ${answer.bgClass} shadow-lg`}
-                  style={{ minHeight: '80px' }}
+                  className={`w-full py-5 px-4 rounded-2xl text-center transition-all hover:scale-[1.03] active:scale-95 text-white bg-gradient-to-r ${answer.bgClass} shadow-lg`}
+                  style={{ minHeight: '90px' }}
                 >
-                  <div className="flex items-center justify-center gap-4">
+                  <div className="flex flex-col items-center gap-2">
                     <span className="text-4xl">{answer.emoji}</span>
-                    <span className="text-3xl font-black tracking-wide">{answer.label}</span>
+                    <span className="text-xl font-black tracking-wide">{answer.label}</span>
                   </div>
                 </button>
               ))}

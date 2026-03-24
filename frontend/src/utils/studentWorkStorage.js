@@ -20,13 +20,14 @@ const PIN_SESSION_KEY = 'student-pin-session';
  * (important on shared Chromebooks). Otherwise falls back to a persistent anonymous ID.
  */
 export const getStudentId = () => {
-  // Prefer seat-based ID when PIN session is active (shared Chromebook safety)
+  // Prefer seat-based ID from PIN session (even if expired) so localStorage
+  // lookups always resolve to the same key on shared Chromebooks.
+  // Expiry only matters for Firebase auth (checked in getClassAuthInfo), not storage keys.
   try {
     const pinSession = localStorage.getItem(PIN_SESSION_KEY);
     if (pinSession) {
       const session = JSON.parse(pinSession);
-      if (session.classId && session.seatNumber != null &&
-          (!session.expiresAt || session.expiresAt > Date.now())) {
+      if (session.classId && session.seatNumber != null) {
         return `seat-${session.classId}-${session.seatNumber}`;
       }
     }

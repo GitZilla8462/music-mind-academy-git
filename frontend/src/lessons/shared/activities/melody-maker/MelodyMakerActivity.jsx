@@ -5,14 +5,18 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Square, Trash2, Save, Music, Check, ChevronDown, ArrowLeft, Music2, Pencil } from 'lucide-react';
 import * as Tone from 'tone';
+import { getStudentId } from '../../../../utils/studentWorkStorage';
 
-// Storage key matching what GameCompositionActivity looks for
-const SAVED_MELODIES_KEY = 'lesson5-student-melodies';
+// Storage key namespaced by student ID to prevent collisions on shared Chromebooks
+const getSavedMelodiesKey = () => `lesson5-student-melodies-${getStudentId()}`;
 
 // Load saved melodies from localStorage
 const loadSavedMelodies = () => {
   try {
-    const saved = localStorage.getItem(SAVED_MELODIES_KEY);
+    // Try namespaced key first, fall back to legacy bare key
+    const key = getSavedMelodiesKey();
+    let saved = localStorage.getItem(key);
+    if (!saved) saved = localStorage.getItem('lesson5-student-melodies');
     return saved ? JSON.parse(saved) : [];
   } catch {
     return [];
@@ -24,7 +28,7 @@ const saveMelodyToStorage = (melody) => {
   try {
     const existing = loadSavedMelodies();
     const updated = [...existing, melody];
-    localStorage.setItem(SAVED_MELODIES_KEY, JSON.stringify(updated));
+    localStorage.setItem(getSavedMelodiesKey(), JSON.stringify(updated));
     return updated;
   } catch (error) {
     console.error('Failed to save melody:', error);
@@ -37,7 +41,7 @@ const deleteMelodyFromStorage = (melodyId) => {
   try {
     const existing = loadSavedMelodies();
     const updated = existing.filter(melody => melody.id !== melodyId);
-    localStorage.setItem(SAVED_MELODIES_KEY, JSON.stringify(updated));
+    localStorage.setItem(getSavedMelodiesKey(), JSON.stringify(updated));
     return updated;
   } catch (error) {
     console.error('Failed to delete melody:', error);
@@ -52,7 +56,7 @@ const updateMelodyInStorage = (updatedMelody) => {
     const updated = existing.map(melody =>
       melody.id === updatedMelody.id ? { ...updatedMelody, savedAt: new Date().toISOString() } : melody
     );
-    localStorage.setItem(SAVED_MELODIES_KEY, JSON.stringify(updated));
+    localStorage.setItem(getSavedMelodiesKey(), JSON.stringify(updated));
     return updated;
   } catch (error) {
     console.error('Failed to update melody:', error);

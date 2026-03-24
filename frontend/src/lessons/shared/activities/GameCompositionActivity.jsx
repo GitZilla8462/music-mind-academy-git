@@ -21,14 +21,17 @@ import { saveStudentWork, loadStudentWork, getStudentId, clearAllCompositionSave
 import { loadStudentWork as loadFromFirebase } from '../../../firebase/studentWork';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
-// Storage keys for Lesson 5
-const GAME_SELECTION_KEY = 'lesson5-game-selection';
-const SAVED_MELODIES_KEY = 'lesson5-student-melodies';
+// Storage keys for Lesson 5 — namespaced by student ID to prevent collisions on shared Chromebooks
+const getGameSelectionKey = () => `lesson5-game-selection-${getStudentId()}`;
+const getSavedMelodiesKey = () => `lesson5-student-melodies-${getStudentId()}`;
 
 // Load saved melodies from StudentMelodyMakerActivity (as array for DAW)
 const loadSavedMelodies = () => {
   try {
-    const saved = localStorage.getItem(SAVED_MELODIES_KEY);
+    // Try namespaced key first, fall back to legacy bare key
+    const key = getSavedMelodiesKey();
+    let saved = localStorage.getItem(key);
+    if (!saved) saved = localStorage.getItem('lesson5-student-melodies');
     if (saved) {
       const melodies = JSON.parse(saved);
       // Ensure it's an array and mark for re-rendering
@@ -51,13 +54,16 @@ const loadSavedMelodies = () => {
 // Save/load game selection
 const saveGameSelection = (gameId, gameTitle) => {
   const selection = { gameId, gameTitle, selectedAt: new Date().toISOString() };
-  localStorage.setItem(GAME_SELECTION_KEY, JSON.stringify(selection));
+  localStorage.setItem(getGameSelectionKey(), JSON.stringify(selection));
   return selection;
 };
 
 const getGameSelection = () => {
   try {
-    const data = localStorage.getItem(GAME_SELECTION_KEY);
+    // Try namespaced key first, fall back to legacy bare key
+    const key = getGameSelectionKey();
+    let data = localStorage.getItem(key);
+    if (!data) data = localStorage.getItem('lesson5-game-selection');
     return data ? JSON.parse(data) : null;
   } catch {
     return null;
@@ -279,7 +285,7 @@ const GameCompositionActivity = ({
 
   // Check if reflection is already completed on mount
   useEffect(() => {
-    const savedReflection = localStorage.getItem('game-reflection');
+    const savedReflection = localStorage.getItem(`game-reflection-${getStudentId()}`);
     if (savedReflection) {
       try {
         const data = JSON.parse(savedReflection);
@@ -986,7 +992,7 @@ const GameCompositionActivity = ({
               setReflectionCompleted(true);
               setShowReflection(false);
               setViewingReflection(false);
-              localStorage.setItem('game-reflection', JSON.stringify({ submittedAt: new Date().toISOString() }));
+              localStorage.setItem(`game-reflection-${getStudentId()}`, JSON.stringify({ submittedAt: new Date().toISOString() }));
             }}
             viewMode={viewingReflection}
             isSessionMode={isSessionMode}

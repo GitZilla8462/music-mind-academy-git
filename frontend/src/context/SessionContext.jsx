@@ -831,6 +831,8 @@ export const SessionProvider = ({ children }) => {
           window.location.href = '/music-loops-in-media-hub';
         } else if (lessonRoute.includes('/lessons/listening-lab/')) {
           window.location.href = '/listening-lab-hub';
+        } else if (lessonRoute.includes('/lessons/music-journalist/')) {
+          window.location.href = '/music-journalist-hub';
         } else {
           window.location.href = '/music-classroom-resources';
         }

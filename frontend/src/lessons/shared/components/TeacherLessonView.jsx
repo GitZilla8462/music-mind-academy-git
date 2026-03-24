@@ -1705,6 +1705,101 @@ const PresentationContent = ({
       );
     }
 
+    // Peer Play Teacher Board (Listening Lab Lesson 5)
+    if (type === 'peer-play-teacher') {
+      const PeerPlayTeacherBoard = () => {
+        const [peerPlayData, setPeerPlayData] = React.useState({ pool: [], matches: [] });
+
+        React.useEffect(() => {
+          const effectiveCode = sessionCode || classCode;
+          if (!effectiveCode) return;
+
+          let unsub;
+          import('../../../firebase/peerPlay').then(({ subscribeToPeerPlay, activatePeerPlay }) => {
+            // Activate peer play when teacher reaches this slide
+            activatePeerPlay(effectiveCode);
+            unsub = subscribeToPeerPlay(effectiveCode, (data) => {
+              setPeerPlayData(data);
+            });
+          });
+          return () => { if (unsub) unsub(); };
+        }, []);
+
+        const activeMatches = peerPlayData.matches.filter(m => m.status === 'playing');
+        const finishedMatches = peerPlayData.matches.filter(m => m.status === 'finished');
+        const totalGames = peerPlayData.matches.reduce((sum, m) => sum + (m.gamesPlayed || 0), 0);
+
+        return (
+          <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-gray-900 via-emerald-950 to-gray-900 p-8 overflow-auto">
+            {/* Header */}
+            <div className="text-center mb-8 flex-shrink-0">
+              <div className="text-6xl mb-3">🎮</div>
+              <h1 className="text-5xl font-black text-white mb-2">Peer Play</h1>
+              <div className="flex items-center justify-center gap-8 text-lg">
+                <span className="text-emerald-300 font-bold">{activeMatches.length} playing now</span>
+                <span className="text-white/40">|</span>
+                <span className="text-indigo-300 font-bold">{peerPlayData.pool.length} waiting</span>
+                <span className="text-white/40">|</span>
+                <span className="text-yellow-300 font-bold">{totalGames} games played</span>
+              </div>
+            </div>
+
+            {/* Active Matches */}
+            <div className="flex-1 min-h-0">
+              {activeMatches.length > 0 && (
+                <div className="mb-6">
+                  <h2 className="text-xl font-bold text-white/70 mb-3 uppercase tracking-wider">Playing Now</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {activeMatches.map((match) => (
+                      <div key={match.id} className="bg-white/10 rounded-xl p-4 border border-emerald-500/30">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg font-bold text-white">{match.studentA.name}</span>
+                            <span className="text-white/30">↔</span>
+                            <span className="text-lg font-bold text-white">{match.studentB.name}</span>
+                          </div>
+                          <span className="text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">
+                            Turn {match.turn}/2
+                          </span>
+                        </div>
+                        {match.observer && (
+                          <div className="mt-2 text-sm text-amber-300/80 flex items-center gap-1.5">
+                            <span>👁</span> <span className="font-bold">{match.observer.name}</span> observing
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Waiting Pool */}
+              {peerPlayData.pool.length > 0 && (
+                <div className="mb-6">
+                  <h2 className="text-xl font-bold text-white/70 mb-3 uppercase tracking-wider">Waiting for Match</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {peerPlayData.pool.map((student) => (
+                      <div key={student.id} className="bg-white/10 rounded-lg px-4 py-2 border border-indigo-500/30">
+                        <span className="text-white font-bold">{student.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* No activity yet */}
+              {activeMatches.length === 0 && peerPlayData.pool.length === 0 && (
+                <div className="text-center text-white/40 text-xl mt-8">
+                  Waiting for students to join...
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      };
+      return <PeerPlayTeacherBoard />;
+    }
+
     // Gallery Circle Teacher View (Listening Lab Lesson 5)
     if (type === 'gallery-circle-teacher') {
       const GalleryCircleTeacherSlide = () => (

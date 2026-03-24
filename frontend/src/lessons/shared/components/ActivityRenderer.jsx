@@ -142,6 +142,9 @@ import { ListeningGuideActivity } from '../activities/listening-guide';
 import CapstonePieceSelection from '../activities/capstone/CapstonePieceSelection';
 import CapstonePlanning from '../activities/capstone/CapstonePlanning';
 
+// ✅ ADDED: Peer Play matchmaking (Listening Lab Lesson 5)
+import PeerPlayActivity from '../activities/peer-play/PeerPlayActivity';
+
 // Wrapper: shows NewsHub feed, click article → ArticleReader, back button returns to feed
 // Dark background wrapper ensures white text is visible when embedded in any parent
 const ArticleReaderActivity = ({ activity, onComplete }) => {
@@ -837,6 +840,16 @@ const ActivityRenderer = ({
           hideDecoys={activity.hideDecoys || false}
           defaultScene={activity.defaultScene || null}
           defaultCharacter={activity.defaultCharacter || null}
+        />
+      );
+
+    // ✅ ADDED: Peer Play matchmaking (Listening Lab Lesson 5)
+    case 'peer-play':
+      return (
+        <PeerPlayActivity
+          key={`peer-play-${activity.id}`}
+          pieceConfig={activity.pieceConfig || null}
+          journeyExtras={activity.journeyExtras || {}}
         />
       );
 

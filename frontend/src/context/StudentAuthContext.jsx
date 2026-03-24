@@ -34,10 +34,9 @@ export const StudentAuthProvider = ({ children }) => {
         // Check if session is expired
         if (session.expiresAt > Date.now()) {
           setPinSession(session);
-        } else {
-          // Clear expired session
-          localStorage.removeItem(PIN_SESSION_KEY);
         }
+        // Expired sessions stay in localStorage so getStudentId() can still
+        // resolve the seat-based storage key and find previously-saved work.
       } catch (e) {
         localStorage.removeItem(PIN_SESSION_KEY);
       }

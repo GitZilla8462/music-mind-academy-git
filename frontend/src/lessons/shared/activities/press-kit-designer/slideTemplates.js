@@ -46,22 +46,22 @@ export function generateSlide1Objects(fields = {}, imageUrl = null) {
   const objects = [];
 
   objects.push(text(60, 100,
-    fields.artistName || 'Type artist name here',
+    fields.artistName || 'Who is your artist?',
     56, { bold: true }
   ));
 
   objects.push(text(60, 185,
-    fields.genre || 'Type genre here (e.g. Indie / Alternative)',
+    fields.genre || 'What genre do they make?',
     18, { color: '#fbbf24', bold: true }
   ));
 
   objects.push(text(60, 225,
-    fields.location || 'Type location here (e.g. Chicago, Illinois)',
+    fields.location || 'Where are they from?',
     16, { color: '#ffffffaa', italic: true }
   ));
 
   objects.push(text(60, 310,
-    fields.hookLine || 'Type one punchy sentence about who they are...',
+    fields.hookLine || 'What makes them stand out in one sentence?',
     20, { color: '#ffffffcc' }
   ));
 
@@ -85,7 +85,7 @@ export function generateSlide2Objects(fields = {}) {
   ));
 
   objects.push(text(80, 120,
-    fields.soundStatement || 'Type your Sound Statement here — one sentence that captures their unique sound...',
+    fields.soundStatement || 'Describe their sound so someone can hear it through your words.',
     22, { italic: true, color: '#ffffffdd' }
   ));
 
@@ -96,18 +96,18 @@ export function generateSlide2Objects(fields = {}) {
     });
   } else {
     objects.push(text(80, 260,
-      'Type mood tags here (e.g. Chill, Groovy, Warm)',
+      'What 3 words describe the mood of their music?',
       16, { color: '#fbbf24', bold: true }
     ));
   }
 
   objects.push(text(80, 320,
-    fields.influences ? `Influences: ${fields.influences}` : 'Type influences here (e.g. J Dilla, Nujabes)',
+    fields.influences ? `Influences: ${fields.influences}` : 'Who are their musical influences?',
     16, { color: '#ffffff88' }
   ));
 
   objects.push(text(80, 390,
-    fields.ifYouLike || 'Type: "If you like [artist], you\'ll love [your artist]"',
+    fields.ifYouLike || 'If you like _____, you\'ll love this artist because...',
     18, { italic: true, color: '#fbbf24' }
   ));
 
@@ -127,9 +127,9 @@ export function generateSlide3Objects(fields = {}) {
   ));
 
   const reasons = [
-    { num: '1.', text: fields.reason1 || 'Type reason 1 — what\'s unique about their sound?' },
-    { num: '2.', text: fields.reason2 || 'Type reason 2 — what\'s their story?' },
-    { num: '3.', text: fields.reason3 || 'Type reason 3 — what evidence shows they\'re growing?' },
+    { num: '1.', text: fields.reason1 || 'What is unique about their sound that no one else has?' },
+    { num: '2.', text: fields.reason2 || 'What is their story and why does it matter?' },
+    { num: '3.', text: fields.reason3 || 'What evidence shows they are growing right now?' },
   ];
 
   reasons.forEach((r, i) => {
@@ -153,17 +153,17 @@ export function generateSlide4Objects(fields = {}, imageUrl = null) {
   ));
 
   objects.push(text(CANVAS_W / 2 - 150, 120,
-    fields.trackTitle || 'Type track title here',
+    fields.trackTitle || 'Which song should we listen to?',
     42, { bold: true }
   ));
 
   objects.push(text(CANVAS_W / 2 - 100, 195,
-    fields.albumTitle || 'Type album title here',
+    fields.albumTitle || 'What album or EP is it from?',
     18, { color: '#ffffff88' }
   ));
 
   objects.push(text(80, 300,
-    fields.whatToListenFor || 'Type what the audience should listen for in this track...',
+    fields.whatToListenFor || 'What should the audience listen for in this track?',
     18, { color: '#ffffffcc', italic: true }
   ));
 
@@ -187,17 +187,17 @@ export function generateSlide5Objects(fields = {}, imageUrl = null) {
   ));
 
   objects.push(text(80, 150,
-    fields.closingPitch || 'Type your closing pitch — why should anyone care about this artist RIGHT NOW?',
+    fields.closingPitch || 'Why should anyone care about this artist right now?',
     26, { color: '#ffffffee' }
   ));
 
   objects.push(text(CANVAS_W / 2 - 180, 310,
-    fields.callToAction || 'Type your call to action (e.g. "Follow them before everyone else does")',
+    fields.callToAction || 'What do you want the audience to do after hearing your pitch?',
     22, { bold: true, color: '#fbbf24' }
   ));
 
   objects.push(text(80, 430,
-    fields.memorableFact || 'Type one surprising fact that sticks...',
+    fields.memorableFact || 'What is one surprising fact that will stick with people?',
     16, { italic: true, color: '#ffffff77' }
   ));
 
