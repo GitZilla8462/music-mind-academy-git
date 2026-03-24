@@ -216,23 +216,19 @@ const TwoStarsAndAWishActivity = ({
 
   // Check if reflection is already completed when component mounts
   useEffect(() => {
-    // Check all possible reflection keys
-    const allReflectionKeys = Object.values(LESSON_CONFIGS).map(c => c.reflectionKey);
-    for (const key of allReflectionKeys) {
-      const savedReflection = localStorage.getItem(key);
-      if (savedReflection) {
-        try {
-          const data = JSON.parse(savedReflection);
-          if (data.submittedAt) {
-            setReflectionCompleted(true);
-            break;
-          }
-        } catch (error) {
-          console.error('Error loading reflection status:', error);
+    // Only check the current lesson's reflection key, not all lessons
+    const savedReflection = localStorage.getItem(reflectionKey);
+    if (savedReflection) {
+      try {
+        const data = JSON.parse(savedReflection);
+        if (data.submittedAt) {
+          setReflectionCompleted(true);
         }
+      } catch (error) {
+        console.error('Error loading reflection status:', error);
       }
     }
-  }, []);
+  }, [reflectionKey]);
 
   if (!compositionData && !viewMode) {
     return (
