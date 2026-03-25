@@ -52,7 +52,7 @@ export const useSessionMode = () => {
 
       if (urlRole === 'teacher' && isVerifiedTeacher) {
         if (!alreadyActive) {
-          startSession(urlSessionCode, 'teacher', urlClassId);
+          startSession(urlSessionCode, 'teacher', urlClassId, urlClassCode);
           console.log('Teacher session started:', { sessionCode: urlSessionCode, classId: urlClassId });
         }
       } else if (urlRole === 'student' || (requestedRole === 'teacher' && !isVerifiedTeacher)) {
