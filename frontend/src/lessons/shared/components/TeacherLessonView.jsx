@@ -39,6 +39,7 @@ import {
 import { saveSurveyResponse, saveMidPilotSurvey, saveFinalPilotSurvey } from '../../../firebase/analytics';
 import { getDatabase, ref, onValue, update } from 'firebase/database';
 import { useTimerSound } from '../hooks/useTimerSound';
+import ActivityRenderer from './ActivityRenderer';
 
 // ============================================
 // SLIDE WITH AUDIO COMPONENT
@@ -452,7 +453,8 @@ const PresentationContent = ({
   viewMode, // 'teacher' or 'student'
   onVideoEnded, // callback when video finishes playing
   goToNextStage, // callback to advance to next stage
-  presentationZoom = 1 // zoom factor for scaling slides
+  presentationZoom = 1, // zoom factor for scaling slides
+  isPreviewMode = false
 }) => {
   // Display code: prefer classCode (permanent) over sessionCode (temporary)
   const displayCode = classCode || sessionCode;
@@ -840,7 +842,7 @@ const PresentationContent = ({
 
       return (
         <div className="absolute inset-0">
-          <MoodMatchTeacherView sessionCode={classCode || sessionCode} onAdvanceLesson={goToNextStage} />
+          <MoodMatchTeacherView sessionCode={classCode || sessionCode} onAdvanceLesson={goToNextStage} isPreviewMode={isPreviewMode} />
         </div>
       );
     }
@@ -2344,11 +2346,14 @@ const PresentationContent = ({
       }
 
       // --- DEFAULT MODE: student iframe (the actual DAW) + Present button ---
+      // In preview mode without a session code, load the lesson route directly as a student
+      const iframeSrc = displayCode
+        ? `${window.location.origin}/join?code=${displayCode}&preview=true&passive=true`
+        : `${window.location.origin}${lessonConfig?.lessonPath || '/lessons/film-music-project/lesson1'}?role=student&view=saved`;
       return (
         <div className="absolute inset-0 bg-gray-900">
-          {/* Student DAW via iframe */}
           <iframe
-            src={`${window.location.origin}/join?code=${displayCode}&preview=true&passive=true`}
+            src={iframeSrc}
             className="absolute inset-0 w-full h-full border-none"
             title="Student DAW View"
             allow="autoplay"
@@ -2658,11 +2663,15 @@ const PresentationContent = ({
 // MINI PREVIEW COMPONENT
 // Shows scaled-down live preview of opposite view
 // ============================================
-const MiniPreview = ({ viewMode, sessionCode, classCode, currentStage, currentStageData, sessionData, config, onSwitch }) => {
+const MiniPreview = ({ viewMode, sessionCode, classCode, currentStage, currentStageData, sessionData, config, onSwitch, isPreviewMode = false }) => {
   const getStudentUrl = () => {
     // Use current origin to handle any port in dev
     // passive=true disables navigation prevention hooks to avoid IPC flooding
-    return `${window.location.origin}/join?code=${classCode || sessionCode}&preview=true&passive=true`;
+    if (classCode || sessionCode) {
+      return `${window.location.origin}/join?code=${classCode || sessionCode}&preview=true&passive=true`;
+    }
+    // Preview mode without session — load lesson route directly as student
+    return `${window.location.origin}${config?.lessonPath || '/lessons/film-music-project/lesson1'}?role=student&view=saved`;
   };
 
   return (
@@ -2687,14 +2696,37 @@ const MiniPreview = ({ viewMode, sessionCode, classCode, currentStage, currentSt
         title={`Click to switch to ${viewMode === 'teacher' ? 'Student' : 'Teacher'} View`}
       >
         {viewMode === 'teacher' ? (
-          // Show mini student view via iframe
-          <iframe
-            src={getStudentUrl()}
-            className="w-full h-full border-none pointer-events-none"
-            style={{ transform: 'scale(0.15)', transformOrigin: 'top left', width: '666%', height: '666%' }}
-            title="Student View Preview"
-            allow="autoplay"
-          />
+          // Show mini student view
+          (classCode || sessionCode) ? (
+            <iframe
+              src={getStudentUrl()}
+              className="w-full h-full border-none pointer-events-none"
+              style={{ transform: 'scale(0.15)', transformOrigin: 'top left', width: '666%', height: '666%' }}
+              title="Student View Preview"
+              allow="autoplay"
+            />
+          ) : (
+            // Preview mode: inline mini student view
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              <div style={{ transform: 'scale(0.1)', transformOrigin: 'top left', width: '1000%', height: '1000%' }}>
+                {currentStageData?.type === 'activity' ? (
+                  <div className="h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+                    <div className="w-full flex items-center justify-center py-6 bg-blue-600">
+                      <span className="text-white font-bold text-4xl">CLASS ACTIVITY</span>
+                    </div>
+                    <div className="flex-1 flex items-center justify-center">
+                      <h2 className="text-5xl font-bold text-white">{currentStageData?.label || 'Activity'}</h2>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center bg-black">
+                    <Monitor size={128} className="text-white mb-8 animate-pulse" />
+                    <h1 className="text-5xl font-bold text-white">Watch the Main Screen</h1>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
         ) : (
           // Show mini teacher view (presentation content)
           <div 
@@ -2711,6 +2743,7 @@ const MiniPreview = ({ viewMode, sessionCode, classCode, currentStage, currentSt
                 lessonBasePath={config?.lessonPath}
                 viewMode="teacher"
                 goToNextStage={() => {}}
+                isPreviewMode={isPreviewMode}
               />
             </div>
           </div>
@@ -4748,6 +4781,7 @@ const TeacherLessonView = ({
                 sessionData={sessionData}
                 config={config}
                 onSwitch={() => setViewMode(viewMode === 'teacher' ? 'student' : 'teacher')}
+                isPreviewMode={isPreviewMode}
               />
             </div>
           )}
@@ -4820,10 +4854,11 @@ const TeacherLessonView = ({
               onVideoEnded={goToNextStage}
               goToNextStage={goToNextStage}
               presentationZoom={presentationZoom}
+              isPreviewMode={isPreviewMode}
             />
           </div>
 
-          {/* Student view iframe - shown when in student view mode */}
+          {/* Student view - shown when in student view mode */}
           {viewMode === 'student' && (
             <div className="absolute inset-0 bg-gray-100">
               <div className="absolute top-0 left-0 right-0 h-10 bg-emerald-600 flex items-center justify-center z-10">
@@ -4832,12 +4867,68 @@ const TeacherLessonView = ({
                   STUDENT VIEW PREVIEW
                 </span>
               </div>
-              <iframe
-                src={`${window.location.origin}/join?code=${classCode || sessionCode}&preview=true&passive=true`}
-                className="absolute top-10 left-0 w-full h-[calc(100%-40px)] border-none"
-                title="Student View Preview"
-                allow="autoplay"
-              />
+              {(classCode || sessionCode) ? (
+                <iframe
+                  src={`${window.location.origin}/join?code=${classCode || sessionCode}&preview=true&passive=true`}
+                  className="absolute top-10 left-0 w-full h-[calc(100%-40px)] border-none"
+                  title="Student View Preview"
+                  allow="autoplay"
+                />
+              ) : (() => {
+                // Preview mode: render student view inline based on current stage type
+                const stageType = currentStageData?.type;
+                const isActivityStage = stageType === 'activity';
+
+                // Activity stages: render the actual student activity
+                if (isActivityStage && config?.getActivityForStage) {
+                  const activityType = config.getActivityForStage(currentStage);
+                  const activity = config.activities?.find(a => a.type === activityType);
+
+                  if (activity) {
+                    // Composition workspace: use iframe since it needs full page
+                    if (currentStageData?.presentationView?.type === 'composition-workspace') {
+                      return (
+                        <iframe
+                          src={`${window.location.origin}${config?.lessonPath || '/lessons/film-music-project/lesson1'}?role=student&view=saved`}
+                          className="absolute top-10 left-0 w-full h-[calc(100%-40px)] border-none"
+                          title="Student View Preview"
+                          allow="autoplay"
+                        />
+                      );
+                    }
+
+                    // All other activities: render ActivityRenderer directly
+                    return (
+                      <div className="absolute top-10 left-0 w-full h-[calc(100%-40px)] overflow-hidden">
+                        <ActivityRenderer
+                          activity={activity}
+                          onComplete={() => {}}
+                          navToolsEnabled={false}
+                          canAccessNavTools={false}
+                          viewMode={false}
+                          isSessionMode={false}
+                        />
+                      </div>
+                    );
+                  }
+                }
+
+                // Non-activity stages: students see "Watch the Main Screen"
+                const messages = {
+                  video: 'The video is playing on the projection screen',
+                  demo: 'Follow along with the demo',
+                  discussion: 'Your teacher is leading a class discussion',
+                };
+                const subtitle = messages[stageType] || 'Your teacher will provide instruction';
+
+                return (
+                  <div className="absolute top-10 left-0 w-full h-[calc(100%-40px)] flex flex-col items-center justify-center bg-black text-center p-8">
+                    <Monitor size={96} className="text-white mb-6 animate-pulse" />
+                    <h1 className="text-4xl font-bold text-white mb-3">Watch the Main Screen</h1>
+                    <p className="text-xl text-gray-400">{subtitle}</p>
+                  </div>
+                );
+              })()}
             </div>
           )}
 

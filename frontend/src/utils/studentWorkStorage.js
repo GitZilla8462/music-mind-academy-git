@@ -155,7 +155,7 @@ export const saveStudentWork = (activityId, options, studentId = null, authInfo 
     // Allow callers to override which lesson this save is filed under (e.g., drafts in L3/L4 vs final in L5)
     const lessonId = options.lessonId || parsed.lessonId;
     const parsedActivityId = parsed.activityId;
-    saveToFirebase(effectiveAuth.uid, effectiveAuth.classId || 'unassigned', lessonId, parsedActivityId, {
+    const firebasePromise = saveToFirebase(effectiveAuth.uid, effectiveAuth.classId || 'unassigned', lessonId, parsedActivityId, {
       type: options.type || 'composition',
       title: options.title,
       emoji: options.emoji || '📁',
@@ -175,6 +175,9 @@ export const saveStudentWork = (activityId, options, studentId = null, authInfo 
     }).catch((err) => {
       console.error(`❌ Firebase sync failed for ${activityId}:`, err);
     });
+
+    // Attach promise so callers can await Firebase completion if needed
+    saveData._firebaseSync = firebasePromise;
   }
 
   return saveData;

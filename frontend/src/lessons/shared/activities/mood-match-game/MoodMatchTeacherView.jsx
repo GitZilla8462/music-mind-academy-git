@@ -32,7 +32,7 @@ const ActivityBanner = () => (
   </div>
 );
 
-const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson }) => {
+const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson, isPreviewMode = false }) => {
   const { sessionCode: contextSessionCode } = useSession();
   const sessionCode = propSessionCode || contextSessionCode;
 
@@ -132,65 +132,63 @@ const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson })
   }, []);
 
   const startGame = async () => {
-    if (!sessionCode) return;
+    // Reshuffle order each time game starts
+    const indices = GAME_LOOPS.map((_, i) => i);
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+    setShuffledOrder(indices);
+    setRoundIndex(0);
+    setShowResults(false);
+    setAllLoopResults({});
 
-    try {
-      // Reshuffle order each time game starts
-      const indices = GAME_LOOPS.map((_, i) => i);
-      for (let i = indices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [indices[i], indices[j]] = [indices[j], indices[i]];
+    if (sessionCode) {
+      try {
+        await clearMoodMatchVotes(sessionCode);
+        await setMoodMatchCurrentLoop(sessionCode, indices[0], false);
+      } catch (error) {
+        console.error('Error starting game:', error);
       }
-      setShuffledOrder(indices);
-
-      await clearMoodMatchVotes(sessionCode);
-      setRoundIndex(0);
-      setShowResults(false);
-      setAllLoopResults({});
-      // Send the actual GAME_LOOPS index so students get the right loop
-      await setMoodMatchCurrentLoop(sessionCode, indices[0], false);
-    } catch (error) {
-      console.error('Error starting game:', error);
     }
   };
 
   const handleShowResults = async () => {
-    if (!sessionCode) return;
+    // Store results for summary
+    const tally = getLoopVoteTally(votes);
+    setAllLoopResults(prev => ({
+      ...prev,
+      [currentLoop.id]: { tally, totalVotes: Object.keys(votes).length }
+    }));
 
-    try {
-      // Store results for summary
-      const tally = getLoopVoteTally(votes);
-      setAllLoopResults(prev => ({
-        ...prev,
-        [currentLoop.id]: { tally, totalVotes: Object.keys(votes).length }
-      }));
+    setShowResults(true);
+    stopLoop();
 
-      setShowResults(true);
-      await toggleMoodMatchResults(sessionCode, true);
-      stopLoop();
-    } catch (error) {
-      console.error('Error showing results:', error);
+    if (sessionCode) {
+      try {
+        await toggleMoodMatchResults(sessionCode, true);
+      } catch (error) {
+        console.error('Error showing results:', error);
+      }
     }
   };
 
   const handleNextLoop = async () => {
-    if (!sessionCode) return;
+    const nextRound = roundIndex + 1;
+    setRoundIndex(nextRound);
+    setShowResults(false);
+    setVotes({});
 
-    try {
-      const nextRound = roundIndex + 1;
-      setRoundIndex(nextRound);
-      setShowResults(false);
-      setVotes({});
-
-      if (nextRound < GAME_LOOPS.length) {
-        // Send the actual GAME_LOOPS index so students get the right loop
-        await setMoodMatchCurrentLoop(sessionCode, shuffledOrder[nextRound], false);
-      } else {
-        // Game complete
-        await setMoodMatchCurrentLoop(sessionCode, GAME_LOOPS.length, false);
+    if (sessionCode) {
+      try {
+        if (nextRound < GAME_LOOPS.length) {
+          await setMoodMatchCurrentLoop(sessionCode, shuffledOrder[nextRound], false);
+        } else {
+          await setMoodMatchCurrentLoop(sessionCode, GAME_LOOPS.length, false);
+        }
+      } catch (error) {
+        console.error('Error advancing to next loop:', error);
       }
-    } catch (error) {
-      console.error('Error advancing to next loop:', error);
     }
   };
 

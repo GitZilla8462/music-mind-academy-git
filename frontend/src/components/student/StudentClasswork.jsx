@@ -405,7 +405,8 @@ const StudentClasswork = () => {
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        navigate(`${assignment.route}?view=saved`);
+                                        const viewParam = assignment.type === 'reflection' ? 'reflection' : 'saved';
+                                        navigate(`${assignment.route}?view=${viewParam}`);
                                       }}
                                       className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                                     >
@@ -416,7 +417,8 @@ const StudentClasswork = () => {
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          navigate(`${assignment.route}?view=saved&resubmit=true`);
+                                          const viewParam = assignment.type === 'reflection' ? 'reflection' : 'saved';
+                                          navigate(`${assignment.route}?view=${viewParam}&resubmit=true`);
                                         }}
                                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
                                       >

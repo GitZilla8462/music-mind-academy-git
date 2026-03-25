@@ -37,6 +37,19 @@ class ErrorBoundary extends React.Component {
         return;
       }
       sessionStorage.removeItem(storageKey);
+      // Don't log stale chunk errors — they're expected after deploys
+      return;
+    }
+
+    // DOM manipulation errors from browser extensions (translate, Grammarly, etc.)
+    const isDomExtensionError =
+      error.message?.includes('insertBefore') ||
+      error.message?.includes('removeChild') ||
+      error.message?.includes('not a child of this node');
+
+    if (isDomExtensionError) {
+      // Don't log — not our bug
+      return;
     }
 
     // Log to first-party system

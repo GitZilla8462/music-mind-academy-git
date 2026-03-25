@@ -16,9 +16,11 @@ const isChromebook = typeof navigator !== 'undefined' && (
   (navigator.userAgentData?.platform === 'Chrome OS')
 );
 
-const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSessionMode = false, activityId = null, reflectionKey = 'school-beneath-reflection' }) => {
+const ReflectionModal = ({ compositionData, onComplete, viewMode: viewModeProp = false, isSessionMode = false, activityId = null, reflectionKey = 'school-beneath-reflection' }) => {
   // Steps: 1=choose type, 2=partner name (peer only), 3=listen, 4=star1, 5=star2, 6=wish, 7=vibe, 8=summary
-  const [currentStep, setCurrentStep] = useState(viewMode ? 8 : 1);
+  const [isEditing, setIsEditing] = useState(false);
+  const viewMode = viewModeProp && !isEditing;
+  const [currentStep, setCurrentStep] = useState(viewModeProp ? 8 : 1);
   const [reflectionData, setReflectionData] = useState({
     reviewType: null,
     partnerName: '',
@@ -107,7 +109,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
 
   // Load saved reflection if in view mode — tries localStorage first, then Firebase fallback
   useEffect(() => {
-    if (!viewMode) return;
+    if (!viewModeProp) return;
 
     // Try localStorage first
     const saved = localStorage.getItem(reflectionKey);
@@ -138,7 +140,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
         });
       }
     }
-  }, [viewMode, reflectionKey, activityId]);
+  }, [viewModeProp, reflectionKey, activityId]);
 
   // Voice synthesis with better voice selection
   const speak = (text) => {
@@ -282,7 +284,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
     goToNextStep();
   };
 
-  const handleSubmitReflection = () => {
+  const handleSubmitReflection = async () => {
     // Save reflection data
     const finalData = {
       ...reflectionData,
@@ -290,14 +292,18 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
     };
     localStorage.setItem(reflectionKey, JSON.stringify(finalData));
 
-    // Save to Firebase for teacher grading view
+    // Save to Firebase for teacher grading view — await so it completes before navigating away
     if (activityId) {
-      saveStudentWork(activityId, {
+      const result = saveStudentWork(activityId, {
         title: 'Reflection',
         emoji: '\uD83D\uDCDD',
         type: 'reflection',
         data: finalData
       });
+      // Wait for Firebase sync + submission to complete before transitioning
+      if (result?._firebaseSync) {
+        await result._firebaseSync;
+      }
     }
 
     console.log('Submit Reflection clicked - transitioning to game');
@@ -748,14 +754,27 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode = false, isSess
               </p>
             </div>
 
-            {/* SUBMIT BUTTON */}
-            <button
-              onClick={handleSubmitReflection}
-              className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-            >
-              <CheckCircle size={20} />
-              Submit Reflection and play Name That Loop!
-            </button>
+            {/* SUBMIT or EDIT BUTTON */}
+            {viewMode ? (
+              <button
+                onClick={() => {
+                  setIsEditing(true);
+                  setCurrentStep(4);
+                }}
+                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <Star size={20} />
+                Edit Response
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmitReflection}
+                className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <CheckCircle size={20} />
+                Submit Reflection and play Name That Loop!
+              </button>
+            )}
           </div>
         )}
 

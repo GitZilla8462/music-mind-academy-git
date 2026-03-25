@@ -346,8 +346,26 @@ export const initErrorLogging = () => {
   // Setup auto-tracking for breadcrumbs
   setupAutoTracking();
 
+  // Skip logging for errors caused by environment, not our code
+  const isIgnorableError = (err) => {
+    const msg = (err?.message || String(err)).toLowerCase();
+    // Stale chunk errors (expected after deploys)
+    if (msg.includes('dynamically imported module') ||
+      msg.includes('loading chunk') ||
+      msg.includes('loading css chunk') ||
+      msg.includes('unable to preload css') ||
+      err?.name === 'ChunkLoadError') return true;
+    // DOM manipulation errors from browser extensions (translate, Grammarly, etc.)
+    if (msg.includes('insertbefore') || msg.includes('removechild') ||
+      msg.includes('the node before which') || msg.includes('not a child of this node')) return true;
+    // ResizeObserver loop limit — benign browser warning, not an actual error
+    if (msg.includes('resizeobserver loop')) return true;
+    return false;
+  };
+
   // Global error handler (catches uncaught errors)
   window.onerror = (message, source, lineno, colno, error) => {
+    if (isIgnorableError(error || { message })) return;
     logError(error || new Error(message), {
       isUnhandled: true,
       component: source ? `${source}:${lineno}:${colno}` : 'Unknown'
@@ -356,6 +374,7 @@ export const initErrorLogging = () => {
 
   // Unhandled promise rejection handler
   window.onunhandledrejection = (event) => {
+    if (isIgnorableError(event.reason)) return;
     logError(event.reason || new Error('Unhandled Promise Rejection'), {
       isUnhandled: true,
       component: 'UnhandledPromiseRejection'

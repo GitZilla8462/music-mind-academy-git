@@ -478,7 +478,7 @@ const Lesson2Content = () => {
   if (isPreviewMode && isTeacher) {
     return (
       <TeacherLessonView
-          config={lesson2Config}
+          config={{ ...lesson2Config, getActivityForStage }}
           lessonStages={lessonStages}
           getCurrentStage={() => previewStage}
           setCurrentStage={setPreviewStage}
