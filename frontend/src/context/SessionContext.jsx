@@ -16,11 +16,15 @@ import {
 import { updateClassSessionStage, endClassSession, subscribeToClassSession } from '../firebase/classes';
 import { logger } from '../utils/UniversalLogger';
 import { logSessionEnded, logStageChange, logStudentJoined, updateSessionHeartbeat } from '../firebase/analytics';
+import SessionEndedModal from '../lessons/shared/components/SessionEndedModal';
 
 const SessionContext = createContext();
 
 // Session expires after 3 hours (in milliseconds)
 const SESSION_EXPIRY_MS = 3 * 60 * 60 * 1000;
+
+// Idle session timeout: if session has been running for 2+ hours, end it for students
+const IDLE_SESSION_MS = 2 * 60 * 60 * 1000;
 
 // Pages that don't need session restoration
 const NO_SESSION_PATHS = ['/', '/join', '/view/', '/login', '/demo'];
@@ -152,7 +156,9 @@ export const SessionProvider = ({ children }) => {
   const [sessionData, setSessionData] = useState(null);
   const [isInSession, setIsInSession] = useState(false);
   const [isLoadingSession, setIsLoadingSession] = useState(false);
-  
+  // Reason the session ended for the student: 'teacher-ended' | 'expired' | 'heartbeat-stale' | null
+  const [sessionEndReason, setSessionEndReason] = useState(null);
+
   const prevStageRef = useRef(null);
   const isNormalEndRef = useRef(false);
   const hasJoinedRef = useRef(false);
@@ -327,6 +333,7 @@ export const SessionProvider = ({ children }) => {
 
           if (!hasAutoCleanedRef.current && userRole === 'student') {
             hasAutoCleanedRef.current = true;
+            setSessionEndReason('teacher-ended');
             console.log('🧹 Auto-cleaning ended class session');
 
             setTimeout(() => {
@@ -341,14 +348,14 @@ export const SessionProvider = ({ children }) => {
           console.log('📋 Session ended normally by teacher');
           isNormalEndRef.current = true;
 
-          // Auto-cleanup after a short delay (let UI show "session ended" message first)
+          // Auto-cleanup after a short delay (let modal show first)
           if (!hasAutoCleanedRef.current && userRole === 'student') {
             hasAutoCleanedRef.current = true;
-            console.log('🧹 Auto-cleaning ended session (student will be redirected)');
+            setSessionEndReason('teacher-ended');
+            console.log('🧹 Auto-cleaning ended session (modal will handle redirect)');
 
             setTimeout(() => {
               clearSessionStorage();
-              // Note: The lesson component handles the redirect to /join
             }, 2000);
           }
         }
@@ -428,11 +435,8 @@ export const SessionProvider = ({ children }) => {
         isNormalEndRef.current = true;
         if (!hasAutoCleanedRef.current) {
           hasAutoCleanedRef.current = true;
+          setSessionEndReason('heartbeat-stale');
           clearSessionStorage();
-          setSessionCode(null);
-          setUserRole(null);
-          setUserId(null);
-          setIsInSession(false);
         }
       }
     };
@@ -452,6 +456,44 @@ export const SessionProvider = ({ children }) => {
       document.removeEventListener('visibilitychange', onVisible);
     };
   }, [sessionCode, userRole, sessionData]);
+
+  // Monitor session idle time — if session has been running for 2+ hours, end it for students
+  useEffect(() => {
+    if (userRole !== 'student') return;
+    if (isNormalEndRef.current) return;
+    if (!sessionData) return;
+
+    const checkIdle = () => {
+      // Use startedAt (class sessions) or createdAt (traditional) or session time from localStorage
+      const sessionStart = sessionData?.startedAt || sessionData?.createdAt;
+      if (!sessionStart) return;
+
+      const elapsed = Date.now() - sessionStart;
+      if (elapsed > IDLE_SESSION_MS) {
+        console.log(`⏰ Session idle timeout (${Math.round(elapsed / 60000)} min) — ending session for student`);
+        isNormalEndRef.current = true;
+        if (!hasAutoCleanedRef.current) {
+          hasAutoCleanedRef.current = true;
+          setSessionEndReason('expired');
+          clearSessionStorage();
+        }
+      }
+    };
+
+    // Check every 60 seconds
+    checkIdle();
+    const interval = setInterval(checkIdle, 60 * 1000);
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') checkIdle();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [userRole, sessionData]);
 
   // Monitor if session data disappears AFTER being loaded (ignore initial null and normal ends)
   useEffect(() => {
@@ -894,6 +936,14 @@ export const SessionProvider = ({ children }) => {
     };
   };
 
+  const handleSessionEndDismiss = () => {
+    setSessionEndReason(null);
+    setSessionCode(null);
+    setUserRole(null);
+    setUserId(null);
+    setIsInSession(false);
+  };
+
   const value = {
     sessionCode,
     classId,
@@ -904,7 +954,8 @@ export const SessionProvider = ({ children }) => {
     userId,
     isInSession,
     isLoadingSession,
-    
+    sessionEndReason,
+
     startSession,
     joinSession,
     joinSessionWithMusicalName,
@@ -912,7 +963,7 @@ export const SessionProvider = ({ children }) => {
     setCurrentStage,
     markActivityComplete,
     endSession,
-    
+
     getCurrentStage,  // ✅ KEPT for backwards compatibility
     getStudents,
     getStudentProgress,
@@ -923,6 +974,9 @@ export const SessionProvider = ({ children }) => {
   return (
     <SessionContext.Provider value={value}>
       {children}
+      {sessionEndReason && userRole === 'student' && (
+        <SessionEndedModal reason={sessionEndReason} onDismiss={handleSessionEndDismiss} />
+      )}
     </SessionContext.Provider>
   );
 };

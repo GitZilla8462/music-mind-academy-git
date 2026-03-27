@@ -11,7 +11,7 @@ const BRAHMS_FILE = '/audio/classical/brahms-hungarian-dance-5.mp3';
 const BRAHMS_NATURAL_BPM = 138;
 const TEMPOS = [
   { symbol: 'Largo', name: 'Largo', meaning: 'Very Slow', bpm: 50, color: '#93C5FD', emoji: '\u{1F40C}',
-    audio: '/audio/classical/dvorak-new-world-largo.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, duration: 10, piece: 'Dvorak \u2014 New World Symphony' },
+    audio: '/audio/classical/handel-xerxes-largo-showcase.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, duration: 10, piece: 'Handel \u2014 Largo from Xerxes' },
   { symbol: 'Adagio', name: 'Adagio', meaning: 'Slow, Relaxed', bpm: 72, color: '#60A5FA', emoji: '\u{1F422}',
     audio: '/audio/classical/beethoven-moonlight-sonata-adagio.mp3', naturalBpm: 72, startTime: 4.5, volume: 2.0, duration: 10, piece: 'Beethoven \u2014 Moonlight Sonata' },
   { symbol: 'Andante', name: 'Andante', meaning: 'Walking Speed', bpm: 92, color: '#FCD34D', emoji: '\u{1F6B6}',
@@ -35,7 +35,7 @@ const DIRECTION_TEXT = [
 const TEACHER_SCRIPT = {
   intro: "Now we're going to learn five tempo markings. Tempo tells us how fast or slow to play the music. We'll go from the slowest all the way to the fastest. You'll hear real pieces of music written at each tempo!",
   perTempo: [
-    "Largo \u2014 the slowest tempo. This is the famous English horn melody from Dvorak's New World Symphony. Listen to how much space there is between each beat.",
+    "Largo \u2014 the slowest tempo. This is Handel's famous Largo from the opera Xerxes. Listen to how much space there is between each beat.",
     "Adagio \u2014 slow and relaxed. This is the opening of Beethoven's Moonlight Sonata. You can feel a steady pulse, but it's still calm and gentle.",
     "Andante \u2014 walking speed. This is Grieg's Morning Mood \u2014 picture the sun rising over the mountains. Comfortable and natural, like walking to class.",
     "Allegro \u2014 fast and lively! THIS is the original speed of Brahms' piece. The music has real energy and momentum now.",

@@ -14,11 +14,11 @@ export const TEMPO_OPTIONS = [
 // Pre-trimmed 8-second clips (4 per song, 5 songs = 20 clips)
 // Each song's naturalBpm matches one tempo category — clips always play at natural speed
 export const AUDIO_CLIPS = [
-  // Dvořák — New World Symphony, Largo (~50 BPM)
-  { audio: '/audio/classical/dvorak-largo-1.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Dvořák' },
-  { audio: '/audio/classical/dvorak-largo-2.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Dvořák' },
-  { audio: '/audio/classical/dvorak-largo-3.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Dvořák' },
-  { audio: '/audio/classical/dvorak-largo-4.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Dvořák' },
+  // Handel — Largo from Xerxes, HWV 40 (~50 BPM)
+  { audio: '/audio/classical/handel-largo-1.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Handel' },
+  { audio: '/audio/classical/handel-largo-2.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Handel' },
+  { audio: '/audio/classical/handel-largo-3.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Handel' },
+  { audio: '/audio/classical/handel-largo-4.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Handel' },
 
   // Beethoven — Moonlight Sonata, 1st mvt (~72 BPM)
   { audio: '/audio/classical/beethoven-moonlight-1.mp3', naturalBpm: 72, startTime: 0, volume: 2.0, label: 'Beethoven' },

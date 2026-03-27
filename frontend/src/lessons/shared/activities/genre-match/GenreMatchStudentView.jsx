@@ -10,16 +10,13 @@ import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
 
 const GENRE_COLORS = {
-  'Hip-Hop': '#8b5cf6',
   'Pop': '#ec4899',
+  'Hip-Hop': '#8b5cf6',
   'Rock': '#ef4444',
-  'R&B / Soul': '#f59e0b',
-  'Electronic': '#06b6d4',
+  'Country': '#f97316',
   'Jazz': '#3b82f6',
-  'Latin': '#10b981',
-  'Folk / Country': '#f97316',
-  'World': '#14b8a6',
-  'Indie / Alternative': '#a855f7',
+  'Soundtrack': '#14b8a6',
+  'Electronic': '#06b6d4',
 };
 
 const getGenreColor = (genre) => GENRE_COLORS[genre] || '#6b7280';

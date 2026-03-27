@@ -492,6 +492,8 @@ const PresentationContent = ({
   const [FactOpinionSorterGame, setFactOpinionSorterGame] = useState(null);
   const [SourceOrNotGame, setSourceOrNotGame] = useState(null);
   const [HeadlineWriterGame, setHeadlineWriterGame] = useState(null);
+  const [GenreMatchTeacherGame, setGenreMatchTeacherGame] = useState(null);
+  const [GenreShowcase, setGenreShowcase] = useState(null);
 
   // Composition present mode (video + DAW tracks fullscreen)
   const [compositionPresentMode, setCompositionPresentMode] = useState(false);
@@ -685,6 +687,16 @@ const PresentationContent = ({
     import('../../shared/activities/headline-writer/HeadlineWriterGame')
       .then(module => setHeadlineWriterGame(() => module.default))
       .catch(() => console.log('Headline Writer Game not available'));
+
+    // Unit 3 Music Journalist Lesson 1: Genre Match Game
+    import('../../shared/activities/genre-match/GenreMatchTeacherGame')
+      .then(module => setGenreMatchTeacherGame(() => module.default))
+      .catch(() => console.log('Genre Match Teacher Game not available'));
+
+    // Unit 3 Music Journalist Lesson 1: Genre Showcase
+    import('../../shared/activities/genre-showcase/GenreShowcase')
+      .then(module => setGenreShowcase(() => module.default))
+      .catch(() => console.log('Genre Showcase not available'));
   }, []);
 
   // Join Code Screen — mirrors the student /join page styling
@@ -1652,6 +1664,40 @@ const PresentationContent = ({
       return (
         <div className="absolute inset-0">
           <HeadlineWriterGame sessionData={sessionData} onComplete={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Genre Showcase (Music Journalist Lesson 1)
+    if (type === 'genre-showcase') {
+      if (!GenreShowcase) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
+            <div className="text-white text-2xl">Loading Genre Showcase...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <GenreShowcase sessionData={sessionData} />
+        </div>
+      );
+    }
+
+    // Genre Match (Music Journalist Lesson 1)
+    if (type === 'genre-match-teacher-game') {
+      if (!GenreMatchTeacherGame) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-[#0f1419]">
+            <div className="text-white text-2xl">Loading Genre Match...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <GenreMatchTeacherGame sessionData={sessionData} onComplete={goToNextStage} />
         </div>
       );
     }
@@ -2933,7 +2979,7 @@ const MidPilotSurvey = ({
     onSubmit();
   };
 
-  const canSubmit = favoriteFeature && improvementSuggestion.trim() && onTrack;
+  const canSubmit = favoriteFeature;
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-y-auto">
@@ -3153,8 +3199,8 @@ const FinalPilotSurvey = ({
     onSubmit();
   };
 
-  const canSubmitPage1 = disappointment && targetTeacher.trim() && primaryBenefit.trim();
-  const canSubmitPage2 = previousTool && comparison && wouldBuy && npsScore > 0 && testimonialConsent;
+  const canSubmitPage1 = disappointment;
+  const canSubmitPage2 = npsScore > 0;
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-y-auto">

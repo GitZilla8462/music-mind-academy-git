@@ -10,9 +10,10 @@
 // 4. Between-rounds - Round summary
 // 5. Finished - Final leaderboard
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Play, Pause, Users, Trophy, Eye, ChevronRight, CheckCircle, XCircle, Zap, Volume2 } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { useSession } from '../../../../context/SessionContext';
 
 // ============================================================
 // QUESTIONS DATA — each plays an instrument audio clip
@@ -124,6 +125,7 @@ const CATEGORIES = {
 // Scoring
 const SCORING = {
   CORRECT: 100,
+  INSTRUMENT_BONUS: 50,
   SPEED_BONUS_MAX: 50,
   SPEED_BONUS_WINDOW: 5000
 };
@@ -149,8 +151,22 @@ const ActivityBanner = () => (
 );
 
 const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
+  const { sessionCode: contextSessionCode, classId } = useSession();
   const urlParams = new URLSearchParams(window.location.search);
-  const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+  const sessionCode = contextSessionCode || sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+
+  // Compute Firebase paths based on session type (class-based vs quick sessions)
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/nameThatElement`;
+    if (sessionCode) return `sessions/${sessionCode}/nameThatElement`;
+    return null;
+  }, [classId, sessionCode]);
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
 
   // Game state
   const [gamePhase, setGamePhase] = useState('setup');
@@ -186,6 +202,9 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
   useEffect(() => {
     return () => {
       if (audioRef.current) {
+        audioRef.current.onplay = null;
+        audioRef.current.onended = null;
+        audioRef.current.onerror = null;
         audioRef.current.pause();
         audioRef.current = null;
       }
@@ -195,17 +214,32 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
   // Play/pause audio clip
   const playAudio = useCallback(() => {
     if (!currentQuestion) return;
+
+    // Stop any existing audio (detach handlers first to avoid stale state updates)
     if (audioRef.current) {
+      audioRef.current.onplay = null;
+      audioRef.current.onended = null;
+      audioRef.current.onerror = null;
       audioRef.current.pause();
       audioRef.current = null;
     }
+
     const audio = new Audio(currentQuestion.audioPath);
     audio.volume = 0.8;
     audioRef.current = audio;
-    setIsAudioPlaying(true);
-    audio.play().catch(() => {});
+
+    // Set handlers BEFORE calling play
+    audio.onplay = () => setIsAudioPlaying(true);
     audio.onended = () => setIsAudioPlaying(false);
-    audio.onpause = () => setIsAudioPlaying(false);
+    audio.onerror = (e) => {
+      console.error('Audio failed to load:', currentQuestion.audioPath, e);
+      setIsAudioPlaying(false);
+    };
+
+    audio.play().catch(err => {
+      console.error('Audio play failed:', err);
+      setIsAudioPlaying(false);
+    });
   }, [currentQuestion]);
 
   const pauseAudio = useCallback(() => {
@@ -217,16 +251,16 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
-    if (!sessionCode) return;
+    if (!gamePath) return;
     const db = getDatabase();
-    update(ref(db, `sessions/${sessionCode}/nameThatElement`), data);
-  }, [sessionCode]);
+    update(ref(db, gamePath), data);
+  }, [gamePath]);
 
   // Firebase: Subscribe to students
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!studentsPath) return;
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsPath);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -237,6 +271,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
         name: s.playerName || s.displayName,
         score: s.nteScore || 0,
         answer: s.nteAnswer,
+        instrumentAnswer: s.nteInstrumentAnswer,
         answerTime: s.nteAnswerTime,
         playerColor: s.playerColor || '#3B82F6',
         playerEmoji: s.playerEmoji || '🎵'
@@ -257,7 +292,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode]);
+  }, [studentsPath]);
 
   // Start game
   const startGame = useCallback(() => {
@@ -273,12 +308,13 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
     setQuestionStartTime(now);
 
     // Reset student answers and scores
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           nteAnswer: null,
           nteAnswerTime: null,
+          nteInstrumentAnswer: null,
           nteScore: 0
         }).catch(err => console.error(`Failed to reset student ${s.id}:`, err));
       });
@@ -293,13 +329,16 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
       revealedAnswer: null,
       startedAt: now
     });
-  }, [sessionCode, students, updateGame]);
+  }, [studentsPath, students, updateGame]);
 
   // Reveal answer
   const reveal = useCallback(() => {
     if (!currentQuestion) return;
-    // Stop audio
+    // Stop audio (detach handlers to prevent stale state updates)
     if (audioRef.current) {
+      audioRef.current.onplay = null;
+      audioRef.current.onended = null;
+      audioRef.current.onerror = null;
       audioRef.current.pause();
       audioRef.current = null;
       setIsAudioPlaying(false);
@@ -308,18 +347,20 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
     const changes = {};
     let correct = 0;
 
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
         if (s.answer) {
-          const isCorrect = s.answer === currentQuestion.family;
-          if (isCorrect) {
+          const familyCorrect = s.answer === currentQuestion.family;
+          const instrumentCorrect = familyCorrect && s.instrumentAnswer === currentQuestion.instrument;
+          if (familyCorrect) {
             correct++;
             const speedBonus = calculateSpeedBonus(s.answerTime, questionStartTime);
-            const points = SCORING.CORRECT + speedBonus;
+            const instrumentBonus = instrumentCorrect ? SCORING.INSTRUMENT_BONUS : 0;
+            const points = SCORING.CORRECT + speedBonus + instrumentBonus;
             const newScore = (s.score || 0) + points;
-            changes[s.id] = { isCorrect: true, points, speedBonus };
-            update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+            changes[s.id] = { isCorrect: true, instrumentCorrect, points, speedBonus, instrumentBonus };
+            update(ref(db, `${studentsPath}/${s.id}`), {
               nteScore: newScore
             }).catch(err => console.error(`Failed to update score for ${s.id}:`, err));
           } else {
@@ -339,18 +380,20 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
 
     updateGame({
       phase: 'revealed',
-      revealedAnswer: currentQuestion.family
+      revealedAnswer: currentQuestion.family,
+      revealedInstrument: currentQuestion.instrument
     });
-  }, [currentQuestion, students, sessionCode, questionStartTime, updateGame]);
+  }, [currentQuestion, students, studentsPath, questionStartTime, updateGame]);
 
   // Next question
   const nextQuestion = useCallback(() => {
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           nteAnswer: null,
-          nteAnswerTime: null
+          nteAnswerTime: null,
+          nteInstrumentAnswer: null
         }).catch(err => console.error(`Failed to clear answer for ${s.id}:`, err));
       });
     }
@@ -382,7 +425,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
         startedAt: now
       });
     }
-  }, [sessionCode, students, currentQuestionIndex, currentRound, roundQuestions, updateGame]);
+  }, [studentsPath, students, currentQuestionIndex, currentRound, roundQuestions, updateGame]);
 
   // Start next round
   const startNextRound = useCallback(() => {
@@ -398,12 +441,13 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
     const now = Date.now();
     setQuestionStartTime(now);
 
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           nteAnswer: null,
-          nteAnswerTime: null
+          nteAnswerTime: null,
+          nteInstrumentAnswer: null
         }).catch(err => console.error(`Failed to clear answer for ${s.id}:`, err));
       });
     }
@@ -418,7 +462,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
       revealedAnswer: null,
       startedAt: now
     });
-  }, [currentRound, sessionCode, students, updateGame]);
+  }, [currentRound, studentsPath, students, updateGame]);
 
   const correctCategory = currentQuestion ? CATEGORIES[currentQuestion.family] : null;
 
@@ -514,53 +558,33 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
 
             {/* ==================== QUESTION ==================== */}
             {gamePhase === 'question' && currentQuestion && (
-              <div className="text-center w-full">
-                <div className="text-lg text-white/50 mb-2 uppercase tracking-widest">
-                  Round {currentRound}: {ROUND_NAMES[currentRound]}
-                </div>
-
-                {/* Audio player — large play button */}
-                <div className="bg-white/10 rounded-3xl p-8 mb-6 max-w-2xl mx-auto border-2 border-white/20">
-                  <div className="text-white/50 text-xl mb-4 uppercase tracking-wider font-bold">Listen carefully...</div>
-                  <button
-                    onClick={isAudioPlaying ? pauseAudio : playAudio}
-                    className={`w-32 h-32 rounded-full mx-auto flex items-center justify-center transition-all hover:scale-105 ${
-                      isAudioPlaying
-                        ? 'bg-gradient-to-br from-orange-500 to-red-500 animate-pulse shadow-lg shadow-orange-500/30'
-                        : 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30'
-                    }`}
-                  >
-                    {isAudioPlaying ? (
-                      <Pause size={56} className="text-white" />
-                    ) : (
-                      <Volume2 size={56} className="text-white" />
-                    )}
-                  </button>
-                  <div className="text-white/40 text-sm mt-3">
-                    {isAudioPlaying ? 'Playing...' : 'Tap to play'}
+              <div className="flex flex-col h-full w-full">
+                {/* Header */}
+                <div className="text-center mb-4 flex-shrink-0">
+                  <div className="text-lg text-white/50 uppercase tracking-widest">
+                    Round {currentRound}: {ROUND_NAMES[currentRound]}
                   </div>
+                  <p className="text-3xl font-bold text-teal-200 mt-1">Which instrument family is this?</p>
                 </div>
 
-                <p className="text-2xl text-teal-200 mb-6">Which instrument family is this?</p>
-
-                {/* Category buttons with live vote counts */}
-                <div className="grid grid-cols-4 gap-3 max-w-3xl mx-auto mb-6">
+                {/* Category cards — main visual focus */}
+                <div className="grid grid-cols-4 gap-4 flex-1 min-h-0 max-w-4xl mx-auto w-full">
                   {Object.entries(CATEGORIES).map(([key, cat]) => {
                     const count = answerCounts[key] || 0;
                     return (
                       <div
                         key={key}
-                        className="rounded-2xl p-4 text-center transition-all"
+                        className="rounded-2xl flex flex-col items-center justify-center text-center transition-all relative"
                         style={{
-                          backgroundColor: `${cat.color}30`,
+                          backgroundColor: `${cat.color}25`,
                           borderColor: cat.color,
                           borderWidth: '3px'
                         }}
                       >
-                        <div className="text-3xl mb-1">{cat.emoji}</div>
-                        <div className="text-lg font-black text-white">{cat.label}</div>
-                        <div className="mt-2 bg-black/30 rounded-xl px-3 py-1 inline-block">
-                          <span className="text-2xl font-bold" style={{ color: cat.color }}>{count}</span>
+                        <div className="text-6xl mb-2">{cat.emoji}</div>
+                        <div className="text-2xl font-black text-white">{cat.label}</div>
+                        <div className="mt-3 bg-black/30 rounded-xl px-4 py-2 inline-block">
+                          <span className="text-3xl font-bold" style={{ color: cat.color }}>{count}</span>
                           <span className="text-sm text-white/60 ml-1">votes</span>
                         </div>
                       </div>
@@ -568,19 +592,33 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
                   })}
                 </div>
 
-                {/* Answer count */}
-                <div className="bg-white/10 rounded-2xl px-6 py-3 inline-block mb-4">
-                  <span className="text-4xl font-black text-green-400">{lockedCount}</span>
-                  <span className="text-xl text-white/70"> / {students.length} answered</span>
-                </div>
+                {/* Bottom control bar — play, answer count, reveal */}
+                <div className="flex items-center justify-between mt-4 flex-shrink-0 max-w-4xl mx-auto w-full">
+                  <button
+                    onClick={isAudioPlaying ? pauseAudio : playAudio}
+                    className={`flex items-center gap-3 px-6 py-3 rounded-2xl text-xl font-bold transition-all hover:scale-105 ${
+                      isAudioPlaying
+                        ? 'bg-gradient-to-r from-orange-500 to-red-500 animate-pulse shadow-lg shadow-orange-500/30'
+                        : 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30'
+                    }`}
+                  >
+                    {isAudioPlaying ? (
+                      <><Pause size={24} /> Playing...</>
+                    ) : (
+                      <><Volume2 size={24} /> Play Clip</>
+                    )}
+                  </button>
 
-                {/* Reveal button */}
-                <div className="flex justify-center">
+                  <div className="bg-white/10 rounded-2xl px-5 py-2">
+                    <span className="text-3xl font-black text-green-400">{lockedCount}</span>
+                    <span className="text-lg text-white/70"> / {students.length} answered</span>
+                  </div>
+
                   <button
                     onClick={reveal}
-                    className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl text-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
+                    className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl text-xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
                   >
-                    <Eye size={28} /> Reveal Answer
+                    <Eye size={24} /> Reveal Answer
                   </button>
                 </div>
               </div>
@@ -628,14 +666,22 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
                   })}
                 </div>
 
-                <div className="text-xl text-white/70 mb-6">
-                  {correctCount} of {students.length} got it correct!
+                <div className="text-xl text-white/70 mb-2">
+                  {correctCount} of {students.length} got the family correct!
                   {correctCount > 0 && students.length > 0 && (
                     <span className="ml-2 text-green-400">
                       ({Math.round((correctCount / students.length) * 100)}%)
                     </span>
                   )}
                 </div>
+                {(() => {
+                  const instrumentCorrectCount = Object.values(scoreChanges).filter(c => c.instrumentCorrect).length;
+                  return instrumentCorrectCount > 0 && (
+                    <div className="text-lg text-yellow-300 mb-6">
+                      {instrumentCorrectCount} also nailed the instrument! (+{SCORING.INSTRUMENT_BONUS} bonus)
+                    </div>
+                  );
+                })()}
 
                 <button
                   onClick={nextQuestion}

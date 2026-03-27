@@ -1,9 +1,10 @@
-// Toolbar for the Press Kit Designer — Google Slides style.
-// Left: tab buttons (My Press Kit / Discover) + design controls
+// Toolbar for Artist Launchpad — prominent tabs + design controls.
+// Left: app branding + tab buttons (My Press Kit / Discover)
+// Center: design controls (press-kit tab only)
 // Right: save status + done button
 
 import React from 'react';
-import { Save, Check, Image as ImageIcon, Music, Palette } from 'lucide-react';
+import { Save, Check, Image as ImageIcon, Music, Rocket, Compass, Palette } from 'lucide-react';
 import LayoutPicker from './LayoutPicker';
 import PalettePicker from './PalettePicker';
 
@@ -24,31 +25,40 @@ const PressKitTopBar = ({
   onTabChange,
 }) => {
   return (
-    <div className="flex items-center gap-1.5 px-2 py-1.5 border-b border-white/[0.08]" style={{ background: '#0d1520' }}>
-      {/* Tab buttons */}
-      <button
-        onClick={() => onTabChange('press-kit')}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors min-h-[32px] flex-shrink-0 ${
-          activeTab === 'press-kit'
-            ? 'bg-amber-500/15 text-amber-400'
-            : 'text-white/40 hover:text-white/70 hover:bg-white/[0.06]'
-        }`}
-      >
-        <Palette size={13} /> My Press Kit
-      </button>
-      <button
-        onClick={() => onTabChange('discover')}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors min-h-[32px] flex-shrink-0 ${
-          activeTab === 'discover'
-            ? 'bg-amber-500/15 text-amber-400'
-            : 'text-white/40 hover:text-white/70 hover:bg-white/[0.06]'
-        }`}
-      >
-        <Music size={13} /> Discover
-      </button>
+    <div className="flex items-center gap-2 px-2 py-1.5 border-b border-white/[0.08]" style={{ background: '#0d1520' }}>
+      {/* App branding */}
+      <div className="flex items-center gap-1.5 flex-shrink-0 mr-1">
+        <Rocket size={16} className="text-amber-400" />
+        <span className="text-xs font-bold text-white/70 tracking-wide hidden sm:inline">Artist Launchpad</span>
+      </div>
 
-      {/* Divider */}
-      <div className="w-px h-5 bg-white/[0.08] flex-shrink-0 mx-1" />
+      <div className="w-px h-6 bg-white/[0.12] flex-shrink-0" />
+
+      {/* Tab buttons — prominent pill style */}
+      <div className="flex items-center gap-1 flex-shrink-0 bg-white/[0.04] rounded-lg p-0.5">
+        <button
+          onClick={() => onTabChange('press-kit')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all flex-shrink-0 ${
+            activeTab === 'press-kit'
+              ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
+              : 'text-white/50 hover:text-white/80 hover:bg-white/[0.06]'
+          }`}
+        >
+          <Palette size={16} /> My Press Kit
+        </button>
+        <button
+          onClick={() => onTabChange('discover')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all flex-shrink-0 ${
+            activeTab === 'discover'
+              ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
+              : 'text-white/50 hover:text-white/80 hover:bg-white/[0.06]'
+          }`}
+        >
+          <Compass size={16} /> Discover
+        </button>
+      </div>
+
+      <div className="w-px h-6 bg-white/[0.12] flex-shrink-0 mx-0.5" />
 
       {/* Design controls — only show when on press-kit tab */}
       {activeTab === 'press-kit' && (

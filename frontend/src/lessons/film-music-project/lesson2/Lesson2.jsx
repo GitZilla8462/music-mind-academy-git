@@ -309,22 +309,9 @@ const Lesson2Content = () => {
       return <StudentWaitingScreen />;
     }
 
-    // Session has ended
+    // Session has ended — centralized SessionEndedModal handles redirect
     if (currentStage === 'ended') {
-      console.log('📚 Session ended, redirecting to join page');
-      setTimeout(() => {
-        window.location.href = '/join';
-      }, 1000);
-      
-      return (
-        <div className="h-screen flex items-center justify-center bg-gray-900">
-          <div className="text-center">
-            <div className="text-6xl mb-4">✔</div>
-            <h1 className="text-white text-3xl font-bold mb-4">Session Has Ended</h1>
-            <p className="text-gray-400 text-lg">Redirecting to join page...</p>
-          </div>
-        </div>
-      );
+      return null;
     }
     
     // Layer Detective Results - Show student their score and rank (BEFORE summary check!)

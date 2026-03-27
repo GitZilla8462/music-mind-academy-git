@@ -1,10 +1,10 @@
 // File: /src/lessons/shared/activities/name-that-element/NameThatElementStudentView.jsx
 // Name That Element - Student View (syncs with teacher's class game)
-// Students see a question on the main screen, then tap DYNAMICS, TEMPO, or FORM on their Chromebook
-// No audio playback on student side - just 3 large answer buttons
+// Two-step answer: 1) Pick instrument family, 2) Bonus: pick specific instrument
+// No audio playback on student side - audio plays on teacher's projector
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Check } from 'lucide-react';
+import { Check, Star } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
@@ -17,9 +17,18 @@ const ANSWERS = [
   { id: 'percussion', label: 'PERCUSSION', emoji: '🥁', color: '#EF4444', bgClass: 'from-red-500 to-red-700' }
 ];
 
+// Instruments per family — these are the ones taught in the unit
+const FAMILY_INSTRUMENTS = {
+  strings: ['Violin', 'Viola', 'Cello', 'Bass'],
+  woodwinds: ['Flute', 'Oboe', 'Clarinet', 'Bassoon'],
+  brass: ['Trumpet', 'French Horn', 'Trombone', 'Tuba'],
+  percussion: ['Snare Drum', 'Timpani', 'Xylophone']
+};
+
 // Scoring
 const SCORING = {
   correct: 10,
+  instrumentBonus: 5,
   speedBonus: 5,
   speedThreshold: 5000 // 5 seconds for speed bonus
 };
@@ -50,19 +59,23 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
   const [score, setScore] = useState(0);
 
   // Game state (synced from teacher)
-  const [gamePhase, setGamePhase] = useState('waiting'); // waiting, playing, guessing, revealed, finished
+  const [gamePhase, setGamePhase] = useState('waiting');
   const [currentRound, setCurrentRound] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(TOTAL_QUESTIONS);
   const [correctAnswer, setCorrectAnswer] = useState(null);
+  const [correctInstrument, setCorrectInstrument] = useState(null);
   const [playStartTime, setPlayStartTime] = useState(null);
 
-  // Student's answer
+  // Student's answers (two-step)
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
+  const [selectedInstrument, setSelectedInstrument] = useState(null);
+  const [instrumentSubmitted, setInstrumentSubmitted] = useState(false);
 
   // Results
   const [wasCorrect, setWasCorrect] = useState(null);
+  const [wasInstrumentCorrect, setWasInstrumentCorrect] = useState(null);
   const [earnedPoints, setEarnedPoints] = useState(0);
 
   // Leaderboard for results
@@ -76,6 +89,7 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
   const scoreRef = useRef(0);
   const currentQuestionRef = useRef(0);
   const selectedAnswerRef = useRef(null);
+  const selectedInstrumentRef = useRef(null);
   const wasCorrectRef = useRef(null);
   const playStartTimeRef = useRef(null);
 
@@ -127,6 +141,7 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
   useEffect(() => { scoreRef.current = score; }, [score]);
   useEffect(() => { currentQuestionRef.current = currentQuestion; }, [currentQuestion]);
   useEffect(() => { selectedAnswerRef.current = selectedAnswer; }, [selectedAnswer]);
+  useEffect(() => { selectedInstrumentRef.current = selectedInstrument; }, [selectedInstrument]);
   useEffect(() => { wasCorrectRef.current = wasCorrect; }, [wasCorrect]);
   useEffect(() => { playStartTimeRef.current = playStartTime; }, [playStartTime]);
 
@@ -145,7 +160,6 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
       }
 
       // Map teacher phases to student phases
-      // Teacher uses 'question', student expects 'guessing'
       const phase = data.phase === 'question' ? 'guessing' : (data.phase || 'waiting');
       setGamePhase(phase);
       setCurrentRound(data.currentRound || 0);
@@ -171,10 +185,15 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
           selectedAnswerRef.current = null;
           setSelectedAnswer(null);
           setAnswerSubmitted(false);
+          selectedInstrumentRef.current = null;
+          setSelectedInstrument(null);
+          setInstrumentSubmitted(false);
           wasCorrectRef.current = null;
           setWasCorrect(null);
+          setWasInstrumentCorrect(null);
           setEarnedPoints(0);
           setCorrectAnswer(null);
+          setCorrectInstrument(null);
         }
 
         // Students can start answering
@@ -201,6 +220,7 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
       // Handle reveal
       if (phase === 'revealed' && data.revealedAnswer) {
         setCorrectAnswer(data.revealedAnswer);
+        setCorrectInstrument(data.revealedInstrument || null);
 
         const questionNum = data.currentQuestion || 0;
 
@@ -208,17 +228,22 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
           scoredQuestionRef.current = questionNum;
 
           const answer = selectedAnswerRef.current;
-          const isCorrect = answer === data.revealedAnswer;
+          const familyCorrect = answer === data.revealedAnswer;
+          const instrumentCorrect = familyCorrect && selectedInstrumentRef.current === data.revealedInstrument;
 
-          wasCorrectRef.current = isCorrect;
-          setWasCorrect(isCorrect);
+          wasCorrectRef.current = familyCorrect;
+          setWasCorrect(familyCorrect);
+          setWasInstrumentCorrect(instrumentCorrect);
 
           let points = 0;
-          if (isCorrect) {
+          if (familyCorrect) {
             points = SCORING.correct;
             const answerTime = Date.now() - (playStartTimeRef.current || Date.now());
             if (answerTime < SCORING.speedThreshold) {
               points += SCORING.speedBonus;
+            }
+            if (instrumentCorrect) {
+              points += SCORING.instrumentBonus;
             }
           }
 
@@ -272,7 +297,7 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
     return () => unsubscribe();
   }, [studentsPath, userId]);
 
-  // Submit answer
+  // Submit family answer (step 1)
   const submitAnswer = (answerId) => {
     if (answerSubmitted || gamePhase !== 'guessing') return;
 
@@ -286,6 +311,23 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
       update(ref(db, `${studentsPath}/${userId}`), {
         nteAnswer: answerId,
         nteAnswerTime: Date.now()
+      });
+    }
+  };
+
+  // Submit instrument answer (step 2 - bonus)
+  const submitInstrument = (instrumentName) => {
+    if (instrumentSubmitted || gamePhase !== 'guessing') return;
+
+    selectedInstrumentRef.current = instrumentName;
+    setSelectedInstrument(instrumentName);
+    setInstrumentSubmitted(true);
+
+    // Send to Firebase
+    if (studentsPath && userId) {
+      const db = getDatabase();
+      update(ref(db, `${studentsPath}/${userId}`), {
+        nteInstrumentAnswer: instrumentName
       });
     }
   };
@@ -329,9 +371,7 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
 
           <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-lg p-4 mb-4 inline-block">
             <div className="text-4xl font-bold text-gray-900 mb-1">{displayScore}</div>
-            <div className="text-lg text-gray-800">
-              {displayScore}/{totalQuestions * SCORING.correct} possible
-            </div>
+            <div className="text-lg text-gray-800">points</div>
           </div>
 
           {/* Mini Leaderboard */}
@@ -409,7 +449,7 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center">
-        {/* Guessing - show 3 large answer buttons */}
+        {/* Step 1: Pick instrument family */}
         {gamePhase === 'guessing' && !answerSubmitted && (
           <>
             <h2 className="text-2xl font-bold text-white mb-2 text-center">
@@ -435,60 +475,106 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
           </>
         )}
 
-        {/* Answer submitted - waiting for reveal */}
-        {gamePhase === 'guessing' && answerSubmitted && selectedAnswer && (
+        {/* Step 2: Bonus — pick specific instrument from the family they chose */}
+        {gamePhase === 'guessing' && answerSubmitted && !instrumentSubmitted && selectedAnswer && (
+          <>
+            <div className="flex items-center gap-2 mb-2">
+              <Star size={24} className="text-yellow-400" />
+              <h2 className="text-2xl font-bold text-yellow-300 text-center">
+                Bonus: Which instrument?
+              </h2>
+              <Star size={24} className="text-yellow-400" />
+            </div>
+            <p className="text-purple-200 text-sm mb-4">
+              You said <span className="font-bold" style={{ color: getAnswerInfo(selectedAnswer)?.color }}>{getAnswerInfo(selectedAnswer)?.label}</span> — now pick the exact instrument!
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 w-full max-w-md">
+              {(FAMILY_INSTRUMENTS[selectedAnswer] || []).map(instrument => (
+                <button
+                  key={instrument}
+                  onClick={() => submitInstrument(instrument)}
+                  className="w-full py-4 px-4 rounded-2xl text-center transition-all hover:scale-[1.03] active:scale-95 text-white bg-white/15 hover:bg-white/25 border-2 border-white/20 shadow-lg"
+                  style={{ minHeight: '70px' }}
+                >
+                  <span className="text-xl font-black tracking-wide">{instrument}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Both answers submitted — waiting for reveal */}
+        {gamePhase === 'guessing' && answerSubmitted && (instrumentSubmitted || !selectedAnswer) && (
           <div className="text-center">
-            <div className="bg-white/20 rounded-2xl p-8 inline-block">
-              <Check size={48} className="mx-auto text-green-400 mb-4" />
-              <p className="text-xl text-white font-bold mb-3">Answer Submitted!</p>
+            <div className="bg-white/20 rounded-2xl p-6 inline-block">
+              <Check size={48} className="mx-auto text-green-400 mb-3" />
+              <p className="text-xl text-white font-bold mb-3">Answers Submitted!</p>
               <div
-                className="inline-flex items-center gap-3 px-8 py-3 rounded-full text-white font-bold text-2xl"
+                className="inline-flex items-center gap-3 px-6 py-2 rounded-full text-white font-bold text-xl mb-2"
                 style={{ backgroundColor: getAnswerInfo(selectedAnswer)?.color }}
               >
-                <span className="text-3xl">{getAnswerInfo(selectedAnswer)?.emoji}</span>
+                <span className="text-2xl">{getAnswerInfo(selectedAnswer)?.emoji}</span>
                 {getAnswerInfo(selectedAnswer)?.label}
               </div>
-              <p className="text-sm text-purple-300 mt-4">Waiting for teacher to reveal...</p>
+              {selectedInstrument && (
+                <div className="text-lg text-yellow-300 font-bold mt-1">
+                  + {selectedInstrument}
+                </div>
+              )}
+              <p className="text-sm text-purple-300 mt-3">Waiting for teacher to reveal...</p>
             </div>
           </div>
         )}
 
-        {/* Revealed */}
+        {/* Revealed — show both family and instrument results */}
         {gamePhase === 'revealed' && correctAnswer && (
           <div className="text-center w-full max-w-md">
             {wasCorrect ? (
-              <div className="bg-green-500/30 rounded-2xl p-6 mb-4">
-                <p className="text-3xl font-bold text-green-400 mb-2">Correct!</p>
-                <p className="text-xl text-white">
-                  +{earnedPoints} points{earnedPoints > SCORING.correct ? ' (speed bonus!)' : ''}
+              <div className="bg-green-500/30 rounded-2xl p-4 mb-3">
+                <p className="text-2xl font-bold text-green-400 mb-1">Family Correct!</p>
+                {wasInstrumentCorrect ? (
+                  <p className="text-lg text-yellow-300 font-bold">
+                    + Nailed the instrument! (+{SCORING.instrumentBonus} bonus)
+                  </p>
+                ) : correctInstrument && selectedInstrument ? (
+                  <p className="text-sm text-white/70">
+                    Instrument: you said {selectedInstrument}, it was {correctInstrument}
+                  </p>
+                ) : null}
+                <p className="text-xl text-white mt-1">
+                  +{earnedPoints} points{earnedPoints > SCORING.correct + SCORING.instrumentBonus ? ' (speed bonus!)' : ''}
                 </p>
               </div>
             ) : wasCorrect === false ? (
-              <div className="bg-red-500/30 rounded-2xl p-6 mb-4">
-                <p className="text-3xl font-bold text-red-400 mb-2">Not quite!</p>
+              <div className="bg-red-500/30 rounded-2xl p-4 mb-3">
+                <p className="text-2xl font-bold text-red-400 mb-1">Not quite!</p>
               </div>
             ) : (
-              <div className="bg-gray-500/30 rounded-2xl p-6 mb-4">
-                <p className="text-2xl font-bold text-gray-300 mb-2">No answer</p>
+              <div className="bg-gray-500/30 rounded-2xl p-4 mb-3">
+                <p className="text-2xl font-bold text-gray-300">No answer</p>
               </div>
             )}
 
-            {/* Show correct answer */}
+            {/* Show correct answer — family + instrument */}
             {(() => {
               const correctInfo = getAnswerInfo(correctAnswer);
               if (!correctInfo) return null;
               return (
                 <div
-                  className="rounded-2xl p-6 text-white"
+                  className="rounded-2xl p-5 text-white"
                   style={{ backgroundColor: correctInfo.color }}
                 >
-                  <div className="text-5xl mb-2">{correctInfo.emoji}</div>
-                  <div className="text-4xl font-black">{correctInfo.label}</div>
+                  <div className="text-4xl mb-1">{correctInfo.emoji}</div>
+                  {correctInstrument && (
+                    <div className="text-3xl font-black mb-1">{correctInstrument}</div>
+                  )}
+                  <div className="text-xl font-bold text-white/80">{correctInfo.label}</div>
                 </div>
               );
             })()}
 
-            <p className="text-purple-200 mt-4 text-sm">Waiting for next question...</p>
+            <p className="text-purple-200 mt-3 text-sm">Waiting for next question...</p>
           </div>
         )}
 
