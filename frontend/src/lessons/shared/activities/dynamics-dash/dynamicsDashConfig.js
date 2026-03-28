@@ -83,7 +83,7 @@ export const QUESTIONS = [
   {
     id: 8,
     startTime: 64,
-    endTime: 69,
+    endTime: 70,
     correctAnswer: 'decrescendo',
     questionType: 'gradual',
     description: 'Fading before storm'
@@ -91,7 +91,7 @@ export const QUESTIONS = [
   {
     id: 9,
     startTime: 131,
-    endTime: 137,
+    endTime: 138,
     correctAnswer: 'crescendo',
     questionType: 'gradual',
     description: 'Building to finale'

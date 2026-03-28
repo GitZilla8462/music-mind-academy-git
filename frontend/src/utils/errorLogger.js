@@ -205,6 +205,11 @@ export const logError = async (error, context = {}) => {
     return;
   }
 
+  // Don't log errors on admin pages — those are only accessed by Rob
+  if (window.location.pathname.startsWith('/admin')) {
+    return;
+  }
+
   try {
     const errorData = {
       // Error details

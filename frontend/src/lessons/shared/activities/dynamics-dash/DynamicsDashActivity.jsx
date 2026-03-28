@@ -9,6 +9,15 @@ import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, push, get, onValue } from 'firebase/database';
 import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
 import { AUDIO_PATH, DYNAMICS, QUESTIONS, calculateSpeedBonus, BASE_POINTS, TOTAL_QUESTIONS, getVolumeForDynamic } from './dynamicsDashConfig';
+import safeStorage from '../../../../utils/safeStorage';
+
+// Format "First Last" as "First L."
+const formatStudentName = (fullName) => {
+  if (!fullName) return null;
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length < 2) return parts[0];
+  return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+};
 
 const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
   const { sessionCode, userId: contextUserId, currentStage } = useSession();
@@ -66,7 +75,7 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
     setShuffledQuestions(shuffled);
   }, []);
 
-  // Generate player name
+  // Generate player name — use real name if available from PIN session
   useEffect(() => {
     if (!userId) return;
 
@@ -77,21 +86,34 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
         const emoji = getPlayerEmoji(userId);
         let name;
 
-        if (effectiveSessionCode) {
-          try {
-            const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
-            const snapshot = await get(studentsRef);
-            const studentsData = snapshot.val() || {};
-            const existingNames = Object.entries(studentsData)
-              .filter(([id]) => id !== userId)
-              .map(([, data]) => data.playerName)
-              .filter(Boolean);
-            name = generateUniquePlayerName(userId, existingNames);
-          } catch {
+        // Try to get real name from PIN session
+        try {
+          const pinData = safeStorage.getItem('student-pin-session');
+          if (pinData) {
+            const session = JSON.parse(pinData);
+            const formatted = formatStudentName(session.displayName);
+            if (formatted) name = formatted;
+          }
+        } catch { /* fall through */ }
+
+        // Fallback to musical name if no real name
+        if (!name) {
+          if (effectiveSessionCode) {
+            try {
+              const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
+              const snapshot = await get(studentsRef);
+              const studentsData = snapshot.val() || {};
+              const existingNames = Object.entries(studentsData)
+                .filter(([id]) => id !== userId)
+                .map(([, data]) => data.playerName)
+                .filter(Boolean);
+              name = generateUniquePlayerName(userId, existingNames);
+            } catch {
+              name = generateUniquePlayerName(userId, []);
+            }
+          } else {
             name = generateUniquePlayerName(userId, []);
           }
-        } else {
-          name = generateUniquePlayerName(userId, []);
         }
 
         setPlayerName(name);

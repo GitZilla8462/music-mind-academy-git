@@ -41,7 +41,7 @@ const SHOWCASE_CLIPS = [
   { symbol: 'ff', startTime: 71, endTime: 77, description: 'Thunder and lightning' },
 ];
 
-const DynamicsShowcase = ({ sessionData }) => {
+const DynamicsShowcase = ({ sessionData, onNextStage }) => {
   const [currentIndex, setCurrentIndex] = useState(-1); // -1 = not started
   const [hasPlayed, setHasPlayed] = useState(false); // whether current clip has been played at least once
   const [clipFinished, setClipFinished] = useState(false); // clip done playing, show Next
@@ -325,15 +325,21 @@ const DynamicsShowcase = ({ sessionData }) => {
 
         {/* All done */}
         {allDone && (
-          <div className="flex flex-col items-center gap-3">
-            <span className="text-3xl text-green-400 font-bold">All dynamics covered!</span>
-            <span className="text-xl text-white/60">Click Next in the sidebar to advance to the next slide</span>
+          <div className="flex items-center justify-center gap-4">
             <button
               onClick={handleReset}
-              className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-lg font-medium text-white flex items-center gap-2 transition-all"
+              className="px-8 py-4 bg-white/10 hover:bg-white/20 rounded-2xl text-2xl font-bold text-white flex items-center gap-3 transition-all hover:scale-105"
             >
-              <RotateCcw size={20} /> Replay
+              <RotateCcw size={28} /> Replay
             </button>
+            {onNextStage && (
+              <button
+                onClick={onNextStage}
+                className="px-10 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-2xl text-2xl font-bold text-white flex items-center gap-3 transition-all hover:scale-105"
+              >
+                Continue <ChevronRight size={28} />
+              </button>
+            )}
           </div>
         )}
       </div>

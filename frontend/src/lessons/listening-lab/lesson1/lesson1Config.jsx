@@ -413,24 +413,11 @@ export const lessonStages = [
       type: 'summary',
       title: 'Dynamics Dash',
       subtitle: 'Can You Identify the Dynamics?',
-      sections: [
-        {
-          heading: 'How to Play',
-          bullets: [
-            '1. Listen to a 6-second clip from Spring',
-            '2. Identify the DYNAMIC LEVEL (pp, p, mp, mf, f, ff)',
-            '3. Answer quickly for bonus points!',
-            '4. 9 questions total'
-          ]
-        },
-        {
-          heading: 'Remember',
-          bullets: [
-            'pp/p = Soft (piano)',
-            'mp/mf = Medium',
-            'f/ff = Loud (forte)'
-          ]
-        }
+      bullets: [
+        'Listen to a 6-second clip from Spring',
+        'Identify the DYNAMIC LEVEL (pp, p, mp, mf, f, ff)',
+        'Answer quickly for bonus points!',
+        'Nine questions total'
       ]
     }
   },
