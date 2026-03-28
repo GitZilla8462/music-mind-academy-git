@@ -17,6 +17,7 @@ import { updateClassSessionStage, endClassSession, subscribeToClassSession } fro
 import { logger } from '../utils/UniversalLogger';
 import { logSessionEnded, logStageChange, logStudentJoined, updateSessionHeartbeat } from '../firebase/analytics';
 import SessionEndedModal from '../lessons/shared/components/SessionEndedModal';
+import safeStorage from '../utils/safeStorage';
 
 const SessionContext = createContext();
 
@@ -63,7 +64,7 @@ const shouldRestoreSession = () => {
 
 // Helper to check if saved session is expired
 const isSessionExpired = () => {
-  const savedTime = localStorage.getItem('current-session-time');
+  const savedTime = safeStorage.getItem('current-session-time');
   if (!savedTime) return false;
   
   const elapsed = Date.now() - parseInt(savedTime, 10);
@@ -76,12 +77,12 @@ const isSessionExpired = () => {
 
 // Helper to clear all session data from localStorage
 const clearSessionStorage = () => {
-  localStorage.removeItem('current-session-code');
-  localStorage.removeItem('current-session-role');
-  localStorage.removeItem('current-session-userId');
-  localStorage.removeItem('current-session-studentName');
-  localStorage.removeItem('current-session-time');
-  localStorage.removeItem('current-session-classCode');
+  safeStorage.removeItem('current-session-code');
+  safeStorage.removeItem('current-session-role');
+  safeStorage.removeItem('current-session-userId');
+  safeStorage.removeItem('current-session-studentName');
+  safeStorage.removeItem('current-session-time');
+  safeStorage.removeItem('current-session-classCode');
   console.log('🧹 Session storage cleared');
 };
 
@@ -94,8 +95,8 @@ export const SessionProvider = ({ children }) => {
     
     if (urlSessionCode) {
       console.log('🆕 Using session from URL:', urlSessionCode);
-      localStorage.setItem('current-session-code', urlSessionCode);
-      localStorage.setItem('current-session-time', Date.now().toString());
+      safeStorage.setItem('current-session-code', urlSessionCode);
+      safeStorage.setItem('current-session-time', Date.now().toString());
       return urlSessionCode;
     }
     
@@ -111,7 +112,7 @@ export const SessionProvider = ({ children }) => {
     }
     
     // Priority 4: localStorage (for page refreshes during active session)
-    const saved = localStorage.getItem('current-session-code');
+    const saved = safeStorage.getItem('current-session-code');
     if (saved) {
       console.log('🔄 Restoring session from localStorage:', saved);
       return saved;
@@ -126,7 +127,7 @@ export const SessionProvider = ({ children }) => {
     const urlRole = urlParams.get('role');
     
     if (urlRole) {
-      localStorage.setItem('current-session-role', urlRole);
+      safeStorage.setItem('current-session-role', urlRole);
       return urlRole;
     }
     
@@ -135,14 +136,14 @@ export const SessionProvider = ({ children }) => {
       return null;
     }
     
-    return localStorage.getItem('current-session-role') || null;
+    return safeStorage.getItem('current-session-role') || null;
   });
   
   const [userId, setUserId] = useState(() => {
     if (!shouldRestoreSession() || isSessionExpired()) {
       return null;
     }
-    return localStorage.getItem('current-session-userId') || null;
+    return safeStorage.getItem('current-session-userId') || null;
   });
   
   const [classId, setClassId] = useState(() => {
@@ -151,7 +152,7 @@ export const SessionProvider = ({ children }) => {
   });
   const [classCode, setClassCode] = useState(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('classCode') || localStorage.getItem('current-session-classCode') || null;
+    return urlParams.get('classCode') || safeStorage.getItem('current-session-classCode') || null;
   });
   const [sessionData, setSessionData] = useState(null);
   const [isInSession, setIsInSession] = useState(false);
@@ -178,14 +179,14 @@ export const SessionProvider = ({ children }) => {
       if (urlSessionCode && urlSessionCode !== sessionCode) {
         console.log('🔄 Session code changed in URL:', urlSessionCode);
         setSessionCode(urlSessionCode);
-        localStorage.setItem('current-session-code', urlSessionCode);
-        localStorage.setItem('current-session-time', Date.now().toString());
+        safeStorage.setItem('current-session-code', urlSessionCode);
+        safeStorage.setItem('current-session-time', Date.now().toString());
       }
       
       if (urlRole && urlRole !== userRole) {
         console.log('🔄 Role changed in URL:', urlRole);
         setUserRole(urlRole);
-        localStorage.setItem('current-session-role', urlRole);
+        safeStorage.setItem('current-session-role', urlRole);
       }
     };
     
@@ -198,38 +199,38 @@ export const SessionProvider = ({ children }) => {
   // Save to localStorage when session info changes
   useEffect(() => {
     if (sessionCode) {
-      localStorage.setItem('current-session-code', sessionCode);
+      safeStorage.setItem('current-session-code', sessionCode);
       // Update timestamp when session is active
-      if (!localStorage.getItem('current-session-time')) {
-        localStorage.setItem('current-session-time', Date.now().toString());
+      if (!safeStorage.getItem('current-session-time')) {
+        safeStorage.setItem('current-session-time', Date.now().toString());
       }
     } else {
-      localStorage.removeItem('current-session-code');
-      localStorage.removeItem('current-session-time');
+      safeStorage.removeItem('current-session-code');
+      safeStorage.removeItem('current-session-time');
     }
   }, [sessionCode]);
   
   useEffect(() => {
     if (userRole) {
-      localStorage.setItem('current-session-role', userRole);
+      safeStorage.setItem('current-session-role', userRole);
     } else {
-      localStorage.removeItem('current-session-role');
+      safeStorage.removeItem('current-session-role');
     }
   }, [userRole]);
   
   useEffect(() => {
     if (userId) {
-      localStorage.setItem('current-session-userId', userId);
+      safeStorage.setItem('current-session-userId', userId);
     } else {
-      localStorage.removeItem('current-session-userId');
+      safeStorage.removeItem('current-session-userId');
     }
   }, [userId]);
 
   useEffect(() => {
     if (classCode) {
-      localStorage.setItem('current-session-classCode', classCode);
+      safeStorage.setItem('current-session-classCode', classCode);
     } else {
-      localStorage.removeItem('current-session-classCode');
+      safeStorage.removeItem('current-session-classCode');
     }
   }, [classCode]);
 
@@ -240,7 +241,7 @@ export const SessionProvider = ({ children }) => {
     if (!analyticsKey || userRole !== 'teacher') return;
 
     // Get teacher UID from sessionData or localStorage
-    const teacherUid = sessionData?.teacherId || localStorage.getItem('classroom-user-id');
+    const teacherUid = sessionData?.teacherId || safeStorage.getItem('classroom-user-id');
 
     // Initial heartbeat
     updateSessionHeartbeat(analyticsKey, teacherUid).catch(() => {});
@@ -273,7 +274,7 @@ export const SessionProvider = ({ children }) => {
     // Initialize logger if student is restoring from localStorage
     if (userRole === 'student' && userId && !logger.isInitialized) {
       console.log('🔄 Initializing logger from restored session');
-      const studentName = localStorage.getItem('current-session-studentName') || userId;
+      const studentName = safeStorage.getItem('current-session-studentName') || userId;
       logger.init({
         studentId: userId,
         sessionCode: sessionIdentifier,
@@ -525,7 +526,7 @@ export const SessionProvider = ({ children }) => {
     hasAutoCleanedRef.current = false;
 
     // Set session start time
-    localStorage.setItem('current-session-time', Date.now().toString());
+    safeStorage.setItem('current-session-time', Date.now().toString());
 
     if (classIdParam) {
       setClassId(classIdParam);
@@ -533,7 +534,7 @@ export const SessionProvider = ({ children }) => {
     }
     if (classCodeParam) {
       setClassCode(classCodeParam);
-      localStorage.setItem('current-session-classCode', classCodeParam);
+      safeStorage.setItem('current-session-classCode', classCodeParam);
       console.log('Session started with classCode:', classCodeParam);
     }
   };
@@ -636,10 +637,10 @@ export const SessionProvider = ({ children }) => {
       if (isClassSession && classIdForSession) {
         setClassId(classIdForSession);
         setClassCode(code); // code is the class code (e.g., "AB1234")
-        localStorage.setItem('current-session-classCode', code);
+        safeStorage.setItem('current-session-classCode', code);
         // Don't set sessionCode for class sessions — use classId subscription path instead
         // Clear any stale session code from localStorage to prevent restore conflicts
-        localStorage.removeItem('current-session-code');
+        safeStorage.removeItem('current-session-code');
       } else {
         setSessionCode(code);
       }
@@ -650,8 +651,8 @@ export const SessionProvider = ({ children }) => {
       hasAutoCleanedRef.current = false;
       
       // Save student name and session time to localStorage
-      localStorage.setItem('current-session-studentName', studentName || 'Student');
-      localStorage.setItem('current-session-time', Date.now().toString());
+      safeStorage.setItem('current-session-studentName', studentName || 'Student');
+      safeStorage.setItem('current-session-time', Date.now().toString());
       
       // Initialize logger with session info
       logger.init({
@@ -735,8 +736,8 @@ export const SessionProvider = ({ children }) => {
       setIsInSession(true);
       hasAutoCleanedRef.current = false;
 
-      localStorage.setItem('current-session-studentName', musicalName);
-      localStorage.setItem('current-session-time', Date.now().toString());
+      safeStorage.setItem('current-session-studentName', musicalName);
+      safeStorage.setItem('current-session-time', Date.now().toString());
       
       logger.init({
         studentId,

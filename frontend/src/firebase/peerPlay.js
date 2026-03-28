@@ -182,8 +182,8 @@ export const completeTurn = async (sessionCode, matchId, studentId) => {
     // Turn 1 done (A finished playing B's journey) → advance to turn 2
     await update(matchRef, {
       turn: 2,
-      'studentA.turnDone': false,
-      'studentB.turnDone': false,
+      'studentA/turnDone': false,
+      'studentB/turnDone': false,
       gamesPlayed: (match.gamesPlayed || 0) + 1
     });
   } else if (match.turn === 2) {

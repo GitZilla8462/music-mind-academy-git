@@ -245,6 +245,12 @@ const MusicJournalistHub = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-[#1a2744] to-gray-900">
       <TeacherHeader user={user} signOut={signOut} />
 
+      {/* UNLOCK BANNER */}
+      <div className="w-full bg-gradient-to-r from-sky-600 to-cyan-600 text-white text-center py-3 px-4">
+        <span className="text-sm font-bold tracking-wide uppercase bg-white/20 px-3 py-1 rounded-full mr-2">Coming Soon</span>
+        <span className="text-sm font-medium">Unit Unlocks on April 15th — Preview lessons below!</span>
+      </div>
+
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Back button */}
         <button

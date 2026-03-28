@@ -30,6 +30,7 @@ const applicationRoutes = require('./routes/applicationRoutes'); // Pilot applic
 const newsRoutes = require('./routes/newsRoutes'); // Music Journalist news feed
 const articleGenerationRoutes = require('./routes/articleGenerationRoutes'); // Article generation admin
 const { runDailyPipeline } = require('./services/articleGenerationService'); // Article generation cron
+const { runDripProcessor } = require('./services/dripCronService'); // Drip follow-up emails
 
 // Initialize Firebase Admin SDK
 const { initFirebase } = require('./services/firebaseAdmin');
@@ -100,6 +101,22 @@ cron.schedule('0 18 * * 0', async () => {
   timezone: 'America/New_York'
 });
 console.log('Cron scheduled: article generation Sunday 1:00 PM EST');
+
+// Send drip follow-up emails daily at 8:00 AM EST
+// Drip-2: 7 days after approval (if teacher hasn't logged in)
+// Drip-3: 14 days after approval (if teacher hasn't logged in)
+cron.schedule('0 13 * * *', async () => {
+  console.log('[CRON] Starting daily drip email processor...');
+  try {
+    const results = await runDripProcessor();
+    console.log(`[CRON] Drip done. Sent: ${results.drip2Sent + results.drip3Sent}, Skipped logged-in: ${results.alreadyLoggedIn}, Errors: ${results.errors.length}`);
+  } catch (error) {
+    console.error('[CRON] Drip processor failed:', error.message);
+  }
+}, {
+  timezone: 'America/New_York'
+});
+console.log('Cron scheduled: drip emails daily 8:00 AM EST');
 
 // A simple test route to check if the server is working
 app.get('/', (req, res) => {

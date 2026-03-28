@@ -301,6 +301,12 @@ const ListeningLabHub = () => {
         <div className="min-h-screen bg-slate-50">
       <TeacherHeader />
 
+      {/* UNLOCK BANNER */}
+      <div className="w-full bg-gradient-to-r from-violet-600 to-purple-600 text-white text-center py-3 px-4">
+        <span className="text-sm font-bold tracking-wide uppercase bg-white/20 px-3 py-1 rounded-full mr-2">Coming Soon</span>
+        <span className="text-sm font-medium">Unit Unlocks on April 1st — Preview lessons below!</span>
+      </div>
+
       {/* BACK BUTTON */}
       <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-4">
         <button

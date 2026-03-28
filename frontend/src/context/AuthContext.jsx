@@ -2,6 +2,7 @@
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import safeStorage from '../utils/safeStorage';
 
 // Temporary fix: hardcode production URL since REACT_APP_API_URL isn't being loaded by Vercel
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
@@ -21,8 +22,8 @@ export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const storedToken = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user_data');
+        const storedToken = safeStorage.getItem('token');
+        const storedUser = safeStorage.getItem('user_data');
         
         if (storedToken && storedUser) {
             try {
@@ -32,9 +33,9 @@ export const AuthProvider = ({ children }) => {
                 setIsAuthenticated(true);
             } catch (error) {
                 console.error('Error parsing stored user data:', error);
-                localStorage.removeItem('token');
-                localStorage.removeItem('user_data');
-                localStorage.removeItem('user_role');
+                safeStorage.removeItem('token');
+                safeStorage.removeItem('user_data');
+                safeStorage.removeItem('user_role');
             }
         }
         setLoading(false);
@@ -86,9 +87,9 @@ export const AuthProvider = ({ children }) => {
                 return { success: false, error: 'Invalid server response' };
             }
             
-            localStorage.setItem('token', newToken);
-            localStorage.setItem('user_role', userData.role);
-            localStorage.setItem('user_data', JSON.stringify(userData));
+            safeStorage.setItem('token', newToken);
+            safeStorage.setItem('user_role', userData.role);
+            safeStorage.setItem('user_data', JSON.stringify(userData));
             
             setToken(newToken);
             setUser(userData);
@@ -137,9 +138,9 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = useCallback(() => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user_role');
-        localStorage.removeItem('user_data');
+        safeStorage.removeItem('token');
+        safeStorage.removeItem('user_role');
+        safeStorage.removeItem('user_data');
         setToken(null);
         setIsAuthenticated(false);
         setUser(null);

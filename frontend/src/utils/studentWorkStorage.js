@@ -11,6 +11,7 @@ import {
   deleteStudentWork as deleteFromFirebase
 } from '../firebase/studentWork';
 import { getActivityToLessonMap } from '../config/curriculumConfig';
+import safeStorage from './safeStorage';
 
 const PIN_SESSION_KEY = 'student-pin-session';
 
@@ -24,7 +25,7 @@ export const getStudentId = () => {
   // lookups always resolve to the same key on shared Chromebooks.
   // Expiry only matters for Firebase auth (checked in getClassAuthInfo), not storage keys.
   try {
-    const pinSession = localStorage.getItem(PIN_SESSION_KEY);
+    const pinSession = safeStorage.getItem(PIN_SESSION_KEY);
     if (pinSession) {
       const session = JSON.parse(pinSession);
       if (session.classId && session.seatNumber != null) {
@@ -34,10 +35,10 @@ export const getStudentId = () => {
   } catch { /* fall through */ }
 
   // Fallback: anonymous ID
-  let id = localStorage.getItem('anonymous-student-id');
+  let id = safeStorage.getItem('anonymous-student-id');
   if (!id) {
     id = `Student-${Math.floor(100000 + Math.random() * 900000)}`;
-    localStorage.setItem('anonymous-student-id', id);
+    safeStorage.setItem('anonymous-student-id', id);
   }
   return id;
 };
@@ -47,7 +48,7 @@ export const getStudentId = () => {
  * Used as a fallback key when loading data that may have been saved before PIN login.
  */
 const getAnonymousStudentId = () => {
-  return localStorage.getItem('anonymous-student-id');
+  return safeStorage.getItem('anonymous-student-id');
 };
 
 /**
@@ -56,7 +57,7 @@ const getAnonymousStudentId = () => {
  */
 export const getClassAuthInfo = () => {
   try {
-    const saved = localStorage.getItem(PIN_SESSION_KEY);
+    const saved = safeStorage.getItem(PIN_SESSION_KEY);
     if (!saved) return null;
 
     const session = JSON.parse(saved);
@@ -143,7 +144,7 @@ export const saveStudentWork = (activityId, options, studentId = null, authInfo 
   };
 
   // Always save to localStorage as backup
-  localStorage.setItem(key, JSON.stringify(saveData));
+  safeStorage.setItem(key, JSON.stringify(saveData));
   console.log(`💾 Saved student work to localStorage: ${key}`, saveData);
 
   // Auto-detect class auth if not explicitly provided
@@ -194,7 +195,7 @@ export const loadStudentWork = (activityId, studentId = null) => {
   const id = studentId || getStudentId();
   const key = `mma-saved-${id}-${activityId}`;
 
-  const saved = localStorage.getItem(key);
+  const saved = safeStorage.getItem(key);
   if (saved) {
     try {
       const data = JSON.parse(saved);
@@ -209,13 +210,13 @@ export const loadStudentWork = (activityId, studentId = null) => {
   const anonId = getAnonymousStudentId();
   if (anonId && anonId !== id) {
     const anonKey = `mma-saved-${anonId}-${activityId}`;
-    const anonSaved = localStorage.getItem(anonKey);
+    const anonSaved = safeStorage.getItem(anonKey);
     if (anonSaved) {
       try {
         const data = JSON.parse(anonSaved);
         console.log(`📂 Loaded student work (migrated from anonymous): ${anonKey}`);
         // Migrate: save under the seat-based key so future loads are fast
-        localStorage.setItem(key, anonSaved);
+        safeStorage.setItem(key, anonSaved);
         return data;
       } catch (error) {
         console.error(`Error loading student work: ${anonKey}`, error);
@@ -275,7 +276,7 @@ export const loadStudentWorkAsync = async (activityId, authInfo = null, studentI
 export const deleteStudentWork = (activityId, studentId = null, authInfo = null) => {
   const id = studentId || getStudentId();
   const key = `mma-saved-${id}-${activityId}`;
-  localStorage.removeItem(key);
+  safeStorage.removeItem(key);
   console.log(`🗑️ Deleted student work from localStorage: ${key}`);
 
   // If authenticated, also delete from Firebase
@@ -305,11 +306,11 @@ export const getAllStudentWork = (studentId = null) => {
   const seenActivityIds = new Set();
 
   // Scan primary prefix (seat-based or anonymous)
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
+  for (let i = 0; i < safeStorage.length; i++) {
+    const key = safeStorage.key(i);
     if (key && key.startsWith(prefix)) {
       try {
-        const data = JSON.parse(localStorage.getItem(key));
+        const data = JSON.parse(safeStorage.getItem(key));
         savedWork.push(data);
         if (data.activityId) seenActivityIds.add(data.activityId);
       } catch (error) {
@@ -322,11 +323,11 @@ export const getAllStudentWork = (studentId = null) => {
   const anonId = getAnonymousStudentId();
   if (anonId && anonId !== id) {
     const anonPrefix = `mma-saved-${anonId}-`;
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
+    for (let i = 0; i < safeStorage.length; i++) {
+      const key = safeStorage.key(i);
       if (key && key.startsWith(anonPrefix)) {
         try {
-          const data = JSON.parse(localStorage.getItem(key));
+          const data = JSON.parse(safeStorage.getItem(key));
           if (data.activityId && !seenActivityIds.has(data.activityId)) {
             savedWork.push(data);
             seenActivityIds.add(data.activityId);
@@ -406,11 +407,11 @@ export const getAllStudentWorkAsync = async (authInfo, studentId = null) => {
 export const hasStudentWork = (activityId, studentId = null) => {
   const id = studentId || getStudentId();
   const key = `mma-saved-${id}-${activityId}`;
-  if (localStorage.getItem(key) !== null) return true;
+  if (safeStorage.getItem(key) !== null) return true;
   // Fallback: check anonymous ID
   const anonId = getAnonymousStudentId();
   if (anonId && anonId !== id) {
-    return localStorage.getItem(`mma-saved-${anonId}-${activityId}`) !== null;
+    return safeStorage.getItem(`mma-saved-${anonId}-${activityId}`) !== null;
   }
   return false;
 };
@@ -474,14 +475,14 @@ export const migrateOldSaves = (studentId = null) => {
   ];
   
   for (const migration of migrations) {
-    const oldData = localStorage.getItem(migration.oldKey);
+    const oldData = safeStorage.getItem(migration.oldKey);
     if (oldData) {
       try {
         const parsed = JSON.parse(oldData);
         const newKey = `mma-saved-${id}-${migration.activityId}`;
         
         // Only migrate if new key doesn't exist
-        if (!localStorage.getItem(newKey)) {
+        if (!safeStorage.getItem(newKey)) {
           const metadata = migration.getMetadata(parsed);
           
           saveStudentWork(migration.activityId, {
@@ -518,29 +519,29 @@ export const clearAllCompositionSaves = (activityId, studentId = null, authInfo 
   const id = studentId || getStudentId();
 
   // Pattern 1: New format - mma-saved-{studentId}-{activityId}
-  localStorage.removeItem(`mma-saved-${id}-${activityId}`);
+  safeStorage.removeItem(`mma-saved-${id}-${activityId}`);
 
   // Pattern 2: Alternate order - mma-saved-{activityId}-{studentId}
-  localStorage.removeItem(`mma-saved-${activityId}-${id}`);
+  safeStorage.removeItem(`mma-saved-${activityId}-${id}`);
 
   // Pattern 3: Legacy format - {activityId}-{studentId}
-  localStorage.removeItem(`${activityId}-${id}`);
+  safeStorage.removeItem(`${activityId}-${id}`);
 
   // Pattern 4: Autosave format - autosave-{studentId}-{activityId}
-  localStorage.removeItem(`autosave-${id}-${activityId}`);
+  safeStorage.removeItem(`autosave-${id}-${activityId}`);
 
   // Pattern 5: MusicComposer internal save - composition-{activityId}
-  localStorage.removeItem(`composition-${activityId}`);
+  safeStorage.removeItem(`composition-${activityId}`);
 
   // Pattern 6: Clear from centralized auto-save object (student-compositions-autosave)
   try {
     const autoSaveKey = 'student-compositions-autosave';
-    const existingSaves = JSON.parse(localStorage.getItem(autoSaveKey) || '{}');
+    const existingSaves = JSON.parse(safeStorage.getItem(autoSaveKey) || '{}');
     const saveKey = `${id}-${activityId}`;
 
     if (existingSaves[saveKey]) {
       delete existingSaves[saveKey];
-      localStorage.setItem(autoSaveKey, JSON.stringify(existingSaves));
+      safeStorage.setItem(autoSaveKey, JSON.stringify(existingSaves));
     }
   } catch (error) {
     console.error('Error clearing centralized auto-save:', error);

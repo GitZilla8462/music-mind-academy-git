@@ -690,7 +690,7 @@ function MusicClassroomResources() {
                           letterSpacing: '0.2px',
                           whiteSpace: 'nowrap'
                         }}>
-                          Pilot {unit.releaseDate}
+                          Unlocks {unit.releaseDate}
                         </span>
                       )}
                       {isPreview && unit.releaseDate && (

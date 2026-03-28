@@ -5,6 +5,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { getClassByCode } from '../firebase/classes';
 import { verifyPin, getSeat } from '../firebase/enrollments';
+import safeStorage from '../utils/safeStorage';
 
 // Session storage keys for PIN-based auth
 const PIN_SESSION_KEY = 'student-pin-session';
@@ -27,7 +28,7 @@ export const StudentAuthProvider = ({ children }) => {
 
   // Check for existing PIN session on mount
   useEffect(() => {
-    const savedSession = localStorage.getItem(PIN_SESSION_KEY);
+    const savedSession = safeStorage.getItem(PIN_SESSION_KEY);
     if (savedSession) {
       try {
         const session = JSON.parse(savedSession);
@@ -38,7 +39,7 @@ export const StudentAuthProvider = ({ children }) => {
         // Expired sessions stay in localStorage so getStudentId() can still
         // resolve the seat-based storage key and find previously-saved work.
       } catch (e) {
-        localStorage.removeItem(PIN_SESSION_KEY);
+        safeStorage.removeItem(PIN_SESSION_KEY);
       }
     }
     setLoading(false);
@@ -78,7 +79,7 @@ export const StudentAuthProvider = ({ children }) => {
         expiresAt: Date.now() + PIN_SESSION_EXPIRY
       };
 
-      localStorage.setItem(PIN_SESSION_KEY, JSON.stringify(session));
+      safeStorage.setItem(PIN_SESSION_KEY, JSON.stringify(session));
       setPinSession(session);
 
       console.log('PIN Sign-In successful');
@@ -113,7 +114,7 @@ export const StudentAuthProvider = ({ children }) => {
         expiresAt: Date.now() + PIN_SESSION_EXPIRY
       };
 
-      localStorage.setItem(PIN_SESSION_KEY, JSON.stringify(session));
+      safeStorage.setItem(PIN_SESSION_KEY, JSON.stringify(session));
       setPinSession(session);
 
       console.log('Username Sign-In successful');
@@ -128,7 +129,7 @@ export const StudentAuthProvider = ({ children }) => {
   // Sign out
   const signOut = async () => {
     try {
-      localStorage.removeItem(PIN_SESSION_KEY);
+      safeStorage.removeItem(PIN_SESSION_KEY);
       setPinSession(null);
       console.log('Student signed out successfully');
     } catch (err) {

@@ -1520,7 +1520,8 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
               sentAt: now,
               subject: subject,
               type: emailType,
-            }).catch(e => console.warn('Failed to track email for', t.email, e.message))
+            }).then(() => console.log('✅ Tracked email for', t.email))
+              .catch(e => console.error('❌ Failed to track email for', t.email, e.message, e))
           );
           if (batch.length >= 20) {
             await Promise.all(batch.splice(0));
