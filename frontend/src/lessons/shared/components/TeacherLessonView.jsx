@@ -486,6 +486,7 @@ const PresentationContent = ({
   const [CapstonePieceSelectionTeacher, setCapstonePieceSelectionTeacher] = useState(null);
   const [RondoFormGameTeacher, setRondoFormGameTeacher] = useState(null);
   const [RondoFormGameResults, setRondoFormGameResults] = useState(null);
+  const [StringsDynamicsLab, setStringsDynamicsLab] = useState(null);
   const [FourCornersGame, setFourCornersGame] = useState(null);
   const [CapstonePlanning, setCapstonePlanning] = useState(null);
   const [ListeningJourney, setListeningJourney] = useState(null);
@@ -512,6 +513,7 @@ const PresentationContent = ({
 
   // Persist animator directions dismissed state across re-renders
   const animatorDirDismissedRef = useRef(false);
+  const stringsDynamicsDirDismissedRef = useRef(false);
 
   // Get join URL based on site (defined early for use in join-code screen)
   const isProduction = window.location.hostname !== 'localhost';
@@ -582,6 +584,11 @@ const PresentationContent = ({
     import('../../shared/activities/guess-that-instrument/GuessThatInstrumentTeacherView')
       .then(module => setGuessThatInstrumentTeacherView(() => module.default))
       .catch(() => console.log('Guess That Instrument Teacher View not available'));
+
+    // Unit 2 Listening Lab Lesson 1: Strings & Dynamics Lab
+    import('../../shared/activities/strings-dynamics-lab/StringsDynamicsLabActivity')
+      .then(module => setStringsDynamicsLab(() => module.default))
+      .catch(() => console.log('Strings & Dynamics Lab not available'));
 
     // Unit 2 Listening Lab Lesson 1: Dynamics Dash Class Game
     import('../../shared/activities/dynamics-dash/DynamicsDashClassGame')
@@ -2418,6 +2425,19 @@ const PresentationContent = ({
       );
     }
 
+    // Strings & Dynamics Lab - show game with floating directions overlay
+    if (type === 'strings-dynamics-lab') {
+      if (!StringsDynamicsLab) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900">
+            <div className="text-white text-2xl">Loading Strings & Dynamics Lab...</div>
+          </div>
+        );
+      }
+
+      return <StringsDynamicsLabDirections StringsDynamicsLabComponent={StringsDynamicsLab} dismissedRef={stringsDynamicsDirDismissedRef} />;
+    }
+
     // Activity Banner - shows a banner during student activities
     if (type === 'activity-banner') {
       const { title, subtitle } = currentStageData.presentationView;
@@ -3641,6 +3661,82 @@ const PlannerDirectionsSplit = React.memo(({ CapstonePlanningComponent }) => {
           </div>
         )}
       </div>
+    </div>
+  );
+});
+
+// ============================================
+// STRINGS & DYNAMICS LAB DIRECTIONS OVERLAY
+// ============================================
+const StringsDynamicsLabDirections = React.memo(({ StringsDynamicsLabComponent, dismissedRef }) => {
+  const [showOverlay, setShowOverlay] = useState(!dismissedRef.current);
+
+  const directions = [
+    { num: '1', text: <>Find a <span className="font-bold text-gray-900">partner</span> and sit next to each other</> },
+    { num: '2', text: <>One person taps <span className="font-bold text-gray-900">Create Game</span> and shares the 4-digit code</> },
+    { num: '3', text: <>Your partner taps <span className="font-bold text-gray-900">Join Game</span> and enters the code</> },
+    { num: '4', text: <>Take turns — the <span className="font-bold text-purple-700">Builder</span> picks an instrument and dynamic, the <span className="font-bold text-amber-600">Listener</span> guesses both</> },
+    { num: '5', text: <><span className="font-bold text-gray-900">8 rounds</span> — get points for correct guesses, highest score wins!</> },
+  ];
+
+  return (
+    <div className="absolute inset-0">
+      {/* Live game behind everything */}
+      <div className="absolute inset-0 overflow-hidden">
+        <StringsDynamicsLabComponent onComplete={() => {}} />
+      </div>
+
+      {/* Directions button (top-left) - shows when overlay is dismissed */}
+      {!showOverlay && (
+        <button
+          onClick={() => { dismissedRef.current = false; setShowOverlay(true); }}
+          className="absolute top-3 left-3 z-50 flex items-center gap-1.5 px-3 py-2 bg-white/90 hover:bg-white rounded-xl shadow-lg border border-gray-200 text-gray-700 hover:text-gray-900 transition-all cursor-pointer"
+        >
+          <HelpCircle size={16} />
+          <span className="text-sm font-semibold">Directions</span>
+        </button>
+      )}
+
+      {/* Floating directions modal */}
+      {showOverlay && (
+        <div className="absolute top-4 left-4 z-50 w-[400px] bg-white border-gray-200 backdrop-blur-md rounded-2xl border shadow-2xl select-none">
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200">
+            <div className="flex items-center gap-2">
+              <div className="text-xl">🎻</div>
+              <h3 className="text-lg font-bold text-gray-900">Strings & Dynamics Lab</h3>
+            </div>
+            <button
+              onClick={() => { dismissedRef.current = true; setShowOverlay(false); }}
+              className="w-7 h-7 rounded-full bg-gray-100 hover:bg-red-500 flex items-center justify-center transition-colors group cursor-pointer"
+            >
+              <X size={14} className="text-gray-500 group-hover:text-white" />
+            </button>
+          </div>
+
+          {/* Directions list */}
+          <div className="px-5 py-4 space-y-3">
+            {directions.map((d) => (
+              <div key={d.num} className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-gray-800 text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                  {d.num}
+                </div>
+                <span className="text-sm text-gray-900 leading-relaxed">{d.text}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Got it button */}
+          <div className="px-5 pb-4">
+            <button
+              onClick={() => { dismissedRef.current = true; setShowOverlay(false); }}
+              className="w-full py-2.5 bg-gray-800 hover:bg-gray-900 text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Check size={14} /> Got it!
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 });

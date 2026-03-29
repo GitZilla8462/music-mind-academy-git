@@ -437,6 +437,9 @@ const DrawingCanvas = forwardRef(({
   // Track whether loadState has restored content — prevents init from clearing it
   const hasLoadedContentRef = useRef(false);
 
+  // Track previous canvas dimensions for scaling on resize
+  const prevDimsRef = useRef({ width: 0, height: 0 });
+
   // ========================================================================
   // INITIALIZATION
   // ========================================================================
@@ -444,6 +447,9 @@ const DrawingCanvas = forwardRef(({
   useEffect(() => {
     const canvas = drawingCanvasRef.current;
     if (!canvas) return;
+
+    const prevWidth = prevDimsRef.current.width;
+    const prevHeight = prevDimsRef.current.height;
 
     // If content was loaded via loadState, preserve it during resize
     // by capturing the current content before resizing
@@ -464,8 +470,27 @@ const DrawingCanvas = forwardRef(({
     ctx.lineJoin = 'round';
     drawingCtxRef.current = ctx;
 
-    if (previousContent) {
-      // Restore previous content after resize
+    if (previousContent && prevWidth > 0 && prevHeight > 0) {
+      // Restore previous content scaled to new dimensions
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, width, height);
+        saveToHistory();
+      };
+      img.src = previousContent;
+
+      // Scale sticker positions proportionally
+      const scaleX = width / prevWidth;
+      const scaleY = height / prevHeight;
+      if (Math.abs(scaleX - 1) > 0.001 || Math.abs(scaleY - 1) > 0.001) {
+        setStickers(prev => prev.map(s => ({
+          ...s,
+          x: s.x * scaleX,
+          y: s.y * scaleY
+        })));
+      }
+    } else if (previousContent) {
+      // Have content but no previous dimensions — draw unscaled
       const img = new Image();
       img.onload = () => {
         ctx.drawImage(img, 0, 0);
@@ -478,6 +503,8 @@ const DrawingCanvas = forwardRef(({
       ctx.fillRect(0, 0, width, height);
       saveToHistory();
     }
+
+    prevDimsRef.current = { width, height };
   }, [width, height, instruments.length]);
   
   // Clear selection when a new sticker is picked from the panel (entering placement mode)

@@ -7,6 +7,8 @@
 // ✅ UPDATED: Added WildlifeCompositionActivity for Lesson 4 (Epic Wildlife)
 
 import React from 'react';
+import { useActivityGuard } from '../hooks/useActivityGuard';
+import ActivityGuardModal from './ActivityGuardModal';
 import VideoPlayer from './video/VideoPlayer';
 import DAWTutorialActivity from '../activities/daw-tutorial/DAWTutorialActivity';
 import SchoolBeneathActivity from '../activities/SchoolBeneathActivity';
@@ -188,9 +190,12 @@ const ActivityRenderer = ({
   studentName = 'Student',
   assignmentId = null
 }) => {
+  // Protect student activities from browser back button
+  const { showBackWarning, dismissWarning } = useActivityGuard(!viewMode);
+
   if (!activity) return null;
 
-  switch (activity.type) {
+  const renderActivity = () => { switch (activity.type) {
     case 'video':
       return (
         <VideoPlayer 
@@ -1139,7 +1144,14 @@ const ActivityRenderer = ({
           </div>
         </div>
       );
-  }
+  } };
+
+  return (
+    <>
+      {showBackWarning && <ActivityGuardModal onDismiss={dismissWarning} />}
+      {renderActivity()}
+    </>
+  );
 };
 
 export default ActivityRenderer;

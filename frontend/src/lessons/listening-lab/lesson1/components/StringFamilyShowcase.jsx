@@ -14,7 +14,7 @@ const INSTRUMENT_CONFIGS = [
     emoji: '🎻',
     color: '#3B82F6', // blue
     description: 'The highest voice in the string family',
-    videoPath: '/lessons/listening-lab/lesson1/videos/violin-demo.mp4',
+    videoPath: 'https://media.musicmindacademy.com/lessons/listening-lab/lesson1/videos/violin-demo.mp4',
     startTime: 134, // 2:14
     endTime: 144,   // 2:24
     volume: 0.8,
@@ -26,7 +26,7 @@ const INSTRUMENT_CONFIGS = [
     emoji: '🎻',
     color: '#8B5CF6', // purple
     description: 'Slightly larger, with a warmer tone',
-    videoPath: '/lessons/listening-lab/lesson1/videos/viola-demo.mp4',
+    videoPath: 'https://media.musicmindacademy.com/lessons/listening-lab/lesson1/videos/viola-demo.mp4',
     startTime: 33,  // 0:33
     endTime: 45,    // 0:45
     volume: 0.8,
@@ -38,7 +38,7 @@ const INSTRUMENT_CONFIGS = [
     emoji: '🎻',
     color: '#10B981', // emerald
     description: 'Rich and warm, like a singing voice',
-    videoPath: '/lessons/listening-lab/lesson1/videos/cello-demo.mp4',
+    videoPath: 'https://media.musicmindacademy.com/lessons/listening-lab/lesson1/videos/cello-demo.mp4',
     startTime: 253, // 4:13
     endTime: 263,   // 4:23
     volume: 0.45,   // Reduced - cello example is too loud
@@ -50,7 +50,7 @@ const INSTRUMENT_CONFIGS = [
     emoji: '🎻',
     color: '#EF4444', // red
     description: 'The deepest, most powerful sound',
-    videoPath: '/lessons/listening-lab/lesson1/videos/bass-demo.mp4',
+    videoPath: 'https://media.musicmindacademy.com/lessons/listening-lab/lesson1/videos/bass-demo.mp4',
     startTime: 13,  // 0:13
     endTime: 23,    // 0:23
     volume: 0.8,

@@ -414,7 +414,7 @@ export const lessonStages = [
       title: 'Dynamics Dash',
       subtitle: 'Can You Identify the Dynamics?',
       bullets: [
-        'Listen to a 6-second clip from Spring',
+        'Listen to a 6-second clip from Vivaldi\'s Spring',
         'Identify the DYNAMIC LEVEL (pp, p, mp, mf, f, ff)',
         'Answer quickly for bonus points!',
         'Nine questions total'
@@ -560,9 +560,7 @@ export const lessonStages = [
     hasTimer: false,
     duration: 12,
     presentationView: {
-      type: 'activity-banner',
-      title: 'Strings & Dynamics Lab',
-      subtitle: 'Partner up! One picks, one guesses.'
+      type: 'strings-dynamics-lab'
     }
   }
 ];
