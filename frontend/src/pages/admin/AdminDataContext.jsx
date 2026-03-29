@@ -632,6 +632,20 @@ export const AdminDataProvider = ({ children }) => {
       ['Avg Active Teaching Time (min)', avgActiveTime],
       ['Most Popular Lesson', summaryStats?.mostPopularLesson || 'N/A'],
       ['Return Rate (%)', summaryStats?.retentionRate || 0], [''],
+      ['Activation Funnel'],
+      ['Approved (total)', [...academyEmails, ...eduEmails].length],
+      ['Signed Up', registeredUsers.length],
+      ['Explored (started session, no real class)', registeredUsers.filter(u => {
+        const email = u.email?.toLowerCase();
+        const analytics = teacherAnalytics.find(t => t.email?.toLowerCase() === email);
+        const hasSessions = (analytics?.totalSessions || 0) > 0;
+        const hasRealClass = pilotSessions.some(s => s.teacherEmail?.toLowerCase() === email && isRealClass(s));
+        return hasSessions && !hasRealClass;
+      }).length],
+      ['Teaching (1+ real class)', new Set(realClassSessions.map(s => s.teacherEmail?.toLowerCase())).size],
+      ['Never Logged In', [...academyEmails, ...eduEmails].filter(item =>
+        !registeredUsers.some(u => u.email?.toLowerCase() === item.email?.toLowerCase())
+      ).length], [''],
       ['DATA NOTES'],
       ['"Active Time" = sum of tracked stage durations (reliable). "Wall Clock" = session start to end (unreliable).'],
       ['"Real Class" = session with 10+ min active time AND 3+ stages visited.'],
@@ -747,6 +761,47 @@ export const AdminDataProvider = ({ children }) => {
       userRows.push([u.displayName || '', u.email || '', excelDate(u.createdAt), excelDate(u.lastLoginAt), u.isPilot ? 'Yes' : 'No']);
     });
     XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(userRows), 'Registered Users');
+
+    // Activation Funnel — shows every approved teacher's journey from approval to teaching
+    const allApproved = [...academyEmails, ...eduEmails];
+    const funnelRows = [['Email', 'Stage', 'Signed Up', 'Signup Date', 'Last Login', 'Total Sessions', 'Real Classes', 'Lessons Visited', 'Last Activity']];
+    allApproved.forEach(item => {
+      const email = item.email?.toLowerCase();
+      const reg = registeredUsers.find(u => u.email?.toLowerCase() === email);
+      const analytics = teacherAnalytics.find(t => t.email?.toLowerCase() === email);
+      const teacherSessions = pilotSessions.filter(s => s.teacherEmail?.toLowerCase() === email);
+      const realClasses = teacherSessions.filter(s => isRealClass(s)).length;
+      const totalSessions = analytics?.totalSessions || teacherSessions.length;
+      const lessonsVisited = analytics?.lessonsVisited?.map(l => l.lessonId).join(', ') || '';
+
+      let stage = 'Not Logged In';
+      if (reg) {
+        stage = 'Registered';
+        if (totalSessions > 0) stage = 'Explored';
+        // Check if they taught real classes
+        let highestLesson = 0;
+        teacherSessions.forEach(s => {
+          if (!isRealClass(s)) return;
+          let num = 0;
+          if (s.lessonRoute?.includes('lesson1')) num = 1;
+          else if (s.lessonRoute?.includes('lesson2')) num = 2;
+          else if (s.lessonRoute?.includes('lesson3')) num = 3;
+          else if (s.lessonRoute?.includes('lesson4')) num = 4;
+          else if (s.lessonRoute?.includes('lesson5')) num = 5;
+          if (num > highestLesson) highestLesson = num;
+        });
+        if (highestLesson >= 1) stage = `Teaching (L${highestLesson})`;
+      }
+
+      funnelRows.push([
+        item.email, stage, reg ? 'Yes' : 'No',
+        reg ? excelDate(reg.createdAt) : '',
+        reg ? excelDate(reg.lastLoginAt) : '',
+        totalSessions, realClasses, lessonsVisited,
+        analytics?.lastActivity ? excelDate(analytics.lastActivity) : ''
+      ]);
+    });
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(funnelRows), 'Activation Funnel');
 
     const dateStr = new Date().toISOString().split('T')[0];
     XLSX.writeFile(workbook, `PilotProgram_Export_${dateStr}.xlsx`);
