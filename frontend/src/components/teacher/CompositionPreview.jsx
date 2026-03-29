@@ -4,6 +4,7 @@
 
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Play, Pause, RotateCcw, SkipBack, SkipForward, Volume2, Loader2 } from 'lucide-react';
+import { renderBeatToBlob, renderMelodyToBlob } from '../../pages/projects/film-music-score/shared/beatRenderUtils';
 
 const formatTime = (seconds) => {
   const mins = Math.floor(seconds / 60);
@@ -27,9 +28,69 @@ const CompositionPreview = ({ workData, submittedAt, videoOnly = false }) => {
   const [loadingAudio, setLoadingAudio] = useState(false);
 
   const data = workData?.data || {};
-  const placedLoops = data.placedLoops || [];
+  const initialLoops = data.placedLoops || [];
+  const [placedLoops, setPlacedLoops] = useState(initialLoops);
   const videoTitle = data.videoTitle || '';
   const duration = data.videoDuration || 60;
+
+  // Check if any custom loops need re-rendering (blob URLs are dead across sessions)
+  const hasCustomLoopsToRender = initialLoops.some(loop =>
+    (loop.type === 'custom-beat' || loop.type === 'custom-melody') &&
+    loop.pattern &&
+    (!loop.file || loop.file.startsWith('blob:'))
+  );
+
+  // Re-render custom beats/melodies that have pattern data but dead blob URLs
+  const [renderingCustom, setRenderingCustom] = useState(hasCustomLoopsToRender);
+  useEffect(() => {
+    if (!hasCustomLoopsToRender) return;
+
+    let cancelled = false;
+
+    const renderAll = async () => {
+      const customLoops = initialLoops.filter(loop =>
+        (loop.type === 'custom-beat' || loop.type === 'custom-melody') &&
+        loop.pattern &&
+        (!loop.file || loop.file.startsWith('blob:'))
+      );
+
+      const updates = {};
+      for (const loop of customLoops) {
+        try {
+          if (loop.type === 'custom-melody') {
+            const { blobURL } = await renderMelodyToBlob({
+              pattern: loop.pattern,
+              bpm: loop.bpm,
+              synthType: loop.synthType,
+              notes: loop.notes,
+              beats: loop.beats,
+              mood: loop.mood
+            });
+            updates[loop.id] = blobURL;
+          } else {
+            const { blobURL } = await renderBeatToBlob({
+              pattern: loop.pattern,
+              bpm: loop.bpm,
+              kit: loop.kit,
+              steps: loop.steps
+            });
+            updates[loop.id] = blobURL;
+          }
+        } catch (err) {
+          console.warn('Failed to re-render custom loop:', loop.name, err);
+        }
+      }
+      if (!cancelled && Object.keys(updates).length > 0) {
+        setPlacedLoops(prev => prev.map(loop =>
+          updates[loop.id] ? { ...loop, file: updates[loop.id] } : loop
+        ));
+      }
+      if (!cancelled) setRenderingCustom(false);
+    };
+
+    renderAll();
+    return () => { cancelled = true; };
+  }, []); // Run once on mount
 
   // Resolve video path — use saved path, or look up by videoId for older saves missing videoPath
   const VIDEO_PATHS = {
@@ -57,8 +118,10 @@ const CompositionPreview = ({ workData, submittedAt, videoOnly = false }) => {
   };
   const videoPath = data.videoPath || (data.videoId && VIDEO_PATHS[data.videoId]) || null;
 
-  // Initialize AudioContext and load buffers on mount
+  // Initialize AudioContext and load buffers once custom loops are rendered
   useEffect(() => {
+    if (renderingCustom) return; // Wait for custom beats/melodies to finish rendering
+
     const uniqueFiles = [...new Set(placedLoops.map(l => l.file).filter(Boolean))];
     if (uniqueFiles.length === 0) {
       setAudioReady(true);
@@ -103,7 +166,7 @@ const CompositionPreview = ({ workData, submittedAt, videoOnly = false }) => {
       stopAllSources();
       ctx.close().catch(() => {});
     };
-  }, []); // Load once on mount
+  }, [renderingCustom, placedLoops]); // Re-run after custom loops are rendered
 
   // Update master volume
   useEffect(() => {
@@ -240,11 +303,11 @@ const CompositionPreview = ({ workData, submittedAt, videoOnly = false }) => {
   return (
     <div className="flex-1 flex flex-col bg-black overflow-hidden">
       {/* Loading overlay while audio buffers load */}
-      {loadingAudio && (
+      {(loadingAudio || renderingCustom) && (
         <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
           <div className="text-center text-white">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-            <p className="text-sm">Loading audio...</p>
+            <p className="text-sm">{renderingCustom ? 'Rendering custom beats...' : 'Loading audio...'}</p>
           </div>
         </div>
       )}

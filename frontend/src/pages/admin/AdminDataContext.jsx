@@ -391,13 +391,22 @@ export const AdminDataProvider = ({ children }) => {
 
   const removeTeacherCompletely = async (email, skipConfirm = false) => {
     const emailKey = email.toLowerCase().replace(/\./g, ',');
-    if (!skipConfirm && !confirm(`Permanently remove ${email} from all data (approvedEmails, outreach, emailsSent)?`)) return false;
+    if (!skipConfirm && !confirm(`Permanently remove ${email} and ALL their classes/student data? This cannot be undone.`)) return false;
     try {
+      // Find teacher's UID from registeredUsers so we can delete their classes
+      const matchingUser = registeredUsers.find(u => u.email?.toLowerCase() === email.toLowerCase());
+      if (matchingUser?.id) {
+        const { deleteTeacherAndAllData } = await import('../../firebase/classes');
+        const result = await deleteTeacherAndAllData(matchingUser.id);
+        console.log('Teacher data cleanup:', result);
+      }
+
+      // Remove approval, outreach, and email tracking
       await remove(ref(database, `approvedEmails/academy/${emailKey}`));
       await remove(ref(database, `approvedEmails/edu/${emailKey}`));
       await remove(ref(database, `teacherOutreach/${emailKey}`));
       await remove(ref(database, `emailsSent/${emailKey}`));
-      if (!skipConfirm) setSuccess(`Removed ${email} completely`);
+      if (!skipConfirm) setSuccess(`Removed ${email} and all associated data`);
       return true;
     } catch (err) { setError(err.message); return false; }
   };

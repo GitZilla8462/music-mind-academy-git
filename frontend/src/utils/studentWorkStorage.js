@@ -10,6 +10,7 @@ import {
   getAllStudentWork as getAllFromFirebase,
   deleteStudentWork as deleteFromFirebase
 } from '../firebase/studentWork';
+import { getDatabase, ref, set } from 'firebase/database';
 import { getActivityToLessonMap } from '../config/curriculumConfig';
 import safeStorage from './safeStorage';
 
@@ -169,6 +170,14 @@ export const saveStudentWork = (activityId, options, studentId = null, authInfo 
         try {
           await submitToFirebase(effectiveAuth.uid, lessonId, parsedActivityId, effectiveAuth.classId);
           console.log(`📤 Auto-submitted to teacher: ${activityId}`);
+
+          // Write save confirmation so teacher's Save All can track progress
+          try {
+            const db = getDatabase();
+            await set(ref(db, `sessions/${effectiveAuth.classId}/saveConfirmations/${id}`), Date.now());
+          } catch (confirmErr) {
+            console.error(`❌ Save confirmation write failed:`, confirmErr);
+          }
         } catch (err) {
           console.error(`❌ Auto-submit failed for ${activityId}:`, err);
         }

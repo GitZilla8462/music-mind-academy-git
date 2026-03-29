@@ -36,6 +36,7 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
 
   // Audio
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasPlayed, setHasPlayed] = useState(false);
   const audioRef = useRef(null);
   const audioCtxRef = useRef(null);
   const gainNodeRef = useRef(null);
@@ -98,7 +99,7 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
         .filter(([, s]) => s.playerName || s.displayName)
         .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName,
+        name: s.displayName || s.playerName,
         score: s.tempoCharadesScore || 0,
         answer: s.tempoCharadesAnswer,
         answerTime: s.tempoCharadesAnswerTime,
@@ -148,6 +149,7 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
         audioRef.current.pause();
       }
       setIsPlaying(false);
+      setHasPlayed(true);
     }, CLIP_DURATION * 1000);
   }, [stopAudio, ensureAudioContext]);
 
@@ -243,6 +245,7 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
       setGamePhase('guessing');
       setScoreChanges({});
       setCorrectCount(0);
+      setHasPlayed(false);
 
       updateGame({
         phase: 'guessing',
@@ -348,15 +351,17 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
                       onClick={replayClip}
                       className="px-6 py-3 rounded-2xl text-xl font-bold flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 hover:scale-105 transition-all"
                     >
-                      <Play size={24} /> Play Clip
+                      <Play size={24} /> {hasPlayed ? 'Replay Clip' : 'Play Clip'}
                     </button>
                   )}
-                  <button
-                    onClick={reveal}
-                    className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl text-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
-                  >
-                    <Eye size={28} /> Reveal Answer
-                  </button>
+                  {hasPlayed && (
+                    <button
+                      onClick={reveal}
+                      className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl text-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
+                    >
+                      <Eye size={28} /> Reveal Answer
+                    </button>
+                  )}
                 </div>
               </div>
             )}

@@ -334,6 +334,10 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
 
+  // Directions modal (tempo-listening-map only) — shows every time the activity opens
+  const isTempoMap = activityId === 'tempo-listening-map';
+  const [showDirections, setShowDirections] = useState(isTempoMap);
+
   // Teacher save toast
   const [teacherSaveToast, setTeacherSaveToast] = useState(false);
   const lastSaveCommandRef = useRef(null);
@@ -858,8 +862,17 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
           </div>
         </div>
 
-        {/* Right: Hide Tools, Undo/Redo, Fullscreen, Save */}
+        {/* Right: Directions, Hide Tools, Undo/Redo, Fullscreen, Save */}
         <div className="flex items-center gap-2">
+          {isTempoMap && (
+            <button
+              onClick={() => setShowDirections(true)}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors"
+              title="Directions"
+            >
+              ❓ Directions
+            </button>
+          )}
           <button
             onClick={() => setShowStickerPanel(!showStickerPanel)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
@@ -1069,6 +1082,41 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
       {teacherSaveToast && (
         <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-xl font-bold text-white bg-blue-600 animate-pulse">
           💾 Your teacher saved your listening map!
+        </div>
+      )}
+
+      {/* Directions modal (tempo-listening-map only) */}
+      {showDirections && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-black text-white">Tempo Listening Map</h2>
+              <button onClick={() => setShowDirections(false)} className="text-white/70 hover:text-white text-2xl font-bold leading-none">✕</button>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl font-black text-purple-600 w-8 text-center">1</span>
+                <p className="text-lg text-gray-700">Listen to the song on the Listening Map</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-2xl font-black text-purple-600 w-8 text-center">2</span>
+                <p className="text-lg text-gray-700">As you listen, place as many <strong>tempo markings</strong> as you can on the map</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-2xl font-black text-purple-600 w-8 text-center">3</span>
+                <p className="text-lg text-gray-700">Shoot for at least <strong>8 different tempo markings</strong> throughout the piece</p>
+              </div>
+              <div className="flex items-start gap-3 bg-yellow-50 rounded-xl p-3 -mx-1">
+                <span className="text-2xl">⭐</span>
+                <p className="text-lg text-gray-700 font-medium">Bonus: Add dynamics and instruments too!</p>
+              </div>
+            </div>
+            <div className="px-6 pb-5">
+              <button onClick={() => setShowDirections(false)} className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white text-lg font-bold rounded-xl transition-colors">
+                Got it!
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

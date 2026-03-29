@@ -216,6 +216,50 @@ export const deleteClass = async (classId) => {
 };
 
 /**
+ * Delete ALL data for a teacher — all their classes (with full cascade),
+ * analytics, conducted lessons, and teacher record.
+ * Used when offboarding a teacher whose account is no longer active.
+ *
+ * @param {string} teacherUid - Teacher's Firebase UID
+ * @returns {object} Summary of what was deleted
+ */
+export const deleteTeacherAndAllData = async (teacherUid) => {
+  // 1. Get all of the teacher's classes
+  const classesRef = ref(database, `teacherClasses/${teacherUid}`);
+  const classesSnap = await get(classesRef);
+  const classIds = classesSnap.exists() ? Object.keys(classesSnap.val()) : [];
+
+  // 2. Delete each class using the existing cascade (roster, grades, submissions, usernames, etc.)
+  const classResults = [];
+  for (const classId of classIds) {
+    try {
+      await deleteClass(classId);
+      classResults.push({ classId, status: 'deleted' });
+    } catch (err) {
+      classResults.push({ classId, status: 'error', error: err.message });
+    }
+  }
+
+  // 3. Clean up teacher-level data
+  await Promise.all([
+    remove(ref(database, `teacherClasses/${teacherUid}`)),
+    remove(ref(database, `teacherAnalytics/${teacherUid}`)),
+    remove(ref(database, `users/${teacherUid}`)),
+    remove(ref(database, `registeredUsers/${teacherUid}`))
+  ]);
+
+  const summary = {
+    teacherUid,
+    classesDeleted: classResults.filter(r => r.status === 'deleted').length,
+    classErrors: classResults.filter(r => r.status === 'error'),
+    totalClasses: classIds.length
+  };
+
+  console.log('Teacher data deleted:', summary);
+  return summary;
+};
+
+/**
  * Update student count for a class
  *
  * @param {string} classId - Class ID

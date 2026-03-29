@@ -219,7 +219,7 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
         .filter(([, s]) => s.playerName || s.displayName)
         .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName,
+        name: s.displayName || s.playerName,
         score: s.tempoCharadesScore || 0,
         playerColor: s.playerColor || '#3B82F6',
         playerEmoji: s.playerEmoji || '\u{1F3B5}'

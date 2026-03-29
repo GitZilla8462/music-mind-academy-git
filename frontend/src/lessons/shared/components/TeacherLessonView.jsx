@@ -37,7 +37,7 @@ import {
   Presentation
 } from 'lucide-react';
 import { saveSurveyResponse, saveMidPilotSurvey, saveFinalPilotSurvey } from '../../../firebase/analytics';
-import { getDatabase, ref, onValue, update } from 'firebase/database';
+import { getDatabase, ref, onValue, update, remove } from 'firebase/database';
 import { useTimerSound } from '../hooks/useTimerSound';
 import ActivityRenderer from './ActivityRenderer';
 
@@ -487,6 +487,7 @@ const PresentationContent = ({
   const [RondoFormGameTeacher, setRondoFormGameTeacher] = useState(null);
   const [RondoFormGameResults, setRondoFormGameResults] = useState(null);
   const [StringsDynamicsLab, setStringsDynamicsLab] = useState(null);
+  const [TempoDetectiveSmallGroup, setTempoDetectiveSmallGroup] = useState(null);
   const [FourCornersGame, setFourCornersGame] = useState(null);
   const [CapstonePlanning, setCapstonePlanning] = useState(null);
   const [ListeningJourney, setListeningJourney] = useState(null);
@@ -514,6 +515,7 @@ const PresentationContent = ({
   // Persist animator directions dismissed state across re-renders
   const animatorDirDismissedRef = useRef(false);
   const stringsDynamicsDirDismissedRef = useRef(false);
+  const tempoDetectiveDirDismissedRef = useRef(false);
 
   // Get join URL based on site (defined early for use in join-code screen)
   const isProduction = window.location.hostname !== 'localhost';
@@ -624,6 +626,11 @@ const PresentationContent = ({
     import('../../shared/activities/tempo-charades/TempoCharadesResults')
       .then(module => setTempoCharadesResults(() => module.default))
       .catch(() => console.log('Tempo Charades Results not available'));
+
+    // Unit 2 Listening Lab Lesson 2: Tempo Detective Small Group
+    import('../../shared/activities/tempo-charades/TempoCharadesSmallGroup')
+      .then(module => setTempoDetectiveSmallGroup(() => module.default))
+      .catch(() => console.log('Tempo Detective Small Group not available'));
 
     // Unit 2 Listening Lab Lesson 4: Section Spotter Teacher Game
     import('../../shared/activities/section-spotter/SectionSpotterTeacherGame')
@@ -1257,6 +1264,19 @@ const PresentationContent = ({
           <TempoCharadesResults sessionData={sessionData} />
         </div>
       );
+    }
+
+    // Tempo Detective Small Group - show game with floating directions overlay
+    if (type === 'tempo-detective-small-group') {
+      if (!TempoDetectiveSmallGroup) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900">
+            <div className="text-white text-2xl">Loading Tempo Detective...</div>
+          </div>
+        );
+      }
+
+      return <TempoDetectiveDirections TempoDetectiveComponent={TempoDetectiveSmallGroup} dismissedRef={tempoDetectiveDirDismissedRef} />;
     }
 
     // Section Spotter Teacher Game (Listening Lab Lessons 3 & 4) - Teacher controls game
@@ -1961,50 +1981,16 @@ const PresentationContent = ({
       return <ActiveListeningSlide />;
     }
 
-    // Tempo Listening Map Directions (Listening Lab Lesson 2) - directions on main board
+    // Tempo Listening Map (Listening Lab Lesson 2) - render the actual activity
     if (type === 'tempo-listening-map-directions') {
       return (
-        <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900">
-          {/* Student Activity Banner */}
-          <div className="w-full flex items-center justify-center py-3 bg-teal-600 flex-shrink-0">
-            <span className="text-white font-bold text-2xl lg:text-3xl tracking-wide">
-              STUDENT ACTIVITY TIME
-            </span>
-          </div>
-
-          {/* Title Section */}
-          <div className="text-center pt-4 lg:pt-6 flex-shrink-0">
-            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-2">
-              Tempo Listening Map
-            </h1>
-            <div className="text-2xl lg:text-3xl text-teal-200">
-              Hungarian Dance No. 5 by Johannes Brahms
-            </div>
-          </div>
-
-          {/* Directions */}
-          <div className="flex-1 flex items-start justify-center p-4 lg:p-6 pt-6 lg:pt-8">
-            <div className="max-w-4xl w-full bg-white/10 rounded-2xl p-8 lg:p-10 backdrop-blur-sm">
-              <h2 className="text-3xl lg:text-4xl font-bold text-teal-300 mb-6">Instructions</h2>
-              <ol className="space-y-5 text-2xl lg:text-3xl text-white">
-                <li className="flex gap-4">
-                  <span className="text-teal-400 font-bold">1.</span>
-                  <span>Listen to the song on the <strong className="text-teal-300">Listening Map</strong></span>
-                </li>
-                <li className="flex gap-4">
-                  <span className="text-teal-400 font-bold">2.</span>
-                  <span>As you listen, place as many <strong className="text-teal-300">tempo markings</strong> as you can on the map</span>
-                </li>
-                <li className="flex gap-4">
-                  <span className="text-teal-400 font-bold">3.</span>
-                  <span>Shoot for at least <strong className="text-teal-300">8 different tempo markings</strong> throughout the piece</span>
-                </li>
-              </ol>
-              <div className="mt-6 p-4 bg-green-500/20 border border-green-400/40 rounded-xl">
-                <p className="text-xl text-green-300 font-bold">Bonus: Add dynamics and instruments too!</p>
-              </div>
-            </div>
-          </div>
+        <div className="absolute inset-0">
+          <ActivityRenderer
+            activity={{ type: 'tempo-listening-map', id: 'teacher-preview' }}
+            onComplete={() => {}}
+            viewMode={false}
+            isSessionMode={false}
+          />
         </div>
       );
     }
@@ -2153,7 +2139,7 @@ const PresentationContent = ({
                   <ul className={`${isDense ? 'space-y-2 lg:space-y-3' : 'space-y-4 lg:space-y-6'} pl-2 lg:pl-4`}>
                     {section.bullets.map((bullet, bulletIndex) => (
                       <li key={bulletIndex} className="flex items-start gap-3 lg:gap-4">
-                        <span className={`text-purple-400 ${isDense ? 'text-2xl lg:text-3xl' : 'text-3xl lg:text-5xl'} mt-0.5`}>•</span>
+                        {!section.noBullets && <span className={`text-purple-400 ${isDense ? 'text-2xl lg:text-3xl' : 'text-3xl lg:text-5xl'} mt-0.5`}>•</span>}
                         <span className={`${isDense ? 'text-xl lg:text-3xl' : 'text-3xl lg:text-5xl'} text-slate-200 leading-snug`}>{bullet}</span>
                       </li>
                     ))}
@@ -2627,7 +2613,7 @@ const PresentationContent = ({
               This piece is mostly <span className="text-red-400 font-semibold">Allegro</span> and <span className="text-blue-400 font-semibold">Adagio</span> with
               some <span className="text-green-400 font-semibold">Andante</span>, <span className="text-gray-200 font-semibold">accel.</span>,
               and <span className="text-orange-400 font-semibold">Presto</span> at the end.
-              Tempo is subjective — there are many correct ways to label this piece!
+              Tempo markings describe ranges, not exact speeds — so more than one label may be correct here!
             </p>
           </div>
           {/* Answer key image */}
@@ -3742,6 +3728,82 @@ const StringsDynamicsLabDirections = React.memo(({ StringsDynamicsLabComponent, 
 });
 
 // ============================================
+// TEMPO DETECTIVE DIRECTIONS OVERLAY (small group game)
+// ============================================
+const TempoDetectiveDirections = React.memo(({ TempoDetectiveComponent, dismissedRef }) => {
+  const [showOverlay, setShowOverlay] = useState(!dismissedRef.current);
+
+  const directions = [
+    { num: '1', text: <>Get into groups of <span className="font-bold text-gray-900">2–5</span> (you can start with just 2 — others can join later!)</> },
+    { num: '2', text: <>One person taps <span className="font-bold text-gray-900">Create Group</span> and shares the 4-digit code</> },
+    { num: '3', text: <>Others tap <span className="font-bold text-gray-900">Join Group</span> and enter the code</> },
+    { num: '4', text: <>Take turns being the <span className="font-bold text-purple-700">Picker</span> — choose a tempo, everyone listens, then <span className="font-bold text-amber-600">guessers</span> pick the tempo</> },
+    { num: '5', text: <><span className="font-bold text-gray-900">10 rounds</span> — the picker rotates each round, highest score wins!</> },
+  ];
+
+  return (
+    <div className="absolute inset-0">
+      {/* Live game behind everything */}
+      <div className="absolute inset-0 overflow-hidden">
+        <TempoDetectiveComponent onComplete={() => {}} />
+      </div>
+
+      {/* Directions button (top-left) - shows when overlay is dismissed */}
+      {!showOverlay && (
+        <button
+          onClick={() => { dismissedRef.current = false; setShowOverlay(true); }}
+          className="absolute top-3 left-3 z-50 flex items-center gap-1.5 px-3 py-2 bg-white/90 hover:bg-white rounded-xl shadow-lg border border-gray-200 text-gray-700 hover:text-gray-900 transition-all cursor-pointer"
+        >
+          <HelpCircle size={16} />
+          <span className="text-sm font-semibold">Directions</span>
+        </button>
+      )}
+
+      {/* Floating directions modal */}
+      {showOverlay && (
+        <div className="absolute top-4 left-4 z-50 w-[400px] bg-white border-gray-200 backdrop-blur-md rounded-2xl border shadow-2xl select-none">
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200">
+            <div className="flex items-center gap-2">
+              <div className="text-xl">🎵</div>
+              <h3 className="text-lg font-bold text-gray-900">Tempo Detective</h3>
+            </div>
+            <button
+              onClick={() => { dismissedRef.current = true; setShowOverlay(false); }}
+              className="w-7 h-7 rounded-full bg-gray-100 hover:bg-red-500 flex items-center justify-center transition-colors group cursor-pointer"
+            >
+              <X size={14} className="text-gray-500 group-hover:text-white" />
+            </button>
+          </div>
+
+          {/* Directions list */}
+          <div className="px-5 py-4 space-y-3">
+            {directions.map((d) => (
+              <div key={d.num} className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-gray-800 text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                  {d.num}
+                </div>
+                <span className="text-sm text-gray-900 leading-relaxed">{d.text}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Got it button */}
+          <div className="px-5 pb-4">
+            <button
+              onClick={() => { dismissedRef.current = true; setShowOverlay(false); }}
+              className="w-full py-2.5 bg-gray-800 hover:bg-gray-900 text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Check size={14} /> Got it!
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
+// ============================================
 // ANIMATOR DIRECTIONS OVERLAY (stable component to prevent remounting)
 // ============================================
 const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, pieceConfig, dismissedRef, journeyProps = {} }) => {
@@ -3966,6 +4028,7 @@ const TeacherLessonView = ({
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [pendingStageId, setPendingStageId] = useState(null); // Track stage to navigate to after save
   const [isSavingAll, setIsSavingAll] = useState(false);
+  const [saveConfirmedCount, setSaveConfirmedCount] = useState(0);
   const [classroomTimer, setClassroomTimer] = useState({
     presetMinutes: 5,
     timeRemaining: 5 * 60, // in seconds
@@ -4411,20 +4474,64 @@ const TeacherLessonView = ({
   };
 
   // Confirm leaving saveable activity - save all and advance
+  // Listens for actual student confirmations instead of a blind timeout
   const confirmLeaveComposition = async () => {
+    // No session or no students — just advance immediately
+    if (!effectiveCode || studentCount === 0) {
+      setShowSaveModal(false);
+      if (pendingStageId) {
+        setCurrentStage(pendingStageId);
+        setPendingStageId(null);
+      }
+      return;
+    }
+
     setIsSavingAll(true);
+    setSaveConfirmedCount(0);
+
+    const db = getDatabase();
+    const confirmationsRef = ref(db, `sessions/${effectiveCode}/saveConfirmations`);
+
+    // Clear previous confirmations before sending the new save command
+    try {
+      await remove(confirmationsRef);
+    } catch (err) {
+      console.error('Failed to clear old confirmations:', err);
+    }
+
     await sendSaveCommand();
 
-    // Wait for save command to propagate to all students (2 seconds)
-    // This gives time for Firebase to sync and students to save
-    setTimeout(() => {
+    const expectedCount = studentCount;
+    let finished = false;
+
+    // Proceed once all students confirm or max timeout (10s)
+    const finishSave = () => {
+      if (finished) return;
+      finished = true;
+      unsubConfirmations();
+      clearTimeout(fallbackTimer);
       setIsSavingAll(false);
       setShowSaveModal(false);
       if (pendingStageId) {
         setCurrentStage(pendingStageId);
         setPendingStageId(null);
       }
-    }, 2000);
+    };
+
+    const unsubConfirmations = onValue(confirmationsRef, (snapshot) => {
+      const data = snapshot.val();
+      const confirmed = data ? Object.keys(data).length : 0;
+      setSaveConfirmedCount(confirmed);
+
+      if (confirmed >= expectedCount && expectedCount > 0) {
+        finishSave();
+      }
+    });
+
+    const fallbackTimer = setTimeout(() => {
+      console.log(`⏱️ Save All timeout — proceeding (${saveConfirmedCount}/${expectedCount} confirmed)`);
+      finishSave();
+    }, 10000);
   };
 
   // Navigate to previous stage (within content stages only)
@@ -5092,9 +5199,16 @@ const TeacherLessonView = ({
             {/* Content */}
             <div className="p-6">
               {isSavingAll ? (
-                <div className="flex items-center justify-center gap-3 py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-                  <p className="text-gray-700 text-lg">Saving student work...</p>
+                <div className="flex flex-col items-center justify-center gap-3 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                    <p className="text-gray-700 text-lg">Saving student work...</p>
+                  </div>
+                  {studentCount > 0 && (
+                    <p className="text-green-600 font-semibold text-lg">
+                      {saveConfirmedCount}/{studentCount} student{studentCount !== 1 ? 's' : ''} saved
+                    </p>
+                  )}
                 </div>
               ) : (
                 <>

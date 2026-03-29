@@ -11,12 +11,12 @@ const INSTRUMENT_CONFIGS = [
   {
     id: 'flute',
     name: 'Flute',
-    emoji: '\uD83C\uDFB5',
+    icon: '/icons/instruments/flute.png',
     color: '#3B82F6', // blue
     description: 'The highest voice in the woodwind family',
-    videoPath: '/lessons/listening-lab/lesson2/videos/flute-demo.mp4',
-    startTime: 3,   // 0:03 (trimmed from original 1:30)
-    endTime: 13,    // 0:13 (trimmed from original 1:40)
+    videoPath: 'https://media.musicmindacademy.com/lessons/listening-lab/lesson2/videos/flute-clip.mp4',
+    startTime: 0,
+    endTime: 31,
     volume: 0.8,
     credit: 'Performed by Angeliki Sousoura',
     facts: ['No reed \u2014 sound made by blowing across the mouthhole', 'Made of metal, not wood!', 'Plays the highest notes in the woodwind family']
@@ -24,12 +24,12 @@ const INSTRUMENT_CONFIGS = [
   {
     id: 'oboe',
     name: 'Oboe',
-    emoji: '\uD83C\uDFB5',
+    icon: '/icons/instruments/oboe.png',
     color: '#8B5CF6', // purple
     description: 'A double reed with a piercing, nasal tone',
-    videoPath: '/lessons/listening-lab/lesson2/videos/oboe-demo.mp4',
-    startTime: 3,   // 0:03 (trimmed from original 0:08)
-    endTime: 12,    // 0:12 (trimmed from original 0:17)
+    videoPath: 'https://media.musicmindacademy.com/lessons/listening-lab/lesson2/videos/oboe-clip.mp4',
+    startTime: 0,
+    endTime: 28,
     volume: 0.8,
     credit: 'Performed by Aaron Hill',
     facts: ['Uses a double reed \u2014 two thin pieces of cane', 'Tunes the entire orchestra', 'Distinctive nasal, piercing sound']
@@ -37,12 +37,12 @@ const INSTRUMENT_CONFIGS = [
   {
     id: 'clarinet',
     name: 'Clarinet',
-    emoji: '\uD83C\uDFB5',
+    icon: '/icons/instruments/clarinet.png',
     color: '#10B981', // emerald
     description: 'Warm and smooth, with the widest range',
-    videoPath: '/lessons/listening-lab/lesson2/videos/clarinet-demo.mp4',
-    startTime: 3,   // 0:03 (trimmed from original 3:12)
-    endTime: 13,    // 0:13 (trimmed from original 3:22)
+    videoPath: 'https://media.musicmindacademy.com/lessons/listening-lab/lesson2/videos/clarinet-clip.mp4',
+    startTime: 0,
+    endTime: 40,
     volume: 0.8,
     credit: 'Performed by Kyrill Rybakov',
     facts: ['Uses a single reed', 'Widest range of any woodwind', 'Can sound warm or bright']
@@ -50,12 +50,12 @@ const INSTRUMENT_CONFIGS = [
   {
     id: 'bassoon',
     name: 'Bassoon',
-    emoji: '\uD83C\uDFB5',
+    icon: '/icons/instruments/bassoon.png',
     color: '#EF4444', // red
     description: 'The deepest, richest woodwind sound',
-    videoPath: '/lessons/listening-lab/lesson2/videos/bassoon-demo.mp4',
-    startTime: 3,   // 0:03 (trimmed from original 8:48)
-    endTime: 13,    // 0:13 (trimmed from original 8:58)
+    videoPath: 'https://media.musicmindacademy.com/lessons/listening-lab/lesson2/videos/bassoon-clip.mp4',
+    startTime: 0,
+    endTime: 50,
     volume: 0.8,
     credit: 'Performed by Wang Shao Jung',
     facts: ['Uses a double reed, like the oboe', 'Lowest standard orchestral woodwind', 'Over 8 feet of tubing folded into its body']
@@ -202,7 +202,7 @@ const WoodwindFamilyShowcase = ({ onAdvance }) => {
                     className="flex flex-col items-center gap-2 px-6 py-4 rounded-xl"
                     style={{ backgroundColor: `${inst.color}40` }}
                   >
-                    <span className="text-5xl">{inst.emoji}</span>
+                    <img src={inst.icon} alt={inst.name} className="w-12 h-12 object-contain" />
                     <span className="text-xl font-bold" style={{ color: inst.color }}>
                       {inst.name}
                     </span>
@@ -231,7 +231,7 @@ const WoodwindFamilyShowcase = ({ onAdvance }) => {
             <p className="text-4xl text-white/80 mb-4 font-medium">
               {currentIndex === 0 ? "First, let's hear the..." : "Next, let's hear the..."}
             </p>
-            <div className="text-[150px] mb-4">{config.emoji}</div>
+            <img src={config.icon} alt={config.name} className="w-36 h-36 object-contain mx-auto mb-4" />
             <h2 className="text-8xl font-black text-white mb-6 tracking-tight">
               {config.name}
             </h2>
@@ -249,17 +249,13 @@ const WoodwindFamilyShowcase = ({ onAdvance }) => {
       {phase === 'next' && (
         <div className="absolute inset-0 flex items-center justify-center bg-slate-800">
           <div className="text-center">
-            <div className="text-8xl mb-6" style={{ color: config.color }}>
-              {config.emoji}
-            </div>
+            <img src={config.icon} alt={config.name} className="w-24 h-24 object-contain mx-auto mb-6" />
             <p className="text-4xl text-white/70 mb-8">
               That was the <span className="font-bold text-white">{config.name}</span>!
             </p>
             <div className="text-6xl mb-4">{'\u2B07\uFE0F'}</div>
             <p className="text-3xl text-white/80 mb-4">Next up...</p>
-            <div className="text-[120px] mb-4">
-              {INSTRUMENT_CONFIGS[currentIndex + 1]?.emoji}
-            </div>
+            <img src={INSTRUMENT_CONFIGS[currentIndex + 1]?.icon} alt={INSTRUMENT_CONFIGS[currentIndex + 1]?.name} className="w-32 h-32 object-contain mx-auto mb-4" />
             <h3
               className="text-6xl font-black"
               style={{ color: INSTRUMENT_CONFIGS[currentIndex + 1]?.color }}
@@ -284,7 +280,7 @@ const WoodwindFamilyShowcase = ({ onAdvance }) => {
                   className="flex flex-col items-center gap-3 px-8 py-6 rounded-2xl"
                   style={{ backgroundColor: inst.color }}
                 >
-                  <span className="text-6xl">{inst.emoji}</span>
+                  <img src={inst.icon} alt={inst.name} className="w-16 h-16 object-contain" />
                   <span className="text-2xl font-bold text-white">{inst.name}</span>
                 </div>
               ))}
@@ -324,7 +320,7 @@ const WoodwindFamilyShowcase = ({ onAdvance }) => {
               boxShadow: `0 0 50px ${config.color}`
             }}
           >
-            <span className="text-5xl">{config.emoji}</span>
+            <img src={config.icon} alt={config.name} className="w-12 h-12 object-contain" />
             {config.name}
           </div>
 

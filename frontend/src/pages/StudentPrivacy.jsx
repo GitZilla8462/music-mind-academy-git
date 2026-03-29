@@ -298,7 +298,7 @@ const StudentPrivacy = () => {
               Student Data Privacy
             </h1>
             <p style={{ color: '#64748b', fontSize: '1rem' }}>
-              Last updated: February 2026 · For IT Administrators, School Districts, and Parents
+              Last updated: March 2026 · For IT Administrators, School Districts, and Parents
             </p>
           </div>
 
@@ -381,7 +381,7 @@ const StudentPrivacy = () => {
             <h3 style={{ marginTop: 0, color: '#065f46' }}>Summary</h3>
             <p style={{ marginBottom: 0 }}>
               {siteName} is a web-based music education platform for middle school classrooms.
-              Students log in with a system-generated username and PIN to save their compositions,
+              Students log in with a system-generated username and password to save their compositions,
               reflections, and scores. Teachers view student work and enter grades through a built-in gradebook.
               We collect only what's needed for the educational service. We never
               sell data, show ads, or use third-party tracking. Teachers can also run quick sessions where
@@ -520,7 +520,7 @@ const StudentPrivacy = () => {
             or school account is required. Teachers print login cards with these credentials.
           </p>
           <ol>
-            <li><strong>Sign in</strong> with their musical username + PIN</li>
+            <li><strong>Sign in</strong> with their musical username + password</li>
             <li><strong>Complete activities</strong> — compositions, reflections, and games</li>
             <li><strong>Work is saved</strong> to the student's account automatically</li>
             <li><strong>Teacher reviews</strong> student work in the gradebook — views compositions, enters grades, and provides written feedback</li>
@@ -679,8 +679,9 @@ const StudentPrivacy = () => {
           <h2>Data Retention</h2>
           <ul>
             <li><strong>During active use:</strong> Student data is retained and accessible to the teacher and student</li>
-            <li><strong>Account termination:</strong> Student data is securely deleted within <strong>60 days</strong> unless the teacher requests an export</li>
-            <li><strong>Deletion requests:</strong> Teachers, parents, and districts may request deletion of student data at any time</li>
+            <li><strong>Class deletion:</strong> When a teacher deletes a class, all associated student data — roster, compositions, grades, credentials, and submissions — is permanently removed</li>
+            <li><strong>Account termination:</strong> When a teacher's account is no longer active, all associated student data is deleted</li>
+            <li><strong>Deletion requests:</strong> Teachers, parents, and districts may request deletion of student data at any time by emailing <a href="mailto:rob@musicmindacademy.com" style={{ color: '#2563eb' }}>rob@musicmindacademy.com</a></li>
             {!isEduSite && (
               <li><strong>DPA available:</strong> We are happy to sign a Data Privacy Agreement with your district upon request</li>
             )}
@@ -815,9 +816,9 @@ const StudentPrivacy = () => {
 
           <h3>What happens when a teacher leaves?</h3>
           <p>
-            Student data is securely deleted within 60 days of account termination. Teachers may
-            request a data export before cancellation. Schools and districts may request return or
-            destruction of data at any time.
+            When a teacher's account is no longer active, all associated student data is deleted.
+            Teachers may request a data export before leaving. Schools and districts may request
+            return or destruction of data at any time.
           </p>
 
           {/* Contact Us */}

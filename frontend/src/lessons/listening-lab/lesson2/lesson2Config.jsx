@@ -114,7 +114,7 @@ export const lessonSections = [
         duration: 7,
         hasTimer: false,
         trackProgress: true,
-        description: 'CLASS GAME: Listen to clips and guess the tempo!',
+        description: 'Class Game: Listen to clips and guess the tempo!',
         bonusDescription: 'Can you hear the difference between Largo and Presto?'
       },
       {
@@ -147,7 +147,7 @@ export const lessonSections = [
         duration: 15,
         hasTimer: true,
         trackProgress: true,
-        description: 'STUDENTS WORK: Create a Tempo Listening Map for Hungarian Dance No. 5.',
+        description: 'Students Work: Create a Tempo Listening Map for Hungarian Dance No. 5.',
         bonusDescription: 'Bonus: Circle moments where you hear the clarinet!'
       },
       {
@@ -191,18 +191,18 @@ export const lessonSections = [
       {
         id: 'small-group-instructions',
         type: 'summary',
-        label: 'Small Group Instructions',
+        label: 'Tempo Detective Instructions',
         description: 'Explain how to play Tempo Detective in small groups.',
         duration: 1
       },
       {
         id: 'small-group-game',
         type: 'activity',
-        label: '🎮 Unlock Small Group Detective',
+        label: '🎮 Unlock Tempo Detective',
         duration: 10,
         hasTimer: false,
         trackProgress: true,
-        description: 'SMALL GROUPS: Take turns picking tempos and guessing!',
+        description: 'Small Groups: Take turns picking tempos and guessing!',
         bonusDescription: 'Everyone gets a turn to be the picker!'
       }
     ]
@@ -281,11 +281,11 @@ export const lessonStages = [
         {
           heading: 'Today We Will',
           bullets: [
-            'Meet the WOODWIND FAMILY (flute, oboe, clarinet, bassoon)',
-            'Learn TEMPO MARKINGS (Largo, Adagio, Andante, Allegro, Presto)',
-            'Learn about ACCELERANDO and RITARDANDO',
-            'Play TEMPO DETECTIVE',
-            'Create a TEMPO LISTENING MAP'
+            'Meet the Woodwind Family (flute, oboe, clarinet, bassoon)',
+            'Learn Tempo Markings (Largo, Adagio, Andante, Allegro, Presto)',
+            'Learn about Accelerando and Ritardando',
+            'Play Tempo Detective',
+            'Create a Tempo Listening Map'
           ]
         }
       ],
@@ -341,10 +341,10 @@ export const lessonStages = [
       title: 'The Orchestral Woodwind Family',
       subtitle: 'Four Instruments We Will Focus On',
       bullets: [
-        '\uD83C\uDFB5 Flute \u2014 highest, no reed, bright and airy',
-        '\uD83C\uDFB5 Oboe \u2014 double reed, nasal and piercing',
-        '\uD83C\uDFB5 Clarinet \u2014 single reed, warm and smooth',
-        '\uD83C\uDFB5 Bassoon \u2014 double reed, deep and rich'
+        'Flute \u2014 highest, no reed, bright and airy',
+        'Oboe \u2014 double reed, nasal and piercing',
+        'Clarinet \u2014 single reed, warm and smooth',
+        'Bassoon \u2014 double reed, deep and rich'
       ]
     }
   },
@@ -414,10 +414,10 @@ export const lessonStages = [
         {
           heading: 'How to Play',
           bullets: [
-            '1. Listen to a music clip playing at a specific tempo',
-            '2. Guess which tempo term matches what you hear',
-            '3. Fastest correct answer gets the most points!',
-            '4. Listen carefully \u2014 each clip is only 8 seconds!'
+            'Listen to a music clip playing at a specific tempo',
+            'Guess which tempo term matches what you hear',
+            'Fastest correct answer gets the most points!',
+            'Listen carefully \u2014 each clip is only 8 seconds!'
           ]
         },
       ]
@@ -496,14 +496,16 @@ export const lessonStages = [
       sections: [
         {
           heading: 'Share These 3 Things',
+          noBullets: true,
           bullets: [
-            '1. What TEMPO CHANGES did you notice? (fast to slow, slow to fast?)',
-            '2. Where did you mark the BIGGEST tempo change?',
-            '3. What SURPRISED you about the tempo in Hungarian Dance No. 5?'
+            '1. What tempo changes did you notice?',
+            '2. Where did you mark the biggest tempo change?',
+            '3. What surprised you about the tempo in Hungarian Dance No. 5?'
           ]
         },
         {
           heading: '',
+          noBullets: true,
           bullets: [
             'Tap "Presentation View" on your Chromebook to show your map!'
           ]
@@ -535,9 +537,8 @@ export const lessonStages = [
         {
           heading: 'Reflect on Today\'s Lesson',
           bullets: [
-            '1. The tempo in Hungarian Dance No. 5 made me feel ______ because ______.',
-            '2. The woodwind I noticed most was the ______ because ______.',
-            '3. One tempo term I\'ll remember is ______ which means ______.'
+            'Name a tempo you learned today and what it means.',
+            'What woodwind instrument did you notice or like the most?'
           ]
         }
       ]
@@ -566,7 +567,7 @@ export const lessonStages = [
         {
           heading: 'Bonus Activity',
           bullets: [
-            'The following activity is a BONUS if you have extra time.',
+            'The following activity is a bonus if you have extra time.',
             'Tempo Detective: Small Groups \u2014 everyone gets a turn!'
           ]
         }
@@ -575,7 +576,7 @@ export const lessonStages = [
   },
   {
     id: 'small-group-instructions',
-    label: 'Small Group Instructions',
+    label: 'Tempo Detective Instructions',
     description: 'Explain how to play Tempo Detective in small groups.',
     type: 'summary',
     duration: 1,
@@ -598,7 +599,7 @@ export const lessonStages = [
   },
   {
     id: 'small-group-game',
-    label: '🎮 Unlock Small Group Detective',
+    label: '🎮 Unlock Tempo Detective',
     description: 'SMALL GROUPS: Take turns picking tempos and guessing!',
     bonusDescription: 'Everyone gets a turn to be the picker!',
     hasProgress: true,
@@ -606,9 +607,7 @@ export const lessonStages = [
     hasTimer: false,
     duration: 9,
     presentationView: {
-      type: 'activity-banner',
-      title: 'Tempo Detective: Small Groups',
-      subtitle: 'Group up! Take turns picking and guessing.'
+      type: 'tempo-detective-small-group'
     }
   },
 ];
