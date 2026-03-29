@@ -517,8 +517,10 @@ export const SessionProvider = ({ children }) => {
   }, [sessionData, sessionCode, userRole, isLoadingSession]);
 
   const startSession = (code, teacherId, classIdParam = null, classCodeParam = null) => {
-    console.log('🎬 Teacher starting session:', { code, teacherId });
-    setSessionCode(code);
+    // For class-based sessions, code may be undefined — use classCode as analytics key
+    const effectiveCode = code || classCodeParam;
+    console.log('🎬 Teacher starting session:', { code, effectiveCode, teacherId });
+    setSessionCode(effectiveCode);
     setUserRole('teacher');
     setUserId(teacherId);
     setIsInSession(true);
